@@ -1,9 +1,18 @@
 @extends('layouts.base')
 
+<<<<<<< HEAD
 @section('page-title', setting('site_name'))
 
 @section('content')
 
+=======
+@section('content')
+
+<x-page-title>
+  Home TODO
+</x-page-title>
+
+>>>>>>> b60e060 (feature: add notice board)
 <div class="row p-3"
      hx-get="{{ route('widgets.notices-htmx') }}"
      hx-trigger="load"

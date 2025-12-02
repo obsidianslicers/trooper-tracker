@@ -1,7 +1,10 @@
 @extends('layouts.base')
 
+<<<<<<< HEAD
 @section('page-title', 'Trooper Notices')
 
+=======
+>>>>>>> b60e060 (feature: add notice board)
 @section('content')
 
 <x-transmission-bar :id="'notices'" />

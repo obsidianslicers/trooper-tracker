@@ -136,6 +136,7 @@
     </div>
 
   </div>
+<<<<<<< HEAD
 
   @if(Auth::check() && Auth::user() != null)
   <div class="container-fluid border-top mt-3">
@@ -156,4 +157,6 @@
   </div>
   @endif
 
+=======
+>>>>>>> b60e060 (feature: add notice board)
 </div>

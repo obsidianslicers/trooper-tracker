@@ -53,10 +53,10 @@ enum NoticeType: string
     public static function toDescriptions(): array
     {
         return [
-            'info' => self::INFO->description(),
-            'success' => self::SUCCESS->description(),
-            'warning' => self::WARNING->description(),
-            'danger' => self::DANGER->description(),
+            'info' => 'NOW HEAR THIS!',
+            'success' => 'MISSION ACCOMPLISHED!',
+            'warning' => 'ATTENTION TROOPERS!',
+            'danger' => 'BATTLE STATIONS!'
         ];
     }
 }
