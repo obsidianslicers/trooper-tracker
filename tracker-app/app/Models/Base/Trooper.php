@@ -12,12 +12,14 @@ use App\Models\Event;
 use App\Models\EventTrooper;
 use App\Models\EventUpload;
 use App\Models\EventUploadTag;
+use App\Models\Notice;
 use App\Models\Organization;
 use App\Models\TrooperAchievement;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperAward;
 use App\Models\TrooperCostume;
 use App\Models\TrooperDonation;
+use App\Models\TrooperNotice;
 use App\Models\TrooperOrganization;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
@@ -56,6 +58,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Collection|Award[] $awards
  * @property Collection|Costume[] $costumes
  * @property Collection|TrooperDonation[] $trooper_donations
+ * @property Collection|Notice[] $notices
  * @property Collection|Organization[] $organizations
  *
  * @package App\Models\Base
@@ -158,6 +161,13 @@ class Trooper extends Model
     public function trooper_donations(): HasMany
     {
         return $this->hasMany(TrooperDonation::class);
+    }
+
+    public function notices(): BelongsToMany
+    {
+        return $this->belongsToMany(Notice::class, 'tt_trooper_notices')
+                    ->withPivot(TrooperNotice::ID, TrooperNotice::IS_READ, TrooperNotice::DELETED_AT, TrooperNotice::CREATED_ID, TrooperNotice::UPDATED_ID, TrooperNotice::DELETED_ID)
+                    ->withTimestamps();
     }
 
     public function organizations(): BelongsToMany

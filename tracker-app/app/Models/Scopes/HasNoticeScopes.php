@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models\Scopes;
 
 use App\Models\Trooper;
+use App\Models\TrooperNotice;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -42,20 +43,41 @@ trait HasNoticeScopes
      * @param Trooper $trooper The trooper whose visibility is being checked.
      * @return Builder<self>
      */
-    protected function scopeVisibleTo(Builder $query, Trooper $trooper): Builder
+    protected function scopeVisibleTo(Builder $query, Trooper $trooper, bool $unread_only = false): Builder
     {
-        return $query->whereExists(function ($sub) use ($trooper)
+        $query->where(function ($outer) use ($trooper)
         {
-            $sub->select(DB::raw(1))
-                ->from('tt_trooper_assignments as ta_assign')
-                ->join('tt_organizations as org_assign', 'ta_assign.organization_id', '=', 'org_assign.id')
-                ->join('tt_organizations as org_notice', 'tt_notices.organization_id', '=', 'org_notice.id')
-                ->where('ta_assign.trooper_id', $trooper->id)
-                ->where('ta_assign.member', true)
-                ->whereRaw('org_assign.node_path LIKE CONCAT(org_notice.node_path, "%")');
+            $outer->whereExists(function ($sub) use ($trooper)
+            {
+                $sub->select(DB::raw(1))
+                    ->from('tt_trooper_assignments as ta_assign')
+                    ->join('tt_organizations as org_assign', 'ta_assign.organization_id', '=', 'org_assign.id')
+                    ->join('tt_organizations as org_notice', 'tt_notices.organization_id', '=', 'org_notice.id')
+                    ->where('ta_assign.trooper_id', $trooper->id)
+                    ->where('ta_assign.member', true)
+                    ->whereRaw('org_assign.node_path LIKE CONCAT(org_notice.node_path, "%")');
+            })->orWhereNull('tt_notices.organization_id');
         });
-    }
 
+
+        if ($unread_only)
+        {
+            $query->where(function ($outer) use ($trooper)
+            {
+                $outer->whereDoesntHave('troopers', function ($sub) use ($trooper)
+                {
+                    $sub->where('tt_trooper_notices.trooper_id', $trooper->id);
+                })
+                    ->orWhereHas('troopers', function ($sub) use ($trooper)
+                    {
+                        $sub->where('tt_trooper_notices.trooper_id', $trooper->id)
+                            ->where('tt_trooper_notices.is_read', false);
+                    });
+            });
+        }
+
+        return $query;
+    }
 
     /**
      * Scope: limit to organizations that can be updated by a given moderator.

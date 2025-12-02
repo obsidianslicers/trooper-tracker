@@ -22,8 +22,8 @@
     @foreach($notices as $notice)
     <tr>
       <td>
-        {{ $notice->title }}
         <i class="fa fa-fw fa-circle text-{{ $notice->type->value }} me-2"></i>
+        {{ $notice->title }}
       </td>
       <td>
         {{ $notice->Organization->name ?? '-' }}

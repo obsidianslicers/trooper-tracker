@@ -32,16 +32,31 @@ enum NoticeType: string
     case Danger = 'danger';
 
     /**
+     * Return the description for a single enum case.
+     */
+    public function description(): string
+    {
+        return match ($this)
+        {
+            self::Info => 'NOW HEAR THIS!',
+            self::Success => 'MISSION ACCOMPLISHED!',
+            self::Warning => 'ATTENTION TROOPERS!',
+            self::Danger => 'BATTLE STATIONS!',
+        };
+    }
+
+
+    /**
      * Summary of toDescriptions
      * @return array{danger: string, info: string, success: string, warning: string}
      */
     public static function toDescriptions(): array
     {
         return [
-            'info' => 'NOW HEAR THIS!',
-            'success' => 'MISSION ACCOMPLISHED!',
-            'warning' => 'ATTENTION TROOPERS!',
-            'danger' => 'BATTLE STATIONS!'
+            'info' => self::Info->description(),
+            'success' => self::Success->description(),
+            'warning' => self::Warning->description(),
+            'danger' => self::Danger->description(),
         ];
     }
 }

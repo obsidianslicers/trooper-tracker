@@ -15,7 +15,7 @@
     <div class="collapse navbar-collapse justify-content-center"
          id="pillNav">
       <ul class="navbar-nav flex-wrap">
-        <x-nav-link :href="'#'"
+        <x-nav-link :href="route('home')"
                     :active="request()->routeIs('home')">
           Home
         </x-nav-link>

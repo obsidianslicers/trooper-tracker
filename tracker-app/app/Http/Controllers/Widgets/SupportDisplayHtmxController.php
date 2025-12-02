@@ -15,7 +15,6 @@ use Illuminate\Http\Request;
  */
 class SupportDisplayHtmxController extends Controller
 {
-
     /**
      * Handle the incoming request to display the support widget.
      *
@@ -41,7 +40,7 @@ class SupportDisplayHtmxController extends Controller
             'message' => $this->getMessage()
         ];
 
-        return view('pages.widgets.support', $data);
+        return view('widgets.support', $data);
     }
 
     /**

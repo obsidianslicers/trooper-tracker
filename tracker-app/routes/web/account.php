@@ -5,6 +5,8 @@ declare(strict_types=1);
 use App\Http\Controllers\Account\CostumesDeleteHtmxController;
 use App\Http\Controllers\Account\CostumesListHtmxController;
 use App\Http\Controllers\Account\CostumesSubmitHtmxController;
+use App\Http\Controllers\Account\NoticesListController;
+use App\Http\Controllers\Account\NoticesSubmitHtmxController;
 use App\Http\Controllers\Account\NotificationsListHtmxController;
 use App\Http\Controllers\Account\NotificationsSubmitHtmxController;
 use App\Http\Controllers\Account\ProfileController;
@@ -18,6 +20,8 @@ Route::prefix('account')
     ->group(function ()
     {
         Route::get('/', ProfileController::class)->name('display');
+        Route::get('/notices', NoticesListController::class)->name('notices');
+        Route::post('/notices-htmx/{notice}', NoticesSubmitHtmxController::class)->name('notices-htmx');
         Route::post('/profile-htmx', ProfileSubmitHtmxController::class)->name('profile-htmx');
         Route::get('/notifications-htmx', NotificationsListHtmxController::class)->name('notifications-htmx');
         Route::post('/notifications-htmx', NotificationsSubmitHtmxController::class);

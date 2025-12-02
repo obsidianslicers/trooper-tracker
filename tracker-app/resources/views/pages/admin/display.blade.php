@@ -32,7 +32,7 @@
     Approve and Manage Troopers
     @endif
   </x-dashboard-card>
-  <x-dashboard-card :label="'Bulletin Board'"
+  <x-dashboard-card :label="'Notices to the Troops'"
                     :icon="'fa-message'"
                     :url="route('admin.notices.list')">
     <p>
