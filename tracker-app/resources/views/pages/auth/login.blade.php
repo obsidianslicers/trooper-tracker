@@ -44,11 +44,6 @@
       </x-submit-container>
     </form>
 
-    <p>
-      <small>
-        <b>Remember:</b><br />Login with your {{ config('tracker.forum.name') }} board username and password.
-      </small>
-    </p>
   </x-card>
 </x-slim-container>
 

@@ -60,7 +60,8 @@
         <x-label>
           Message:
         </x-label>
-        <x-input-text :multiline="true"
+        <x-input-text class="markdown-editor"
+                      :multiline="true"
                       :property="'message'"
                       :value="$notice->message" />
       </x-input-container>

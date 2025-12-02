@@ -18,8 +18,7 @@ $icons = [
     </strong>
     <button type="button"
             class="btn-close"
-            data-bs-dismiss="alert"
-            aria-label="Close"></button>
+            data-bs-dismiss="alert"></button>
   </div>
   @endforeach
   @endforeach
@@ -38,8 +37,7 @@ $icons = [
     </ul>
     <button type="button"
             class="btn-close"
-            data-bs-dismiss="alert"
-            aria-label="Close"></button>
+            data-bs-dismiss="alert"></button>
   </div>
   @endif
 </div>

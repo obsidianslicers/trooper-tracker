@@ -16,17 +16,23 @@ $icons = [
       <p class="fw-bold py-2 border-top border-bottom">
         {{ $notice->title }}
       </p>
-      <p>
-        {{ $notice->message }}
-        <button class="btn btn-outline-secondary btn-sm float-end"
-                type="submit"
-                hx-post="{{ route('account.notices-htmx', ['notice'=>$notice]) }}"
-                hx-swap="outerHTML"
-                hx-indicator="#transmission-bar-notices">
-          <i class="fas fa-book-reader pe-2"></i>
-          Mark as Read
-        </button>
-      </p>
+      <div class="row">
+        <div class="col">
+          {!! Str::markdown($notice->message) !!}
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <button class="btn btn-outline-secondary btn-sm float-end"
+                  type="submit"
+                  hx-post="{{ route('account.notices-htmx', ['notice'=>$notice]) }}"
+                  hx-swap="outerHTML"
+                  hx-indicator="#transmission-bar-notices">
+            <i class="fas fa-book-reader pe-2"></i>
+            Mark as Read
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </div>

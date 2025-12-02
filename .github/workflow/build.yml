@@ -1,0 +1,39 @@
+name: Build Assets
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js 18
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Node dependencies
+        run: npm ci
+        working-directory: ./tracker-app
+
+      - name: Build frontend assets
+        run: npm run build
+        working-directory: ./tracker-app
+
+      - name: Configure Git user
+        run: |
+          git config --global user.name "CI Bot"
+          git config --global user.email "ci@example.com"
+
+      - name: Commit built assets
+        run: |
+          git add .
+          git commit -m "chore: auto-build assets" || echo "No changes"
+
+      - name: Push changes
+        run: git push

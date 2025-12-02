@@ -77,7 +77,7 @@ class TrooperOrganizationSeeder extends Seeder
 
             $region = $organization->organizations->first();
 
-            $this->loadTrooperAssignment($trooper->id, $organization->id, $notify, false, $moderator);
+            $this->loadTrooperAssignment($trooper->id, $organization->id, $notify, false, false);
             $this->loadTrooperAssignment($trooper->id, $region->id, $notify, false, $moderator);
         }
     }
@@ -111,7 +111,7 @@ class TrooperOrganizationSeeder extends Seeder
 
             $moderator = $region_assignment->moderator ?? false;
 
-            $this->loadTrooperAssignment($trooper->id, $unit->id, $notify, $member, $moderator);
+            $this->loadTrooperAssignment($trooper->id, $unit->id, $notify || $member, $member, $moderator);
         }
     }
 

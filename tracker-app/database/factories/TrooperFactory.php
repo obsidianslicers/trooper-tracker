@@ -5,9 +5,11 @@ namespace Database\Factories;
 use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
 use App\Models\Costume;
+use App\Models\Notice;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
+use App\Models\TrooperNotice;
 use App\Models\TrooperOrganization;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -114,6 +116,22 @@ class TrooperFactory extends Factory
         return $this->afterCreating(function (Trooper $trooper) use ($costume)
         {
             $trooper->costumes()->attach($costume->id);
+        });
+    }
+
+    public function markAsRead(Notice $notice): static
+    {
+        return $this->afterCreating(function (Trooper $trooper) use ($notice)
+        {
+            TrooperNotice::firstOrCreate(
+                [
+                    TrooperNotice::TROOPER_ID => $trooper->id,
+                    TrooperNotice::NOTICE_ID => $notice->id,
+                ],
+                [
+                    TrooperNotice::IS_READ => true
+                ]
+            );
         });
     }
 }

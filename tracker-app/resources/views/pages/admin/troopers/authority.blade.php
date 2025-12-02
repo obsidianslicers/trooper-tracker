@@ -58,9 +58,11 @@
           </label>
         </td>
         <td class="cascade">
+          @if($organization->type != \App\Enums\OrganizationType::Organization)
           <x-input-checkbox :property="'moderators.'.$organization->id.'.selected'"
                             :checked="$parent_selected || ($trooper_assignment->moderator ?? false)"
-                            :disabled="$parent_selected" />
+                            :disabled="$parent_selected && $organization->type == \App\Enums\OrganizationType::Unit" />
+          @endif
         </td>
         <td class="text-center">
           <x-yes-no :value="$trooper_assignment->notify ?? false" />

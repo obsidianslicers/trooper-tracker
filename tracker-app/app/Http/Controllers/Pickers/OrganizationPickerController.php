@@ -44,7 +44,7 @@ class OrganizationPickerController extends Controller
 
         $organizations = collect([]);
 
-        if ($request->query('moderated_only'))
+        if ($request->has('moderated_only') && $request->query('moderated_only'))
         {
             if ($trooper->isAdministrator())
             {

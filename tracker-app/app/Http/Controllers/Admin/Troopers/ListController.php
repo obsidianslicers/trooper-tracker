@@ -8,14 +8,14 @@ use App\Enums\MembershipRole;
 use App\Http\Controllers\Controller;
 use App\Models\Trooper;
 use App\Services\BreadCrumbService;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 
 /**
- * Class TroopersDisplayController
+ * Class ListController
  *
  * Handles the display of the main troopers list in the admin section.
  * This controller fetches and displays a list of troopers, filtering the results
@@ -26,7 +26,7 @@ use Illuminate\Support\Facades\Auth;
 class ListController extends Controller
 {
     /**
-     * TroopersDisplayController constructor.
+     * ListController constructor.
      *
      * @param BreadCrumbService $crumbs The breadcrumb service for managing navigation history.
      */
@@ -49,10 +49,11 @@ class ListController extends Controller
         $this->crumbs->addRoute('Command Staff', 'admin.display');
         $this->crumbs->add('Troopers');
 
-        $troopers = $this->getTroopers();
+        $troopers = $this->getTroopers($request);
 
         $data = [
-            'troopers' => $troopers
+            'troopers' => $troopers,
+            'membership_role' => $request->query('membership_role')
         ];
 
         return view('pages.admin.troopers.list', $data);
@@ -63,17 +64,26 @@ class ListController extends Controller
      *
      * If the authenticated user is an Administrator, all troopers are returned.
      * Otherwise, it returns only the troopers moderated by the current user.
-     * @return Collection
+     * @return LengthAwarePaginator
      */
-    private function getTroopers(): Collection
+    private function getTroopers(Request $request): LengthAwarePaginator
     {
         $trooper = Auth::user();
 
-        if ($trooper->membership_role == MembershipRole::Administrator)
+        $q = Trooper::orderBy(Trooper::NAME);
+
+        if ($request->has('membership_role'))
         {
-            return Trooper::orderBy(Trooper::NAME)->get();
+            $membership_role = MembershipRole::from($request->query('membership_role'));
+
+            $q = $q->where(Trooper::MEMBERSHIP_ROLE, $membership_role);
         }
 
-        return Trooper::moderatedBy($trooper)->orderBy(Trooper::NAME)->get();
+        if (!$trooper->isAdministrator())
+        {
+            $q = $q->moderatedBy($trooper);
+        }
+
+        return $q->paginate(15)->withQueryString();
     }
 }

@@ -50,3 +50,5 @@ Use these commands to run your PHPUnit test suite.
 | `php artisan route:list` | Lists all registered routes in your application. |
 | `php artisan config:clear` | Clears the configuration cache. Run this if your `.env` changes aren't taking effect. |
 | `php artisan cache:clear` | Flushes the application cache. |
+| `php artisan serve` | Starts the local development server (usually at `http://127.0.0.1:8000`). |
+| `npm run dev` | Compiles frontend assets (CSS, JS) and watches for changes using Vite. |
