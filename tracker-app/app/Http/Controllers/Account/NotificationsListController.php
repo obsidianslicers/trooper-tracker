@@ -10,30 +10,42 @@ use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 /**
- * Handles displaying the notification settings form via an HTMX request.
+ * Handles the display of the authenticated user's notification settings page.
  */
-class NotificationsListHtmxController extends Controller
+class NotificationsListController extends Controller
 {
     /**
      * Handle the incoming request to display the notification settings.
+     *
+     * This method retrieves the notification preferences and organizational
+     * notification subscriptions for the currently authenticated user and
+     * renders the corresponding view.
      *
      * @param Request $request The incoming HTTP request.
      * @return View The rendered notification settings view.
      */
     public function __invoke(Request $request): View
     {
-        $data = $this->getTrooperNotifications();
+        $data = $this->getTrooperNotifications($request->user());
 
         return view('pages.account.notifications', $data);
     }
 
-    private function getTrooperNotifications(): array
+    /**
+     * Gathers all notification-related data for a given trooper.
+     *
+     * This method fetches all organizations and cross-references them with the
+     * trooper's notification assignments to determine which organizational
+     * notifications are enabled. It also includes the trooper's global
+     * notification preferences.
+     *
+     * @param Trooper $trooper The trooper for whom to fetch notification data.
+     * @return array An array of data ready for the view.
+     */
+    private function getTrooperNotifications(Trooper $trooper): array
     {
-        $trooper = Trooper::findOrFail(Auth::user()->id);
-
         $organizations = Organization::fullyLoaded()->get();
 
         $trooper_assignments = $trooper->trooper_assignments()

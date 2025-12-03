@@ -14,7 +14,7 @@ use Tests\TestCase;
 /**
  * @see \App\Http\Controllers\Account\TrooperCostumesDisplayHtmxController
  */
-class CostumesDisplayHtmxControllerTest extends TestCase
+class CostumesListHtmxControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -48,7 +48,7 @@ class CostumesDisplayHtmxControllerTest extends TestCase
 
         // Assert
         $response->assertOk();
-        $response->assertViewIs('pages.account.costumes');
+        $response->assertViewIs('pages.account.costume-selector');
 
         $response->assertViewHas('organizations', function (Collection $organizations)
         {
@@ -78,7 +78,7 @@ class CostumesDisplayHtmxControllerTest extends TestCase
 
         // Assert
         $response->assertOk();
-        $response->assertViewIs('pages.account.costumes');
+        $response->assertViewIs('pages.account.costume-selector');
 
         $response->assertViewHas('organizations', function (Collection $organizations)
         {

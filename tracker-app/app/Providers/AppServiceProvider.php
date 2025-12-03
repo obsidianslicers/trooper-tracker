@@ -68,7 +68,7 @@ class AppServiceProvider extends ServiceProvider
 
             $user = Auth::user();
 
-            if (!$user || $user->membership_status !== MembershipStatus::Active)
+            if (!$user || $user->membership_status !== MembershipStatus::ACTIVE)
             {
                 return false;
             }

@@ -1,10 +1,8 @@
 @extends('layouts.base')
 
-@section('content')
+@section('page-title', 'Command Staff')
 
-<x-page-title>
-  Command Staff
-</x-page-title>
+@section('content')
 
 <x-dashboard-cards>
   <x-dashboard-card :label="'Events'"

@@ -1,12 +1,14 @@
 @extends('layouts.base')
 
+@section('page-title', 'Update Organization')
+
 @section('content')
 
 <x-transmission-bar :id="'organization'" />
 
 <x-slim-container>
 
-  <x-card :label="'Update '. $organization->type->name">
+  <x-card>
     <form method="POST"
           novalidate="novalidate">
       @csrf
@@ -24,7 +26,7 @@
       </x-input-container>
       @endisset
 
-      @if($organization->type == \App\Enums\OrganizationType::Unit)
+      @if($organization->type == \App\Enums\OrganizationType::UNIT)
       @can('update', $organization->parent)
       {{-- TODO MOVE PARENTS --}}
       @endcan

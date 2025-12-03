@@ -129,7 +129,7 @@ class TrooperOrganizationSeeder extends Seeder
             $to->organization_id = $organization->id;
         }
 
-        $to->membership_status = MembershipStatus::Active;
+        $to->membership_status = MembershipStatus::ACTIVE;
         $to->identifier = $identifier;
 
         $to->save();

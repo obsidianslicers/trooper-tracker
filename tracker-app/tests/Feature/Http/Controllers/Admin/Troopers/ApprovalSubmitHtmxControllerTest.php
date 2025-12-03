@@ -65,7 +65,7 @@ class ApprovalSubmitHtmxControllerTest extends TestCase
 
         $pending_trooper->refresh();
 
-        $this->assertEquals(MembershipStatus::Active, $pending_trooper->membership_status);
+        $this->assertEquals(MembershipStatus::ACTIVE, $pending_trooper->membership_status);
 
         Mail::assertSent(TrooperApproved::class, function (TrooperApproved $mail) use (&$pending_trooper): bool
         {

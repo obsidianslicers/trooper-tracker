@@ -32,7 +32,7 @@ class SupportDisplayHtmxControllerTest extends TestCase
     public function test_invoke_returns_correct_view_and_data_for_each_day_of_week(): void
     {
         $trooper = Trooper::factory()->create();
-        Setting::factory()->create(['key' => 'support_goal', 'value' => '300']);
+        Setting::factory()->create(['key' => 'donate_goal', 'value' => '300']);
 
         $response = $this->actingAs($trooper)->get(route('widgets.support-htmx'));
 

@@ -1,9 +1,14 @@
-/* Bootswatch Darkly theme 
-@import "bootswatch/dist/darkly/bootstrap.min.css";
-vite/tailwind can't handle import font URL's without double quotes
-*/
-
-@use 'style/main.scss';
+@use 'theme.scss';
 
 @import "flatpickr/dist/flatpickr.min.css";
 @import "easymde/dist/easymde.min.css";
+
+// Static Styles
+.pointer {
+    cursor: pointer;
+}
+
+a,
+a:hover {
+    text-decoration: none;
+}

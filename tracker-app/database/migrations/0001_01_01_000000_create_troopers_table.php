@@ -23,9 +23,10 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('username', 128);
             $table->string('password', 256);
+            $table->string('theme', 16)->default('stormtrooper');
             $table->dateTime('last_active_at')->nullable();
-            $table->string('membership_status', 16)->default(MembershipStatus::Pending->value);
-            $table->string('membership_role', 16)->default(MembershipRole::Member->value);
+            $table->string('membership_status', 16)->default(MembershipStatus::PENDING->value);
+            $table->string('membership_role', 16)->default(MembershipRole::MEMBER->value);
 
             $table->boolean('instant_notification')->default(true);
             $table->boolean('attendance_notification')->default(true);

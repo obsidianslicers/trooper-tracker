@@ -32,7 +32,7 @@ class ListController extends Controller
      */
     public function __construct(private readonly BreadCrumbService $crumbs)
     {
-
+        $this->crumbs->addRoute('Command Staff', 'admin.display');
     }
 
     /**
@@ -46,14 +46,12 @@ class ListController extends Controller
      */
     public function __invoke(Request $request): View|RedirectResponse
     {
-        $this->crumbs->addRoute('Command Staff', 'admin.display');
-        $this->crumbs->add('Troopers');
-
         $troopers = $this->getTroopers($request);
 
         $data = [
             'troopers' => $troopers,
-            'membership_role' => $request->query('membership_role')
+            'membership_role' => $request->query('membership_role'),
+            'search_term' => $request->query('search_term')
         ];
 
         return view('pages.admin.troopers.list', $data);
@@ -62,9 +60,12 @@ class ListController extends Controller
     /**
      * Get the collection of troopers to be displayed.
      *
-     * If the authenticated user is an Administrator, all troopers are returned.
-     * Otherwise, it returns only the troopers moderated by the current user.
-     * @return LengthAwarePaginator
+     * This method filters troopers based on the request's query parameters, such as
+     * 'membership_role' and 'search_term'. If the authenticated user is not an
+     * Administrator, the results are further constrained to only troopers moderated
+     * by the current user.
+     * @param Request $request The incoming HTTP request, containing potential filters.
+     * @return LengthAwarePaginator A paginated list of troopers.
      */
     private function getTroopers(Request $request): LengthAwarePaginator
     {
@@ -77,6 +78,18 @@ class ListController extends Controller
             $membership_role = MembershipRole::from($request->query('membership_role'));
 
             $q = $q->where(Trooper::MEMBERSHIP_ROLE, $membership_role);
+        }
+
+        if ($request->has('search_term') && strlen($request->query('search_term', '')) > 3)
+        {
+            $search_term = '%' . $request->query('search_term') . '%';
+
+            $q = $q->where(function ($query) use ($search_term)
+            {
+                $query->where(Trooper::EMAIL, 'like', $search_term)
+                    ->orWhere(Trooper::USERNAME, 'like', $search_term)
+                    ->orWhere(Trooper::NAME, 'like', $search_term);
+            });
         }
 
         if (!$trooper->isAdministrator())

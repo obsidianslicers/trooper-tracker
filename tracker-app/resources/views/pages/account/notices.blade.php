@@ -1,5 +1,7 @@
 @extends('layouts.base')
 
+@section('page-title', 'Trooper Notices')
+
 @section('content')
 
 <x-transmission-bar :id="'notices'" />

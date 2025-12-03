@@ -24,7 +24,7 @@ class EventTrooperSeeder extends Seeder
 
         $status_map = array_values(array_filter(
             TrooperEventStatus::cases(),
-            fn($case) => $case !== TrooperEventStatus::None
+            fn($case) => $case !== TrooperEventStatus::NONE
         ));
 
         $sign_ups = DB::table('event_sign_up')

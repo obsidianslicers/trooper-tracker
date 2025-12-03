@@ -18,7 +18,7 @@
   {!! $message !!}
 </p>
 
-<a href="{{ config('tracker.donate.url') }}"
+<a href="{{ setting('donate_url') }}"
    target="_blank"
    class="btn btn-outline-success mb-2">
   ❤️ Support the Garrison

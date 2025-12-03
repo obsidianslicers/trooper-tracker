@@ -28,8 +28,8 @@
     <div class="collapse navbar-collapse"
          id="navbarNav">
       <ul class="navbar-nav ms-auto">
-        @if(config('tracker.forum.url') != '')
-        <x-nav-link :url="config('tracker.forum.url')">
+        @if(setting('forum_url') != '')
+        <x-nav-link :url="setting('forum_url')">
           Forum
           <i class="fa fa-fw fa-external-link"></i>
         </x-nav-link>
@@ -55,8 +55,20 @@
           <ul class="dropdown-menu dropdown-menu-end">
             <li>
               <a class="dropdown-item"
-                 href="{{ route('account.display') }}">
-                Manage Account
+                 href="{{ route('account.profile') }}">
+                Profile
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item"
+                 href="{{ route('account.notifications') }}">
+                Notifications
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item"
+                 href="{{ route('account.costumes') }}">
+                Costumes
               </a>
             </li>
             <li>

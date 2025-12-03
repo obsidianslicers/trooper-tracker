@@ -8,7 +8,7 @@ use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class ProfileDisplayControllerTest extends TestCase
+class ProfileControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -18,7 +18,7 @@ class ProfileDisplayControllerTest extends TestCase
         $trooper = Trooper::factory()->create();
 
         // Act
-        $response = $this->get(route('admin.troopers.update', $trooper));
+        $response = $this->get(route('admin.troopers.profile', $trooper));
 
         // Assert
         $response->assertRedirect(route('auth.login'));
@@ -32,7 +32,7 @@ class ProfileDisplayControllerTest extends TestCase
 
         // Act
         $response = $this->actingAs($unauthorized_user)
-            ->get(route('admin.troopers.update', $target_trooper));
+            ->get(route('admin.troopers.profile', $target_trooper));
 
         // Assert
         $response->assertForbidden();
@@ -46,11 +46,11 @@ class ProfileDisplayControllerTest extends TestCase
 
         // Act
         $response = $this->actingAs($admin)
-            ->get(route('admin.troopers.update', $target_trooper));
+            ->get(route('admin.troopers.profile', $target_trooper));
 
         // Assert
         $response->assertOk();
-        $response->assertViewIs('pages.admin.troopers.update');
+        $response->assertViewIs('pages.admin.troopers.profile');
         $response->assertViewHas('trooper', function (Trooper $view_trooper) use ($target_trooper): bool
         {
             return $view_trooper->id === $target_trooper->id;

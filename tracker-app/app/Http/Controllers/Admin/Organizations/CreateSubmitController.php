@@ -46,13 +46,13 @@ class CreateSubmitController extends Controller
         $organization->parent_id = $parent->id;
         $organization->name = $request->validated('name');
 
-        if ($parent->type == OrganizationType::Organization)
+        if ($parent->type == OrganizationType::ORGANIZATION)
         {
-            $organization->type = OrganizationType::Region;
+            $organization->type = OrganizationType::REGION;
         }
-        elseif ($parent->type == OrganizationType::Region)
+        elseif ($parent->type == OrganizationType::REGION)
         {
-            $organization->type = OrganizationType::Unit;
+            $organization->type = OrganizationType::UNIT;
         }
         else
         {

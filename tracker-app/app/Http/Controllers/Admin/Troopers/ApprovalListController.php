@@ -29,6 +29,8 @@ class ApprovalListController extends Controller
      */
     public function __construct(private readonly BreadCrumbService $crumbs)
     {
+        $this->crumbs->addRoute('Command Staff', 'admin.display');
+        $this->crumbs->addRoute('Troopers', 'admin.troopers.list');
     }
 
     /**
@@ -42,15 +44,11 @@ class ApprovalListController extends Controller
      */
     public function __invoke(Request $request): View|RedirectResponse
     {
-        $this->crumbs->addRoute('Command Staff', 'admin.display');
-        $this->crumbs->addRoute('Troopers', 'admin.troopers.list');
-        $this->crumbs->add('Approvals');
-
         $trooper = Auth::user();
 
         $query = Trooper::pendingApprovals()->with('trooper_assignments.organization');
 
-        if ($trooper->membership_role != MembershipRole::Administrator)
+        if ($trooper->membership_role != MembershipRole::ADMINISTRATOR)
         {
             $query = $query->moderatedBy($trooper);
         }

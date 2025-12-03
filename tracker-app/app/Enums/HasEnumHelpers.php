@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Enums;
 
+use Illuminate\Support\Str;
+
 trait HasEnumHelpers
 {
     /**
@@ -22,7 +24,7 @@ trait HasEnumHelpers
 
         foreach ($cases as $case)
         {
-            $pairs[$case->value] = $case->name;
+            $pairs[$case->value] = to_title($case->name);
         }
 
         return $pairs;

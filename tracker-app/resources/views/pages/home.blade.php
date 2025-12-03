@@ -1,10 +1,8 @@
 @extends('layouts.base')
 
-@section('content')
+@section('page-title', setting('site_name'))
 
-<x-page-title>
-  Home TODO
-</x-page-title>
+@section('content')
 
 <div class="row p-3"
      hx-get="{{ route('widgets.notices-htmx') }}"

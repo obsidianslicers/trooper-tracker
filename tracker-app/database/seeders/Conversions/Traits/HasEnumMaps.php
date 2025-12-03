@@ -12,12 +12,12 @@ trait HasEnumMaps
     {
         return match ((int) $value)
         {
-            0 => MembershipStatus::None->value,
-            1 => MembershipStatus::Active->value,
-            2 => MembershipStatus::Reserve->value,
-            3 => MembershipStatus::Retired->value,
-            4 => MembershipStatus::Active->value,   //HANDLER
-            default => MembershipStatus::None->value, // fallback
+            0 => MembershipStatus::NONE->value,
+            1 => MembershipStatus::ACTIVE->value,
+            2 => MembershipStatus::RESERVE->value,
+            3 => MembershipStatus::RETIRED->value,
+            4 => MembershipStatus::ACTIVE->value,   //HANDLER
+            default => MembershipStatus::NONE->value, // fallback
         };
     }
 

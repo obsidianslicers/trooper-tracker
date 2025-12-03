@@ -33,6 +33,7 @@ class ListController extends Controller
      */
     public function __construct(private readonly BreadCrumbService $crumbs)
     {
+        $this->crumbs->addRoute('Command Staff', 'admin.display');
     }
 
     /**
@@ -48,9 +49,6 @@ class ListController extends Controller
      */
     public function __invoke(Request $request): View
     {
-        $this->crumbs->addRoute('Command Staff', 'admin.display');
-        $this->crumbs->add('Notices');
-
         $trooper = Auth::user();
 
         $organization = $this->getOrganization($request);

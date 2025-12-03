@@ -22,17 +22,18 @@ class ProfileController extends Controller
     /**
      * Handle the incoming request to display the account page.
      *
-     * This method retrieves the authenticated user's trooper profile and
-     * renders the main account management view with the trooper's data.
+     * This method retrieves the currently authenticated trooper and renders
+     * the main account management view, passing the trooper's data to it.
      *
+     * @param Request $request The incoming HTTP request.
      * @return View The rendered account page view.
      */
     public function __invoke(Request $request): View
     {
-        $trooper = Trooper::findOrFail(Auth::user()->id);
+        $trooper = $request->user();
 
         $data = ['trooper' => $trooper];
 
-        return view('pages.account.display', $data);
+        return view('pages.account.profile', $data);
     }
 }

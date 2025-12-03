@@ -29,6 +29,8 @@ class CreateController extends Controller
      */
     public function __construct(private readonly BreadCrumbService $crumbs)
     {
+        $this->crumbs->addRoute('Command Staff', 'admin.display');
+        $this->crumbs->addRoute('Notices', 'admin.notices.list');
     }
 
     /**
@@ -46,10 +48,6 @@ class CreateController extends Controller
     public function __invoke(Request $request): View
     {
         $this->authorize('create', Notice::class);
-
-        $this->crumbs->addRoute('Command Staff', 'admin.display');
-        $this->crumbs->addRoute('Notices', 'admin.notices.list');
-        $this->crumbs->add('Create');
 
         $trooper = Auth::user();
 

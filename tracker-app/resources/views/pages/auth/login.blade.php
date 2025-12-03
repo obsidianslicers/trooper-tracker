@@ -1,9 +1,11 @@
 @extends('layouts.base')
 
+@section('page-title', 'Login')
+
 @section('content')
 
 <x-slim-container class="mt-4">
-  <x-card :label="'Login'">
+  <x-card>
 
     <form method="POST"
           action="{{ route('auth.login') }}"
@@ -13,7 +15,7 @@
       <x-input-container>
         <x-label>
           @if(config('tracker.plugins.type') != 'standalone')
-          {{ config('tracker.forum.name') }}
+          {{ setting('forum_name') }}
           @endif
           Username:
         </x-label>
@@ -24,7 +26,7 @@
       <x-input-container>
         <x-label>
           @if(config('tracker.plugins.type') != 'standalone')
-          {{ config('tracker.forum.name') }}
+          {{ setting('forum_name') }}
           @endif
           Password:
         </x-label>

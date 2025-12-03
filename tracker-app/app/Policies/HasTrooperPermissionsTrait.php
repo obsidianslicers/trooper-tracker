@@ -9,13 +9,13 @@ use App\Models\Trooper;
 
 trait HasTrooperPermissionsTrait
 {
-    protected function isAdmin(Trooper $trooper): bool
+    protected function isAdministrator(Trooper $trooper): bool
     {
-        return $trooper->membership_role == MembershipRole::Administrator;
+        return $trooper->membership_role == MembershipRole::ADMINISTRATOR;
     }
 
     protected function isModerator(Trooper $trooper): bool
     {
-        return $trooper->membership_role == MembershipRole::Moderator;
+        return $trooper->membership_role == MembershipRole::MODERATOR;
     }
 }

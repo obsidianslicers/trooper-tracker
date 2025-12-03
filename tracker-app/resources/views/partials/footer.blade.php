@@ -136,4 +136,24 @@
     </div>
 
   </div>
+
+  @if(Auth::check() && Auth::user() != null)
+  <div class="container-fluid border-top mt-3">
+    <div class="row align-items-center small text-muted py-2">
+      <div class="col-md-6">
+        Theme:
+        <a href="{{ route('account.profile') }}">
+          <strong>{{ to_title(Auth::user()->theme->name ?? \App\Enums\TrooperTheme::STORMTROOPER->name) }}</strong>
+        </a>
+      </div>
+      <div class="col-md-6 text-md-end">
+        Logged in as:
+        <a href="{{ route('account.profile') }}">
+          <strong>{{ Auth::user()->name }}</strong>
+        </a>
+      </div>
+    </div>
+  </div>
+  @endif
+
 </div>

@@ -17,19 +17,19 @@ enum NoticeType: string
     /**
      * For informational messages.
      */
-    case Info = 'info';
+    case INFO = 'info';
     /**
      * For success messages (e.g., after a form is submitted correctly).
      */
-    case Success = 'success';
+    case SUCCESS = 'success';
     /**
      * For warnings that require user attention.
      */
-    case Warning = 'warning';
+    case WARNING = 'warning';
     /**
      * For critical errors or failure messages.
      */
-    case Danger = 'danger';
+    case DANGER = 'danger';
 
     /**
      * Return the description for a single enum case.
@@ -38,10 +38,10 @@ enum NoticeType: string
     {
         return match ($this)
         {
-            self::Info => 'NOW HEAR THIS!',
-            self::Success => 'MISSION ACCOMPLISHED!',
-            self::Warning => 'ATTENTION TROOPERS!',
-            self::Danger => 'BATTLE STATIONS!',
+            self::INFO => 'NOW HEAR THIS!',
+            self::SUCCESS => 'MISSION ACCOMPLISHED!',
+            self::WARNING => 'ATTENTION TROOPERS!',
+            self::DANGER => 'BATTLE STATIONS!',
         };
     }
 
@@ -53,10 +53,10 @@ enum NoticeType: string
     public static function toDescriptions(): array
     {
         return [
-            'info' => self::Info->description(),
-            'success' => self::Success->description(),
-            'warning' => self::Warning->description(),
-            'danger' => self::Danger->description(),
+            'info' => self::INFO->description(),
+            'success' => self::SUCCESS->description(),
+            'warning' => self::WARNING->description(),
+            'danger' => self::DANGER->description(),
         ];
     }
 }

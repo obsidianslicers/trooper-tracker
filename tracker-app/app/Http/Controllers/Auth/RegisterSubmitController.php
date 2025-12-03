@@ -79,7 +79,7 @@ class RegisterSubmitController extends Controller
         $trooper->phone = $data['phone'] ?? null;
         $trooper->username = $data['username'];
         $trooper->password = Hash::make($data['password']);
-        $trooper->membership_role = $data['account_type'] == 'member' ? MembershipRole::Member : MembershipRole::Handler;
+        $trooper->membership_role = $data['account_type'] == 'member' ? MembershipRole::MEMBER : MembershipRole::HANDLER;
 
         $trooper->save();
 
@@ -102,7 +102,7 @@ class RegisterSubmitController extends Controller
                         $trooper_organization->trooper_id = $trooper->id;
                         $trooper_organization->organization_id = $organization->id;
                         $trooper_organization->identifier = $organization_data['identifier'];
-                        $trooper_organization->membership_status = MembershipStatus::Active;
+                        $trooper_organization->membership_status = MembershipStatus::ACTIVE;
 
                         $trooper_organization->save();
                     }

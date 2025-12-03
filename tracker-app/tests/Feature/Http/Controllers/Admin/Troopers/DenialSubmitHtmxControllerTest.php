@@ -62,6 +62,6 @@ class DenialSubmitHtmxControllerTest extends TestCase
 
         $pending_trooper->refresh();
 
-        $this->assertEquals(MembershipStatus::Denied, $pending_trooper->membership_status);
+        $this->assertEquals(MembershipStatus::DENIED, $pending_trooper->membership_status);
     }
 }

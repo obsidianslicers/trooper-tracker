@@ -1,5 +1,7 @@
 @extends('layouts.base')
 
+@section('page-title', 'Organizations')
+
 @section('content')
 
 <x-table>
@@ -25,8 +27,13 @@
         @if(Auth::user()->isAdministrator() || $organization->trooper_assignments->count() > 0)
         <x-action-menu>
           @can('create', \App\Models\Organization::class)
-          @if($organization->type != \App\Enums\OrganizationType::Unit)
-          <x-action-link-create :url="route('admin.organizations.create', ['parent'=>$organization])" />
+          @if($organization->type == \App\Enums\OrganizationType::ORGANIZATION)
+          <x-action-link-create :label="'Add Region'"
+                                :url="route('admin.organizations.create', ['parent'=>$organization])" />
+          @endif
+          @if($organization->type == \App\Enums\OrganizationType::REGION)
+          <x-action-link-create :label="'Add Unit'"
+                                :url="route('admin.organizations.create', ['parent'=>$organization])" />
           @endif
           @endcan
           <x-action-link-update :url="route('admin.organizations.update', ['organization'=>$organization])" />

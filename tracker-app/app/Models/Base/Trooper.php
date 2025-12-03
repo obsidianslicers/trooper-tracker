@@ -39,6 +39,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Carbon|null $email_verified_at
  * @property string $username
  * @property string $password
+ * @property string $theme
  * @property Carbon|null $last_active_at
  * @property string $membership_status
  * @property string $membership_role
@@ -73,6 +74,7 @@ class Trooper extends Model
     const EMAIL_VERIFIED_AT = 'email_verified_at';
     const USERNAME = 'username';
     const PASSWORD = 'password';
+    const THEME = 'theme';
     const LAST_ACTIVE_AT = 'last_active_at';
     const MEMBERSHIP_STATUS = 'membership_status';
     const MEMBERSHIP_ROLE = 'membership_role';
@@ -108,6 +110,7 @@ class Trooper extends Model
         self::EMAIL_VERIFIED_AT,
         self::USERNAME,
         self::PASSWORD,
+        self::THEME,
         self::LAST_ACTIVE_AT,
         self::MEMBERSHIP_STATUS,
         self::MEMBERSHIP_ROLE,

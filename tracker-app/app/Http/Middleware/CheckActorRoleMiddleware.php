@@ -42,7 +42,7 @@ class CheckActorRoleMiddleware
                     }
                 }
 
-                if ($user->membership_status == MembershipStatus::Active && $user->membership_role === $role)
+                if ($user->membership_status == MembershipStatus::ACTIVE && $user->membership_role === $role)
                 {
                     return $next($request);
                 }

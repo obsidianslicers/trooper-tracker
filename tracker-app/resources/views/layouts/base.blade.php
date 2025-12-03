@@ -11,7 +11,7 @@
   <meta name="csrf-token"
         content="{{ csrf_token() }}">
 
-  <title>{{ config('tracker.name') }} - Troop Tracker</title>
+  <title>{{ setting('site_name') }} - Troop Tracker</title>
 
   <link rel="icon"
         href="{{ url('img/favicon.png') }}"
@@ -24,15 +24,19 @@
 
 </head>
 
-<body class="bg-black d-flex flex-column min-vh-100">
+<body class="bg-black d-flex flex-column min-vh-100 theme-{{ Auth::user()->theme ?? 'stormtrooper' }}">
   @include('partials.navbar')
   @include('partials.bread-crumbs')
 
   <div>
     <h1 class="text-center py-3 site-title">
-      {{ config('tracker.name') }}
+      @hasSection('page-title')
+      @yield('page-title')
+      @else
+      {{ setting('site_name') }}
       <br />
       Troop Tracker
+      @endif
     </h1>
   </div>
 

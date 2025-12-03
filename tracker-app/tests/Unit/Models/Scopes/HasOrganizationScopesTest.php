@@ -21,10 +21,10 @@ class HasOrganizationScopesTest extends TestCase
     public function test_scope_fully_loaded_eager_loads_hierarchy_and_filters_by_top_level(): void
     {
         // Arrange
-        $org_b = Organization::factory()->create(['name' => 'Org B', 'type' => OrganizationType::Organization]);
-        $org_a = Organization::factory()->create(['name' => 'Org A', 'type' => OrganizationType::Organization]);
-        $region = Organization::factory()->create(['parent_id' => $org_a->id, 'type' => OrganizationType::Region]);
-        $unit = Organization::factory()->create(['parent_id' => $region->id, 'type' => OrganizationType::Unit]);
+        $org_b = Organization::factory()->create(['name' => 'Org B', 'type' => OrganizationType::ORGANIZATION]);
+        $org_a = Organization::factory()->create(['name' => 'Org A', 'type' => OrganizationType::ORGANIZATION]);
+        $region = Organization::factory()->create(['parent_id' => $org_a->id, 'type' => OrganizationType::REGION]);
+        $unit = Organization::factory()->create(['parent_id' => $region->id, 'type' => OrganizationType::UNIT]);
 
         // Act
         $results = Organization::fullyLoaded()->get();
@@ -40,9 +40,9 @@ class HasOrganizationScopesTest extends TestCase
     public function test_scope_of_type_regions_returns_only_organizations(): void
     {
         // Arrange
-        $organization = Organization::factory()->create(['type' => OrganizationType::Organization]);
-        Organization::factory()->create(['type' => OrganizationType::Region]);
-        Organization::factory()->create(['type' => OrganizationType::Unit]);
+        $organization = Organization::factory()->create(['type' => OrganizationType::ORGANIZATION]);
+        Organization::factory()->create(['type' => OrganizationType::REGION]);
+        Organization::factory()->create(['type' => OrganizationType::UNIT]);
 
         // Act
         $results = Organization::ofTypeOrganizations()->get();
@@ -55,9 +55,9 @@ class HasOrganizationScopesTest extends TestCase
     public function test_scope_of_type_regions_returns_only_regions(): void
     {
         // Arrange
-        Organization::factory()->create(['type' => OrganizationType::Organization]);
-        $region = Organization::factory()->create(['type' => OrganizationType::Region]);
-        Organization::factory()->create(['type' => OrganizationType::Unit]);
+        Organization::factory()->create(['type' => OrganizationType::ORGANIZATION]);
+        $region = Organization::factory()->create(['type' => OrganizationType::REGION]);
+        Organization::factory()->create(['type' => OrganizationType::UNIT]);
 
         // Act
         $results = Organization::ofTypeRegions()->get();
@@ -70,9 +70,9 @@ class HasOrganizationScopesTest extends TestCase
     public function test_scope_of_type_units_returns_only_units(): void
     {
         // Arrange
-        Organization::factory()->create(['type' => OrganizationType::Organization]);
-        Organization::factory()->create(['type' => OrganizationType::Region]);
-        $unit = Organization::factory()->create(['type' => OrganizationType::Unit]);
+        Organization::factory()->create(['type' => OrganizationType::ORGANIZATION]);
+        Organization::factory()->create(['type' => OrganizationType::REGION]);
+        $unit = Organization::factory()->create(['type' => OrganizationType::UNIT]);
 
         // Act
         $results = Organization::ofTypeUnits()->get();
@@ -85,9 +85,9 @@ class HasOrganizationScopesTest extends TestCase
     public function test_scope_with_active_troopers_returns_organizations_with_active_members(): void
     {
         // Arrange
-        $active_org = Organization::factory()->create(['type' => OrganizationType::Organization]);
-        $inactive_org = Organization::factory()->create(['type' => OrganizationType::Organization]);
-        $empty_org = Organization::factory()->create(['type' => OrganizationType::Organization]);
+        $active_org = Organization::factory()->create(['type' => OrganizationType::ORGANIZATION]);
+        $inactive_org = Organization::factory()->create(['type' => OrganizationType::ORGANIZATION]);
+        $empty_org = Organization::factory()->create(['type' => OrganizationType::ORGANIZATION]);
 
         $trooper1 = Trooper::factory()->create();
         $trooper1->trooper_assignments()->create([
@@ -112,8 +112,8 @@ class HasOrganizationScopesTest extends TestCase
     public function test_scope_with_active_troopers_can_filter_by_a_specific_trooper(): void
     {
         // Arrange
-        $org1 = Organization::factory()->create(['type' => OrganizationType::Organization]);
-        $org2 = Organization::factory()->create(['type' => OrganizationType::Organization]);
+        $org1 = Organization::factory()->create(['type' => OrganizationType::ORGANIZATION]);
+        $org2 = Organization::factory()->create(['type' => OrganizationType::ORGANIZATION]);
 
         $trooper1 = Trooper::factory()->create();
         $trooper1->trooper_assignments()->create([

@@ -25,17 +25,17 @@ class SupportDisplayHtmxController extends Controller
     {
         $donations = TrooperDonation::forMonth()->sum(TrooperDonation::AMOUNT);
 
-        $support_goal = setting('support_goal', 0);
+        $donate_goal = setting('donate_goal', 0);
 
         $progress = 0;
 
-        if ($support_goal > 0)
+        if ($donate_goal > 0)
         {
-            $progress = $donations / $support_goal;
+            $progress = $donations / $donate_goal;
         }
 
         $data = [
-            'goal' => $support_goal,
+            'goal' => $donate_goal,
             'progress' => number_format($progress * 100, 0),
             'message' => $this->getMessage()
         ];
@@ -50,7 +50,7 @@ class SupportDisplayHtmxController extends Controller
      */
     private function getMessage(): string
     {
-        $name = config('tracker.forum.name');
+        $name = setting('forum_name');
 
         $messages = [
             0 => "The $name is rallying support to maintain operations, reinforce mission " .

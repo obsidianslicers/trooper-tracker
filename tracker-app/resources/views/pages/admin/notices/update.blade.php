@@ -1,12 +1,14 @@
 @extends('layouts.base')
 
+@section('page-title', 'Update Notice')
+
 @section('content')
 
 <x-transmission-bar :id="'notice'" />
 
 <x-slim-container>
 
-  <x-card :label="'Create Notice'">
+  <x-card>
     <form method="POST"
           novalidate="novalidate">
       @csrf

@@ -30,7 +30,7 @@ class AdminDisplayControllerTest extends TestCase
     public function test_authenticated_user_without_permission_is_forbidden(): void
     {
         // Arrange
-        $trooper = Trooper::factory()->create(['membership_role' => MembershipRole::Member]);
+        $trooper = Trooper::factory()->create(['membership_role' => MembershipRole::MEMBER]);
 
         // Act
         $response = $this->actingAs($trooper)->get(route('admin.display'));
@@ -46,10 +46,10 @@ class AdminDisplayControllerTest extends TestCase
         // Arrange
         $admin_trooper = Trooper::factory()->create([
             'membership_role' => $role,
-            'membership_status' => MembershipStatus::Active
+            'membership_status' => MembershipStatus::ACTIVE
         ]);
         Trooper::factory()->asPending()->create(); // Pending
-        Trooper::factory()->create(['membership_status' => MembershipStatus::Active]); // Approved
+        Trooper::factory()->create(['membership_status' => MembershipStatus::ACTIVE]); // Approved
 
         // Act
         $response = $this->actingAs($admin_trooper)->get(route('admin.display'));
@@ -66,9 +66,9 @@ class AdminDisplayControllerTest extends TestCase
         // Arrange
         $admin_trooper = Trooper::factory()->create([
             'membership_role' => $role,
-            'membership_status' => MembershipStatus::Active
+            'membership_status' => MembershipStatus::ACTIVE
         ]);
-        Trooper::factory()->count(3)->create(['membership_status' => MembershipStatus::Pending]); // Pending
+        Trooper::factory()->count(3)->create(['membership_status' => MembershipStatus::PENDING]); // Pending
 
         // Act
         $response = $this->actingAs($admin_trooper)->get(route('admin.display'));
@@ -85,9 +85,9 @@ class AdminDisplayControllerTest extends TestCase
         // Arrange
         $admin_trooper = Trooper::factory()->create([
             'membership_role' => $role,
-            'membership_status' => MembershipStatus::Active
+            'membership_status' => MembershipStatus::ACTIVE
         ]);
-        Trooper::factory()->count(2)->create(['membership_status' => MembershipStatus::Active]); // All approved
+        Trooper::factory()->count(2)->create(['membership_status' => MembershipStatus::ACTIVE]); // All approved
 
         // Act
         $response = $this->actingAs($admin_trooper)->get(route('admin.display'));

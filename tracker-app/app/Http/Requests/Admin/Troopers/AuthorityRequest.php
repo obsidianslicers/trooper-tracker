@@ -5,11 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Requests\Admin\Troopers;
 
 use App\Enums\MembershipRole;
-use App\Http\Requests\HtmxFormRequest;
 use App\Models\Trooper;
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Foundation\Http\FormRequest;
 
 /**
  * Handles the validation for the user registration form.
@@ -19,7 +17,7 @@ use Illuminate\Validation\ValidationException;
  * organization-specific identifiers and unit selections. It also customizes error messages
  * for a better user experience.
  */
-class AuthorityRequest extends HtmxFormRequest
+class AuthorityRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -35,7 +33,7 @@ class AuthorityRequest extends HtmxFormRequest
             throw new AuthorizationException('Trooper not found or unauthorized.');
         }
 
-        return $this->user()->membership_role == MembershipRole::Administrator;
+        return $this->user()->membership_role == MembershipRole::ADMINISTRATOR;
     }
 
     /**
@@ -51,17 +49,5 @@ class AuthorityRequest extends HtmxFormRequest
         ];
 
         return $rules;
-    }
-
-    public function validateInputs(): array
-    {
-        $validator = Validator::make($this->all(), $this->rules());
-
-        if ($validator->fails())
-        {
-            throw new ValidationException($validator);
-        }
-
-        return $validator->validated();
     }
 }

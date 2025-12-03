@@ -1,9 +1,11 @@
 @extends('layouts.base')
 
+@section('page-title', 'Register')
+
 @section('content')
 
 <x-message>
-  <b>New to the 501st and/or {{ config('tracker.forum.name') }}?</b> Or are you solely a member of another organization?
+  <b>New to the 501st and/or {{ setting('forum_name') }}?</b> Or are you solely a member of another organization?
   Use this form below to start signing up for troops.
   <p>
     <i>Command Staff will need to approve your account prior to use.</i>
@@ -12,7 +14,7 @@
 
 <x-slim-container class="mt-4">
 
-  <x-card :label="'Register with the Troop Tracker'">
+  <x-card>
 
     <form action="{{ route('auth.register') }}"
           method="POST"
@@ -44,7 +46,7 @@
       <x-input-container>
         <x-label>
           @if (config('tracker.plugins.type') != 'standalone')
-          {{ config('tracker.forum.name') }}
+          {{ setting('forum_name') }}
           @endif
           Username:
         </x-label>
@@ -54,7 +56,7 @@
       <x-input-container>
         <x-label>
           @if (config('tracker.plugins.type') != 'standalone')
-          {{ config('tracker.forum.name') }}
+          {{ setting('forum_name') }}
           @endif
           Password:
         </x-label>

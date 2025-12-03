@@ -1,5 +1,7 @@
 @extends('layouts.base')
 
+@section('page-title', 'Notice to the Troopers')
+
 @section('content')
 @php($organization_id = $organization->id ?? null)
 

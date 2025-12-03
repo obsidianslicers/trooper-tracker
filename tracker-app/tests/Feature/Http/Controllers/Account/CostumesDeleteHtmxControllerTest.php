@@ -54,7 +54,7 @@ class CostumesDeleteHtmxControllerTest extends TestCase
 
         // Assert
         $response->assertOk();
-        $response->assertViewIs('pages.account.costumes');
+        $response->assertViewIs('pages.account.costume-selector');
         $response->assertViewHas('trooper_costumes', function (Collection $troopers): bool
         {
             return $troopers->isEmpty();
