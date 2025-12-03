@@ -27,7 +27,7 @@ class CreateSubmitControllerTest extends TestCase
     {
         // Arrange
         $parent_organization = Organization::factory()->create([
-            'type' => OrganizationType::Organization,
+            'type' => OrganizationType::ORGANIZATION,
         ]);
 
         $new_org_name = 'New Test Region';
@@ -44,7 +44,7 @@ class CreateSubmitControllerTest extends TestCase
         $this->assertDatabaseHas(Organization::class, [
             'name' => $new_org_name,
             'parent_id' => $parent_organization->id,
-            'type' => OrganizationType::Region->value,
+            'type' => OrganizationType::REGION->value,
         ]);
     }
 
@@ -52,7 +52,7 @@ class CreateSubmitControllerTest extends TestCase
     {
         // Arrange
         $parent_organization = Organization::factory()->create([
-            'type' => OrganizationType::Region,
+            'type' => OrganizationType::REGION,
         ]);
 
         $new_org_name = 'New Test Unit';
@@ -69,7 +69,7 @@ class CreateSubmitControllerTest extends TestCase
         $this->assertDatabaseHas(Organization::class, [
             'name' => $new_org_name,
             'parent_id' => $parent_organization->id,
-            'type' => OrganizationType::Unit->value,
+            'type' => OrganizationType::UNIT->value,
         ]);
     }
 

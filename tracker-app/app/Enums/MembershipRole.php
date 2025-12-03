@@ -14,20 +14,20 @@ enum MembershipRole: string
     /**
      * An regular member.
      */
-    case Member = 'member';
+    case MEMBER = 'member';
 
     /**
      * A non-costumed handler.
      */
-    case Handler = 'handler';
+    case HANDLER = 'handler';
 
     /**
      * A member with moderation privileges.
      */
-    case Moderator = 'moderator';
+    case MODERATOR = 'moderator';
 
     /**
      * An regular member.
      */
-    case Administrator = 'administrator';
+    case ADMINISTRATOR = 'administrator';
 }

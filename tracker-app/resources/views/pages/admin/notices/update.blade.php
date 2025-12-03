@@ -1,12 +1,14 @@
 @extends('layouts.base')
 
+@section('page-title', 'Update Notice')
+
 @section('content')
 
 <x-transmission-bar :id="'notice'" />
 
 <x-slim-container>
 
-  <x-card :label="'Create Notice'">
+  <x-card>
     <form method="POST"
           novalidate="novalidate">
       @csrf
@@ -60,7 +62,8 @@
         <x-label>
           Message:
         </x-label>
-        <x-input-text :multiline="true"
+        <x-input-text class="markdown-editor"
+                      :multiline="true"
                       :property="'message'"
                       :value="$notice->message" />
       </x-input-container>

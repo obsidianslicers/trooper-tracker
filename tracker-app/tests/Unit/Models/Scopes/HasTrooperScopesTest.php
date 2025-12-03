@@ -32,9 +32,9 @@ class HasTrooperScopesTest extends TestCase
     public function test_pending_approvals_scope_returns_only_pending_troopers_ordered_by_name(): void
     {
         // Arrange
-        $pending_trooper_b = Trooper::factory()->create(['name' => 'Beta', 'membership_status' => MembershipStatus::Pending]);
-        $active_trooper = Trooper::factory()->create(['membership_status' => MembershipStatus::Active]);
-        $pending_trooper_a = Trooper::factory()->create(['name' => 'Alpha', 'membership_status' => MembershipStatus::Pending]);
+        $pending_trooper_b = Trooper::factory()->create(['name' => 'Beta', 'membership_status' => MembershipStatus::PENDING]);
+        $active_trooper = Trooper::factory()->create(['membership_status' => MembershipStatus::ACTIVE]);
+        $pending_trooper_a = Trooper::factory()->create(['name' => 'Alpha', 'membership_status' => MembershipStatus::PENDING]);
 
         // Act
         $results = Trooper::pendingApprovals()->get();

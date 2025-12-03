@@ -23,7 +23,7 @@ class OrganizationFactory extends Factory
         return [
             Organization::NAME => '501st-' . uniqid(),
             Organization::IDENTIFIER_DISPLAY => 'TKID',
-            Organization::TYPE => OrganizationType::Organization,
+            Organization::TYPE => OrganizationType::ORGANIZATION,
             Organization::IMAGE_PATH_LG => '',
             Organization::IMAGE_PATH_SM => '',
             Organization::NODE_PATH => ''
@@ -34,7 +34,7 @@ class OrganizationFactory extends Factory
     {
         return $this->state(fn(array $attributes) => [
             Organization::PARENT_ID => Organization::factory(),
-            Organization::TYPE => OrganizationType::Region,
+            Organization::TYPE => OrganizationType::REGION,
         ]);
     }
 
@@ -42,7 +42,7 @@ class OrganizationFactory extends Factory
     {
         return $this->state(fn(array $attributes) => [
             Organization::PARENT_ID => Organization::factory()->region(),
-            Organization::TYPE => OrganizationType::Unit,
+            Organization::TYPE => OrganizationType::UNIT,
         ]);
     }
 
@@ -50,7 +50,7 @@ class OrganizationFactory extends Factory
     {
         return $this->afterCreating(function (Organization $organization) use ($name)
         {
-            if ($organization->type != OrganizationType::Organization)
+            if ($organization->type != OrganizationType::ORGANIZATION)
             {
                 throw new Exception('Invalid Organization Type for a costume: ' . $organization->type);
             }

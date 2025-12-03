@@ -7,9 +7,13 @@
 namespace App\Models\Base;
 
 use App\Models\Organization;
+use App\Models\Trooper;
+use App\Models\TrooperNotice;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -30,6 +34,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $deleted_id
  * 
  * @property Organization|null $organization
+ * @property Collection|Trooper[] $troopers
  *
  * @package App\Models\Base
  */
@@ -75,5 +80,12 @@ class Notice extends Model
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
+    }
+
+    public function troopers(): BelongsToMany
+    {
+        return $this->belongsToMany(Trooper::class, 'tt_trooper_notices')
+                    ->withPivot(TrooperNotice::ID, TrooperNotice::IS_READ, TrooperNotice::DELETED_AT, TrooperNotice::CREATED_ID, TrooperNotice::UPDATED_ID, TrooperNotice::DELETED_ID)
+                    ->withTimestamps();
     }
 }

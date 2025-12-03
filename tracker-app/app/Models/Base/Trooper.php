@@ -12,12 +12,14 @@ use App\Models\Event;
 use App\Models\EventTrooper;
 use App\Models\EventUpload;
 use App\Models\EventUploadTag;
+use App\Models\Notice;
 use App\Models\Organization;
 use App\Models\TrooperAchievement;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperAward;
 use App\Models\TrooperCostume;
 use App\Models\TrooperDonation;
+use App\Models\TrooperNotice;
 use App\Models\TrooperOrganization;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
@@ -37,6 +39,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Carbon|null $email_verified_at
  * @property string $username
  * @property string $password
+ * @property string $theme
  * @property Carbon|null $last_active_at
  * @property string $membership_status
  * @property string $membership_role
@@ -56,6 +59,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Collection|Award[] $awards
  * @property Collection|Costume[] $costumes
  * @property Collection|TrooperDonation[] $trooper_donations
+ * @property Collection|Notice[] $notices
  * @property Collection|Organization[] $organizations
  *
  * @package App\Models\Base
@@ -70,6 +74,7 @@ class Trooper extends Model
     const EMAIL_VERIFIED_AT = 'email_verified_at';
     const USERNAME = 'username';
     const PASSWORD = 'password';
+    const THEME = 'theme';
     const LAST_ACTIVE_AT = 'last_active_at';
     const MEMBERSHIP_STATUS = 'membership_status';
     const MEMBERSHIP_ROLE = 'membership_role';
@@ -105,6 +110,7 @@ class Trooper extends Model
         self::EMAIL_VERIFIED_AT,
         self::USERNAME,
         self::PASSWORD,
+        self::THEME,
         self::LAST_ACTIVE_AT,
         self::MEMBERSHIP_STATUS,
         self::MEMBERSHIP_ROLE,
@@ -158,6 +164,13 @@ class Trooper extends Model
     public function trooper_donations(): HasMany
     {
         return $this->hasMany(TrooperDonation::class);
+    }
+
+    public function notices(): BelongsToMany
+    {
+        return $this->belongsToMany(Notice::class, 'tt_trooper_notices')
+                    ->withPivot(TrooperNotice::ID, TrooperNotice::IS_READ, TrooperNotice::DELETED_AT, TrooperNotice::CREATED_ID, TrooperNotice::UPDATED_ID, TrooperNotice::DELETED_ID)
+                    ->withTimestamps();
     }
 
     public function organizations(): BelongsToMany

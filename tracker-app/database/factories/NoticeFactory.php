@@ -24,7 +24,7 @@ class NoticeFactory extends Factory
             Notice::TITLE => fake()->title(),
             Notice::MESSAGE => 'Hello',
             Notice::ORGANIZATION_ID => Organization::factory(),
-            Notice::TYPE => NoticeType::Info,
+            Notice::TYPE => NoticeType::INFO,
             Notice::STARTS_AT => Carbon::now(),
             Notice::ENDS_AT => Carbon::now()->addDays(7),
         ];

@@ -56,7 +56,7 @@ class LoginSubmitControllerTest extends TestCase
         ]);
 
         // Assert
-        $response->assertRedirect(route('account.display'));
+        $response->assertRedirect(route('account.profile'));
         $response->assertSessionHasNoErrors();
         $this->assertAuthenticatedAs($trooper);
     }

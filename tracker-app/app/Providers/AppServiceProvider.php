@@ -8,6 +8,7 @@ use App\Services\BreadCrumbService;
 use Illuminate\Database\Migrations\DatabaseMigrationRepository;
 use Illuminate\Database\Migrations\MigrationRepositoryInterface;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
@@ -32,6 +33,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Paginator::useBootstrapFive();
+
         //
         //  MIGRATION
         //
@@ -65,7 +68,7 @@ class AppServiceProvider extends ServiceProvider
 
             $user = Auth::user();
 
-            if (!$user || $user->membership_status !== MembershipStatus::Active)
+            if (!$user || $user->membership_status !== MembershipStatus::ACTIVE)
             {
                 return false;
             }

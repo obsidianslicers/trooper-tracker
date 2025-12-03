@@ -1,10 +1,8 @@
 @extends('layouts.base')
 
-@section('content')
+@section('page-title', 'Command Staff')
 
-<x-page-title>
-  Command Staff
-</x-page-title>
+@section('content')
 
 <x-dashboard-cards>
   <x-dashboard-card :label="'Events'"
@@ -32,7 +30,7 @@
     Approve and Manage Troopers
     @endif
   </x-dashboard-card>
-  <x-dashboard-card :label="'Bulletin Board'"
+  <x-dashboard-card :label="'Notices to the Troops'"
                     :icon="'fa-message'"
                     :url="route('admin.notices.list')">
     <p>

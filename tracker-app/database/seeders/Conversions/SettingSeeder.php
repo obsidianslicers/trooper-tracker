@@ -17,10 +17,16 @@ class SettingSeeder extends Seeder
     {
         $settings = DB::table('settings')->first();
 
-        $support_goal = Setting::find('support_goal') ?? new Setting(['key' => 'support_goal']);
+        $donate_goal = Setting::find('donate_goal') ?? new Setting(['key' => 'donate_goal']);
 
-        $support_goal->value = $settings->supportgoal;
+        $donate_goal->value = $settings->supportgoal;
 
-        $support_goal->save();
+        $donate_goal->save();
+
+        Setting::firstOrCreate(['key' => 'site_name'], ['value' => '501st Florida Garrison']);
+        Setting::firstOrCreate(['key' => 'forum_name'], ['value' => 'Florida Garrison']);
+        Setting::firstOrCreate(['key' => 'forum_url'], ['value' => 'https://www.fl501st.com/boards/']);
+        Setting::firstOrCreate(['key' => 'donate_url'], ['value' => 'https://www.fl501st.com/boards/account/upgrades']);
+        Setting::firstOrCreate(['key' => 'webmaster'], ['value' => 'gwm@fl501st.com']);
     }
 }

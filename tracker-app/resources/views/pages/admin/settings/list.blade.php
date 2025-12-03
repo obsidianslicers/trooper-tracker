@@ -1,12 +1,10 @@
 @extends('layouts.base')
 
+@section('page-title', 'Site Settings')
+
 @section('content')
 
 <x-transmission-bar :id="'settings'" />
-
-<x-page-title>
-  Site Settings
-</x-page-title>
 
 <x-table>
   <thead>

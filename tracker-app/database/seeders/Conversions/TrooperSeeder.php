@@ -40,26 +40,26 @@ class TrooperSeeder extends Seeder
             {
                 $t->membership_status = match ((int) $trooper->permissions)
                 {
-                    0 => MembershipStatus::Active,
+                    0 => MembershipStatus::ACTIVE,
                     // 1 => MembershipStatus::Admin,
                     // 2 => MembershipStatus::Moderator,
-                    3 => MembershipStatus::Retired,
-                    default => MembershipStatus::Active,
+                    3 => MembershipStatus::RETIRED,
+                    default => MembershipStatus::ACTIVE,
                 };
             }
             else
             {
-                $t->membership_status = MembershipStatus::Pending;
+                $t->membership_status = MembershipStatus::PENDING;
             }
 
             $t->membership_role = match ((int) $trooper->permissions)
             {
-                0 => MembershipRole::Member,
-                1 => MembershipRole::Administrator,
-                2 => MembershipRole::Moderator,
+                0 => MembershipRole::MEMBER,
+                1 => MembershipRole::ADMINISTRATOR,
+                2 => MembershipRole::MODERATOR,
                 //3 => MembershipRole::Retired,
-                4 => MembershipRole::Handler,
-                default => MembershipRole::Member,
+                4 => MembershipRole::HANDLER,
+                default => MembershipRole::MEMBER,
             };
 
             $t->save();

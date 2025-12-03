@@ -98,7 +98,7 @@ class OrganizationPolicy
      */
     private function canModerate(Trooper $trooper, Organization $subject): bool
     {
-        if ($this->isAdmin($trooper))
+        if ($this->isAdministrator($trooper))
         {
             return true;
         }

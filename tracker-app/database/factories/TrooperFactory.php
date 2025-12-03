@@ -4,10 +4,13 @@ namespace Database\Factories;
 
 use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
+use App\Enums\TrooperTheme;
 use App\Models\Costume;
+use App\Models\Notice;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
+use App\Models\TrooperNotice;
 use App\Models\TrooperOrganization;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -36,28 +39,29 @@ class TrooperFactory extends Factory
             Trooper::EMAIL => fake()->unique()->safeEmail(),
             Trooper::EMAIL_VERIFIED_AT => now(),
             Trooper::PASSWORD => static::$password ??= Hash::make('password'),
-            Trooper::MEMBERSHIP_STATUS => MembershipStatus::Active,
-            Trooper::MEMBERSHIP_ROLE => MembershipRole::Member,
+            Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
+            Trooper::MEMBERSHIP_ROLE => MembershipRole::MEMBER,
             Trooper::REMEMBER_TOKEN => Str::random(10),
+            Trooper::THEME => TrooperTheme::STORMTROOPER
         ];
     }
 
     public function asActive(): static
     {
-        return $this->withMembershipStatus(MembershipStatus::Active);
+        return $this->withMembershipStatus(MembershipStatus::ACTIVE);
     }
 
     public function asRetired(): static
     {
-        return $this->withMembershipStatus(MembershipStatus::Retired);
+        return $this->withMembershipStatus(MembershipStatus::RETIRED);
     }
 
     public function asPending(): static
     {
-        return $this->withMembershipStatus(MembershipStatus::Pending);
+        return $this->withMembershipStatus(MembershipStatus::PENDING);
     }
 
-    private function withMemberShipStatus(MembershipStatus $status = MembershipStatus::Active): static
+    private function withMemberShipStatus(MembershipStatus $status = MembershipStatus::ACTIVE): static
     {
         return $this->state(fn(array $attributes) => [
             Trooper::MEMBERSHIP_STATUS => $status,
@@ -66,20 +70,20 @@ class TrooperFactory extends Factory
 
     public function asAdmin(): static
     {
-        return $this->withMemberShipRole(MembershipRole::Administrator);
+        return $this->withMemberShipRole(MembershipRole::ADMINISTRATOR);
     }
 
     public function asModerator(): static
     {
-        return $this->withMemberShipRole(MembershipRole::Moderator);
+        return $this->withMemberShipRole(MembershipRole::MODERATOR);
     }
 
     public function asMember(): static
     {
-        return $this->withMemberShipRole(MembershipRole::Member);
+        return $this->withMemberShipRole(MembershipRole::MEMBER);
     }
 
-    private function withMemberShipRole(MembershipRole $role = MembershipRole::Member): static
+    private function withMemberShipRole(MembershipRole $role = MembershipRole::MEMBER): static
     {
         return $this->state(fn(array $attributes) => [
             Trooper::MEMBERSHIP_ROLE => $role,
@@ -114,6 +118,22 @@ class TrooperFactory extends Factory
         return $this->afterCreating(function (Trooper $trooper) use ($costume)
         {
             $trooper->costumes()->attach($costume->id);
+        });
+    }
+
+    public function markAsRead(Notice $notice): static
+    {
+        return $this->afterCreating(function (Trooper $trooper) use ($notice)
+        {
+            TrooperNotice::firstOrCreate(
+                [
+                    TrooperNotice::TROOPER_ID => $trooper->id,
+                    TrooperNotice::NOTICE_ID => $notice->id,
+                ],
+                [
+                    TrooperNotice::IS_READ => true
+                ]
+            );
         });
     }
 }

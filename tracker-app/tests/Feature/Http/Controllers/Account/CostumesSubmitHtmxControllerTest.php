@@ -60,7 +60,7 @@ class CostumesSubmitHtmxControllerTest extends TestCase
 
         // Assert
         $response->assertOk();
-        $response->assertViewIs('pages.account.costumes');
+        $response->assertViewIs('pages.account.costume-selector');
         $response->assertViewHas('trooper_costumes', function (Collection $trooper_costumes): bool
         {
             return $trooper_costumes->count() === 1
@@ -87,7 +87,7 @@ class CostumesSubmitHtmxControllerTest extends TestCase
 
         // Assert
         $response->assertOk();
-        $response->assertViewIs('pages.account.costumes');
+        $response->assertViewIs('pages.account.costume-selector');
         $response->assertViewHas('trooper_costumes', function (Collection $trooper_costumes): bool
         {
             return $trooper_costumes->count() == 1;

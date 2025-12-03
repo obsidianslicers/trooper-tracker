@@ -22,7 +22,7 @@ class NoticePolicy
      */
     public function create(Trooper $trooper): bool
     {
-        return $this->isAdmin($trooper) || $this->isModerator($trooper);
+        return $this->isAdministrator($trooper) || $this->isModerator($trooper);
     }
 
     /**
@@ -86,7 +86,7 @@ class NoticePolicy
      */
     private function canModerate(Trooper $trooper, Notice $subject): bool
     {
-        if ($this->isAdmin($trooper))
+        if ($this->isAdministrator($trooper))
         {
             return true;
         }

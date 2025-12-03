@@ -32,7 +32,7 @@ trait HasTrooperDonationScopes
      * @param Carbon|null $date The date to determine the month. Defaults to the current month.
      * @return Builder<self>
      */
-    protected function scopeForMonth(Builder $query, Carbon $date = null): Builder
+    protected function scopeForMonth(Builder $query, ?Carbon $date = null): Builder
     {
         $start_date = ($date ?? Carbon::now())->startOfMonth();
 

@@ -1,7 +1,7 @@
 @inject ('crumbs', 'App\Services\BreadCrumbService')
 
 @if ($crumbs->hasCrumbs())
-<div>
+<div class="container-fluid">
   <nav class="mt-1">
     <ol class="breadcrumb border border-0">
       @foreach($crumbs->getCrumbs() as $crumb)

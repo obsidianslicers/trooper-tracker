@@ -51,6 +51,7 @@ Troop Tracker is a scalable, immersive dashboard application designed to manage 
 5.  Start the development server:
     ```bash
     php artisan serve
+    npm run dev
     ```
 
 ---

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
+use App\Enums\TrooperTheme;
 use App\Models\Base\Trooper as BaseTrooper;
 use App\Models\Casts\LowerCast;
 use App\Models\Concerns\HasObserver;
@@ -45,7 +46,8 @@ class Trooper extends BaseTrooper implements
         return array_merge($this->casts, [
             self::MEMBERSHIP_STATUS => MembershipStatus::class,
             self::MEMBERSHIP_ROLE => MembershipRole::class,
-            self::EMAIL => LowerCast::class
+            self::EMAIL => LowerCast::class,
+            self::THEME => TrooperTheme::class
         ]);
     }
 
@@ -56,7 +58,7 @@ class Trooper extends BaseTrooper implements
      */
     public function isAdministrator(): bool
     {
-        return $this->isActive() && $this->membership_role == MembershipRole::Administrator;
+        return $this->isActive() && $this->membership_role == MembershipRole::ADMINISTRATOR;
     }
 
     /**
@@ -66,7 +68,7 @@ class Trooper extends BaseTrooper implements
      */
     public function isModerator(): bool
     {
-        return $this->isActive() && $this->membership_role == MembershipRole::Moderator;
+        return $this->isActive() && $this->membership_role == MembershipRole::MODERATOR;
     }
 
     /**
@@ -76,7 +78,7 @@ class Trooper extends BaseTrooper implements
      */
     public function isActive(): bool
     {
-        return $this->membership_status == MembershipStatus::Active;
+        return $this->membership_status == MembershipStatus::ACTIVE;
     }
 
     /**
@@ -86,7 +88,7 @@ class Trooper extends BaseTrooper implements
      */
     public function isDenied(): bool
     {
-        return $this->membership_status == MembershipStatus::Denied;
+        return $this->membership_status == MembershipStatus::DENIED;
     }
 
     /**
@@ -136,7 +138,7 @@ class Trooper extends BaseTrooper implements
     public function getAssignedOrganizations(?int $organization_id): Collection
     {
         $query = $this->trooper_assignments()
-            ->where(TrooperAssignment::MEMBERSHIP_STATUS, MembershipStatus::Active);
+            ->where(TrooperAssignment::MEMBERSHIP_STATUS, MembershipStatus::ACTIVE);
 
         if ($organization_id)
         {

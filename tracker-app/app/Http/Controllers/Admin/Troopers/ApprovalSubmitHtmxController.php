@@ -42,7 +42,7 @@ class ApprovalSubmitHtmxController extends Controller
             'trooper' => $trooper
         ];
 
-        $trooper->membership_status = MembershipStatus::Active;
+        $trooper->membership_status = MembershipStatus::ACTIVE;
 
         $trooper->save();
 

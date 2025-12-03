@@ -7,7 +7,7 @@ $bracketed = to_bracket_name( $property);
 <select name="{{ $bracketed }}"
         id="{{ $property }}"
         @disabled($disabled)
-        {{$attributes->merge(['class'=>'form-select' . ($haserror ? ' is-invalid' : '')])}}>
+        {{$attributes->class(['form-select', 'is-invalid'=>$haserror])}}>
   {{ $slot }}
   @if($optional)
   <option value=""></option>

@@ -63,6 +63,6 @@ class CostumesListHtmxController extends Controller
             'trooper_costumes' => $trooper->costumes,
         ];
 
-        return view('pages.account.costumes', $data);
+        return view('pages.account.costume-selector', $data);
     }
 }

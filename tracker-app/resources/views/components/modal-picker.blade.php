@@ -11,8 +11,7 @@
         </b>
         <button type="button"
                 class="btn-close"
-                data-bs-dismiss="modal"
-                aria-label="Close"></button>
+                data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <x-loading />

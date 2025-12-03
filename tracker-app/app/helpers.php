@@ -21,6 +21,19 @@ if (!function_exists('setting'))
     }
 
     /**
+     * Convert a PROPERTY_NAME to a property_name
+     * @param string $value
+     * @return array|string|null
+     */
+    function to_title(string $value)
+    {
+        return Str::of($value)
+            ->lower()
+            ->replace('_', ' ')
+            ->title();
+    }
+
+    /**
      * Retrieve a setting value from the database with optional default and type casting.
      *
      * @param string $key
@@ -29,6 +42,8 @@ if (!function_exists('setting'))
      */
     function setting(string $key, mixed $default = null): mixed
     {
+        $key = strtolower($key);
+
         $cast = function (mixed $value): mixed
         {
             if (is_null($value))

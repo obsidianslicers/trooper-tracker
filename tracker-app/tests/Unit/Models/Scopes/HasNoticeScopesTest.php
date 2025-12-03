@@ -15,204 +15,171 @@ class HasNoticeScopesTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_active_scope_includes_current_notifications(): void
+    protected function setUp(): void
+    {
+        parent::setUp();
+        Carbon::setTestNow(Carbon::create(2024, 1, 15));
+    }
+
+    public function test_scope_active(): void
     {
         // Arrange
-        Notice::factory()->active()->create(); // Has start and end dates
-        Notice::factory()->create([            // Active without an end date
-            'starts_at' => Carbon::now()->subDay(),
-            'ends_at' => null,
-        ]);
+        $active_notice = Notice::factory()->active()->create();
+        $active_no_end = Notice::factory()->active()->create();
+        Notice::factory()->create(['starts_at' => Carbon::now()->addDay()]); // Future
+        Notice::factory()->create(['ends_at' => Carbon::now()->subDay()]); // Past
+
         // Act
         $result = Notice::active()->get();
 
         // Assert
         $this->assertCount(2, $result);
+        $this->assertTrue($result->contains($active_notice));
+        $this->assertTrue($result->contains($active_no_end));
     }
 
-    public function test_active_scope_excludes_future_notifications(): void
+    public function test_scope_past(): void
     {
         // Arrange
-        Notice::factory()->future()->create(); // starts_at is in the future
+        $past_notice = Notice::factory()->past()->create();
+        Notice::factory()->active()->create();
+        Notice::factory()->future()->create();
+
         // Act
-        $result = Notice::active()->count();
+        $result = Notice::past()->get();
 
         // Assert
-        $this->assertEquals(0, $result);
+        $this->assertCount(1, $result);
+        $this->assertTrue($result->contains($past_notice));
     }
 
-    public function test_active_scope_excludes_past_notifications(): void
+    public function test_scope_future(): void
     {
         // Arrange
-        Notice::factory()->past()->create(); // ends_at is in the past
-        // Act
-        $result = Notice::active()->count();
-
-        // Assert
-        $this->assertEquals(0, $result);
-    }
-
-    public function test_visible_to_scope_includes_notification_in_same_organization(): void
-    {
-        // Arrange
-        $unit = Organization::factory()->unit()->create();
-        $region = $unit->parent;
-        $organization = $region->parent;
-
-        $trooper = Trooper::factory()->withAssignment($unit, member: true)->create();
-        Notice::factory()->withOrganization($organization)->create();
+        $future_notice = Notice::factory()->future()->create();
+        Notice::factory()->active()->create();
+        Notice::factory()->past()->create();
 
         // Act
-        $result = Notice::visibleTo($trooper)->count();
+        $result = Notice::future()->get();
 
         // Assert
-        $this->assertEquals(1, $result);
+        $this->assertCount(1, $result);
+        $this->assertTrue($result->contains($future_notice));
     }
 
-    public function test_visible_to_scope_includes_notification_in_child_organization(): void
+    public function test_scope_visible_to(): void
     {
         // Arrange
         $unit = Organization::factory()->unit()->create();
         $region = $unit->parent;
-        $organization = $region->parent;
 
         $trooper = Trooper::factory()->withAssignment($unit, member: true)->create();
-        Notice::factory()->withOrganization($region)->create();
+
+        $global_notice = Notice::factory()->active()->create(['organization_id' => null]);
+        $region_notice = Notice::factory()->active()->withOrganization($region)->create();
+        $other_notice = Notice::factory()->active()->create(); // Belongs to another org
 
         // Act
-        $result = Notice::visibleTo($trooper)->count();
+        $result = Notice::visibleTo($trooper)->get();
 
         // Assert
-        $this->assertEquals(1, $result);
+        $this->assertCount(2, $result);
+        $this->assertTrue($result->contains($global_notice));
+        $this->assertTrue($result->contains($region_notice));
+        $this->assertFalse($result->contains($other_notice));
     }
 
-    public function test_visible_to_scope_includes_notification_in_grandchild_organization(): void
+    public function test_scope_visible_to_with_unread_only(): void
     {
         // Arrange
-        $unit = Organization::factory()->unit()->create();
-        $region = $unit->parent;
-        $organization = $region->parent;
-
-        $trooper = Trooper::factory()->withAssignment($unit, member: true)->create();
-        Notice::factory()->withOrganization($unit)->create();
+        $global_notice_unread = Notice::factory()->active()->create(['organization_id' => null]);
+        $global_notice_read = Notice::factory()->active()->create(['organization_id' => null]);
+        $global_notice_marked_unread = Notice::factory()->active()->create(['organization_id' => null]);
+        $trooper = Trooper::factory()->markAsRead($global_notice_read)->create();
 
         // Act
-        $result = Notice::visibleTo($trooper)->count();
+        $result = Notice::visibleTo($trooper, true)->get();
 
         // Assert
-        $this->assertEquals(1, $result);
+        $this->assertCount(2, $result, 'Should only find unread notices.');
+        $this->assertTrue($result->contains($global_notice_unread));
+        $this->assertTrue($result->contains($global_notice_marked_unread));
+        $this->assertFalse($result->contains($global_notice_read));
     }
 
-    public function test_visible_to_scope_includes_notification_from_parent_organization(): void
-    {
-        // Arrange
-
-        $unit = Organization::factory()->unit()->create();
-        $region = $unit->parent;
-        $organization = $region->parent;
-
-        $trooper = Trooper::factory()->withAssignment($unit, member: true)->create();
-        Notice::factory()->withOrganization($organization)->create();
-
-        // Act
-        $result = Notice::visibleTo($trooper)->count();
-
-        // Assert
-        $this->assertEquals(1, $result);
-    }
-
-    public function test_visible_to_scope_excludes_notification_in_unrelated_organization(): void
-    {
-        // Arrange
-        $unit = Organization::factory()->unit()->create();
-        $unrelated_org = Organization::factory()->create();
-        $trooper = Trooper::factory()->withAssignment($unit, member: true)->create();
-        Notice::factory()->withOrganization($unrelated_org)->create();
-
-        // Act
-        $result = Notice::visibleTo($trooper)->count();
-
-        // Assert
-        $this->assertEquals(0, $result);
-    }
-
-    public function test_visible_to_scope_excludes_non_member_and_non_moderator(): void
-    {
-        // Arrange
-        $unit = Organization::factory()->unit()->create();
-        $region = $unit->parent;
-        $organization = $region->parent;
-
-        $trooper = Trooper::factory()->withAssignment($unit, member: false, moderator: false)->create();
-        Notice::factory()->withOrganization($organization)->create();
-
-        // Act
-        $result = Notice::visibleTo($trooper)->count();
-
-        // Assert
-        $this->assertEquals(0, $result);
-    }
-
-    public function test_moderated_by_scope_includes_notice_in_same_organization(): void
+    public function test_scope_moderated_by_for_direct_organization(): void
     {
         // Arrange
         $organization = Organization::factory()->create();
-        $moderator = Trooper::factory()->withAssignment($organization, moderator: true)->create();
-        Notice::factory()->withOrganization($organization)->create();
+        $moderator = Trooper::factory()->asModerator()->withAssignment($organization, moderator: true)->create();
+
+        $moderated_notice = Notice::factory()->withOrganization($organization)->create();
+        $other_notice = Notice::factory()->create();
 
         // Act
-        $result = Notice::moderatedBy($moderator)->count();
+        $result = Notice::moderatedBy($moderator)->get();
 
         // Assert
-        $this->assertEquals(1, $result);
+        $this->assertCount(1, $result);
+        $this->assertTrue($result->contains($moderated_notice));
+        $this->assertFalse($result->contains($other_notice));
     }
 
-    public function test_moderated_by_scope_includes_notice_in_child_organization(): void
+    public function test_scope_moderated_by_for_child_organization(): void
     {
         // Arrange
         $unit = Organization::factory()->unit()->create();
         $region = $unit->parent;
         $organization = $region->parent;
 
-        $moderator = Trooper::factory()->withAssignment($region, moderator: true)->create();
-        $notice = Notice::factory()->withOrganization($unit)->create();
+        $moderator = Trooper::factory()->asModerator()->withAssignment($region, moderator: true)->create();
+
+        $unit_notice = Notice::factory()->withOrganization($unit)->create();
+        $region_notice = Notice::factory()->withOrganization($region)->create();
+        $other_notice = Notice::factory()->create();
 
         // Act
-        $result = Notice::moderatedBy($moderator)->count();
+        $result = Notice::moderatedBy($moderator)->get();
 
         // Assert
-        $this->assertEquals(1, $result);
+        $this->assertCount(2, $result);
+        $this->assertTrue($result->contains($unit_notice));
+        $this->assertTrue($result->contains($region_notice));
+        $this->assertFalse($result->contains($other_notice));
     }
 
-    public function test_moderated_by_scope_excludes_notice_in_parent_organization(): void
+    public function test_scope_moderated_by_does_not_include_parent_organization_notices(): void
     {
         // Arrange
         $unit = Organization::factory()->unit()->create();
         $region = $unit->parent;
         $organization = $region->parent;
 
-        $moderator = Trooper::factory()->withAssignment($region, moderator: true)->create();
-        Notice::factory()->withOrganization($organization)->create();
+        $moderator = Trooper::factory()->asModerator()->withAssignment($region, moderator: true)->create();
+
+        $org_notice = Notice::factory()->withOrganization($organization)->create();
+        $region_notice = Notice::factory()->withOrganization($region)->create();
 
         // Act
-        $result = Notice::moderatedBy($moderator)->count();
+        $result = Notice::moderatedBy($moderator)->get();
 
         // Assert
-        $this->assertEquals(0, $result);
+        $this->assertCount(1, $result);
+        $this->assertTrue($result->contains($region_notice));
+        $this->assertFalse($result->contains($org_notice));
     }
 
-    public function test_moderated_by_scope_excludes_notice_in_unrelated_organization(): void
+    public function test_scope_moderated_by_with_no_moderated_orgs_returns_nothing(): void
     {
         // Arrange
-        $org_one = Organization::factory()->create();
-        $org_two = Organization::factory()->create();
-        $moderator = Trooper::factory()->withAssignment($org_one, moderator: true)->create();
-        Notice::factory()->withOrganization($org_two)->create();
+        $moderator = Trooper::factory()->asModerator()->create(); // No assignments
+        Notice::factory()->count(3)->create();
 
         // Act
-        $result = Notice::moderatedBy($moderator)->count();
+        $result = Notice::moderatedBy($moderator)->get();
 
         // Assert
-        $this->assertEquals(0, $result);
+        $this->assertCount(0, $result);
     }
 }

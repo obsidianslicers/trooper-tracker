@@ -33,7 +33,7 @@
 
   <!-- Donations & Support -->
   <x-card :label="'Donations & Support'">
-    <div hx-get="{{ route('support-htmx') }}"
+    <div hx-get="{{ route('widgets.support-htmx') }}"
          hx-trigger="load"
          hx-swap="outerHTML">
       <x-loading />

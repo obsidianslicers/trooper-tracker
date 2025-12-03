@@ -24,8 +24,8 @@ class TrooperTest extends TestCase
     {
         // Arrange
         $trooper = Trooper::factory()->create([
-            'membership_status' => MembershipStatus::Active,
-            'membership_role' => MembershipRole::Member,
+            'membership_status' => MembershipStatus::ACTIVE,
+            'membership_role' => MembershipRole::MEMBER,
             'email' => 'Test.Email@Example.COM',
         ]);
 
@@ -41,8 +41,8 @@ class TrooperTest extends TestCase
     public function test_is_admin_returns_correct_value(): void
     {
         // Arrange
-        $admin_trooper = Trooper::factory()->make(['membership_role' => MembershipRole::Administrator]);
-        $member_trooper = Trooper::factory()->make(['membership_role' => MembershipRole::Member]);
+        $admin_trooper = Trooper::factory()->make(['membership_role' => MembershipRole::ADMINISTRATOR]);
+        $member_trooper = Trooper::factory()->make(['membership_role' => MembershipRole::MEMBER]);
 
         // Act & Assert
         $this->assertTrue($admin_trooper->isAdministrator());
@@ -52,8 +52,8 @@ class TrooperTest extends TestCase
     public function test_is_active_returns_correct_value(): void
     {
         // Arrange
-        $active_trooper = Trooper::factory()->make(['membership_status' => MembershipStatus::Active]);
-        $pending_trooper = Trooper::factory()->make(['membership_status' => MembershipStatus::Pending]);
+        $active_trooper = Trooper::factory()->make(['membership_status' => MembershipStatus::ACTIVE]);
+        $pending_trooper = Trooper::factory()->make(['membership_status' => MembershipStatus::PENDING]);
 
         // Act & Assert
         $this->assertTrue($active_trooper->isActive());
@@ -63,8 +63,8 @@ class TrooperTest extends TestCase
     public function test_is_denied_returns_correct_value(): void
     {
         // Arrange
-        $denied_trooper = Trooper::factory()->make(['membership_status' => MembershipStatus::Denied]);
-        $active_trooper = Trooper::factory()->make(['membership_status' => MembershipStatus::Active]);
+        $denied_trooper = Trooper::factory()->make(['membership_status' => MembershipStatus::DENIED]);
+        $active_trooper = Trooper::factory()->make(['membership_status' => MembershipStatus::ACTIVE]);
 
         // Act & Assert
         $this->assertTrue($denied_trooper->isDenied());

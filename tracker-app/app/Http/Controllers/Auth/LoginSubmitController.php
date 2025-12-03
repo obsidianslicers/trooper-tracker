@@ -41,7 +41,7 @@ class LoginSubmitController extends Controller
         //  trooper existance is checked via LoginRequest
         $trooper = Trooper::query()->byUsername($request->username)->first();
 
-        if ($trooper->membership_status == MembershipStatus::Pending)
+        if ($trooper->membership_status == MembershipStatus::PENDING)
         {
             $this->flash->warning('Your access has not been approved yet. Please refer to command staff for additional information.');
 
@@ -61,7 +61,7 @@ class LoginSubmitController extends Controller
                 ->withErrors(['username' => 'Refer to command staff']);
         }
 
-        if ($trooper->membership_status != MembershipStatus::Active)
+        if ($trooper->membership_status != MembershipStatus::ACTIVE)
         {
             //  retired
             $this->flash->danger('You cannot access this account. Please refer to command staff for additional information (retired).');
@@ -103,6 +103,6 @@ class LoginSubmitController extends Controller
     {
         Auth::login($trooper, $request->remember_me);
 
-        return redirect()->intended(route('account.display'));
+        return redirect()->intended(route('account.profile'));
     }
 }

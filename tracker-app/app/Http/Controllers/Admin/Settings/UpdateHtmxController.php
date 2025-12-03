@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Class SettingsUpdateController
@@ -37,6 +38,8 @@ class UpdateHtmxController extends Controller
         $setting->value = $value;
 
         $setting->save();
+
+        Cache::forget("setting.{$setting->key}");
 
         $message = json_encode([
             'message' => "Setting {$setting->key} successfully saved.",

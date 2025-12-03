@@ -25,7 +25,7 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
             $table->string('identifier', 64);
-            $table->string('membership_status', 16)->default(MembershipStatus::Active->value);
+            $table->string('membership_status', 16)->default(MembershipStatus::ACTIVE->value);
 
             $table->timestamps();
             $table->softDeletes();

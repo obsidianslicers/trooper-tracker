@@ -14,37 +14,37 @@ enum TrooperEventStatus: string
     /**
      * No status set.
      */
-    case None = 'none';
+    case NONE = 'none';
     /**
      * Trooper is confirmed to be going.
      */
-    case Going = 'going';
+    case GOING = 'going';
     /**
      * Trooper is on standby for the event.
      */
-    case StandBy = 'standby';
+    case STANDBY = 'standby';
     /**
      * Trooper is tentatively planning to attend.
      */
-    case Tentative = 'tentative';
+    case TENTATIVE = 'tentative';
     /**
      * Trooper has attended the event.
      */
-    case Attended = 'attended';
+    case ATTENDED = 'attended';
     /**
      * Trooper has canceled their attendance.
      */
-    case Canceled = 'canceled';
+    case CANCELED = 'canceled';
     /**
      * Trooper's attendance is pending approval.
      */
-    case Pending = 'pending';
+    case PENDING = 'pending';
     /**
      * Trooper was not selected for a limited event.
      */
-    case NotPicked = 'notpicked';
+    case NOT_PICKED = 'notpicked';
     /**
      * Trooper was confirmed but did not show up.
      */
-    case NoShow = 'noshow';
+    case NO_SHOW = 'noshow';
 }

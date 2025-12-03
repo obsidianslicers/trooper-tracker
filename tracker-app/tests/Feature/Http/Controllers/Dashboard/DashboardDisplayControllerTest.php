@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Dashboard;
 
-use App\Models\Organization;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventTrooper;
+use App\Models\Organization;
 use App\Models\Trooper;
-use App\Models\TrooperAchievement;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

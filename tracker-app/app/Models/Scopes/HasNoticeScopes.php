@@ -15,9 +15,12 @@ use Illuminate\Support\Facades\DB;
 trait HasNoticeScopes
 {
     /**
-     * Scope: only notifications active at the current time.
+     * Scope a query to only include notices that are currently active.
      *
-     * @param Builder<self> $query The Eloquent query builder.
+     * An active notice has a `starts_at` date in the past and an `ends_at` date
+     * that is either null or in the future.
+     *
+     * @param Builder $query The Eloquent query builder.
      * @return Builder<self>
      */
     protected function scopeActive(Builder $query): Builder
@@ -33,35 +36,92 @@ trait HasNoticeScopes
     }
 
     /**
+     * Scope a query to only include notices that have already expired.
+     *
+     * A past notice has both `starts_at` and `ends_at` dates in the past.
+     *
+     * @param Builder $query The Eloquent query builder.
+     * @return Builder<self>
+     */
+    protected function scopePast(Builder $query): Builder
+    {
+        $now = Carbon::now();
+
+        return $query->where(self::STARTS_AT, '<', $now)
+            ->where(self::ENDS_AT, '<', $now);
+    }
+
+    /**
+     * Scope a query to only include notices scheduled for the future.
+     *
+     * A future notice has both `starts_at` and `ends_at` dates in the future.
+     *
+     * @param Builder $query The Eloquent query builder.
+     * @return Builder<self>
+     */
+    protected function scopeFuture(Builder $query): Builder
+    {
+        $now = Carbon::now();
+
+        return $query->where(self::STARTS_AT, '>', $now)
+            ->where(self::ENDS_AT, '>', $now);
+    }
+
+    /**
      * Scope a query to only include notifications visible to a given trooper.
      *
-     * A notification is visible if the trooper is a member or moderator of an organization
-     * that is an ancestor of (or the same as) the notification's organization.
+     * A notice is visible if it is global (no organization) or if the trooper is a
+     * member of an organization within the notice's organizational hierarchy.
+     * Optionally, it can filter for unread notices only.
      *
-     * @param Builder<self> $query The Eloquent query builder.
+     * @param Builder $query The Eloquent query builder.
      * @param Trooper $trooper The trooper whose visibility is being checked.
      * @return Builder<self>
      */
-    protected function scopeVisibleTo(Builder $query, Trooper $trooper): Builder
+    protected function scopeVisibleTo(Builder $query, Trooper $trooper, bool $unread_only = false): Builder
     {
-        return $query->whereExists(function ($sub) use ($trooper)
+        $query->where(function ($outer) use ($trooper)
         {
-            $sub->select(DB::raw(1))
-                ->from('tt_trooper_assignments as ta_assign')
-                ->join('tt_organizations as org_assign', 'ta_assign.organization_id', '=', 'org_assign.id')
-                ->join('tt_organizations as org_notice', 'tt_notices.organization_id', '=', 'org_notice.id')
-                ->where('ta_assign.trooper_id', $trooper->id)
-                ->where('ta_assign.member', true)
-                ->whereRaw('org_assign.node_path LIKE CONCAT(org_notice.node_path, "%")');
+            $outer->whereExists(function ($sub) use ($trooper)
+            {
+                $sub->select(DB::raw(1))
+                    ->from('tt_trooper_assignments as ta_assign')
+                    ->join('tt_organizations as org_assign', 'ta_assign.organization_id', '=', 'org_assign.id')
+                    ->join('tt_organizations as org_notice', 'tt_notices.organization_id', '=', 'org_notice.id')
+                    ->where('ta_assign.trooper_id', $trooper->id)
+                    ->where('ta_assign.member', true)
+                    ->whereRaw('org_assign.node_path LIKE CONCAT(org_notice.node_path, "%")');
+            })->orWhereNull('tt_notices.organization_id');
         });
+
+
+        if ($unread_only)
+        {
+            $query->where(function ($outer) use ($trooper)
+            {
+                $outer->whereDoesntHave('troopers', function ($sub) use ($trooper)
+                {
+                    $sub->where('tt_trooper_notices.trooper_id', $trooper->id);
+                })
+                    ->orWhereHas('troopers', function ($sub) use ($trooper)
+                    {
+                        $sub->where('tt_trooper_notices.trooper_id', $trooper->id)
+                            ->where('tt_trooper_notices.is_read', false);
+                    });
+            });
+        }
+
+        return $query;
     }
 
-
     /**
-     * Scope: limit to organizations that can be updated by a given moderator.
+     * Scope a query to only include notices that can be managed by a given moderator.
      *
-     * @param Builder $query
-     * @param Trooper $moderator
+     * A notice is moderated if its organization falls within the moderator's
+     * assigned organizational hierarchy.
+     *
+     * @param Builder $query The Eloquent query builder.
+     * @param Trooper $moderator The moderator to filter by.
      * @return Builder
      */
     protected function scopeModeratedBy(Builder $query, Trooper $moderator): Builder
