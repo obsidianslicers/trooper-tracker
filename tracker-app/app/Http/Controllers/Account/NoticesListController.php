@@ -26,7 +26,7 @@ class NoticesListController extends Controller
      */
     public function __invoke(Request $request): View
     {
-        $trooper = Auth::user();
+        $trooper = $request->user();
 
         $data = [
             'notices' => Notice::visibleTo($trooper, true)->orderBy(Notice::STARTS_AT)->get()

@@ -49,7 +49,7 @@ class CreateController extends Controller
     {
         $this->authorize('create', Notice::class);
 
-        $trooper = Auth::user();
+        $trooper = $request->user();
 
         $notice = $this->getNotice($request, $trooper);
 

@@ -44,7 +44,7 @@ class ApprovalListController extends Controller
      */
     public function __invoke(Request $request): View|RedirectResponse
     {
-        $trooper = Auth::user();
+        $trooper = $request->user();
 
         $query = Trooper::pendingApprovals()->with('trooper_assignments.organization');
 

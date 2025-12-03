@@ -8,7 +8,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Notice;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Handles displaying the notice widget via an HTMX request.
@@ -22,9 +21,9 @@ class NoticeDisplayHtmxController extends Controller
      *
      * @return View The rendered notice widget view.
      */
-    public function __invoke(): View
+    public function __invoke(Request $request): View
     {
-        $trooper = Auth::user();
+        $trooper = $request->user();
 
         $notice = null;
 

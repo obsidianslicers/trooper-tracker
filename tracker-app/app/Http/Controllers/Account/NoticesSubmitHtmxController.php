@@ -25,7 +25,7 @@ class NoticesSubmitHtmxController extends Controller
      */
     public function __invoke(Request $request, Notice $notice): Response|View
     {
-        $trooper = Auth::user();
+        $trooper = $request->user();
 
         TrooperNotice::firstOrCreate(
             [

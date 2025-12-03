@@ -49,7 +49,7 @@ class ListController extends Controller
      */
     public function __invoke(Request $request): View
     {
-        $trooper = Auth::user();
+        $trooper = $request->user();
 
         $organization = $this->getOrganization($request);
 

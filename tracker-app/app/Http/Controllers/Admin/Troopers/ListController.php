@@ -69,7 +69,7 @@ class ListController extends Controller
      */
     private function getTroopers(Request $request): LengthAwarePaginator
     {
-        $trooper = Auth::user();
+        $trooper = $request->user();
 
         $q = Trooper::orderBy(Trooper::NAME);
 
