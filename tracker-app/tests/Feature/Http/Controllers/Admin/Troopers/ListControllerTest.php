@@ -2,10 +2,7 @@
 
 namespace Tests\Feature\Http\Controllers\Admin\Troopers;
 
-<<<<<<< HEAD
 use App\Enums\MembershipRole;
-=======
->>>>>>> b60e060 (feature: add notice board)
 use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -16,41 +13,16 @@ class ListControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-<<<<<<< HEAD
     protected function setUp(): void
-=======
-    public function test_invoke_redirects_unauthenticated_users(): void
->>>>>>> b60e060 (feature: add notice board)
     {
         parent::setUp();
     }
 
-<<<<<<< HEAD
     public function test_invoke_as_admin_returns_all_troopers(): void
     {
         // Arrange
         $admin_user = Trooper::factory()->asAdmin()->create();
         Trooper::factory()->count(5)->create();
-=======
-    public function test_invoke_forbidden_for_unauthorized_users(): void
-    {
-        // Arrange
-        $unauthorized_user = Trooper::factory()->create();
-
-        // Act
-        $response = $this->actingAs($unauthorized_user)
-            ->get(route('admin.troopers.list'));
-
-        // Assert
-        $response->assertForbidden();
-    }
-
-    public function test_invoke_as_admin_shows_all_troopers_paginated(): void
-    {
-        // Arrange
-        $admin = Trooper::factory()->asAdmin()->create();
-        Trooper::factory()->count(20)->create();
->>>>>>> b60e060 (feature: add notice board)
 
         // Act
         $response = $this->actingAs($admin_user)->get(route('admin.troopers.list'));
@@ -58,15 +30,9 @@ class ListControllerTest extends TestCase
         // Assert
         $response->assertOk();
         $response->assertViewIs('pages.admin.troopers.list');
-<<<<<<< HEAD
         $response->assertViewHas('troopers', function ($troopers)
         {
             return $troopers->count() === 6;
-=======
-        $response->assertViewHas('troopers', function (LengthAwarePaginator $troopers)
-        {
-            return $troopers->total() === 21 && $troopers->count() === 15; // 20 created + 1 admin
->>>>>>> b60e060 (feature: add notice board)
         });
     }
 
@@ -74,31 +40,9 @@ class ListControllerTest extends TestCase
     {
         // Arrange
         $unit = Organization::factory()->unit()->create();
-<<<<<<< HEAD
         $moderator_user = Trooper::factory()->asModerator()->withAssignment($unit, moderator: true)->create();
         Trooper::factory()->count(3)->create(); // Unassigned troopers
         Trooper::factory()->count(2)->withAssignment($unit, member: true)->create();
-=======
-        $region = $unit->parent;
-        $unit2 = Organization::factory()->unit()->create();
-
-        $moderator = Trooper::factory()
-            ->asModerator()
-            ->withAssignment($region, moderator: true)
-            ->create();
-
-        // This trooper is in a unit under the moderator's region
-        $moderated_trooper = Trooper::factory()
-            ->asMember()
-            ->withAssignment($unit)
-            ->create();
-
-        // This trooper is in a different unit/region
-        $unrelated_trooper = Trooper::factory()
-            ->asMember()
-            ->withAssignment($unit2)
-            ->create();
->>>>>>> b60e060 (feature: add notice board)
 
         // Act
         $response = $this->actingAs($moderator_user)->get(route('admin.troopers.list'));
@@ -106,39 +50,10 @@ class ListControllerTest extends TestCase
         // Assert
         $response->assertOk();
         $response->assertViewIs('pages.admin.troopers.list');
-<<<<<<< HEAD
         $response->assertViewHas('troopers', function ($troopers)
         {
             return $troopers->count() === 3;
         });
-=======
-        $response->assertViewHas('troopers', function (LengthAwarePaginator $troopers) use ($moderator, $moderated_trooper)
-        {
-            // Moderator sees themself and the trooper they moderate
-            return $troopers->total() === 2
-                && $troopers->contains($moderator)
-                && $troopers->contains($moderated_trooper);
-        });
-
-        $response->assertViewHas('troopers', function (LengthAwarePaginator $troopers) use ($unrelated_trooper)
-        {
-            // Moderator should NOT see the unrelated trooper
-            return !$troopers->contains($unrelated_trooper);
-        });
-    }
-
-    public function test_invoke_returns_empty_collection_when_no_troopers_exist(): void
-    {
-        // Arrange
-        $admin = Trooper::factory()->asAdmin()->create();
-
-        // Act
-        $response = $this->actingAs($admin)->get(route('admin.troopers.list'));
-
-        // Assert
-        $response->assertOk();
-        $response->assertViewHas('troopers', fn(LengthAwarePaginator $p) => $p->total() === 1);
->>>>>>> b60e060 (feature: add notice board)
     }
 
     public function test_invoke_with_search_term_filters_by_name(): void
@@ -156,6 +71,7 @@ class ListControllerTest extends TestCase
         $response->assertOk();
         $response->assertViewHas('troopers', function ($troopers)
         {
+            dd($troopers);
             return $troopers->count() === 1 && $troopers->first()->name === 'John Doe';
         });
         $response->assertSee('John Doe');

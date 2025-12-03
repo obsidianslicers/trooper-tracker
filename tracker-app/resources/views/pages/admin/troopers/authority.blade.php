@@ -93,37 +93,7 @@
         <x-link-button-cancel :url="route('admin.troopers.list')" />
       </x-submit-container>
 
-<<<<<<< HEAD
     </form>
-=======
-      <tr data-id="{{ $organization->id }}"
-          data-parent-id="{{ $organization->parent_id }}">
-        <td>
-          @foreach(range(0, $organization->depth - 1) as $i)
-          <i class="fa fa-fw"></i>
-          @endforeach
-          <label for="{{'moderators.'.$organization->id.'.selected'}}">
-            {{ $organization->name }}
-          </label>
-        </td>
-        <td class="cascade">
-          @if($organization->type != \App\Enums\OrganizationType::Organization)
-          <x-input-checkbox :property="'moderators.'.$organization->id.'.selected'"
-                            :checked="$parent_selected || ($trooper_assignment->moderator ?? false)"
-                            :disabled="$parent_selected && $organization->type == \App\Enums\OrganizationType::Unit" />
-          @endif
-        </td>
-        <td class="text-center">
-          <x-yes-no :value="$trooper_assignment->notify ?? false" />
-        </td>
-        <td class="text-center">
-          <x-yes-no :value="$trooper_assignment->member ?? false" />
-        </td>
-      </tr>
-      @php($selected_map[$organization->id] = $trooper_assignment->moderator ?? false)
-      @endforeach
-    </x-table>
->>>>>>> b60e060 (feature: add notice board)
 
   </x-card>
 

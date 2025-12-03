@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 @use 'theme.scss';
 
 @import "flatpickr/dist/flatpickr.min.css";
@@ -13,14 +12,3 @@ a,
 a:hover {
     text-decoration: none;
 }
-=======
-/* Bootswatch Darkly theme 
-@import "bootswatch/dist/darkly/bootstrap.min.css";
-vite/tailwind can't handle import font URL's without double quotes
-*/
-
-@use 'style/main.scss';
-
-@import "flatpickr/dist/flatpickr.min.css";
-@import "easymde/dist/easymde.min.css";
->>>>>>> b60e060 (feature: add notice board)

@@ -5,7 +5,6 @@
 @section('content')
 
 <div class="row">
-<<<<<<< HEAD
   <div class="col-sm-12 col-md-6">
 
     <form method="GET"
@@ -26,27 +25,15 @@
 
   </div>
   <div class="col-sm-12 col-md-6 text-end">
-=======
-  <div class="col-6">
-  </div>
-  <div class="col-6 text-end">
->>>>>>> b60e060 (feature: add notice board)
 
     <x-button-group>
       <x-button-group-link :label="'All'"
                            :url="route('admin.troopers.list')"
                            :active="$membership_role==null" />
-<<<<<<< HEAD
       @foreach(\App\Enums\MembershipRole::toArray() as $value => $name)
       <x-button-group-link :label="$name"
                            :url="route('admin.troopers.list', ['membership_role'=>$value])"
                            :active="$membership_role==$value" />
-=======
-      @foreach(\App\Enums\MembershipRole::cases() as $case)
-      <x-button-group-link :label="$case->name"
-                           :url="route('admin.troopers.list', ['membership_role'=>$case->value])"
-                           :active="$membership_role==$case->value" />
->>>>>>> b60e060 (feature: add notice board)
       @endforeach
     </x-button-group>
 
@@ -74,17 +61,10 @@
       </td>
       <td>
         <a href="{{ route('admin.troopers.list', ['membership_role'=>$trooper->membership_role->value]) }}">
-<<<<<<< HEAD
           {{ to_title($trooper->membership_role->name) }}
         </a>
       </td>
       <td>{{ to_title($trooper->membership_status->name) }}</td>
-=======
-          {{ $trooper->membership_role->name }}
-        </a>
-      </td>
-      <td>{{ $trooper->membership_status->name }}</td>
->>>>>>> b60e060 (feature: add notice board)
       <td>
         <x-action-menu>
           <x-action-link-update :label="'Profile'"

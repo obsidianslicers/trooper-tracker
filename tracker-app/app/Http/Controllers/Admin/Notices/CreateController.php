@@ -51,15 +51,8 @@ class CreateController extends Controller
 
         $trooper = Auth::user();
 
-<<<<<<< HEAD
         $notice = $this->getNotice($request, $trooper);
 
-=======
-        $trooper = Auth::user();
-
-        $notice = $this->getNotice($request, $trooper);
-
->>>>>>> b60e060 (feature: add notice board)
         $this->assignOrganization($request, $notice, $trooper);
 
         $options = NoticeType::toDescriptions();
