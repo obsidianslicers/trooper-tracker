@@ -36,10 +36,10 @@ class ProfileSubmitController extends Controller
     {
         $trooper = $request->user();
 
-        $trooper->name = $request->input('name');
-        $trooper->email = $request->input('email');
-        $trooper->phone = $request->input('phone');
-        $trooper->theme = $request->input('theme');
+        $trooper->name = $request->validated('name');
+        $trooper->email = $request->validated('email');
+        $trooper->phone = $request->validated('phone');
+        $trooper->theme = $request->validated('theme');
 
         $trooper->save();
 

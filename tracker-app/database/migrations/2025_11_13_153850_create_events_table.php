@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\EventStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -14,12 +15,18 @@ return new class extends Migration
         Schema::create('tt_events', function (Blueprint $table)
         {
             $table->id();
+
+            // Hosting Organization assignment
+            $table->foreignId('organization_id')
+                ->constrained('tt_organizations')
+                ->cascadeOnDelete();
+
             // $table->integer('thread_id')->default(0);
             // $table->integer('post_id')->default(0);
             $table->string('name', 256);
+            $table->string('status', 16)->default(EventStatus::DRAFT->value);
             $table->dateTime('starts_at')->nullable()->index();
             $table->dateTime('ends_at')->nullable()->index();
-            $table->boolean('closed')->default(false);
 
             $table->integer('charity_direct_funds')->default(0);
             $table->integer('charity_indirect_funds')->default(0);
@@ -27,9 +34,9 @@ return new class extends Migration
             $table->integer('charity_hours')->nullable();
             //$table->text('charity_note')->nullable();
 
-            $table->boolean('limit_participants')->default(true);
-            $table->integer('total_troopers_allowed')->nullable();
-            $table->integer('total_handlers_allowed')->nullable();
+            $table->boolean('limit_organizations')->default(false);
+            $table->integer('troopers_allowed')->nullable();
+            $table->integer('handlers_allowed')->nullable();
 
             // $table->string('venue')->nullable();
             // $table->string('website', 500)->nullable();
@@ -55,11 +62,6 @@ return new class extends Migration
             // $table->tinyInteger('allowTentative')->default(1);
             // $table->integer('link')->default(0)->index();
             // $table->integer('link2')->default(0)->index();
-
-            // $table->foreignId('squad_id')
-            //     ->nullable()
-            //     ->constrained('tt_squads')
-            //     ->cascadeOnDelete();
 
             $table->timestamps();
             $table->softDeletes();

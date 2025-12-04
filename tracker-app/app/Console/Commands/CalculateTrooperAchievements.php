@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Enums\EventStatus;
 use App\Models\EventTrooper;
 use App\Models\TrooperAchievement;
 use Illuminate\Console\Command;
@@ -23,7 +24,7 @@ class CalculateTrooperAchievements extends Command
      *
      * @var string
      */
-    protected $signature = 'app:calculate-trooper-achievements';
+    protected $signature = 'tracker:calculate-trooper-achievements';
 
     /**
      * The console command description.
@@ -105,7 +106,7 @@ class CalculateTrooperAchievements extends Command
 
         $trooper_events = EventTrooper::selectRaw($select)
             ->join('tt_events', 'tt_event_troopers.event_id', '=', 'tt_events.id')
-            ->where('tt_events.closed', true)
+            ->where('tt_events.status', EventStatus::CLOSED)
             ->groupBy('tt_event_troopers.trooper_id')
             ->orderByDesc('event_count')
             ->get();

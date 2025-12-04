@@ -13,7 +13,6 @@ use App\Services\BreadCrumbService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Class ListController
@@ -99,7 +98,8 @@ class ListController extends Controller
         $q = Notice::with([
             'organization.trooper_assignments' => function ($q) use ($trooper)
             {
-                $q->where(TrooperAssignment::TROOPER_ID, $trooper->id);
+                $q->where(TrooperAssignment::TROOPER_ID, $trooper->id)
+                    ->where(TrooperAssignment::MODERATOR, true);
             }
         ]);
 

@@ -283,37 +283,33 @@ $themes: (
             color: var(--bs-primary);
 
             --bs-link-color: var(--bs-primary);
-            text-decoration: none; // Base style: no underline
+            text-decoration: none; 
 
             &:focus,
             &:hover {
+                text-decoration: underline;
 
                 // FIX: Inject high-contrast dark color only for the Stormtrooper's white primary links
                 @if $name =='stormtrooper' {
                     // Primary: #ffffff (White) -> Hover: Dark Gray
                     color: #999999;
                 }
-
                 @else if $name =='rebel' {
                     // Primary: #ff9900 (Orange) -> Hover: Lighter Orange/Yellow
                     color: #ffc466;
                 }
-
                 @else if $name =='sith' {
                     // Primary: #ff0000 (Red) -> Hover: Lighter Red/Crimson
                     color: #ff3333;
                 }
-
                 @else if $name =='bountyhunter' {
                     // Primary: #5c7e5e (Olive Green) -> Hover: Lighter Olive
                     color: #8da48f;
                 }
-
                 @else if $name =='clone' {
                     // Primary: #6495ed (Cornflower Blue) -> Hover: Lighter Blue
                     color: #9abaff;
                 }
-
                 @else {
                     // Fallback (Should be unused for your defined themes)
                     color: var(--bs-link-hover-color, var(--bs-primary));

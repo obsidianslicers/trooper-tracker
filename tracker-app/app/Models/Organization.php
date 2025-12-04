@@ -45,6 +45,11 @@ class Organization extends BaseOrganization
         return $this->hasManyThrough(EventTrooper::class, Costume::class);
     }
 
+    public function event_organizations()
+    {
+        return $this->hasMany(EventOrganization::class);
+    }
+
     public static function resequenceAll()
     {
         $organizations = self::ofTypeOrganizations()->orderBy('name')->get();

@@ -4,12 +4,16 @@
 
 @section('content')
 
-<div class="row">
+<div class="row mb-3">
   <div class="col-sm-12 col-md-6">
 
     <form method="GET"
           action="{{ route('admin.troopers.list') }}"
           class="input-group">
+      @foreach (qs() as $key=>$value)
+      <x-input-hidden :property="$key"
+                      :value="$value" />
+      @endforeach
       <input type="text"
              name="search_term"
              placeholder="Search Name, Username, Email (at least 3 chars)"
@@ -32,7 +36,7 @@
                            :active="$membership_role==null" />
       @foreach(\App\Enums\MembershipRole::toArray() as $value => $name)
       <x-button-group-link :label="$name"
-                           :url="route('admin.troopers.list', ['membership_role'=>$value])"
+                           :url="route('admin.troopers.list', qs(['membership_role'=>$value]))"
                            :active="$membership_role==$value" />
       @endforeach
     </x-button-group>
@@ -60,7 +64,7 @@
         {{ $trooper->email }}
       </td>
       <td>
-        <a href="{{ route('admin.troopers.list', ['membership_role'=>$trooper->membership_role->value]) }}">
+        <a href="{{ route('admin.troopers.list', qs(['membership_role'=>$trooper->membership_role->value])) }}">
           {{ to_title($trooper->membership_role->name) }}
         </a>
       </td>

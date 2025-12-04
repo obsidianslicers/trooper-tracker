@@ -71,7 +71,7 @@ class ListControllerTest extends TestCase
         $response->assertOk();
         $response->assertViewHas('troopers', function ($troopers)
         {
-            return $troopers->count() === 1 && $troopers->first()->name === 'John Doe';
+            return $troopers->count() === 1 && $troopers->first()->name == 'John Doe';
         });
         $response->assertSee('John Doe');
         $response->assertDontSee('Jane Smith');

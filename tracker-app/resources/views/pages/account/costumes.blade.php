@@ -7,7 +7,7 @@
 <x-slim-container>
 
   <!-- Trooper Costumes -->
-  <x-card :label="'Trooper Costumes'">
+  <x-card>
     <div hx-get="{{ route('account.costumes-htmx') }}"
          hx-trigger="load"
          hx-swap="outerHTML">

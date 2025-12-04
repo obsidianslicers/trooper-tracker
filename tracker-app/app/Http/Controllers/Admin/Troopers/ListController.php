@@ -80,16 +80,9 @@ class ListController extends Controller
             $q = $q->where(Trooper::MEMBERSHIP_ROLE, $membership_role);
         }
 
-        if ($request->has('search_term') && strlen($request->query('search_term', '')) > 3)
+        if ($request->has('search_term') && strlen($request->query('search_term', '')) >= 3)
         {
-            $search_term = '%' . $request->query('search_term') . '%';
-
-            $q = $q->where(function ($query) use ($search_term)
-            {
-                $query->where(Trooper::EMAIL, 'like', $search_term)
-                    ->orWhere(Trooper::USERNAME, 'like', $search_term)
-                    ->orWhere(Trooper::NAME, 'like', $search_term);
-            });
+            $q = $q->searchFor($request->query('search_term'));
         }
 
         if (!$trooper->isAdministrator())

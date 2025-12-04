@@ -9,8 +9,7 @@
         <li class="my-2">
           <a href="https://www.501st.com"
              target="_blank"
-             rel="noopener"
-             class="text-decoration-none">
+             rel="noopener">
             <img class="me-2 rounded-circle overflow-hidden"
                  src="{{ url('img/icons/501st-legion-128x128.png') }}"
                  height="32px"
@@ -21,8 +20,7 @@
         <li class="my-2">
           <a href="https://www.rebellegion.com"
              target="_blank"
-             rel="noopener"
-             class="text-decoration-none">
+             rel="noopener">
             <img class="me-2 rounded-circle overflow-hidden"
                  src="{{ url('img/icons/rebel-legion-128x128.png') }}"
                  height="32px"
@@ -33,8 +31,7 @@
         <li class="my-2">
           <a href="https://mandalorianmercs.org"
              target="_blank"
-             rel="noopener"
-             class="text-decoration-none">
+             rel="noopener">
             <img class="me-2 rounded-circle overflow-hidden"
                  src="{{ url('img/icons/mandalorian-mercs-128x128.png') }}"
                  height="32px"
@@ -45,8 +42,7 @@
         <li class="my-2">
           <a href="https://www.thedarkempire.org"
              target="_blank"
-             rel="noopener"
-             class="text-decoration-none">
+             rel="noopener">
             <img class="me-2 rounded-circle overflow-hidden"
                  src="{{ url('img/icons/dark-empire-128x128.png') }}"
                  height="32px"
@@ -57,8 +53,7 @@
         <li class="my-2">
           <a href="https://www.astromech.net"
              target="_blank"
-             rel="noopener"
-             class="text-decoration-none">
+             rel="noopener">
             <img class="me-2 rounded-circle overflow-hidden"
                  src="{{ url('img/icons/droid-builders-128x128.png') }}"
                  height="32px"
@@ -76,8 +71,7 @@
         <li class="my-2">
           <a href="https://github.com/obsidianslicers/trooper-tracker"
              target="_blank"
-             rel="noopener"
-             class="text-decoration-none">
+             rel="noopener">
             <i class="fa-brands fa-github me-2"></i>
             GitHub Repository
           </a>
@@ -85,8 +79,7 @@
         <li class="my-2">
           <a href="https://github.com/obsidianslicers/trooper-tracker?tab=contributing-ov-file#readme"
              target="_blank"
-             rel="noopener"
-             class="text-decoration-none">
+             rel="noopener">
             <i class="fa-solid fa-code-branch me-2"></i>
             How to Contribute
           </a>
@@ -94,8 +87,7 @@
         <li class="my-2">
           <a href="https://github.com/obsidianslicers/trooper-tracker/issues"
              target="_blank"
-             rel="noopener"
-             class="text-decoration-none">
+             rel="noopener">
             <i class="fa-solid fa-bug me-2"></i>
             Report Issues
           </a>
@@ -108,14 +100,12 @@
       <h5 class="mb-3 text-muted">The Obsidian Slicers</h5>
       <ul class="list-unstyled">
         <li class="my-2">
-          <a href="https://mattdrennan.com"
-             class="fw-bold text-decoration-none">
+          <a href="https://mattdrennan.com">
             Matthew Drennan <span class="text-muted">(TK52233)</span>
           </a>
         </li>
         <li class="my-2">
-          <a href="https://www.501st.com/members/displaymemberdetails.php?userID=48435"
-             class="fw-bold text-decoration-none">
+          <a href="https://www.501st.com/members/displaymemberdetails.php?userID=48435">
             Stu Ellerbusch <span class="text-muted">(IC51399)</span>
           </a>
         </li>

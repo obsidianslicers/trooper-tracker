@@ -4,10 +4,40 @@ declare(strict_types=1);
 
 use App\Models\Setting;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 if (!function_exists('setting'))
 {
+    /**
+     * Build a query string by merging the current request query with overrides.
+     *
+     * @param  array  $overrides
+     * @return array
+     */
+    function qs(array $overrides = []): array
+    {
+        return array_merge(request()->query(), $overrides);
+    }
+
+    /**
+     * Return a Storage URL if the file exists, otherwise fall back to a public asset.
+     *
+     * @param  string|null  $path   Path relative to the storage disk
+     * @param  string       $default Relative path under public/ (e.g. 'img/icons/foo.png')
+     * @param  string       $disk   Storage disk to check (default 'public')
+     * @return string
+     */
+    function map_image_url(?string $path, string $default, string $disk = 'public'): string
+    {
+        if ($path && Storage::disk($disk)->exists($path))
+        {
+            return Storage::url($path);
+        }
+
+        return url($default);
+    }
+
     /**
      * Convert a property.name to a bracketed[name]
      * @param string $property

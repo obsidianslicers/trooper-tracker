@@ -5,24 +5,24 @@
 @section('content')
 @php($organization_id = $organization->id ?? null)
 
-<div class="row">
-  <div class="col-6">
+<div class="row mb-3">
+  <div class="col-sm-12 col-md-6">
     @if($organization != null)
     <x-filter-chip :label="$organization->name"
-                   :url="route('admin.notices.list')" />
+                   :url="route('admin.notices.list',qs(['organization_id'=>null]))" />
     @endif
   </div>
-  <div class="col-6 text-end">
+  <div class="col-sm-12 col-md-6 text-end">
 
     <x-button-group>
       <x-button-group-link :label="'Active'"
-                           :url="route('admin.notices.list', ['organization_id'=>$organization_id, 'scope'=>'active'])"
+                           :url="route('admin.notices.list', qs(['scope'=>'active']))"
                            :active="$scope=='active'" />
       <x-button-group-link :label="'Past'"
-                           :url="route('admin.notices.list', ['organization_id'=>$organization_id, 'scope'=>'past'])"
+                           :url="route('admin.notices.list', qs(['scope'=>'past']))"
                            :active="$scope=='past'" />
       <x-button-group-link :label="'Future'"
-                           :url="route('admin.notices.list', ['organization_id'=>$organization_id, 'scope'=>'future'])"
+                           :url="route('admin.notices.list', qs(['scope'=>'future']))"
                            :active="$scope=='future'" />
     </x-button-group>
 
@@ -32,14 +32,15 @@
 <x-table>
   <thead>
     <tr>
+      <th style="width: 36px;"></th>
       <th>
-        Name
+        Title
       </th>
       <th>
         Organization
       </th>
       <th>
-        <x-link-button-create :url="route('admin.notices.create', ['organization_id'=> request('organization_id')])">
+        <x-link-button-create :url="route('admin.notices.create', ['organization_id'=> $organization_id])">
           Notice
         </x-link-button-create>
       </th>
@@ -49,6 +50,12 @@
     @foreach($notices as $notice)
     <tr>
       <td>
+        <x-logo :storage_path="$notice->organization->image_path_sm"
+                :default_path="'img/icons/organization-32x32.png'"
+                :width="32"
+                :height="32" />
+      </td>
+      <td>
         <i class="fa fa-fw fa-circle text-{{ $notice->type->value }} me-2"></i>
         {{ $notice->title }}
       </td>
@@ -56,8 +63,7 @@
         @if($notice->organization_id == null)
         Everyone
         @else
-        <a class="text-decoration-none"
-           href="{{ route('admin.notices.list', ['organization_id'=>$notice->organization_id]) }}">
+        <a href="{{ route('admin.notices.list', qs(['organization_id'=>$notice->organization_id])) }}">
           {{ $notice->organization->name }}
         </a>
         @endif
@@ -78,7 +84,7 @@
   </tbody>
   <tfoot>
     <tr>
-      <td colspan="3">
+      <td colspan="4">
         {{ $notices->links() }}
       </td>
     </tr>

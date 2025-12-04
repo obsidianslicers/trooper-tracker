@@ -13,7 +13,7 @@ use App\Http\Controllers\Admin\Troopers\ProfileSubmitController;
 use Illuminate\Support\Facades\Route;
 
 
-//  ADMIN/TROOPER
+//  ADMIN/TROOPERs
 Route::prefix('admin/troopers')
     ->name('admin.troopers.')
     ->middleware(['auth', 'check.role:moderator,administrator'])

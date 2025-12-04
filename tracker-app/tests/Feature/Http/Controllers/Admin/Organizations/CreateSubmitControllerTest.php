@@ -39,7 +39,11 @@ class CreateSubmitControllerTest extends TestCase
             ]);
 
         // Assert
-        $response->assertRedirect(route('admin.organizations.list'));
+        $organization = Organization::where('name', $new_org_name)->first();
+
+        $response->assertRedirect(
+            route('admin.organizations.update', ['organization' => $organization])
+        );
 
         $this->assertDatabaseHas(Organization::class, [
             'name' => $new_org_name,
@@ -64,7 +68,11 @@ class CreateSubmitControllerTest extends TestCase
             ]);
 
         // Assert
-        $response->assertRedirect(route('admin.organizations.list'));
+        $organization = Organization::where('name', $new_org_name)->first();
+
+        $response->assertRedirect(
+            route('admin.organizations.update', ['organization' => $organization])
+        );
 
         $this->assertDatabaseHas(Organization::class, [
             'name' => $new_org_name,

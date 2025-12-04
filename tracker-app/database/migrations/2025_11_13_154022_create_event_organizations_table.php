@@ -22,8 +22,9 @@ return new class extends Migration
                 ->constrained('tt_organizations')
                 ->cascadeOnDelete();
 
-            $table->integer('troopers_allowed')->default(500);
-            $table->integer('handlers_allowed')->default(500);
+            $table->boolean('can_attend')->default(true);
+            $table->integer('troopers_allowed')->nullable();
+            $table->integer('handlers_allowed')->nullable();
 
             $table->timestamps();
             $table->softDeletes();

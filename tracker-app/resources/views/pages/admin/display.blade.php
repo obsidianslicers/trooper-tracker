@@ -7,7 +7,7 @@
 <x-dashboard-cards>
   <x-dashboard-card :label="'Events'"
                     :icon="'fa-calendar-days'"
-                    :url="'#'">
+                    :url="route('admin.events.list')">
     <p>
       Create, Update, and Manage Events
     </p>

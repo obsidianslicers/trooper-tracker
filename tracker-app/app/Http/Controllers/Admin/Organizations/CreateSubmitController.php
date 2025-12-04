@@ -65,6 +65,6 @@ class CreateSubmitController extends Controller
 
         $this->flash->created($organization);
 
-        return redirect()->route('admin.organizations.list');
+        return redirect()->route('admin.organizations.update', compact('organization'));
     }
 }

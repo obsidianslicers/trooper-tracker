@@ -61,4 +61,31 @@ trait HasTrooperScopes
                 ->whereRaw('org_candidate.node_path LIKE CONCAT(org_moderator.node_path, "%")');
         });
     }
+
+    /**
+     * Scope a query to search for troopers by a given search term.
+     *
+     * @param Builder<self> $query The Eloquent query builder.
+     * @param string $search_term The term to search for in name, username, and email fields.
+     * @return Builder<self>
+     */
+    protected function scopeSearchFor(Builder $query, string $search_term): Builder
+    {
+        if (!str_starts_with($search_term, '%'))
+        {
+            $search_term = '%' . $search_term;
+        }
+
+        if (!str_ends_with($search_term, '%'))
+        {
+            $search_term .= '%';
+        }
+
+        return $query->where(function ($query) use ($search_term)
+        {
+            $query->where(self::EMAIL, 'like', $search_term)
+                ->orWhere(self::USERNAME, 'like', $search_term)
+                ->orWhere(self::NAME, 'like', $search_term);
+        });
+    }
 }

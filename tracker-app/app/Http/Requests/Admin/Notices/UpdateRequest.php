@@ -6,12 +6,8 @@ namespace App\Http\Requests\Admin\Notices;
 
 use App\Enums\NoticeType;
 use App\Models\Notice;
-use App\Models\Organization;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 
 /**
  * Handles the validation for the user registration form.
@@ -68,17 +64,5 @@ class UpdateRequest extends FormRequest
         ];
 
         return $rules;
-    }
-
-    public function validateInputs(): array
-    {
-        $validator = Validator::make($this->all(), $this->rules());
-
-        if ($validator->fails())
-        {
-            throw new ValidationException($validator);
-        }
-
-        return $validator->validated();
     }
 }

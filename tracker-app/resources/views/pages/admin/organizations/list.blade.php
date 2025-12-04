@@ -7,6 +7,7 @@
 <x-table>
   <thead>
     <tr>
+      <th style="width: 36px;"></th>
       <th>
         Name
       </th>
@@ -16,6 +17,12 @@
   <tbody>
     @foreach($organizations as $organization)
     <tr>
+      <td>
+        <x-logo :storage_path="$organization->image_path_sm"
+                :default_path="'img/icons/organization-32x32.png'"
+                :width="32"
+                :height="32" />
+      </td>
       <td>
         @foreach(range(0, $organization->depth - 1) as $i)
         <i class="fa fa-fw"></i>

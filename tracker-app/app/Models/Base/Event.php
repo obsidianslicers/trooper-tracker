@@ -16,6 +16,7 @@ use App\Models\Trooper;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -24,17 +25,18 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * Class Event
  * 
  * @property int $id
+ * @property int $organization_id
  * @property string $name
+ * @property string $status
  * @property Carbon|null $starts_at
  * @property Carbon|null $ends_at
- * @property bool $closed
  * @property int $charity_direct_funds
  * @property int $charity_indirect_funds
  * @property string|null $charity_name
  * @property int|null $charity_hours
- * @property bool $limit_participants
- * @property int|null $total_troopers_allowed
- * @property int|null $total_handlers_allowed
+ * @property bool $limit_organizations
+ * @property int|null $troopers_allowed
+ * @property int|null $handlers_allowed
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property string|null $deleted_at
@@ -42,6 +44,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $updated_id
  * @property int|null $deleted_id
  * 
+ * @property Organization $organization
  * @property Collection|Costume[] $costumes
  * @property Collection|Organization[] $organizations
  * @property Collection|Trooper[] $troopers
@@ -53,17 +56,18 @@ class Event extends Model
 {
     use SoftDeletes;
     const ID = 'id';
+    const ORGANIZATION_ID = 'organization_id';
     const NAME = 'name';
+    const STATUS = 'status';
     const STARTS_AT = 'starts_at';
     const ENDS_AT = 'ends_at';
-    const CLOSED = 'closed';
     const CHARITY_DIRECT_FUNDS = 'charity_direct_funds';
     const CHARITY_INDIRECT_FUNDS = 'charity_indirect_funds';
     const CHARITY_NAME = 'charity_name';
     const CHARITY_HOURS = 'charity_hours';
-    const LIMIT_PARTICIPANTS = 'limit_participants';
-    const TOTAL_TROOPERS_ALLOWED = 'total_troopers_allowed';
-    const TOTAL_HANDLERS_ALLOWED = 'total_handlers_allowed';
+    const LIMIT_ORGANIZATIONS = 'limit_organizations';
+    const TROOPERS_ALLOWED = 'troopers_allowed';
+    const HANDLERS_ALLOWED = 'handlers_allowed';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
     const DELETED_AT = 'deleted_at';
@@ -74,15 +78,15 @@ class Event extends Model
 
     protected $casts = [
         self::ID => 'int',
+        self::ORGANIZATION_ID => 'int',
         self::STARTS_AT => 'datetime',
         self::ENDS_AT => 'datetime',
-        self::CLOSED => 'bool',
         self::CHARITY_DIRECT_FUNDS => 'int',
         self::CHARITY_INDIRECT_FUNDS => 'int',
         self::CHARITY_HOURS => 'int',
-        self::LIMIT_PARTICIPANTS => 'bool',
-        self::TOTAL_TROOPERS_ALLOWED => 'int',
-        self::TOTAL_HANDLERS_ALLOWED => 'int',
+        self::LIMIT_ORGANIZATIONS => 'bool',
+        self::TROOPERS_ALLOWED => 'int',
+        self::HANDLERS_ALLOWED => 'int',
         self::CREATED_AT => 'datetime',
         self::UPDATED_AT => 'datetime',
         self::CREATED_ID => 'int',
@@ -91,18 +95,24 @@ class Event extends Model
     ];
 
     protected $fillable = [
+        self::ORGANIZATION_ID,
         self::NAME,
+        self::STATUS,
         self::STARTS_AT,
         self::ENDS_AT,
-        self::CLOSED,
         self::CHARITY_DIRECT_FUNDS,
         self::CHARITY_INDIRECT_FUNDS,
         self::CHARITY_NAME,
         self::CHARITY_HOURS,
-        self::LIMIT_PARTICIPANTS,
-        self::TOTAL_TROOPERS_ALLOWED,
-        self::TOTAL_HANDLERS_ALLOWED
+        self::LIMIT_ORGANIZATIONS,
+        self::TROOPERS_ALLOWED,
+        self::HANDLERS_ALLOWED
     ];
+
+    public function organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class);
+    }
 
     public function costumes(): BelongsToMany
     {
@@ -114,7 +124,7 @@ class Event extends Model
     public function organizations(): BelongsToMany
     {
         return $this->belongsToMany(Organization::class, 'tt_event_organizations')
-                    ->withPivot(EventOrganization::ID, EventOrganization::TROOPERS_ALLOWED, EventOrganization::HANDLERS_ALLOWED, EventOrganization::DELETED_AT, EventOrganization::CREATED_ID, EventOrganization::UPDATED_ID, EventOrganization::DELETED_ID)
+                    ->withPivot(EventOrganization::ID, EventOrganization::CAN_ATTEND, EventOrganization::TROOPERS_ALLOWED, EventOrganization::HANDLERS_ALLOWED, EventOrganization::DELETED_AT, EventOrganization::CREATED_ID, EventOrganization::UPDATED_ID, EventOrganization::DELETED_ID)
                     ->withTimestamps();
     }
 

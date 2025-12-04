@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use Database\Seeders\Conversions\AwardSeeder;
-use Database\Seeders\Conversions\CostumeSeeder;
-use Database\Seeders\Conversions\EventSeeder;
-use Database\Seeders\Conversions\EventTrooperSeeder;
-use Database\Seeders\Conversions\EventUploadSeeder;
-use Database\Seeders\Conversions\SettingSeeder;
-use Database\Seeders\Conversions\TrooperAwardSeeder;
-use Database\Seeders\Conversions\TrooperCostumeSeeder;
-use Database\Seeders\Conversions\TrooperDonationSeeder;
-use Database\Seeders\Conversions\TrooperOrganizationSeeder;
-use Database\Seeders\Conversions\TrooperSeeder;
+use Database\Seeders\FloridaGarrison\AwardSeeder;
+use Database\Seeders\FloridaGarrison\CostumeSeeder;
+use Database\Seeders\FloridaGarrison\EventSeeder;
+use Database\Seeders\FloridaGarrison\EventTrooperSeeder;
+use Database\Seeders\FloridaGarrison\EventUploadSeeder;
+use Database\Seeders\FloridaGarrison\SettingSeeder;
+use Database\Seeders\FloridaGarrison\TrooperAwardSeeder;
+use Database\Seeders\FloridaGarrison\TrooperCostumeSeeder;
+use Database\Seeders\FloridaGarrison\TrooperDonationSeeder;
+use Database\Seeders\FloridaGarrison\TrooperOrganizationSeeder;
+use Database\Seeders\FloridaGarrison\TrooperSeeder;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Artisan;
@@ -51,6 +51,6 @@ class FloridaGarrisonSeeder extends Seeder
             $this->call(ActorSeeder::class);
         }
 
-        Artisan::call('app:calculate-trooper-achievements');
+        Artisan::call('tracker:calculate-trooper-achievements');
     }
 }

@@ -7,8 +7,6 @@ namespace App\Http\Requests\Admin\Organizations;
 use App\Models\Organization;
 use App\Rules\Admin\Organizations\UniqueNameRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\ValidationException;
 
 /**
  * Handles the validation for the user registration form.
@@ -47,18 +45,6 @@ class CreateRequest extends FormRequest
         ];
 
         return $rules;
-    }
-
-    public function validateInputs(): array
-    {
-        $validator = Validator::make($this->all(), $this->rules());
-
-        if ($validator->fails())
-        {
-            throw new ValidationException($validator);
-        }
-
-        return $validator->validated();
     }
 
     /**

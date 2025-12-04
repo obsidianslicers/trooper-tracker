@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\Organizations\CreateController;
 use App\Http\Controllers\Admin\Organizations\CreateSubmitController;
 use App\Http\Controllers\Admin\Organizations\ListController;
 use App\Http\Controllers\Admin\Organizations\UpdateController;
+use App\Http\Controllers\Admin\Organizations\UpdateImageController;
 use App\Http\Controllers\Admin\Organizations\UpdateSubmitController;
 use Illuminate\Support\Facades\Route;
 
@@ -20,4 +21,5 @@ Route::prefix('admin/organizations')
         Route::post('/{parent}/create', CreateSubmitController::class);
         Route::get('/{organization}/update', UpdateController::class)->name('update');
         Route::post('/{organization}/update', UpdateSubmitController::class);
+        Route::post('/{organization}/image', UpdateImageController::class)->name('update-image');
     });

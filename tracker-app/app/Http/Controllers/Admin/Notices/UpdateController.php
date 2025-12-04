@@ -7,7 +7,6 @@ namespace App\Http\Controllers\Admin\Notices;
 use App\Enums\NoticeType;
 use App\Http\Controllers\Controller;
 use App\Models\Notice;
-use App\Models\Organization;
 use App\Services\BreadCrumbService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
