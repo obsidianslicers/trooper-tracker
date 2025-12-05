@@ -6,8 +6,6 @@
 
 namespace App\Models\Base;
 
-use App\Models\Event;
-use App\Models\EventCostume;
 use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\Trooper;
@@ -26,6 +24,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $id
  * @property int $organization_id
  * @property string $name
+ * @property bool $verified
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property string|null $deleted_at
@@ -34,7 +33,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $deleted_id
  * 
  * @property Organization $organization
- * @property Collection|Event[] $events
  * @property Collection|EventTrooper[] $event_troopers
  * @property Collection|Trooper[] $troopers
  *
@@ -46,6 +44,7 @@ class Costume extends Model
     const ID = 'id';
     const ORGANIZATION_ID = 'organization_id';
     const NAME = 'name';
+    const VERIFIED = 'verified';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
     const DELETED_AT = 'deleted_at';
@@ -57,6 +56,7 @@ class Costume extends Model
     protected $casts = [
         self::ID => 'int',
         self::ORGANIZATION_ID => 'int',
+        self::VERIFIED => 'bool',
         self::CREATED_AT => 'datetime',
         self::UPDATED_AT => 'datetime',
         self::CREATED_ID => 'int',
@@ -66,19 +66,13 @@ class Costume extends Model
 
     protected $fillable = [
         self::ORGANIZATION_ID,
-        self::NAME
+        self::NAME,
+        self::VERIFIED
     ];
 
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
-    }
-
-    public function events(): BelongsToMany
-    {
-        return $this->belongsToMany(Event::class, 'tt_event_costumes')
-                    ->withPivot(EventCostume::ID, EventCostume::REQUESTED, EventCostume::EXCLUDED, EventCostume::DELETED_AT, EventCostume::CREATED_ID, EventCostume::UPDATED_ID, EventCostume::DELETED_ID)
-                    ->withTimestamps();
     }
 
     public function event_troopers(): HasMany

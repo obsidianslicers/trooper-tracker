@@ -8,6 +8,8 @@ use App\Http\Controllers\Admin\Events\UpdateHtmxController;
 use App\Http\Controllers\Admin\Events\UpdateOrganizationsController;
 use App\Http\Controllers\Admin\Events\UpdateOrganizationsSubmitController;
 use App\Http\Controllers\Admin\Events\UpdateSubmitController;
+use App\Http\Controllers\Admin\Events\UpdateVenueController;
+use App\Http\Controllers\Admin\Events\UpdateVenueSubmitController;
 use Illuminate\Support\Facades\Route;
 
 //  ADMIN/EVENTS
@@ -24,4 +26,6 @@ Route::prefix('admin/events')
         Route::post('/{event}/update', UpdateSubmitController::class);
         Route::get('/{event}/organizations', UpdateOrganizationsController::class)->name('organizations');
         Route::post('/{event}/organizations', UpdateOrganizationsSubmitController::class);
+        Route::get('/{event}/venue', UpdateVenueController::class)->name('venue');
+        Route::post('/{event}/venue', UpdateVenueSubmitController::class)->name('venue');
     });

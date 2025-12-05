@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\EventStatus;
+use App\Enums\EventType;
 use App\Models\Base\Event as BaseEvent;
 use App\Models\Concerns\HasFilter;
 use App\Models\Concerns\HasTrooperStamps;
@@ -34,6 +35,7 @@ class Event extends BaseEvent
     protected function casts()
     {
         return array_merge($this->casts, [
+            self::TYPE => EventType::class,
             self::STATUS => EventStatus::class,
         ]);
     }

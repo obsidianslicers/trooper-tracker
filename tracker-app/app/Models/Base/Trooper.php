@@ -11,7 +11,6 @@ use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventTrooper;
 use App\Models\EventUpload;
-use App\Models\EventUploadTag;
 use App\Models\Notice;
 use App\Models\Organization;
 use App\Models\TrooperAchievement;
@@ -52,7 +51,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $deleted_at
  * 
  * @property Collection|Event[] $events
- * @property Collection|EventUploadTag[] $event_upload_tags
  * @property Collection|EventUpload[] $event_uploads
  * @property TrooperAchievement|null $trooper_achievement
  * @property Collection|TrooperAssignment[] $trooper_assignments
@@ -125,11 +123,6 @@ class Trooper extends Model
         return $this->belongsToMany(Event::class, 'tt_event_troopers')
                     ->withPivot(EventTrooper::ID, EventTrooper::COSTUME_ID, EventTrooper::BACKUP_COSTUME_ID, EventTrooper::ADDED_BY_TROOPER_ID, EventTrooper::STATUS, EventTrooper::DELETED_AT, EventTrooper::CREATED_ID, EventTrooper::UPDATED_ID, EventTrooper::DELETED_ID)
                     ->withTimestamps();
-    }
-
-    public function event_upload_tags(): HasMany
-    {
-        return $this->hasMany(EventUploadTag::class);
     }
 
     public function event_uploads(): HasMany

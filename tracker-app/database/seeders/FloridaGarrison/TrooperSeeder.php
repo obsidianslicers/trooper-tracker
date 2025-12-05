@@ -7,6 +7,7 @@ namespace Database\Seeders\FloridaGarrison;
 use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
 use App\Models\Trooper;
+use App\Models\TrooperAchievement;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -63,6 +64,13 @@ class TrooperSeeder extends Seeder
             };
 
             $t->save();
+
+            $where = ['trooper_id' => $t->id];
+
+            if (!TrooperAchievement::exists($where))
+            {
+                TrooperAchievement::create($where);
+            }
         }
     }
 }

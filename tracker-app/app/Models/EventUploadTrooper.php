@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
-use App\Models\Base\EventCostume as BaseEventCostume;
+use App\Models\Base\EventUploadTrooper as BaseEventUploadTrooper;
 use App\Models\Concerns\HasTrooperStamps;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class EventCostume extends BaseEventCostume
+class EventUploadTrooper extends BaseEventUploadTrooper
 {
     use HasFactory;
     use HasTrooperStamps;

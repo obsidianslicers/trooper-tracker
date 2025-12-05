@@ -89,13 +89,14 @@ class ListController extends Controller
     {
         $trooper = $request->user();
 
-        $q = Event::with([
-            'organization.trooper_assignments' => function ($q) use ($trooper)
-            {
-                $q->where(TrooperAssignment::TROOPER_ID, $trooper->id)
-                    ->where(TrooperAssignment::MODERATOR, true);
-            }
-        ]);
+        $q = Event::mainEvents()
+            ->with([
+                'organization.trooper_assignments' => function ($q) use ($trooper)
+                {
+                    $q->where(TrooperAssignment::TROOPER_ID, $trooper->id)
+                        ->where(TrooperAssignment::MODERATOR, true);
+                }
+            ]);
 
         $q = $q->filterWith($filter);
 

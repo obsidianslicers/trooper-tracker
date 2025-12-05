@@ -7,13 +7,13 @@
 namespace App\Models\Base;
 
 use App\Models\Event;
-use App\Models\EventUploadTag;
+use App\Models\EventUploadTrooper;
 use App\Models\Trooper;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -32,7 +32,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * 
  * @property Event $event
  * @property Trooper $trooper
- * @property Collection|EventUploadTag[] $event_upload_tags
+ * @property Collection|Trooper[] $troopers
  *
  * @package App\Models\Base
  */
@@ -78,8 +78,10 @@ class EventUpload extends Model
         return $this->belongsTo(Trooper::class);
     }
 
-    public function event_upload_tags(): HasMany
+    public function troopers(): BelongsToMany
     {
-        return $this->hasMany(EventUploadTag::class);
+        return $this->belongsToMany(Trooper::class, 'tt_event_upload_troopers')
+                    ->withPivot(EventUploadTrooper::ID, EventUploadTrooper::DELETED_AT, EventUploadTrooper::CREATED_ID, EventUploadTrooper::UPDATED_ID, EventUploadTrooper::DELETED_ID)
+                    ->withTimestamps();
     }
 }

@@ -8,11 +8,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Events\UpdateRequest;
 use App\Models\Event;
 use App\Models\EventOrganization;
-use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Services\FlashMessageService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Class UpdateSubmitController
@@ -84,8 +82,6 @@ class UpdateSubmitController extends Controller
                         EventOrganization::HANDLERS_ALLOWED => null,
                     ]);
             }
-            $event->organizations()->update([
-            ]);
         }
         else
         {

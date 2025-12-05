@@ -33,16 +33,16 @@ class FloridaGarrisonSeeder extends Seeder
 
         $this->call(SettingSeeder::class);
         $this->call(TrooperSeeder::class);
-        $this->call(TrooperDonationSeeder::class);
-        $this->call(TrooperOrganizationSeeder::class);
-        $this->call(TrooperCostumeSeeder::class);
+        // $this->call(TrooperDonationSeeder::class);
+        // $this->call(TrooperOrganizationSeeder::class);
+        // $this->call(TrooperCostumeSeeder::class);
 
         $this->call(EventSeeder::class);
-        $this->call(EventUploadSeeder::class);
-        $this->call(EventTrooperSeeder::class);
+        // $this->call(EventUploadSeeder::class);
+        // $this->call(EventTrooperSeeder::class);
 
-        $this->call(AwardSeeder::class);
-        $this->call(TrooperAwardSeeder::class);
+        // $this->call(AwardSeeder::class);
+        // $this->call(TrooperAwardSeeder::class);
 
         if (config('app.debug'))
         {

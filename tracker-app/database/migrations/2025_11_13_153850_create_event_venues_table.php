@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\EventStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -12,13 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tt_event_requests', function (Blueprint $table)
+        Schema::create('tt_event_venues', function (Blueprint $table)
         {
             $table->id();
 
-            $table->foreignId('event_id')
-                ->constrained('tt_events')
-                ->cascadeOnDelete();
+            $table->decimal('latitude', 9, 6)->nullable();
+            $table->decimal('longitude', 9, 6)->nullable();
 
             // Contact info
             $table->string('contact_name', 128)->nullable();
@@ -36,7 +34,7 @@ return new class extends Migration
 
             $table->dateTime('event_start')->nullable();
             $table->dateTime('event_end')->nullable();
-            $table->string('event_website', 256)->nullable();
+            $table->string('event_website', 512)->nullable();
 
             // Request specifics
             $table->integer('expected_attendees')->nullable();
@@ -53,7 +51,7 @@ return new class extends Migration
 
             // Misc
             $table->text('comments')->nullable();
-            $table->string('referred_by')->nullable();
+            $table->string('referred_by', 1024)->nullable();
 
             $table->text('source')->nullable();
 
@@ -68,6 +66,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tt_event_requests');
+        Schema::dropIfExists('tt_event_venues');
     }
 };

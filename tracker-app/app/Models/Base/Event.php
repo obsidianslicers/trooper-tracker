@@ -6,12 +6,10 @@
 
 namespace App\Models\Base;
 
-use App\Models\Costume;
-use App\Models\EventCostume;
 use App\Models\EventOrganization;
-use App\Models\EventRequest;
 use App\Models\EventTrooper;
 use App\Models\EventUpload;
+use App\Models\EventVenue;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Carbon\Carbon;
@@ -27,7 +25,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * 
  * @property int $id
  * @property int $organization_id
+ * @property int $event_venue_id
+ * @property int|null $main_event_id
+ * @property bool $is_shift
  * @property string $name
+ * @property string $type
  * @property string $status
  * @property Carbon|null $starts_at
  * @property Carbon|null $ends_at
@@ -45,12 +47,13 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $updated_id
  * @property int|null $deleted_id
  * 
+ * @property EventVenue $event_venue
+ * @property \App\Models\Event|null $event
  * @property Organization $organization
- * @property Collection|Costume[] $costumes
  * @property Collection|Organization[] $organizations
- * @property Collection|EventRequest[] $event_requests
  * @property Collection|Trooper[] $troopers
  * @property Collection|EventUpload[] $event_uploads
+ * @property Collection|\App\Models\Event[] $events
  *
  * @package App\Models\Base
  */
@@ -59,7 +62,11 @@ class Event extends Model
     use SoftDeletes;
     const ID = 'id';
     const ORGANIZATION_ID = 'organization_id';
+    const EVENT_VENUE_ID = 'event_venue_id';
+    const MAIN_EVENT_ID = 'main_event_id';
+    const IS_SHIFT = 'is_shift';
     const NAME = 'name';
+    const TYPE = 'type';
     const STATUS = 'status';
     const STARTS_AT = 'starts_at';
     const ENDS_AT = 'ends_at';
@@ -81,6 +88,9 @@ class Event extends Model
     protected $casts = [
         self::ID => 'int',
         self::ORGANIZATION_ID => 'int',
+        self::EVENT_VENUE_ID => 'int',
+        self::MAIN_EVENT_ID => 'int',
+        self::IS_SHIFT => 'bool',
         self::STARTS_AT => 'datetime',
         self::ENDS_AT => 'datetime',
         self::LIMIT_ORGANIZATIONS => 'bool',
@@ -98,7 +108,11 @@ class Event extends Model
 
     protected $fillable = [
         self::ORGANIZATION_ID,
+        self::EVENT_VENUE_ID,
+        self::MAIN_EVENT_ID,
+        self::IS_SHIFT,
         self::NAME,
+        self::TYPE,
         self::STATUS,
         self::STARTS_AT,
         self::ENDS_AT,
@@ -111,16 +125,19 @@ class Event extends Model
         self::CHARITY_HOURS
     ];
 
+    public function event_venue(): BelongsTo
+    {
+        return $this->belongsTo(EventVenue::class);
+    }
+
+    public function event(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Event::class, \App\Models\Event::MAIN_EVENT_ID);
+    }
+
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
-    }
-
-    public function costumes(): BelongsToMany
-    {
-        return $this->belongsToMany(Costume::class, 'tt_event_costumes')
-                    ->withPivot(EventCostume::ID, EventCostume::REQUESTED, EventCostume::EXCLUDED, EventCostume::DELETED_AT, EventCostume::CREATED_ID, EventCostume::UPDATED_ID, EventCostume::DELETED_ID)
-                    ->withTimestamps();
     }
 
     public function organizations(): BelongsToMany
@@ -128,11 +145,6 @@ class Event extends Model
         return $this->belongsToMany(Organization::class, 'tt_event_organizations')
                     ->withPivot(EventOrganization::ID, EventOrganization::CAN_ATTEND, EventOrganization::TROOPERS_ALLOWED, EventOrganization::HANDLERS_ALLOWED, EventOrganization::DELETED_AT, EventOrganization::CREATED_ID, EventOrganization::UPDATED_ID, EventOrganization::DELETED_ID)
                     ->withTimestamps();
-    }
-
-    public function event_requests(): HasMany
-    {
-        return $this->hasMany(EventRequest::class);
     }
 
     public function troopers(): BelongsToMany
@@ -145,5 +157,10 @@ class Event extends Model
     public function event_uploads(): HasMany
     {
         return $this->hasMany(EventUpload::class);
+    }
+
+    public function events(): HasMany
+    {
+        return $this->hasMany(\App\Models\Event::class, \App\Models\Event::MAIN_EVENT_ID);
     }
 }

@@ -8,15 +8,17 @@ namespace App\Models\Base;
 
 use App\Models\Event;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
- * Class EventRequest
+ * Class EventVenue
  * 
  * @property int $id
- * @property int $event_id
+ * @property float|null $latitude
+ * @property float|null $longitude
  * @property string|null $contact_name
  * @property string|null $contact_phone
  * @property string|null $contact_email
@@ -49,15 +51,16 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $updated_id
  * @property int|null $deleted_id
  * 
- * @property Event $event
+ * @property Collection|Event[] $events
  *
  * @package App\Models\Base
  */
-class EventRequest extends Model
+class EventVenue extends Model
 {
     use SoftDeletes;
     const ID = 'id';
-    const EVENT_ID = 'event_id';
+    const LATITUDE = 'latitude';
+    const LONGITUDE = 'longitude';
     const CONTACT_NAME = 'contact_name';
     const CONTACT_PHONE = 'contact_phone';
     const CONTACT_EMAIL = 'contact_email';
@@ -89,11 +92,12 @@ class EventRequest extends Model
     const CREATED_ID = 'created_id';
     const UPDATED_ID = 'updated_id';
     const DELETED_ID = 'deleted_id';
-    protected $table = 'tt_event_requests';
+    protected $table = 'tt_event_venues';
 
     protected $casts = [
         self::ID => 'int',
-        self::EVENT_ID => 'int',
+        self::LATITUDE => 'float',
+        self::LONGITUDE => 'float',
         self::EVENT_START => 'datetime',
         self::EVENT_END => 'datetime',
         self::EXPECTED_ATTENDEES => 'int',
@@ -111,7 +115,8 @@ class EventRequest extends Model
     ];
 
     protected $fillable = [
-        self::EVENT_ID,
+        self::LATITUDE,
+        self::LONGITUDE,
         self::CONTACT_NAME,
         self::CONTACT_PHONE,
         self::CONTACT_EMAIL,
@@ -139,8 +144,8 @@ class EventRequest extends Model
         self::SOURCE
     ];
 
-    public function event(): BelongsTo
+    public function events(): HasMany
     {
-        return $this->belongsTo(Event::class);
+        return $this->hasMany(Event::class);
     }
 }

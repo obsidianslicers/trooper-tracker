@@ -90,4 +90,15 @@ trait HasEventScopes
 
         return $query->where(self::NAME, 'like', $search_term);
     }
+
+    /**
+     * Scope a query for main events
+     *
+     * @param Builder<self> $query The Eloquent query builder.
+     * @return Builder<self>
+     */
+    protected function scopeMainEvents(Builder $query): Builder
+    {
+        return $query->whereNull(self::MAIN_EVENT_ID);
+    }
 }

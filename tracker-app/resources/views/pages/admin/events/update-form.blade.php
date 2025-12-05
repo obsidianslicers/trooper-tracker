@@ -21,6 +21,15 @@
 
   <x-input-container>
     <x-label>
+      Event Type:
+    </x-label>
+    <x-input-select :property="'type'"
+                    :options="\App\Enums\EventType::toArray()"
+                    :value="$event->type->value" />
+  </x-input-container>
+
+  <x-input-container>
+    <x-label>
       Status:
     </x-label>
     <x-input-select :property="'status'"

@@ -20,6 +20,7 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
             $table->string('name', 128);
+            $table->boolean('verified')->default(false);
 
             $table->timestamps();
             $table->softDeletes();

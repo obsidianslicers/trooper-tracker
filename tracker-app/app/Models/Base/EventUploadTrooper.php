@@ -6,21 +6,19 @@
 
 namespace App\Models\Base;
 
-use App\Models\Costume;
-use App\Models\Event;
+use App\Models\EventUpload;
+use App\Models\Trooper;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
- * Class EventCostume
+ * Class EventUploadTrooper
  * 
  * @property int $id
- * @property int $event_id
- * @property int $costume_id
- * @property bool $requested
- * @property bool $excluded
+ * @property int $event_upload_id
+ * @property int $trooper_id
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property string|null $deleted_at
@@ -28,33 +26,29 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $updated_id
  * @property int|null $deleted_id
  * 
- * @property Costume $costume
- * @property Event $event
+ * @property EventUpload $event_upload
+ * @property Trooper $trooper
  *
  * @package App\Models\Base
  */
-class EventCostume extends Model
+class EventUploadTrooper extends Model
 {
     use SoftDeletes;
     const ID = 'id';
-    const EVENT_ID = 'event_id';
-    const COSTUME_ID = 'costume_id';
-    const REQUESTED = 'requested';
-    const EXCLUDED = 'excluded';
+    const EVENT_UPLOAD_ID = 'event_upload_id';
+    const TROOPER_ID = 'trooper_id';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
     const DELETED_AT = 'deleted_at';
     const CREATED_ID = 'created_id';
     const UPDATED_ID = 'updated_id';
     const DELETED_ID = 'deleted_id';
-    protected $table = 'tt_event_costumes';
+    protected $table = 'tt_event_upload_troopers';
 
     protected $casts = [
         self::ID => 'int',
-        self::EVENT_ID => 'int',
-        self::COSTUME_ID => 'int',
-        self::REQUESTED => 'bool',
-        self::EXCLUDED => 'bool',
+        self::EVENT_UPLOAD_ID => 'int',
+        self::TROOPER_ID => 'int',
         self::CREATED_AT => 'datetime',
         self::UPDATED_AT => 'datetime',
         self::CREATED_ID => 'int',
@@ -63,19 +57,17 @@ class EventCostume extends Model
     ];
 
     protected $fillable = [
-        self::EVENT_ID,
-        self::COSTUME_ID,
-        self::REQUESTED,
-        self::EXCLUDED
+        self::EVENT_UPLOAD_ID,
+        self::TROOPER_ID
     ];
 
-    public function costume(): BelongsTo
+    public function event_upload(): BelongsTo
     {
-        return $this->belongsTo(Costume::class);
+        return $this->belongsTo(EventUpload::class);
     }
 
-    public function event(): BelongsTo
+    public function trooper(): BelongsTo
     {
-        return $this->belongsTo(Event::class);
+        return $this->belongsTo(Trooper::class);
     }
 }

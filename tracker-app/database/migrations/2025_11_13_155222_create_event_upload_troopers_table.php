@@ -11,26 +11,21 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tt_event_costumes', function (Blueprint $table)
+        Schema::create('tt_event_upload_troopers', function (Blueprint $table)
         {
             $table->id();
 
-            $table->foreignId('event_id')
-                ->constrained('tt_events')
-                ->cascadeOnDelete();
-            $table->foreignId('costume_id')
-                ->constrained('tt_costumes')
+            $table->foreignId('event_upload_id')
+                ->constrained('tt_event_uploads')
                 ->cascadeOnDelete();
 
-            $table->boolean('requested');
-            $table->boolean('excluded');
+            $table->foreignId('trooper_id')
+                ->constrained('tt_troopers')
+                ->cascadeOnDelete();
 
             $table->timestamps();
             $table->softDeletes();
             $table->trooperstamps();
-
-            // Prevent duplicate entries
-            $table->unique(columns: ['event_id', 'costume_id']);
         });
     }
 
@@ -39,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tt_event_costumes');
+        Schema::dropIfExists('tt_event_upload_troopers');
     }
 };
