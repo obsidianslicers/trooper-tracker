@@ -16,7 +16,7 @@ class UpdateSubmitControllerTest extends TestCase
     public function test_invoke_updates_organization_and_redirects(): void
     {
         // Arrange
-        $trooper = Trooper::factory()->asAdmin()->create();
+        $trooper = Trooper::factory()->asAdministrator()->create();
         $this->actingAs($trooper);
 
         $organization = Organization::factory()->unit()->create();

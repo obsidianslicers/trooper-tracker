@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin\Troopers;
 
 use App\Enums\MembershipRole;
 use App\Http\Controllers\Controller;
+use App\Models\Filters\TrooperFilter;
 use App\Models\Trooper;
 use App\Services\BreadCrumbService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -44,9 +45,9 @@ class ListController extends Controller
      * @param Request $request The incoming HTTP request.
      * @return View|RedirectResponse The rendered dashboard page view or a redirect response.
      */
-    public function __invoke(Request $request): View|RedirectResponse
+    public function __invoke(Request $request, TrooperFilter $filter): View|RedirectResponse
     {
-        $troopers = $this->getTroopers($request);
+        $troopers = $this->getTroopers($request, $filter);
 
         $data = [
             'troopers' => $troopers,
@@ -67,28 +68,18 @@ class ListController extends Controller
      * @param Request $request The incoming HTTP request, containing potential filters.
      * @return LengthAwarePaginator A paginated list of troopers.
      */
-    private function getTroopers(Request $request): LengthAwarePaginator
+    private function getTroopers(Request $request, TrooperFilter $filter): LengthAwarePaginator
     {
         $trooper = $request->user();
 
         $q = Trooper::orderBy(Trooper::NAME);
 
-        if ($request->has('membership_role'))
-        {
-            $membership_role = MembershipRole::from($request->query('membership_role'));
-
-            $q = $q->where(Trooper::MEMBERSHIP_ROLE, $membership_role);
-        }
-
-        if ($request->has('search_term') && strlen($request->query('search_term', '')) >= 3)
-        {
-            $q = $q->searchFor($request->query('search_term'));
-        }
-
         if (!$trooper->isAdministrator())
         {
             $q = $q->moderatedBy($trooper);
         }
+
+        $q = $q->filterWith($filter);
 
         return $q->paginate(15)->withQueryString();
     }

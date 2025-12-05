@@ -21,7 +21,7 @@ class ListControllerTest extends TestCase
     public function test_invoke_as_admin_returns_all_troopers(): void
     {
         // Arrange
-        $admin_user = Trooper::factory()->asAdmin()->create();
+        $admin_user = Trooper::factory()->asAdministrator()->create();
         Trooper::factory()->count(5)->create();
 
         // Act
@@ -59,7 +59,7 @@ class ListControllerTest extends TestCase
     public function test_invoke_with_search_term_filters_by_name(): void
     {
         // Arrange
-        $admin_user = Trooper::factory()->asAdmin()->create();
+        $admin_user = Trooper::factory()->asAdministrator()->create();
         Trooper::factory()->create(['name' => 'John Doe']);
         Trooper::factory()->create(['name' => 'Jane Smith']);
 
@@ -80,7 +80,7 @@ class ListControllerTest extends TestCase
     public function test_invoke_with_search_term_filters_by_email(): void
     {
         // Arrange
-        $admin_user = Trooper::factory()->asAdmin()->create();
+        $admin_user = Trooper::factory()->asAdministrator()->create();
         Trooper::factory()->create(['email' => 'test@example.com']);
         Trooper::factory()->create(['email' => 'another@example.com']);
 
@@ -99,7 +99,7 @@ class ListControllerTest extends TestCase
     public function test_invoke_with_search_term_filters_by_username(): void
     {
         // Arrange
-        $admin_user = Trooper::factory()->asAdmin()->create();
+        $admin_user = Trooper::factory()->asAdministrator()->create();
         Trooper::factory()->create(['username' => 'TK12345']);
         Trooper::factory()->create(['username' => 'DZ54321']);
 
@@ -118,7 +118,7 @@ class ListControllerTest extends TestCase
     public function test_invoke_with_membership_role_filter(): void
     {
         // Arrange
-        $admin_user = Trooper::factory()->asAdmin()->create();
+        $admin_user = Trooper::factory()->asAdministrator()->create();
         Trooper::factory()->asModerator()->create();
         Trooper::factory()->asMember()->create();
 

@@ -31,7 +31,7 @@ class EventFactory extends Factory
             Event::ORGANIZATION_ID => Organization::factory(),
             Event::STARTS_AT => $starts_at,
             Event::ENDS_AT => $ends_at,
-            Event::LIMIT_PARTICIPANTS => $this->faker->boolean(),
+            Event::LIMIT_ORGANIZATIONS => $this->faker->boolean(),
             Event::TROOPERS_ALLOWED => $this->faker->numberBetween(10, 50),
             Event::HANDLERS_ALLOWED => $this->faker->numberBetween(2, 5),
             Event::STATUS => EventStatus::OPEN,

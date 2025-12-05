@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Admin\Events\ListController;
 use App\Http\Controllers\Admin\Events\UpdateController;
+use App\Http\Controllers\Admin\Events\UpdateHtmxController;
 use App\Http\Controllers\Admin\Events\UpdateOrganizationsController;
+use App\Http\Controllers\Admin\Events\UpdateOrganizationsSubmitController;
 use App\Http\Controllers\Admin\Events\UpdateSubmitController;
 use Illuminate\Support\Facades\Route;
 
@@ -18,6 +20,8 @@ Route::prefix('admin/events')
         // Route::get('/create', CreateController::class)->name('create');
         // Route::post('/create', CreateSubmitController::class);
         Route::get('/{event}/update', UpdateController::class)->name('update');
+        Route::post('/{event}/update-htmx', UpdateHtmxController::class)->name('update-htmx');
         Route::post('/{event}/update', UpdateSubmitController::class);
         Route::get('/{event}/organizations', UpdateOrganizationsController::class)->name('organizations');
+        Route::post('/{event}/organizations', UpdateOrganizationsSubmitController::class);
     });

@@ -10,30 +10,25 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 /**
- * Handles the validation for the user registration form.
- *
- * This class defines the base validation rules for user registration and dynamically
- * adds rules based on the organizations a user selects, including custom rules for
- * organization-specific identifiers and unit selections. It also customizes error messages
- * for a better user experience.
+ * Handles the validation for creating a new Event.
  */
 class CreateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      *
-     * @return bool Returns true as registration is open to guests.
+     * @return bool
      */
     public function authorize(): bool
     {
-        //  we check NULL or PICKED in the rules
+        // Uses the EventPolicy to determine if the user can create an event.
         return $this->user()->can('create', Event::class);
     }
 
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, mixed> The combined validation rules for the registration form.
+     * @return array<string, mixed> The validation rules for the request.
      */
     public function rules(): array
     {
@@ -47,9 +42,7 @@ class CreateRequest extends FormRequest
             Event::ENDS_AT => ['required', 'date', 'after:starts_at'],
         ];
 
-        $trooper = $this->user();
-
-        // Admins can either leave it null or pick any existing org
+        // An event must belong to an organization.
         $rules[Event::ORGANIZATION_ID] = [
             'required',
             Rule::exists(Organization::class, Organization::ID)

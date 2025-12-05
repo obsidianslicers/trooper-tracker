@@ -5,4 +5,5 @@
                 :disabled="$disabled"
                 :placeholder="$placeholder"
                 :optional="$optional"
-                :options="[1 => 'Yes', 0 => 'No']" />
+                :options="[true => 'Yes', false => 'No']"
+                {{$attributes}} />

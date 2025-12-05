@@ -7,6 +7,7 @@ namespace Database\Seeders\FloridaGarrison;
 use App\Enums\EventStatus;
 use App\Models\Event;
 use App\Models\Organization;
+use Database\Seeders\FloridaGarrison\Traits\HasEnumMaps;
 use Database\Seeders\FloridaGarrison\Traits\HasSquadMaps;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 class EventSeeder extends Seeder
 {
     use HasSquadMaps;
+    use HasEnumMaps;
 
     /**
      * Run the database seeds.
@@ -29,12 +31,23 @@ class EventSeeder extends Seeder
             $e = Event::find($event->id) ?? new Event(['id' => $event->id]);
 
             $e->name = $event->name;
+            $e->type = $this->eventLabelFromLegacyId($event->label ?? 0);
             $e->starts_at = $event->dateStart;
             $e->ends_at = $event->dateEnd;
 
-            $e->limit_participants = $event->limitedEvent ?? false;
-            $e->troopers_allowed = $event->limitedEvent ? $event->limitTotalTroopers : null;
-            $e->handlers_allowed = $event->limitedEvent ? $event->limitHandlers : null;
+            if ($event->requestedNumber)
+            {
+                $e->limit_organizations = true;
+                $e->troopers_allowed = $event->requestedNumber;
+                $e->handlers_allowed = $event->limitTotalTroopers - $event->requestedNumber;
+            }
+            else
+            {
+                $e->limit_organizations = false;
+                $e->troopers_allowed = null;
+                $e->handlers_allowed = null;
+            }
+
             $e->status = $event->closed ? EventStatus::CLOSED : EventStatus::OPEN;
 
             $e->charity_direct_funds = $event->charityDirectFunds;

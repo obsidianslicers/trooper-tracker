@@ -43,7 +43,7 @@ class ListControllerTest extends TestCase
     public function test_invoke_as_admin_shows_all_active_notices(): void
     {
         // Arrange
-        $admin = Trooper::factory()->asAdmin()->create();
+        $admin = Trooper::factory()->asAdministrator()->create();
         Notice::factory()->count(3)->active()->create(); // Default scope
         Notice::factory()->count(2)->past()->create();   // Should not be included
 
@@ -91,7 +91,7 @@ class ListControllerTest extends TestCase
     public function test_invoke_filters_by_organization_id(): void
     {
         // Arrange
-        $admin = Trooper::factory()->asAdmin()->create();
+        $admin = Trooper::factory()->asAdministrator()->create();
         $org1 = Organization::factory()->create();
         $org2 = Organization::factory()->create();
 
@@ -140,21 +140,21 @@ class ListControllerTest extends TestCase
     public function test_invoke_passes_scope_from_query_to_view(): void
     {
         // Arrange
-        $admin = Trooper::factory()->asAdmin()->create();
+        $admin = Trooper::factory()->asAdministrator()->create();
 
         Notice::factory()->active()->create();
         Notice::factory()->past()->create();
         Notice::factory()->future()->create();
 
         // Act
-        $response_all = $this->actingAs($admin)->get(route('admin.notices.list', ['scope' => 'all']));
+        $response_all = $this->actingAs($admin)->get(route('admin.notices.list', ['scope' => 'active']));
         $response_past = $this->actingAs($admin)->get(route('admin.notices.list', ['scope' => 'past']));
         $response_future = $this->actingAs($admin)->get(route('admin.notices.list', ['scope' => 'future']));
 
         // Assert
         $response_all->assertOk();
-        $response_all->assertViewHas('scope', 'all');
-        $response_all->assertViewHas('notices', fn(LengthAwarePaginator $n) => $n->total() === 3);
+        $response_all->assertViewHas('scope', 'active');
+        $response_all->assertViewHas('notices', fn(LengthAwarePaginator $n) => $n->total() === 1);
 
         $response_past->assertOk();
         $response_past->assertViewHas('scope', 'past');
@@ -168,7 +168,7 @@ class ListControllerTest extends TestCase
     public function test_invoke_paginates_results(): void
     {
         // Arrange
-        $admin = Trooper::factory()->asAdmin()->create();
+        $admin = Trooper::factory()->asAdministrator()->create();
         Notice::factory()->count(20)->active()->create();
 
         // Act

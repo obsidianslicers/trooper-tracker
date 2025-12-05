@@ -54,10 +54,9 @@
         </thead>
         @php($selected_map = [])
         @foreach ($organization_authorities as $organization)
-
         @php($trooper_assignment = $organization->trooper_assignments->first())
         @php($parent_selected = $selected_map[$organization->parent_id] ?? false)
-
+        @php($selected_map[$organization->id] = $trooper_assignment->moderator ?? false)
         <tr data-id="{{ $organization->id }}"
             data-parent-id="{{ $organization->parent_id }}">
           <td>
@@ -82,7 +81,6 @@
             <x-yes-no :value="$trooper_assignment->member ?? false" />
           </td>
         </tr>
-        @php($selected_map[$organization->id] = $trooper_assignment->moderator ?? false)
         @endforeach
       </x-table>
 

@@ -9,7 +9,6 @@ use App\Models\Event;
 use App\Models\EventOrganization;
 use App\Models\Organization;
 use App\Models\Trooper;
-use App\Models\TrooperAssignment;
 use App\Services\BreadCrumbService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;

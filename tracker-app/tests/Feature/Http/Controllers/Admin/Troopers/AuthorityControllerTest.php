@@ -14,7 +14,7 @@ class AuthorityControllerTest extends TestCase
     public function test_invoke_as_admin_returns_view(): void
     {
         // Arrange
-        $admin_user = Trooper::factory()->asAdmin()->create();
+        $admin_user = Trooper::factory()->asAdministrator()->create();
         $trooper_to_view = Trooper::factory()->create();
         Organization::factory()->count(3)->create();
 

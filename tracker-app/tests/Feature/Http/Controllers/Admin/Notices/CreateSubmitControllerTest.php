@@ -19,7 +19,7 @@ class CreateSubmitControllerTest extends TestCase
     public function test_invoke_creates_notice_and_redirects_for_authorized_user(): void
     {
         // Arrange
-        $admin = Trooper::factory()->asAdmin()->create();
+        $admin = Trooper::factory()->asAdministrator()->create();
         $this->actingAs($admin);
 
         $organization = Organization::factory()->create();

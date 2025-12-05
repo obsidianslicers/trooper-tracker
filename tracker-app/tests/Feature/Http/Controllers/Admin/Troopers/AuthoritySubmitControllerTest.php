@@ -20,7 +20,7 @@ class AuthoritySubmitControllerTest extends TestCase
         $org_to_keep = Organization::factory()->create();
         $org_to_remove = Organization::factory()->create();
 
-        $admin_user = Trooper::factory()->asAdmin()->create();
+        $admin_user = Trooper::factory()->asAdministrator()->create();
         $trooper_to_update = Trooper::factory()->asModerator()
             ->withAssignment($org_to_keep, moderator: true)
             ->withAssignment($org_to_remove, moderator: true)
@@ -77,7 +77,7 @@ class AuthoritySubmitControllerTest extends TestCase
         $organization = $region->parent;
 
 
-        $admin_user = Trooper::factory()->asAdmin()->create();
+        $admin_user = Trooper::factory()->asAdministrator()->create();
         $trooper_to_update = Trooper::factory()->asModerator()
             ->withAssignment($organization, moderator: true)
             ->create();

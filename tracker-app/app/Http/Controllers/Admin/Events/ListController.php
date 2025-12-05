@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
-use App\Enums\EventStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
+use App\Models\Filters\EventFilter;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
@@ -16,13 +16,9 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 /**
- * Class ListController
+ * Handles displaying a paginated and filterable list of events in the admin section.
  *
- * Handles the display of the main events list in the admin section.
- * This controller fetches and displays a paginated list of events, which can be
- * filtered by status (active, past, future) and by organization. It ensures that
- * non-administrator users can only see events for organizations they moderate.
- * @package App\Http\Controllers\Admin\Events
+ * Supports filtering by status, organization, and search term, while respecting user permissions.
  */
 class ListController extends Controller
 {
@@ -38,22 +34,17 @@ class ListController extends Controller
 
     /**
      * Handle the request to display the events list page.
-     *
-     * Sets up breadcrumbs and retrieves a paginated list of events.
-     * The list is filtered to show only active events. If an 'organization_id'
-     * is provided in the request, the list is further filtered to that organization.
-     * Non-administrator users will only see events for organizations they moderate.
-     *
+     * 
+     * Fetches and displays a paginated list of events based on request filters
+     * such as status, organization, and search term.
      * @param Request $request The incoming HTTP request object.
      * @return View The rendered view for the events list.
      */
-    public function __invoke(Request $request): View
+    public function __invoke(Request $request, EventFilter $filter): View
     {
-        $trooper = $request->user();
-
         $organization = $this->getOrganization($request);
 
-        $events = $this->getEvents($request, $trooper, $organization);
+        $events = $this->getEvents($request, $filter);
 
         $data = [
             'events' => $events,
@@ -70,7 +61,7 @@ class ListController extends Controller
      *
      * @param Request $request The incoming HTTP request.
      * @return Organization|null The found Organization or null if no ID is provided.
-     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException if an `organization_id` is provided but not found.
      */
     private function getOrganization(Request $request): ?Organization
     {
@@ -87,16 +78,17 @@ class ListController extends Controller
     /**
      * Builds and executes the query to retrieve a paginated list of events.
      *
-     * The query is built based on the requested status (active, past, future), an
-     * optional organization filter, and the user's authorization level (admin vs. moderator).
-     *
+     * The query is built based on the requested status, an optional organization filter,
+     * a search term, and the user's authorization level (admin vs. moderator).
      * @param Request $request The incoming HTTP request.
      * @param Trooper $trooper The authenticated trooper.
      * @param Organization|null $organization The organization to filter by, if any.
      * @return LengthAwarePaginator The paginated list of events.
      */
-    private function getEvents(Request $request, Trooper $trooper, ?Organization $organization): LengthAwarePaginator
+    private function getEvents(Request $request, EventFilter $filter): LengthAwarePaginator
     {
+        $trooper = $request->user();
+
         $q = Event::with([
             'organization.trooper_assignments' => function ($q) use ($trooper)
             {
@@ -105,32 +97,15 @@ class ListController extends Controller
             }
         ]);
 
-        if ($request->has('status'))
-        {
-            $status = EventStatus::from($request->query('status'));
-
-            $q = $q->where(Event::STATUS, $status);
-        }
-
-        if ($organization != null)
-        {
-            $organization_id = $request->query('organization_id');
-
-            $q = $q->where(Event::ORGANIZATION_ID, $organization_id);
-        }
+        $q = $q->filterWith($filter);
 
         if (!$trooper->isAdministrator())
         {
             $q = $q->moderatedBy($trooper);
         }
 
-        if ($request->has('search_term') && strlen($request->query('search_term', '')) >= 3)
-        {
-            $q = $q->searchFor($request->query('search_term'));
-        }
-
         $q->orderByDesc(Event::ENDS_AT);
 
-        return $q->paginate(15);
+        return $q->paginate(15)->withQueryString();
     }
 }

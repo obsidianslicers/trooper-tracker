@@ -61,15 +61,20 @@ class FlashMessageService
         // Get the base class name (e.g. "Organization")
         $object_name = class_basename($model);
 
-        // If the model has a "name" attribute, include it
-        $display_name = $model->getAttribute('name');
-
         // Build the message
         $message = $object_name;
+
+        // If the model has a "name" attribute, include it
+        $display_name = $model->getAttribute('name');
+        $display_title = $model->getAttribute('title');
 
         if (!empty($display_name))
         {
             $message .= " \"{$display_name}\"";
+        }
+        elseif (!empty($display_title))
+        {
+            $message .= " \"{$display_title}\"";
         }
 
         $message .= " was {$action} successfully.";

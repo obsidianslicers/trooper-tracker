@@ -15,7 +15,7 @@ class ProfileSubmitControllerTest extends TestCase
     public function test_invoke_as_admin_updates_trooper_and_redirects(): void
     {
         // Arrange
-        $admin_user = Trooper::factory()->asAdmin()->create();
+        $admin_user = Trooper::factory()->asAdministrator()->create();
         $trooper_to_update = Trooper::factory()->create();
         $update_data = [
             'name' => 'Updated Name',
@@ -69,7 +69,7 @@ class ProfileSubmitControllerTest extends TestCase
     public function test_invoke_validation_fails_for_invalid_data(): void
     {
         // Arrange
-        $admin_user = Trooper::factory()->asAdmin()->create();
+        $admin_user = Trooper::factory()->asAdministrator()->create();
         $trooper_to_update = Trooper::factory()->create();
         $update_data = [
             'name' => '', // Invalid name

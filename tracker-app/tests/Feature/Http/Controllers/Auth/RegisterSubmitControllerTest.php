@@ -156,7 +156,6 @@ class RegisterSubmitControllerTest extends TestCase
             'organizations' => [
                 $organization->id => [
                     'selected' => '1',
-                    'identifier' => 'TK-ID',
                 ],
             ],
         ];
@@ -263,7 +262,6 @@ class RegisterSubmitControllerTest extends TestCase
             'organizations' => [
                 $organization->id => [
                     'selected' => '1',
-                    'identifier' => 'TK-ID',
                 ],
             ],
         ];

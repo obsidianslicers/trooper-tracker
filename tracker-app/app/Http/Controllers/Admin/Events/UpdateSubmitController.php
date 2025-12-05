@@ -8,8 +8,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Events\UpdateRequest;
 use App\Models\Event;
 use App\Models\EventOrganization;
+use App\Models\EventTrooper;
+use App\Models\Organization;
 use App\Services\FlashMessageService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Class UpdateSubmitController
@@ -47,6 +50,8 @@ class UpdateSubmitController extends Controller
         $event->ends_at = $request->validated('ends_at');
         $event->status = $request->validated('status');
         $event->limit_organizations = $request->validated('limit_organizations');
+        $event->troopers_allowed = $request->validated('troopers_allowed');
+        $event->handlers_allowed = $request->validated('handlers_allowed');
 
         $event->save();
 
@@ -64,28 +69,23 @@ class UpdateSubmitController extends Controller
     {
         if ($event->limit_organizations)
         {
-            $can_update = $event->organizations()->where(EventOrganization::ORGANIZATION_ID, $event->organization_id)->exists();
+            $organizations = Organization::all();
 
-            if ($can_update)
+            foreach ($organizations as $organization)
             {
-                // Update if it already exists
-                $event->organizations()->updateExistingPivot($event->organization_id,
+                EventOrganization::updateOrCreate(
+                    [
+                        EventOrganization::EVENT_ID => $event->id,
+                        EventOrganization::ORGANIZATION_ID => $organization->id,
+                    ],
                     [
                         EventOrganization::CAN_ATTEND => true,
                         EventOrganization::TROOPERS_ALLOWED => null,
                         EventOrganization::HANDLERS_ALLOWED => null,
                     ]);
             }
-            else
-            {
-                // Otherwise create
-                $event->organizations()->attach($event->organization_id,
-                    [
-                        EventOrganization::CAN_ATTEND => true,
-                        EventOrganization::TROOPERS_ALLOWED => null,
-                        EventOrganization::HANDLERS_ALLOWED => null,
-                    ]);
-            }
+            $event->organizations()->update([
+            ]);
         }
         else
         {
@@ -96,5 +96,72 @@ class UpdateSubmitController extends Controller
             ]);
         }
     }
+
+    // private function allocate(Event $event, int $capacity = 500)
+    // {
+    //     $event->troopers_allowed = $capacity;
+    //     $event->save();
+
+    //     // Step 1: Gather historical participation counts per organization
+    //     $orgParticipation = EventTrooper::query()
+    //         ->join('tt_trooper_assignments', 'tt_event_troopers.trooper_id', '=', 'tt_trooper_assignments.trooper_id')
+    //         ->where('tt_trooper_assignments.member', true)
+    //         ->select('tt_trooper_assignments.organization_id', DB::raw('COUNT(*) as total'))
+    //         ->groupBy('tt_trooper_assignments.organization_id')
+    //         ->pluck('total', 'tt_trooper_assignments.organization_id');
+
+    //     // Step 2: Apply weight to hosting org
+    //     $orgParticipation = $orgParticipation->map(function ($count, $orgId) use ($event)
+    //     {
+    //         return $orgId == $event->organization_id ? $count * 2 : $count;
+    //     });
+
+
+    //     if ($orgParticipation->isEmpty())
+    //     {
+    //         return;
+    //     }
+
+    //     // Step 2: Compute proportions
+    //     $totalTroopers = $orgParticipation->sum();
+
+    //     $distribution = $orgParticipation->map(function ($count) use ($totalTroopers)
+    //     {
+    //         return $count / $totalTroopers;
+    //     });
+
+    //     // Step 3: Allocate slots
+    //     $allocation = $distribution->map(function ($fraction) use ($capacity)
+    //     {
+    //         return (int) round($fraction * $capacity);
+    //     });
+
+    //     // Step 4: Store in pivot table (update or create)
+    //     foreach ($allocation as $orgId => $slots)
+    //     {
+    //         $can_update = $event->organizations()->where(EventOrganization::ORGANIZATION_ID, $orgId)->exists();
+
+    //         if ($can_update)
+    //         {
+    //             // Update if it already exists
+    //             $event->organizations()->updateExistingPivot($orgId,
+    //                 [
+    //                     EventOrganization::CAN_ATTEND => true,
+    //                     EventOrganization::TROOPERS_ALLOWED => $slots,
+    //                     EventOrganization::HANDLERS_ALLOWED => null,
+    //                 ]);
+    //         }
+    //         else
+    //         {
+    //             // Otherwise create
+    //             $event->organizations()->attach($orgId,
+    //                 [
+    //                     EventOrganization::CAN_ATTEND => true,
+    //                     EventOrganization::TROOPERS_ALLOWED => $slots,
+    //                     EventOrganization::HANDLERS_ALLOWED => null,
+    //                 ]);
+    //         }
+    //     }
+    // }
 }
 

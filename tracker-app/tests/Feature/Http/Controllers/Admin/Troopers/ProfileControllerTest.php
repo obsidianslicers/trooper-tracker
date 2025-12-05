@@ -41,7 +41,7 @@ class ProfileControllerTest extends TestCase
     public function test_invoke_authorized_user_can_view_profile(): void
     {
         // Arrange
-        $admin = Trooper::factory()->asAdmin()->create();
+        $admin = Trooper::factory()->asAdministrator()->create();
         $target_trooper = Trooper::factory()->create();
 
         // Act

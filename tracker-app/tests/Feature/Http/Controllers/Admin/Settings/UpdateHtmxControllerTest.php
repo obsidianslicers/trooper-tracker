@@ -15,7 +15,7 @@ class UpdateHtmxControllerTest extends TestCase
     public function test_invoke_updates_setting_clears_cache_and_returns_htmx_response(): void
     {
         // Arrange
-        $admin_user = Trooper::factory()->asAdmin()->create();
+        $admin_user = Trooper::factory()->asAdministrator()->create();
         $setting = Setting::factory()->create([
             'key' => 'site_name',
             'value' => 'Old Site Name',

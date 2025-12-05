@@ -45,7 +45,7 @@ class ApprovalSubmitHtmxControllerTest extends TestCase
     {
         // Arrange
         Mail::fake();
-        $admin = Trooper::factory()->asAdmin()->create();
+        $admin = Trooper::factory()->asAdministrator()->create();
         $pending_trooper = Trooper::factory()->asPending()->create();
 
         $expected_message = json_encode([

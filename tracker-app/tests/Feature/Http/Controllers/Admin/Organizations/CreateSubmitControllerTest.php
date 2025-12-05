@@ -20,7 +20,7 @@ class CreateSubmitControllerTest extends TestCase
     {
         parent::setUp();
 
-        $this->admin_user = Trooper::factory()->asAdmin()->create(); // Assuming a basic user can perform this
+        $this->admin_user = Trooper::factory()->asAdministrator()->create(); // Assuming a basic user can perform this
     }
 
     public function test_invoke_creates_region_under_organization_and_redirects(): void

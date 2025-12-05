@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Notices;
 
 use App\Http\Controllers\Controller;
+use App\Models\Filters\NoticeFilter;
 use App\Models\Notice;
 use App\Models\Organization;
 use App\Models\Trooper;
@@ -46,13 +47,13 @@ class ListController extends Controller
      * @param Request $request The incoming HTTP request object.
      * @return View The rendered view for the notices list.
      */
-    public function __invoke(Request $request): View
+    public function __invoke(Request $request, NoticeFilter $filter): View
     {
         $trooper = $request->user();
 
         $organization = $this->getOrganization($request);
 
-        $notices = $this->getNotices($request, $trooper, $organization);
+        $notices = $this->getNotices($request, $filter);
 
         $data = [
             'notices' => $notices,
@@ -93,8 +94,10 @@ class ListController extends Controller
      * @param Organization|null $organization The organization to filter by, if any.
      * @return LengthAwarePaginator The paginated list of notices.
      */
-    private function getNotices(Request $request, Trooper $trooper, ?Organization $organization): LengthAwarePaginator
+    private function getNotices(Request $request, NoticeFilter $filter): LengthAwarePaginator
     {
+        $trooper = $request->user();
+
         $q = Notice::with([
             'organization.trooper_assignments' => function ($q) use ($trooper)
             {
@@ -103,31 +106,13 @@ class ListController extends Controller
             }
         ]);
 
-        switch ($request->query('scope', 'active'))
-        {
-            case 'active':
-                $q = $q->active();
-                break;
-            case 'past':
-                $q = $q->past();
-                break;
-            case 'future':
-                $q = $q->future();
-                break;
-        }
-
-        if ($organization != null)
-        {
-            $organization_id = $request->query('organization_id');
-
-            $q = $q->where(Notice::ORGANIZATION_ID, $organization_id);
-        }
+        $q = $q->filterWith($filter);
 
         if (!$trooper->isAdministrator())
         {
             $q = $q->moderatedBy($trooper);
         }
 
-        return $q->paginate(15);
+        return $q->paginate(15)->withQueryString();
     }
 }

@@ -68,7 +68,7 @@ class TrooperFactory extends Factory
         ]);
     }
 
-    public function asAdmin(): static
+    public function asAdministrator(): static
     {
         return $this->withMemberShipRole(MembershipRole::ADMINISTRATOR);
     }

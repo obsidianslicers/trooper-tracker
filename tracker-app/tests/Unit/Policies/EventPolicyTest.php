@@ -25,7 +25,7 @@ class EventPolicyTest extends TestCase
     public function test_create_as_administrator_returns_true(): void
     {
         // Arrange
-        $trooper = Trooper::factory()->asAdmin()->make();
+        $trooper = Trooper::factory()->asAdministrator()->make();
 
         // Act
         $result = $this->subject->create($trooper);
@@ -61,7 +61,7 @@ class EventPolicyTest extends TestCase
     public function test_update_as_administrator_returns_true(): void
     {
         // Arrange
-        $trooper = Trooper::factory()->asAdmin()->make();
+        $trooper = Trooper::factory()->asAdministrator()->make();
         $event = Event::factory()->make();
 
         // Act
@@ -103,7 +103,7 @@ class EventPolicyTest extends TestCase
     public function test_delete_restore_and_force_delete_always_return_false(): void
     {
         // Arrange
-        $trooper = Trooper::factory()->asAdmin()->make();
+        $trooper = Trooper::factory()->asAdministrator()->make();
         $event = Event::factory()->make();
 
         // Act

@@ -7,6 +7,7 @@ use App\Enums\MembershipStatus;
 use App\Enums\TrooperTheme;
 use App\Models\Base\Trooper as BaseTrooper;
 use App\Models\Casts\LowerCast;
+use App\Models\Concerns\HasFilter;
 use App\Models\Concerns\HasObserver;
 use App\Models\Scopes\HasTrooperScopes;
 use Illuminate\Auth\Authenticatable;
@@ -31,6 +32,7 @@ class Trooper extends BaseTrooper implements
 {
     use Authenticatable, Authorizable, CanResetPassword, MustVerifyEmail;
 
+    use HasFilter;
     use HasFactory;
     use Notifiable;
     use HasTrooperScopes;
@@ -126,25 +128,5 @@ class Trooper extends BaseTrooper implements
             ->exists();
 
         return $has_assignment;
-    }
-
-    /**
-     * Get the trooper's active assignments, optionally filtered by a parent organization.
-     *
-     * @param int|null $organization_id The ID of the parent organization to filter by.
-     *
-     * @return Collection<int, Organization> A collection of active organizations.
-     */
-    public function getAssignedOrganizations(?int $organization_id): Collection
-    {
-        $query = $this->trooper_assignments()
-            ->where(TrooperAssignment::MEMBERSHIP_STATUS, MembershipStatus::ACTIVE);
-
-        if ($organization_id)
-        {
-            $query->where(TrooperAssignment::ORGANIZATION_ID, $organization_id);
-        }
-
-        return $query->with('organization')->get()->map->organization;
     }
 }

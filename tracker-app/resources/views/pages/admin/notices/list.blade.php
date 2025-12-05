@@ -50,7 +50,7 @@
     @foreach($notices as $notice)
     <tr>
       <td>
-        <x-logo :storage_path="$notice->organization->image_path_sm"
+        <x-logo :storage_path="$notice->organization->image_path_sm ?? ''"
                 :default_path="'img/icons/organization-32x32.png'"
                 :width="32"
                 :height="32" />

@@ -3,4 +3,5 @@
 <x-input-text :property="$property"
               :value="$value"
               :disabled="$disabled"
-              class="date-picker" />
+              class="date-picker"
+              {{$attributes}} />

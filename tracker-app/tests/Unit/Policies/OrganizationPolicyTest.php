@@ -17,7 +17,7 @@ class OrganizationPolicyTest extends TestCase
     public function test_create_returns_true_for_admin(): void
     {
         // Arrange
-        $admin = Trooper::factory()->asAdmin()->create();
+        $admin = Trooper::factory()->asAdministrator()->create();
         $subject = new OrganizationPolicy();
 
         // Act & Assert
@@ -37,7 +37,7 @@ class OrganizationPolicyTest extends TestCase
     public function test_update_returns_true_for_admin(): void
     {
         // Arrange
-        $admin = Trooper::factory()->asAdmin()->create();
+        $admin = Trooper::factory()->asAdministrator()->create();
         $organization = Organization::factory()->create();
         $subject = new OrganizationPolicy();
 
@@ -84,7 +84,7 @@ class OrganizationPolicyTest extends TestCase
     public function test_moderate_returns_true_for_admin(): void
     {
         // Arrange
-        $admin = Trooper::factory()->asAdmin()->create();
+        $admin = Trooper::factory()->asAdministrator()->create();
         $organization = Organization::factory()->create();
         $subject = new OrganizationPolicy();
 

@@ -17,7 +17,7 @@ class UpdateControllerTest extends TestCase
     public function test_invoke_returns_view_for_authorized_trooper(): void
     {
         // Arrange
-        $trooper = Trooper::factory()->asAdmin()->create();
+        $trooper = Trooper::factory()->asAdministrator()->create();
         $this->actingAs($trooper);
 
         $organization = Organization::factory()->create();

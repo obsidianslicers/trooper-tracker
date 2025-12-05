@@ -33,7 +33,7 @@ class ApprovalListControllerTest extends TestCase
     public function test_invoke_as_admin_shows_all_pending_troopers(): void
     {
         // Arrange
-        $admin_user = Trooper::factory()->asAdmin()->create();
+        $admin_user = Trooper::factory()->asAdministrator()->create();
         $pending_troopers = Trooper::factory()->count(3)->asPending()->create();
 
         // Act

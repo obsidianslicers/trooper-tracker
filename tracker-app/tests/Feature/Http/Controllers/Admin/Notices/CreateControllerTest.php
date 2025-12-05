@@ -43,7 +43,7 @@ class CreateControllerTest extends TestCase
     public function test_invoke_as_admin_returns_correct_view_and_data(): void
     {
         // Arrange
-        $admin = Trooper::factory()->asAdmin()->create();
+        $admin = Trooper::factory()->asAdministrator()->create();
 
         // Act
         $response = $this->actingAs($admin)
@@ -62,7 +62,7 @@ class CreateControllerTest extends TestCase
     public function test_invoke_as_admin_with_organization_id_preloads_organization(): void
     {
         // Arrange
-        $admin = Trooper::factory()->asAdmin()->create();
+        $admin = Trooper::factory()->asAdministrator()->create();
         $organization = Organization::factory()->create();
 
         // Act
@@ -144,7 +144,7 @@ class CreateControllerTest extends TestCase
     public function test_invoke_as_admin_can_copy_notice(): void
     {
         // Arrange
-        $admin = Trooper::factory()->asAdmin()->create();
+        $admin = Trooper::factory()->asAdministrator()->create();
         $source_notice = Notice::factory()->create();
 
         // Act
