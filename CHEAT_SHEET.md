@@ -59,6 +59,7 @@ These commands are typically run on your production server as part of your deplo
 
 | Command | Description |
 |---|---|
+| php artisan down | Bring the website down for maintenance |
 | composer install --optimize-autoloader --no-dev | Installs dependencies, optimized for production without dev packages. |
 | npm run build | Compiles and minifies frontend assets for production. |
 | php artisan migrate --force | Runs database migrations. --force is required in a production environment. |
@@ -66,3 +67,4 @@ These commands are typically run on your production server as part of your deplo
 | php artisan route:cache | Caches the application routes for a performance boost. |
 | php artisan view:cache | Caches the application's Blade views for a performance boost. |
 | php artisan queue:restart | Gracefully restarts queue workers to use the newly deployed code (if using queues). |
+| php artisan up | Bring the website back up after maintenance |
