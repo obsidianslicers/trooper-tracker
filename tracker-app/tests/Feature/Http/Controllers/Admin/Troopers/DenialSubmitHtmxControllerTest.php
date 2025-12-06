@@ -42,7 +42,7 @@ class DenialSubmitHtmxControllerTest extends TestCase
     public function test_invoke_denies_trooper_successfully(): void
     {
         // Arrange
-        $admin = Trooper::factory()->asAdmin()->create();
+        $admin = Trooper::factory()->asAdministrator()->create();
         $pending_trooper = Trooper::factory()->asPending()->create();
 
         $expected_message = json_encode([
@@ -62,6 +62,6 @@ class DenialSubmitHtmxControllerTest extends TestCase
 
         $pending_trooper->refresh();
 
-        $this->assertEquals(MembershipStatus::Denied, $pending_trooper->membership_status);
+        $this->assertEquals(MembershipStatus::DENIED, $pending_trooper->membership_status);
     }
 }

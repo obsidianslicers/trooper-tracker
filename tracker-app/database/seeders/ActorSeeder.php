@@ -30,8 +30,8 @@ class ActorSeeder extends Seeder
         $actor->email = 'sith@galaxy-far-far-away.com';
         $actor->username = 'sith';
         $actor->password = Hash::make('password');
-        $actor->membership_status = MembershipStatus::Active;
-        $actor->membership_role = MembershipRole::Administrator;
+        $actor->membership_status = MembershipStatus::ACTIVE;
+        $actor->membership_role = MembershipRole::ADMINISTRATOR;
 
         $actor->save();
 
@@ -61,8 +61,8 @@ class ActorSeeder extends Seeder
         $actor->email = 'sith-junior@galaxy-far-far-away.com';
         $actor->username = 'sith-jr';
         $actor->password = Hash::make('password');
-        $actor->membership_status = MembershipStatus::Active;
-        $actor->membership_role = MembershipRole::Moderator;
+        $actor->membership_status = MembershipStatus::ACTIVE;
+        $actor->membership_role = MembershipRole::MODERATOR;
 
         $actor->save();
 

@@ -17,7 +17,7 @@ class ListControllerTest extends TestCase
     public function test_invoke_returns_view_with_organizations_for_authenticated_trooper(): void
     {
         // Arrange
-        $trooper = Trooper::factory()->asAdmin()->create();
+        $trooper = Trooper::factory()->asAdministrator()->create();
         $this->actingAs($trooper);
 
         $organizations = Organization::factory(3)->create();

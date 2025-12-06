@@ -6,16 +6,17 @@ namespace App\Http\Controllers\Admin\Troopers;
 
 use App\Enums\MembershipRole;
 use App\Http\Controllers\Controller;
+use App\Models\Filters\TrooperFilter;
 use App\Models\Trooper;
 use App\Services\BreadCrumbService;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 
 /**
- * Class TroopersDisplayController
+ * Class ListController
  *
  * Handles the display of the main troopers list in the admin section.
  * This controller fetches and displays a list of troopers, filtering the results
@@ -26,13 +27,13 @@ use Illuminate\Support\Facades\Auth;
 class ListController extends Controller
 {
     /**
-     * TroopersDisplayController constructor.
+     * ListController constructor.
      *
      * @param BreadCrumbService $crumbs The breadcrumb service for managing navigation history.
      */
     public function __construct(private readonly BreadCrumbService $crumbs)
     {
-
+        $this->crumbs->addRoute('Command Staff', 'admin.display');
     }
 
     /**
@@ -44,15 +45,14 @@ class ListController extends Controller
      * @param Request $request The incoming HTTP request.
      * @return View|RedirectResponse The rendered dashboard page view or a redirect response.
      */
-    public function __invoke(Request $request): View|RedirectResponse
+    public function __invoke(Request $request, TrooperFilter $filter): View|RedirectResponse
     {
-        $this->crumbs->addRoute('Command Staff', 'admin.display');
-        $this->crumbs->add('Troopers');
-
-        $troopers = $this->getTroopers();
+        $troopers = $this->getTroopers($request, $filter);
 
         $data = [
-            'troopers' => $troopers
+            'troopers' => $troopers,
+            'membership_role' => $request->query('membership_role'),
+            'search_term' => $request->query('search_term')
         ];
 
         return view('pages.admin.troopers.list', $data);
@@ -61,19 +61,26 @@ class ListController extends Controller
     /**
      * Get the collection of troopers to be displayed.
      *
-     * If the authenticated user is an Administrator, all troopers are returned.
-     * Otherwise, it returns only the troopers moderated by the current user.
-     * @return Collection
+     * This method filters troopers based on the request's query parameters, such as
+     * 'membership_role' and 'search_term'. If the authenticated user is not an
+     * Administrator, the results are further constrained to only troopers moderated
+     * by the current user.
+     * @param Request $request The incoming HTTP request, containing potential filters.
+     * @return LengthAwarePaginator A paginated list of troopers.
      */
-    private function getTroopers(): Collection
+    private function getTroopers(Request $request, TrooperFilter $filter): LengthAwarePaginator
     {
-        $trooper = Auth::user();
+        $trooper = $request->user();
 
-        if ($trooper->membership_role == MembershipRole::Administrator)
+        $q = Trooper::orderBy(Trooper::NAME);
+
+        if (!$trooper->isAdministrator())
         {
-            return Trooper::orderBy(Trooper::NAME)->get();
+            $q = $q->moderatedBy($trooper);
         }
 
-        return Trooper::moderatedBy($trooper)->orderBy(Trooper::NAME)->get();
+        $q = $q->filterWith($filter);
+
+        return $q->paginate(15)->withQueryString();
     }
 }

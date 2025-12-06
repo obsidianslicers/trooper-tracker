@@ -2,7 +2,6 @@
 
 namespace App\Policies;
 
-use App\Enums\MembershipRole;
 use App\Models\Trooper;
 
 /**
@@ -48,6 +47,18 @@ class TrooperPolicy
     public function update(Trooper $trooper, Trooper $subject): bool
     {
         return $this->canModerate($trooper, $subject);
+    }
+
+    /**
+     * Determine whether the user can update a trooper.
+     *
+     * @param Trooper $trooper The authenticated user performing the action.
+     * @param Trooper $subject The trooper being updated.
+     * @return bool True if the user can moderate the subject, false otherwise.
+     */
+    public function updateAuthority(Trooper $trooper, Trooper $subject): bool
+    {
+        return $this->isAdministrator($trooper);
     }
 
     /**
@@ -111,7 +122,7 @@ class TrooperPolicy
      */
     private function canModerate(Trooper $trooper, Trooper $subject): bool
     {
-        if ($this->isAdmin($trooper))
+        if ($this->isAdministrator($trooper))
         {
             return true;
         }

@@ -7,10 +7,8 @@ namespace App\Http\Controllers\Account;
 use App\Http\Controllers\Controller;
 use App\Models\Costume;
 use App\Models\Organization;
-use App\Models\Trooper;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Handles the submission for adding a new trooper costume via an HTMX request.
@@ -29,7 +27,7 @@ class CostumesSubmitHtmxController extends Controller
      */
     public function __invoke(Request $request): View
     {
-        $trooper = Trooper::findOrFail(Auth::user()->id);
+        $trooper = $request->user();
 
         $organization_id = (int) $request->input('organization_id', -1);
         $costume_id = (int) $request->input('costume_id', -1);
@@ -60,6 +58,6 @@ class CostumesSubmitHtmxController extends Controller
             'trooper_costumes' => $trooper->costumes,
         ];
 
-        return view('pages.account.costumes', $data);
+        return view('pages.account.costume-selector', $data);
     }
 }

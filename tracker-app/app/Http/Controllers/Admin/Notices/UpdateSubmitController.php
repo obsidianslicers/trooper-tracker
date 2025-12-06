@@ -7,7 +7,6 @@ namespace App\Http\Controllers\Admin\Notices;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Notices\UpdateRequest;
 use App\Models\Notice;
-use App\Models\Organization;
 use App\Services\FlashMessageService;
 use Illuminate\Http\RedirectResponse;
 

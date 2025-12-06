@@ -8,5 +8,5 @@ $bracketed = to_bracket_name( $property);
        id="{{ $property }}"
        value=""
        @disabled($disabled)
-       {{$attributes->merge(['class'=>'form-control' . ($haserror ? ' is-invalid' : '')])}} />
+       {{$attributes->class(['form-control', 'is-invalid'=>$haserror])}} />
 <x-input-error :property="$property" />

@@ -26,6 +26,8 @@ class CreateController extends Controller
      */
     public function __construct(private readonly BreadCrumbService $crumbs)
     {
+        $this->crumbs->addRoute('Command Staff', 'admin.display');
+        $this->crumbs->addRoute('Organizations', 'admin.organizations.list');
     }
 
     /**
@@ -42,19 +44,15 @@ class CreateController extends Controller
     {
         $this->authorize('update', $parent);
 
-        $this->crumbs->addRoute('Command Staff', 'admin.display');
-        $this->crumbs->addRoute('Organizations', 'admin.organizations.list');
-        $this->crumbs->add('Create');
-
         $organization = new Organization();
 
-        if ($parent->type == OrganizationType::Organization)
+        if ($parent->type == OrganizationType::ORGANIZATION)
         {
-            $organization->type = OrganizationType::Region;
+            $organization->type = OrganizationType::REGION;
         }
-        elseif ($parent->type == OrganizationType::Region)
+        elseif ($parent->type == OrganizationType::REGION)
         {
-            $organization->type = OrganizationType::Unit;
+            $organization->type = OrganizationType::UNIT;
         }
 
         $data = [

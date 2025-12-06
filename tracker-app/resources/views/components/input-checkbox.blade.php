@@ -8,9 +8,9 @@ $bracketed = to_bracket_name( $property);
          name="{{ $bracketed }}"
          id="{{ $property }}"
          value="{{ $value }}"
-         @checked($checked)
+         @checked(old($property,$checked))
          @disabled($disabled)
-         {{$attributes->merge(['class'=>'form-check-input' . ($haserror ? ' is-invalid' : '')])}}/>
+         {{$attributes->class(['form-check-input', 'is-invalid'=>$haserror])}}/>
   @if($label)
   <label class="form-check-label"
          for="{{ $property }}">

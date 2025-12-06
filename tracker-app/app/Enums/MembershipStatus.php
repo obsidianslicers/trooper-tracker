@@ -14,30 +14,30 @@ enum MembershipStatus: string
     /**
      * Not a member of the organization.
      */
-    case None = 'none';
+    case NONE = 'none';
 
     /**
      * Membership application is pending approval.
      */
-    case Pending = 'pending';
+    case PENDING = 'pending';
 
     /**
      * Denied member of the organization.
      */
-    case Denied = 'denied';
+    case DENIED = 'denied';
 
     /**
      * Active member of the organization.
      */
-    case Active = 'active';
+    case ACTIVE = 'active';
 
     /**
      * A member on reserve status.
      */
-    case Reserve = 'reserve';
+    case RESERVE = 'reserve';
 
     /**
      * A retired member.
      */
-    case Retired = 'retired';
+    case RETIRED = 'retired';
 }

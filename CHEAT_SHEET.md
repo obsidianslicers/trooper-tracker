@@ -50,3 +50,21 @@ Use these commands to run your PHPUnit test suite.
 | `php artisan route:list` | Lists all registered routes in your application. |
 | `php artisan config:clear` | Clears the configuration cache. Run this if your `.env` changes aren't taking effect. |
 | `php artisan cache:clear` | Flushes the application cache. |
+| `php artisan serve` | Starts the local development server (usually at `http://127.0.0.1:8000`). |
+| `npm run dev` | Compiles frontend assets (CSS, JS) and watches for changes using Vite. |
+
+## Deployment (to Production)
+
+These commands are typically run on your production server as part of your deployment process to ensure optimal performance.
+
+| Command | Description |
+|---|---|
+| php artisan down | Bring the website down for maintenance |
+| composer install --optimize-autoloader --no-dev | Installs dependencies, optimized for production without dev packages. |
+| npm run build | Compiles and minifies frontend assets for production. |
+| php artisan migrate --force | Runs database migrations. --force is required in a production environment. |
+| php artisan config:cache | Caches the application configuration for a performance boost. |
+| php artisan route:cache | Caches the application routes for a performance boost. |
+| php artisan view:cache | Caches the application's Blade views for a performance boost. |
+| php artisan queue:restart | Gracefully restarts queue workers to use the newly deployed code (if using queues). |
+| php artisan up | Bring the website back up after maintenance |

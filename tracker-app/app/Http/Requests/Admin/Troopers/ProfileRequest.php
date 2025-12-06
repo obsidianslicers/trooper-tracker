@@ -5,11 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Requests\Admin\Troopers;
 
 use App\Enums\MembershipStatus;
-use App\Http\Requests\HtmxFormRequest;
 use App\Models\Trooper;
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Foundation\Http\FormRequest;
 
 /**
  * Handles the validation for the user registration form.
@@ -19,7 +17,7 @@ use Illuminate\Validation\ValidationException;
  * organization-specific identifiers and unit selections. It also customizes error messages
  * for a better user experience.
  */
-class ProfileRequest extends HtmxFormRequest
+class ProfileRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -46,25 +44,13 @@ class ProfileRequest extends HtmxFormRequest
     public function rules(): array
     {
         $rules = [
-            Trooper::NAME => ['required', 'string', 'max:255'],
-            Trooper::EMAIL => ['required', 'string', 'email', 'max:240'],
-            Trooper::PHONE => ['nullable', 'string', 'max:10'],
+            Trooper::NAME => ['required', 'string', 'max:256'],
+            Trooper::EMAIL => ['required', 'string', 'email', 'max:256'],
+            Trooper::PHONE => ['nullable', 'string', 'max:16'],
             Trooper::MEMBERSHIP_STATUS => ['nullable', 'string', 'max:16', 'in:' . MembershipStatus::toValidator()],
         ];
 
         return $rules;
-    }
-
-    public function validateInputs(): array
-    {
-        $validator = Validator::make($this->all(), $this->rules());
-
-        if ($validator->fails())
-        {
-            throw new ValidationException($validator);
-        }
-
-        return $validator->validated();
     }
 
     /**

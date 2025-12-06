@@ -28,7 +28,7 @@ class SettingPolicyTest extends TestCase
     public function test_admin_can_perform_actions(string $method, bool $expected_result): void
     {
         // Arrange
-        $admin = Trooper::factory()->create(['membership_role' => MembershipRole::Administrator]);
+        $admin = Trooper::factory()->create(['membership_role' => MembershipRole::ADMINISTRATOR]);
         $subject = new SettingPolicy();
 
         // Act & Assert
@@ -39,8 +39,8 @@ class SettingPolicyTest extends TestCase
     public function test_non_admin_cannot_perform_actions(string $method, $expected_result): void
     {
         // Arrange
-        $moderator = Trooper::factory()->create(['membership_role' => MembershipRole::Moderator]);
-        $regular_user = Trooper::factory()->create(['membership_role' => MembershipRole::Member]);
+        $moderator = Trooper::factory()->create(['membership_role' => MembershipRole::MODERATOR]);
+        $regular_user = Trooper::factory()->create(['membership_role' => MembershipRole::MEMBER]);
         $subject = new SettingPolicy();
 
         // Act & Assert

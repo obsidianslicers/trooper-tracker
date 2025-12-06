@@ -15,8 +15,8 @@ Troop Tracker is a scalable, immersive dashboard application designed to manage 
 
 ## 🛠️ Tech Stack
 
-*   **Backend**: Laravel 12, Blade templating
-*   **Frontend**: Bootstrap 5, HTMX, JS
+*   **Backend**: Laravel 12.x, Blade templating
+*   **Frontend**: Bootstrap 5.2x, HTMX 2.x, JS
 *   **Database**: MySQL
 *   **Testing**: PHPUnit
 *   **Version Control**: Git + GitHub
@@ -51,6 +51,7 @@ Troop Tracker is a scalable, immersive dashboard application designed to manage 
 5.  Start the development server:
     ```bash
     php artisan serve
+    npm run dev
     ```
 
 ---

@@ -1,12 +1,14 @@
 @extends('layouts.base')
 
+@section('page-title', 'Update Organization')
+
 @section('content')
 
 <x-transmission-bar :id="'organization'" />
 
 <x-slim-container>
 
-  <x-card :label="'Create ' . $organization->type->name">
+  <x-card>
     <form method="POST"
           novalidate="novalidate">
       @csrf

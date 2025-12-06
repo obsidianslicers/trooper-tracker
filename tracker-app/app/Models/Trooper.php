@@ -4,8 +4,10 @@ namespace App\Models;
 
 use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
+use App\Enums\TrooperTheme;
 use App\Models\Base\Trooper as BaseTrooper;
 use App\Models\Casts\LowerCast;
+use App\Models\Concerns\HasFilter;
 use App\Models\Concerns\HasObserver;
 use App\Models\Scopes\HasTrooperScopes;
 use Illuminate\Auth\Authenticatable;
@@ -30,6 +32,7 @@ class Trooper extends BaseTrooper implements
 {
     use Authenticatable, Authorizable, CanResetPassword, MustVerifyEmail;
 
+    use HasFilter;
     use HasFactory;
     use Notifiable;
     use HasTrooperScopes;
@@ -45,7 +48,8 @@ class Trooper extends BaseTrooper implements
         return array_merge($this->casts, [
             self::MEMBERSHIP_STATUS => MembershipStatus::class,
             self::MEMBERSHIP_ROLE => MembershipRole::class,
-            self::EMAIL => LowerCast::class
+            self::EMAIL => LowerCast::class,
+            self::THEME => TrooperTheme::class
         ]);
     }
 
@@ -56,7 +60,7 @@ class Trooper extends BaseTrooper implements
      */
     public function isAdministrator(): bool
     {
-        return $this->isActive() && $this->membership_role == MembershipRole::Administrator;
+        return $this->isActive() && $this->membership_role == MembershipRole::ADMINISTRATOR;
     }
 
     /**
@@ -66,7 +70,7 @@ class Trooper extends BaseTrooper implements
      */
     public function isModerator(): bool
     {
-        return $this->isActive() && $this->membership_role == MembershipRole::Moderator;
+        return $this->isActive() && $this->membership_role == MembershipRole::MODERATOR;
     }
 
     /**
@@ -76,7 +80,7 @@ class Trooper extends BaseTrooper implements
      */
     public function isActive(): bool
     {
-        return $this->membership_status == MembershipStatus::Active;
+        return $this->membership_status == MembershipStatus::ACTIVE;
     }
 
     /**
@@ -86,7 +90,7 @@ class Trooper extends BaseTrooper implements
      */
     public function isDenied(): bool
     {
-        return $this->membership_status == MembershipStatus::Denied;
+        return $this->membership_status == MembershipStatus::DENIED;
     }
 
     /**
@@ -124,25 +128,5 @@ class Trooper extends BaseTrooper implements
             ->exists();
 
         return $has_assignment;
-    }
-
-    /**
-     * Get the trooper's active assignments, optionally filtered by a parent organization.
-     *
-     * @param int|null $organization_id The ID of the parent organization to filter by.
-     *
-     * @return Collection<int, Organization> A collection of active organizations.
-     */
-    public function getAssignedOrganizations(?int $organization_id): Collection
-    {
-        $query = $this->trooper_assignments()
-            ->where(TrooperAssignment::MEMBERSHIP_STATUS, MembershipStatus::Active);
-
-        if ($organization_id)
-        {
-            $query->where(TrooperAssignment::ORGANIZATION_ID, $organization_id);
-        }
-
-        return $query->with('organization')->get()->map->organization;
     }
 }

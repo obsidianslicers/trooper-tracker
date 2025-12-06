@@ -33,7 +33,7 @@ class OrganizationPickerController extends Controller
      */
     public function __invoke(Request $request): View
     {
-        $trooper = Auth::user();
+        $trooper = $request->user();
 
         $property = $request->query('property');
 
@@ -44,7 +44,7 @@ class OrganizationPickerController extends Controller
 
         $organizations = collect([]);
 
-        if ($request->query('moderated_only'))
+        if ($request->has('moderated_only') && $request->query('moderated_only'))
         {
             if ($trooper->isAdministrator())
             {

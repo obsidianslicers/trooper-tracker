@@ -4,12 +4,14 @@ namespace App\Models;
 
 use App\Enums\NoticeType;
 use App\Models\Base\Notice as BaseNotice;
+use App\Models\Concerns\HasFilter;
 use App\Models\Concerns\HasTrooperStamps;
 use App\Models\Scopes\HasNoticeScopes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Notice extends BaseNotice
 {
+    use HasFilter;
     use HasNoticeScopes;
     use HasFactory;
     use HasTrooperStamps;

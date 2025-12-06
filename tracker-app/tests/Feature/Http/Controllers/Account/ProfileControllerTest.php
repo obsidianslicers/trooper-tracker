@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Tests\Feature\Http\Controllers\Account;
 
 use App\Models\Trooper;
@@ -12,25 +10,33 @@ class ProfileControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function setUp(): void
+    public function test_invoke_as_authenticated_user_returns_view(): void
     {
-        parent::setUp();
-    }
-
-    public function test_unauthenticated_user_is_redirected_to_login(): void
-    {
-        $response = $this->get(route('account.display'));
-
-        $response->assertRedirect(route('auth.login'));
-    }
-
-    public function test_authenticated_user_can_access_account_page(): void
-    {
+        // Arrange
         $trooper = Trooper::factory()->create();
 
-        $response = $this->actingAs($trooper)->get(route('account.display'));
+        // Act
+        $response = $this->actingAs($trooper)
+            ->get(route('account.profile'));
 
+        // Assert
         $response->assertOk();
-        $response->assertViewIs('pages.account.display');
+        $response->assertViewIs('pages.account.profile');
+        $response->assertViewHas('trooper', function ($view_trooper) use ($trooper)
+        {
+            return $view_trooper->id === $trooper->id;
+        });
+    }
+
+    public function test_invoke_as_guest_redirects_to_login(): void
+    {
+        // Arrange
+        // No user is authenticated.
+
+        // Act
+        $response = $this->get(route('account.profile'));
+
+        // Assert
+        $response->assertRedirect(route('auth.login'));
     }
 }

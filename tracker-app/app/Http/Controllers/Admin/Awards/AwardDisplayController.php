@@ -20,6 +20,8 @@ class AwardDisplayController extends Controller
 {
     public function __construct(private readonly BreadCrumbService $crumbs)
     {
+        $this->crumbs->addRoute('Command Staff', 'admin.display');
+        $this->crumbs->add('Awards');
     }
 
     /**
@@ -33,9 +35,6 @@ class AwardDisplayController extends Controller
      */
     public function __invoke(Request $request): View|RedirectResponse
     {
-        $this->crumbs->addRoute('Command Staff', 'admin.display');
-        $this->crumbs->add('Awards');
-
         $data = [
             'awards' => Award::orderBy(Award::NAME)->get()
         ];

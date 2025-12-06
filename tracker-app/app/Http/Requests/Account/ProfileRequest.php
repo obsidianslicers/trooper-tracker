@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Account;
 
+use App\Enums\TrooperTheme;
 use App\Http\Requests\HtmxFormRequest;
 use App\Models\Trooper;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\ValidationException;
 
 /**
  * Handles the validation for the user registration form.
@@ -37,24 +36,14 @@ class ProfileRequest extends HtmxFormRequest
     public function rules(): array
     {
         $rules = [
-            Trooper::NAME => ['required', 'string', 'max:255'],
-            Trooper::EMAIL => ['required', 'string', 'email', 'max:240'],
-            Trooper::PHONE => ['nullable', 'string', 'max:10'],
+            Trooper::NAME => ['required', 'string', 'max:256'],
+            Trooper::EMAIL => ['required', 'string', 'email', 'max:256'],
+            Trooper::PHONE => ['nullable', 'string', 'max:16'],
+            Trooper::THEME => ['required', 'string', 'max:16', 'in:' . TrooperTheme::toValidator()],
+
         ];
 
         return $rules;
-    }
-
-    public function validateInputs(): array
-    {
-        $validator = Validator::make($this->all(), $this->rules());
-
-        if ($validator->fails())
-        {
-            throw new ValidationException($validator);
-        }
-
-        return $validator->validated();
     }
 
     /**

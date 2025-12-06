@@ -17,7 +17,7 @@ class SettingPolicy
      */
     public function viewAny(Trooper $trooper): bool
     {
-        return $this->isAdmin($trooper);
+        return $this->isAdministrator($trooper);
     }
 
     /**
@@ -29,7 +29,7 @@ class SettingPolicy
      */
     public function view(Trooper $trooper, Setting $setting): bool
     {
-        return $this->isAdmin($trooper);
+        return $this->isAdministrator($trooper);
     }
 
     /**
@@ -40,7 +40,7 @@ class SettingPolicy
      */
     public function create(Trooper $trooper): bool
     {
-        return $this->isAdmin($trooper);
+        return $this->isAdministrator($trooper);
     }
 
     /**
@@ -52,7 +52,7 @@ class SettingPolicy
      */
     public function update(Trooper $trooper, Setting $setting): bool
     {
-        return $this->isAdmin($trooper);
+        return $this->isAdministrator($trooper);
     }
 
     /**

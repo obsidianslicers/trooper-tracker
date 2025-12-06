@@ -96,7 +96,7 @@ class OrganizationPickerControllerTest extends TestCase
     {
         // Arrange
         Organization::factory(3)->create();
-        $admin = Trooper::factory()->asAdmin()->create();
+        $admin = Trooper::factory()->asAdministrator()->create();
         $this->actingAs($admin);
 
         // Act

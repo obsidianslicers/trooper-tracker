@@ -28,7 +28,7 @@ return new class extends Migration
 
             // Core fields
             $table->string('title', 128);
-            $table->string('type', 16)->default(NoticeType::Info);
+            $table->string('type', 16)->default(NoticeType::INFO);
             $table->text('message');
 
             $table->timestamps();

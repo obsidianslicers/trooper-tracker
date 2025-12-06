@@ -22,7 +22,7 @@ class UpdateControllerTest extends TestCase
     public function test_invoke_returns_view_for_authorized_user(): void
     {
         // Arrange
-        $admin = Trooper::factory()->asAdmin()->create();
+        $admin = Trooper::factory()->asAdministrator()->create();
         $this->actingAs($admin);
 
         $notice = Notice::factory()->create();

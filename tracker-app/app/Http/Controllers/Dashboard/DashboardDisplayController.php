@@ -56,8 +56,7 @@ class DashboardDisplayController extends Controller
 
         if ($trooper_id == Auth::user()->id)
         {
-            $this->crumbs->addRoute('Account', 'account.display');
-            $this->crumbs->add('Dashboard');
+            $this->crumbs->addRoute('Profile', 'account.profile');
         }
 
         $data = [

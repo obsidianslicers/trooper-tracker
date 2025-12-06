@@ -14,15 +14,15 @@ enum OrganizationType: string
     /**
      * The top-level entity, like '501st Legion'.
      */
-    case Organization = 'organization';
+    case ORGANIZATION = 'organization';
 
     /**
      * A regional subdivision of an organization, like a 'Garrison'.
      */
-    case Region = 'region';
+    case REGION = 'region';
 
     /**
      * A local subdivision of a region, like a 'Squad'.
      */
-    case Unit = 'unit';
+    case UNIT = 'unit';
 }

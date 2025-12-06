@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -25,7 +24,7 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
             $table->string('identifier', 64);
-            $table->string('membership_status', 16)->default(MembershipStatus::Active->value);
+            $table->string('membership_status', 16)->default(MembershipStatus::PENDING->value);
 
             $table->timestamps();
             $table->softDeletes();

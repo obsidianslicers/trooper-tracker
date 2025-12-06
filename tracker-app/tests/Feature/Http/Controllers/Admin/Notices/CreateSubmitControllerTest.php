@@ -19,7 +19,7 @@ class CreateSubmitControllerTest extends TestCase
     public function test_invoke_creates_notice_and_redirects_for_authorized_user(): void
     {
         // Arrange
-        $admin = Trooper::factory()->asAdmin()->create();
+        $admin = Trooper::factory()->asAdministrator()->create();
         $this->actingAs($admin);
 
         $organization = Organization::factory()->create();
@@ -29,7 +29,7 @@ class CreateSubmitControllerTest extends TestCase
         $notice_data = [
             'organization_id' => $organization->id,
             'title' => 'Test Notice Title',
-            'type' => NoticeType::Info->value,
+            'type' => NoticeType::INFO->value,
             'starts_at' => $starts_at,
             'ends_at' => $ends_at,
             'message' => 'This is a test notice message.',
@@ -44,7 +44,7 @@ class CreateSubmitControllerTest extends TestCase
         $this->assertDatabaseHas(Notice::class, [
             'organization_id' => $organization->id,
             'title' => 'Test Notice Title',
-            'type' => NoticeType::Info->value,
+            'type' => NoticeType::INFO->value,
             'message' => 'This is a test notice message.',
         ]);
 

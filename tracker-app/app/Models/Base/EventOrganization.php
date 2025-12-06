@@ -19,8 +19,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $id
  * @property int $event_id
  * @property int $organization_id
- * @property int $troopers_allowed
- * @property int $handlers_allowed
+ * @property bool $can_attend
+ * @property int|null $troopers_allowed
+ * @property int|null $handlers_allowed
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property string|null $deleted_at
@@ -39,6 +40,7 @@ class EventOrganization extends Model
     const ID = 'id';
     const EVENT_ID = 'event_id';
     const ORGANIZATION_ID = 'organization_id';
+    const CAN_ATTEND = 'can_attend';
     const TROOPERS_ALLOWED = 'troopers_allowed';
     const HANDLERS_ALLOWED = 'handlers_allowed';
     const CREATED_AT = 'created_at';
@@ -53,6 +55,7 @@ class EventOrganization extends Model
         self::ID => 'int',
         self::EVENT_ID => 'int',
         self::ORGANIZATION_ID => 'int',
+        self::CAN_ATTEND => 'bool',
         self::TROOPERS_ALLOWED => 'int',
         self::HANDLERS_ALLOWED => 'int',
         self::CREATED_AT => 'datetime',
@@ -65,6 +68,7 @@ class EventOrganization extends Model
     protected $fillable = [
         self::EVENT_ID,
         self::ORGANIZATION_ID,
+        self::CAN_ATTEND,
         self::TROOPERS_ALLOWED,
         self::HANDLERS_ALLOWED
     ];

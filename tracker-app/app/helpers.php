@@ -4,10 +4,40 @@ declare(strict_types=1);
 
 use App\Models\Setting;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 if (!function_exists('setting'))
 {
+    /**
+     * Build a query string by merging the current request query with overrides.
+     *
+     * @param  array  $overrides
+     * @return array
+     */
+    function qs(array $overrides = []): array
+    {
+        return array_merge(request()->query(), $overrides);
+    }
+
+    /**
+     * Return a Storage URL if the file exists, otherwise fall back to a public asset.
+     *
+     * @param  string|null  $path   Path relative to the storage disk
+     * @param  string       $default Relative path under public/ (e.g. 'img/icons/foo.png')
+     * @param  string       $disk   Storage disk to check (default 'public')
+     * @return string
+     */
+    function map_image_url(?string $path, string $default, string $disk = 'public'): string
+    {
+        if ($path && Storage::disk($disk)->exists($path))
+        {
+            return Storage::url($path);
+        }
+
+        return url($default);
+    }
+
     /**
      * Convert a property.name to a bracketed[name]
      * @param string $property
@@ -21,6 +51,19 @@ if (!function_exists('setting'))
     }
 
     /**
+     * Convert a PROPERTY_NAME to a property_name
+     * @param string $value
+     * @return array|string|null
+     */
+    function to_title(string $value)
+    {
+        return Str::of($value)
+            ->lower()
+            ->replace('_', ' ')
+            ->title();
+    }
+
+    /**
      * Retrieve a setting value from the database with optional default and type casting.
      *
      * @param string $key
@@ -29,6 +72,8 @@ if (!function_exists('setting'))
      */
     function setting(string $key, mixed $default = null): mixed
     {
+        $key = strtolower($key);
+
         $cast = function (mixed $value): mixed
         {
             if (is_null($value))

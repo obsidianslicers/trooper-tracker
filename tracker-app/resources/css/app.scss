@@ -1,0 +1,14 @@
+@use 'theme.scss';
+
+@import "flatpickr/dist/flatpickr.min.css";
+@import "easymde/dist/easymde.min.css";
+
+// Static Styles
+.pointer {
+    cursor: pointer;
+}
+
+a,
+a:hover {
+    text-decoration: none;
+}

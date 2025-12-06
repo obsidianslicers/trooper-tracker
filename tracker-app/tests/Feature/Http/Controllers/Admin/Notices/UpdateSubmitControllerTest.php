@@ -18,12 +18,12 @@ class UpdateSubmitControllerTest extends TestCase
     public function test_invoke_updates_notice_and_redirects_for_authorized_user(): void
     {
         // Arrange
-        $admin = Trooper::factory()->asAdmin()->create();
+        $admin = Trooper::factory()->asAdministrator()->create();
         $this->actingAs($admin);
 
         $notice = Notice::factory()->create([
             'title' => 'Old Title',
-            'type' => NoticeType::Info->value,
+            'type' => NoticeType::INFO->value,
         ]);
 
         $new_starts_at = Carbon::now()->addDay()->startOfDay();
@@ -32,7 +32,7 @@ class UpdateSubmitControllerTest extends TestCase
         $updated_notice_data = [
             'organization_id' => $notice->organization_id,
             'title' => 'New Updated Title',
-            'type' => NoticeType::Warning->value,
+            'type' => NoticeType::WARNING->value,
             'starts_at' => $new_starts_at->toDateTimeString(),
             'ends_at' => $new_ends_at->toDateTimeString(),
             'message' => 'This is the new updated message.',
@@ -50,7 +50,7 @@ class UpdateSubmitControllerTest extends TestCase
         $this->assertDatabaseHas(Notice::class, [
             'id' => $notice->id,
             'title' => 'New Updated Title',
-            'type' => NoticeType::Warning->value,
+            'type' => NoticeType::WARNING->value,
             'message' => 'This is the new updated message.',
         ]);
 

@@ -11,29 +11,36 @@
   <meta name="csrf-token"
         content="{{ csrf_token() }}">
 
-  <!-- Title -->
-  <title>{{ config('tracker.name') }} - Troop Tracker</title>
+  <title>{{ setting('site_name') }} - Troop Tracker</title>
 
   <link rel="icon"
         href="{{ url('img/favicon.png') }}"
         type="image/x-icon">
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" />
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/5.2.3/darkly/bootstrap.min.css" />
+  @vite(['resources/css/app.scss'])
 
-  @include('partials.styles')
 </head>
 
-<body class="bg-black d-flex flex-column min-vh-100">
+<body class="bg-black d-flex flex-column min-vh-100 theme-{{ Auth::user()->theme ?? 'stormtrooper' }}">
+  @include('partials.navbar')
+  @include('partials.bread-crumbs')
 
   <div>
     <h1 class="text-center py-3 site-title">
-      {{ config('tracker.name') }}
+      @hasSection('page-title')
+      @yield('page-title')
+      @else
+      {{ setting('site_name') }}
       <br />
       Troop Tracker
+      @endif
     </h1>
   </div>
 
-  <div class="container rounded-3 shadow-sm p-4 main-content">
-    @include('partials.navbar')
-    @include('partials.bread-crumbs')
+  <div class="container rounded-3 shadow-sm p-4 mb-5 main-content">
     @include('partials.messages')
     <div class="row dashboard-row"></div>
 
@@ -42,7 +49,7 @@
     @include('partials.footer')
   </div>
 
-  @include('partials.scripts')
+  @vite(['resources/js/app.js'])
   @yield('page-script')
   @stack('scripts')
 

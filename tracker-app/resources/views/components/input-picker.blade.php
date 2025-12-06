@@ -1,4 +1,5 @@
 @props(['property', 'value', 'route', 'params'=>[], 'text'=>''])
+@php($haserror = $errors->has($property))
 
 <div id="picker-container-{{ $property }}"
      class="input-group pointer"
@@ -14,10 +15,12 @@
   <input type="text"
          readonly
          name="picker-{{ $property }}"
-         class="form-control rounded-start pointer"
+         class="form-control rounded-start pointer {{ $haserror ? ' is-invalid' : '' }}"
          value="{{ $text }}" />
 
   <span class="input-group-text">
     <i class="fa fa-fw fa-search"></i>
   </span>
 </div>
+
+<x-input-error :property="$property" />

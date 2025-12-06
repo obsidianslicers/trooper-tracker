@@ -10,7 +10,7 @@
     @include('pages.admin.troopers.profile',['trooper'=>$trooper])
   </x-card>
 
-  @if($trooper->membership_role == \App\Enums\MembershipRole::Moderator)
+  @if(Auth::user()->isAdministrator())
   <x-card :label="'Authority'">
     @include('pages.admin.troopers.authority',['organization_authorities'=>$organization_authorities])
   </x-card>

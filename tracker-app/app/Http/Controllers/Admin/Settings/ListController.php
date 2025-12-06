@@ -26,6 +26,7 @@ class ListController extends Controller
      */
     public function __construct(private readonly BreadCrumbService $crumbs)
     {
+        $this->crumbs->addRoute('Command Staff', 'admin.display');
     }
 
     /**
@@ -40,9 +41,6 @@ class ListController extends Controller
     public function __invoke(Request $request): View|RedirectResponse
     {
         $this->authorize('viewAny', Setting::class);
-
-        $this->crumbs->addRoute('Command Staff', 'admin.display');
-        $this->crumbs->add('Site Settings');
 
         $settings = Setting::orderBy(Setting::KEY)->get();
 

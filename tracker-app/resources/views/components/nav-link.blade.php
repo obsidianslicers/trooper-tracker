@@ -1,8 +1,8 @@
-@props(['href'=>'#', 'active'=>false])
+@props(['url'=>'#', 'active'=>false])
 
-<li class="nav-item">
-  <a class="nav-link text-white px-4 py-3 {{ $active ? 'active' : '' }}"
-     href="{{ $href }}">
+<li {{$attributes->class(['nav-item'])}}>
+  <a class="nav-link {{ $active ? 'active' : '' }}"
+     href="{{ $url }}">
     {{ $slot }}
   </a>
 </li>

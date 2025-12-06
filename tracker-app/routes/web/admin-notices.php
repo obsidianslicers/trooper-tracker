@@ -9,7 +9,7 @@ use App\Http\Controllers\Admin\Notices\UpdateController;
 use App\Http\Controllers\Admin\Notices\UpdateSubmitController;
 use Illuminate\Support\Facades\Route;
 
-//  ADMIN/ORGANIZATIONS
+//  ADMIN/NOTICES
 Route::prefix('admin/notices')
     ->name('admin.notices.')
     ->middleware(['auth', 'check.role:moderator,administrator'])

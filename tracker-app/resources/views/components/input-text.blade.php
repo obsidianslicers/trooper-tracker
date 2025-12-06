@@ -1,4 +1,4 @@
-@props(['property', 'disabled'=>false, 'value'=>'', 'multiline'=>false])
+@props(['property', 'disabled'=>false, 'value'=>'', 'multiline'=>false, 'rows'=>6])
 @php
 $haserror = $errors->has($property);
 $bracketed = to_bracket_name( $property);
@@ -6,13 +6,14 @@ $bracketed = to_bracket_name( $property);
 @if($multiline)
 <textarea name="{{ $bracketed }}"
           id="{{ $property }}"
-          {{$attributes->merge(['class'=>'form-control' . ($haserror ? ' is-invalid' : '')])}}>{{ old($property, $value) }}</textarea>
+          rows="{{ $rows }}"
+          {{$attributes->class(['form-control', 'is-invalid' => $haserror])}}>{{ old($property, $value) }}</textarea>
 @else
 <input type="text"
        name="{{ $bracketed }}"
        id="{{ $property }}"
        value="{{ old($property, $value) }}"
        @disabled($disabled)
-       {{$attributes->merge(['class'=>'form-control' . ($haserror ? ' is-invalid' : '')])}} />
+       {{$attributes->class(['form-control', 'is-invalid' => $haserror])}} />
 @endif
 <x-input-error :property="$property" />

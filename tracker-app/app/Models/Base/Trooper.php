@@ -11,13 +11,14 @@ use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventTrooper;
 use App\Models\EventUpload;
-use App\Models\EventUploadTag;
+use App\Models\Notice;
 use App\Models\Organization;
 use App\Models\TrooperAchievement;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperAward;
 use App\Models\TrooperCostume;
 use App\Models\TrooperDonation;
+use App\Models\TrooperNotice;
 use App\Models\TrooperOrganization;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
@@ -37,6 +38,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Carbon|null $email_verified_at
  * @property string $username
  * @property string $password
+ * @property string $theme
  * @property Carbon|null $last_active_at
  * @property string $membership_status
  * @property string $membership_role
@@ -49,13 +51,13 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $deleted_at
  * 
  * @property Collection|Event[] $events
- * @property Collection|EventUploadTag[] $event_upload_tags
  * @property Collection|EventUpload[] $event_uploads
  * @property TrooperAchievement|null $trooper_achievement
  * @property Collection|TrooperAssignment[] $trooper_assignments
  * @property Collection|Award[] $awards
  * @property Collection|Costume[] $costumes
  * @property Collection|TrooperDonation[] $trooper_donations
+ * @property Collection|Notice[] $notices
  * @property Collection|Organization[] $organizations
  *
  * @package App\Models\Base
@@ -70,6 +72,7 @@ class Trooper extends Model
     const EMAIL_VERIFIED_AT = 'email_verified_at';
     const USERNAME = 'username';
     const PASSWORD = 'password';
+    const THEME = 'theme';
     const LAST_ACTIVE_AT = 'last_active_at';
     const MEMBERSHIP_STATUS = 'membership_status';
     const MEMBERSHIP_ROLE = 'membership_role';
@@ -105,6 +108,7 @@ class Trooper extends Model
         self::EMAIL_VERIFIED_AT,
         self::USERNAME,
         self::PASSWORD,
+        self::THEME,
         self::LAST_ACTIVE_AT,
         self::MEMBERSHIP_STATUS,
         self::MEMBERSHIP_ROLE,
@@ -119,11 +123,6 @@ class Trooper extends Model
         return $this->belongsToMany(Event::class, 'tt_event_troopers')
                     ->withPivot(EventTrooper::ID, EventTrooper::COSTUME_ID, EventTrooper::BACKUP_COSTUME_ID, EventTrooper::ADDED_BY_TROOPER_ID, EventTrooper::STATUS, EventTrooper::DELETED_AT, EventTrooper::CREATED_ID, EventTrooper::UPDATED_ID, EventTrooper::DELETED_ID)
                     ->withTimestamps();
-    }
-
-    public function event_upload_tags(): HasMany
-    {
-        return $this->hasMany(EventUploadTag::class);
     }
 
     public function event_uploads(): HasMany
@@ -158,6 +157,13 @@ class Trooper extends Model
     public function trooper_donations(): HasMany
     {
         return $this->hasMany(TrooperDonation::class);
+    }
+
+    public function notices(): BelongsToMany
+    {
+        return $this->belongsToMany(Notice::class, 'tt_trooper_notices')
+                    ->withPivot(TrooperNotice::ID, TrooperNotice::IS_READ, TrooperNotice::DELETED_AT, TrooperNotice::CREATED_ID, TrooperNotice::UPDATED_ID, TrooperNotice::DELETED_ID)
+                    ->withTimestamps();
     }
 
     public function organizations(): BelongsToMany

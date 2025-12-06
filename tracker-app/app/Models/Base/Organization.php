@@ -8,7 +8,6 @@ namespace App\Models\Base;
 
 use App\Models\Costume;
 use App\Models\Event;
-use App\Models\EventOrganization;
 use App\Models\Notice;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
@@ -112,11 +111,9 @@ class Organization extends Model
         return $this->hasMany(Costume::class);
     }
 
-    public function events(): BelongsToMany
+    public function events(): HasMany
     {
-        return $this->belongsToMany(Event::class, 'tt_event_organizations')
-                    ->withPivot(EventOrganization::ID, EventOrganization::TROOPERS_ALLOWED, EventOrganization::HANDLERS_ALLOWED, EventOrganization::DELETED_AT, EventOrganization::CREATED_ID, EventOrganization::UPDATED_ID, EventOrganization::DELETED_ID)
-                    ->withTimestamps();
+        return $this->hasMany(Event::class);
     }
 
     public function notices(): HasMany

@@ -1,10 +1,8 @@
 @extends('layouts.base')
 
-@section('content')
+@section('page-title', 'Dashboard')
 
-<x-page-title>
-  Dashboard
-</x-page-title>
+@section('content')
 
 @include('pages.dashboard.overview')
 @include('pages.dashboard.achievements', ['trooper_achievement'=>$trooper->trooper_achievement])

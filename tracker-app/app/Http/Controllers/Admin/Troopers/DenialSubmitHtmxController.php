@@ -40,7 +40,7 @@ class DenialSubmitHtmxController extends Controller
             'trooper' => $trooper
         ];
 
-        $trooper->membership_status = MembershipStatus::Denied;
+        $trooper->membership_status = MembershipStatus::DENIED;
 
         $trooper->save();
 

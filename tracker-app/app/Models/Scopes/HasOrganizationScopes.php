@@ -26,7 +26,7 @@ trait HasOrganizationScopes
     protected function scopeFullyLoaded(Builder $query): Builder
     {
         return $query->with('organizations.organizations.organizations')
-            ->where('type', OrganizationType::Organization)
+            ->where('type', OrganizationType::ORGANIZATION)
             ->orderBy(self::NAME);
     }
 
@@ -38,7 +38,7 @@ trait HasOrganizationScopes
      */
     protected function scopeOfTypeOrganizations(Builder $query): Builder
     {
-        return $query->where(self::TYPE, OrganizationType::Organization);
+        return $query->where(self::TYPE, OrganizationType::ORGANIZATION);
     }
 
     /**
@@ -49,7 +49,7 @@ trait HasOrganizationScopes
      */
     protected function scopeOfTypeRegions(Builder $query): Builder
     {
-        return $query->where(self::TYPE, OrganizationType::Region);
+        return $query->where(self::TYPE, OrganizationType::REGION);
     }
 
     /**
@@ -60,7 +60,7 @@ trait HasOrganizationScopes
      */
     protected function scopeOfTypeUnits(Builder $query): Builder
     {
-        return $query->where(self::TYPE, OrganizationType::Unit);
+        return $query->where(self::TYPE, OrganizationType::UNIT);
     }
 
     /**
@@ -74,7 +74,7 @@ trait HasOrganizationScopes
     {
         return $query
             ->orderBy(self::NAME)
-            ->where(self::TYPE, OrganizationType::Organization)
+            ->where(self::TYPE, OrganizationType::ORGANIZATION)
             ->whereExists(function ($sub) use ($trooper_id)
             {
                 $sub->select(DB::raw(1))

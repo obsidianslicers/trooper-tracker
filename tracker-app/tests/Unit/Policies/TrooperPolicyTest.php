@@ -30,25 +30,25 @@ class TrooperPolicyTest extends TestCase
         $unit2 = Organization::factory()->unit()->create();
 
         $this->admin_trooper = Trooper::factory()->create([
-            'membership_role' => MembershipRole::Administrator
+            'membership_role' => MembershipRole::ADMINISTRATOR
         ]);
 
         $this->moderator_trooper = Trooper::factory()
             ->withAssignment($region, moderator: true)
             ->create([
-                'membership_role' => MembershipRole::Moderator
+                'membership_role' => MembershipRole::MODERATOR
             ]);
 
         $this->member_trooper = Trooper::factory()
             ->withAssignment($unit)
             ->create([
-                'membership_role' => MembershipRole::Member
+                'membership_role' => MembershipRole::MEMBER
             ]);
 
         $this->nonmember_trooper = Trooper::factory()
             ->withAssignment($unit2)
             ->create([
-                'membership_role' => MembershipRole::Member
+                'membership_role' => MembershipRole::MEMBER
             ]);
 
         $this->subject = new TrooperPolicy();
@@ -80,6 +80,21 @@ class TrooperPolicyTest extends TestCase
     }
 
     public function test_moderator_cannot_update_unmoderated_trooper(): void
+    {
+        $this->assertFalse($this->subject->update($this->moderator_trooper, $this->nonmember_trooper));
+    }
+
+    public function test_admin_can_update_authority_trooper(): void
+    {
+        $this->assertTrue($this->subject->updateAuthority($this->admin_trooper, $this->member_trooper));
+    }
+
+    public function test_moderator_can_update_authority_moderated_trooper(): void
+    {
+        $this->assertFalse($this->subject->updateAuthority($this->moderator_trooper, $this->member_trooper));
+    }
+
+    public function test_moderator_cannot_update_authority_unmoderated_trooper(): void
     {
         $this->assertFalse($this->subject->update($this->moderator_trooper, $this->nonmember_trooper));
     }

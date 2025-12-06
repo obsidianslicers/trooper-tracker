@@ -26,7 +26,7 @@ class CostumesDeleteHtmxController extends Controller
      */
     public function __invoke(Request $request): View
     {
-        $trooper = Trooper::findOrFail(Auth::user()->id);
+        $trooper = $request->user();
 
         $costume_id = (int) $request->get('costume_id', -1);
 
@@ -42,6 +42,6 @@ class CostumesDeleteHtmxController extends Controller
             'trooper_costumes' => $trooper->costumes,
         ];
 
-        return view('pages.account.costumes', $data);
+        return view('pages.account.costume-selector', $data);
     }
 }

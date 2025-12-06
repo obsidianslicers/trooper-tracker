@@ -37,7 +37,7 @@ return new class extends Migration
                 ->constrained('tt_troopers')
                 ->cascadeOnDelete();
 
-            $table->string('status', 16)->default(TrooperEventStatus::None->value)->index();
+            $table->string('status', 16)->default(TrooperEventStatus::NONE->value)->index();
 
             // $table->string('note')->default('');
 

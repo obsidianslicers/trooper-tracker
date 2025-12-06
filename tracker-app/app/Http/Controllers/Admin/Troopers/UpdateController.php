@@ -27,7 +27,8 @@ class UpdateController extends Controller
      */
     public function __construct(private readonly BreadCrumbService $crumbs)
     {
-
+        $this->crumbs->addRoute('Command Staff', 'admin.display');
+        $this->crumbs->addRoute('Troopers', 'admin.troopers.list');
     }
 
     /**
@@ -43,10 +44,6 @@ class UpdateController extends Controller
     public function __invoke(Request $request, Trooper $trooper): View|RedirectResponse
     {
         $this->authorize('update', $trooper);
-
-        $this->crumbs->addRoute('Command Staff', 'admin.display');
-        $this->crumbs->addRoute('Troopers', 'admin.troopers.list');
-        $this->crumbs->add('Trooper');
 
         $organization_authorities = Organization::withAllAssignments($trooper->id)->get();
 

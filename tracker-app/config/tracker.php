@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 return [
-    'name' => env('TRACKER_NAME', 'UNKNWON'),
+    // 'name' => env('TRACKER_NAME', 'UNKNWON'),
     'plugins' => [
         'type' => env('TRACKER_AUTH_PLUGIN', 'standalone'),
         'xenforo' => [
@@ -12,12 +12,12 @@ return [
             'user' => env('TRACKER_XENFORO_USER', ''),
         ],
     ],
-    'donate' => [
-        'url' => env('TRACKER_DONATE_URL', 'https://example.com'),
-    ],
-    'forum' => [
-        'name' => env('TRACKER_FORUM_NAME', 'Default Forum'),
-        'url' => env('TRACKER_FORUM_URL', 'https://example.com'),
-        'webmaster' => env('TRACKER_WEBMASTER', 'anyone@example.com'),
-    ]
+    // 'donate' => [
+    //     'url' => env('TRACKER_DONATE_URL', 'https://example.com'),
+    // ],
+    // 'forum' => [
+    //     'name' => env('TRACKER_FORUM_NAME', 'Default Forum'),
+    //     'url' => env('TRACKER_FORUM_URL', 'https://example.com'),
+    //     'webmaster' => env('TRACKER_WEBMASTER', 'anyone@example.com'),
+    // ]
 ];
