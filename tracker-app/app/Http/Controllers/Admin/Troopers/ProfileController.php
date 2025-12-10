@@ -43,9 +43,7 @@ class ProfileController extends Controller
     {
         $this->authorize('update', $trooper);
 
-        $data = [
-            'trooper' => $trooper
-        ];
+        $data = compact('trooper');
 
         return view('pages.admin.troopers.profile', $data);
     }

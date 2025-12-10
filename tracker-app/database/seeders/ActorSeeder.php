@@ -47,8 +47,8 @@ class ActorSeeder extends Seeder
 
             $actor->trooper_assignments()->create([
                 'organization_id' => $unit->id,
-                'member' => true,
-                'moderator' => true
+                'is_member' => true,
+                'is_moderator' => true
             ]);
         }
     }
@@ -78,8 +78,8 @@ class ActorSeeder extends Seeder
 
             $actor->trooper_assignments()->create([
                 'organization_id' => $unit->id,
-                'member' => true,
-                'moderator' => true
+                'is_member' => true,
+                'is_moderator' => true
             ]);
         }
     }

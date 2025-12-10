@@ -24,7 +24,7 @@ class NotificationsListControllerTest extends TestCase
         $unsubscribed_unit = Organization::factory()->unit()->create();
 
         // Create a notification subscription for the trooper
-        TrooperAssignment::factory()->for($trooper)->for($subscribed_unit)->create(['notify' => true]);
+        TrooperAssignment::factory()->for($trooper)->for($subscribed_unit)->create(['can_notify' => true]);
 
         // Act
         $response = $this->actingAs($trooper)

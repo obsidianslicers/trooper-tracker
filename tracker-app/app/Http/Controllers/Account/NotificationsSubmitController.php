@@ -77,7 +77,7 @@ class NotificationsSubmitController extends Controller
 
             $trooper->trooper_assignments()->updateOrCreate(
                 [TrooperAssignment::ORGANIZATION_ID => $organization->id],
-                [TrooperAssignment::NOTIFY => $notify]
+                [TrooperAssignment::CAN_NOTIFY => $notify]
             );
 
             foreach ($organization->organizations as $region)
@@ -86,7 +86,7 @@ class NotificationsSubmitController extends Controller
 
                 $trooper->trooper_assignments()->updateOrCreate(
                     [TrooperAssignment::ORGANIZATION_ID => $region->id],
-                    [TrooperAssignment::NOTIFY => $notify]
+                    [TrooperAssignment::CAN_NOTIFY => $notify]
                 );
 
                 foreach ($region->organizations as $unit)
@@ -95,7 +95,7 @@ class NotificationsSubmitController extends Controller
 
                     $trooper->trooper_assignments()->updateOrCreate(
                         [TrooperAssignment::ORGANIZATION_ID => $unit->id],
-                        [TrooperAssignment::NOTIFY => $notify]
+                        [TrooperAssignment::CAN_NOTIFY => $notify]
                     );
                 }
             }

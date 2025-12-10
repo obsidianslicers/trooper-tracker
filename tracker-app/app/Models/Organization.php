@@ -42,7 +42,7 @@ class Organization extends BaseOrganization
 
     public function event_troopers(): HasManyThrough
     {
-        return $this->hasManyThrough(EventTrooper::class, Costume::class);
+        return $this->hasManyThrough(EventTrooper::class, OrganizationCostume::class);
     }
 
     public function event_organizations()

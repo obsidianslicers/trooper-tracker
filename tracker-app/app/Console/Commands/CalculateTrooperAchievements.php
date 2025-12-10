@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Enums\EventStatus;
-use App\Models\EventTrooper;
 use App\Models\TrooperAchievement;
+use DB;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 
@@ -57,6 +57,8 @@ class CalculateTrooperAchievements extends Command
     {
         $trooper_events = $this->getTrooperEvents();
 
+        $this->info("Storing trooper achievements...Count={$trooper_events->count()}");
+
         for ($i = 0, $len = $trooper_events->count(); $i < $len; $i++)
         {
             $trooper_event = $trooper_events[$i];
@@ -102,10 +104,12 @@ class CalculateTrooperAchievements extends Command
             'COUNT(1) as event_count, ' .
             'SUM(tt_events.charity_direct_funds) as total_direct, ' .
             'SUM(tt_events.charity_indirect_funds) as total_indirect, ' .
-            'SUM(TIMESTAMPDIFF(HOUR, tt_events.starts_at, tt_events.ends_at) + tt_events.charity_hours) as total_hours';
+            'SUM(TIMESTAMPDIFF(HOUR, tt_event_shifts.shift_starts_at, tt_event_shifts.shift_ends_at) + tt_events.charity_hours) as total_hours';
 
-        $trooper_events = EventTrooper::selectRaw($select)
-            ->join('tt_events', 'tt_event_troopers.event_id', '=', 'tt_events.id')
+        $trooper_events = DB::table('tt_event_troopers')
+            ->selectRaw($select)
+            ->join('tt_event_shifts', 'tt_event_troopers.event_shift_id', '=', 'tt_event_shifts.id')
+            ->join('tt_events', 'tt_event_shifts.event_id', '=', 'tt_events.id')
             ->where('tt_events.status', EventStatus::CLOSED)
             ->groupBy('tt_event_troopers.trooper_id')
             ->orderByDesc('event_count')

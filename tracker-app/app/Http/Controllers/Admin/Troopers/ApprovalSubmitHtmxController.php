@@ -38,9 +38,7 @@ class ApprovalSubmitHtmxController extends Controller
     {
         $this->authorize('approve', $trooper);
 
-        $data = [
-            'trooper' => $trooper
-        ];
+        $data = compact('trooper');
 
         $trooper->membership_status = MembershipStatus::ACTIVE;
 
@@ -54,7 +52,7 @@ class ApprovalSubmitHtmxController extends Controller
         ]);
 
         return response()
-            ->view('pages.admin.troopers.approval', $data)
+            ->view('pages.admin.troopers.approval-card', $data)
             ->header('X-Flash-Message', $message);
     }
 }

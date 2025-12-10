@@ -6,9 +6,10 @@
 
 namespace App\Models\Base;
 
-use App\Models\Costume;
+use App\Models\Award;
 use App\Models\Event;
 use App\Models\Notice;
+use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperOrganization;
@@ -34,6 +35,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $identifier_validation
  * @property string|null $image_path_lg
  * @property string|null $image_path_sm
+ * @property string|null $service_class
  * @property string|null $description
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -43,9 +45,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $deleted_id
  * 
  * @property \App\Models\Organization|null $organization
- * @property Collection|Costume[] $costumes
+ * @property Collection|Award[] $awards
  * @property Collection|Event[] $events
  * @property Collection|Notice[] $notices
+ * @property Collection|OrganizationCostume[] $organization_costumes
  * @property Collection|\App\Models\Organization[] $organizations
  * @property Collection|TrooperAssignment[] $trooper_assignments
  * @property Collection|Trooper[] $troopers
@@ -66,6 +69,7 @@ class Organization extends Model
     const IDENTIFIER_VALIDATION = 'identifier_validation';
     const IMAGE_PATH_LG = 'image_path_lg';
     const IMAGE_PATH_SM = 'image_path_sm';
+    const SERVICE_CLASS = 'service_class';
     const DESCRIPTION = 'description';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
@@ -98,6 +102,7 @@ class Organization extends Model
         self::IDENTIFIER_VALIDATION,
         self::IMAGE_PATH_LG,
         self::IMAGE_PATH_SM,
+        self::SERVICE_CLASS,
         self::DESCRIPTION
     ];
 
@@ -106,9 +111,9 @@ class Organization extends Model
         return $this->belongsTo(\App\Models\Organization::class, \App\Models\Organization::PARENT_ID);
     }
 
-    public function costumes(): HasMany
+    public function awards(): HasMany
     {
-        return $this->hasMany(Costume::class);
+        return $this->hasMany(Award::class);
     }
 
     public function events(): HasMany
@@ -119,6 +124,11 @@ class Organization extends Model
     public function notices(): HasMany
     {
         return $this->hasMany(Notice::class);
+    }
+
+    public function organization_costumes(): HasMany
+    {
+        return $this->hasMany(OrganizationCostume::class);
     }
 
     public function organizations(): HasMany
@@ -134,7 +144,7 @@ class Organization extends Model
     public function troopers(): BelongsToMany
     {
         return $this->belongsToMany(Trooper::class, 'tt_trooper_organizations')
-                    ->withPivot(TrooperOrganization::ID, TrooperOrganization::IDENTIFIER, TrooperOrganization::MEMBERSHIP_STATUS, TrooperOrganization::DELETED_AT, TrooperOrganization::CREATED_ID, TrooperOrganization::UPDATED_ID, TrooperOrganization::DELETED_ID)
+                    ->withPivot(TrooperOrganization::ID, TrooperOrganization::IDENTIFIER, TrooperOrganization::MEMBERSHIP_STATUS, TrooperOrganization::VERIFIED_AT, TrooperOrganization::DELETED_AT, TrooperOrganization::CREATED_ID, TrooperOrganization::UPDATED_ID, TrooperOrganization::DELETED_ID)
                     ->withTimestamps();
     }
 }

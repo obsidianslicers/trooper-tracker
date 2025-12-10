@@ -16,18 +16,17 @@ class NotificationsSubmitControllerTest extends TestCase
     public function test_invoke_updates_settings_and_redirects(): void
     {
         // Arrange
-        $trooper = Trooper::factory()->create([
-            'instant_notification' => false,
-            'attendance_notification' => true,
-            'command_staff_notification' => false,
-        ]);
-
         $unit_to_subscribe = Organization::factory()->unit()->create();
         $region_to_unsubscribe = $unit_to_subscribe->parent;
         $org_to_subscribe = $region_to_unsubscribe->parent;
 
-        // Pre-existing unsubscribed assignment
-        TrooperAssignment::factory()->for($trooper)->for($region_to_unsubscribe)->create(['notify' => false]);
+        $trooper = Trooper::factory()
+            ->withAssignment($region_to_unsubscribe, notify: true)
+            ->create([
+                'instant_notification' => false,
+                'attendance_notification' => true,
+                'command_staff_notification' => false,
+            ]);
 
         $update_data = [
             'instant_notification' => '1',
@@ -61,17 +60,17 @@ class NotificationsSubmitControllerTest extends TestCase
         $this->assertDatabaseHas(TrooperAssignment::class, [
             'trooper_id' => $trooper->id,
             'organization_id' => $org_to_subscribe->id,
-            'notify' => true,
+            'can_notify' => true,
         ]);
         $this->assertDatabaseHas(TrooperAssignment::class, [
             'trooper_id' => $trooper->id,
             'organization_id' => $unit_to_subscribe->id,
-            'notify' => true,
+            'can_notify' => true,
         ]);
         $this->assertDatabaseHas(TrooperAssignment::class, [
             'trooper_id' => $trooper->id,
             'organization_id' => $region_to_unsubscribe->id,
-            'notify' => false,
+            'can_notify' => false,
         ]);
     }
 

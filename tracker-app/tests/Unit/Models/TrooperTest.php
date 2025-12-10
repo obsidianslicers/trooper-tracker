@@ -6,8 +6,8 @@ namespace Tests\Unit\Models;
 
 use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
-use App\Models\Costume;
 use App\Models\Organization;
+use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\TrooperCostume;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -75,7 +75,7 @@ class TrooperTest extends TestCase
     {
         // Arrange
         $trooper = Trooper::factory()->create();
-        $costume = Costume::factory()->create();
+        $costume = OrganizationCostume::factory()->create();
 
         // Act (Attach)
         $trooper->attachCostume($costume->id);
@@ -90,7 +90,7 @@ class TrooperTest extends TestCase
         $trooper->detachCostume($costume->id);
 
         // Assert (Detach)
-        $this->assertDatabaseMissing('tt_trooper_costumes', [
+        $this->assertSoftDeleted(TrooperCostume::class, [
             'trooper_id' => $trooper->id,
             'costume_id' => $costume->id,
         ]);
@@ -105,12 +105,12 @@ class TrooperTest extends TestCase
 
         $trooper_with_active->trooper_assignments()->create([
             'organization_id' => $organization->id,
-            'member' => true,
+            'is_member' => true,
         ]);
 
         $trooper_with_inactive->trooper_assignments()->create([
             'organization_id' => $organization->id,
-            'member' => false,
+            'is_member' => false,
         ]);
 
         // Act & Assert

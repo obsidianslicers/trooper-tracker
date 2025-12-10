@@ -34,7 +34,6 @@ class UpdateControllerTest extends TestCase
         $response->assertOk();
         $response->assertViewIs('pages.admin.notices.update');
         $response->assertViewHas('notice', $notice);
-        $response->assertViewHas('options', NoticeType::toDescriptions());
     }
 
     public function test_invoke_is_inaccessible_by_non_privileged_user(): void

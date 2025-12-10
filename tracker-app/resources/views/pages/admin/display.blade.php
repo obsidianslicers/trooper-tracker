@@ -14,7 +14,7 @@
   </x-dashboard-card>
   <x-dashboard-card :label="'Awards'"
                     :icon="'fa-award'"
-                    :url="route('admin.awards.display')">
+                    :url="route('admin.awards.list')">
     <p>
       Create, Update Awards, as well as assign them to troopers
     </p>

@@ -89,23 +89,19 @@ class ListController extends Controller
     {
         $trooper = $request->user();
 
-        $q = Event::mainEvents()
-            ->with([
-                'organization.trooper_assignments' => function ($q) use ($trooper)
-                {
-                    $q->where(TrooperAssignment::TROOPER_ID, $trooper->id)
-                        ->where(TrooperAssignment::MODERATOR, true);
-                }
-            ]);
+        $q = Event::with([
+            'organization.trooper_assignments' => function ($q) use ($trooper)
+            {
+                $q->where(TrooperAssignment::TROOPER_ID, $trooper->id)
+                    ->where(TrooperAssignment::IS_MODERATOR, true);
+            }
+        ]);
 
-        $q = $q->filterWith($filter);
+        $q = $q->withCount('event_shifts');
 
-        if (!$trooper->isAdministrator())
-        {
-            $q = $q->moderatedBy($trooper);
-        }
+        $q = $q->filterWith($filter)->moderatedBy($trooper);
 
-        $q->orderByDesc(Event::ENDS_AT);
+        $q->orderByDesc(Event::EVENT_END);
 
         return $q->paginate(15)->withQueryString();
     }

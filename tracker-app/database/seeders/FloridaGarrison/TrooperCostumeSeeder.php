@@ -20,7 +20,7 @@ class TrooperCostumeSeeder extends Seeder
     {
         $favorites = DB::table('favorite_costumes')
             ->join('tt_troopers', 'favorite_costumes.trooperid', '=', 'tt_troopers.id')
-            ->join('tt_costumes', 'favorite_costumes.costumeid', '=', 'tt_costumes.id')
+            ->join('tt_organization_costumes', 'favorite_costumes.costumeid', '=', 'tt_organization_costumes.id')
             ->select('favorite_costumes.*')
             ->get();
 

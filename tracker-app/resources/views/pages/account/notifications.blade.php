@@ -4,6 +4,8 @@
 
 @section('content')
 
+@include('pages.account.tabs')
+
 <x-slim-container>
 
   <x-card>

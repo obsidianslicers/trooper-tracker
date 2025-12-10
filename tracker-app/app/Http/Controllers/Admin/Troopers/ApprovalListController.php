@@ -46,18 +46,11 @@ class ApprovalListController extends Controller
     {
         $trooper = $request->user();
 
-        $query = Trooper::pendingApprovals()->with('trooper_assignments.organization');
-
-        if ($trooper->membership_role != MembershipRole::ADMINISTRATOR)
-        {
-            $query = $query->moderatedBy($trooper);
-        }
+        $query = Trooper::pendingApprovals()->moderatedBy($trooper);
 
         $troopers = $query->get();
 
-        $data = [
-            'troopers' => $troopers
-        ];
+        $data = compact('troopers');
 
         return view('pages.admin.troopers.approvals', $data);
     }

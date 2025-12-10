@@ -44,7 +44,7 @@ class UniqueOrganizationIdentifierRuleTest extends TestCase
         $fail = function (string $message) use (&$fail_was_called, $organization): void
         {
             $fail_was_called = true;
-            $this->assertEquals("{$organization->name} ID already exists.", $message);
+            $this->assertEquals("{$organization->name} {$organization->identifier_display} already exists.", $message);
         };
 
         // Act

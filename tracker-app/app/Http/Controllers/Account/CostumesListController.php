@@ -7,7 +7,6 @@ namespace App\Http\Controllers\Account;
 use App\Http\Controllers\Controller;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Handles displaying the notification settings form via an HTMX request.
@@ -22,8 +21,6 @@ class CostumesListController extends Controller
      */
     public function __invoke(Request $request): View
     {
-        $trooper = $request->user();
-
         return view('pages.account.costumes', []);
     }
 }

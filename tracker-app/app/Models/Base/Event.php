@@ -7,11 +7,9 @@
 namespace App\Models\Base;
 
 use App\Models\EventOrganization;
-use App\Models\EventTrooper;
+use App\Models\EventShift;
 use App\Models\EventUpload;
-use App\Models\EventVenue;
 use App\Models\Organization;
-use App\Models\Trooper;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -25,21 +23,42 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * 
  * @property int $id
  * @property int $organization_id
- * @property int $event_venue_id
- * @property int|null $main_event_id
- * @property bool $is_shift
  * @property string $name
  * @property string $type
  * @property string $status
- * @property Carbon|null $starts_at
- * @property Carbon|null $ends_at
- * @property bool $limit_organizations
+ * @property float|null $latitude
+ * @property float|null $longitude
+ * @property bool $has_organization_limits
  * @property int|null $troopers_allowed
  * @property int|null $handlers_allowed
  * @property int $charity_direct_funds
  * @property int $charity_indirect_funds
  * @property string|null $charity_name
  * @property int|null $charity_hours
+ * @property string|null $contact_name
+ * @property string|null $contact_phone
+ * @property string|null $contact_email
+ * @property string|null $venue
+ * @property string|null $venue_address
+ * @property string|null $venue_city
+ * @property string|null $venue_state
+ * @property string|null $venue_zip
+ * @property string|null $venue_country
+ * @property Carbon|null $event_start
+ * @property Carbon|null $event_end
+ * @property string|null $event_website
+ * @property int|null $expected_attendees
+ * @property int|null $requested_characters
+ * @property string|null $requested_character_types
+ * @property bool $secure_staging_area
+ * @property bool $allow_blasters
+ * @property bool $allow_props
+ * @property bool $parking_available
+ * @property bool $accessible
+ * @property string|null $amenities
+ * @property string|null $referred_by
+ * @property string|null $source
+ * @property string|null $comments
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property string|null $deleted_at
@@ -47,13 +66,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $updated_id
  * @property int|null $deleted_id
  * 
- * @property EventVenue $event_venue
- * @property \App\Models\Event|null $event
  * @property Organization $organization
  * @property Collection|Organization[] $organizations
- * @property Collection|Trooper[] $troopers
+ * @property Collection|EventShift[] $event_shifts
  * @property Collection|EventUpload[] $event_uploads
- * @property Collection|\App\Models\Event[] $events
  *
  * @package App\Models\Base
  */
@@ -62,21 +78,42 @@ class Event extends Model
     use SoftDeletes;
     const ID = 'id';
     const ORGANIZATION_ID = 'organization_id';
-    const EVENT_VENUE_ID = 'event_venue_id';
-    const MAIN_EVENT_ID = 'main_event_id';
-    const IS_SHIFT = 'is_shift';
     const NAME = 'name';
     const TYPE = 'type';
     const STATUS = 'status';
-    const STARTS_AT = 'starts_at';
-    const ENDS_AT = 'ends_at';
-    const LIMIT_ORGANIZATIONS = 'limit_organizations';
+    const LATITUDE = 'latitude';
+    const LONGITUDE = 'longitude';
+    const HAS_ORGANIZATION_LIMITS = 'has_organization_limits';
     const TROOPERS_ALLOWED = 'troopers_allowed';
     const HANDLERS_ALLOWED = 'handlers_allowed';
     const CHARITY_DIRECT_FUNDS = 'charity_direct_funds';
     const CHARITY_INDIRECT_FUNDS = 'charity_indirect_funds';
     const CHARITY_NAME = 'charity_name';
     const CHARITY_HOURS = 'charity_hours';
+    const CONTACT_NAME = 'contact_name';
+    const CONTACT_PHONE = 'contact_phone';
+    const CONTACT_EMAIL = 'contact_email';
+    const VENUE = 'venue';
+    const VENUE_ADDRESS = 'venue_address';
+    const VENUE_CITY = 'venue_city';
+    const VENUE_STATE = 'venue_state';
+    const VENUE_ZIP = 'venue_zip';
+    const VENUE_COUNTRY = 'venue_country';
+    const EVENT_START = 'event_start';
+    const EVENT_END = 'event_end';
+    const EVENT_WEBSITE = 'event_website';
+    const EXPECTED_ATTENDEES = 'expected_attendees';
+    const REQUESTED_CHARACTERS = 'requested_characters';
+    const REQUESTED_CHARACTER_TYPES = 'requested_character_types';
+    const SECURE_STAGING_AREA = 'secure_staging_area';
+    const ALLOW_BLASTERS = 'allow_blasters';
+    const ALLOW_PROPS = 'allow_props';
+    const PARKING_AVAILABLE = 'parking_available';
+    const ACCESSIBLE = 'accessible';
+    const AMENITIES = 'amenities';
+    const REFERRED_BY = 'referred_by';
+    const SOURCE = 'source';
+    const COMMENTS = 'comments';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
     const DELETED_AT = 'deleted_at';
@@ -88,17 +125,23 @@ class Event extends Model
     protected $casts = [
         self::ID => 'int',
         self::ORGANIZATION_ID => 'int',
-        self::EVENT_VENUE_ID => 'int',
-        self::MAIN_EVENT_ID => 'int',
-        self::IS_SHIFT => 'bool',
-        self::STARTS_AT => 'datetime',
-        self::ENDS_AT => 'datetime',
-        self::LIMIT_ORGANIZATIONS => 'bool',
+        self::LATITUDE => 'float',
+        self::LONGITUDE => 'float',
+        self::HAS_ORGANIZATION_LIMITS => 'bool',
         self::TROOPERS_ALLOWED => 'int',
         self::HANDLERS_ALLOWED => 'int',
         self::CHARITY_DIRECT_FUNDS => 'int',
         self::CHARITY_INDIRECT_FUNDS => 'int',
         self::CHARITY_HOURS => 'int',
+        self::EVENT_START => 'datetime',
+        self::EVENT_END => 'datetime',
+        self::EXPECTED_ATTENDEES => 'int',
+        self::REQUESTED_CHARACTERS => 'int',
+        self::SECURE_STAGING_AREA => 'bool',
+        self::ALLOW_BLASTERS => 'bool',
+        self::ALLOW_PROPS => 'bool',
+        self::PARKING_AVAILABLE => 'bool',
+        self::ACCESSIBLE => 'bool',
         self::CREATED_AT => 'datetime',
         self::UPDATED_AT => 'datetime',
         self::CREATED_ID => 'int',
@@ -108,32 +151,43 @@ class Event extends Model
 
     protected $fillable = [
         self::ORGANIZATION_ID,
-        self::EVENT_VENUE_ID,
-        self::MAIN_EVENT_ID,
-        self::IS_SHIFT,
         self::NAME,
         self::TYPE,
         self::STATUS,
-        self::STARTS_AT,
-        self::ENDS_AT,
-        self::LIMIT_ORGANIZATIONS,
+        self::LATITUDE,
+        self::LONGITUDE,
+        self::HAS_ORGANIZATION_LIMITS,
         self::TROOPERS_ALLOWED,
         self::HANDLERS_ALLOWED,
         self::CHARITY_DIRECT_FUNDS,
         self::CHARITY_INDIRECT_FUNDS,
         self::CHARITY_NAME,
-        self::CHARITY_HOURS
+        self::CHARITY_HOURS,
+        self::CONTACT_NAME,
+        self::CONTACT_PHONE,
+        self::CONTACT_EMAIL,
+        self::VENUE,
+        self::VENUE_ADDRESS,
+        self::VENUE_CITY,
+        self::VENUE_STATE,
+        self::VENUE_ZIP,
+        self::VENUE_COUNTRY,
+        self::EVENT_START,
+        self::EVENT_END,
+        self::EVENT_WEBSITE,
+        self::EXPECTED_ATTENDEES,
+        self::REQUESTED_CHARACTERS,
+        self::REQUESTED_CHARACTER_TYPES,
+        self::SECURE_STAGING_AREA,
+        self::ALLOW_BLASTERS,
+        self::ALLOW_PROPS,
+        self::PARKING_AVAILABLE,
+        self::ACCESSIBLE,
+        self::AMENITIES,
+        self::REFERRED_BY,
+        self::SOURCE,
+        self::COMMENTS
     ];
-
-    public function event_venue(): BelongsTo
-    {
-        return $this->belongsTo(EventVenue::class);
-    }
-
-    public function event(): BelongsTo
-    {
-        return $this->belongsTo(\App\Models\Event::class, \App\Models\Event::MAIN_EVENT_ID);
-    }
 
     public function organization(): BelongsTo
     {
@@ -147,20 +201,13 @@ class Event extends Model
                     ->withTimestamps();
     }
 
-    public function troopers(): BelongsToMany
+    public function event_shifts(): HasMany
     {
-        return $this->belongsToMany(Trooper::class, 'tt_event_troopers')
-                    ->withPivot(EventTrooper::ID, EventTrooper::COSTUME_ID, EventTrooper::BACKUP_COSTUME_ID, EventTrooper::ADDED_BY_TROOPER_ID, EventTrooper::STATUS, EventTrooper::DELETED_AT, EventTrooper::CREATED_ID, EventTrooper::UPDATED_ID, EventTrooper::DELETED_ID)
-                    ->withTimestamps();
+        return $this->hasMany(EventShift::class);
     }
 
     public function event_uploads(): HasMany
     {
         return $this->hasMany(EventUpload::class);
-    }
-
-    public function events(): HasMany
-    {
-        return $this->hasMany(\App\Models\Event::class, \App\Models\Event::MAIN_EVENT_ID);
     }
 }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Search;
 
-use App\Models\Costume;
+use App\Models\OrganizationCostume;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -22,12 +22,12 @@ class CostumeSearchControllerTest extends TestCase
         $organization2 = Organization::factory()->create();
 
         // Costumes for the target organization
-        $costume1 = Costume::factory()->for($organization1)->create(['name' => 'Stormtrooper']);
-        $costume2 = Costume::factory()->for($organization1)->create(['name' => 'Shadow Stormtrooper']);
-        Costume::factory()->for($organization1)->create(['name' => 'Biker Scout']); // Should not match
+        $costume1 = OrganizationCostume::factory()->for($organization1)->create(['name' => 'Stormtrooper']);
+        $costume2 = OrganizationCostume::factory()->for($organization1)->create(['name' => 'Shadow Stormtrooper']);
+        OrganizationCostume::factory()->for($organization1)->create(['name' => 'Biker Scout']); // Should not match
 
         // Costume for another organization to ensure scoping works
-        Costume::factory()->for($organization2)->create(['name' => 'Stormtrooper']);
+        OrganizationCostume::factory()->for($organization2)->create(['name' => 'Stormtrooper']);
 
         $search_query = 'Storm';
 

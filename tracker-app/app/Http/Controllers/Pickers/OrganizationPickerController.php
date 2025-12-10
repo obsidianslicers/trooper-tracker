@@ -46,17 +46,9 @@ class OrganizationPickerController extends Controller
 
         if ($request->has('moderated_only') && $request->query('moderated_only'))
         {
-            if ($trooper->isAdministrator())
-            {
-                $organizations = Organization::orderBy(Organization::SEQUENCE)
-                    ->get();
-            }
-            else
-            {
-                $organizations = Organization::moderatedBy($trooper)
-                    ->orderBy(Organization::SEQUENCE)
-                    ->get();
-            }
+            $organizations = Organization::moderatedBy($trooper)
+                ->orderBy(Organization::SEQUENCE)
+                ->get();
         }
 
         $data = [

@@ -2,15 +2,9 @@
 
 namespace Database\Factories;
 
-use App\Enums\MembershipStatus;
-use App\Models\Trooper;
-use App\Models\TrooperDonation;
-use Illuminate\Database\Eloquent\Factories\Factory;
+use Database\Factories\Base\TrooperDonationFactory as BaseTrooperDonationFactory;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\TrooperDonation>
- */
-class TrooperDonationFactory extends Factory
+class TrooperDonationFactory extends BaseTrooperDonationFactory
 {
     /**
      * Define the model's default state.
@@ -19,10 +13,7 @@ class TrooperDonationFactory extends Factory
      */
     public function definition(): array
     {
-        return [
-            TrooperDonation::TROOPER_ID => Trooper::factory(),
-            TrooperDonation::TXN_ID => uniqid(),
-            TrooperDonation::AMOUNT => random_int(1, 100)
-        ];
+        return array_merge(parent::definition(), [
+        ]);
     }
 }

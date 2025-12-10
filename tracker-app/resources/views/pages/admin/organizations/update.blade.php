@@ -57,7 +57,7 @@
 
         <div class="row">
           <div class="col-sm-12 text-center">
-            @include('pages.admin.organizations.image', ['organization'=>$organization])
+            @include('pages.admin.organizations.image', compact('organization'))
           </div>
           <div class="col-sm-12">
             <p class="form-help text-center">

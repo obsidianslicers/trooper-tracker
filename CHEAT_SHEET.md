@@ -17,6 +17,8 @@ Use the `make` commands to quickly scaffold new classes. Many commands can be co
 | `php artisan make:test UserAuthenticationTest` | Creates a new feature test file in `tests/Feature`. |
 | `php artisan make:test TrooperRepositoryTest --unit` | Creates a new unit test file in `tests/Unit`. |
 | `php artisan code:models --table=units` | (From `reliese/laravel`) Generates a model from an existing `units` table. |
+| `php artisan code:models` | (From `reliese/laravel`) Generates all class models. |
+| `php artisan tracker:generate-factories` | Generates all base factory classes. |
 
 ## Database Migrations & Seeding
 

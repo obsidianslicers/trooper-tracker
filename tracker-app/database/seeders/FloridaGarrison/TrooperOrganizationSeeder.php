@@ -54,6 +54,7 @@ class TrooperOrganizationSeeder extends Seeder
 
             if ($club['identity'] != '')
             {
+                //  get the club identifier
                 $identifier = $trooper->{$club['identity']};
             }
 
@@ -64,7 +65,7 @@ class TrooperOrganizationSeeder extends Seeder
                 $this->loadTrooperOrganization($trooper, $organization, $identifier);
             }
 
-            //* 0 = Regular Member, 1 = Super Admin, 2 = Moderator, 3 = RIP Member
+            //* 0 = Regular Member, 1 = Super Admin, 2 = Moderator, 3 = RIP Member, 4 = Handler
             $moderator = $trooper->permissions == 2 && ($trooper->{$column} == 1 || $trooper->{$column} == 2);
             $member = $has_identifier;
             $notify = $trooper->{'esquad' . $legacy_id} == 1;
@@ -109,7 +110,7 @@ class TrooperOrganizationSeeder extends Seeder
                 ->where(TrooperAssignment::TROOPER_ID, $trooper->id)
                 ->first();
 
-            $moderator = $region_assignment->moderator ?? false;
+            $moderator = $region_assignment->is_moderator ?? false;
 
             $this->loadTrooperAssignment($trooper->id, $unit->id, $notify || $member, $member, $moderator);
         }
@@ -149,9 +150,9 @@ class TrooperOrganizationSeeder extends Seeder
             $t->organization_id = $organization_id;
         }
 
-        $t->notify = $notify;
-        $t->member = $member;
-        $t->moderator = $moderator;
+        $t->can_notify = $notify;
+        $t->is_member = $member;
+        $t->is_moderator = $moderator;
 
         $t->save();
     }

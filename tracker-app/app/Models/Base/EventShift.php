@@ -20,8 +20,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * 
  * @property int $id
  * @property int $event_id
- * @property Carbon|null $starts_at
- * @property Carbon|null $ends_at
+ * @property string $status
+ * @property Carbon|null $shift_starts_at
+ * @property Carbon|null $shift_ends_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property string|null $deleted_at
@@ -39,8 +40,9 @@ class EventShift extends Model
     use SoftDeletes;
     const ID = 'id';
     const EVENT_ID = 'event_id';
-    const STARTS_AT = 'starts_at';
-    const ENDS_AT = 'ends_at';
+    const STATUS = 'status';
+    const SHIFT_STARTS_AT = 'shift_starts_at';
+    const SHIFT_ENDS_AT = 'shift_ends_at';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
     const DELETED_AT = 'deleted_at';
@@ -52,8 +54,8 @@ class EventShift extends Model
     protected $casts = [
         self::ID => 'int',
         self::EVENT_ID => 'int',
-        self::STARTS_AT => 'datetime',
-        self::ENDS_AT => 'datetime',
+        self::SHIFT_STARTS_AT => 'datetime',
+        self::SHIFT_ENDS_AT => 'datetime',
         self::CREATED_AT => 'datetime',
         self::UPDATED_AT => 'datetime',
         self::CREATED_ID => 'int',
@@ -63,8 +65,9 @@ class EventShift extends Model
 
     protected $fillable = [
         self::EVENT_ID,
-        self::STARTS_AT,
-        self::ENDS_AT
+        self::STATUS,
+        self::SHIFT_STARTS_AT,
+        self::SHIFT_ENDS_AT
     ];
 
     public function event(): BelongsTo

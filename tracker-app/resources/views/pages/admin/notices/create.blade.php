@@ -29,8 +29,8 @@
           Type:
         </x-label>
         <x-input-select :property="'type'"
-                        :value="$notice->title"
-                        :options="$options" />
+                        :value="$notice->type->value"
+                        :options="\App\Enums\NoticeType::toDescriptions()" />
       </x-input-container>
 
       <x-input-container>

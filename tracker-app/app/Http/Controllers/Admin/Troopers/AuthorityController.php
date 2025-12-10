@@ -44,8 +44,6 @@ class AuthorityController extends Controller
     {
         $this->authorize('updateAuthority', $trooper);
 
-        $this->crumbs->addRoute('Profile', 'admin.troopers.profile', ['trooper' => $trooper]);
-
         $organization_authorities = Organization::withAllAssignments($trooper->id)->get();
 
         $data = [

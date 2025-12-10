@@ -36,9 +36,7 @@ class DenialSubmitHtmxController extends Controller
     {
         $this->authorize('approve', $trooper);
 
-        $data = [
-            'trooper' => $trooper
-        ];
+        $data = compact('trooper');
 
         $trooper->membership_status = MembershipStatus::DENIED;
 
@@ -50,7 +48,7 @@ class DenialSubmitHtmxController extends Controller
         ]);
 
         return response()
-            ->view('pages.admin.troopers.approval', $data)
+            ->view('pages.admin.troopers.approval-card', $data)
             ->header('X-Flash-Message', $message);
     }
 }

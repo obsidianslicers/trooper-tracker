@@ -5,27 +5,19 @@ namespace Database\Factories;
 use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
 use App\Enums\TrooperTheme;
-use App\Models\Costume;
 use App\Models\Notice;
+use App\Models\NoticeTrooper;
 use App\Models\Organization;
+use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
-use App\Models\TrooperNotice;
+use App\Models\TrooperCostume;
 use App\Models\TrooperOrganization;
-use Illuminate\Database\Eloquent\Factories\Factory;
+use Database\Factories\Base\TrooperFactory as BaseTrooperFactory;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Trooper>
- */
-class TrooperFactory extends Factory
+class TrooperFactory extends BaseTrooperFactory
 {
-    /**
-     * The current password being used by the factory.
-     */
-    protected static ?string $password;
-
     /**
      * Define the model's default state.
      *
@@ -33,17 +25,13 @@ class TrooperFactory extends Factory
      */
     public function definition(): array
     {
-        return [
-            Trooper::NAME => fake()->name(),
-            Trooper::USERNAME => fake()->name(),
-            Trooper::EMAIL => fake()->unique()->safeEmail(),
-            Trooper::EMAIL_VERIFIED_AT => now(),
-            Trooper::PASSWORD => static::$password ??= Hash::make('password'),
+        return array_merge(parent::definition(), [
+            Trooper::EMAIL => $this->faker->safeEmail(),
             Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
             Trooper::MEMBERSHIP_ROLE => MembershipRole::MEMBER,
-            Trooper::REMEMBER_TOKEN => Str::random(10),
-            Trooper::THEME => TrooperTheme::STORMTROOPER
-        ];
+            Trooper::THEME => TrooperTheme::STORMTROOPER,
+            Trooper::SETUP_COMPLETED_AT => now(),
+        ]);
     }
 
     public function asActive(): static
@@ -106,18 +94,20 @@ class TrooperFactory extends Factory
         {
             $trooper->trooper_assignments()->create([
                 TrooperAssignment::ORGANIZATION_ID => $organization->id,
-                TrooperAssignment::MEMBER => $member,
-                TrooperAssignment::NOTIFY => $notify,
-                TrooperAssignment::MODERATOR => $moderator,
+                TrooperAssignment::IS_MEMBER => $member,
+                TrooperAssignment::CAN_NOTIFY => $notify,
+                TrooperAssignment::IS_MODERATOR => $moderator,
             ]);
         });
     }
 
-    public function withCostume(Costume $costume): static
+    public function withCostume(OrganizationCostume $costume): static
     {
         return $this->afterCreating(function (Trooper $trooper) use ($costume)
         {
-            $trooper->costumes()->attach($costume->id);
+            $trooper->trooper_costumes()->create([
+                TrooperCostume::COSTUME_ID => $costume->id,
+            ]);
         });
     }
 
@@ -125,13 +115,13 @@ class TrooperFactory extends Factory
     {
         return $this->afterCreating(function (Trooper $trooper) use ($notice)
         {
-            TrooperNotice::firstOrCreate(
+            NoticeTrooper::firstOrCreate(
                 [
-                    TrooperNotice::TROOPER_ID => $trooper->id,
-                    TrooperNotice::NOTICE_ID => $notice->id,
+                    NoticeTrooper::TROOPER_ID => $trooper->id,
+                    NoticeTrooper::NOTICE_ID => $notice->id,
                 ],
                 [
-                    TrooperNotice::IS_READ => true
+                    NoticeTrooper::IS_READ => true
                 ]
             );
         });

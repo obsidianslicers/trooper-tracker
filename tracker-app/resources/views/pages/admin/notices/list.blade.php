@@ -56,7 +56,7 @@
                 :height="32" />
       </td>
       <td>
-        <i class="fa fa-fw fa-circle text-{{ $notice->type->value }} me-2"></i>
+        <i class="fa fa-fw fa-circle-info text-{{ $notice->type->value }} me-2"></i>
         {{ $notice->title }}
       </td>
       <td>

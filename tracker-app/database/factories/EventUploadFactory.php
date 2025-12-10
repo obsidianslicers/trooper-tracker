@@ -2,16 +2,9 @@
 
 namespace Database\Factories;
 
-use App\Models\Event;
-use App\Models\EventUpload;
-use App\Models\Trooper;
-use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Str;
+use Database\Factories\Base\EventUploadFactory as BaseEventUploadFactory;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\EventUpload>
- */
-class EventUploadFactory extends Factory
+class EventUploadFactory extends BaseEventUploadFactory
 {
     /**
      * Define the model's default state.
@@ -20,10 +13,7 @@ class EventUploadFactory extends Factory
      */
     public function definition(): array
     {
-        return [
-            EventUpload::EVENT_ID => Event::factory(),
-            EventUpload::TROOPER_ID => Trooper::factory(),
-            EventUpload::FILENAME => Str::random(12) . '.jpg',
-        ];
+        return array_merge(parent::definition(), [
+        ]);
     }
 }

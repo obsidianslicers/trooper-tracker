@@ -56,7 +56,6 @@ class CreateControllerTest extends TestCase
         {
             return !$notice->exists && $notice->organization_id === null;
         });
-        $response->assertViewHas('options', NoticeType::toDescriptions());
     }
 
     public function test_invoke_as_admin_with_organization_id_preloads_organization(): void
@@ -156,7 +155,7 @@ class CreateControllerTest extends TestCase
         $response->assertViewHas('notice', function (Notice $notice) use ($source_notice)
         {
             return !$notice->exists
-                && $notice->title === $source_notice->title
+                && $notice->title === 'Copy of ' . $source_notice->title
                 && $notice->message === $source_notice->message
                 && $notice->organization_id === $source_notice->organization_id;
         });
@@ -181,7 +180,7 @@ class CreateControllerTest extends TestCase
         $response->assertOk();
         $response->assertViewHas('notice', function (Notice $notice) use ($source_notice)
         {
-            return !$notice->exists && $notice->title === $source_notice->title;
+            return !$notice->exists && $notice->title === 'Copy of ' . $source_notice->title;
         });
     }
 

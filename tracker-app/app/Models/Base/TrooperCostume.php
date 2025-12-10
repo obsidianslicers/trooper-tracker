@@ -6,7 +6,7 @@
 
 namespace App\Models\Base;
 
-use App\Models\Costume;
+use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
@@ -26,7 +26,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $updated_id
  * @property int|null $deleted_id
  * 
- * @property Costume $costume
+ * @property OrganizationCostume $organization_costume
  * @property Trooper $trooper
  *
  * @package App\Models\Base
@@ -61,9 +61,9 @@ class TrooperCostume extends Model
         self::COSTUME_ID
     ];
 
-    public function costume(): BelongsTo
+    public function organization_costume(): BelongsTo
     {
-        return $this->belongsTo(Costume::class);
+        return $this->belongsTo(OrganizationCostume::class, \App\Models\TrooperCostume::COSTUME_ID);
     }
 
     public function trooper(): BelongsTo

@@ -44,11 +44,8 @@ class UpdateController extends Controller
     {
         $this->authorize('update', $notice);
 
-        $options = NoticeType::toDescriptions();
-
         $data = [
             'notice' => $notice,
-            'options' => $options,
         ];
 
         return view('pages.admin.notices.update', $data);

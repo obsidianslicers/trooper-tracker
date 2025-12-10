@@ -4,6 +4,8 @@
 
 @section('content')
 
+@include('pages.admin.troopers.tabs', compact('trooper'))
+
 <x-slim-container>
 
   <x-card>
@@ -56,7 +58,7 @@
         @foreach ($organization_authorities as $organization)
         @php($trooper_assignment = $organization->trooper_assignments->first())
         @php($parent_selected = $selected_map[$organization->parent_id] ?? false)
-        @php($selected_map[$organization->id] = $trooper_assignment->moderator ?? false)
+        @php($selected_map[$organization->id] = $trooper_assignment->is_moderator ?? false)
         <tr data-id="{{ $organization->id }}"
             data-parent-id="{{ $organization->parent_id }}">
           <td>
@@ -70,15 +72,15 @@
           <td class="cascade">
             @if($organization->type != \App\Enums\OrganizationType::ORGANIZATION)
             <x-input-checkbox :property="'moderators.'.$organization->id.'.selected'"
-                              :checked="$parent_selected || ($trooper_assignment->moderator ?? false)"
+                              :checked="$parent_selected || ($trooper_assignment->is_moderator ?? false)"
                               :disabled="$parent_selected && $organization->type == \App\Enums\OrganizationType::UNIT" />
             @endif
           </td>
           <td class="text-center">
-            <x-yes-no :value="$trooper_assignment->notify ?? false" />
+            <x-yes-no :value="$trooper_assignment->can_notify ?? false" />
           </td>
           <td class="text-center">
-            <x-yes-no :value="$trooper_assignment->member ?? false" />
+            <x-yes-no :value="$trooper_assignment->is_member ?? false" />
           </td>
         </tr>
         @endforeach

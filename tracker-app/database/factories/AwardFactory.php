@@ -2,13 +2,12 @@
 
 namespace Database\Factories;
 
+use App\Enums\AwardFrequency;
 use App\Models\Award;
-use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Models\Organization;
+use Database\Factories\Base\AwardFactory as BaseAwardFactory;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Award>
- */
-class AwardFactory extends Factory
+class AwardFactory extends BaseAwardFactory
 {
     /**
      * Define the model's default state.
@@ -17,8 +16,15 @@ class AwardFactory extends Factory
      */
     public function definition(): array
     {
-        return [
-            Award::NAME => $this->faker->words(3, true) . ' Award',
-        ];
+        return array_merge(parent::definition(), [
+            Award::FREQUENCY => AwardFrequency::ONCE
+        ]);
+    }
+
+    public function withOrganization(Organization $organization): static
+    {
+        return $this->state(fn(array $attributes) => [
+            Award::ORGANIZATION_ID => $organization,
+        ]);
     }
 }

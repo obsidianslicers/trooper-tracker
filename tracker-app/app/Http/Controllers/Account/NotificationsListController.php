@@ -49,7 +49,7 @@ class NotificationsListController extends Controller
         $organizations = Organization::fullyLoaded()->get();
 
         $trooper_assignments = $trooper->trooper_assignments()
-            ->where(TrooperAssignment::NOTIFY, true)
+            ->where(TrooperAssignment::CAN_NOTIFY, true)
             ->pluck(TrooperAssignment::ORGANIZATION_ID)
             ->toArray();
 

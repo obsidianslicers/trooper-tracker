@@ -46,9 +46,9 @@ class UpdateRequest extends FormRequest
             Event::STARTS_AT => ['required', 'date'],
             Event::ENDS_AT => ['required', 'date', 'after:starts_at'],
             Event::STATUS => ['required', 'string', 'max:16', 'in:' . EventStatus::toValidator()],
-            Event::LIMIT_ORGANIZATIONS => ['required', 'boolean'],
-            Event::TROOPERS_ALLOWED => ['required_if:' . Event::LIMIT_ORGANIZATIONS . ',true', 'integer', 'between:1,99999'],
-            Event::HANDLERS_ALLOWED => ['required_if:' . Event::LIMIT_ORGANIZATIONS . ',true', 'integer', 'between:0,99999'],
+            Event::CAN_LI => ['required', 'boolean'],
+            Event::TROOPERS_ALLOWED => ['required_if:' . Event::HAS_ORGANIZATION_LIMITS . ',true', 'integer', 'between:1,99999'],
+            Event::HANDLERS_ALLOWED => ['required_if:' . Event::HAS_ORGANIZATION_LIMITS . ',true', 'integer', 'between:0,99999'],
         ];
 
         return $rules;

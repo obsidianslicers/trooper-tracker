@@ -6,7 +6,6 @@ namespace Tests\Unit\Rules\Admin\Organizations;
 
 use App\Models\Organization;
 use App\Rules\Admin\Organizations\UniqueNameRule;
-use Closure;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

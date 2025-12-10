@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Account;
 
 use App\Http\Controllers\Controller;
 use App\Models\Notice;
-use App\Models\TrooperNotice;
+use App\Models\NoticeTrooper;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -27,13 +27,13 @@ class NoticesSubmitHtmxController extends Controller
     {
         $trooper = $request->user();
 
-        TrooperNotice::firstOrCreate(
+        NoticeTrooper::firstOrCreate(
             [
-                TrooperNotice::TROOPER_ID => $trooper->id,
-                TrooperNotice::NOTICE_ID => $notice->id,
+                NoticeTrooper::TROOPER_ID => $trooper->id,
+                NoticeTrooper::NOTICE_ID => $notice->id,
             ],
             [
-                TrooperNotice::IS_READ => true,
+                NoticeTrooper::IS_READ => true,
             ]
         );
 

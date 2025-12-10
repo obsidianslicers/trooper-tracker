@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Scopes;
 
-use App\Models\EventUploadTag;
+use App\Models\EventUploadTrooper;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
@@ -21,7 +21,7 @@ trait HasEventUploadScopes
      */
     protected function scopeByEvent(Builder $query, int $event_id): Builder
     {
-        return $query->with('event_upload_tags')
+        return $query->with('troopers')
             ->where(self::EVENT_ID, $event_id);
     }
 
@@ -34,7 +34,7 @@ trait HasEventUploadScopes
      */
     protected function scopeByTrooper(Builder $query, int $trooper_id): Builder
     {
-        return $query->with('event_upload_tags')
-            ->whereHas('event_upload_tags', fn($q) => $q->where(EventUploadTag::TROOPER_ID, $trooper_id));
+        return $query->with('troopers')
+            ->whereHas('troopers', fn($q) => $q->where(EventUploadTrooper::TROOPER_ID, $trooper_id));
     }
 }

@@ -41,22 +41,18 @@ EOT;
 
         $this->assertInstanceOf(Event::class, $subject);
         $this->assertEquals('Project Kid Connect', $subject->name);
-        $this->assertInstanceOf(Carbon::class, $subject->starts_at);
-        $this->assertEquals('2025-07-12 09:00:00', $subject->starts_at->toDateTimeString());
-        $this->assertInstanceOf(Carbon::class, $subject->ends_at);
-        $this->assertEquals('2025-07-12 12:00:00', $subject->ends_at->toDateTimeString());
+        $this->assertInstanceOf(Carbon::class, $subject->event_start);
+        $this->assertEquals('2025-07-12 09:00:00', $subject->event_start->toDateTimeString());
+        $this->assertInstanceOf(Carbon::class, $subject->event_end);
+        $this->assertEquals('2025-07-12 12:00:00', $subject->event_end->toDateTimeString());
 
-        $this->assertTrue($subject->limit_organizations);
-        $this->assertEquals(1000, $subject->troopers_allowed);
+        $this->assertTrue($subject->has_organization_limits);
+        $this->assertEquals(100, $subject->troopers_allowed);
         $this->assertNull($subject->handlers_allowed);
 
-        $this->assertInstanceOf(EventRequest::class, $subject->event_request);
-        $this->assertEquals('Matthew Drennan', $subject->event_request->contact_name);
-        $this->assertEquals('drennanmattheww@gmail.com', $subject->event_request->contact_email);
-        $this->assertEquals('Project Kid Connect', $subject->event_request->event_name);
-        $this->assertEquals('2025-07-12 09:00:00', $subject->event_request->event_start->toDateTimeString());
-        $this->assertEquals('2025-07-12 12:00:00', $subject->event_request->event_end->toDateTimeString());
-        $this->assertEquals(1000, $subject->event_request->expected_attendees);
-        $this->assertTrue($subject->event_request->secure_staging_area);
+        $this->assertEquals('Matthew Drennan', $subject->contact_name);
+        $this->assertEquals('drennanmattheww@gmail.com', $subject->contact_email);
+        $this->assertEquals(1000, $subject->expected_attendees);
+        $this->assertTrue($subject->secure_staging_area);
     }
 }

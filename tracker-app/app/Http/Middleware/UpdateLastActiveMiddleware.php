@@ -21,8 +21,8 @@ class UpdateLastActiveMiddleware
         {
             $user = Auth::user();
 
-            // Only update if it's been more than 1 minute (optional optimization)
-            if ($user->last_active_at === null || now()->diffInMinutes($user->last_active_at) > 1)
+            // Only update if it's been more than 3 minutes (optional optimization)
+            if ($user->last_active_at === null || now()->diffInMinutes($user->last_active_at) > 3)
             {
                 $user->last_active_at = now();
 

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Troopers;
 
-use App\Enums\MembershipRole;
 use App\Http\Controllers\Controller;
 use App\Models\Filters\TrooperFilter;
 use App\Models\Trooper;
@@ -13,7 +12,6 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Class ListController
@@ -72,12 +70,7 @@ class ListController extends Controller
     {
         $trooper = $request->user();
 
-        $q = Trooper::orderBy(Trooper::NAME);
-
-        if (!$trooper->isAdministrator())
-        {
-            $q = $q->moderatedBy($trooper);
-        }
+        $q = Trooper::moderatedBy($trooper)->orderBy(Trooper::NAME);
 
         $q = $q->filterWith($filter);
 

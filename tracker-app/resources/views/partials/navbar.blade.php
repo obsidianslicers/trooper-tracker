@@ -31,14 +31,12 @@
         @if(setting('forum_url') != '')
         <x-nav-link :url="setting('forum_url')">
           Forum
-          <i class="fa fa-fw fa-external-link"></i>
         </x-nav-link>
         @endif
         @role(['administrator','moderator'])
         <x-nav-link :url="route('admin.display')"
                     :active="request()->routeIs('admin.*')">
           Command Staff
-          <i class="fa fa-fw fa-toolbox"></i>
         </x-nav-link>
         @endrole
 
@@ -50,7 +48,6 @@
              data-bs-toggle="dropdown"
              aria-expanded="false">
             Account
-            <i class="fa fa-fw fa-id-card"></i>
           </a>
           <ul class="dropdown-menu dropdown-menu-end">
             <li>

@@ -1,3 +1,4 @@
+@php($account_type = old('account_type', request('account_type', 'member')))
 @php($organization_selected = old("organizations.{$organization->id}.selected", $organization->selected))
 
 <div id="organization-selection-{{ $organization->id }}">
@@ -18,12 +19,16 @@
 
   @if($organization_selected)
   <div class="organization-{{ $organization->id }} ps-4">
+    @if($account_type !== 'handler')
     <x-input-container>
-      <x-label>
-        {{ $organization->identifier_display }}:
-      </x-label>
-      <x-input-text :property="'organizations.' . $organization->id . '.identifier'" />
+      <div class="input-group pointer">
+        <span class="input-group-text">
+          {{ $organization->identifier_display }}:
+        </span>
+        <x-input-text :property="'organizations.' . $organization->id . '.identifier'" />
+      </div>
     </x-input-container>
+    @endif
     @if($organization->organizations->count() > 0)
     <x-input-container>
       <x-input-select :property="'organizations.' . $organization->id . '.region_id'"

@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
             __DIR__ . '/../routes/web/admin-settings.php',
             __DIR__ . '/../routes/web/admin-organizations.php',
             __DIR__ . '/../routes/web/admin-notices.php',
+            __DIR__ . '/../routes/web/admin-awards.php',
             __DIR__ . '/../routes/web/admin-events.php',
             __DIR__ . '/../routes/web/admin-troopers.php',
             __DIR__ . '/../routes/web/dashboard.php',
@@ -30,6 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\FlashMessageMiddleware::class,
             \App\Http\Middleware\HtmxDispatchHeaderMiddleware::class,
             \App\Http\Middleware\UpdateLastActiveMiddleware::class,
+            \App\Http\Middleware\TrooperSetupRequiredMiddleware::class,
         ]);
 
         $middleware->alias([

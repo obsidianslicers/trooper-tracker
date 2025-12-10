@@ -23,7 +23,7 @@ class TrooperAssignmentObserver
      */
     public function saving(TrooperAssignment $trooper_assignment): void
     {
-        if ($trooper_assignment->member)
+        if ($trooper_assignment->is_member)
         {
             $organization = $trooper_assignment->organization;
 

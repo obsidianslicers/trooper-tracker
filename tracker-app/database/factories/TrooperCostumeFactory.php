@@ -2,15 +2,9 @@
 
 namespace Database\Factories;
 
-use App\Models\Costume;
-use App\Models\Trooper;
-use App\Models\TrooperCostume;
-use Illuminate\Database\Eloquent\Factories\Factory;
+use Database\Factories\Base\TrooperCostumeFactory as BaseTrooperCostumeFactory;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\TrooperCostume>TrooperCostumeFactory
- */
-class TrooperCostumeFactory extends Factory
+class TrooperCostumeFactory extends BaseTrooperCostumeFactory
 {
     /**
      * Define the model's default state.
@@ -19,9 +13,7 @@ class TrooperCostumeFactory extends Factory
      */
     public function definition(): array
     {
-        return [
-            TrooperCostume::TROOPER_ID => Trooper::factory(),
-            TrooperCostume::COSTUME_ID => Costume::factory(),
-        ];
+        return array_merge(parent::definition(), [
+        ]);
     }
 }

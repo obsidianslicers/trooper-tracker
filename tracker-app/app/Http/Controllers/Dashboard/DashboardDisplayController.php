@@ -6,9 +6,9 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Contracts\ForumInterface;
 use App\Http\Controllers\Controller;
-use App\Models\Costume;
 use App\Models\EventTrooper;
 use App\Models\Organization;
+use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Services\BreadCrumbService;
 use App\Services\FlashMessageService;
@@ -81,13 +81,22 @@ class DashboardDisplayController extends Controller
     {
         $trooper_id = $trooper->id;
 
-        return Organization::whereHas('costumes.event_troopers', fn($q) => $q->where(EventTrooper::TROOPER_ID, $trooper_id))
+        return Organization::query()
+            ->whereHas('organization_costumes.event_troopers', function ($q) use ($trooper_id)
+            {
+                $q->where(EventTrooper::TROOPER_ID, $trooper_id);
+            })
             ->withCount([
-                'event_troopers as troop_count' => fn($query) =>
-                    $query->where(EventTrooper::TROOPER_ID, $trooper_id)
+                'organization_costumes as troop_count' => function ($q) use ($trooper_id)
+                {
+                    $q->whereHas('event_troopers', fn($sub) =>
+                        $sub->where(EventTrooper::TROOPER_ID, $trooper_id)
+                    );
+                },
             ])
             ->orderBy('troop_count', 'desc')
             ->get();
+
     }
 
     /**
@@ -103,13 +112,13 @@ class DashboardDisplayController extends Controller
     {
         $trooper_id = $trooper->id;
 
-        return Costume::whereHas('event_troopers', fn($q) => $q->where(EventTrooper::TROOPER_ID, $trooper_id))
+        return OrganizationCostume::whereHas('event_troopers', fn($q) => $q->where(EventTrooper::TROOPER_ID, $trooper_id))
             ->with('organization')
             ->withCount([
                 'event_troopers as troop_count' => fn($q) =>
                     $q->where(EventTrooper::TROOPER_ID, $trooper_id)
             ])
-            ->whereNot(Costume::NAME, 'N/A')
+            ->whereNot(OrganizationCostume::NAME, 'N/A')
             ->orderBy('troop_count', 'desc')
             ->get();
     }

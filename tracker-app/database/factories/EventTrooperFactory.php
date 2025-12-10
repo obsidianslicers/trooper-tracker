@@ -2,16 +2,14 @@
 
 namespace Database\Factories;
 
-use App\Models\Costume;
+use App\Enums\TrooperEventStatus;
 use App\Models\Event;
+use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
-use Illuminate\Database\Eloquent\Factories\Factory;
+use Database\Factories\Base\EventTrooperFactory as BaseEventTrooperFactory;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\EventTrooper>
- */
-class EventTrooperFactory extends Factory
+class EventTrooperFactory extends BaseEventTrooperFactory
 {
     /**
      * Define the model's default state.
@@ -20,17 +18,22 @@ class EventTrooperFactory extends Factory
      */
     public function definition(): array
     {
-        return [
-            EventTrooper::EVENT_ID => Event::factory(),
-            EventTrooper::TROOPER_ID => Trooper::factory(),
-            EventTrooper::COSTUME_ID => Costume::factory(),
-        ];
+        return array_merge(parent::definition(), [
+            EventTrooper::STATUS => TrooperEventStatus::NONE,
+        ]);
     }
 
-    public function withEvent(Event $event): static
+    public function withShift(EventShift $shift): static
     {
         return $this->state(fn(array $attributes) => [
-            EventTrooper::EVENT_ID => $event,
+            EventTrooper::EVENT_SHIFT_ID => $shift->id,
+        ]);
+    }
+
+    public function withTrooper(Trooper $trooper): static
+    {
+        return $this->state(fn(array $attributes) => [
+            EventTrooper::TROOPER_ID => $trooper->id,
         ]);
     }
 }

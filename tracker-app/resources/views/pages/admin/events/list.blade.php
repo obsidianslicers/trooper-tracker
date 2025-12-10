@@ -57,6 +57,9 @@
         Name
       </th>
       <th>
+        Shifts
+      </th>
+      <th>
         Organization
       </th>
       <th>
@@ -86,6 +89,9 @@
         <i class="text-muted small">
           {{ $event->timeDisplay() }}
         </i>
+      </td>
+      <td>
+        {{ $event->event_shifts_count }}
       </td>
       <td>
         <a href="{{ route('admin.events.list', qs(['organization_id'=>$event->organization_id])) }}">

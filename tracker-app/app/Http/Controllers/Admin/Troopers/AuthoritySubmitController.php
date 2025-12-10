@@ -67,7 +67,7 @@ class AuthoritySubmitController extends Controller
     {
         //  reset all the moderatored organizations to "false"
         $trooper->trooper_assignments()
-            ->update([TrooperAssignment::MODERATOR => false]);
+            ->update([TrooperAssignment::IS_MODERATOR => false]);
 
         if ($trooper->isModerator())
         {
@@ -88,7 +88,7 @@ class AuthoritySubmitController extends Controller
                     $trooper_assignment->trooper_id = $trooper->id;
                 }
 
-                $trooper_assignment->moderator = $selected;
+                $trooper_assignment->is_moderator = $selected;
 
                 $trooper_assignment->save();
             }

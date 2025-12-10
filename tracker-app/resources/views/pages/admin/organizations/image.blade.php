@@ -3,7 +3,7 @@
   <x-transmission-bar :id="'image'" />
 
   <form class="m-2"
-        hx-post="{{ route('admin.organizations.update-image', ['organization'=>$organization]) }}"
+        hx-post="{{ route('admin.organizations.update-image', compact('organization')) }}"
         hx-swap="outerHTML"
         hx-trigger="submit"
         hx-select="#organization-logo-container"

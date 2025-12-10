@@ -14,10 +14,4 @@ Route::prefix('admin')
     ->group(function ()
     {
         Route::get('/', AdminDisplayController::class)->name('display');
-
-        //  ADMIN/AWARDS
-        Route::prefix('awards')->name('awards.')->group(function ()
-        {
-            Route::get('/', AwardDisplayController::class)->name('display');
-        });
     });

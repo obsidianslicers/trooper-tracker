@@ -12,6 +12,8 @@ use App\Http\Controllers\Account\NotificationsListController;
 use App\Http\Controllers\Account\NotificationsSubmitController;
 use App\Http\Controllers\Account\ProfileController;
 use App\Http\Controllers\Account\ProfileSubmitController;
+use App\Http\Controllers\Account\SetupController;
+use App\Http\Controllers\Account\SetupSubmitController;
 use Illuminate\Support\Facades\Route;
 
 //  ACCOUNT
@@ -30,4 +32,8 @@ Route::prefix('account')
         Route::get('/costumes-htmx', CostumesListHtmxController::class)->name('costumes-htmx');
         Route::post('/costumes-htmx', CostumesSubmitHtmxController::class);
         Route::delete('/costumes-htmx', CostumesDeleteHtmxController::class);
+
+        //  needed a post name to get the middleware to work properly
+        Route::get('/setup', SetupController::class)->name('setup');
+        Route::post('/setup', SetupSubmitController::class)->name('setup-submit');
     });

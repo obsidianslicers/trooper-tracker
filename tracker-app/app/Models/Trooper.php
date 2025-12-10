@@ -19,7 +19,6 @@ use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Collection;
 
 /**
  * Represents a user of the application, typically a member of a costuming organization.
@@ -74,6 +73,16 @@ class Trooper extends BaseTrooper implements
     }
 
     /**
+     * Check if the trooper's membership role is handler.
+     *
+     * @return bool True if the trooper is handler, false otherwise.
+     */
+    public function isHandler(): bool
+    {
+        return $this->isActive() && $this->membership_role == MembershipRole::HANDLER;
+    }
+
+    /**
      * Check if the trooper's membership status is active.
      *
      * @return bool True if the trooper is active, false otherwise.
@@ -100,9 +109,17 @@ class Trooper extends BaseTrooper implements
      */
     public function attachCostume(int $costume_id): void
     {
-        if (!$this->costumes()->where(TrooperCostume::COSTUME_ID, $costume_id)->exists())
+        $trooper_costume = $this->trooper_costumes()->withTrashed()
+            ->where(TrooperCostume::COSTUME_ID, $costume_id)
+            ->first();
+
+        if ($trooper_costume == null)
         {
-            $this->costumes()->attach($costume_id);
+            $this->trooper_costumes()->create([TrooperCostume::COSTUME_ID => $costume_id]);
+        }
+        else
+        {
+            $trooper_costume->restore();
         }
     }
 
@@ -113,7 +130,9 @@ class Trooper extends BaseTrooper implements
      */
     public function detachCostume(int $costume_id): void
     {
-        $this->costumes()->detach($costume_id);
+        $this->trooper_costumes()
+            ->where(TrooperCostume::COSTUME_ID, $costume_id)
+            ->delete();
     }
 
     /**
@@ -124,7 +143,7 @@ class Trooper extends BaseTrooper implements
     public function hasActiveOrganizationStatus(): bool
     {
         $has_assignment = $this->trooper_assignments()
-            ->where(TrooperAssignment::MEMBER, true)
+            ->where(TrooperAssignment::IS_MEMBER, true)
             ->exists();
 
         return $has_assignment;

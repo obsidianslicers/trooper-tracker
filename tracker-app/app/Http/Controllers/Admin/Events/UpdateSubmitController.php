@@ -41,13 +41,13 @@ class UpdateSubmitController extends Controller
      */
     public function __invoke(UpdateRequest $request, Event $event): RedirectResponse
     {
-        $reset_limits = $event->limit_organizations != $request->validated('limit_organizations');
+        $reset_limits = $event->has_organization_limits != $request->validated('limit_organizations');
 
         $event->name = $request->validated('name');
         $event->starts_at = $request->validated('starts_at');
         $event->ends_at = $request->validated('ends_at');
         $event->status = $request->validated('status');
-        $event->limit_organizations = $request->validated('limit_organizations');
+        $event->has_organization_limits = $request->validated('limit_organizations');
         $event->troopers_allowed = $request->validated('troopers_allowed');
         $event->handlers_allowed = $request->validated('handlers_allowed');
 
@@ -65,7 +65,7 @@ class UpdateSubmitController extends Controller
 
     private function resetLimits(Event $event)
     {
-        if ($event->limit_organizations)
+        if ($event->has_organization_limits)
         {
             $organizations = Organization::all();
 
@@ -101,7 +101,7 @@ class UpdateSubmitController extends Controller
     //     // Step 1: Gather historical participation counts per organization
     //     $orgParticipation = EventTrooper::query()
     //         ->join('tt_trooper_assignments', 'tt_event_troopers.trooper_id', '=', 'tt_trooper_assignments.trooper_id')
-    //         ->where('tt_trooper_assignments.member', true)
+    //         ->where('tt_trooper_assignments.is_member', true)
     //         ->select('tt_trooper_assignments.organization_id', DB::raw('COUNT(*) as total'))
     //         ->groupBy('tt_trooper_assignments.organization_id')
     //         ->pluck('total', 'tt_trooper_assignments.organization_id');

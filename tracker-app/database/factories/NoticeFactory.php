@@ -6,12 +6,9 @@ use App\Enums\NoticeType;
 use App\Models\Notice;
 use App\Models\Organization;
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Factories\Factory;
+use Database\Factories\Base\NoticeFactory as BaseNoticeFactory;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Notice>
- */
-class NoticeFactory extends Factory
+class NoticeFactory extends BaseNoticeFactory
 {
     /**
      * Define the model's default state.
@@ -20,14 +17,9 @@ class NoticeFactory extends Factory
      */
     public function definition(): array
     {
-        return [
-            Notice::TITLE => fake()->title(),
-            Notice::MESSAGE => 'Hello',
-            Notice::ORGANIZATION_ID => Organization::factory(),
-            Notice::TYPE => NoticeType::INFO,
-            Notice::STARTS_AT => Carbon::now(),
-            Notice::ENDS_AT => Carbon::now()->addDays(7),
-        ];
+        return array_merge(parent::definition(), [
+            Notice::TYPE => NoticeType::INFO
+        ]);
     }
 
     public function active(): static

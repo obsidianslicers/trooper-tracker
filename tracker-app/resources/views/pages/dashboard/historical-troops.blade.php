@@ -8,25 +8,25 @@
     </tr>
   </thead>
   <tbody>
-    @forelse($historical_troops as $troop)
+    @forelse($historical_shifts as $shift)
     <tr>
       <td>
-        {{--
-        <img src="{{ url($troop->image_path_sm) }}" />
-        --}}
+        <x-logo :storage_path="$shift->organization->image_path_sm ?? ''"
+                :default_path="'img/icons/organization-32x32.png'"
+                :width="32"
+                :height="32" />
       </td>
       <td>
-        {{ $troop->name }}
+        {{ $shift->event->name }}
       </td>
       <td class="text-center text-nowrap">
-        <x-date-format :value="$troop->starts_at"
+        <x-date-format :value="$shift->shift_starts_at"
                        :format="'M j, Y'" />
       </td>
       <td>
-        @foreach($troop->event_troopers as $trooper)
-        @if(isset($trooper->costume) && $trooper->costume->name != 'N/A')
-        <x-costume-name :organization="$trooper->costume->organization->name"
-                        :costume="$trooper->costume->name" />
+        @foreach($shift->event_troopers as $event_trooper)
+        @if(isset($event_trooper->organization_costume) && $event_trooper->organization_costume->name != 'N/A')
+        {{ $event_trooper->organization_costume->full_name }}
         @else
         <span class="text-muted">N/A</span>
         @endif

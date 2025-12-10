@@ -7,7 +7,7 @@
 <x-slim-container>
 
   <x-card :label="'Profile'">
-    @include('pages.admin.troopers.profile',['trooper'=>$trooper])
+    @include('pages.admin.troopers.profile',compact('trooper'))
   </x-card>
 
   @if(Auth::user()->isAdministrator())
