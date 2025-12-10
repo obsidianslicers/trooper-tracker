@@ -56,7 +56,7 @@ class DenialSubmitHtmxControllerTest extends TestCase
 
         // Assert
         $response->assertOk();
-        $response->assertViewIs('pages.admin.troopers.approval');
+        $response->assertViewIs('pages.admin.troopers.approval-card');
         $response->assertViewHas('trooper', $pending_trooper);
         $response->assertHeader('X-Flash-Message', $expected_message);
 

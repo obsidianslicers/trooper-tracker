@@ -30,6 +30,7 @@ return new class extends Migration
             $table->string('identifier_validation', 64)->nullable();
             $table->string('image_path_lg', 128)->nullable();
             $table->string('image_path_sm', 128)->nullable();
+            $table->string('service_class', 128)->nullable();
 
             $table->string('description', 512)->nullable();
 

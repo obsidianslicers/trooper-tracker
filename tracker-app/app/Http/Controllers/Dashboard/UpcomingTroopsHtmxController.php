@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
+use App\Models\EventShift;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -28,13 +29,12 @@ class UpcomingTroopsHtmxController extends Controller
     {
         $trooper_id = (int) $request->get('trooper_id', Auth::user()->id);
 
-        $troops = Event::byTrooper($trooper_id, false)
-            ->orderBy(Event::STARTS_AT)
+        $upcoming_shifts = EventShift::with('event.organization')
+            ->byTrooper($trooper_id, false)
+            ->orderByDesc(EventShift::SHIFT_ENDS_AT)
             ->get();
 
-        $data = [
-            'upcoming_troops' => $troops,
-        ];
+        $data = compact('upcoming_shifts');
 
         return view('pages.dashboard.upcoming-troops', $data);
     }

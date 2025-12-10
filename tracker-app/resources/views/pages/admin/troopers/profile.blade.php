@@ -4,9 +4,11 @@
 
 @section('content')
 
+@include('pages.admin.troopers.tabs', compact('trooper'))
+
 <x-slim-container>
 
-  <x-card :label="'Trooper Profile'">
+  <x-card>
 
     <form method="POST"
           novalidate="novalidate">

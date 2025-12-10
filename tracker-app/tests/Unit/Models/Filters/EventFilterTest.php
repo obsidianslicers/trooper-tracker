@@ -78,8 +78,7 @@ class EventFilterTest extends TestCase
         $organization = Organization::factory()->create();
 
         // The event we expect to find
-        $matching_event = Event::factory()->open()->create([
-            Event::ORGANIZATION_ID => $organization->id,
+        $matching_event = Event::factory()->open()->withOrganization($organization)->create([
             Event::NAME => 'Active Event at Correct Org',
         ]);
 

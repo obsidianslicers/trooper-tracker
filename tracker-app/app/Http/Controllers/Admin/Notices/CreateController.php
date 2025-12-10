@@ -12,7 +12,6 @@ use App\Models\Trooper;
 use App\Services\BreadCrumbService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Class CreateController
@@ -55,11 +54,8 @@ class CreateController extends Controller
 
         $this->assignOrganization($request, $notice, $trooper);
 
-        $options = NoticeType::toDescriptions();
-
         $data = [
             'notice' => $notice,
-            'options' => $options
         ];
 
         return view('pages.admin.notices.create', $data);
@@ -79,22 +75,17 @@ class CreateController extends Controller
     private function getNotice(Request $request, Trooper $trooper): Notice
     {
         $notice = new Notice();
+        $notice->type = NoticeType::INFO;
 
         if ($request->has('copy_id'))
         {
             $copy_id = $request->query('copy_id');
 
-            if ($trooper->isAdministrator())
-            {
-                $copy = Notice::findOrFail($copy_id);
-            }
-            else
-            {
-                $copy = Notice::moderatedBy($trooper)->findOrFail($copy_id);
-            }
+            $copy = Notice::moderatedBy($trooper)->findOrFail($copy_id);
 
             $notice->organization_id = $copy->organization_id;
-            $notice->title = $copy->title;
+            $notice->type = $copy->type;
+            $notice->title = 'Copy of ' . $copy->title;
             $notice->starts_at = $copy->starts_at;
             $notice->ends_at = $copy->ends_at;
             $notice->message = $copy->message;
@@ -125,12 +116,7 @@ class CreateController extends Controller
 
         if ($notice->organization_id != null)
         {
-            $q = Organization::query();
-
-            if (!$trooper->isAdministrator())
-            {
-                $q = $q->moderatedBy($trooper);
-            }
+            $q = Organization::moderatedBy($trooper);
 
             $notice->organization = $q->findOrFail($notice->organization_id);
         }

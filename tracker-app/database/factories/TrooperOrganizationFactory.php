@@ -2,17 +2,9 @@
 
 namespace Database\Factories;
 
-use App\Enums\MembershipRole;
-use App\Enums\MembershipStatus;
-use App\Models\Organization;
-use App\Models\Trooper;
-use App\Models\TrooperOrganization;
-use Illuminate\Database\Eloquent\Factories\Factory;
+use Database\Factories\Base\TrooperOrganizationFactory as BaseTrooperOrganizationFactory;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\TrooperOrganization>
- */
-class TrooperOrganizationFactory extends Factory
+class TrooperOrganizationFactory extends BaseTrooperOrganizationFactory
 {
     /**
      * Define the model's default state.
@@ -21,10 +13,7 @@ class TrooperOrganizationFactory extends Factory
      */
     public function definition(): array
     {
-        return [
-            TrooperOrganization::TROOPER_ID => Trooper::factory(),
-            TrooperOrganization::IDENTIFIER => 'TK' . uniqid(),
-            TrooperOrganization::ORGANIZATION_ID => Organization::factory(),
-        ];
+        return array_merge(parent::definition(), [
+        ]);
     }
 }

@@ -7,18 +7,16 @@
 namespace App\Models\Base;
 
 use App\Models\Award;
-use App\Models\Costume;
-use App\Models\Event;
+use App\Models\AwardTrooper;
 use App\Models\EventTrooper;
 use App\Models\EventUpload;
 use App\Models\Notice;
+use App\Models\NoticeTrooper;
 use App\Models\Organization;
 use App\Models\TrooperAchievement;
 use App\Models\TrooperAssignment;
-use App\Models\TrooperAward;
 use App\Models\TrooperCostume;
 use App\Models\TrooperDonation;
-use App\Models\TrooperNotice;
 use App\Models\TrooperOrganization;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
@@ -36,6 +34,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $phone
  * @property string $email
  * @property Carbon|null $email_verified_at
+ * @property Carbon|null $setup_completed_at
  * @property string $username
  * @property string $password
  * @property string $theme
@@ -50,14 +49,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Carbon|null $updated_at
  * @property string|null $deleted_at
  * 
- * @property Collection|Event[] $events
+ * @property Collection|Award[] $awards
+ * @property Collection|EventTrooper[] $event_troopers
  * @property Collection|EventUpload[] $event_uploads
+ * @property Collection|Notice[] $notices
  * @property TrooperAchievement|null $trooper_achievement
  * @property Collection|TrooperAssignment[] $trooper_assignments
- * @property Collection|Award[] $awards
- * @property Collection|Costume[] $costumes
+ * @property Collection|TrooperCostume[] $trooper_costumes
  * @property Collection|TrooperDonation[] $trooper_donations
- * @property Collection|Notice[] $notices
  * @property Collection|Organization[] $organizations
  *
  * @package App\Models\Base
@@ -70,6 +69,7 @@ class Trooper extends Model
     const PHONE = 'phone';
     const EMAIL = 'email';
     const EMAIL_VERIFIED_AT = 'email_verified_at';
+    const SETUP_COMPLETED_AT = 'setup_completed_at';
     const USERNAME = 'username';
     const PASSWORD = 'password';
     const THEME = 'theme';
@@ -88,6 +88,7 @@ class Trooper extends Model
     protected $casts = [
         self::ID => 'int',
         self::EMAIL_VERIFIED_AT => 'datetime',
+        self::SETUP_COMPLETED_AT => 'datetime',
         self::LAST_ACTIVE_AT => 'datetime',
         self::INSTANT_NOTIFICATION => 'bool',
         self::ATTENDANCE_NOTIFICATION => 'bool',
@@ -106,6 +107,7 @@ class Trooper extends Model
         self::PHONE,
         self::EMAIL,
         self::EMAIL_VERIFIED_AT,
+        self::SETUP_COMPLETED_AT,
         self::USERNAME,
         self::PASSWORD,
         self::THEME,
@@ -118,16 +120,28 @@ class Trooper extends Model
         self::REMEMBER_TOKEN
     ];
 
-    public function events(): BelongsToMany
+    public function awards(): BelongsToMany
     {
-        return $this->belongsToMany(Event::class, 'tt_event_troopers')
-                    ->withPivot(EventTrooper::ID, EventTrooper::COSTUME_ID, EventTrooper::BACKUP_COSTUME_ID, EventTrooper::ADDED_BY_TROOPER_ID, EventTrooper::STATUS, EventTrooper::DELETED_AT, EventTrooper::CREATED_ID, EventTrooper::UPDATED_ID, EventTrooper::DELETED_ID)
+        return $this->belongsToMany(Award::class, 'tt_award_troopers')
+                    ->withPivot(AwardTrooper::ID, AwardTrooper::AWARD_DATE, AwardTrooper::DELETED_AT, AwardTrooper::CREATED_ID, AwardTrooper::UPDATED_ID, AwardTrooper::DELETED_ID)
                     ->withTimestamps();
+    }
+
+    public function event_troopers(): HasMany
+    {
+        return $this->hasMany(EventTrooper::class);
     }
 
     public function event_uploads(): HasMany
     {
         return $this->hasMany(EventUpload::class);
+    }
+
+    public function notices(): BelongsToMany
+    {
+        return $this->belongsToMany(Notice::class, 'tt_notice_troopers')
+                    ->withPivot(NoticeTrooper::ID, NoticeTrooper::IS_READ, NoticeTrooper::DELETED_AT, NoticeTrooper::CREATED_ID, NoticeTrooper::UPDATED_ID, NoticeTrooper::DELETED_ID)
+                    ->withTimestamps();
     }
 
     public function trooper_achievement(): HasOne
@@ -140,18 +154,9 @@ class Trooper extends Model
         return $this->hasMany(TrooperAssignment::class);
     }
 
-    public function awards(): BelongsToMany
+    public function trooper_costumes(): HasMany
     {
-        return $this->belongsToMany(Award::class, 'tt_trooper_awards')
-                    ->withPivot(TrooperAward::ID, TrooperAward::DELETED_AT, TrooperAward::CREATED_ID, TrooperAward::UPDATED_ID, TrooperAward::DELETED_ID)
-                    ->withTimestamps();
-    }
-
-    public function costumes(): BelongsToMany
-    {
-        return $this->belongsToMany(Costume::class, 'tt_trooper_costumes')
-                    ->withPivot(TrooperCostume::ID, TrooperCostume::DELETED_AT, TrooperCostume::CREATED_ID, TrooperCostume::UPDATED_ID, TrooperCostume::DELETED_ID)
-                    ->withTimestamps();
+        return $this->hasMany(TrooperCostume::class);
     }
 
     public function trooper_donations(): HasMany
@@ -159,17 +164,10 @@ class Trooper extends Model
         return $this->hasMany(TrooperDonation::class);
     }
 
-    public function notices(): BelongsToMany
-    {
-        return $this->belongsToMany(Notice::class, 'tt_trooper_notices')
-                    ->withPivot(TrooperNotice::ID, TrooperNotice::IS_READ, TrooperNotice::DELETED_AT, TrooperNotice::CREATED_ID, TrooperNotice::UPDATED_ID, TrooperNotice::DELETED_ID)
-                    ->withTimestamps();
-    }
-
     public function organizations(): BelongsToMany
     {
         return $this->belongsToMany(Organization::class, 'tt_trooper_organizations')
-                    ->withPivot(TrooperOrganization::ID, TrooperOrganization::IDENTIFIER, TrooperOrganization::MEMBERSHIP_STATUS, TrooperOrganization::DELETED_AT, TrooperOrganization::CREATED_ID, TrooperOrganization::UPDATED_ID, TrooperOrganization::DELETED_ID)
+                    ->withPivot(TrooperOrganization::ID, TrooperOrganization::IDENTIFIER, TrooperOrganization::MEMBERSHIP_STATUS, TrooperOrganization::VERIFIED_AT, TrooperOrganization::DELETED_AT, TrooperOrganization::CREATED_ID, TrooperOrganization::UPDATED_ID, TrooperOrganization::DELETED_ID)
                     ->withTimestamps();
     }
 }

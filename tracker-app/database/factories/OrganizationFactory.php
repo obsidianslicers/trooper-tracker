@@ -3,15 +3,11 @@
 namespace Database\Factories;
 
 use App\Enums\OrganizationType;
-use App\Models\Costume;
 use App\Models\Organization;
+use Database\Factories\Base\OrganizationFactory as BaseOrganizationFactory;
 use Exception;
-use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Organization>
- */
-class OrganizationFactory extends Factory
+class OrganizationFactory extends BaseOrganizationFactory
 {
     /**
      * Define the model's default state.
@@ -20,14 +16,9 @@ class OrganizationFactory extends Factory
      */
     public function definition(): array
     {
-        return [
-            Organization::NAME => '501st-' . uniqid(),
-            Organization::IDENTIFIER_DISPLAY => 'TKID',
-            Organization::TYPE => OrganizationType::ORGANIZATION,
-            Organization::IMAGE_PATH_LG => '',
-            Organization::IMAGE_PATH_SM => '',
-            Organization::NODE_PATH => ''
-        ];
+        return array_merge(parent::definition(), [
+            Organization::TYPE => OrganizationType::ORGANIZATION
+        ]);
     }
 
     public function region(): static
@@ -55,7 +46,7 @@ class OrganizationFactory extends Factory
                 throw new Exception('Invalid Organization Type for a costume: ' . $organization->type);
             }
 
-            $organization->costumes()->create([
+            $organization->organization_costumes()->create([
                 'name' => $name
             ]);
         });

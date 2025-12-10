@@ -11,14 +11,19 @@ class LoginRequest extends FormRequest
     /**
      * Determine if the user is authorized to make this request.
      *
-     * @return bool
+     * @return boolean
      */
-    public function authorize()
+    public function authorize(): bool
     {
         return true;
     }
 
-    public function rules()
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
     {
         return [
             Trooper::USERNAME => [
@@ -29,7 +34,10 @@ class LoginRequest extends FormRequest
         ];
     }
 
-    public function messages()
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
     {
         return [
             Trooper::USERNAME . '.required' => 'Username is required.',
@@ -39,14 +47,11 @@ class LoginRequest extends FormRequest
     }
 
     /**
-     * Prepare the data for validation.
-     *
-     * @return void
+     * Prepare the data for validation by normalizing inputs.
      */
-    protected function prepareForValidation()
+    protected function prepareForValidation(): void
     {
         $this->merge([
-            Trooper::USERNAME => $this->input('username'),
             'remember_me' => $this->input('remember_me') === 'Y',
         ]);
     }

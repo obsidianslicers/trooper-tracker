@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Account;
 
 use App\Http\Controllers\Controller;
-use App\Models\Costume;
 use App\Models\Organization;
+use App\Models\OrganizationCostume;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -40,8 +40,8 @@ class CostumesSubmitHtmxController extends Controller
 
             if (isset($organization))
             {
-                $costume = $organization->costumes()
-                    ->where(Costume::ID, $costume_id)
+                $costume = $organization->organization_costumes()
+                    ->where(OrganizationCostume::ID, $costume_id)
                     ->first();
 
                 if (isset($costume))
@@ -55,7 +55,7 @@ class CostumesSubmitHtmxController extends Controller
             'organizations' => collect(),
             'selected_organization' => null,
             'costumes' => collect(),
-            'trooper_costumes' => $trooper->costumes,
+            'trooper_costumes' => $trooper->trooper_costumes,
         ];
 
         return view('pages.account.costume-selector', $data);

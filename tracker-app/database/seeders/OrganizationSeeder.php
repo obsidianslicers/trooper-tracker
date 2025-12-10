@@ -6,6 +6,8 @@ namespace Database\Seeders;
 
 use App\Enums\OrganizationType;
 use App\Models\Organization;
+use App\Services\Organizations\DroidBuildersService;
+use App\Services\Organizations\TheLegionService;
 use Illuminate\Database\Seeder;
 
 class OrganizationSeeder extends Seeder
@@ -27,6 +29,7 @@ class OrganizationSeeder extends Seeder
                 'description' => 'Imperial costuming organization focused on Star Wars villains.',
                 'identifier_display' => 'TKID',
                 'identifier_validation' => 'integer|between:1000,99999',
+                'service_class' => TheLegionService::class,
             ],
             [
                 'name' => 'Rebel Legion',
@@ -50,6 +53,7 @@ class OrganizationSeeder extends Seeder
                 'description' => 'Star Wars droid construction and robotics enthusiast group.',
                 'identifier_display' => '#',
                 'identifier_validation' => 'integer',
+                'service_class' => DroidBuildersService::class
             ],
             [
                 'name' => 'Saber Guild',

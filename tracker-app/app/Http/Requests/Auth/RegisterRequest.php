@@ -6,19 +6,24 @@ use App\Models\Organization;
 use App\Models\Trooper;
 use App\Rules\Auth\AtLeastOneOrganizationSelectedRule;
 use App\Rules\Auth\UniqueOrganizationIdentifierRule;
-use App\Rules\Auth\ValidRegionForOrganizationRule;
-use App\Rules\Auth\ValidUnitForRegionRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 
 /**
- * Handles the validation for the user registration form.
+ * Handles validation for the user registration form.
  *
- * This class defines the base validation rules for user registration and dynamically
- * adds rules based on the organizations a user selects, including custom rules for
- * organization-specific identifiers and region selections. It also customizes error messages
- * for a better user experience.
+ * Provides the base validation rules (name, email, username, password, etc.) and
+ * dynamically generates additional rules for any organizations returned by
+ * `Organization::fullyLoaded()->get()` (identifier rules, region/unit rules).
+ *
+ * Notes:
+ * - `prepareForValidation()` sanitizes phone numbers by stripping non-digits.
+ * - `withValidator()` adds custom, user-facing messages for dynamically generated rules.
+ *
+ * @package App\Http\Requests\Auth
+ * @see App\Models\Organization::fullyLoaded()
+ * @property \Illuminate\Support\Collection|null $organizations Cached organizations used when generating rules
  */
 class RegisterRequest extends FormRequest
 {
@@ -43,13 +48,19 @@ class RegisterRequest extends FormRequest
     {
         $rules = [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:240'],
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:256',
+                Rule::unique(Trooper::class, Trooper::EMAIL)
+            ],
             'phone' => ['nullable', 'string', 'max:10'],
             'account_type' => ['required', 'in:member,handler'],
             'username' => [
                 'required',
                 'string',
-                Rule::unique('tt_troopers', Trooper::USERNAME),
+                Rule::unique(Trooper::class, Trooper::USERNAME),
             ],
             'password' => ['required', 'string'],
         ];
@@ -80,6 +91,9 @@ class RegisterRequest extends FormRequest
      * Fetches active organizations and constructs validation rules for their specific identifiers
      * (e.g., TKID, CAT #) and associated regions, applying custom rule objects.
      *
+     * For handlers, organization identifiers are optional. For other account types,
+     * identifiers are required when the organization is selected.
+     *
      * @return array<string, mixed> An array of validation rules for the 'organizations' input.
      */
     private function getOrganizationValidationRules(): array
@@ -93,12 +107,24 @@ class RegisterRequest extends FormRequest
 
         foreach ($organizations as $organization)
         {
+            //  organization.*.identifier rules
             if (!empty($organization->identifier_validation))
             {
-                $organization_rules = explode('|', $organization->identifier_validation);
+                // Parse the base validation rules (e.g., 'integer|between:1000,99999')
+                $base_rules = explode('|', $organization->identifier_validation);
 
-                $organization_rules[] = "required_if:organizations.{$organization->id}.selected,1";
-                $organization_rules[] = new UniqueOrganizationIdentifierRule($organization);
+                // For members: require identifier when selected, validate format, and check uniqueness.
+                // For handlers: all identifier rules are skipped (optional and unvalidated).
+                $organization_rules = [
+                    Rule::when(
+                        fn() => $this->account_type === 'member',
+                        array_merge(
+                            [Rule::requiredIf(fn() => $this->input("organizations.{$organization->id}.selected") ?? false)],
+                            $base_rules,
+                            [new UniqueOrganizationIdentifierRule($organization)]
+                        )
+                    ),
+                ];
 
                 $rules["organizations.{$organization->id}.identifier"] = $organization_rules;
             }
@@ -107,20 +133,25 @@ class RegisterRequest extends FormRequest
 
             if ($regions->count() > 0)
             {
+                // Require region when organization is selected
                 $rules["organizations.{$organization->id}.region_id"] = [
-                    "required_if:organizations.{$organization->id}.selected,1",
-                    new ValidRegionForOrganizationRule($organization)
+                    Rule::requiredIf(fn() => $this->input("organizations.{$organization->id}.selected") ?? false),
+                    Rule::exists(Organization::class, Organization::ID)
+                        ->whereIn('id', $regions->pluck('id'))
                 ];
 
+                // For each region, check if it has units and require unit_id accordingly
                 foreach ($regions as $region)
                 {
                     $units = $region->organizations;
 
                     if ($units->count() > 0)
                     {
+                        // Require unit when this specific region is selected
                         $rules["organizations.{$organization->id}.unit_id"] = [
-                            "required_if:organizations.{$organization->id}.regions.{$region->id}.selected,1",
-                            new ValidUnitForRegionRule($region)
+                            Rule::requiredIf(fn() => $this->input("organizations.{$organization->id}.region_id") == $region->id),
+                            Rule::exists(Organization::class, Organization::ID)
+                                ->whereIn('id', $units->pluck('id')),
                         ];
                     }
                 }
@@ -158,14 +189,22 @@ class RegisterRequest extends FormRequest
 
                     $messages["{$key}.{$ruleName}"] = "The {$organization->identifier_display} for {$organization->name} must be {$this->friendlyPhrase($rule)}.";
                 }
+            }
 
-                if ($organization->organizations->count() > 0)
+            $messages["{$key}"] = "The {$organization->identifier_display} for {$organization->name} is required";
+
+            foreach ($organization->organizations as $region)
+            {
+                $region_key = "organizations.{$organization->id}.region_id";
+
+                $messages["{$region_key}"] = "Please select a region for {$organization->name}.";
+
+                foreach ($region->organizations as $unit)
                 {
-                    $messages["organizations.{$organization->id}.region_id.required_if"] = "Please select a region for {$organization->name} if you’ve chosen it.";
-                }
+                    $unit_key = "organizations.{$organization->id}.unit_id";
 
-                // Optional: add a message for the required_if rule
-                $messages["{$key}.required_if"] = "Please enter your {$organization->identifier_display} for {$organization->name} if selected.";
+                    $messages["{$unit_key}"] = "Please select a unit for {$organization->name}-{$region->name}.";
+                }
             }
         }
 

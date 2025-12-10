@@ -1,0 +1,49 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Database\Seeders\FloridaGarrison;
+
+use App\Models\OrganizationCostume;
+use Database\Seeders\FloridaGarrison\Traits\HasClubMaps;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+
+class OrganizationCostumeSeeder extends Seeder
+{
+    use HasClubMaps;
+
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
+    {
+        $club_map = collect($this->getClubMap());
+
+        $legacy_costumes = DB::table('costumes')->get();
+
+        foreach ($legacy_costumes as $column => $costume)
+        {
+            $club = $club_map->firstWhere('legacy_id', $costume->club) ?? null;
+
+            if (is_null($club))
+            {
+                continue;
+            }
+
+            $c = OrganizationCostume::where(OrganizationCostume::NAME, $costume->costume)
+                ->where(OrganizationCostume::ORGANIZATION_ID, $club['id'])
+                ->first();
+
+            if ($c == null)
+            {
+                $c = new OrganizationCostume(['id' => $costume->id]);
+            }
+
+            $c->name = $costume->costume;
+            $c->organization_id = $club['id'];
+
+            $c->save();
+        }
+    }
+}

@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('phone', 32)->nullable();
             $table->string('email', 256)->unique();
             $table->timestamp('email_verified_at')->nullable();
+            $table->dateTime('setup_completed_at')->nullable();
             $table->string('username', 128);
             $table->string('password', 256);
             $table->string('theme', 16)->default('stormtrooper');

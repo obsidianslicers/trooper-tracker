@@ -42,7 +42,7 @@
       Limit Organizations:
     </x-label>
     <x-input-yesno :property="'limit_organizations'"
-                   :value="$event->limit_organizations"
+                   :value="$event->has_organization_limits"
                    hx-post="{{ route('admin.events.update-htmx',['event'=>$event]) }}"
                    hx-trigger="change"
                    hx-target="#limit-organizations"
@@ -56,7 +56,7 @@
   </x-input-container>
 
   <div id="limit-organizations">
-    @if(old('limit_organizations',$event->limit_organizations ))
+    @if(old('limit_organizations',$event->has_organization_limits ))
     <x-input-container>
       <div class="row">
         <div class="col-6">

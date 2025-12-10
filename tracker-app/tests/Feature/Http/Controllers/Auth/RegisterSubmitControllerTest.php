@@ -116,22 +116,22 @@ class RegisterSubmitControllerTest extends TestCase
         $this->assertDatabaseHas(TrooperAssignment::class, [
             'trooper_id' => $trooper->id,
             'organization_id' => $organization->id,
-            'notify' => true,
-            'member' => false,
+            'can_notify' => true,
+            'is_member' => false,
         ]);
 
         $this->assertDatabaseHas(TrooperAssignment::class, [
             'trooper_id' => $trooper->id,
             'organization_id' => $region->id,
-            'notify' => true,
-            'member' => false,
+            'can_notify' => true,
+            'is_member' => false,
         ]);
 
         $this->assertDatabaseHas(TrooperAssignment::class, [
             'trooper_id' => $trooper->id,
             'organization_id' => $unit->id,
-            'notify' => true,
-            'member' => true,
+            'can_notify' => true,
+            'is_member' => true,
         ]);
     }
 
@@ -170,7 +170,7 @@ class RegisterSubmitControllerTest extends TestCase
         $this->assertDatabaseHas(TrooperAssignment::class, [
             'trooper_id' => $trooper->id,
             'organization_id' => $organization->id,
-            'member' => true
+            'is_member' => true
         ]);
     }
 
@@ -225,22 +225,22 @@ class RegisterSubmitControllerTest extends TestCase
         $this->assertDatabaseHas(TrooperAssignment::class, [
             'trooper_id' => $trooper->id,
             'organization_id' => $organization->id,
-            'notify' => true,
-            'member' => false,
+            'can_notify' => true,
+            'is_member' => false,
         ]);
 
         $this->assertDatabaseHas(TrooperAssignment::class, [
             'trooper_id' => $trooper->id,
             'organization_id' => $region->id,
-            'notify' => true,
-            'member' => false,
+            'can_notify' => true,
+            'is_member' => false,
         ]);
 
         $this->assertDatabaseHas(TrooperAssignment::class, [
             'trooper_id' => $trooper->id,
             'organization_id' => $unit->id,
-            'notify' => true,
-            'member' => true,
+            'can_notify' => true,
+            'is_member' => true,
         ]);
     }
 
@@ -276,7 +276,7 @@ class RegisterSubmitControllerTest extends TestCase
         $this->assertDatabaseHas(TrooperAssignment::class, [
             'trooper_id' => $trooper->id,
             'organization_id' => $organization->id,
-            'member' => true,
+            'is_member' => true,
         ]);
     }
 }

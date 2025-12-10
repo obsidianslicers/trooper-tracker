@@ -7,6 +7,7 @@ namespace App\Models\Scopes;
 use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
 use App\Models\Trooper;
+use App\Models\TrooperAssignment;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
@@ -18,9 +19,9 @@ trait HasTrooperScopes
     /**
      * Scope a query to find a trooper by their username.
      *
-     * @param Builder<self> $query The Eloquent query builder.
+     * @param Builder<Trooper> $query The Eloquent query builder.
      * @param string $username The username to search for.
-     * @return Builder<self>
+     * @return Builder<Trooper>
      */
     protected function scopeByUsername(Builder $query, string $username): Builder
     {
@@ -28,36 +29,51 @@ trait HasTrooperScopes
     }
 
     /**
-     * Scope a query to find all troopers not approved.
+     * Scope a query to find all troopers with a pending membership status.
      *
-     * @param Builder<self> $query The Eloquent query builder.
-     * @return Builder<self>
+     * @param Builder<Trooper> $query The Eloquent query builder.
+     * @return Builder<Trooper>
      */
     protected function scopePendingApprovals(Builder $query): Builder
     {
+        $with = [
+            'trooper_assignments.organization.parent',
+            'trooper_assignments' =>
+                function ($q)
+                {
+                    $q->where(TrooperAssignment::IS_MEMBER, true);
+                }
+        ];
+
         return $query
+            ->with($with)
             ->where(self::MEMBERSHIP_STATUS, MembershipStatus::PENDING)
             ->orderBy(self::NAME);
     }
 
     /**
-     * Scope: limit to troopers that can be approved by a given moderator.
+     * Scope a query to troopers that can be moderated by a given trooper.
      *
-     * @param Builder $query
-     * @param Trooper $moderator
-     * @return Builder
+     * @param Builder<Trooper> $query The Eloquent query builder.
+     * @param Trooper $trooper The moderator trooper.
+     * @return Builder<Trooper>
      */
-    protected function scopeModeratedBy(Builder $query, Trooper $moderator): Builder
+    protected function scopeModeratedBy(Builder $query, Trooper $trooper): Builder
     {
-        return $query->whereExists(function ($sub) use ($moderator)
+        if ($trooper->isAdministrator())
+        {
+            return $query;
+        }
+
+        return $query->whereExists(function ($sub) use ($trooper)
         {
             $sub->select(DB::raw(1))
                 ->from('tt_trooper_assignments as ta_moderator')
                 ->join('tt_organizations as org_moderator', 'ta_moderator.organization_id', '=', 'org_moderator.id')
                 ->join('tt_trooper_assignments as ta_candidate', 'ta_candidate.trooper_id', '=', 'tt_troopers.id')
                 ->join('tt_organizations as org_candidate', 'ta_candidate.organization_id', '=', 'org_candidate.id')
-                ->where('ta_moderator.trooper_id', $moderator->id)
-                ->where('ta_moderator.moderator', true)
+                ->where('ta_moderator.trooper_id', $trooper->id)
+                ->where('ta_moderator.is_moderator', true)
                 ->whereRaw('org_candidate.node_path LIKE CONCAT(org_moderator.node_path, "%")');
         });
     }
@@ -65,9 +81,9 @@ trait HasTrooperScopes
     /**
      * Scope a query to search for troopers by a given search term.
      *
-     * @param Builder<self> $query The Eloquent query builder.
+     * @param Builder<Trooper> $query The Eloquent query builder.
      * @param string $search_term The term to search for in name, username, and email fields.
-     * @return Builder<self>
+     * @return Builder<Trooper>
      */
     protected function scopeSearchFor(Builder $query, string $search_term): Builder
     {

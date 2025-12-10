@@ -28,7 +28,7 @@ class TrooperAssignmentObserverTest extends TestCase
         TrooperAssignment::factory()->create([
             'trooper_id' => $trooper->id,
             'organization_id' => $unit->parent_id,
-            'member' => true,
+            'is_member' => true,
         ]);
     }
 
@@ -42,7 +42,7 @@ class TrooperAssignmentObserverTest extends TestCase
         $assignment = TrooperAssignment::factory()->create([
             'trooper_id' => $trooper->id,
             'organization_id' => $leaf_organization->id,
-            'member' => true,
+            'is_member' => true,
         ]);
 
         // Assert
@@ -63,8 +63,8 @@ class TrooperAssignmentObserverTest extends TestCase
         $assignment = TrooperAssignment::factory()->create([
             'trooper_id' => $trooper->id,
             'organization_id' => $parent_organization->id,
-            'member' => false,
-            'moderator' => true,
+            'is_member' => false,
+            'is_moderator' => true,
         ]);
 
         // Assert

@@ -92,13 +92,13 @@ class HasOrganizationScopesTest extends TestCase
         $trooper1 = Trooper::factory()->create();
         $trooper1->trooper_assignments()->create([
             'organization_id' => $active_org->id,
-            'member' => true,
+            'is_member' => true,
         ]);
 
         $trooper2 = Trooper::factory()->create();
         $trooper2->trooper_assignments()->create([
             'organization_id' => $inactive_org->id,
-            'member' => false,
+            'is_member' => false,
         ]);
 
         // Act
@@ -118,13 +118,13 @@ class HasOrganizationScopesTest extends TestCase
         $trooper1 = Trooper::factory()->create();
         $trooper1->trooper_assignments()->create([
             'organization_id' => $org1->id,
-            'member' => true,
+            'is_member' => true,
         ]);
 
         $trooper2 = Trooper::factory()->create();
         $trooper2->trooper_assignments()->create([
             'organization_id' => $org2->id,
-            'member' => true,
+            'is_member' => true,
         ]);
 
         // Act

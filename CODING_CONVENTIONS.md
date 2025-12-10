@@ -23,6 +23,7 @@ We enforce a strict set of casing rules to maintain consistency across the codeb
 | Classes (Controllers, Models, Services, etc.) | `PascalCase` | `LoginSubmitController`, `Trooper`    |
 | Functions & Class Methods                     | `camelCase`  | `function handleRequest(Request $data)` |
 | Function/Method Parameters                    | `snake_case` | `function myMethod(string $user_name)` |
+| Test Function/Method Parameters               | `snake_case` | `function test_my_feature()` |
 | Local Variables                               | `snake_case` | `$local_variable = 'value';`          |
 | Class Properties/Variables                    | `snake_case` | `private string $class_property;`     |
 
@@ -52,6 +53,7 @@ To leverage Laravel's Eloquent ORM conventions and simplify relationship definit
 | :--- | :--- | :--- |
 | **Table Names** | Plural, `snake_case` | `troopers`, `event_troopers` |
 | **Column Names** | `snake_case` | `first_name`, `event_date` |
+| **Boolean Column Names** | `is_`, `can_`, `has` | `is_verified`, `can_allowed`, `has_limits` |
 | **Primary Key** | `id` | An auto-incrementing integer named `id`. |
 | **Foreign Keys** | Singular table name + `_id` | A `posts` table has a `user_id` column to link to the `users` table. |
 | **Pivot Tables** | Singular table names, alphabetized, joined by `_` | `role_user` for a `roles` and `users` relationship. |

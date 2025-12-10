@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Account;
 
-use App\Models\Costume;
 use App\Models\Organization;
+use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\TrooperCostume;
 use Illuminate\Database\Eloquent\Collection;
@@ -18,19 +18,19 @@ class CostumesSubmitHtmxControllerTest extends TestCase
 
     private Trooper $trooper;
     private Organization $assigned_organization;
-    private Costume $assigned_costume;
+    private OrganizationCostume $assigned_costume;
     private Organization $unassigned_organization;
-    private Costume $unassigned_costume;
+    private OrganizationCostume $unassigned_costume;
 
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->assigned_organization = Organization::factory()->withCostume('Stormtrooper')->create();
-        $this->assigned_costume = $this->assigned_organization->costumes()->first();
+        $this->assigned_costume = $this->assigned_organization->organization_costumes()->first();
 
         $this->unassigned_organization = Organization::factory()->withCostume('Stormtrooper I')->create();
-        $this->unassigned_costume = $this->unassigned_organization->costumes()->first();
+        $this->unassigned_costume = $this->unassigned_organization->organization_costumes()->first();
 
         $this->trooper = Trooper::factory()
             ->withOrganization($this->assigned_organization, 'TK-1')
@@ -44,7 +44,7 @@ class CostumesSubmitHtmxControllerTest extends TestCase
         // Arrange
         $this->trooper->detachCostume($this->assigned_costume->id);
 
-        $this->assertDatabaseMissing('tt_trooper_costumes', [
+        $this->assertSoftDeleted(TrooperCostume::class, [
             'trooper_id' => $this->trooper->id,
             'costume_id' => $this->assigned_costume->id,
         ]);
@@ -93,7 +93,7 @@ class CostumesSubmitHtmxControllerTest extends TestCase
             return $trooper_costumes->count() == 1;
         });
 
-        $this->assertDatabaseMissing('tt_trooper_costumes', [
+        $this->assertDatabaseMissing(TrooperCostume::class, [
             'trooper_id' => $this->trooper->id,
             'costume_id' => $this->unassigned_costume->id,
         ]);

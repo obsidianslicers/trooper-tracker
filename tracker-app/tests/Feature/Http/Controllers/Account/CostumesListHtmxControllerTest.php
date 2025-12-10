@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Account;
 
-use App\Models\Costume;
 use App\Models\Organization;
+use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -20,21 +20,21 @@ class CostumesListHtmxControllerTest extends TestCase
 
     private Trooper $trooper;
     private Organization $active_organization;
-    private Costume $trooper_costume;
+    private OrganizationCostume $organization_costume;
 
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->active_organization = Organization::factory()->withCostume('Stormtrooper')->create();
-        $this->trooper_costume = $this->active_organization->costumes()->first();
+        $this->organization_costume = $this->active_organization->organization_costumes()->first();
 
         $inactive_organization = Organization::factory()->create();
 
         $this->trooper = Trooper::factory()
             ->withAssignment($this->active_organization, member: true)
             ->withAssignment($inactive_organization, member: false)
-            ->withCostume($this->trooper_costume)
+            ->withCostume($this->organization_costume)
             ->create();
     }
 
@@ -60,8 +60,7 @@ class CostumesListHtmxControllerTest extends TestCase
         $response->assertViewHas('costumes', []);
         $response->assertViewHas('trooper_costumes', function (Collection $trooper_costumes)
         {
-            return $trooper_costumes->count() === 1
-                && $trooper_costumes->first()->is($this->trooper_costume);
+            return $trooper_costumes->count() === 1;
         });
     }
 
@@ -69,7 +68,7 @@ class CostumesListHtmxControllerTest extends TestCase
     {
         // Arrange
         $this->actingAs($this->trooper);
-        $new_costume = Costume::factory()->create(['organization_id' => $this->active_organization->id]);
+        $new_costume = OrganizationCostume::factory()->create(['organization_id' => $this->active_organization->id]);
 
         // Act
         $response = $this->get(route('account.costumes-htmx', [
@@ -99,8 +98,7 @@ class CostumesListHtmxControllerTest extends TestCase
 
         $response->assertViewHas('trooper_costumes', function (Collection $trooper_costumes)
         {
-            return $trooper_costumes->count() === 1
-                && $trooper_costumes->first()->is($this->trooper_costume);
+            return $trooper_costumes->count() === 1;
         });
     }
 

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
-use App\Models\TrooperAward;
+use App\Models\AwardTrooper;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -29,7 +29,7 @@ class AwardsHtmxController extends Controller
         $trooper_id = (int) $request->get('trooper_id', Auth::user()->id);
 
         $data = [
-            'awards' => TrooperAward::byTrooper($trooper_id)->get(),
+            'awards' => AwardTrooper::byTrooper($trooper_id)->get(),
         ];
 
         return view('pages.dashboard.awards', $data);

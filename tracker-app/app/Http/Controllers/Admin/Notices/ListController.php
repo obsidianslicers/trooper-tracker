@@ -49,8 +49,6 @@ class ListController extends Controller
      */
     public function __invoke(Request $request, NoticeFilter $filter): View
     {
-        $trooper = $request->user();
-
         $organization = $this->getOrganization($request);
 
         $notices = $this->getNotices($request, $filter);
@@ -102,16 +100,11 @@ class ListController extends Controller
             'organization.trooper_assignments' => function ($q) use ($trooper)
             {
                 $q->where(TrooperAssignment::TROOPER_ID, $trooper->id)
-                    ->where(TrooperAssignment::MODERATOR, true);
+                    ->where(TrooperAssignment::IS_MODERATOR, true);
             }
         ]);
 
-        $q = $q->filterWith($filter);
-
-        if (!$trooper->isAdministrator())
-        {
-            $q = $q->moderatedBy($trooper);
-        }
+        $q = $q->filterWith($filter)->moderatedBy($trooper);
 
         return $q->paginate(15)->withQueryString();
     }

@@ -51,21 +51,21 @@ class AuthoritySubmitControllerTest extends TestCase
         $this->assertDatabaseHas(TrooperAssignment::class, [
             'trooper_id' => $trooper_to_update->id,
             'organization_id' => $org_to_add->id,
-            'moderator' => true,
+            'is_moderator' => true,
         ]);
 
         // Assert existing assignment was kept as moderator
         $this->assertDatabaseHas(TrooperAssignment::class, [
             'trooper_id' => $trooper_to_update->id,
             'organization_id' => $org_to_keep->id,
-            'moderator' => true,
+            'is_moderator' => true,
         ]);
 
         // Assert existing assignment was changed to not be a moderator
         $this->assertDatabaseHas(TrooperAssignment::class, [
             'trooper_id' => $trooper_to_update->id,
             'organization_id' => $org_to_remove->id,
-            'moderator' => false,
+            'is_moderator' => false,
         ]);
     }
 
@@ -105,7 +105,7 @@ class AuthoritySubmitControllerTest extends TestCase
         $this->assertDatabaseHas(TrooperAssignment::class, [
             'trooper_id' => $trooper_to_update->id,
             'organization_id' => $organization->id,
-            'moderator' => false,
+            'is_moderator' => false,
         ]);
     }
 }

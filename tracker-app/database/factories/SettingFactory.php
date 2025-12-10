@@ -3,12 +3,9 @@
 namespace Database\Factories;
 
 use App\Models\Setting;
-use Illuminate\Database\Eloquent\Factories\Factory;
+use Database\Factories\Base\SettingFactory as BaseSettingFactory;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Setting>
- */
-class SettingFactory extends Factory
+class SettingFactory extends BaseSettingFactory
 {
     /**
      * Define the model's default state.
@@ -17,9 +14,8 @@ class SettingFactory extends Factory
      */
     public function definition(): array
     {
-        return [
+        return array_merge(parent::definition(), [
             Setting::KEY => 'k' . uniqid(),
-            Setting::VALUE => $this->faker->word(),
-        ];
+        ]);
     }
 }

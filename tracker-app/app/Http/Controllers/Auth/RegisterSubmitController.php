@@ -9,14 +9,10 @@ use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\RegisterRequest;
-use App\Models\Base\Region;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperOrganization;
-use App\Models\TrooperRegion;
-use App\Models\TrooperUnit;
-use App\Models\Unit;
 use App\Services\FlashMessageService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Hash;
@@ -71,7 +67,6 @@ class RegisterSubmitController extends Controller
 
     private function register(array $data, mixed $auth_user_id): Trooper
     {
-        //  TODO optional identifier if handler
         $trooper = new Trooper();
 
         $trooper->name = $data['name'];
@@ -80,9 +75,9 @@ class RegisterSubmitController extends Controller
         $trooper->username = $data['username'];
         $trooper->password = Hash::make($data['password']);
         $trooper->membership_role = $data['account_type'] == 'member' ? MembershipRole::MEMBER : MembershipRole::HANDLER;
+        $trooper->setup_completed_at = now();
 
         $trooper->save();
-
 
         // Loop through selected organizations and assign identifiers
         foreach ($data['organizations'] ?? [] as $organization_id => $organization_data)
@@ -111,8 +106,8 @@ class RegisterSubmitController extends Controller
 
                     $organization_assignment->trooper_id = $trooper->id;
                     $organization_assignment->organization_id = $organization->id;
-                    $organization_assignment->notify = true;
-                    $organization_assignment->member = $organization->organizations()->count() == 0;
+                    $organization_assignment->can_notify = true;
+                    $organization_assignment->is_member = $organization->organizations()->count() == 0;
 
                     $organization_assignment->save();
 
@@ -126,8 +121,8 @@ class RegisterSubmitController extends Controller
 
                         $region_assignment->trooper_id = $trooper->id;
                         $region_assignment->organization_id = $region->id;
-                        $region_assignment->notify = true;
-                        $region_assignment->member = $region->organizations()->count() == 0;
+                        $region_assignment->can_notify = true;
+                        $region_assignment->is_member = $region->organizations()->count() == 0;
 
                         $region_assignment->save();
 
@@ -141,8 +136,8 @@ class RegisterSubmitController extends Controller
 
                             $unit_assignment->trooper_id = $trooper->id;
                             $unit_assignment->organization_id = $unit->id;
-                            $unit_assignment->notify = true;
-                            $unit_assignment->member = true;
+                            $unit_assignment->can_notify = true;
+                            $unit_assignment->is_member = true;
 
                             $unit_assignment->save();
                         }

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Account;
 
 use App\Http\Controllers\Controller;
-use App\Models\Costume;
 use App\Models\Organization;
+use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -34,6 +34,7 @@ class CostumesListHtmxController extends Controller
 
         $selected_organization = null;
         $costumes = [];
+        $trooper->trooper_costumes->load('organization_costume.organization');
 
         if ($request->has('organization_id'))
         {
@@ -43,24 +44,29 @@ class CostumesListHtmxController extends Controller
 
             if (isset($selected_organization))
             {
-                $assigned_costume_ids = $trooper->costumes
-                    ->where('organization_id', $selected_organization->id)
-                    ->pluck('id');
+                //  todo have trooper_costume.organization_costume.organization issues
+                $assigned_costume_ids = $trooper->trooper_costumes
+                    ->filter(fn($tc) => $tc->organization_costume?->organization_id === $selected_organization->id)
+                    ->map(fn($tc) => $tc->organization_costume->id)
+                    ->filter() // remove nulls
+                    ->values();
 
-                $costumes = $selected_organization->costumes()
+                $costumes = $selected_organization->organization_costumes()
                     ->with('organization')
                     ->excluding($assigned_costume_ids)
-                    ->orderBy(Costume::NAME)
-                    ->pluck(Costume::NAME, Costume::ID)
+                    ->orderBy(OrganizationCostume::NAME)
+                    ->pluck(OrganizationCostume::NAME, OrganizationCostume::ID)
                     ->toArray();
             }
         }
+
+        $trooper_costumes = $trooper->trooper_costumes;
 
         $data = [
             'organizations' => $organizations,
             'selected_organization' => $selected_organization,
             'costumes' => $costumes,
-            'trooper_costumes' => $trooper->costumes,
+            'trooper_costumes' => $trooper_costumes,
         ];
 
         return view('pages.account.costume-selector', $data);

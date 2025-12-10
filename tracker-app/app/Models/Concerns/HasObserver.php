@@ -20,17 +20,17 @@ trait HasObserver
             ->classBasename()
             ->value();
 
-        $observerClass = "App\\Models\\Observers\\{$name}Observer";
+        $observer_class = "App\\Models\\Observers\\{$name}Observer";
 
-        if (class_exists($observerClass))
+        if (class_exists($observer_class))
         {
-            static::observe($observerClass);
+            static::observe($observer_class);
         }
         else
         {
             // Fail loudly so you know the observer wasn't found
             throw new RuntimeException(
-                sprintf('Observer class [%s] not found for model [%s]', $observerClass, static::class)
+                sprintf('Observer class [%s] not found for model [%s]', $observer_class, static::class)
             );
         }
 

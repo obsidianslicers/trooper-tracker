@@ -3,7 +3,7 @@
 namespace Tests\Feature\Http\Controllers\Dashboard;
 
 use App\Models\EventUpload;
-use App\Models\EventUploadTag;
+use App\Models\EventUploadTrooper;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -19,7 +19,7 @@ class TaggedUploadsHtmxControllerTest extends TestCase
         $this->actingAs($user);
 
         $upload = EventUpload::factory()->create();
-        EventUploadTag::factory()->for($user)->create([
+        EventUploadTrooper::factory()->for($user)->create([
             'event_upload_id' => $upload->id
         ]);
 
@@ -43,7 +43,7 @@ class TaggedUploadsHtmxControllerTest extends TestCase
         $this->actingAs($user);
 
         $upload = EventUpload::factory()->create();
-        EventUploadTag::factory()->for($other_trooper)->create([
+        EventUploadTrooper::factory()->for($other_trooper)->create([
             'event_upload_id' => $upload->id
         ]);
 

@@ -89,7 +89,7 @@ trait HasNoticeScopes
                     ->join('tt_organizations as org_assign', 'ta_assign.organization_id', '=', 'org_assign.id')
                     ->join('tt_organizations as org_notice', 'tt_notices.organization_id', '=', 'org_notice.id')
                     ->where('ta_assign.trooper_id', $trooper->id)
-                    ->where('ta_assign.member', true)
+                    ->where('ta_assign.is_member', true)
                     ->whereRaw('org_assign.node_path LIKE CONCAT(org_notice.node_path, "%")');
             })->orWhereNull('tt_notices.organization_id');
         });
@@ -101,12 +101,12 @@ trait HasNoticeScopes
             {
                 $outer->whereDoesntHave('troopers', function ($sub) use ($trooper)
                 {
-                    $sub->where('tt_trooper_notices.trooper_id', $trooper->id);
+                    $sub->where('tt_notice_troopers.trooper_id', $trooper->id);
                 })
                     ->orWhereHas('troopers', function ($sub) use ($trooper)
                     {
-                        $sub->where('tt_trooper_notices.trooper_id', $trooper->id)
-                            ->where('tt_trooper_notices.is_read', false);
+                        $sub->where('tt_notice_troopers.trooper_id', $trooper->id)
+                            ->where('tt_notice_troopers.is_read', false);
                     });
             });
         }
@@ -121,19 +121,24 @@ trait HasNoticeScopes
      * assigned organizational hierarchy.
      *
      * @param Builder $query The Eloquent query builder.
-     * @param Trooper $moderator The moderator to filter by.
+     * @param Trooper $trooper The moderator to filter by.
      * @return Builder
      */
-    protected function scopeModeratedBy(Builder $query, Trooper $moderator): Builder
+    protected function scopeModeratedBy(Builder $query, Trooper $trooper): Builder
     {
-        return $query->whereExists(function ($sub) use ($moderator)
+        if ($trooper->isAdministrator())
+        {
+            return $query;
+        }
+
+        return $query->whereExists(function ($sub) use ($trooper)
         {
             $sub->select(DB::raw(1))
                 ->from('tt_trooper_assignments as ta_moderator')
                 ->join('tt_organizations as org_moderator', 'ta_moderator.organization_id', '=', 'org_moderator.id')
                 ->join('tt_organizations as org_notice', 'tt_notices.organization_id', '=', 'org_notice.id')
-                ->where('ta_moderator.trooper_id', $moderator->id)
-                ->where('ta_moderator.moderator', true)
+                ->where('ta_moderator.trooper_id', $trooper->id)
+                ->where('ta_moderator.is_moderator', true)
                 ->whereRaw('org_notice.node_path LIKE CONCAT(org_moderator.node_path, "%")');
         });
     }

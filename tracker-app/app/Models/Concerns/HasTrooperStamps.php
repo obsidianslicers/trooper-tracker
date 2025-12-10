@@ -27,21 +27,29 @@ trait HasTrooperStamps
             {
                 $model->updated_id = Auth::id();
             }
+            else
+            {
+                $model->updated_id = null;
+            }
         });
 
         static::restoring(function ($model)
         {
-            if (Auth::check())
-            {
-                $model->deleted_id = null;
-            }
+            $model->deleted_id = null;
         });
 
         static::deleting(function ($model)
         {
-            if (Auth::check() && $this->usingSoftDeletes())
+            if ($this->usingSoftDeletes())
             {
-                $model->deleted_id = Auth::id();
+                if (Auth::check())
+                {
+                    $model->deleted_id = Auth::id();
+                }
+                else
+                {
+                    $model->deleted_id = null;
+                }
             }
         });
     }

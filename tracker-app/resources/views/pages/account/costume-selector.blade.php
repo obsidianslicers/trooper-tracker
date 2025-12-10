@@ -54,7 +54,7 @@
     @forelse($trooper_costumes as $trooper_costume)
     <tr>
       <td>
-        {{ $trooper_costume->fullCostumeName() }}
+        {{ $trooper_costume->organization_costume->full_name }}
       </td>
       <td class="text-end">
         <x-button-delete hx-delete="{{ route('account.costumes-htmx', ['costume_id'=>$trooper_costume->id]) }}"

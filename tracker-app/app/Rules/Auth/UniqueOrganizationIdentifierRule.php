@@ -41,7 +41,7 @@ class UniqueOrganizationIdentifierRule implements ValidationRule
 
             if ($exists)
             {
-                $fail("{$this->organization->name} ID already exists.");
+                $fail("{$this->organization->name} {$this->organization->identifier_display} already exists.");
             }
         }
     }

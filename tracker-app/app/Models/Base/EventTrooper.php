@@ -6,8 +6,8 @@
 
 namespace App\Models\Base;
 
-use App\Models\Costume;
-use App\Models\Event;
+use App\Models\EventShift;
+use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * Class EventTrooper
  * 
  * @property int $id
- * @property int $event_id
+ * @property int $event_shift_id
  * @property int $trooper_id
  * @property int|null $costume_id
  * @property int|null $backup_costume_id
@@ -32,8 +32,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $deleted_id
  * 
  * @property Trooper $trooper
- * @property Costume|null $costume
- * @property Event $event
+ * @property OrganizationCostume|null $organization_costume
+ * @property EventShift $event_shift
  *
  * @package App\Models\Base
  */
@@ -41,7 +41,7 @@ class EventTrooper extends Model
 {
     use SoftDeletes;
     const ID = 'id';
-    const EVENT_ID = 'event_id';
+    const EVENT_SHIFT_ID = 'event_shift_id';
     const TROOPER_ID = 'trooper_id';
     const COSTUME_ID = 'costume_id';
     const BACKUP_COSTUME_ID = 'backup_costume_id';
@@ -57,7 +57,7 @@ class EventTrooper extends Model
 
     protected $casts = [
         self::ID => 'int',
-        self::EVENT_ID => 'int',
+        self::EVENT_SHIFT_ID => 'int',
         self::TROOPER_ID => 'int',
         self::COSTUME_ID => 'int',
         self::BACKUP_COSTUME_ID => 'int',
@@ -70,7 +70,7 @@ class EventTrooper extends Model
     ];
 
     protected $fillable = [
-        self::EVENT_ID,
+        self::EVENT_SHIFT_ID,
         self::TROOPER_ID,
         self::COSTUME_ID,
         self::BACKUP_COSTUME_ID,
@@ -83,13 +83,13 @@ class EventTrooper extends Model
         return $this->belongsTo(Trooper::class);
     }
 
-    public function costume(): BelongsTo
+    public function organization_costume(): BelongsTo
     {
-        return $this->belongsTo(Costume::class);
+        return $this->belongsTo(OrganizationCostume::class, \App\Models\EventTrooper::COSTUME_ID);
     }
 
-    public function event(): BelongsTo
+    public function event_shift(): BelongsTo
     {
-        return $this->belongsTo(Event::class);
+        return $this->belongsTo(EventShift::class);
     }
 }

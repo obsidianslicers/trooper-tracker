@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Account;
 
-use App\Models\Costume;
 use App\Models\Organization;
+use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\TrooperCostume;
 use Illuminate\Database\Eloquent\Collection;
@@ -17,7 +17,7 @@ class CostumesDeleteHtmxControllerTest extends TestCase
     use RefreshDatabase;
 
     private Trooper $trooper;
-    private Costume $costume;
+    private OrganizationCostume $costume;
     private Organization $organization;
     private TrooperCostume $trooper_costume;
 
@@ -29,7 +29,7 @@ class CostumesDeleteHtmxControllerTest extends TestCase
             ->withCostume('Stormtrooper')
             ->create();
 
-        $this->costume = $this->organization->costumes()->first();
+        $this->costume = $this->organization->organization_costumes()->first();
 
         $this->trooper = Trooper::factory()
             ->withOrganization($this->organization, 'TK-1')
@@ -60,7 +60,7 @@ class CostumesDeleteHtmxControllerTest extends TestCase
             return $troopers->isEmpty();
         });
 
-        $this->assertDatabaseMissing('tt_trooper_costumes', [
+        $this->assertSoftDeleted(TrooperCostume::class, [
             'trooper_id' => $this->trooper->id,
             'costume_id' => $this->costume->id,
         ]);

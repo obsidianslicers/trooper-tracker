@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Search;
 
 use App\Http\Controllers\Controller;
 use App\Models\Base\Organization;
-use App\Models\Costume;
+use App\Models\OrganizationCostume;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -33,9 +33,9 @@ class CostumeSearchController extends Controller
         $query = $request->get('query', '');
         $limit = max((int) $request->get('limit', 10), 100);
 
-        $results = $organization->costumes()
-            ->where(Costume::NAME, 'like', '%' . $query . '%')
-            ->orderBy(Costume::NAME)
+        $results = $organization->organization_costumes()
+            ->where(OrganizationCostume::NAME, 'like', '%' . $query . '%')
+            ->orderBy(OrganizationCostume::NAME)
             ->limit($limit)
             ->get(['id', 'name']);
 

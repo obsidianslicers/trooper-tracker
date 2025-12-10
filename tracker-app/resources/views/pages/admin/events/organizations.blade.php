@@ -17,7 +17,7 @@
       <thead>
         <tr>
           <th colspan="2">Organization</th>
-          @if($event->limit_organizations)
+          @if($event->has_organization_limits)
           <th>Can Sign-Up</th>
           {{--
           <th>Trooper Limit</th>
@@ -32,12 +32,12 @@
             {{ $event->name }}
           </label>
         </td>
-        @if($event->limit_organizations)
+        @if($event->has_organization_limits)
         <td class="text-center">
           <!-- just a placeholder for "select-all" -->
           <x-input-checkbox :property="'event_name'"
                             :value="1"
-                            :checked="!$event->limit_organizations"
+                            :checked="!$event->has_organization_limits"
                             :label="'Toggle All'"
                             data-node-path="" />
         </td>
@@ -82,7 +82,7 @@
             {{ $organization->name }}
           </label>
         </td>
-        @if($event->limit_organizations)
+        @if($event->has_organization_limits)
         @php($checked = old('organizations.'.$organization->id.'.can_attend', $selected_map[$organization->id]))
         <td class="text-center">
           <x-input-checkbox :property="'organizations.'.$organization->id.'.can_attend'"

@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Account;
 
 use App\Http\Controllers\Controller;
-use App\Models\Trooper;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Handles the display of the main account management page.
@@ -32,7 +30,7 @@ class ProfileController extends Controller
     {
         $trooper = $request->user();
 
-        $data = ['trooper' => $trooper];
+        $data = compact('trooper');
 
         return view('pages.account.profile', $data);
     }

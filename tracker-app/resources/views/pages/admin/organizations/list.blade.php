@@ -43,7 +43,7 @@
                                 :url="route('admin.organizations.create', ['parent'=>$organization])" />
           @endif
           @endcan
-          <x-action-link-update :url="route('admin.organizations.update', ['organization'=>$organization])" />
+          <x-action-link-update :url="route('admin.organizations.update', compact('organization'))" />
           <x-action-separator />
           <x-action-link :label="'Add Notice'"
                          :icon="'fa-add'"

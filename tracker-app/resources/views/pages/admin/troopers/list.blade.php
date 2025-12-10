@@ -71,12 +71,8 @@
       <td>{{ to_title($trooper->membership_status->name) }}</td>
       <td>
         <x-action-menu>
-          <x-action-link-update :label="'Profile'"
-                                :url="route('admin.troopers.profile', ['trooper'=>$trooper])" />
-          @if(Auth::user()->isAdministrator())
-          <x-action-link :label="'Authority'"
-                         :url="route('admin.troopers.authority', ['trooper'=>$trooper])" />
-          @endif
+          <x-action-link-update :label="'Update'"
+                                :url="route('admin.troopers.profile', compact('trooper'))" />
         </x-action-menu>
       </td>
     </tr>

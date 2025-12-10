@@ -3,7 +3,7 @@
 namespace Tests\Feature\Http\Controllers\Dashboard;
 
 use App\Models\Trooper;
-use App\Models\TrooperAward;
+use App\Models\AwardTrooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -17,7 +17,7 @@ class AwardsHtmxControllerTest extends TestCase
         $user = Trooper::factory()->create();
         $this->actingAs($user);
 
-        TrooperAward::factory(3)->for($user)->create();
+        AwardTrooper::factory(3)->for($user)->create();
 
         // Act
         $response = $this->get(route('dashboard.awards-htmx'));
@@ -38,7 +38,7 @@ class AwardsHtmxControllerTest extends TestCase
         $other_trooper = Trooper::factory()->create();
         $this->actingAs($user);
 
-        TrooperAward::factory()->for($other_trooper)->create();
+        AwardTrooper::factory()->for($other_trooper)->create();
 
         // Act
         $response = $this->get(route('dashboard.awards-htmx', ['trooper_id' => $other_trooper->id]));

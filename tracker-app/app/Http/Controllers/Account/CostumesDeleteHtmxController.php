@@ -39,7 +39,7 @@ class CostumesDeleteHtmxController extends Controller
             'organizations' => collect(),
             'selected_organization' => null,
             'costumes' => collect(),
-            'trooper_costumes' => $trooper->costumes,
+            'trooper_costumes' => $trooper->trooper_costumes,
         ];
 
         return view('pages.account.costume-selector', $data);

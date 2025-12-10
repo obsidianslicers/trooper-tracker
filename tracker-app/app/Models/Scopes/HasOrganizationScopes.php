@@ -80,7 +80,7 @@ trait HasOrganizationScopes
                 $sub->select(DB::raw(1))
                     ->from('tt_trooper_assignments as ta')
                     ->join('tt_organizations as org_unit', 'ta.organization_id', '=', 'org_unit.id')
-                    ->where('ta.member', true)
+                    ->where('ta.is_member', true)
                     ->whereRaw('org_unit.node_path LIKE CONCAT(tt_organizations.node_path, "%")');
 
                 if ($trooper_id)
@@ -112,18 +112,23 @@ trait HasOrganizationScopes
      * Scope: limit to organizations that can be updated by a given moderator.
      *
      * @param Builder $query
-     * @param Trooper $moderator
+     * @param Trooper $trooper
      * @return Builder
      */
-    protected function scopeModeratedBy(Builder $query, Trooper $moderator): Builder
+    protected function scopeModeratedBy(Builder $query, Trooper $trooper): Builder
     {
-        return $query->whereExists(function ($sub) use ($moderator)
+        if ($trooper->isAdministrator())
+        {
+            return $query;
+        }
+
+        return $query->whereExists(function ($sub) use ($trooper)
         {
             $sub->select(DB::raw(1))
                 ->from('tt_trooper_assignments as ta_moderator')
                 ->join('tt_organizations as org_moderator', 'ta_moderator.organization_id', '=', 'org_moderator.id')
-                ->where('ta_moderator.trooper_id', $moderator->id)
-                ->where('ta_moderator.moderator', true)
+                ->where('ta_moderator.trooper_id', $trooper->id)
+                ->where('ta_moderator.is_moderator', true)
                 ->whereRaw('tt_organizations.node_path LIKE CONCAT(org_moderator.node_path, "%")');
         });
     }
