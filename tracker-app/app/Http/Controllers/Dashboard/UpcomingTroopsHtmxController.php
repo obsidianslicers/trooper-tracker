@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
-use App\Models\Event;
 use App\Models\EventShift;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -31,7 +30,7 @@ class UpcomingTroopsHtmxController extends Controller
 
         $upcoming_shifts = EventShift::with('event.organization')
             ->byTrooper($trooper_id, false)
-            ->orderByDesc(EventShift::SHIFT_ENDS_AT)
+            ->orderBy(EventShift::SHIFT_STARTS_AT)
             ->get();
 
         $data = compact('upcoming_shifts');

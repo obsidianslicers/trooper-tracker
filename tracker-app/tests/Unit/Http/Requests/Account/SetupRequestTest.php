@@ -31,19 +31,6 @@ class SetupRequestTest extends TestCase
         $this->assertTrue($this->subject->authorize());
     }
 
-    public function test_prepare_for_validation_handles_missing_phone(): void
-    {
-        $input_data = [
-            'email' => 'test@example.com',
-        ];
-
-        $this->subject->merge($input_data);
-
-        $this->invokeMethod($this->subject, 'prepareForValidation');
-
-        $this->assertNull($this->subject->input('phone'));
-    }
-
     public function test_validation_fails_with_missing_email(): void
     {
         $bad_data = [

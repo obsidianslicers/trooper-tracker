@@ -23,7 +23,7 @@ trait HasNoticeScopes
      * @param Builder $query The Eloquent query builder.
      * @return Builder<self>
      */
-    protected function scopeActive(Builder $query): Builder
+    public function scopeActive(Builder $query): Builder
     {
         $now = Carbon::now();
 
@@ -43,7 +43,7 @@ trait HasNoticeScopes
      * @param Builder $query The Eloquent query builder.
      * @return Builder<self>
      */
-    protected function scopePast(Builder $query): Builder
+    public function scopePast(Builder $query): Builder
     {
         $now = Carbon::now();
 
@@ -59,7 +59,7 @@ trait HasNoticeScopes
      * @param Builder $query The Eloquent query builder.
      * @return Builder<self>
      */
-    protected function scopeFuture(Builder $query): Builder
+    public function scopeFuture(Builder $query): Builder
     {
         $now = Carbon::now();
 
@@ -78,7 +78,7 @@ trait HasNoticeScopes
      * @param Trooper $trooper The trooper whose visibility is being checked.
      * @return Builder<self>
      */
-    protected function scopeVisibleTo(Builder $query, Trooper $trooper, bool $unread_only = false): Builder
+    public function scopeVisibleTo(Builder $query, Trooper $trooper, bool $unread_only = false): Builder
     {
         $query->where(function ($outer) use ($trooper)
         {
@@ -124,7 +124,7 @@ trait HasNoticeScopes
      * @param Trooper $trooper The moderator to filter by.
      * @return Builder
      */
-    protected function scopeModeratedBy(Builder $query, Trooper $trooper): Builder
+    public function scopeModeratedBy(Builder $query, Trooper $trooper): Builder
     {
         if ($trooper->isAdministrator())
         {

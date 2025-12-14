@@ -26,9 +26,9 @@ enum EventStatus: string
     /**
      * The event has been canceled.
      */
-    case CANCELED = 'canceled';
+    case CANCELLED = 'cancelled';
     /**
      * The event has been locked.
      */
-    case LOCKED = 'locked';
+    case SIGN_UP_LOCKED = 'locked';
 }

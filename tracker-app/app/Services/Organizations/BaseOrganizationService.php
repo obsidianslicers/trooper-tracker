@@ -13,7 +13,7 @@ abstract class BaseOrganizationService implements SynchronizerInterface
     {
     }
 
-    public abstract function syncAll(): void;
+    public abstract function syncAllMembers(): void;
 
     public abstract function syncMember(string $identifier): void;
 

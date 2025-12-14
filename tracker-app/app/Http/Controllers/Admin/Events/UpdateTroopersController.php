@@ -6,6 +6,8 @@ namespace App\Http\Controllers\Admin\Events;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
+use App\Models\EventShift;
+use App\Models\EventTrooper;
 use App\Services\BreadCrumbService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -16,7 +18,7 @@ use Illuminate\Http\Request;
  * Handles displaying the form to update an existing event.
  * @package App\Http\Controllers\Admin\Events
  */
-class UpdateVenueController extends Controller
+class UpdateTroopersController extends Controller
 {
     /**
      * UpdateController constructor.
@@ -43,11 +45,10 @@ class UpdateVenueController extends Controller
     {
         $this->authorize('update', $event);
 
-        $data = [
-            'event' => $event,
-            'event_venue' => $event->event_venue,
-        ];
+        $event_shifts = $event->event_shifts()->roster()->get();
 
-        return view('pages.admin.events.venue', $data);
+        $data = compact('event', 'event_shifts');
+
+        return view('pages.admin.events.troopers', $data);
     }
 }

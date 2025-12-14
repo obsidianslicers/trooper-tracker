@@ -18,7 +18,6 @@
     "html.format.wrapLineLength": 150,
     "editor.detectIndentation": false,
     "files.associations": {
-        "*.blade.php": "html",
         "*.php": "php"
     },
     "[html]": {
@@ -34,5 +33,16 @@
     ],
     "geminicodeassist.customCommands": {
         "phpdoc": "generate phpdoc comments"
-    }
+    },
+    // Use Blade Formatter for .blade.php files
+    "[blade.php]": {
+        "editor.defaultFormatter": "shufo.vscode-blade-formatter",
+        "editor.tabSize": 2,
+        "editor.insertSpaces": true
+    },
+    // Blade Formatter options
+    "bladeFormatter.format.wrapAttributes": "force-aligned",
+    "bladeFormatter.format.wrapLineLength": 150,
+    "bladeFormatter.format.indentSize": 2,
+    "bladeFormatter.format.useTabs": false
 }

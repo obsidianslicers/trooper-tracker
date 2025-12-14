@@ -11,19 +11,18 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 /**
- * Handles the validation for the user registration form.
+ * Handles the validation for creating a new award.
  *
- * This class defines the base validation rules for user registration and dynamically
- * adds rules based on the organizations a user selects, including custom rules for
- * organization-specific identifiers and unit selections. It also customizes error messages
- * for a better user experience.
+ * This class defines validation rules for creating awards, ensuring that the award
+ * name, frequency, and organization are properly validated. The organization must be
+ * one that the authenticated moderator has permission to manage.
  */
 class CreateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      *
-     * @return bool Returns true as registration is open to guests.
+     * @return bool Returns true if the user has permission to create awards.
      */
     public function authorize(): bool
     {
@@ -34,7 +33,10 @@ class CreateRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, mixed> The combined validation rules for the registration form.
+     * Validates the award name, frequency enum value, and ensures the organization
+     * is one that the authenticated moderator has permission to manage.
+     *
+     * @return array<string, mixed> The validation rules for creating an award.
      */
     public function rules(): array
     {

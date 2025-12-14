@@ -40,7 +40,7 @@
 
       <x-submit-container>
         <x-submit-button>
-          Save
+          Update
         </x-submit-button>
         <x-link-button-cancel :url="route('admin.troopers.list')" />
       </x-submit-container>
@@ -77,10 +77,12 @@
             @endif
           </td>
           <td class="text-center">
-            <x-yes-no :value="$trooper_assignment->can_notify ?? false" />
+            <x-yes-no :blank="true"
+                      :value="$trooper_assignment->can_notify ?? false" />
           </td>
           <td class="text-center">
-            <x-yes-no :value="$trooper_assignment->is_member ?? false" />
+            <x-yes-no :blank="true"
+                      :value="$trooper_assignment->is_member ?? false" />
           </td>
         </tr>
         @endforeach
@@ -88,7 +90,7 @@
 
       <x-submit-container>
         <x-submit-button>
-          Save
+          Update
         </x-submit-button>
         <x-link-button-cancel :url="route('admin.troopers.list')" />
       </x-submit-container>

@@ -18,6 +18,8 @@ class EventShiftFactory extends Factory
         return [
             EventShift::EVENT_ID => \App\Models\Event::factory(),
             EventShift::STATUS => $this->faker->word(),
+            EventShift::SHIFT_STARTS_AT => $this->faker->dateTime(),
+            EventShift::SHIFT_ENDS_AT => $this->faker->dateTime(),
         ];
     }
 }

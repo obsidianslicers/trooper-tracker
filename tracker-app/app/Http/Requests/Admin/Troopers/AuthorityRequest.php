@@ -10,19 +10,22 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * Handles the validation for the user registration form.
+ * Handles the validation for updating a trooper's authority settings.
  *
- * This class defines the base validation rules for user registration and dynamically
- * adds rules based on the organizations a user selects, including custom rules for
- * organization-specific identifiers and unit selections. It also customizes error messages
- * for a better user experience.
+ * This class defines validation rules for managing trooper authority, including
+ * their membership role (member, moderator, administrator) and moderator assignments
+ * for specific organizations. Only administrators can modify trooper authority settings.
  */
 class AuthorityRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      *
-     * @return bool Returns true as registration is open to guests.
+     * Verifies that the trooper exists in the route and that the authenticated
+     * user is an administrator. Only administrators can modify authority settings.
+     *
+     * @return bool Returns true if the user is an administrator.
+     * @throws AuthorizationException if the trooper is not found in the route.
      */
     public function authorize(): bool
     {
@@ -39,7 +42,12 @@ class AuthorityRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, mixed> The combined validation rules for the registration form.
+     * Validates the membership role enum value and moderator organization selections.
+     * The membership role can be nullable and must be a valid MembershipRole enum value.
+     * Moderator selections are boolean values indicating which organizations the trooper
+     * moderates.
+     *
+     * @return array<string, mixed> The validation rules for updating trooper authority.
      */
     public function rules(): array
     {

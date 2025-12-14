@@ -5,6 +5,8 @@ namespace Database\Factories;
 use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
 use App\Enums\TrooperTheme;
+use App\Models\Award;
+use App\Models\AwardTrooper;
 use App\Models\Notice;
 use App\Models\NoticeTrooper;
 use App\Models\Organization;
@@ -126,4 +128,16 @@ class TrooperFactory extends BaseTrooperFactory
             );
         });
     }
+
+    public function withAwards(int $count = 3): static
+    {
+        return $this->hasAttached(
+            Award::factory()->count($count),
+            [
+                AwardTrooper::AWARD_DATE => $this->faker->dateTimeBetween('-2 years', 'now'),
+            ],
+            'awards' // relationship name on Trooper
+        );
+    }
+
 }

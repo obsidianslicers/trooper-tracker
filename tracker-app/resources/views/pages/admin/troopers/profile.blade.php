@@ -49,7 +49,7 @@
 
       <x-submit-container>
         <x-submit-button>
-          Save
+          Update
         </x-submit-button>
         <x-link-button-cancel :url="route('admin.troopers.list')" />
       </x-submit-container>

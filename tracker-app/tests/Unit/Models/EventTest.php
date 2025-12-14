@@ -46,8 +46,7 @@ EOT;
         $this->assertInstanceOf(Carbon::class, $subject->event_end);
         $this->assertEquals('2025-07-12 12:00:00', $subject->event_end->toDateTimeString());
 
-        $this->assertTrue($subject->has_organization_limits);
-        $this->assertEquals(100, $subject->troopers_allowed);
+        $this->assertNull($subject->troopers_allowed);
         $this->assertNull($subject->handlers_allowed);
 
         $this->assertEquals('Matthew Drennan', $subject->contact_name);

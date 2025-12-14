@@ -1,3 +1,3 @@
 <table {{$attributes->class(['table'])}}>
-  {{ $slot }}
+    {{ $slot }}
 </table>

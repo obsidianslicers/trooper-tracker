@@ -1,4 +1,4 @@
-@props(['url', 'label'=>'Copy'])
+@props(['url', 'label' => 'Copy'])
 
 <x-action-link :label="$label"
                :url="$url"

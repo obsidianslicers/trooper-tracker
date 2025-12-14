@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Models\Scopes;
 
-use App\Enums\EventStatus;
-use App\Models\OrganizationCostume;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Models\Trooper;

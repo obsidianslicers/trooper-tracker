@@ -4,12 +4,14 @@ namespace App\Models;
 
 use App\Models\Base\OrganizationCostume as BaseOrganizationCostume;
 use App\Models\Concerns\HasTrooperStamps;
-use App\Models\Scopes\HasCostumeScopes;
+use App\Models\Scopes\HasOrganizationCostumeScopes;
+use App\Models\Scopes\HasToOptionScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class OrganizationCostume extends BaseOrganizationCostume
 {
-    use HasCostumeScopes;
+    use HasToOptionScope;
+    use HasOrganizationCostumeScopes;
     use HasFactory;
     use HasTrooperStamps;
 

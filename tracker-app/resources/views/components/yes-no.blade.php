@@ -1,4 +1,6 @@
-@props(['value'])
+@props(['value', 'blank' => false])
 @if($value)
-<i class="text-success fa fa-fw fa-check"></i>
+    <i {{$attributes->class(['fa fa-fw fa-check text-success'])}}></i>
+@elseif(!$blank)
+    <i {{$attributes->class(['fa fa-fw fa-times text-danger'])}}></i>
 @endif

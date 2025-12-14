@@ -22,8 +22,8 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
             $table->string('status', 16)->default(EventStatus::DRAFT->value);
-            $table->dateTime('shift_starts_at')->nullable();
-            $table->dateTime('shift_ends_at')->nullable();
+            $table->dateTime('shift_starts_at');
+            $table->dateTime('shift_ends_at');
 
             $table->timestamps();
             $table->softDeletes();

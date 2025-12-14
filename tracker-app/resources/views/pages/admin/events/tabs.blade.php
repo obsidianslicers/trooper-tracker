@@ -1,15 +1,11 @@
 <x-tabs>
   <x-tab :label="'Overview'"
-         :target="route('admin.events.update',['event'=>$event])"
+         :target="route('admin.events.update',compact('event'))"
          :active="request()->routeIs('admin.events.update')" />
-  <x-tab :label="'Shifts'" />
-  <x-tab :label="'Venue'"
-         :target="route('admin.events.venue',['event'=>$event])"
-         :active="request()->routeIs('admin.events.venue')" />
-  @if($event->has_organization_limits)
-  <x-tab :label="'Organization Limits'"
-         :target="route('admin.events.organizations',['event'=>$event])"
-         :active="request()->routeIs('admin.events.organizations')" />
-  @endif
-  <x-tab :label="'Roster'" />
+  <x-tab :label="'Shifts'"
+         :target="route('admin.events.shifts',compact('event'))"
+         :active="request()->routeIs('admin.events.shifts')" />
+  <x-tab :label="'Roster'"
+         :target="route('admin.events.troopers',compact('event'))"
+         :active="request()->routeIs('admin.events.troopers')" />
 </x-tabs>

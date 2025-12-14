@@ -1,3 +1,3 @@
 <div class="btn-group mb-3">
-  {{ $slot }}
+    {{ $slot }}
 </div>

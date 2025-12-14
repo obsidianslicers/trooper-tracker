@@ -28,7 +28,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $status
  * @property float|null $latitude
  * @property float|null $longitude
- * @property bool $has_organization_limits
  * @property int|null $troopers_allowed
  * @property int|null $handlers_allowed
  * @property int $charity_direct_funds
@@ -83,7 +82,6 @@ class Event extends Model
     const STATUS = 'status';
     const LATITUDE = 'latitude';
     const LONGITUDE = 'longitude';
-    const HAS_ORGANIZATION_LIMITS = 'has_organization_limits';
     const TROOPERS_ALLOWED = 'troopers_allowed';
     const HANDLERS_ALLOWED = 'handlers_allowed';
     const CHARITY_DIRECT_FUNDS = 'charity_direct_funds';
@@ -127,7 +125,6 @@ class Event extends Model
         self::ORGANIZATION_ID => 'int',
         self::LATITUDE => 'float',
         self::LONGITUDE => 'float',
-        self::HAS_ORGANIZATION_LIMITS => 'bool',
         self::TROOPERS_ALLOWED => 'int',
         self::HANDLERS_ALLOWED => 'int',
         self::CHARITY_DIRECT_FUNDS => 'int',
@@ -156,7 +153,6 @@ class Event extends Model
         self::STATUS,
         self::LATITUDE,
         self::LONGITUDE,
-        self::HAS_ORGANIZATION_LIMITS,
         self::TROOPERS_ALLOWED,
         self::HANDLERS_ALLOWED,
         self::CHARITY_DIRECT_FUNDS,

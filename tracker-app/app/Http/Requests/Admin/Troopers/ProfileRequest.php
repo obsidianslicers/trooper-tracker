@@ -10,19 +10,22 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * Handles the validation for the user registration form.
+ * Handles the validation for updating a trooper's profile by an administrator.
  *
- * This class defines the base validation rules for user registration and dynamically
- * adds rules based on the organizations a user selects, including custom rules for
- * organization-specific identifiers and unit selections. It also customizes error messages
- * for a better user experience.
+ * This class defines validation rules for administrators updating trooper profiles,
+ * including name, email, phone, and membership status. Administrators can modify
+ * any trooper's profile information, including approval status changes.
  */
 class ProfileRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      *
-     * @return bool Returns true as registration is open to guests.
+     * Verifies that the trooper exists in the route and that the authenticated
+     * user has permission to update the trooper's profile.
+     *
+     * @return bool Returns true if the user can update the trooper.
+     * @throws AuthorizationException if the trooper is not found in the route.
      */
     public function authorize(): bool
     {
@@ -39,7 +42,11 @@ class ProfileRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, mixed> The combined validation rules for the registration form.
+     * Validates the trooper's name, email, phone, and membership status.
+     * The membership status can be updated by administrators to approve or manage
+     * trooper accounts.
+     *
+     * @return array<string, mixed> The validation rules for updating a trooper's profile.
      */
     public function rules(): array
     {

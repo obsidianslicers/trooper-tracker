@@ -20,7 +20,7 @@
         {{ $shift->event->name }}
       </td>
       <td class="text-center text-nowrap">
-        <x-date-format :value="$shift->shift_starts_at"
+        <x-date-format :value="$shift->shift_date"
                        :format="'M j, Y'" />
       </td>
       <td>

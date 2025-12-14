@@ -2,8 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Enums\TrooperEventStatus;
-use App\Models\Event;
+use App\Enums\EventTrooperStatus;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
@@ -19,7 +18,7 @@ class EventTrooperFactory extends BaseEventTrooperFactory
     public function definition(): array
     {
         return array_merge(parent::definition(), [
-            EventTrooper::STATUS => TrooperEventStatus::NONE,
+            EventTrooper::STATUS => EventTrooperStatus::NONE,
         ]);
     }
 

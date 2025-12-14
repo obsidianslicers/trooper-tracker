@@ -55,8 +55,7 @@ class CostumesListHtmxController extends Controller
                     ->with('organization')
                     ->excluding($assigned_costume_ids)
                     ->orderBy(OrganizationCostume::NAME)
-                    ->pluck(OrganizationCostume::NAME, OrganizationCostume::ID)
-                    ->toArray();
+                    ->toOptions(OrganizationCostume::NAME, OrganizationCostume::ID);
             }
         }
 

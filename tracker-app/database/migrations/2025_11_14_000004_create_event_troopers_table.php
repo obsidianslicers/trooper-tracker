@@ -1,6 +1,6 @@
 <?php
 
-use App\Enums\TrooperEventStatus;
+use App\Enums\EventTrooperStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -37,7 +37,9 @@ return new class extends Migration
                 ->constrained('tt_troopers')
                 ->cascadeOnDelete();
 
-            $table->string('status', 16)->default(TrooperEventStatus::NONE->value)->index();
+            $table->boolean('is_handler')->default(false);
+            $table->string('status', 16)->default(EventTrooperStatus::NONE->value)->index();
+            $table->dateTime('signed_up_at')->useCurrent();
 
             // $table->string('note')->default('');
 

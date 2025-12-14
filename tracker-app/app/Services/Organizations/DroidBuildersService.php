@@ -24,7 +24,11 @@ class DroidBuildersService extends BaseOrganizationService
         parent::__construct($organization);
     }
 
-    public function syncAll(): void
+    public function syncCostumes(): void
+    {
+    }
+
+    public function syncAllMembers(): void
     {
         $values = $this->google->getSheet("195NT1crFYL_ECVyzoaD2F1QXGW5WxlnBDfDaLVtM87Y", "Sheet1");
 
@@ -44,7 +48,7 @@ class DroidBuildersService extends BaseOrganizationService
 
     public function syncMember(string $identifier): void
     {
-        $this->syncAll();
+        $this->syncAllMembers();
     }
 
     private function updateTrooperStatus(Trooper $trooper): void

@@ -1,4 +1,4 @@
-@props(['property', 'url', 'placeholder'=>'Search ...'])
+@props(['property', 'url', 'placeholder' => 'Search ...'])
 
 <x-input-hidden :property="$property" />
 

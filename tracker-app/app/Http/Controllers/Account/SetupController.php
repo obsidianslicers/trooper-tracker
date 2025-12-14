@@ -14,22 +14,22 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 
 /**
- * Handles the display of the main account management page.
+ * Handles the display of the trooper setup page for organization management.
  *
- * This controller is responsible for fetching the authenticated user's
- * data and rendering the primary account view where they can manage
- * their profile, settings, and other account-related information.
+ * Presents the authenticated trooper with their enrolled organizations and member
+ * assignments (regions/units), allowing them to review or configure their organizational
+ * memberships and associated hierarchy.
  */
 class SetupController extends Controller
 {
     /**
-     * Handle the incoming request to display the account page.
+     * Handle the incoming request to display the trooper setup page.
      *
-     * This method retrieves the currently authenticated trooper and renders
-     * the main account management view, passing the trooper's data to it.
+     * Retrieves the authenticated trooper, assembles organizations with resolved
+     * region/unit assignments based on member status, and renders the setup view.
      *
-     * @param Request $request The incoming HTTP request.
-     * @return View The rendered account page view.
+     * @param Request $request The incoming HTTP request (may contain 'region_id' query param).
+     * @return View The rendered setup page view.
      */
     public function __invoke(Request $request): View
     {
@@ -42,6 +42,17 @@ class SetupController extends Controller
         return view('pages.account.setup', $data);
     }
 
+    /**
+     * Build a collection of organizations with resolved region/unit assignments for a trooper.
+     *
+     * Loads all organizations the trooper is enrolled in (via TrooperOrganization pivot),
+     * marks selections, resolves member assignments to region/unit nodes, and handles
+     * single-region shortcut logic or request-filtered region selection.
+     *
+     * @param Request $request The incoming HTTP request (may contain 'region_id' query param).
+     * @param Trooper $trooper The trooper whose organizations are being fetched.
+     * @return Collection Organizations with `selected`, `region`, and `unit` attributes hydrated.
+     */
     private function getOrganizationsForTrooper(Request $request, Trooper $trooper): Collection
     {
         $with = [

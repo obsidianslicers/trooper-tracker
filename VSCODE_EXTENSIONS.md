@@ -14,6 +14,7 @@ These extensions enhance the PHP and Laravel development experience within VS Co
 | `devsense.profiler-php-vscode` | PHP Profiler — enables performance profiling and bottleneck analysis directly within VS Code |
 | `google.geminicodeassist` | Gemini Code Assist — AI-powered code suggestions and completions, useful for rapid prototyping and refactoring |
 | `mehedidracula.php-namespace-resolver` | PHP Namespace Resolver — automates `use` statement imports, sorting, and cleanup for cleaner, maintainable code |
+| `shufo.vscode-blade-formatter` | Laravle Blade Formatter — an opinionated Blade file formatter for VSCode. |
 
 ## 2. VS Code Settings
 

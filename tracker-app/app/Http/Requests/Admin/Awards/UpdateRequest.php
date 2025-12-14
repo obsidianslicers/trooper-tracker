@@ -10,19 +10,22 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * Handles the validation for the user registration form.
+ * Handles the validation for updating an existing award.
  *
- * This class defines the base validation rules for user registration and dynamically
- * adds rules based on the organizations a user selects, including custom rules for
- * organization-specific identifiers and unit selections. It also customizes error messages
- * for a better user experience.
+ * This class defines validation rules for updating award information.
+ * Only the award name can be modified during an update. The organization
+ * and frequency are immutable after creation.
  */
 class UpdateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      *
-     * @return bool Returns true as registration is open to guests.
+     * Verifies that the award exists in the route and that the authenticated
+     * user has permission to update it.
+     *
+     * @return bool Returns true if the user can update the award.
+     * @throws AuthorizationException if the award is not found in the route.
      */
     public function authorize(): bool
     {
@@ -39,7 +42,9 @@ class UpdateRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, mixed> The combined validation rules for the registration form.
+     * Only validates the award name as other fields are immutable.
+     *
+     * @return array<string, mixed> The validation rules for updating an award.
      */
     public function rules(): array
     {

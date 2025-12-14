@@ -6,9 +6,9 @@ namespace App\Http\Controllers\Admin\Events;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
+use App\Models\EventShift;
 use App\Services\BreadCrumbService;
 use Illuminate\Contracts\View\View;
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
 
 /**
@@ -17,8 +17,19 @@ use Illuminate\Http\Request;
  * Handles displaying the form to update an existing event.
  * @package App\Http\Controllers\Admin\Events
  */
-class UpdateHtmxController extends Controller
+class UpdateShiftsController extends Controller
 {
+    /**
+     * UpdateController constructor.
+     *
+     * @param BreadCrumbService $crumbs The service for managing breadcrumbs.
+     */
+    public function __construct(private readonly BreadCrumbService $crumbs)
+    {
+        $this->crumbs->addRoute('Command Staff', 'admin.display');
+        $this->crumbs->addRoute('Events', 'admin.events.list');
+    }
+
     /**
      * Handle the request to display the event update page.
      *
@@ -29,16 +40,14 @@ class UpdateHtmxController extends Controller
      * @param Event $event The event to be updated.
      * @return View The rendered event update view.
      */
-    public function __invoke(FormRequest $request, Event $event): View
+    public function __invoke(Request $request, Event $event): View
     {
         $this->authorize('update', $event);
 
-        $event->fill($request->input());
+        $shifts = $event->event_shifts()->orderBy(EventShift::SHIFT_STARTS_AT)->get();
 
-        $data = [
-            'event' => $event,
-        ];
+        $data = compact('event', 'shifts');
 
-        return view('pages.admin.events.update-form', $data);
+        return view('pages.admin.events.shifts', $data);
     }
 }

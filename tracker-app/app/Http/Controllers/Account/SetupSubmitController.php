@@ -6,43 +6,77 @@ namespace App\Http\Controllers\Account;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Account\SetupRequest;
-use App\Models\Organization;
+use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use App\Services\FlashMessageService;
 use Illuminate\Http\RedirectResponse;
 
 /**
- * Handles the form submission for updating the authenticated user's profile.
+ * Handles form submission for trooper organization membership setup.
+ *
+ * Validates organization selections and member assignments, updates the trooper's email
+ * and completion timestamp, and persists membership selections as TrooperAssignment records.
  */
 class SetupSubmitController extends Controller
 {
     /**
-     * SetupSubmitController constructor.
+     * Create a new SetupSubmitController instance.
      *
-     * @param FlashMessageService $flash The service for creating flash messages.
+     * @param FlashMessageService $flash The flash message service for user feedback.
      */
     public function __construct(private readonly FlashMessageService $flash)
     {
     }
 
     /**
-     * Handle the incoming request to update the authenticated user's profile.
+     * Handle the incoming request to process trooper setup submission.
      *
-     * This method validates the request data, updates the user's trooper record,
-     * flashes a success message, and redirects back to the profile page.
+     * Validates the setup request, updates the trooper's email and completion timestamp,
+     * persists membership/assignment selections, flashes success feedback, and redirects.
      *
-     * @param SetupRequest $request The validated profile form request.
+     * @param SetupRequest $request The validated setup form request.
      * @return RedirectResponse A redirect response to the account profile page.
      */
     public function __invoke(SetupRequest $request): RedirectResponse
     {
-        dd($request->all());
         $trooper = $request->user();
 
+        $this->updateTrooper($request, $trooper);
+        $this->updateMemberships($request, $trooper);
+
+        $this->flash->updated($trooper);
+
+        return redirect()->route('account.costumes');
+    }
+
+    /**
+     * Update the trooper's email and mark setup as completed.
+     *
+     * @param SetupRequest $request The validated setup request.
+     * @param Trooper $trooper The trooper to update.
+     * @return void
+     */
+    private function updateTrooper(SetupRequest $request, Trooper $trooper): void
+    {
         $trooper->email = $request->validated('email');
+        $trooper->setup_completed_at = now();
 
         $trooper->save();
+    }
 
+    /**
+     * Persist trooper membership assignments based on selected organizations and hierarchy.
+     *
+     * For each selected organization, determines whether to assign the trooper to the unit
+     * (if selected), region (if selected), or organization level, then creates or updates
+     * the TrooperAssignment record with `is_member = true`.
+     *
+     * @param SetupRequest $request The validated setup request.
+     * @param Trooper $trooper The trooper whose memberships are being updated.
+     * @return void
+     */
+    private function updateMemberships(SetupRequest $request, Trooper $trooper): void
+    {
         // Loop through selected organizations 
         $data = $request->input('organizations', []);
 
@@ -79,9 +113,5 @@ class SetupSubmitController extends Controller
                 $trooper_assignment->save();
             }
         }
-
-        $this->flash->updated($trooper);
-
-        return redirect()->route('account.profile');
     }
 }

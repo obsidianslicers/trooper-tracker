@@ -31,7 +31,6 @@ return new class extends Migration
             $table->decimal('latitude', 9, 6)->nullable();
             $table->decimal('longitude', 9, 6)->nullable();
 
-            $table->boolean('has_organization_limits')->default(false);
             $table->integer('troopers_allowed')->nullable();
             $table->integer('handlers_allowed')->nullable();
 

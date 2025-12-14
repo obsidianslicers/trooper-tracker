@@ -6,15 +6,36 @@ namespace App\Models\Scopes;
 
 use App\Enums\EventStatus;
 use App\Models\EventTrooper;
-use App\Models\Trooper;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\DB;
 
 /**
- * Trait containing local scopes for the Event model.
+ * Trait containing local scopes for the EventShift model.
+ *
+ * This trait provides query scopes for filtering event shifts by various criteria
+ * including status, trooper participation, and roster information for event management.
  */
 trait HasEventShiftScopes
 {
+    /**
+     * Scope a query to only include active event shifts.
+     *
+     * Active shifts are those with status of OPEN, DRAFT, or SIGN_UP_LOCKED
+     * that haven't ended yet, ordered by their start time.
+     *
+     * @param Builder<self> $query The Eloquent query builder.
+     * @return Builder<self>
+     */
+    public function scopeActive(Builder $query): Builder
+    {
+        $status_list = [
+            EventStatus::OPEN,
+            EventStatus::DRAFT,
+            EventStatus::SIGN_UP_LOCKED,
+        ];
+
+        return $query->whereIn(self::STATUS, $status_list);
+    }
+
     /**
      * Scope a query to find events a specific trooper is signed up for.
      *
@@ -27,7 +48,7 @@ trait HasEventShiftScopes
      * @param bool $closed True to fetch closed (historical) events, false for open events.
      * @return Builder<self>
      */
-    protected function scopeByTrooper(Builder $query, int $trooper_id, bool $closed): Builder
+    public function scopeByTrooper(Builder $query, int $trooper_id, bool $closed): Builder
     {
         $with = [
             'event_troopers' => function ($q) use ($trooper_id)
@@ -45,6 +66,26 @@ trait HasEventShiftScopes
             });
     }
 
+    /**
+     * Scope a query to load event trooper roster data with relationships.
+     *
+     * Eager loads trooper, event shift, costume, and organization details,
+     * ordered by sign-up timestamp for roster display purposes.
+     *
+     * @param Builder<self> $query The Eloquent query builder.
+     * @return Builder<self> The query with roster relationships and ordering.
+     */
+    public function scopeRoster(Builder $query): Builder
+    {
+        $with = [
+            'event_troopers.trooper',
+            'event_troopers.organization_costume.organization',
+            'event_troopers.backup_costume.organization',
+        ];
+
+        return $query->with($with)->orderBy(self::SHIFT_STARTS_AT);
+    }
+
     // /**
     //  * Scope a query to only include events that can be managed by a given moderator.
     //  *
@@ -55,7 +96,7 @@ trait HasEventShiftScopes
     //  * @param Trooper $moderator The moderator to filter by.
     //  * @return Builder<self>
     //  */
-    // protected function scopeModeratedBy(Builder $query, Trooper $moderator): Builder
+    // public function scopeModeratedBy(Builder $query, Trooper $moderator): Builder
     // {
     // if ($trooper->isAdministrator())
     // {
@@ -80,7 +121,7 @@ trait HasEventShiftScopes
     //  * @param string $search_term The term to search for in name, username, and email fields.
     //  * @return Builder<self>
     //  */
-    // protected function scopeSearchFor(Builder $query, string $search_term): Builder
+    // public function scopeSearchFor(Builder $query, string $search_term): Builder
     // {
     //     if (!str_starts_with($search_term, '%'))
     //     {
@@ -101,7 +142,7 @@ trait HasEventShiftScopes
     //  * @param Builder<self> $query The Eloquent query builder.
     //  * @return Builder<self>
     //  */
-    // protected function scopeMainEvents(Builder $query): Builder
+    // public function scopeMainEvents(Builder $query): Builder
     // {
     //     return $query->whereNull(self::MAIN_EVENT_ID);
     // }

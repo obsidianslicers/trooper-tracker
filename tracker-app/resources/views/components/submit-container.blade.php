@@ -1,3 +1,3 @@
 <div class="mb-4 text-end">
-  {{ $slot }}
+    {{ $slot }}
 </div>

@@ -1,6 +1,6 @@
-@props(['type'=>'info', 'icon'=>'fa-exclamation-circle'])
+@props(['type' => 'info', 'icon' => 'fa-exclamation-circle'])
 
 <div class="alert alert-{{$type}} text-start border border-{{$type}} rounded-2 py-3 px-4 my-2">
-  <i class="fa fa-fw {{ $icon }}"></i>
-  {{ $slot }}
+    <i class="fa fa-fw {{ $icon }}"></i>
+    {{ $slot }}
 </div>

@@ -43,12 +43,42 @@ class UpdateRequest extends FormRequest
     {
         $rules = [
             Event::NAME => ['required', 'string', 'max:128',],
-            Event::STARTS_AT => ['required', 'date'],
-            Event::ENDS_AT => ['required', 'date', 'after:starts_at'],
             Event::STATUS => ['required', 'string', 'max:16', 'in:' . EventStatus::toValidator()],
-            Event::CAN_LI => ['required', 'boolean'],
-            Event::TROOPERS_ALLOWED => ['required_if:' . Event::HAS_ORGANIZATION_LIMITS . ',true', 'integer', 'between:1,99999'],
-            Event::HANDLERS_ALLOWED => ['required_if:' . Event::HAS_ORGANIZATION_LIMITS . ',true', 'integer', 'between:0,99999'],
+            Event::TROOPERS_ALLOWED => ['nullable', 'integer', 'between:1,99999'],
+            Event::HANDLERS_ALLOWED => ['nullable', 'integer', 'between:0,99999'],
+            Event::CONTACT_NAME => ['nullable', 'string', 'max:128'],
+            Event::CONTACT_PHONE => ['nullable', 'string', 'max:128'],
+            Event::CONTACT_EMAIL => ['nullable', 'email', 'max:128'],
+
+            Event::VENUE => ['nullable', 'string', 'max:256'],
+            Event::VENUE_ADDRESS => ['nullable', 'string', 'max:256'],
+            Event::VENUE_CITY => ['nullable', 'string', 'max:128'],
+            Event::VENUE_STATE => ['nullable', 'string', 'max:128'],
+            Event::VENUE_ZIP => ['nullable', 'string', 'max:128'],
+            Event::VENUE_COUNTRY => ['nullable', 'string', 'max:128'],
+
+            Event::EVENT_START => ['required', 'date'],
+            Event::EVENT_END => ['required', 'date', 'after:' . Event::EVENT_START],
+            Event::EVENT_WEBSITE => ['nullable', 'string', 'max:512'],
+
+            Event::EXPECTED_ATTENDEES => ['nullable', 'integer', 'min:0'],
+            Event::REQUESTED_CHARACTERS => ['nullable', 'integer', 'min:0'],
+            Event::REQUESTED_CHARACTER_TYPES => ['nullable', 'string'],
+
+            Event::SECURE_STAGING_AREA => ['boolean'],
+            Event::ALLOW_BLASTERS => ['boolean'],
+            Event::ALLOW_PROPS => ['boolean'],
+            Event::PARKING_AVAILABLE => ['boolean'],
+            Event::ACCESSIBLE => ['boolean'],
+
+            Event::AMENITIES => ['nullable', 'string'],
+            Event::COMMENTS => ['nullable', 'string'],
+            Event::REFERRED_BY => ['nullable', 'string', 'max:1024'],
+            Event::SOURCE => ['nullable', 'string'],
+            Event::LATITUDE => ['nullable', 'numeric', 'between:-90,90'],
+            Event::LONGITUDE => ['nullable', 'numeric', 'between:-180,180'],
+
+            'organizations.*.can_attend' => ['boolean'],
         ];
 
         return $rules;
@@ -69,4 +99,24 @@ class UpdateRequest extends FormRequest
         ];
     }
 
+    /**
+     * Prepare the data for validation.
+     *
+     * This method ensures that each organization in the input array has a 'can_attend' attribute, defaulting to false if it is not present.
+     */
+    protected function prepareForValidation(): void
+    {
+        $organizations = $this->input('organizations', []);
+
+        foreach ($organizations as $key => $org)
+        {
+            // If 'can_attend' is missing, default to false
+            $can_attend = $org['can_attend'] ?? false;
+
+            // Coerce to boolean (handles "on", "1", "true", etc.)
+            $organizations[$key]['can_attend'] = filter_var($can_attend, FILTER_VALIDATE_BOOLEAN);
+        }
+
+        $this->merge(['organizations' => $organizations]);
+    }
 }

@@ -7,6 +7,7 @@ namespace Tests\Feature\Http\Controllers\Admin;
 use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
 use App\Models\Trooper;
+use Artisan;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
