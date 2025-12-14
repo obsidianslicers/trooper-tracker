@@ -10,12 +10,23 @@ use App\Models\Trooper;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\Rule;
 
+/**
+ * Handles the validation for updating an event trooper's setup (status and costume).
+ *
+ * This request validates changes to a trooper's event participation, including
+ * their attendance status and costume selection. The costume selection is restricted
+ * to costumes from organizations that are allowed to attend the event.
+ */
 class SetupUpdateHtmxRequest extends HtmxFormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      *
-     * @return boolean
+     * Checks if the user is either the trooper themselves or a moderator
+     * of the trooper's organization(s).
+     *
+     * @return bool
+     * @throws AuthorizationException if the event trooper is not found.
      */
     public function authorize(): bool
     {
@@ -37,7 +48,10 @@ class SetupUpdateHtmxRequest extends HtmxFormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * The costume_id validation is dynamically restricted to only costumes
+     * from organizations that can attend this specific event.
+     *
+     * @return array<string, mixed> The validation rules for the request.
      */
     public function rules(): array
     {
@@ -64,6 +78,8 @@ class SetupUpdateHtmxRequest extends HtmxFormRequest
     }
 
     /**
+     * Get the custom messages for validator errors.
+     *
      * @return array<string, string>
      */
     public function messages(): array
@@ -73,15 +89,5 @@ class SetupUpdateHtmxRequest extends HtmxFormRequest
             Trooper::USERNAME . '.exists' => 'This username does not exist in our records - do you need to setup your account?',
             Trooper::PASSWORD . '.required' => 'Password is required.',
         ];
-    }
-
-    /**
-     * Prepare the data for validation by normalizing inputs.
-     */
-    protected function prepareForValidation(): void
-    {
-        $this->merge([
-            'remember_me' => $this->input('remember_me') === 'Y',
-        ]);
     }
 }
