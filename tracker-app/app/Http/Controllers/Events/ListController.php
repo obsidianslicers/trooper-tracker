@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Events;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
+use App\Models\EventOrganization;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -28,7 +29,12 @@ class ListController extends Controller
      */
     public function __invoke(Request $request): View
     {
-        $events = Event::with('organization')
+        $with = ['organization', 'organizations' => function ($query)
+        {
+            $query->wherePivot(EventOrganization::CAN_ATTEND, true);
+        }];
+
+        $events = Event::with($with)
             ->withShifts()
             ->upcoming()
             ->get();

@@ -30,6 +30,15 @@
                 <i class="fa fa-fw fa-calendar-day me-2"></i>
                 {{ $event->event_start->format('D M d, Y') }}
             </p>
+            <ul class="list-group list-group-flush">
+                @foreach($event->organizations as $organization)
+                    <li class="list-group-item">
+                        <x-yes-no class="me-2"
+                                  :value="true" />
+                        {{ $organization->name }}
+                    </li>
+                @endforeach
+            </ul>
         </div>
 
         <div class="card-footer bg-secondary p-0">
