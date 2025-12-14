@@ -20,7 +20,6 @@ class EventFactory extends Factory
             Event::NAME => $this->faker->name(),
             Event::TYPE => $this->faker->word(),
             Event::STATUS => $this->faker->word(),
-            Event::HAS_ORGANIZATION_LIMITS => $this->faker->randomNumber(1),
             Event::CHARITY_DIRECT_FUNDS => $this->faker->randomNumber(),
             Event::CHARITY_INDIRECT_FUNDS => $this->faker->randomNumber(),
             Event::SECURE_STAGING_AREA => $this->faker->randomNumber(1),

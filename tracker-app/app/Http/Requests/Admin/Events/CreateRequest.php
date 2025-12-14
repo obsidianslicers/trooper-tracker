@@ -33,19 +33,15 @@ class CreateRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            Event::NAME => [
-                'required',
-                'string',
-                'max:128',
-            ],
-            Event::STARTS_AT => ['required', 'date'],
-            Event::ENDS_AT => ['required', 'date', 'after:starts_at'],
+            Event::SOURCE => ['required', 'string'],
         ];
 
-        // An event must belong to an organization.
+        $trooper = $this->user();
+
         $rules[Event::ORGANIZATION_ID] = [
             'required',
             Rule::exists(Organization::class, Organization::ID)
+                ->whereIn('id', Organization::moderatedBy($trooper)->pluck('id')),
         ];
 
         return $rules;

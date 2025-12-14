@@ -66,11 +66,9 @@
         Status
       </th>
       <th>
-        {{--
         <x-link-button-create :url="route('admin.events.create', ['organization_id'=> request('organization_id')])">
           Event
         </x-link-button-create>
-        --}}
       </th>
     </tr>
   </thead>
@@ -87,7 +85,7 @@
         {{ $event->name }}
         <br />
         <i class="text-muted small">
-          {{ $event->timeDisplay() }}
+          {{ $event->time_display }}
         </i>
       </td>
       <td>
@@ -106,7 +104,7 @@
       <td>
         <x-action-menu>
           @if(Auth::user()->isAdministrator() || $event->organization->trooper_assignments->count() > 0)
-          <x-action-link-update :url="route('admin.events.update', ['event'=>$event])" />
+          <x-action-link-update :url="route('admin.events.update', compact('event'))" />
           {{--<x-action-link-copy :url="route('admin.events.create', ['copy_id'=>$event->id])" />--}}
           @endif
         </x-action-menu>

@@ -16,18 +16,6 @@ return new class extends Migration
             $table->string('key', 32)->primary();         // Unique setting key
             $table->string('value', 256);        // Raw value (string, number, boolean, etc.)
 
-            // $table->integer('lastidtrooper')->default(0);
-            // $table->integer('lastidevent')->default(0);
-            // $table->integer('lastidlink')->default(0);
-            // $table->boolean('site_closed')->default(1);
-            // $table->integer('signupclosed')->default(0);
-            // $table->integer('lastnotification')->default(0);
-            // $table->integer('support_goal')->default(0);
-            // $table->integer('notifyevent')->default(0);
-            // $table->dateTime('syncdate')->useCurrent();
-            // $table->dateTime('syncdaterebels')->useCurrent();
-            // $table->text('sitemessage')->nullable();
-
             $table->timestamps();
             $table->softDeletes();
             $table->trooperstamps();

@@ -5,12 +5,16 @@ declare(strict_types=1);
 namespace Database\Seeders\FloridaGarrison;
 
 use App\Enums\EventStatus;
-use App\Enums\TrooperEventStatus;
+use App\Enums\EventTrooperStatus;
+use App\Enums\MembershipRole;
 use App\Models\Event;
+use App\Models\EventOrganization;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
+use App\Models\Trooper;
+use Carbon\Carbon;
 use Database\Seeders\FloridaGarrison\Traits\HasEnumMaps;
 use Database\Seeders\FloridaGarrison\Traits\HasSquadMaps;
 use Illuminate\Database\Seeder;
@@ -25,6 +29,8 @@ class EventSeeder extends Seeder
     private $squad_maps;
     private $trooper_status_map;
     private $sign_ups;
+    private $trooper_ids;
+    private $handler_ids;
 
     /**
      * Run the database seeds.
@@ -40,9 +46,12 @@ class EventSeeder extends Seeder
             $event = Event::find($legacy->id) ?? new Event(['id' => $legacy->id]);
 
             $this->overlayEvent($legacy, $event);
+
             $this->overlayOrganization($legacy, $event);
 
             $event->save();
+
+            $this->overlayOrganizations($legacy, $event);
 
             $this->overlayShifts($legacy, $event);
         }
@@ -50,76 +59,88 @@ class EventSeeder extends Seeder
 
     private function initData()
     {
+        $this->trooper_ids = Trooper::all()->pluck(Trooper::ID, Trooper::ID)->toArray();
+        $this->handler_ids = Trooper::where(Trooper::MEMBERSHIP_ROLE, MembershipRole::HANDLER)->pluck(Trooper::ID, Trooper::ID)->toArray();
         $this->costumes = OrganizationCostume::all()->pluck(OrganizationCostume::ID)->toArray();
         $this->squad_maps = $this->getSquadMap();
         $this->trooper_status_map = array_values(array_filter(
-            TrooperEventStatus::cases(),
-            fn($case) => $case !== TrooperEventStatus::NONE
+            EventTrooperStatus::cases(),
+            fn($case) => $case !== EventTrooperStatus::NONE
         ));
         $this->sign_ups = DB::table('event_sign_up')
             ->join('tt_troopers', 'event_sign_up.trooperid', '=', 'tt_troopers.id')
-            ->join('tt_events', 'event_sign_up.troopid', '=', 'tt_events.id')
+            ->join('tt_event_shifts', 'event_sign_up.troopid', '=', 'tt_event_shifts.id')
             ->select('event_sign_up.*')
             ->get();
     }
 
     private function overlayOrganization($legacy, $event)
     {
+        $fl_garrison = $this->getOrganization(-1);
+
         if ($legacy->squad <= 0)
         {
-            $unit = $this->getOrganization(-1);
-            $event->organization_id = $unit->id;
+            $event->organization_id = $fl_garrison->id;
         }
         else
         {
             $unit = $this->getOrganization($this->squad_maps[$legacy->squad]['id']);
             $event->organization_id = $unit->id;
         }
+    }
 
-        //  TODO
-        /*
-        $organizations = Organization::all();
+    private function overlayOrganizations($legacy, $event)
+    {
+        $fl_garrison = $this->getOrganization(-1);
 
-        foreach ($organizations as $organization)
-        {
-            EventOrganization::updateOrCreate(
-                [
-                    EventOrganization::EVENT_ID => $event->id,
-                    EventOrganization::ORGANIZATION_ID => $organization->id,
-                ],
-                [
-                    EventOrganization::CAN_ATTEND => true,
-                    EventOrganization::TROOPERS_ALLOWED => null,
-                    EventOrganization::HANDLERS_ALLOWED => null,
-                ]);
-        }*/
+        $where = [
+            EventOrganization::EVENT_ID => $event->id,
+            EventOrganization::ORGANIZATION_ID => $fl_garrison->parent_id,
+        ];
+
+        $set = [
+            EventOrganization::CAN_ATTEND => true,
+        ];
+
+        EventOrganization::updateOrCreate($where, $set);
     }
 
     private function overlayShifts($legacy, $event)
     {
         $shifts = collect([]);
 
-        foreach ($legacy->shifts as $x)
+        foreach ($legacy->shifts as $legacy_shift)
         {
-            if ($shifts->where('shift_starts_at', $x->dateStart)->count())
+            // Parse the incoming values
+            $start = Carbon::parse($legacy_shift->dateStart);
+            $end = Carbon::parse($legacy_shift->dateEnd);
+            $key = $start->format('Y-m-d H:i');
+
+            $filtered = $shifts->filter(fn($s) => $s->key === $key);
+
+            if ($filtered->count() > 0)
             {
                 //  move the duped troop onto the non-first record
-                $shift = $shifts->where('shift_starts_at', $x->dateStart)->first();
+                $shift = $filtered->first();
 
-                $this->overlayTroopers($x->id, $shift->id);
+                $this->overlayTroopers($legacy_shift->id, $shift->id);
             }
             else
             {
-                $shift = EventShift::find($x->id) ?? new EventShift(['id' => $x->id]);
+                $shift = EventShift::find($legacy_shift->id) ?? new EventShift(['id' => $legacy_shift->id]);
 
                 $shift->event_id = $event->id;
                 $shift->status = $event->status;
-                $shift->shift_starts_at = $x->dateStart;
-                $shift->shift_ends_at = $x->dateEnd;
+
+                // Assign normalized values
+                $shift->shift_starts_at = $start;
+                $shift->shift_ends_at = $end;
 
                 $shift->save();
 
-                $this->overlayTroopers($x->id, $shift->id);
+                $shift->key = $key;
+
+                $this->overlayTroopers($legacy_shift->id, $shift->id);
 
                 $shifts->add($shift);
             }
@@ -128,7 +149,7 @@ class EventSeeder extends Seeder
 
     private function overlayTroopers($legacy_id, $shift_id)
     {
-        $troopers = $this->sign_ups->filter(fn($s) => $s->troopid === $legacy_id);
+        $troopers = $this->sign_ups->filter(fn($s) => $s->troopid == $legacy_id);
 
         foreach ($troopers as $sign_up)
         {
@@ -143,10 +164,27 @@ class EventSeeder extends Seeder
 
                 $e->event_shift_id = $shift_id;
                 $e->trooper_id = $sign_up->trooperid;
-                $e->costume_id = in_array($sign_up->costume, $this->costumes) ? $sign_up->costume : null;
-                $e->backup_costume_id = in_array($sign_up->costume_backup, $this->costumes) ? $sign_up->costume_backup : null;
                 $e->status = $this->trooper_status_map[$sign_up->status];
-                //TODO $e->added_by_trooper_id = $sign_up->addedby > 0 ? $sign_up->addedby : null;
+                $e->signed_up_at = Carbon::parse($sign_up->signuptime);
+
+                $e->is_handler = isset($this->handler_ids[$sign_up->trooperid]);
+
+                if ($e->is_handler)
+                {
+                }
+                else
+                {
+                    $e->costume_id = in_array($sign_up->costume, $this->costumes) ? $sign_up->costume : null;
+                    $e->backup_costume_id = in_array($sign_up->costume_backup, $this->costumes) ? $sign_up->costume_backup : null;
+                }
+
+                if ($sign_up->addedby > 0)
+                {
+                    if (isset($this->trooper_ids[$sign_up->addedby]))
+                    {
+                        $e->added_by_trooper_id = $sign_up->addedby;
+                    }
+                }
 
                 $e->save();
             }
@@ -182,18 +220,15 @@ class EventSeeder extends Seeder
 
         if ($legacy->requestedNumber)
         {
-            $event->has_organization_limits = true;
             $event->troopers_allowed = max($legacy->limitTotalTroopers, $legacy->requestedNumber);
 
             if ($event->troopers_allowed == 500)
             {
-                $event->has_organization_limits = false;
                 $event->troopers_allowed = null;
             }
         }
         else
         {
-            $event->has_organization_limits = false;
             $event->troopers_allowed = null;
         }
 
@@ -222,6 +257,11 @@ class EventSeeder extends Seeder
     private function getLegacyEvents()
     {
         $all = DB::table('events')
+            ->where(function ($query)
+            {
+                $query->where('id', 10025)
+                    ->orWhere('link', 10025);
+            })
             ->orderBy('id')
             ->orderBy('link')
             ->get();

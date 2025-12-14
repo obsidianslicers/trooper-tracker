@@ -1,4 +1,4 @@
-@props(['property', 'disabled'=>false, 'value'=>''])
+@props(['property', 'disabled' => false, 'value' => ''])
 
 <x-input-text :property="$property"
               :value="$value"

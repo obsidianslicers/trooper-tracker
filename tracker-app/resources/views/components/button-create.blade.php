@@ -1,7 +1,7 @@
-@props(['uid'=>'button-' . uniqid()])
+@props(['uid' => 'button-' . uniqid()])
 
 <button type="button"
         {{$attributes->class(['btn btn-outline-success'])}}>
-  <i class="fa fw fa-add"></i>
-  {{ $slot }}
+    <i class="fa fw fa-add"></i>
+    {{ $slot }}
 </button>

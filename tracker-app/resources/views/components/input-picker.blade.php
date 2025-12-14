@@ -1,26 +1,26 @@
-@props(['property', 'value', 'route', 'params'=>[], 'text'=>''])
+@props(['property', 'value', 'route', 'params' => [], 'text' => ''])
 @php($haserror = $errors->has($property))
 
 <div id="picker-container-{{ $property }}"
      class="input-group pointer"
-     hx-get="{{ route($route, array_merge($params,['property'=>$property])) }}"
+     hx-get="{{ route($route, array_merge($params, ['property' => $property])) }}"
      hx-target="#modal-picker .modal-body"
      hx-trigger="click"
      data-bs-toggle="modal"
      data-bs-target="#modal-picker">
 
-  <x-input-hidden :property="$property"
-                  :value="$value" />
+    <x-input-hidden :property="$property"
+                    :value="$value" />
 
-  <input type="text"
-         readonly
-         name="picker-{{ $property }}"
-         class="form-control rounded-start pointer {{ $haserror ? ' is-invalid' : '' }}"
-         value="{{ $text }}" />
+    <input type="text"
+           readonly
+           name="picker-{{ $property }}"
+           class="form-control rounded-start pointer {{ $haserror ? ' is-invalid' : '' }}"
+           value="{{ $text }}" />
 
-  <span class="input-group-text">
-    <i class="fa fa-fw fa-search"></i>
-  </span>
+    <span class="input-group-text">
+        <i class="fa fa-fw fa-search"></i>
+    </span>
 </div>
 
 <x-input-error :property="$property" />

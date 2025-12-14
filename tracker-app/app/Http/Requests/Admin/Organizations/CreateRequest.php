@@ -9,19 +9,18 @@ use App\Rules\Admin\Organizations\UniqueNameRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * Handles the validation for the user registration form.
+ * Handles the validation for creating a new organization.
  *
- * This class defines the base validation rules for user registration and dynamically
- * adds rules based on the organizations a user selects, including custom rules for
- * organization-specific identifiers and unit selections. It also customizes error messages
- * for a better user experience.
+ * This class defines validation rules for creating child organizations under a parent
+ * organization. It ensures the organization name is unique among siblings within the
+ * same parent organization using a custom validation rule.
  */
 class CreateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      *
-     * @return bool Returns true as registration is open to guests.
+     * @return bool Returns true if the user has permission to create organizations.
      */
     public function authorize(): bool
     {
@@ -31,7 +30,10 @@ class CreateRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, mixed> The combined validation rules for the registration form.
+     * Validates the organization name ensuring it's unique among sibling organizations
+     * under the same parent organization.
+     *
+     * @return array<string, mixed> The validation rules for creating an organization.
      */
     public function rules(): array
     {
@@ -45,20 +47,5 @@ class CreateRequest extends FormRequest
         ];
 
         return $rules;
-    }
-
-    /**
-     * Prepare the data for validation.
-     *
-     * This method sanitizes the phone number by removing any non-digit characters.
-     */
-    protected function prepareForValidation(): void
-    {
-        if ($this->has('phone'))
-        {
-            $this->merge([
-                'phone' => preg_replace('/\D+/', '', $this->input('phone') ?? ''),
-            ]);
-        }
     }
 }

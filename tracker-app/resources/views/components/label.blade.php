@@ -1,5 +1,5 @@
-@props(['value', 'optional'=>false])
+@props(['value', 'optional' => false])
 
 <label {{$attributes->class(['form-label'])}}>
-  {{ $value ?? $slot }}
+    {{ $value ?? $slot }}
 </label>

@@ -27,7 +27,6 @@ class UpcomingTroopsHtmxControllerTest extends TestCase
             ->create();
 
         EventTrooper::factory()->withShift($older_shift)->withTrooper($trooper)->create();
-        // EventTrooper::factory()->withShift($newer_shift)->withTrooper($trooper)->create();
 
         // Act
         $response = $this->get(route('dashboard.upcoming-troops-htmx'));

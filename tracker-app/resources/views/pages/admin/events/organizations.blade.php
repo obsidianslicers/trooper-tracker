@@ -4,7 +4,7 @@
 
 @section('content')
 
-@include('pages.admin.events.tabs',['event'=>$event])
+@include('pages.admin.events.tabs',compact('event'))
 
 <x-slim-container>
 
@@ -116,7 +116,7 @@
       <x-submit-button>
         Update
       </x-submit-button>
-      <x-link-button-cancel :url="route('admin.events.update',['event'=>$event])" />
+      <x-link-button-cancel :url="route('admin.events.update',compact('event'))" />
     </x-submit-container>
 
   </form>

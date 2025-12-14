@@ -6,7 +6,9 @@ namespace App\Contracts;
 
 interface SynchronizerInterface
 {
-    public function syncAll(): void;
+    public function syncCostumes(): void;
+
+    public function syncAllMembers(): void;
 
     public function syncMember(string $identifier): void;
 }

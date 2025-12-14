@@ -7,7 +7,7 @@ namespace App\Enums;
 /**
  * Defines the possible statuses for a trooper's attendance at an event.
  */
-enum TrooperEventStatus: string
+enum EventTrooperStatus: string
 {
     use HasEnumHelpers;
 
@@ -22,7 +22,7 @@ enum TrooperEventStatus: string
     /**
      * Trooper is on standby for the event.
      */
-    case STANDBY = 'standby';
+    case STAND_BY = 'standby';
     /**
      * Trooper is tentatively planning to attend.
      */
@@ -34,7 +34,7 @@ enum TrooperEventStatus: string
     /**
      * Trooper has canceled their attendance.
      */
-    case CANCELED = 'canceled';
+    case CANCELLED = 'cancelled';
     /**
      * Trooper's attendance is pending approval.
      */
@@ -47,4 +47,14 @@ enum TrooperEventStatus: string
      * Trooper was confirmed but did not show up.
      */
     case NO_SHOW = 'noshow';
+
+    public static function toSignUpArray(): array
+    {
+        return [
+            self::GOING->value => to_title(self::GOING->name),
+            self::STAND_BY->value => to_title(self::STAND_BY->name),
+            self::TENTATIVE->value => to_title(self::TENTATIVE->name),
+            self::CANCELLED->value => to_title(self::CANCELLED->name),
+        ];
+    }
 }

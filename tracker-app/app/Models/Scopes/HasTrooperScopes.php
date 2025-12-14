@@ -23,7 +23,7 @@ trait HasTrooperScopes
      * @param string $username The username to search for.
      * @return Builder<Trooper>
      */
-    protected function scopeByUsername(Builder $query, string $username): Builder
+    public function scopeByUsername(Builder $query, string $username): Builder
     {
         return $query->where(self::USERNAME, $username);
     }
@@ -34,7 +34,7 @@ trait HasTrooperScopes
      * @param Builder<Trooper> $query The Eloquent query builder.
      * @return Builder<Trooper>
      */
-    protected function scopePendingApprovals(Builder $query): Builder
+    public function scopePendingApprovals(Builder $query): Builder
     {
         $with = [
             'trooper_assignments.organization.parent',
@@ -58,7 +58,7 @@ trait HasTrooperScopes
      * @param Trooper $trooper The moderator trooper.
      * @return Builder<Trooper>
      */
-    protected function scopeModeratedBy(Builder $query, Trooper $trooper): Builder
+    public function scopeModeratedBy(Builder $query, Trooper $trooper): Builder
     {
         if ($trooper->isAdministrator())
         {
@@ -85,7 +85,7 @@ trait HasTrooperScopes
      * @param string $search_term The term to search for in name, username, and email fields.
      * @return Builder<Trooper>
      */
-    protected function scopeSearchFor(Builder $query, string $search_term): Builder
+    public function scopeSearchFor(Builder $query, string $search_term): Builder
     {
         if (!str_starts_with($search_term, '%'))
         {

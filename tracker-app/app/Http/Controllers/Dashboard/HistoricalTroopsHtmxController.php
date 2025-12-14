@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
-use App\Models\Event;
 use App\Models\EventShift;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -34,7 +33,7 @@ class HistoricalTroopsHtmxController extends Controller
 
         $historical_shifts = EventShift::with('event.organization')
             ->byTrooper($trooper_id, true)
-            ->orderByDesc(EventShift::SHIFT_ENDS_AT)
+            ->orderByDesc(EventShift::SHIFT_STARTS_AT)
             ->get();
 
         $data = compact('historical_shifts');

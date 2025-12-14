@@ -50,6 +50,18 @@ class TrooperPolicy
     }
 
     /**
+     * Determine whether the user can moderate a trooper.
+     *
+     * @param Trooper $trooper The authenticated user performing the action.
+     * @param Trooper $subject The trooper being moderated.
+     * @return bool True if the user can moderate the subject, false otherwise.
+     */
+    public function moderate(Trooper $trooper, Trooper $subject): bool
+    {
+        return $this->canModerate($trooper, $subject);
+    }
+
+    /**
      * Determine whether the user can update a trooper.
      *
      * @param Trooper $trooper The authenticated user performing the action.

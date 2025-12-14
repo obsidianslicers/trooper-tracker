@@ -23,7 +23,7 @@ trait HasAwardScopes
      * @param Trooper $trooper The moderator to filter by.
      * @return Builder
      */
-    protected function scopeModeratedBy(Builder $query, Trooper $trooper): Builder
+    public function scopeModeratedBy(Builder $query, Trooper $trooper): Builder
     {
         if ($trooper->isAdministrator())
         {

@@ -17,7 +17,7 @@ use Illuminate\Support\Collection;
  * volunteer hours, and funds raised, and then updates their corresponding
  * achievements in the database.
  */
-class CalculateTrooperAchievements extends Command
+class CalculateTrooperAchievementsCommand extends Command
 {
     /**
      * The name and signature of the console command.

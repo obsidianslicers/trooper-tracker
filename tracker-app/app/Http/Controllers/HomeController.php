@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Models\Trooper;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -26,8 +26,13 @@ class HomeController extends Controller
      *
      * @return View The rendered account page view.
      */
-    public function __invoke(Request $request): View
+    public function __invoke(Request $request): View|RedirectResponse
     {
+        if (Auth::check())
+        {
+            return redirect()->route('events.list');
+        }
+
         $data = [];
 
         return view('pages.home', $data);

@@ -345,7 +345,8 @@ $themes: (
         }
 
         // Dashboard Cards
-        .dashboard-cards {
+        .dashboard-cards,
+        .event-cards {
             .card {
                 background-color: var(--bs-card-bg);
                 transition: all 0.2s ease;

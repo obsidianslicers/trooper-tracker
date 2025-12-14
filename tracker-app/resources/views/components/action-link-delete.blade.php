@@ -1,4 +1,4 @@
-@props(['url', 'label'=>'Delete'])
+@props(['url', 'label' => 'Delete'])
 
 <x-action-link :label="$label"
                :url="$url"

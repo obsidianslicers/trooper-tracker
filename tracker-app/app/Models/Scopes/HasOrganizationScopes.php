@@ -23,7 +23,7 @@ trait HasOrganizationScopes
      * @param Builder<Organization> $query The Eloquent query builder.
      * @return Builder<Organization>
      */
-    protected function scopeFullyLoaded(Builder $query): Builder
+    public function scopeFullyLoaded(Builder $query): Builder
     {
         return $query->with('organizations.organizations.organizations')
             ->where('type', OrganizationType::ORGANIZATION)
@@ -36,7 +36,7 @@ trait HasOrganizationScopes
      * @param Builder<Organization> $query The Eloquent query builder.
      * @return Builder<Organization>
      */
-    protected function scopeOfTypeOrganizations(Builder $query): Builder
+    public function scopeOfTypeOrganizations(Builder $query): Builder
     {
         return $query->where(self::TYPE, OrganizationType::ORGANIZATION);
     }
@@ -47,7 +47,7 @@ trait HasOrganizationScopes
      * @param Builder<Organization> $query The Eloquent query builder.
      * @return Builder<Organization>
      */
-    protected function scopeOfTypeRegions(Builder $query): Builder
+    public function scopeOfTypeRegions(Builder $query): Builder
     {
         return $query->where(self::TYPE, OrganizationType::REGION);
     }
@@ -58,7 +58,7 @@ trait HasOrganizationScopes
      * @param Builder<Organization> $query The Eloquent query builder.
      * @return Builder<Organization>
      */
-    protected function scopeOfTypeUnits(Builder $query): Builder
+    public function scopeOfTypeUnits(Builder $query): Builder
     {
         return $query->where(self::TYPE, OrganizationType::UNIT);
     }
@@ -70,7 +70,7 @@ trait HasOrganizationScopes
      * @param int|null $trooper_id If provided, filters to organizations where this specific trooper is active.
      * @return Builder<Organization>
      */
-    protected function scopeWithActiveTroopers(Builder $query, ?int $trooper_id = null): Builder
+    public function scopeWithActiveTroopers(Builder $query, ?int $trooper_id = null): Builder
     {
         return $query
             ->orderBy(self::NAME)
@@ -97,7 +97,7 @@ trait HasOrganizationScopes
      * @param int $trooper_id The ID of the trooper whose assignments should be loaded.
      * @return Builder<Organization>
      */
-    protected function scopeWithAllAssignments(Builder $query, int $trooper_id): Builder
+    public function scopeWithAllAssignments(Builder $query, int $trooper_id): Builder
     {
         return $query->orderBy(self::SEQUENCE)->with([
             'parent',
@@ -115,7 +115,7 @@ trait HasOrganizationScopes
      * @param Trooper $trooper
      * @return Builder
      */
-    protected function scopeModeratedBy(Builder $query, Trooper $trooper): Builder
+    public function scopeModeratedBy(Builder $query, Trooper $trooper): Builder
     {
         if ($trooper->isAdministrator())
         {

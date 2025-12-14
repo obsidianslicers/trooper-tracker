@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin\Events;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
+use App\Models\Organization;
 use App\Services\BreadCrumbService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -43,9 +44,14 @@ class UpdateController extends Controller
     {
         $this->authorize('update', $event);
 
-        $data = [
-            'event' => $event,
-        ];
+        $organizations = Organization::ofTypeOrganizations()->orderBy(Organization::NAME)->get();
+
+        foreach ($organizations as $organization)
+        {
+            $organization->selected = $event->organizations->contains($organization->id);
+        }
+
+        $data = compact('event', 'organizations');
 
         return view('pages.admin.events.update', $data);
     }

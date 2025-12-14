@@ -5,14 +5,56 @@ declare(strict_types=1);
 namespace App\Services\Organizations;
 
 use App\Enums\MembershipStatus;
+use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\TrooperOrganization;
+use DOMDocument;
+use DOMXPath;
 use Exception;
 use stdClass;
 
 class TheLegionService extends BaseOrganizationService
 {
-    public function syncAll(): void
+    public function syncCostumes(): void
+    {
+        // Load an entire HTML file
+        $dom = new DOMDocument();
+
+        libxml_use_internal_errors(true);
+
+        $dom->loadHTMLFile('https://crls.501st.com/costume-reference-library/costumes-by-name');
+
+        libxml_clear_errors();
+
+        $xpath = new DOMXPath($dom);
+
+        $links = $xpath->query('//article//a');
+
+        foreach ($links as $link)
+        {
+            //AR - ARC Trooper (CW) (Phase 1): Fordo
+            list($codex, $name) = explode(" - ", $link->textContent, 2);
+
+            $name = trim($name);
+
+            $costume = $this->organization->organization_costumes()
+                ->where(OrganizationCostume::NAME, $name)
+                ->first();
+
+            if ($costume == null)
+            {
+                $costume = new OrganizationCostume();
+                $costume->organization_id = $this->organization->id;
+                $costume->name = $name;
+            }
+
+            $costume->verified_at = now();
+
+            $costume->save();
+        }
+    }
+
+    public function syncAllMembers(): void
     {
         $troopers = $this->organization->troopers()
             ->wherePivotNull(TrooperOrganization::VERIFIED_AT)

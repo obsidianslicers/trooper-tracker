@@ -26,48 +26,10 @@
 
       <x-input-container>
         <x-label>
-          Type:
+          Source (501st email):
         </x-label>
-        <x-input-select :property="'type'"
-                        :value="$event->title"
-                        :options="$options" />
-      </x-input-container>
-
-      <x-input-container>
-        <x-label>
-          Title:
-        </x-label>
-        <x-input-text :property="'title'"
-                      :value="$event->title" />
-      </x-input-container>
-
-      <x-input-container>
-        <div class="row">
-          <div class="col-6">
-            <x-label>
-              Starts:
-            </x-label>
-            <x-input-datetime :property="'starts_at'"
-                              :value="$event->starts_at" />
-          </div>
-          <div class="col-6">
-            <x-label>
-              Ends:
-            </x-label>
-            <x-input-datetime :property="'ends_at'"
-                              :value="$event->ends_at" />
-          </div>
-        </div>
-      </x-input-container>
-
-      <x-input-container>
-        <x-label>
-          Message:
-        </x-label>
-        <x-input-text class="markdown-editor"
-                      :multiline="true"
-                      :property="'message'"
-                      :value="$event->message" />
+        <x-input-text :property="'source'"
+                      :multiline="true" />
       </x-input-container>
 
       <x-submit-container>

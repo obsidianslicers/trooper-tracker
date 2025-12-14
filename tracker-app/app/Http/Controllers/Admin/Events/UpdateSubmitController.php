@@ -41,57 +41,104 @@ class UpdateSubmitController extends Controller
      */
     public function __invoke(UpdateRequest $request, Event $event): RedirectResponse
     {
-        $reset_limits = $event->has_organization_limits != $request->validated('limit_organizations');
-
-        $event->name = $request->validated('name');
-        $event->starts_at = $request->validated('starts_at');
-        $event->ends_at = $request->validated('ends_at');
-        $event->status = $request->validated('status');
-        $event->has_organization_limits = $request->validated('limit_organizations');
-        $event->troopers_allowed = $request->validated('troopers_allowed');
-        $event->handlers_allowed = $request->validated('handlers_allowed');
-
-        $event->save();
-
-        if ($reset_limits)
-        {
-            $this->resetLimits($event);
-        }
+        $this->updateEvent($request, $event);
+        $this->updateOrganizations($request, $event);
 
         $this->flash->updated($event);
 
-        return redirect()->route('admin.events.update', ['event' => $event]);
+        return redirect()->route('admin.events.update', compact('event'));
     }
 
-    private function resetLimits(Event $event)
+    private function updateEvent(UpdateRequest $request, Event $event): void
     {
-        if ($event->has_organization_limits)
-        {
-            $organizations = Organization::all();
+        $event->name = $request->validated('name');
+        $event->status = $request->validated('status');
+        $event->troopers_allowed = $request->validated('troopers_allowed');
+        $event->handlers_allowed = $request->validated('handlers_allowed');
 
-            foreach ($organizations as $organization)
-            {
-                EventOrganization::updateOrCreate(
-                    [
-                        EventOrganization::EVENT_ID => $event->id,
-                        EventOrganization::ORGANIZATION_ID => $organization->id,
-                    ],
-                    [
-                        EventOrganization::CAN_ATTEND => true,
-                        EventOrganization::TROOPERS_ALLOWED => null,
-                        EventOrganization::HANDLERS_ALLOWED => null,
-                    ]);
-            }
-        }
-        else
-        {
-            $event->organizations()->update([
-                EventOrganization::CAN_ATTEND => false,
-                EventOrganization::TROOPERS_ALLOWED => null,
-                EventOrganization::HANDLERS_ALLOWED => null,
-            ]);
-        }
+        // Coordinates
+        $event->latitude = $request->validated('latitude');
+        $event->longitude = $request->validated('longitude');
+
+        // Contact info
+        $event->contact_name = $request->validated('contact_name');
+        $event->contact_phone = $request->validated('contact_phone');
+        $event->contact_email = $request->validated('contact_email');
+
+        // Event details
+        $event->venue = $request->validated('venue');
+        $event->venue_address = $request->validated('venue_address');
+        $event->venue_city = $request->validated('venue_city');
+        $event->venue_state = $request->validated('venue_state');
+        $event->venue_zip = $request->validated('venue_zip');
+        $event->venue_country = $request->validated('venue_country');
+        $event->event_start = $request->validated('event_start');
+        $event->event_end = $request->validated('event_end');
+        $event->event_website = $request->validated('event_website');
+
+        // Request specifics
+        $event->expected_attendees = $request->validated('expected_attendees');
+        $event->requested_characters = $request->validated('requested_characters');
+        $event->requested_character_types = $request->validated('requested_character_types');
+
+        // Venue amenities / permissions
+        $event->secure_staging_area = $request->validated('secure_staging_area');
+        $event->allow_blasters = $request->validated('allow_blasters');
+        $event->allow_props = $request->validated('allow_props');
+        $event->parking_available = $request->validated('parking_available');
+        $event->accessible = $request->validated('accessible');
+        $event->amenities = $request->validated('amenities');
+
+        // Misc
+        $event->comments = $request->validated('comments');
+        $event->referred_by = $request->validated('referred_by');
+
+        $event->save();
     }
+
+    private function updateOrganizations(UpdateRequest $request, Event $event): void
+    {
+        $input = $request->validated('organizations');
+
+        $pivot_data = $event->organizations->pluck('id')
+            ->mapWithKeys(fn($id) => [$id => [EventOrganization::CAN_ATTEND => false]])
+            ->toArray();
+
+        //  merge arrays - left wins    
+        $updates = $input + $pivot_data;
+
+        $event->organizations()->syncWithoutDetaching($updates);
+    }
+
+    // private function resetLimits(Event $event)
+    // {
+    //     if ($event->has_organization_limits)
+    //     {
+    //         $organizations = Organization::all();
+
+    //         foreach ($organizations as $organization)
+    //         {
+    //             EventOrganization::updateOrCreate(
+    //                 [
+    //                     EventOrganization::EVENT_ID => $event->id,
+    //                     EventOrganization::ORGANIZATION_ID => $organization->id,
+    //                 ],
+    //                 [
+    //                     EventOrganization::CAN_ATTEND => true,
+    //                     EventOrganization::TROOPERS_ALLOWED => null,
+    //                     EventOrganization::HANDLERS_ALLOWED => null,
+    //                 ]);
+    //         }
+    //     }
+    //     else
+    //     {
+    //         $event->organizations()->update([
+    //             EventOrganization::CAN_ATTEND => false,
+    //             EventOrganization::TROOPERS_ALLOWED => null,
+    //             EventOrganization::HANDLERS_ALLOWED => null,
+    //         ]);
+    //     }
+    // }
 
     // private function allocate(Event $event, int $capacity = 500)
     // {

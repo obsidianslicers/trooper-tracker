@@ -10,19 +10,23 @@ use Illuminate\Contracts\Validation\Validator as ValidatorInterface;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * Handles the validation for the user registration form.
+ * Handles the validation for updating an existing organization.
  *
- * This class defines the base validation rules for user registration and dynamically
- * adds rules based on the organizations a user selects, including custom rules for
- * organization-specific identifiers and unit selections. It also customizes error messages
- * for a better user experience.
+ * This class defines validation rules for updating organization information.
+ * It ensures the organization name remains unique among sibling organizations
+ * (children of the same parent) while excluding the organization being updated
+ * from the uniqueness check.
  */
 class UpdateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      *
-     * @return bool Returns true as registration is open to guests.
+     * Verifies that the organization exists in the route and that the authenticated
+     * user has permission to update it.
+     *
+     * @return bool Returns true if the user can update the organization.
+     * @throws AuthorizationException if the organization is not found in the route.
      */
     public function authorize(): bool
     {
@@ -39,7 +43,10 @@ class UpdateRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, mixed> The combined validation rules for the registration form.
+     * Validates the organization name ensuring it's unique among sibling organizations,
+     * excluding the current organization from the uniqueness check.
+     *
+     * @return array<string, mixed> The validation rules for updating an organization.
      */
     public function rules(): array
     {
@@ -53,25 +60,5 @@ class UpdateRequest extends FormRequest
         ];
 
         return $rules;
-    }
-
-    /**
-     * Prepare the data for validation.
-     *
-     * This method sanitizes the phone number by removing any non-digit characters.
-     */
-    protected function prepareForValidation(): void
-    {
-        if ($this->has('phone'))
-        {
-            $this->merge([
-                'phone' => preg_replace('/\D+/', '', $this->input('phone') ?? ''),
-            ]);
-        }
-    }
-
-    protected function failedValidation(ValidatorInterface $validator): void
-    {
-        //  avoids failing in HTMX
     }
 }

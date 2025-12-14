@@ -79,7 +79,7 @@
 
       <x-submit-container>
         <x-submit-button>
-          Save
+          Update
         </x-submit-button>
       </x-submit-container>
     </form>

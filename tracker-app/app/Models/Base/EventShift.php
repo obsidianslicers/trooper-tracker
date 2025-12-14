@@ -21,8 +21,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $id
  * @property int $event_id
  * @property string $status
- * @property Carbon|null $shift_starts_at
- * @property Carbon|null $shift_ends_at
+ * @property Carbon $shift_starts_at
+ * @property Carbon $shift_ends_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property string|null $deleted_at

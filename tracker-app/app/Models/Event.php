@@ -5,11 +5,13 @@ namespace App\Models;
 use App\Enums\EventStatus;
 use App\Enums\EventType;
 use App\Models\Base\Event as BaseEvent;
+use App\Models\Casts\SanitizeHtmlCast;
 use App\Models\Concerns\HasFilter;
 use App\Models\Concerns\HasTrooperStamps;
 use App\Models\Scopes\HasEventScopes;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Event extends BaseEvent
 {
@@ -28,21 +30,73 @@ class Event extends BaseEvent
         return array_merge($this->casts, [
             self::TYPE => EventType::class,
             self::STATUS => EventStatus::class,
+            self::NAME => SanitizeHtmlCast::class,
+            self::CHARITY_NAME => SanitizeHtmlCast::class,
+            self::CONTACT_NAME => SanitizeHtmlCast::class,
+            self::CONTACT_PHONE => SanitizeHtmlCast::class,
+            self::CONTACT_EMAIL => SanitizeHtmlCast::class,
+            self::VENUE => SanitizeHtmlCast::class,
+            self::VENUE_ADDRESS => SanitizeHtmlCast::class,
+            self::VENUE_CITY => SanitizeHtmlCast::class,
+            self::VENUE_STATE => SanitizeHtmlCast::class,
+            self::VENUE_ZIP => SanitizeHtmlCast::class,
+            self::VENUE_COUNTRY => SanitizeHtmlCast::class,
+            self::EVENT_WEBSITE => SanitizeHtmlCast::class,
+            self::REQUESTED_CHARACTER_TYPES => SanitizeHtmlCast::class,
         ]);
     }
 
-    /**
-     * Get the display string for the event time.
-     *
-     * @return string
-     */
-    public function timeDisplay(): string
+    public function troopers(): HasManyThrough
+    {
+        // hasManyThrough: Event -> EventShift -> EventTrooper
+        return $this->hasManyThrough(EventTrooper::class, EventShift::class);
+    }
+
+    public function getTimeDisplayAttribute(): string
     {
         //Sat - Oct 03, 2026 - 2:00pm - 4:00pm
         return $this->event_start->format('D') . ' - ' .
             $this->event_start->format('M d, Y') . ' - ' .
             $this->event_start->format('g:ia') . ' - ' .
             $this->event_end->format('g:ia');
+    }
+
+    public function getIsOpenAttribute(): bool
+    {
+        return $this->status === EventStatus::OPEN;
+    }
+
+    public function getIsLockedAttribute(): bool
+    {
+        return $this->status === EventStatus::SIGN_UP_LOCKED;
+    }
+
+    public function getIsActiveAttribute(): bool
+    {
+        switch ($this->status)
+        {
+            case EventStatus::DRAFT:
+            case EventStatus::OPEN:
+            case EventStatus::SIGN_UP_LOCKED:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    public function getAtRiskAttribute(): bool
+    {
+        if ($this->is_active)
+        {
+            $starts_soon = $this->event_start->lte(Carbon::now()->addDays(5));
+
+            if ($starts_soon)
+            {
+                return $this->event_shifts->sum('event_troopers_count') == 0;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -53,27 +107,6 @@ class Event extends BaseEvent
      * @return \App\Models\Event
      */
     public static function fromEmail(string $body, string $source_format = '501st'): static
-    {
-        $event = self::parseEmail($body, $source_format);
-
-        if ((int) $event->requested_characters > 0)
-        {
-            $event->has_organization_limits = true;
-            $event->troopers_allowed = $event->requested_characters;
-            $event->handlers_allowed = null;
-        }
-
-        return $event;
-    }
-
-    /**
-     * Parse an email body and return an EventRequest object.
-     *
-     * @param string $body
-     * @param string $source_format
-     * @return \App\Models\Event
-     */
-    private static function parseEmail(string $body, string $source_format): static
     {
         $lines = preg_split("/\r\n|\n|\r/", $body);
         $parsed = [];
@@ -106,34 +139,28 @@ class Event extends BaseEvent
                 }
             }
         }
-
-        // Hydrate an EventRequest object WITHOUT saving
         return new static([
-            'contact_name' => $parsed['Contact Name'] ?? null,
-            'contact_phone' => $parsed['Contact Phone Number'] ?? null,
-            'contact_email' => $parsed['Contact Email'] ?? null,
-            'name' => $parsed['Event Name'] ?? null,
-            'venue' => $parsed['Venue'] ?? null,
-            'venue_address' => $parsed['Venue address'] ?? null,
-            'event_start' => isset($parsed['Event Start'])
-                ? Carbon::createFromFormat('m/d/Y - Hi', $parsed['Event Start'])
-                : null,
-            'event_end' => isset($parsed['Event End'])
-                ? Carbon::createFromFormat('m/d/Y - Hi', $parsed['Event End'])
-                : null,
-            'event_website' => $parsed['Event Website'] ?? null,
-            'expected_attendees' => $parsed['Expected number of attendees'] ?? null,
-            'requested_characters' => $parsed['Requested number of characters'] ?? null,
-            'requested_character_types' => $parsed['Requested character types'] ?? null,
-            'secure_staging_area' => ($parsed['Secure changing/staging area'] ?? '') === 'Yes',
-            'allow_blasters' => ($parsed['Can troopers carry blasters'] ?? '') === 'Yes',
-            'allow_props' => ($parsed['Can troopers carry/bring props like lightsabers and staffs'] ?? '') === 'Yes',
-            'parking_available' => ($parsed['Is parking available'] ?? '') === 'Yes',
-            'accessible' => ($parsed['Is venue accessible to those with limited mobility'] ?? '') === 'Yes',
-            'amenities' => $parsed['Amenities available at venue'] ?? null,
-            'comments' => $parsed['Comments'] ?? null,
-            'referred_by' => $parsed['Referred by'] ?? null,
-            'source' => $body
+            self::CONTACT_NAME => $parsed['Contact Name'] ?? null,
+            self::CONTACT_PHONE => $parsed['Contact Phone Number'] ?? null,
+            self::CONTACT_EMAIL => $parsed['Contact Email'] ?? null,
+            self::NAME => $parsed['Event Name'] ?? null,
+            self::VENUE => $parsed['Venue'] ?? null,
+            self::VENUE_ADDRESS => $parsed['Venue address'] ?? null,
+            self::EVENT_START => isset($parsed['Event Start']) ? Carbon::createFromFormat('m/d/Y - Hi', $parsed['Event Start']) : null,
+            self::EVENT_END => isset($parsed['Event End']) ? Carbon::createFromFormat('m/d/Y - Hi', $parsed['Event End']) : null,
+            self::EVENT_WEBSITE => $parsed['Event Website'] ?? null,
+            self::EXPECTED_ATTENDEES => $parsed['Expected number of attendees'] ?? null,
+            self::REQUESTED_CHARACTERS => $parsed['Requested number of characters'] ?? null,
+            self::REQUESTED_CHARACTER_TYPES => $parsed['Requested character types'] ?? null,
+            self::SECURE_STAGING_AREA => ($parsed['Secure changing/staging area'] ?? '') === 'Yes',
+            self::ALLOW_BLASTERS => ($parsed['Can troopers carry blasters'] ?? '') === 'Yes',
+            self::ALLOW_PROPS => ($parsed['Can troopers carry/bring props like lightsabers and staffs'] ?? '') === 'Yes',
+            self::PARKING_AVAILABLE => ($parsed['Is parking available'] ?? '') === 'Yes',
+            self::ACCESSIBLE => ($parsed['Is venue accessible to those with limited mobility'] ?? '') === 'Yes',
+            self::AMENITIES => $parsed['Amenities available at venue'] ?? null,
+            self::COMMENTS => $parsed['Comments'] ?? null,
+            self::REFERRED_BY => $parsed['Referred by'] ?? null,
+            self::SOURCE => $body,
         ]);
     }
 }

@@ -59,14 +59,42 @@ Use these commands to run your PHPUnit test suite.
 
 These commands are typically run on your production server as part of your deployment process to ensure optimal performance.
 
-| Command | Description |
-|---|---|
-| php artisan down | Bring the website down for maintenance |
-| composer install --optimize-autoloader --no-dev | Installs dependencies, optimized for production without dev packages. |
-| npm run build | Compiles and minifies frontend assets for production. |
-| php artisan migrate --force | Runs database migrations. --force is required in a production environment. |
-| php artisan config:cache | Caches the application configuration for a performance boost. |
-| php artisan route:cache | Caches the application routes for a performance boost. |
-| php artisan view:cache | Caches the application's Blade views for a performance boost. |
-| php artisan queue:restart | Gracefully restarts queue workers to use the newly deployed code (if using queues). |
-| php artisan up | Bring the website back up after maintenance |
+```
+#!/bin/bash
+set -e
+
+echo "🚧 Putting application into maintenance mode..."
+php artisan down --render="errors::503" --retry=60
+
+echo "📦 Pulling latest code..."
+git pull origin main
+
+echo "📦 Installing PHP dependencies..."
+composer install --no-dev --optimize-autoloader
+
+echo "🎨 Building front-end assets..."
+npm ci
+npm run build
+
+echo "🗄️ Running database migrations..."
+php artisan migrate --force
+
+echo "⚡ Clearing and caching config/routes/views..."
+php artisan config:clear
+php artisan route:clear
+php artisan view:clear
+php artisan event:clear
+
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+php artisan event:cache
+
+echo "🔄 Restarting queue workers..."
+php artisan queue:restart
+
+echo "✅ Bringing application back online..."
+php artisan up
+
+echo "🎉 Deployment complete!"
+```

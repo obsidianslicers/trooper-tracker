@@ -25,6 +25,7 @@ import EasyMDE from "easymde";
 window.EasyMDE = EasyMDE;
 
 //  custom 
+import './custom/bootstrap-events.js';
 import './custom/htmx-button-disable.js';
 import './custom/htmx-csrf.js';
 import './custom/htmx-date-picker.js';

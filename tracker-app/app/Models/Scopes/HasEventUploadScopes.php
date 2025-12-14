@@ -19,7 +19,7 @@ trait HasEventUploadScopes
      * @param int $event_id The ID of the event to filter by.
      * @return Builder<self>
      */
-    protected function scopeByEvent(Builder $query, int $event_id): Builder
+    public function scopeByEvent(Builder $query, int $event_id): Builder
     {
         return $query->with('troopers')
             ->where(self::EVENT_ID, $event_id);
@@ -32,7 +32,7 @@ trait HasEventUploadScopes
      * @param int $trooper_id The ID of the trooper to filter by.
      * @return Builder<self>
      */
-    protected function scopeByTrooper(Builder $query, int $trooper_id): Builder
+    public function scopeByTrooper(Builder $query, int $trooper_id): Builder
     {
         return $query->with('troopers')
             ->whereHas('troopers', fn($q) => $q->where(EventUploadTrooper::TROOPER_ID, $trooper_id));

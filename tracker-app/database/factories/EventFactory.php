@@ -25,7 +25,6 @@ class EventFactory extends BaseEventFactory
             Event::ORGANIZATION_ID => Organization::factory(),
             Event::EVENT_START => $starts_at,
             Event::EVENT_END => $ends_at,
-            Event::HAS_ORGANIZATION_LIMITS => $this->faker->boolean(),
             Event::TROOPERS_ALLOWED => $this->faker->numberBetween(10, 50),
             Event::HANDLERS_ALLOWED => $this->faker->numberBetween(2, 5),
             Event::TYPE => EventType::REGULAR->value,
@@ -91,8 +90,8 @@ class EventFactory extends BaseEventFactory
         {
             return [
                 Event::STATUS => EventStatus::CLOSED,
-                Event::EVENT_START => $this->faker->dateTimeBetween('-2 years', '-1 month'),
-                Event::EVENT_END => $this->faker->dateTimeBetween('-1 month', '-1 day'),
+                Event::EVENT_START => $attributes[Event::EVENT_START] ?? $this->faker->dateTimeBetween('-2 years', '-1 month'),
+                Event::EVENT_END => $attributes[Event::EVENT_END] ?? $this->faker->dateTimeBetween('-1 month', '-1 day'),
             ];
         });
     }
@@ -108,8 +107,8 @@ class EventFactory extends BaseEventFactory
         {
             return [
                 Event::STATUS => EventStatus::OPEN,
-                Event::EVENT_START => $this->faker->dateTimeBetween('now', '+1 month'),
-                Event::EVENT_END => $this->faker->dateTimeBetween('+1 month', '+1 year'),
+                Event::EVENT_START => $attributes[Event::EVENT_START] ?? $this->faker->dateTimeBetween('now', '+1 month'),
+                Event::EVENT_END => $attributes[Event::EVENT_END] ?? $this->faker->dateTimeBetween('+1 month', '+1 year'),
             ];
         });
     }

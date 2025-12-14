@@ -9,19 +9,18 @@ use App\Http\Requests\HtmxFormRequest;
 use App\Models\Trooper;
 
 /**
- * Handles the validation for the user registration form.
+ * Handles the validation for the user profile update form.
  *
- * This class defines the base validation rules for user registration and dynamically
- * adds rules based on the organizations a user selects, including custom rules for
- * organization-specific identifiers and unit selections. It also customizes error messages
- * for a better user experience.
+ * This class defines validation rules for updating a trooper's profile information,
+ * including name, email, phone, and theme preferences. The phone number is sanitized
+ * during validation preparation to ensure consistent formatting.
  */
 class ProfileRequest extends HtmxFormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      *
-     * @return bool Returns true as registration is open to guests.
+     * @return bool Returns true as any authenticated user can update their profile.
      */
     public function authorize(): bool
     {
@@ -31,7 +30,7 @@ class ProfileRequest extends HtmxFormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, mixed> The combined validation rules for the registration form.
+     * @return array<string, mixed> The validation rules for the profile update form.
      */
     public function rules(): array
     {

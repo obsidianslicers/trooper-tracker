@@ -103,6 +103,6 @@ class LoginSubmitController extends Controller
     {
         Auth::login($trooper, $request->remember_me);
 
-        return redirect()->intended(route('account.profile'));
+        return redirect()->intended(route('events.list'));
     }
 }

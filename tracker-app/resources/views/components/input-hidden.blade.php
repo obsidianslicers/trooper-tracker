@@ -1,4 +1,4 @@
-@props(['property', 'value'=>''])
+@props(['property', 'value' => ''])
 @php($bracketed = to_bracket_name($property))
 <input type="hidden"
        name="{{ $bracketed }}"

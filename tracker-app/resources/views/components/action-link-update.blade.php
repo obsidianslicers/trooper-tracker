@@ -1,4 +1,4 @@
-@props(['url', 'label'=>'Update'])
+@props(['url', 'label' => 'Update'])
 
 <x-action-link :label="$label"
                :url="$url"
