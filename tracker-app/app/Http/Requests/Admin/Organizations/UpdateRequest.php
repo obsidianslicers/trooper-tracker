@@ -32,7 +32,7 @@ class UpdateRequest extends FormRequest
     {
         $organization = $this->route('organization');
 
-        if ($organization == null)
+        if ($organization === null)
         {
             throw new AuthorizationException('Organization not found or unauthorized.');
         }

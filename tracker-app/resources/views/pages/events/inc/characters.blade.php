@@ -8,6 +8,9 @@
             <x-yes-no class="me-2"
                       :value="true" />
             {{ $organization->name }}
+            <span class="float-end">
+                {{ $organization->pivot->troopers_allowed }}
+            </span>
         </li>
     @endforeach
 </ul>

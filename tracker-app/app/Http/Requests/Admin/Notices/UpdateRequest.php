@@ -31,7 +31,7 @@ class UpdateRequest extends FormRequest
     {
         $notice = $this->route('notice');
 
-        if ($notice == null)
+        if ($notice === null)
         {
             throw new AuthorizationException('Notice not found or unauthorized.');
         }

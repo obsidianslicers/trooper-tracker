@@ -31,7 +31,7 @@ class ProfileRequest extends FormRequest
     {
         $trooper = $this->route('trooper');
 
-        if ($trooper == null)
+        if ($trooper === null)
         {
             throw new AuthorizationException('Trooper not found or unauthorized.');
         }

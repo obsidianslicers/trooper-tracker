@@ -11,6 +11,13 @@ use App\Models\Scopes\HasAwardScopes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
+/**
+ * Represents an award that can be given to troopers.
+ *
+ * Awards are recognitions given to members for their participation, achievements,
+ * or milestones. Each award has a frequency (one-time, annual, etc.) and can be
+ * awarded to multiple troopers through a pivot relationship.
+ */
 class Award extends BaseAward
 {
     use HasFilter;
@@ -30,6 +37,11 @@ class Award extends BaseAward
         ]);
     }
 
+    /**
+     * Get the troopers that have been awarded this award.
+     *
+     * @return BelongsToMany<Trooper>
+     */
     public function troopers(): BelongsToMany
     {
         return parent::troopers()->using(AwardTrooperPivot::class);

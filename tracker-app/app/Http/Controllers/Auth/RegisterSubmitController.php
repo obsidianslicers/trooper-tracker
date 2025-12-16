@@ -49,7 +49,7 @@ class RegisterSubmitController extends Controller
                 password: $request->password
             );
 
-            if ($auth_user_id == null)
+            if ($auth_user_id === null)
             {
                 return back()
                     ->withInput()

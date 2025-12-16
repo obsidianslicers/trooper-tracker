@@ -31,7 +31,7 @@ class UpdateRequest extends FormRequest
     {
         $award = $this->route('award');
 
-        if ($award == null)
+        if ($award === null)
         {
             throw new AuthorizationException('Award not found or unauthorized.');
         }

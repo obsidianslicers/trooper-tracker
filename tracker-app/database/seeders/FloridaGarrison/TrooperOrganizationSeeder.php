@@ -122,7 +122,7 @@ class TrooperOrganizationSeeder extends Seeder
             ->where(TrooperOrganization::ORGANIZATION_ID, $organization->id)
             ->first();
 
-        if ($to == null)
+        if ($to === null)
         {
             $to = new TrooperOrganization();
 
@@ -142,7 +142,7 @@ class TrooperOrganizationSeeder extends Seeder
             ->where(TrooperAssignment::ORGANIZATION_ID, $organization_id)
             ->first();
 
-        if ($t == null)
+        if ($t === null)
         {
             $t = new TrooperAssignment();
 

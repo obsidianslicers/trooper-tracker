@@ -12,3 +12,8 @@ a,
 a:hover {
     text-decoration: none;
 }
+
+.trooper-status-cancelled {
+    text-decoration: line-through;
+    opacity: 0.6;
+}

@@ -6,6 +6,7 @@ namespace App\Http\Requests\Admin\Events;
 
 use App\Enums\EventStatus;
 use App\Models\Event;
+use App\Models\EventOrganization;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -26,7 +27,7 @@ class UpdateRequest extends FormRequest
     {
         $event = $this->route('event');
 
-        if ($event == null)
+        if ($event === null)
         {
             throw new AuthorizationException('Event not found or unauthorized.');
         }
@@ -46,6 +47,8 @@ class UpdateRequest extends FormRequest
             Event::STATUS => ['required', 'string', 'max:16', 'in:' . EventStatus::toValidator()],
             Event::TROOPERS_ALLOWED => ['nullable', 'integer', 'between:1,99999'],
             Event::HANDLERS_ALLOWED => ['nullable', 'integer', 'between:0,99999'],
+            Event::FRIENDS_ALLOWED => ['nullable', 'integer', 'between:0,99999'],
+            Event::TENTATIVE_SIGNUPS_ALLOWED => ['boolean'],
             Event::CONTACT_NAME => ['nullable', 'string', 'max:128'],
             Event::CONTACT_PHONE => ['nullable', 'string', 'max:128'],
             Event::CONTACT_EMAIL => ['nullable', 'email', 'max:128'],
@@ -78,7 +81,9 @@ class UpdateRequest extends FormRequest
             Event::LATITUDE => ['nullable', 'numeric', 'between:-90,90'],
             Event::LONGITUDE => ['nullable', 'numeric', 'between:-180,180'],
 
-            'organizations.*.can_attend' => ['boolean'],
+            'organizations.*.' . EventOrganization::CAN_ATTEND => ['boolean'],
+            'organizations.*.' . EventOrganization::TROOPERS_ALLOWED => ['nullable', 'integer', 'between:1,99999'],
+            'organizations.*.' . EventOrganization::HANDLERS_ALLOWED => ['nullable', 'integer', 'between:1,99999'],
         ];
 
         return $rules;
@@ -111,10 +116,16 @@ class UpdateRequest extends FormRequest
         foreach ($organizations as $key => $org)
         {
             // If 'can_attend' is missing, default to false
-            $can_attend = $org['can_attend'] ?? false;
+            $can_attend = $org[EventOrganization::CAN_ATTEND] ?? false;
 
             // Coerce to boolean (handles "on", "1", "true", etc.)
-            $organizations[$key]['can_attend'] = filter_var($can_attend, FILTER_VALIDATE_BOOLEAN);
+            $organizations[$key][EventOrganization::CAN_ATTEND] = filter_var($can_attend, FILTER_VALIDATE_BOOLEAN);
+
+            if (!$organizations[$key][EventOrganization::CAN_ATTEND])
+            {
+                $organizations[$key][EventOrganization::TROOPERS_ALLOWED] = null;
+                $organizations[$key][EventOrganization::HANDLERS_ALLOWED] = null;
+            }
         }
 
         $this->merge(['organizations' => $organizations]);

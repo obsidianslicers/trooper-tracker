@@ -35,7 +35,7 @@ class OrganizationCostumeSeeder extends Seeder
                 ->where(OrganizationCostume::ORGANIZATION_ID, $club['id'])
                 ->first();
 
-            if ($c == null)
+            if ($c === null)
             {
                 $c = new OrganizationCostume(['id' => $costume->id]);
             }

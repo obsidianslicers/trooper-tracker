@@ -122,4 +122,62 @@ class HasTrooperScopesTest extends TestCase
         $query = Trooper::searchFor('%estus%');
         $this->assertEquals(['%estus%', '%estus%', '%estus%'], $query->getBindings());
     }
+
+    public function test_active_scope_returns_only_active_troopers(): void
+    {
+        // Arrange
+        Trooper::factory()->asActive()->create(['name' => 'Active Trooper']);
+        Trooper::factory()->asPending()->create(['name' => 'Pending Trooper']);
+        Trooper::factory()->asRetired()->create(['name' => 'Retired Trooper']);
+
+        // Act
+        $results = Trooper::active()->get();
+
+        // Assert
+        $this->assertCount(1, $results);
+        $this->assertEquals('Active Trooper', $results[0]->name);
+        $this->assertEquals(MembershipStatus::ACTIVE, $results[0]->membership_status);
+    }
+
+    public function test_active_scope_filters_correctly(): void
+    {
+        // Arrange
+        $active_trooper = Trooper::factory()->asActive()->create();
+        $pending_trooper = Trooper::factory()->asPending()->create();
+
+        // Act
+        $active_results = Trooper::active()->pluck('id')->toArray();
+
+        // Assert
+        $this->assertContains($active_trooper->id, $active_results);
+        $this->assertNotContains($pending_trooper->id, $active_results);
+    }
+
+    public function test_active_scope_can_be_combined_with_other_scopes(): void
+    {
+        // Arrange
+        Trooper::factory()->asActive()->create(['username' => 'active_user']);
+        Trooper::factory()->asPending()->create(['username' => 'pending_user']);
+
+        // Act
+        $result = Trooper::active()->byUsername('active_user')->first();
+
+        // Assert
+        $this->assertNotNull($result);
+        $this->assertEquals('active_user', $result->username);
+        $this->assertEquals(MembershipStatus::ACTIVE, $result->membership_status);
+    }
+
+    public function test_active_scope_returns_empty_when_no_active_troopers(): void
+    {
+        // Arrange
+        Trooper::factory()->asPending()->create();
+        Trooper::factory()->asRetired()->create();
+
+        // Act
+        $results = Trooper::active()->get();
+
+        // Assert
+        $this->assertCount(0, $results);
+    }
 }

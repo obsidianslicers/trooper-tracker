@@ -6,29 +6,37 @@ namespace App\Http\Controllers\Events;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
+use App\Models\EventOrganization;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 /**
- * Handles the display of the main account management page.
+ * Displays the list of upcoming events available for sign-up.
  *
- * This controller is responsible for fetching the authenticated user's
- * data and rendering the primary account view where they can manage
- * their profile, settings, and other account-related information.
+ * This controller renders the main events listing page, showing all upcoming
+ * events with their organizations, shifts, and attendance information. Only
+ * events where the user's organization can attend are included.
  */
 class ListController extends Controller
 {
     /**
-     * Handle the incoming request to display the account page.
+     * Handle the incoming request to display the events list page.
      *
-     * This method retrieves the authenticated user's trooper profile and
-     * renders the main account management view with the trooper's data.
+     * Retrieves all upcoming events with their associated organizations
+     * (filtered to only those that can attend), shifts, and organizer details.
+     * Events are ordered by date and filtered to only show future events.
      *
-     * @return View The rendered account page view.
+     * @param Request $request The incoming request
+     * @return View The rendered events list page with upcoming events
      */
     public function __invoke(Request $request): View
     {
-        $events = Event::with('organization')
+        $with = ['organization', 'organizations' => function ($query)
+        {
+            $query->wherePivot(EventOrganization::CAN_ATTEND, true);
+        }];
+
+        $events = Event::with($with)
             ->withShifts()
             ->upcoming()
             ->get();

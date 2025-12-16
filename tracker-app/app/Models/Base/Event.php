@@ -64,6 +64,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $created_id
  * @property int|null $updated_id
  * @property int|null $deleted_id
+ * @property int|null $friends_allowed
+ * @property int|null $tentative_signups_allowed
  * 
  * @property Organization $organization
  * @property Collection|Organization[] $organizations
@@ -118,6 +120,8 @@ class Event extends Model
     const CREATED_ID = 'created_id';
     const UPDATED_ID = 'updated_id';
     const DELETED_ID = 'deleted_id';
+    const FRIENDS_ALLOWED = 'friends_allowed';
+    const TENTATIVE_SIGNUPS_ALLOWED = 'tentative_signups_allowed';
     protected $table = 'tt_events';
 
     protected $casts = [
@@ -143,7 +147,9 @@ class Event extends Model
         self::UPDATED_AT => 'datetime',
         self::CREATED_ID => 'int',
         self::UPDATED_ID => 'int',
-        self::DELETED_ID => 'int'
+        self::DELETED_ID => 'int',
+        self::FRIENDS_ALLOWED => 'int',
+        self::TENTATIVE_SIGNUPS_ALLOWED => 'int'
     ];
 
     protected $fillable = [
@@ -182,7 +188,9 @@ class Event extends Model
         self::AMENITIES,
         self::REFERRED_BY,
         self::SOURCE,
-        self::COMMENTS
+        self::COMMENTS,
+        self::FRIENDS_ALLOWED,
+        self::TENTATIVE_SIGNUPS_ALLOWED
     ];
 
     public function organization(): BelongsTo

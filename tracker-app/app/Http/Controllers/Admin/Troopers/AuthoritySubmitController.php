@@ -69,7 +69,7 @@ class AuthoritySubmitController extends Controller
         $trooper->trooper_assignments()
             ->update([TrooperAssignment::IS_MODERATOR => false]);
 
-        if ($trooper->isModerator())
+        if ($trooper->is_moderator)
         {
             //  not update ones that were selected as "true"
             foreach ($moderated_organizations as $organization_id => $data)
@@ -80,7 +80,7 @@ class AuthoritySubmitController extends Controller
                     ->where(TrooperAssignment::ORGANIZATION_ID, $organization_id)
                     ->first();
 
-                if ($trooper_assignment == null)
+                if ($trooper_assignment === null)
                 {
                     $trooper_assignment = new TrooperAssignment();
 

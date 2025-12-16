@@ -531,6 +531,86 @@ class UpdateRequestTest extends TestCase
         $this->assertTrue($this->subject->input('organizations.3.can_attend'));
     }
 
+    public function test_prepare_for_validation_sets_troopers_and_handlers_allowed_to_null_when_can_attend_is_false(): void
+    {
+        // Arrange
+        $data = [
+            'name' => 'Test Event',
+            'status' => 'open',
+            'event_start' => '2025-12-25 10:00:00',
+            'event_end' => '2025-12-25 14:00:00',
+            'organizations' => [
+                1 => [
+                    'can_attend' => false,
+                    'troopers_allowed' => 10,
+                    'handlers_allowed' => 5,
+                ],
+            ],
+        ];
+
+        // Act
+        $this->subject->merge($data);
+        $this->invokeMethod($this->subject, 'prepareForValidation');
+
+        // Assert
+        $this->assertFalse($this->subject->input('organizations.1.can_attend'));
+        $this->assertNull($this->subject->input('organizations.1.troopers_allowed'));
+        $this->assertNull($this->subject->input('organizations.1.handlers_allowed'));
+    }
+
+    public function test_prepare_for_validation_preserves_troopers_and_handlers_allowed_when_can_attend_is_true(): void
+    {
+        // Arrange
+        $data = [
+            'name' => 'Test Event',
+            'status' => 'open',
+            'event_start' => '2025-12-25 10:00:00',
+            'event_end' => '2025-12-25 14:00:00',
+            'organizations' => [
+                1 => [
+                    'can_attend' => true,
+                    'troopers_allowed' => 10,
+                    'handlers_allowed' => 5,
+                ],
+            ],
+        ];
+
+        // Act
+        $this->subject->merge($data);
+        $this->invokeMethod($this->subject, 'prepareForValidation');
+
+        // Assert
+        $this->assertTrue($this->subject->input('organizations.1.can_attend'));
+        $this->assertEquals(10, $this->subject->input('organizations.1.troopers_allowed'));
+        $this->assertEquals(5, $this->subject->input('organizations.1.handlers_allowed'));
+    }
+
+    public function test_prepare_for_validation_sets_all_fields_to_null_when_can_attend_missing_and_defaults_to_false(): void
+    {
+        // Arrange
+        $data = [
+            'name' => 'Test Event',
+            'status' => 'open',
+            'event_start' => '2025-12-25 10:00:00',
+            'event_end' => '2025-12-25 14:00:00',
+            'organizations' => [
+                1 => [
+                    'troopers_allowed' => 15,
+                    'handlers_allowed' => 8,
+                ],
+            ],
+        ];
+
+        // Act
+        $this->subject->merge($data);
+        $this->invokeMethod($this->subject, 'prepareForValidation');
+
+        // Assert
+        $this->assertFalse($this->subject->input('organizations.1.can_attend'));
+        $this->assertNull($this->subject->input('organizations.1.troopers_allowed'));
+        $this->assertNull($this->subject->input('organizations.1.handlers_allowed'));
+    }
+
     public function test_authorize_returns_true_for_moderator_of_parent_organization(): void
     {
         // Arrange
@@ -551,5 +631,242 @@ class UpdateRequestTest extends TestCase
 
         // Act & Assert
         $this->assertTrue($this->subject->authorize());
+    }
+
+    public function test_validation_passes_with_organizations_troopers_allowed(): void
+    {
+        // Arrange
+        $good_data = [
+            'name' => 'Test Event',
+            'status' => 'open',
+            'event_start' => '2025-12-25 10:00:00',
+            'event_end' => '2025-12-25 14:00:00',
+            'organizations' => [
+                ['can_attend' => true, 'troopers_allowed' => 10],
+                ['can_attend' => true, 'troopers_allowed' => 50],
+            ],
+        ];
+
+        // Act
+        $this->subject->merge($good_data);
+        $validator = Validator::make($good_data, $this->subject->rules());
+
+        // Assert
+        $this->assertTrue($validator->passes());
+    }
+
+    public function test_validation_passes_with_organizations_troopers_allowed_at_minimum(): void
+    {
+        // Arrange
+        $good_data = [
+            'name' => 'Test Event',
+            'status' => 'open',
+            'event_start' => '2025-12-25 10:00:00',
+            'event_end' => '2025-12-25 14:00:00',
+            'organizations' => [
+                ['can_attend' => true, 'troopers_allowed' => 1],
+            ],
+        ];
+
+        // Act
+        $this->subject->merge($good_data);
+        $validator = Validator::make($good_data, $this->subject->rules());
+
+        // Assert
+        $this->assertTrue($validator->passes());
+    }
+
+    public function test_validation_passes_with_organizations_troopers_allowed_at_maximum(): void
+    {
+        // Arrange
+        $good_data = [
+            'name' => 'Test Event',
+            'status' => 'open',
+            'event_start' => '2025-12-25 10:00:00',
+            'event_end' => '2025-12-25 14:00:00',
+            'organizations' => [
+                ['can_attend' => true, 'troopers_allowed' => 99999],
+            ],
+        ];
+
+        // Act
+        $this->subject->merge($good_data);
+        $validator = Validator::make($good_data, $this->subject->rules());
+
+        // Assert
+        $this->assertTrue($validator->passes());
+    }
+
+    public function test_validation_fails_with_organizations_troopers_allowed_below_minimum(): void
+    {
+        // Arrange
+        $bad_data = [
+            'name' => 'Test Event',
+            'status' => 'open',
+            'event_start' => '2025-12-25 10:00:00',
+            'event_end' => '2025-12-25 14:00:00',
+            'organizations' => [
+                ['can_attend' => true, 'troopers_allowed' => 0],
+            ],
+        ];
+
+        // Act
+        $this->subject->merge($bad_data);
+        $validator = Validator::make($bad_data, $this->subject->rules());
+
+        // Assert
+        $this->assertTrue($validator->fails());
+        $this->assertTrue($validator->errors()->has('organizations.0.troopers_allowed'));
+    }
+
+    public function test_validation_fails_with_organizations_troopers_allowed_above_maximum(): void
+    {
+        // Arrange
+        $bad_data = [
+            'name' => 'Test Event',
+            'status' => 'open',
+            'event_start' => '2025-12-25 10:00:00',
+            'event_end' => '2025-12-25 14:00:00',
+            'organizations' => [
+                ['can_attend' => true, 'troopers_allowed' => 100000],
+            ],
+        ];
+
+        // Act
+        $this->subject->merge($bad_data);
+        $validator = Validator::make($bad_data, $this->subject->rules());
+
+        // Assert
+        $this->assertTrue($validator->fails());
+        $this->assertTrue($validator->errors()->has('organizations.0.troopers_allowed'));
+    }
+
+    public function test_validation_passes_with_organizations_handlers_allowed(): void
+    {
+        // Arrange
+        $good_data = [
+            'name' => 'Test Event',
+            'status' => 'open',
+            'event_start' => '2025-12-25 10:00:00',
+            'event_end' => '2025-12-25 14:00:00',
+            'organizations' => [
+                ['can_attend' => true, 'handlers_allowed' => 5],
+                ['can_attend' => true, 'handlers_allowed' => 25],
+            ],
+        ];
+
+        // Act
+        $this->subject->merge($good_data);
+        $validator = Validator::make($good_data, $this->subject->rules());
+
+        // Assert
+        $this->assertTrue($validator->passes());
+    }
+
+    public function test_validation_passes_with_organizations_handlers_allowed_at_minimum(): void
+    {
+        // Arrange
+        $good_data = [
+            'name' => 'Test Event',
+            'status' => 'open',
+            'event_start' => '2025-12-25 10:00:00',
+            'event_end' => '2025-12-25 14:00:00',
+            'organizations' => [
+                ['can_attend' => true, 'handlers_allowed' => 1],
+            ],
+        ];
+
+        // Act
+        $this->subject->merge($good_data);
+        $validator = Validator::make($good_data, $this->subject->rules());
+
+        // Assert
+        $this->assertTrue($validator->passes());
+    }
+
+    public function test_validation_passes_with_organizations_handlers_allowed_at_maximum(): void
+    {
+        // Arrange
+        $good_data = [
+            'name' => 'Test Event',
+            'status' => 'open',
+            'event_start' => '2025-12-25 10:00:00',
+            'event_end' => '2025-12-25 14:00:00',
+            'organizations' => [
+                ['can_attend' => true, 'handlers_allowed' => 99999],
+            ],
+        ];
+
+        // Act
+        $this->subject->merge($good_data);
+        $validator = Validator::make($good_data, $this->subject->rules());
+
+        // Assert
+        $this->assertTrue($validator->passes());
+    }
+
+    public function test_validation_fails_with_organizations_handlers_allowed_below_minimum(): void
+    {
+        // Arrange
+        $bad_data = [
+            'name' => 'Test Event',
+            'status' => 'open',
+            'event_start' => '2025-12-25 10:00:00',
+            'event_end' => '2025-12-25 14:00:00',
+            'organizations' => [
+                ['can_attend' => true, 'handlers_allowed' => 0],
+            ],
+        ];
+
+        // Act
+        $this->subject->merge($bad_data);
+        $validator = Validator::make($bad_data, $this->subject->rules());
+
+        // Assert
+        $this->assertTrue($validator->fails());
+        $this->assertTrue($validator->errors()->has('organizations.0.handlers_allowed'));
+    }
+
+    public function test_validation_fails_with_organizations_handlers_allowed_above_maximum(): void
+    {
+        // Arrange
+        $bad_data = [
+            'name' => 'Test Event',
+            'status' => 'open',
+            'event_start' => '2025-12-25 10:00:00',
+            'event_end' => '2025-12-25 14:00:00',
+            'organizations' => [
+                ['can_attend' => true, 'handlers_allowed' => 100000],
+            ],
+        ];
+
+        // Act
+        $this->subject->merge($bad_data);
+        $validator = Validator::make($bad_data, $this->subject->rules());
+
+        // Assert
+        $this->assertTrue($validator->fails());
+        $this->assertTrue($validator->errors()->has('organizations.0.handlers_allowed'));
+    }
+
+    public function test_validation_passes_with_organizations_troopers_and_handlers_allowed_as_null(): void
+    {
+        // Arrange
+        $good_data = [
+            'name' => 'Test Event',
+            'status' => 'open',
+            'event_start' => '2025-12-25 10:00:00',
+            'event_end' => '2025-12-25 14:00:00',
+            'organizations' => [
+                ['can_attend' => true, 'troopers_allowed' => null, 'handlers_allowed' => null],
+            ],
+        ];
+
+        // Act
+        $this->subject->merge($good_data);
+        $validator = Validator::make($good_data, $this->subject->rules());
+
+        // Assert
+        $this->assertTrue($validator->passes());
     }
 }

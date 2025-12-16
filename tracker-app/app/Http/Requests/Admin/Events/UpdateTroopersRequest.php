@@ -25,7 +25,7 @@ class UpdateTroopersRequest extends FormRequest
     {
         $event = $this->route('event');
 
-        if ($event == null)
+        if ($event === null)
         {
             throw new AuthorizationException('Event not found or unauthorized.');
         }

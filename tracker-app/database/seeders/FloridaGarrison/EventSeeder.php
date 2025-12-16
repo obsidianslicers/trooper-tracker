@@ -31,6 +31,7 @@ class EventSeeder extends Seeder
     private $sign_ups;
     private $trooper_ids;
     private $handler_ids;
+    private $organizations;
 
     /**
      * Run the database seeds.
@@ -63,6 +64,7 @@ class EventSeeder extends Seeder
         $this->handler_ids = Trooper::where(Trooper::MEMBERSHIP_ROLE, MembershipRole::HANDLER)->pluck(Trooper::ID, Trooper::ID)->toArray();
         $this->costumes = OrganizationCostume::all()->pluck(OrganizationCostume::ID)->toArray();
         $this->squad_maps = $this->getSquadMap();
+        $this->organizations = Organization::ofTypeOrganizations()->get();
         $this->trooper_status_map = array_values(array_filter(
             EventTrooperStatus::cases(),
             fn($case) => $case !== EventTrooperStatus::NONE
@@ -93,16 +95,36 @@ class EventSeeder extends Seeder
     {
         $fl_garrison = $this->getOrganization(-1);
 
-        $where = [
-            EventOrganization::EVENT_ID => $event->id,
-            EventOrganization::ORGANIZATION_ID => $fl_garrison->parent_id,
+        $columns = [
+            'limit501st' => '501st Legion',
+            'limitRebels' => 'Rebel Legion',
+            'limitMando' => 'Mandalorian Mercs',
+            'limitDroid' => 'Droid Builders',
+            'limitSG' => 'Saber Guild',
+            'limitDE' => 'Dark Empire',
         ];
 
-        $set = [
-            EventOrganization::CAN_ATTEND => true,
-        ];
+        foreach ($columns as $column => $name)
+        {
+            $organization = $this->organizations->firstWhere('name', $name);
 
-        EventOrganization::updateOrCreate($where, $set);
+            $where = [
+                EventOrganization::EVENT_ID => $event->id,
+                EventOrganization::ORGANIZATION_ID => $organization->id,
+            ];
+
+            $set = [
+                EventOrganization::CAN_ATTEND => $column === 'limit501st',
+            ];
+
+            if ($legacy->$column > 0)
+            {
+                $set[EventOrganization::CAN_ATTEND] = true;
+                $set[EventOrganization::TROOPERS_ALLOWED] = $legacy->$column == 500 ? null : $legacy->$column;
+            }
+
+            EventOrganization::updateOrCreate($where, $set);
+        }
     }
 
     private function overlayShifts($legacy, $event)
@@ -157,7 +179,7 @@ class EventSeeder extends Seeder
                 ->where(EventTrooper::TROOPER_ID, $sign_up->trooperid)
                 ->first();
 
-            if ($e == null)
+            if ($e === null)
             {
                 //  first record wins unforunately
                 $e = new EventTrooper();
@@ -215,22 +237,21 @@ class EventSeeder extends Seeder
         $event->parking_available = $legacy->parking ?? false;
         $event->accessible = $legacy->mobility ?? false;
         $event->amenities = $legacy->amenities;
-        $event->comments = $legacy->comments;
+        $event->comments = $this->toMarkdown($legacy->comments);
         $event->referred_by = $legacy->referred;
 
-        if ($legacy->requestedNumber)
+        if ($legacy->limitedEvent)
         {
-            $event->troopers_allowed = max($legacy->limitTotalTroopers, $legacy->requestedNumber);
-
-            if ($event->troopers_allowed == 500)
-            {
-                $event->troopers_allowed = null;
-            }
+            $event->troopers_allowed = $legacy->limitTotalTroopers;
+            $event->handlers_allowed = $legacy->limitHandlers;
         }
         else
         {
             $event->troopers_allowed = null;
         }
+
+        $event->friends_allowed = $legacy->limitFriends ?? null;
+        $event->tentative_signups_allowed = (bool) $legacy->allowTentative;
 
         $event->status = $legacy->closed ? EventStatus::CLOSED : EventStatus::OPEN;
 
@@ -257,11 +278,12 @@ class EventSeeder extends Seeder
     private function getLegacyEvents()
     {
         $all = DB::table('events')
-            ->where(function ($query)
-            {
-                $query->where('id', 10025)
-                    ->orWhere('link', 10025);
-            })
+            // ->where(function ($query)
+            // {
+            //     $query->where('id', 10025)
+            //         ->orWhere('link', 10025);
+            // })
+            // ->where('id', 11296)
             ->orderBy('id')
             ->orderBy('link')
             ->get();
@@ -283,5 +305,103 @@ class EventSeeder extends Seeder
         }
 
         return collect($events);
+    }
+
+    private function toMarkdown($text): string
+    {
+        // Normalize newlines
+        $text = str_replace(["\r\n", "\r"], "\n", $text);
+
+        // Protect code blocks first (so inner tags aren't transformed)
+        // [code]...[/code] -> triple backticks (preserve content verbatim)
+        $text = preg_replace_callback('/\[code\](.*?)\[\/code\]/is', function ($m)
+        {
+            $code = trim($m[1], "\n");
+            return "\n```" . "\n" . $code . "\n" . "```\n";
+        }, $text);
+
+        // Quotes
+        // [quote]...[/quote] -> blockquote
+        // [quote=Name]...[/quote] -> blockquote with header
+        $text = preg_replace_callback('/\[quote(?:=([^\]]+))?\](.*?)\[\/quote\]/is', function ($m)
+        {
+            $who = isset($m[1]) ? trim($m[1]) : null;
+            $body = trim($m[2]);
+            $quote = '';
+            if ($who)
+            {
+                $quote .= '> **' . $who . ':**' . "\n";
+            }
+            foreach (explode("\n", $body) as $line)
+            {
+                $quote .= '> ' . $line . "\n";
+            }
+            return "\n" . rtrim($quote) . "\n";
+        }, $text);
+
+        // Images
+        // [img]url[/img] -> ![](url)
+        $text = preg_replace('/\[img\]\s*(.*?)\s*\[\/img\]/is', '![]($1)', $text);
+
+        // Links
+        // [url]http://example[/url] -> <http://example>
+        // [url=http://example]text[/url] -> [text](http://example)
+        $text = preg_replace('/\[url\]\s*(.*?)\s*\[\/url\]/is', '<$1>', $text);
+        $text = preg_replace('/\[url=(.*?)\](.*?)\[\/url\]/is', '[$2]($1)', $text);
+
+        // Basic inline styles
+        $replacements = [
+            // [b]bold[/b] -> **bold**
+            '/\[b\](.*?)\[\/b\]/is' => '**$1**',
+            // [i]italic[/i] -> _italic_
+            '/\[i\](.*?)\[\/i\]/is' => '_$1_',
+            // [u]underline[/u] -> use <u> for lack of native MD underline
+            '/\[u\](.*?)\[\/u\]/is' => '<u>$1</u>',
+            // [s]strike[/s] -> ~~strike~~
+            '/\[s\](.*?)\[\/s\]/is' => '~~$1~~',
+            // [spoiler]...[/spoiler] -> collapsible via HTML details
+            '/\[spoiler\](.*?)\[\/spoiler\]/is' => "<details><summary>spoiler</summary>\n$1\n</details>",
+        ];
+        foreach ($replacements as $pattern => $replace)
+        {
+            $text = preg_replace($pattern, $replace, $text);
+        }
+
+        // Size and color (map to emphasis or inline HTML; Markdown has no native color/size)
+        $text = preg_replace('/\[size=(\d+)\](.*?)\[\/size\]/is', '<span style="font-size:$1px">$2</span>', $text);
+        $text = preg_replace('/\[color=([#a-zA-Z0-9]+)\](.*?)\[\/color\]/is', '<span style="color:$1">$2</span>', $text);
+
+        // Lists
+        // Unordered: [list] [*] item ... [/list]
+        $text = preg_replace_callback('/\[list\](.*?)\[\/list\]/is', function ($m)
+        {
+            $items = preg_split('/\s*\[\*\]\s*/', trim($m[1]));
+            $items = array_filter($items, fn($i) => $i !== '');
+            if (!$items)
+                return '';
+            return "\n" . implode("\n", array_map(fn($i) => '- ' . trim($i), $items)) . "\n";
+        }, $text);
+
+        // Ordered: [list=1] or [list=decimal|alpha] -> numbered list
+        $text = preg_replace_callback('/\[list=([^\]]+)\](.*?)\[\/list\]/is', function ($m)
+        {
+            $items = preg_split('/\s*\[\*\]\s*/', trim($m[2]));
+            $items = array_filter($items, fn($i) => $i !== '');
+            if (!$items)
+                return '';
+            // Markdown doesn’t support starting index; keep simple 1..n
+            return "\n" . implode("\n", array_map(fn($i) => '1. ' . trim($i), $items)) . "\n";
+        }, $text);
+
+        // Linebreaks: [br] -> newline
+        $text = preg_replace('/\[br\]/i', "\n", $text);
+
+        // Remove residual BBCode tags we don’t handle (light-touch)
+        $text = preg_replace('/\[(\/?)(left|right|center)\]/i', '', $text);
+
+        // Trim excess blank lines
+        $text = preg_replace("/\n{3,}/", "\n\n", $text);
+
+        return trim($text);
     }
 }

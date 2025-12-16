@@ -4,26 +4,28 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
+use App\Enums\EventStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Services\BreadCrumbService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 /**
- * Class UpdateController
+ * Displays the event creation form.
  *
- * Handles displaying the form to update an existing event.
- * @package App\Http\Controllers\Admin\Events
+ * Handles displaying the event creation form for administrators and moderators.
+ * Optionally copies data from an existing event when a copyEvent parameter is provided.
  */
 class CreateController extends Controller
 {
     /**
-     * CreateController constructor.
+     * Creates a new CreateController instance.
      *
-     * @param BreadCrumbService $crumbs The service for managing breadcrumbs.
+     * @param BreadCrumbService $crumbs Service for managing breadcrumb navigation.
      */
     public function __construct(private readonly BreadCrumbService $crumbs)
     {
@@ -41,13 +43,20 @@ class CreateController extends Controller
      * @param Event $event The event to be updated.
      * @return View The rendered event update view.
      */
-    public function __invoke(Request $request, Event $event): View
+    public function __invoke(Request $request, Event $event): View|RedirectResponse
     {
         $this->authorize('create', Event::class);
 
         $trooper = $request->user();
 
-        $event = $this->getEvent($request, $trooper);
+        if ($request->has('copy_id'))
+        {
+            $event = $this->copyEvent($request, $trooper);
+
+            return redirect()->route('admin.events.update', compact('event'));
+        }
+
+        $event = new Event();
 
         $this->assignOrganization($request, $event, $trooper);
 
@@ -56,21 +65,33 @@ class CreateController extends Controller
         return view('pages.admin.events.create', $data);
     }
 
-    private function getEvent(Request $request, Trooper $trooper): Event
+    private function copyEvent(Request $request, Trooper $trooper): Event
     {
-        $event = new Event();
+        $copy_id = $request->query('copy_id');
 
-        // if ($request->has('copy_id'))
-        // {
-        //     $copy_id = $request->query('copy_id');
+        $event = Event::moderatedBy($trooper)->findOrFail($copy_id);
 
-        //     $copy = Event::moderatedBy($trooper)->findOrFail($copy_id);
+        $event_copy = $event->replicate();
+        $event_copy->name = 'Copy of ' . $event->name;
+        $event_copy->status = EventStatus::DRAFT;
+        $event_copy->push();
 
-        //     $event->organization_id = $copy->organization_id;
-        //     $event->name = 'Copy of ' . $copy->name;
-        // }
+        foreach ($event->event_shifts as $shift)
+        {
+            $shift_copy = $shift->replicate();
+            $shift_copy->event_id = $event_copy->id;
+            $shift_copy->status = EventStatus::OPEN;
+            $shift_copy->save();
+        }
 
-        return $event;
+        foreach ($event->event_organizations as $organization)
+        {
+            $organization_copy = $organization->replicate();
+            $organization_copy->event_id = $event_copy->id;
+            $organization_copy->save();
+        }
+
+        return $event_copy;
     }
 
     private function assignOrganization(Request $request, Event $event, Trooper $trooper)

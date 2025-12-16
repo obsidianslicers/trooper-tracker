@@ -30,6 +30,15 @@
                 <i class="fa fa-fw fa-calendar-day me-2"></i>
                 {{ $event->event_start->format('D M d, Y') }}
             </p>
+            <ul class="list-group list-group-flush">
+                @foreach($event->organizations as $organization)
+                    <li class="list-group-item">
+                        <x-yes-no class="me-2"
+                                  :value="true" />
+                        {{ $organization->name }}
+                    </li>
+                @endforeach
+            </ul>
         </div>
 
         <div class="card-footer bg-secondary p-0">
@@ -41,7 +50,7 @@
                     </li>
                 @endif
                 @foreach($event->event_shifts as $shift)
-                    <a href="{{ route('events.signup', compact('event', 'shift')) }}"
+                    <a href="{{ route('events.signup', compact('event')) }}#shift-{{ $shift->id }}"
                        class="list-group-item d-flex justify-content-between align-items-center">
                         <span>
                             @if($shifts_count > 1)
@@ -63,7 +72,7 @@
                                     NOT ENOUGH!
                                 </span>
                             @else
-                                {{ $shift->event_troopers_count }} attending
+                                {{ $shift->event_troopers_count }} going
                             @endif
                         </span>
                     </a>

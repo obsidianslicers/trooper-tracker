@@ -39,3 +39,12 @@ document.addEventListener('DOMContentLoaded', () => {  // Attach listener to eve
         });
     });
 });
+
+/** DISALLOW ENTER KEY SUBMISSION **/
+document.querySelectorAll('form').forEach(function (form) {
+    form.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' && event.target.tagName !== 'TEXTAREA') {
+            event.preventDefault();
+        }
+    });
+});

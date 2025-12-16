@@ -8,9 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Organization;
 use Exception;
 use Illuminate\Contracts\View\View;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Handles requests for a view that allows picking an organization.
@@ -37,7 +35,7 @@ class OrganizationPickerController extends Controller
 
         $property = $request->query('property');
 
-        if ($property == null)
+        if ($property === null)
         {
             throw new Exception("Missing property parameter");
         }
@@ -51,10 +49,7 @@ class OrganizationPickerController extends Controller
                 ->get();
         }
 
-        $data = [
-            'organizations' => $organizations,
-            'property' => $property
-        ];
+        $data = compact('organizations', 'property');
 
         return view('pickers.organization', $data);
     }

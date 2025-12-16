@@ -12,31 +12,32 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 /**
- * Class UpdateController
+ * Processes trooper status update form submissions.
  *
- * Handles displaying the form to update an existing event.
- * @package App\Http\Controllers\Admin\Events
+ * Handles updating the status of event trooper registrations (approved, standby, etc.).
+ * Iterates through submitted trooper IDs and updates their EventTrooper status.
  */
 class UpdateTroopersSubmitController extends Controller
 {
     /**
-     * UpdateSubmitController constructor.
+     * Creates a new UpdateTroopersSubmitController instance.
      *
-     * @param FlashMessageService $flash The service for displaying flash messages.
+     * @param FlashMessageService $flash Service for displaying flash messages to users.
      */
     public function __construct(private readonly FlashMessageService $flash)
     {
     }
 
     /**
-     * Handle the request to display the event update page.
+     * Updates event trooper statuses from the validated form submission.
      *
-     * Authorizes the user, sets up breadcrumbs, and returns the view
-     * containing the form to update an existing event.
+     * Processes the validated request to update status values for troopers
+     * registered to the event. Only updates troopers that exist in the event.
+     * Redirects back to the trooper management page with a success message.
      *
-     * @param Request $request The incoming HTTP request object.
-     * @param Event $event The event to be updated.
-     * @return RedirectResponse A redirect response to the events list.
+     * @param UpdateTroopersRequest $request The validated trooper status update request.
+     * @param Event $event The event whose troopers are being updated (route model binding).
+     * @return RedirectResponse Redirect to the event's trooper management page.
      */
     public function __invoke(UpdateTroopersRequest $request, Event $event): RedirectResponse
     {

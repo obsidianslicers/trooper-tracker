@@ -33,7 +33,7 @@
                 <div class="row mb-2 border-bottom">
                     <div class="col-8 small text-muted pb-3">
                         <div class="row">
-                            <div class="col-3">
+                            <div class="col-3 d-none d-md-inline">
                                 Hosted By:
                             </div>
                             <div class="col-9">
@@ -41,7 +41,7 @@
                             </div>
                         </div>
                         <div class="row">
-                            <div class="col-3">
+                            <div class="col-3 d-none d-md-inline">
                                 Status:
                             </div>
                             <div class="col-9">
@@ -71,38 +71,40 @@
                     </div>
                 </div>
 
-                <div class="row mb-3">
-                    <div class="col-12 col-md-6">
+                <div class="row">
+                    <div class="col-12 col-md-6 mb-3">
                         @include('pages.events.inc.venue', compact('event'))
                     </div>
-                    <div class="col-12 col-md-6">
+                    <div class="col-12 col-md-6 mb-3">
                         @include('pages.events.inc.contact', compact('event'))
                     </div>
                 </div>
 
-                <div class="row mb-3">
-                    <div class="col-12 col-md-6">
+                <div class="row">
+                    <div class="col-12 col-md-6 mb-3">
                         @include('pages.events.inc.amenities', compact('event'))
                     </div>
-                    <div class="col-12 col-md-6">
+                    <div class="col-12 col-md-6 mb-3">
                         @include('pages.events.inc.attendance', compact('event'))
                     </div>
                 </div>
 
-                <div class="row mb-3">
-                    <div class="col-12 col-md-6">
+                <div class="row">
+                    <div class="col-12 col-md-6 mb-3">
                         @include('pages.events.inc.characters', compact('event'))
                     </div>
                 </div>
 
-                <div class="row mb-3">
-                    <div class="col-12 col-md-6">
+                <x-modal-picker :label="'Find a Trooper'" />
+
+                <div class="row">
+                    <div class="col-12 col-md-6 mb-3">
                         @include('pages.events.inc.charity', compact('event'))
                     </div>
                 </div>
 
-                <div class="row mb-3">
-                    <div class="col-12">
+                <div class="row">
+                    <div class="col-12 mb-3">
                         @include('pages.events.inc.shifts', compact('event'))
                     </div>
                 </div>

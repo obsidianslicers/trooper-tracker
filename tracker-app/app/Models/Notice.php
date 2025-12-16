@@ -9,6 +9,13 @@ use App\Models\Concerns\HasTrooperStamps;
 use App\Models\Scopes\HasNoticeScopes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+/**
+ * Represents a notification or announcement for troopers.
+ *
+ * Notices are system-generated or admin-created messages that can be sent
+ * to troopers. They have different types (info, warning, success) and can be
+ * targeted to specific troopers or groups.
+ */
 class Notice extends BaseNotice
 {
     use HasFilter;

@@ -6,49 +6,67 @@ namespace App\Http\Controllers\Admin\Events;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
+use App\Models\EventOrganization;
 use App\Models\Organization;
 use App\Services\BreadCrumbService;
+use App\Services\FlashMessageService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 /**
- * Class UpdateController
+ * Displays the event update form.
  *
- * Handles displaying the form to update an existing event.
- * @package App\Http\Controllers\Admin\Events
+ * Provides administrators and moderators with a form to update existing event details,
+ * including venue information, contact details, and organization associations.
+ * Shows a draft warning if the event is not yet published.
  */
 class UpdateController extends Controller
 {
     /**
-     * UpdateController constructor.
+     * Creates a new UpdateController instance.
      *
-     * @param BreadCrumbService $crumbs The service for managing breadcrumbs.
+     * @param BreadCrumbService $crumbs Service for managing breadcrumb navigation.
      */
-    public function __construct(private readonly BreadCrumbService $crumbs)
+    public function __construct(
+        private readonly BreadCrumbService $crumbs,
+        private readonly FlashMessageService $flash)
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
         $this->crumbs->addRoute('Events', 'admin.events.list');
     }
 
     /**
-     * Handle the request to display the event update page.
+     * Displays the event update form.
      *
-     * Authorizes the user, sets up breadcrumbs, and returns the view
-     * containing the form to update an existing event.
+     * Authorizes that the user can update the event via policy check.
+     * Loads all organizations for the organization selection interface.
+     * Sets up breadcrumbs and renders the update form view.
      *
-     * @param Request $request The incoming HTTP request object.
-     * @param Event $event The event to be updated.
-     * @return View The rendered event update view.
+     * @param Request $request The incoming HTTP request.
+     * @param Event $event The event to be updated (route model binding).
+     * @return View The event update form view.
      */
     public function __invoke(Request $request, Event $event): View
     {
         $this->authorize('update', $event);
 
+        if ($event->is_draft)
+        {
+            $msg = 'This event is currently in Draft status and not visible to troopers.';
+
+            $this->flash->warning($msg);
+        }
+
         $organizations = Organization::ofTypeOrganizations()->orderBy(Organization::NAME)->get();
 
         foreach ($organizations as $organization)
         {
-            $organization->selected = $event->organizations->contains($organization->id);
+            $event_organization = $event->organizations
+                ->filter(fn($eo) => $eo->id == $organization->id)
+                ->filter(fn($eo) => $eo->pivot->can_attend)
+                ->first();
+
+            $organization->pivot = $event_organization->pivot ?? null;
         }
 
         $data = compact('event', 'organizations');

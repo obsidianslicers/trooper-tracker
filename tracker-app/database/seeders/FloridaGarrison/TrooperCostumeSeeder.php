@@ -30,7 +30,7 @@ class TrooperCostumeSeeder extends Seeder
                 ->where(TrooperCostume::COSTUME_ID, $favorite->costumeid)
                 ->first();
 
-            if ($t == null)
+            if ($t === null)
             {
                 $t = new TrooperCostume();
 

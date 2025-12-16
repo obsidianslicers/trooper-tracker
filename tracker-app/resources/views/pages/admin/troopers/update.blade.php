@@ -2,54 +2,54 @@
 
 @section('content')
 
-<x-transmission-bar :id="'trooper'" />
+    <x-transmission-bar :id="'trooper'" />
 
-<x-slim-container>
+    <x-slim-container>
 
-  <x-card :label="'Profile'">
-    @include('pages.admin.troopers.profile',compact('trooper'))
-  </x-card>
+        <x-card :label="'Profile'">
+            @include('pages.admin.troopers.profile', compact('trooper'))
+        </x-card>
 
-  @if(Auth::user()->isAdministrator())
-  <x-card :label="'Authority'">
-    @include('pages.admin.troopers.authority',['organization_authorities'=>$organization_authorities])
-  </x-card>
-  @endif
+        @if(Auth::user()->is_administrator)
+            <x-card :label="'Authority'">
+                @include('pages.admin.troopers.authority', ['organization_authorities' => $organization_authorities])
+            </x-card>
+        @endif
 
-</x-slim-container>
+    </x-slim-container>
 
 @endsection
 
 @section('page-script')
-<script type="text/javascript">
-  document.addEventListener('DOMContentLoaded', () => {
-    function bindCascadeCheckboxes() {
-      document.querySelectorAll('td.cascade input[type="checkbox"]').forEach(cb => {
-        cb.addEventListener('change', function () {
-          const isChecked = this.checked;
-          const row = this.closest('tr');
-          const id = row.dataset.id;
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', () => {
+            function bindCascadeCheckboxes() {
+                document.querySelectorAll('td.cascade input[type="checkbox"]').forEach(cb => {
+                    cb.addEventListener('change', function () {
+                        const isChecked = this.checked;
+                        const row = this.closest('tr');
+                        const id = row.dataset.id;
 
-          // Cascade down: find all rows with data-parent = this row's id
-          const children = document.querySelectorAll(`tr[data-parent-id="${id}"] input[type="checkbox"]`);
-          children.forEach(childCb => {
-            childCb.checked = isChecked;
+                        // Cascade down: find all rows with data-parent = this row's id
+                        const children = document.querySelectorAll(`tr[data-parent-id="${id}"] input[type="checkbox"]`);
+                        children.forEach(childCb => {
+                            childCb.checked = isChecked;
 
-            if (isChecked) {
-              childCb.disabled = true;   // disable child if parent is checked
-            } else {
-              childCb.disabled = false;  // re-enable child if parent is unchecked
+                            if (isChecked) {
+                                childCb.disabled = true;   // disable child if parent is checked
+                            } else {
+                                childCb.disabled = false;  // re-enable child if parent is unchecked
+                            }
+
+                            // recursively trigger change if you want deeper cascade
+                            childCb.dispatchEvent(new Event('change'));
+                        });
+                    });
+                });
             }
 
-            // recursively trigger change if you want deeper cascade
-            childCb.dispatchEvent(new Event('change'));
-          });
+            bindCascadeCheckboxes();
+            document.body.addEventListener('htmx:afterSettle', bindCascadeCheckboxes);
         });
-      });
-    }
-
-    bindCascadeCheckboxes();
-    document.body.addEventListener('htmx:afterSettle', bindCascadeCheckboxes);
-  });
-</script>
+    </script>
 @endsection

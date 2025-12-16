@@ -27,5 +27,5 @@ todo:   filter home events
         calendar view
 note:   make better use of domain-partials (event_shifts)
 note:   ensure consistent controller naming conventions "Update|Create|List(or plural Models)"Controller
-todo:   test all of events
-todo:   copy event
+todo:   add a friend - who can do what
+todo:   confirm attendance - how?
