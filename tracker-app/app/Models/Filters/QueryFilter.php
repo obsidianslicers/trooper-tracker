@@ -16,6 +16,19 @@ abstract class QueryFilter
         $this->request = $request;
     }
 
+    public function hasFilter(): bool
+    {
+        foreach ($this->filters() as $name => $method)
+        {
+            if ($this->request->filled($name))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public function apply(Builder $query): Builder
     {
         foreach ($this->filters() as $name => $method)

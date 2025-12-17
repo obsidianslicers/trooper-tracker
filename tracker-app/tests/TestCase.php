@@ -17,4 +17,13 @@ abstract class TestCase extends BaseTestCase
 
         return $method->invokeArgs($object, $parameters);
     }
+
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+
+        // echo memory_get_usage() . PHP_EOL;
+
+        gc_collect_cycles();
+    }
 }

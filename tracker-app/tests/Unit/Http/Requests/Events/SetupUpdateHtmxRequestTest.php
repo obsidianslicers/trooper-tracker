@@ -77,7 +77,7 @@ class SetupUpdateHtmxRequestTest extends TestCase
         $this->assertTrue($this->subject->authorize());
     }
 
-    public function test_authorize_returns_true_for_moderator_of_trooper(): void
+    public function test_authorize_returns_false_for_moderator_of_trooper(): void
     {
         // Arrange
         $moderator = Trooper::factory()
@@ -87,17 +87,17 @@ class SetupUpdateHtmxRequestTest extends TestCase
         $this->subject->setUserResolver(fn() => $moderator);
 
         // Act & Assert
-        $this->assertTrue($this->subject->authorize());
+        $this->assertFalse($this->subject->authorize());
     }
 
-    public function test_authorize_returns_true_for_administrator(): void
+    public function test_authorize_returns_false_for_administrator(): void
     {
         // Arrange
         $admin = Trooper::factory()->asAdministrator()->create();
         $this->subject->setUserResolver(fn() => $admin);
 
         // Act & Assert
-        $this->assertTrue($this->subject->authorize());
+        $this->assertFalse($this->subject->authorize());
     }
 
     public function test_authorize_returns_false_for_different_trooper(): void

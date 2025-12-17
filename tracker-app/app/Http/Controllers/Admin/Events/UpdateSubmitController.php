@@ -13,31 +13,33 @@ use App\Services\FlashMessageService;
 use Illuminate\Http\RedirectResponse;
 
 /**
- * Class UpdateSubmitController
+ * Processes event update form submissions.
  *
- * Handles the submission of the form for updating an existing event.
- * @package App\Http\Controllers\Admin\Events
+ * Handles updating existing event details including venue information, contact details,
+ * event dates, amenities, and organization associations. Updates both the event record
+ * and its related EventOrganization pivot records for access control.
  */
 class UpdateSubmitController extends Controller
 {
     /**
-     * UpdateSubmitController constructor.
+     * Creates a new UpdateSubmitController instance.
      *
-     * @param FlashMessageService $flash The service for displaying flash messages.
+     * @param FlashMessageService $flash Service for displaying flash messages to users.
      */
     public function __construct(private readonly FlashMessageService $flash)
     {
     }
 
     /**
-     * Handle the incoming request to update a event.
+     * Updates an existing event from the validated form submission.
      *
-     * Validates the request, updates the event's properties, saves it,
-     * and then redirects with a success message.
+     * Processes the validated request to update the event's properties
+     * and organization access permissions. Redirects back to the update
+     * form with a success message.
      *
-     * @param UpdateRequest $request The validated request containing the updated data.
-     * @param Event $event The event to be updated.
-     * @return RedirectResponse A redirect response to the events list.
+     * @param UpdateRequest $request The validated event update request.
+     * @param Event $event The event to update (route model binding).
+     * @return RedirectResponse Redirect to the event's update page.
      */
     public function __invoke(UpdateRequest $request, Event $event): RedirectResponse
     {
@@ -55,6 +57,8 @@ class UpdateSubmitController extends Controller
         $event->status = $request->validated('status');
         $event->troopers_allowed = $request->validated('troopers_allowed');
         $event->handlers_allowed = $request->validated('handlers_allowed');
+        $event->friends_allowed = $request->validated('friends_allowed');
+        $event->tentative_signups_allowed = $request->validated('tentative_signups_allowed');
 
         // Coordinates
         $event->latitude = $request->validated('latitude');
@@ -98,10 +102,14 @@ class UpdateSubmitController extends Controller
 
     private function updateOrganizations(UpdateRequest $request, Event $event): void
     {
-        $input = $request->validated('organizations');
+        $input = $request->validated('organizations') ?? [];
 
         $pivot_data = $event->organizations->pluck('id')
-            ->mapWithKeys(fn($id) => [$id => [EventOrganization::CAN_ATTEND => false]])
+            ->mapWithKeys(fn($id) => [$id => [
+                EventOrganization::CAN_ATTEND => false,
+                EventOrganization::TROOPERS_ALLOWED => null,
+                EventOrganization::HANDLERS_ALLOWED => null,
+            ]])
             ->toArray();
 
         //  merge arrays - left wins    

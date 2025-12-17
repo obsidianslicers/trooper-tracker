@@ -12,21 +12,25 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\Response;
 
 /**
- * Handles the display of the main account management page.
+ * Handles HTMX-driven updates to event trooper sign-up details.
  *
- * This controller is responsible for fetching the authenticated user's
- * data and rendering the primary account view where they can manage
- * their profile, settings, and other account-related information.
+ * This controller processes updates to a trooper's event participation,
+ * including status changes (going, cancelled, stand-by) and costume selection.
+ * When a trooper cancels from a full event, it automatically promotes the next
+ * stand-by trooper to attending status.
  */
 class SignUpUpdateHtmxController extends Controller
 {
     /**
-     * Handle the incoming request to display the account page.
+     * Handle the incoming HTMX request to update event trooper status or costume.
      *
-     * This method retrieves the authenticated user's trooper profile and
-     * renders the main account management view with the trooper's data.
+     * Processes two types of updates:
+     * - Status changes: Updates the trooper's attendance status and handles waitlist promotion
+     * - Costume changes: Updates the trooper's selected costume for the event
      *
-     * @return View The rendered account page view.
+     * @param SetupUpdateHtmxRequest $request The validated request containing status or costume_id
+     * @param EventTrooper $event_trooper The event trooper record to update
+     * @return Response HTTP 200 response indicating success
      */
     public function __invoke(SetupUpdateHtmxRequest $request, EventTrooper $event_trooper): Response
     {

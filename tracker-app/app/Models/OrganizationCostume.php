@@ -8,6 +8,13 @@ use App\Models\Scopes\HasOrganizationCostumeScopes;
 use App\Models\Scopes\HasToOptionScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+/**
+ * Represents a costume type within an organization.
+ *
+ * Organization costumes define the approved character costumes that members
+ * can wear when participating in events. Each costume belongs to a specific
+ * organization and can be assigned to troopers for event participation.
+ */
 class OrganizationCostume extends BaseOrganizationCostume
 {
     use HasToOptionScope;

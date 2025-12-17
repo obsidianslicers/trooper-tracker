@@ -7,6 +7,13 @@ use App\Models\Casts\LowerCast;
 use App\Models\Concerns\HasTrooperStamps;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+/**
+ * Represents an application configuration setting.
+ *
+ * Settings are key-value pairs that store application-wide configuration
+ * options that can be modified at runtime. Examples include feature flags,
+ * system messages, and configurable thresholds.
+ */
 class Setting extends BaseSetting
 {
     use HasFactory;

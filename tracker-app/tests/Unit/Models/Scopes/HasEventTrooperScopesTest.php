@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Models\Scopes;
+namespace Tests\Unit\Models\Scopes;
 
 use App\Models\Event;
 use App\Models\EventShift;

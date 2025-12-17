@@ -98,7 +98,7 @@ trait HasEventShiftScopes
     //  */
     // public function scopeModeratedBy(Builder $query, Trooper $moderator): Builder
     // {
-    // if ($trooper->isAdministrator())
+    // if ($trooper->is_administrator)
     // {
     //     return $query;
     // }

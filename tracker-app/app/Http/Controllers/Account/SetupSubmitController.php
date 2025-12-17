@@ -102,7 +102,7 @@ class SetupSubmitController extends Controller
                     ->filter(fn($t) => $t->organization_id == $organization_assignment_id)
                     ->first();
 
-                if ($trooper_assignment == null)
+                if ($trooper_assignment === null)
                 {
                     $trooper_assignment = new TrooperAssignment();
                     $trooper_assignment->trooper_id = $trooper->id;

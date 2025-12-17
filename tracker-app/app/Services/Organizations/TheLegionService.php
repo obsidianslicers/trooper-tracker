@@ -41,7 +41,7 @@ class TheLegionService extends BaseOrganizationService
                 ->where(OrganizationCostume::NAME, $name)
                 ->first();
 
-            if ($costume == null)
+            if ($costume === null)
             {
                 $costume = new OrganizationCostume();
                 $costume->organization_id = $this->organization->id;

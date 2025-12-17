@@ -14,31 +14,32 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 /**
- * Class UpdateController
+ * Processes shift update form submissions.
  *
- * Handles displaying the form to update an existing event.
- * @package App\Http\Controllers\Admin\Events
+ * Handles creating new event shifts and updating existing shift start/end times.
+ * Parses date and time inputs to create Carbon datetime objects for storage.
  */
 class UpdateShiftsSubmitController extends Controller
 {
     /**
-     * UpdateSubmitController constructor.
+     * Creates a new UpdateShiftsSubmitController instance.
      *
-     * @param FlashMessageService $flash The service for displaying flash messages.
+     * @param FlashMessageService $flash Service for displaying flash messages to users.
      */
     public function __construct(private readonly FlashMessageService $flash)
     {
     }
 
     /**
-     * Handle the request to display the event update page.
+     * Updates or creates event shifts from the validated form submission.
      *
-     * Authorizes the user, sets up breadcrumbs, and returns the view
-     * containing the form to update an existing event.
+     * Processes the validated request to create new shifts or update existing ones.
+     * Parses date and time strings into Carbon datetime objects for database storage.
+     * Redirects back to the shifts management page with a success message.
      *
-     * @param Request $request The incoming HTTP request object.
-     * @param Event $event The event to be updated.
-     * @return RedirectResponse A redirect response to the events list.
+     * @param UpdateShiftsRequest $request The validated shift update request.
+     * @param Event $event The event whose shifts are being updated (route model binding).
+     * @return RedirectResponse Redirect to the event's shift management page.
      */
     public function __invoke(UpdateShiftsRequest $request, Event $event): RedirectResponse
     {

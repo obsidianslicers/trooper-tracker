@@ -11,8 +11,17 @@ use App\Models\Concerns\HasTrooperStamps;
 use App\Models\Scopes\HasEventScopes;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
+/**
+ * Represents a trooping event or appearance.
+ *
+ * Events are organized activities where members participate in costume to support
+ * charitable causes, community events, or other activities. Each event has multiple
+ * shifts, tracks attendance, and includes details about the venue, contact information,
+ * and participation requirements.
+ */
 class Event extends BaseEvent
 {
     use HasFilter;
@@ -46,12 +55,34 @@ class Event extends BaseEvent
         ]);
     }
 
+    /**
+     * Get all troopers associated with this event through event shifts.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
+     */
     public function troopers(): HasManyThrough
     {
         // hasManyThrough: Event -> EventShift -> EventTrooper
         return $this->hasManyThrough(EventTrooper::class, EventShift::class);
     }
 
+    /**
+     * Get all organizations associated with this event.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function event_organizations(): HasMany
+    {
+        return $this->hasMany(EventOrganization::class);
+    }
+
+    /**
+     * Get a formatted time display string for the event.
+     *
+     * Format: "Sat - Oct 03, 2026 - 2:00pm - 4:00pm"
+     *
+     * @return string
+     */
     public function getTimeDisplayAttribute(): string
     {
         //Sat - Oct 03, 2026 - 2:00pm - 4:00pm
@@ -61,16 +92,41 @@ class Event extends BaseEvent
             $this->event_end->format('g:ia');
     }
 
+    /**
+     * Check if the event is open for sign-ups.
+     *
+     * @return bool
+     */
     public function getIsOpenAttribute(): bool
     {
         return $this->status === EventStatus::OPEN;
     }
 
+    /**
+     * Check if the event sign-ups are locked.
+     *
+     * @return bool
+     */
     public function getIsLockedAttribute(): bool
     {
         return $this->status === EventStatus::SIGN_UP_LOCKED;
     }
 
+    /**
+     * Check if the event is in draft status.
+     *
+     * @return bool
+     */
+    public function getIsDraftAttribute(): bool
+    {
+        return $this->status === EventStatus::DRAFT;
+    }
+
+    /**
+     * Check if the event is active (draft, open, or locked).
+     *
+     * @return bool
+     */
     public function getIsActiveAttribute(): bool
     {
         switch ($this->status)
@@ -84,6 +140,11 @@ class Event extends BaseEvent
         }
     }
 
+    /**
+     * Check if the event is at risk (starts within 5 days but has no troopers signed up).
+     *
+     * @return bool
+     */
     public function getAtRiskAttribute(): bool
     {
         if ($this->is_active)

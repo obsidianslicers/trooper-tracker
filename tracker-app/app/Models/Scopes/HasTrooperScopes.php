@@ -60,7 +60,7 @@ trait HasTrooperScopes
      */
     public function scopeModeratedBy(Builder $query, Trooper $trooper): Builder
     {
-        if ($trooper->isAdministrator())
+        if ($trooper->is_administrator)
         {
             return $query;
         }
@@ -103,5 +103,16 @@ trait HasTrooperScopes
                 ->orWhere(self::USERNAME, 'like', $search_term)
                 ->orWhere(self::NAME, 'like', $search_term);
         });
+    }
+
+    /**
+     * Scope a query to only include troopers with active membership status.
+     *
+     * @param Builder<Trooper> $query The Eloquent query builder.
+     * @return Builder<Trooper>
+     */
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where(self::MEMBERSHIP_STATUS, MembershipStatus::ACTIVE);
     }
 }

@@ -8,35 +8,80 @@ use App\Enums\EventTrooperStatus;
 use App\Http\Controllers\Controller;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
-use App\Services\BreadCrumbService;
+use App\Models\Trooper;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 /**
- * Handles the display of the main account management page.
+ * Handles HTMX-driven event shift sign-up creation.
  *
- * This controller is responsible for fetching the authenticated user's
- * data and rendering the primary account view where they can manage
- * their profile, settings, and other account-related information.
+ * This controller processes a trooper's sign-up for a specific event shift.
+ * It automatically determines if the trooper should be placed on the main roster
+ * or the standby list based on shift capacity, and returns the updated shift
+ * container view for dynamic page updates.
  */
 class SignUpHtmxController extends Controller
 {
     /**
-     * Handle the incoming request to display the account page.
+     * Handle the incoming HTMX request to sign up a trooper for an event shift.
      *
-     * This method retrieves the authenticated user's trooper profile and
-     * renders the main account management view with the trooper's data.
+     * Creates a new EventTrooper record for the authenticated user, automatically
+     * determining their status (GOING or STAND_BY) based on the shift's capacity
+     * limits for troopers and handlers. Returns the updated shift container view.
      *
-     * @return View The rendered account page view.
+     * @param Request $request The incoming request containing the authenticated user
+     * @param EventShift $event_shift The event shift the trooper is signing up for
+     * @return View The rendered shift container with updated trooper list
      */
     public function __invoke(Request $request, EventShift $event_shift): View
     {
+        $trooper = $request->user();
+
+        if ($request->has('trooper_id'))
+        {
+            $trooper = Trooper::active()->findOrFail($request->input('trooper_id'));
+        }
+
+        $exists = $event_shift->event_troopers()
+            ->where(EventTrooper::TROOPER_ID, $trooper->id)
+            ->exists();
+
+        if (!$exists)
+        {
+            $this->addTrooper($event_shift, $trooper);
+        }
+
+        $with = [
+            'event_troopers.trooper',
+            'event_troopers.added_by_trooper',
+            'event_troopers.organization_costume.organization',
+            'event_troopers' => function ($query)
+            {
+                $query->orderBy(EventTrooper::SIGNED_UP_AT, 'asc');
+            },
+        ];
+
+        $event_shift = EventShift::with($with)->findOrFail($event_shift->id);
+
+        $event = $event_shift->event;
+
+        $data = compact('event', 'event_shift');
+
+        return view('pages.events.inc.shift-container', $data);
+    }
+
+    private function addTrooper(EventShift $event_shift, Trooper $trooper): void
+    {
+        $current_id = Auth::user()->id;
+
         $event_trooper = new EventTrooper();
 
         $event_trooper->event_shift_id = $event_shift->id;
-        $event_trooper->trooper_id = $request->user()->id;
-        $event_trooper->is_handler = $request->user()->isHandler();
+        $event_trooper->trooper_id = $trooper->id;
+        $event_trooper->is_handler = $trooper->is_handler;
         $event_trooper->signed_up_at = now();
+        $event_trooper->added_by_trooper_id = $current_id == $trooper->id ? null : $current_id;
 
         $status = EventTrooperStatus::GOING;
 
@@ -57,19 +102,5 @@ class SignUpHtmxController extends Controller
 
         $event_trooper->status = $status;
         $event_trooper->save();
-
-        $with = [
-            'event_troopers.trooper',
-            'event_troopers.added_by_trooper',
-            'event_troopers.organization_costume.organization',
-        ];
-
-        $event_shift = EventShift::with($with)->findOrFail($event_shift->id);
-
-        $event = $event_shift->event;
-
-        $data = compact('event', 'event_shift');
-
-        return view('pages.events.inc.shift-container', $data);
     }
 }

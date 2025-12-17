@@ -21,8 +21,12 @@ use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Notifications\Notifiable;
 
 /**
- * Represents a user of the application, typically a member of a costuming organization.
- * This model handles authentication, authorization, and user-specific data and relationships.
+ * Represents a member (trooper) of a costuming organization.
+ *
+ * Troopers are authenticated users who can participate in events, manage costumes,
+ * belong to organizations, and track their trooping activities. This model handles
+ * authentication, authorization, membership status, and all trooper-specific data
+ * including profile information, preferences, and relationships to events and organizations.
  */
 class Trooper extends BaseTrooper implements
     AuthenticatableContract,
@@ -57,9 +61,9 @@ class Trooper extends BaseTrooper implements
      *
      * @return bool True if the trooper is admin, false otherwise.
      */
-    public function isAdministrator(): bool
+    public function getIsAdministratorAttribute(): bool
     {
-        return $this->isActive() && $this->membership_role == MembershipRole::ADMINISTRATOR;
+        return $this->is_active && $this->membership_role == MembershipRole::ADMINISTRATOR;
     }
 
     /**
@@ -67,9 +71,9 @@ class Trooper extends BaseTrooper implements
      *
      * @return bool True if the trooper is moderator, false otherwise.
      */
-    public function isModerator(): bool
+    public function getIsModeratorAttribute(): bool
     {
-        return $this->isActive() && $this->membership_role == MembershipRole::MODERATOR;
+        return $this->is_active && $this->membership_role == MembershipRole::MODERATOR;
     }
 
     /**
@@ -77,9 +81,9 @@ class Trooper extends BaseTrooper implements
      *
      * @return bool True if the trooper is handler, false otherwise.
      */
-    public function isHandler(): bool
+    public function getIsHandlerAttribute(): bool
     {
-        return $this->isActive() && $this->membership_role == MembershipRole::HANDLER;
+        return $this->is_active && $this->membership_role == MembershipRole::HANDLER;
     }
 
     /**
@@ -87,7 +91,7 @@ class Trooper extends BaseTrooper implements
      *
      * @return bool True if the trooper is active, false otherwise.
      */
-    public function isActive(): bool
+    public function getIsActiveAttribute(): bool
     {
         return $this->membership_status == MembershipStatus::ACTIVE;
     }
@@ -97,7 +101,7 @@ class Trooper extends BaseTrooper implements
      *
      * @return bool True if the trooper is denied, false otherwise.
      */
-    public function isDenied(): bool
+    public function getIsDeniedAttribute(): bool
     {
         return $this->membership_status == MembershipStatus::DENIED;
     }
@@ -113,7 +117,7 @@ class Trooper extends BaseTrooper implements
             ->where(TrooperCostume::COSTUME_ID, $costume_id)
             ->first();
 
-        if ($trooper_costume == null)
+        if ($trooper_costume === null)
         {
             $this->trooper_costumes()->create([TrooperCostume::COSTUME_ID => $costume_id]);
         }

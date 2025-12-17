@@ -45,8 +45,8 @@ class TrooperTest extends TestCase
         $member_trooper = Trooper::factory()->make(['membership_role' => MembershipRole::MEMBER]);
 
         // Act & Assert
-        $this->assertTrue($admin_trooper->isAdministrator());
-        $this->assertFalse($member_trooper->isAdministrator());
+        $this->assertTrue($admin_trooper->is_administrator);
+        $this->assertFalse($member_trooper->is_administrator);
     }
 
     public function test_is_active_returns_correct_value(): void
@@ -56,8 +56,8 @@ class TrooperTest extends TestCase
         $pending_trooper = Trooper::factory()->make(['membership_status' => MembershipStatus::PENDING]);
 
         // Act & Assert
-        $this->assertTrue($active_trooper->isActive());
-        $this->assertFalse($pending_trooper->isActive());
+        $this->assertTrue($active_trooper->is_active);
+        $this->assertFalse($pending_trooper->is_active);
     }
 
     public function test_is_denied_returns_correct_value(): void
@@ -67,8 +67,8 @@ class TrooperTest extends TestCase
         $active_trooper = Trooper::factory()->make(['membership_status' => MembershipStatus::ACTIVE]);
 
         // Act & Assert
-        $this->assertTrue($denied_trooper->isDenied());
-        $this->assertFalse($active_trooper->isDenied());
+        $this->assertTrue($denied_trooper->is_denied);
+        $this->assertFalse($active_trooper->is_denied);
     }
 
     public function test_attach_and_detach_costume_work_correctly(): void

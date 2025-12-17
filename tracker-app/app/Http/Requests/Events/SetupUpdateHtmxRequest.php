@@ -32,17 +32,22 @@ class SetupUpdateHtmxRequest extends HtmxFormRequest
     {
         $event_trooper = $this->route('event_trooper');
 
-        if ($event_trooper == null)
+        if ($event_trooper === null)
         {
             throw new AuthorizationException('EventTrooper not found or unauthorized.');
         }
 
-        if ($this->user()->id == $event_trooper->trooper_id)
+        if ($event_trooper->canUpdateCostume($event_trooper->event_shift, $this->user()))
         {
             return true;
         }
 
-        return $this->user()->can('moderate', $event_trooper->trooper);
+        if ($event_trooper->canUpdateStatus($event_trooper->event_shift, $this->user()))
+        {
+            return true;
+        }
+
+        return false;
     }
 
     /**

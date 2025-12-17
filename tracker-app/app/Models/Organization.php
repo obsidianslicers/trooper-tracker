@@ -11,6 +11,17 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
+/**
+ * Represents an organization within the trooping community hierarchy.
+ *
+ * Organizations form a hierarchical structure with three levels:
+ * - Organizations (parent level)
+ * - Regions (children of organizations)
+ * - Units (children of regions)
+ *
+ * Each organization can have multiple costumes, track event participation,
+ * and maintain relationships with events and troopers.
+ */
 class Organization extends BaseOrganization
 {
     use HasObserver;
@@ -40,16 +51,35 @@ class Organization extends BaseOrganization
         return $this->belongsTo(self::class, self::PARENT_ID);
     }
 
+    /**
+     * Get all event troopers associated with this organization through organization costumes.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
+     */
     public function event_troopers(): HasManyThrough
     {
         return $this->hasManyThrough(EventTrooper::class, OrganizationCostume::class);
     }
 
+    /**
+     * Get all event organizations associated with this organization.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
     public function event_organizations()
     {
         return $this->hasMany(EventOrganization::class);
     }
 
+    /**
+     * Resequence all organizations, regions, and units in hierarchical order.
+     *
+     * Assigns sequence numbers starting at 900, incrementing by 100 for each
+     * organization, then its regions, then each region's units. This establishes
+     * a consistent ordering for the organizational hierarchy.
+     *
+     * @return void
+     */
     public static function resequenceAll()
     {
         $organizations = self::ofTypeOrganizations()->orderBy('name')->get();

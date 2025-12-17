@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models\Scopes;
 
-use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Enums\MembershipRole;
-use App\Models\EventTrooper;
 use App\Models\Trooper;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -22,18 +20,12 @@ trait HasEventTrooperScopes
     public function scopeTroopers(Builder $query): Builder
     {
         return $query->where(self::STATUS, EventTrooperStatus::GOING)
-            ->whereHas('trooper', function (Builder $q)
-            {
-                $q->where(Trooper::MEMBERSHIP_ROLE, '!=', MembershipRole::HANDLER);
-            });
+            ->where(self::IS_HANDLER, false);
     }
 
     public function scopeHandlers(Builder $query): Builder
     {
         return $query->where(self::STATUS, EventTrooperStatus::GOING)
-            ->whereHas('trooper', function (Builder $q)
-            {
-                $q->where(Trooper::MEMBERSHIP_ROLE, MembershipRole::HANDLER);
-            });
+            ->where(self::IS_HANDLER, true);
     }
 }

@@ -39,3 +39,28 @@ document.addEventListener('DOMContentLoaded', () => {  // Attach listener to eve
         });
     });
 });
+
+/** DISALLOW ENTER KEY SUBMISSION **/
+document.addEventListener('DOMContentLoaded', () => {
+    function bindPreventEnterSubmit(root) {
+        root.querySelectorAll('form').forEach(form => {
+            // Only bind once per form
+            if (!form.dataset.preventEnterBound) {
+                form.addEventListener('keydown', event => {
+                    if (event.key === 'Enter' && event.target.tagName !== 'TEXTAREA') {
+                        event.preventDefault();
+                    }
+                });
+                form.dataset.preventEnterBound = 'true';
+            }
+        });
+    }
+
+    // Bind for initial page load
+    bindPreventEnterSubmit(document);
+
+    // Bind for any new content HTMX swaps in
+    document.body.addEventListener('htmx:afterSettle', evt => {
+        bindPreventEnterSubmit(evt.target);
+    });
+});

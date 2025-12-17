@@ -6,24 +6,23 @@ namespace App\Http\Controllers\Admin\Events;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
-use App\Models\EventShift;
-use App\Models\EventTrooper;
 use App\Services\BreadCrumbService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 /**
- * Class UpdateController
+ * Displays the trooper roster management form for an event.
  *
- * Handles displaying the form to update an existing event.
- * @package App\Http\Controllers\Admin\Events
+ * Provides administrators and moderators with a form to manage trooper
+ * registrations and status updates for an event. Displays troopers
+ * organized by shifts.
  */
 class UpdateTroopersController extends Controller
 {
     /**
-     * UpdateController constructor.
+     * Creates a new UpdateTroopersController instance.
      *
-     * @param BreadCrumbService $crumbs The service for managing breadcrumbs.
+     * @param BreadCrumbService $crumbs Service for managing breadcrumb navigation.
      */
     public function __construct(private readonly BreadCrumbService $crumbs)
     {
@@ -32,14 +31,15 @@ class UpdateTroopersController extends Controller
     }
 
     /**
-     * Handle the request to display the event update page.
+     * Displays the trooper roster management form.
      *
-     * Authorizes the user, sets up breadcrumbs, and returns the view
-     * containing the form to update an existing event.
+     * Authorizes that the user can update the event via policy check.
+     * Loads event shifts with roster scope and renders the trooper
+     * management view.
      *
-     * @param Request $request The incoming HTTP request object.
-     * @param Event $event The event to be updated.
-     * @return View The rendered event update view.
+     * @param Request $request The incoming HTTP request.
+     * @param Event $event The event whose trooper roster is being managed (route model binding).
+     * @return View The trooper roster management form view.
      */
     public function __invoke(Request $request, Event $event): View
     {

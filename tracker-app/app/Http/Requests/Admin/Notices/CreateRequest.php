@@ -66,7 +66,7 @@ class CreateRequest extends FormRequest
         $trooper = $this->user();
 
         // Organization rules depend on role
-        if ($trooper->isAdministrator())
+        if ($trooper->is_administrator)
         {
             // Admins can either leave it null or pick any existing org
             $rules[Notice::ORGANIZATION_ID] = [

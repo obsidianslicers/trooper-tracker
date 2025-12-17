@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
+use App\Enums\EventStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\Filters\EventFilter;
@@ -16,16 +17,18 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 /**
- * Handles displaying a paginated and filterable list of events in the admin section.
+ * Displays a paginated and filterable list of events.
  *
- * Supports filtering by status, organization, and search term, while respecting user permissions.
+ * Provides administrators and moderators with a list of all events,
+ * with filtering capabilities for status, organization, and search terms.
+ * Supports pagination for large result sets.
  */
 class ListController extends Controller
 {
     /**
-     * ListController constructor.
+     * Creates a new ListController instance.
      *
-     * @param BreadCrumbService $crumbs The service for managing breadcrumbs.
+     * @param BreadCrumbService $crumbs Service for managing breadcrumb navigation.
      */
     public function __construct(private readonly BreadCrumbService $crumbs)
     {
@@ -33,12 +36,15 @@ class ListController extends Controller
     }
 
     /**
-     * Handle the request to display the events list page.
-     * 
-     * Fetches and displays a paginated list of events based on request filters
-     * such as status, organization, and search term.
-     * @param Request $request The incoming HTTP request object.
-     * @return View The rendered view for the events list.
+     * Displays the filtered and paginated event list.
+     *
+     * Authorizes that the user can view events, applies filters from query
+     * parameters (status, organization_id, q for search), and paginates results.
+     * Sets up breadcrumb navigation and renders the event list view.
+     *
+     * @param Request $request The incoming HTTP request with optional filter parameters.
+     * @param EventFilter $filter The filter service for applying query constraints.
+     * @return View The event list view with filtered and paginated results.
      */
     public function __invoke(Request $request, EventFilter $filter): View
     {
@@ -46,11 +52,14 @@ class ListController extends Controller
 
         $events = $this->getEvents($request, $filter);
 
+        $status_options = EventStatus::toArray();
+
         $data = [
             'events' => $events,
             'organization' => $organization,
             'status' => $request->query('status', null),
-            'search_term' => $request->query('search_term')
+            'search_term' => $request->query('search_term'),
+            'status_options' => $status_options,
         ];
 
         return view('pages.admin.events.list', $data);

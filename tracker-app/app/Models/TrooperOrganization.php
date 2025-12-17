@@ -7,6 +7,13 @@ use App\Models\Base\TrooperOrganization as BaseTrooperOrganization;
 use App\Models\Scopes\HasTrooperOrganizationScopes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+/**
+ * Represents a trooper's membership relationship with an external organization.
+ *
+ * This model tracks memberships in organizations outside the primary system
+ * hierarchy, including membership numbers, status, and dates. Examples include
+ * tracking 501st Legion membership numbers or other costuming group affiliations.
+ */
 class TrooperOrganization extends BaseTrooperOrganization
 {
     use HasFactory;

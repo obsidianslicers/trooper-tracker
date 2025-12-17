@@ -73,6 +73,11 @@ class TrooperFactory extends BaseTrooperFactory
         return $this->withMemberShipRole(MembershipRole::MEMBER);
     }
 
+    public function asHandler(): static
+    {
+        return $this->withMemberShipRole(MembershipRole::HANDLER);
+    }
+
     private function withMemberShipRole(MembershipRole $role = MembershipRole::MEMBER): static
     {
         return $this->state(fn(array $attributes) => [

@@ -6,52 +6,77 @@ namespace App\Http\Controllers\Events;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
+use App\Models\EventTrooper;
+use App\Models\Organization;
 use App\Services\BreadCrumbService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 /**
- * Handles the display of the main account management page.
+ * Displays the event sign-up page with all shifts and current trooper assignments.
  *
- * This controller is responsible for fetching the authenticated user's
- * data and rendering the primary account view where they can manage
- * their profile, settings, and other account-related information.
+ * This controller renders the event sign-up interface where troopers can view
+ * available shifts, see who is already signed up, and register for shifts.
+ * It loads the event with all related data including organizations, shifts,
+ * and trooper assignments.
  */
 class SignUpController extends Controller
 {
+    /**
+     * Create a new controller instance.
+     *
+     * @param BreadCrumbService $crumbs The breadcrumb service for navigation
+     */
     public function __construct(private readonly BreadCrumbService $crumbs)
     {
         $this->crumbs->addRoute('Events', 'events.list');
     }
+
     /**
-     * Handle the incoming request to display the account page.
+     * Handle the incoming request to display the event sign-up page.
      *
-     * This method retrieves the authenticated user's trooper profile and
-     * renders the main account management view with the trooper's data.
+     * Loads the event with all shifts, trooper assignments, and organization
+     * details. Each shift is enriched with its parent event reference for
+     * easy access in the view.
      *
-     * @return View The rendered account page view.
+     * @param Request $request The incoming request
+     * @param Event $event The event to display for sign-up
+     * @return View The rendered event sign-up page
      */
     public function __invoke(Request $request, Event $event): View
     {
         $with = [
             'organization',
             'organizations.organization',
+            'organizations' => function ($query)
+            {
+                $query->orderBy(Organization::NAME);
+            },
             'event_shifts.event_troopers.trooper',
             'event_shifts.event_troopers.added_by_trooper',
             'event_shifts.event_troopers.organization_costume.organization',
+            'event_shifts.event_troopers' => function ($query)
+            {
+                $query->orderBy(EventTrooper::SIGNED_UP_AT);
+            },
         ];
 
-        $event = Event::with('organization')
+        $event = Event::with($with)
             ->withShifts()
             ->findOrFail($event->id);
 
         foreach ($event->event_shifts as $shift)
         {
             $shift->event = $event;
+
+            foreach ($shift->event_troopers as $trooper)
+            {
+                $trooper->event_shift = $shift;
+            }
         }
 
         $data = compact('event');
 
-        return view('pages.events.sign-up', $data);
+        return view('pages.events.signup', $data);
     }
 }

@@ -14,17 +14,18 @@ use App\Services\FlashMessageService;
 use Illuminate\Http\RedirectResponse;
 
 /**
- * Class CreateSubmitController
+ * Processes event creation form submissions.
  *
- * Handles the submission of the form for updating an existing event.
- * @package App\Http\Controllers\Admin\Events
+ * Handles the creation of new events from form submissions, including events
+ * created from email sources. Creates the event record along with associated
+ * organization relationships and initial shift data.
  */
 class CreateSubmitController extends Controller
 {
     /**
-     * CreateSubmitController constructor.
+     * Creates a new CreateSubmitController instance.
      *
-     * @param FlashMessageService $flash The service for displaying flash messages.
+     * @param FlashMessageService $flash Service for displaying flash messages to users.
      */
     public function __construct(private readonly FlashMessageService $flash)
     {

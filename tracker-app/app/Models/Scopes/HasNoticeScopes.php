@@ -126,7 +126,7 @@ trait HasNoticeScopes
      */
     public function scopeModeratedBy(Builder $query, Trooper $trooper): Builder
     {
-        if ($trooper->isAdministrator())
+        if ($trooper->is_administrator)
         {
             return $query;
         }
