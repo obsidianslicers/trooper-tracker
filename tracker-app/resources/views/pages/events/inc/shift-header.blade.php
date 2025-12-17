@@ -6,24 +6,28 @@
         {{ to_title($event_shift->status->name) }}
     </div>
     <div class="col-6 text-end">
-        @if($event_shift->troopers_allowed != null && $event_shift->event_troopers->count() >= $event_shift->troopers_allowed)
+        @php($count_of_troopers = $event_shift->event_troopers->filter(fn($et) => $et->is_going)->count())
+        @if($event_shift->troopers_allowed != null && $count_of_troopers >= $event_shift->troopers_allowed)
             <span class="text-success">
                 FULL TROOP
                 <i class="fa fa-fw fa-check-circle ms-2"></i>
             </span>
-        @elseif($event_shift->event_troopers->count() == 0)
+        @elseif($count_of_troopers == 0)
             <span class="text-danger">
                 NOT ENOUGH!
             </span>
         @else
-            {{ $event_shift->event_troopers->count() }} signed up
+            {{ $count_of_troopers }}
+            @if($event->troopers_allowed !== null && $event->troopers_allowed > 0)
+                / {{ $event->troopers_allowed }}
+            @endif
+            going
         @endif
     </div>
 </div>
 @if($event_shift->isSignedUp(Auth::user()))
 <div class="row mb-3">
     <div class="col-12 text-end">
-
         @php($link = $event_shift->createCalendarLink())
         <x-button-group>
             <div class="btn btn-sm btn-primary">

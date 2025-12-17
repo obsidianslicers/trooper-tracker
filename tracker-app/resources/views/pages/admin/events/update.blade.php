@@ -305,6 +305,14 @@
                 </x-accordion-card>
 
                 <x-submit-container>
+                    <span class="float-start">
+                        <a href="{{ route('events.signup', compact('event')) }}"
+                            class="btn btn-outline-info mb-2"
+                            target="_blank">
+                            View Event
+                            <span class="fa fa-fw fa-external-link"></span>
+                        </a>
+                    </span>
                     @if($event->is_active)
                         <x-submit-button>Update</x-submit-button>
                     @endif

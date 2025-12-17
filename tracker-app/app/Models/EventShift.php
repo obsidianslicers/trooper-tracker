@@ -45,13 +45,6 @@ class EventShift extends BaseEventShift
      */
     public function getIsOpenAttribute(): bool
     {
-        /**
-         * Check if the shift sign-ups are locked.
-         *
-         * A shift is locked if either the parent event is locked or the shift status is SIGN_UP_LOCKED.
-         *
-         * @return bool True if the shift is locked
-         */
         if (!$this->event->is_open)
         {
             return false;
@@ -59,29 +52,29 @@ class EventShift extends BaseEventShift
         return $this->status === EventStatus::OPEN;
     }
 
+    /**
+     * Check if the shift sign-ups are locked.
+     *
+     * A shift is locked if either the parent event is locked or the shift status is SIGN_UP_LOCKED.
+     *
+     * @return bool True if the shift is locked
+     */
     public function getIsLockedAttribute(): bool
     {
-        /**
-         * Get a formatted display string for the shift time.
-         *
-         * Format: "Sat - Oct 03, 2026 - 2:00pm - 4:00pm"
-         *
-         * @return string The formatted time display
-         */
         if ($this->event->is_locked)
         {
-            /**
-             * Get a shortened formatted display string for the shift time.
-             *
-             * Format: "10/03 - 2:00pm - 4:00pm"
-             *
-             * @return string The shortened time display
-             */
             return true;
         }
         return $this->status === EventStatus::SIGN_UP_LOCKED;
     }
 
+    /**
+     * Get a formatted display string for the shift time.
+     *
+     * Format: "Sat - Oct 03, 2026 - 2:00pm - 4:00pm"
+     *
+     * @return string The formatted time display
+     */
     public function getTimeDisplayAttribute(): string
     {
         //Sat - Oct 03, 2026 - 2:00pm - 4:00pm
@@ -91,6 +84,13 @@ class EventShift extends BaseEventShift
             $this->shift_ends_at->format('g:ia');
     }
 
+    /**
+     * Get a shortened formatted display string for the shift time.
+     *
+     * Format: "10/03 - 2:00pm - 4:00pm"
+     *
+     * @return string The shortened time display
+     */
     public function getShortTimeDisplayAttribute(): string
     {
         //10/03 - 2:00pm - 4:00pm
@@ -131,15 +131,20 @@ class EventShift extends BaseEventShift
             return false;
         }
 
-        /**
-         * Check if a specific trooper is signed up for this shift.
-         *
-         * @param Trooper $trooper The trooper to check
-         * @return bool True if the trooper is signed up
-         */
         $handlers_signed_up = $this->event_troopers()->handlers()->count();
 
         return $handlers_signed_up >= $handlers_allowed;
+    }
+
+    /**
+     * Check if a specific trooper is signed up for this shift.
+     *
+     * @param Trooper $trooper The trooper to check
+     * @return bool True if the trooper is signed up
+     */
+    public function isSignedUp(Trooper $trooper): bool
+    {
+        return $this->event_troopers->where(EventTrooper::TROOPER_ID, $trooper->id)->isNotEmpty();
     }
 
     /**
@@ -150,9 +155,14 @@ class EventShift extends BaseEventShift
      * @param Trooper $trooper The trooper attempting to sign up
      * @return bool True if the trooper can sign up
      */
-    public function isSignedUp(Trooper $trooper): bool
+    public function canSignUp(Trooper $trooper): bool
     {
-        return $this->event_troopers->where(EventTrooper::TROOPER_ID, $trooper->id)->isNotEmpty();
+        if ($this->is_open)
+        {
+            return !$this->isSignedUp($trooper);
+        }
+
+        return false;
     }
 
     /**
@@ -163,34 +173,41 @@ class EventShift extends BaseEventShift
      * @param Trooper $trooper The trooper attempting to sign up a friend
      * @return bool True if the trooper can sign up a friend
      */
-    public function canSignUp(Trooper $trooper): bool
-    {
-        if ($this->is_open)
-        {
-            /**
-             * Create a calendar link for this shift.
-             *
-             * Generates a calendar link that can be added to various calendar applications
-             * (Google Calendar, iCal, Outlook, etc.) with the shift details.
-             *
-             * @return Link The calendar link object
-             */
-            return !$this->isSignedUp($trooper);
-        }
-
-        return false;
-    }
-
     public function canSignUpFriend(Trooper $trooper): bool
     {
         if ($this->is_open)
         {
-            return $this->isSignedUp($trooper);
+            if ($this->isSignedUp($trooper))
+            {
+                $friends_allowed = $this->event->friends_allowed;
+
+                if ($friends_allowed === null)
+                {
+                    return true;
+                }
+
+                $friends = $this->event_troopers()
+                    ->where(EventTrooper::ADDED_BY_TROOPER_ID, $trooper->id)
+                    ->count();
+
+                if ($friends < $friends_allowed)
+                {
+                    return true;
+                }
+            }
         }
 
         return false;
     }
 
+    /**
+     * Create a calendar link for this shift.
+     *
+     * Generates a calendar link that can be added to various calendar applications
+     * (Google Calendar, iCal, Outlook, etc.) with the shift details.
+     *
+     * @return Link The calendar link object
+     */
     public function createCalendarLink(): Link
     {
         $from = $this->shift_starts_at->copy()->shiftTimezone('America/New_York');

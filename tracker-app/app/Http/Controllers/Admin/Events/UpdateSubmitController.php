@@ -57,6 +57,7 @@ class UpdateSubmitController extends Controller
         $event->status = $request->validated('status');
         $event->troopers_allowed = $request->validated('troopers_allowed');
         $event->handlers_allowed = $request->validated('handlers_allowed');
+        $event->friends_allowed = $request->validated('friends_allowed');
         $event->tentative_signups_allowed = $request->validated('tentative_signups_allowed');
 
         // Coordinates

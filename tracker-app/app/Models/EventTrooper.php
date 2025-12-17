@@ -66,6 +66,16 @@ class EventTrooper extends BaseEventTrooper
     }
 
     /**
+     * Check if the trooper is going to the event.
+     *
+     * @return bool
+     */
+    public function getIsGoingAttribute(): bool
+    {
+        return $this->status === EventTrooperStatus::GOING;
+    }
+
+    /**
      * Get a formatted time display string for the shift.
      *
      * Format: "Sat - Oct 03, 2026 - 2:00pm - 4:00pm"

@@ -35,6 +35,7 @@
                         <i class="fa fa-fw fa-plus-circle me-2"></i>
                         Add a Trooper
                     </button>
+                    {{-- TO CATCH THE MODAL TROOPER PICKER PICK --}}
                     <div class="d-none"
                          hx-post="{{ route('events.signup-htmx', compact('event_shift')) }}"
                          hx-vals="js:{trooper_id: event.detail.id}"
