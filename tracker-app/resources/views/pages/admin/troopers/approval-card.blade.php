@@ -5,6 +5,10 @@
     </div>
     <div class="card-body">
         <dl class="row mb-0">
+            <dt class="col-4">Username:</dt>
+            <dd class="col-8">{{ $trooper->username }}</dd>
+            <dt class="col-4">Name:</dt>
+            <dd class="col-8">{{ $trooper->name }}</dd>
             <dt class="col-4">Email:</dt>
             <dd class="col-8">{{ $trooper->email }}</dd>
             <dt class="col-4">Phone:</dt>
@@ -13,62 +17,71 @@
             <dd class="col-8">{{ to_title($trooper->membership_role->name) }}</dd>
         </dl>
         <hr />
-        <x-table>
-            <thead>
-                <tr>
-                    <th>Organization</th>
-                    <th>ID</th>
-                </tr>
-            </thead>
-            @foreach($trooper->organizations as $organization)
-                <tr>
-                    <td>
-                        <i class="fa fa-fw"></i>
-                        {{ $organization->name }}
-                    </td>
-                    <td>
-                        {{ $organization->pivot->identifier }}
-                        @if($organization->pivot->verified_at != null)
-                            <i class="fa fa-fw fa-circle-check text-success float-end my-1"></i>
-                        @endif
-                    </td>
-                </tr>
-            @endforeach
-            <thead>
-                <tr>
-                    <th colspan="2">Selected Unit</th>
-                </tr>
-            </thead>
-            @foreach($trooper->trooper_assignments as $assignment)
-                <tr>
-                    <td colspan="2">
-                        <i class="fa fa-fw"></i>
-                        {{ $assignment->organization->parent->name }}
-                        -
-                        {{ $assignment->organization->name }}
-                    </td>
-                </tr>
-                @foreach($trooper->trooper_assignments->filter(fn($a) => $a->organization->parent_id == $assignment->organization_id) as $reg_asg)
+        {{-- ONLY HANDLERS CAN GET OUT OF PICKING A UNIT --}}
+        @if($trooper->membership_role == \App\Enums\MembershipRole::HANDLER && $trooper->trooper_assignments->isEmpty())
+            <x-message type="warning"
+                       icon="fa-solid fa-triangle-exclamation"
+                       class="mb-3">
+                This trooper is registered as a Handler and not required to select a unit.
+            </x-message>
+        @else
+            <x-table>
+                <thead>
                     <tr>
-                        <td class="ps-{{ $reg_asg->organization->depth }}">
-                            <i class="fa fa-fw fa-caret-right"></i>
-                            {{ $reg_asg->organization->name }}
-                        </td>
-                        <td>{{ $reg_asg->membership_role }}</td>
+                        <th>Organization</th>
+                        <th>ID</th>
                     </tr>
-                    @foreach($trooper->trooper_assignments->filter(fn($a) => $a->organization->parent_id == $reg_asg->organization_id) as $unit_asg)
+                </thead>
+                @foreach($trooper->organizations as $organization)
+                    <tr>
+                        <td>
+                            <i class="fa fa-fw"></i>
+                            {{ $organization->name }}
+                        </td>
+                        <td>
+                            {{ $organization->pivot->identifier }}
+                            @if($organization->pivot->verified_at != null)
+                                <i class="fa fa-fw fa-circle-check text-success float-end my-1"></i>
+                            @endif
+                        </td>
+                    </tr>
+                @endforeach
+                <thead>
+                    <tr>
+                        <th colspan="2">Selected Unit</th>
+                    </tr>
+                </thead>
+                @foreach($trooper->trooper_assignments as $assignment)
+                    <tr>
+                        <td colspan="2">
+                            <i class="fa fa-fw"></i>
+                            {{ $assignment->organization->parent->name }}
+                            -
+                            {{ $assignment->organization->name }}
+                        </td>
+                    </tr>
+                    @foreach($trooper->trooper_assignments->filter(fn($a) => $a->organization->parent_id == $assignment->organization_id) as $reg_asg)
                         <tr>
-                            <td class="ps-{{ $unit_asg->organization->depth }}">
+                            <td class="ps-{{ $reg_asg->organization->depth }}">
                                 <i class="fa fa-fw fa-caret-right"></i>
-                                <i class="fa fa-fw fa-caret-right"></i>
-                                {{ $unit_asg->organization->name }}
+                                {{ $reg_asg->organization->name }}
                             </td>
-                            <td>{{ $unit_asg->membership_role }}</td>
+                            <td>{{ $reg_asg->membership_role }}</td>
                         </tr>
+                        @foreach($trooper->trooper_assignments->filter(fn($a) => $a->organization->parent_id == $reg_asg->organization_id) as $unit_asg)
+                            <tr>
+                                <td class="ps-{{ $unit_asg->organization->depth }}">
+                                    <i class="fa fa-fw fa-caret-right"></i>
+                                    <i class="fa fa-fw fa-caret-right"></i>
+                                    {{ $unit_asg->organization->name }}
+                                </td>
+                                <td>{{ $unit_asg->membership_role }}</td>
+                            </tr>
+                        @endforeach
                     @endforeach
                 @endforeach
-            @endforeach
-        </x-table>
+            </x-table>
+        @endif
 
     </div>
     <div class="card-footer d-flex justify-content-between">

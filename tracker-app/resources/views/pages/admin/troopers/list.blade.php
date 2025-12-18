@@ -8,8 +8,8 @@
         <div class="col-sm-12 col-md-6">
 
             <form method="GET"
-                  action="{{ route('admin.troopers.list') }}"
-                  class="input-group">
+                  class="input-group allow-enter-keypress"
+                  action="{{ route('admin.troopers.list') }}">
                 @foreach (qs() as $key => $value)
                     <x-input-hidden :property="$key"
                                     :value="$value" />
@@ -44,7 +44,9 @@
         </div>
     </div>
 
-    <x-table>
+    <x-transmission-bar :id="'trooper-search-results'" />
+
+    <x-table id="trooper-search-results">
         <thead>
             <tr>
                 <th>

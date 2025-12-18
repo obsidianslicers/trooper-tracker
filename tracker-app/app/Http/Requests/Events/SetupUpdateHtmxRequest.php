@@ -61,9 +61,9 @@ class SetupUpdateHtmxRequest extends HtmxFormRequest
     public function rules(): array
     {
         $event_trooper = $this->route('event_trooper');
-        $event = $event_trooper->event_shift->event;
+        $event_shift = $event_trooper->event_shift;
 
-        $valid_costume_ids = OrganizationCostume::forEvent($event, $this->user())
+        $valid_costume_ids = OrganizationCostume::forEventShift($event_shift, $this->user())
             ->pluck('id')
             ->toArray();
 
