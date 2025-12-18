@@ -1,12 +1,12 @@
 <x-section-title>Requested Characters</x-section-title>
 <p>
-    {{ $event->requested_character_types }}
+    Looking for: {{ $event->requested_character_types }}
 </p>
 <ul class="list-group list-group-flush">
     @foreach($event->organizations as $organization)
         <li class="list-group-item">
             <x-yes-no class="me-2"
-                      :value="true" />
+                      :value="$organization->pivot->can_attend ?? false" />
             {{ $organization->name }}
             <span class="float-end">
                 {{ $organization->pivot->troopers_allowed }}

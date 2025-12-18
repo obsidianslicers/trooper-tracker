@@ -1,5 +1,4 @@
 todo:   awards down to trooper assignments
-todo:   events for full admin work
 todo:   club/organization identifiers
         - pull/sync from clubs (http/json/googlesheets)
         - auto verify club identifiers on registration

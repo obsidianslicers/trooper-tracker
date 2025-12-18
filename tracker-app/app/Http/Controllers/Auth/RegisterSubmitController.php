@@ -9,6 +9,7 @@ use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Mail\Auth\TrooperRegistered;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
@@ -16,6 +17,7 @@ use App\Models\TrooperOrganization;
 use App\Services\FlashMessageService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Hash;
+use Mail;
 
 /**
  * Handles the submission of the user registration form.
@@ -57,7 +59,9 @@ class RegisterSubmitController extends Controller
             }
         }
 
-        $this->register($request->validated(), $auth_user_id);
+        $trooper = $this->register($request->validated(), $auth_user_id);
+
+        Mail::to($trooper->email)->queue(new TrooperRegistered());
 
         $this->flash->success('Request submitted successfully! You will receive an e-mail when your request is approved or denied.');
 
