@@ -75,6 +75,9 @@ class CreateController extends Controller
     {
         $award = new Award();
 
+        // Default for new awards
+        $award->frequency = \App\Enums\AwardFrequency::ONCE;
+
         if ($request->has('copy_id'))
         {
             $copy_id = $request->query('copy_id');

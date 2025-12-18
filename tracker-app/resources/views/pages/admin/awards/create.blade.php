@@ -28,7 +28,7 @@
         <x-label>
           Frequency:
         </x-label>
-        <x-input-select :property="'false'"
+        <x-input-select :property="'frequency'"
                         :value="$award->frequency->value"
                         :options="\App\Enums\AwardFrequency::toArray()" />
       </x-input-container>
