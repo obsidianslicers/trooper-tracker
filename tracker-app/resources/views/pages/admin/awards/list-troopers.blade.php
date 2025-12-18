@@ -9,7 +9,7 @@
     <x-card>
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h5>Troopers Awarded: {{ $award->name }}</h5>
-            <a href="{{ route('admin.awards.assign-troopers', $award) }}" class="btn btn-primary">Assign to Troopers</a>
+            <a href="{{ route('admin.awards.assign-troopers', $award) }}" class="btn btn-outline-primary">Assign to Troopers</a>
         </div>
 
         <x-table>
