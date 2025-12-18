@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Admin\Awards\AssignTroopersController;
+use App\Http\Controllers\Admin\Awards\AssignTroopersSubmitController;
 use App\Http\Controllers\Admin\Awards\CreateController;
 use App\Http\Controllers\Admin\Awards\CreateSubmitController;
 use App\Http\Controllers\Admin\Awards\ListController;
@@ -22,4 +24,6 @@ Route::prefix('admin/awards')
         Route::get('/{award}/update', UpdateController::class)->name('update');
         Route::post('/{award}/update', UpdateSubmitController::class);
         Route::get('/{award}/troopers', ListTroopersController::class)->name('list-troopers');
+        Route::get('/{award}/assign-troopers', AssignTroopersController::class)->name('assign-troopers');
+        Route::post('/{award}/assign-troopers', AssignTroopersSubmitController::class);
     });
