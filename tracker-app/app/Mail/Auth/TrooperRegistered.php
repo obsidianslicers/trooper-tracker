@@ -37,7 +37,7 @@ class TrooperRegistered extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            markdown: 'mail.auth.registered',
+            view: 'emails.auth.registered',
         );
     }
 

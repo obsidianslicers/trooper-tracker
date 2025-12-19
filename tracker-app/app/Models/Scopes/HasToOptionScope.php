@@ -14,6 +14,5 @@ trait HasToOptionScope
                 return [$model->{$id} => $model->{$name}];
             })
             ->toArray();
-
     }
 }

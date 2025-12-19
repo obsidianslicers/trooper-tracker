@@ -44,7 +44,7 @@ class ApprovalSubmitHtmxController extends Controller
 
         $trooper->save();
 
-        Mail::to($trooper->email)->send(new TrooperApproved($trooper));
+        Mail::to($trooper->email)->queue(new TrooperApproved($trooper));
 
         $message = json_encode([
             'message' => "Trooper {$trooper->name} approved!",
