@@ -72,7 +72,14 @@ if (!function_exists('setting'))
      */
     function setting(string $key, mixed $default = null): mixed
     {
+        static $local = [];
+
         $key = strtolower($key);
+
+        if (array_key_exists($key, $local))
+        {
+            return $local[$key];
+        }
 
         $cast = function (mixed $value): mixed
         {
@@ -101,6 +108,6 @@ if (!function_exists('setting'))
             Setting::find($key)?->value
         );
 
-        return $cast($value ?? $default);
+        return $local[$key] = $cast($value ?? $default);
     }
 }
