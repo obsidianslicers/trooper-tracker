@@ -23,4 +23,6 @@ todo:   filter home events
         - by name using JS
         map view
         calendar view
-todo:   confirm attendance - how?
+todo:   confirm attendance - how is it done today?
+todo:   anything that's hooked into Xneforo
+todo:   emails on signups, cancellations, stand-bys to going status for events
