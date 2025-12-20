@@ -1,49 +1,22 @@
 @extends('layouts.base')
 
-@section('page-title', 'Login')
+@section('page-title', 'Sign Up')
 
 @section('content')
 
     <x-slim-container class="mt-4">
+
         <x-card>
 
-            <form method="POST"
-                  action="{{ route('auth.login') }}"
-                  novalidate="novalidate">
-                @csrf
-
-                <x-input-container>
-                    <x-label>
-                        Username:
-                    </x-label>
-                    <x-input-text autofocus
-                                  :property="'username'" />
-                </x-input-container>
-
-                <x-input-container>
-                    <x-label>
-                        Password:
-                    </x-label>
-                    <x-input-password :property="'password'" />
-                </x-input-container>
-
-                <x-input-container>
-                    <x-input-checkbox :property="'remember_me'"
-                                      :label="'Keep me logged in'"
-                                      :value="'Y'" />
-                </x-input-container>
-
-                <x-submit-container>
-                    <x-submit-button>
-                        Login
-                    </x-submit-button>
-                </x-submit-container>
-            </form>
-
-            <hr />
-
             <div class="row mb-3">
-                <div class="col-6">
+                <div class="col-12 mb-3">
+                    <a href="{{ route('auth.signup-email') }}"
+                       class="btn btn-outline-secondary w-100 d-flex justify-content-center align-items-center gap-2">
+                        <i class="fa fw fa-envelope me-3"></i>
+                        <span>Sign Up with Email</span>
+                    </a>
+                </div>
+                <div class="col-12 mb-3">
                     @if(config('services.xenforo.client_id'))
                         <a href="{{ route('auth.oauth-redirect', 'xenforo') }}"
                            class="btn btn-outline-secondary w-100 d-flex justify-content-center align-items-center gap-2">
@@ -51,11 +24,11 @@
                                  alt="XenForo Logo"
                                  style="width: 18px; height: 18px;"
                                  class="me-3">
-                            <span>Login with XenForo</span>
+                            <span>Sign Up with XenForo</span>
                         </a>
                     @endif
                 </div>
-                <div class="col-6">
+                <div class="col-12 mb-3">
                     @if(config('services.google.client_id'))
                         <a href="{{ route('auth.oauth-redirect', 'google') }}"
                            class="btn btn-outline-secondary w-100 d-flex justify-content-center align-items-center gap-2">
@@ -63,7 +36,7 @@
                                  alt="Google Logo"
                                  style="width: 18px; height: 18px;"
                                  class="me-3">
-                            <span>Login with Google</span>
+                            <span>Sign Up with Google</span>
                         </a>
                     @endif
                 </div>

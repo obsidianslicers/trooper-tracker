@@ -12,6 +12,7 @@ use App\Models\EventTrooper;
 use App\Models\EventUpload;
 use App\Models\Notice;
 use App\Models\NoticeTrooper;
+use App\Models\OauthLogin;
 use App\Models\Organization;
 use App\Models\TrooperAchievement;
 use App\Models\TrooperAssignment;
@@ -53,6 +54,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Collection|EventTrooper[] $event_troopers
  * @property Collection|EventUpload[] $event_uploads
  * @property Collection|Notice[] $notices
+ * @property Collection|OauthLogin[] $oauth_logins
  * @property TrooperAchievement|null $trooper_achievement
  * @property Collection|TrooperAssignment[] $trooper_assignments
  * @property Collection|TrooperCostume[] $trooper_costumes
@@ -142,6 +144,11 @@ class Trooper extends Model
         return $this->belongsToMany(Notice::class, 'tt_notice_troopers')
                     ->withPivot(NoticeTrooper::ID, NoticeTrooper::IS_READ, NoticeTrooper::DELETED_AT, NoticeTrooper::CREATED_ID, NoticeTrooper::UPDATED_ID, NoticeTrooper::DELETED_ID)
                     ->withTimestamps();
+    }
+
+    public function oauth_logins(): HasMany
+    {
+        return $this->hasMany(OauthLogin::class);
     }
 
     public function trooper_achievement(): HasOne

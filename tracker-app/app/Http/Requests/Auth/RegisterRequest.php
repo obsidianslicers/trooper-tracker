@@ -83,6 +83,17 @@ class RegisterRequest extends FormRequest
                 'phone' => preg_replace('/\D+/', '', $this->input('phone')),
             ]);
         }
+        if ($this->has('email'))
+        {
+            $registeration_auth = Session::get('registration_auth');
+
+            if ($registeration_auth && $registeration_auth['email'] != null)
+            {
+                $this->merge([
+                    'email' => trim($registeration_auth['email']),
+                ]);
+            }
+        }
     }
 
     /**

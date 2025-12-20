@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
-use App\Contracts\AuthenticationInterface;
 use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
 use App\Http\Controllers\Controller;
@@ -25,13 +24,10 @@ use Mail;
 class RegisterSubmitController extends Controller
 {
     /**
-     * @param AuthenticationInterface $auth The authentication service.
      * @param FlashMessageService $flash The flash message service.
      */
-    public function __construct(
-        private readonly AuthenticationInterface $auth,
-        private readonly FlashMessageService $flash,
-    ) {
+    public function __construct(private readonly FlashMessageService $flash)
+    {
     }
 
     /**
@@ -44,29 +40,14 @@ class RegisterSubmitController extends Controller
     {
         $auth_user_id = null;
 
-        if (config('tracker.plugins.type') != 'standalone')
-        {
-            $auth_user_id = $this->auth->verify(
-                username: $request->username,
-                password: $request->password
-            );
-
-            if ($auth_user_id === null)
-            {
-                return back()
-                    ->withInput()
-                    ->withErrors(['username' => 'Invalid Credentials']);
-            }
-        }
-
         $trooper = $this->register($request->validated(), $auth_user_id);
 
         Mail::to($trooper->email)->queue(new TrooperRegistered());
 
         $this->flash->success('Request submitted successfully! You will receive an e-mail when your request is approved or denied.');
 
-        //  TODO FIX ROUTE TO SOMETHING THAT MAKES SENSE
-        return redirect()->route('auth.register');
+        //  TODO FIX ROUTE TO SOMETHING THAT MAKES SENSE (ie welcome page)
+        return redirect()->route('auth.thankyou');
     }
 
     private function register(array $data, mixed $auth_user_id): Trooper

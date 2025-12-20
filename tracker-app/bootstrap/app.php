@@ -35,7 +35,8 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->alias([
-            'check.role' => \App\Http\Middleware\CheckActorRoleMiddleware::class
+            'check.role' => \App\Http\Middleware\CheckActorRoleMiddleware::class,
+            'auth.registration' => \App\Http\Middleware\RegistrationMiddleware::class,
         ]);
 
         $middleware->redirectGuestsTo(fn(Illuminate\Http\Request $request) => route('auth.login'));

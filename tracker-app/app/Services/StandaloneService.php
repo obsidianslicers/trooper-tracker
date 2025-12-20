@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Hash;
  * Provides authentication and forum-related services for a standalone application instance
  * without an external forum integration like Xenforo.
  */
-class StandaloneService implements AuthenticationInterface, ForumInterface
+class StandaloneService
 {
     /**
      * Retrieves the avatar URL for a user. Not implemented in this service.
@@ -38,14 +38,6 @@ class StandaloneService implements AuthenticationInterface, ForumInterface
      */
     public function authenticate(string $username, string $password): AuthenticationStatus
     {
-        $trooper = Trooper::where(Trooper::USERNAME, $username)->first();
-
-        if ($trooper && Hash::check($password, $trooper->password))
-        {
-            return AuthenticationStatus::SUCCESS;
-        }
-
-        return AuthenticationStatus::FAILURE;
     }
 
     /**

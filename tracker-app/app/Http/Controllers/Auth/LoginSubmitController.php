@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
-use App\Contracts\AuthenticationInterface;
-use App\Enums\AuthenticationStatus;
 use App\Enums\MembershipStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
@@ -13,6 +11,7 @@ use App\Models\Trooper;
 use App\Services\FlashMessageService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 /**
  * Handles the submission of the login form, authenticates the user, and manages the session.
@@ -21,13 +20,9 @@ class LoginSubmitController extends Controller
 {
     /**
      * @param FlashMessageService $flash The flash message service.
-     *
-     * @param AuthenticationInterface $auth The authentication service.
      */
-    public function __construct(
-        private readonly FlashMessageService $flash,
-        private readonly AuthenticationInterface $auth,
-    ) {
+    public function __construct(private readonly FlashMessageService $flash)
+    {
     }
 
     /**
@@ -38,23 +33,15 @@ class LoginSubmitController extends Controller
      */
     public function __invoke(LoginRequest $request): RedirectResponse
     {
+        $username = $request->validated('username');
+        $password = $request->validated('password');
+
         //  trooper existance is checked via LoginRequest
-        $trooper = Trooper::query()->byUsername($request->username)->first();
+        $trooper = Trooper::query()->byUsername($username)->first();
 
         if ($trooper->membership_status == MembershipStatus::PENDING)
         {
             $this->flash->warning('Your access has not been approved yet. Please refer to command staff for additional information.');
-
-            return back()
-                ->withInput(request()->except('password'))
-                ->withErrors(['username' => 'Refer to command staff']);
-        }
-
-        $results = $this->auth->authenticate($request->username, $request->password);
-
-        if ($results == AuthenticationStatus::BANNED)
-        {
-            $this->flash->danger('You are currently banned. Please refer to command staff for additional information.');
 
             return back()
                 ->withInput(request()->except('password'))
@@ -71,38 +58,15 @@ class LoginSubmitController extends Controller
                 ->withErrors(['username' => 'You cannot access this account.']);
         }
 
-        if ($results == AuthenticationStatus::SUCCESS)
+        if (Hash::check($password, $trooper->password))
         {
-            if ($trooper->hasActiveOrganizationStatus())
-            {
-                return $this->login($trooper, $request);
-            }
+            Auth::login($trooper, $request->remember_me);
 
-            //  retired
-            $this->flash->danger('You cannot access this account. Please refer to command staff for additional information (no active organizations).');
-
-            return back()
-                ->withInput($request->except('password'))
-                ->withErrors(['username' => 'Refer to command staff']);
+            return redirect()->intended(route('events.list'));
         }
 
-        //  no idea but don't let them in
         return back()
-            ->withInput($request->except('password'))
-            ->withErrors(['username' => 'Invalid credentials']);
-    }
-
-    /**
-     * Logs the trooper in, sets up the session, and redirects.
-     *
-     * @param Trooper $trooper The trooper to log in.
-     * @param LoginRequest $request The original login request.
-     * @return RedirectResponse A redirect response to the intended page.
-     */
-    private function login(Trooper $trooper, LoginRequest $request): RedirectResponse
-    {
-        Auth::login($trooper, $request->remember_me);
-
-        return redirect()->intended(route('events.list'));
+            ->withInput(request()->except('password'))
+            ->withErrors(['username' => 'Invalid username and password.']);
     }
 }

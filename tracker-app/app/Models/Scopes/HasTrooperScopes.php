@@ -29,6 +29,18 @@ trait HasTrooperScopes
     }
 
     /**
+     * Scope a query to find a trooper by their email.
+     *
+     * @param Builder<Trooper> $query The Eloquent query builder.
+     * @param string $email The email to search for.
+     * @return Builder<Trooper>
+     */
+    public function scopeByEmail(Builder $query, string $email): Builder
+    {
+        return $query->where(self::EMAIL, $email);
+    }
+
+    /**
      * Scope a query to find all troopers with a pending membership status.
      *
      * @param Builder<Trooper> $query The Eloquent query builder.
