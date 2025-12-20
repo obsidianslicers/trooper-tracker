@@ -4,17 +4,17 @@
 
 @section('content')
 
-    <x-message>
-        <b>New to the 501st and/or {{ setting('forum_name') }}?</b> Or are you solely a member of another organization?
-        Use this form below to start signing up for troops.
-        <p>
-            <i>Command Staff will need to approve your account prior to use.</i>
-        </p>
-    </x-message>
-
     <x-slim-container class="mt-4">
 
         <x-card>
+
+            <x-message>
+                <b>New to the 501st and/or {{ setting('forum_name') }}?</b> Or are you solely a member of another organization?
+                Use this form below to start signing up for troops.
+                <p>
+                    <i>Command Staff will need to approve your account prior to use.</i>
+                </p>
+            </x-message>
 
             <form action="{{ route('auth.register') }}"
                   method="POST"
@@ -42,13 +42,6 @@
                         Phone (Optional):
                     </x-label>
                     <x-input-text :property="'phone'" />
-                </x-input-container>
-
-                <x-input-container>
-                    <x-label>
-                        Username:
-                    </x-label>
-                    <x-input-text :property="'username'" />
                 </x-input-container>
 
                 <x-input-container>
