@@ -14,10 +14,10 @@
 
                 <x-input-container>
                     <x-label>
-                        Username:
+                        Email:
                     </x-label>
                     <x-input-text autofocus
-                                  :property="'username'" />
+                                  :property="'email'" />
                 </x-input-container>
 
                 <x-input-container>

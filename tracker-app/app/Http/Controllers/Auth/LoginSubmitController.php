@@ -33,11 +33,11 @@ class LoginSubmitController extends Controller
      */
     public function __invoke(LoginRequest $request): RedirectResponse
     {
-        $username = $request->validated('username');
+        $email = $request->validated('email');
         $password = $request->validated('password');
 
         //  trooper existance is checked via LoginRequest
-        $trooper = Trooper::query()->byUsername($username)->first();
+        $trooper = Trooper::query()->byEmail($email)->first();
 
         if ($trooper->membership_status == MembershipStatus::PENDING)
         {
@@ -45,7 +45,7 @@ class LoginSubmitController extends Controller
 
             return back()
                 ->withInput(request()->except('password'))
-                ->withErrors(['username' => 'Refer to command staff']);
+                ->withErrors(['email' => 'Refer to command staff']);
         }
 
         if ($trooper->membership_status != MembershipStatus::ACTIVE)
@@ -55,7 +55,7 @@ class LoginSubmitController extends Controller
 
             return back()
                 ->withInput(request()->except('password'))
-                ->withErrors(['username' => 'You cannot access this account.']);
+                ->withErrors(['email' => 'You cannot access this account.']);
         }
 
         if (Hash::check($password, $trooper->password))
@@ -67,6 +67,6 @@ class LoginSubmitController extends Controller
 
         return back()
             ->withInput(request()->except('password'))
-            ->withErrors(['username' => 'Invalid username and password.']);
+            ->withErrors(['email' => 'Invalid email and password.']);
     }
 }

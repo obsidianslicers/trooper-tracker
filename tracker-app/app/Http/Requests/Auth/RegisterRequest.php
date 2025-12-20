@@ -14,7 +14,7 @@ use Illuminate\Validation\Rule;
 /**
  * Handles validation for the user registration form.
  *
- * Provides the base validation rules (name, email, username, password, etc.) and
+ * Provides the base validation rules (name, email, password, etc.) and
  * dynamically generates additional rules for any organizations returned by
  * `Organization::fullyLoaded()->get()` (identifier rules, region/unit rules).
  *
@@ -58,11 +58,6 @@ class RegisterRequest extends FormRequest
             ],
             'phone' => ['nullable', 'string', 'max:10'],
             'account_type' => ['required', 'in:member,handler'],
-            'username' => [
-                'required',
-                'string',
-                Rule::unique(Trooper::class, Trooper::USERNAME),
-            ],
             'password' => ['required', 'string'],
         ];
 
