@@ -26,3 +26,7 @@ todo:   filter home events
 todo:   confirm attendance - how is it done today?
 todo:   anything that's hooked into Xneforo
 todo:   emails on signups, cancellations, stand-bys to going status for events
+
+OAUTH
+ - remove username all together, and focus on email
+ - make sure UI is display name

@@ -36,6 +36,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'check.role' => \App\Http\Middleware\CheckActorRoleMiddleware::class,
+            'check.active' => \App\Http\Middleware\CheckActiveTrooperMiddleware::class,
             'auth.registration' => \App\Http\Middleware\RegistrationMiddleware::class,
         ]);
 

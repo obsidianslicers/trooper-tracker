@@ -84,18 +84,4 @@ class SetupUpdateHtmxRequest extends HtmxFormRequest
             ],
         ];
     }
-
-    /**
-     * Get the custom messages for validator errors.
-     *
-     * @return array<string, string>
-     */
-    public function messages(): array
-    {
-        return [
-            Trooper::USERNAME . '.required' => 'Username is required.',
-            Trooper::USERNAME . '.exists' => 'This username does not exist in our records - do you need to setup your account?',
-            Trooper::PASSWORD . '.required' => 'Password is required.',
-        ];
-    }
 }

@@ -8,6 +8,7 @@ use App\Rules\Auth\AtLeastOneOrganizationSelectedRule;
 use App\Rules\Auth\UniqueOrganizationIdentifierRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Validation\Rule;
 
 /**
