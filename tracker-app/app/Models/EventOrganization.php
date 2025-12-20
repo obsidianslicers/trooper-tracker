@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Base\EventOrganization as BaseEventOrganization;
 use App\Models\Concerns\HasTrooperStamps;
+use App\Models\Scopes\HasEventOrganizationScopes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
@@ -18,6 +19,7 @@ class EventOrganization extends BaseEventOrganization
 {
     use HasFactory;
     use HasTrooperStamps;
+    use HasEventOrganizationScopes;
 
     /**
      * Get all troopers associated with this event through event shifts.
@@ -35,6 +37,5 @@ class EventOrganization extends BaseEventOrganization
             'event_id',            // local key on EventOrganization pointing to Event
             'id'                   // local key on EventShift
         );
-
     }
 }

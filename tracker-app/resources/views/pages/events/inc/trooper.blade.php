@@ -11,9 +11,8 @@
     </div>
     <div class="col-12 col-md-5 order-3 order-md-2">
         @if($event_trooper->canUpdateCostume($event_shift, Auth::user()))
-            {{ 'Costume:' }}<br />
             <x-input-select :property="'costume_id'"
-                            :options="\App\Models\OrganizationCostume::forEventShift($event_shift, $event_trooper->trooper)->toOptions('name', 'id')"
+                            :options="$event_trooper->costumes"
                             :value="$event_trooper->costume_id"
                             :placeholder="'-- Select Costume --'"
                             hx-post="{{ route('events.signup-update-htmx', compact('event_trooper')) }}"
