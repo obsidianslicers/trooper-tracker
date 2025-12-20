@@ -46,20 +46,9 @@ class AssignTroopersController extends Controller
 
         $this->crumbs->addRoute($award->name, 'admin.awards.list-troopers', ['award' => $award]);
 
-        $search = $request->get('search');
+        $award->load('troopers');
 
-        $query = Trooper::whereHas('organizations', function ($query) use ($award) {
-            $query->whereRaw('tt_organizations.id = ?', [$award->organization_id]);
-        })->with('awards')->orderBy('name');
-
-        if ($search) {
-            $query->where('name', 'like', '%' . $search . '%');
-            $troopers = $query->get();
-        } else {
-            $troopers = $query->paginate(50);
-        }
-
-        $data = compact('award', 'troopers', 'search');
+        $data = compact('award');
 
         return view('pages.admin.awards.assign-troopers', $data);
     }

@@ -7,19 +7,6 @@
 <x-slim-container>
 
     <x-card>
-        <form method="GET" action="{{ route('admin.awards.assign-troopers', $award) }}" class="mb-3">
-            <x-input-container>
-                <x-label>
-                    Search Troopers:
-                </x-label>
-                <x-input-text :property="'search'" :value="$search ?? ''" placeholder="Enter trooper name..." />
-            </x-input-container>
-            <button type="submit" class="btn btn-primary">Search</button>
-            @if($search)
-                <a href="{{ route('admin.awards.assign-troopers', $award) }}" class="btn btn-secondary">Clear Search</a>
-            @endif
-        </form>
-
         <form method="POST"
               novalidate="novalidate">
             @csrf
@@ -41,25 +28,34 @@
                               :value="now()->format('Y-m-d')" />
             </x-input-container>
 
+            <x-modal-picker :label="'Find a Trooper'" />
+
             <x-input-container>
-                <x-label>
-                    Select Troopers:
-                </x-label>
-                <div class="row">
-                    @forelse($troopers as $trooper)
-                        <div class="col-md-4">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="trooper_ids[]" value="{{ $trooper->id }}" id="trooper_{{ $trooper->id }}"
-                                       {{ $trooper->awards->contains('id', $award->id) ? 'checked' : '' }}>
-                                <label class="form-check-label" for="trooper_{{ $trooper->id }}">
-                                    {{ $trooper->name }}
-                                </label>
-                            </div>
-                        </div>
-                    @empty
-                        <p>No troopers found.</p>
-                    @endforelse
-                </div>
+                <x-label>Select Troopers:</x-label>
+
+                {{-- Selected troopers will appear here --}}
+                <div id="selected-troopers" class="d-flex flex-wrap gap-2 mb-2"></div>
+
+                <button type="button"
+                        class="btn btn-primary"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modal-picker"
+                        hx-get="{{ route('pickers.trooper', ['property' => 'trooper_ids', 'organization_id' => $award->organization_id]) }}"
+                        hx-target="#modal-picker .modal-body"
+                        hx-swap="innerHTML">
+                    Find a Trooper
+                </button>
+
+                @if($award->troopers->count() > 0)
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            <strong>Currently awarded to:</strong>
+                            @foreach($award->troopers as $trooper)
+                                <span class="badge bg-secondary me-1">{{ $trooper->name }}</span>
+                            @endforeach
+                        </small>
+                    </div>
+                @endif
             </x-input-container>
 
             <x-submit-container>
@@ -67,12 +63,17 @@
                 <x-link-button-cancel :url="route('admin.awards.list-troopers', $award)" />
             </x-submit-container>
 
-            @if(!$search)
-                {{ $troopers->links() }}
-            @endif
-
         </form>
     </x-card>
 </x-slim-container>
+
+{{-- Handle trooper selection from picker --}}
+<div class="d-none"
+     hx-trigger="trooper:selected from:document"
+     hx-get="{{ route('admin.awards.assign-troopers-htmx', $award) }}"
+     hx-vals="js:{trooper_id: event.detail.id, trooper_name: event.detail.name}"
+     hx-target="#selected-troopers"
+     hx-swap="beforeend">
+</div>
 
 @endsection

@@ -35,6 +35,8 @@ class TrooperPickerController extends Controller
 
         $search_term = $request->query('search_term');
 
+        $organization_id = $request->query('organization_id');
+
         if ($property === null)
         {
             throw new Exception("Missing property parameter");
@@ -42,9 +44,19 @@ class TrooperPickerController extends Controller
 
         $troopers = collect([]);
 
+        $query = Trooper::active()->orderBy(Trooper::NAME);
+
+        if ($organization_id) {
+            $query->whereHas('organizations', function ($q) use ($organization_id) {
+                $q->where('tt_organizations.id', $organization_id);
+            });
+        }
+
         if ($filter->hasFilter())
         {
-            $troopers = Trooper::filterWith($filter)->active()->orderBy(Trooper::NAME)->get();
+            $troopers = $query->filterWith($filter)->get();
+        } else {
+            $troopers = $query->get();
         }
 
         $data = compact('troopers', 'property', 'search_term');

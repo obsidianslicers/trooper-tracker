@@ -51,7 +51,11 @@ class AssignTroopersSubmitController extends Controller
                 ->where('trooper_id', $trooperId)
                 ->first();
 
-            if (!$existing) {
+            if ($existing) {
+                // Update the award date for existing assignments
+                $existing->update(['award_date' => $awardDate]);
+            } else {
+                // Create new assignment
                 AwardTrooper::create([
                     'award_id' => $award->id,
                     'trooper_id' => $trooperId,
@@ -60,7 +64,7 @@ class AssignTroopersSubmitController extends Controller
             }
         }
 
-        $this->flash->success('Award assigned to troopers successfully');
+        $this->flash->success('Award assignments updated successfully');
 
         return redirect()->route('admin.awards.list-troopers', $award);
     }

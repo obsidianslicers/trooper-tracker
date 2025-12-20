@@ -15,6 +15,13 @@ class AssignTroopersSubmitControllerTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class);
+        $this->withSession(['_token' => 'test-token']);
+    }
+
     public function test_invoke_assigns_award_to_selected_troopers(): void
     {
         // Arrange
@@ -32,6 +39,7 @@ class AssignTroopersSubmitControllerTest extends TestCase
         $data = [
             'trooper_ids' => [$trooper1->id, $trooper2->id],
             'award_date' => $awardDate,
+            '_token' => 'test-token',
         ];
 
         // Act
@@ -53,7 +61,7 @@ class AssignTroopersSubmitControllerTest extends TestCase
         ]);
     }
 
-    public function test_invoke_skips_existing_assignments(): void
+    public function test_invoke_updates_existing_award_dates(): void
     {
         // Arrange
         $admin = Trooper::factory()->asAdministrator()->create();
@@ -63,11 +71,15 @@ class AssignTroopersSubmitControllerTest extends TestCase
         $award = Award::factory()->for($organization)->create();
 
         $trooper = Trooper::factory()->create();
-        AwardTrooper::factory()->for($award)->for($trooper)->create();
+        $originalDate = now()->subDays(30)->format('Y-m-d');
+        AwardTrooper::factory()->for($award)->for($trooper)->create(['award_date' => $originalDate]);
+
+        $newDate = now()->format('Y-m-d');
 
         $data = [
             'trooper_ids' => [$trooper->id],
-            'award_date' => now()->format('Y-m-d'),
+            'award_date' => $newDate,
+            '_token' => 'test-token',
         ];
 
         // Act
@@ -75,6 +87,13 @@ class AssignTroopersSubmitControllerTest extends TestCase
 
         // Assert
         $response->assertRedirect(route('admin.awards.list-troopers', $award));
+
+        // Should have updated the award date
+        $this->assertDatabaseHas(AwardTrooper::class, [
+            'award_id' => $award->id,
+            'trooper_id' => $trooper->id,
+            'award_date' => $newDate . ' 00:00:00',
+        ]);
 
         // Should still have only one record
         $this->assertEquals(1, AwardTrooper::where('award_id', $award->id)->where('trooper_id', $trooper->id)->count());
@@ -89,7 +108,9 @@ class AssignTroopersSubmitControllerTest extends TestCase
         $organization = Organization::factory()->create();
         $award = Award::factory()->for($organization)->create();
 
-        $data = []; // Missing required fields
+        $data = [
+            '_token' => 'test-token',
+        ]; // Missing required fields
 
         // Act
         $response = $this->post(route('admin.awards.assign-troopers', $award), $data);
@@ -111,6 +132,7 @@ class AssignTroopersSubmitControllerTest extends TestCase
         $data = [
             'trooper_ids' => [],
             'award_date' => now()->format('Y-m-d'),
+            '_token' => 'test-token',
         ];
 
         // Act
