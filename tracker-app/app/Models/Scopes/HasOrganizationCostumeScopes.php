@@ -30,22 +30,12 @@ trait HasOrganizationCostumeScopes
      * @param Trooper $trooper The trooper whose costumes to retrieve
      * @return Builder<self>
      */
-    public function scopeForEventShift(Builder $query, EventShift $event_shift, Trooper $trooper): Builder
+    public function scopeForEventShift(Builder $query, EventShift $event_shift, Trooper $trooper, Collection|array $organization_ids): Builder
     {
-        $organizations_can_attend = $event_shift->event->event_organizations()
-            ->where(EventOrganization::CAN_ATTEND, true)
-            ->withCount(['troopers as troopers_count' => function ($q) use ($event_shift): void
-            {
-                $q->where(EventTrooper::EVENT_SHIFT_ID, $event_shift->id);
-            }])
-            ->get()
-            ->filter(fn($e_org) => $e_org->troopers_allowed === null || $e_org->troopers_count < $e_org->troopers_allowed)
-            ->pluck('organization_id');
-
         return $query->whereHas('trooper_costumes', function ($q) use ($trooper)
         {
             $q->where(TrooperCostume::TROOPER_ID, $trooper->id);
-        })->whereIn(self::ORGANIZATION_ID, $organizations_can_attend);
+        })->whereIn(self::ORGANIZATION_ID, $organization_ids);
     }
 
     /**

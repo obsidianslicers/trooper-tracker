@@ -11,6 +11,7 @@ use App\Models\Organization;
 use App\Services\BreadCrumbService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Displays the event sign-up page with all shifts and current trooper assignments.
@@ -65,13 +66,19 @@ class SignUpController extends Controller
             ->withShifts()
             ->findOrFail($event->id);
 
-        foreach ($event->event_shifts as $shift)
+        foreach ($event->event_shifts as $event_shift)
         {
-            $shift->event = $event;
+            $event_shift->event = $event;
 
-            foreach ($shift->event_troopers as $trooper)
+            foreach ($event_shift->event_troopers as $event_trooper)
             {
-                $trooper->event_shift = $shift;
+                $event_trooper->event_shift = $event_shift;
+
+                if ($event_trooper->canUpdateCostume($event_shift, Auth::user()))
+                {
+                    //  performance optimization: load costumes only if the trooper can update
+                    $event_trooper->costumes = $event_trooper->getCostumes();
+                }
             }
         }
 
