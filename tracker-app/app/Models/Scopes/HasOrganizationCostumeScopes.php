@@ -21,13 +21,13 @@ trait HasOrganizationCostumeScopes
      * Scope a query to costumes available for a trooper at a specific event shift.
      *
      * This scope filters costumes based on:
-     * - Organizations that are allowed to attend the event (can_attend = true)
-     * - Organizations that have not reached their trooper limit for the shift
      * - Costumes that the trooper owns (has in trooper_costumes)
+     * - Costumes belonging to the specified organizations
      *
      * @param Builder<self> $query The Eloquent query builder
      * @param EventShift $event_shift The event shift to check availability for
      * @param Trooper $trooper The trooper whose costumes to retrieve
+     * @param Collection|array<int> $organization_ids The organization IDs to filter costumes by
      * @return Builder<self>
      */
     public function scopeForEventShift(Builder $query, EventShift $event_shift, Trooper $trooper, Collection|array $organization_ids): Builder

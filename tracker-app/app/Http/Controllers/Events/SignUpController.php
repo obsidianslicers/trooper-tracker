@@ -66,6 +66,8 @@ class SignUpController extends Controller
             ->withShifts()
             ->findOrFail($event->id);
 
+
+        //  re-link shifts to event for view access (see SignUpHtmxController)
         foreach ($event->event_shifts as $event_shift)
         {
             $event_shift->event = $event;
