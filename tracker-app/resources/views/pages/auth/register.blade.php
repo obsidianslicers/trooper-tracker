@@ -44,12 +44,14 @@
                     <x-input-text :property="'phone'" />
                 </x-input-container>
 
-                <x-input-container>
-                    <x-label>
-                        Password:
-                    </x-label>
-                    <x-input-password :property="'password'" />
-                </x-input-container>
+                @if(old('registration_method', $registration_method) == 'email')
+                    <x-input-container>
+                        <x-label>
+                            Password:
+                        </x-label>
+                        <x-input-password :property="'password'" />
+                    </x-input-container>
+                @endif
 
                 <x-input-container>
                     <x-label>

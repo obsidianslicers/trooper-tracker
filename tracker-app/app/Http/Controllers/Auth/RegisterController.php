@@ -38,7 +38,8 @@ class RegisterController extends Controller
 
         $data = [
             'organizations' => $organizations,
-            'email' => $registration_auth['email']
+            'email' => $registration_auth['email'],
+            'registration_method' => $registration_auth['method'],
         ];
 
         return view('pages.auth.register', $data);

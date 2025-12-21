@@ -6,10 +6,10 @@
     </p>
     <p>
         Congratulations - you've successfully navigated the perilous journey of filling out
-        a registration form. That alone proves you've got the patience required to march with
-        the <b>{{ setting('site_name') }}</b>. Your application has been received and is now in the hands of our
-        approval team. They'll review it, check your details, and make sure you're ready to join
-        the ranks.
+        the registration form. That alone proves you've got the patience required to march with
+        the <b>{{ setting('site_name') }}</b>. Your application has been received and is
+        now in the hands of our approval team. They'll review it, check your details, and make
+        sure you're ready to join the ranks.
     </p>
     <p>
         What happens next?

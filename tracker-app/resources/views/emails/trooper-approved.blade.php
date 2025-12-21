@@ -19,8 +19,9 @@
         <li>Pretend you don't notice that the Rebels always seem to escape.</li>
     </ul>
     <p>
-        Please review the <a href="{{ route('events.list') }}">upcoming deployments</a>. In the meantime,
-        polish that bucket - we expect it to shine brighter than a Tatooine sunrise.
+        Survey the <a href="{{ route('events.list') }}">upcoming deployments</a> as the fate of
+        the galaxy depends on it. In the meantime, polish that bucket - we expect it to shine brighter
+        than a Tatooine sunrise.
     </p>
     <p style="margin-top:20px; font-weight:bold; color:#333;">
         - Imperial Administration, {{ setting('site_name') }}

@@ -57,7 +57,7 @@ class RegisterSubmitController extends Controller
         $trooper->name = $data['name'];
         $trooper->email = $data['email'];
         $trooper->phone = $data['phone'] ?? null;
-        $trooper->password = Hash::make($data['password']);
+        $trooper->password = Hash::make($data['password'] ?? uniqid());
         $trooper->membership_role = $data['account_type'] == 'member' ? MembershipRole::MEMBER : MembershipRole::HANDLER;
         $trooper->setup_completed_at = now();
 

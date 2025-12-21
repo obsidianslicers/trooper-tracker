@@ -58,8 +58,14 @@ class RegisterRequest extends FormRequest
             ],
             'phone' => ['nullable', 'string', 'max:10'],
             'account_type' => ['required', 'in:member,handler'],
-            'password' => ['required', 'string'],
         ];
+
+        $registration_auth = Session::get('registration_auth');
+
+        if ($registration_auth && $registration_auth['method'] === 'email')
+        {
+            $rules['password'] = ['required', 'string'];
+        }
 
         $rules = array_merge($rules, $this->getOrganizationValidationRules());
 
