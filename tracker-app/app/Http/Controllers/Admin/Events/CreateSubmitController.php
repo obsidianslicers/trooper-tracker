@@ -51,10 +51,13 @@ class CreateSubmitController extends Controller
 
         try
         {
-            [$latitude, $longitude] = $this->google->getLatitudeLongitude($event->venue_address . ', ' . $event->venue_city . ', ' . $event->venue_state . ' ' . $event->venue_zip . ', ' . $event->venue_country);
+            if (config('services.google.maps_api_key'))
+            {
+                [$latitude, $longitude] = $this->google->getLatitudeLongitude($event->venue_address . ', ' . $event->venue_city . ', ' . $event->venue_state . ' ' . $event->venue_zip . ', ' . $event->venue_country);
 
-            $event->latitude = $latitude;
-            $event->longitude = $longitude;
+                $event->latitude = $latitude;
+                $event->longitude = $longitude;
+            }
         }
         catch (\Exception)
         {
