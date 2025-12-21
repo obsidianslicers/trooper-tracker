@@ -11,6 +11,7 @@ use App\Models\Event;
 use App\Models\EventOrganization;
 use App\Models\Organization;
 use App\Services\FlashMessageService;
+use App\Services\GoogleService;
 use Illuminate\Http\RedirectResponse;
 
 /**
@@ -27,7 +28,9 @@ class CreateSubmitController extends Controller
      *
      * @param FlashMessageService $flash Service for displaying flash messages to users.
      */
-    public function __construct(private readonly FlashMessageService $flash)
+    public function __construct(
+        private readonly FlashMessageService $flash,
+        private readonly GoogleService $google)
     {
     }
 
@@ -45,6 +48,19 @@ class CreateSubmitController extends Controller
     {
         $event = Event::fromEmail($request->validated('source'));
         $event->organization_id = $request->validated('organization_id');
+
+        try
+        {
+            [$latitude, $longitude] = $this->google->getLatitudeLongitude($event->venue_address . ', ' . $event->venue_city . ', ' . $event->venue_state . ' ' . $event->venue_zip . ', ' . $event->venue_country);
+
+            $event->latitude = $latitude;
+            $event->longitude = $longitude;
+        }
+        catch (\Exception)
+        {
+            // Ignore geocoding errors
+        }
+
         $event->save();
 
         $event_organization = new EventOrganization();

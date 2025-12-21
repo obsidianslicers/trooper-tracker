@@ -10,6 +10,7 @@ use App\Models\EventOrganization;
 use App\Models\EventShift;
 use App\Models\Organization;
 use App\Models\Trooper;
+use App\Services\GoogleService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -17,6 +18,19 @@ use Tests\TestCase;
 class CreateSubmitControllerTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Mock GoogleService for all tests to avoid external API calls
+        $google_mock = $this->createMock(GoogleService::class);
+        $google_mock->expects($this->any())
+            ->method('getLatitudeLongitude')
+            ->willReturn([28.5494, -81.7828]); // Default Clermont, FL coordinates
+
+        $this->app->instance(GoogleService::class, $google_mock);
+    }
 
     public function test_invoke_creates_event_from_valid_form_submission(): void
     {
@@ -133,6 +147,39 @@ class CreateSubmitControllerTest extends TestCase
         $this->assertDatabaseMissing(Event::class, [
             'name' => 'Test Event',
         ]);
+    }
+
+    public function test_invoke_stores_latitude_and_longitude_from_google_service(): void
+    {
+        // Arrange
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $organization = Organization::factory()->create();
+
+        $expected_latitude = 28.5494;
+        $expected_longitude = -81.7828;
+
+        // Create a fresh mock for this specific test
+        $google_mock = $this->createMock(GoogleService::class);
+        $google_mock->expects($this->once())
+            ->method('getLatitudeLongitude')
+            ->with('15855 State Rte 50 Clermont, Florida 34711, Clermont, Florida 34711, USA')
+            ->willReturn([$expected_latitude, $expected_longitude]);
+
+        $this->app->instance(GoogleService::class, $google_mock);
+
+        $event_data = [
+            'source' => $this->getEmailBody(),
+            'organization_id' => $organization->id,
+        ];
+
+        // Act
+        $response = $this->actingAs($admin)->post(route('admin.events.create'), $event_data);
+
+        // Assert
+        $event = Event::where('name', 'Test Event')->first();
+        $this->assertNotNull($event);
+        $this->assertEquals($expected_latitude, $event->latitude);
+        $this->assertEquals($expected_longitude, $event->longitude);
     }
 
     private function getEmailBody(): string

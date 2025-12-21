@@ -2,7 +2,7 @@
 
 @section('message')
     <p>
-        Greetings, Recruit,
+        Recruit!
     </p>
     <p>
         Congratulations - you've successfully navigated the perilous journey of filling out

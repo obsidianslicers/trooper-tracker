@@ -38,8 +38,10 @@ class GoogleService
      */
     public function getLatitudeLongitude($address): array
     {
+        $google_key = config('services.google.maps_api_key');
+
         // Get geo data from Google Maps API by address 
-        $geocode = file_get_contents("https://maps.googleapis.com/maps/api/geocode/json?address=" . urlencode($address) . "&key=" . googleKey . "");
+        $geocode = file_get_contents("https://maps.googleapis.com/maps/api/geocode/json?address=" . urlencode($address) . "&key=" . $google_key . "");
 
         // Decode JSON data returned by API 
         $response = json_decode($geocode, false);
