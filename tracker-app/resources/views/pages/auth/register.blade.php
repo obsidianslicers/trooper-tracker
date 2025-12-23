@@ -9,7 +9,7 @@
         <x-card>
 
             <x-message>
-                <b>New to the 501st and/or {{ setting('forum_name') }}?</b> Or are you solely a member of another organization?
+                <b>New to the 501st and/or {{ config('app.name') }}?</b> Or are you solely a member of another organization?
                 Use this form below to start signing up for troops.
                 <p>
                     <i>Command Staff will need to approve your account prior to use.</i>

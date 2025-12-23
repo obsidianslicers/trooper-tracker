@@ -11,7 +11,7 @@
     <meta name="csrf-token"
           content="{{ csrf_token() }}">
 
-    <title>{{ setting('site_name') }} - Troop Tracker</title>
+    <title>{{ config('app.name') }} - Troop Tracker</title>
 
     <link rel="icon"
           href="{{ url('img/favicon.png') }}"
@@ -33,7 +33,7 @@
             @hasSection('page-title')
                 @yield('page-title')
             @else
-                {{ setting('site_name') }}
+                {{ config('app.name') }}
                 <br />
                 Troop Tracker
             @endif

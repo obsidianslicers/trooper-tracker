@@ -127,7 +127,7 @@ return [
     */
 
     'migrations' => [
-        'table' => env('DB_MIGRATIONS_TABLE', 'migrations'),
+        'table' => env('DB_MIGRATIONS_TABLE', 'tt_migrations'),
         'update_date_on_publish' => true,
     ],
 

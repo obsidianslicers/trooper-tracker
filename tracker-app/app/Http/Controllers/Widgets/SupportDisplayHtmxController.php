@@ -25,7 +25,7 @@ class SupportDisplayHtmxController extends Controller
     {
         $donations = TrooperDonation::forMonth()->sum(TrooperDonation::AMOUNT);
 
-        $donate_goal = setting('donate_goal', 0);
+        $donate_goal = config('app.support.goal', 0);
 
         $progress = 0;
 
@@ -50,7 +50,7 @@ class SupportDisplayHtmxController extends Controller
      */
     private function getMessage(): string
     {
-        $name = setting('forum_name');
+        $name = config('app.name');
 
         $messages = [
             0 => "The $name is rallying support to maintain operations, reinforce mission " .
