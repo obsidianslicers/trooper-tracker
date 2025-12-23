@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\Events\UpdateShiftsSubmitController;
 use App\Http\Controllers\Admin\Events\UpdateSubmitController;
 use App\Http\Controllers\Admin\Events\UpdateTroopersController;
 use App\Http\Controllers\Admin\Events\UpdateTroopersSubmitController;
+use App\Http\Controllers\Admin\Events\UploadsController;
 use Illuminate\Support\Facades\Route;
 
 //  ADMIN/EVENTS
@@ -28,4 +29,6 @@ Route::prefix('admin/events')
         Route::post('/{event}/shifts', UpdateShiftsSubmitController::class);
         Route::get('/{event}/troopers', UpdateTroopersController::class)->name('troopers');
         Route::post('/{event}/troopers', UpdateTroopersSubmitController::class);
+        Route::get('/{event}/uploads', UploadsController::class)->name('uploads');
+        // Route::post('/{event}/update', UpdateSubmitController::class);
     });

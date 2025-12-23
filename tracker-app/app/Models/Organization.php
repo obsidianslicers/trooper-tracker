@@ -72,6 +72,25 @@ class Organization extends BaseOrganization
     }
 
     /**
+     * Get the top-level organization (club) for this organization.
+     *
+     * Traverses up the parent hierarchy until the top-level organization is found.
+     *
+     * @return Organization The top-level organization.
+     */
+    public function getSourceClub(): Organization
+    {
+        $organization = $this;
+
+        while ($organization->parent_id !== null)
+        {
+            $organization = $organization->parent;
+        }
+
+        return $organization;
+    }
+
+    /**
      * Resequence all organizations, regions, and units in hierarchical order.
      *
      * Assigns sequence numbers starting at 900, incrementing by 100 for each
