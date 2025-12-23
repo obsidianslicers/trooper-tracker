@@ -27,7 +27,7 @@ class ActorSeeder extends Seeder
         $actor = Trooper::find(501) ?? new Trooper(['id' => 501]);
 
         $actor->name = 'Sith Lord';
-        $actor->email = 'sith@galaxy-far-far-away.com';
+        $actor->email = 'sith@sw.com';
         $actor->username = 'sith';
         $actor->password = Hash::make('password');
         $actor->membership_status = MembershipStatus::ACTIVE;
@@ -58,7 +58,7 @@ class ActorSeeder extends Seeder
         $actor = Trooper::find(502) ?? new Trooper(['id' => 502]);
 
         $actor->name = 'Sith Lord Junior';
-        $actor->email = 'sith-junior@galaxy-far-far-away.com';
+        $actor->email = 'sithjr@sw.com';
         $actor->username = 'sith-jr';
         $actor->password = Hash::make('password');
         $actor->membership_status = MembershipStatus::ACTIVE;

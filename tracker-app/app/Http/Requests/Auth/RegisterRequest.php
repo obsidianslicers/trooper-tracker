@@ -194,7 +194,7 @@ class RegisterRequest extends FormRequest
 
             if (!empty($organization->identifier_validation))
             {
-                $rules = explode('|', $organization->identifier_validation);
+                $rules = explode('|', string: $organization->identifier_validation);
 
                 foreach ($rules as $rule)
                 {
@@ -204,7 +204,7 @@ class RegisterRequest extends FormRequest
                 }
             }
 
-            $messages["{$key}"] = "The {$organization->identifier_display} for {$organization->name} is required";
+            //$messages["{$key}"] = "The {$organization->identifier_display} for {$organization->name} is required";
 
             foreach ($organization->organizations as $region)
             {
