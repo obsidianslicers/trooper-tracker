@@ -54,5 +54,4 @@ class CheckActorRoleMiddleware
 
         return $next($request);
     }
-
 }

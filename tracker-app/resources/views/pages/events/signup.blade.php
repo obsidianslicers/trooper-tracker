@@ -117,6 +117,14 @@
                     </div>
                 @endif
 
+
+                @if($event->event_uploads->isNotEmpty())
+                    <div class="mt-5">
+                        <x-section-title>Uploads</x-section-title>
+                        @include('pages.events.inc.uploads', compact('event'))
+                    </div>
+                @endif
+
             </div>
         </div>
     </div>

@@ -17,15 +17,15 @@ use Illuminate\Support\Facades\DB;
 trait HasTrooperScopes
 {
     /**
-     * Scope a query to find a trooper by their username.
+     * Scope a query to find a trooper by their email.
      *
      * @param Builder<Trooper> $query The Eloquent query builder.
-     * @param string $username The username to search for.
+     * @param string $email The email to search for.
      * @return Builder<Trooper>
      */
-    public function scopeByUsername(Builder $query, string $username): Builder
+    public function scopeByEmail(Builder $query, string $email): Builder
     {
-        return $query->where(self::USERNAME, $username);
+        return $query->where(self::EMAIL, $email);
     }
 
     /**
@@ -82,7 +82,7 @@ trait HasTrooperScopes
      * Scope a query to search for troopers by a given search term.
      *
      * @param Builder<Trooper> $query The Eloquent query builder.
-     * @param string $search_term The term to search for in name, username, and email fields.
+     * @param string $search_term The term to search for in name, and email fields.
      * @return Builder<Trooper>
      */
     public function scopeSearchFor(Builder $query, string $search_term): Builder
@@ -100,7 +100,6 @@ trait HasTrooperScopes
         return $query->where(function ($query) use ($search_term)
         {
             $query->where(self::EMAIL, 'like', $search_term)
-                ->orWhere(self::USERNAME, 'like', $search_term)
                 ->orWhere(self::NAME, 'like', $search_term);
         });
     }

@@ -6,7 +6,6 @@ namespace Tests\Feature\Http\Controllers\Auth;
 
 use App\Contracts\AuthenticationInterface;
 use App\Enums\AuthenticationStatus;
-use App\Enums\MembershipStatus;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Database\Seeders\OrganizationSeeder;

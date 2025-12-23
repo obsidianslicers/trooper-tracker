@@ -31,18 +31,6 @@
                 {{ $event->event_start->format('D M d, Y') }}
             </p>
             <ul class="list-group list-group-flush">
-                @foreach($event->organizations as $organization)
-                    <li class="list-group-item">
-                        <x-yes-no class="me-2"
-                                  :value="true" />
-                        {{ $organization->name }}
-                    </li>
-                @endforeach
-            </ul>
-        </div>
-
-        <div class="card-footer bg-secondary p-0">
-            <ul class="list-group list-group-flush">
                 @php($shifts_count = $event->event_shifts->count())
                 @if($shifts_count > 1)
                     <li class="list-group-item d-flex justify-content-between align-items-center">
@@ -76,6 +64,18 @@
                             @endif
                         </span>
                     </a>
+                @endforeach
+            </ul>
+        </div>
+
+        <div class="card-footer bg-secondary p-0">
+            <ul class="list-group list-group-flush">
+                @foreach($event->organizations as $organization)
+                    <li class="list-group-item">
+                        <x-yes-no class="me-2"
+                                  :value="true" />
+                        {{ $organization->name }}
+                    </li>
                 @endforeach
             </ul>
         </div>

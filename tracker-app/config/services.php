@@ -35,4 +35,17 @@ return [
         ],
     ],
 
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_REDIRECT_URI'),
+        'maps_api_key' => env('GOOGLE_MAPS_API_KEY'),
+    ],
+
+    'xenforo' => [
+        'client_id' => env('XENFORO_CLIENT_ID'),
+        'client_secret' => env('XENFORO_CLIENT_SECRET'),
+        'redirect' => env('XENFORO_REDIRECT_URI'),
+        'base_url' => env('XENFORO_BASE_URL'),
+    ],
 ];

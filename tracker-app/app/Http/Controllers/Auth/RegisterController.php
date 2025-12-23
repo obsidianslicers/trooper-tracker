@@ -9,11 +9,12 @@ use App\Models\Organization;
 use App\Services\FlashMessageService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Session;
 
 /**
  * Displays the user registration page.
  */
-class RegisterDisplayController extends Controller
+class RegisterController extends Controller
 {
     /**
      * @param FlashMessageService $flash The flash message service.
@@ -33,8 +34,12 @@ class RegisterDisplayController extends Controller
     {
         $organizations = Organization::fullyLoaded()->get();
 
+        $registration_auth = Session::get('registration_auth');
+
         $data = [
-            'organizations' => $organizations
+            'organizations' => $organizations,
+            'email' => $registration_auth['email'],
+            'registration_method' => $registration_auth['method'],
         ];
 
         return view('pages.auth.register', $data);

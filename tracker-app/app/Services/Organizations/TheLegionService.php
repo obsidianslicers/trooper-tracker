@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Services\Organizations;
 
 use App\Enums\MembershipStatus;
+use App\Models\Event;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\TrooperOrganization;
+use Carbon\Carbon;
 use DOMDocument;
 use DOMXPath;
 use Exception;
@@ -241,5 +243,63 @@ class TheLegionService extends BaseOrganizationService
 //     ];
 //     return $squads[$value] ?? 0;
 // }
+
+    public static function parseRequestAppearance(string $message): Event
+    {
+        $lines = preg_split("/\r\n|\n|\r/", $message);
+        $parsed = [];
+        $currentKey = null;
+
+        foreach ($lines as $line)
+        {
+            $line = trim($line);
+            if ($line === '')
+            {
+                continue; // skip empty lines
+            }
+
+            if (strpos($line, ':') !== false)
+            {
+                // New identifier line
+                [$key, $value] = explode(':', $line, 2);
+                $key = trim($key);
+                $value = trim($value);
+
+                $currentKey = $key;
+                $parsed[$currentKey] = $value;
+            }
+            else
+            {
+                // Continuation of previous value
+                if ($currentKey !== null)
+                {
+                    $parsed[$currentKey] .= ' ' . $line;
+                }
+            }
+        }
+        return new Event([
+            Event::CONTACT_NAME => $parsed['Contact Name'] ?? null,
+            Event::CONTACT_PHONE => $parsed['Contact Phone Number'] ?? null,
+            Event::CONTACT_EMAIL => $parsed['Contact Email'] ?? null,
+            Event::NAME => $parsed['Event Name'] ?? null,
+            Event::VENUE => $parsed['Venue'] ?? null,
+            Event::VENUE_ADDRESS => $parsed['Venue address'] ?? null,
+            Event::EVENT_START => isset($parsed['Event Start']) ? Carbon::createFromFormat('m/d/Y - Hi', $parsed['Event Start']) : null,
+            Event::EVENT_END => isset($parsed['Event End']) ? Carbon::createFromFormat('m/d/Y - Hi', $parsed['Event End']) : null,
+            Event::EVENT_WEBSITE => $parsed['Event Website'] ?? null,
+            Event::EXPECTED_ATTENDEES => $parsed['Expected number of attendees'] ?? null,
+            Event::REQUESTED_CHARACTERS => $parsed['Requested number of characters'] ?? null,
+            Event::REQUESTED_CHARACTER_TYPES => $parsed['Requested character types'] ?? null,
+            Event::SECURE_STAGING_AREA => ($parsed['Secure changing/staging area'] ?? '') === 'Yes',
+            Event::ALLOW_BLASTERS => ($parsed['Can troopers carry blasters'] ?? '') === 'Yes',
+            Event::ALLOW_PROPS => ($parsed['Can troopers carry/bring props like lightsabers and staffs'] ?? '') === 'Yes',
+            Event::PARKING_AVAILABLE => ($parsed['Is parking available'] ?? '') === 'Yes',
+            Event::ACCESSIBLE => ($parsed['Is venue accessible to those with limited mobility'] ?? '') === 'Yes',
+            Event::AMENITIES => $parsed['Amenities available at venue'] ?? null,
+            Event::COMMENTS => $parsed['Comments'] ?? null,
+            Event::REFERRED_BY => $parsed['Referred by'] ?? null,
+            Event::SOURCE => $message,
+        ]);
+    }
 
 }

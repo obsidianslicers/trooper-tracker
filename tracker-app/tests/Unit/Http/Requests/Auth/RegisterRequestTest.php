@@ -11,7 +11,7 @@ use Tests\TestCase;
  * Tests for RegisterRequest validation.
  *
  * Verifies:
- * - Basic registration fields are validated (name, email, username, password).
+ * - Basic registration fields are validated (name, email, password).
  * - `prepareForValidation()` sanitizes phone numbers.
  * - `rules()` returns expected keys for base fields and organizations.
  * - Organization identifier rules respect account_type: required for members, optional for handlers.
@@ -59,22 +59,6 @@ class RegisterRequestTest extends TestCase
 
         // Assert: should not error and phone should remain unset
         $this->assertNull($this->subject->input('phone'));
-    }
-
-    public function test_rules_include_base_fields(): void
-    {
-        // Arrange: none
-
-        // Act
-        $rules = $this->subject->rules();
-
-        // Assert: basic required fields
-        $this->assertArrayHasKey('name', $rules);
-        $this->assertArrayHasKey('email', $rules);
-        $this->assertArrayHasKey('username', $rules);
-        $this->assertArrayHasKey('password', $rules);
-        $this->assertArrayHasKey('account_type', $rules);
-        $this->assertArrayHasKey('phone', $rules);
     }
 
     public function test_rules_include_organization_keys(): void

@@ -14,7 +14,6 @@ return Application::configure(basePath: dirname(__DIR__))
             __DIR__ . '/../routes/web/pickers.php',
             __DIR__ . '/../routes/web/account.php',
             __DIR__ . '/../routes/web/admin.php',
-            __DIR__ . '/../routes/web/admin-settings.php',
             __DIR__ . '/../routes/web/admin-organizations.php',
             __DIR__ . '/../routes/web/admin-notices.php',
             __DIR__ . '/../routes/web/admin-awards.php',
@@ -35,7 +34,9 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->alias([
-            'check.role' => \App\Http\Middleware\CheckActorRoleMiddleware::class
+            'check.role' => \App\Http\Middleware\CheckActorRoleMiddleware::class,
+            'check.active' => \App\Http\Middleware\CheckActiveTrooperMiddleware::class,
+            'auth.registration' => \App\Http\Middleware\RegistrationMiddleware::class,
         ]);
 
         $middleware->redirectGuestsTo(fn(Illuminate\Http\Request $request) => route('auth.login'));

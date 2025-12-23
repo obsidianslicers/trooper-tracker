@@ -5,13 +5,17 @@ declare(strict_types=1);
 namespace App\Services\Organizations;
 
 use App\Contracts\SynchronizerInterface;
+use App\Models\Event;
 use App\Models\Organization;
+use RuntimeException;
 
 abstract class BaseOrganizationService implements SynchronizerInterface
 {
     public function __construct(protected readonly Organization $organization)
     {
     }
+
+    public abstract function syncCostumes(): void;
 
     public abstract function syncAllMembers(): void;
 
@@ -22,5 +26,10 @@ abstract class BaseOrganizationService implements SynchronizerInterface
         $value = filter_var($value, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 
         return $value;
+    }
+
+    public static function parseRequestAppearance(string $message): Event
+    {
+        throw new RuntimeException('Not implemented');
     }
 }

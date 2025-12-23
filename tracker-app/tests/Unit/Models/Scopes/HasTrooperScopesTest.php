@@ -14,18 +14,6 @@ class HasTrooperScopesTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_by_username_scope(): void
-    {
-        Trooper::factory()->create(['username' => 'jdoe']);
-        Trooper::factory()->create(['username' => 'jane.d']);
-
-        $result = Trooper::byUsername('jdoe')->first();
-
-        $this->assertNotNull($result);
-        $this->assertEquals('jdoe', $result->username);
-        $this->assertEquals(1, Trooper::byUsername('jdoe')->count());
-    }
-
     public function test_pending_approvals_scope(): void
     {
         Trooper::factory()->asPending()->create(['name' => 'Alpha']);
@@ -73,24 +61,19 @@ class HasTrooperScopesTest extends TestCase
 
     public function test_search_for_scope(): void
     {
-        Trooper::factory()->create(['name' => 'John Smith', 'username' => 'jsmith', 'email' => 'jsmith@test.com']);
-        Trooper::factory()->create(['name' => 'Jane Doe', 'username' => 'jdoe', 'email' => 'jane.doe@test.com']);
-        Trooper::factory()->create(['name' => 'Peter Jones', 'username' => 'pete', 'email' => 'pete.j@test.com']);
+        Trooper::factory()->create(['name' => 'John Smith', 'email' => 'jsmith@test.com']);
+        Trooper::factory()->create(['name' => 'Jane Doe', 'email' => 'jane.doe@test.com']);
+        Trooper::factory()->create(['name' => 'Peter Jones', 'email' => 'pete.j@test.com']);
 
         // Search by part of name
         $results = Trooper::searchFor('smi')->get();
         $this->assertCount(1, $results);
-        $this->assertEquals('jsmith', $results[0]->username);
-
-        // Search by part of username
-        $results = Trooper::searchFor('jdo')->get();
-        $this->assertCount(1, $results);
-        $this->assertEquals('jdoe', $results[0]->username);
+        $this->assertEquals('John Smith', $results[0]->name);
 
         // Search by part of email
         $results = Trooper::searchFor('pete.j')->get();
         $this->assertCount(1, $results);
-        $this->assertEquals('pete', $results[0]->username);
+        $this->assertEquals('Peter Jones', $results[0]->name);
 
         // Search term that matches multiple records
         $results = Trooper::searchFor('j')->get();
@@ -103,24 +86,23 @@ class HasTrooperScopesTest extends TestCase
 
     public function test_search_for_scope_handles_wildcards(): void
     {
-        Trooper::factory()->create(['name' => 'Test User', 'username' => 'testuser', 'email' => 'test@test.com']);
+        Trooper::factory()->create(['name' => 'Test User', 'email' => 'test@test.com']);
 
         // Test with no wildcards
         $query = Trooper::searchFor('estus');
-        $this->assertStringContainsString('where ("email" like ? or "username" like ? or "name" like ?)', $query->toSql());
-        $this->assertEquals(['%estus%', '%estus%', '%estus%'], $query->getBindings());
+        $this->assertStringContainsString('where ("email" like ? or "name" like ?)', $query->toSql());
+        $this->assertEquals(['%estus%', '%estus%'], $query->getBindings());
 
         // Test with leading wildcard
         $query = Trooper::searchFor('%estus');
-        $this->assertEquals(['%estus%', '%estus%', '%estus%'], $query->getBindings());
+        $this->assertEquals(['%estus%', '%estus%'], $query->getBindings());
 
         // Test with trailing wildcard
         $query = Trooper::searchFor('estus%');
-        $this->assertEquals(['%estus%', '%estus%', '%estus%'], $query->getBindings());
-
+        $this->assertEquals(['%estus%', '%estus%'], $query->getBindings());
         // Test with both wildcards
         $query = Trooper::searchFor('%estus%');
-        $this->assertEquals(['%estus%', '%estus%', '%estus%'], $query->getBindings());
+        $this->assertEquals(['%estus%', '%estus%'], $query->getBindings());
     }
 
     public function test_active_scope_returns_only_active_troopers(): void
@@ -151,21 +133,6 @@ class HasTrooperScopesTest extends TestCase
         // Assert
         $this->assertContains($active_trooper->id, $active_results);
         $this->assertNotContains($pending_trooper->id, $active_results);
-    }
-
-    public function test_active_scope_can_be_combined_with_other_scopes(): void
-    {
-        // Arrange
-        Trooper::factory()->asActive()->create(['username' => 'active_user']);
-        Trooper::factory()->asPending()->create(['username' => 'pending_user']);
-
-        // Act
-        $result = Trooper::active()->byUsername('active_user')->first();
-
-        // Assert
-        $this->assertNotNull($result);
-        $this->assertEquals('active_user', $result->username);
-        $this->assertEquals(MembershipStatus::ACTIVE, $result->membership_status);
     }
 
     public function test_active_scope_returns_empty_when_no_active_troopers(): void

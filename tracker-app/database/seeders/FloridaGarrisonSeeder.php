@@ -30,7 +30,6 @@ class FloridaGarrisonSeeder extends Seeder
     {
         $this->call(OrganizationSeeder::class);
         $this->call(OrganizationCostumeSeeder::class);
-        $this->call(SettingSeeder::class);
 
         $this->call(TrooperSeeder::class);
         $this->call(TrooperDonationSeeder::class);
@@ -40,7 +39,7 @@ class FloridaGarrisonSeeder extends Seeder
         $this->call(AwardSeeder::class);
         $this->call(AwardTrooperSeeder::class);
 
-        if (config('app.debug'))
+        if (config('app.debug') === true)
         {
             $this->call(ActorSeeder::class);
         }

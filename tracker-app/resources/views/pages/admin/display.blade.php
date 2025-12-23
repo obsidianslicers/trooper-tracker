@@ -44,15 +44,6 @@
                 Create, Update, and Manage Organizations, Regions, Units
             </p>
         </x-dashboard-card>
-        @can('viewAny', \App\Models\Setting::class)
-            <x-dashboard-card :label="'Site Settings'"
-                              :icon="'fa-wrench'"
-                              :url="route('admin.settings.list')">
-                <p>
-                    Manage Site Settings
-                </p>
-            </x-dashboard-card>
-        @endcan
     </x-dashboard-cards>
 
 @endsection

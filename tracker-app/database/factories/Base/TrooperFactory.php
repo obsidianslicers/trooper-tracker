@@ -18,7 +18,6 @@ class TrooperFactory extends Factory
         return [
             Trooper::NAME => $this->faker->name(),
             Trooper::EMAIL => $this->faker->unique()->email(),
-            Trooper::USERNAME => $this->faker->userName(),
             Trooper::PASSWORD => Hash::make(Trooper::PASSWORD),
             Trooper::THEME => $this->faker->word(),
             Trooper::MEMBERSHIP_STATUS => $this->faker->word(),

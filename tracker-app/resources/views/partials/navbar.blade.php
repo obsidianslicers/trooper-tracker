@@ -28,8 +28,8 @@
         <div class="collapse navbar-collapse"
              id="navbarNav">
             <ul class="navbar-nav ms-auto">
-                @if(setting('forum_url') != '')
-                    <x-nav-link :url="setting('forum_url')">
+                @if($forum_url = config('app.xenforo.base_url'))
+                    <x-nav-link :url="$forum_url">
                         Forum
                     </x-nav-link>
                 @endif
@@ -77,9 +77,9 @@
                         </ul>
                     </li>
                 @else
-                    <x-nav-link :url="route('auth.register')"
-                                :active="request()->routeIs('auth.register')">
-                        Register
+                    <x-nav-link :url="route('auth.signup')"
+                                :active="request()->routeIs('auth.signup')">
+                        Sign Up
                     </x-nav-link>
                     <x-nav-link :url="route('auth.login')"
                                 :active="request()->routeIs('auth.login')">

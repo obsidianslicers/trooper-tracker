@@ -25,10 +25,10 @@ class LoginRequestTest extends TestCase
         $this->assertTrue($this->subject->authorize());
     }
 
-    public function test_prepare_for_validation_handles_remember_me_and_username(): void
+    public function test_prepare_for_validation_handles_remember_me_and_email(): void
     {
         $input_data = [
-            'username' => 'TK-421',
+            'email' => 'TK-421',
             'remember_me' => 'Y',
         ];
 
@@ -37,13 +37,13 @@ class LoginRequestTest extends TestCase
         $this->invokeMethod($this->subject, 'prepareForValidation');
 
         $this->assertTrue($this->subject->input('remember_me'));
-        $this->assertEquals('TK-421', $this->subject->input(Trooper::USERNAME));
+        $this->assertEquals('TK-421', $this->subject->input(Trooper::EMAIL));
     }
 
     public function test_prepare_for_validation_handles_missing_remember_me(): void
     {
         $input_data = [
-            'username' => 'TK-421',
+            'email' => 'TK-421',
         ];
 
         $this->subject->merge($input_data);
@@ -55,23 +55,23 @@ class LoginRequestTest extends TestCase
 
     public function test_validation_fails_with_invalid_data(): void
     {
-        // The username does not exist
+        // The email does not exist
         $bad_data = [
-            Trooper::USERNAME => 'FN-2187',
+            Trooper::EMAIL => 'FN-2187',
             Trooper::PASSWORD => 'password',
         ];
 
         $validator = Validator::make($bad_data, $this->subject->rules());
 
         $this->assertTrue($validator->fails());
-        $this->assertTrue($validator->errors()->has(Trooper::USERNAME));
+        $this->assertTrue($validator->errors()->has(Trooper::EMAIL));
     }
 
     public function test_validation_fails_with_missing_data(): void
     {
         $validator = Validator::make([], $this->subject->rules());
         $this->assertTrue($validator->fails());
-        $this->assertTrue($validator->errors()->has(Trooper::USERNAME));
+        $this->assertTrue($validator->errors()->has(Trooper::EMAIL));
         $this->assertTrue($validator->errors()->has(Trooper::PASSWORD));
     }
 }
