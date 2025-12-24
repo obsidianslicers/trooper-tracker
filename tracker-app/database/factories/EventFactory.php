@@ -52,7 +52,7 @@ class EventFactory extends BaseEventFactory
             Event::EVENT_WEBSITE => $this->faker->url(),
 
             Event::EXPECTED_ATTENDEES => $this->faker->numberBetween(10, 500),
-            Event::REQUESTED_CHARACTERS => $this->faker->numberBetween(1, 20),
+            Event::REQUESTED_NUMBER_CHARACTERS => $this->faker->numberBetween(1, 20),
             Event::REQUESTED_CHARACTER_TYPES => $this->faker->randomElement([
                 'Stormtroopers, Jedi, Mandalorians',
                 'Rebels, Sith Lords',

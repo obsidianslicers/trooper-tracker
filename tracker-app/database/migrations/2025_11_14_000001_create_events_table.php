@@ -60,7 +60,7 @@ return new class extends Migration
 
             // Request specifics
             $table->integer('expected_attendees')->nullable();
-            $table->integer('requested_characters')->nullable();
+            $table->integer('requested_number_characters')->nullable();
             $table->text('requested_character_types')->nullable();
 
             // Venue amenities / permissions

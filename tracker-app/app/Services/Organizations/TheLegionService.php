@@ -288,7 +288,7 @@ class TheLegionService extends BaseOrganizationService
             Event::EVENT_END => isset($parsed['Event End']) ? Carbon::createFromFormat('m/d/Y - Hi', $parsed['Event End']) : null,
             Event::EVENT_WEBSITE => $parsed['Event Website'] ?? null,
             Event::EXPECTED_ATTENDEES => $parsed['Expected number of attendees'] ?? null,
-            Event::REQUESTED_CHARACTERS => $parsed['Requested number of characters'] ?? null,
+            Event::REQUESTED_NUMBER_CHARACTERS => $parsed['Requested number of characters'] ?? null,
             Event::REQUESTED_CHARACTER_TYPES => $parsed['Requested character types'] ?? null,
             Event::SECURE_STAGING_AREA => ($parsed['Secure changing/staging area'] ?? '') === 'Yes',
             Event::ALLOW_BLASTERS => ($parsed['Can troopers carry blasters'] ?? '') === 'Yes',

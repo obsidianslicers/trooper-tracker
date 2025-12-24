@@ -46,8 +46,10 @@ class TrooperPickerController extends Controller
 
         $query = Trooper::active()->orderBy(Trooper::NAME);
 
-        if ($organization_id) {
-            $query->whereHas('organizations', function ($q) use ($organization_id) {
+        if ($organization_id)
+        {
+            $query = $query->whereHas('organizations', function ($q) use ($organization_id)
+            {
                 $q->where('tt_organizations.id', $organization_id);
             });
         }
@@ -55,8 +57,6 @@ class TrooperPickerController extends Controller
         if ($filter->hasFilter())
         {
             $troopers = $query->filterWith($filter)->get();
-        } else {
-            $troopers = $query->get();
         }
 
         $data = compact('troopers', 'property', 'search_term');

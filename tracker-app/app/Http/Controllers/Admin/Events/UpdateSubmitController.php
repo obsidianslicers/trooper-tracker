@@ -82,7 +82,7 @@ class UpdateSubmitController extends Controller
 
         // Request specifics
         $event->expected_attendees = $request->validated('expected_attendees');
-        $event->requested_characters = $request->validated('requested_characters');
+        $event->requested_number_characters = $request->validated('requested_number_characters');
         $event->requested_character_types = $request->validated('requested_character_types');
 
         // Venue amenities / permissions

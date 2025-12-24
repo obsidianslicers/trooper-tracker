@@ -2,7 +2,8 @@
 @php($bg = $event->at_risk ? 'bg-danger' : 'bg-primary')
 @php($bg = $event->is_locked ? 'bg-secondary' : $bg)
 
-<div class="col">
+<div class="col"
+     data-event-name="{{ $event->name }}">
     <div class="card h-100"
          data-route="{{ route('events.signup', compact('event')) }}">
         <div class="card-header {{ $bg }} d-flex align-items-center">

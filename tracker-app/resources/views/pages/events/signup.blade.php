@@ -56,7 +56,7 @@
                                    class="btn btn-sm btn-outline-primary">
                                     <i class="fa fa-fw fa-edit mx-2"></i>
                                 </a>
-                                <a href="{{ route('admin.events.create', ['copy_id' => $event->id]) }}"
+                                <a href="{{ route('admin.events.copy', compact('event')) }}"
                                    class="btn btn-sm btn-outline-primary">
                                     <i class="fa fa-fw fa-copy mx-2"></i>
                                 </a>

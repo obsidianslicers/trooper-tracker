@@ -225,11 +225,13 @@ class EventSeeder extends Seeder
 
         $event->venue = $legacy->venue;
         $event->venue_address = $legacy->location;
+        $event->latitude = $legacy->latitude;
+        $event->longitude = $legacy->longitude;
         $event->event_start = $legacy->dateStart;
         $event->event_end = $legacy->dateEnd;
         $event->event_website = $legacy->website;
         $event->expected_attendees = $legacy->numberOfAttend;
-        $event->requested_characters = $legacy->requestedNumber;
+        $event->requested_number_characters = $legacy->requestedNumber;
         $event->requested_character_types = $legacy->requestedCharacter;
         $event->secure_staging_area = $legacy->secureChanging ?? false;
         $event->allow_blasters = $legacy->blasters ?? false;

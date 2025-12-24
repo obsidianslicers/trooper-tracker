@@ -47,7 +47,7 @@ EOT;
         $this->assertEquals('123 Main Street, Tampa, FL 33602', $subject->venue_address);
         $this->assertEquals('https://example.com/event', $subject->event_website);
         $this->assertEquals('500', $subject->expected_attendees);
-        $this->assertEquals('10', $subject->requested_characters);
+        $this->assertEquals('10', $subject->requested_number_characters);
         $this->assertEquals('Stormtroopers, Vader', $subject->requested_character_types);
         $this->assertTrue($subject->secure_staging_area);
         $this->assertTrue($subject->allow_blasters);
