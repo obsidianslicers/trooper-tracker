@@ -47,7 +47,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Carbon|null $event_end
  * @property string|null $event_website
  * @property int|null $expected_attendees
- * @property int|null $requested_characters
+ * @property int|null $requested_number_characters
  * @property string|null $requested_character_types
  * @property bool $secure_staging_area
  * @property bool $allow_blasters
@@ -103,7 +103,7 @@ class Event extends Model
     const EVENT_END = 'event_end';
     const EVENT_WEBSITE = 'event_website';
     const EXPECTED_ATTENDEES = 'expected_attendees';
-    const REQUESTED_CHARACTERS = 'requested_characters';
+    const REQUESTED_CHARACTERS = 'requested_number_characters';
     const REQUESTED_CHARACTER_TYPES = 'requested_character_types';
     const SECURE_STAGING_AREA = 'secure_staging_area';
     const ALLOW_BLASTERS = 'allow_blasters';
@@ -201,8 +201,8 @@ class Event extends Model
     public function organizations(): BelongsToMany
     {
         return $this->belongsToMany(Organization::class, 'tt_event_organizations')
-                    ->withPivot(EventOrganization::ID, EventOrganization::CAN_ATTEND, EventOrganization::TROOPERS_ALLOWED, EventOrganization::HANDLERS_ALLOWED, EventOrganization::DELETED_AT, EventOrganization::CREATED_ID, EventOrganization::UPDATED_ID, EventOrganization::DELETED_ID)
-                    ->withTimestamps();
+            ->withPivot(EventOrganization::ID, EventOrganization::CAN_ATTEND, EventOrganization::TROOPERS_ALLOWED, EventOrganization::HANDLERS_ALLOWED, EventOrganization::DELETED_AT, EventOrganization::CREATED_ID, EventOrganization::UPDATED_ID, EventOrganization::DELETED_ID)
+            ->withTimestamps();
     }
 
     public function event_shifts(): HasMany

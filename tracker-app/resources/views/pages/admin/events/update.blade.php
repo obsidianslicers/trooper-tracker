@@ -153,9 +153,9 @@
                                               :value="$event->expected_attendees" />
                             </div>
                             <div class="col-12 col-md-6">
-                                <x-label>Requested Characters:</x-label>
-                                <x-input-text :property="'requested_characters'"
-                                              :value="$event->requested_characters" />
+                                <x-label>Requested Number of Characters:</x-label>
+                                <x-input-text :property="'requested_number_characters'"
+                                              :value="$event->requested_number_characters" />
                             </div>
                         </div>
                     </x-input-container>
