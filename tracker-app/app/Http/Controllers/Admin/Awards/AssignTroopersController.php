@@ -44,8 +44,6 @@ class AssignTroopersController extends Controller
     {
         $this->authorize('update', $award);
 
-        $this->crumbs->addRoute($award->name, 'admin.awards.list-troopers', ['award' => $award]);
-
         $award->load('troopers');
 
         $data = compact('award');

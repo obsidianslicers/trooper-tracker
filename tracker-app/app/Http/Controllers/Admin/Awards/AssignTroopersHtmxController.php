@@ -29,15 +29,17 @@ class AssignTroopersHtmxController extends Controller
     {
         $this->authorize('update', $award);
 
-        $trooperId = $request->get('trooper_id');
-        $trooperName = $request->get('trooper_name');
+        $trooper_id = $request->get('trooper_id');
+        $trooper_name = $request->get('trooper_name');
 
-        $trooper = Trooper::findOrFail($trooperId);
+        $trooper = Trooper::findOrFail($trooper_id);
 
         // Verify trooper belongs to the award's organization
-        $belongsToOrg = $trooper->organizations()->where('tt_organizations.id', $award->organization_id)->exists();
-        if (!$belongsToOrg) {
-            abort(403, 'Trooper does not belong to the award\'s organization');
+        $trooper_belongs = $award->visibleTo($trooper)->exists();
+
+        if (!$trooper_belongs)
+        {
+            abort(403, 'Trooper does not belong to the awards organization');
         }
 
         $data = compact('trooper', 'award');
