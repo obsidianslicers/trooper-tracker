@@ -49,13 +49,6 @@ class CreateController extends Controller
 
         $trooper = $request->user();
 
-        if ($request->has('copy_id'))
-        {
-            $event = $this->copyEvent($request, $trooper);
-
-            return redirect()->route('admin.events.update', compact('event'));
-        }
-
         $event = new Event();
 
         $this->assignOrganization($request, $event, $trooper);
@@ -63,35 +56,6 @@ class CreateController extends Controller
         $data = compact('event');
 
         return view('pages.admin.events.create', $data);
-    }
-
-    private function copyEvent(Request $request, Trooper $trooper): Event
-    {
-        $copy_id = $request->query('copy_id');
-
-        $event = Event::moderatedBy($trooper)->findOrFail($copy_id);
-
-        $event_copy = $event->replicate();
-        $event_copy->name = 'Copy of ' . $event->name;
-        $event_copy->status = EventStatus::DRAFT;
-        $event_copy->push();
-
-        foreach ($event->event_shifts as $shift)
-        {
-            $shift_copy = $shift->replicate();
-            $shift_copy->event_id = $event_copy->id;
-            $shift_copy->status = EventStatus::OPEN;
-            $shift_copy->save();
-        }
-
-        foreach ($event->event_organizations as $organization)
-        {
-            $organization_copy = $organization->replicate();
-            $organization_copy->event_id = $event_copy->id;
-            $organization_copy->save();
-        }
-
-        return $event_copy;
     }
 
     private function assignOrganization(Request $request, Event $event, Trooper $trooper)

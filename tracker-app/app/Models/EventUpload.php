@@ -27,6 +27,6 @@ class EventUpload extends BaseEventUpload
             return $this->filename;
         }
 
-        return 'images/uploads/' . $this->filename;
+        return url('images/uploads/' . $this->filename);
     }
 }

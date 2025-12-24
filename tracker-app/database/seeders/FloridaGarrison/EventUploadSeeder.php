@@ -17,15 +17,15 @@ class EventUploadSeeder extends Seeder
     {
         $legacy_uploads = DB::table('uploads')
             ->join('tt_troopers', 'uploads.trooperid', '=', 'tt_troopers.id')
-            ->join('tt_events', 'uploads.troopid', '=', 'tt_events.id')
-            ->select('uploads.*')
+            ->join('tt_event_shifts', 'uploads.troopid', '=', 'tt_event_shifts.id')
+            ->select('uploads.id', 'uploads.troopid', 'uploads.trooperid', 'uploads.filename', 'tt_event_shifts.event_id')
             ->get();
 
         foreach ($legacy_uploads as $upload)
         {
             $e = EventUpload::find($upload->id) ?? new EventUpload(['id' => $upload->id]);
 
-            $e->event_id = $upload->troopid;
+            $e->event_id = $upload->event_id;
             $e->trooper_id = $upload->trooperid;
             $e->filename = $upload->filename;
 

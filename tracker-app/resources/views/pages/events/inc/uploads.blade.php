@@ -2,7 +2,7 @@
     @foreach($event->event_uploads as $event_upload)
         <div class="col">
             <div class="card h-100">
-                <img src="{{ $event_upload->filename }}"
+                <img src="{{ $event_upload->url }}"
                      class="card-img-top"
                      alt="">
             </div>
