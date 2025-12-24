@@ -65,7 +65,7 @@ class UpdateRequest extends FormRequest
             Event::EVENT_WEBSITE => ['nullable', 'string', 'max:512'],
 
             Event::EXPECTED_ATTENDEES => ['nullable', 'integer', 'min:0'],
-            Event::REQUESTED_CHARACTERS => ['nullable', 'integer', 'min:0'],
+            Event::REQUESTED_NUMBER_CHARACTERS => ['nullable', 'integer', 'min:0'],
             Event::REQUESTED_CHARACTER_TYPES => ['nullable', 'string'],
 
             Event::SECURE_STAGING_AREA => ['boolean'],
