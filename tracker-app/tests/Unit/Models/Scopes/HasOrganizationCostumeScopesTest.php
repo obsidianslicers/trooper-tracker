@@ -101,15 +101,8 @@ class HasOrganizationCostumeScopesTest extends TestCase
             'costume_id' => $costume->id,
         ]);
 
-        EventOrganization::factory()->create([
-            'event_id' => $event->id,
-            'organization_id' => $organization->id,
-            'can_attend' => true,
-            'troopers_allowed' => null,
-        ]);
-
         // Act
-        $result = OrganizationCostume::forEventShift($event_shift, $trooper)->get();
+        $result = OrganizationCostume::forEventShift($event_shift, $trooper, [$organization->id])->get();
 
         // Assert
         $this->assertCount(1, $result);
@@ -131,14 +124,8 @@ class HasOrganizationCostumeScopesTest extends TestCase
             'costume_id' => $costume->id,
         ]);
 
-        EventOrganization::factory()->create([
-            'event_id' => $event->id,
-            'organization_id' => $organization->id,
-            'can_attend' => false,
-        ]);
-
         // Act
-        $result = OrganizationCostume::forEventShift($event_shift, $trooper)->get();
+        $result = OrganizationCostume::forEventShift($event_shift, $trooper, [])->get();
 
         // Assert
         $this->assertCount(0, $result);
@@ -148,7 +135,6 @@ class HasOrganizationCostumeScopesTest extends TestCase
     {
         // Arrange
         $trooper = Trooper::factory()->create();
-        $other_trooper = Trooper::factory()->create();
         $organization = Organization::factory()->create();
         $event = Event::factory()->for($organization)->create();
         $event_shift = EventShift::factory()->for($event)->create();
@@ -160,22 +146,8 @@ class HasOrganizationCostumeScopesTest extends TestCase
             'costume_id' => $costume->id,
         ]);
 
-        EventOrganization::factory()->create([
-            'event_id' => $event->id,
-            'organization_id' => $organization->id,
-            'can_attend' => true,
-            'troopers_allowed' => 1,
-        ]);
-
-        // Add one trooper to the shift (at limit)
-        EventTrooper::factory()->create([
-            'event_shift_id' => $event_shift->id,
-            'trooper_id' => $other_trooper->id,
-            'costume_id' => $costume->id,
-        ]);
-
         // Act
-        $result = OrganizationCostume::forEventShift($event_shift, $trooper)->get();
+        $result = OrganizationCostume::forEventShift($event_shift, $trooper, [])->get();
 
         // Assert
         $this->assertCount(0, $result);
@@ -212,7 +184,7 @@ class HasOrganizationCostumeScopesTest extends TestCase
         ]);
 
         // Act
-        $result = OrganizationCostume::forEventShift($event_shift, $trooper)->get();
+        $result = OrganizationCostume::forEventShift($event_shift, $trooper, [$organization->id])->get();
 
         // Assert
         $this->assertCount(1, $result);
@@ -244,7 +216,7 @@ class HasOrganizationCostumeScopesTest extends TestCase
         ]);
 
         // Act
-        $result = OrganizationCostume::forEventShift($event_shift, $trooper)->get();
+        $result = OrganizationCostume::forEventShift($event_shift, $trooper, [$organization->id])->get();
 
         // Assert
         $this->assertCount(0, $result);
@@ -279,7 +251,7 @@ class HasOrganizationCostumeScopesTest extends TestCase
         ]);
 
         // Act
-        $result = OrganizationCostume::forEventShift($event_shift, $trooper)->get();
+        $result = OrganizationCostume::forEventShift($event_shift, $trooper, [$organization->id])->get();
 
         // Assert
         $this->assertCount(2, $result);
@@ -324,7 +296,7 @@ class HasOrganizationCostumeScopesTest extends TestCase
         ]);
 
         // Act
-        $result = OrganizationCostume::forEventShift($event_shift, $trooper)->get();
+        $result = OrganizationCostume::forEventShift($event_shift, $trooper, [$organization1->id])->get();
 
         // Assert
         $this->assertCount(1, $result);

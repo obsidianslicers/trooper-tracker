@@ -91,6 +91,16 @@ class EventTrooper extends BaseEventTrooper
             $this->shift_ends_at->format('g:ia');
     }
 
+    public function getCostumes(): array
+    {
+        $event_shift = $this->event_shift;
+
+        $organization_ids = $this->event_shift->event->event_organizations()->pluckCanAttend($event_shift);
+
+        return OrganizationCostume::forEventShift($this->event_shift, $this->trooper, $organization_ids)
+            ->toOptions('name', 'id');
+    }
+
     /**
      * Check if the status for this event trooper assignment can be updated.
      *

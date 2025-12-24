@@ -26,9 +26,9 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            Trooper::USERNAME => [
+            Trooper::EMAIL => [
                 'required',
-                Rule::exists(Trooper::class, Trooper::USERNAME),
+                Rule::exists(Trooper::class, Trooper::EMAIL),
             ],
             Trooper::PASSWORD => ['required'],
         ];
@@ -40,8 +40,8 @@ class LoginRequest extends FormRequest
     public function messages(): array
     {
         return [
-            Trooper::USERNAME . '.required' => 'Username is required.',
-            Trooper::USERNAME . '.exists' => 'This username does not exist in our records - do you need to setup your account?',
+            Trooper::EMAIL . '.required' => 'Email is required.',
+            Trooper::EMAIL . '.exists' => 'This email does not exist in our records - do you need to setup your account?',
             Trooper::PASSWORD . '.required' => 'Password is required.',
         ];
     }

@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', setting('site_name'))
+@section('page-title', config('app.name'))
 
 @section('content')
 

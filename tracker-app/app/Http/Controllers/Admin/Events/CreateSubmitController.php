@@ -11,6 +11,8 @@ use App\Models\Event;
 use App\Models\EventOrganization;
 use App\Models\Organization;
 use App\Services\FlashMessageService;
+use App\Services\GoogleService;
+use Exception;
 use Illuminate\Http\RedirectResponse;
 
 /**
@@ -27,7 +29,9 @@ class CreateSubmitController extends Controller
      *
      * @param FlashMessageService $flash Service for displaying flash messages to users.
      */
-    public function __construct(private readonly FlashMessageService $flash)
+    public function __construct(
+        private readonly FlashMessageService $flash,
+        private readonly GoogleService $google)
     {
     }
 
@@ -43,13 +47,35 @@ class CreateSubmitController extends Controller
      */
     public function __invoke(CreateRequest $request): RedirectResponse
     {
-        $event = Event::fromEmail($request->validated('source'));
-        $event->organization_id = $request->validated('organization_id');
+        $organization = Organization::findOrFail($request->validated('organization_id'));
+
+        $costume_club = $organization->getSourceClub();
+
+        $service_class = $costume_club->service_class;
+
+        $event = $service_class::parseRequestAppearance($request->validated('source'));
+        $event->organization_id = $organization->id;
+
+        try
+        {
+            if (config('services.google.maps_api_key'))
+            {
+                [$latitude, $longitude] = $this->google->getLatitudeLongitude($event->venue_address . ', ' . $event->venue_city . ', ' . $event->venue_state . ' ' . $event->venue_zip . ', ' . $event->venue_country);
+
+                $event->latitude = $latitude;
+                $event->longitude = $longitude;
+            }
+        }
+        catch (Exception)
+        {
+            // Ignore geocoding errors
+        }
+
         $event->save();
 
         $event_organization = new EventOrganization();
         $event_organization->event_id = $event->id;
-        $event_organization->organization_id = $this->getOrganizationId($event->organization_id);
+        $event_organization->organization_id = $costume_club->id;
         $event_organization->can_attend = true;
         $event_organization->save();
 
@@ -62,18 +88,6 @@ class CreateSubmitController extends Controller
         $this->flash->created($event);
 
         return redirect()->route('admin.events.update', compact('event'));
-    }
-
-    private function getOrganizationId(int $organization_id): int
-    {
-        $organization = Organization::findOrFail($organization_id);
-
-        while ($organization->parent_id !== null)
-        {
-            $organization = Organization::findOrFail($organization->parent_id);
-        }
-
-        return $organization->id;
     }
 }
 

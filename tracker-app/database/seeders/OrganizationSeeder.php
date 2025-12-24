@@ -6,7 +6,11 @@ namespace Database\Seeders;
 
 use App\Enums\OrganizationType;
 use App\Models\Organization;
+use App\Services\Organizations\DarkEmpireServices;
 use App\Services\Organizations\DroidBuildersService;
+use App\Services\Organizations\MandalorianMercsService;
+use App\Services\Organizations\RebelLegionService;
+use App\Services\Organizations\SaberGuildServices;
 use App\Services\Organizations\TheLegionService;
 use Illuminate\Database\Seeder;
 
@@ -35,18 +39,21 @@ class OrganizationSeeder extends Seeder
                 'name' => 'Rebel Legion',
                 'description' => 'Rebel-aligned Star Wars costuming group.',
                 'identifier_display' => 'Forum Username',
+                'service_class' => RebelLegionService::class
             ],
             [
                 'name' => 'Mandalorian Mercs',
                 'description' => 'Custom Mandalorian armor builders and costumers.',
                 'identifier_display' => 'CAT #',
                 'identifier_validation' => 'integer',
+                'service_class' => MandalorianMercsService::class
             ],
             [
                 'name' => 'Dark Empire',
                 'description' => 'Expanded universe costuming group for dark side characters.',
                 'identifier_display' => '#',
                 'identifier_validation' => 'integer',
+                'service_class' => DarkEmpireServices::class
             ],
             [
                 'name' => 'Droid Builders',
@@ -60,6 +67,7 @@ class OrganizationSeeder extends Seeder
                 'description' => 'Lightsaber performance and Jedi/Sith costuming group.',
                 'identifier_display' => 'SG #',
                 'identifier_validation' => 'integer',
+                'service_class' => SaberGuildServices::class
             ],
         ];
 
@@ -68,6 +76,7 @@ class OrganizationSeeder extends Seeder
             $org = Organization::where('name', $data['name'])->first() ?? new Organization();
 
             $org->name = $data['name'];
+            $org->service_class = $data['service_class'];
             $org->description = $data['description'];
             $org->identifier_display = $data['identifier_display'] ?? '';
             $org->identifier_validation = $data['identifier_validation'] ?? '';

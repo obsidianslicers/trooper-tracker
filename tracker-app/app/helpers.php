@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
-if (!function_exists('setting'))
+if (!function_exists('qs'))
 {
     /**
      * Build a query string by merging the current request query with overrides.
@@ -63,44 +63,51 @@ if (!function_exists('setting'))
             ->title();
     }
 
-    /**
-     * Retrieve a setting value from the database with optional default and type casting.
-     *
-     * @param string $key
-     * @param mixed $default
-     * @return mixed
-     */
-    function setting(string $key, mixed $default = null): mixed
-    {
-        $key = strtolower($key);
+    // /**
+    //  * Retrieve a setting value from the database with optional default and type casting.
+    //  *
+    //  * @param string $key
+    //  * @param mixed $default
+    //  * @return mixed
+    //  */
+    // function setting(string $key, mixed $default = null): mixed
+    // {
+    //     static $local = [];
 
-        $cast = function (mixed $value): mixed
-        {
-            if (is_null($value))
-            {
-                return null;
-            }
+    //     $key = strtolower($key);
 
-            if (is_numeric($value))
-            {
-                return str_contains($value, '.') ? (float) $value : (int) $value;
-            }
+    //     if (array_key_exists($key, $local))
+    //     {
+    //         return $local[$key];
+    //     }
 
-            $lower = strtolower((string) $value);
+    //     $cast = function (mixed $value): mixed
+    //     {
+    //         if (is_null($value))
+    //         {
+    //             return null;
+    //         }
 
-            return match ($lower)
-            {
-                'true', '(true)' => true,
-                'false', '(false)' => false,
-                'null', '(null)' => null,
-                default => $value,
-            };
-        };
+    //         if (is_numeric($value))
+    //         {
+    //             return str_contains($value, '.') ? (float) $value : (int) $value;
+    //         }
 
-        $value = Cache::rememberForever("setting.{$key}", fn() =>
-            Setting::find($key)?->value
-        );
+    //         $lower = strtolower((string) $value);
 
-        return $cast($value ?? $default);
-    }
+    //         return match ($lower)
+    //         {
+    //             'true', '(true)' => true,
+    //             'false', '(false)' => false,
+    //             'null', '(null)' => null,
+    //             default => $value,
+    //         };
+    //     };
+
+    //     $value = Cache::rememberForever("setting.{$key}", fn() =>
+    //         Setting::find($key)?->value
+    //     );
+
+    //     return $local[$key] = $cast($value ?? $default);
+    // }
 }

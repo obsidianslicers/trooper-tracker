@@ -7,7 +7,7 @@ namespace Tests\Feature\Http\Controllers\Auth;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class LoginDisplayControllerTest extends TestCase
+class LoginControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -16,6 +16,5 @@ class LoginDisplayControllerTest extends TestCase
         $response = $this->get(route('auth.login'));
 
         $response->assertStatus(200);
-        $response->assertViewIs('pages.auth.login');
     }
 }

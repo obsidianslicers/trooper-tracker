@@ -18,4 +18,15 @@ class EventUpload extends BaseEventUpload
     use HasEventUploadScopes;
     use HasFactory;
     use HasTrooperStamps;
+
+    public function getUrlAttribute(): string
+    {
+        // If it contains a slash, assume it's already a path
+        if (str_contains($this->filename, '/'))
+        {
+            return $this->filename;
+        }
+
+        return 'images/uploads/' . $this->filename;
+    }
 }

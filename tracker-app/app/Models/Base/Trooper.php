@@ -12,6 +12,7 @@ use App\Models\EventTrooper;
 use App\Models\EventUpload;
 use App\Models\Notice;
 use App\Models\NoticeTrooper;
+use App\Models\OauthLogin;
 use App\Models\Organization;
 use App\Models\TrooperAchievement;
 use App\Models\TrooperAssignment;
@@ -35,7 +36,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $email
  * @property Carbon|null $email_verified_at
  * @property Carbon|null $setup_completed_at
- * @property string $username
  * @property string $password
  * @property string $theme
  * @property Carbon|null $last_active_at
@@ -53,6 +53,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Collection|EventTrooper[] $event_troopers
  * @property Collection|EventUpload[] $event_uploads
  * @property Collection|Notice[] $notices
+ * @property Collection|OauthLogin[] $oauth_logins
  * @property TrooperAchievement|null $trooper_achievement
  * @property Collection|TrooperAssignment[] $trooper_assignments
  * @property Collection|TrooperCostume[] $trooper_costumes
@@ -70,7 +71,6 @@ class Trooper extends Model
     const EMAIL = 'email';
     const EMAIL_VERIFIED_AT = 'email_verified_at';
     const SETUP_COMPLETED_AT = 'setup_completed_at';
-    const USERNAME = 'username';
     const PASSWORD = 'password';
     const THEME = 'theme';
     const LAST_ACTIVE_AT = 'last_active_at';
@@ -108,7 +108,6 @@ class Trooper extends Model
         self::EMAIL,
         self::EMAIL_VERIFIED_AT,
         self::SETUP_COMPLETED_AT,
-        self::USERNAME,
         self::PASSWORD,
         self::THEME,
         self::LAST_ACTIVE_AT,
@@ -142,6 +141,11 @@ class Trooper extends Model
         return $this->belongsToMany(Notice::class, 'tt_notice_troopers')
                     ->withPivot(NoticeTrooper::ID, NoticeTrooper::IS_READ, NoticeTrooper::DELETED_AT, NoticeTrooper::CREATED_ID, NoticeTrooper::UPDATED_ID, NoticeTrooper::DELETED_ID)
                     ->withTimestamps();
+    }
+
+    public function oauth_logins(): HasMany
+    {
+        return $this->hasMany(OauthLogin::class);
     }
 
     public function trooper_achievement(): HasOne

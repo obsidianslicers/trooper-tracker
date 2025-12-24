@@ -8,12 +8,13 @@ use App\Rules\Auth\AtLeastOneOrganizationSelectedRule;
 use App\Rules\Auth\UniqueOrganizationIdentifierRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Validation\Rule;
 
 /**
  * Handles validation for the user registration form.
  *
- * Provides the base validation rules (name, email, username, password, etc.) and
+ * Provides the base validation rules (name, email, password, etc.) and
  * dynamically generates additional rules for any organizations returned by
  * `Organization::fullyLoaded()->get()` (identifier rules, region/unit rules).
  *
@@ -57,13 +58,14 @@ class RegisterRequest extends FormRequest
             ],
             'phone' => ['nullable', 'string', 'max:10'],
             'account_type' => ['required', 'in:member,handler'],
-            'username' => [
-                'required',
-                'string',
-                Rule::unique(Trooper::class, Trooper::USERNAME),
-            ],
-            'password' => ['required', 'string'],
         ];
+
+        $registration_auth = Session::get('registration_auth');
+
+        if ($registration_auth && $registration_auth['method'] === 'email')
+        {
+            $rules['password'] = ['required', 'string'];
+        }
 
         $rules = array_merge($rules, $this->getOrganizationValidationRules());
 
@@ -82,6 +84,17 @@ class RegisterRequest extends FormRequest
             $this->merge([
                 'phone' => preg_replace('/\D+/', '', $this->input('phone')),
             ]);
+        }
+        if ($this->has('email'))
+        {
+            $registeration_auth = Session::get('registration_auth');
+
+            if ($registeration_auth && $registeration_auth['email'] != null)
+            {
+                $this->merge([
+                    'email' => trim($registeration_auth['email']),
+                ]);
+            }
         }
     }
 
@@ -181,7 +194,7 @@ class RegisterRequest extends FormRequest
 
             if (!empty($organization->identifier_validation))
             {
-                $rules = explode('|', $organization->identifier_validation);
+                $rules = explode('|', string: $organization->identifier_validation);
 
                 foreach ($rules as $rule)
                 {
@@ -191,7 +204,7 @@ class RegisterRequest extends FormRequest
                 }
             }
 
-            $messages["{$key}"] = "The {$organization->identifier_display} for {$organization->name} is required";
+            //$messages["{$key}"] = "The {$organization->identifier_display} for {$organization->name} is required";
 
             foreach ($organization->organizations as $region)
             {

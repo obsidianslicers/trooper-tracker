@@ -8,7 +8,7 @@
         Congratulations. Your application has survived the scrutiny of the
         Imperial bureaucracy and your armor has been deemed
         <strong>adequately intimidating</strong>. You are now officially
-        filed with the <em>{{ setting('site_name') }} Troop Tracker</em>.
+        filed with the <em>{{ config('app.name') }} Troop Tracker</em>.
     </p>
     <p>
         From this moment forward, you'll be expected to:
@@ -19,11 +19,12 @@
         <li>Pretend you don't notice that the Rebels always seem to escape.</li>
     </ul>
     <p>
-        Please review the <a href="{{ route('events.list') }}">upcoming deployments</a>. In the meantime,
-        polish that bucket - we expect it to shine brighter than a Tatooine sunrise.
+        Survey the <a href="{{ route('events.list') }}">upcoming deployments</a> as the fate of
+        the galaxy depends on it. In the meantime, polish that bucket - we expect it to shine brighter
+        than a Tatooine sunrise.
     </p>
     <p style="margin-top:20px; font-weight:bold; color:#333;">
-        - Imperial Administration, {{ setting('site_name') }}
+        - Imperial Administration, {{ config('app.name') }}
     </p>
 
 @endsection

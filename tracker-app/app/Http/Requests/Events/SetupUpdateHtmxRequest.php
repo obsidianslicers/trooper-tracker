@@ -62,8 +62,11 @@ class SetupUpdateHtmxRequest extends HtmxFormRequest
     {
         $event_trooper = $this->route('event_trooper');
         $event_shift = $event_trooper->event_shift;
+        $event = $event_shift->event;
 
-        $valid_costume_ids = OrganizationCostume::forEventShift($event_shift, $this->user())
+        $organization_ids = $event->event_organizations()->pluckCanAttend($event_shift);
+
+        $valid_costume_ids = OrganizationCostume::forEventShift($event_shift, $this->user(), $organization_ids)
             ->pluck('id')
             ->toArray();
 
@@ -79,20 +82,6 @@ class SetupUpdateHtmxRequest extends HtmxFormRequest
                 'int',
                 Rule::in($valid_costume_ids),
             ],
-        ];
-    }
-
-    /**
-     * Get the custom messages for validator errors.
-     *
-     * @return array<string, string>
-     */
-    public function messages(): array
-    {
-        return [
-            Trooper::USERNAME . '.required' => 'Username is required.',
-            Trooper::USERNAME . '.exists' => 'This username does not exist in our records - do you need to setup your account?',
-            Trooper::PASSWORD . '.required' => 'Password is required.',
         ];
     }
 }

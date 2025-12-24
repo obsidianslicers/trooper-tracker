@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
 use App\Services\BreadCrumbService;
+use App\Services\Socialite\XenforoProvider;
 use Illuminate\Database\Migrations\DatabaseMigrationRepository;
 use Illuminate\Database\Migrations\MigrationRepositoryInterface;
 use Illuminate\Database\Schema\Blueprint;
@@ -13,6 +14,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 use InvalidArgumentException;
+use Laravel\Socialite\Facades\Socialite;
 use ValueError;
 
 class AppServiceProvider extends ServiceProvider
@@ -34,6 +36,16 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Paginator::useBootstrapFive();
+
+        //
+        //  SOCIALITE CUSTOM PROVIDERS
+        //
+        Socialite::extend('xenforo', function ($app)
+        {
+            $config = $app['config']['services.xenforo'];
+
+            return Socialite::buildProvider(XenforoProvider::class, $config);
+        });
 
         //
         //  MIGRATION
