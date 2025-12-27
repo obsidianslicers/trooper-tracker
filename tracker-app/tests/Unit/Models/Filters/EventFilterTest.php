@@ -97,4 +97,30 @@ class EventFilterTest extends TestCase
         $this->assertEquals(1, $query->count());
         $this->assertEquals($matching_event->id, $query->first()->id);
     }
+
+    public function test_it_can_filter_by_costume_organization(): void
+    {
+        $organization_a = Organization::factory()->create();
+        $organization_b = Organization::factory()->create();
+
+        // Event that allows organization_a to attend
+        $event_for_org_a = Event::factory()->create();
+        $event_for_org_a->organizations()->attach($organization_a, ['can_attend' => true]);
+
+        // Event that allows organization_b to attend
+        $event_for_org_b = Event::factory()->create();
+        $event_for_org_b->organizations()->attach($organization_b, ['can_attend' => true]);
+
+        // Event that has organization_a but with can_attend = false
+        $event_with_no_attendance = Event::factory()->create();
+        $event_with_no_attendance->organizations()->attach($organization_a, ['can_attend' => false]);
+
+        $request = new Request(['costume_organization_id' => $organization_a->id]);
+        $subject = new EventFilter($request);
+
+        $query = $subject->apply(Event::query());
+
+        $this->assertEquals(1, $query->count());
+        $this->assertEquals($event_for_org_a->id, $query->first()->id);
+    }
 }

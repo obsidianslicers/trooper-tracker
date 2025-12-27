@@ -51,7 +51,7 @@
                                  alt="XenForo Logo"
                                  style="width: 18px; height: 18px;"
                                  class="me-3">
-                            <span>Login with XenForo</span>
+                            <span>Login with {{ config('services.xenforo.name') }}</span>
                         </a>
                     @endif
                 </div>
