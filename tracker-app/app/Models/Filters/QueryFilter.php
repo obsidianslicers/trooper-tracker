@@ -6,6 +6,7 @@ namespace App\Models\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use InvalidArgumentException;
 
 /**
  * Abstract base class for applying HTTP request filters to Eloquent queries.
@@ -26,6 +27,28 @@ abstract class QueryFilter
     public function __construct(Request $request)
     {
         $this->request = $request;
+    }
+
+    /**
+     * Magic getter for filter parameter values.
+     *
+     * Allows accessing filter values as properties (e.g., $filter->status).
+     * Only works for keys defined in the filters() method.
+     *
+     * @param string $name The filter parameter key.
+     * @return mixed The value from the request for the given filter key.
+     * @throws \InvalidArgumentException If the key is not a valid filter.
+     */
+    public function __get(string $name)
+    {
+        $filters = $this->filters();
+
+        if (array_key_exists($name, $filters))
+        {
+            return $this->request->input($name);
+        }
+
+        throw new InvalidArgumentException("Filter key '{$name}' not found.");
     }
 
     /**

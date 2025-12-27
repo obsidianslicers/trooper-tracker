@@ -44,16 +44,25 @@ class ListController extends Controller
 
         $search_term = $request->query('search_term');
 
+        $hosting_organization = null;
+
         if ($filter->hasFilter())
         {
             $query = $filter->apply($query);
+
+            $hosting_organization_id = $filter->organization_id;
+
+            if ($hosting_organization_id)
+            {
+                $hosting_organization = Organization::find($filter->organization_id);
+            }
         }
 
         $events = $query->get();
 
-        $organizations = Organization::ofTypeOrganizations()->orderBy(Organization::NAME)->get();
+        $costume_organizations = Organization::ofTypeOrganizations()->orderBy(Organization::NAME)->get();
 
-        $data = compact('events', 'search_term', 'organizations');
+        $data = compact('events', 'filter', 'costume_organizations', 'hosting_organization');
 
         return view('pages.events.list', $data);
     }

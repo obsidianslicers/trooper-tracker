@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\EventStatus;
+use App\Enums\EventTrooperStatus;
 use App\Models\Base\EventShift as BaseEventShift;
 use App\Models\Concerns\HasTrooperStamps;
 use App\Models\Scopes\HasEventShiftScopes;
@@ -148,6 +149,20 @@ class EventShift extends BaseEventShift
     }
 
     /**
+     * Check if a specific trooper is going to this shift.
+     *
+     * @param Trooper $trooper The trooper to check
+     * @return bool True if the trooper is going
+     */
+    public function isGoing(Trooper $trooper): bool
+    {
+        return $this->event_troopers
+            ->where(EventTrooper::TROOPER_ID, $trooper->id)
+            ->where(EventTrooper::STATUS, EventTrooperStatus::GOING)
+            ->isNotEmpty();
+    }
+
+    /**
      * Check if a trooper can sign up for this shift.
      *
      * A trooper can sign up if the shift is open and they are not already signed up.
@@ -177,7 +192,7 @@ class EventShift extends BaseEventShift
     {
         if ($this->is_open)
         {
-            if ($this->isSignedUp($trooper))
+            if ($this->isGoing($trooper))
             {
                 $friends_allowed = $this->event->friends_allowed;
 

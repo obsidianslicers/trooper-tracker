@@ -28,18 +28,13 @@
 
         <div class="col-sm-12 col-md-4">
 
-            @foreach (qs() as $key => $value)
-                <x-input-hidden :property="$key"
-                                :value="$value" />
-            @endforeach
-
             <x-input-container>
                 <x-label>
                     Search Events:
                 </x-label>
                 <x-input-text :property="'search_term'"
                               :placeholder="'Search Event Name (at least 3 chars)'"
-                              :value="$search_term" />
+                              :value="$filter->search_term ?? null" />
             </x-input-container>
 
         </div>
@@ -50,26 +45,31 @@
                 </x-label>
                 <x-input-picker :property="'organization_id'"
                                 :route="'pickers.organization'"
-                                :text="'Hosting Organization'"
-                                :value="-1" />
+                                :text="$hosting_organization->name ?? 'Hosting Organization'"
+                                :value="$filter->organization_id ?? null" />
             </x-input-container>
-            <x-modal-picker :label="'Select an Organization'" />
+            <x-modal-picker :label="'Select the Hosting Organization'" />
         </div>
         <div class="col-sm-12 col-md-4">
             <x-input-container>
                 <x-label>
-                    Character Types:
+                    Requested Character Types:
                 </x-label>
-                <x-input-select :property="'organization_id'"
-                                :options="$organizations->pluck('name', 'id')->toArray()"
-                                :value="$selected_organization->id ?? -1"
+                <x-input-select :property="'costume_organization_id'"
+                                :options="$costume_organizations->pluck('name', 'id')->toArray()"
+                                :value="$filter->costume_organization_id ?? null"
                                 :placeholder="'-- Requested Characters --'" />
             </x-input-container>
         </div>
         <div class="col-12 text-end">
-            <x-submit-button>
-                Apply Filters
-            </x-submit-button>
+            <x-submit-container>
+                <x-submit-button>
+                    Apply Filters
+                </x-submit-button>
+                <x-link-button-cancel :url="route('events.list')">
+                    Clear Filters
+                </x-link-button-cancel>
+            </x-submit-container>
         </div>
 
     </div>

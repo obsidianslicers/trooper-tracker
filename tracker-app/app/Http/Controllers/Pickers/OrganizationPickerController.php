@@ -48,6 +48,10 @@ class OrganizationPickerController extends Controller
                 ->orderBy(Organization::SEQUENCE)
                 ->get();
         }
+        else
+        {
+            $organizations = Organization::orderBy(Organization::SEQUENCE)->get();
+        }
 
         $data = compact('organizations', 'property');
 
