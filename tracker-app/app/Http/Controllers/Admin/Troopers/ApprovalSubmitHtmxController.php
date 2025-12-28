@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Admin\Troopers;
 
 use App\Enums\MembershipStatus;
 use App\Http\Controllers\Controller;
-use App\Mail\TrooperApproved;
+use App\Mail\Admin\Troopers\TrooperApproved;
 use App\Models\Trooper;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;

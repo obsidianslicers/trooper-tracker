@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\Admin\Troopers;
 
 use App\Enums\MembershipStatus;
-use App\Mail\TrooperApproved;
+use App\Mail\Admin\Troopers\TrooperApproved;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
