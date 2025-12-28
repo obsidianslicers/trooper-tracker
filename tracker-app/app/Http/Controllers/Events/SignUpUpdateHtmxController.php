@@ -7,9 +7,11 @@ namespace App\Http\Controllers\Events;
 use App\Enums\EventTrooperStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Events\SetupUpdateHtmxRequest;
+use App\Mail\Events\TrooperNextInLine;
 use App\Models\EventTrooper;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Mail;
 
 /**
  * Handles HTMX-driven updates to event trooper sign-up details.
@@ -58,11 +60,17 @@ class SignUpUpdateHtmxController extends Controller
                 $next_in_line = $event_trooper->event_shift
                     ->event_troopers()
                     ->where(EventTrooper::STATUS, EventTrooperStatus::STAND_BY)
+                    ->where(EventTrooper::IS_HANDLER, $event_trooper->is_handler)
                     ->orderBy(EventTrooper::SIGNED_UP_AT)
                     ->first();
 
-                $next_in_line->status = EventTrooperStatus::GOING;
-                $next_in_line->save();
+                if ($next_in_line)
+                {
+                    $next_in_line->status = EventTrooperStatus::GOING;
+                    $next_in_line->save();
+
+                    Mail::to($next_in_line->trooper->email)->queue(new TrooperNextInLine($next_in_line));
+                }
             }
         }
         elseif ($request->has('costume_id'))

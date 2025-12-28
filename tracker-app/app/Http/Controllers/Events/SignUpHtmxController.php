@@ -6,12 +6,14 @@ namespace App\Http\Controllers\Events;
 
 use App\Enums\EventTrooperStatus;
 use App\Http\Controllers\Controller;
+use App\Mail\Events\TrooperSignUp;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 /**
  * Handles HTMX-driven event shift sign-up creation.
@@ -49,7 +51,9 @@ class SignUpHtmxController extends Controller
 
         if (!$exists)
         {
-            $this->addTrooper($event_shift, $trooper);
+            $event_trooper = $this->addTrooper($event_shift, $trooper);
+
+            Mail::to($trooper->email)->queue(new TrooperSignUp($event_trooper));
         }
 
         $with = [
@@ -85,7 +89,7 @@ class SignUpHtmxController extends Controller
         return view('pages.events.inc.shift-container', $data);
     }
 
-    private function addTrooper(EventShift $event_shift, Trooper $trooper): void
+    private function addTrooper(EventShift $event_shift, Trooper $trooper): EventTrooper
     {
         $current_id = Auth::user()->id;
 
@@ -116,5 +120,7 @@ class SignUpHtmxController extends Controller
 
         $event_trooper->status = $status;
         $event_trooper->save();
+
+        return $event_trooper;
     }
 }

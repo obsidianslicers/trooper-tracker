@@ -76,6 +76,16 @@ class EventTrooper extends BaseEventTrooper
     }
 
     /**
+     * Check if the trooper is on stand-by for the event.
+     *
+     * @return bool
+     */
+    public function getIsStandByAttribute(): bool
+    {
+        return $this->status === EventTrooperStatus::STAND_BY;
+    }
+
+    /**
      * Get a formatted time display string for the shift.
      *
      * Format: "Sat - Oct 03, 2026 - 2:00pm - 4:00pm"

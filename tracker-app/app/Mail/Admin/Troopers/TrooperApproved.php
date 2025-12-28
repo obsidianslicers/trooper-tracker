@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Mail;
+namespace App\Mail\Admin\Troopers;
 
 use App\Models\Trooper;
 use Illuminate\Bus\Queueable;
@@ -38,7 +38,7 @@ class TrooperApproved extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            view: 'emails.trooper-approved',
+            view: 'emails.admin.troopers.trooper-approved',
             with: [
                 'trooper' => $this->trooper
             ]
