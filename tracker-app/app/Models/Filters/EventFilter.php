@@ -6,6 +6,7 @@ namespace App\Models\Filters;
 
 use App\Enums\EventStatus;
 use App\Models\Event;
+use App\Models\EventOrganization;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
@@ -21,6 +22,7 @@ class EventFilter extends QueryFilter
         return [
             'status' => 'status',
             'organization_id' => 'organization',
+            'costume_organization_id' => 'costume',
             'search_term' => 'searchTerm',
         ];
     }
@@ -29,12 +31,12 @@ class EventFilter extends QueryFilter
      * Filters the query by event status.
      *
      * @param Builder $query The Eloquent query builder.
-     * @param string $value The status value from the request.
+     * @param string $status The status value from the request.
      * @return Builder The modified query builder.
      */
-    protected function status(Builder $query, $value): Builder
+    protected function status(Builder $query, $status): Builder
     {
-        $status = EventStatus::from($value);
+        $status = EventStatus::from($status);
 
         return $query->where(Event::STATUS, $status);
     }
@@ -43,12 +45,28 @@ class EventFilter extends QueryFilter
      * Filters the query by organization ID.
      *
      * @param Builder $query The Eloquent query builder.
-     * @param int|string $value The organization ID from the request.
+     * @param int|string $organization_id The organization ID from the request.
      * @return Builder The modified query builder.
      */
-    protected function organization(Builder $query, $value): Builder
+    protected function organization(Builder $query, $organization_id): Builder
     {
-        return $query->where(Event::ORGANIZATION_ID, $value);
+        return $query->where(Event::ORGANIZATION_ID, $organization_id);
+    }
+
+    /**
+     * Filters the query by organization ID for costume.
+     *
+     * @param Builder $query The Eloquent query builder.
+     * @param int|string $organization_id The organization ID from the request.
+     * @return Builder The modified query builder.
+     */
+    protected function costume(Builder $query, $organization_id): Builder
+    {
+        return $query->whereHas('organizations', function ($query) use ($organization_id)
+        {
+            $query->where(EventOrganization::CAN_ATTEND, true)
+                ->where(EventOrganization::ORGANIZATION_ID, $organization_id);
+        });
     }
 
     /**
@@ -57,14 +75,14 @@ class EventFilter extends QueryFilter
      * The search is only applied if the term is 3 or more characters long.
      *
      * @param Builder $query The Eloquent query builder.
-     * @param string $value The search term from the request.
+     * @param string $search_term The search term from the request.
      * @return Builder The modified query builder.
      */
-    protected function searchTerm(Builder $query, $value): Builder
+    protected function searchTerm(Builder $query, $search_term): Builder
     {
-        if (strlen($value) >= 3)
+        if (strlen($search_term) >= 3)
         {
-            return $query->searchFor($value);
+            return $query->searchFor($search_term);
         }
 
         return $query;

@@ -24,7 +24,7 @@
                                  alt="XenForo Logo"
                                  style="width: 18px; height: 18px;"
                                  class="me-3">
-                            <span>Sign Up with XenForo</span>
+                            <span>Sign Up with {{ config('services.xenforo.name') }}</span>
                         </a>
                     @endif
                 </div>

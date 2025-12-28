@@ -10,8 +10,8 @@ use Illuminate\Database\Eloquent\Builder;
 /**
  * Applies filters to the Award query based on HTTP request parameters.
  *
- * This class extends the base QueryFilter and defines specific methods for filtering notices
- * by scope (active, past, future) and organization.
+ * This class extends the base QueryFilter and defines specific methods for filtering awards
+ * by organization.
  */
 class AwardFilter extends QueryFilter
 {

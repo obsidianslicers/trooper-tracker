@@ -11,6 +11,7 @@ use App\Models\Event;
 use App\Models\EventOrganization;
 use App\Models\Organization;
 use App\Services\FlashMessageService;
+use App\Services\GeocodingService;
 use App\Services\GoogleService;
 use Exception;
 use Illuminate\Http\RedirectResponse;
@@ -31,7 +32,7 @@ class CreateSubmitController extends Controller
      */
     public function __construct(
         private readonly FlashMessageService $flash,
-        private readonly GoogleService $google)
+        private readonly GeocodingService $geocoding)
     {
     }
 
@@ -58,13 +59,20 @@ class CreateSubmitController extends Controller
 
         try
         {
-            if (config('services.google.maps_api_key'))
-            {
-                [$latitude, $longitude] = $this->google->getLatitudeLongitude($event->venue_address . ', ' . $event->venue_city . ', ' . $event->venue_state . ' ' . $event->venue_zip . ', ' . $event->venue_country);
+            // if (config('services.google.maps_api_key'))
+            // {
+            //     [$latitude, $longitude] = $this->google->getLatitudeLongitude($event->venue_address . ', ' . $event->venue_city . ', ' . $event->venue_state . ' ' . $event->venue_zip . ', ' . $event->venue_country);
 
-                $event->latitude = $latitude;
-                $event->longitude = $longitude;
-            }
+            //     $event->latitude = $latitude;
+            //     $event->longitude = $longitude;
+            // }
+
+            $address = $this->buildGeocodeAddress($event);
+
+            [$latitude, $longitude] = $this->geocoding->getLatitudeLongitude($address);
+
+            $event->latitude = $latitude;
+            $event->longitude = $longitude;
         }
         catch (Exception)
         {
@@ -89,5 +97,44 @@ class CreateSubmitController extends Controller
 
         return redirect()->route('admin.events.update', compact('event'));
     }
+
+    private function buildGeocodeAddress($event): string
+    {
+        $parts = [];
+
+        // Normalize the base address for duplicate detection
+        $base = strtolower($event->venue_address);
+
+        // Always start with the raw address field
+        $parts[] = trim($event->venue_address);
+
+        // Append city if not already included
+        if (!str_contains($base, strtolower($event->venue_city)))
+        {
+            $parts[] = $event->venue_city;
+        }
+
+        // Append state if not already included
+        if (!str_contains($base, strtolower($event->venue_state)))
+        {
+            $parts[] = $event->venue_state;
+        }
+
+        // Append ZIP if not already included
+        if (!str_contains($base, strtolower($event->venue_zip)))
+        {
+            $parts[] = $event->venue_zip;
+        }
+
+        // Append country if not already included
+        if (!str_contains($base, strtolower($event->venue_country)))
+        {
+            $parts[] = $event->venue_country;
+        }
+
+        // Join with commas for Nominatim
+        return implode(', ', array_filter($parts));
+    }
+
 }
 

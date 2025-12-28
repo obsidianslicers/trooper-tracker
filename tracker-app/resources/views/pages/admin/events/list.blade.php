@@ -105,7 +105,7 @@
                     <x-action-menu>
                         @if(Auth::user()->is_administrator || $event->organization->trooper_assignments->count() > 0)
                             <x-action-link-update :url="route('admin.events.update', compact('event'))" />
-                            {{--<x-action-link-copy :url="route('admin.events.create', ['copy_id'=>$event->id])" />--}}
+                            <x-action-link-copy :url="route('admin.events.copy', compact('event'))" />
                         @endif
                     </x-action-menu>
                 </td>

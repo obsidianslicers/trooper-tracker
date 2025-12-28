@@ -67,19 +67,16 @@ class SignUpHtmxController extends Controller
         $event = $event_shift->event;
 
         //  re-link shifts to event for view access (see SignUpController)
-        foreach ($event->event_shifts as $event_shift)
+        $event_shift->event = $event;
+
+        foreach ($event_shift->event_troopers as $event_trooper)
         {
-            $event_shift->event = $event;
+            $event_trooper->event_shift = $event_shift;
 
-            foreach ($event_shift->event_troopers as $event_trooper)
+            if ($event_trooper->canUpdateCostume($event_shift, Auth::user()))
             {
-                $event_trooper->event_shift = $event_shift;
-
-                if ($event_trooper->canUpdateCostume($event_shift, Auth::user()))
-                {
-                    //  performance optimization: load costumes only if the trooper can update
-                    $event_trooper->costumes = $event_trooper->getCostumes();
-                }
+                //  performance optimization: load costumes only if the trooper can update
+                $event_trooper->costumes = $event_trooper->getCostumes();
             }
         }
 

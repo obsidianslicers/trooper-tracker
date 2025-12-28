@@ -85,4 +85,35 @@ class TrooperFilterTest extends TestCase
         $this->assertEquals(1, $query->count());
         $this->assertEquals($matching_trooper->id, $query->first()->id);
     }
+
+    public function test_magic_getter_returns_filter_value(): void
+    {
+        $request = new Request([
+            'membership_role' => MembershipRole::ADMINISTRATOR->value,
+            'search_term' => 'John Doe',
+        ]);
+        $subject = new TrooperFilter($request);
+
+        $this->assertEquals(MembershipRole::ADMINISTRATOR->value, $subject->membership_role);
+        $this->assertEquals('John Doe', $subject->search_term);
+    }
+
+    public function test_magic_getter_throws_exception_for_invalid_key(): void
+    {
+        $request = new Request(['membership_role' => MembershipRole::ADMINISTRATOR->value]);
+        $subject = new TrooperFilter($request);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage("Filter key 'invalid_key' not found.");
+
+        $subject->invalid_key;
+    }
+
+    public function test_magic_getter_returns_null_for_missing_value(): void
+    {
+        $request = new Request([]);
+        $subject = new TrooperFilter($request);
+
+        $this->assertNull($subject->membership_role);
+    }
 }
