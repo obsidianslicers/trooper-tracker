@@ -13,7 +13,9 @@ class InputErrorTest extends TestCase
     public function test_it_renders_nothing_when_no_error_exists(): void
     {
         $errors = new ViewErrorBag();
-        $subject = Blade::render('<x-input-error property="event_name" />', ['errors' => $errors]);
+        view()->share('errors', $errors);
+
+        $subject = Blade::render('<x-input-error property="event_name" />');
 
         $this->assertEmpty(trim($subject));
     }
@@ -24,8 +26,9 @@ class InputErrorTest extends TestCase
         $messageBag = new \Illuminate\Support\MessageBag();
         $messageBag->add('event_name', 'The event name is required.');
         $errors->put('default', $messageBag);
+        view()->share('errors', $errors);
 
-        $subject = Blade::render('<x-input-error property="event_name" />', ['errors' => $errors]);
+        $subject = Blade::render('<x-input-error property="event_name" />');
 
         $this->assertStringContainsString('The event name is required.', $subject);
         $this->assertStringContainsString('form-text text-danger', $subject);

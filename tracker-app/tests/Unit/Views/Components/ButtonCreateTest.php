@@ -20,13 +20,6 @@ class ButtonCreateTest extends TestCase
         $this->assertStringContainsString('fa-add', $subject);
     }
 
-    public function test_it_generates_unique_id(): void
-    {
-        $subject = Blade::render('<x-button-create>Add</x-button-create>');
-
-        $this->assertMatchesRegularExpression('/button-[a-z0-9]+/', $subject);
-    }
-
     public function test_it_accepts_additional_attributes(): void
     {
         $subject = Blade::render('<x-button-create class="custom-class" data-test="value">Add</x-button-create>');

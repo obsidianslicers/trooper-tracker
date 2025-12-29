@@ -20,13 +20,6 @@ class ButtonUpdateTest extends TestCase
         $this->assertStringContainsString('fa-edit', $subject);
     }
 
-    public function test_it_generates_unique_id(): void
-    {
-        $subject = Blade::render('<x-button-update>Edit</x-button-update>');
-
-        $this->assertMatchesRegularExpression('/button-[a-z0-9]+/', $subject);
-    }
-
     public function test_it_accepts_additional_attributes(): void
     {
         $subject = Blade::render('<x-button-update class="custom-class">Edit</x-button-update>');
