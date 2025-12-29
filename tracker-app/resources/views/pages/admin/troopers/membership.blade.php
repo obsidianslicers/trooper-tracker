@@ -21,7 +21,7 @@
                     </x-label>
                     <x-input-text :property="'trooper_name'"
                                   :disabled="true"
-                                  :value="$trooper->name . ' (' . $trooper->username . ')'" />
+                                  :value="$trooper->name" />
                 </x-input-container>
                 <x-table>
                     <thead>
