@@ -20,10 +20,10 @@ use Illuminate\Support\Collection;
  * Presents organizational memberships and related assignments for a given trooper
  * so administrators and moderators can review or adjust membership details.
  */
-class MembershipController extends Controller
+class MembershipSubmitController extends Controller
 {
     /**
-     * Create a new MembershipController instance and seed breadcrumb trail.
+     * Create a new MembershipSubmitController instance and seed breadcrumb trail.
      *
      * @param BreadCrumbService $crumbs The breadcrumb service for managing navigation history.
      */

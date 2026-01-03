@@ -9,6 +9,7 @@ use App\Services\Socialite\XenforoProvider;
 use Illuminate\Database\Migrations\DatabaseMigrationRepository;
 use Illuminate\Database\Migrations\MigrationRepositoryInterface;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
@@ -36,6 +37,14 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Paginator::useBootstrapFive();
+
+        //
+        //  HTMX REQUEST MACRO
+        //
+        Request::macro('isHtmx', function ()
+        {
+            return $this->headers->has('HX-Request');
+        });
 
         //
         //  SOCIALITE CUSTOM PROVIDERS

@@ -13,7 +13,7 @@ class HtmxFormRequest extends FormRequest
 {
     protected function failedValidation(ValidatorInterface $validator): void
     {
-        //  avoids failing in HTMX
+        //  avoids failing in HTMX - which causes a redirect in laravel normal form requests
     }
 
     public function validateInputs(): array

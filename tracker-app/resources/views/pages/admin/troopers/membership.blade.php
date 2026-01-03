@@ -6,115 +6,78 @@
 
     @include('pages.admin.troopers.tabs', compact('trooper'))
 
-    <x-slim-container>
-        <x-card>
+    <x-card>
 
-            <x-transmission-bar :id="'register-organization'" />
+        <x-transmission-bar :id="'organizations'" />
 
-            <form method="POST"
-                  novalidate="novalidate">
-                @csrf
+        <form method="POST"
+                novalidate="novalidate">
+            @csrf
 
-                <x-input-container>
-                    <x-label>
-                        Trooper:
-                    </x-label>
-                    <x-input-text :property="'trooper_name'"
-                                  :disabled="true"
-                                  :value="$trooper->name" />
-                </x-input-container>
-                <x-table>
-                    <thead>
-                        <tr>
-                            <th>Organization</th>
-                            <th>Identifier</th>
-                            <th>Region</th>
-                            <th>Unit</th>
-                        </tr>
-                    </thead>
-                    @foreach ($organization_memberships as $organization)
-                        <tr>
-                            <td>
-                                {{ $organization->name }}
-                            </td>
-                            <td>
-                                {{ $organization->pivot->identifier }}
-                            </td>
-                            <td>
-                                {{ $organization->region->name ?? '-' }}
-                            </td>
-                            <td>
-                                {{ $organization->unit->name ?? '-' }}
-                            </td>
-                        </tr>
-                        {{--
-                        @php($account_type = old('account_type', request('account_type', 'member')))
-                        @php($organization_selected = old("organizations.{$organization->id}.selected", $organization->selected))
-
-                        <div id="organization-selection-{{ $organization->id }}">
-                            <x-input-container>
-                                <x-input-checkbox :property="'organizations.' . $organization->id . '.selected'"
-                                                  :label="$organization->name"
-                                                  :value="'1'"
-                                                  :checked="$organization_selected"
-                                                  :spinner="$organization->id"
-                                                  data-organization-id="{{ $organization->id }}"
-                                                  hx-post="{{ route('auth.register-htmx', ['organization'=>$organization->id]) }}"
-                                                  hx-target="#organization-selection-{{ $organization->id }}"
-                                                  hx-swap="outerHTML"
-                                                  hx-trigger="change"
-                                                  hx-include="closest div"
-                                                  hx-indicator="#spinner-{{ $organization->id }}" />
-                            </x-input-container>
-
-                            @if($organization_selected)
-                            <div class="organization-{{ $organization->id }} ps-4">
-                                @if( $account_type !== 'handler')
-                                <x-input-container>
-                                    <div class="input-group pointer">
-                                        <span class="input-group-text">
-                                            {{ $organization->identifier_display }}:
-                                        </span>
-                                        <x-input-text :property="'organizations.' . $organization->id . '.identifier'" />
-                                    </div>
-                                </x-input-container>
-                                @endif
-                                @if($organization->organizations->count() > 0)
-                                <x-input-container>
-                                    <x-input-select :property="'organizations.' . $organization->id . '.region_id'"
-                                                    :options="$organization->organizations->pluck('name', 'id')->toArray()"
-                                                    :placeholder="'-- Select your Region/Garrison --'"
-                                                    :value="$organization->organizations->where('selected', true)->first()->id ?? null"
-                                                    hx-post="{{ route('auth.register-htmx', ['organization'=>$organization->id]) }}"
-                                                    hx-select="#unit-container-{{ $organization->id }}"
-                                                    hx-target="#unit-container-{{ $organization->id }}"
-                                                    hx-swap="outerHTML"
-                                                    hx-trigger="change"
-                                                    hx-include="closest div"
-                                                    hx-indicator="#transmission-bar-register-organization" />
-                                </x-input-container>
-
-                                @php($rid = $organization->organizations->where('selected', true)->first()->id ?? null)
-                                @php($rid = old("organizations.{$organization->id}.region_id", $rid))
-                                @php($region = $organization->organizations->find($rid))
-
-                                <x-input-container id="unit-container-{{ $organization->id }}">
-                                    @if($region && $region->organizations->count() > 0)
-                                    <x-input-select :property="'organizations.' . $organization->id . '.unit_id'"
-                                                    :options="$region->organizations->pluck('name', 'id')->toArray()"
-                                                    :placeholder="'-- Select your Unit/Squad --'" />
-                                    @endif
-                                </x-input-container>
-
-                                @endif
-                            </div>
+            <x-input-container>
+                <x-label>
+                    Trooper:
+                </x-label>
+                <x-input-text :property="'trooper_name'"
+                                :disabled="true"
+                                :value="$trooper->name" />
+            </x-input-container>
+            <x-table>
+                <thead>
+                    <tr>
+                        <th>Organization</th>
+                        <th>Identifier</th>
+                        <th>Region</th>
+                        <th>Unit</th>
+                    </tr>
+                </thead>
+                @foreach ($organization_memberships as $organization)
+                    <tr>
+                        <td>
+                            {{ $organization->name }}
+                        </td>
+                        <td>
+                            <x-input-text :property="'organizations.' . $organization->id . '.identifier'"
+                                          :value="$organization->identifier ?? null"
+                                          class="form-control-sm" />
+                        </td>
+                        <td>
+                            <x-input-select :property="'organizations.' . $organization->id . '.region_id'"
+                                            :options="$organization->organizations->pluck('name', 'id')->toArray()"
+                                            :placeholder="'-- Select your Region/Garrison --'"
+                                            :value="$organization->region->id ?? null"
+                                            class="form-select-sm"
+                                            hx-post="{{ route('auth.register-htmx', ['organization'=>$organization->id]) }}"
+                                            hx-select="#unit-container-{{ $organization->id }}"
+                                            hx-target="#unit-container-{{ $organization->id }}"
+                                            hx-swap="outerHTML"
+                                            hx-trigger="change"
+                                            hx-include="closest div"
+                                            hx-indicator="#transmission-bar-organizations" />
+                        </td>
+                        <td id="unit-container-{{ $organization->id }}">
+                            @if($organization->region === null)
+                            -
+                            @elseif($organization->region->organizations->count() > 0)
+                            <x-input-select :property="'organizations.' . $organization->id . '.unit_id'"
+                                            :options="$organization->region->organizations->pluck('name', 'id')->toArray()"
+                                            :placeholder="'-- Select your Unit/Squad --'"
+                                            :value="$organization->unit->id ?? null"
+                                            class="form-select-sm" />
                             @endif
-                        </div>
-                        --}}
-                    @endforeach
-                </x-table>
+                        </td>
+                    </tr>
+                @endforeach
+            </x-table>
 
-            </form>
-        </x-card>
-    </x-slim-container>
+            <x-submit-container>
+                <x-submit-button>
+                    Update
+                </x-submit-button>
+                <x-link-button-cancel :url="route('admin.troopers.profile', compact('trooper'))" />
+            </x-submit-container>
+
+        </form>
+    </x-card>
+
 @endsection
