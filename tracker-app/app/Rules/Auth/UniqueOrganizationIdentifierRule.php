@@ -3,6 +3,7 @@
 namespace App\Rules\Auth;
 
 use App\Models\Organization;
+use App\Models\Trooper;
 use App\Models\TrooperOrganization;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -19,8 +20,11 @@ class UniqueOrganizationIdentifierRule implements ValidationRule
      * Creates a new rule instance.
      *
      * @param Organization $organization The organization against which the identifier's uniqueness will be checked.
+     * @param Trooper|null $trooper The trooper being validated, if any.
      */
-    public function __construct(private readonly Organization $organization)
+    public function __construct(
+        private readonly Organization $organization,
+        private readonly ?Trooper $trooper = null)
     {
     }
 
@@ -35,9 +39,15 @@ class UniqueOrganizationIdentifierRule implements ValidationRule
     {
         if (!empty($value))
         {
-            $exists = $this->organization->troopers()
-                ->wherePivot(TrooperOrganization::IDENTIFIER, $value)
-                ->exists();
+            $query = $this->organization->troopers()
+                ->wherePivot(TrooperOrganization::IDENTIFIER, $value);
+
+            if ($this->trooper !== null)
+            {
+                $query->where('tt_trooper_organizations.trooper_id', '!=', $this->trooper->id);
+            }
+
+            $exists = $query->exists();
 
             if ($exists)
             {

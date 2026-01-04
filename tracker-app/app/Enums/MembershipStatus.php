@@ -40,9 +40,4 @@ enum MembershipStatus: string
      * A retired member.
      */
     case RETIRED = 'retired';
-
-    /**
-     * Not a member of the organization.
-     */
-    case NOT_FOUND = 'notfound';
 }

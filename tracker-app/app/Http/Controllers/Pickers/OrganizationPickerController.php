@@ -48,6 +48,17 @@ class OrganizationPickerController extends Controller
                 ->orderBy(Organization::SEQUENCE)
                 ->get();
         }
+        elseif ($request->has('organization_id') && $request->query('organization_id'))
+        {
+            // Pre-select a specific organization if organization_id is provided
+            $organization_id = $request->query('organization_id');
+
+            $organization = Organization::findOrFail($organization_id);
+
+            $organizations = Organization::where(Organization::NODE_PATH, 'like', $organization->node_path . '%')
+                ->orderBy(Organization::SEQUENCE)
+                ->get();
+        }
         else
         {
             $organizations = Organization::orderBy(Organization::SEQUENCE)->get();

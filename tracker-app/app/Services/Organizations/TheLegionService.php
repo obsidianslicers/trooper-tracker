@@ -246,37 +246,8 @@ class TheLegionService extends BaseOrganizationService
 
     public static function parseRequestAppearance(string $message): Event
     {
-        $lines = preg_split("/\r\n|\n|\r/", $message);
-        $parsed = [];
-        $currentKey = null;
+        $parsed = static::parseMessage($message);
 
-        foreach ($lines as $line)
-        {
-            $line = trim($line);
-            if ($line === '')
-            {
-                continue; // skip empty lines
-            }
-
-            if (strpos($line, ':') !== false)
-            {
-                // New identifier line
-                [$key, $value] = explode(':', $line, 2);
-                $key = trim($key);
-                $value = trim($value);
-
-                $currentKey = $key;
-                $parsed[$currentKey] = $value;
-            }
-            else
-            {
-                // Continuation of previous value
-                if ($currentKey !== null)
-                {
-                    $parsed[$currentKey] .= ' ' . $line;
-                }
-            }
-        }
         return new Event([
             Event::CONTACT_NAME => $parsed['Contact Name'] ?? null,
             Event::CONTACT_PHONE => $parsed['Contact Phone Number'] ?? null,

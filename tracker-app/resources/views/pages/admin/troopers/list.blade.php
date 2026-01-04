@@ -50,7 +50,7 @@
         <thead>
             <tr>
                 <th>
-                    Name <i class="text-muted">(Username)</i> Email
+                    Name / Email
                 </th>
                 <th>Role</th>
                 <th>Status</th>
@@ -61,7 +61,7 @@
             @foreach($troopers as $trooper)
                 <tr>
                     <td>
-                        {{ $trooper->name }} <i class="text-muted">({{ $trooper->username }})</i>
+                        {{ $trooper->name }}
                         <br />
                         {{ $trooper->email }}
                     </td>

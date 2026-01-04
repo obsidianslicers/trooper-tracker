@@ -4,10 +4,12 @@ namespace App\Http\Requests\Events;
 
 use App\Enums\EventTrooperStatus;
 use App\Http\Requests\HtmxFormRequest;
+use App\Http\Requests\HtmxValidation;
 use App\Models\EventTrooper;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 /**
@@ -17,8 +19,10 @@ use Illuminate\Validation\Rule;
  * their attendance status and costume selection. The costume selection is restricted
  * to costumes from organizations that are allowed to attend the event.
  */
-class SetupUpdateHtmxRequest extends HtmxFormRequest
+class SetupUpdateHtmxRequest extends FormRequest
 {
+    use HtmxValidation;
+
     /**
      * Determine if the user is authorized to make this request.
      *

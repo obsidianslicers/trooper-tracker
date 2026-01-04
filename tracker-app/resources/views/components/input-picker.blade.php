@@ -1,5 +1,6 @@
 @props(['property', 'value', 'route', 'params' => [], 'text' => ''])
 @php($haserror = $errors->has($property))
+@php($bracketed = to_bracket_name($property))
 
 <div id="picker-container-{{ $property }}"
      class="input-group pointer"
@@ -14,7 +15,7 @@
 
     <input type="text"
            readonly
-           name="picker-{{ $property }}"
+           name="picker-{{ $bracketed }}"
            class="form-control rounded-start pointer {{ $haserror ? ' is-invalid' : '' }}"
            value="{{ $text }}" />
 

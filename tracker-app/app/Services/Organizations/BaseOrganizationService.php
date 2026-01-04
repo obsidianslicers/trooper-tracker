@@ -32,4 +32,41 @@ abstract class BaseOrganizationService implements SynchronizerInterface
     {
         throw new RuntimeException('Not implemented');
     }
+
+    protected static function parseMessage(string $message): array
+    {
+        $lines = preg_split("/\r\n|\n|\r/", $message);
+        $parsed = [];
+        $currentKey = null;
+
+        foreach ($lines as $line)
+        {
+            $line = trim($line);
+            if ($line === '')
+            {
+                continue; // skip empty lines
+            }
+
+            if (strpos($line, ':') !== false)
+            {
+                // New identifier line
+                [$key, $value] = explode(':', $line, 2);
+                $key = trim($key);
+                $value = trim($value);
+
+                $currentKey = $key;
+                $parsed[$currentKey] = $value;
+            }
+            else
+            {
+                // Continuation of previous value
+                if ($currentKey !== null)
+                {
+                    $parsed[$currentKey] .= ' ' . $line;
+                }
+            }
+        }
+
+        return $parsed;
+    }
 }

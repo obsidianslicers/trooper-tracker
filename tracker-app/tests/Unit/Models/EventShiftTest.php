@@ -289,6 +289,7 @@ class EventShiftTest extends TestCase
             'event_shift_id' => $event_shift->id,
             'trooper_id' => $trooper->id,
             'costume_id' => $costume->id,
+            'status' => EventTrooperStatus::GOING,
         ]);
 
         $event_shift->load('event_troopers');
@@ -351,6 +352,7 @@ class EventShiftTest extends TestCase
             'event_shift_id' => $event_shift->id,
             'trooper_id' => $trooper->id,
             'costume_id' => $costume->id,
+            'status' => EventTrooperStatus::GOING,
         ]);
 
         $event_shift->load('event_troopers');

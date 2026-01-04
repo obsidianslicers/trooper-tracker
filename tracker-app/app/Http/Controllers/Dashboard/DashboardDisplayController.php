@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Dashboard;
 
-use App\Contracts\ForumInterface;
 use App\Http\Controllers\Controller;
 use App\Models\EventTrooper;
 use App\Models\Organization;
@@ -30,12 +29,10 @@ class DashboardDisplayController extends Controller
      *
      * @param FlashMessageService $flash The flash message service.
      * @param BreadCrumbService $crumbs The breadcrumb service.
-     * @param ForumInterface $forum The forum integration service.
      */
     public function __construct(
         private readonly FlashMessageService $flash,
         private readonly BreadCrumbService $crumbs,
-        private readonly ForumInterface $forum
     ) {
     }
 

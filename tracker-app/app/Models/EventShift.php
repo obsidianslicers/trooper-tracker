@@ -190,6 +190,7 @@ class EventShift extends BaseEventShift
      */
     public function canSignUpFriend(Trooper $trooper): bool
     {
+        //  TODO ADMIN / MODERATOR OVERRIDE
         if ($this->is_open)
         {
             if ($this->isGoing($trooper))

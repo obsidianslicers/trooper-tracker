@@ -65,7 +65,9 @@ class MembershipController extends Controller
      */
     private function getOrganizationMemberships(Trooper $trooper): Collection
     {
-        $organizations = $trooper->organizations()->orderBy('name')->get();
+        $organizations = Organization::ofTypeOrganizations()->orderBy('name')->get();
+
+        $organization_memberships = $trooper->organizations()->pluck('tt_trooper_organizations.identifier', 'tt_organizations.id')->toArray();
 
         $assignments = $trooper->trooper_assignments()
             ->with('organization')
@@ -74,19 +76,18 @@ class MembershipController extends Controller
 
         foreach ($organizations as $organization)
         {
+            if (isset($organization_memberships[$organization->id]) === false)
+            {
+                continue;
+            }
+
+            $organization->identifier = $organization_memberships[$organization->id];
+
             foreach ($assignments as $assignment)
             {
                 if (str_starts_with($assignment->organization->node_path, $organization->node_path))
                 {
-                    if ($assignment->organization->type == OrganizationType::UNIT)
-                    {
-                        $organization->unit = $assignment->organization;
-                        $organization->region = $organization->unit->parent;
-                    }
-                    elseif ($assignment->organization->type == OrganizationType::REGION)
-                    {
-                        $organization->region = $assignment->organization;
-                    }
+                    $organization->assignment = $assignment->organization;
                 }
             }
         }

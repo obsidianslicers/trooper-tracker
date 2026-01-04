@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\Troopers\AuthoritySubmitController;
 use App\Http\Controllers\Admin\Troopers\DenialSubmitHtmxController;
 use App\Http\Controllers\Admin\Troopers\ListController;
 use App\Http\Controllers\Admin\Troopers\MembershipController;
+use App\Http\Controllers\Admin\Troopers\MembershipSubmitController;
 use App\Http\Controllers\Admin\Troopers\ProfileController;
 use App\Http\Controllers\Admin\Troopers\ProfileSubmitController;
 use Illuminate\Support\Facades\Route;
@@ -30,4 +31,5 @@ Route::prefix('admin/troopers')
         Route::get('/{trooper}/authority', AuthorityController::class)->name('authority');
         Route::post('/{trooper}/authority', AuthoritySubmitController::class);
         Route::get('/{trooper}/membership', MembershipController::class)->name('membership');
+        Route::post('/{trooper}/membership', MembershipSubmitController::class);
     });
