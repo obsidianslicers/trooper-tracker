@@ -87,15 +87,7 @@ class MembershipController extends Controller
             {
                 if (str_starts_with($assignment->organization->node_path, $organization->node_path))
                 {
-                    if ($assignment->organization->type == OrganizationType::UNIT)
-                    {
-                        $organization->unit = $assignment->organization;
-                        $organization->region = $organization->unit->parent;
-                    }
-                    elseif ($assignment->organization->type == OrganizationType::REGION)
-                    {
-                        $organization->region = $assignment->organization;
-                    }
+                    $organization->assignment = $assignment->organization;
                 }
             }
         }

@@ -78,115 +78,7 @@ class MembershipRequestTest extends TestCase
         $subject->authorize();
     }
 
-    public function test_validation_passes_with_valid_region_id(): void
-    {
-        // Arrange
-        $region = Organization::factory()->region()->create();
-        $organization = $region->parent;
-
-        $administrator = Trooper::factory()->asAdministrator()->create();
-        $target_trooper = Trooper::factory()->create();
-
-        $subject = MembershipRequest::create(
-            route('admin.troopers.membership', $target_trooper),
-            'POST',
-            [
-                'organizations' => [
-                    $organization->id => [
-                        'region_id' => $region->id,
-                    ],
-                ],
-            ]
-        );
-        $subject->setUserResolver(fn() => $administrator);
-        $subject->setRouteResolver(function () use ($target_trooper)
-        {
-            $route = new \Illuminate\Routing\Route('POST', 'troopers/{trooper}/membership', []);
-            $route->bind($this->app['request']);
-            $route->setParameter('trooper', $target_trooper);
-            return $route;
-        });
-
-        // Act
-        $validator = Validator::make($subject->all(), $subject->rules());
-
-        // Assert
-        $this->assertFalse($validator->fails());
-    }
-
-    public function test_validation_passes_with_null_region_id(): void
-    {
-        // Arrange
-        $organization = Organization::factory()->create();
-
-        $administrator = Trooper::factory()->asAdministrator()->create();
-        $target_trooper = Trooper::factory()->create();
-
-        $subject = MembershipRequest::create(
-            route('admin.troopers.membership', $target_trooper),
-            'POST',
-            [
-                'organizations' => [
-                    $organization->id => [
-                        'region_id' => null,
-                    ],
-                ],
-            ]
-        );
-        $subject->setUserResolver(fn() => $administrator);
-        $subject->setRouteResolver(function () use ($target_trooper)
-        {
-            $route = new \Illuminate\Routing\Route('POST', 'troopers/{trooper}/membership', []);
-            $route->bind($this->app['request']);
-            $route->setParameter('trooper', $target_trooper);
-            return $route;
-        });
-
-        // Act
-        $validator = Validator::make($subject->all(), $subject->rules());
-
-        // Assert
-        $this->assertFalse($validator->fails());
-    }
-
-    public function test_validation_fails_with_invalid_region_id(): void
-    {
-        // Arrange
-        $organization = Organization::factory()->create();
-        $region_from_other_org = Organization::factory()->region()->create();
-
-        $administrator = Trooper::factory()->asAdministrator()->create();
-        $target_trooper = Trooper::factory()->create();
-
-        $subject = MembershipRequest::create(
-            route('admin.troopers.membership', $target_trooper),
-            'POST',
-            [
-                'organizations' => [
-                    $organization->id => [
-                        'region_id' => $region_from_other_org->id,
-                    ],
-                ],
-            ]
-        );
-        $subject->setUserResolver(fn() => $administrator);
-        $subject->setRouteResolver(function () use ($target_trooper)
-        {
-            $route = new \Illuminate\Routing\Route('POST', 'troopers/{trooper}/membership', []);
-            $route->bind($this->app['request']);
-            $route->setParameter('trooper', $target_trooper);
-            return $route;
-        });
-
-        // Act
-        $validator = Validator::make($subject->all(), $subject->rules());
-
-        // Assert
-        $this->assertTrue($validator->fails());
-        $this->assertTrue($validator->errors()->has("organizations.{$organization->id}.region_id"));
-    }
-
-    public function test_validation_requires_unit_when_region_with_units_is_selected(): void
+    public function test_validation_passes_with_valid_leaf_node_assignment(): void
     {
         // Arrange
         $unit = Organization::factory()->unit()->create();
@@ -202,47 +94,7 @@ class MembershipRequestTest extends TestCase
             [
                 'organizations' => [
                     $organization->id => [
-                        'region_id' => $region->id,
-                        // unit_id is missing
-                    ],
-                ],
-            ]
-        );
-        $subject->setUserResolver(fn() => $administrator);
-        $subject->setRouteResolver(function () use ($target_trooper)
-        {
-            $route = new \Illuminate\Routing\Route('POST', 'troopers/{trooper}/membership', []);
-            $route->bind($this->app['request']);
-            $route->setParameter('trooper', $target_trooper);
-            return $route;
-        });
-
-        // Act
-        $validator = Validator::make($subject->all(), $subject->rules());
-
-        // Assert
-        $this->assertTrue($validator->fails());
-        $this->assertTrue($validator->errors()->has("organizations.{$organization->id}.unit_id"));
-    }
-
-    public function test_validation_passes_with_valid_unit_id(): void
-    {
-        // Arrange
-        $unit = Organization::factory()->unit()->create();
-        $region = $unit->parent;
-        $organization = $region->parent;
-
-        $administrator = Trooper::factory()->asAdministrator()->create();
-        $target_trooper = Trooper::factory()->create();
-
-        $subject = MembershipRequest::create(
-            route('admin.troopers.membership', $target_trooper),
-            'POST',
-            [
-                'organizations' => [
-                    $organization->id => [
-                        'region_id' => $region->id,
-                        'unit_id' => $unit->id,
+                        'assignment' => $unit->id,
                     ],
                 ],
             ]
@@ -263,12 +115,10 @@ class MembershipRequestTest extends TestCase
         $this->assertFalse($validator->fails());
     }
 
-    public function test_validation_fails_with_invalid_unit_id(): void
+    public function test_validation_passes_with_null_assignment(): void
     {
         // Arrange
-        $region = Organization::factory()->region()->create();
-        $organization = $region->parent;
-        $unit_from_other_region = Organization::factory()->unit()->create();
+        $organization = Organization::factory()->create();
 
         $administrator = Trooper::factory()->asAdministrator()->create();
         $target_trooper = Trooper::factory()->create();
@@ -279,8 +129,44 @@ class MembershipRequestTest extends TestCase
             [
                 'organizations' => [
                     $organization->id => [
-                        'region_id' => $region->id,
-                        'unit_id' => $unit_from_other_region->id,
+                        'assignment' => null,
+                    ],
+                ],
+            ]
+        );
+        $subject->setUserResolver(fn() => $administrator);
+        $subject->setRouteResolver(function () use ($target_trooper)
+        {
+            $route = new \Illuminate\Routing\Route('POST', 'troopers/{trooper}/membership', []);
+            $route->bind($this->app['request']);
+            $route->setParameter('trooper', $target_trooper);
+            return $route;
+        });
+
+        // Act
+        $validator = Validator::make($subject->all(), $subject->rules());
+
+        // Assert
+        $this->assertFalse($validator->fails());
+    }
+
+    public function test_validation_fails_when_assignment_has_children(): void
+    {
+        // Arrange
+        $unit = Organization::factory()->unit()->create();
+        $region = $unit->parent;
+        $organization = $region->parent;
+
+        $administrator = Trooper::factory()->asAdministrator()->create();
+        $target_trooper = Trooper::factory()->create();
+
+        $subject = MembershipRequest::create(
+            route('admin.troopers.membership', $target_trooper),
+            'POST',
+            [
+                'organizations' => [
+                    $organization->id => [
+                        'assignment' => $region->id, // Region has children (units)
                     ],
                 ],
             ]
@@ -299,6 +185,119 @@ class MembershipRequestTest extends TestCase
 
         // Assert
         $this->assertTrue($validator->fails());
-        $this->assertTrue($validator->errors()->has("organizations.{$organization->id}.unit_id"));
+        $this->assertTrue($validator->errors()->has("organizations.{$organization->id}.assignment"));
+    }
+
+    public function test_validation_fails_when_assignment_not_descendant(): void
+    {
+        // Arrange
+        $organization = Organization::factory()->create();
+        $unrelated_unit = Organization::factory()->unit()->create();
+
+        $administrator = Trooper::factory()->asAdministrator()->create();
+        $target_trooper = Trooper::factory()->create();
+
+        $subject = MembershipRequest::create(
+            route('admin.troopers.membership', $target_trooper),
+            'POST',
+            [
+                'organizations' => [
+                    $organization->id => [
+                        'assignment' => $unrelated_unit->id, // Not a descendant of organization
+                    ],
+                ],
+            ]
+        );
+        $subject->setUserResolver(fn() => $administrator);
+        $subject->setRouteResolver(function () use ($target_trooper)
+        {
+            $route = new \Illuminate\Routing\Route('POST', 'troopers/{trooper}/membership', []);
+            $route->bind($this->app['request']);
+            $route->setParameter('trooper', $target_trooper);
+            return $route;
+        });
+
+        // Act
+        $validator = Validator::make($subject->all(), $subject->rules());
+
+        // Assert
+        $this->assertTrue($validator->fails());
+        $this->assertTrue($validator->errors()->has("organizations.{$organization->id}.assignment"));
+    }
+
+    public function test_validation_requires_assignment_when_identifier_provided(): void
+    {
+        // Arrange
+        $organization = Organization::factory()->create(['identifier_validation' => 'integer|between:1000,99999']);
+
+        $administrator = Trooper::factory()->asAdministrator()->create();
+        $target_trooper = Trooper::factory()->create();
+
+        $subject = MembershipRequest::create(
+            route('admin.troopers.membership', $target_trooper),
+            'POST',
+            [
+                'organizations' => [
+                    $organization->id => [
+                        'identifier' => '12345',
+                        // assignment is missing
+                    ],
+                ],
+            ]
+        );
+        $subject->setUserResolver(fn() => $administrator);
+        $subject->setRouteResolver(function () use ($target_trooper)
+        {
+            $route = new \Illuminate\Routing\Route('POST', 'troopers/{trooper}/membership', []);
+            $route->bind($this->app['request']);
+            $route->setParameter('trooper', $target_trooper);
+            return $route;
+        });
+
+        // Act
+        $validator = Validator::make($subject->all(), $subject->rules());
+
+        // Assert
+        $this->assertTrue($validator->fails());
+        $this->assertTrue($validator->errors()->has("organizations.{$organization->id}.assignment"));
+    }
+
+    public function test_validation_passes_with_valid_identifier_and_assignment(): void
+    {
+        // Arrange
+        $unit = Organization::factory()->unit()->create();
+        $region = $unit->parent;
+        $organization = $region->parent;
+        $organization->update(['identifier_validation' => 'integer|between:1000,99999']);
+
+        $administrator = Trooper::factory()->asAdministrator()->create();
+        $target_trooper = Trooper::factory()->create();
+
+        $subject = MembershipRequest::create(
+            route('admin.troopers.membership', $target_trooper),
+            'POST',
+            [
+                'organizations' => [
+                    $organization->id => [
+                        'identifier' => '12345',
+                        'assignment' => $unit->id,
+                    ],
+                ],
+            ]
+        );
+        $subject->setUserResolver(fn() => $administrator);
+        $subject->setRouteResolver(function () use ($target_trooper)
+        {
+            $route = new \Illuminate\Routing\Route('POST', 'troopers/{trooper}/membership', []);
+            $route->bind($this->app['request']);
+            $route->setParameter('trooper', $target_trooper);
+            return $route;
+        });
+
+        // Act
+        $validator = Validator::make($subject->all(), $subject->rules());
+
+        // Assert
+        $this->assertFalse($validator->fails());
     }
 }

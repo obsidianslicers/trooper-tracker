@@ -7,6 +7,8 @@ namespace App\Http\Requests\Admin\Troopers;
 use App\Enums\MembershipRole;
 use App\Models\Organization;
 use App\Models\Trooper;
+use App\Rules\Admin\Troopers\OrganizationLeafNodeRule;
+use App\Rules\Auth\UniqueOrganizationIdentifierRule;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Http\FormRequest;
@@ -15,14 +17,15 @@ use Illuminate\Validation\Rule;
 /**
  * Handles the validation for updating a trooper's organization memberships.
  *
- * This class defines validation rules for managing a trooper's organization memberships,
- * including their selected organizations, regions, and units. The validation ensures:
- * - Region IDs are optional but must exist and belong to the parent organization
- * - Unit IDs are required when their parent region is selected and must exist within that region
+ * This class defines validation rules for managing a trooper's organization memberships
+ * using a popup picker to select specific organizations. The validation ensures:
+ * - Organization IDs are required when an identifier is provided
+ * - Selected organizations must exist and be leaf nodes (no children)
+ * - Identifiers follow organization-specific validation rules when provided
  *
  * Only administrators can modify trooper membership settings.
  *
- * @property \Illuminate\Database\Eloquent\Collection|null $organizationsCache Cached organizations for rule generation
+ * @property \Illuminate\Database\Eloquent\Collection|null $organizationsCache Cached organizations for validation
  */
 class MembershipRequest extends FormRequest
 {
@@ -52,8 +55,8 @@ class MembershipRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * Generates dynamic validation rules for organization memberships based on the
-     * organizational hierarchy (organizations → regions → units).
+     * Generates dynamic validation rules for organization memberships.
+     * Organizations are selected via popup picker and must be leaf nodes.
      *
      * @return array<string, mixed> The validation rules for organization memberships.
      */
@@ -67,51 +70,45 @@ class MembershipRequest extends FormRequest
     /**
      * Generate dynamic validation rules for organization memberships.
      *
-     * Fetches active organizations and constructs conditional rules for each:
-     * - Region IDs are optional but must exist and belong to the selected organization
-     * - Unit IDs are required when a region with units is selected
-     * - Unit IDs must exist and belong to the selected region
+     * Validates that selected organizations:
+     * - Are required when an identifier is provided
+     * - Exist in the database
+     * - Are leaf nodes (have no child organizations)
+     * - Have valid identifiers according to organization-specific rules
      *
-     * @return array<string, mixed> Validation rules for the organizational hierarchy.
+     * @return array<string, mixed> Validation rules for organization memberships.
      */
     private function getOrganizationValidationRules(): array
     {
-        $rules = [];
+        $trooper = $this->route('trooper');
 
+        $rules = [
+            'organizations' => ['array'],
+        ];
+
+        // Add identifier and assignment validation for each organization
         $organizations = $this->getOrganizations();
 
         foreach ($organizations as $organization)
         {
-            $regions = $organization->organizations;
-            $region_ids = $regions->pluck('id')->toArray();
-
-            // Always validate region_id if provided, even if organization has no regions
-            $rules["organizations.{$organization->id}.region_id"] = [
-                'nullable',
-                Rule::exists(Organization::class, Organization::ID)
-                    ->whereIn('id', $region_ids)
-            ];
-
-            // Collect all units from all regions for this organization
-            $all_unit_ids = [];
-            $regions_requiring_units = [];
-
-            foreach ($regions as $region)
+            // Validate identifier if organization requires it
+            if (!empty($organization->identifier_validation))
             {
-                $units = $region->organizations;
-                if ($units->count() > 0)
-                {
-                    $all_unit_ids = array_merge($all_unit_ids, $units->pluck('id')->toArray());
-                    $regions_requiring_units[] = $region->id;
-                }
+                $base_rules = explode('|', $organization->identifier_validation);
+
+                $rules["organizations.{$organization->id}.identifier"] = array_merge(
+                    ['nullable'],
+                    $base_rules,
+                    [new UniqueOrganizationIdentifierRule($organization, $trooper)]
+                );
             }
 
-            // Always validate unit_id to ensure it belongs to a valid unit within this organization
-            $rules["organizations.{$organization->id}.unit_id"] = [
-                Rule::requiredIf(fn() => in_array($this->input("organizations.{$organization->id}.region_id"), $regions_requiring_units)),
+            // Validate assignment - required when identifier is provided, must be a leaf node and descendant
+            $rules["organizations.{$organization->id}.assignment"] = [
+                Rule::requiredIf(fn() => !empty($this->input("organizations.{$organization->id}.identifier"))),
                 'nullable',
-                Rule::exists(Organization::class, Organization::ID)
-                    ->whereIn('id', $all_unit_ids)
+                Rule::exists(Organization::class, Organization::ID),
+                new OrganizationLeafNodeRule($organization),
             ];
         }
 
@@ -119,19 +116,18 @@ class MembershipRequest extends FormRequest
     }
 
     /**
-     * Retrieve and cache active organizations with their full hierarchy.
+     * Retrieve and cache all organizations for validation.
      *
-     * This method fetches all active organizations with their nested relationships
-     * (regions and units) and caches them in an instance variable to avoid multiple
+     * Fetches all active organizations and caches them to avoid multiple
      * database queries during validation rule generation.
      *
-     * @return \Illuminate\Database\Eloquent\Collection The collection of active organizations with hierarchy.
+     * @return \Illuminate\Database\Eloquent\Collection The collection of active organizations.
      */
     private function getOrganizations(): Collection
     {
         if (!isset($this->organizationsCache))
         {
-            $this->organizationsCache = Organization::fullyLoaded()->get();
+            $this->organizationsCache = Organization::ofTypeOrganizations()->get();
         }
         return $this->organizationsCache;
     }

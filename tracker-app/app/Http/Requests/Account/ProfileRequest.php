@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Requests\Account;
 
 use App\Enums\TrooperTheme;
-use App\Http\Requests\HtmxFormRequest;
 use App\Models\Trooper;
+use Illuminate\Foundation\Http\FormRequest;
 
 /**
  * Handles the validation for the user profile update form.
@@ -15,7 +15,7 @@ use App\Models\Trooper;
  * including name, email, phone, and theme preferences. The phone number is sanitized
  * during validation preparation to ensure consistent formatting.
  */
-class ProfileRequest extends HtmxFormRequest
+class ProfileRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -39,7 +39,6 @@ class ProfileRequest extends HtmxFormRequest
             Trooper::EMAIL => ['required', 'string', 'email', 'max:256'],
             Trooper::PHONE => ['nullable', 'string', 'max:16'],
             Trooper::THEME => ['required', 'string', 'max:16', 'in:' . TrooperTheme::toValidator()],
-
         ];
 
         return $rules;

@@ -6,11 +6,12 @@ namespace App\Http\Controllers\Admin\Troopers;
 
 use App\Enums\OrganizationType;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\Troopers\MembershipRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
-use App\Services\BreadCrumbService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 
@@ -23,35 +24,32 @@ use Illuminate\Support\Collection;
 class MembershipSubmitController extends Controller
 {
     /**
-     * Create a new MembershipSubmitController instance and seed breadcrumb trail.
-     *
-     * @param BreadCrumbService $crumbs The breadcrumb service for managing navigation history.
-     */
-    public function __construct(private readonly BreadCrumbService $crumbs)
-    {
-        $this->crumbs->addRoute('Command Staff', 'admin.display');
-        $this->crumbs->addRoute('Troopers', 'admin.troopers.list');
-    }
-
-    /**
      * Handle the incoming request to display a trooper's authority page.
      *
      * This method authorizes the user, sets up breadcrumbs, and returns the view
      * for managing a specific trooper's roles and organizational assignments.
      *
-     * @param Request $request The incoming HTTP request.
+     * @param MembershipRequest $request The incoming HTTP request.
      * @param Trooper $trooper The trooper whose authorities are to be displayed.
-     * @return View The rendered authority page view.
+     * @return View|RedirectResponse The rendered authority page view or a redirect response.
      */
-    public function __invoke(Request $request, Trooper $trooper): View
+    public function __invoke(MembershipRequest $request, Trooper $trooper): View|RedirectResponse
     {
         $this->authorize('update', $trooper);
 
-        $organization_memberships = $this->getOrganizationMemberships($trooper);
+        if ($request->isHtmx())
+        {
+            // TODO update the view based on picks
+            $organization_memberships = $this->getOrganizationMemberships($trooper);
 
-        $data = compact('trooper', 'organization_memberships');
+            $data = compact('trooper', 'organization_memberships');
 
-        return view('pages.admin.troopers.membership', $data);
+            return view('pages.admin.troopers.membership', $data);
+        }
+
+        //  otherwise, save & redirect back to the main edit page
+
+        return redirect()->route('admin.troopers.membership', compact('trooper'));
     }
 
     /**

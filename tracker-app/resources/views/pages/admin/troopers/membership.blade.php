@@ -10,6 +10,8 @@
 
         <x-transmission-bar :id="'organizations'" />
 
+        <h4>TODO popup the organization / squad to assign them to</h4>
+
         <form method="POST"
                 novalidate="novalidate">
             @csrf
@@ -27,8 +29,7 @@
                     <tr>
                         <th>Organization</th>
                         <th>Identifier</th>
-                        <th>Region</th>
-                        <th>Unit</th>
+                        <th>Member Of</th>
                     </tr>
                 </thead>
                 @foreach ($organization_memberships as $organization)
@@ -38,9 +39,17 @@
                         </td>
                         <td>
                             <x-input-text :property="'organizations.' . $organization->id . '.identifier'"
-                                          :value="$organization->identifier ?? null"
-                                          class="form-control-sm" />
+                                          :value="$organization->identifier ?? null" />
                         </td>
+                        <td>
+                            <x-input-picker :property="'organizations.' . $organization->id . '.assignment'"
+                                            :route="'pickers.organization'"
+                                            :params="['organization_id' => $organization->id]"
+                                            :text="$organization->assignment->name ?? 'Member Of ...'"
+                                            :value="$organization->assignment->id ?? null" />
+                        </td>
+
+                        {{--
                         <td>
                             <x-input-select :property="'organizations.' . $organization->id . '.region_id'"
                                             :options="$organization->organizations->pluck('name', 'id')->toArray()"
@@ -66,6 +75,7 @@
                                             class="form-select-sm" />
                             @endif
                         </td>
+                            --}}
                     </tr>
                 @endforeach
             </x-table>
@@ -79,5 +89,7 @@
 
         </form>
     </x-card>
+
+    <x-modal-picker :label="'Select an Organization for Membership'" />
 
 @endsection
