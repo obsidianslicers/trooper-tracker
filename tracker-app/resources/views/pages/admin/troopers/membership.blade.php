@@ -24,6 +24,16 @@
                                 :disabled="true"
                                 :value="$trooper->name" />
             </x-input-container>
+
+            <x-input-container>
+                <x-label>
+                    Role:
+                </x-label>
+                <x-input-text :property="'trooper_role'"
+                                :disabled="true"
+                                :value="to_title($trooper->membership_role->name)" />
+            </x-input-container>
+
             <x-table>
                 <thead>
                     <tr>

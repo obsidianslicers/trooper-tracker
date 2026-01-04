@@ -1,4 +1,10 @@
 document.addEventListener('click', function (evt) {
+    function toBracketName(property) {
+        let bracketed = property.replace(/\.(\d+)/g, '[$1]');
+        bracketed = bracketed.replace(/\.(\w+)/g, '[$1]');
+        return bracketed;
+    }
+
     const record = evt.target.closest('.modal-picker [data-property][data-id][data-name]');
     if (!record) return;
 
@@ -13,10 +19,12 @@ document.addEventListener('click', function (evt) {
         const container = document.getElementById(`picker-container-${property}`);
         if (!container) return;
 
-        const hiddenInput = container.querySelector(`input[type="hidden"][name="${property}"]`);
+        const bracketed = toBracketName(property);
+
+        const hiddenInput = container.querySelector(`input[type="hidden"][name="${bracketed}"]`);
         if (hiddenInput) hiddenInput.value = id;
 
-        const textInput = container.querySelector(`input[type="text"][name="picker-${property}"]`);
+        const textInput = container.querySelector(`input[type="text"][name="picker-${bracketed}"]`);
         if (textInput) textInput.value = name;
     }
 
