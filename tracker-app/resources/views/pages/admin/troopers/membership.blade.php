@@ -10,8 +10,6 @@
 
         <x-transmission-bar :id="'organizations'" />
 
-        <h4>TODO popup the organization / squad to assign them to</h4>
-
         <form method="POST"
                 novalidate="novalidate">
             @csrf
