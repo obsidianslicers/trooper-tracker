@@ -154,6 +154,15 @@ class Trooper extends BaseTrooper implements
         return $has_assignment;
     }
 
+    /**
+     * Determine if the trooper is a moderator for the given organization.
+     *
+     * Administrators are always considered moderators for all organizations.
+     * Moderators must have a moderator assignment for the specific organization.
+     *
+     * @param Organization $organization The organization to check moderator status for
+     * @return bool True if trooper is a moderator for the organization
+     */
     public function isModeratorForOrganization(Organization $organization): bool
     {
         if ($this->is_administrator)

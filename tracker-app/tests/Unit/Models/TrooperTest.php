@@ -117,4 +117,61 @@ class TrooperTest extends TestCase
         $this->assertTrue($trooper_with_active->hasActiveOrganizationStatus());
         $this->assertFalse($trooper_with_inactive->hasActiveOrganizationStatus());
     }
+
+    public function test_is_moderator_for_organization_returns_true_for_administrator(): void
+    {
+        // Arrange
+        $admin_trooper = Trooper::factory()->create(['membership_role' => MembershipRole::ADMINISTRATOR]);
+        $organization = Organization::factory()->create();
+
+        // Act
+        $result = $admin_trooper->isModeratorForOrganization($organization);
+
+        // Assert
+        $this->assertTrue($result);
+    }
+
+    public function test_is_moderator_for_organization_returns_true_for_moderator_with_assignment(): void
+    {
+        // Arrange
+        $moderator = Trooper::factory()->create(['membership_role' => MembershipRole::MODERATOR]);
+        $organization = Organization::factory()->create();
+
+        $moderator->trooper_assignments()->create([
+            'organization_id' => $organization->id,
+            'is_moderator' => true,
+        ]);
+
+        // Act
+        $result = $moderator->isModeratorForOrganization($organization);
+
+        // Assert
+        $this->assertTrue($result);
+    }
+
+    public function test_is_moderator_for_organization_returns_false_for_moderator_without_assignment(): void
+    {
+        // Arrange
+        $moderator = Trooper::factory()->create(['membership_role' => MembershipRole::MODERATOR]);
+        $organization = Organization::factory()->create();
+
+        // Act
+        $result = $moderator->isModeratorForOrganization($organization);
+
+        // Assert
+        $this->assertFalse($result);
+    }
+
+    public function test_is_moderator_for_organization_returns_false_for_non_moderator(): void
+    {
+        // Arrange
+        $member = Trooper::factory()->create(['membership_role' => MembershipRole::MEMBER]);
+        $organization = Organization::factory()->create();
+
+        // Act
+        $result = $member->isModeratorForOrganization($organization);
+
+        // Assert
+        $this->assertFalse($result);
+    }
 }
