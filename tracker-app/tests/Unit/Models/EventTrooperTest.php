@@ -14,6 +14,63 @@ class EventTrooperTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_attended_attribute_returns_true_when_status_is_attended(): void
+    {
+        // Arrange
+        $event_trooper = EventTrooper::factory()->make(['status' => EventTrooperStatus::ATTENDED]);
+
+        // Act & Assert
+        $this->assertTrue($event_trooper->attended);
+    }
+
+    public function test_attended_attribute_returns_false_when_status_is_not_attended(): void
+    {
+        // Arrange
+        $event_trooper = EventTrooper::factory()->make(['status' => EventTrooperStatus::GOING]);
+
+        // Act & Assert
+        $this->assertFalse($event_trooper->attended);
+    }
+
+    public function test_is_going_attribute_returns_true_when_status_is_going(): void
+    {
+        // Arrange
+        $event_trooper = EventTrooper::factory()->make(['status' => EventTrooperStatus::GOING]);
+
+        // Act & Assert
+        $this->assertTrue($event_trooper->is_going);
+    }
+
+    public function test_is_going_attribute_returns_false_when_status_is_not_going(): void
+    {
+        // Arrange
+        $event_trooper = EventTrooper::factory()->make(['status' => EventTrooperStatus::TENTATIVE]);
+
+        // Act & Assert
+        $this->assertFalse($event_trooper->is_going);
+    }
+
+    public function test_is_stand_by_attribute_returns_true_when_status_is_stand_by(): void
+    {
+        // Arrange
+        $event_trooper = EventTrooper::factory()->make(['status' => EventTrooperStatus::STAND_BY]);
+
+        // Act & Assert
+        $this->assertTrue($event_trooper->is_stand_by);
+    }
+
+    public function test_is_stand_by_attribute_returns_false_when_status_is_not_stand_by(): void
+    {
+        // Arrange
+        $event_trooper = EventTrooper::factory()->make(['status' => EventTrooperStatus::GOING]);
+
+        // Act & Assert
+        $this->assertFalse($event_trooper->is_stand_by);
+    }
+
+    // NOTE: time_display accessor test skipped - method accesses shift_starts_at/shift_ends_at
+    // which are EventShift properties, not EventTrooper properties. This accessor may be buggy.
+
     public function test_can_update_status_returns_true_when_shift_is_open_and_trooper_has_ownership_and_status_is_going(): void
     {
         // Arrange

@@ -34,9 +34,7 @@ trait HasEventScopes
             EventStatus::SIGN_UP_LOCKED,
         ];
 
-        return $query->whereIn(self::STATUS, $status_list)
-            ->where(self::EVENT_END, '<', now())
-            ->orderBy(self::EVENT_START);
+        return $query->whereIn(self::STATUS, $status_list);
     }
 
     /**

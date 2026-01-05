@@ -86,21 +86,14 @@ class EventTrooper extends BaseEventTrooper
     }
 
     /**
-     * Get a formatted time display string for the shift.
+     * Get available costume options for this event trooper assignment.
      *
-     * Format: "Sat - Oct 03, 2026 - 2:00pm - 4:00pm"
+     * Returns a list of organization costumes that the trooper can select for this
+     * event shift. The list is filtered based on organizations allowed to attend
+     * the event and costumes owned by or available to the trooper.
      *
-     * @return string
+     * @return array<string, mixed> Array of costume options formatted as ['name' => string, 'id' => int]
      */
-    public function getTimeDisplayAttribute(): string
-    {
-        //Sat - Oct 03, 2026 - 2:00pm - 4:00pm
-        return $this->shift_starts_at->format('D') . ' - ' .
-            $this->shift_starts_at->format('M d, Y') . ' - ' .
-            $this->shift_starts_at->format('g:ia') . ' - ' .
-            $this->shift_ends_at->format('g:ia');
-    }
-
     public function getCostumes(): array
     {
         $event_shift = $this->event_shift;

@@ -19,6 +19,14 @@ class EventUpload extends BaseEventUpload
     use HasFactory;
     use HasTrooperStamps;
 
+    /**
+     * Get the URL for the uploaded file.
+     *
+     * If the filename contains a slash, it's treated as a complete path.
+     * Otherwise, it's assumed to be in the 'images/uploads/' directory.
+     *
+     * @return string The full URL to the uploaded file
+     */
     public function getUrlAttribute(): string
     {
         // If it contains a slash, assume it's already a path

@@ -10,6 +10,7 @@ use App\Models\Casts\LowerCast;
 use App\Models\Concerns\HasFilter;
 use App\Models\Concerns\HasObserver;
 use App\Models\Scopes\HasTrooperScopes;
+use Google\Service\CloudBuild\RetryBuildRequest;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Auth\MustVerifyEmail;
 use Illuminate\Auth\Passwords\CanResetPassword;
@@ -151,5 +152,33 @@ class Trooper extends BaseTrooper implements
             ->exists();
 
         return $has_assignment;
+    }
+
+    /**
+     * Determine if the trooper is a moderator for the given organization.
+     *
+     * Administrators are always considered moderators for all organizations.
+     * Moderators must have a moderator assignment for the specific organization.
+     *
+     * @param Organization $organization The organization to check moderator status for
+     * @return bool True if trooper is a moderator for the organization
+     */
+    public function isModeratorForOrganization(Organization $organization): bool
+    {
+        if ($this->is_administrator)
+        {
+            return true;
+        }
+
+        if ($this->is_moderator)
+        {
+            return $this->trooper_assignments()
+                ->where(TrooperAssignment::TROOPER_ID, $this->id)
+                ->where(TrooperAssignment::ORGANIZATION_ID, $organization->id)
+                ->where(TrooperAssignment::IS_MODERATOR, true)
+                ->exists();
+        }
+
+        return false;
     }
 }

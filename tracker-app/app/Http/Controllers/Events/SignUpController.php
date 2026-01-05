@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\EventTrooper;
 use App\Models\Organization;
+use App\Models\Trooper;
 use App\Services\BreadCrumbService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -46,6 +47,8 @@ class SignUpController extends Controller
      */
     public function __invoke(Request $request, Event $event): View
     {
+        $trooper = $request->user();
+
         $with = [
             'organization',
             'organizations.organization',
@@ -75,7 +78,7 @@ class SignUpController extends Controller
             {
                 $event_trooper->event_shift = $event_shift;
 
-                if ($event_trooper->canUpdateCostume($event_shift, Auth::user()))
+                if ($event_trooper->canUpdateCostume($event_shift, $trooper))
                 {
                     //  performance optimization: load costumes only if the trooper can update
                     $event_trooper->costumes = $event_trooper->getCostumes();
@@ -83,7 +86,9 @@ class SignUpController extends Controller
             }
         }
 
-        $data = compact('event');
+        $can_moderate = $trooper->isModeratorForOrganization($event->organization);
+
+        $data = compact('event', 'can_moderate');
 
         return view('pages.events.signup', $data);
     }

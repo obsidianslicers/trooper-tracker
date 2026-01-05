@@ -156,6 +156,7 @@ class EventShift extends BaseEventShift
      */
     public function isGoing(Trooper $trooper): bool
     {
+        // we assume event_troopers relationship is loaded for the UI's sake
         return $this->event_troopers
             ->where(EventTrooper::TROOPER_ID, $trooper->id)
             ->where(EventTrooper::STATUS, EventTrooperStatus::GOING)
@@ -190,7 +191,6 @@ class EventShift extends BaseEventShift
      */
     public function canSignUpFriend(Trooper $trooper): bool
     {
-        //  TODO ADMIN / MODERATOR OVERRIDE
         if ($this->is_open)
         {
             if ($this->isGoing($trooper))
