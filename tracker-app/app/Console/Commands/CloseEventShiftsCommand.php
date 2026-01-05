@@ -38,7 +38,9 @@ class CloseEventShiftsCommand extends Command
      */
     public function handle(): void
     {
-        $event_shifts = EventShift::active()->get();
+        $event_shifts = EventShift::active()
+            ->where(EventShift::SHIFT_ENDS_AT, '<', now())
+            ->get();
 
         foreach ($event_shifts as $event_shift)
         {

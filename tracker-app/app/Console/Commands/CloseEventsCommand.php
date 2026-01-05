@@ -38,7 +38,9 @@ class CloseEventsCommand extends Command
      */
     public function handle(): void
     {
-        $events = Event::active()->get();
+        $events = Event::active()
+            ->where(Event::EVENT_END, '<', now())
+            ->get();
 
         foreach ($events as $event)
         {
