@@ -17,7 +17,7 @@
         malfunctioning droids.
     </p>
 
-    @include('emails.events.inc.details', ['event' => $event, 'event_shift' => $event_shift, 'link' => $link])
+    @include('emails.events.inc.details', compact('event', 'event_shift', 'link'))
 
     <p style="margin-top:20px; font-weight:bold; color:#333;">
         - Imperial Administration, {{ config('app.name') }}

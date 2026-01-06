@@ -30,7 +30,7 @@
     <div class="d-none"
          hx-post="{{ route('events.signup-htmx', compact('event_shift')) }}"
          hx-vals="js:{trooper_id: event.detail.id}"
-         hx-trigger="trooper:selected from:document"
+         hx-trigger="trooper:selected[event.detail.property == 'add-shift-trooper-{{ $event_shift->id }}'] from:document"
          hx-select="#shift-container-{{ $event_shift->id }}"
          hx-target="#shift-container-{{ $event_shift->id }}"
          hx-swap="outerHTML"

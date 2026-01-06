@@ -84,7 +84,9 @@ class SignUpHtmxController extends Controller
             }
         }
 
-        $data = compact('event', 'event_shift');
+        $can_moderate = $trooper->isModeratorForOrganization($event->organization);
+
+        $data = compact('event', 'event_shift', 'can_moderate');
 
         return view('pages.events.inc.shift-container', $data);
     }

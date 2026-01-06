@@ -17,6 +17,8 @@
         And trust us, you do not want Imperial auditors involved in your life.
     </p>
 
+    <br />
+
     <table width="100%"
            cellpadding="0"
            cellspacing="0">
