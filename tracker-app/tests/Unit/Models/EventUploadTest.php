@@ -13,7 +13,7 @@ class EventUploadTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_url_attribute_returns_filename_when_it_contains_slash(): void
+    public function test_small_url_attribute_returns_filename_when_it_contains_slash(): void
     {
         // Arrange
         $event_upload = EventUpload::factory()->make([
@@ -21,13 +21,13 @@ class EventUploadTest extends TestCase
         ]);
 
         // Act
-        $url = $event_upload->url;
+        $url = $event_upload->small_url;
 
         // Assert
         $this->assertSame('https://example.com/images/photo.jpg', $url);
     }
 
-    public function test_url_attribute_prepends_path_when_filename_has_no_slash(): void
+    public function test_small_url_attribute_prepends_path_when_filename_has_no_slash(): void
     {
         // Arrange
         $event_upload = EventUpload::factory()->make([
@@ -35,7 +35,7 @@ class EventUploadTest extends TestCase
         ]);
 
         // Act
-        $url = $event_upload->url;
+        $url = $event_upload->small_url;
 
         // Assert
         $this->assertStringEndsWith('images/uploads/photo.jpg', $url);

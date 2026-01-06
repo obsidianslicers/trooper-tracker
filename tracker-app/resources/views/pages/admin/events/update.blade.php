@@ -306,7 +306,7 @@
 
                 <x-submit-container>
                     <span class="float-start">
-                        <a href="{{ route('events.signup', compact('event')) }}"
+                        <a href="{{ route('events.display', compact('event')) }}"
                             class="btn btn-outline-info mb-2"
                             target="_blank">
                             View Event

@@ -27,7 +27,9 @@ class EventUploadSeeder extends Seeder
 
             $e->event_id = $upload->event_id;
             $e->trooper_id = $upload->trooperid;
-            $e->filename = $upload->filename;
+            $e->image_path_lg = $upload->filename;
+            $e->image_path_sm = $upload->filename;
+            $e->is_administrative = $upload->admin;
 
             $e->save();
         }

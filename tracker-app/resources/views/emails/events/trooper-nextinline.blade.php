@@ -12,7 +12,7 @@
     </p>
     <p>
         <b>IMPORTANT:</b> If you are unable to make the deployment, please upate your status on the
-        <a href="{{ route('events.signup', $event) }}#shift-{{ $event_shift->id }}">mission briefing page</a>
+        <a href="{{ route('events.display', $event) }}#shift-{{ $event_shift->id }}">mission briefing page</a>
         - Imperial logistics prefers timely adjustments over last-minute excuses involving
         malfunctioning droids.
     </p>

@@ -9,7 +9,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Events\SetupUpdateHtmxRequest;
 use App\Mail\Events\TrooperNextInLine;
 use App\Models\EventTrooper;
-use Illuminate\Contracts\View\View;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Mail;
 

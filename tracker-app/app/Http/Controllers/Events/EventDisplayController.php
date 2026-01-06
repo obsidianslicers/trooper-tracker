@@ -8,11 +8,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\EventTrooper;
 use App\Models\Organization;
-use App\Models\Trooper;
 use App\Services\BreadCrumbService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Displays the event sign-up page with all shifts and current trooper assignments.
@@ -22,7 +20,7 @@ use Illuminate\Support\Facades\Auth;
  * It loads the event with all related data including organizations, shifts,
  * and trooper assignments.
  */
-class SignUpController extends Controller
+class EventDisplayController extends Controller
 {
     /**
      * Create a new controller instance.
@@ -90,6 +88,6 @@ class SignUpController extends Controller
 
         $data = compact('event', 'can_moderate');
 
-        return view('pages.events.signup', $data);
+        return view('pages.events.event-display', $data);
     }
 }

@@ -24,11 +24,11 @@ class SignUpControllerTest extends TestCase
         ]);
 
         // Act
-        $response = $this->actingAs($trooper)->get(route('events.signup', ['event' => $event->id]));
+        $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
 
         // Assert
         $response->assertOk();
-        $response->assertViewIs('pages.events.signup');
+        $response->assertViewIs('pages.events.display');
         $response->assertViewHas('event');
     }
 
@@ -44,7 +44,7 @@ class SignUpControllerTest extends TestCase
         ]);
 
         // Act
-        $response = $this->actingAs($trooper)->get(route('events.signup', ['event' => $event->id]));
+        $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
 
         // Assert
         $response->assertOk();
@@ -61,7 +61,7 @@ class SignUpControllerTest extends TestCase
         ]);
 
         // Act
-        $response = $this->actingAs($trooper)->get(route('events.signup', ['event' => $event->id]));
+        $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
 
         // Assert
         $response->assertOk();
@@ -78,7 +78,7 @@ class SignUpControllerTest extends TestCase
         ]);
 
         // Act
-        $response = $this->actingAs($trooper)->get(route('events.signup', ['event' => $event->id]));
+        $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
 
         // Assert
         $response->assertOk();
@@ -93,7 +93,7 @@ class SignUpControllerTest extends TestCase
         ]);
 
         // Act
-        $response = $this->get(route('events.signup', ['event' => $event->id]));
+        $response = $this->get(route('events.display', ['event' => $event->id]));
 
         // Assert
         $response->assertRedirect(route('auth.login'));
@@ -105,7 +105,7 @@ class SignUpControllerTest extends TestCase
         $trooper = Trooper::factory()->asActive()->create();
 
         // Act
-        $response = $this->actingAs($trooper)->get(route('events.signup', ['event' => 99999]));
+        $response = $this->actingAs($trooper)->get(route('events.display', ['event' => 99999]));
 
         // Assert
         $response->assertNotFound();
@@ -120,7 +120,7 @@ class SignUpControllerTest extends TestCase
         ]);
 
         // Act
-        $response = $this->actingAs($trooper)->get(route('events.signup', ['event' => $event->id]));
+        $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));
 
         // Assert
         $response->assertOk();

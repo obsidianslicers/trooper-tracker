@@ -18,7 +18,6 @@ class EventUploadFactory extends Factory
         return [
             EventUpload::EVENT_ID => \App\Models\Event::factory(),
             EventUpload::TROOPER_ID => \App\Models\Trooper::factory(),
-            EventUpload::FILENAME => $this->faker->word(),
         ];
     }
 }

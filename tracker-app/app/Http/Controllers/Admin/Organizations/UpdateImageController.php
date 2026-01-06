@@ -71,7 +71,7 @@ class UpdateImageController extends Controller
 
         $organization->save();
 
-        $data = ['organization' => $organization];
+        $data = compact('organization');
 
         return view('pages.admin.organizations.image', $data);
     }

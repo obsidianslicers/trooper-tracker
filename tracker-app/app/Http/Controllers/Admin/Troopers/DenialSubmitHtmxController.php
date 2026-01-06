@@ -45,6 +45,7 @@ class DenialSubmitHtmxController extends Controller
         $message = json_encode([
             'message' => "Trooper {$trooper->name} denied",
             'type' => 'danger',
+            'focus' => true,
         ]);
 
         return response()

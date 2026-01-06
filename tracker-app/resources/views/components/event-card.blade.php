@@ -5,7 +5,7 @@
 <div class="col"
      data-event-name="{{ $event->name }}">
     <div class="card h-100"
-         data-route="{{ route('events.signup', compact('event')) }}">
+         data-route="{{ route('events.display', compact('event')) }}">
         <div class="card-header {{ $bg }} d-flex align-items-center">
             <span class="p-2">
                 <x-logo :storage_path="$event->organization->image_path_sm ?? ''"
@@ -39,7 +39,7 @@
                     </li>
                 @endif
                 @foreach($event->event_shifts as $shift)
-                    <a href="{{ route('events.signup', compact('event')) }}#shift-{{ $shift->id }}"
+                    <a href="{{ route('events.display', compact('event')) }}#shift-{{ $shift->id }}"
                        class="list-group-item d-flex justify-content-between align-items-center">
                         <span>
                             @if($shifts_count > 1)

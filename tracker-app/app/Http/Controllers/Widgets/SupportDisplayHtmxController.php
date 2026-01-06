@@ -25,7 +25,7 @@ class SupportDisplayHtmxController extends Controller
     {
         $donations = TrooperDonation::forMonth()->sum(TrooperDonation::AMOUNT);
 
-        $donate_goal = config('app.support.goal', 0);
+        $donate_goal = config('tracker.support.goal', 0);
 
         $progress = 0;
 

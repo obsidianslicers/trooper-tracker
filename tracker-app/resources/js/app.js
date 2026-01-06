@@ -33,4 +33,5 @@ import './custom/htmx-easymde.js';
 import './custom/htmx-flash.js';
 import './custom/htmx-pickers.js';
 import './custom/htmx-typeahead.js';
+import './custom/htmx-upload.js';
 

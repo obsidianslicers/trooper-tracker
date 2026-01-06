@@ -6,6 +6,7 @@ use App\Models\Base\EventUpload as BaseEventUpload;
 use App\Models\Concerns\HasTrooperStamps;
 use App\Models\Scopes\HasEventUploadScopes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Represents a photo or file upload associated with an event.
@@ -27,14 +28,14 @@ class EventUpload extends BaseEventUpload
      *
      * @return string The full URL to the uploaded file
      */
-    public function getUrlAttribute(): string
+    public function getSmallUrlAttribute(): string
     {
         // If it contains a slash, assume it's already a path
-        if (str_contains($this->filename, '/'))
+        if (str_contains($this->image_path_sm, '/'))
         {
-            return $this->filename;
+            return Storage::url($this->image_path_sm);
         }
 
-        return url('images/uploads/' . $this->filename);
+        return url('images/uploads/' . $this->image_path_sm);
     }
 }

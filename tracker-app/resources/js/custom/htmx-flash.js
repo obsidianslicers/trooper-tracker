@@ -41,7 +41,7 @@ document.body.addEventListener('htmx:afterSwap', function (event) {
             // Scroll into view if needed
             const rect = messagesContainer.getBoundingClientRect();
             const isOutOfView = rect.top < 0 || rect.bottom > window.innerHeight;
-            if (isOutOfView) {
+            if (isOutOfView && response.focus) {
                 messagesContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
 
