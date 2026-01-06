@@ -117,9 +117,15 @@
                     </div>
                 @endif
 
+                @if ($event->event_uploads->where('is_administrative', true)->isNotEmpty())
+                    <div class="mt-5">
+                        <x-section-title>Instructional Uploads</x-section-title>
+                        @include('pages.events.inc.upload-display', ['event' => $event, 'is_administrative' => true])
+                    </div>
+                @endif
 
                 <div class="mt-5">
-                    <x-section-title>Uploads</x-section-title>
+                    <x-section-title>Event Uploads</x-section-title>
                     @include('pages.events.inc.upload-display', ['event' => $event, 'is_administrative' => false])
                     <hr />
 

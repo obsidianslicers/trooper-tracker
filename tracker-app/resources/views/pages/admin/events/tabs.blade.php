@@ -8,7 +8,7 @@
     <x-tab :label="'Roster'"
            :target="route('admin.events.troopers', compact('event'))"
            :active="request()->routeIs('admin.events.troopers')" />
-    <x-tab :label="'Uploads'"
+    <x-tab :label="'Administrative Uploads'"
            :target="route('admin.events.uploads', compact('event'))"
            :active="request()->routeIs('admin.events.uploads')" />
 </x-tabs>
