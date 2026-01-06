@@ -17,7 +17,9 @@
                             :height="32" />
                 </td>
                 <td>
-                    {{ $shift->event->name }}
+                    <a href="{{ route('events.display', ['event' => $shift->event]) }}">
+                        {{ $shift->event->name }}
+                    </a>
                 </td>
                 <td class="text-center text-nowrap">
                     <x-date-format :value="$shift->shift_starts_at"

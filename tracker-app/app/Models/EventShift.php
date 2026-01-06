@@ -226,8 +226,10 @@ class EventShift extends BaseEventShift
      */
     public function createCalendarLink(): Link
     {
-        $from = $this->shift_starts_at->copy()->shiftTimezone('America/New_York');
-        $to = $this->shift_ends_at->copy()->shiftTimezone('America/New_York');
+        $timezone = config('tracker.calendar.timezone');
+
+        $from = $this->shift_starts_at->copy()->shiftTimezone($timezone);
+        $to = $this->shift_ends_at->copy()->shiftTimezone($timezone);
 
         $name = $this->event->name;
         $location = $this->event->venue_address;

@@ -1,5 +1,5 @@
+<x-section-title>Contact</x-section-title>
 @if($event->contact_name)
-    <x-section-title>Contact</x-section-title>
     <div class="mt-3 ps-3">
         <p class="mb-1">
             <i class="fa fa-fw fa-user me-2"></i>
@@ -16,6 +16,12 @@
                 <i class="fa fa-fw fa-envelope me-2"></i>
                 {{ $event->contact_email }}
             </a>
+        </p>
+    </div>
+@else
+    <div class="mt-3 ps-3">
+        <p class="mb-1 text-muted">
+            Unavailable
         </p>
     </div>
 @endif

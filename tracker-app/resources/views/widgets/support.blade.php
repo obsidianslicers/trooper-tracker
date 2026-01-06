@@ -18,7 +18,7 @@
     {!! $message !!}
 </p>
 
-<a href="{{ config('app.support.url') }}"
+<a href="{{ config('tracker.support.url') }}"
    target="_blank"
    class="btn btn-outline-success mb-2">
     ❤️ Support the Garrison

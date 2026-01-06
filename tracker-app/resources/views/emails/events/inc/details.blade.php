@@ -48,7 +48,7 @@
 </ul>
 <p>
     Your deployment details can be reviewed at any time on the
-    <a href="{{ route('events.signup', $event) }}#shift-{{ $event_shift->id }}">mission briefing page</a>.
+    <a href="{{ route('events.display', $event) }}#shift-{{ $event_shift->id }}">mission briefing page</a>.
     Study it carefully. The Emperor appreciates preparedness almost as much as he appreciates
     dramatic entrances.
 </p>

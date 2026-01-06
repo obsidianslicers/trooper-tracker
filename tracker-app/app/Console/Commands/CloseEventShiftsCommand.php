@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Enums\EventStatus;
+use App\Enums\EventTrooperStatus;
+use App\Mail\Events\EventShiftComplete;
 use App\Models\EventShift;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Mail;
 
 /**
  * Artisan command to calculate and store trooper achievements based on their event history.
@@ -38,7 +41,13 @@ class CloseEventShiftsCommand extends Command
      */
     public function handle(): void
     {
-        $event_shifts = EventShift::active()
+        $with = [
+            'event.organization',
+            'event_troopers.trooper',
+        ];
+
+        $event_shifts = EventShift::with($with)
+            ->active()
             ->where(EventShift::SHIFT_ENDS_AT, '<', now())
             ->get();
 
@@ -46,6 +55,15 @@ class CloseEventShiftsCommand extends Command
         {
             $event_shift->status = EventStatus::CLOSED;
             $event_shift->save();
+
+            //  EMAIL DAH TROOPERZ!
+            foreach ($event_shift->event_troopers as $event_trooper)
+            {
+                if ($event_trooper->is_going)
+                {
+                    Mail::to($event_trooper->trooper->email)->queue(new EventShiftComplete($event_trooper));
+                }
+            }
         }
     }
 }

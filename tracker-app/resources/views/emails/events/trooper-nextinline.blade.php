@@ -12,12 +12,12 @@
     </p>
     <p>
         <b>IMPORTANT:</b> If you are unable to make the deployment, please upate your status on the
-        <a href="{{ route('events.signup', $event) }}#shift-{{ $event_shift->id }}">mission briefing page</a>
+        <a href="{{ route('events.display', $event) }}#shift-{{ $event_shift->id }}">mission briefing page</a>
         - Imperial logistics prefers timely adjustments over last-minute excuses involving
         malfunctioning droids.
     </p>
 
-    @include('emails.events.inc.details', ['event' => $event, 'event_shift' => $event_shift, 'link' => $link])
+    @include('emails.events.inc.details', compact('event', 'event_shift', 'link'))
 
     <p style="margin-top:20px; font-weight:bold; color:#333;">
         - Imperial Administration, {{ config('app.name') }}

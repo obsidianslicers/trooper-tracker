@@ -123,7 +123,7 @@ class TheLegionService extends BaseOrganizationService
             if ($pivot->membership_status == MembershipStatus::ACTIVE)
             {
                 $pivot->verified_at = now();
-                $pivot->membership_status = MembershipStatus::NOT_FOUND;
+                $pivot->membership_status = MembershipStatus::NONE;
                 $pivot->save();
             }
         }

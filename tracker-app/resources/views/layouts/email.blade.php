@@ -180,6 +180,119 @@
             text-transform: capitalize;
         }
 
+        .btn-success {
+            text-decoration: none;
+            color: #FFF;
+            background-color: #68B90F;
+            /* matches alert-good */
+            border: solid #68B90F;
+            border-width: 10px 20px;
+            line-height: 2em;
+            font-weight: bold;
+            text-align: center;
+            cursor: pointer;
+            display: inline-block;
+            border-radius: 5px;
+            text-transform: capitalize;
+        }
+
+        .btn-warning {
+            text-decoration: none;
+            color: #FFF;
+            background-color: #FF9F00;
+            /* matches alert-warning */
+            border: solid #FF9F00;
+            border-width: 10px 20px;
+            line-height: 2em;
+            font-weight: bold;
+            text-align: center;
+            cursor: pointer;
+            display: inline-block;
+            border-radius: 5px;
+            text-transform: capitalize;
+        }
+
+        .btn-danger {
+            text-decoration: none;
+            color: #FFF;
+            background-color: #D0021B;
+            /* matches alert-bad */
+            border: solid #D0021B;
+            border-width: 10px 20px;
+            line-height: 2em;
+            font-weight: bold;
+            text-align: center;
+            cursor: pointer;
+            display: inline-block;
+            border-radius: 5px;
+            text-transform: capitalize;
+        }
+
+        .btn-outline-primary {
+            text-decoration: none;
+            color: #348eda;
+            /* matches your primary blue */
+            background-color: transparent;
+            border: 2px solid #348eda;
+            padding: 8px 18px;
+            line-height: 2em;
+            font-weight: bold;
+            text-align: center;
+            cursor: pointer;
+            display: inline-block;
+            border-radius: 5px;
+            text-transform: capitalize;
+        }
+
+        .btn-outline-success {
+            text-decoration: none;
+            color: #68B90F;
+            /* matches alert-good */
+            background-color: transparent;
+            border: 2px solid #68B90F;
+            padding: 8px 18px;
+            /* visually similar to your filled buttons */
+            line-height: 2em;
+            font-weight: bold;
+            text-align: center;
+            cursor: pointer;
+            display: inline-block;
+            border-radius: 5px;
+            text-transform: capitalize;
+        }
+
+        .btn-outline-warning {
+            text-decoration: none;
+            color: #FF9F00;
+            /* matches alert-warning */
+            background-color: transparent;
+            border: 2px solid #FF9F00;
+            padding: 8px 18px;
+            line-height: 2em;
+            font-weight: bold;
+            text-align: center;
+            cursor: pointer;
+            display: inline-block;
+            border-radius: 5px;
+            text-transform: capitalize;
+        }
+
+        .btn-outline-danger {
+            text-decoration: none;
+            color: #D0021B;
+            /* matches alert-bad */
+            background-color: transparent;
+            border: 2px solid #D0021B;
+            padding: 8px 18px;
+            line-height: 2em;
+            font-weight: bold;
+            text-align: center;
+            cursor: pointer;
+            display: inline-block;
+            border-radius: 5px;
+            text-transform: capitalize;
+        }
+
         /* -------------------------------------
        OTHER STYLES THAT MIGHT BE USEFUL
        ------------------------------------- */

@@ -47,7 +47,20 @@ enum EventTrooperStatus: string
      * Trooper was confirmed but did not show up.
      */
     case NO_SHOW = 'noshow';
+    /**
+     * Trooper was unable to attend.
+     */
+    case UNABLE_TO_ATTEND = 'unabletoattend';
 
+    /**
+     * Get an array of available sign-up statuses.
+     *
+     * Returns the statuses that a trooper can select when signing up for an event.
+     * If tentative sign-ups are allowed, includes the TENTATIVE option.
+     *
+     * @param bool $tentative_signups_allowed Whether tentative status is available
+     * @return array<string, string> Array with status values as keys and formatted names as values
+     */
     public static function toSignUpArray(bool $tentative_signups_allowed): array
     {
         $options = [
@@ -65,7 +78,9 @@ enum EventTrooperStatus: string
     }
 
     /**
-     * Return the Font Awesome icon class for this status.
+     * Get the Font Awesome icon class for this status.
+     *
+     * @return string The Font Awesome icon class (e.g., 'fa-circle-play')
      */
     public function icon(): string
     {
@@ -84,7 +99,9 @@ enum EventTrooperStatus: string
     }
 
     /**
-     * Return the Font Awesome icon class for this status.
+     * Get the Bootstrap text color class for this status.
+     *
+     * @return string The Bootstrap color class (e.g., 'text-success', 'text-danger')
      */
     public function color(): string
     {
@@ -103,7 +120,12 @@ enum EventTrooperStatus: string
     }
 
     /**
-     * Optionally return a ready-to-use <i> tag.
+     * Get a ready-to-use HTML icon tag with appropriate color styling.
+     *
+     * Combines the Font Awesome icon class and Bootstrap color class into
+     * a formatted <i> tag that can be inserted directly into templates.
+     *
+     * @return string HTML <i> tag with icon and color classes
      */
     public function iconTag(): string
     {

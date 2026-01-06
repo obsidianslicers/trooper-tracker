@@ -7,7 +7,7 @@
 
     {{--
     <pre>
-    TODO: share to FB by use, add-to calendars, subscribe updates, etc.
+    TODO: share to FB by use, subscribe updates, etc.
     $pageUrl = urlencode('https://your-website.com/your-page'); // URL of the page to share
     $facebookShareUrl = 'https://www.facebook.com/sharer/sharer.php?u=' . $pageUrl;
   </pre>
@@ -117,13 +117,40 @@
                     </div>
                 @endif
 
-
-                @if($event->event_uploads->isNotEmpty())
+                @if ($event->event_uploads->where('is_administrative', true)->isNotEmpty())
                     <div class="mt-5">
-                        <x-section-title>Uploads</x-section-title>
-                        @include('pages.events.inc.uploads', compact('event'))
+                        <x-section-title>Instructional Uploads</x-section-title>
+                        @include('pages.events.inc.upload-display', ['event' => $event, 'is_administrative' => true])
                     </div>
                 @endif
+
+                <div class="mt-5">
+                    <x-section-title>Event Uploads</x-section-title>
+                    @include('pages.events.inc.upload-display', ['event' => $event, 'is_administrative' => false])
+                    <hr />
+
+                    <x-transmission-bar :id="'upload-images'" />
+
+                    <div class="upload-zone border border-secondary rounded p-5 text-center bg-light"
+                         hx-post="{{ route('events.upload-image', compact('event')) }}"
+                         hx-trigger="submit"
+                         hx-select="#event-uploads"
+                         hx-target="#event-uploads"
+                         hx-swap="outerHTML"
+                         hx-include="input[type=file]"
+                         hx-encoding="multipart/form-data"
+                         hx-indicator="#transmission-bar-upload-images">
+                        <input type="file"
+                               name="images[]"
+                               class="image-input d-none"
+                               multiple
+                               accept="image/*" />
+                        <div id="upload-label"
+                             class="text-muted">
+                            Drag & drop images here, or click to upload
+                        </div>
+                    </div>
+                </div>
 
             </div>
         </div>

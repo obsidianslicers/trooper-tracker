@@ -22,13 +22,15 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $id
  * @property int $event_id
  * @property int $trooper_id
- * @property string $filename
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property string|null $deleted_at
  * @property int|null $created_id
  * @property int|null $updated_id
  * @property int|null $deleted_id
+ * @property bool|null $is_administrative
+ * @property string|null $image_path_lg
+ * @property string|null $image_path_sm
  * 
  * @property Event $event
  * @property Trooper $trooper
@@ -42,13 +44,15 @@ class EventUpload extends Model
     const ID = 'id';
     const EVENT_ID = 'event_id';
     const TROOPER_ID = 'trooper_id';
-    const FILENAME = 'filename';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
     const DELETED_AT = 'deleted_at';
     const CREATED_ID = 'created_id';
     const UPDATED_ID = 'updated_id';
     const DELETED_ID = 'deleted_id';
+    const IS_ADMINISTRATIVE = 'is_administrative';
+    const IMAGE_PATH_LG = 'image_path_lg';
+    const IMAGE_PATH_SM = 'image_path_sm';
     protected $table = 'tt_event_uploads';
 
     protected $casts = [
@@ -59,13 +63,16 @@ class EventUpload extends Model
         self::UPDATED_AT => 'datetime',
         self::CREATED_ID => 'int',
         self::UPDATED_ID => 'int',
-        self::DELETED_ID => 'int'
+        self::DELETED_ID => 'int',
+        self::IS_ADMINISTRATIVE => 'bool'
     ];
 
     protected $fillable = [
         self::EVENT_ID,
         self::TROOPER_ID,
-        self::FILENAME
+        self::IS_ADMINISTRATIVE,
+        self::IMAGE_PATH_LG,
+        self::IMAGE_PATH_SM
     ];
 
     public function event(): BelongsTo

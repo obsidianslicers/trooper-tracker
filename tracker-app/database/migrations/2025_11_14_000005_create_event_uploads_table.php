@@ -23,7 +23,9 @@ return new class extends Migration
                 ->constrained('tt_troopers')
                 ->cascadeOnDelete();
 
-            $table->string('filename', 128);
+            $table->string('image_path_lg', 128);
+            $table->string('image_path_sm', 128);
+            $table->boolean('is_administrative')->default(false);
 
             $table->timestamps();
             $table->softDeletes();
