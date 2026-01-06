@@ -1,6 +1,8 @@
 <div class="row mb-3 trooper-status-{{ $event_trooper->status->value }}">
     <div class="col-7 col-md-4 order-1 order-md-1">
-        {{ $event_trooper->trooper->name }}
+        <a href="{{ route('dashboard.display', ['trooper_id' => $event_trooper->trooper->id]) }}">
+            {{ $event_trooper->trooper->name }}
+        </a>
         @if($event_trooper->added_by_trooper_id > 0)
             <br />
             <i class="small text-muted">
@@ -33,21 +35,19 @@
     </div>
     <div class="col-5 col-md-3 order-2 order-md-3 text-end">
         <div class="ps-3 ps-md-0">
-            @if($event_shift->is_open)
-                @if($event_trooper->canUpdateStatus($event_shift, Auth::user()))
-                    <x-input-select :property="'status'"
-                                    :options="\App\Enums\EventTrooperStatus::toSignUpArray($event->tentative_signups_allowed)"
-                                    :value="$event_trooper->status->value"
-                                    hx-post="{{ route('events.signup-update-htmx', compact('event_trooper')) }}"
-                                    hx-indicator="#transmission-bar-shift-{{ $event_trooper->event_shift->id }}"
-                                    hx-swap="none"
-                                    class="form-select-sm" />
-                @else
-                    <span class="{{ $event_trooper->status->color() }}">
-                        {{ to_title($event_trooper->status->name) }}
-                        {!! $event_trooper->status->iconTag() !!}
-                    </span>
-                @endif
+            @if($event_shift->is_open && $event_trooper->canUpdateStatus($event_shift, Auth::user()))
+                <x-input-select :property="'status'"
+                                :options="\App\Enums\EventTrooperStatus::toSignUpArray($event->tentative_signups_allowed)"
+                                :value="$event_trooper->status->value"
+                                hx-post="{{ route('events.signup-update-htmx', compact('event_trooper')) }}"
+                                hx-indicator="#transmission-bar-shift-{{ $event_trooper->event_shift->id }}"
+                                hx-swap="none"
+                                class="form-select-sm" />
+            @else
+                <span class="{{ $event_trooper->status->color() }}">
+                    {{ to_title($event_trooper->status->name) }}
+                    {!! $event_trooper->status->iconTag() !!}
+                </span>
             @endif
         </div>
     </div>
