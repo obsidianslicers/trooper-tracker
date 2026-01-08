@@ -2,6 +2,24 @@
 
 @section('page-title', 'Event Sign-Up')
 
+@section('page-meta')
+    <meta property="og:title"
+          content="{{ $event->name }}" />
+    <meta property="og:description"
+          content="Event happening on {{ $event->time_display }}. View details on the Troop Tracker." />
+    <meta property="og:image"
+          content="{{ $event->image_url }}" />
+    <meta property="og:url"
+          content="{{ route('events.display', compact('event')) }}" />
+    <meta property="og:type"
+          content="event" />
+    <meta property="article:published_time"
+          content="{{ $event->created_at->toIso8601String() }}" />
+    <meta property="article:modified_time"
+          content="{{ $event->updated_at->toIso8601String() }}" />
+
+@endsection
+
 @section('content')
 <x-slim-container>
 

@@ -51,6 +51,8 @@ class CostumesSubmitHtmxController extends Controller
             }
         }
 
+        $trooper->trooper_costumes->load('organization_costume.organization');
+
         $data = [
             'organizations' => collect(),
             'selected_organization' => null,

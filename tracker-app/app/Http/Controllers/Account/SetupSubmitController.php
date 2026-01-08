@@ -10,6 +10,7 @@ use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use App\Services\FlashMessageService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Handles form submission for trooper organization membership setup.
@@ -59,6 +60,7 @@ class SetupSubmitController extends Controller
     private function updateTrooper(SetupRequest $request, Trooper $trooper): void
     {
         $trooper->email = $request->validated('email');
+        $trooper->notification_frequency = $request->validated('notification_frequency');
         $trooper->setup_completed_at = now();
 
         $trooper->save();
@@ -78,40 +80,31 @@ class SetupSubmitController extends Controller
     private function updateMemberships(SetupRequest $request, Trooper $trooper): void
     {
         // Loop through selected organizations 
-        $data = $request->input('organizations', []);
+        $data = $request->validated('organizations', []);
 
-        foreach ($data as $organization_id => $organization_data)
+        foreach ($data as $organization_id => $data)
         {
-            if (!empty($organization_data['selected']))
+            $assignment_id = $data['assignment'];
+
+            if ($assignment_id == null)
             {
-                $organization_assignment_id = $organization_id;
-                $region_id = $organization_data['region_id'] ?? null;
-                $unit_id = $organization_data['unit_id'] ?? null;
-
-                if ($unit_id != null)
-                {
-                    $organization_assignment_id = $unit_id;
-                }
-                elseif ($region_id != null)
-                {
-                    $organization_assignment_id = $region_id;
-                }
-
-                //  Find assignment by unit if unit is selected
-                $trooper_assignment = $trooper->trooper_assignments
-                    ->filter(fn($t) => $t->organization_id == $organization_assignment_id)
-                    ->first();
-
-                if ($trooper_assignment === null)
-                {
-                    $trooper_assignment = new TrooperAssignment();
-                    $trooper_assignment->trooper_id = $trooper->id;
-                    $trooper_assignment->organization_id = $organization_assignment_id;
-                }
-
-                $trooper_assignment->is_member = true;
-                $trooper_assignment->save();
+                continue;
             }
+
+            //  Find assignment by unit if unit is selected
+            $trooper_assignment = $trooper->trooper_assignments
+                ->filter(fn($t) => $t->organization_id == $assignment_id)
+                ->first();
+
+            if ($trooper_assignment === null)
+            {
+                $trooper_assignment = new TrooperAssignment();
+                $trooper_assignment->trooper_id = $trooper->id;
+                $trooper_assignment->organization_id = $assignment_id;
+            }
+
+            $trooper_assignment->is_member = true;
+            $trooper_assignment->save();
         }
     }
 }

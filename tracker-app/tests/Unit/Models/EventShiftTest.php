@@ -105,7 +105,7 @@ class EventShiftTest extends TestCase
         $short_time_display = $event_shift->short_time_display;
 
         // Assert
-        $this->assertSame('10/03 - 2:00 pm - 4:00pm', $short_time_display);
+        $this->assertSame('10/03 - 2:00pm - 4:00pm', $short_time_display);
     }
 
     public function test_is_going_returns_true_when_trooper_is_going(): void

@@ -4,13 +4,13 @@ namespace App\Models;
 
 use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
+use App\Enums\NotificationFrequency;
 use App\Enums\TrooperTheme;
 use App\Models\Base\Trooper as BaseTrooper;
 use App\Models\Casts\LowerCast;
 use App\Models\Concerns\HasFilter;
 use App\Models\Concerns\HasObserver;
 use App\Models\Scopes\HasTrooperScopes;
-use Google\Service\CloudBuild\RetryBuildRequest;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Auth\MustVerifyEmail;
 use Illuminate\Auth\Passwords\CanResetPassword;
@@ -50,6 +50,7 @@ class Trooper extends BaseTrooper implements
     protected function casts()
     {
         return array_merge($this->casts, [
+            self::NOTIFICATION_FREQUENCY => NotificationFrequency::class,
             self::MEMBERSHIP_STATUS => MembershipStatus::class,
             self::MEMBERSHIP_ROLE => MembershipRole::class,
             self::EMAIL => LowerCast::class,
@@ -177,6 +178,23 @@ class Trooper extends BaseTrooper implements
                 ->where(TrooperAssignment::ORGANIZATION_ID, $organization->id)
                 ->where(TrooperAssignment::IS_MODERATOR, true)
                 ->exists();
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if the trooper has a valid email address.
+     *
+     * Validates that the email attribute is set and passes PHP's email validation filter.
+     *
+     * @return bool True if the trooper has a valid email address, false otherwise.
+     */
+    public function emailAppearsValid(): bool
+    {
+        if ($this->email && filter_var($this->email, FILTER_VALIDATE_EMAIL))
+        {
+            return true;
         }
 
         return false;

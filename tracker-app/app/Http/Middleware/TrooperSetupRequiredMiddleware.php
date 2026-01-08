@@ -23,7 +23,7 @@ class TrooperSetupRequiredMiddleware
 
             if ($user->setup_completed_at === null)
             {
-                if ($request->routeIs('account.setup', 'account.setup-submit'))
+                if ($request->routeIs('account.setup', 'account.setup-submit', 'auth.logout', 'pickers.*'))
                 {
                     return $next($request);
                 }

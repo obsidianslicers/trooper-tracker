@@ -28,7 +28,7 @@ class TrooperNextInLine extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Event Sign-Up Status Update - GOING'
+            subject: 'Troop Tracker - Event Sign-Up Status Update - GOING'
         );
     }
 

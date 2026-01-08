@@ -56,34 +56,6 @@
                                             :text="$organization->assignment->name ?? 'Member Of ...'"
                                             :value="$organization->assignment->id ?? null" />
                         </td>
-
-                        {{--
-                        <td>
-                            <x-input-select :property="'organizations.' . $organization->id . '.region_id'"
-                                            :options="$organization->organizations->pluck('name', 'id')->toArray()"
-                                            :placeholder="'-- Select your Region/Garrison --'"
-                                            :value="$organization->region->id ?? null"
-                                            class="form-select-sm"
-                                            hx-post="{{ route('auth.register-htmx', ['organization'=>$organization->id]) }}"
-                                            hx-select="#unit-container-{{ $organization->id }}"
-                                            hx-target="#unit-container-{{ $organization->id }}"
-                                            hx-swap="outerHTML"
-                                            hx-trigger="change"
-                                            hx-include="closest div"
-                                            hx-indicator="#transmission-bar-organizations" />
-                        </td>
-                        <td id="unit-container-{{ $organization->id }}">
-                            @if($organization->region === null)
-                            -
-                            @elseif($organization->region->organizations->count() > 0)
-                            <x-input-select :property="'organizations.' . $organization->id . '.unit_id'"
-                                            :options="$organization->region->organizations->pluck('name', 'id')->toArray()"
-                                            :placeholder="'-- Select your Unit/Squad --'"
-                                            :value="$organization->unit->id ?? null"
-                                            class="form-select-sm" />
-                            @endif
-                        </td>
-                            --}}
                     </tr>
                 @endforeach
             </x-table>

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Models\Scopes;
 
-use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;

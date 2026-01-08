@@ -26,8 +26,8 @@ class OrganizationCostume extends BaseOrganizationCostume
      * Get the full name of the costume, including the organization if available.
      *
      * This accessor returns the costume name. If the 'organization' relationship
-     * is loaded, it prepends the organization's name in parentheses.
-     * e.g., "(501st Legion) Stormtrooper" or "Stormtrooper".
+     * is loaded, it prepends the organization's name followed by a dash.
+     * e.g., "501st Legion - Stormtrooper" or "Stormtrooper".
      *
      * @return string The full name of the costume.
      */
@@ -35,7 +35,7 @@ class OrganizationCostume extends BaseOrganizationCostume
     {
         if ($this->relationLoaded('organization') && $this->organization)
         {
-            return "({$this->organization->name}) {$this->name}";
+            return "{$this->organization->name} - {$this->name}";
         }
 
         return $this->name;

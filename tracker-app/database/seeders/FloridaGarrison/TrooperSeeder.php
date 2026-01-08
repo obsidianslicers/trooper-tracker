@@ -6,6 +6,7 @@ namespace Database\Seeders\FloridaGarrison;
 
 use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
+use App\Enums\NotificationFrequency;
 use App\Models\Trooper;
 use App\Models\TrooperAchievement;
 use Illuminate\Database\Seeder;
@@ -26,16 +27,24 @@ class TrooperSeeder extends Seeder
 
             $t->name = $trooper->name;
             $t->phone = $trooper->phone;
-            $t->username = $trooper->forum_id;
             $t->email = $trooper->email ?? '^' . uniqid();
             $t->password = $trooper->password ?? '^' . uniqid();
 
             $t->last_active_at = $trooper->last_active;
             $t->created_at = $trooper->datecreated;
 
-            $t->instant_notification = $trooper->efast;
-            $t->attendance_notification = $trooper->econfirm;
-            $t->command_staff_notification = $trooper->ecommandnotify;
+            // $t->instant_notification = $trooper->efast;
+            // $t->attendance_notification = $trooper->econfirm;
+            // $t->command_staff_notification = $trooper->ecommandnotify;
+
+            if ($trooper->efast)
+            {
+                $t->notification_frequency = NotificationFrequency::INSTANT;
+            }
+            else
+            {
+                $t->notification_frequency = NotificationFrequency::DAILY;
+            }
 
             if ($trooper->approved)
             {

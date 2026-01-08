@@ -38,4 +38,23 @@ class EventUpload extends BaseEventUpload
 
         return url('images/uploads/' . $this->image_path_sm);
     }
+
+    /**
+     * Get the URL for the uploaded file.
+     *
+     * If the filename contains a slash, it's treated as a complete path.
+     * Otherwise, it's assumed to be in the 'images/uploads/' directory.
+     *
+     * @return string The full URL to the uploaded file
+     */
+    public function getLargeUrlAttribute(): string
+    {
+        // If it contains a slash, assume it's already a path
+        if (str_contains($this->image_path_lg, '/'))
+        {
+            return Storage::url($this->image_path_lg);
+        }
+
+        return url('images/uploads/' . $this->image_path_lg);
+    }
 }

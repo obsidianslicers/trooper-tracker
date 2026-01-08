@@ -70,9 +70,7 @@ class NotificationsListController extends Controller
 
         $data = [
             'organizations' => $organizations,
-            'instant_notification' => $trooper->instant_notification,
-            'attendance_notification' => $trooper->attendance_notification,
-            'command_staff_notification' => $trooper->command_staff_notification,
+            'notification_frequency' => $trooper->notification_frequency,
         ];
 
         return $data;

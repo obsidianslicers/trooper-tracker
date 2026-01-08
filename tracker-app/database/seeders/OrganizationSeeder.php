@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Seeders;
 
 use App\Enums\OrganizationType;
+use App\Models\Observers\OrganizationObserver;
 use App\Models\Organization;
 use App\Services\Organizations\DarkEmpireServices;
 use App\Services\Organizations\DroidBuildersService;
@@ -23,6 +24,16 @@ class OrganizationSeeder extends Seeder
         $this->loadUnits();
 
         Organization::resequenceAll();
+
+        //  model events are blocked during seeding, so we
+        //  need to manually trigger the observer to set any
+        //  derived fields
+        $observer = new OrganizationObserver();
+        $organizations = Organization::all();
+        foreach ($organizations as $organization)
+        {
+            $observer->saved($organization);
+        }
     }
 
     private function loadOrganizations()

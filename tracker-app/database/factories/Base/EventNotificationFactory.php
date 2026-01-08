@@ -4,9 +4,9 @@ namespace Database\Factories\Base;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
-use App\Models\Setting;
+use App\Models\EventNotification;
 
-class SettingFactory extends Factory
+class EventNotificationFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -16,7 +16,8 @@ class SettingFactory extends Factory
     public function definition(): array
     {
         return [
-            Setting::VALUE => $this->faker->word(),
+            EventNotification::EVENT_ID => \App\Models\Event::factory(),
+            EventNotification::TROOPER_ID => \App\Models\Trooper::factory(),
         ];
     }
 }

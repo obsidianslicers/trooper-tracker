@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Widgets;
 
 use App\Http\Controllers\Controller;
-use App\Models\Setting;
 use App\Models\TrooperDonation;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -60,7 +59,7 @@ class SupportDisplayHtmxController extends Controller
             1 => "The $name is mobilizing resources to sustain operations, reinforce mission " .
                 "logistics, and hold the line with our digital infrastructure. Your support helps keep our systems sharp, our " .
                 "deployments smooth, and our settings mission-ready.",
-            2 => "Settings don't march alone. Every credit fuels the $name's operations, " .
+            2 => "Troopers don't march alone. Every credit fuels the $name's operations, " .
                 "mission logistics, and the digital command center that powers our website and events. Stand with the Legion - help " .
                 "us stay battle-ready.",
             3 => "From clone barracks to command consoles, the $name runs on community support. " .

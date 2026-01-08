@@ -22,9 +22,7 @@ class TrooperFactory extends Factory
             Trooper::THEME => $this->faker->word(),
             Trooper::MEMBERSHIP_STATUS => $this->faker->word(),
             Trooper::MEMBERSHIP_ROLE => $this->faker->word(),
-            Trooper::INSTANT_NOTIFICATION => $this->faker->randomNumber(1),
-            Trooper::ATTENDANCE_NOTIFICATION => $this->faker->randomNumber(1),
-            Trooper::COMMAND_STAFF_NOTIFICATION => $this->faker->randomNumber(1),
+            Trooper::NOTIFICATION_FREQUENCY => $this->faker->word(),
         ];
     }
 }

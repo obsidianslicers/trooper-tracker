@@ -7,7 +7,6 @@ use App\Enums\EventTrooperStatus;
 use App\Models\Base\EventShift as BaseEventShift;
 use App\Models\Concerns\HasTrooperStamps;
 use App\Models\Scopes\HasEventShiftScopes;
-use DateTime;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Spatie\CalendarLinks\Link;
 
@@ -95,7 +94,7 @@ class EventShift extends BaseEventShift
     public function getShortTimeDisplayAttribute(): string
     {
         //10/03 - 2:00pm - 4:00pm
-        return $this->shift_starts_at->format('m/d - g:i a') . ' - ' .
+        return $this->shift_starts_at->format('m/d - g:ia') . ' - ' .
             $this->shift_ends_at->format('g:ia');
     }
 
