@@ -2,9 +2,10 @@
 
 namespace App\Http\Requests\Account;
 
+use App\Enums\NotificationFrequency;
 use App\Models\Organization;
 use App\Models\Trooper;
-use App\Rules\Auth\AtLeastOneOrganizationSelectedRule;
+use App\Rules\Admin\Troopers\OrganizationLeafNodeRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
@@ -51,10 +52,16 @@ class SetupRequest extends FormRequest
             'email' => [
                 'required',
                 'string',
-                'email',
+                'email:rfc,dns',
                 'max:256',
                 Rule::unique(Trooper::class, Trooper::EMAIL)
                     ->ignore($this->user()->id, Trooper::ID),
+            ],
+            'notification_frequency' => [
+                'required',
+                'string',
+                'max:16',
+                'in:' . NotificationFrequency::toValidator()
             ],
         ];
 
@@ -64,93 +71,35 @@ class SetupRequest extends FormRequest
     }
 
     /**
-     * Generate dynamic rules for organization selection, regions, and units.
+     * Generate dynamic validation rules for organization memberships.
      *
-     * Fetches active organizations and constructs conditional rules for each:
-     * - At least one organization must be selected.
-     * - When an organization is selected, its region becomes required.
-     * - When a region with units is selected, the unit becomes required.
+     * Validates that selected organizations:
+     * - Exist in the database
+     * - Are leaf nodes (have no child organizations)
+     * - Have valid identifiers according to organization-specific rules
      *
-     * Custom rule objects validate that selected regions and units belong to the correct parent.
-     *
-     * @return array<string, mixed> Validation rules for organizations and their hierarchy.
+     * @return array<string, mixed> Validation rules for organization memberships.
      */
     private function getOrganizationValidationRules(): array
     {
         $rules = [
-            'organizations' => ['array', new AtLeastOneOrganizationSelectedRule()],
-            'organizations.*.selected' => ['nullable', 'boolean'],
+            'organizations' => ['array'],
         ];
 
+        // Add identifier and assignment validation for each organization
         $organizations = $this->getOrganizations();
 
         foreach ($organizations as $organization)
         {
-            $regions = $organization->organizations;
-
-            if ($regions->count() > 0)
-            {
-                // Require region when organization is selected
-                $rules["organizations.{$organization->id}.region_id"] = [
-                    Rule::requiredIf(fn() => $this->input("organizations.{$organization->id}.selected") == 1 ?? false),
-                    Rule::exists(Organization::class, Organization::ID)
-                        ->whereIn('id', $regions->pluck('id'))
-                ];
-
-                // For each region, check if it has units and require unit_id accordingly
-                foreach ($regions as $region)
-                {
-                    $units = $region->organizations;
-
-                    if ($units->count() > 0)
-                    {
-                        // Require unit when this specific region is selected
-                        $rules["organizations.{$organization->id}.unit_id"] = [
-                            Rule::requiredIf(fn() => $this->input("organizations.{$organization->id}.region_id") == $region->id),
-                            Rule::exists(Organization::class, Organization::ID)
-                                ->whereIn('id', $units->pluck('id'))
-                        ];
-                    }
-                }
-            }
+            // Validate assignment - required when identifier is provided, must be a leaf node and descendant
+            $rules["organizations.{$organization->id}.assignment"] = [
+                'nullable',
+                Rule::exists(Organization::class, Organization::ID),
+                new OrganizationLeafNodeRule($organization),
+            ];
         }
 
         return $rules;
-    }
-
-    /**
-     * Attach custom error messages for organization hierarchy validation rules.
-     *
-     * Maps dynamically generated rule keys to user-friendly messages indicating which
-     * organization, region, or unit requires selection.
-     *
-     * @param \Illuminate\Validation\Validator $validator The validator instance.
-     * @return void
-     */
-    public function withValidator($validator): void
-    {
-        $active_organizations = $this->getOrganizations();
-
-        $messages = [];
-
-        foreach ($active_organizations as $organization)
-        {
-            foreach ($organization->organizations as $region)
-            {
-                $region_key = "organizations.{$organization->id}.region_id";
-
-                $messages["{$region_key}"] = "Please select a region for {$organization->name}.";
-
-                foreach ($region->organizations as $unit)
-                {
-                    $unit_key = "organizations.{$organization->id}.unit_id";
-
-                    $messages["{$unit_key}"] = "Please select a unit for {$organization->name}-{$region->name}.";
-                }
-            }
-        }
-
-        $validator->setCustomMessages($messages);
     }
 
     /**

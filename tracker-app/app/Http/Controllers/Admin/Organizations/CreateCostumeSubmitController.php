@@ -1,0 +1,54 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers\Admin\Organizations;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\Organizations\CreateCostumeRequest;
+use App\Models\Organization;
+use App\Models\OrganizationCostume;
+use App\Services\FlashMessageService;
+use Illuminate\Http\RedirectResponse;
+
+/**
+ * Class CreateCostumeSubmitController
+ *
+ * Handles the submission of the form for creating a new costume under a parent organization.
+ * @package App\Http\Controllers\Admin\Organizations
+ */
+class CreateCostumeSubmitController extends Controller
+{
+    /**
+     * CreateCostumeSubmitController constructor.
+     *
+     * @param FlashMessageService $flash The service for displaying flash messages.
+     */
+    public function __construct(private readonly FlashMessageService $flash)
+    {
+    }
+
+    /**
+     * Handle the incoming request to create a new costume.
+     *
+     * Validates the request, creates a new costume under the given parent organization,
+     * determines its type, saves it, and then redirects with a success message.
+     *
+     * @param CreateCostumeRequest $request The validated request containing the new costume's data.
+     * @param Organization $organization The parent organization.
+     * @return RedirectResponse A redirect response to the organization list.
+     */
+    public function __invoke(CreateCostumeRequest $request, Organization $organization): RedirectResponse
+    {
+        $organization_costume = new OrganizationCostume();
+
+        $organization_costume->organization_id = $organization->id;
+        $organization_costume->name = $request->validated('name');
+
+        $organization_costume->save();
+
+        $this->flash->created($organization_costume);
+
+        return redirect()->route('admin.organizations.costumes', compact('organization'));
+    }
+}

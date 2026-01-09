@@ -3,11 +3,9 @@
 namespace App\Http\Requests\Events;
 
 use App\Enums\EventTrooperStatus;
-use App\Http\Requests\HtmxFormRequest;
 use App\Http\Requests\HtmxValidation;
 use App\Models\EventTrooper;
 use App\Models\OrganizationCostume;
-use App\Models\Trooper;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -82,6 +80,11 @@ class SetupUpdateHtmxRequest extends FormRequest
                 'in:' . EventTrooperStatus::toValidator()
             ],
             EventTrooper::COSTUME_ID => [
+                'nullable',
+                'int',
+                Rule::in($valid_costume_ids),
+            ],
+            EventTrooper::BACKUP_COSTUME_ID => [
                 'nullable',
                 'int',
                 Rule::in($valid_costume_ids),

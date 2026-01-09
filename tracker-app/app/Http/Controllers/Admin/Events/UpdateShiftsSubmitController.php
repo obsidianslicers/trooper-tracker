@@ -11,7 +11,6 @@ use App\Models\EventShift;
 use App\Services\FlashMessageService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 
 /**
  * Processes shift update form submissions.

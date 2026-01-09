@@ -5,13 +5,6 @@
 @section('content')
 <x-slim-container>
 
-    {{--
-    <pre>
-    TODO: share to FB by use, subscribe updates, etc.
-    $pageUrl = urlencode('https://your-website.com/your-page'); // URL of the page to share
-    $facebookShareUrl = 'https://www.facebook.com/sharer/sharer.php?u=' . $pageUrl;
-  </pre>
-    --}}
     @php($bg = $event->at_risk ? 'bg-danger' : 'bg-primary')
     @php($bg = $event->is_locked ? 'bg-secondary' : $bg)
     <div class="container my-4">
@@ -50,18 +43,21 @@
                         </div>
                     </div>
                     <div class="col-4 text-end">
-                        @can('update', $event)
-                            <div class="btn-group mb-3">
-                                <a href="{{ route('admin.events.update', compact('event')) }}"
-                                   class="btn btn-sm btn-outline-primary">
-                                    <i class="fa fa-fw fa-edit mx-2"></i>
-                                </a>
-                                <a href="{{ route('admin.events.copy', compact('event')) }}"
-                                   class="btn btn-sm btn-outline-primary">
-                                    <i class="fa fa-fw fa-copy mx-2"></i>
-                                </a>
-                            </div>
-                        @endcan
+                        <div class="d-flex justify-content-end align-items-center gap-2">
+                            {!! Share::page(route('share-event', compact('event')), $event->name)->facebook()->twitter() !!}
+                            @can('update', $event)
+                                <div class="btn-group">
+                                    <a href="{{ route('admin.events.update', compact('event')) }}"
+                                       class="btn btn-outline-danger">
+                                        <i class="fa fa-fw fa-edit text-danger"></i>
+                                    </a>
+                                    <a href="{{ route('admin.events.copy', compact('event')) }}"
+                                       class="btn btn-outline-danger">
+                                        <i class="fa fa-fw fa-copy text-danger"></i>
+                                    </a>
+                                </div>
+                            @endcan
+                        </div>
                     </div>
                 </div>
 

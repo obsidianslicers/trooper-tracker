@@ -6,6 +6,7 @@
 
 namespace App\Models\Base;
 
+use App\Models\EventNotification;
 use App\Models\EventOrganization;
 use App\Models\EventShift;
 use App\Models\EventUpload;
@@ -26,10 +27,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $name
  * @property string $type
  * @property string $status
+ * @property Carbon|null $create_notifications_sent_at
+ * @property Carbon|null $cancel_notifications_sent_at
  * @property float|null $latitude
  * @property float|null $longitude
  * @property int|null $troopers_allowed
  * @property int|null $handlers_allowed
+ * @property int|null $friends_allowed
+ * @property bool $tentative_signups_allowed
  * @property int $charity_direct_funds
  * @property int $charity_indirect_funds
  * @property string|null $charity_name
@@ -64,10 +69,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $created_id
  * @property int|null $updated_id
  * @property int|null $deleted_id
- * @property int|null $friends_allowed
- * @property int|null $tentative_signups_allowed
  * 
  * @property Organization $organization
+ * @property Collection|EventNotification[] $event_notifications
  * @property Collection|Organization[] $organizations
  * @property Collection|EventShift[] $event_shifts
  * @property Collection|EventUpload[] $event_uploads
@@ -82,10 +86,14 @@ class Event extends Model
     const NAME = 'name';
     const TYPE = 'type';
     const STATUS = 'status';
+    const CREATE_NOTIFICATIONS_SENT_AT = 'create_notifications_sent_at';
+    const CANCEL_NOTIFICATIONS_SENT_AT = 'cancel_notifications_sent_at';
     const LATITUDE = 'latitude';
     const LONGITUDE = 'longitude';
     const TROOPERS_ALLOWED = 'troopers_allowed';
     const HANDLERS_ALLOWED = 'handlers_allowed';
+    const FRIENDS_ALLOWED = 'friends_allowed';
+    const TENTATIVE_SIGNUPS_ALLOWED = 'tentative_signups_allowed';
     const CHARITY_DIRECT_FUNDS = 'charity_direct_funds';
     const CHARITY_INDIRECT_FUNDS = 'charity_indirect_funds';
     const CHARITY_NAME = 'charity_name';
@@ -120,17 +128,19 @@ class Event extends Model
     const CREATED_ID = 'created_id';
     const UPDATED_ID = 'updated_id';
     const DELETED_ID = 'deleted_id';
-    const FRIENDS_ALLOWED = 'friends_allowed';
-    const TENTATIVE_SIGNUPS_ALLOWED = 'tentative_signups_allowed';
     protected $table = 'tt_events';
 
     protected $casts = [
         self::ID => 'int',
         self::ORGANIZATION_ID => 'int',
+        self::CREATE_NOTIFICATIONS_SENT_AT => 'datetime',
+        self::CANCEL_NOTIFICATIONS_SENT_AT => 'datetime',
         self::LATITUDE => 'float',
         self::LONGITUDE => 'float',
         self::TROOPERS_ALLOWED => 'int',
         self::HANDLERS_ALLOWED => 'int',
+        self::FRIENDS_ALLOWED => 'int',
+        self::TENTATIVE_SIGNUPS_ALLOWED => 'bool',
         self::CHARITY_DIRECT_FUNDS => 'int',
         self::CHARITY_INDIRECT_FUNDS => 'int',
         self::CHARITY_HOURS => 'int',
@@ -147,9 +157,7 @@ class Event extends Model
         self::UPDATED_AT => 'datetime',
         self::CREATED_ID => 'int',
         self::UPDATED_ID => 'int',
-        self::DELETED_ID => 'int',
-        self::FRIENDS_ALLOWED => 'int',
-        self::TENTATIVE_SIGNUPS_ALLOWED => 'int'
+        self::DELETED_ID => 'int'
     ];
 
     protected $fillable = [
@@ -157,10 +165,14 @@ class Event extends Model
         self::NAME,
         self::TYPE,
         self::STATUS,
+        self::CREATE_NOTIFICATIONS_SENT_AT,
+        self::CANCEL_NOTIFICATIONS_SENT_AT,
         self::LATITUDE,
         self::LONGITUDE,
         self::TROOPERS_ALLOWED,
         self::HANDLERS_ALLOWED,
+        self::FRIENDS_ALLOWED,
+        self::TENTATIVE_SIGNUPS_ALLOWED,
         self::CHARITY_DIRECT_FUNDS,
         self::CHARITY_INDIRECT_FUNDS,
         self::CHARITY_NAME,
@@ -188,14 +200,17 @@ class Event extends Model
         self::AMENITIES,
         self::REFERRED_BY,
         self::SOURCE,
-        self::COMMENTS,
-        self::FRIENDS_ALLOWED,
-        self::TENTATIVE_SIGNUPS_ALLOWED
+        self::COMMENTS
     ];
 
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
+    }
+
+    public function event_notifications(): HasMany
+    {
+        return $this->hasMany(EventNotification::class);
     }
 
     public function organizations(): BelongsToMany

@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
+use App\Enums\EventStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Events\UpdateRequest;
+use App\Jobs\SendEventCreatedNotificationsJob;
+use App\Jobs\SendEventCancelledNotificationsJob;
 use App\Models\Event;
 use App\Models\EventOrganization;
-use App\Models\Organization;
 use App\Services\FlashMessageService;
 use Illuminate\Http\RedirectResponse;
 
@@ -53,6 +55,9 @@ class UpdateSubmitController extends Controller
 
     private function updateEvent(UpdateRequest $request, Event $event): void
     {
+        $current_status = $event->status;
+        $updated_status = EventStatus::from($request->validated('status'));
+
         $event->name = $request->validated('name');
         $event->status = $request->validated('status');
         $event->troopers_allowed = $request->validated('troopers_allowed');
@@ -98,6 +103,21 @@ class UpdateSubmitController extends Controller
         $event->referred_by = $request->validated('referred_by');
 
         $event->save();
+
+        if ($current_status != $updated_status)
+        {
+            if ($current_status == EventStatus::DRAFT)
+            {
+                if ($updated_status == EventStatus::OPEN || $updated_status == EventStatus::SIGN_UP_LOCKED)
+                {
+                    dispatch(new SendEventCreatedNotificationsJob($event));
+                }
+            }
+            elseif ($updated_status == EventStatus::CANCELLED)
+            {
+                dispatch(new SendEventCancelledNotificationsJob($event));
+            }
+        }
     }
 
     private function updateOrganizations(UpdateRequest $request, Event $event): void

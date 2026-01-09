@@ -21,15 +21,32 @@
                             hx-indicator="#transmission-bar-shift-{{ $event_trooper->event_shift->id }}"
                             hx-swap="none"
                             class="form-select-sm mt-2 mt-md-0" />
+            <x-input-select :property="'backup_costume_id'"
+                            :options="$event_trooper->costumes"
+                            :value="$event_trooper->backup_costume_id"
+                            :placeholder="'-- Select Backup Costume --'"
+                            hx-post="{{ route('events.signup-update-htmx', compact('event_trooper')) }}"
+                            hx-indicator="#transmission-bar-shift-{{ $event_trooper->event_shift->id }}"
+                            hx-swap="none"
+                            class="form-select-sm mt-2 mt-md-0" />
         @else
             @if($event_trooper->is_handler)
                 Handler
-            @elseif($event_trooper->organization_costume != null)
-                {{ $event_trooper->organization_costume->name ?? 'N/A' }}
-                <br />
-                <i class="small text-muted">
-                    {{ $event_trooper->organization_costume->organization->name }}
-                </i>
+            @else
+                @if($event_trooper->organization_costume != null)
+                    {{ $event_trooper->organization_costume->name ?? 'N/A' }}
+                    <br />
+                    <i class="small text-muted">
+                        {{ $event_trooper->organization_costume->organization->name }}
+                    </i>
+                @endif
+                @if($event_trooper->backup_costume != null)
+                    {{ $event_trooper->backup_costume->name ?? 'N/A' }}
+                    <br />
+                    <i class="small text-muted">
+                        {{ $event_trooper->backup_costume->organization->name }}
+                    </i>
+                @endif
             @endif
         @endif
     </div>

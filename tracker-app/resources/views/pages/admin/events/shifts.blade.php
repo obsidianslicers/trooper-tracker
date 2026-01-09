@@ -40,7 +40,6 @@
                             <th>Date</th>
                             <th>Starts At</th>
                             <th>Ends At</th>
-                            <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -67,13 +66,6 @@
                                                   :disabled="!$event->is_active"
                                                   class="form-control-sm" />
                                 </td>
-                                <td>
-                                    <x-input-select :property="'shifts.' . $shift->id . '.status'"
-                                                    :options="\App\Enums\EventStatus::toArray()"
-                                                    :value="$shift->status->value"
-                                                    :disabled="!$event->is_active"
-                                                    class="form-select-sm" />
-                                </td>
                             </tr>
                         @endforeach
 
@@ -93,11 +85,6 @@
                                                           :value="$data['starts_at'] ?? ''"
                                                           class="form-control-sm" />
                                         </td>
-                                        <td>
-                                            <x-input-time :property="'shifts.' . $key . '.ends_at'"
-                                                          :value="$data['ends_at'] ?? ''"
-                                                          class="form-control-sm" />
-                                        </td>
                                         <td></td>
                                     </tr>
                                 @endif
@@ -107,7 +94,7 @@
                     @if($event->is_active)
                         <tfoot>
                             <tr>
-                                <td colspan="5"
+                                <td colspan="4"
                                     class="text-end">
                                     <button type="button"
                                             class="btn btn-sm btn-outline-success"

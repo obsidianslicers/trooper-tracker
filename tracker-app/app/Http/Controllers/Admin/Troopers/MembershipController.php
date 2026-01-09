@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Troopers;
 
-use App\Enums\OrganizationType;
 use App\Http\Controllers\Controller;
 use App\Models\Organization;
 use App\Models\Trooper;
@@ -65,7 +64,7 @@ class MembershipController extends Controller
      */
     private function getOrganizationMemberships(Trooper $trooper): Collection
     {
-        $organizations = Organization::ofTypeOrganizations()->orderBy('name')->get();
+        $organizations = Organization::ofTypeOrganizations()->orderBy(Organization::NAME)->get();
 
         $organization_memberships = $trooper->organizations()->pluck('tt_trooper_organizations.identifier', 'tt_organizations.id')->toArray();
 

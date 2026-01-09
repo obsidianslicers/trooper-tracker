@@ -12,7 +12,6 @@ use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 
 /**
@@ -33,71 +32,50 @@ class MembershipSubmitController extends Controller
      * @param Trooper $trooper The trooper whose authorities are to be displayed.
      * @return View|RedirectResponse The rendered authority page view or a redirect response.
      */
-    public function __invoke(MembershipRequest $request, Trooper $trooper): View|RedirectResponse
+    public function __invoke(MembershipRequest $request, Trooper $trooper): RedirectResponse
     {
         $this->authorize('update', $trooper);
 
-        if ($request->isHtmx())
+        $organizations = $request->validated('organizations', []);
+
+        foreach ($organizations as $organization_id => $data)
         {
-            // TODO update the view based on picks
-            $organization_memberships = $this->getOrganizationMemberships($trooper);
+            $identifier = $data['identifier'] ?? null;
 
-            $data = compact('trooper', 'organization_memberships');
-
-            return view('pages.admin.troopers.membership', $data);
-        }
-
-        //  otherwise, save & redirect back to the main edit page
-
-        return redirect()->route('admin.troopers.membership', compact('trooper'));
-    }
-
-    /**
-     * Build a collection of organizations with inferred region/unit assignments for a trooper.
-     *
-     * Loads the trooper's organizations, finds member assignments, and attaches
-     * the resolved region/unit nodes onto each top-level organization for display purposes.
-     *
-     * @param Trooper $trooper The trooper whose memberships should be fetched.
-     * @return Collection The organizations with optional `region` and `unit` properties hydrated.
-     */
-    private function getOrganizationMemberships(Trooper $trooper): Collection
-    {
-        $organizations = Organization::ofTypeOrganizations()->orderBy('name')->get();
-
-        $organization_memberships = $trooper->organizations()->pluck('tt_trooper_organizations.identifier', 'tt_organizations.id')->toArray();
-
-        $assignments = $trooper->trooper_assignments()
-            ->with('organization')
-            ->where(TrooperAssignment::IS_MEMBER, true)
-            ->get();
-
-        foreach ($organizations as $organization)
-        {
-            if (isset($organization_memberships[$organization->id]) === false)
+            if ($identifier)
             {
-                continue;
-            }
+                // syncWithoutDetaching (or upsert) to avoid removing existing
+                // memberships not included in the request
+                $trooper->organizations()->syncWithoutDetaching([
+                    $organization_id => ['identifier' => $identifier],
+                ]);
 
-            $organization->identifier = $organization_memberships[$organization->id];
+                $assignment_id = $data['assignment'];
 
-            foreach ($assignments as $assignment)
-            {
-                if (str_starts_with($assignment->organization->node_path, $organization->node_path))
+                //  FYI - someone can be a member as a "member" or a handler
+                $trooper_assignment = $trooper->trooper_assignments()
+                    ->where(TrooperAssignment::ORGANIZATION_ID, $assignment_id)
+                    ->first();
+
+                if ($trooper_assignment)
                 {
-                    if ($assignment->organization->type == OrganizationType::UNIT)
-                    {
-                        $organization->unit = $assignment->organization;
-                        $organization->region = $organization->unit->parent;
-                    }
-                    elseif ($assignment->organization->type == OrganizationType::REGION)
-                    {
-                        $organization->region = $assignment->organization;
-                    }
+                    // update existing assignment
+                    $trooper_assignment->is_member = true;
+                    $trooper_assignment->save();
+                }
+                else
+                {
+                    // create new assignment
+                    $trooper->trooper_assignments()->create([
+                        TrooperAssignment::ORGANIZATION_ID => $assignment_id,
+                        TrooperAssignment::IS_MEMBER => true,
+                    ]);
                 }
             }
         }
 
-        return $organizations;
+        $data = compact('trooper');
+
+        return redirect()->route('admin.troopers.membership', $data);
     }
 }

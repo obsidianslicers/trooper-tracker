@@ -23,6 +23,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $costume_id
  * @property int|null $backup_costume_id
  * @property int|null $added_by_trooper_id
+ * @property bool $is_handler
  * @property string $status
  * @property Carbon $signed_up_at
  * @property Carbon|null $created_at
@@ -31,7 +32,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $created_id
  * @property int|null $updated_id
  * @property int|null $deleted_id
- * @property int|null $is_handler
  * 
  * @property Trooper $trooper
  * @property OrganizationCostume|null $organization_costume
@@ -48,6 +48,7 @@ class EventTrooper extends Model
     const COSTUME_ID = 'costume_id';
     const BACKUP_COSTUME_ID = 'backup_costume_id';
     const ADDED_BY_TROOPER_ID = 'added_by_trooper_id';
+    const IS_HANDLER = 'is_handler';
     const STATUS = 'status';
     const SIGNED_UP_AT = 'signed_up_at';
     const CREATED_AT = 'created_at';
@@ -56,7 +57,6 @@ class EventTrooper extends Model
     const CREATED_ID = 'created_id';
     const UPDATED_ID = 'updated_id';
     const DELETED_ID = 'deleted_id';
-    const IS_HANDLER = 'is_handler';
     protected $table = 'tt_event_troopers';
 
     protected $casts = [
@@ -66,13 +66,13 @@ class EventTrooper extends Model
         self::COSTUME_ID => 'int',
         self::BACKUP_COSTUME_ID => 'int',
         self::ADDED_BY_TROOPER_ID => 'int',
+        self::IS_HANDLER => 'bool',
         self::SIGNED_UP_AT => 'datetime',
         self::CREATED_AT => 'datetime',
         self::UPDATED_AT => 'datetime',
         self::CREATED_ID => 'int',
         self::UPDATED_ID => 'int',
-        self::DELETED_ID => 'int',
-        self::IS_HANDLER => 'int'
+        self::DELETED_ID => 'int'
     ];
 
     protected $fillable = [
@@ -81,9 +81,9 @@ class EventTrooper extends Model
         self::COSTUME_ID,
         self::BACKUP_COSTUME_ID,
         self::ADDED_BY_TROOPER_ID,
+        self::IS_HANDLER,
         self::STATUS,
-        self::SIGNED_UP_AT,
-        self::IS_HANDLER
+        self::SIGNED_UP_AT
     ];
 
     public function trooper(): BelongsTo

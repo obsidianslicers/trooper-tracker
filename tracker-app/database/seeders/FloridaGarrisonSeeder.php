@@ -10,7 +10,6 @@ use Database\Seeders\FloridaGarrison\EventSeeder;
 use Database\Seeders\FloridaGarrison\EventUploadSeeder;
 use Database\Seeders\FloridaGarrison\EventUploadTrooperSeeder;
 use Database\Seeders\FloridaGarrison\OrganizationCostumeSeeder;
-use Database\Seeders\FloridaGarrison\SettingSeeder;
 use Database\Seeders\FloridaGarrison\TrooperCostumeSeeder;
 use Database\Seeders\FloridaGarrison\TrooperDonationSeeder;
 use Database\Seeders\FloridaGarrison\TrooperOrganizationSeeder;

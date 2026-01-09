@@ -22,7 +22,9 @@ class SetupRequestTest extends TestCase
     {
         parent::setUp();
         $this->subject = new SetupRequest();
-        $this->user = Trooper::factory()->create();
+        $this->user = Trooper::factory()->create([
+            'notification_frequency' => 'instant',
+        ]);
         $this->subject->setUserResolver(fn() => $this->user);
     }
 
@@ -35,6 +37,7 @@ class SetupRequestTest extends TestCase
     {
         $bad_data = [
             'email' => '',
+            'notification_frequency' => 'daily',
         ];
 
         $this->subject->merge($bad_data);
@@ -48,6 +51,7 @@ class SetupRequestTest extends TestCase
     {
         $bad_data = [
             'email' => 'invalid-email',
+            'notification_frequency' => 'daily',
         ];
 
         $this->subject->merge($bad_data);
@@ -57,86 +61,18 @@ class SetupRequestTest extends TestCase
         $this->assertTrue($validator->errors()->has('email'));
     }
 
-    public function test_validation_fails_with_no_organizations_selected(): void
-    {
-        $bad_data = [
-            'email' => 'test@example.com',
-            'organizations' => [],
-        ];
-
-        $this->subject->merge($bad_data);
-        $validator = Validator::make($bad_data, $this->subject->rules());
-
-        $this->assertTrue($validator->fails());
-        $this->assertTrue($validator->errors()->has('organizations'));
-    }
-
-    public function test_validation_fails_when_organization_selected_without_region(): void
+    public function test_validation_passes_with_valid_leaf_node_assignment(): void
     {
         // Arrange
-        $region = Organization::factory()->region()->create();
-        $organization = $region->parent;
-
-        $bad_data = [
-            'email' => 'test@example.com',
-            'organizations' => [
-                $organization->id => [
-                    'selected' => '1',
-                    'region_id' => null,
-                ],
-            ],
-        ];
-
-        // Act
-        $this->subject->merge($bad_data);
-        $validator = Validator::make($bad_data, $this->subject->rules());
-
-        // Assert
-        $this->assertTrue($validator->fails());
-        $this->assertTrue($validator->errors()->has("organizations.{$organization->id}.region_id"));
-    }
-
-    public function test_validation_fails_when_region_selected_without_unit(): void
-    {
-        // Arrange
-        $unit = Organization::factory()->unit()->create();
-        $region = $unit->parent;
-        $organization = $region->parent;
-
-        $bad_data = [
-            'email' => 'test@example.com',
-            'organizations' => [
-                $organization->id => [
-                    'selected' => '1',
-                    'region_id' => $region->id,
-                    'unit_id' => null,
-                ],
-            ],
-        ];
-
-        // Act
-        $this->subject->merge($bad_data);
-        $validator = Validator::make($bad_data, $this->subject->rules());
-
-        // Assert
-        $this->assertTrue($validator->fails());
-        $this->assertTrue($validator->errors()->has("organizations.{$organization->id}.unit_id"));
-    }
-
-    public function test_validation_passes_with_valid_organization_selection(): void
-    {
-        // Arrange
-        $unit = Organization::factory()->unit()->create();
-        $region = $unit->parent;
-        $organization = $region->parent;
+        $leaf_node = Organization::factory()->unit()->create();
+        $organization = $leaf_node->parent->parent;
 
         $good_data = [
             'email' => 'test@example.com',
+            'notification_frequency' => 'daily',
             'organizations' => [
                 $organization->id => [
-                    'selected' => '1',
-                    'region_id' => $region->id,
-                    'unit_id' => $unit->id,
+                    'assignment' => $leaf_node->id,
                 ],
             ],
         ];
@@ -149,16 +85,70 @@ class SetupRequestTest extends TestCase
         $this->assertTrue($validator->passes());
     }
 
-    public function test_validation_fails_when_organization_not_selected(): void
+    public function test_validation_fails_when_assignment_is_not_leaf_node(): void
+    {
+        // Arrange
+        $unit = Organization::factory()->unit()->create();
+        $region = $unit->parent;
+        $organization = $region->parent;
+
+        $bad_data = [
+            'email' => 'test@example.com',
+            'notification_frequency' => 'daily',
+            'organizations' => [
+                $organization->id => [
+                    'assignment' => $region->id,
+                ],
+            ],
+        ];
+
+        // Act
+        $this->subject->merge($bad_data);
+        $validator = Validator::make($bad_data, $this->subject->rules());
+
+        // Assert
+        $this->assertTrue($validator->fails());
+        $this->assertTrue($validator->errors()->has("organizations.{$organization->id}.assignment"));
+    }
+
+    public function test_validation_fails_when_assignment_is_not_descendant_of_organization(): void
+    {
+        // Arrange
+        $organization1 = Organization::factory()->create();
+        $leaf_node1 = Organization::factory()->unit()->create(['parent_id' => $organization1->id]);
+
+        $organization2 = Organization::factory()->create();
+
+        $bad_data = [
+            'email' => 'test@example.com',
+            'notification_frequency' => 'daily',
+            'organizations' => [
+                $organization2->id => [
+                    'assignment' => $leaf_node1->id,
+                ],
+            ],
+        ];
+
+        // Act
+        $this->subject->merge($bad_data);
+        $validator = Validator::make($bad_data, $this->subject->rules());
+
+        // Assert
+        $this->assertTrue($validator->fails());
+        $this->assertTrue($validator->errors()->has("organizations.{$organization2->id}.assignment"));
+    }
+
+    public function test_validation_passes_when_assignment_is_null(): void
     {
         // Arrange
         $organization = Organization::factory()->create();
 
         $good_data = [
             'email' => 'test@example.com',
+            'notification_frequency' => 'daily',
             'organizations' => [
                 $organization->id => [
-                    'selected' => '0',
+                    'assignment' => null,
                 ],
             ],
         ];
@@ -168,6 +158,6 @@ class SetupRequestTest extends TestCase
         $validator = Validator::make($good_data, $this->subject->rules());
 
         // Assert
-        $this->assertfalse($validator->passes());
+        $this->assertTrue($validator->passes());
     }
 }

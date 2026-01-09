@@ -8,7 +8,6 @@ use App\Enums\EventStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Events\CopyRequest;
 use App\Models\Event;
-use App\Models\EventOrganization;
 use App\Models\Trooper;
 use App\Services\FlashMessageService;
 use Carbon\Carbon;
@@ -61,7 +60,7 @@ class CopySubmitController extends Controller
         $diff = $old_start->diffAsCarbonInterval($new_start);
 
         $event_copy = $event->replicate();
-        $event_copy->name = 'Copy of ' . $request->validated(Event::NAME);
+        $event_copy->name = $request->validated(Event::NAME);
         $event_copy->event_start = $event->event_start->add($diff);
         $event_copy->event_end = $event->event_end->add($diff);
         $event_copy->status = EventStatus::DRAFT;

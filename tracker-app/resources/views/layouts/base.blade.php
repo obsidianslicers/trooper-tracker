@@ -10,6 +10,7 @@
           content="ie=edge" />
     <meta name="csrf-token"
           content="{{ csrf_token() }}">
+    @yield('page-meta')
 
     <title>{{ config('app.name') }} - Troop Tracker</title>
 

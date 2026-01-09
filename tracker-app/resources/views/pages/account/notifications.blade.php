@@ -14,30 +14,16 @@
                   novalidate="novalidate">
                 @csrf
 
-                <h3>Website</h3>
-
-                <x-input-container class="ps-5">
-                    <!-- efast -->
-                    <x-input-checkbox :property="'instant_notification'"
-                                      :label="'Instant Event Notification'"
-                                      :value="1"
-                                      :checked="$instant_notification" />
-                </x-input-container>
-
-                <x-input-container class="ps-5">
-                    <!-- econfirm -->
-                    <x-input-checkbox :property="'attendance_notification'"
-                                      :label="'Confirm Attendance Notification'"
-                                      :value="1"
-                                      :checked="$attendance_notification" />
-                </x-input-container>
-
-                <x-input-container class="ps-5">
-                    <!-- ecommandnotify -->
-                    <x-input-checkbox :property="'command_staff_notification'"
-                                      :label="'Command Staff Notifications'"
-                                      :value="1"
-                                      :checked="$command_staff_notification" />
+                <x-input-container>
+                    <x-label>
+                        Notification Frequency:
+                    </x-label>
+                    <x-input-select :property="'notification_frequency'"
+                                    :options="\App\Enums\NotificationFrequency::toArray()"
+                                    :value="$notification_frequency->value" />
+                    <x-input-help>
+                        How often would you like to receive notification emails about events, milestones, and other important updates?
+                    </x-input-help>
                 </x-input-container>
 
                 <h3>Squads / Clubs</h3>

@@ -6,6 +6,7 @@ namespace App\Services;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Str;
 
 /**
  * Manages flash messages stored in the session.
@@ -59,7 +60,7 @@ class FlashMessageService
     private function addModelMessage(Model $model, string $action): void
     {
         // Get the base class name (e.g. "Organization")
-        $object_name = class_basename($model);
+        $object_name = Str::headline(class_basename($model));
 
         // Build the message
         $message = $object_name;

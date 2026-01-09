@@ -6,7 +6,6 @@ namespace App\Http\Requests\Admin\Organizations;
 
 use App\Rules\Admin\Organizations\UniqueNameRule;
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Contracts\Validation\Validator as ValidatorInterface;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**

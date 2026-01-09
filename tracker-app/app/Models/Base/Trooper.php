@@ -8,6 +8,7 @@ namespace App\Models\Base;
 
 use App\Models\Award;
 use App\Models\AwardTrooper;
+use App\Models\EventNotification;
 use App\Models\EventTrooper;
 use App\Models\EventUpload;
 use App\Models\Notice;
@@ -41,15 +42,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Carbon|null $last_active_at
  * @property string $membership_status
  * @property string $membership_role
- * @property bool $instant_notification
- * @property bool $attendance_notification
- * @property bool $command_staff_notification
+ * @property string $notification_frequency
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property string|null $deleted_at
  * 
  * @property Collection|Award[] $awards
+ * @property Collection|EventNotification[] $event_notifications
  * @property Collection|EventTrooper[] $event_troopers
  * @property Collection|EventUpload[] $event_uploads
  * @property Collection|Notice[] $notices
@@ -76,9 +76,7 @@ class Trooper extends Model
     const LAST_ACTIVE_AT = 'last_active_at';
     const MEMBERSHIP_STATUS = 'membership_status';
     const MEMBERSHIP_ROLE = 'membership_role';
-    const INSTANT_NOTIFICATION = 'instant_notification';
-    const ATTENDANCE_NOTIFICATION = 'attendance_notification';
-    const COMMAND_STAFF_NOTIFICATION = 'command_staff_notification';
+    const NOTIFICATION_FREQUENCY = 'notification_frequency';
     const REMEMBER_TOKEN = 'remember_token';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
@@ -90,9 +88,6 @@ class Trooper extends Model
         self::EMAIL_VERIFIED_AT => 'datetime',
         self::SETUP_COMPLETED_AT => 'datetime',
         self::LAST_ACTIVE_AT => 'datetime',
-        self::INSTANT_NOTIFICATION => 'bool',
-        self::ATTENDANCE_NOTIFICATION => 'bool',
-        self::COMMAND_STAFF_NOTIFICATION => 'bool',
         self::CREATED_AT => 'datetime',
         self::UPDATED_AT => 'datetime'
     ];
@@ -113,9 +108,7 @@ class Trooper extends Model
         self::LAST_ACTIVE_AT,
         self::MEMBERSHIP_STATUS,
         self::MEMBERSHIP_ROLE,
-        self::INSTANT_NOTIFICATION,
-        self::ATTENDANCE_NOTIFICATION,
-        self::COMMAND_STAFF_NOTIFICATION,
+        self::NOTIFICATION_FREQUENCY,
         self::REMEMBER_TOKEN
     ];
 
@@ -124,6 +117,11 @@ class Trooper extends Model
         return $this->belongsToMany(Award::class, 'tt_award_troopers')
                     ->withPivot(AwardTrooper::ID, AwardTrooper::AWARD_DATE, AwardTrooper::DELETED_AT, AwardTrooper::CREATED_ID, AwardTrooper::UPDATED_ID, AwardTrooper::DELETED_ID)
                     ->withTimestamps();
+    }
+
+    public function event_notifications(): HasMany
+    {
+        return $this->hasMany(EventNotification::class);
     }
 
     public function event_troopers(): HasMany

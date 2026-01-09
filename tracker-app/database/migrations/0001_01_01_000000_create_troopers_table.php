@@ -2,6 +2,7 @@
 
 use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
+use App\Enums\NotificationFrequency;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -28,9 +29,7 @@ return new class extends Migration
             $table->string('membership_status', 16)->default(MembershipStatus::PENDING->value);
             $table->string('membership_role', 16)->default(MembershipRole::MEMBER->value);
 
-            $table->boolean('instant_notification')->default(true);
-            $table->boolean('attendance_notification')->default(true);
-            $table->boolean('command_staff_notification')->default(true);
+            $table->string('notification_frequency', 16)->default(NotificationFrequency::NEVER->value);
 
             $table->rememberToken();
             $table->timestamps();

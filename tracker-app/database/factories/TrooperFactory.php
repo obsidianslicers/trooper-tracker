@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
+use App\Enums\NotificationFrequency;
 use App\Enums\TrooperTheme;
 use App\Models\Award;
 use App\Models\AwardTrooper;
@@ -29,6 +30,7 @@ class TrooperFactory extends BaseTrooperFactory
     {
         return array_merge(parent::definition(), [
             Trooper::EMAIL => $this->faker->safeEmail(),
+            Trooper::NOTIFICATION_FREQUENCY => NotificationFrequency::INSTANT,
             Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
             Trooper::MEMBERSHIP_ROLE => MembershipRole::MEMBER,
             Trooper::THEME => TrooperTheme::STORMTROOPER,

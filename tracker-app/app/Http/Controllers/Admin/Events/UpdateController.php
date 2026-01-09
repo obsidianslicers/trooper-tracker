@@ -6,7 +6,6 @@ namespace App\Http\Controllers\Admin\Events;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
-use App\Models\EventOrganization;
 use App\Models\Organization;
 use App\Services\BreadCrumbService;
 use App\Services\FlashMessageService;

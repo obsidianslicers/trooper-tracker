@@ -28,6 +28,9 @@ return new class extends Migration
             $table->string('type', 16)->default(EventType::REGULAR->value);
             $table->string('status', 16)->default(EventStatus::DRAFT->value);
 
+            $table->dateTime('create_notifications_sent_at')->nullable();
+            $table->dateTime('cancel_notifications_sent_at')->nullable();
+
             $table->decimal('latitude', 9, 6)->nullable();
             $table->decimal('longitude', 9, 6)->nullable();
 

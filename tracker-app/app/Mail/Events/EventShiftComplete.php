@@ -3,7 +3,6 @@
 namespace App\Mail\Events;
 
 use App\Enums\EventTrooperStatus;
-use App\Models\EventShift;
 use App\Models\EventTrooper;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -31,7 +30,7 @@ class EventShiftComplete extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Event Shift - Completed'
+            subject: 'Troop Tracker - Event Shift Complete - Action Required'
         );
     }
 

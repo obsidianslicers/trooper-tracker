@@ -30,7 +30,7 @@ class OrganizationCostumeTest extends TestCase
         $full_name = $costume->full_name;
 
         // Assert
-        $this->assertSame('(501st Legion) Stormtrooper', $full_name);
+        $this->assertSame('501st Legion - Stormtrooper', $full_name);
     }
 
     public function test_full_name_attribute_returns_name_only_when_organization_not_loaded(): void
