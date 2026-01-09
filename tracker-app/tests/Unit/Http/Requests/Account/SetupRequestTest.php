@@ -68,7 +68,7 @@ class SetupRequestTest extends TestCase
         $organization = $leaf_node->parent->parent;
 
         $good_data = [
-            'email' => 'test@example.com',
+            'email' => 'test@google.com',
             'notification_frequency' => 'daily',
             'organizations' => [
                 $organization->id => [
@@ -93,7 +93,7 @@ class SetupRequestTest extends TestCase
         $organization = $region->parent;
 
         $bad_data = [
-            'email' => 'test@example.com',
+            'email' => 'test@google.com',
             'notification_frequency' => 'daily',
             'organizations' => [
                 $organization->id => [
@@ -144,7 +144,7 @@ class SetupRequestTest extends TestCase
         $organization = Organization::factory()->create();
 
         $good_data = [
-            'email' => 'test@example.com',
+            'email' => 'test@google.com',
             'notification_frequency' => 'daily',
             'organizations' => [
                 $organization->id => [

@@ -126,14 +126,14 @@ public function test_something(): void
 
 ### 8.3. Mocking
 
-When creating mocks with PHPUnit's built-in mocking library, use the `expects()` and `method()` chain for setting up expectations. This provides a clear, readable format.
+When creating mocks, use **Mockery** with the `shouldReceive()` chain for setting up expectations. This provides a clear, readable format.
 
 ```php
-// Example for a mock of Illuminate\Http\Request
-$request_mock = $this->createMock(Request::class);
+// Example for a mock of Illuminate\Session\Store
+$session_mock = Mockery::mock(Store::class);
 
-$request_mock->expects($this->once())
-    ->method('getHeaderLine')
-    ->with('Accept')
-    ->willReturn('application/json');
+$session_mock->shouldReceive('get')
+    ->once()
+    ->with('flash_messages', [])
+    ->andReturn([]);
 ```
