@@ -6,9 +6,7 @@ namespace App\Http\Controllers\Events;
 
 use App\Enums\EventTrooperStatus;
 use App\Http\Controllers\Controller;
-use App\Models\Event;
 use App\Models\EventTrooper;
-use App\Models\Organization;
 use App\Services\BreadCrumbService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;

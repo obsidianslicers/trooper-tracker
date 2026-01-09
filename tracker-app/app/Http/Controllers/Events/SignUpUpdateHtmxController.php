@@ -77,6 +77,11 @@ class SignUpUpdateHtmxController extends Controller
             $event_trooper->costume_id = $request->validated('costume_id');
             $event_trooper->save();
         }
+        elseif ($request->has('backup_costume_id'))
+        {
+            $event_trooper->backup_costume_id = $request->validated('backup_costume_id');
+            $event_trooper->save();
+        }
 
         return response('ok', 200);
     }

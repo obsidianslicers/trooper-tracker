@@ -57,6 +57,7 @@ class EventDisplayController extends Controller
             'event_shifts.event_troopers.trooper',
             'event_shifts.event_troopers.added_by_trooper',
             'event_shifts.event_troopers.organization_costume.organization',
+            'event_shifts.event_troopers.backup_costume.organization',
             'event_shifts.event_troopers' => function ($query)
             {
                 $query->orderBy(EventTrooper::SIGNED_UP_AT);

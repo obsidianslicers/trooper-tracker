@@ -3,10 +3,13 @@
         @foreach($event->event_uploads as $event_upload)
             @if($event_upload->is_administrative == $is_administrative)
                 <div class="col">
-                    <div class="card h-100">
+                    <div class="card h-100 position-relative {{ $is_administrative ? '' : 'event-image-share-wrapper'}}">
                         <img src="{{ $event_upload->small_url }}"
                              class="card-img-top rounded"
-                             alt="Upload {{ $event_upload->id }}" />
+                             alt="Image #{{ $event_upload->id }}" />
+                        <div class="event-image-share-buttons">
+                            {!! Share::page(route('share-event', compact('event', 'event_upload')), $event->name)->facebook()->twitter() !!}
+                        </div>
                     </div>
                 </div>
             @endif

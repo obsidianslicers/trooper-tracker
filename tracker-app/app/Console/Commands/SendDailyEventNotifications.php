@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Enums\EventStatus;
 use App\Enums\NotificationFrequency;
 use App\Mail\Events\DailyEventNotification;
-use App\Models\Event;
 use App\Models\Trooper;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Mail;

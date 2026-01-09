@@ -100,8 +100,9 @@ class EventTrooper extends BaseEventTrooper
 
         $organization_ids = $this->event_shift->event->event_organizations()->pluckCanAttend($event_shift);
 
-        return OrganizationCostume::forEventShift($this->event_shift, $this->trooper, $organization_ids)
-            ->toOptions('name', 'id');
+        return OrganizationCostume::with('organization')
+            ->forEventShift($this->event_shift, $this->trooper, $organization_ids)
+            ->toOptions('full_name', 'id');
     }
 
     /**

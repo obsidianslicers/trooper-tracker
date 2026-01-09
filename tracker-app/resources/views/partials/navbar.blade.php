@@ -41,41 +41,13 @@
                 @endrole
 
                 @auth
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle"
-                           href="#"
-                           role="button"
-                           data-bs-toggle="dropdown"
-                           aria-expanded="false">
-                            Account
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li>
-                                <a class="dropdown-item"
-                                   href="{{ route('account.profile') }}">
-                                    Profile
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item"
-                                   href="{{ route('account.notifications') }}">
-                                    Notifications
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item"
-                                   href="{{ route('account.costumes') }}">
-                                    Costumes
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item"
-                                   href="{{ route('auth.logout') }}">
-                                    Logout
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
+                    <x-nav-link :url="route('account.profile')"
+                                :active="request()->routeIs('account.*')">
+                        Account
+                    </x-nav-link>
+                    <x-nav-link :url="route('auth.logout')">
+                        Logout
+                    </x-nav-link>
                 @else
                     <x-nav-link :url="route('auth.signup')"
                                 :active="request()->routeIs('auth.signup')">

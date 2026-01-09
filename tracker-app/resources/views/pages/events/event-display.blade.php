@@ -2,34 +2,9 @@
 
 @section('page-title', 'Event Sign-Up')
 
-@section('page-meta')
-    <meta property="og:title"
-          content="{{ $event->name }}" />
-    <meta property="og:description"
-          content="Event happening on {{ $event->time_display }}. View details on the Troop Tracker." />
-    <meta property="og:image"
-          content="{{ $event->image_url }}" />
-    <meta property="og:url"
-          content="{{ route('events.display', compact('event')) }}" />
-    <meta property="og:type"
-          content="event" />
-    <meta property="article:published_time"
-          content="{{ $event->created_at->toIso8601String() }}" />
-    <meta property="article:modified_time"
-          content="{{ $event->updated_at->toIso8601String() }}" />
-
-@endsection
-
 @section('content')
 <x-slim-container>
 
-    {{--
-    <pre>
-    TODO: share to FB by use, subscribe updates, etc.
-    $pageUrl = urlencode('https://your-website.com/your-page'); // URL of the page to share
-    $facebookShareUrl = 'https://www.facebook.com/sharer/sharer.php?u=' . $pageUrl;
-  </pre>
-    --}}
     @php($bg = $event->at_risk ? 'bg-danger' : 'bg-primary')
     @php($bg = $event->is_locked ? 'bg-secondary' : $bg)
     <div class="container my-4">
@@ -68,18 +43,21 @@
                         </div>
                     </div>
                     <div class="col-4 text-end">
-                        @can('update', $event)
-                            <div class="btn-group mb-3">
-                                <a href="{{ route('admin.events.update', compact('event')) }}"
-                                   class="btn btn-sm btn-outline-primary">
-                                    <i class="fa fa-fw fa-edit mx-2"></i>
-                                </a>
-                                <a href="{{ route('admin.events.copy', compact('event')) }}"
-                                   class="btn btn-sm btn-outline-primary">
-                                    <i class="fa fa-fw fa-copy mx-2"></i>
-                                </a>
-                            </div>
-                        @endcan
+                        <div class="d-flex justify-content-end align-items-center gap-2">
+                            {!! Share::page(route('share-event', compact('event')), $event->name)->facebook()->twitter() !!}
+                            @can('update', $event)
+                                <div class="btn-group">
+                                    <a href="{{ route('admin.events.update', compact('event')) }}"
+                                       class="btn btn-outline-danger">
+                                        <i class="fa fa-fw fa-edit text-danger"></i>
+                                    </a>
+                                    <a href="{{ route('admin.events.copy', compact('event')) }}"
+                                       class="btn btn-outline-danger">
+                                        <i class="fa fa-fw fa-copy text-danger"></i>
+                                    </a>
+                                </div>
+                            @endcan
+                        </div>
                     </div>
                 </div>
 

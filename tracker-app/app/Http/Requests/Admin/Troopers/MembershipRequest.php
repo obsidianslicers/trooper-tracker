@@ -25,11 +25,11 @@ use Illuminate\Validation\Rule;
  *
  * Only administrators can modify trooper membership settings.
  *
- * @property \Illuminate\Database\Eloquent\Collection|null $organizationsCache Cached organizations for validation
+ * @property \Illuminate\Database\Eloquent\Collection|null $organizations_cache Cached organizations for validation
  */
 class MembershipRequest extends FormRequest
 {
-    private ?Collection $organizationsCache = null;
+    private ?Collection $organizations_cache = null;
 
     /**
      * Determine if the user is authorized to make this request.
@@ -125,10 +125,10 @@ class MembershipRequest extends FormRequest
      */
     private function getOrganizations(): Collection
     {
-        if (!isset($this->organizationsCache))
+        if (!isset($this->organizations_cache))
         {
-            $this->organizationsCache = Organization::ofTypeOrganizations()->get();
+            $this->organizations_cache = Organization::ofTypeOrganizations()->get();
         }
-        return $this->organizationsCache;
+        return $this->organizations_cache;
     }
 }

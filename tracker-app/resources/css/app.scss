@@ -17,3 +17,41 @@ a:hover {
     text-decoration: line-through;
     opacity: 0.6;
 }
+
+.event-image-share-wrapper {
+    position: relative;
+}
+
+.event-image-share-buttons {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    opacity: 0;
+    transition: opacity .2s ease-in-out;
+}
+
+.event-image-share-wrapper:hover .event-image-share-buttons {
+    opacity: 1;
+}
+
+.event-image-share-buttons .btn-group {
+    background: rgba(0, 0, 0, 0.75);
+    border-radius: 6px;
+}
+
+
+/*
+
+
+/* Smoky black background 
+
+/* Make the buttons blend into the smoky background 
+.event-image-share-buttons .btn {
+    border: none;
+    color: #fff;
+}
+
+.event-image-share-buttons .btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+*/
