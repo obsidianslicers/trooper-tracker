@@ -11,12 +11,21 @@ use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Collection;
 
+/**
+ * Mailable for daily event notification digest.
+ *
+ * Sent to troopers on a daily schedule with all new events posted since
+ * their last digest, based on daily notification preferences. Tracks when
+ * each notification was sent via the sent() callback.
+ */
 class DailyEventNotification extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
     /**
-     * Create a new message instance.
+     * Create a new daily event notification email instance.
+     *
+     * @param Collection $event_notifications Collection of EventNotification models to include in digest
      */
     public function __construct(private readonly Collection $event_notifications)
     {
@@ -24,7 +33,9 @@ class DailyEventNotification extends Mailable implements ShouldQueue
     }
 
     /**
-     * Get the message envelope.
+     * Get the message envelope with subject line.
+     *
+     * @return Envelope The email envelope configuration
      */
     public function envelope(): Envelope
     {
@@ -34,7 +45,12 @@ class DailyEventNotification extends Mailable implements ShouldQueue
     }
 
     /**
-     * Get the message content definition.
+     * Get the message content definition with event notification data.
+     *
+     * Eagerly loads related event, organization, and event shift data
+     * for the notification collection.
+     *
+     * @return Content The email content configuration with view and notifications data
      */
     public function content(): Content
     {
@@ -61,10 +77,10 @@ class DailyEventNotification extends Mailable implements ShouldQueue
     /**
      * Callback executed after the email is successfully sent.
      *
-     * Updates the event notification's sent_at timestamp to track when
-     * the notification was delivered to the recipient.
+     * Updates each event notification's sent_at timestamp to track when
+     * the notifications were delivered to the recipient.
      *
-     * @param \Symfony\Component\Mime\Email $message The sent email message instance.
+     * @param \Symfony\Component\Mime\Email $message The sent email message instance
      * @return void
      */
     public function sent($message): void

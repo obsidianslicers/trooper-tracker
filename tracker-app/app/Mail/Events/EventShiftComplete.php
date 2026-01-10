@@ -12,12 +12,21 @@ use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Crypt;
 
+/**
+ * Mailable for event shift completion notification.
+ *
+ * Sent to troopers after their event shift ends, requesting them to confirm
+ * whether they attended or were unable to attend. Includes encrypted status
+ * links for one-click confirmation.
+ */
 class EventShiftComplete extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
     /**
-     * Create a new message instance.
+     * Create a new event shift completion email instance.
+     *
+     * @param EventTrooper $event_trooper The event trooper assignment to notify about
      */
     public function __construct(private readonly EventTrooper $event_trooper)
     {
@@ -25,7 +34,9 @@ class EventShiftComplete extends Mailable implements ShouldQueue
     }
 
     /**
-     * Get the message envelope.
+     * Get the message envelope with subject line.
+     *
+     * @return Envelope The email envelope configuration
      */
     public function envelope(): Envelope
     {
@@ -35,7 +46,12 @@ class EventShiftComplete extends Mailable implements ShouldQueue
     }
 
     /**
-     * Get the message content definition.
+     * Get the message content definition with event shift data.
+     *
+     * Provides the event trooper, trooper, event shift, event, and encrypted
+     * status links to the email template.
+     *
+     * @return Content The email content configuration with view and data
      */
     public function content(): Content
     {

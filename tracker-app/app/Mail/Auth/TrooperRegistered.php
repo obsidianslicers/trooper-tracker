@@ -9,12 +9,18 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
+/**
+ * Mailable for trooper registration confirmation email.
+ *
+ * Sent to new troopers after they complete the registration process,
+ * welcoming them to the Troop Tracker application.
+ */
 class TrooperRegistered extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
     /**
-     * Create a new message instance.
+     * Create a new trooper registration email instance.
      */
     public function __construct()
     {
@@ -22,7 +28,9 @@ class TrooperRegistered extends Mailable implements ShouldQueue
     }
 
     /**
-     * Get the message envelope.
+     * Get the message envelope with subject line.
+     *
+     * @return Envelope The email envelope configuration
      */
     public function envelope(): Envelope
     {
@@ -33,6 +41,8 @@ class TrooperRegistered extends Mailable implements ShouldQueue
 
     /**
      * Get the message content definition.
+     *
+     * @return Content The email content configuration with view
      */
     public function content(): Content
     {

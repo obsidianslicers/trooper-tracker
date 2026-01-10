@@ -49,7 +49,7 @@ class SetupRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'email' => [
+            Trooper::EMAIL => [
                 'required',
                 'string',
                 'email:rfc,dns',
@@ -57,7 +57,7 @@ class SetupRequest extends FormRequest
                 Rule::unique(Trooper::class, Trooper::EMAIL)
                     ->ignore($this->user()->id, Trooper::ID),
             ],
-            'notification_frequency' => [
+            Trooper::NOTIFICATION_FREQUENCY => [
                 'required',
                 'string',
                 'max:16',

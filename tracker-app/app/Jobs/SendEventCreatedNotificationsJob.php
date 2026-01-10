@@ -9,7 +9,7 @@ use App\Models\EventNotification;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use App\Services\Events\GetTroopersForEventCreatedNotificationQuery;
-use App\Services\Events\SendEventCreatedNotificationsCommand;
+use App\Services\Events\SendEventCreatedNotificationCommand;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Mail;
@@ -49,7 +49,7 @@ class SendEventCreatedNotificationsJob implements ShouldQueue
      */
     public function handle(
         GetTroopersForEventCreatedNotificationQuery $get_troopers,
-        SendEventCreatedNotificationsCommand $send_emails): void
+        SendEventCreatedNotificationCommand $send_email): void
     {
         if ($this->event->create_notifications_sent_at !== null)
         {
@@ -58,7 +58,10 @@ class SendEventCreatedNotificationsJob implements ShouldQueue
 
         $troopers = $get_troopers($this->event);
 
-        $send_emails($this->event, $troopers);
+        foreach ($troopers as $trooper)
+        {
+            $send_email($this->event, $trooper);
+        }
 
         $this->event->create_notifications_sent_at = now();
         $this->event->save();

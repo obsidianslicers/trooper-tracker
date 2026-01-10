@@ -10,12 +10,20 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
+/**
+ * Mailable for event sign-up confirmation.
+ *
+ * Sent to troopers when they successfully sign up for an event shift,
+ * confirming their registration and providing event details with a calendar link.
+ */
 class TrooperSignUp extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
     /**
-     * Create a new message instance.
+     * Create a new event sign-up confirmation email instance.
+     *
+     * @param EventTrooper $event_trooper The event trooper assignment that was created
      */
     public function __construct(private readonly EventTrooper $event_trooper)
     {
@@ -23,7 +31,9 @@ class TrooperSignUp extends Mailable implements ShouldQueue
     }
 
     /**
-     * Get the message envelope.
+     * Get the message envelope with subject line.
+     *
+     * @return Envelope The email envelope configuration
      */
     public function envelope(): Envelope
     {
@@ -33,7 +43,9 @@ class TrooperSignUp extends Mailable implements ShouldQueue
     }
 
     /**
-     * Get the message content definition.
+     * Get the message content definition with event data and calendar link.
+     *
+     * @return Content The email content configuration with view and event data
      */
     public function content(): Content
     {

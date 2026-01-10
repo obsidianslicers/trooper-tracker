@@ -6,6 +6,7 @@ use App\Enums\NotificationFrequency;
 use App\Mail\Events\InstantEventNotification;
 use App\Models\Event;
 use App\Models\EventNotification;
+use App\Models\Trooper;
 use Illuminate\Support\Facades\Mail;
 
 /**
@@ -18,7 +19,7 @@ use Illuminate\Support\Facades\Mail;
  *
  * @package App\Services\Events
  */
-class SendEventCreatedNotificationsCommand
+class SendEventCreatedNotificationCommand
 {
     /**
      * Create event notifications and send instant emails to eligible troopers.
@@ -29,35 +30,32 @@ class SendEventCreatedNotificationsCommand
      * notifications queued for daily digest processing.
      *
      * @param Event $event The event to create notifications for.
-     * @param iterable $troopers Collection of Trooper models to notify.
+     * @param Trooper $trooper The Trooper model to notify.
      * @return void
      */
-    public function __invoke(Event $event, iterable $troopers): void
+    public function __invoke(Event $event, Trooper $trooper): void
     {
-        foreach ($troopers as $trooper)
+        if (!$trooper->emailAppearsValid())
         {
-            if (!$trooper->emailAppearsValid())
-            {
-                continue;
-            }
+            return;
+        }
 
-            $notification = new EventNotification();
-            $notification->event_id = $event->id;
-            $notification->trooper_id = $trooper->id;
+        $notification = new EventNotification();
+        $notification->event_id = $event->id;
+        $notification->trooper_id = $trooper->id;
 
-            if ($trooper->notification_frequency === NotificationFrequency::INSTANT)
-            {
-                $notification->processed_at = now();
-                $notification->save();
+        if ($trooper->notification_frequency === NotificationFrequency::INSTANT)
+        {
+            $notification->processed_at = now();
+            $notification->save();
 
-                Mail::to($trooper->email)
-                    ->queue(new InstantEventNotification($notification));
-            }
-            else
-            {
-                $notification->processed_at = null;
-                $notification->save();
-            }
+            Mail::to($trooper->email)
+                ->queue(new InstantEventNotification($notification));
+        }
+        else
+        {
+            $notification->processed_at = null;
+            $notification->save();
         }
     }
 }

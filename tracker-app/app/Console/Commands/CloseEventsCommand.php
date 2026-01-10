@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Enums\EventStatus;
-use App\Models\Event;
+use App\Services\Events\GetEventsToCloseQuery;
 use Illuminate\Console\Command;
 
 /**
- * Artisan command to calculate and store trooper achievements based on their event history.
+ * Artisan command to close events that have ended.
  *
- * This command aggregates event data for each trooper, such as total troops,
- * volunteer hours, and funds raised, and then updates their corresponding
- * achievements in the database.
+ * This command orchestrates the process of identifying and closing events
+ * whose end date has passed. It delegates the query logic to GetEventsToCloseQuery
+ * service and updates each event's status to CLOSED.
  */
 class CloseEventsCommand extends Command
 {
@@ -29,18 +29,21 @@ class CloseEventsCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Close events.';
+    protected $description = 'Close events that have ended';
 
     /**
      * Execute the console command.
      *
+     * Orchestrates the event closing process by:
+     * 1. Querying for active events that have ended via GetEventsToCloseQuery
+     * 2. Updating each event's status to CLOSED
+     *
+     * @param GetEventsToCloseQuery $get_events_to_close Service to retrieve events needing closure
      * @return void
      */
-    public function handle(): void
+    public function handle(GetEventsToCloseQuery $get_events_to_close): void
     {
-        $events = Event::active()
-            ->where(Event::EVENT_END, '<', now())
-            ->get();
+        $events = $get_events_to_close();
 
         foreach ($events as $event)
         {

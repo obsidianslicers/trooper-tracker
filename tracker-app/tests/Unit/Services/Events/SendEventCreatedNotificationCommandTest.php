@@ -9,28 +9,28 @@ use App\Mail\Events\InstantEventNotification;
 use App\Models\Event;
 use App\Models\EventNotification;
 use App\Models\Trooper;
-use App\Services\Events\SendEventCreatedNotificationsCommand;
+use App\Services\Events\SendEventCreatedNotificationCommand;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 /**
- * Tests for the SendEventCreatedNotificationsCommand service.
+ * Tests for the SendEventCreatedNotificationCommand service.
  *
  * Validates that the service correctly creates event notifications
  * and sends instant emails based on trooper preferences.
  */
-class SendEventCreatedNotificationsCommandTest extends TestCase
+class SendEventCreatedNotificationCommandTest extends TestCase
 {
     use RefreshDatabase;
 
-    private SendEventCreatedNotificationsCommand $subject;
+    private SendEventCreatedNotificationCommand $subject;
     private Event $event;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->subject = new SendEventCreatedNotificationsCommand();
+        $this->subject = new SendEventCreatedNotificationCommand();
         $this->event = Event::factory()->create();
     }
 
@@ -44,7 +44,7 @@ class SendEventCreatedNotificationsCommandTest extends TestCase
         ]);
 
         // Act
-        ($this->subject)($this->event, [$trooper]);
+        ($this->subject)($this->event, $trooper);
 
         // Assert
         $this->assertDatabaseHas('tt_event_notifications', [
@@ -63,7 +63,7 @@ class SendEventCreatedNotificationsCommandTest extends TestCase
         ]);
 
         // Act
-        ($this->subject)($this->event, [$trooper]);
+        ($this->subject)($this->event, $trooper);
 
         // Assert
         $this->assertDatabaseMissing('tt_event_notifications', [
@@ -82,7 +82,7 @@ class SendEventCreatedNotificationsCommandTest extends TestCase
         ]);
 
         // Act
-        ($this->subject)($this->event, [$trooper]);
+        ($this->subject)($this->event, $trooper);
 
         // Assert
         Mail::assertQueued(InstantEventNotification::class, function ($mail) use ($trooper)
@@ -101,7 +101,7 @@ class SendEventCreatedNotificationsCommandTest extends TestCase
         ]);
 
         // Act
-        ($this->subject)($this->event, [$trooper]);
+        ($this->subject)($this->event, $trooper);
 
         // Assert
         Mail::assertNotQueued(InstantEventNotification::class);
@@ -117,7 +117,7 @@ class SendEventCreatedNotificationsCommandTest extends TestCase
         ]);
 
         // Act
-        ($this->subject)($this->event, [$trooper]);
+        ($this->subject)($this->event, $trooper);
 
         // Assert
         $notification = EventNotification::where('trooper_id', $trooper->id)
@@ -138,7 +138,7 @@ class SendEventCreatedNotificationsCommandTest extends TestCase
         ]);
 
         // Act
-        ($this->subject)($this->event, [$trooper]);
+        ($this->subject)($this->event, $trooper);
 
         // Assert
         $notification = EventNotification::where('trooper_id', $trooper->id)
@@ -167,7 +167,9 @@ class SendEventCreatedNotificationsCommandTest extends TestCase
         ]);
 
         // Act
-        ($this->subject)($this->event, [$trooper1, $trooper2, $trooper3]);
+        ($this->subject)($this->event, $trooper1);
+        ($this->subject)($this->event, $trooper2);
+        ($this->subject)($this->event, $trooper3);
 
         // Assert
         $this->assertDatabaseHas('tt_event_notifications', [
@@ -200,7 +202,8 @@ class SendEventCreatedNotificationsCommandTest extends TestCase
         ]);
 
         // Act
-        ($this->subject)($this->event, [$trooper_valid, $trooper_invalid]);
+        ($this->subject)($this->event, $trooper_valid);
+        ($this->subject)($this->event, $trooper_invalid);
 
         // Assert
         $this->assertDatabaseHas('tt_event_notifications', [
@@ -215,21 +218,6 @@ class SendEventCreatedNotificationsCommandTest extends TestCase
         Mail::assertQueued(InstantEventNotification::class, 1);
     }
 
-    public function test_invoke_handles_empty_trooper_collection(): void
-    {
-        // Arrange
-        Mail::fake();
-
-        // Act
-        ($this->subject)($this->event, []);
-
-        // Assert
-        $this->assertDatabaseMissing('tt_event_notifications', [
-            'event_id' => $this->event->id,
-        ]);
-        Mail::assertNothingQueued();
-    }
-
     public function test_invoke_does_not_send_email_for_never_notification_preference(): void
     {
         // Arrange
@@ -240,7 +228,7 @@ class SendEventCreatedNotificationsCommandTest extends TestCase
         ]);
 
         // Act
-        ($this->subject)($this->event, [$trooper]);
+        ($this->subject)($this->event, $trooper);
 
         // Assert
         Mail::assertNotQueued(InstantEventNotification::class);
@@ -256,7 +244,7 @@ class SendEventCreatedNotificationsCommandTest extends TestCase
         ]);
 
         // Act
-        ($this->subject)($this->event, [$trooper]);
+        ($this->subject)($this->event, $trooper);
 
         // Assert
         $notification = EventNotification::where('trooper_id', $trooper->id)

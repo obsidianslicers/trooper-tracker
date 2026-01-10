@@ -9,7 +9,7 @@ use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
 use App\Services\Events\GetTroopersForCancelledEventQuery;
-use App\Services\Events\SendCancelledEventNotificationsCommand;
+use App\Services\Events\SendEventCancelledNotificationCommand;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Mail;
@@ -45,12 +45,12 @@ class SendEventCancelledNotificationsJob implements ShouldQueue
      * timestamp to prevent duplicate notifications.
      *
      * @param GetTroopersForCancelledEventQuery $get_troopers Service to query troopers who signed up for the event.
-     * @param SendCancelledEventNotificationsCommand $send_emails Service to send cancellation notifications.
+     * @param SendEventCancelledNotificationCommand $send_email Service to send cancellation notifications.
      * @return void
      */
     public function handle(
         GetTroopersForCancelledEventQuery $get_troopers,
-        SendCancelledEventNotificationsCommand $send_emails): void
+        SendEventCancelledNotificationCommand $send_email): void
     {
         if ($this->event->create_notifications_sent_at !== null)
         {
@@ -59,7 +59,10 @@ class SendEventCancelledNotificationsJob implements ShouldQueue
 
         $troopers = $get_troopers($this->event);
 
-        $send_emails($this->event, $troopers);
+        foreach ($troopers as $trooper)
+        {
+            $send_email($this->event, $trooper);
+        }
 
         $this->event->create_notifications_sent_at = now();
         $this->event->save();

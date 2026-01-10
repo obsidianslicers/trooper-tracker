@@ -1,0 +1,61 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Unit\Mail\Admin\Troopers;
+
+use App\Mail\Admin\Troopers\TrooperApproved;
+use App\Models\Trooper;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class TrooperApprovedTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_it_has_correct_subject(): void
+    {
+        $trooper = Trooper::factory()->create();
+
+        $subject = new TrooperApproved($trooper);
+
+        $envelope = $subject->envelope();
+
+        $this->assertEquals('Troop Tracker - Welcome, Trooper! You Passed Inspection!', $envelope->subject);
+    }
+
+    public function test_it_uses_correct_view(): void
+    {
+        $trooper = Trooper::factory()->create();
+
+        $subject = new TrooperApproved($trooper);
+
+        $content = $subject->content();
+
+        $this->assertEquals('emails.admin.troopers.trooper-approved', $content->view);
+    }
+
+    public function test_it_passes_trooper_to_view(): void
+    {
+        $trooper = Trooper::factory()->create();
+
+        $subject = new TrooperApproved($trooper);
+
+        $content = $subject->content();
+
+        $this->assertArrayHasKey('trooper', $content->with);
+        $this->assertSame($trooper, $content->with['trooper']);
+    }
+
+    public function test_it_has_no_attachments(): void
+    {
+        $trooper = Trooper::factory()->create();
+
+        $subject = new TrooperApproved($trooper);
+
+        $attachments = $subject->attachments();
+
+        $this->assertIsArray($attachments);
+        $this->assertEmpty($attachments);
+    }
+}

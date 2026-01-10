@@ -4,6 +4,7 @@ namespace App\Services\Events;
 
 use App\Mail\Events\CancelledEventNotification;
 use App\Models\Event;
+use App\Models\Trooper;
 use Illuminate\Support\Facades\Mail;
 
 /**
@@ -15,28 +16,23 @@ use Illuminate\Support\Facades\Mail;
  *
  * @package App\Services\Events
  */
-class SendCancelledEventNotificationsCommand
+class SendEventCancelledNotificationCommand
 {
     /**
-     * Send cancellation emails to the given troopers.
+     * Send cancellation email to the given trooper.
      *
-     * Iterates through the provided trooper collection and queues a
-     * cancellation notification email to each trooper with a valid
+     * Queues a cancellation notification email to the trooper if they have a valid
      * email address. Invalid or missing email addresses are skipped.
      *
      * @param Event $event The cancelled event to notify about.
-     * @param iterable $troopers Collection of Trooper models to notify.
+     * @param Trooper $trooper The Trooper model to notify.
      * @return void
      */
-    public function __invoke(Event $event, iterable $troopers): void
+    public function __invoke(Event $event, Trooper $trooper): void
     {
-        foreach ($troopers as $trooper)
+        if ($trooper->emailAppearsValid())
         {
-            if ($trooper->emailAppearsValid())
-            {
-                Mail::to($trooper->email)
-                    ->queue(new CancelledEventNotification($event));
-            }
+            Mail::to($trooper->email)->queue(new CancelledEventNotification($event));
         }
     }
 }
