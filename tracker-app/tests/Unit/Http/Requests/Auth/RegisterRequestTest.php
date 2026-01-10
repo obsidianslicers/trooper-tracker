@@ -233,4 +233,32 @@ class RegisterRequestTest extends TestCase
         $this->assertTrue($validator->fails());
         $this->assertArrayNotHasKey("organizations.{$club->id}.identifier", $validator->errors()->messages());
     }
+
+    public function test_blank_identifier_not_validated_when_organization_not_selected(): void
+    {
+        // Arrange: Create an organization with identifier validation
+        $club = \App\Models\Organization::factory()
+            ->withIdentifierValidation()
+            ->create();
+
+        $data = [
+            'name' => 'Test Trooper',
+            'email' => 'test@example.com',
+            'account_type' => 'member',
+            'organizations' => [
+                $club->id => [
+                    'selected' => '0', // String '0' means unchecked
+                    'identifier' => '', // Empty string from hidden form field
+                ],
+            ],
+        ];
+
+        // Act
+        $validator = Validator::make($data, $this->subject->rules());
+
+        // Assert: Validation should fail only because no organization is selected
+        // but NOT because identifier format is invalid (integer, between rules shouldn't apply)
+        $this->assertTrue($validator->fails());
+        $this->assertArrayNotHasKey("organizations.{$club->id}.identifier", $validator->errors()->messages());
+    }
 }

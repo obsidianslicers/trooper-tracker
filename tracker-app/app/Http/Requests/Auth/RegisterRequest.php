@@ -128,9 +128,9 @@ class RegisterRequest extends FormRequest
                 // For handlers: all identifier rules are skipped (optional and unvalidated).
                 $organization_rules = [
                     Rule::when(
-                        fn() => $this->account_type === 'member',
+                        fn() => $this->account_type === 'member' && $this->input("organizations.{$organization->id}.selected") === '1',
                         array_merge(
-                            [Rule::requiredIf(fn() => $this->input("organizations.{$organization->id}.selected") === '1')],
+                            ['required'],
                             $base_rules,
                             [new UniqueOrganizationIdentifierRule($organization)]
                         )
