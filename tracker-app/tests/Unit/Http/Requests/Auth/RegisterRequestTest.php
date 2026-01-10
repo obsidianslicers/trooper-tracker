@@ -72,4 +72,165 @@ class RegisterRequestTest extends TestCase
         $this->assertArrayHasKey('organizations', $rules);
         $this->assertArrayHasKey('organizations.*.selected', $rules);
     }
+
+    public function test_selected_equals_one_requires_region_id(): void
+    {
+        // Arrange: Create an organization with regions
+        $club = \App\Models\Organization::factory()
+            ->withIdentifierValidation()
+            ->create();
+
+        $region = \App\Models\Organization::factory()
+            ->asRegion()
+            ->create(['parent_id' => $club->id]);
+
+        $data = [
+            'name' => 'Test Trooper',
+            'email' => 'test@example.com',
+            'account_type' => 'member',
+            'organizations' => [
+                $club->id => [
+                    'selected' => '1', // String '1' means checked
+                    'identifier' => '12345',
+                    // Missing region_id - should fail validation
+                ],
+            ],
+        ];
+
+        // Create request with data
+        $request = RegisterRequest::create('/register', 'POST', $data);
+        $request->setContainer(app());
+        $request->setRedirector(app('redirect'));
+
+        // Act
+        $validator = Validator::make($data, $request->rules());
+
+        // Assert: Validation should fail because region_id is required when selected === '1'
+        $this->assertTrue($validator->fails());
+        $this->assertArrayHasKey("organizations.{$club->id}.region_id", $validator->errors()->messages());
+    }
+
+    public function test_selected_zero_does_not_require_region_id(): void
+    {
+        // Arrange: Create an organization with regions
+        $club = \App\Models\Organization::factory()
+            ->withIdentifierValidation()
+            ->create();
+
+        $region = \App\Models\Organization::factory()
+            ->asRegion()
+            ->create(['parent_id' => $club->id]);
+
+        $data = [
+            'name' => 'Test Trooper',
+            'email' => 'test@example.com',
+            'account_type' => 'member',
+            'organizations' => [
+                $club->id => [
+                    'selected' => '0', // String '0' means unchecked
+                    // No identifier or region_id - should pass because unchecked
+                ],
+            ],
+        ];
+
+        // Act
+        $validator = Validator::make($data, $this->subject->rules());
+
+        // Assert: Validation should fail only because no organization is selected (AtLeastOneOrganizationSelectedRule)
+        // but NOT because region_id is missing
+        $this->assertTrue($validator->fails());
+        $this->assertArrayNotHasKey("organizations.{$club->id}.region_id", $validator->errors()->messages());
+    }
+
+    public function test_selected_empty_string_does_not_require_region_id(): void
+    {
+        // Arrange: Create an organization with regions
+        $club = \App\Models\Organization::factory()
+            ->withIdentifierValidation()
+            ->create();
+
+        $region = \App\Models\Organization::factory()
+            ->asRegion()
+            ->create(['parent_id' => $club->id]);
+
+        $data = [
+            'name' => 'Test Trooper',
+            'email' => 'test@example.com',
+            'account_type' => 'member',
+            'organizations' => [
+                $club->id => [
+                    'selected' => '', // Empty string means unchecked (edge case)
+                    // No identifier or region_id - should pass because unchecked
+                ],
+            ],
+        ];
+
+        // Act
+        $validator = Validator::make($data, $this->subject->rules());
+
+        // Assert: Validation should fail only because no organization is selected
+        // but NOT because region_id is missing
+        $this->assertTrue($validator->fails());
+        $this->assertArrayNotHasKey("organizations.{$club->id}.region_id", $validator->errors()->messages());
+    }
+
+    public function test_selected_equals_one_requires_identifier_for_members(): void
+    {
+        // Arrange: Create an organization with identifier validation
+        $club = \App\Models\Organization::factory()
+            ->withIdentifierValidation()
+            ->create();
+
+        $data = [
+            'name' => 'Test Trooper',
+            'email' => 'test@example.com',
+            'account_type' => 'member',
+            'organizations' => [
+                $club->id => [
+                    'selected' => '1', // String '1' means checked
+                    // Missing identifier - should fail validation for members
+                ],
+            ],
+        ];
+
+        // Create request with data
+        $request = RegisterRequest::create('/register', 'POST', $data);
+        $request->setContainer(app());
+        $request->setRedirector(app('redirect'));
+
+        // Act
+        $validator = Validator::make($data, $request->rules());
+
+        // Assert: Validation should fail because identifier is required when selected === '1' for members
+        $this->assertTrue($validator->fails());
+        $this->assertArrayHasKey("organizations.{$club->id}.identifier", $validator->errors()->messages());
+    }
+
+    public function test_selected_not_one_does_not_require_identifier_for_members(): void
+    {
+        // Arrange: Create an organization with identifier validation
+        $club = \App\Models\Organization::factory()
+            ->withIdentifierValidation()
+            ->create();
+
+        $data = [
+            'name' => 'Test Trooper',
+            'email' => 'test@example.com',
+            'account_type' => 'member',
+            'organizations' => [
+                $club->id => [
+                    'selected' => '0', // String '0' means unchecked
+                    // No identifier - should pass because unchecked
+                ],
+            ],
+        ];
+
+        // Act
+        $validator = Validator::make($data, $this->subject->rules());
+
+        // Assert: Validation should fail only because no organization is selected
+        // but NOT because identifier is missing
+        $this->assertTrue($validator->fails());
+        $this->assertArrayNotHasKey("organizations.{$club->id}.identifier", $validator->errors()->messages());
+    }
 }

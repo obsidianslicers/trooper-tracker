@@ -34,7 +34,8 @@
                         Email:
                     </x-label>
                     <x-input-text :property="'email'"
-                                  :value="$email" />
+                                  :value="$email"
+                                  :disabled="$registration_method != 'email'" />
                 </x-input-container>
 
                 <x-input-container>
@@ -44,7 +45,7 @@
                     <x-input-text :property="'phone'" />
                 </x-input-container>
 
-                @if(old('registration_method', $registration_method) == 'email')
+                @if($registration_method == 'email')
                     <x-input-container>
                         <x-label>
                             Password:
@@ -73,24 +74,18 @@
                 <x-transmission-bar :id="'register-organization'" />
 
                 @foreach ($organizations as $organization)
-                    @php($account_type = old('account_type', request('account_type', 'member')))
-                    @php($organization_selected = old("organizations.{$organization->id}.selected", $organization->selected))
-
-                    <div 
-                        id="organization-selection-{{ $organization->id }}"
-                        x-data="organizationSelector({ organizationId: {{ $organization->id }} })"
+                    <div id="organization-selection-{{ $organization->id }}"
+                        x-data="Auth.Register.organizationSelector({ organizationId: {{ $organization->id }} })"
                         x-init="init()">
                         <x-input-container>
-                            <x-input-checkbox 
-                                :property="'organizations.' . $organization->id . '.selected'"
+                            <x-input-checkbox :property="'organizations.' . $organization->id . '.selected'"
                                 :label="$organization->name"
                                 :value="'1'"
-                                :checked="$organization_selected"
+                                :checked="$organization->selected"
                                 @change="toggle" />
                         </x-input-container>
 
-                        <div 
-                            class="organization-{{ $organization->id }} ps-4"
+                        <div class="organization-{{ $organization->id }} ps-4"
                             x-show="active"
                             x-transition>
                             @if($account_type !== 'handler')
@@ -106,28 +101,23 @@
 
                             @if($organization->organizations->count() > 0)
                                 <x-input-container>
-                                    <select 
-                                        name="organizations[{{ $organization->id }}][region_id]"
+                                    <select name="organizations[{{ $organization->id }}][region_id]"
                                         x-model="regionId"
                                         @change="updateUnits"
-                                        class="form-select"
-                                    >
+                                        class="form-select">
                                         <option value="">-- Select your Region/Garrison --</option>
-
                                         <template x-for="region in regions" :key="region.id">
                                             <option :value="region.id" x-text="region.name"></option>
                                         </template>
                                     </select>
                                 </x-input-container>
 
-                                <x-input-container id="unit-container-{{ $organization->id }}">
-                                    <select 
-                                        name="organizations[{{ $organization->id }}][unit_id]"
+                                <x-input-container>
+                                    <select name="organizations[{{ $organization->id }}][unit_id]"
                                         x-model="unitId"
                                         :disabled="!regionId"
-                                        class="form-select"                >
+                                        class="form-select">
                                         <option value="">-- Select your Unit/Squad --</option>
-
                                         <template x-for="unit in units" :key="unit.id">
                                             <option :value="unit.id" x-text="unit.name"></option>
                                         </template>
@@ -144,7 +134,6 @@
                         Register
                     </x-submit-button>
                 </x-submit-container>
-                <br />
 
             </form>
         </x-card>
@@ -155,48 +144,5 @@
 @section('page-script')
 <script>
     window.$organization_hierarchy = @json($organization_hierarchy);
-    
-    document.addEventListener('alpine:init', () => {
-    Alpine.data('organizationSelector', ({ organizationId }) => ({
-        active: false,
-        regionId: '',
-        unitId: '',
-        regions: [],
-        units: [],
-
-        init() {
-            // If server hydrated old values, preload them
-            const organization = window.$organization_hierarchy.find(o => o.id === organizationId);
-
-            if (organization.preselected) {
-                this.active = true;
-                this.regions = organization.regions;
-                this.regionId = organization.region_id ?? '';
-                this.updateUnits();
-                this.unitId = organization.unit_id ?? '';
-            }
-        },
-
-        toggle() {
-            this.active = !this.active;
-
-            if (this.active) {
-                const organization = window.$organization_hierarchy.find(o => o.id === organizationId);
-                this.regions = organization.regions;
-            } else {
-                this.regionId = '';
-                this.unitId = '';
-                this.regions = [];
-                this.units = [];
-            }
-        },
-
-        updateUnits() {
-            const region = this.regions.find(r => r.id == this.regionId);
-            this.units = region ? region.units : [];
-            this.unitId = '';
-        }
-    }));
-});
 </script>
 @endsection

@@ -38,12 +38,15 @@ import collapse from '@alpinejs/collapse';
 import intersect from '@alpinejs/intersect';
 import persist from '@alpinejs/persist';
 
-Alpine.plugin(collapse)
-Alpine.plugin(persist)
-Alpine.plugin(intersect)
+Alpine.plugin(collapse);
+Alpine.plugin(persist);
+Alpine.plugin(intersect);
 
-window.Alpine = Alpine
-Alpine.start()
+import AuthRegisterPlugin from './auth/index.js';
+Alpine.plugin(AuthRegisterPlugin);
+
+window.Alpine = Alpine;
+Alpine.start();
 
 // Typeahead (not used directly, may get removed later)
 import 'typeahead.js';
