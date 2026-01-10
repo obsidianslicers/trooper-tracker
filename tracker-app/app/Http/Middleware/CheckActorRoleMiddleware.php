@@ -10,12 +10,28 @@ use Illuminate\Support\Facades\Auth;
 use InvalidArgumentException;
 use ValueError;
 
+/**
+ * Middleware to verify that the authenticated trooper has the required membership role.
+ *
+ * This middleware checks if the authenticated user has an active membership with one of
+ * the specified roles. Returns 401 if not authenticated, 403 if authenticated but without
+ * the required role.
+ */
 class CheckActorRoleMiddleware
 {
     /**
-     * Handle an incoming request.
+     * Handle an incoming request and verify trooper role authorization.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * Checks if the authenticated trooper has an active membership with one of the
+     * specified roles. Roles can be passed as string values that will be converted
+     * to MembershipRole enums.
+     *
+     * @param Request $request The incoming HTTP request
+     * @param Closure $next The next middleware in the pipeline
+     * @param string ...$roles Variable number of role names to check against
+     * @return mixed The response from the next middleware if authorized
+     * @throws InvalidArgumentException If an invalid role string is provided
+     * @throws \Symfony\Component\HttpKernel\Exception\HttpException 401 if not authenticated, 403 if unauthorized
      */
     public function handle(Request $request, Closure $next, ...$roles)
     {

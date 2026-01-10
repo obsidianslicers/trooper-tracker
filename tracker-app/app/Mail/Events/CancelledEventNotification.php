@@ -11,12 +11,20 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
+/**
+ * Mailable for cancelled event notification.
+ *
+ * Sent to troopers who were signed up for an event when it gets cancelled,
+ * informing them of the cancellation.
+ */
 class CancelledEventNotification extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
     /**
-     * Create a new message instance.
+     * Create a new cancelled event notification email instance.
+     *
+     * @param Event $event The event that was cancelled
      */
     public function __construct(private readonly Event $event)
     {
@@ -24,7 +32,9 @@ class CancelledEventNotification extends Mailable implements ShouldQueue
     }
 
     /**
-     * Get the message envelope.
+     * Get the message envelope with subject line.
+     *
+     * @return Envelope The email envelope configuration
      */
     public function envelope(): Envelope
     {
@@ -34,7 +44,9 @@ class CancelledEventNotification extends Mailable implements ShouldQueue
     }
 
     /**
-     * Get the message content definition.
+     * Get the message content definition with event data.
+     *
+     * @return Content The email content configuration with view and event data
      */
     public function content(): Content
     {

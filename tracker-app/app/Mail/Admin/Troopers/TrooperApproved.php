@@ -10,12 +10,20 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
+/**
+ * Mailable for trooper approval notification.
+ *
+ * Sent to troopers when an administrator approves their account,
+ * granting them full access to the Troop Tracker application.
+ */
 class TrooperApproved extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
     /**
-     * Create a new message instance.
+     * Create a new trooper approval email instance.
+     *
+     * @param Trooper $trooper The trooper who was approved
      */
     public function __construct(private readonly Trooper $trooper)
     {
@@ -23,7 +31,9 @@ class TrooperApproved extends Mailable implements ShouldQueue
     }
 
     /**
-     * Get the message envelope.
+     * Get the message envelope with subject line.
+     *
+     * @return Envelope The email envelope configuration
      */
     public function envelope(): Envelope
     {
@@ -33,7 +43,9 @@ class TrooperApproved extends Mailable implements ShouldQueue
     }
 
     /**
-     * Get the message content definition.
+     * Get the message content definition with trooper data.
+     *
+     * @return Content The email content configuration with view and trooper data
      */
     public function content(): Content
     {

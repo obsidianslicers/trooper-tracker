@@ -10,12 +10,21 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
+/**
+ * Mailable for instant event notification.
+ *
+ * Sent immediately to troopers when a new event is posted, based on their
+ * instant notification preferences. Tracks when the notification was sent
+ * via the sent() callback.
+ */
 class InstantEventNotification extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
     /**
-     * Create a new message instance.
+     * Create a new instant event notification email instance.
+     *
+     * @param EventNotification $event_notification The notification record to send
      */
     public function __construct(private readonly EventNotification $event_notification)
     {
@@ -23,7 +32,9 @@ class InstantEventNotification extends Mailable implements ShouldQueue
     }
 
     /**
-     * Get the message envelope.
+     * Get the message envelope with subject line.
+     *
+     * @return Envelope The email envelope configuration
      */
     public function envelope(): Envelope
     {
@@ -33,7 +44,9 @@ class InstantEventNotification extends Mailable implements ShouldQueue
     }
 
     /**
-     * Get the message content definition.
+     * Get the message content definition with event notification data.
+     *
+     * @return Content The email content configuration with view and event data
      */
     public function content(): Content
     {
@@ -63,7 +76,7 @@ class InstantEventNotification extends Mailable implements ShouldQueue
      * Updates the event notification's sent_at timestamp to track when
      * the notification was delivered to the recipient.
      *
-     * @param \Symfony\Component\Mime\Email $message The sent email message instance.
+     * @param \Symfony\Component\Mime\Email $message The sent email message instance
      * @return void
      */
     public function sent($message): void

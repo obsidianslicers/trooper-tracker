@@ -8,6 +8,8 @@ use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
+use App\Services\Events\GetTroopersForCancelledEventQuery;
+use App\Services\Events\SendEventCancelledNotificationCommand;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Mail;
@@ -42,34 +44,24 @@ class SendEventCancelledNotificationsJob implements ShouldQueue
      * shift in the cancelled event. Updates the event's create_notifications_sent_at
      * timestamp to prevent duplicate notifications.
      *
+     * @param GetTroopersForCancelledEventQuery $get_troopers Service to query troopers who signed up for the event.
+     * @param SendEventCancelledNotificationCommand $send_email Service to send cancellation notifications.
      * @return void
      */
-    public function handle(): void
+    public function handle(
+        GetTroopersForCancelledEventQuery $get_troopers,
+        SendEventCancelledNotificationCommand $send_email): void
     {
         if ($this->event->create_notifications_sent_at !== null)
         {
             return;
         }
 
-        $event_id = $this->event->id;
-
-        $filter = function ($q) use ($event_id)
-        {
-            $q->where(EventTrooper::STATUS, EventTrooperStatus::GOING)
-                ->whereHas('event_shift', function ($q) use ($event_id)
-                {
-                    $q->where(EventShift::EVENT_ID, $event_id);
-                });
-        };
-
-        $troopers = Trooper::active()->whereHas('event_troopers', $filter)->get();
+        $troopers = $get_troopers($this->event);
 
         foreach ($troopers as $trooper)
         {
-            if ($trooper->emailAppearsValid())
-            {
-                Mail::to($trooper->email)->queue(new CancelledEventNotification($this->event));
-            }
+            $send_email($this->event, $trooper);
         }
 
         $this->event->create_notifications_sent_at = now();

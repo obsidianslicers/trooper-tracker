@@ -10,12 +10,21 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
+/**
+ * Mailable for trooper status change to "going" notification.
+ *
+ * Sent to troopers when their event sign-up status changes to GOING,
+ * typically when they move from the waitlist to confirmed attendance.
+ * Includes a calendar link for the event.
+ */
 class TrooperNextInLine extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
     /**
-     * Create a new message instance.
+     * Create a new trooper next-in-line notification email instance.
+     *
+     * @param EventTrooper $event_trooper The event trooper assignment that was confirmed
      */
     public function __construct(private readonly EventTrooper $event_trooper)
     {
@@ -23,7 +32,9 @@ class TrooperNextInLine extends Mailable implements ShouldQueue
     }
 
     /**
-     * Get the message envelope.
+     * Get the message envelope with subject line.
+     *
+     * @return Envelope The email envelope configuration
      */
     public function envelope(): Envelope
     {
@@ -33,7 +44,9 @@ class TrooperNextInLine extends Mailable implements ShouldQueue
     }
 
     /**
-     * Get the message content definition.
+     * Get the message content definition with event data and calendar link.
+     *
+     * @return Content The email content configuration with view and event data
      */
     public function content(): Content
     {

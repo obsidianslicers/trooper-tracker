@@ -7,6 +7,8 @@ namespace App\Console\Commands;
 use App\Enums\NotificationFrequency;
 use App\Mail\Events\DailyEventNotification;
 use App\Models\Trooper;
+use App\Services\Events\SendEventDailyNotificationCommand;
+use App\Services\Troopers\GetTroopersForDailyEventNotificationsQuery;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Mail;
 
@@ -38,40 +40,15 @@ class SendDailyEventNotifications extends Command
      *
      * @return void
      */
-    public function handle(): void
+    public function handle(
+        GetTroopersForDailyEventNotificationsQuery $get_troopers,
+        SendEventDailyNotificationCommand $send_email): void
     {
-        $with = [
-            'event_notifications' => function ($q)
-            {
-                $q->whereNull('processed_at');
-            }
-        ];
-
-        $troopers = Trooper::active()
-            ->with($with)
-            ->where(Trooper::NOTIFICATION_FREQUENCY, NotificationFrequency::DAILY)
-            ->whereHas('event_notifications', function ($q)
-            {
-                $q->whereNull('processed_at');
-            })
-            ->get();
-
+        $troopers = $get_troopers();
 
         foreach ($troopers as $trooper)
         {
-            if ($trooper->emailAppearsValid())
-            {
-                if ($trooper->notification_frequency === NotificationFrequency::DAILY)
-                {
-                    Mail::to($trooper->email)->queue(new DailyEventNotification($trooper->event_notifications));
-
-                    foreach ($trooper->event_notifications as $event_notification)
-                    {
-                        $event_notification->processed_at = now();
-                        $event_notification->save();
-                    }
-                }
-            }
+            $send_email($trooper);
         }
     }
 }

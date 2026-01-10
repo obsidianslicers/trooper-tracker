@@ -5,18 +5,18 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Enums\EventStatus;
-use App\Enums\EventTrooperStatus;
 use App\Mail\Events\EventShiftComplete;
-use App\Models\EventShift;
+use App\Services\Events\GetEventShiftsToCloseQuery;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Mail;
 
 /**
- * Artisan command to calculate and store trooper achievements based on their event history.
+ * Artisan command to close event shifts that have ended.
  *
- * This command aggregates event data for each trooper, such as total troops,
- * volunteer hours, and funds raised, and then updates their corresponding
- * achievements in the database.
+ * This command orchestrates the process of identifying and closing event shifts
+ * whose end time has passed. It delegates the query logic to GetEventShiftsToCloseQuery
+ * service, updates each shift's status to CLOSED, and sends completion emails to
+ * troopers who attended.
  */
 class CloseEventShiftsCommand extends Command
 {
@@ -32,24 +32,22 @@ class CloseEventShiftsCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Close event shifts.';
+    protected $description = 'Close event shifts that have ended and notify attending troopers';
 
     /**
      * Execute the console command.
      *
+     * Orchestrates the event shift closing process by:
+     * 1. Querying for active event shifts that have ended via GetEventShiftsToCloseQuery
+     * 2. Updating each shift's status to CLOSED
+     * 3. Sending EventShiftComplete emails to troopers with GOING status
+     *
+     * @param GetEventShiftsToCloseQuery $get_event_shifts_to_close Service to retrieve shifts needing closure
      * @return void
      */
-    public function handle(): void
+    public function handle(GetEventShiftsToCloseQuery $get_event_shifts_to_close): void
     {
-        $with = [
-            'event.organization',
-            'event_troopers.trooper',
-        ];
-
-        $event_shifts = EventShift::with($with)
-            ->active()
-            ->where(EventShift::SHIFT_ENDS_AT, '<', now())
-            ->get();
+        $event_shifts = $get_event_shifts_to_close();
 
         foreach ($event_shifts as $event_shift)
         {

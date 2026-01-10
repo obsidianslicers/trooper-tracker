@@ -7,6 +7,9 @@ use App\Mail\Events\InstantEventNotification;
 use App\Models\Event;
 use App\Models\EventNotification;
 use App\Models\Trooper;
+use App\Models\TrooperAssignment;
+use App\Services\Events\GetTroopersForEventCreatedNotificationQuery;
+use App\Services\Events\SendEventCreatedNotificationCommand;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Mail;
@@ -44,45 +47,20 @@ class SendEventCreatedNotificationsJob implements ShouldQueue
      *
      * @return void
      */
-    public function handle(): void
+    public function handle(
+        GetTroopersForEventCreatedNotificationQuery $get_troopers,
+        SendEventCreatedNotificationCommand $send_email): void
     {
         if ($this->event->create_notifications_sent_at !== null)
         {
             return;
         }
 
-        //  TODO CROSS CHECK THIS WITH TROOPER_NOTIFICATIONS OF HOSTING ORGANIZATION
-        $existing_notifications = $this->event->event_notifications
-            ->pluck(EventNotification::TROOPER_ID)
-            ->flip()
-            ->all();
-
-        $troopers = Trooper::active()
-            ->where(Trooper::NOTIFICATION_FREQUENCY, '!=', NotificationFrequency::NEVER)
-            ->get();
+        $troopers = $get_troopers($this->event);
 
         foreach ($troopers as $trooper)
         {
-            if ($trooper->emailAppearsValid() && !isset($existing_notifications[$trooper->id]))
-            {
-                $event_notification = new EventNotification();
-
-                $event_notification->event_id = $this->event->id;
-                $event_notification->trooper_id = $trooper->id;
-
-                if ($trooper->notification_frequency === NotificationFrequency::INSTANT)
-                {
-                    $event_notification->processed_at = now();
-                    $event_notification->save();
-
-                    Mail::to($trooper->email)->queue(new InstantEventNotification($event_notification));
-                }
-                else
-                {
-                    $event_notification->processed_at = null;
-                    $event_notification->save();
-                }
-            }
+            $send_email($this->event, $trooper);
         }
 
         $this->event->create_notifications_sent_at = now();

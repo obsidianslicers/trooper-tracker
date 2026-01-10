@@ -96,11 +96,115 @@ class LoginSubmitController extends Controller
 Route::post('/login', LoginSubmitController::class);
 ```
 
-## 8. Testing (PHPUnit)
+## 8. Jobs & Console Commands
+
+### 8.1. Orchestration Pattern
+
+Jobs and Console Commands should follow the **Orchestration Pattern**, acting as thin orchestrators that coordinate calls to Service classes. This keeps the business logic in the Domain layer (Service classes) where it can be reused and tested in isolation.
+
+**Key Principles:**
+
+-   **Jobs and Commands are Orchestrators:** They should coordinate workflow, not implement business logic.
+-   **Business Logic Lives in Services:** Extract all domain logic into dedicated Service classes.
+-   **Reusability:** Service classes can be called from Controllers, Jobs, Commands, or other Services.
+-   **Testability:** Service classes are easier to unit test because they have no dependencies on Laravel's job/command infrastructure.
+
+**Example:**
+
+```php
+// app/Jobs/SendEventNotificationsJob.php
+class SendEventNotificationsJob implements ShouldQueue
+{
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    public function __construct(
+        private readonly Event $event
+    ) {
+    }
+
+    /**
+     * Execute the job by orchestrating the service call.
+     */
+    public function handle(EventNotificationService $service): void
+    {
+        // Orchestrate - delegate to service
+        $service->sendNotificationsForEvent($this->event);
+    }
+}
+
+// app/Console/Commands/SendDailyEventDigestCommand.php
+class SendDailyEventDigestCommand extends Command
+{
+    protected $signature = 'events:send-daily-digest';
+    protected $description = 'Send daily event digest to troopers';
+
+    /**
+     * Execute the console command by orchestrating the service call.
+     */
+    public function handle(EventNotificationService $service): int
+    {
+        // Orchestrate - delegate to service
+        $sent_count = $service->sendDailyDigests();
+        
+        $this->info("Sent {$sent_count} daily digests.");
+        
+        return Command::SUCCESS;
+    }
+}
+
+// app/Services/EventNotificationService.php
+class EventNotificationService
+{
+    /**
+     * Business logic: Send notifications for an event.
+     */
+    public function sendNotificationsForEvent(Event $event): void
+    {
+        // Business logic here
+        $troopers = $this->getEligibleTroopers($event);
+        
+        foreach ($troopers as $trooper) {
+            $this->createNotification($event, $trooper);
+        }
+    }
+
+    /**
+     * Business logic: Send daily digest emails.
+     */
+    public function sendDailyDigests(): int
+    {
+        // Business logic here
+        $notifications = $this->getPendingDailyNotifications();
+        
+        // Send and track
+        $sent_count = 0;
+        foreach ($notifications as $notification) {
+            Mail::to($notification->trooper)->queue(
+                new DailyEventNotification($notification)
+            );
+            $sent_count++;
+        }
+        
+        return $sent_count;
+    }
+    
+    // Additional private helper methods...
+}
+```
+
+**Benefits:**
+
+-   Jobs and Commands remain simple, focused, and easy to understand
+-   Business logic is centralized in Services for consistency
+-   Services can be reused across different entry points (web, CLI, queue)
+-   Unit testing is simplified by testing Services independently
+-   Aligns with the Single Responsibility Principle
+
+## 9. Testing (PHPUnit)
 
 A robust test suite is essential for our refactoring efforts. All new features and refactored code must be accompanied by tests.
 
-### 8.1. Test Method Naming
+### 9.1. Test Method Naming
 
 All test method names must be `snake_cased` and begin with the `test_` prefix. The name should clearly describe what the test is asserting.
 
@@ -111,7 +215,7 @@ public function test_invoke_handles_unapproved_user(): void
 }
 ```
 
-### 8.2. Subject Under Test
+### 9.2. Subject Under Test
 
 When instantiating the class being tested, the variable name **must** be `$subject`.
 
@@ -124,16 +228,16 @@ public function test_something(): void
 }
 ```
 
-### 8.3. Mocking
+### 9.3. Mocking
 
-When creating mocks with PHPUnit's built-in mocking library, use the `expects()` and `method()` chain for setting up expectations. This provides a clear, readable format.
+When creating mocks, use **Mockery** with the `shouldReceive()` chain for setting up expectations. This provides a clear, readable format.
 
 ```php
-// Example for a mock of Illuminate\Http\Request
-$request_mock = $this->createMock(Request::class);
+// Example for a mock of Illuminate\Session\Store
+$session_mock = Mockery::mock(Store::class);
 
-$request_mock->expects($this->once())
-    ->method('getHeaderLine')
-    ->with('Accept')
-    ->willReturn('application/json');
+$session_mock->shouldReceive('get')
+    ->once()
+    ->with('flash_messages', [])
+    ->andReturn([]);
 ```
