@@ -9,8 +9,9 @@ use App\Http\Requests\Account\SetupRequest;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use App\Services\FlashMessageService;
+use App\Services\Troopers\UpdateTrooperMembershipsCommand;
+use App\Services\Troopers\UpdateTrooperProfileCommand;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Log;
 
 /**
  * Handles form submission for trooper organization membership setup.
@@ -36,75 +37,23 @@ class SetupSubmitController extends Controller
      * persists membership/assignment selections, flashes success feedback, and redirects.
      *
      * @param SetupRequest $request The validated setup form request.
+     * @param UpdateTrooperProfileCommand $update_profile The command to update trooper profile.
+     * @param UpdateTrooperMembershipsCommand $update_memberships The command to update trooper memberships.
      * @return RedirectResponse A redirect response to the account profile page.
      */
-    public function __invoke(SetupRequest $request): RedirectResponse
+    public function __invoke(
+        SetupRequest $request,
+        UpdateTrooperProfileCommand $update_profile,
+        UpdateTrooperMembershipsCommand $update_memberships): RedirectResponse
     {
         $trooper = $request->user();
 
-        $this->updateTrooper($request, $trooper);
-        $this->updateMemberships($request, $trooper);
+        $update_profile($trooper, $request->validated());
+
+        $update_memberships($trooper, $request->validated('organizations', []));
 
         $this->flash->updated($trooper);
 
         return redirect()->route('account.costumes');
-    }
-
-    /**
-     * Update the trooper's email and mark setup as completed.
-     *
-     * @param SetupRequest $request The validated setup request.
-     * @param Trooper $trooper The trooper to update.
-     * @return void
-     */
-    private function updateTrooper(SetupRequest $request, Trooper $trooper): void
-    {
-        $trooper->email = $request->validated('email');
-        $trooper->notification_frequency = $request->validated('notification_frequency');
-        $trooper->setup_completed_at = now();
-
-        $trooper->save();
-    }
-
-    /**
-     * Persist trooper membership assignments based on selected organizations and hierarchy.
-     *
-     * For each selected organization, determines whether to assign the trooper to the unit
-     * (if selected), region (if selected), or organization level, then creates or updates
-     * the TrooperAssignment record with `is_member = true`.
-     *
-     * @param SetupRequest $request The validated setup request.
-     * @param Trooper $trooper The trooper whose memberships are being updated.
-     * @return void
-     */
-    private function updateMemberships(SetupRequest $request, Trooper $trooper): void
-    {
-        // Loop through selected organizations 
-        $data = $request->validated('organizations', []);
-
-        foreach ($data as $organization_id => $data)
-        {
-            $assignment_id = $data['assignment'];
-
-            if ($assignment_id == null)
-            {
-                continue;
-            }
-
-            //  Find assignment by unit if unit is selected
-            $trooper_assignment = $trooper->trooper_assignments
-                ->filter(fn($t) => $t->organization_id == $assignment_id)
-                ->first();
-
-            if ($trooper_assignment === null)
-            {
-                $trooper_assignment = new TrooperAssignment();
-                $trooper_assignment->trooper_id = $trooper->id;
-                $trooper_assignment->organization_id = $assignment_id;
-            }
-
-            $trooper_assignment->is_member = true;
-            $trooper_assignment->save();
-        }
     }
 }
