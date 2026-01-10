@@ -45,7 +45,6 @@ class RegisterController extends Controller
         foreach ($organizations as $organization)
         {
             $organization->selected = old("organizations.{$organization->id}.selected") === '1';
-
             $organization->region_id = old("organizations.{$organization->id}.region_id");
             $organization->unit_id = old("organizations.{$organization->id}.unit_id");
         }

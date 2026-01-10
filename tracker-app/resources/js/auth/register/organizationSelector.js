@@ -8,14 +8,21 @@ export default function ({ organizationId }) {
 
         init() {
             const org = window.$organization_hierarchy.find(o => o.id === organizationId)
-            if (!org) return
+            if (!org) {
+                return;
+            }
 
             if (org.selected) {
                 this.active = true
                 this.regions = org.regions
-                this.regionId = org.region_id ?? ''
-                this.updateUnits()
-                this.unitId = org.unit_id ?? ''
+
+                // Use $nextTick to ensure x-for renders region 
+                // options before x-model binds
+                this.$nextTick(() => {
+                    this.regionId = org.region_id ?? ''
+                    this.updateUnits()
+                    this.unitId = org.unit_id ?? ''
+                })
             }
         },
 
@@ -23,7 +30,9 @@ export default function ({ organizationId }) {
             this.active = !this.active
 
             const org = window.$organization_hierarchy.find(o => o.id === organizationId)
-            if (!org) return
+            if (!org) {
+                return;
+            }
 
             if (this.active) {
                 this.regions = org.regions

@@ -82,12 +82,12 @@
                                 :label="$organization->name"
                                 :value="'1'"
                                 :checked="$organization->selected"
-                                @change="toggle" />
+                                x-on:change="toggle" />
                         </x-input-container>
 
                         <div class="organization-{{ $organization->id }} ps-4"
-                            x-show="active"
-                            x-transition>
+                            x-transition
+                            x-show="active">
                             @if($account_type !== 'handler')
                                 <x-input-container>
                                     <div class="input-group pointer">
@@ -103,11 +103,11 @@
                                 <x-input-container>
                                     <select name="organizations[{{ $organization->id }}][region_id]"
                                         x-model="regionId"
-                                        @change="updateUnits"
+                                        x-on:change="updateUnits"
                                         class="form-select">
                                         <option value="">-- Select your Region/Garrison --</option>
-                                        <template x-for="region in regions" :key="region.id">
-                                            <option :value="region.id" x-text="region.name"></option>
+                                        <template x-for="region in regions" x-bind:key="region.id">
+                                            <option x-bind:value="region.id" x-text="region.name"></option>
                                         </template>
                                     </select>
                                 </x-input-container>
@@ -118,8 +118,8 @@
                                         :disabled="!regionId"
                                         class="form-select">
                                         <option value="">-- Select your Unit/Squad --</option>
-                                        <template x-for="unit in units" :key="unit.id">
-                                            <option :value="unit.id" x-text="unit.name"></option>
+                                        <template x-for="unit in units" x-bind:key="unit.id">
+                                            <option x-bind:value="unit.id" x-text="unit.name"></option>
                                         </template>
                                     </select>
                                 </x-input-container>
