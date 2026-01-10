@@ -46,8 +46,7 @@ class RegisterSubmitController extends Controller
 
         $this->flash->success('Request submitted successfully! You will receive an e-mail when your request is approved or denied.');
 
-        //  TODO FIX ROUTE TO SOMETHING THAT MAKES SENSE (ie welcome page)
-        return redirect()->route('auth.thankyou');
+        return redirect()->route('auth.thank-you');
     }
 
     private function register(array $data, mixed $auth_user_id): Trooper

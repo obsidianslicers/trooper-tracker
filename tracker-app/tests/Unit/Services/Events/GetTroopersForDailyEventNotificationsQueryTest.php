@@ -12,7 +12,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
-class GetTroopersForDailyNotificationsQueryTest extends TestCase
+class GetTroopersForDailyEventNotificationsQueryTest extends TestCase
 {
     use RefreshDatabase;
 

@@ -53,6 +53,13 @@ class TrooperFactory extends BaseTrooperFactory
         return $this->withMembershipStatus(MembershipStatus::PENDING);
     }
 
+    public function withPassword(string $password): static
+    {
+        return $this->state(fn(array $attributes) => [
+            Trooper::PASSWORD => Hash::make($password),
+        ]);
+    }
+
     private function withMemberShipStatus(MembershipStatus $status = MembershipStatus::ACTIVE): static
     {
         return $this->state(fn(array $attributes) => [

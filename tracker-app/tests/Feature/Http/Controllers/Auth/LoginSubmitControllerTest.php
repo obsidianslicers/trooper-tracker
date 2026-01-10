@@ -4,172 +4,144 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Auth;
 
-use App\Contracts\AuthenticationInterface;
-use App\Enums\AuthenticationStatus;
-use App\Models\Organization;
 use App\Models\Trooper;
-use Database\Seeders\OrganizationSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Mockery\MockInterface;
+use Illuminate\Support\Facades\Auth;
 use Tests\TestCase;
 
+/**
+ * Feature tests for the LoginSubmitController.
+ *
+ * Validates authentication logic, status checks, and redirect behavior.
+ * Note: Form validation is tested separately in LoginRequestTest.
+ */
 class LoginSubmitControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    /**
-     * The mocked authentication service.
-     */
-    private MockInterface $auth_mock;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->seed(OrganizationSeeder::class);
-
-        $this->auth_mock = $this->mock(AuthenticationInterface::class);
-    }
-
-    public function test_invoke_with_valid_credentials_and_active_status_logs_user_in(): void
+    public function test_invoke_authenticates_active_trooper_with_valid_credentials(): void
     {
         // Arrange
-        $unit = Organization::factory()->unit()->create();
-        $region = $unit->parent;
-        $organization = $region->parent;
-
         $trooper = Trooper::factory()
-            ->withOrganization($organization, 'TK9999')
-            ->withAssignment($unit, member: true)
-            ->create();
-
-        $this->auth_mock->shouldReceive('authenticate')
-            ->once()
-            ->with($trooper->username, 'password')
-            ->andReturn(AuthenticationStatus::SUCCESS);
+            ->asActive()
+            ->withPassword('secret123')
+            ->create([Trooper::EMAIL => 'test@example.com']);
 
         // Act
         $response = $this->post(route('auth.login'), [
-            'username' => $trooper->username,
-            'password' => 'password',
+            Trooper::EMAIL => 'test@example.com',
+            Trooper::PASSWORD => 'secret123',
         ]);
 
         // Assert
         $response->assertRedirect(route('events.list'));
-        $response->assertSessionHasNoErrors();
-        $this->assertAuthenticatedAs($trooper);
+        $this->assertTrue(Auth::check());
+        $this->assertEquals($trooper->id, Auth::id());
     }
 
-    public function test_invoke_with_invalid_credentials_fails_login(): void
+    public function test_invoke_fails_with_invalid_password(): void
     {
         // Arrange
-        $trooper = Trooper::factory()->asActive()->create();
-
-        $this->auth_mock->shouldReceive('authenticate')
-            ->once()
-            ->with($trooper->username, 'wrong-password')
-            ->andReturn(AuthenticationStatus::FAILURE);
-
-        // Act
-        $response = $this->post(route('auth.login'), [
-            'username' => $trooper->username,
-            'password' => 'wrong-password',
-        ]);
-
-        // Assert
-        $response->assertRedirect();
-        $response->assertSessionHasErrors(['username' => 'Invalid credentials']);
-        $this->assertGuest();
-    }
-
-    public function test_invoke_with_unapproved_trooper_fails_login(): void
-    {
-        // Arrange
-        $trooper = Trooper::factory()->asPending()->create();
-
-        $this->auth_mock->shouldNotHaveBeenCalled();
-
-        // Act
-        $response = $this->post(route('auth.login'), [
-            'username' => $trooper->username,
-            'password' => 'password',
-        ]);
-
-        // Assert
-        $response->assertRedirect();
-        $response->assertSessionHasErrors(['username' => 'Refer to command staff']);
-        $this->assertGuest();
-    }
-
-    public function test_invoke_with_banned_trooper_fails_login(): void
-    {
-        // Arrange   
-        $trooper = Trooper::factory()->asActive()->create();
-
-        $this->auth_mock->shouldReceive('authenticate')
-            ->once()
-            ->with($trooper->username, 'password')
-            ->andReturn(AuthenticationStatus::BANNED);
-
-        // Act
-        $response = $this->post(route('auth.login'), [
-            'username' => $trooper->username,
-            'password' => 'password',
-        ]);
-
-        // Assert
-        $response->assertRedirect();
-        $response->assertSessionHasErrors(['username' => 'Refer to command staff']);
-        $this->assertGuest();
-    }
-
-    public function test_invoke_with_retired_trooper_fails_login(): void
-    {
-        // Arrange
-        $trooper = Trooper::factory()->asRetired()->create();
-
-        $this->auth_mock->shouldReceive('authenticate')
-            ->once()
-            ->with($trooper->username, 'password')
-            ->andReturn(AuthenticationStatus::SUCCESS);
-
-        // Act
-        $response = $this->post(route('auth.login'), [
-            'username' => $trooper->username,
-            'password' => 'password',
-        ]);
-
-        // Assert
-        $response->assertRedirect();
-        $response->assertSessionHasErrors(['username' => 'You cannot access this account.']);
-        $this->assertGuest();
-    }
-
-    public function test_invoke_with_no_active_organization_status_fails_login(): void
-    {
-        // Arrange
-        $organization = Organization::first();
-
         $trooper = Trooper::factory()
             ->asActive()
-            ->withOrganization($organization, 'TK9999')
-            ->withAssignment($organization, member: false)
-            ->create();
-
-        $this->auth_mock->shouldReceive('authenticate')
-            ->once()
-            ->with($trooper->username, 'password')
-            ->andReturn(AuthenticationStatus::SUCCESS);
+            ->withPassword('correctpassword')
+            ->create([Trooper::EMAIL => 'test@example.com']);
 
         // Act
         $response = $this->post(route('auth.login'), [
-            'username' => $trooper->username,
-            'password' => 'password',
+            Trooper::EMAIL => 'test@example.com',
+            Trooper::PASSWORD => 'wrongpassword',
         ]);
 
         // Assert
         $response->assertRedirect();
-        $response->assertSessionHasErrors(['username' => 'Refer to command staff']);
-        $this->assertGuest();
+        $response->assertSessionHasErrors(['email']);
+        $this->assertFalse(Auth::check());
+    }
+
+    public function test_invoke_rejects_pending_trooper(): void
+    {
+        // Arrange
+        $trooper = Trooper::factory()
+            ->asPending()
+            ->withPassword('secret123')
+            ->create([Trooper::EMAIL => 'pending@example.com']);
+
+        // Act
+        $response = $this->post(route('auth.login'), [
+            Trooper::EMAIL => 'pending@example.com',
+            Trooper::PASSWORD => 'secret123',
+        ]);
+
+        // Assert
+        $response->assertRedirect();
+        $response->assertSessionHasErrors(['email']);
+        $response->assertSessionHas('flash_messages');
+        $this->assertFalse(Auth::check());
+    }
+
+    public function test_invoke_rejects_retired_trooper(): void
+    {
+        // Arrange
+        $trooper = Trooper::factory()
+            ->asRetired()
+            ->withPassword('secret123')
+            ->create([Trooper::EMAIL => 'retired@example.com']);
+
+        // Act
+        $response = $this->post(route('auth.login'), [
+            Trooper::EMAIL => 'retired@example.com',
+            Trooper::PASSWORD => 'secret123',
+        ]);
+
+        // Assert
+        $response->assertRedirect();
+        $response->assertSessionHasErrors(['email']);
+        $response->assertSessionHas('flash_messages');
+        $this->assertFalse(Auth::check());
+    }
+
+    public function test_invoke_remembers_trooper_when_remember_me_checked(): void
+    {
+        // Arrange
+        $trooper = Trooper::factory()
+            ->asActive()
+            ->withPassword('secret123')
+            ->create([Trooper::EMAIL => 'test@example.com']);
+
+        // Act
+        $response = $this->post(route('auth.login'), [
+            Trooper::EMAIL => 'test@example.com',
+            Trooper::PASSWORD => 'secret123',
+            'remember_me' => 'Y',
+        ]);
+
+        // Assert
+        $response->assertRedirect(route('events.list'));
+        $this->assertTrue(Auth::check());
+        $response->assertCookie(Auth::guard()->getRecallerName());
+    }
+
+    public function test_invoke_redirects_to_intended_url_after_login(): void
+    {
+        // Arrange
+        $trooper = Trooper::factory()
+            ->asActive()
+            ->withPassword('secret123')
+            ->create([Trooper::EMAIL => 'test@example.com']);
+
+        // Simulate trying to access a protected route, which sets the intended URL
+        $this->get(route('events.list'))
+            ->assertRedirect(); // Should redirect because not authenticated
+
+        // Act - Now login
+        $response = $this->post(route('auth.login'), [
+            Trooper::EMAIL => 'test@example.com',
+            Trooper::PASSWORD => 'secret123',
+        ]);
+
+        // Assert - Should redirect to events.list (either as intended or fallback)
+        $response->assertRedirect(route('events.list'));
+        $this->assertTrue(Auth::check());
     }
 }

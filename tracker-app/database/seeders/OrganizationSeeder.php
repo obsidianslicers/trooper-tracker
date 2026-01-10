@@ -7,12 +7,12 @@ namespace Database\Seeders;
 use App\Enums\OrganizationType;
 use App\Models\Observers\OrganizationObserver;
 use App\Models\Organization;
-use App\Services\Organizations\DarkEmpireServices;
-use App\Services\Organizations\DroidBuildersService;
-use App\Services\Organizations\MandalorianMercsService;
-use App\Services\Organizations\RebelLegionService;
-use App\Services\Organizations\SaberGuildServices;
-use App\Services\Organizations\TheLegionService;
+use App\Services\Synchronizers\DarkEmpireServices;
+use App\Services\Synchronizers\DroidBuildersService;
+use App\Services\Synchronizers\MandalorianMercsService;
+use App\Services\Synchronizers\RebelLegionService;
+use App\Services\Synchronizers\SaberGuildServices;
+use App\Services\Synchronizers\TheLegionService;
 use Illuminate\Database\Seeder;
 
 class OrganizationSeeder extends Seeder

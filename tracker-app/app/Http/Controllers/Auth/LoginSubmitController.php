@@ -14,22 +14,35 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 /**
- * Handles the submission of the login form, authenticates the user, and manages the session.
+ * Handles the submission of the login form, authenticates troopers, and manages sessions.
+ *
+ * This controller processes login attempts by:
+ * - Validating credentials against the database
+ * - Checking trooper membership status (active, pending, retired)
+ * - Creating authenticated sessions with optional "remember me" functionality
+ * - Providing appropriate error messages for various failure scenarios
  */
 class LoginSubmitController extends Controller
 {
     /**
-     * @param FlashMessageService $flash The flash message service.
+     * @param FlashMessageService $flash The flash message service for user notifications.
      */
     public function __construct(private readonly FlashMessageService $flash)
     {
     }
 
     /**
-     * Handles the incoming login request.
+     * Handles the incoming login request and authenticates the trooper.
      *
-     * @param LoginRequest $request The validated login form request.
-     * @return RedirectResponse A redirect response to the intended page or back with errors.
+     * This method performs the following checks in order:
+     * 1. Validates email and password (via LoginRequest)
+     * 2. Checks if the trooper's membership status is PENDING
+     * 3. Checks if the trooper's membership status is not ACTIVE (e.g., RETIRED)
+     * 4. Verifies the password against the stored hash
+     * 5. Logs in the trooper and redirects to the intended page
+     *
+     * @param LoginRequest $request The validated login form request containing email and password.
+     * @return RedirectResponse A redirect to the events list on success, or back with errors on failure.
      */
     public function __invoke(LoginRequest $request): RedirectResponse
     {

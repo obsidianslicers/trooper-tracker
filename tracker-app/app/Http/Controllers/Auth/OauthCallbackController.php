@@ -1,21 +1,44 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Auth;
 
 use App\Enums\MembershipStatus;
 use App\Http\Controllers\Controller;
 use App\Models\OauthLogin;
-use App\Models\SocialAccount;
 use App\Models\Trooper;
-use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Laravel\Socialite\Facades\Socialite;
 
+/**
+ * Handles OAuth provider callbacks during authentication.
+ *
+ * This controller processes the callback from OAuth providers (Google, XenForo, etc.)
+ * after a trooper authorizes the application. It handles:
+ * - Logging in existing troopers with linked OAuth accounts
+ * - Redirecting inactive troopers to the inactive page
+ * - Initiating registration flow for new troopers
+ * - Linking OAuth providers to existing trooper accounts
+ */
 class OauthCallbackController extends Controller
 {
+    /**
+     * Handle the incoming OAuth callback request.
+     *
+     * This method processes the OAuth provider's callback and handles several scenarios:
+     * 1. Existing OAuth account -> Log in the trooper
+     * 2. Inactive trooper -> Redirect to inactive page
+     * 3. New trooper (no account) -> Store OAuth data and redirect to registration
+     * 4. Existing trooper (by email) without OAuth link -> Link the provider and log in
+     *
+     * @param Request $request The incoming HTTP request.
+     * @param string $provider The OAuth provider name (google, xenforo, etc.).
+     * @return RedirectResponse A redirect to the appropriate destination.
+     */
     public function __invoke(Request $request, string $provider): RedirectResponse
     {
         $provider_user = Socialite::driver($provider)->user();
@@ -27,7 +50,11 @@ class OauthCallbackController extends Controller
 
         if ($account)
         {
-            //  TODO WHAT IF NOT ACTIVE?
+            if (!$account->trooper->is_active)
+            {
+                return redirect()->route('auth.inactive');
+            }
+
             Auth::login($account->trooper);
 
             return redirect()->intended('/');
@@ -62,10 +89,9 @@ class OauthCallbackController extends Controller
             return redirect()->route('auth.register');
         }
 
-        if ($trooper->membership_status !== MembershipStatus::ACTIVE)
+        if (!$trooper->is_active)
         {
-
-
+            return redirect()->route('auth.inactive');
         }
 
         // Link provider

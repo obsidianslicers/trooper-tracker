@@ -6,28 +6,43 @@ namespace Tests\Feature\Http\Controllers\Auth;
 
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Auth;
 use Tests\TestCase;
 
+/**
+ * Feature tests for the LogoutController.
+ *
+ * Validates that authenticated troopers can successfully log out
+ * and are redirected appropriately with a flash message.
+ */
 class LogoutControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_logs_user_out_and_redirects_to_login_page(): void
+    public function test_invoke_logs_out_authenticated_trooper(): void
     {
-        // Arrange: Create and authenticate a user.
+        // Arrange
         $trooper = Trooper::factory()->create();
-
         $this->actingAs($trooper);
+        $this->assertTrue(Auth::check());
 
-        $this->assertAuthenticatedAs($trooper);
-
-        // Act: Call the logout controller.
+        // Act
         $response = $this->get(route('auth.logout'));
 
-        // Assert: Check that the user is no longer authenticated.
-        $this->assertGuest();
-
-        // Assert: Check for the redirect to the login route.
+        // Assert
         $response->assertRedirect(route('auth.login', ['logged_out' => '1']));
+        $this->assertFalse(Auth::check());
+    }
+
+    public function test_invoke_sets_success_flash_message(): void
+    {
+        // Arrange
+        $trooper = Trooper::factory()->create();
+
+        // Act
+        $response = $this->actingAs($trooper)->get(route('auth.logout'));
+
+        // Assert
+        $response->assertSessionHas('flash_messages');
     }
 }

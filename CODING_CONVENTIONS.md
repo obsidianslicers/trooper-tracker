@@ -204,7 +204,18 @@ class EventNotificationService
 
 A robust test suite is essential for our refactoring efforts. All new features and refactored code must be accompanied by tests.
 
-### 9.1. Test Method Naming
+### 9.1. Test Strategy
+
+The appropriate test type depends on the component being tested:
+
+-   **Controllers:** Must be covered by **feature tests**. Feature tests exercise the full HTTP request/response cycle, ensuring that routing, middleware, request validation, and response rendering work correctly together.
+-   **Jobs:** Must be covered by **feature tests**. Feature tests verify that jobs correctly orchestrate Service class calls and handle queue-specific concerns like failures and retries.
+-   **Console Commands:** Must be covered by **feature tests**. Feature tests confirm that commands parse arguments correctly, orchestrate Service calls, and produce the expected console output.
+-   **Services:** Should be covered by **unit tests**. Since Services contain the core business logic and are decoupled from framework infrastructure, they are ideal candidates for fast, focused unit tests.
+
+This strategy ensures that our orchestration layers (Controllers, Jobs, Commands) are tested in realistic scenarios, while our business logic (Services) receives fast, isolated unit test coverage.
+
+### 9.2. Test Method Naming
 
 All test method names must be `snake_cased` and begin with the `test_` prefix. The name should clearly describe what the test is asserting.
 
@@ -215,7 +226,7 @@ public function test_invoke_handles_unapproved_user(): void
 }
 ```
 
-### 9.2. Subject Under Test
+### 9.3. Subject Under Test
 
 When instantiating the class being tested, the variable name **must** be `$subject`.
 
@@ -228,7 +239,7 @@ public function test_something(): void
 }
 ```
 
-### 9.3. Mocking
+### 9.4. Mocking
 
 When creating mocks, use **Mockery** with the `shouldReceive()` chain for setting up expectations. This provides a clear, readable format.
 

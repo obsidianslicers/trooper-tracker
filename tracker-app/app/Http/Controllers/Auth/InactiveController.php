@@ -11,18 +11,18 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 /**
- * Handles the thank you page after registration.
+ * Handles the inactive account page.
  */
-class ThankYouController extends Controller
+class InactiveController extends Controller
 {
     /**
-     * Handle the incoming request to display the thank you page.
+     * Handle the incoming request to display the inactive account page.
      *
      * @param Request $request The incoming HTTP request.
      * @return RedirectResponse A redirect response to the login page.
      */
     public function __invoke(Request $request): View
     {
-        return view('pages.auth.thank-you');
+        return view('pages.auth.inactive');
     }
 }
