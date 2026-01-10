@@ -2,9 +2,8 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\Console\Commands;
+namespace Tests\Feature\Console\Commands;
 
-use App\Console\Commands\CloseEventsCommand;
 use App\Enums\EventStatus;
 use App\Models\Event;
 use App\Services\Events\GetEventsToCloseQuery;

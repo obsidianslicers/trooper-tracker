@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\Console\Commands;
+namespace Tests\Feature\Console\Commands;
 
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
