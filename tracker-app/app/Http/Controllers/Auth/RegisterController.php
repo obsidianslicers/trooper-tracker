@@ -44,11 +44,26 @@ class RegisterController extends Controller
 
         $registration_auth = Session::get('registration_auth');
 
-        $data = [
-            'organizations' => $organizations,
-            'email' => $registration_auth['email'],
-            'registration_method' => $registration_auth['method'],
-        ];
+        $email = $registration_auth['email'] ?? null;
+
+        $registration_method = $registration_auth['method'] ?? 'email';
+
+        $organization_hierarchy = $organizations->map(fn($org) => [
+            'id' => $org->id,
+            'name' => $org->name,
+            'regions' => $org->organizations->map(fn($region) =>
+                [
+                    'id' => $region->id,
+                    'name' => $region->name,
+                    'units' => $region->organizations->map(fn($unit) =>
+                        [
+                            'id' => $unit->id,
+                            'name' => $unit->name,
+                        ]),
+                ]),
+        ]);
+
+        $data = compact('organizations', 'organization_hierarchy', 'email', 'registration_method');
 
         return view('pages.auth.register', $data);
     }

@@ -9,7 +9,6 @@ use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\OauthCallbackController;
 use App\Http\Controllers\Auth\OauthRedirectController;
 use App\Http\Controllers\Auth\RegisterController;
-use App\Http\Controllers\Auth\RegisterHtmxController;
 use App\Http\Controllers\Auth\RegisterSubmitController;
 use App\Http\Controllers\Auth\SignUpController;
 use App\Http\Controllers\Auth\SignUpEmailController;
@@ -34,7 +33,6 @@ Route::name('auth.')
         Route::get('/inactive', InactiveController::class)->name('inactive');
         Route::get('/register', RegisterController::class)->middleware('auth.registration')->name('register');
         Route::post('/register', RegisterSubmitController::class)->middleware('auth.registration');
-        Route::post('/register-htmx/{organization}', RegisterHtmxController::class)->middleware('auth.registration')->name('register-htmx');
 
         // OAUTH
         Route::get('/oauth/{provider}', OauthRedirectController::class)->whereIn('provider', $providers)->name('oauth-redirect');
