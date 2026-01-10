@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\Services\Organizations;
+namespace Tests\Unit\Services\Synchronizers;
 
 use App\Models\Event;
-use App\Services\Organizations\TheLegionService;
+use App\Services\Synchronizers\TheLegionService;
 use Carbon\Carbon;
 use Tests\TestCase;
 

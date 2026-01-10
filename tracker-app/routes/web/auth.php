@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Auth\InactiveController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LoginSubmitController;
 use App\Http\Controllers\Auth\LogoutController;
@@ -29,7 +30,8 @@ Route::name('auth.')
         //  REGISTRATION
         Route::get('/signup', SignUpController::class)->name('signup');
         Route::get('/signup-email', SignUpEmailController::class)->name('signup-email');
-        Route::get('/thank-you', ThankYouController::class)->name('thankyou');
+        Route::get('/thank-you', ThankYouController::class)->name('thank-you');
+        Route::get('/inactive', InactiveController::class)->name('inactive');
         Route::get('/register', RegisterController::class)->middleware('auth.registration')->name('register');
         Route::post('/register', RegisterSubmitController::class)->middleware('auth.registration');
         Route::post('/register-htmx/{organization}', RegisterHtmxController::class)->middleware('auth.registration')->name('register-htmx');

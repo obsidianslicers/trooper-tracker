@@ -113,3 +113,23 @@ Examples:
 $trooper = Trooper::factory()->veteran()->create();
 $troop = Troop::factory()->upcoming()->create();
 ```
+
+### Factory Helper Methods
+
+When writing tests, if a needed factory helper method doesn't exist (e.g., `withPassword()`, `withEmail()`, `asVerified()`), add it to the appropriate factory class rather than manually setting attributes in tests. This promotes:
+
+- **Reusability** across multiple tests
+- **Readability** with expressive, chainable methods
+- **Maintainability** by centralizing data setup logic
+
+Example of adding a factory helper:
+
+```php
+// In TrooperFactory.php
+public function withPassword(string $password): static
+{
+    return $this->state(fn(array $attributes) => [
+        Trooper::PASSWORD => Hash::make($password),
+    ]);
+}
+```

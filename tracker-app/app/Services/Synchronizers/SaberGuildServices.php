@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace App\Services\Organizations;
+namespace App\Services\Synchronizers;
 
 use App\Models\Event;
 use Exception;
 
 
 /**
- * Service class for managing Rebel Legion organization data.
+ * Service class for managing Mandalorian Mercs organization data.
  *
  * This service interacts with Google Sheets to synchronize member information,
  * update trooper statuses, and manage organization-specific data.
  */
-class RebelLegionService extends BaseOrganizationService
+class SaberGuildServices extends BaseOrganizationService
 {
     public function syncCostumes(): void
     {

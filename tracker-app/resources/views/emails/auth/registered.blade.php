@@ -14,7 +14,6 @@
     <p>
         What happens next?
     </p>
-
     <ul>
         <li>We'll review your registration.</li>
         <li>You'll get notified once you're approved.</li>

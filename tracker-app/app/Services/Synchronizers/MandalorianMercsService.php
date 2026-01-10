@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Services\Organizations;
+namespace App\Services\Synchronizers;
 
 use App\Models\Event;
 use Carbon\Carbon;

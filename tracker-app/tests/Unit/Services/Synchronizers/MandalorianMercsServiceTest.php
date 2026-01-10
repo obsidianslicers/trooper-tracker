@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\Services\Organizations;
+namespace Tests\Unit\Services\Synchronizers;
 
 use App\Models\Event;
-use App\Services\Organizations\MandalorianMercsService;
+use App\Services\Synchronizers\MandalorianMercsService;
 use Carbon\Carbon;
 use Tests\TestCase;
 

@@ -4,13 +4,9 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Enums\NotificationFrequency;
-use App\Mail\Events\DailyEventNotification;
-use App\Models\Trooper;
+use App\Services\Events\GetTroopersForDailyEventNotificationsQuery;
 use App\Services\Events\SendEventDailyNotificationCommand;
-use App\Services\Troopers\GetTroopersForDailyEventNotificationsQuery;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Mail;
 
 /**
  * Artisan command to calculate and store trooper achievements based on their event history.

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Services\Organizations;
+namespace App\Services\Synchronizers;
 
 use App\Models\Event;
 use Exception;
@@ -14,7 +14,7 @@ use Exception;
  * This service interacts with Google Sheets to synchronize member information,
  * update trooper statuses, and manage organization-specific data.
  */
-class SaberGuildServices extends BaseOrganizationService
+class DarkEmpireServices extends BaseOrganizationService
 {
     public function syncCostumes(): void
     {
