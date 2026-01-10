@@ -198,17 +198,17 @@ class RegisterRequest extends FormRequest
 
             if (!empty($organization->identifier_validation))
             {
+                //$messages["{$key}"] = "The {$organization->identifier_display} for {$organization->name} is required";
+
                 $rules = explode('|', string: $organization->identifier_validation);
 
                 foreach ($rules as $rule)
                 {
-                    $ruleName = $this->normalizeRuleKey($rule);
+                    $rule_name = $this->normalizeRuleKey($rule);
 
-                    $messages["{$key}.{$ruleName}"] = "The {$organization->identifier_display} for {$organization->name} must be {$this->friendlyPhrase($rule)}.";
+                    $messages["{$key}.{$rule_name}"] = "The {$organization->identifier_display} for {$organization->name} must be {$this->friendlyPhrase($rule)}.";
                 }
             }
-
-            //$messages["{$key}"] = "The {$organization->identifier_display} for {$organization->name} is required";
 
             foreach ($organization->organizations as $region)
             {
