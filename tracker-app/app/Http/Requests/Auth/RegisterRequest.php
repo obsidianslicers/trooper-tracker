@@ -85,16 +85,14 @@ class RegisterRequest extends FormRequest
                 'phone' => preg_replace('/\D+/', '', $this->input('phone')),
             ]);
         }
-        if ($this->has('email'))
-        {
-            $registeration_auth = Session::get('registration_auth');
 
-            if ($registeration_auth && $registeration_auth['email'] != null)
-            {
-                $this->merge([
-                    'email' => trim($registeration_auth['email']),
-                ]);
-            }
+        $registration_auth = Session::get('registration_auth');
+
+        if ($registration_auth && $registration_auth['email'] != null)
+        {
+            $this->merge([
+                'email' => trim($registration_auth['email']),
+            ]);
         }
     }
 
@@ -132,7 +130,7 @@ class RegisterRequest extends FormRequest
                     Rule::when(
                         fn() => $this->account_type === 'member',
                         array_merge(
-                            [Rule::requiredIf(fn() => $this->input("organizations.{$organization->id}.selected") ?? false)],
+                            [Rule::requiredIf(fn() => $this->input("organizations.{$organization->id}.selected") === '1')],
                             $base_rules,
                             [new UniqueOrganizationIdentifierRule($organization)]
                         )
@@ -148,9 +146,12 @@ class RegisterRequest extends FormRequest
             {
                 // Require region when organization is selected
                 $rules["organizations.{$organization->id}.region_id"] = [
-                    Rule::requiredIf(fn() => $this->input("organizations.{$organization->id}.selected") ?? false),
-                    Rule::exists(Organization::class, Organization::ID)
-                        ->whereIn('id', $regions->pluck('id'))
+                    Rule::requiredIf(fn() => $this->input("organizations.{$organization->id}.selected") === '1'),
+                    Rule::when(
+                        fn() => $this->input("organizations.{$organization->id}.selected") === '1',
+                        Rule::exists(Organization::class, Organization::ID)
+                            ->whereIn('id', $regions->pluck('id'))
+                    )
                 ];
 
                 // For each region, check if it has units and require unit_id accordingly
@@ -163,8 +164,11 @@ class RegisterRequest extends FormRequest
                         // Require unit when this specific region is selected
                         $rules["organizations.{$organization->id}.unit_id"] = [
                             Rule::requiredIf(fn() => $this->input("organizations.{$organization->id}.region_id") == $region->id),
-                            Rule::exists(Organization::class, Organization::ID)
-                                ->whereIn('id', $units->pluck('id')),
+                            Rule::when(
+                                fn() => $this->input("organizations.{$organization->id}.selected") === '1' && !empty($this->input("organizations.{$organization->id}.unit_id")),
+                                Rule::exists(Organization::class, Organization::ID)
+                                    ->whereIn('id', $units->pluck('id'))
+                            ),
                         ];
                     }
                 }
@@ -194,17 +198,17 @@ class RegisterRequest extends FormRequest
 
             if (!empty($organization->identifier_validation))
             {
+                //$messages["{$key}"] = "The {$organization->identifier_display} for {$organization->name} is required";
+
                 $rules = explode('|', string: $organization->identifier_validation);
 
                 foreach ($rules as $rule)
                 {
-                    $ruleName = $this->normalizeRuleKey($rule);
+                    $rule_name = $this->normalizeRuleKey($rule);
 
-                    $messages["{$key}.{$ruleName}"] = "The {$organization->identifier_display} for {$organization->name} must be {$this->friendlyPhrase($rule)}.";
+                    $messages["{$key}.{$rule_name}"] = "The {$organization->identifier_display} for {$organization->name} must be {$this->friendlyPhrase($rule)}.";
                 }
             }
-
-            //$messages["{$key}"] = "The {$organization->identifier_display} for {$organization->name} is required";
 
             foreach ($organization->organizations as $region)
             {

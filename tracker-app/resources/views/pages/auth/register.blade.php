@@ -11,7 +11,7 @@
             <x-message>
                 <b>New to the 501st and/or {{ config('app.name') }}?</b> Or are you solely a member of another organization?
                 Use this form below to start signing up for troops.
-                <p>
+                <p class="mt-3 mb-0">
                     <i>Command Staff will need to approve your account prior to use.</i>
                 </p>
             </x-message>
@@ -34,7 +34,8 @@
                         Email:
                     </x-label>
                     <x-input-text :property="'email'"
-                                  :value="$email" />
+                                  :value="$email"
+                                  :disabled="$registration_method != 'email'" />
                 </x-input-container>
 
                 <x-input-container>
@@ -44,7 +45,7 @@
                     <x-input-text :property="'phone'" />
                 </x-input-container>
 
-                @if(old('registration_method', $registration_method) == 'email')
+                @if($registration_method == 'email')
                     <x-input-container>
                         <x-label>
                             Password:
@@ -73,7 +74,59 @@
                 <x-transmission-bar :id="'register-organization'" />
 
                 @foreach ($organizations as $organization)
-                    @include('pages.auth.organization-selection', compact('organization'))
+                    <div id="organization-selection-{{ $organization->id }}"
+                        x-data="Auth.Register.organizationSelector({ organizationId: {{ $organization->id }} })"
+                        x-init="init()">
+                        <x-input-container>
+                            <x-input-checkbox :property="'organizations.' . $organization->id . '.selected'"
+                                :label="$organization->name"
+                                :value="'1'"
+                                :checked="$organization->selected"
+                                x-on:change="toggle" />
+                        </x-input-container>
+
+                        <div class="organization-{{ $organization->id }} ps-4"
+                            x-transition
+                            x-show="active">
+                            @if($account_type !== 'handler')
+                                <x-input-container>
+                                    <div class="input-group pointer">
+                                        <span class="input-group-text">
+                                            {{ $organization->identifier_display }}:
+                                        </span>
+                                        <x-input-text :property="'organizations.' . $organization->id . '.identifier'" />
+                                    </div>
+                                </x-input-container>
+                            @endif
+
+                            @if($organization->organizations->count() > 0)
+                                <x-input-container>
+                                    <select name="organizations[{{ $organization->id }}][region_id]"
+                                        x-model="regionId"
+                                        x-on:change="updateUnits"
+                                        class="form-select">
+                                        <option value="">-- Select your Region/Garrison --</option>
+                                        <template x-for="region in regions" x-bind:key="region.id">
+                                            <option x-bind:value="region.id" x-text="region.name"></option>
+                                        </template>
+                                    </select>
+                                </x-input-container>
+
+                                <x-input-container>
+                                    <select name="organizations[{{ $organization->id }}][unit_id]"
+                                        x-model="unitId"
+                                        :disabled="!regionId"
+                                        class="form-select">
+                                        <option value="">-- Select your Unit/Squad --</option>
+                                        <template x-for="unit in units" x-bind:key="unit.id">
+                                            <option x-bind:value="unit.id" x-text="unit.name"></option>
+                                        </template>
+                                    </select>
+                                </x-input-container>
+                            @endif
+                        </div>
+                    </div>
+  
                 @endforeach
 
                 <x-submit-container>
@@ -81,9 +134,15 @@
                         Register
                     </x-submit-button>
                 </x-submit-container>
-                <br />
 
             </form>
         </x-card>
     </x-slim-container>
+
+@endsection
+
+@section('page-script')
+<script>
+    window.$organization_hierarchy = @json($organization_hierarchy);
+</script>
 @endsection
