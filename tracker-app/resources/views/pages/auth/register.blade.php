@@ -73,7 +73,7 @@
 
                 <x-transmission-bar :id="'register-organization'" />
 
-                @foreach ($organizations as $organization)
+                @foreach ($organization_hierarchy as $organization)
                     <div id="organization-selection-{{ $organization->id }}"
                         x-data="Auth.Register.organizationSelector({ organizationId: {{ $organization->id }} })"
                         x-init="init()">
@@ -99,7 +99,7 @@
                                 </x-input-container>
                             @endif
 
-                            @if($organization->organizations->count() > 0)
+                            @if(count($organization->regions) > 0)
                                 <x-input-container>
                                     <select name="organizations[{{ $organization->id }}][region_id]"
                                         x-model="regionId"

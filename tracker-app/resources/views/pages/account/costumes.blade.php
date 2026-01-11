@@ -10,11 +10,7 @@
 
         <!-- Trooper Costumes -->
         <x-card>
-            <div hx-get="{{ route('account.costumes-htmx') }}"
-                 hx-trigger="load"
-                 hx-swap="outerHTML">
-                <x-loading />
-            </div>
+            @include('pages.account.costume-selector')
         </x-card>
 
     </x-slim-container>
