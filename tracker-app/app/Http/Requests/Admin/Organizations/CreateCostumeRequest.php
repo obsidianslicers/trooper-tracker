@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin\Organizations;
 
-use App\Models\Organization;
 use App\Rules\Admin\Organizations\UniqueCostumeNameRule;
-use App\Rules\Admin\Organizations\UniqueNameRule;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Http\FormRequest;
 
