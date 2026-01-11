@@ -58,9 +58,9 @@ Jobs and Commands follow the **Orchestration Pattern** - they coordinate Service
 // ✅ GOOD: Job orchestrates service
 class SendEventCreatedNotificationsJob implements ShouldQueue
 {
-    public function handle(EventNotificationService $service): void
+    public function handle(SendEventNotificationsCommand $send_event_notifications): void
     {
-        $service->sendNotificationsForEvent($this->event);
+        $send_event_notifications($this->event);
     }
 }
 
@@ -394,4 +394,3 @@ See the following documents for deeper dives:
 - Architecture patterns: [CODING_CONVENTIONS.md](../CODING_CONVENTIONS.md)
 - Auth flows: [AUTHENTICATION.md](../AUTHENTICATION.md)
 - Notification system: [NOTIFICATIONS.md](../NOTIFICATIONS.md)
-- Current TODOs: [TODO.md](../TODO.md)
