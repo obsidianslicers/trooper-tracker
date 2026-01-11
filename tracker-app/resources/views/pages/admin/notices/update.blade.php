@@ -28,7 +28,7 @@
         </x-label>
         <x-input-select :property="'type'"
                         :value="$notice->type->value"
-                        :options="\App\Enums\NoticeType::toDescriptions()" />
+                        :options="\App\Enums\NoticeType::toOptions()" />
       </x-input-container>
 
       <x-input-container>

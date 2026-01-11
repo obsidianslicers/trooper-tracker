@@ -45,7 +45,6 @@ enum NoticeType: string
         };
     }
 
-
     /**
      * Summary of toDescriptions
      * @return array{danger: string, info: string, success: string, warning: string}
@@ -57,6 +56,20 @@ enum NoticeType: string
             'success' => 'MISSION ACCOMPLISHED!',
             'warning' => 'ATTENTION TROOPERS!',
             'danger' => 'BATTLE STATIONS!'
+        ];
+    }
+
+    /**
+     * Summary of toOptions
+     * @return array{danger: string, info: string, success: string, warning: string}
+     */
+    public static function toOptions(): array
+    {
+        return [
+            'info' => 'ℹ️ NOW HEAR THIS!',
+            'success' => '✔️ MISSION ACCOMPLISHED!',
+            'warning' => '⚠️ ATTENTION TROOPERS!',
+            'danger' => '❌ BATTLE STATIONS!',
         ];
     }
 }

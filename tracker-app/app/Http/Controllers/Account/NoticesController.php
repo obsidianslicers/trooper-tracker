@@ -10,15 +10,33 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 /**
- * Handles displaying the notification settings form via an HTMX request.
+ * Displays the notices/announcements page for the authenticated trooper.
+ *
+ * This controller follows the Action-Domain-Responder (ADR) pattern:
+ * - **Action (Controller):** Retrieves authenticated trooper from request
+ * - **Domain (Models):** Uses Notice::visibleTo() scope to filter organization-specific notices
+ * - **Responder:** Renders notices list view with unread notices highlighted
+ *
+ * The visibleTo() scope ensures troopers only see:
+ * 1. Global notices (no organization assigned)
+ * 2. Notices assigned to their organization or parent organizations
+ * 3. Optionally filtered to only unread notices (unread_only = true)
+ *
+ * Notices are ordered by start date to show most relevant first.
  */
 class NoticesController extends Controller
 {
     /**
-     * Handle the incoming request to display the notification settings.
+     * Display the notices page for the authenticated trooper.
      *
-     * @param Request $request The incoming HTTP request.
-     * @return View The rendered notification settings view.
+     * Retrieves all unread notices visible to the trooper, ordered by start date.
+     * The visibleTo(trooper, true) scope filters for:
+     * - Notices in the trooper's organization hierarchy
+     * - Global notices (no organization)
+     * - Only unread notices (is_read = false or no read record)
+     *
+     * @param Request $request The incoming HTTP request containing authenticated trooper.
+     * @return View The notices page with filtered notice collection.
      */
     public function __invoke(Request $request): View
     {
