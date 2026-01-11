@@ -129,10 +129,10 @@ class NotificationsControllerTest extends TestCase
         // Create org -> region -> unit hierarchy
         $parent_org = Organization::factory()->create();
         $region = Organization::factory()->create([
-            Organization::PARENT_ORGANIZATION_ID => $parent_org->id,
+            Organization::PARENT_ID => $parent_org->id,
         ]);
         $unit = Organization::factory()->create([
-            Organization::PARENT_ORGANIZATION_ID => $region->id,
+            Organization::PARENT_ID => $region->id,
         ]);
 
         // Enable notifications for region only
@@ -140,6 +140,7 @@ class NotificationsControllerTest extends TestCase
             TrooperAssignment::TROOPER_ID => $trooper->id,
             TrooperAssignment::ORGANIZATION_ID => $region->id,
             TrooperAssignment::CAN_NOTIFY => true,
+            TrooperAssignment::IS_MEMBER => false,
         ]);
 
         // Act
@@ -198,7 +199,7 @@ class NotificationsControllerTest extends TestCase
         $response = $this->get(route('account.notifications'));
 
         // Assert
-        $response->assertRedirect(route('login'));
+        $response->assertRedirect(route('auth.login'));
     }
 
     public function test_invoke_displays_correct_notification_frequency_for_never(): void
@@ -254,10 +255,10 @@ class NotificationsControllerTest extends TestCase
         // Create hierarchical structure
         $parent = Organization::factory()->create();
         $child = Organization::factory()->create([
-            Organization::PARENT_ORGANIZATION_ID => $parent->id,
+            Organization::PARENT_ID => $parent->id,
         ]);
         $grandchild = Organization::factory()->create([
-            Organization::PARENT_ORGANIZATION_ID => $child->id,
+            Organization::PARENT_ID => $child->id,
         ]);
 
         // Act

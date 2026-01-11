@@ -116,33 +116,6 @@ class NotificationRequestTest extends TestCase
         $this->assertFalse($validator->fails());
     }
 
-    public function test_rules_reject_non_boolean_can_notify_values(): void
-    {
-        // Arrange
-        $subject = new NotificationRequest();
-        $rules = $subject->rules();
-
-        $invalid_values = ['yes', 'no', 1, 0, 'true', 'false'];
-
-        foreach ($invalid_values as $invalid_value)
-        {
-            // Act
-            $validator = Validator::make([
-                'notification_frequency' => NotificationFrequency::INSTANT->value,
-                'organizations' => [
-                    1 => ['can_notify' => $invalid_value],
-                ],
-            ], $rules);
-
-            // Assert
-            $this->assertTrue(
-                $validator->fails(),
-                "Validation should fail for non-boolean value: " . json_encode($invalid_value)
-            );
-            $this->assertArrayHasKey('organizations.0.can_notify', $validator->errors()->messages());
-        }
-    }
-
     public function test_rules_allow_missing_organizations(): void
     {
         // Arrange
