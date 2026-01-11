@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Account;
 use App\Http\Controllers\Controller;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
+use App\Services\Organizations\GetOrganizationCostumesQuery;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -24,46 +25,22 @@ class CostumesController extends Controller
      * @param Request $request The incoming HTTP request.
      * @return View The rendered trooper costumes view.
      */
-    public function __invoke(Request $request): View
+    public function __invoke(
+        Request $request,
+        GetOrganizationCostumesQuery $get_organization_costumes): View
     {
         $trooper = $request->user();
 
-        $organizations = Organization::withActiveTroopers($trooper->id)->get();
+        $organizations = Organization::withActiveTroopers($trooper->id)
+            ->pluck(Organization::ID)
+            ->toArray();
 
-        $selected_organization = null;
-        $costumes = [];
-        $trooper->trooper_costumes->load('organization_costume.organization');
+        // $selected_organization = null;
+        $organization_costumes = $get_organization_costumes($organizations);
 
-        if ($request->has('organization_id'))
-        {
-            $organization_id = $request->get('organization_id');
+        $trooper_costumes = $trooper->trooper_costumes()->with('organization_costume.organization')->get();
 
-            $selected_organization = $organizations->firstWhere(Organization::ID, $organization_id);
-
-            if (isset($selected_organization))
-            {
-                $assigned_costume_ids = $trooper->trooper_costumes
-                    ->filter(fn($tc) => $tc->organization_costume?->organization_id === $selected_organization->id)
-                    ->map(fn($tc) => $tc->organization_costume->id)
-                    ->filter() // remove nulls
-                    ->values();
-
-                $costumes = $selected_organization->organization_costumes()
-                    ->with('organization')
-                    ->excluding($assigned_costume_ids)
-                    ->orderBy(OrganizationCostume::NAME)
-                    ->toOptions(OrganizationCostume::NAME, OrganizationCostume::ID);
-            }
-        }
-
-        $trooper_costumes = $trooper->trooper_costumes;
-
-        $data = [
-            'organizations' => $organizations,
-            'selected_organization' => $selected_organization,
-            'costumes' => $costumes,
-            'trooper_costumes' => $trooper_costumes,
-        ];
+        $data = compact('organization_costumes', 'trooper_costumes');
 
         return view('pages.account.costumes', $data);
     }

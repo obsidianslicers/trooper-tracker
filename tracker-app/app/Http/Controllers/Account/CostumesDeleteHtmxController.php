@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Account;
 
 use App\Http\Controllers\Controller;
+use App\Models\TrooperCostume;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -30,16 +31,23 @@ class CostumesDeleteHtmxController extends Controller
 
         if ($costume_id > -1)
         {
-            $trooper->detachCostume($costume_id);
+            \Illuminate\Support\Facades\Log::info("Removing costume ID {$costume_id} from trooper ID {$trooper->id}");
+
+            $trooper_costume = $trooper->trooper_costumes()
+                ->where(TrooperCostume::ID, $costume_id)
+                ->first();
+
+            if ($trooper_costume !== null)
+            {
+                \Illuminate\Support\Facades\Log::info("Calling Delete");
+                $trooper_costume->delete();
+            }
         }
 
-        $data = [
-            'organizations' => collect(),
-            'selected_organization' => null,
-            'costumes' => collect(),
-            'trooper_costumes' => $trooper->trooper_costumes,
-        ];
+        $trooper_costumes = $trooper->trooper_costumes()->with('organization_costume.organization')->get();
 
-        return view('pages.account.costume-selector', $data);
+        $data = compact('trooper_costumes');
+
+        return view('pages.account.costumes-table', $data);
     }
 }

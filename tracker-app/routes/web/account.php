@@ -28,8 +28,7 @@ Route::prefix('account')
         Route::get('/notices', NoticesController::class)->name('notices');
         Route::post('/notices-htmx/{notice}', NoticesSubmitHtmxController::class)->name('notices-htmx');
         Route::get('/costumes', CostumesController::class)->name('costumes');
-        Route::get('/costumes-htmx', CostumesController::class)->name('costumes-htmx');
-        Route::post('/costumes-htmx', CostumesSubmitHtmxController::class);
+        Route::post('/costumes-htmx', CostumesSubmitHtmxController::class)->name('costumes-htmx');
         Route::delete('/costumes-htmx', CostumesDeleteHtmxController::class);
 
         //  needed a post name to get the middleware to work properly

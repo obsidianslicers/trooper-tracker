@@ -71,31 +71,6 @@ class TrooperTest extends TestCase
         $this->assertFalse($active_trooper->is_denied);
     }
 
-    public function test_attach_and_detach_costume_work_correctly(): void
-    {
-        // Arrange
-        $trooper = Trooper::factory()->create();
-        $costume = OrganizationCostume::factory()->create();
-
-        // Act (Attach)
-        $trooper->attachCostume($costume->id);
-
-        // Assert (Attach)
-        $this->assertDatabaseHas(TrooperCostume::class, [
-            'trooper_id' => $trooper->id,
-            'costume_id' => $costume->id,
-        ]);
-
-        // Act (Detach)
-        $trooper->detachCostume($costume->id);
-
-        // Assert (Detach)
-        $this->assertSoftDeleted(TrooperCostume::class, [
-            'trooper_id' => $trooper->id,
-            'costume_id' => $costume->id,
-        ]);
-    }
-
     public function test_has_active_organization_status_returns_correct_value(): void
     {
         // Arrange

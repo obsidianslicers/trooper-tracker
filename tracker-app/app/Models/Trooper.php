@@ -130,18 +130,6 @@ class Trooper extends BaseTrooper implements
     }
 
     /**
-     * Detach a costume from the trooper.
-     *
-     * @param int $costume_id The ID of the costume to detach.
-     */
-    public function detachCostume(int $costume_id): void
-    {
-        $this->trooper_costumes()
-            ->where(TrooperCostume::COSTUME_ID, $costume_id)
-            ->delete();
-    }
-
-    /**
      * Check if the trooper has an active status in any of their assigned organizations.
      *
      * @return bool True if at least one active assignment exists, false otherwise.

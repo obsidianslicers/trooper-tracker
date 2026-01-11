@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Organizations;
 
 use App\Models\Organization;
+use Illuminate\Support\Collection;
 
 /**
  * Retrieves the hierarchical structure of organizations, regions, and units.
@@ -45,7 +46,7 @@ class GetOrganizationHierarchyQuery
      * @param int|null $organization_id Optional organization ID to filter to a single organization.
      * @return \Illuminate\Support\Collection<int, array{id: int, name: string, regions: \Illuminate\Support\Collection<int, array{id: int, name: string, units: \Illuminate\Support\Collection<int, array{id: int, name: string}>}>}> Collection of organizations with nested hierarchy.
      */
-    public function __invoke(?int $organization_id = null)
+    public function __invoke(?int $organization_id = null): Collection
     {
         $q = Organization::fullyLoaded();
 

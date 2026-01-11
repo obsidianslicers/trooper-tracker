@@ -51,15 +51,10 @@ class CostumesSubmitHtmxController extends Controller
             }
         }
 
-        $trooper->trooper_costumes->load('organization_costume.organization');
+        $trooper_costumes = $trooper->trooper_costumes()->with('organization_costume.organization')->get();
 
-        $data = [
-            'organizations' => collect(),
-            'selected_organization' => null,
-            'costumes' => collect(),
-            'trooper_costumes' => $trooper->trooper_costumes,
-        ];
+        $data = compact('trooper_costumes');
 
-        return view('pages.account.costume-selector', $data);
+        return view('pages.account.costumes-table', $data);
     }
 }

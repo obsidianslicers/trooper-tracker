@@ -35,7 +35,7 @@
                     </x-label>
                     <x-input-text :property="'email'"
                                   :value="$email"
-                                  :disabled="$registration_method != 'email'" />
+                                  x-bind:disabled="$registration_method != 'email'" />
                 </x-input-container>
 
                 <x-input-container>
@@ -114,9 +114,9 @@
 
                                 <x-input-container>
                                     <select name="organizations[{{ $organization->id }}][unit_id]"
-                                        x-model="unitId"
-                                        :disabled="!regionId"
-                                        class="form-select">
+                                            x-model="unitId"
+                                            x-bind:disabled="!regionId"
+                                            class="form-select">
                                         <option value="">-- Select your Unit/Squad --</option>
                                         <template x-for="unit in units" x-bind:key="unit.id">
                                             <option x-bind:value="unit.id" x-text="unit.name"></option>
