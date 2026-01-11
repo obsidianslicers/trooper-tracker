@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Account;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Account\ProfileRequest;
 use App\Services\FlashMessageService;
+use App\Services\Troopers\UpdateTrooperProfileCommand;
 use Illuminate\Http\RedirectResponse;
 
 /**
@@ -32,14 +33,13 @@ class ProfileSubmitController extends Controller
      * @param ProfileRequest $request The validated profile form request.
      * @return RedirectResponse A redirect response to the account profile page.
      */
-    public function __invoke(ProfileRequest $request): RedirectResponse
+    public function __invoke(
+        ProfileRequest $request,
+        UpdateTrooperProfileCommand $update_profile): RedirectResponse
     {
         $trooper = $request->user();
 
-        $trooper->name = $request->validated('name');
-        $trooper->email = $request->validated('email');
-        $trooper->phone = $request->validated('phone');
-        $trooper->theme = $request->validated('theme');
+        $update_profile($trooper, $request->validated());
 
         $trooper->save();
 

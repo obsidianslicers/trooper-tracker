@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Auth;
 /**
  * Handles displaying the trooper costumes management interface via an HTMX request.
  */
-class CostumesListHtmxController extends Controller
+class CostumesHtmxController extends Controller
 {
     /**
      * Handle the incoming request to display the trooper costumes interface.

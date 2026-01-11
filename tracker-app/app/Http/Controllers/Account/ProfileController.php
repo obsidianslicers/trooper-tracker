@@ -9,22 +9,31 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 /**
- * Handles the display of the main account management page.
+ * Displays the authenticated trooper's profile management page.
  *
- * This controller is responsible for fetching the authenticated user's
- * data and rendering the primary account view where they can manage
- * their profile, settings, and other account-related information.
+ * This controller follows the ADR pattern as an Action that:
+ * - Retrieves the authenticated trooper from the request
+ * - Passes trooper data to the profile view
+ * - Renders the account profile page where troopers can view and manage
+ *   their personal information, contact details, and profile settings
  */
 class ProfileController extends Controller
 {
     /**
-     * Handle the incoming request to display the account page.
+     * Handle the incoming request to display the profile page.
      *
-     * This method retrieves the currently authenticated trooper and renders
-     * the main account management view, passing the trooper's data to it.
+     * Workflow:
+     * 1. Retrieves the authenticated trooper from the request
+     * 2. Prepares view data with trooper instance
+     * 3. Renders the profile management page
      *
-     * @param Request $request The incoming HTTP request.
-     * @return View The rendered account page view.
+     * The profile page allows troopers to view and edit their:
+     * - Personal information (name, email, phone)
+     * - Profile preferences and settings
+     * - Account details and status
+     *
+     * @param Request $request The incoming HTTP request containing the authenticated trooper
+     * @return View The rendered profile view (pages.account.profile)
      */
     public function __invoke(Request $request): View
     {
