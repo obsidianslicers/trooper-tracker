@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 /**
  * Handles displaying the notification settings form via an HTMX request.
  */
-class CostumesListController extends Controller
+class CostumesController extends Controller
 {
     /**
      * Handle the incoming request to display the notification settings.
