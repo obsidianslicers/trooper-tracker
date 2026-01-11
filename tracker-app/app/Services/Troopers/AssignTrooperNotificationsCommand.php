@@ -20,6 +20,9 @@ class AssignTrooperNotificationsCommand
 {
     /**
      * Update notification preferences for trooper's organization assignments.
+     * 
+     * First updates all existing assignments to disable notifications,
+     * the uses the provided data to enable notifications for selected organizations.
      *
      * @param Trooper $trooper The trooper whose notification preferences are being updated
      * @param array $organizations Array keyed by organization ID, each containing:

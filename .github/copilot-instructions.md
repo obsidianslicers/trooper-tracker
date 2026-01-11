@@ -16,7 +16,7 @@ This application exists to support costuming club members by providing tools to:
 
 - Track upcoming and past **troops** (events)
 - Manage **trooper signups**, approvals, and attendance
-- Coordinate event details across hierarchical organizations (Clubs → Garrisons → Squads)
+- Coordinate event details across hierarchical organizations (Clubs → Garrisons → Squads, coded as Organizations → Regions → Units)
 - Handle event notifications based on trooper preferences (instant, daily, never)
 - Manage event uploads/photos with trooper tagging
 

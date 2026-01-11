@@ -11,26 +11,21 @@ use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 
 /**
- * Validates profile setup organization selection and hierarchical assignments.
+ * Validates trooper notification settings and per-organization notification preferences.
  *
- * Generates dynamic validation rules for each organization, ensuring regions and units
- * are properly selected when an organization is chosen. Fetches active organizations
- * via `Organization::fullyLoaded()` and constructs rules for region and unit fields.
- *
- * Key behaviors:
- * - `prepareForValidation()` sanitizes phone numbers by removing non-digit characters.
- * - `withValidator()` attaches custom, user-facing error messages for organization rules.
- * - `getOrganizations()` caches organizations for efficient repeated access.
+ * This request validates the trooper's global notification frequency preference and
+ * per-organization notification settings (can_notify flags). The validation ensures:
+ * - notification_frequency is a valid NotificationFrequency enum value
+ * - organizations array contains boolean can_notify values for each organization
  *
  * @package App\Http\Requests\Account
- * @property \Illuminate\Support\Collection|null $organizations Cached organizations for rule generation
  */
 class NotificationRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      *
-     * @return bool Returns true as registration is open to guests.
+     * @return bool Returns true, allowing authenticated troopers to update their notification settings.
      */
     public function authorize(): bool
     {
@@ -40,9 +35,11 @@ class NotificationRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * Combines base email rules with dynamically generated organization hierarchy rules.
+     * Validates:
+     * - notification_frequency: Required, must be a valid NotificationFrequency enum value
+     * - organizations.*.can_notify: Optional boolean for each organization's notification preference
      *
-     * @return array<string, mixed> The combined validation rules for the setup form.
+     * @return array<string, mixed> The validation rules for notification settings.
      */
     public function rules(): array
     {

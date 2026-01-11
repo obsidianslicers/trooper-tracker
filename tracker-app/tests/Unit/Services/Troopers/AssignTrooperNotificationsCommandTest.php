@@ -264,4 +264,95 @@ class AssignTrooperNotificationsCommandTest extends TestCase
             ->first();
         $this->assertFalse($new_assignment->can_notify);
     }
+
+    public function test_invoke_disables_notifications_for_assignments_not_in_update_list(): void
+    {
+        // Arrange
+        $subject = new AssignTrooperNotificationsCommand();
+
+        $trooper = Trooper::factory()->create();
+        $org_to_update = Organization::factory()->create();
+        $org_to_disable = Organization::factory()->create();
+
+        // Create two existing assignments, both with notifications enabled
+        TrooperAssignment::factory()->create([
+            TrooperAssignment::TROOPER_ID => $trooper->id,
+            TrooperAssignment::ORGANIZATION_ID => $org_to_update->id,
+            TrooperAssignment::CAN_NOTIFY => true,
+        ]);
+
+        $assignment_to_disable = TrooperAssignment::factory()->create([
+            TrooperAssignment::TROOPER_ID => $trooper->id,
+            TrooperAssignment::ORGANIZATION_ID => $org_to_disable->id,
+            TrooperAssignment::CAN_NOTIFY => true,
+        ]);
+
+        // Only provide data for one organization
+        $organizations_data = [
+            $org_to_update->id => ['can_notify' => true],
+        ];
+
+        // Act
+        $subject($trooper, $organizations_data);
+
+        // Assert - assignment not in the update list should have notifications disabled
+        $assignment_to_disable->refresh();
+        $this->assertFalse($assignment_to_disable->can_notify);
+
+        // Assignment in the update list should still be enabled
+        $updated_assignment = $trooper->trooper_assignments()
+            ->where(TrooperAssignment::ORGANIZATION_ID, $org_to_update->id)
+            ->first();
+        $this->assertTrue($updated_assignment->can_notify);
+    }
+
+    public function test_invoke_resets_all_assignments_before_applying_new_preferences(): void
+    {
+        // Arrange
+        $subject = new AssignTrooperNotificationsCommand();
+
+        $trooper = Trooper::factory()->create();
+        $org1 = Organization::factory()->create();
+        $org2 = Organization::factory()->create();
+        $org3 = Organization::factory()->create();
+
+        // Create three assignments, all with notifications enabled
+        TrooperAssignment::factory()->create([
+            TrooperAssignment::TROOPER_ID => $trooper->id,
+            TrooperAssignment::ORGANIZATION_ID => $org1->id,
+            TrooperAssignment::CAN_NOTIFY => true,
+        ]);
+
+        TrooperAssignment::factory()->create([
+            TrooperAssignment::TROOPER_ID => $trooper->id,
+            TrooperAssignment::ORGANIZATION_ID => $org2->id,
+            TrooperAssignment::CAN_NOTIFY => true,
+        ]);
+
+        TrooperAssignment::factory()->create([
+            TrooperAssignment::TROOPER_ID => $trooper->id,
+            TrooperAssignment::ORGANIZATION_ID => $org3->id,
+            TrooperAssignment::CAN_NOTIFY => true,
+        ]);
+
+        // Only enable notifications for org1
+        $organizations_data = [
+            $org1->id => ['can_notify' => true],
+        ];
+
+        // Act
+        $subject($trooper, $organizations_data);
+
+        // Assert - only org1 should have notifications enabled
+        $assignments = $trooper->trooper_assignments()->get();
+
+        $org1_assignment = $assignments->firstWhere(TrooperAssignment::ORGANIZATION_ID, $org1->id);
+        $this->assertTrue($org1_assignment->can_notify);
+
+        $org2_assignment = $assignments->firstWhere(TrooperAssignment::ORGANIZATION_ID, $org2->id);
+        $this->assertFalse($org2_assignment->can_notify);
+
+        $org3_assignment = $assignments->firstWhere(TrooperAssignment::ORGANIZATION_ID, $org3->id);
+        $this->assertFalse($org3_assignment->can_notify);
+    }
 }
