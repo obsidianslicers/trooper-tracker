@@ -12,19 +12,29 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 /**
- * Handles the display of the authenticated user's notification settings page.
+ * Displays the authenticated trooper's notification settings page.
+ *
+ * This controller follows the ADR pattern as an Action that:
+ * - Retrieves the authenticated trooper's notification preferences
+ * - Loads all organizations with hierarchical structure (Org → Region → Unit)
+ * - Marks which organizations have notifications enabled for the trooper
+ * - Renders the notification settings view for trooper modification
  */
 class NotificationsController extends Controller
 {
     /**
      * Handle the incoming request to display the notification settings.
      *
-     * This method retrieves the notification preferences and organizational
-     * notification subscriptions for the currently authenticated user and
-     * renders the corresponding view.
+     * Workflow:
+     * 1. Retrieves the authenticated trooper from the request
+     * 2. Gathers notification data via getTrooperNotifications()
+     * 3. Renders the notification settings page with:
+     *    - Hierarchical organization list (Org → Region → Unit)
+     *    - Current notification_frequency setting
+     *    - Selected organizations marked with can_notify = true
      *
-     * @param Request $request The incoming HTTP request.
-     * @return View The rendered notification settings view.
+     * @param Request $request The incoming HTTP request containing the authenticated trooper
+     * @return View The rendered notification settings view (pages.account.notifications)
      */
     public function __invoke(Request $request): View
     {
@@ -36,13 +46,22 @@ class NotificationsController extends Controller
     /**
      * Gathers all notification-related data for a given trooper.
      *
-     * This method fetches all organizations and cross-references them with the
-     * trooper's notification assignments to determine which organizational
-     * notifications are enabled. It also includes the trooper's global
-     * notification preferences.
+     * Fetches the complete hierarchical organization structure and marks
+     * which organizations have notifications enabled for the trooper based
+     * on their TrooperAssignment records where can_notify = true.
      *
-     * @param Trooper $trooper The trooper for whom to fetch notification data.
-     * @return array An array of data ready for the view.
+     * The method iterates through three levels:
+     * - Organizations (top-level clubs/garrisons)
+     * - Regions (child organizations)
+     * - Units (grandchild organizations)
+     *
+     * Each organization object receives a 'selected' property indicating
+     * whether the trooper has notifications enabled for that organization.
+     *
+     * @param Trooper $trooper The trooper for whom to fetch notification data
+     * @return array<string, mixed> Array containing:
+     *                              - 'organizations' => Collection of organizations with selected flags
+     *                              - 'notification_frequency' => Trooper's global notification preference
      */
     private function getTrooperNotifications(Trooper $trooper): array
     {
