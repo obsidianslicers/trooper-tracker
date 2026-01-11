@@ -28,6 +28,8 @@ class AssignTrooperNotificationsCommand
      */
     public function __invoke(Trooper $trooper, array $organizations): void
     {
+        $trooper->trooper_assignments()->update(['can_notify' => false]);
+
         $assignments = $trooper->trooper_assignments()->get();
 
         foreach ($organizations as $organization_id => $data)

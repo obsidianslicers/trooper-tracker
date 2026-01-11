@@ -14,7 +14,7 @@ use Illuminate\Http\Request;
 /**
  * Handles the display of the authenticated user's notification settings page.
  */
-class NotificationsListController extends Controller
+class NotificationsController extends Controller
 {
     /**
      * Handle the incoming request to display the notification settings.

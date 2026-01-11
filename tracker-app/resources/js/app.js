@@ -42,8 +42,11 @@ Alpine.plugin(collapse);
 Alpine.plugin(persist);
 Alpine.plugin(intersect);
 
-import AuthRegisterPlugin from './auth/index.js';
-Alpine.plugin(AuthRegisterPlugin);
+import AuthPlugin from './auth/index.js';
+Alpine.plugin(AuthPlugin);
+
+import AccountPlugin from './account/index.js';
+Alpine.plugin(AccountPlugin);
 
 window.Alpine = Alpine;
 Alpine.start();

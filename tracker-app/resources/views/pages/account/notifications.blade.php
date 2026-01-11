@@ -33,35 +33,41 @@
                         command staff information on trooper milestones based on region or organization.</i>
                 </p>
 
-                @foreach ($organizations as $organization)
-                    <x-input-container class="ps-5">
-                        <x-input-checkbox :property="'organizations.' . $organization->id . '.notification'"
-                                          :label="$organization->name"
-                                          :value="1"
-                                          :checked="$organization->selected"
-                                          data-organization-id="{{ $organization->id }}" />
-                        @foreach ($organization->organizations as $region)
-                            <x-input-container class="ps-5">
-                                <x-input-checkbox :property="'regions.' . $region->id . '.notification'"
-                                                  :label="$region->name"
-                                                  :value="1"
-                                                  :checked="$region->selected"
-                                                  data-organization-id="{{ $organization->id }}"
-                                                  data-region-id="{{ $region->id }}" />
-                                @foreach ($region->organizations as $unit)
-                                    <x-input-container class="ps-5">
-                                        <x-input-checkbox :property="'units.' . $unit->id . '.notification'"
-                                                          :label="$unit->name"
-                                                          :value="1"
-                                                          :checked="$unit->selected"
-                                                          data-organization-id="{{ $organization->id }}"
-                                                          data-region-id="{{ $region->id }}" />
-                                    </x-input-container>
-                                @endforeach
-                            </x-input-container>
-                        @endforeach
-                    </x-input-container>
-                @endforeach
+                <div x-data="Account.Profile.notificationSelector()">
+
+                    @foreach ($organizations as $organization)
+                        <x-input-container class="ps-5">
+                            <x-input-checkbox :property="'organizations.' . $organization->id . '.can_notify'"
+                                              :label="$organization->name"
+                                              :value="1"
+                                              :checked="$organization->selected"
+                                              data-organization-id="{{ $organization->id }}"
+                                              x-on:change="toggleOrganization({{ $organization->id }}, $event.target.checked)" />
+                            @foreach ($organization->organizations as $region)
+                                <x-input-container class="ps-5">
+                                    <x-input-checkbox :property="'organizations.' . $region->id . '.can_notify'"
+                                                      :label="$region->name"
+                                                      :value="1"
+                                                      :checked="$region->selected"
+                                                      data-organization-id="{{ $organization->id }}"
+                                                      data-region-id="{{ $region->id }}"
+                                                      x-on:change="toggleRegion({{ $region->id }}, $event.target.checked)" />
+                                    @foreach ($region->organizations as $unit)
+                                        <x-input-container class="ps-5">
+                                            <x-input-checkbox :property="'organizations.' . $unit->id . '.can_notify'"
+                                                              :label="$unit->name"
+                                                              :value="1"
+                                                              :checked="$unit->selected"
+                                                              data-organization-id="{{ $organization->id }}"
+                                                              data-region-id="{{ $region->id }}" />
+                                        </x-input-container>
+                                    @endforeach
+                                </x-input-container>
+                            @endforeach
+                        </x-input-container>
+                    @endforeach
+
+                </div>
 
                 <x-submit-container>
                     <x-submit-button>
@@ -74,41 +80,4 @@
 
     </x-slim-container>
 
-@endsection
-
-@section('page-script')
-    <script type="text/javascript">
-        document.addEventListener('DOMContentLoaded', () => {
-            function bindCascadeCheckboxes() {
-                document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-                    checkbox.addEventListener('change', function () {
-                        const isChecked = this.checked;
-                        const name = this.getAttribute('name');
-
-                        // Organization-level toggle
-                        if (name.startsWith('organizations') && this.hasAttribute('data-organization-id')) {
-                            const orgId = this.getAttribute('data-organization-id');
-                            document.querySelectorAll(`input[type="checkbox"][data-organization-id="${orgId}"]`).forEach(cb => {
-                                if (cb !== this) cb.checked = isChecked;
-                            });
-                        }
-
-                        // Region-level toggle
-                        if (name.startsWith('regions') && this.hasAttribute('data-region-id')) {
-                            const regionId = this.getAttribute('data-region-id');
-                            document.querySelectorAll(`input[type="checkbox"][data-region-id="${regionId}"]`).forEach(cb => {
-                                if (cb !== this) cb.checked = isChecked;
-                            });
-                        }
-                    });
-                });
-            }
-
-            // Initial bind
-            bindCascadeCheckboxes();
-
-            // Re-bind after HTMX swaps content
-            document.body.addEventListener('htmx:afterSettle', bindCascadeCheckboxes);
-        });
-    </script>
 @endsection

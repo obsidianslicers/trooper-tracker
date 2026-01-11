@@ -1,135 +1,397 @@
-# GitHub Copilot Instructions for Laravel Project
+# GitHub Copilot Instructions for Troop Tracker
 
-This document provides instructions and context for GitHub Copilot to enhance its performance and align with project standards within this Laravel application.
+This document provides instructions and context for AI coding agents to enhance their performance and align with project standards within this Laravel application.
 
 ## Project Overview
 
-This is a Laravel application built with PHP. The application follows a clean, domain-driven architecture with a focus on maintainability, clarity, and expressive code. The primary authenticated entity in this system is a **Trooper**, not a generic User.
+**Troop Tracker** is a Laravel application designed for members of the **501st Legion** and other **Star Wars costuming clubs**. The application follows a clean, domain-driven architecture with a focus on maintainability, clarity, and expressive code using the **Action-Domain-Responder (ADR)** pattern.
+
+### Key Architectural Principle
+
+⚠️ **CRITICAL:** The primary authenticated entity is **Trooper**, not User. Avoid generating references to `User` model.
 
 ## Project Purpose
 
-This application exists to support members of the **501st Legion** and other **Star Wars costuming clubs** by providing tools to:
+This application exists to support costuming club members by providing tools to:
 
 - Track upcoming and past **troops** (events)
 - Manage **trooper signups**, approvals, and attendance
-- Coordinate event details between clubs (organizations), garrisons (regions), squads (units), and event organizers
-- Provide a clear, friendly interface for troopers to see where they’re needed next
+- Coordinate event details across hierarchical organizations (Clubs → Garrisons → Squads)
+- Handle event notifications based on trooper preferences (instant, daily, never)
+- Manage event uploads/photos with trooper tagging
 
-All domain language, models, factories, and tests should reflect this Star Wars costuming context.
+All domain language, models, factories, and tests must reflect this Star Wars costuming context.
 
-## Current Versions
+## Tech Stack
 
-- **Laravel:** 12.x  
-- **PHP:** 8.x  
-- **Bootstrap:** 5.x  
-- **HTMX:** 2.x  
+- **Laravel:** 12.x (latest features enabled)
+- **PHP:** 8.2+ (strict types, scalar type hints required)
+- **Database:** MySQL with auto-generated base models
+- **Frontend:** Blade templates, Bootstrap 5.2x, HTMX 2.x, Alpine.js
+- **Testing:** PHPUnit (SQLite in-memory for tests)
 
-## Coding Standards and Conventions
+## Architecture Patterns
 
-- **PSR-12:** Follow PSR-12 coding standards for PHP.
-- **Laravel Conventions:** Use standard Laravel conventions for naming, structure, and implementation.
-- **Readability:** Prioritize clear, expressive, self-documenting code.
-- **DRY Principle:** Avoid duplication; extract reusable logic.
-- **Meaningful Names:** Use descriptive, domain-driven names for classes, methods, and variables.
-- **PHPDoc:** Use PHPDoc for classes, methods, and complex logic.
+### Action-Domain-Responder (ADR)
 
-Additional conventions are documented here:  
-**[Coding Conventions](../CODING_CONVENTIONS.md)**
+All new and refactored code follows the ADR pattern:
 
-## Preferred Libraries and Tools
+- **Action (Controller):** Invokable controllers that orchestrate domain logic
+  - Example: `LoginSubmitController`, `RegisterSubmitController`
+  - Use single-action controllers: `Route::post('/login', LoginSubmitController::class)`
+  - Controllers are thin orchestrators, not business logic containers
 
-- **Database:** MySQL  
-- **Frontend:** Blade templates, Bootstrap CSS, HTMX
-- **Testing:** PHPUnit for unit and feature tests    
+- **Domain (Services):** Business logic lives in Service classes, independent of web context
+  - Located in `app/Services/`
+  - Examples: `FlashMessageService`, `BreadCrumbService`, event notification services
+  - Service classes are reusable across Controllers, Jobs, and Commands
 
-## Project Structure and Key Areas
+- **Responder:** Blade views, JSON responses, or redirects
+  - Located in `resources/views/`
+  - Uses Bootstrap 5 + HTMX for dynamic interactions
 
-- **`app/`** — Models, Controllers, Services, Actions, Policies  
-- **`database/`** — Migrations, Seeders, Factories  
-- **`resources/views/`** — Blade templates  
-- **`routes/`** — Web and API routes  
-- **`tests/`** — Unit and Feature tests  
+### Orchestration Pattern for Jobs & Commands
 
----
+Jobs and Commands follow the **Orchestration Pattern** - they coordinate Service class calls, not implement business logic:
 
-# Domain Vocabulary
+```php
+// ✅ GOOD: Job orchestrates service
+class SendEventCreatedNotificationsJob implements ShouldQueue
+{
+    public function handle(EventNotificationService $service): void
+    {
+        $service->sendNotificationsForEvent($this->event);
+    }
+}
 
-Copilot must use the correct domain language:
+// ❌ BAD: Business logic in job
+class SendEventCreatedNotificationsJob
+{
+    public function handle(): void
+    {
+        $troopers = Trooper::active()->get(); // Business logic here!
+        // ...
+    }
+}
+```
 
-- The primary authenticated model is **Trooper**, not User.
-- Avoid generating references to `User`.
-- Use `Trooper::class`, `Trooper::factory()`, and `$this->actingAs($trooper)` in examples.
-- Factories should use domain states such as:
-  - `Trooper::factory()->pending()`
-  - `Trooper::factory()->retired()`
-  - `Trooper::factory()->approved()`
+## Database & Model Architecture
 
+### Auto-Generated Base Models
 
----
+This project uses **reliese/laravel** to auto-generate base models from the database schema:
 
-# Specific Instructions for Copilot
+- **Base Models:** `app/Models/Base/` (auto-generated, DO NOT EDIT)
+  - Contains all table columns, relationships, and fillable arrays
+  - Generated via `php artisan code:models`
 
-### General Code Generation
+- **Extended Models:** `app/Models/` (your code here)
+  - Extend base models to add custom methods, accessors, scopes
+  - Example: `Trooper extends Base\Trooper`
 
-- Prefer Eloquent ORM over raw SQL.
-- Include appropriate relationships (`hasMany`, `belongsTo`, etc.) based on context.
-- Suggest Laravel helpers and facades where appropriate.
-- Generate Blade templates using Bootstrap 5.x conventions.
-- Avoid deprecated Laravel features or outdated PHP syntax.
-- When refactoring, aim for smaller, focused classes and methods.
+### Database Naming Conventions
 
----
+Strict conventions enable Eloquent auto-inference:
 
-# Feature Test Philosophy (Non‑Brittle, Behavior‑Driven)
+| Element | Convention | Example |
+|---------|-----------|---------|
+| Tables | Plural `snake_case` | `troopers`, `event_troopers` |
+| Columns | `snake_case` | `first_name`, `event_date` |
+| Booleans | `is_`, `can_`, `has_` prefix | `is_verified`, `has_limits` |
+| Primary Key | `id` | Auto-incrementing integer |
+| Foreign Keys | Singular table + `_id` | `trooper_id`, `event_id` |
+| Pivot Tables | Alphabetized singular names | `event_trooper` |
+| Timestamps | `created_at`, `updated_at` | Laravel standard |
 
-Copilot must generate **refactor‑friendly, behavior‑driven** tests.
+### Model Constants for Column Names
 
-### Test Behavior, Not Implementation
+All models use constants for column references (type-safe):
 
-- Focus on **what the Trooper experiences**, not how the code is structured.
-- Do not reference controllers, method names, or view files.
+```php
+// In Trooper model
+public const EMAIL = 'email';
+public const MEMBERSHIP_STATUS = 'membership_status';
+
+// Usage
+$trooper->{Trooper::EMAIL} = 'test@example.com';
+Trooper::factory()->state([Trooper::EMAIL => 'custom@example.com']);
+```
+
+## Coding Conventions
+
+### Naming Standards
+
+| Element | Convention | Example |
+|---------|-----------|---------|
+| Classes | `PascalCase` | `LoginSubmitController`, `FlashMessageService` |
+| Methods | `camelCase` | `handleRequest()`, `sendNotifications()` |
+| Parameters | `snake_case` | `function findById(int $user_id)` |
+| Variables | `snake_case` | `$local_variable`, `$event_date` |
+| Test Methods | `snake_case` with `test_` prefix | `test_invoke_handles_unapproved_user()` |
+
+### Type Hints
+
+**REQUIRED:** All function/method signatures must include explicit scalar type hints:
+
+```php
+// ✅ GOOD
+public function findUserById(int $user_id): ?Trooper
+{
+    return Trooper::find($user_id);
+}
+
+// ❌ BAD - missing type hints
+public function findUserById($user_id)
+{
+    return Trooper::find($user_id);
+}
+```
+
+### Code Quality Rules
+
+- **Line Length:** ≤100 characters
+- **Method Length:** ≤30 lines (extract private helpers if longer)
+- **Error Handling:** Errors should never pass silently - explicit validation required
+- **Strict Types:** Every file must start with `declare(strict_types=1);`
+
+## Domain Vocabulary
+
+### Critical Terminology
+
+Use correct domain language throughout the codebase:
+
+- **Trooper** (not User) - authenticated member of the organization
+- **Troop** (not Event) - a costuming event/appearance
+- **Costume** - approved Star Wars costume owned by a trooper
+- **Organization** - costuming club/garrison/squad
+- **Notice** - internal messaging/notification system
+
+### Trooper Authentication
+
+```php
+// ✅ CORRECT usage
+$trooper = Trooper::factory()->asActive()->create();
+$this->actingAs($trooper);
+Auth::user(); // Returns a Trooper instance
+
+// ❌ NEVER use these
+$user = User::factory()->create(); // User model doesn't exist!
+```
+
+### Factory States
+
+Factories include domain-specific states:
+
+```php
+// Trooper states
+Trooper::factory()->asActive()->create();
+Trooper::factory()->asPending()->create();
+Trooper::factory()->asRetired()->create();
+Trooper::factory()->asAdministrator()->create();
+Trooper::factory()->asModerator()->create();
+Trooper::factory()->withPassword('secret')->create();
+
+// Event states (refer to EventFactory for available states)
+Event::factory()->upcoming()->create();
+Event::factory()->past()->create();
+```
+
+## Testing Strategy
+
+### Test Types by Component
+
+| Component | Test Type | Why |
+|-----------|-----------|-----|
+| Controllers | Feature | Full HTTP request/response cycle |
+| Jobs | Feature | Queue-specific concerns + orchestration |
+| Commands | Feature | Argument parsing + console output |
+| Services | Unit | Fast, isolated business logic tests |
+
+### Non-Brittle, Behavior-Driven Tests
+
+Focus on **what the Trooper experiences**, not implementation:
+
+```php
+// ✅ GOOD - tests behavior
+public function test_login_redirects_approved_trooper_to_dashboard(): void
+{
+    $trooper = Trooper::factory()->asActive()->withPassword('password')->create();
+    
+    $response = $this->post('/login', [
+        'email' => $trooper->email,
+        'password' => 'password',
+    ]);
+    
+    $response->assertRedirect('/dashboard');
+    $this->assertAuthenticatedAs($trooper);
+}
+
+// ❌ BAD - brittle implementation testing
+public function test_login_submit_controller_calls_auth_attempt(): void
+{
+    // Testing controller method names, internal structure
+}
+```
 
 ### Avoid Brittle Assertions
 
-Do **not** assert:
+**DO NOT** assert:
+- Exact HTML markup or CSS classes
+- DOM structure or element counts
+- Specific database column names
+- Controller/view file names
 
-- Exact HTML markup  
-- CSS classes  
-- DOM structure  
-- Specific database columns or table names  
+**DO** assert:
+- `assertSeeText()` - visible content
+- `assertRedirect()` - navigation behavior
+- `assertSessionHas()` / `assertSessionMissing()`
+- High-level JSON structure
+- Database state via model attributes
 
-Prefer:
-
-- `assertSeeText()`  
-- `assertRedirect()`  
-- `assertSessionHas()`  
-- High‑level JSON structure assertions  
-
-### Use Domain‑Driven Factories and States
-
-Examples:
+### Test Conventions
 
 ```php
-$trooper = Trooper::factory()->veteran()->create();
-$troop = Troop::factory()->upcoming()->create();
-```
-
-### Factory Helper Methods
-
-When writing tests, if a needed factory helper method doesn't exist (e.g., `withPassword()`, `withEmail()`, `asVerified()`), add it to the appropriate factory class rather than manually setting attributes in tests. This promotes:
-
-- **Reusability** across multiple tests
-- **Readability** with expressive, chainable methods
-- **Maintainability** by centralizing data setup logic
-
-Example of adding a factory helper:
-
-```php
-// In TrooperFactory.php
-public function withPassword(string $password): static
+// Variable naming
+public function test_something(): void
 {
-    return $this->state(fn(array $attributes) => [
-        Trooper::PASSWORD => Hash::make($password),
-    ]);
+    $subject = new ServiceClass(); // Class under test is always $subject
+    $result = $subject->doSomething();
+    $this->assertTrue($result);
 }
+
+// Factory helpers over manual attribute setting
+// ✅ Add to factory
+public function withEmail(string $email): static
+{
+    return $this->state([Trooper::EMAIL => $email]);
+}
+
+// ❌ Don't set manually in tests
+$trooper = Trooper::factory()->create();
+$trooper->email = 'test@example.com';
+$trooper->save();
 ```
+
+## Development Workflows
+
+### Running Tests
+
+```bash
+# All tests
+php artisan test
+
+# Specific test file
+php artisan test tests/Feature/Auth/LoginTest.php
+
+# With coverage (configured for SQLite in-memory)
+php artisan test --coverage
+```
+
+### Database & Migrations
+
+```bash
+# Run migrations
+php artisan migrate
+
+# Rollback
+php artisan migrate:rollback
+
+# Fresh + seed
+php artisan migrate:fresh --seed
+
+# Generate base models after schema changes
+php artisan code:models
+```
+
+### Frontend Development
+
+```bash
+# Development (watch mode)
+npm run dev
+
+# Production build
+npm run build
+```
+
+### Key Artisan Commands
+
+```bash
+# Generate factory for a model
+php artisan make:factory TrooperFactory
+
+# Generate invokable controller
+php artisan make:controller LoginSubmitController --invokable
+
+# Run specific job
+php artisan queue:work
+
+# Code quality
+./vendor/bin/pint  # Laravel Pint formatter
+```
+
+## Key Files & Directories
+
+### Critical Reference Files
+
+- **[CODING_CONVENTIONS.md](../CODING_CONVENTIONS.md)** - Detailed conventions and architectural patterns
+- **[AUTHENTICATION.md](../AUTHENTICATION.md)** - Multi-provider auth flow (Email, Google, XenForo OAuth)
+- **[NOTIFICATIONS.md](../NOTIFICATIONS.md)** - Event notification system architecture
+
+### Directory Structure
+
+```
+tracker-app/
+├── app/
+│   ├── Http/Controllers/     # Invokable ADR Action controllers
+│   ├── Services/             # Domain business logic
+│   ├── Models/               # Extended Eloquent models
+│   │   └── Base/            # Auto-generated (DO NOT EDIT)
+│   ├── Enums/               # Backed enums with HasEnumHelpers trait
+│   ├── Jobs/                # Queue jobs (orchestrators)
+│   └── Console/Commands/    # Artisan commands (orchestrators)
+├── database/
+│   ├── factories/           # Model factories with domain states
+│   └── migrations/          # Schema migrations
+├── resources/views/         # Blade templates (Bootstrap + HTMX)
+├── routes/web/              # Organized route files by feature
+└── tests/
+    ├── Feature/             # HTTP, Job, Command tests
+    └── Unit/                # Service, helper tests
+```
+
+## Enums with Helper Trait
+
+All enums use `HasEnumHelpers` trait for common operations:
+
+```php
+enum MembershipStatus: string
+{
+    use HasEnumHelpers;
+    
+    case PENDING = 'pending';
+    case ACTIVE = 'active';
+    case RETIRED = 'retired';
+}
+
+// Usage
+MembershipStatus::toArray();      // ['pending' => 'Pending', ...]
+MembershipStatus::toValidator();  // 'pending,active,retired'
+```
+
+## Common Pitfalls
+
+1. **Don't edit Base models** - they're auto-generated and will be overwritten
+2. **Always use Trooper, never User** - the User model doesn't exist
+3. **Type hint everything** - strict types are enforced project-wide
+4. **Keep controllers thin** - business logic belongs in Services
+5. **Use factory states** - add helper methods to factories instead of inline state
+6. **Test behavior, not structure** - avoid brittle assertions on markup/DOM
+
+## Additional Resources
+
+See the following documents for deeper dives:
+
+- Architecture patterns: [CODING_CONVENTIONS.md](../CODING_CONVENTIONS.md)
+- Auth flows: [AUTHENTICATION.md](../AUTHENTICATION.md)
+- Notification system: [NOTIFICATIONS.md](../NOTIFICATIONS.md)
+- Current TODOs: [TODO.md](../TODO.md)

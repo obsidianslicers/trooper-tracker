@@ -8,7 +8,7 @@ use App\Http\Controllers\Account\CostumesListHtmxController;
 use App\Http\Controllers\Account\CostumesSubmitHtmxController;
 use App\Http\Controllers\Account\NoticesListController;
 use App\Http\Controllers\Account\NoticesSubmitHtmxController;
-use App\Http\Controllers\Account\NotificationsListController;
+use App\Http\Controllers\Account\NotificationsController;
 use App\Http\Controllers\Account\NotificationsSubmitController;
 use App\Http\Controllers\Account\ProfileController;
 use App\Http\Controllers\Account\ProfileSubmitController;
@@ -24,7 +24,7 @@ Route::prefix('account')
     {
         Route::get('/profile', ProfileController::class)->name('profile');
         Route::post('/profile', ProfileSubmitController::class);
-        Route::get('/notifications', NotificationsListController::class)->name('notifications');
+        Route::get('/notifications', NotificationsController::class)->name('notifications');
         Route::post('/notifications', NotificationsSubmitController::class);
         Route::get('/notices', NoticesListController::class)->name('notices');
         Route::post('/notices-htmx/{notice}', NoticesSubmitHtmxController::class)->name('notices-htmx');
