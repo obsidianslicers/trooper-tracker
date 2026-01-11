@@ -6,7 +6,7 @@ use App\Http\Controllers\Account\CostumesDeleteHtmxController;
 use App\Http\Controllers\Account\CostumesListController;
 use App\Http\Controllers\Account\CostumesListHtmxController;
 use App\Http\Controllers\Account\CostumesSubmitHtmxController;
-use App\Http\Controllers\Account\NoticesListController;
+use App\Http\Controllers\Account\NoticesController;
 use App\Http\Controllers\Account\NoticesSubmitHtmxController;
 use App\Http\Controllers\Account\NotificationsController;
 use App\Http\Controllers\Account\NotificationsSubmitController;
@@ -26,7 +26,7 @@ Route::prefix('account')
         Route::post('/profile', ProfileSubmitController::class);
         Route::get('/notifications', NotificationsController::class)->name('notifications');
         Route::post('/notifications', NotificationsSubmitController::class);
-        Route::get('/notices', NoticesListController::class)->name('notices');
+        Route::get('/notices', NoticesController::class)->name('notices');
         Route::post('/notices-htmx/{notice}', NoticesSubmitHtmxController::class)->name('notices-htmx');
         Route::get('/costumes', CostumesListController::class)->name('costumes');
         Route::get('/costumes-htmx', CostumesListHtmxController::class)->name('costumes-htmx');

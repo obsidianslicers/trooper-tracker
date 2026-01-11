@@ -6,17 +6,13 @@ namespace App\Http\Controllers\Account;
 
 use App\Http\Controllers\Controller;
 use App\Models\Notice;
-use App\Models\Organization;
-use App\Models\Trooper;
-use App\Models\TrooperAssignment;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Handles displaying the notification settings form via an HTMX request.
  */
-class NoticesListController extends Controller
+class NoticesController extends Controller
 {
     /**
      * Handle the incoming request to display the notification settings.
@@ -28,9 +24,11 @@ class NoticesListController extends Controller
     {
         $trooper = $request->user();
 
-        $data = [
-            'notices' => Notice::visibleTo($trooper, true)->orderBy(Notice::STARTS_AT)->get()
-        ];
+        $notices = Notice::visibleTo($trooper, true)
+            ->orderBy(Notice::STARTS_AT)
+            ->get();
+
+        $data = compact('notices');
 
         return view('pages.account.notices', $data);
     }

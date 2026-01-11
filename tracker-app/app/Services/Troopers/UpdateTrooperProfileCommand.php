@@ -9,29 +9,73 @@ use App\Models\Trooper;
 /**
  * Command to update a trooper's profile information.
  *
- * Updates the trooper's email, notification frequency, and marks the setup
- * as completed by setting the setup_completed_at timestamp.
+ * This command updates any combination of the following trooper fields,
+ * depending on which keys are present in the $data array:
+ *
+ * - name (string|null)
+ * - email (string)
+ * - phone (string|null)
+ * - notification_frequency (\App\Enums\NotificationFrequency|string|int)
+ * - theme (string|null)
+ *
+ * If $complete_setup is true, the trooper's setup_completed_at timestamp
+ * will be set to the current time.
  *
  * @package App\Services\Troopers
  */
 class UpdateTrooperProfileCommand
 {
     /**
-     * Update the trooper's profile information.
+     * Apply profile updates to the given trooper.
      *
-     * Updates the trooper's email and notification frequency preferences,
-     * and sets the setup_completed_at timestamp to mark the setup as complete.
+     * Expected $data keys (all optional):
      *
-     * @param Trooper $trooper The trooper whose profile to update.
-     * @param array $data The validated data containing email and notification_frequency.
+     *  - name: string|null
+     *      The trooper's display name.
+     *
+     *  - email: string
+     *      The trooper's email address.
+     *
+     *  - phone: string|null
+     *      The trooper's phone number. Null clears the value.
+     *
+     *  - notification_frequency: \App\Enums\NotificationFrequency|string|int
+     *      How often the trooper receives notification emails.
+     *
+     *  - theme: string|null
+     *      UI theme preference. Null clears the value.
+     *
+     * @param Trooper $trooper
+     *      The trooper being updated.
+     *
+     * @param array $data
+     *      Validated profile fields to update. Only keys present in this array
+     *      will be modified; missing keys are ignored.
+     *
+     * @param bool $complete_setup
+     *      Whether to mark the trooper's setup as completed by setting
+     *      setup_completed_at to now().
+     *
      * @return void
      */
-    public function __invoke(Trooper $trooper, array $data): void
+    public function __invoke(Trooper $trooper, array $data, bool $complete_setup = false): void
     {
-        $trooper->email = $data['email'];
-        $trooper->notification_frequency = $data['notification_frequency'];
-        $trooper->setup_completed_at = now();
+        $fields = ['name', 'email', 'phone', 'notification_frequency', 'theme'];
+
+        foreach ($fields as $field)
+        {
+            if (array_key_exists($field, $data))
+            {
+                $trooper->{$field} = $data[$field];
+            }
+        }
+
+        if ($complete_setup)
+        {
+            $trooper->setup_completed_at = now();
+        }
 
         $trooper->save();
     }
 }
+

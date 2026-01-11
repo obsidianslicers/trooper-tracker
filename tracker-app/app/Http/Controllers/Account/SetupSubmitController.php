@@ -6,8 +6,6 @@ namespace App\Http\Controllers\Account;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Account\SetupRequest;
-use App\Models\Trooper;
-use App\Models\TrooperAssignment;
 use App\Services\FlashMessageService;
 use App\Services\Troopers\UpdateTrooperMembershipsCommand;
 use App\Services\Troopers\UpdateTrooperProfileCommand;
@@ -48,7 +46,7 @@ class SetupSubmitController extends Controller
     {
         $trooper = $request->user();
 
-        $update_profile($trooper, $request->validated());
+        $update_profile($trooper, $request->validated(), true);
 
         $update_memberships($trooper, $request->validated('organizations', []));
 
