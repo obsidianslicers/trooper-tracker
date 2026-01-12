@@ -46,7 +46,7 @@
         </x-dashboard-card>
         <x-dashboard-card :label="'Reports'"
                           :icon="'fa-wrench'"
-                          :url="'#">
+                          :url="'#'">
             <p>
                 TODO: View Reports
             </p>
