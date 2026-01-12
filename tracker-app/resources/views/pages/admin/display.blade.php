@@ -44,6 +44,13 @@
                 Create, Update, and Manage Organizations, Regions, Units
             </p>
         </x-dashboard-card>
+        <x-dashboard-card :label="'Reports'"
+                          :icon="'fa-wrench'"
+                          :url="'#">
+            <p>
+                TODO: View Reports
+            </p>
+        </x-dashboard-card>
     </x-dashboard-cards>
 
 @endsection
