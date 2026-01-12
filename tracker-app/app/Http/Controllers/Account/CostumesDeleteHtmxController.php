@@ -10,18 +10,32 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 /**
- * Handles the deletion of a trooper costume via an HTMX request.
+ * Removes a costume from the trooper's profile via HTMX.
+ *
+ * This controller follows the Action-Domain-Responder (ADR) pattern:
+ * - **Action (Controller):** Receives HTMX request with costume_id
+ * - **Domain (Models):** Soft-deletes TrooperCostume record for authenticated trooper
+ * - **Responder:** Returns costumes table HTML fragment for HTMX swap
+ *
+ * Security:
+ * - Scopes deletion to authenticated trooper's costumes only (prevents unauthorized deletion)
+ * - Verifies costume belongs to trooper before deleting
+ *
+ * Uses soft deletes so costume can be restored if needed (e.g., if trooper re-adds it).
+ * The attachCostume() method in the Submit controller will restore soft-deleted records.
+ *
+ * This enables dynamic costume removal without full page reload.
  */
 class CostumesDeleteHtmxController extends Controller
 {
     /**
-     * Handle the incoming request to delete a trooper costume.
+     * Remove a costume from the authenticated trooper's profile.
      *
-     * This method removes a costume from the user's troopers list based on the provided 'costume_id'.
-     * It then returns a view partial containing the updated list of trooper costumes.
+     * Validates costume_id is provided, finds the TrooperCostume record scoped to
+     * the authenticated trooper, and soft-deletes it. Returns updated costume table HTML.
      *
-     * @param Request $request The incoming HTTP request.
-     * @return View The rendered trooper costumes view, intended for an HTMX response.
+     * @param Request $request The incoming HTTP request containing costume_id.
+     * @return View The costumes table partial for HTMX replacement.
      */
     public function __invoke(Request $request): View
     {

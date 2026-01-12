@@ -7,23 +7,43 @@ namespace App\Http\Controllers\Account;
 use App\Http\Controllers\Controller;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
+use App\Models\TrooperCostume;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 /**
- * Handles the submission for adding a new trooper costume via an HTMX request.
+ * Adds a costume to the trooper's profile via HTMX.
+ *
+ * This controller follows the Action-Domain-Responder (ADR) pattern:
+ * - **Action (Controller):** Receives HTMX request with organization_id and costume_id
+ * - **Domain (Models):** Validates membership, then uses Trooper::attachCostume() to add costume
+ * - **Responder:** Returns costumes table HTML fragment for HTMX swap
+ *
+ * Security validation:
+ * 1. Verifies trooper is an active member of the organization (via withActiveTroopers scope)
+ * 2. Verifies costume belongs to that organization
+ * 3. Only then calls attachCostume() to create/restore TrooperCostume record
+ *
+ * The attachCostume() method handles duplicates intelligently:
+ * - Creates new record if costume not previously added
+ * - Restores soft-deleted record if costume was previously removed
+ *
+ * This enables dynamic costume assignment without full page reload.
  */
 class CostumesSubmitHtmxController extends Controller
 {
     /**
-     * Handle the incoming request to add a trooper costume.
+     * Add a costume to the authenticated trooper's profile.
      *
-     * This method validates that the user is a member of the organization associated with the costume
-     * before adding it to their troopers list. It then returns a view partial containing
-     * the updated list of trooper costumes.
+     * Validates that:
+     * - organization_id and costume_id are provided and valid
+     * - Trooper is an active member of the organization
+     * - Costume belongs to the specified organization
      *
-     * @param Request $request The incoming HTTP request.
-     * @return View The rendered trooper costumes view, intended for an HTMX response.
+     * Then attaches the costume and returns updated costume table HTML.
+     *
+     * @param Request $request The incoming HTTP request containing organization_id and costume_id.
+     * @return View The costumes table partial for HTMX replacement.
      */
     public function __invoke(Request $request): View
     {
@@ -46,7 +66,19 @@ class CostumesSubmitHtmxController extends Controller
 
                 if (isset($costume))
                 {
-                    $trooper->attachCostume($costume->id);
+                    $trooper_costume = $trooper->trooper_costumes()
+                        ->withTrashed()
+                        ->where(TrooperCostume::COSTUME_ID, $costume_id)
+                        ->first();
+
+                    if ($trooper_costume === null)
+                    {
+                        $trooper->trooper_costumes()->create([TrooperCostume::COSTUME_ID => $costume_id]);
+                    }
+                    else
+                    {
+                        $trooper_costume->restore();
+                    }
                 }
             }
         }
