@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
-use App\Enums\EventStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\Organization;
@@ -20,7 +19,7 @@ use Illuminate\Http\Request;
  * Handles displaying the event creation form for administrators and moderators.
  * Optionally copies data from an existing event when a copyEvent parameter is provided.
  */
-class CreateController extends Controller
+class CreateFromEmailController extends Controller
 {
     /**
      * Creates a new CreateController instance.

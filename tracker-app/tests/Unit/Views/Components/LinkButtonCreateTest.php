@@ -14,7 +14,7 @@ class LinkButtonCreateTest extends TestCase
         $subject = Blade::render('<x-link-button-create url="/events/create">Add Event</x-link-button-create>');
 
         $this->assertStringContainsString('href="/events/create"', $subject);
-        $this->assertStringContainsString('btn btn-sm btn-outline-primary', $subject);
+        $this->assertStringContainsString('btn btn-sm btn-outline-success', $subject);
         $this->assertStringContainsString('Add Event', $subject);
         $this->assertStringContainsString('fa-add', $subject);
     }

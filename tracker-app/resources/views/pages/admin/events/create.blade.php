@@ -29,7 +29,8 @@
                         Email Message (will be parsed based on organization picked above):
                     </x-label>
                     <x-input-text :property="'source'"
-                                  :multiline="true" />
+                                  :multiline="true"
+                                  :placeholder="'Event Name: Name of Event'" />
                 </x-input-container>
 
                 <x-submit-container>

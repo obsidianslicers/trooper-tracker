@@ -1,18 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Jobs;
 
-use App\Enums\EventTrooperStatus;
-use App\Mail\Events\CancelledEventNotification;
 use App\Models\Event;
-use App\Models\EventShift;
-use App\Models\EventTrooper;
-use App\Models\Trooper;
 use App\Services\Events\GetTroopersForCancelledEventQuery;
 use App\Services\Events\SendEventCancelledNotificationCommand;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Support\Facades\Mail;
 
 /**
  * Sends cancellation notifications to troopers who signed up for a cancelled event.

@@ -5,12 +5,20 @@ declare(strict_types=1);
 namespace App\Services\Organizations;
 
 use App\Models\Organization;
+use App\Models\OrganizationCostume;
 
 class GetOrganizationCostumesQuery
 {
     public function __invoke(iterable $organization_ids = null): \Illuminate\Support\Collection
     {
-        $q = Organization::with('organization_costumes')
+        $with = [
+            'organization_costumes' => function ($q)
+            {
+                $q->orderBy(OrganizationCostume::NAME);
+            }
+        ];
+
+        $q = Organization::with($with)
             ->ofTypeOrganizations()
             ->orderBy(Organization::NAME);
 

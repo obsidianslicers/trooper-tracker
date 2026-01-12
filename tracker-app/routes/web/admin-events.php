@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Admin\Events\CopyController;
 use App\Http\Controllers\Admin\Events\CopySubmitController;
-use App\Http\Controllers\Admin\Events\CreateController;
-use App\Http\Controllers\Admin\Events\CreateSubmitController;
+use App\Http\Controllers\Admin\Events\CreateFromEmailController;
+use App\Http\Controllers\Admin\Events\CreateFromEmailSubmitController;
 use App\Http\Controllers\Admin\Events\ListController;
 use App\Http\Controllers\Admin\Events\UpdateController;
 use App\Http\Controllers\Admin\Events\UpdateShiftsController;
@@ -24,8 +24,8 @@ Route::prefix('admin/events')
     ->group(function ()
     {
         Route::get('/', ListController::class)->name('list');
-        Route::get('/create', CreateController::class)->name('create');
-        Route::post('/create', CreateSubmitController::class);
+        Route::get('/create', CreateFromEmailController::class)->name('create');
+        Route::post('/create', CreateFromEmailSubmitController::class);
         Route::get('/{event}/copy', CopyController::class)->name('copy');
         Route::post('/{event}/copy', CopySubmitController::class);
         Route::get('/{event}/update', UpdateController::class)->name('update');

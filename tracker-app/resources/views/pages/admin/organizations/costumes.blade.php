@@ -27,20 +27,12 @@
                 @foreach($organization->organization_costumes as $costume)
                     <tr>
                         <td colspan="2">
-                            <x-input-text :property="'costumes.' . $costume->id . '.name'"
-                                          :value="$costume->name" />
+                            {{ $costume->name }}
                         </td>
                     </tr>
                 @endforeach
             </tbody>
         </x-table>
-
-        <x-submit-container>
-            <x-submit-button>
-                Update
-            </x-submit-button>
-            <x-link-button-cancel :url="route('admin.organizations.list')" />
-        </x-submit-container>
 
     </form>
 

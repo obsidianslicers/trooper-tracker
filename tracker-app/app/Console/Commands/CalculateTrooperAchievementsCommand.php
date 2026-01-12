@@ -33,7 +33,6 @@ class CalculateTrooperAchievementsCommand extends Command
      */
     protected $description = 'Calculate trooper achievements.';
 
-
     /**
      * Execute the console command.
      *
@@ -113,7 +112,7 @@ class CalculateTrooperAchievementsCommand extends Command
             ->where('tt_events.status', EventStatus::CLOSED)
             ->groupBy('tt_event_troopers.trooper_id')
             ->orderByDesc('event_count')
-            ->get();
+            ->ddRawSql();
 
         return $trooper_events;
     }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Mail\Admin\Troopers;
 
 use App\Models\Trooper;
