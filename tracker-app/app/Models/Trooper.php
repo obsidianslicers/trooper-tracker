@@ -109,39 +109,6 @@ class Trooper extends BaseTrooper implements
     }
 
     /**
-     * Attach a costume to the trooper if it's not already attached.
-     *
-     * @param int $costume_id The ID of the costume to attach.
-     */
-    public function attachCostume(int $costume_id): void
-    {
-        $trooper_costume = $this->trooper_costumes()->withTrashed()
-            ->where(TrooperCostume::COSTUME_ID, $costume_id)
-            ->first();
-
-        if ($trooper_costume === null)
-        {
-            $this->trooper_costumes()->create([TrooperCostume::COSTUME_ID => $costume_id]);
-        }
-        else
-        {
-            $trooper_costume->restore();
-        }
-    }
-
-    /**
-     * Detach a costume from the trooper.
-     *
-     * @param int $costume_id The ID of the costume to detach.
-     */
-    public function detachCostume(int $costume_id): void
-    {
-        $this->trooper_costumes()
-            ->where(TrooperCostume::COSTUME_ID, $costume_id)
-            ->delete();
-    }
-
-    /**
      * Check if the trooper has an active status in any of their assigned organizations.
      *
      * @return bool True if at least one active assignment exists, false otherwise.

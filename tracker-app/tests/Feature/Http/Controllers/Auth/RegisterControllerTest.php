@@ -38,7 +38,7 @@ class RegisterControllerTest extends TestCase
         // Assert
         $response->assertOk();
         $response->assertViewIs('pages.auth.register');
-        $response->assertViewHas('organizations', function ($view_orgs) use ($organizations)
+        $response->assertViewHas('organization_hierarchy', function ($view_orgs) use ($organizations)
         {
             return $view_orgs->count() === 3;
         });

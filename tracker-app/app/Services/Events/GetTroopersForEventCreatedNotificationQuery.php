@@ -6,6 +6,7 @@ use App\Enums\NotificationFrequency;
 use App\Models\Event;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
+use Illuminate\Support\Collection;
 
 /**
  * Query service for retrieving troopers eligible for event creation notifications.
@@ -29,7 +30,7 @@ class GetTroopersForEventCreatedNotificationQuery
      * @param Event $event The newly created event to notify about.
      * @return \Illuminate\Support\Collection Collection of eligible Trooper models.
      */
-    public function __invoke(Event $event)
+    public function __invoke(Event $event): Collection
     {
         $organization_id = $event->organization_id;
 

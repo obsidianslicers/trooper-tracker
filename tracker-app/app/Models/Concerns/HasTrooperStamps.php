@@ -40,7 +40,7 @@ trait HasTrooperStamps
 
         static::deleting(function ($model)
         {
-            if ($this->usingSoftDeletes())
+            if (static::usingSoftDeletes())
             {
                 if (Auth::check())
                 {
@@ -89,7 +89,7 @@ trait HasTrooperStamps
      *
      * @return bool
      */
-    private function usingSoftDeletes(): bool
+    private static function usingSoftDeletes(): bool
     {
         return $usingSoftDeletes = in_array(
             'Illuminate\Database\Eloquent\SoftDeletes',

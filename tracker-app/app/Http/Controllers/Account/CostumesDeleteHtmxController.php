@@ -5,22 +5,37 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Account;
 
 use App\Http\Controllers\Controller;
+use App\Models\TrooperCostume;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 /**
- * Handles the deletion of a trooper costume via an HTMX request.
+ * Removes a costume from the trooper's profile via HTMX.
+ *
+ * This controller follows the Action-Domain-Responder (ADR) pattern:
+ * - **Action (Controller):** Receives HTMX request with costume_id
+ * - **Domain (Models):** Soft-deletes TrooperCostume record for authenticated trooper
+ * - **Responder:** Returns costumes table HTML fragment for HTMX swap
+ *
+ * Security:
+ * - Scopes deletion to authenticated trooper's costumes only (prevents unauthorized deletion)
+ * - Verifies costume belongs to trooper before deleting
+ *
+ * Uses soft deletes so costume can be restored if needed (e.g., if trooper re-adds it).
+ * The attachCostume() method in the Submit controller will restore soft-deleted records.
+ *
+ * This enables dynamic costume removal without full page reload.
  */
 class CostumesDeleteHtmxController extends Controller
 {
     /**
-     * Handle the incoming request to delete a trooper costume.
+     * Remove a costume from the authenticated trooper's profile.
      *
-     * This method removes a costume from the user's troopers list based on the provided 'costume_id'.
-     * It then returns a view partial containing the updated list of trooper costumes.
+     * Validates costume_id is provided, finds the TrooperCostume record scoped to
+     * the authenticated trooper, and soft-deletes it. Returns updated costume table HTML.
      *
-     * @param Request $request The incoming HTTP request.
-     * @return View The rendered trooper costumes view, intended for an HTMX response.
+     * @param Request $request The incoming HTTP request containing costume_id.
+     * @return View The costumes table partial for HTMX replacement.
      */
     public function __invoke(Request $request): View
     {
@@ -30,16 +45,23 @@ class CostumesDeleteHtmxController extends Controller
 
         if ($costume_id > -1)
         {
-            $trooper->detachCostume($costume_id);
+            \Illuminate\Support\Facades\Log::info("Removing costume ID {$costume_id} from trooper ID {$trooper->id}");
+
+            $trooper_costume = $trooper->trooper_costumes()
+                ->where(TrooperCostume::ID, $costume_id)
+                ->first();
+
+            if ($trooper_costume !== null)
+            {
+                \Illuminate\Support\Facades\Log::info("Calling Delete");
+                $trooper_costume->delete();
+            }
         }
 
-        $data = [
-            'organizations' => collect(),
-            'selected_organization' => null,
-            'costumes' => collect(),
-            'trooper_costumes' => $trooper->trooper_costumes,
-        ];
+        $trooper_costumes = $trooper->trooper_costumes()->with('organization_costume.organization')->get();
 
-        return view('pages.account.costume-selector', $data);
+        $data = compact('trooper_costumes');
+
+        return view('pages.account.costumes-table', $data);
     }
 }
