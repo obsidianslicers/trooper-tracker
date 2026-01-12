@@ -36,7 +36,7 @@ class AuthorityRequest extends FormRequest
             throw new AuthorizationException('Trooper not found or unauthorized.');
         }
 
-        return $this->user()->membership_role == MembershipRole::ADMINISTRATOR;
+        return $this->user()->is_administrator;
     }
 
     /**

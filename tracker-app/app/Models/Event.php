@@ -7,6 +7,7 @@ use App\Enums\EventType;
 use App\Models\Base\Event as BaseEvent;
 use App\Models\Casts\SanitizeHtmlCast;
 use App\Models\Concerns\HasFilter;
+use App\Models\Concerns\HasObserver;
 use App\Models\Concerns\HasTrooperStamps;
 use App\Models\Scopes\HasEventScopes;
 use Carbon\Carbon;
@@ -28,6 +29,7 @@ class Event extends BaseEvent
     use HasFactory;
     use HasEventScopes;
     use HasTrooperStamps;
+    use HasObserver;
 
     /**
      * Get the attributes that should be cast.

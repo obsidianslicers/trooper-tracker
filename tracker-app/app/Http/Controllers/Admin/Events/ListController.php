@@ -11,17 +11,32 @@ use App\Models\Filters\EventFilter;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
+use App\Services\Admin\Events\GetEventsQuery;
 use App\Services\BreadCrumbService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 /**
- * Displays a paginated and filterable list of events.
+ * Displays a paginated and filterable list of events for administrators and moderators.
  *
- * Provides administrators and moderators with a list of all events,
- * with filtering capabilities for status, organization, and search terms.
- * Supports pagination for large result sets.
+ * This controller follows the **Action-Domain-Responder (ADR)** pattern:
+ * - **Action (Controller):** Orchestrates the request handling and view rendering
+ * - **Domain (Service):** GetEventsQuery performs the business logic of filtering and retrieving events
+ * - **Responder:** Blade view renders the event list table
+ *
+ * Key features:
+ * - Administrators see all events across all organizations
+ * - Moderators see only events from organizations they moderate
+ * - Supports filtering by status, organization, and search term
+ * - Provides pagination for large result sets
+ * - Includes breadcrumb navigation
+ *
+ * Query parameters:
+ * - status: Filter by EventStatus enum value (open, closed, cancelled, etc.)
+ * - organization_id: Filter by specific organization
+ * - search_term: Search events by name
+ * - page: Pagination page number
  */
 class ListController extends Controller
 {
@@ -36,21 +51,27 @@ class ListController extends Controller
     }
 
     /**
-     * Displays the filtered and paginated event list.
+     * Handle the incoming request to display the event list.
      *
-     * Authorizes that the user can view events, applies filters from query
-     * parameters (status, organization_id, q for search), and paginates results.
-     * Sets up breadcrumb navigation and renders the event list view.
+     * Orchestrates the event retrieval workflow:
+     * 1. Authenticates the trooper (via middleware)
+     * 2. Retrieves organization filter if provided
+     * 3. Delegates to GetEventsQuery for filtered, paginated results
+     * 4. Prepares view data with events, filters, and status options
      *
      * @param Request $request The incoming HTTP request with optional filter parameters.
      * @param EventFilter $filter The filter service for applying query constraints.
+     * @param GetEventsQuery $get_events Service to retrieve filtered and paginated events.
      * @return View The event list view with filtered and paginated results.
      */
-    public function __invoke(Request $request, EventFilter $filter): View
+    public function __invoke(
+        Request $request,
+        EventFilter $filter,
+        GetEventsQuery $get_events): View
     {
         $organization = $this->getOrganization($request);
 
-        $events = $this->getEvents($request, $filter);
+        $events = $get_events($request->user(), $filter);
 
         $status_options = EventStatus::toArray();
 
@@ -82,36 +103,5 @@ class ListController extends Controller
         }
 
         return null;
-    }
-
-    /**
-     * Builds and executes the query to retrieve a paginated list of events.
-     *
-     * The query is built based on the requested status, an optional organization filter,
-     * a search term, and the user's authorization level (admin vs. moderator).
-     * @param Request $request The incoming HTTP request.
-     * @param Trooper $trooper The authenticated trooper.
-     * @param Organization|null $organization The organization to filter by, if any.
-     * @return LengthAwarePaginator The paginated list of events.
-     */
-    private function getEvents(Request $request, EventFilter $filter): LengthAwarePaginator
-    {
-        $trooper = $request->user();
-
-        $q = Event::with([
-            'organization.trooper_assignments' => function ($q) use ($trooper)
-            {
-                $q->where(TrooperAssignment::TROOPER_ID, $trooper->id)
-                    ->where(TrooperAssignment::IS_MODERATOR, true);
-            }
-        ]);
-
-        $q = $q->withCount('event_shifts');
-
-        $q = $q->filterWith($filter)->moderatedBy($trooper);
-
-        $q->orderByDesc(Event::EVENT_END);
-
-        return $q->paginate(15)->withQueryString();
     }
 }

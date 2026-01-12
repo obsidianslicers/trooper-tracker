@@ -15,6 +15,7 @@ use App\Services\GeocodingService;
 use App\Services\GoogleService;
 use Exception;
 use Illuminate\Http\RedirectResponse;
+use Throwable;
 
 /**
  * Processes event creation form submissions.
@@ -23,10 +24,10 @@ use Illuminate\Http\RedirectResponse;
  * created from email sources. Creates the event record along with associated
  * organization relationships and initial shift data.
  */
-class CreateSubmitController extends Controller
+class CreateFromEmailSubmitController extends Controller
 {
     /**
-     * Creates a new CreateSubmitController instance.
+     * Creates a new CreateFromEmailSubmitController instance.
      *
      * @param FlashMessageService $flash Service for displaying flash messages to users.
      */
@@ -55,29 +56,8 @@ class CreateSubmitController extends Controller
         $service_class = $costume_club->service_class;
 
         $event = $service_class::parseRequestAppearance($request->validated('source'));
+
         $event->organization_id = $organization->id;
-
-        try
-        {
-            // if (config('services.google.maps_api_key'))
-            // {
-            //     [$latitude, $longitude] = $this->google->getLatitudeLongitude($event->venue_address . ', ' . $event->venue_city . ', ' . $event->venue_state . ' ' . $event->venue_zip . ', ' . $event->venue_country);
-
-            //     $event->latitude = $latitude;
-            //     $event->longitude = $longitude;
-            // }
-
-            $address = $this->buildGeocodeAddress($event);
-
-            [$latitude, $longitude] = $this->geocoding->getLatitudeLongitude($address);
-
-            $event->latitude = $latitude;
-            $event->longitude = $longitude;
-        }
-        catch (Exception)
-        {
-            // Ignore geocoding errors
-        }
 
         $event->save();
 
@@ -96,44 +76,6 @@ class CreateSubmitController extends Controller
         $this->flash->created($event);
 
         return redirect()->route('admin.events.update', compact('event'));
-    }
-
-    private function buildGeocodeAddress($event): string
-    {
-        $parts = [];
-
-        // Normalize the base address for duplicate detection
-        $base = strtolower($event->venue_address);
-
-        // Always start with the raw address field
-        $parts[] = trim($event->venue_address);
-
-        // Append city if not already included
-        if (!str_contains($base, strtolower($event->venue_city)))
-        {
-            $parts[] = $event->venue_city;
-        }
-
-        // Append state if not already included
-        if (!str_contains($base, strtolower($event->venue_state)))
-        {
-            $parts[] = $event->venue_state;
-        }
-
-        // Append ZIP if not already included
-        if (!str_contains($base, strtolower($event->venue_zip)))
-        {
-            $parts[] = $event->venue_zip;
-        }
-
-        // Append country if not already included
-        if (!str_contains($base, strtolower($event->venue_country)))
-        {
-            $parts[] = $event->venue_country;
-        }
-
-        // Join with commas for Nominatim
-        return implode(', ', array_filter($parts));
     }
 
 }

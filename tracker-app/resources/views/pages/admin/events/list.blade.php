@@ -114,7 +114,7 @@
     </tbody>
     <tfoot>
         <tr>
-            <td colspan="5">
+            <td colspan="6">
                 {{ $events->links() }}
             </td>
         </tr>

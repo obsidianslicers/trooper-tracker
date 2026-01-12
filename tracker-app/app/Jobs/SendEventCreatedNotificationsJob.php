@@ -1,18 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Jobs;
 
-use App\Enums\NotificationFrequency;
-use App\Mail\Events\InstantEventNotification;
 use App\Models\Event;
-use App\Models\EventNotification;
-use App\Models\Trooper;
-use App\Models\TrooperAssignment;
 use App\Services\Events\GetTroopersForEventCreatedNotificationQuery;
 use App\Services\Events\SendEventCreatedNotificationCommand;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Support\Facades\Mail;
 
 /**
  * Creates event notifications for active troopers when a new event is posted.

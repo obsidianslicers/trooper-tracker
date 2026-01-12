@@ -6,7 +6,6 @@ namespace App\Http\Controllers\Account;
 
 use App\Http\Controllers\Controller;
 use App\Models\Organization;
-use App\Models\OrganizationCostume;
 use App\Services\Organizations\GetOrganizationCostumesQuery;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;

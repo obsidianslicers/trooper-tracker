@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin\Organizations;
 
 use App\Http\Controllers\Controller;
 use App\Models\Organization;
+use App\Models\OrganizationCostume;
 use App\Services\BreadCrumbService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -43,9 +44,14 @@ class CostumesController extends Controller
     {
         $this->authorize('update', $organization);
 
-        $data = [
-            'organization' => $organization
-        ];
+        $organization->load([
+            'organization_costumes' => function ($query)
+            {
+                $query->orderBy(OrganizationCostume::NAME);
+            }
+        ]);
+
+        $data = compact('organization');
 
         return view('pages.admin.organizations.costumes', $data);
     }
