@@ -24,7 +24,7 @@ use Throwable;
  * created from email sources. Creates the event record along with associated
  * organization relationships and initial shift data.
  */
-class CreateFromEmailSubmitController extends Controller
+class CreateSubmitController extends Controller
 {
     /**
      * Creates a new CreateFromEmailSubmitController instance.

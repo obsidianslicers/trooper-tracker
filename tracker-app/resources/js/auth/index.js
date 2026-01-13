@@ -1,4 +1,4 @@
-import organizationSelector from './register/organizationSelector';
+import organizationSelector from './organizationSelector';
 
 export default function (Alpine) {
     window.Auth = window.Auth || {};

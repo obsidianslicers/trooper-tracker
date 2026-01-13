@@ -48,6 +48,9 @@ Alpine.plugin(AuthPlugin);
 import AccountPlugin from './account/index.js';
 Alpine.plugin(AccountPlugin);
 
+import AdminPlugin from './admin/index.js';
+Alpine.plugin(AdminPlugin);
+
 window.Alpine = Alpine;
 Alpine.start();
 

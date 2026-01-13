@@ -9,6 +9,7 @@ use App\Models\Event;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Services\BreadCrumbService;
+use App\Services\Organizations\GetOrganizationHierarchyQuery;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,7 +20,7 @@ use Illuminate\Http\Request;
  * Handles displaying the event creation form for administrators and moderators.
  * Optionally copies data from an existing event when a copyEvent parameter is provided.
  */
-class CreateFromEmailController extends Controller
+class CreateController extends Controller
 {
     /**
      * Creates a new CreateController instance.
@@ -42,17 +43,22 @@ class CreateFromEmailController extends Controller
      * @param Event $event The event to be updated.
      * @return View The rendered event update view.
      */
-    public function __invoke(Request $request, Event $event): View|RedirectResponse
+    public function __invoke(
+        Request $request,
+        Event $event,
+        GetOrganizationHierarchyQuery $get_organization_hierarchy): View|RedirectResponse
     {
         $this->authorize('create', Event::class);
 
         $trooper = $request->user();
 
+        $organization_hierarchy = $get_organization_hierarchy()->map(fn(array $org) => (object) $org);
+
         $event = new Event();
 
         $this->assignOrganization($request, $event, $trooper);
 
-        $data = compact('event');
+        $data = compact('event', 'organization_hierarchy');
 
         return view('pages.admin.events.create', $data);
     }
