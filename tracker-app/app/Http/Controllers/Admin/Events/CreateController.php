@@ -63,11 +63,15 @@ class CreateController extends Controller
 
         $event = new Event();
 
-        $event->type = EventType::REGULAR;
-
-        $event->status = EventStatus::DRAFT;
-
-        $event->fill(old());
+        if (empty(old()))
+        {
+            $event->type = EventType::REGULAR;
+            $event->status = EventStatus::DRAFT;
+        }
+        else
+        {
+            $event->fill(old());
+        }
 
         $this->assignOrganization($request, $event, $trooper);
 
