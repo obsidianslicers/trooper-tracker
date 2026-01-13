@@ -1,15 +1,14 @@
 import { mandalorianMercsParser } from './parsers/mandalorianMercsParser.js';
 import { theLegionParser } from './parsers/theLegionParser.js';
 
-export default function () {
+export default function ({ mode, organizationId, organizationName, clubName }) {
     return {
-        mode: 'email',
+        mode: mode || 'email',
         sourceContent: '',
-        organizationName: '',
         form: {
-            organization_id: 0,
-            organization_name: '',
-            club_name: '',
+            organization_id: organizationId || 0,
+            organization_name: organizationName || '',
+            club_name: clubName || '',
         },
 
         init() {
@@ -35,7 +34,7 @@ export default function () {
 
         parseSource() {
             const message = this.sourceContent;
-            if (!message.trim()) {
+            if (!message.trim() || this.form.organization_id === 0) {
                 return;
             }
             let parsed = {};
@@ -52,6 +51,8 @@ export default function () {
             }
 
             this.form = { ...this.form, ...parsed };
+
+            this.mode = 'manual';
         },
 
         findRootOrganizationName() {

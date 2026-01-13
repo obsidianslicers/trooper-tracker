@@ -5,12 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Requests\Account;
 
 use App\Enums\NotificationFrequency;
-use App\Models\Organization;
 use App\Models\Trooper;
-use App\Rules\Admin\Troopers\OrganizationLeafNodeRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Collection;
-use Illuminate\Validation\Rule;
 
 /**
  * Validates trooper notification settings and per-organization notification preferences.

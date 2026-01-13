@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Set up PHP
@@ -22,15 +22,15 @@ jobs:
           extensions: mbstring, bcmath, sqlite, intl, pdo_sqlite, gd
           coverage: none
 
-      - name: Install Composer dependencies
-        run: composer install --prefer-dist --no-progress --no-suggest
+      - name: Install Composer Dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
         working-directory: ./tracker-app
 
-      - name: Copy environment file
+      - name: Copy Environment File
         run: cp .env.test .env
         working-directory: ./tracker-app
 
-      - name: Run tests
+      - name: Run Tests
         run: php artisan test
         working-directory: ./tracker-app
 

@@ -21,6 +21,26 @@ class EventObserver
      */
     public function created(Event $event): void
     {
+        $this->storeGeocode($event);
+    }
+
+    /**
+     * Handle the Event "updated" event.
+     *
+     * @param Event $event The event instance that was updated.
+     */
+    public function updated(Event $event): void
+    {
+        $attributes = ['venue_address', 'venue_city', 'venue_state', 'venue_zip', 'venue_country'];
+
+        if ($event->isDirty($attributes))
+        {
+            $this->storeGeocode($event);
+        }
+    }
+
+    private function storeGeocode(Event $event): void
+    {
         try
         {
             $address = $this->buildGeocodeAddress($event);

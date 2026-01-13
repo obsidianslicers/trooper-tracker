@@ -212,7 +212,7 @@
                             </tr>
                         </thead>
                         @foreach ($organizations as $organization)
-                            <tr>
+                                    <tr x-data="Admin.Events.eventOrganizationAttendance({ canAttend: {{ $organization->pivot?->can_attend ?? 'false' }}, troopers: {{ $organization->pivot->troopers_allowed ?? 'null' }}, handlers: {{ $organization->pivot->handlers_allowed ?? 'null' }} })">
                                 <td>
                                     <x-logo :storage_path="$organization->image_path_sm"
                                             :default_path="'img/icons/organization-32x32.png'"
@@ -228,21 +228,23 @@
                                     <x-input-checkbox :property="'organizations.' . $organization->id . '.can_attend'"
                                                       :value="1"
                                                       :checked="$organization->pivot->can_attend ?? false"
-                                                      data-organization-id="{{ $organization->id }}" />
+                                                      x-model="canAttend" />
                                 </td>
                                 <td class="text-center">
                                     <x-input-text :property="'organizations.' . $organization->id . '.troopers_allowed'"
                                                   :value="$organization->pivot->troopers_allowed ?? null"
                                                   class="form-control-sm"
                                                   placeholder="unlimited"
-                                                  data-organization-id="{{ $organization->id }}" />
+                                                  x-model="troopers"
+                                                  x-bind:disabled="!canAttend" />
                                 </td>
                                 <td class="text-center">
                                     <x-input-text :property="'organizations.' . $organization->id . '.handlers_allowed'"
                                                   :value="$organization->pivot->handlers_allowed ?? null"
                                                   class="form-control-sm"
                                                   placeholder="unlimited"
-                                                  data-organization-id="{{ $organization->id }}" />
+                                                  x-model="handlers"
+                                                  x-bind:disabled="!canAttend" />
                                 </td>
                             </tr>
                         @endforeach

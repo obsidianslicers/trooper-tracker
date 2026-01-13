@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
+use App\Enums\EventStatus;
+use App\Enums\EventType;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\Organization;
@@ -18,7 +20,9 @@ use Illuminate\Http\Request;
  * Displays the event creation form.
  *
  * Handles displaying the event creation form for administrators and moderators.
- * Optionally copies data from an existing event when a copyEvent parameter is provided.
+ * Initializes a new event with default values (REGULAR type, DRAFT status) and
+ * optionally assigns an organization based on query parameters. Provides the
+ * organization hierarchy for form selection.
  */
 class CreateController extends Controller
 {
@@ -34,14 +38,17 @@ class CreateController extends Controller
     }
 
     /**
-     * Handle the request to display the event update page.
+     * Displays the event creation form with a new event instance.
      *
-     * Authorizes the user, sets up breadcrumbs, and returns the view
-     * containing the form to update an existing event.
+     * Authorizes the user can create events, initializes a new Event model
+     * with default values (REGULAR type, DRAFT status), and optionally assigns
+     * an organization from query parameters. Returns the view with the event,
+     * organization hierarchy, and available organizations.
      *
      * @param Request $request The incoming HTTP request object.
-     * @param Event $event The event to be updated.
-     * @return View The rendered event update view.
+     * @param Event $event Event model (injected but not used, new instance created).
+     * @param GetOrganizationHierarchyQuery $get_organization_hierarchy Query for organization hierarchy.
+     * @return View|RedirectResponse The rendered event creation view.
      */
     public function __invoke(
         Request $request,
@@ -56,9 +63,19 @@ class CreateController extends Controller
 
         $event = new Event();
 
+        $event->type = EventType::REGULAR;
+
+        $event->status = EventStatus::DRAFT;
+
+        $event->fill(old());
+
         $this->assignOrganization($request, $event, $trooper);
 
-        $data = compact('event', 'organization_hierarchy');
+        $organizations = Organization::ofTypeOrganizations()->orderBy(Organization::NAME)->get();
+
+        $mode = old('mode', 'email');
+
+        $data = compact('event', 'organization_hierarchy', 'organizations', 'mode');
 
         return view('pages.admin.events.create', $data);
     }

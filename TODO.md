@@ -1,19 +1,30 @@
 ## EVENTS
-- Make event e-mail parser optional, allow command-staff to fill form fields to create events. Allow command-staff to review form fields before posting e-mail data.
-- Getting error on event e-mail parser submission
+
+### WORK IN PROGRESS
+
 - home pages alernate views:
   - map view
   - calendar view
-- A page of events that are completed (Charity liason team prefers this method (see stats&search page on TT 1.0))
 - Event Link Manager (A way to link events together so that a trooper can only sign up for a certain amount of troops that are linked together [comes into play for big events like MegaCon])
-- A way to close down the site temporarily with a message to allow command-staff to add events and such in the back end and open back up when they ready... maybe we can replace this with a post event NOW or AT THIS TIME IN THE FUTURE.
 - Charity information for events, charity liasons use tracker to track charity info.
   -  Direct Charity Raised ($)
   -  Indirect Charity Raised ($)
   -  Charity Name
   -  Charity Add Hours (This is used to calculate additional or less charity hours, otherwise the event duration is used)
   -  Charity Note (A note field to add misc, for example collected 15 Star Wars toys)
+
+### EVENT WIP COMPLETED
+- Getting error on event e-mail parser submission
+  - **IMPLEMENTATION**: server side handled via global exception handler
 - Confirm troops, when a troop is finish, trooper needs to confirm attendance to get credit
+  - **IMPLEMENTATION**: console job - event shift complete sends emails to request attendance credit
+- A page of events that are completed (Charity liason team prefers this method (see stats&search page on TT 1.0))
+  - **IMPLEMENTATION**: admin/events page has search/filters by name and status
+- A way to close down the site temporarily with a message to allow command-staff to add events and such in the back end and open back up when they ready... maybe we can replace this with a post event NOW or AT THIS TIME IN THE FUTURE.
+  - **IMPLEMENTATION**: events start in a DRAFT state and won't be visible until updated to OPEN or SIGNUP-LOCKED
+- Make event e-mail parser optional, allow command-staff to fill form fields to create events. Allow command-staff to review form fields before posting e-mail data.
+  - **IMPLEMENTATION**: event/creation allows for parser use or manually entry, or changes after the parse
+  - **IMPLEMENTATION**: events can also be copied
 
 ## TROOPERS
 - command-staff Statistics page to show accounts with admin/mod permissions. I have a note field per trooper to make a note on why they have permission, for example RL command-staff could be a note. Last API syncs with 501st. Rebel Legion API is dead.

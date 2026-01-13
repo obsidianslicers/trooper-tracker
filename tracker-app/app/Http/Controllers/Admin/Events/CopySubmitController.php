@@ -14,11 +14,12 @@ use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 
 /**
- * Processes event update form submissions.
+ * Processes event copy form submissions.
  *
- * Handles updating existing event details including venue information, contact details,
- * event dates, amenities, and organization associations. Copies both the event record
- * and its related EventOrganization pivot records for access control.
+ * Handles copying an existing event including all shifts and organization associations.
+ * Creates a new event record with adjusted dates based on the time difference between
+ * the original and new start dates. All shifts are also copied with adjusted times.
+ * The copied event is created in DRAFT status regardless of the source event status.
  */
 class CopySubmitController extends Controller
 {
@@ -32,15 +33,16 @@ class CopySubmitController extends Controller
     }
 
     /**
-     * Copies an existing event from the validated form submission.
+     * Creates a copy of an existing event with adjusted dates.
      *
-     * Processes the validated request to update the event's properties
-     * and organization access permissions. Redirects back to the update
-     * form with a success message.
+     * Processes the validated request to create a new event based on the source event.
+     * Calculates the time difference between old and new start dates, then applies
+     * this difference to all event and shift times. Copies all event shifts and
+     * organization associations to the new event. Sets the new event to DRAFT status.
      *
-     * @param CopyRequest $request The validated event update request.
-     * @param Event $event The event to update (route model binding).
-     * @return RedirectResponse Redirect to the event's update page.
+     * @param CopyRequest $request The validated event copy request.
+     * @param Event $event The source event to copy (route model binding).
+     * @return RedirectResponse Redirect to the copied event's update page.
      */
     public function __invoke(CopyRequest $request, Event $event): RedirectResponse
     {

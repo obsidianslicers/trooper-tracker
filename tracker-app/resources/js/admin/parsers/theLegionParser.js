@@ -1,7 +1,7 @@
 // resources/js/parsers/theLegionParser.js
 
 import { parseMessage } from './parseMessage.js';
-import { parseUsDateTime } from './parseUtils.js';
+import { formatUsDateTime, parseUsDateTime } from './parseUtils.js';
 
 export function theLegionParser(message) {
     const parsed = parseMessage(message);
@@ -15,9 +15,9 @@ export function theLegionParser(message) {
         venue: parsed['Venue'] ?? null,
         venue_address: parsed['Venue address'] ?? null,
 
-        event_start: parsed['Event Start'] ? parseUsDateTime(parsed['Event Start']) : null,
+        event_start: parsed['Event Start'] ? formatUsDateTime(parseUsDateTime(parsed['Event Start'])) : null,
 
-        event_end: parsed['Event End'] ? parseUsDateTime(parsed['Event End']) : null,
+        event_end: parsed['Event End'] ? formatUsDateTime(parseUsDateTime(parsed['Event End'])) : null,
 
         event_website: parsed['Event Website'] ?? null,
 

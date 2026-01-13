@@ -44,6 +44,28 @@ export function parseUsDateTime(dateTimeStr) {
     return new Date(y, m - 1, d, hour, minute, 0, 0);
 }
 
+export function formatUsDateTime(date) {
+    if (!(date instanceof Date) || isNaN(date)) {
+        return null;
+    }
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    let hour = date.getHours();
+
+    const minute = String(date.getMinutes()).padStart(2, '0');
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    hour = hour % 12;
+
+    if (hour === 0) {
+        hour = 12;
+    }
+
+    return `${year}-${month}-${day} ${hour}:${minute}${ampm}`;
+}
+
 /**
  * Parse a 24-hour time string: "H:i"
  * Returns { hour, minute } or null.

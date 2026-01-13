@@ -10,14 +10,39 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 /**
- * Handles the validation for creating a new Event.
+ * Validates and authorizes event creation requests for administrators and moderators.
+ *
+ * This FormRequest class handles validation and authorization for creating new events.
+ * It ensures that:
+ * - Only users with event creation permission can proceed (via EventPolicy)
+ * - The organization_id belongs to an organization the user moderates
+ * - All required event fields meet validation criteria (defined in CommonRules trait)
+ *
+ * Authorization logic:
+ * - Administrators can create events for any organization
+ * - Moderators can only create events for organizations they moderate
+ *
+ * Validation includes:
+ * - Event details (name, status, dates, contact info)
+ * - Venue information (address, city, state, zip)
+ * - Capacity limits (troopers, handlers, friends allowed)
+ * - Event features (secure staging, blasters, props, parking, accessibility)
+ * - Organization-specific settings (via organizations array)
+ * - Geographic coordinates (latitude/longitude)
+ *
+ * Uses CommonRules trait for shared validation rules between Create and Update requests.
  */
 class CreateRequest extends FormRequest
 {
+    use CommonRules;
+
     /**
-     * Determine if the user is authorized to make this request.
+     * Determine if the authenticated user is authorized to create an event.
      *
-     * @return bool
+     * Uses the EventPolicy to check if the user has permission to create events.
+     * Typically allows administrators and moderators.
+     *
+     * @return bool True if the user can create events, false otherwise.
      */
     public function authorize(): bool
     {
@@ -26,17 +51,24 @@ class CreateRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Get the validation rules for event creation.
      *
-     * @return array<string, mixed> The validation rules for the request.
+     * Retrieves common validation rules from the CommonRules trait and adds
+     * organization_id validation to ensure the user can only create events for
+     * organizations they moderate.
+     *
+     * For administrators: Can select any organization
+     * For moderators: Can only select organizations they moderate (filtered by moderatedBy scope)
+     *
+     * @return array<string, mixed> The validation rules for creating an event.
      */
     public function rules(): array
     {
-        $rules = [
-            Event::SOURCE => ['required', 'string'],
-        ];
+        $rules = $this->getCommonRules();
 
         $trooper = $this->user();
+
+        $rules['source'] = ['nullable', 'string'];
 
         $rules[Event::ORGANIZATION_ID] = [
             'required',

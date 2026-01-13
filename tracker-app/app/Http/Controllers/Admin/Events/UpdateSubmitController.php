@@ -7,10 +7,12 @@ namespace App\Http\Controllers\Admin\Events;
 use App\Enums\EventStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Events\UpdateRequest;
-use App\Jobs\SendEventCreatedNotificationsJob;
 use App\Jobs\SendEventCancelledNotificationsJob;
+use App\Jobs\SendEventCreatedNotificationsJob;
 use App\Models\Event;
 use App\Models\EventOrganization;
+use App\Services\Events\UpdateEventCommand;
+use App\Services\Events\UpdateEventOrganizationsCommand;
 use App\Services\FlashMessageService;
 use Illuminate\Http\RedirectResponse;
 
@@ -43,66 +45,17 @@ class UpdateSubmitController extends Controller
      * @param Event $event The event to update (route model binding).
      * @return RedirectResponse Redirect to the event's update page.
      */
-    public function __invoke(UpdateRequest $request, Event $event): RedirectResponse
-    {
-        $this->updateEvent($request, $event);
-        $this->updateOrganizations($request, $event);
-
-        $this->flash->updated($event);
-
-        return redirect()->route('admin.events.update', compact('event'));
-    }
-
-    private function updateEvent(UpdateRequest $request, Event $event): void
+    public function __invoke(
+        UpdateRequest $request,
+        Event $event,
+        UpdateEventCommand $update_event,
+        UpdateEventOrganizationsCommand $update_event_organizations): RedirectResponse
     {
         $current_status = $event->status;
         $updated_status = EventStatus::from($request->validated('status'));
 
-        $event->name = $request->validated('name');
-        $event->status = $request->validated('status');
-        $event->troopers_allowed = $request->validated('troopers_allowed');
-        $event->handlers_allowed = $request->validated('handlers_allowed');
-        $event->friends_allowed = $request->validated('friends_allowed');
-        $event->tentative_signups_allowed = $request->validated('tentative_signups_allowed');
-
-        // Coordinates
-        $event->latitude = $request->validated('latitude');
-        $event->longitude = $request->validated('longitude');
-
-        // Contact info
-        $event->contact_name = $request->validated('contact_name');
-        $event->contact_phone = $request->validated('contact_phone');
-        $event->contact_email = $request->validated('contact_email');
-
-        // Event details
-        $event->venue = $request->validated('venue');
-        $event->venue_address = $request->validated('venue_address');
-        $event->venue_city = $request->validated('venue_city');
-        $event->venue_state = $request->validated('venue_state');
-        $event->venue_zip = $request->validated('venue_zip');
-        $event->venue_country = $request->validated('venue_country');
-        $event->event_start = $request->validated('event_start');
-        $event->event_end = $request->validated('event_end');
-        $event->event_website = $request->validated('event_website');
-
-        // Request specifics
-        $event->expected_attendees = $request->validated('expected_attendees');
-        $event->requested_number_characters = $request->validated('requested_number_characters');
-        $event->requested_character_types = $request->validated('requested_character_types');
-
-        // Venue amenities / permissions
-        $event->secure_staging_area = $request->validated('secure_staging_area');
-        $event->allow_blasters = $request->validated('allow_blasters');
-        $event->allow_props = $request->validated('allow_props');
-        $event->parking_available = $request->validated('parking_available');
-        $event->accessible = $request->validated('accessible');
-        $event->amenities = $request->validated('amenities');
-
-        // Misc
-        $event->comments = $request->validated('comments');
-        $event->referred_by = $request->validated('referred_by');
-
-        $event->save();
+        $update_event($event, $request->validated());
+        $update_event_organizations($event, $request->validated('organizations') ?? []);
 
         if ($current_status != $updated_status)
         {
@@ -118,24 +71,10 @@ class UpdateSubmitController extends Controller
                 dispatch(new SendEventCancelledNotificationsJob($event));
             }
         }
-    }
 
-    private function updateOrganizations(UpdateRequest $request, Event $event): void
-    {
-        $input = $request->validated('organizations') ?? [];
+        $this->flash->updated($event);
 
-        $pivot_data = $event->organizations->pluck('id')
-            ->mapWithKeys(fn($id) => [$id => [
-                EventOrganization::CAN_ATTEND => false,
-                EventOrganization::TROOPERS_ALLOWED => null,
-                EventOrganization::HANDLERS_ALLOWED => null,
-            ]])
-            ->toArray();
-
-        //  merge arrays - left wins    
-        $updates = $input + $pivot_data;
-
-        $event->organizations()->syncWithoutDetaching($updates);
+        return redirect()->route('admin.events.update', compact('event'));
     }
 
     // private function resetLimits(Event $event)
