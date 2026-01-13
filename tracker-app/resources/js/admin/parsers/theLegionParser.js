@@ -1,7 +1,7 @@
 // resources/js/parsers/theLegionParser.js
 
-import { parseUsDateTime } from '../utils/dateUtils.js';
 import { parseMessage } from './parseMessage.js';
+import { parseUsDateTime } from './parseUtils.js';
 
 export function theLegionParser(message) {
     const parsed = parseMessage(message);

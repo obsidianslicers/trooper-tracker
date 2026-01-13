@@ -1,7 +1,7 @@
 import { parseMessage } from './parseMessage.js';
 import { parseTime, parseUsDate, toInt } from './parseUtils.js';
 
-export default function mandalorianMercsParser(message) {
+export function mandalorianMercsParser(message) {
     const parsed = parseMessage(message);
 
     // -----------------------------

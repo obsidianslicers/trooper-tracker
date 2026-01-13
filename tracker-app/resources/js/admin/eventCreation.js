@@ -1,5 +1,5 @@
-import { mandalorianMercsParser } from '../parsers/mandalorianMercsParser';
-import { theLegionParser } from './parsers/theLegionParser';
+import { mandalorianMercsParser } from './parsers/mandalorianMercsParser.js';
+import { theLegionParser } from './parsers/theLegionParser.js';
 
 export default function () {
     return {

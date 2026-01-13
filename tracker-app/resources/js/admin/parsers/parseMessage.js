@@ -1,4 +1,4 @@
-export default function parseMessage(message) {
+export function parseMessage(message) {
     const lines = message.split(/\r\n|\n|\r/);
     const parsed = {};
     let currentKey = null;
