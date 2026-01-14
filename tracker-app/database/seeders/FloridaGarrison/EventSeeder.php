@@ -261,6 +261,7 @@ class EventSeeder extends Seeder
         $event->charity_indirect_funds = $legacy->charityIndirectFunds;
         $event->charity_name = $legacy->charityName;
         $event->charity_hours = $legacy->charityAddHours;
+        $event->charity_notes = $legacy->charityNote;
     }
 
     private function getOrganization($id)

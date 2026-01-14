@@ -6,14 +6,10 @@ namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
 use App\Http\Controllers\Controller;
-use App\Models\Event;
 use App\Models\Filters\EventFilter;
 use App\Models\Organization;
-use App\Models\Trooper;
-use App\Models\TrooperAssignment;
-use App\Services\Admin\Events\GetEventsQuery;
 use App\Services\BreadCrumbService;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use App\Services\Events\GetEventsForAdminQuery;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -22,7 +18,7 @@ use Illuminate\Http\Request;
  *
  * This controller follows the **Action-Domain-Responder (ADR)** pattern:
  * - **Action (Controller):** Orchestrates the request handling and view rendering
- * - **Domain (Service):** GetEventsQuery performs the business logic of filtering and retrieving events
+ * - **Domain (Service):** GetEventsForAdminQuery performs the business logic of filtering and retrieving events
  * - **Responder:** Blade view renders the event list table
  *
  * Key features:
@@ -56,18 +52,18 @@ class ListController extends Controller
      * Orchestrates the event retrieval workflow:
      * 1. Authenticates the trooper (via middleware)
      * 2. Retrieves organization filter if provided
-     * 3. Delegates to GetEventsQuery for filtered, paginated results
+     * 3. Delegates to GetEventsForAdminQuery for filtered, paginated results
      * 4. Prepares view data with events, filters, and status options
      *
      * @param Request $request The incoming HTTP request with optional filter parameters.
      * @param EventFilter $filter The filter service for applying query constraints.
-     * @param GetEventsQuery $get_events Service to retrieve filtered and paginated events.
+     * @param GetEventsForAdminQuery $get_events Service to retrieve filtered and paginated events.
      * @return View The event list view with filtered and paginated results.
      */
     public function __invoke(
         Request $request,
         EventFilter $filter,
-        GetEventsQuery $get_events): View
+        GetEventsForAdminQuery $get_events): View
     {
         $organization = $this->getOrganization($request);
 

@@ -41,8 +41,9 @@ return new class extends Migration
 
             $table->integer('charity_direct_funds')->default(0);
             $table->integer('charity_indirect_funds')->default(0);
-            $table->string('charity_name')->nullable();
+            $table->string('charity_name', 128)->nullable();
             $table->integer('charity_hours')->nullable();
+            $table->text('charity_notes')->nullable();
 
             // Contact info
             $table->string('contact_name', 128)->nullable();

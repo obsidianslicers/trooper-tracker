@@ -39,6 +39,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $charity_indirect_funds
  * @property string|null $charity_name
  * @property int|null $charity_hours
+ * @property string|null $charity_notes
  * @property string|null $contact_name
  * @property string|null $contact_phone
  * @property string|null $contact_email
@@ -98,6 +99,7 @@ class Event extends Model
     const CHARITY_INDIRECT_FUNDS = 'charity_indirect_funds';
     const CHARITY_NAME = 'charity_name';
     const CHARITY_HOURS = 'charity_hours';
+    const CHARITY_NOTES = 'charity_notes';
     const CONTACT_NAME = 'contact_name';
     const CONTACT_PHONE = 'contact_phone';
     const CONTACT_EMAIL = 'contact_email';
@@ -177,6 +179,7 @@ class Event extends Model
         self::CHARITY_INDIRECT_FUNDS,
         self::CHARITY_NAME,
         self::CHARITY_HOURS,
+        self::CHARITY_NOTES,
         self::CONTACT_NAME,
         self::CONTACT_PHONE,
         self::CONTACT_EMAIL,
