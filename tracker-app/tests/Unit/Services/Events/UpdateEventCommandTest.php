@@ -281,6 +281,61 @@ class UpdateEventCommandTest extends TestCase
         $this->assertEquals('Restrooms, Food, Water', $event->amenities);
     }
 
+    public function test_invoke_updates_charity_information(): void
+    {
+        // Arrange
+        $event = Event::factory()->create([
+            Event::CHARITY_NAME => null,
+            Event::CHARITY_HOURS => null,
+            Event::CHARITY_DIRECT_FUNDS => 0,
+            Event::CHARITY_INDIRECT_FUNDS => 0,
+            Event::CHARITY_NOTES => null,
+        ]);
+
+        $data = $this->buildEventData([
+            'name' => $event->name,
+            'status' => $event->status->value,
+            'charity_name' => 'Make-A-Wish Foundation',
+            'charity_hours' => 150,
+            'charity_direct_funds' => 5000,
+            'charity_indirect_funds' => 2500,
+            'charity_notes' => 'Funds raised through silent auction',
+        ]);
+
+        // Act
+        ($this->subject)($event, $data);
+
+        // Assert
+        $event->refresh();
+        $this->assertEquals('Make-A-Wish Foundation', $event->charity_name);
+        $this->assertEquals(150, $event->charity_hours);
+        $this->assertEquals(5000, $event->charity_direct_funds);
+        $this->assertEquals(2500, $event->charity_indirect_funds);
+        $this->assertEquals('Funds raised through silent auction', $event->charity_notes);
+    }
+
+    public function test_invoke_defaults_charity_funds_to_zero_when_not_provided(): void
+    {
+        // Arrange
+        $event = Event::factory()->create([
+            Event::CHARITY_DIRECT_FUNDS => 1000,
+            Event::CHARITY_INDIRECT_FUNDS => 500,
+        ]);
+
+        $data = $this->buildEventData([
+            'name' => $event->name,
+            'status' => $event->status->value,
+        ]);
+
+        // Act
+        ($this->subject)($event, $data);
+
+        // Assert
+        $event->refresh();
+        $this->assertEquals(0, $event->charity_direct_funds);
+        $this->assertEquals(0, $event->charity_indirect_funds);
+    }
+
     public function test_invoke_updates_miscellaneous_fields(): void
     {
         // Arrange

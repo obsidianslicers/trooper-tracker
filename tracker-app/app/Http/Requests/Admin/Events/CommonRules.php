@@ -8,8 +8,33 @@ use App\Enums\EventStatus;
 use App\Models\Event;
 use App\Models\EventOrganization;
 
+/**
+ * Shared validation rules for Event creation and updates.
+ *
+ * Provides common validation rules used by both CreateRequest and UpdateRequest.
+ * Includes validation for:
+ * - Event details (name, status, dates, website)
+ * - Contact information (name, phone, email)
+ * - Venue details (name, address, city, state, zip, country)
+ * - Charity information (name, hours, direct/indirect funds, notes)
+ * - Capacity limits (troopers, handlers, friends allowed, tentative signups)
+ * - Event specifics (expected attendees, requested characters)
+ * - Venue features (secure staging, blasters, props, parking, accessibility, amenities)
+ * - Geographic coordinates (latitude/longitude)
+ * - Organization associations (via organizations array with attendance and limits)
+ * - Miscellaneous fields (comments, referred by, source)
+ */
 trait CommonRules
 {
+    /**
+     * Get common validation rules for event requests.
+     *
+     * Returns an array of validation rules applied to both event creation
+     * and update operations. All rules ensure data integrity while allowing
+     * flexibility for optional fields.
+     *
+     * @return array<string, mixed> The validation rules array.
+     */
     protected function getCommonRules(): array
     {
         return [
@@ -29,6 +54,12 @@ trait CommonRules
             Event::VENUE_STATE => ['nullable', 'string', 'max:128'],
             Event::VENUE_ZIP => ['nullable', 'string', 'max:128'],
             Event::VENUE_COUNTRY => ['nullable', 'string', 'max:128'],
+
+            Event::CHARITY_NAME => ['nullable', 'string', 'max:128'],
+            Event::CHARITY_HOURS => ['nullable', 'integer', 'min:0'],
+            Event::CHARITY_DIRECT_FUNDS => ['nullable', 'integer', 'min:0'],
+            Event::CHARITY_INDIRECT_FUNDS => ['nullable', 'integer', 'min:0'],
+            Event::CHARITY_NOTES => ['nullable', 'string'],
 
             Event::EVENT_START => ['required', 'date'],
             Event::EVENT_END => ['required', 'date', 'after:' . Event::EVENT_START],

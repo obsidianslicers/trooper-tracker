@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Services\Admin\Events;
+namespace App\Services\Events;
 
 use App\Models\Event;
 use App\Models\Filters\EventFilter;
@@ -30,7 +30,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
  * - Moderator event management dashboards
  * - Event filtering and search functionality
  */
-class GetEventsQuery
+class GetEventsForAdminQuery
 {
     /**
      * Execute the query to retrieve events with moderation privileges.

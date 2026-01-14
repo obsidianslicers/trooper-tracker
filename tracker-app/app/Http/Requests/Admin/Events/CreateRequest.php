@@ -23,12 +23,15 @@ use Illuminate\Validation\Rule;
  * - Moderators can only create events for organizations they moderate
  *
  * Validation includes:
- * - Event details (name, status, dates, contact info)
- * - Venue information (address, city, state, zip)
- * - Capacity limits (troopers, handlers, friends allowed)
- * - Event features (secure staging, blasters, props, parking, accessibility)
+ * - Event details (name, status, dates, contact info, website)
+ * - Venue information (address, city, state, zip, country)
+ * - Charity information (name, hours, direct/indirect funds, notes)
+ * - Capacity limits (troopers, handlers, friends allowed, tentative signups)
+ * - Event features (secure staging, blasters, props, parking, accessibility, amenities)
+ * - Event specifics (expected attendees, requested characters)
  * - Organization-specific settings (via organizations array)
  * - Geographic coordinates (latitude/longitude)
+ * - Miscellaneous fields (comments, referred by, source)
  *
  * Uses CommonRules trait for shared validation rules between Create and Update requests.
  */

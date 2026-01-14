@@ -11,7 +11,21 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * Handles the validation for updating an existing Event.
+ * Handles validation and authorization for updating an existing Event.
+ *
+ * This FormRequest class validates event update requests and ensures proper authorization.
+ * It validates all event fields including:
+ * - Event details (name, status, dates, contact info, website)
+ * - Venue information (address, city, state, zip, country)
+ * - Charity information (name, hours, direct/indirect funds, notes)
+ * - Capacity limits (troopers, handlers, friends allowed, tentative signups)
+ * - Event features (secure staging, blasters, props, parking, accessibility, amenities)
+ * - Event specifics (expected attendees, requested characters)
+ * - Organization associations (attendance permissions and limits per organization)
+ * - Geographic coordinates (latitude/longitude)
+ * - Miscellaneous fields (comments, referred by, source)
+ *
+ * Uses CommonRules trait for shared validation rules with CreateRequest.
  */
 class UpdateRequest extends FormRequest
 {

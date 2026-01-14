@@ -10,14 +10,14 @@ use App\Models\Filters\EventFilter;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
-use App\Services\Admin\Events\GetEventsQuery;
+use App\Services\Events\GetEventsForAdminQuery;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Tests\TestCase;
 
 /**
- * Unit tests for GetEventsQuery.
+ * Unit tests for GetEventsForAdminQuery.
  *
  * Verifies:
  * - Returns paginated events for administrators (all events)
@@ -35,7 +35,7 @@ class GetEventsQueryTest extends TestCase
     public function test_invoke_returns_length_aware_paginator(): void
     {
         // Arrange
-        $subject = new GetEventsQuery();
+        $subject = new GetEventsForAdminQuery();
         $trooper = Trooper::factory()->asAdministrator()->create();
         $filter = new EventFilter(new Request());
 
@@ -49,7 +49,7 @@ class GetEventsQueryTest extends TestCase
     public function test_invoke_returns_all_events_for_administrator(): void
     {
         // Arrange
-        $subject = new GetEventsQuery();
+        $subject = new GetEventsForAdminQuery();
         $admin = Trooper::factory()->asAdministrator()->create();
         $filter = new EventFilter(new Request());
 
@@ -68,7 +68,7 @@ class GetEventsQueryTest extends TestCase
     public function test_invoke_returns_only_moderated_events_for_moderator(): void
     {
         // Arrange
-        $subject = new GetEventsQuery();
+        $subject = new GetEventsForAdminQuery();
         $moderator = Trooper::factory()->asModerator()->create();
         $filter = new EventFilter(new Request());
 
@@ -100,7 +100,7 @@ class GetEventsQueryTest extends TestCase
     public function test_invoke_filters_by_event_status(): void
     {
         // Arrange
-        $subject = new GetEventsQuery();
+        $subject = new GetEventsForAdminQuery();
         $admin = Trooper::factory()->asAdministrator()->create();
 
         $organization = Organization::factory()->create();
@@ -126,7 +126,7 @@ class GetEventsQueryTest extends TestCase
     public function test_invoke_filters_by_organization(): void
     {
         // Arrange
-        $subject = new GetEventsQuery();
+        $subject = new GetEventsForAdminQuery();
         $admin = Trooper::factory()->asAdministrator()->create();
 
         $org1 = Organization::factory()->create();
@@ -152,7 +152,7 @@ class GetEventsQueryTest extends TestCase
     public function test_invoke_respects_page_size_parameter(): void
     {
         // Arrange
-        $subject = new GetEventsQuery();
+        $subject = new GetEventsForAdminQuery();
         $admin = Trooper::factory()->asAdministrator()->create();
         $filter = new EventFilter(new Request());
 
@@ -173,7 +173,7 @@ class GetEventsQueryTest extends TestCase
     public function test_invoke_uses_default_page_size_of_15(): void
     {
         // Arrange
-        $subject = new GetEventsQuery();
+        $subject = new GetEventsForAdminQuery();
         $admin = Trooper::factory()->asAdministrator()->create();
         $filter = new EventFilter(new Request());
 
@@ -193,7 +193,7 @@ class GetEventsQueryTest extends TestCase
     public function test_invoke_orders_by_event_end_descending(): void
     {
         // Arrange
-        $subject = new GetEventsQuery();
+        $subject = new GetEventsForAdminQuery();
         $admin = Trooper::factory()->asAdministrator()->create();
         $filter = new EventFilter(new Request());
 
@@ -225,7 +225,7 @@ class GetEventsQueryTest extends TestCase
     public function test_invoke_includes_event_shifts_count(): void
     {
         // Arrange
-        $subject = new GetEventsQuery();
+        $subject = new GetEventsForAdminQuery();
         $admin = Trooper::factory()->asAdministrator()->create();
         $filter = new EventFilter(new Request());
 
@@ -251,7 +251,7 @@ class GetEventsQueryTest extends TestCase
     public function test_invoke_returns_empty_paginator_when_no_events(): void
     {
         // Arrange
-        $subject = new GetEventsQuery();
+        $subject = new GetEventsForAdminQuery();
         $admin = Trooper::factory()->asAdministrator()->create();
         $filter = new EventFilter(new Request());
 
@@ -267,7 +267,7 @@ class GetEventsQueryTest extends TestCase
     public function test_invoke_moderator_sees_no_events_without_assignments(): void
     {
         // Arrange
-        $subject = new GetEventsQuery();
+        $subject = new GetEventsForAdminQuery();
         $moderator = Trooper::factory()->asModerator()->create();
         $filter = new EventFilter(new Request());
 
@@ -286,7 +286,7 @@ class GetEventsQueryTest extends TestCase
     public function test_invoke_includes_organization_relationship(): void
     {
         // Arrange
-        $subject = new GetEventsQuery();
+        $subject = new GetEventsForAdminQuery();
         $admin = Trooper::factory()->asAdministrator()->create();
         $filter = new EventFilter(new Request());
 
@@ -309,7 +309,7 @@ class GetEventsQueryTest extends TestCase
     public function test_invoke_filters_by_search_term(): void
     {
         // Arrange
-        $subject = new GetEventsQuery();
+        $subject = new GetEventsForAdminQuery();
         $admin = Trooper::factory()->asAdministrator()->create();
 
         $organization = Organization::factory()->create();
@@ -336,7 +336,7 @@ class GetEventsQueryTest extends TestCase
     public function test_invoke_handles_multiple_filter_criteria(): void
     {
         // Arrange
-        $subject = new GetEventsQuery();
+        $subject = new GetEventsForAdminQuery();
         $admin = Trooper::factory()->asAdministrator()->create();
 
         $org1 = Organization::factory()->create();

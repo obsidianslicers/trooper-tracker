@@ -65,6 +65,21 @@ class UpdateEventCommand
         $event->accessible = $data['accessible'] ?? false;
         $event->amenities = $data['amenities'] ?? null;
 
+        // Venue amenities / permissions
+        $event->secure_staging_area = $data['secure_staging_area'] ?? false;
+        $event->allow_blasters = $data['allow_blasters'] ?? false;
+        $event->allow_props = $data['allow_props'] ?? false;
+        $event->parking_available = $data['parking_available'] ?? false;
+        $event->accessible = $data['accessible'] ?? false;
+        $event->amenities = $data['amenities'] ?? null;
+
+        // Charity
+        $event->charity_name = $data['charity_name'] ?? null;
+        $event->charity_hours = $data['charity_hours'] ?? null;
+        $event->charity_direct_funds = $data['charity_direct_funds'] ?? 0;
+        $event->charity_indirect_funds = $data['charity_indirect_funds'] ?? 0;
+        $event->charity_notes = $data['charity_notes'] ?? null;
+
         // Misc
         $event->comments = $data['comments'] ?? null;
         $event->referred_by = $data['referred_by'] ?? null;
