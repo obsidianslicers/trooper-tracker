@@ -697,6 +697,109 @@ class UpdateRequestTest extends TestCase
         $this->assertTrue($validator->passes());
     }
 
+    public function test_validation_passes_with_valid_charity_information(): void
+    {
+        // Arrange
+        $data = [
+            'name' => 'Charity Event',
+            'status' => 'open',
+            'event_start' => '2025-12-25 10:00:00',
+            'event_end' => '2025-12-25 14:00:00',
+            Event::CHARITY_NAME => 'Make-A-Wish Foundation',
+            Event::CHARITY_HOURS => 150,
+            Event::CHARITY_DIRECT_FUNDS => 5000,
+            Event::CHARITY_INDIRECT_FUNDS => 2500,
+            Event::CHARITY_NOTES => 'Funds raised through silent auction',
+        ];
+
+        // Act
+        $this->subject->merge($data);
+        $validator = Validator::make($data, $this->subject->rules());
+
+        // Assert
+        $this->assertTrue($validator->passes());
+    }
+
+    public function test_validation_fails_with_negative_charity_hours(): void
+    {
+        // Arrange
+        $data = [
+            'name' => 'Test Event',
+            'status' => 'open',
+            'event_start' => '2025-12-25 10:00:00',
+            'event_end' => '2025-12-25 14:00:00',
+            Event::CHARITY_HOURS => -5,
+        ];
+
+        // Act
+        $this->subject->merge($data);
+        $validator = Validator::make($data, $this->subject->rules());
+
+        // Assert
+        $this->assertTrue($validator->fails());
+        $this->assertTrue($validator->errors()->has(Event::CHARITY_HOURS));
+    }
+
+    public function test_validation_fails_with_negative_charity_direct_funds(): void
+    {
+        // Arrange
+        $data = [
+            'name' => 'Test Event',
+            'status' => 'open',
+            'event_start' => '2025-12-25 10:00:00',
+            'event_end' => '2025-12-25 14:00:00',
+            Event::CHARITY_DIRECT_FUNDS => -1000,
+        ];
+
+        // Act
+        $this->subject->merge($data);
+        $validator = Validator::make($data, $this->subject->rules());
+
+        // Assert
+        $this->assertTrue($validator->fails());
+        $this->assertTrue($validator->errors()->has(Event::CHARITY_DIRECT_FUNDS));
+    }
+
+    public function test_validation_fails_with_negative_charity_indirect_funds(): void
+    {
+        // Arrange
+        $data = [
+            'name' => 'Test Event',
+            'status' => 'open',
+            'event_start' => '2025-12-25 10:00:00',
+            'event_end' => '2025-12-25 14:00:00',
+            Event::CHARITY_INDIRECT_FUNDS => -500,
+        ];
+
+        // Act
+        $this->subject->merge($data);
+        $validator = Validator::make($data, $this->subject->rules());
+
+        // Assert
+        $this->assertTrue($validator->fails());
+        $this->assertTrue($validator->errors()->has(Event::CHARITY_INDIRECT_FUNDS));
+    }
+
+    public function test_validation_passes_with_zero_charity_funds(): void
+    {
+        // Arrange
+        $data = [
+            'name' => 'Test Event',
+            'status' => 'open',
+            'event_start' => '2025-12-25 10:00:00',
+            'event_end' => '2025-12-25 14:00:00',
+            Event::CHARITY_DIRECT_FUNDS => 0,
+            Event::CHARITY_INDIRECT_FUNDS => 0,
+        ];
+
+        // Act
+        $this->subject->merge($data);
+        $validator = Validator::make($data, $this->subject->rules());
+
+        // Assert
+        $this->assertTrue($validator->passes());
+    }
+
     public function test_validation_fails_with_organizations_troopers_allowed_below_minimum(): void
     {
         // Arrange
