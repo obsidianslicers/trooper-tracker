@@ -63,12 +63,12 @@ class CreateController extends Controller
 
         $event = new Event();
 
-        if (empty(old()))
-        {
-            $event->type = EventType::REGULAR;
-            $event->status = EventStatus::DRAFT;
-        }
-        else
+        // Set defaults
+        $event->type = EventType::REGULAR;
+        $event->status = EventStatus::DRAFT;
+
+        // Fill with old input if available
+        if (!empty(old()))
         {
             $event->fill(old());
         }

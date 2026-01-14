@@ -211,9 +211,8 @@ class CreateControllerTest extends TestCase
         $response = $this->actingAs($admin)
             ->get(route('admin.events.create'));
 
-        dd($response);
-
         // Assert
+        $response->assertOk();
         $response->assertViewHas('event', function ($event)
         {
             return $event->name === 'Previously Entered Name'
