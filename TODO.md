@@ -6,12 +6,6 @@
   - map view
   - calendar view
 - Event Link Manager (A way to link events together so that a trooper can only sign up for a certain amount of troops that are linked together [comes into play for big events like MegaCon])
-- Charity information for events, charity liasons use tracker to track charity info.
-  -  Direct Charity Raised ($)
-  -  Indirect Charity Raised ($)
-  -  Charity Name
-  -  Charity Add Hours (This is used to calculate additional or less charity hours, otherwise the event duration is used)
-  -  Charity Note (A note field to add misc, for example collected 15 Star Wars toys)
 
 ### EVENT WIP COMPLETED
 - Getting error on event e-mail parser submission
@@ -25,6 +19,13 @@
 - Make event e-mail parser optional, allow command-staff to fill form fields to create events. Allow command-staff to review form fields before posting e-mail data.
   - **IMPLEMENTATION**: event/creation allows for parser use or manually entry, or changes after the parse
   - **IMPLEMENTATION**: events can also be copied
+- Charity information for events, charity liasons use tracker to track charity info.
+  -  Direct Charity Raised ($)
+  -  Indirect Charity Raised ($)
+  -  Charity Name
+  -  Charity Add Hours (This is used to calculate additional or less charity hours, otherwise the event duration is used)
+  -  Charity Note (A note field to add misc, for example collected 15 Star Wars toys)
+  - **IMPLEMENTED**
 
 ## TROOPERS
 - command-staff Statistics page to show accounts with admin/mod permissions. I have a note field per trooper to make a note on why they have permission, for example RL command-staff could be a note. Last API syncs with 501st. Rebel Legion API is dead.
