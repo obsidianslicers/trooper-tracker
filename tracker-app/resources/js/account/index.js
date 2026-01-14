@@ -1,5 +1,5 @@
-import costumeSelector from './costumes/costumeSelector';
-import notificationSelector from './profile/notificationSelector';
+import costumeSelector from './costumeSelector';
+import notificationSelector from './notificationSelector';
 
 export default function (Alpine) {
     window.Account = window.Account || {};

@@ -212,7 +212,7 @@
                             </tr>
                         </thead>
                         @foreach ($organizations as $organization)
-                            <tr>
+                                    <tr x-data="Admin.Events.eventOrganizationAttendance({ canAttend: {{ $organization->pivot?->can_attend ?? 'false' }}, troopers: {{ $organization->pivot->troopers_allowed ?? 'null' }}, handlers: {{ $organization->pivot->handlers_allowed ?? 'null' }} })">
                                 <td>
                                     <x-logo :storage_path="$organization->image_path_sm"
                                             :default_path="'img/icons/organization-32x32.png'"
@@ -228,21 +228,23 @@
                                     <x-input-checkbox :property="'organizations.' . $organization->id . '.can_attend'"
                                                       :value="1"
                                                       :checked="$organization->pivot->can_attend ?? false"
-                                                      data-organization-id="{{ $organization->id }}" />
+                                                      x-model="canAttend" />
                                 </td>
                                 <td class="text-center">
                                     <x-input-text :property="'organizations.' . $organization->id . '.troopers_allowed'"
                                                   :value="$organization->pivot->troopers_allowed ?? null"
                                                   class="form-control-sm"
                                                   placeholder="unlimited"
-                                                  data-organization-id="{{ $organization->id }}" />
+                                                  x-model="troopers"
+                                                  x-bind:disabled="!canAttend" />
                                 </td>
                                 <td class="text-center">
                                     <x-input-text :property="'organizations.' . $organization->id . '.handlers_allowed'"
                                                   :value="$organization->pivot->handlers_allowed ?? null"
                                                   class="form-control-sm"
                                                   placeholder="unlimited"
-                                                  data-organization-id="{{ $organization->id }}" />
+                                                  x-model="handlers"
+                                                  x-bind:disabled="!canAttend" />
                                 </td>
                             </tr>
                         @endforeach
@@ -251,27 +253,33 @@
 
                 <x-accordion-card :label="'Venue Permissions & Amenities'">
                     <x-input-container>
-                        <x-label>Secure Staging Area:</x-label>
-                        <x-input-yesno :property="'secure_staging_area'"
-                                       :value="$event->secure_staging_area" />
+                        <div class="row">
+                            <div class="col-12 col-md-6">
+                                <x-label>Secure Staging Area:</x-label>
+                                <x-input-yesno :property="'secure_staging_area'"
+                                            :value="$event->secure_staging_area" />
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <x-label>Parking Available:</x-label>
+                                <x-input-yesno :property="'parking_available'"
+                                            :value="$event->parking_available" />
+                            </div>
+                        </div>
                     </x-input-container>
-
+                    
                     <x-input-container>
-                        <x-label>Allow Blasters:</x-label>
-                        <x-input-yesno :property="'allow_blasters'"
-                                       :value="$event->allow_blasters" />
-                    </x-input-container>
-
-                    <x-input-container>
-                        <x-label>Allow Props:</x-label>
-                        <x-input-yesno :property="'allow_props'"
-                                       :value="$event->allow_props" />
-                    </x-input-container>
-
-                    <x-input-container>
-                        <x-label>Parking Available:</x-label>
-                        <x-input-yesno :property="'parking_available'"
-                                       :value="$event->parking_available" />
+                        <div class="row">
+                            <div class="col-12 col-md-6">
+                                <x-label>Allow Blasters:</x-label>
+                                <x-input-yesno :property="'allow_blasters'"
+                                            :value="$event->allow_blasters" />
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <x-label>Allow Props:</x-label>
+                                <x-input-yesno :property="'allow_props'"
+                                            :value="$event->allow_props" />
+                            </div>
+                        </div>
                     </x-input-container>
 
                     <x-input-container>
