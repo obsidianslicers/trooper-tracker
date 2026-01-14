@@ -46,9 +46,9 @@
                                 {{ $shift->shift_starts_at->format('m/d') }}
                                 -
                             @endif
-                            {{ $shift->shift_starts_at->format('g:i a') }}
+                            {{ $shift->shift_starts_at->format('g:ia') }}
                             -
-                            {{ $shift->shift_ends_at->format('g:i a') }}
+                            {{ $shift->shift_ends_at->format('g:ia') }}
                         </span>
                         <span class="fw-bold">
                             @if($shift->troopers_allowed != null && $shift->event_troopers_count >= $shift->troopers_allowed)
