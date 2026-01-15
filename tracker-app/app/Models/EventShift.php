@@ -166,6 +166,8 @@ class EventShift extends BaseEventShift
      * Check if a trooper can sign up for this shift.
      *
      * A trooper can sign up if the shift is open and they are not already signed up.
+     * If shifts_allowed is set on the event, also checks that the trooper hasn't
+     * exceeded the maximum number of shifts they can attend for this event.
      *
      * @param Trooper $trooper The trooper attempting to sign up
      * @return bool True if the trooper can sign up
@@ -174,7 +176,23 @@ class EventShift extends BaseEventShift
     {
         if ($this->is_open)
         {
-            return !$this->isSignedUp($trooper);
+            $already_signed_up = $this->isSignedUp($trooper);
+
+            if ($already_signed_up)
+            {
+                return false;
+            }
+
+            if ($this->event->shifts_allowed === null)
+            {
+                return true;
+            }
+
+            $count = $this->event->event_shifts
+                ->filter(fn($shift) => $shift->event_troopers->contains('trooper_id', $trooper->id))
+                ->count();
+
+            return $count < $this->event->shifts_allowed;
         }
 
         return false;

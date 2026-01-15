@@ -434,6 +434,81 @@ class EventShiftTest extends TestCase
         $this->assertFalse($result);
     }
 
+    public function test_can_sign_up_returns_true_when_shifts_allowed_is_null(): void
+    {
+        // Arrange
+        $trooper = Trooper::factory()->create();
+        $event = Event::factory()->open()->create(['shifts_allowed' => null]);
+        $event_shift = EventShift::factory()->open()->for($event)->create();
+
+        $event->load('event_shifts.event_troopers');
+        $event_shift->setRelation('event', $event);
+
+        // Act
+        $result = $event_shift->canSignUp($trooper);
+
+        // Assert
+        $this->assertTrue($result);
+    }
+
+    public function test_can_sign_up_returns_true_when_under_shifts_allowed_limit(): void
+    {
+        // Arrange
+        $trooper = Trooper::factory()->create();
+        $costume = OrganizationCostume::factory()->create();
+        $event = Event::factory()->open()->create(['shifts_allowed' => 2]);
+        $event_shift_1 = EventShift::factory()->open()->for($event)->create();
+        $event_shift_2 = EventShift::factory()->open()->for($event)->create();
+
+        // Trooper is signed up to one shift
+        EventTrooper::factory()->create([
+            'event_shift_id' => $event_shift_1->id,
+            'trooper_id' => $trooper->id,
+            'costume_id' => $costume->id,
+        ]);
+
+        $event->load('event_shifts.event_troopers');
+        $event_shift_2->setRelation('event', $event);
+
+        // Act - Can trooper sign up to second shift?
+        $result = $event_shift_2->canSignUp($trooper);
+
+        // Assert
+        $this->assertTrue($result);
+    }
+
+    public function test_can_sign_up_returns_false_when_at_shifts_allowed_limit(): void
+    {
+        // Arrange
+        $trooper = Trooper::factory()->create();
+        $costume = OrganizationCostume::factory()->create();
+        $event = Event::factory()->open()->create(['shifts_allowed' => 2]);
+        $event_shift_1 = EventShift::factory()->open()->for($event)->create();
+        $event_shift_2 = EventShift::factory()->open()->for($event)->create();
+        $event_shift_3 = EventShift::factory()->open()->for($event)->create();
+
+        // Trooper is signed up to two shifts already (at limit)
+        EventTrooper::factory()->create([
+            'event_shift_id' => $event_shift_1->id,
+            'trooper_id' => $trooper->id,
+            'costume_id' => $costume->id,
+        ]);
+        EventTrooper::factory()->create([
+            'event_shift_id' => $event_shift_2->id,
+            'trooper_id' => $trooper->id,
+            'costume_id' => $costume->id,
+        ]);
+
+        $event->load('event_shifts.event_troopers');
+        $event_shift_3->setRelation('event', $event);
+
+        // Act - Can trooper sign up to third shift?
+        $result = $event_shift_3->canSignUp($trooper);
+
+        // Assert
+        $this->assertFalse($result);
+    }
+
     public function test_can_sign_up_friend_returns_true_when_trooper_signed_up_and_under_friend_limit(): void
     {
         // Arrange

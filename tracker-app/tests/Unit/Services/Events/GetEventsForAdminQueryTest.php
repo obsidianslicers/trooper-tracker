@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\Services\Admin\Events;
+namespace Tests\Unit\Services\Events;
 
 use App\Enums\EventStatus;
 use App\Models\Event;
@@ -28,7 +28,7 @@ use Tests\TestCase;
  * - Preserves query string in pagination
  * - Respects page size parameter
  */
-class GetEventsQueryTest extends TestCase
+class GetEventsForAdminQueryTest extends TestCase
 {
     use RefreshDatabase;
 

@@ -14,6 +14,11 @@
                   x-data="Admin.Events.eventCreation({ mode: '{{ $mode }}', organizationId: {{ $event->organization_id ?? 'null' }}, organizationName: '{{ $event->organization?->name ?? 'null' }}', clubName: '{{ $event->organization?->getSourceClub()?->name ?? 'null' }}' })">
                 @csrf
 
+                <x-message>
+                    By default when creating a new event, ALL clubs are defaulted to attend unless otherwise updated.
+                    See <b>Character Requests & Attendee Limits</b> section to make adjustments to which clubs can attend.
+                </x-message>
+
                 <x-input-container x-ref="organizationPicker">
                     <x-label>
                         Hosting Organization:
@@ -168,6 +173,10 @@
                         </x-accordion-card>
 
                         <x-accordion-card :label="'Schedule'">
+                            <x-message>
+                                Shifts are ???
+                            </x-message>
+                            
                             <x-input-container>
                                 <div class="row">
                                     <div class="col-12 col-md-6">
@@ -244,6 +253,14 @@
                             </x-input-container>
 
                             <x-input-container>
+                                <x-label>Shifts Allowed (per event):</x-label>
+                                <x-input-text :property="'shifts_allowed'"
+                                            :value="$event->shifts_allowed"
+                                            x-model="form.shifts_allowed"
+                                            placeholder="blank=unlimited" />
+                            </x-input-container>
+
+                            <x-input-container>
                                 <div class="row">
                                     <div class="col-12 col-md-6">
                                         <x-label>Troopers Allowed (per shift):</x-label>
@@ -292,7 +309,7 @@
                                     </tr>
                                 </thead>
                                 @foreach ($organizations as $organization)
-                                    <tr x-data="Admin.Events.eventOrganizationAttendance({ canAttend: {{ $organization->pivot?->can_attend ?? 'false' }}, troopers: {{ $organization->pivot->troopers_allowed ?? 'null' }}, handlers: {{ $organization->pivot->handlers_allowed ?? 'null' }} })">
+                                    <tr x-data="Admin.Events.eventOrganizationAttendance({ canAttend: {{ $organization->can_attend ?? 'false' }}, troopers: {{ $organization->troopers_allowed ?? 'null' }}, handlers: {{ $organization->handlers_allowed ?? 'null' }} })">
                                         <td>
                                             <x-logo :storage_path="$organization->image_path_sm"
                                                     :default_path="'img/icons/organization-32x32.png'"
@@ -307,12 +324,12 @@
                                         <td class="text-center">
                                             <x-input-checkbox :property="'organizations.' . $organization->id . '.can_attend'"
                                                               :value="1"
-                                                              :checked="$organization->pivot->can_attend ?? false"
+                                                              :checked="$organization->can_attend ?? false"
                                                               x-model="canAttend" />
                                         </td>
                                         <td class="text-center">
                                             <x-input-text :property="'organizations.' . $organization->id . '.troopers_allowed'"
-                                                          :value="$organization->pivot->troopers_allowed ?? null"
+                                                          :value="$organization->troopers_allowed ?? null"
                                                           class="form-control-sm"
                                                           placeholder="unlimited"
                                                           x-model="troopers"
@@ -320,7 +337,7 @@
                                         </td>
                                         <td class="text-center">
                                             <x-input-text :property="'organizations.' . $organization->id . '.handlers_allowed'"
-                                                          :value="$organization->pivot->handlers_allowed ?? null"
+                                                          :value="$organization->handlers_allowed ?? null"
                                                           class="form-control-sm"
                                                           placeholder="unlimited"
                                                           x-model="handlers"
@@ -337,14 +354,14 @@
                                     <div class="col-12 col-md-6">
                                         <x-label>Secure Staging Area:</x-label>
                                         <x-input-yesno :property="'secure_staging_area'"
-                                                    :value="$event->secure_staging_area"
-                                                    x-model="form.secure_staging_area" />
+                                                       :value="$event->secure_staging_area"
+                                                      x-model="form.secure_staging_area" />
                                     </div>
                                     <div class="col-12 col-md-6">
                                         <x-label>Parking Available:</x-label>
                                         <x-input-yesno :property="'parking_available'"
-                                                    :value="$event->parking_available"
-                                                    x-model="form.parking_available" />
+                                                       :value="$event->parking_available"
+                                                       x-model="form.parking_available" />
                                     </div>
                                 </div>
                             </x-input-container>
@@ -360,8 +377,8 @@
                                     <div class="col-12 col-md-6">
                                         <x-label>Allow Props:</x-label>
                                         <x-input-yesno :property="'allow_props'"
-                                                    :value="$event->allow_props"
-                                                    x-model="form.allow_props" />
+                                                       :value="$event->allow_props"
+                                                       x-model="form.allow_props" />
                                     </div>
                                 </div>
                             </x-input-container>
@@ -369,16 +386,16 @@
                             <x-input-container>
                                 <x-label>Accessible:</x-label>
                                 <x-input-yesno :property="'accessible'"
-                                            :value="$event->accessible"
-                                            x-model="form.accessible" />
+                                               :value="$event->accessible"
+                                               x-model="form.accessible" />
                             </x-input-container>
 
                             <x-input-container>
                                 <x-label>Amenities:</x-label>
                                 <x-input-text :property="'amenities'"
-                                            :multiline="true"
-                                            :value="$event->amenities"
-                                            x-model="form.amenities" />
+                                              :multiline="true"
+                                              :value="$event->amenities"
+                                              x-model="form.amenities" />
                             </x-input-container>
                         </x-accordion-card>
 
@@ -387,15 +404,15 @@
                             <x-input-container>
                                 <x-label>Name:</x-label>
                                 <x-input-text :property="'charity_name'"
-                                            :value="$event->charity_name"
-                                            x-model="form.charity_name" />
+                                              :value="$event->charity_name"
+                                              x-model="form.charity_name" />
                             </x-input-container>
 
                             <x-input-container>
                                 <x-label>Hours:</x-label>
                                 <x-input-text :property="'charity_hours'"
-                                            :value="$event->charity_hours"
-                                            x-model="form.charity_hours" />
+                                              :value="$event->charity_hours"
+                                              x-model="form.charity_hours" />
                             </x-input-container>
 
                             <x-input-container>
@@ -403,14 +420,14 @@
                                     <div class="col-12 col-md-6">
                                         <x-label>Direct Funds:</x-label>
                                         <x-input-text :property="'direct_funds'"
-                                                    :value="$event->direct_funds"
-                                                    x-model="form.direct_funds" />
+                                                      :value="$event->direct_funds"
+                                                      x-model="form.direct_funds" />
                                     </div>
                                     <div class="col-12 col-md-6">
                                         <x-label>Indirect Funds:</x-label>
                                         <x-input-text :property="'indirect_funds'"
-                                                    :value="$event->indirect_funds"
-                                                    x-model="form.indirect_funds" />
+                                                      :value="$event->indirect_funds"
+                                                      x-model="form.indirect_funds" />
                                     </div>
                                 </div>
                             </x-input-container>
@@ -428,17 +445,17 @@
                             <x-input-container>
                                 <x-label>Comments:</x-label>
                                 <x-input-text :property="'comments'"
-                                            :multiline="true"
-                                            :value="$event->comments"
-                                            x-model="form.comments"
-                                            class="markdown-editor" />
+                                              :multiline="true"
+                                              :value="$event->comments"
+                                              x-model="form.comments"
+                                              class="markdown-editor" />
                             </x-input-container>
 
                             <x-input-container>
                                 <x-label>Referred By:</x-label>
                                 <x-input-text :property="'referred_by'"
-                                            :value="$event->referred_by"
-                                            x-model="form.referred_by" />
+                                              :value="$event->referred_by"
+                                              x-model="form.referred_by" />
                             </x-input-container>
                         </x-accordion-card>
 
@@ -449,7 +466,11 @@
                     <x-submit-button>
                         Create
                     </x-submit-button>
-                    <x-link-button-cancel :url="route('admin.events.list', ['organization_id' => $event->organization_id])" />
+                    @if($event->organization_id > 0)
+                        <x-link-button-cancel :url="route('admin.events.list', ['organization_id' => $event->organization_id])" />
+                    @else
+                        <x-link-button-cancel :url="route('admin.events.list')" />
+                    @endif
                 </x-submit-container>
 
             </form>

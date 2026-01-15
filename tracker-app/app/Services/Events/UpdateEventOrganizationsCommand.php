@@ -42,7 +42,7 @@ class UpdateEventOrganizationsCommand
             ->toArray();
 
         //  merge arrays - left wins    
-        $updates = $data + $pivot_data;
+        $updates = array_replace_recursive($pivot_data, $data);
 
         $event->organizations()->syncWithoutDetaching($updates);
     }

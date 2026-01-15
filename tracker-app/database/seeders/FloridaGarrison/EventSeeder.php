@@ -175,40 +175,40 @@ class EventSeeder extends Seeder
 
         foreach ($troopers as $sign_up)
         {
-            $e = EventTrooper::where(EventTrooper::EVENT_SHIFT_ID, $shift_id)
+            $et = EventTrooper::where(EventTrooper::EVENT_SHIFT_ID, $shift_id)
                 ->where(EventTrooper::TROOPER_ID, $sign_up->trooperid)
                 ->first();
 
-            if ($e === null)
+            if ($et === null)
             {
                 //  first record wins unforunately
-                $e = new EventTrooper();
+                $et = new EventTrooper();
 
-                $e->event_shift_id = $shift_id;
-                $e->trooper_id = $sign_up->trooperid;
-                $e->status = $this->trooper_status_map[$sign_up->status];
-                $e->signed_up_at = Carbon::parse($sign_up->signuptime);
+                $et->event_shift_id = $shift_id;
+                $et->trooper_id = $sign_up->trooperid;
+                $et->status = $this->trooper_status_map[$sign_up->status];
+                $et->signed_up_at = Carbon::parse($sign_up->signuptime);
 
-                $e->is_handler = isset($this->handler_ids[$sign_up->trooperid]);
+                $et->is_handler = isset($this->handler_ids[$sign_up->trooperid]);
 
-                if ($e->is_handler)
+                if ($et->is_handler)
                 {
                 }
                 else
                 {
-                    $e->costume_id = in_array($sign_up->costume, $this->costumes) ? $sign_up->costume : null;
-                    $e->backup_costume_id = in_array($sign_up->costume_backup, $this->costumes) ? $sign_up->costume_backup : null;
+                    $et->costume_id = in_array($sign_up->costume, $this->costumes) ? $sign_up->costume : null;
+                    $et->backup_costume_id = in_array($sign_up->costume_backup, $this->costumes) ? $sign_up->costume_backup : null;
                 }
 
                 if ($sign_up->addedby > 0)
                 {
                     if (isset($this->trooper_ids[$sign_up->addedby]))
                     {
-                        $e->added_by_trooper_id = $sign_up->addedby;
+                        $et->added_by_trooper_id = $sign_up->addedby;
                     }
                 }
 
-                $e->save();
+                $et->save();
             }
         }
     }

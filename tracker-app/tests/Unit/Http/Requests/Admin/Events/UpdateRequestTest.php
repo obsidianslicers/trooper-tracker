@@ -403,6 +403,84 @@ class UpdateRequestTest extends TestCase
         $this->assertTrue($validator->errors()->has('troopers_allowed'));
     }
 
+    public function test_validation_passes_with_shifts_allowed_in_range(): void
+    {
+        // Arrange
+        $good_data = [
+            'name' => 'Test Event',
+            'status' => 'open',
+            'event_start' => '2025-12-25 10:00:00',
+            'event_end' => '2025-12-25 14:00:00',
+            'shifts_allowed' => 3,
+        ];
+
+        // Act
+        $this->subject->merge($good_data);
+        $validator = Validator::make($good_data, $this->subject->rules());
+
+        // Assert
+        $this->assertTrue($validator->passes());
+    }
+
+    public function test_validation_fails_with_shifts_allowed_below_minimum(): void
+    {
+        // Arrange
+        $bad_data = [
+            'name' => 'Test Event',
+            'status' => 'open',
+            'event_start' => '2025-12-25 10:00:00',
+            'event_end' => '2025-12-25 14:00:00',
+            'shifts_allowed' => 0,
+        ];
+
+        // Act
+        $this->subject->merge($bad_data);
+        $validator = Validator::make($bad_data, $this->subject->rules());
+
+        // Assert
+        $this->assertTrue($validator->fails());
+        $this->assertTrue($validator->errors()->has('shifts_allowed'));
+    }
+
+    public function test_validation_fails_with_shifts_allowed_above_maximum(): void
+    {
+        // Arrange
+        $bad_data = [
+            'name' => 'Test Event',
+            'status' => 'open',
+            'event_start' => '2025-12-25 10:00:00',
+            'event_end' => '2025-12-25 14:00:00',
+            'shifts_allowed' => 100000,
+        ];
+
+        // Act
+        $this->subject->merge($bad_data);
+        $validator = Validator::make($bad_data, $this->subject->rules());
+
+        // Assert
+        $this->assertTrue($validator->fails());
+        $this->assertTrue($validator->errors()->has('shifts_allowed'));
+    }
+
+    public function test_validation_passes_with_null_shifts_allowed(): void
+    {
+        // Arrange
+        $good_data = [
+            'name' => 'Test Event',
+            'status' => 'open',
+            'event_start' => '2025-12-25 10:00:00',
+            'event_end' => '2025-12-25 14:00:00',
+            'shifts_allowed' => null,
+        ];
+
+        // Act
+        $this->subject->merge($good_data);
+        $validator = Validator::make($good_data, $this->subject->rules());
+
+        // Assert
+        $this->assertTrue($validator->passes());
+    }
+
     public function test_validation_passes_with_latitude_and_longitude(): void
     {
         // Arrange
