@@ -188,27 +188,13 @@ class EventShift extends BaseEventShift
                 return true;
             }
 
-            $this->ensureShiftTroopersLoaded($this->event);
-
-            $count = $this->event->event_shifts
-                ->filter(fn($shift) => $shift->event_troopers->contains('trooper_id', $trooper->id))
-                ->count();
+            $count = $this->event->getShiftCountFor($trooper);
 
             return $count < $this->event->shifts_allowed;
         }
 
         return false;
     }
-
-    private function ensureShiftTroopersLoaded(Event $event): void
-    {
-        // Load event_shifts if missing
-        $event->loadMissing('event_shifts');
-
-        // Load event_troopers for each shift if missing
-        $event->event_shifts->loadMissing('event_troopers');
-    }
-
 
     /**
      * Check if a trooper can sign up a friend for this shift.

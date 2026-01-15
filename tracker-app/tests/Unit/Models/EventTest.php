@@ -3,8 +3,11 @@
 namespace Tests\Unit\Models;
 
 use App\Enums\EventStatus;
+use App\Enums\EventTrooperStatus;
 use App\Models\Event;
 use App\Models\EventShift;
+use App\Models\EventTrooper;
+use App\Models\Trooper;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -204,5 +207,142 @@ class EventTest extends TestCase
 
         // Cleanup
         Carbon::setTestNow();
+    }
+
+    public function test_get_shift_count_for_returns_zero_when_trooper_not_signed_up_for_any_shifts(): void
+    {
+        $subject = Event::factory()->open()->create();
+        $event_shift_1 = EventShift::factory()->for($subject)->open()->create();
+        $event_shift_2 = EventShift::factory()->for($subject)->open()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+
+        $result = $subject->getShiftCountFor($trooper);
+
+        $this->assertSame(0, $result);
+    }
+
+    public function test_get_shift_count_for_returns_one_when_trooper_signed_up_for_one_shift(): void
+    {
+        $subject = Event::factory()->open()->create();
+        $event_shift_1 = EventShift::factory()->for($subject)->open()->create();
+        $event_shift_2 = EventShift::factory()->for($subject)->open()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+
+        EventTrooper::factory()->create([
+            EventTrooper::EVENT_SHIFT_ID => $event_shift_1->id,
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::GOING,
+        ]);
+
+        $result = $subject->getShiftCountFor($trooper);
+
+        $this->assertSame(1, $result);
+    }
+
+    public function test_get_shift_count_for_returns_multiple_when_trooper_signed_up_for_multiple_shifts(): void
+    {
+        $subject = Event::factory()->open()->create();
+        $event_shift_1 = EventShift::factory()->for($subject)->open()->create();
+        $event_shift_2 = EventShift::factory()->for($subject)->open()->create();
+        $event_shift_3 = EventShift::factory()->for($subject)->open()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+
+        EventTrooper::factory()->create([
+            EventTrooper::EVENT_SHIFT_ID => $event_shift_1->id,
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::GOING,
+        ]);
+        EventTrooper::factory()->create([
+            EventTrooper::EVENT_SHIFT_ID => $event_shift_2->id,
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::GOING,
+        ]);
+
+        $result = $subject->getShiftCountFor($trooper);
+
+        $this->assertSame(2, $result);
+    }
+
+    public function test_get_shift_count_for_counts_all_shifts_regardless_of_status(): void
+    {
+        $subject = Event::factory()->open()->create();
+        $event_shift_1 = EventShift::factory()->for($subject)->open()->create();
+        $event_shift_2 = EventShift::factory()->for($subject)->open()->create();
+        $event_shift_3 = EventShift::factory()->for($subject)->open()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+
+        EventTrooper::factory()->create([
+            EventTrooper::EVENT_SHIFT_ID => $event_shift_1->id,
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::GOING,
+        ]);
+        EventTrooper::factory()->create([
+            EventTrooper::EVENT_SHIFT_ID => $event_shift_2->id,
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::STAND_BY,
+        ]);
+        EventTrooper::factory()->create([
+            EventTrooper::EVENT_SHIFT_ID => $event_shift_3->id,
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::TENTATIVE,
+        ]);
+
+        $result = $subject->getShiftCountFor($trooper);
+
+        $this->assertSame(3, $result);
+    }
+
+    public function test_get_shift_count_for_only_counts_shifts_for_specified_trooper(): void
+    {
+        $subject = Event::factory()->open()->create();
+        $event_shift_1 = EventShift::factory()->for($subject)->open()->create();
+        $event_shift_2 = EventShift::factory()->for($subject)->open()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $other_trooper = Trooper::factory()->asActive()->create();
+
+        EventTrooper::factory()->create([
+            EventTrooper::EVENT_SHIFT_ID => $event_shift_1->id,
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::GOING,
+        ]);
+        EventTrooper::factory()->create([
+            EventTrooper::EVENT_SHIFT_ID => $event_shift_2->id,
+            EventTrooper::TROOPER_ID => $other_trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::GOING,
+        ]);
+
+        $result = $subject->getShiftCountFor($trooper);
+
+        $this->assertSame(1, $result);
+    }
+
+    public function test_get_shift_count_for_works_with_unloaded_relationships(): void
+    {
+        $subject = Event::factory()->open()->create();
+        $event_shift = EventShift::factory()->for($subject)->open()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+
+        EventTrooper::factory()->create([
+            EventTrooper::EVENT_SHIFT_ID => $event_shift->id,
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::GOING,
+        ]);
+
+        // Refresh to clear loaded relationships
+        $subject = Event::find($subject->id);
+
+        $result = $subject->getShiftCountFor($trooper);
+
+        $this->assertSame(1, $result);
+    }
+
+    public function test_get_shift_count_for_returns_zero_for_event_with_no_shifts(): void
+    {
+        $subject = Event::factory()->open()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+
+        $result = $subject->getShiftCountFor($trooper);
+
+        $this->assertSame(0, $result);
     }
 }

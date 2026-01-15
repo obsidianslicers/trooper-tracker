@@ -161,4 +161,27 @@ class Event extends BaseEvent
 
         return false;
     }
+
+    /**
+     * Get the number of shifts a trooper is signed up for in this event.
+     *
+     * This method counts how many shifts within this event the specified trooper
+     * has signed up for, regardless of their status (going, standby, tentative, etc.).
+     * Ensures event_shifts and event_troopers relationships are loaded before counting.
+     *
+     * @param Trooper $trooper The trooper to count shifts for
+     * @return int The number of shifts the trooper is signed up for
+     */
+    public function getShiftCountFor(Trooper $trooper): int
+    {
+        // Load event_shifts if missing
+        $this->loadMissing('event_shifts');
+
+        // Load event_troopers for each shift if missing
+        $this->event_shifts->loadMissing('event_troopers');
+
+        return $this->event_shifts
+            ->filter(fn($shift) => $shift->event_troopers->contains('trooper_id', $trooper->id))
+            ->count();
+    }
 }
