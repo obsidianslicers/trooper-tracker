@@ -168,7 +168,7 @@
                     </x-input-container>
 
                     <x-input-container>
-                        <x-label>Shifts Allowed (per event):</x-label>
+                        <x-label>Limit Shift Sign-Ups (per event):</x-label>
                         <x-input-text :property="'shifts_allowed'"
                                     :value="$event->shifts_allowed"
                                     placeholder="blank=unlimited" />
@@ -177,13 +177,13 @@
                     <x-input-container>
                         <div class="row">
                             <div class="col-12 col-md-6">
-                                <x-label>Troopers Allowed (per shift):</x-label>
+                                <x-label>Limit Troopers (per shift):</x-label>
                                 <x-input-text :property="'troopers_allowed'"
                                               :value="$event->troopers_allowed"
                                               placeholder="blank=unlimited" />
                             </div>
                             <div class="col-12 col-md-6">
-                                <x-label>Handlers Allowed (per shift):</x-label>
+                                <x-label>Limit Handlers (per shift):</x-label>
                                 <x-input-text :property="'handlers_allowed'"
                                               :value="$event->handlers_allowed"
                                               placeholder="blank=unlimited" />
@@ -194,13 +194,13 @@
                     <x-input-container>
                         <div class="row">
                             <div class="col-12 col-md-6">
-                                <x-label>Friend Sign-Ups (per shift):</x-label>
+                                <x-label>Limit Friend Sign-Ups (per shift):</x-label>
                                 <x-input-text :property="'friends_allowed'"
                                               :value="$event->friends_allowed"
                                               placeholder="blank=unlimited" />
                             </div>
                             <div class="col-12 col-md-6">
-                                <x-label>Allow Tentative Sign-Ups (per shift):</x-label>
+                                <x-label>Limit Tentative Sign-Ups (per shift):</x-label>
                                 <x-input-yesno :property="'tentative_signups_allowed'"
                                             :value="$event->tentative_signups_allowed" />
                             </div>
@@ -214,8 +214,8 @@
                                 <th>
                                     Can Sign Up
                                 </th>
-                                <th>Troopers Allowed</th>
-                                <th>Handlers Allowed</th>
+                                <th>Limit Troopers</th>
+                                <th>Limit Handlers</th>
                             </tr>
                         </thead>
                         @foreach ($organizations as $organization)
