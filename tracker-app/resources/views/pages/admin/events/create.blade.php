@@ -253,7 +253,7 @@
                             </x-input-container>
 
                             <x-input-container>
-                                <x-label>Limit Shift Sign-Ups (per event):</x-label>
+                                <x-label>Maximum Shift Sign-Ups (per event):</x-label>
                                 <x-input-text :property="'shifts_allowed'"
                                             :value="$event->shifts_allowed"
                                             x-model="form.shifts_allowed"
@@ -263,14 +263,14 @@
                             <x-input-container>
                                 <div class="row">
                                     <div class="col-12 col-md-6">
-                                        <x-label>Limit Troopers (per shift):</x-label>
+                                        <x-label>Trooper Capacity (per shift):</x-label>
                                         <x-input-text :property="'troopers_allowed'"
                                                     :value="$event->troopers_allowed"
                                                     x-model="form.troopers_allowed"
                                                     placeholder="blank=unlimited" />
                                     </div>
                                     <div class="col-12 col-md-6">
-                                        <x-label>Limit Handlers (per shift):</x-label>
+                                        <x-label>Handler Capacity (per shift):</x-label>
                                         <x-input-text :property="'handlers_allowed'"
                                                     :value="$event->handlers_allowed"
                                                     x-model="form.handlers_allowed"
@@ -289,7 +289,7 @@
                                                     placeholder="blank=unlimited" />
                                     </div>
                                     <div class="col-12 col-md-6">
-                                        <x-label>Limit Tentative Sign-Ups (per shift):</x-label>
+                                        <x-label>Tentative Sign-Ups Allowed (per shift):</x-label>
                                         <x-input-yesno :property="'tentative_signups_allowed'"
                                                     :value="$event->tentative_signups_allowed"
                                                     x-model="form.tentative_signups_allowed" />
