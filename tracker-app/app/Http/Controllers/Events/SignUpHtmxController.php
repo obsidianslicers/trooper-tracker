@@ -40,16 +40,14 @@ class SignUpHtmxController extends Controller
     {
         $trooper = $request->user();
 
+        $auth_trooper = $request->user();
+
         if ($request->has('trooper_id'))
         {
             $trooper = Trooper::active()->findOrFail($request->input('trooper_id'));
         }
 
-        $exists = $event_shift->event_troopers()
-            ->where(EventTrooper::TROOPER_ID, $trooper->id)
-            ->exists();
-
-        if (!$exists)
+        if ($event_shift->canSignUp($trooper))
         {
             $event_trooper = $this->addTrooper($event_shift, $trooper);
 
@@ -77,7 +75,7 @@ class SignUpHtmxController extends Controller
         {
             $event_trooper->event_shift = $event_shift;
 
-            if ($event_trooper->canUpdateCostume($event_shift, Auth::user()))
+            if ($event_trooper->canUpdateCostume($event_shift, $auth_trooper))
             {
                 //  performance optimization: load costumes only if the trooper can update
                 $event_trooper->costumes = $event_trooper->getCostumes();
