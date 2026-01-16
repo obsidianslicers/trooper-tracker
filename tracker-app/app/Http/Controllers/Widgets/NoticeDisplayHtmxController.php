@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Widgets;
 
+use App\Features\Notices\Queries\GetNoticesForDisplayQuery;
 use App\Http\Controllers\Controller;
-use App\Models\Notice;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -25,19 +25,11 @@ class NoticeDisplayHtmxController extends Controller
     {
         $trooper = $request->user();
 
-        $notice = null;
+        $query = new GetNoticesForDisplayQuery($trooper, true);
 
-        $count = Notice::visibleTo($trooper, true)->count();
+        ['count' => $count, 'notice' => $notice] = $this->bus->send($query);
 
-        if ($count == 1)
-        {
-            $notice = Notice::visibleTo($trooper, true)->first();
-        }
-
-        $data = [
-            'count' => $count,
-            'notice' => $notice
-        ];
+        $data = compact('count', 'notice');
 
         return view('widgets.notice', $data);
     }

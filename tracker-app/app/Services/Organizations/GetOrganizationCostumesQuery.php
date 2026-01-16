@@ -6,10 +6,11 @@ namespace App\Services\Organizations;
 
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
+use Illuminate\Support\Collection;
 
 class GetOrganizationCostumesQuery
 {
-    public function __invoke(iterable $organization_ids = null): \Illuminate\Support\Collection
+    public function __invoke(iterable $organization_ids = null): Collection
     {
         $with = [
             'organization_costumes' => function ($q)

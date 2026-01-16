@@ -68,3 +68,10 @@
 - todo:   club/organization identifiers
   - pull/sync from clubs (http/json/googlesheets)
   - auto verify club identifiers on registration
+
+
+## CQRS
+
+The queries and commands are influx as we migrate from a service pattern to a message pattern. Moving from the Services folder to the Features folder, then refactoring the controllers. Note not all the controllers have been migrated to either a CQRS or a semi-CQRS pattern. The controllers are in flux with patterns, and tests.
+
+End goal is to convert all the controllers to the MagicBus CQRS pattern.

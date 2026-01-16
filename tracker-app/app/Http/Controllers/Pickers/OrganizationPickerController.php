@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Pickers;
 
+use App\Features\Organizations\Queries\GetOrganizationsForPickerQuery;
 use App\Http\Controllers\Controller;
 use App\Models\Organization;
 use Exception;
@@ -40,29 +41,9 @@ class OrganizationPickerController extends Controller
             throw new Exception("Missing property parameter");
         }
 
-        $organizations = collect([]);
+        $query = new GetOrganizationsForPickerQuery($trooper, $request->query());
 
-        if ($request->has('moderated_only') && $request->query('moderated_only'))
-        {
-            $organizations = Organization::moderatedBy($trooper)
-                ->orderBy(Organization::SEQUENCE)
-                ->get();
-        }
-        elseif ($request->has('organization_id') && $request->query('organization_id'))
-        {
-            // Pre-select a specific organization if organization_id is provided
-            $organization_id = $request->query('organization_id');
-
-            $organization = Organization::findOrFail($organization_id);
-
-            $organizations = Organization::where(Organization::NODE_PATH, 'like', $organization->node_path . '%')
-                ->orderBy(Organization::SEQUENCE)
-                ->get();
-        }
-        else
-        {
-            $organizations = Organization::orderBy(Organization::SEQUENCE)->get();
-        }
+        $organizations = $this->bus->send($query);
 
         $data = compact('organizations', 'property');
 

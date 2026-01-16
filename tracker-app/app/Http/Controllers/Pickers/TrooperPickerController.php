@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Pickers;
 
+use App\Features\Troopers\Queries\GetTroopersForPickerQuery;
 use App\Http\Controllers\Controller;
 use App\Models\Filters\TrooperFilter;
-use App\Models\Organization;
 use App\Models\Trooper;
 use Exception;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 /**
- * Handles requests for a view that allows picking an organization.
+ * Handles requests for a view that allows picking a trooper.
  *
  * This controller is designed to be used for UI components where a user
- * needs to select an organization from a list, potentially filtered by their
- * moderation permissions.
+ * needs to select a trooper from a list, potentially filtered by organization
+ * or search criteria.
  */
 class TrooperPickerController extends Controller
 {
@@ -25,7 +25,7 @@ class TrooperPickerController extends Controller
      * Handle the incoming request to display the trooper picker view.
      *
      * @param Request $request The incoming HTTP request.
-     * @return View The rendered organization picker view.
+     * @return View The rendered trooper picker view.
      */
     public function __invoke(Request $request, TrooperFilter $filter): View
     {
@@ -35,29 +35,20 @@ class TrooperPickerController extends Controller
 
         $search_term = $request->query('search_term');
 
-        $organization_id = $request->query('organization_id');
-
         if ($property === null)
         {
             throw new Exception("Missing property parameter");
         }
 
-        $troopers = collect([]);
-
-        $query = Trooper::active()->orderBy(Trooper::NAME);
-
-        if ($organization_id)
+        $organization_id = $request->query('organization_id');
+        if ($organization_id !== null)
         {
-            $query = $query->whereHas('organizations', function ($q) use ($organization_id)
-            {
-                $q->where('tt_organizations.id', $organization_id);
-            });
+            $organization_id = (int) $organization_id;
         }
 
-        if ($filter->hasFilter())
-        {
-            $troopers = $query->filterWith($filter)->get();
-        }
+        $query = new GetTroopersForPickerQuery($filter, $organization_id);
+
+        $troopers = $this->bus->send($query);
 
         $data = compact('troopers', 'property', 'search_term');
 
