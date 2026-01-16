@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace App\Bus;
 
+use App\Bus\Concerns\ShouldBeTransactional;
+use App\Bus\Concerns\ShouldRunAfterResponse;
+use App\Bus\Contracts\CommandHandlerInterface;
 use App\Bus\Contracts\HandlerInterface;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
 /**
@@ -68,7 +72,7 @@ class MagicBus
      *
      * @throws \RuntimeException If the handler class does not exist
      * @throws \RuntimeException If the handler does not implement HandlerInterface
-     * @throws \RuntimeException If handler implements ShouldRunAfterResponse but message is not a Command
+     * @throws \RuntimeException If handler implements ShouldRunAfterResponse but handler is not a CommandHandlerInterface
      */
     public function send(object $message): mixed
     {
@@ -84,22 +88,16 @@ class MagicBus
 
         if (!$handler instanceof HandlerInterface)
         {
-            throw new RuntimeException("Handler [{$handler_class}] must implement " . HandlerInterface::class);
+            throw new RuntimeException("Handler [$handler_class] must implement HandlerInterface");
         }
 
-        if ($handler instanceof ShouldRunAfterResponse)
+        if ($this->usesTrait($handler_class, ShouldBeTransactional::class))
         {
-            if (!$message instanceof CommandInterface)
-            {
-                throw new RuntimeException(
-                    sprintf(
-                        'Handler [%s] implements ShouldRunAfterResponse, but message [%s] does not implement CommandInterface.',
-                        $handler_class,
-                        get_class($message)
-                    )
-                );
-            }
+            return DB::transaction(fn() => $handler($message));
+        }
 
+        if ($this->usesTrait($handler_class, ShouldRunAfterResponse::class))
+        {
             // Defer execution until after the HTTP response is sent
             app()->afterResponse(function () use ($handler, $message)
             {
@@ -112,5 +110,27 @@ class MagicBus
 
         // Executes the __invoke method in the handler
         return $handler($message);
+    }
+
+    private function usesTrait(string $handler_class, string $trait): bool
+    {
+        $result = in_array($trait, class_uses_recursive($handler_class), true);
+
+        if ($result)
+        {
+            $this->checkForCommandInterface($handler_class, $trait);
+        }
+
+        return $result;
+    }
+
+    private function checkForCommandInterface(string $handler_class, string $trait): void
+    {
+        if (!is_subclass_of($handler_class, CommandHandlerInterface::class))
+        {
+            $msg = "Handler [{$handler_class}] implements {$trait}, but does not implement CommandHandlerInterface.";
+
+            throw new RuntimeException($msg);
+        }
     }
 }
