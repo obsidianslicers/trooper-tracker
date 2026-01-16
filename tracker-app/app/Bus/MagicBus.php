@@ -44,7 +44,8 @@ use RuntimeException;
  * $user = $bus->send(new CreateUserCommand('test@example.com', 'Test'));
  * ```
  *
- * @see \App\Bus\HandlerInterface
+ * @see \App\Bus\Contracts\HandlerInterface
+ * @see \App\Bus\Concerns\ShouldRunAfterResponse
  */
 class MagicBus
 {
@@ -58,11 +59,16 @@ class MagicBus
      * - MyCommand -> MyCommandHandler
      * - GetUserQuery -> GetUserQueryHandler
      *
-     * @param object $message The Command or Query object to dispatch
-     * @return mixed The result returned by the handler's __invoke method
+     * Handlers implementing ShouldRunAfterResponse will be executed after the HTTP
+     * response is sent. These handlers must process messages implementing CommandInterface
+     * and will return null immediately.
      *
-     * @throws RuntimeException If the handler class does not exist
-     * @throws RuntimeException If the handler does not implement HandlerInterface
+     * @param object $message The Command or Query object to dispatch
+     * @return mixed The result returned by the handler's __invoke method, or null for deferred commands
+     *
+     * @throws \RuntimeException If the handler class does not exist
+     * @throws \RuntimeException If the handler does not implement HandlerInterface
+     * @throws \RuntimeException If handler implements ShouldRunAfterResponse but message is not a Command
      */
     public function send(object $message): mixed
     {
