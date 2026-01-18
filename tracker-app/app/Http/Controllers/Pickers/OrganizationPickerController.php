@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Pickers;
 
 use App\Features\Organizations\Queries\GetOrganizationsForPickerQuery;
-use App\Http\Controllers\Controller;
-use App\Models\Organization;
+use App\Http\Controllers\MagicBusController;
 use Exception;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -18,7 +17,7 @@ use Illuminate\Http\Request;
  * needs to select an organization from a list, potentially filtered by their
  * moderation permissions.
  */
-class OrganizationPickerController extends Controller
+class OrganizationPickerController extends MagicBusController
 {
     /**
      * Handle the incoming request to display the organization picker view.
