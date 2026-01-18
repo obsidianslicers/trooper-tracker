@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Account;
 
-use App\Http\Controllers\Controller;
+use App\Features\Notices\Queries\GetTrooperNoticesQuery;
+use App\Http\Controllers\MagicBusController;
 use App\Models\Notice;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -24,7 +25,7 @@ use Illuminate\Http\Request;
  *
  * Notices are ordered by start date to show most relevant first.
  */
-class NoticesController extends Controller
+class NoticesController extends MagicBusController
 {
     /**
      * Display the notices page for the authenticated trooper.
@@ -42,9 +43,9 @@ class NoticesController extends Controller
     {
         $trooper = $request->user();
 
-        $notices = Notice::visibleTo($trooper, true)
-            ->orderBy(Notice::STARTS_AT)
-            ->get();
+        $notices_query = new GetTrooperNoticesQuery($trooper);
+
+        $notices = $this->bus->send($notices_query);
 
         $data = compact('notices');
 

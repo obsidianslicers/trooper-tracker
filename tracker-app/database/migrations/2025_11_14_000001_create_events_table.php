@@ -34,6 +34,7 @@ return new class extends Migration
             $table->decimal('latitude', 9, 6)->nullable();
             $table->decimal('longitude', 9, 6)->nullable();
 
+            $table->integer('shifts_allowed')->nullable();
             $table->integer('troopers_allowed')->nullable();
             $table->integer('handlers_allowed')->nullable();
             $table->integer('friends_allowed')->nullable();

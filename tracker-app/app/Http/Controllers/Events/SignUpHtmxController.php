@@ -12,6 +12,7 @@ use App\Models\EventTrooper;
 use App\Models\Trooper;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 
@@ -34,24 +35,26 @@ class SignUpHtmxController extends Controller
      *
      * @param Request $request The incoming request containing the authenticated user
      * @param EventShift $event_shift The event shift the trooper is signing up for
-     * @return View The rendered shift container with updated trooper list
+     * @return Response The rendered shift container with updated trooper list
      */
-    public function __invoke(Request $request, EventShift $event_shift): View
+    public function __invoke(Request $request, EventShift $event_shift): Response
     {
         $trooper = $request->user();
+
+        $auth_trooper = $request->user();
 
         if ($request->has('trooper_id'))
         {
             $trooper = Trooper::active()->findOrFail($request->input('trooper_id'));
         }
 
-        $exists = $event_shift->event_troopers()
-            ->where(EventTrooper::TROOPER_ID, $trooper->id)
-            ->exists();
+        $can_signup = false;
 
-        if (!$exists)
+        if ($event_shift->canSignUp($trooper))
         {
             $event_trooper = $this->addTrooper($event_shift, $trooper);
+
+            $can_signup = true;
 
             Mail::to($trooper->email)->queue(new TrooperSignUp($event_trooper));
         }
@@ -77,7 +80,7 @@ class SignUpHtmxController extends Controller
         {
             $event_trooper->event_shift = $event_shift;
 
-            if ($event_trooper->canUpdateCostume($event_shift, Auth::user()))
+            if ($event_trooper->canUpdateCostume($event_shift, $auth_trooper))
             {
                 //  performance optimization: load costumes only if the trooper can update
                 $event_trooper->costumes = $event_trooper->getCostumes();
@@ -88,7 +91,28 @@ class SignUpHtmxController extends Controller
 
         $data = compact('event', 'event_shift', 'can_moderate');
 
-        return view('pages.events.inc.shift-container', $data);
+        $response = response()->view('pages.events.inc.shift-container', $data);
+
+        if (!$can_signup)
+        {
+            $count = $event_shift->event->getShiftCountFor($trooper);
+
+            if ($count >= $event_shift->event->shifts_allowed)
+            {
+                //  handle the case where the trooper has maxed out their allowed shifts
+
+                $message = json_encode([
+                    'message' => "You have reached the maximum number of shift sign-ups allowed.",
+                    'type' => 'danger',
+                    'focus' => true,
+                    'fadeOut' => 5000
+                ]);
+
+                $response = $response->header('X-Flash-Message', $message);
+            }
+        }
+
+        return $response;
     }
 
     private function addTrooper(EventShift $event_shift, Trooper $trooper): EventTrooper

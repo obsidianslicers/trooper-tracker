@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Account;
 
-use App\Http\Controllers\Controller;
+use App\Features\Organizations\Queries\GetOrganizationCostumesQuery;
+use App\Features\Troopers\Queries\GetTrooperCostumesQuery;
+use App\Http\Controllers\MagicBusController;
 use App\Models\Organization;
-use App\Services\Organizations\GetOrganizationCostumesQuery;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -26,33 +27,36 @@ use Illuminate\Http\Request;
  * In Star Wars costuming clubs, troopers track approved costumes (e.g., TK-421 Stormtrooper,
  * Darth Vader) assigned to them from their organizations. This page manages that relationship.
  */
-class CostumesController extends Controller
+class CostumesController extends MagicBusController
 {
     /**
      * Display the costume management page for the authenticated trooper.
      *
-     * Retrieves:
-     * - Organizations the trooper is an active member of
-     * - Available costumes from those organizations (via GetOrganizationCostumesQuery)
-     * - Trooper's currently assigned costumes with eager-loaded relationships
+     * Workflow:
+     * 1. Retrieves the authenticated trooper from the request
+     * 2. Loads organizations the trooper is an active member of
+     * 3. Dispatches GetOrganizationCostumesQuery to fetch available costumes from those organizations
+     * 4. Dispatches GetTrooperCostumesQuery to fetch trooper's currently assigned costumes
+     * 5. Renders the costume management page with both costume lists
      *
-     * @param Request $request The incoming HTTP request containing authenticated trooper.
-     * @param GetOrganizationCostumesQuery $get_organization_costumes Service to fetch organization costumes.
-     * @return View The costume management page with organization_costumes and trooper_costumes.
+     * @param Request $request The incoming HTTP request containing authenticated trooper
+     * @return View The costume management page (pages.account.costumes) with organization_costumes and trooper_costumes
      */
-    public function __invoke(
-        Request $request,
-        GetOrganizationCostumesQuery $get_organization_costumes): View
+    public function __invoke(Request $request): View
     {
         $trooper = $request->user();
 
-        $organizations = Organization::withActiveTroopers($trooper->id)
+        $organization_ids = Organization::withActiveTroopers($trooper->id)
             ->pluck(Organization::ID)
             ->toArray();
 
-        $organization_costumes = $get_organization_costumes($organizations);
+        $organization_costumes_query = new GetOrganizationCostumesQuery($organization_ids);
 
-        $trooper_costumes = $trooper->trooper_costumes()->with('organization_costume.organization')->get();
+        $organization_costumes = $this->bus->send($organization_costumes_query);
+
+        $trooper_costumes_query = new GetTrooperCostumesQuery($trooper);
+
+        $trooper_costumes = $this->bus->send($trooper_costumes_query);
 
         $data = compact('organization_costumes', 'trooper_costumes');
 

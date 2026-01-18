@@ -11,10 +11,12 @@ use App\Models\Event;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Services\BreadCrumbService;
+use App\Services\FlashMessageService;
 use App\Services\Organizations\GetOrganizationHierarchyQuery;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 /**
  * Displays the event creation form.
@@ -75,7 +77,7 @@ class CreateController extends Controller
 
         $this->assignOrganization($request, $event, $trooper);
 
-        $organizations = Organization::ofTypeOrganizations()->orderBy(Organization::NAME)->get();
+        $organizations = $this->getOrganizations();
 
         $mode = old('mode', 'email');
 
@@ -84,11 +86,29 @@ class CreateController extends Controller
         return view('pages.admin.events.create', $data);
     }
 
+    private function getOrganizations(): Collection
+    {
+        $organizations = Organization::ofTypeOrganizations()->orderBy(Organization::NAME)->get();
+
+        foreach ($organizations as $organization)
+        {
+            $organization->can_attend = old("organizations.{$organization->id}.can_attend", 'true');
+            $organization->troopers_allowed = old("organizations.{$organization->id}.troopers_allowed");
+            $organization->handlers_allowed = old("organizations.{$organization->id}.handlers_allowed");
+        }
+
+        return $organizations;
+    }
+
     private function assignOrganization(Request $request, Event $event, Trooper $trooper)
     {
         if ($request->has('organization_id'))
         {
             $event->organization_id = $request->query('organization_id');
+        }
+        else
+        {
+            $event->organization_id = old('organization_id', $event->organization_id . '');
         }
 
         if ($event->organization_id != null)

@@ -168,15 +168,22 @@
                     </x-input-container>
 
                     <x-input-container>
+                        <x-label>Maximum Shift Sign-Ups (per event):</x-label>
+                        <x-input-text :property="'shifts_allowed'"
+                                    :value="$event->shifts_allowed"
+                                    placeholder="blank=unlimited" />
+                    </x-input-container>
+
+                    <x-input-container>
                         <div class="row">
                             <div class="col-12 col-md-6">
-                                <x-label>Troopers Allowed (per shift):</x-label>
+                                <x-label>Trooper Capacity (per shift):</x-label>
                                 <x-input-text :property="'troopers_allowed'"
                                               :value="$event->troopers_allowed"
                                               placeholder="blank=unlimited" />
                             </div>
                             <div class="col-12 col-md-6">
-                                <x-label>Handlers Allowed (per shift):</x-label>
+                                <x-label>Handler Capacity (per shift):</x-label>
                                 <x-input-text :property="'handlers_allowed'"
                                               :value="$event->handlers_allowed"
                                               placeholder="blank=unlimited" />
@@ -187,13 +194,13 @@
                     <x-input-container>
                         <div class="row">
                             <div class="col-12 col-md-6">
-                                <x-label>Friend Sign-Ups (per shift):</x-label>
+                                <x-label>Limit Friend Sign-Ups (per shift):</x-label>
                                 <x-input-text :property="'friends_allowed'"
                                               :value="$event->friends_allowed"
                                               placeholder="blank=unlimited" />
                             </div>
                             <div class="col-12 col-md-6">
-                                <x-label>Allow Tentative Sign-Ups (per shift):</x-label>
+                                <x-label>Tentative Sign-Ups Allowed (per shift):</x-label>
                                 <x-input-yesno :property="'tentative_signups_allowed'"
                                             :value="$event->tentative_signups_allowed" />
                             </div>
@@ -207,8 +214,8 @@
                                 <th>
                                     Can Sign Up
                                 </th>
-                                <th>Troopers Allowed</th>
-                                <th>Handlers Allowed</th>
+                                <th>Limit Troopers</th>
+                                <th>Limit Handlers</th>
                             </tr>
                         </thead>
                         @foreach ($organizations as $organization)
@@ -282,44 +289,6 @@
                         </div>
                     </x-input-container>
 
-                    <x-accordion-card :label="'Charity'">
-
-                        <x-input-container>
-                            <x-label>Name:</x-label>
-                            <x-input-text :property="'charity_name'"
-                                        :value="$event->charity_name" />
-                        </x-input-container>
-
-                        <x-input-container>
-                            <x-label>Hours:</x-label>
-                            <x-input-text :property="'charity_hours'"
-                                          :value="$event->charity_hours" />
-                        </x-input-container>
-
-                        <x-input-container>
-                            <div class="row">
-                                <div class="col-12 col-md-6">
-                                    <x-label>Direct Funds:</x-label>
-                                    <x-input-text :property="'direct_funds'"
-                                                  :value="$event->direct_funds" />
-                                </div>
-                                <div class="col-12 col-md-6">
-                                    <x-label>Indirect Funds:</x-label>
-                                    <x-input-text :property="'indirect_funds'"
-                                                  :value="$event->indirect_funds" />
-                                </div>
-                            </div>
-                        </x-input-container>
-
-                        <x-input-container>
-                            <x-label>Notes:</x-label>
-                            <x-input-text :property="'charity_notes'"
-                                            :multiline="true"
-                                            :value="$event->charity_notes"
-                                            x-model="form.charity_notes" />
-                        </x-input-container>
-                    </x-accordion-card>
-
                     <x-input-container>
                         <x-label>Accessible:</x-label>
                         <x-input-yesno :property="'accessible'"
@@ -331,6 +300,44 @@
                         <x-input-text :property="'amenities'"
                                       :multiline="true"
                                       :value="$event->amenities" />
+                    </x-input-container>
+                </x-accordion-card>
+
+                <x-accordion-card :label="'Charity'">
+
+                    <x-input-container>
+                        <x-label>Name:</x-label>
+                        <x-input-text :property="'charity_name'"
+                                    :value="$event->charity_name" />
+                    </x-input-container>
+
+                    <x-input-container>
+                        <x-label>Hours:</x-label>
+                        <x-input-text :property="'charity_hours'"
+                                        :value="$event->charity_hours" />
+                    </x-input-container>
+
+                    <x-input-container>
+                        <div class="row">
+                            <div class="col-12 col-md-6">
+                                <x-label>Direct Funds:</x-label>
+                                <x-input-text :property="'direct_funds'"
+                                                :value="$event->direct_funds" />
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <x-label>Indirect Funds:</x-label>
+                                <x-input-text :property="'indirect_funds'"
+                                                :value="$event->indirect_funds" />
+                            </div>
+                        </div>
+                    </x-input-container>
+
+                    <x-input-container>
+                        <x-label>Notes:</x-label>
+                        <x-input-text :property="'charity_notes'"
+                                        :multiline="true"
+                                        :value="$event->charity_notes"
+                                        x-model="form.charity_notes" />
                     </x-input-container>
                 </x-accordion-card>
 

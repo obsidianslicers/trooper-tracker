@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Widgets;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use App\Models\TrooperDonation;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 /**
  * Handles displaying the support widget via an HTMX request.
  */
-class SupportDisplayHtmxController extends Controller
+class SupportDisplayHtmxController extends MagicBusController
 {
     /**
      * Handle the incoming request to display the support widget.
@@ -24,17 +24,17 @@ class SupportDisplayHtmxController extends Controller
     {
         $donations = TrooperDonation::forMonth()->sum(TrooperDonation::AMOUNT);
 
-        $donate_goal = config('tracker.support.goal', 0);
+        $goal = config('tracker.support.goal', 0);
 
         $progress = 0;
 
-        if ($donate_goal > 0)
+        if ($goal > 0)
         {
-            $progress = $donations / $donate_goal;
+            $progress = $donations / $goal;
         }
 
         $data = [
-            'goal' => $donate_goal,
+            'goal' => $goal,
             'progress' => number_format($progress * 100, 0),
             'message' => $this->getMessage()
         ];

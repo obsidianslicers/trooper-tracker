@@ -5,7 +5,6 @@
 - home pages alernate views:
   - map view
   - calendar view
-- Event Link Manager (A way to link events together so that a trooper can only sign up for a certain amount of troops that are linked together [comes into play for big events like MegaCon])
 
 ### EVENT WIP COMPLETED
 - Getting error on event e-mail parser submission
@@ -26,12 +25,23 @@
   -  Charity Add Hours (This is used to calculate additional or less charity hours, otherwise the event duration is used)
   -  Charity Note (A note field to add misc, for example collected 15 Star Wars toys)
   - **IMPLEMENTED**
+- Event Link Manager (A way to link events together so that a trooper can only sign up for a certain amount of troops that are linked together [comes into play for big events like MegaCon])
+  - **IMPLEMENTED**
 
 ## TROOPERS
-- command-staff Statistics page to show accounts with admin/mod permissions. I have a note field per trooper to make a note on why they have permission, for example RL command-staff could be a note. Last API syncs with 501st. Rebel Legion API is dead.
+
+### WORK IN PROGRESS
+- command-staff Statistics page show - Last API syncs with 501st. Rebel Legion API is dead.
 - Profile page to show off acheivements, donations made, costumes (501st api)
 - A way to show a log of who is changing a troopers status on the backend for accountability (see notifications page on Troop Tracker 1.0)
-- Roster page to show all troopers in a club/squad. Ability to add troopers to a club / squad and assign additional club/squad information to their account. I also had a tool to show active troopers that did not have a documented troop in the last year for census purposes.
+- I also had a tool to show active troopers that did not have a documented troop in the last year for census purposes.
+
+
+### EVENT WIP COMPLETED
+- command-staff Statistics page to show accounts with admin/mod permissions.
+  - **IMPLEMENTATION**: Trooper admin page allows filtering of admin/mods
+- Roster page to show all troopers in a club/squad. Ability to add troopers to a club / squad and assign additional club/squad information to their account.
+  - **IMPLEMENTATION**: Thru trooper admin page
 
 ## REPORTS
 - Reports
@@ -58,3 +68,10 @@
 - todo:   club/organization identifiers
   - pull/sync from clubs (http/json/googlesheets)
   - auto verify club identifiers on registration
+
+
+## CQRS
+
+The queries and commands are influx as we migrate from a service pattern to a message pattern. Moving from the Services folder to the Features folder, then refactoring the controllers. Note not all the controllers have been migrated to either a CQRS or a semi-CQRS pattern. The controllers are in flux with patterns, and tests.
+
+End goal is to convert all the controllers to the MagicBus CQRS pattern.

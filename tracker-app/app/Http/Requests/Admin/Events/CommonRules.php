@@ -40,6 +40,7 @@ trait CommonRules
         return [
             Event::NAME => ['required', 'string', 'max:128',],
             Event::STATUS => ['required', 'string', 'max:16', 'in:' . EventStatus::toValidator()],
+            Event::SHIFTS_ALLOWED => ['nullable', 'integer', 'between:1,99999'],
             Event::TROOPERS_ALLOWED => ['nullable', 'integer', 'between:1,99999'],
             Event::HANDLERS_ALLOWED => ['nullable', 'integer', 'between:0,99999'],
             Event::FRIENDS_ALLOWED => ['nullable', 'integer', 'between:0,99999'],

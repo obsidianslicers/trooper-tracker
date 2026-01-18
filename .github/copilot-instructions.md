@@ -2,13 +2,53 @@
 
 This document provides instructions and context for AI coding agents to enhance their performance and align with project standards within this Laravel application.
 
+
+## Critical Rules (Copilot must follow these)
+* The authenticated entity is Trooper, never User.
+* All files must begin with declare(strict_types=1);.
+* All methods require explicit scalar type hints.
+* Controllers follow ADR and must remain thin.
+* Business logic belongs in Services, not Controllers, Jobs, or Commands.
+* Base models in Models/Base must never be edited.
+* Use model constants for column names.
+* Use domain vocabulary: Trooper, Troop, Costume, Organization, Notice.
+* Tests must be behavior‑driven, not implementation‑driven.
+
+## Code Generation Rules
+
+### Controllers (Actions)
+* Must be invokable classes.
+* Must orchestrate services, not contain logic.
+* Must not reference User.
+* Must not perform database queries directly unless trivial.
+
+### Services (Domain)
+* Contain all business logic.
+* Must be pure, testable, and independent of HTTP context.
+* Should accept typed parameters and return typed results.
+
+### Jobs & Commands (Orchestration)
+* Must call services.
+* Must not contain business logic.
+
+### Models
+* Extend auto‑generated base models.
+* Add scopes, accessors, helpers only in extended models.
+* Use constants for column names.
+
+### Naming & Style Rules
+* Classes: PascalCase
+* Methods: camelCase
+* Parameters & variables: snake_case
+* Tests: test_ prefix + snake_case
+* Max line length: 100 chars
+* Max method length: 30 lines
+
 ## Project Overview
 
-**Troop Tracker** is a Laravel application designed for members of the **501st Legion** and other **Star Wars costuming clubs**. The application follows a clean, domain-driven architecture with a focus on maintainability, clarity, and expressive code using the **Action-Domain-Responder (ADR)** pattern.
+**Troop Tracker** is a Laravel application designed for members of the **501st Legion** and other **Star Wars costuming clubs**.
 
 ### Key Architectural Principle
-
-⚠️ **CRITICAL:** The primary authenticated entity is **Trooper**, not User. Avoid generating references to `User` model.
 
 ## Project Purpose
 
@@ -41,7 +81,7 @@ All new and refactored code follows the ADR pattern:
   - Use single-action controllers: `Route::post('/login', LoginSubmitController::class)`
   - Controllers are thin orchestrators, not business logic containers
 
-- **Domain (Services):** Business logic lives in Service classes, independent of web context
+- **Domain (Services):** Business logic lives in Service classes, independent of web context, commands and queries are executed as messages thru the MagicBus
   - Located in `app/Services/`
   - Examples: `FlashMessageService`, `BreadCrumbService`, event notification services
   - Service classes are reusable across Controllers, Jobs, and Commands

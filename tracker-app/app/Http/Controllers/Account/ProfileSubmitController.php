@@ -4,44 +4,46 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Account;
 
-use App\Http\Controllers\Controller;
+use App\Features\Troopers\Commands\UpdateTrooperCommand;
+use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Account\ProfileRequest;
-use App\Services\FlashMessageService;
 use App\Services\Troopers\UpdateTrooperProfileCommand;
 use Illuminate\Http\RedirectResponse;
 
 /**
- * Handles the form submission for updating the authenticated user's profile.
+ * Handles form submission for updating the authenticated trooper's profile.
+ *
+ * This controller follows the ADR pattern as an Action that:
+ * - Validates profile data via ProfileRequest
+ * - Dispatches UpdateTrooperCommand to persist changes
+ * - Flashes success message to session
+ * - Redirects back to profile page
+ *
+ * Profile updates include personal information such as name, email,
+ * phone number, and other trooper details.
  */
-class ProfileSubmitController extends Controller
+class ProfileSubmitController extends MagicBusController
 {
     /**
-     * ProfileSubmitController constructor.
+     * Handle the incoming request to update the trooper's profile.
      *
-     * @param FlashMessageService $flash The service for creating flash messages.
+     * Workflow:
+     * 1. Retrieves the authenticated trooper from the request
+     * 2. Creates UpdateTrooperCommand with validated data
+     * 3. Dispatches command via MagicBus
+     * 4. Flashes success message via FlashMessageService
+     * 5. Redirects to account.profile route
+     *
+     * @param ProfileRequest $request The validated profile form request containing trooper data
+     * @return RedirectResponse Redirect to account.profile route with success message
      */
-    public function __construct(private readonly FlashMessageService $flash)
-    {
-    }
-
-    /**
-     * Handle the incoming request to update the authenticated user's profile.
-     *
-     * This method validates the request data, updates the user's trooper record,
-     * flashes a success message, and redirects back to the profile page.
-     *
-     * @param ProfileRequest $request The validated profile form request.
-     * @return RedirectResponse A redirect response to the account profile page.
-     */
-    public function __invoke(
-        ProfileRequest $request,
-        UpdateTrooperProfileCommand $update_profile): RedirectResponse
+    public function __invoke(ProfileRequest $request): RedirectResponse
     {
         $trooper = $request->user();
 
-        $update_profile($trooper, $request->validated());
+        $update_cmd = new UpdateTrooperCommand($trooper, $request->validated());
 
-        $trooper->save();
+        $this->bus->send($update_cmd);
 
         $this->flash->updated($trooper);
 

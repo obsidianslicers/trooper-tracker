@@ -91,7 +91,7 @@ class ListController extends Controller
      */
     private function getOrganization(Request $request): ?Organization
     {
-        if ($request->has('organization_id'))
+        if ($request->has('organization_id') && $request->query('organization_id') > 0)
         {
             $organization_id = $request->query('organization_id');
 

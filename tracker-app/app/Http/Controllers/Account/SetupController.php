@@ -4,37 +4,44 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Account;
 
-use App\Http\Controllers\Controller;
+use App\Features\Troopers\Queries\GetTrooperAssignmentsQuery;
+use App\Http\Controllers\MagicBusController;
 use App\Services\Troopers\GetTrooperOrganizationMembershipsQuery;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 /**
- * Handles the display of the trooper setup page for organization management.
+ * Displays the trooper organization membership setup page.
  *
- * Presents the authenticated trooper with their enrolled organizations and member
- * assignments (regions/units), allowing them to review or configure their organizational
- * memberships and associated hierarchy.
+ * This controller follows the ADR pattern as an Action that:
+ * - Retrieves the authenticated trooper's organization assignments
+ * - Loads organizations with hierarchical structure (Org → Region → Unit)
+ * - Marks current member assignments via GetTrooperAssignmentsQuery
+ * - Renders the setup page where troopers can configure their organization memberships
+ *
+ * Troopers select which organizations they belong to and which regions/units
+ * they are actively assigned to within each organization.
  */
-class SetupController extends Controller
+class SetupController extends MagicBusController
 {
     /**
-     * Handle the incoming request to display the trooper setup page.
+     * Handle the incoming request to display the organization setup page.
      *
-     * Retrieves the authenticated trooper, assembles organizations with resolved
-     * region/unit assignments based on member status, and renders the setup view.
+     * Workflow:
+     * 1. Retrieves the authenticated trooper from the request
+     * 2. Dispatches GetTrooperAssignmentsQuery to load organizations with assignment data
+     * 3. Renders the setup page with organization memberships for trooper configuration
      *
-     * @param Request $request The incoming HTTP request (may contain 'region_id' query param).
-     * @param GetTrooperOrganizationMembershipsQuery $get_trooper_organizations The service to get trooper organization memberships.
-     * @return View The rendered setup page view.
+     * @param Request $request The incoming HTTP request containing the authenticated trooper
+     * @return View The rendered setup page view (pages.account.setup)
      */
-    public function __invoke(
-        Request $request,
-        GetTrooperOrganizationMembershipsQuery $get_trooper_organizations): View
+    public function __invoke(Request $request): View
     {
         $trooper = $request->user();
 
-        $organization_memberships = $get_trooper_organizations($trooper);
+        $get_assignments = new GetTrooperAssignmentsQuery($trooper);
+
+        $organization_memberships = $this->bus->send(message: $get_assignments);
 
         $data = compact('trooper', 'organization_memberships');
 

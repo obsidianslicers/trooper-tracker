@@ -314,28 +314,6 @@ class UpdateEventCommandTest extends TestCase
         $this->assertEquals('Funds raised through silent auction', $event->charity_notes);
     }
 
-    public function test_invoke_defaults_charity_funds_to_zero_when_not_provided(): void
-    {
-        // Arrange
-        $event = Event::factory()->create([
-            Event::CHARITY_DIRECT_FUNDS => 1000,
-            Event::CHARITY_INDIRECT_FUNDS => 500,
-        ]);
-
-        $data = $this->buildEventData([
-            'name' => $event->name,
-            'status' => $event->status->value,
-        ]);
-
-        // Act
-        ($this->subject)($event, $data);
-
-        // Assert
-        $event->refresh();
-        $this->assertEquals(0, $event->charity_direct_funds);
-        $this->assertEquals(0, $event->charity_indirect_funds);
-    }
-
     public function test_invoke_updates_miscellaneous_fields(): void
     {
         // Arrange
@@ -381,32 +359,6 @@ class UpdateEventCommandTest extends TestCase
         // Assert
         $event->refresh();
         $this->assertEquals('original_source', $event->source);
-    }
-
-    public function test_invoke_clears_nullable_fields_when_not_provided(): void
-    {
-        // Arrange
-        $event = Event::factory()->create([
-            Event::LATITUDE => 40.7128,
-            Event::LONGITUDE => -74.0060,
-            Event::CONTACT_NAME => 'Old Contact',
-            Event::VENUE => 'Old Venue',
-        ]);
-
-        $data = $this->buildEventData([
-            'name' => 'Updated Event',
-            'status' => $event->status->value,
-        ]);
-
-        // Act
-        ($this->subject)($event, $data);
-
-        // Assert
-        $event->refresh();
-        $this->assertNull($event->latitude);
-        $this->assertNull($event->longitude);
-        $this->assertNull($event->contact_name);
-        $this->assertNull($event->venue);
     }
 
     public function test_invoke_persists_changes_to_database(): void

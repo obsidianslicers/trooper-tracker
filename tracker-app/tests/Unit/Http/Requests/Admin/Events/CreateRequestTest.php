@@ -377,6 +377,96 @@ class CreateRequestTest extends TestCase
         $this->assertTrue($validator->errors()->has(Event::TROOPERS_ALLOWED));
     }
 
+    public function test_validation_passes_with_shifts_allowed_in_range(): void
+    {
+        // Arrange
+        $data = [
+            Event::ORGANIZATION_ID => $this->organization->id,
+            Event::NAME => 'Test Event',
+            Event::STATUS => EventStatus::OPEN->value,
+            Event::EVENT_START => '2026-06-01 10:00:00',
+            Event::EVENT_END => '2026-06-01 16:00:00',
+            Event::SHIFTS_ALLOWED => 3,
+            Event::TENTATIVE_SIGNUPS_ALLOWED => false,
+            Event::SECURE_STAGING_AREA => false,
+            Event::ALLOW_BLASTERS => false,
+            Event::ALLOW_PROPS => false,
+            Event::PARKING_AVAILABLE => false,
+            Event::ACCESSIBLE => false,
+        ];
+
+        // Act
+        $validator = Validator::make($data, $this->subject->rules());
+
+        // Assert
+        $this->assertTrue($validator->passes());
+    }
+
+    public function test_validation_fails_with_shifts_allowed_below_minimum(): void
+    {
+        // Arrange
+        $data = [
+            Event::ORGANIZATION_ID => $this->organization->id,
+            Event::NAME => 'Test Event',
+            Event::STATUS => EventStatus::OPEN->value,
+            Event::EVENT_START => '2026-06-01 10:00:00',
+            Event::EVENT_END => '2026-06-01 16:00:00',
+            Event::SHIFTS_ALLOWED => 0,
+        ];
+
+        // Act
+        $validator = Validator::make($data, $this->subject->rules());
+
+        // Assert
+        $this->assertTrue($validator->fails());
+        $this->assertTrue($validator->errors()->has(Event::SHIFTS_ALLOWED));
+    }
+
+    public function test_validation_fails_with_shifts_allowed_above_maximum(): void
+    {
+        // Arrange
+        $data = [
+            Event::ORGANIZATION_ID => $this->organization->id,
+            Event::NAME => 'Test Event',
+            Event::STATUS => EventStatus::OPEN->value,
+            Event::EVENT_START => '2026-06-01 10:00:00',
+            Event::EVENT_END => '2026-06-01 16:00:00',
+            Event::SHIFTS_ALLOWED => 100000,
+        ];
+
+        // Act
+        $validator = Validator::make($data, $this->subject->rules());
+
+        // Assert
+        $this->assertTrue($validator->fails());
+        $this->assertTrue($validator->errors()->has(Event::SHIFTS_ALLOWED));
+    }
+
+    public function test_validation_passes_with_null_shifts_allowed(): void
+    {
+        // Arrange
+        $data = [
+            Event::ORGANIZATION_ID => $this->organization->id,
+            Event::NAME => 'Test Event',
+            Event::STATUS => EventStatus::OPEN->value,
+            Event::EVENT_START => '2026-06-01 10:00:00',
+            Event::EVENT_END => '2026-06-01 16:00:00',
+            Event::SHIFTS_ALLOWED => null,
+            Event::TENTATIVE_SIGNUPS_ALLOWED => false,
+            Event::SECURE_STAGING_AREA => false,
+            Event::ALLOW_BLASTERS => false,
+            Event::ALLOW_PROPS => false,
+            Event::PARKING_AVAILABLE => false,
+            Event::ACCESSIBLE => false,
+        ];
+
+        // Act
+        $validator = Validator::make($data, $this->subject->rules());
+
+        // Assert
+        $this->assertTrue($validator->passes());
+    }
+
     public function test_validation_passes_with_geographic_coordinates(): void
     {
         // Arrange

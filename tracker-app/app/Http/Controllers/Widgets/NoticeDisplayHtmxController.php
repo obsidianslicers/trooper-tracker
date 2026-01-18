@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Widgets;
 
-use App\Http\Controllers\Controller;
-use App\Models\Notice;
+use App\Features\Notices\Queries\GetTrooperNoticeForDisplayQuery;
+use App\Http\Controllers\MagicBusController;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -14,7 +14,7 @@ use Illuminate\Http\Request;
  * This controller determines the number of notices visible to the authenticated user
  * and fetches the specific notice if only one is available.
  */
-class NoticeDisplayHtmxController extends Controller
+class NoticeDisplayHtmxController extends MagicBusController
 {
     /**
      * Handle the incoming request to display the notice widget.
@@ -25,19 +25,11 @@ class NoticeDisplayHtmxController extends Controller
     {
         $trooper = $request->user();
 
-        $notice = null;
+        $query = new GetTrooperNoticeForDisplayQuery($trooper, true);
 
-        $count = Notice::visibleTo($trooper, true)->count();
+        ['count' => $count, 'notice' => $notice] = $this->bus->send($query);
 
-        if ($count == 1)
-        {
-            $notice = Notice::visibleTo($trooper, true)->first();
-        }
-
-        $data = [
-            'count' => $count,
-            'notice' => $notice
-        ];
+        $data = compact('count', 'notice');
 
         return view('widgets.notice', $data);
     }

@@ -31,6 +31,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Carbon|null $cancel_notifications_sent_at
  * @property float|null $latitude
  * @property float|null $longitude
+ * @property int|null $shifts_allowed
  * @property int|null $troopers_allowed
  * @property int|null $handlers_allowed
  * @property int|null $friends_allowed
@@ -91,6 +92,7 @@ class Event extends Model
     const CANCEL_NOTIFICATIONS_SENT_AT = 'cancel_notifications_sent_at';
     const LATITUDE = 'latitude';
     const LONGITUDE = 'longitude';
+    const SHIFTS_ALLOWED = 'shifts_allowed';
     const TROOPERS_ALLOWED = 'troopers_allowed';
     const HANDLERS_ALLOWED = 'handlers_allowed';
     const FRIENDS_ALLOWED = 'friends_allowed';
@@ -139,6 +141,7 @@ class Event extends Model
         self::CANCEL_NOTIFICATIONS_SENT_AT => 'datetime',
         self::LATITUDE => 'float',
         self::LONGITUDE => 'float',
+        self::SHIFTS_ALLOWED => 'int',
         self::TROOPERS_ALLOWED => 'int',
         self::HANDLERS_ALLOWED => 'int',
         self::FRIENDS_ALLOWED => 'int',
@@ -171,6 +174,7 @@ class Event extends Model
         self::CANCEL_NOTIFICATIONS_SENT_AT,
         self::LATITUDE,
         self::LONGITUDE,
+        self::SHIFTS_ALLOWED,
         self::TROOPERS_ALLOWED,
         self::HANDLERS_ALLOWED,
         self::FRIENDS_ALLOWED,

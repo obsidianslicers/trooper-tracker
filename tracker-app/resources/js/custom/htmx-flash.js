@@ -45,14 +45,16 @@ document.body.addEventListener('htmx:afterSwap', function (event) {
                 messagesContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
 
-            // Fade out and remove after 2 seconds
+            const fadeOut = response.fadeOut || 2000;
+
+            // Fade out and remove after fadeOut duration
             setTimeout(() => {
                 messageDiv.style.opacity = '0';
                 messageDiv.style.transition = 'opacity 0.5s ease-in-out';
                 setTimeout(() => {
                     messageDiv.remove();
                 }, 500);
-            }, 2000);
+            }, fadeOut);
         }
     } catch (e) {
         console.error("Error parsing JSON or displaying flash message:", e);
