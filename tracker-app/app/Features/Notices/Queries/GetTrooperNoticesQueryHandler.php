@@ -8,26 +8,29 @@ use App\Bus\Contracts\QueryHandlerInterface;
 use App\Models\Notice;
 
 /**
- * Handler for retrieving notices for display to a trooper.
+ * Handler for retrieving all notices visible to a trooper.
  *
- * Processes GetTrooperNoticesQuery to return notices based on:
- * - Trooper visibility: Returns only notices visible to the trooper
+ * Returns notices that the trooper has permission to view based on:
+ * - Organization membership (organization-specific notices)
+ * - Global notices (visible to all troopers)
+ * - Active status (only active notices are returned)
  *
- * All results are ordered by the notice's created_at field for consistent UI display.
+ * Results are ordered by starts_at timestamp for chronological display.
  *
  * @implements QueryHandlerInterface<GetTrooperNoticesQuery>
  */
 readonly class GetTrooperNoticesQueryHandler implements QueryHandlerInterface
 {
     /**
-     * Handle the query to retrieve notices for display to a trooper.
+     * Execute the query to retrieve visible notices.
      *
-     * Query behavior:
-     * 1. If unread_only is true: Returns only unread notices visible to the trooper
-     * 2. Otherwise: Returns all notices visible to the trooper
+     * Uses the Notice::visibleTo() scope to filter notices based on:
+     * - Trooper's organization memberships
+     * - Global notices (organization_id is null)
+     * - Active status (is_active = true)
      *
-     * @param GetTrooperNoticesQuery $message The query containing filter criteria
-     * @return array{count: int, notice: ?Notice} The count of notices and the single notice if only one is available
+     * @param GetTrooperNoticesQuery $message The query containing the trooper
+     * @return \Illuminate\Support\Collection<int, Notice> Collection of visible notices
      */
     public function __invoke(object $message): mixed
     {

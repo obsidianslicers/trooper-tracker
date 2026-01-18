@@ -7,22 +7,24 @@ namespace App\Features\Notices\Queries;
 use App\Models\Trooper;
 
 /**
- * Query to retrieve notices for display to a trooper.
+ * Query to retrieve notice display information for a trooper.
  *
- * This query supports retrieving all notices visible to the trooper.
+ * Returns the count of visible notices and optionally a single notice
+ * when exactly one notice is available. Supports filtering to unread notices only.
  *
- * The results are always ordered by the notice's created_at field.
+ * @see GetTrooperNoticeForDisplayQueryHandler
  */
 readonly class GetTrooperNoticeForDisplayQuery
 {
     /**
      * Create a new query instance.
      *
-     * @param Trooper $trooper The trooper requesting organizations
+     * @param Trooper $trooper The trooper requesting notice display information
+     * @param bool $unread_only Whether to count only unread notices (default: false)
      */
     public function __construct(
         public readonly Trooper $trooper,
-        public readonly bool $all_unread = false
+        public readonly bool $unread_only = false
     ) {
     }
 }

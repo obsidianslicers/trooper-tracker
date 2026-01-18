@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Account;
 
+use App\Features\Troopers\Commands\AttachTrooperCostumeCommand;
 use App\Features\Troopers\Queries\GetTrooperCostumesQuery;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Organization;
@@ -55,33 +56,9 @@ class CostumesSubmitHtmxController extends MagicBusController
 
         if ($organization_id > -1 && $costume_id > -1)
         {
-            $organization = Organization::withActiveTroopers($trooper->id)
-                ->where(Organization::ID, $organization_id)
-                ->first();
+            $attach_command = new AttachTrooperCostumeCommand($trooper, $organization_id, $costume_id);
 
-            if (isset($organization))
-            {
-                $costume = $organization->organization_costumes()
-                    ->where(OrganizationCostume::ID, $costume_id)
-                    ->first();
-
-                if (isset($costume))
-                {
-                    $trooper_costume = $trooper->trooper_costumes()
-                        ->withTrashed()
-                        ->where(TrooperCostume::COSTUME_ID, $costume_id)
-                        ->first();
-
-                    if ($trooper_costume === null)
-                    {
-                        $trooper->trooper_costumes()->create([TrooperCostume::COSTUME_ID => $costume_id]);
-                    }
-                    else
-                    {
-                        $trooper_costume->restore();
-                    }
-                }
-            }
+            $this->bus->send($attach_command);
         }
 
         $trooper_costumes_query = new GetTrooperCostumesQuery($trooper);

@@ -8,24 +8,24 @@ use App\Models\Filters\TrooperFilter;
 use App\Models\Trooper;
 
 /**
- * Query to retrieve organizations for use in picker/dropdown components.
+ * Query to retrieve troopers for use in picker/dropdown components.
  *
- * This query supports three modes:
- * 1. Moderated only: Returns only organizations the trooper moderates
- * 2. Specific organization: Returns an organization and all its descendants (via node_path)
- * 3. All organizations: Returns all organizations in sequence order
+ * Supports filtering troopers by:
+ * - Organization membership (specific organization)
+ * - Search criteria (name, email, TK number via TrooperFilter)
+ * - Role filters (admin, moderator, etc. via TrooperFilter)
  *
- * The results are always ordered by the organization's sequence field.
+ * Results are ordered by trooper name for consistent UI display.
+ *
+ * @see GetTroopersForPickerQueryHandler
  */
 readonly class GetTroopersForPickerQuery
 {
     /**
      * Create a new query instance.
      *
-     * @param Trooper $trooper The trooper requesting organizations
-     * @param array $data Query parameters:
-     *                    - 'moderated_only' (bool): Filter to moderated organizations only (default: false)
-     *                    - 'organization_id' (int|null): Filter to specific org and descendants (default: null)
+     * @param TrooperFilter $filter Search and role filtering criteria
+     * @param int|null $organization_id Optional organization ID to filter by membership
      */
     public function __construct(
         public readonly TrooperFilter $filter,

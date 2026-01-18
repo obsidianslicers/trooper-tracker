@@ -10,29 +10,25 @@ use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 
 /**
- * Handler for retrieving troopers for picker/dropdown components.
+ * Handler for retrieving a trooper's costume collection.
  *
- * Processes GetTroopersForPickerQuery to return troopers based on:
- * - Organization filtering: Returns only troopers belonging to a specific organization
- * - Filter criteria: Applies search term and role filtering via TrooperFilter
- *
- * All results are ordered by trooper name for consistent UI display.
+ * Returns all TrooperCostume records for the specified trooper,
+ * eagerly loading related organization_costume and organization data
+ * for efficient display rendering.
  *
  * @implements QueryHandlerInterface<GetTrooperCostumesQuery>
  */
 readonly class GetTrooperCostumesQueryHandler implements QueryHandlerInterface
 {
     /**
-     * Handle the query to retrieve troopers for picker components.
+     * Execute the query to retrieve trooper costumes.
      *
-     * Query behavior:
-     * 1. Start with active troopers ordered by name
-     * 2. If organization_id is set: Filter to troopers belonging to that organization
-     * 3. If filter has criteria: Apply search term and role filtering
-     * 4. Always return the result collection
+     * Loads costumes with relationships:
+     * - organization_costume: The costume template
+     * - organization_costume.organization: The owning organization
      *
-     * @param GetTrooperCostumesQuery $message The query containing filter criteria
-     * @return \Illuminate\Support\Collection<int, Trooper> Collection of troopers
+     * @param GetTrooperCostumesQuery $message The query containing the trooper
+     * @return \Illuminate\Support\Collection<int, \App\Models\TrooperCostume> Trooper's costumes
      */
     public function __invoke(object $message): mixed
     {

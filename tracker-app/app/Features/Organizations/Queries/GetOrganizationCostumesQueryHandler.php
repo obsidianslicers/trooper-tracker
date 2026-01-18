@@ -8,9 +8,29 @@ use App\Bus\Contracts\QueryHandlerInterface;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
 
-
+/**
+ * Handler for retrieving organizations with their costumes.
+ *
+ * Returns a mapped collection of organizations with nested costume data.
+ * Each result contains the organization ID, name, and an array of costumes
+ * with their IDs and names.
+ *
+ * Filters:
+ * - Only organizations of type 'organization' (not regions or units)
+ * - Optionally filters to specific organization IDs
+ * - Orders organizations by name
+ * - Orders costumes within each organization by name
+ *
+ * @implements QueryHandlerInterface<GetOrganizationCostumesQuery>
+ */
 readonly class GetOrganizationCostumesQueryHandler implements QueryHandlerInterface
 {
+    /**
+     * Execute the query to retrieve organizations with costumes.
+     *
+     * @param GetOrganizationCostumesQuery $message The query with optional organization ID filter
+     * @return \Illuminate\Support\Collection<int, array{id: int, name: string, organization_costumes: \Illuminate\Support\Collection}>
+     */
     public function __invoke(object $message): mixed
     {
         /** @var GetOrganizationCostumesQuery $message */

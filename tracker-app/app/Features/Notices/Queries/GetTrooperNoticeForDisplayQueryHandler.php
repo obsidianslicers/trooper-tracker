@@ -8,26 +8,27 @@ use App\Bus\Contracts\QueryHandlerInterface;
 use App\Models\Notice;
 
 /**
- * Handler for retrieving notices for display to a trooper.
+ * Handler for retrieving notice display information for a trooper.
  *
- * Processes GetTrooperNoticesQuery to return notices based on:
- * - Trooper visibility: Returns only notices visible to the trooper
+ * Returns an array containing:
+ * - count: The number of visible notices (filtered by unread_only flag)
+ * - notice: A single Notice object if count equals 1, otherwise null
  *
- * All results are ordered by the notice's created_at field for consistent UI display.
+ * This handler is optimized for UI display where showing a single notice
+ * directly is preferred when only one notice is available.
  *
  * @implements QueryHandlerInterface<GetTrooperNoticeForDisplayQuery>
  */
 readonly class GetTrooperNoticeForDisplayQueryHandler implements QueryHandlerInterface
 {
     /**
-     * Handle the query to retrieve notices for display to a trooper.
+     * Execute the query to retrieve notice display data.
      *
-     * Query behavior:
-     * 1. If unread_only is true: Returns only unread notices visible to the trooper
-     * 2. Otherwise: Returns all notices visible to the trooper
+     * Counts visible notices and returns the single notice if only one exists.
+     * Uses Notice::visibleTo() scope with the unread_only parameter.
      *
-     * @param GetTrooperNoticeForDisplayQuery $message The query containing filter criteria
-     * @return array{count: int, notice: ?Notice} The count of notices and the single notice if only one is available
+     * @param GetTrooperNoticeForDisplayQuery $message The query containing trooper and filter criteria
+     * @return array{count: int, notice: ?Notice} Display data with count and optional single notice
      */
     public function __invoke(object $message): mixed
     {

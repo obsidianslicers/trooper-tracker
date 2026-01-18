@@ -8,21 +8,20 @@ use App\Models\Filters\TrooperFilter;
 use App\Models\Trooper;
 
 /**
- * Query to retrieve organizations for use in picker/dropdown components.
+ * Query to retrieve a trooper's organization assignments.
  *
- * This query supports three modes:
- * 1. Moderated only: Returns only organizations the trooper moderates
- * 2. Specific organization: Returns an organization and all its descendants (via node_path)
- * 3. All organizations: Returns all organizations in sequence order
+ * Returns all organizations with assignment information indicating
+ * which specific organization (organization, region, or unit) the trooper
+ * is a member of within each organization hierarchy.
  *
- * The results are always ordered by the organization's sequence field.
+ * @see GetTrooperAssignmentsQueryHandler
  */
 readonly class GetTrooperAssignmentsQuery
 {
     /**
      * Create a new query instance.
      *
-     * @param Trooper $trooper The trooper requesting organizations
+     * @param Trooper $trooper The trooper whose assignments to retrieve
      */
     public function __construct(public readonly Trooper $trooper)
     {

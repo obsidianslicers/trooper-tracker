@@ -7,9 +7,27 @@ namespace App\Features\Troopers\Commands;
 use App\Bus\Contracts\CommandHandlerInterface;
 use App\Models\TrooperAssignment;
 
-
+/**
+ * Handler for updating trooper notification preferences.
+ *
+ * Process:
+ * 1. Resets all existing assignments to can_notify = false
+ * 2. Updates or creates assignments for each provided organization
+ * 3. Sets can_notify flag based on the provided data
+ *
+ * This ensures notification preferences are completely replaced,
+ * not incrementally updated.
+ *
+ * @implements CommandHandlerInterface<UpdateTrooperNotificationsCommand>
+ */
 readonly class UpdateTrooperNotificationsCommandHandler implements CommandHandlerInterface
 {
+    /**
+     * Execute the command to update notification preferences.
+     *
+     * @param UpdateTrooperNotificationsCommand $message The command with trooper and preference data
+     * @return null
+     */
     public function __invoke(object $message): mixed
     {
         /** @var UpdateTrooperNotificationsCommand $message */

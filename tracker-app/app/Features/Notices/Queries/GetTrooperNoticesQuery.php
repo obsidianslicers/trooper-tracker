@@ -7,18 +7,19 @@ namespace App\Features\Notices\Queries;
 use App\Models\Trooper;
 
 /**
- * Query to retrieve notices for display to a trooper.
+ * Query to retrieve all notices visible to a trooper.
  *
- * This query supports retrieving all notices visible to the trooper.
+ * Returns a collection of notices that the trooper has permission to view,
+ * ordered by the notice's starts_at timestamp.
  *
- * The results are always ordered by the notice's created_at field.
+ * @see GetTrooperNoticesQueryHandler
  */
 readonly class GetTrooperNoticesQuery
 {
     /**
      * Create a new query instance.
      *
-     * @param Trooper $trooper The trooper requesting organizations
+     * @param Trooper $trooper The trooper requesting their visible notices
      */
     public function __construct(public readonly Trooper $trooper)
     {

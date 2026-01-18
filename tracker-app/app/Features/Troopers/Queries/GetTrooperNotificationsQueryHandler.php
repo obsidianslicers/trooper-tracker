@@ -10,29 +10,29 @@ use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 
 /**
- * Handler for retrieving troopers for picker/dropdown components.
+ * Handler for retrieving trooper notification preferences.
  *
- * Processes GetTroopersForPickerQuery to return troopers based on:
- * - Organization filtering: Returns only troopers belonging to a specific organization
- * - Filter criteria: Applies search term and role filtering via TrooperFilter
+ * Returns the full organization hierarchy (organizations → regions → units)
+ * with each node marked with a 'selected' property indicating whether
+ * the trooper has notifications enabled (can_notify = true) for that organization.
  *
- * All results are ordered by trooper name for consistent UI display.
+ * This data structure is used for displaying hierarchical notification
+ * preference forms where troopers can enable/disable notifications per organization.
  *
  * @implements QueryHandlerInterface<GetTrooperNotificationsQuery>
  */
 readonly class GetTrooperNotificationsQueryHandler implements QueryHandlerInterface
 {
     /**
-     * Handle the query to retrieve troopers for picker components.
+     * Execute the query to retrieve notification preferences.
      *
-     * Query behavior:
-     * 1. Start with active troopers ordered by name
-     * 2. If organization_id is set: Filter to troopers belonging to that organization
-     * 3. If filter has criteria: Apply search term and role filtering
-     * 4. Always return the result collection
+     * Process:
+     * 1. Load full organization hierarchy using fullyLoaded() scope
+     * 2. Get trooper's assignments where can_notify = true
+     * 3. Mark each organization/region/unit as 'selected' if assignment exists
      *
-     * @param GetTrooperNotificationsQuery $message The query containing filter criteria
-     * @return \Illuminate\Support\Collection<int, Trooper> Collection of troopers
+     * @param GetTrooperNotificationsQuery $message The query containing the trooper
+     * @return \Illuminate\Support\Collection<int, Organization> Organizations with selected flags
      */
     public function __invoke(object $message): mixed
     {

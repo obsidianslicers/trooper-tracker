@@ -6,17 +6,22 @@ namespace App\Features\Troopers\Commands;
 
 use App\Models\Trooper;
 
+/**
+ * Command to update a trooper's organization memberships.
+ *
+ * Creates or updates TrooperAssignment records to set which organizations,
+ * regions, or units the trooper is a member of. Sets the is_member flag
+ * to true for all specified assignments.
+ *
+ * @see UpdateTrooperMembershipsCommandHandler
+ */
 readonly class UpdateTrooperMembershipsCommand
 {
     /**
-     * Update the trooper's organization memberships.
+     * Create a new command instance.
      *
-     * Iterates through the provided organizations array and creates or updates
-     * TrooperAssignment records where an assignment organization ID is specified.
-     * Sets the is_member flag to true for all processed assignments.
-     *
-     * @param Trooper $trooper The trooper whose memberships to update.
-     * @param array $organizations Array of organization data with 'assignment' keys containing organization IDs.
+     * @param Trooper $trooper The trooper whose memberships to update
+     * @param array<int, array{assignment: int|null}> $valid_data Organization IDs mapped to assignment data
      */
     public function __construct(
         public Trooper $trooper,

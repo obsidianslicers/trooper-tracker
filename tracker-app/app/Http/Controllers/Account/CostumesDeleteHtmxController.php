@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Account;
 
+use App\Features\Troopers\Commands\DetachTrooperCostumeCommand;
 use App\Features\Troopers\Queries\GetTrooperCostumesQuery;
 use App\Http\Controllers\MagicBusController;
 use App\Models\TrooperCostume;
@@ -46,17 +47,9 @@ class CostumesDeleteHtmxController extends MagicBusController
 
         if ($costume_id > -1)
         {
-            \Illuminate\Support\Facades\Log::info("Removing costume ID {$costume_id} from trooper ID {$trooper->id}");
+            $delete_command = new DetachTrooperCostumeCommand($trooper, $costume_id);
 
-            $trooper_costume = $trooper->trooper_costumes()
-                ->where(TrooperCostume::ID, $costume_id)
-                ->first();
-
-            if ($trooper_costume !== null)
-            {
-                \Illuminate\Support\Facades\Log::info("Calling Delete");
-                $trooper_costume->delete();
-            }
+            $this->bus->send($delete_command);
         }
 
         $trooper_costumes_query = new GetTrooperCostumesQuery($trooper);

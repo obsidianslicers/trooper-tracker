@@ -7,9 +7,25 @@ namespace App\Features\Troopers\Commands;
 use App\Bus\Contracts\CommandHandlerInterface;
 use App\Models\TrooperAssignment;
 
-
-readonly class UpdateTrooperCommandHandler implements CommandHandlerInterface
+/**
+ * Handler for updating trooper organization memberships.
+ *
+ * Creates or updates TrooperAssignment records based on the provided
+ * assignment data. Each entry in valid_data may contain an 'assignment'
+ * key specifying the organization ID where the trooper is a member.
+ *
+ * Only processes entries that have a valid assignment ID.
+ *
+ * @implements CommandHandlerInterface<UpdateTrooperMembershipsCommand>
+ */
+readonly class UpdateTrooperMembershipsCommandHandler implements CommandHandlerInterface
 {
+    /**
+     * Execute the command to update memberships.
+     *
+     * @param UpdateTrooperMembershipsCommand $message The command with trooper and membership data
+     * @return null
+     */
     public function __invoke(object $message): mixed
     {
         /** @var UpdateTrooperMembershipsCommand $message */

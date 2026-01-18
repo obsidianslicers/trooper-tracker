@@ -6,17 +6,22 @@ namespace App\Features\Troopers\Commands;
 
 use App\Models\Trooper;
 
+/**
+ * Command to update a trooper's organization notification preferences.
+ *
+ * Updates TrooperAssignment records to enable/disable notifications (can_notify flag)
+ * for specific organizations. Resets all existing preferences to false before
+ * applying the new selections.
+ *
+ * @see UpdateTrooperNotificationsCommandHandler
+ */
 readonly class UpdateTrooperNotificationsCommand
 {
     /**
-     * Update the trooper's organization memberships.
+     * Create a new command instance.
      *
-     * Iterates through the provided organizations array and creates or updates
-     * TrooperAssignment records where an assignment organization ID is specified.
-     * Sets the is_member flag to true for all processed assignments.
-     *
-     * @param Trooper $trooper The trooper whose memberships to update.
-     * @param array $organizations Array of organization data with 'assignment' keys containing organization IDs.
+     * @param Trooper $trooper The trooper whose notification preferences to update
+     * @param array<int, array{can_notify: bool}> $valid_data Organization IDs mapped to notification settings
      */
     public function __construct(
         public Trooper $trooper,
