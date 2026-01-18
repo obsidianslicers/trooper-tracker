@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Bus\MagicBus;
 use App\Mail\ExceptionOccurred;
 use App\Services\Troopers\GetTrooperAdministratorsQuery;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -45,7 +46,6 @@ class SendExceptionNotificationJob implements ShouldQueue
         private readonly Throwable $exception,
         private readonly array $context = [])
     {
-        //
     }
 
     /**
@@ -57,9 +57,11 @@ class SendExceptionNotificationJob implements ShouldQueue
      * @param GetTrooperAdministratorsQuery $get_admins Service to query administrator troopers.
      * @return void
      */
-    public function handle(GetTrooperAdministratorsQuery $get_admins): void
+    public function handle(MagicBus $bus): void
     {
-        $admins = $get_admins();
+        $admin_query = new GetTrooperAdministratorsQuery();
+
+        $admins = $bus->send($admin_query);
 
         foreach ($admins as $admin)
         {

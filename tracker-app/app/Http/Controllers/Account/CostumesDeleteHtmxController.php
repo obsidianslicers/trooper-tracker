@@ -7,7 +7,6 @@ namespace App\Http\Controllers\Account;
 use App\Features\Troopers\Commands\DetachTrooperCostumeCommand;
 use App\Features\Troopers\Queries\GetTrooperCostumesQuery;
 use App\Http\Controllers\MagicBusController;
-use App\Models\TrooperCostume;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 

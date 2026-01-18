@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Bus\MagicBus;
+use App\Features\Events\Commands\SendEventCreatedNotificationCommand;
+use App\Features\Events\Queries\GetTroopersForEventCreatedQuery;
 use App\Models\Event;
-use App\Services\Events\GetTroopersForEventCreatedNotificationQuery;
-use App\Services\Events\SendEventCreatedNotificationCommand;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
@@ -43,20 +44,22 @@ class SendEventCreatedNotificationsJob implements ShouldQueue
      *
      * @return void
      */
-    public function handle(
-        GetTroopersForEventCreatedNotificationQuery $get_troopers,
-        SendEventCreatedNotificationCommand $send_email): void
+    public function handle(MagicBus $bus): void
     {
         if ($this->event->create_notifications_sent_at !== null)
         {
             return;
         }
 
-        $troopers = $get_troopers($this->event);
+        $troopers_query = new GetTroopersForEventCreatedQuery($this->event);
+
+        $troopers = $bus->send($troopers_query);
 
         foreach ($troopers as $trooper)
         {
-            $send_email($this->event, $trooper);
+            $send_notification_command = new SendEventCreatedNotificationCommand($this->event, $trooper);
+
+            $bus->send($send_notification_command);
         }
 
         $this->event->create_notifications_sent_at = now();

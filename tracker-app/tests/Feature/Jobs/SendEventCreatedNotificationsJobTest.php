@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Jobs;
 
+use App\Bus\MagicBus;
 use App\Jobs\SendEventCreatedNotificationsJob;
 use App\Models\Event;
 use App\Models\Trooper;
-use App\Services\Events\GetTroopersForEventCreatedNotificationQuery;
-use App\Services\Events\SendEventCreatedNotificationCommand;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
 use Mockery\MockInterface;
@@ -25,8 +24,7 @@ class SendEventCreatedNotificationsJobTest extends TestCase
     use RefreshDatabase;
 
     private Event $event;
-    private MockInterface $query_mock;
-    private MockInterface $command_mock;
+    private MockInterface $bus_mock;
 
     protected function setUp(): void
     {
@@ -35,8 +33,7 @@ class SendEventCreatedNotificationsJobTest extends TestCase
             'create_notifications_sent_at' => null,
         ]);
 
-        $this->query_mock = $this->mock(GetTroopersForEventCreatedNotificationQuery::class);
-        $this->command_mock = $this->mock(SendEventCreatedNotificationCommand::class);
+        $this->bus_mock = $this->mock(MagicBus::class);
     }
 
     public function test_handle_sends_notifications_when_not_already_sent(): void
@@ -46,23 +43,18 @@ class SendEventCreatedNotificationsJobTest extends TestCase
         $trooper2 = Trooper::factory()->create();
         $troopers = new Collection([$trooper1, $trooper2]);
 
-        $this->query_mock->shouldReceive('__invoke')
+        $this->bus_mock->shouldReceive('send')
             ->once()
-            ->with($this->event)
             ->andReturn($troopers);
 
-        $this->command_mock->shouldReceive('__invoke')
-            ->once()
-            ->with($this->event, $trooper1);
-
-        $this->command_mock->shouldReceive('__invoke')
-            ->once()
-            ->with($this->event, $trooper2);
+        $this->bus_mock->shouldReceive('send')
+            ->twice()
+            ->andReturn(null);
 
         $subject = new SendEventCreatedNotificationsJob($this->event);
 
         // Act
-        $subject->handle($this->query_mock, $this->command_mock);
+        $subject->handle($this->bus_mock);
 
         // Assert
         $this->event->refresh();
@@ -75,14 +67,12 @@ class SendEventCreatedNotificationsJobTest extends TestCase
         $this->event->create_notifications_sent_at = now();
         $this->event->save();
 
-        $this->query_mock->shouldNotReceive('__invoke');
-
-        $this->command_mock->shouldNotReceive('__invoke');
+        $this->bus_mock->shouldNotReceive('send');
 
         $subject = new SendEventCreatedNotificationsJob($this->event);
 
         // Act
-        $subject->handle($this->query_mock, $this->command_mock);
+        $subject->handle($this->bus_mock);
 
         // Assert - timestamp should remain unchanged
         $original_timestamp = $this->event->create_notifications_sent_at;
@@ -96,19 +86,18 @@ class SendEventCreatedNotificationsJobTest extends TestCase
         $trooper = Trooper::factory()->create();
         $troopers = new Collection([$trooper]);
 
-        $this->query_mock->shouldReceive('__invoke')
+        $this->bus_mock->shouldReceive('send')
             ->once()
-            ->with($this->event)
             ->andReturn($troopers);
 
-        $this->command_mock->shouldReceive('__invoke')
+        $this->bus_mock->shouldReceive('send')
             ->once()
-            ->with($this->event, $trooper);
+            ->andReturn(null);
 
         $subject = new SendEventCreatedNotificationsJob($this->event);
 
         // Act
-        $subject->handle($this->query_mock, $this->command_mock);
+        $subject->handle($this->bus_mock);
 
         // Assert
         $this->event->refresh();
@@ -121,17 +110,14 @@ class SendEventCreatedNotificationsJobTest extends TestCase
         // Arrange
         $troopers = new Collection();
 
-        $this->query_mock->shouldReceive('__invoke')
+        $this->bus_mock->shouldReceive('send')
             ->once()
-            ->with($this->event)
             ->andReturn($troopers);
-
-        $this->command_mock->shouldNotReceive('__invoke');
 
         $subject = new SendEventCreatedNotificationsJob($this->event);
 
         // Act
-        $subject->handle($this->query_mock, $this->command_mock);
+        $subject->handle($this->bus_mock);
 
         // Assert
         $this->event->refresh();
@@ -143,17 +129,14 @@ class SendEventCreatedNotificationsJobTest extends TestCase
         // Arrange
         $troopers = new Collection();
 
-        $this->query_mock->shouldReceive('__invoke')
+        $this->bus_mock->shouldReceive('send')
             ->once()
-            ->with($this->event)
             ->andReturn($troopers);
-
-        $this->command_mock->shouldNotReceive('__invoke');
 
         $subject = new SendEventCreatedNotificationsJob($this->event);
 
         // Act
-        $subject->handle($this->query_mock, $this->command_mock);
+        $subject->handle($this->bus_mock);
     }
 
     public function test_handle_passes_troopers_from_query_to_command(): void
@@ -164,26 +147,18 @@ class SendEventCreatedNotificationsJobTest extends TestCase
         $trooper3 = Trooper::factory()->create();
         $troopers = new Collection([$trooper1, $trooper2, $trooper3]);
 
-        $this->query_mock->shouldReceive('__invoke')
+        $this->bus_mock->shouldReceive('send')
             ->once()
             ->andReturn($troopers);
 
-        $this->command_mock->shouldReceive('__invoke')
-            ->once()
-            ->with($this->event, $trooper1);
-
-        $this->command_mock->shouldReceive('__invoke')
-            ->once()
-            ->with($this->event, $trooper2);
-
-        $this->command_mock->shouldReceive('__invoke')
-            ->once()
-            ->with($this->event, $trooper3);
+        $this->bus_mock->shouldReceive('send')
+            ->times(3)
+            ->andReturn(null);
 
         $subject = new SendEventCreatedNotificationsJob($this->event);
 
         // Act
-        $subject->handle($this->query_mock, $this->command_mock);
+        $subject->handle($this->bus_mock);
     }
 
     public function test_job_implements_should_queue(): void

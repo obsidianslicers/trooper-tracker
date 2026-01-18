@@ -5,9 +5,6 @@ declare(strict_types=1);
 namespace App\Features\Troopers\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
-use App\Models\Organization;
-use App\Models\Trooper;
-use App\Models\TrooperAssignment;
 
 /**
  * Handler for retrieving a trooper's costume collection.

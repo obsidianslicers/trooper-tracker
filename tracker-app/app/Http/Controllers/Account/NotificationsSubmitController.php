@@ -8,7 +8,6 @@ use App\Features\Troopers\Commands\UpdateTrooperCommand;
 use App\Features\Troopers\Commands\UpdateTrooperNotificationsCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Account\NotificationRequest;
-use App\Services\Troopers\AssignTrooperNotificationsCommand;
 use Illuminate\Http\RedirectResponse;
 
 /**
