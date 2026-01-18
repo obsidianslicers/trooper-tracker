@@ -7,7 +7,6 @@ namespace App\Http\Controllers\Account;
 use App\Features\Troopers\Commands\UpdateTrooperCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Account\ProfileRequest;
-use App\Services\Troopers\UpdateTrooperProfileCommand;
 use Illuminate\Http\RedirectResponse;
 
 /**

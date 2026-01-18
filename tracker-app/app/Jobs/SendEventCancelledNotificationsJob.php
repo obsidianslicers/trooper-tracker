@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Bus\MagicBus;
+use App\Features\Events\Commands\SendEventCancelledNotificationCommand;
+use App\Features\Events\Queries\GetTroopersForEventCancelledQuery;
 use App\Models\Event;
-use App\Services\Events\GetTroopersForCancelledEventQuery;
-use App\Services\Events\SendEventCancelledNotificationCommand;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
@@ -40,24 +41,24 @@ class SendEventCancelledNotificationsJob implements ShouldQueue
      * shift in the cancelled event. Updates the event's create_notifications_sent_at
      * timestamp to prevent duplicate notifications.
      *
-     * @param GetTroopersForCancelledEventQuery $get_troopers Service to query troopers who signed up for the event.
-     * @param SendEventCancelledNotificationCommand $send_email Service to send cancellation notifications.
      * @return void
      */
-    public function handle(
-        GetTroopersForCancelledEventQuery $get_troopers,
-        SendEventCancelledNotificationCommand $send_email): void
+    public function handle(MagicBus $bus): void
     {
         if ($this->event->create_notifications_sent_at !== null)
         {
             return;
         }
 
-        $troopers = $get_troopers($this->event);
+        $troopers_query = new GetTroopersForEventCancelledQuery($this->event);
+
+        $troopers = $bus->send($troopers_query);
 
         foreach ($troopers as $trooper)
         {
-            $send_email($this->event, $trooper);
+            $send_notification_command = new SendEventCancelledNotificationCommand($this->event, $trooper);
+
+            $bus->send($send_notification_command);
         }
 
         $this->event->create_notifications_sent_at = now();
