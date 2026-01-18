@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
+use App\Bus\MagicBus;
 use App\Features\Organizations\Queries\GetOrganizationsQuery;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
@@ -22,6 +23,9 @@ use Illuminate\Http\Request;
  */
 class ListController extends Controller
 {
+    public function __construct(private readonly MagicBus $bus)
+    {
+    }
     /**
      * Handle the incoming request to display the events list page.
      *

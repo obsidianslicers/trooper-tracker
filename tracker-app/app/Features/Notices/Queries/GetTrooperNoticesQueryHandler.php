@@ -10,14 +10,14 @@ use App\Models\Notice;
 /**
  * Handler for retrieving notices for display to a trooper.
  *
- * Processes GetNoticesForDisplayQuery to return notices based on:
+ * Processes GetTrooperNoticesQuery to return notices based on:
  * - Trooper visibility: Returns only notices visible to the trooper
  *
  * All results are ordered by the notice's created_at field for consistent UI display.
  *
- * @implements QueryHandlerInterface<GetNoticesForDisplayQuery>
+ * @implements QueryHandlerInterface<GetTrooperNoticesQuery>
  */
-readonly class GetNoticesForDisplayQueryHandler implements QueryHandlerInterface
+readonly class GetTrooperNoticesQueryHandler implements QueryHandlerInterface
 {
     /**
      * Handle the query to retrieve notices for display to a trooper.
@@ -26,22 +26,15 @@ readonly class GetNoticesForDisplayQueryHandler implements QueryHandlerInterface
      * 1. If unread_only is true: Returns only unread notices visible to the trooper
      * 2. Otherwise: Returns all notices visible to the trooper
      *
-     * @param GetNoticesForDisplayQuery $message The query containing filter criteria
+     * @param GetTrooperNoticesQuery $message The query containing filter criteria
      * @return array{count: int, notice: ?Notice} The count of notices and the single notice if only one is available
      */
     public function __invoke(object $message): mixed
     {
-        /** @var GetNoticesForDisplayQuery $message */
+        /** @var GetTrooperNoticesQuery $message */
+        return Notice::visibleTo($message->trooper, true)
+            ->orderBy(Notice::STARTS_AT)
+            ->get();
 
-        $notice = null;
-
-        $count = Notice::visibleTo($message->trooper, $message->unread_only)->count();
-
-        if ($count == 1)
-        {
-            $notice = Notice::visibleTo($message->trooper, $message->unread_only)->first();
-        }
-
-        return compact('count', 'notice');
     }
 }

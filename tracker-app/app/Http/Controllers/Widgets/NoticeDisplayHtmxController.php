@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Widgets;
 
-use App\Features\Notices\Queries\GetNoticesForDisplayQuery;
+use App\Features\Notices\Queries\GetTrooperNoticeForDisplayQuery;
 use App\Http\Controllers\MagicBusController;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -25,7 +25,7 @@ class NoticeDisplayHtmxController extends MagicBusController
     {
         $trooper = $request->user();
 
-        $query = new GetNoticesForDisplayQuery($trooper, true);
+        $query = new GetTrooperNoticeForDisplayQuery($trooper, true);
 
         ['count' => $count, 'notice' => $notice] = $this->bus->send($query);
 

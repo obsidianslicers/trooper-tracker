@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Features\Troopers\Commands;
 
+use App\Bus\Contracts\CommandHandlerInterface;
 use App\Models\TrooperAssignment;
 
 
-readonly class UpdateTrooperCommandHandler
+readonly class UpdateTrooperCommandHandler implements CommandHandlerInterface
 {
-    public function __invoke(object $message): void
+    public function __invoke(object $message): mixed
     {
         /** @var UpdateTrooperMembershipsCommand $message */
         foreach ($message->valid_data as $organization_id => $data)
@@ -34,6 +35,8 @@ readonly class UpdateTrooperCommandHandler
             $assignment->is_member = true;
             $assignment->save();
         }
+
+        return null;
     }
 }
 

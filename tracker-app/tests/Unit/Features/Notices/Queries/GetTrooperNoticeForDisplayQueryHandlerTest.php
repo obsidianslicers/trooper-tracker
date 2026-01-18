@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Tests\Unit\Features\Notices\Queries;
 
 use App\Enums\NoticeType;
-use App\Features\Notices\Queries\GetNoticesForDisplayQuery;
-use App\Features\Notices\Queries\GetNoticesForDisplayQueryHandler;
+use App\Features\Notices\Queries\GetTrooperNoticeForDisplayQuery;
+use App\Features\Notices\Queries\GetTrooperNoticeForDisplayQueryHandler;
 use App\Models\Notice;
 use App\Models\Organization;
 use App\Models\Trooper;
@@ -23,7 +23,7 @@ use Tests\TestCase;
  * - Filters by unread_only when requested
  * - Uses Notice::visibleTo scope
  */
-class GetNoticesForDisplayQueryHandlerTest extends TestCase
+class GetTrooperNoticeForDisplayQueryHandlerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -31,8 +31,8 @@ class GetNoticesForDisplayQueryHandlerTest extends TestCase
     {
         // Arrange
         $trooper = Trooper::factory()->asActive()->create();
-        $query = new GetNoticesForDisplayQuery($trooper, true);
-        $subject = new GetNoticesForDisplayQueryHandler();
+        $query = new GetTrooperNoticeForDisplayQuery($trooper, true);
+        $subject = new GetTrooperNoticeForDisplayQueryHandler();
 
         // Act
         $result = $subject($query);
@@ -51,8 +51,8 @@ class GetNoticesForDisplayQueryHandlerTest extends TestCase
             Notice::TYPE => NoticeType::INFO,
         ]);
 
-        $query = new GetNoticesForDisplayQuery($trooper, false);
-        $subject = new GetNoticesForDisplayQueryHandler();
+        $query = new GetTrooperNoticeForDisplayQuery($trooper, false);
+        $subject = new GetTrooperNoticeForDisplayQueryHandler();
 
         // Act
         $result = $subject($query);
@@ -72,8 +72,8 @@ class GetNoticesForDisplayQueryHandlerTest extends TestCase
             Notice::TYPE => NoticeType::INFO,
         ]);
 
-        $query = new GetNoticesForDisplayQuery($trooper, false);
-        $subject = new GetNoticesForDisplayQueryHandler();
+        $query = new GetTrooperNoticeForDisplayQuery($trooper, false);
+        $subject = new GetTrooperNoticeForDisplayQueryHandler();
 
         // Act
         $result = $subject($query);
@@ -99,8 +99,8 @@ class GetNoticesForDisplayQueryHandlerTest extends TestCase
         ]);
         $read_notice->troopers()->attach($trooper->id, ['is_read' => true]);
 
-        $query = new GetNoticesForDisplayQuery($trooper, true);
-        $subject = new GetNoticesForDisplayQueryHandler();
+        $query = new GetTrooperNoticeForDisplayQuery($trooper, true);
+        $subject = new GetTrooperNoticeForDisplayQueryHandler();
 
         // Act
         $result = $subject($query);

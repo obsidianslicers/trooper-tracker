@@ -13,16 +13,14 @@ use App\Models\Trooper;
  *
  * The results are always ordered by the notice's created_at field.
  */
-readonly class GetNoticesForDisplayQuery
+readonly class GetTrooperNoticesQuery
 {
     /**
      * Create a new query instance.
      *
      * @param Trooper $trooper The trooper requesting organizations
      */
-    public function __construct(
-        public readonly Trooper $trooper,
-        public readonly bool $unread_only = false
-    ) {
+    public function __construct(public readonly Trooper $trooper)
+    {
     }
 }

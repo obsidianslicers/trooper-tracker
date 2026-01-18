@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Account;
 
-use App\Http\Controllers\Controller;
+use App\Features\Organizations\Queries\GetOrganizationCostumesQuery;
+use App\Http\Controllers\MagicBusController;
 use App\Models\Organization;
-use App\Services\Organizations\GetOrganizationCostumesQuery;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -26,7 +26,7 @@ use Illuminate\Http\Request;
  * In Star Wars costuming clubs, troopers track approved costumes (e.g., TK-421 Stormtrooper,
  * Darth Vader) assigned to them from their organizations. This page manages that relationship.
  */
-class CostumesController extends Controller
+class CostumesController extends MagicBusController
 {
     /**
      * Display the costume management page for the authenticated trooper.
@@ -40,17 +40,17 @@ class CostumesController extends Controller
      * @param GetOrganizationCostumesQuery $get_organization_costumes Service to fetch organization costumes.
      * @return View The costume management page with organization_costumes and trooper_costumes.
      */
-    public function __invoke(
-        Request $request,
-        GetOrganizationCostumesQuery $get_organization_costumes): View
+    public function __invoke(Request $request): View
     {
         $trooper = $request->user();
 
-        $organizations = Organization::withActiveTroopers($trooper->id)
+        $organization_ids = Organization::withActiveTroopers($trooper->id)
             ->pluck(Organization::ID)
             ->toArray();
 
-        $organization_costumes = $get_organization_costumes($organizations);
+        $get_costumes_query = new GetOrganizationCostumesQuery($organization_ids);
+
+        $organization_costumes = $this->bus->send($get_costumes_query);
 
         $trooper_costumes = $trooper->trooper_costumes()->with('organization_costume.organization')->get();
 

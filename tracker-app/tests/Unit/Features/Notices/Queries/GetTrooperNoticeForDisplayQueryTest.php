@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Features\Notices\Queries;
 
-use App\Features\Notices\Queries\GetNoticesForDisplayQuery;
+use App\Features\Notices\Queries\GetTrooperNoticeForDisplayQuery;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -17,7 +17,7 @@ use Tests\TestCase;
  * - Query construction with unread_only flag
  * - Property access
  */
-class GetNoticesForDisplayQueryTest extends TestCase
+class GetTrooperNoticeForDisplayQueryTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -27,7 +27,7 @@ class GetNoticesForDisplayQueryTest extends TestCase
         $trooper = Trooper::factory()->asActive()->create();
 
         // Act
-        $subject = new GetNoticesForDisplayQuery($trooper);
+        $subject = new GetTrooperNoticeForDisplayQuery($trooper);
 
         // Assert
         $this->assertSame($trooper, $subject->trooper);
@@ -40,7 +40,7 @@ class GetNoticesForDisplayQueryTest extends TestCase
         $trooper = Trooper::factory()->asActive()->create();
 
         // Act
-        $subject = new GetNoticesForDisplayQuery($trooper, true);
+        $subject = new GetTrooperNoticeForDisplayQuery($trooper, true);
 
         // Assert
         $this->assertSame($trooper, $subject->trooper);
@@ -53,7 +53,7 @@ class GetNoticesForDisplayQueryTest extends TestCase
         $trooper = Trooper::factory()->asActive()->create();
 
         // Act
-        $subject = new GetNoticesForDisplayQuery($trooper, false);
+        $subject = new GetTrooperNoticeForDisplayQuery($trooper, false);
 
         // Assert
         $this->assertSame($trooper, $subject->trooper);

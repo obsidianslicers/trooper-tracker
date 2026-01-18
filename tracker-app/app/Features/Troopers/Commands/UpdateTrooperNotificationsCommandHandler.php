@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Features\Troopers\Commands;
 
+use App\Bus\Contracts\CommandHandlerInterface;
 use App\Models\TrooperAssignment;
 
 
-readonly class UpdateTrooperNotificationsCommandHandler
+readonly class UpdateTrooperNotificationsCommandHandler implements CommandHandlerInterface
 {
-    public function __invoke(object $message): void
+    public function __invoke(object $message): mixed
     {
         /** @var UpdateTrooperNotificationsCommand $message */
         $message->trooper->trooper_assignments()->update(['can_notify' => false]);
@@ -31,6 +32,8 @@ readonly class UpdateTrooperNotificationsCommandHandler
 
             $assignment->save();
         }
+
+        return null;
     }
 }
 

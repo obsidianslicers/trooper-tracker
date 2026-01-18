@@ -18,9 +18,9 @@ use App\Models\TrooperAssignment;
  *
  * All results are ordered by trooper name for consistent UI display.
  *
- * @implements QueryHandlerInterface<GetTrooperAssignmentsQuery>
+ * @implements QueryHandlerInterface<GetTrooperNotificationsQuery>
  */
-readonly class GetTrooperAssigmentsQueryHandler implements QueryHandlerInterface
+readonly class GetTrooperNotificationsQueryHandler implements QueryHandlerInterface
 {
     /**
      * Handle the query to retrieve troopers for picker components.
@@ -31,29 +31,31 @@ readonly class GetTrooperAssigmentsQueryHandler implements QueryHandlerInterface
      * 3. If filter has criteria: Apply search term and role filtering
      * 4. Always return the result collection
      *
-     * @param GetTrooperAssignmentsQuery $message The query containing filter criteria
+     * @param GetTrooperNotificationsQuery $message The query containing filter criteria
      * @return \Illuminate\Support\Collection<int, Trooper> Collection of troopers
      */
     public function __invoke(object $message): mixed
     {
-        /** @var GetTrooperAssignmentsQuery $message */
+        /** @var GetTrooperNotificationsQuery $message */
 
-        $organizations = Organization::ofTypeOrganizations()
-            ->orderBy(Organization::NAME)
-            ->get();
+        $organizations = Organization::fullyLoaded()->get();
 
-        $assignments = $message->trooper->trooper_assignments()
-            ->with('organization')
-            ->where(TrooperAssignment::IS_MEMBER, true)
-            ->get();
+        $trooper_assignments = $message->trooper->trooper_assignments()
+            ->where(TrooperAssignment::CAN_NOTIFY, true)
+            ->pluck(TrooperAssignment::ORGANIZATION_ID)
+            ->toArray();
 
         foreach ($organizations as $organization)
         {
-            foreach ($assignments as $assignment)
+            $organization->selected = in_array($organization->id, $trooper_assignments);
+
+            foreach ($organization->organizations as $region)
             {
-                if (str_starts_with($assignment->organization->node_path, $organization->node_path))
+                $region->selected = in_array($region->id, $trooper_assignments);
+
+                foreach ($region->organizations as $unit)
                 {
-                    $organization->assignment = $assignment->organization;
+                    $unit->selected = in_array($unit->id, $trooper_assignments);
                 }
             }
         }
