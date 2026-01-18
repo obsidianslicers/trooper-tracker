@@ -126,7 +126,7 @@ class SetupSubmitControllerTest extends TestCase
         ]);
     }
 
-    public function test_invoke_shows_flash_message_on_success(): void
+    public function test_invoke_redirects_to_costumes_route(): void
     {
         // Arrange
         $trooper = Trooper::factory()->create();
@@ -142,7 +142,7 @@ class SetupSubmitControllerTest extends TestCase
             ->post(action(SetupSubmitController::class), $data);
 
         // Assert
-        $response->assertSessionHas('flash_messages');
+        $response->assertRedirect(route('account.costumes'));
     }
 
     public function test_invoke_requires_email(): void

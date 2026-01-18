@@ -29,14 +29,14 @@ class NotificationsSubmitController extends MagicBusController
     /**
      * Handle the incoming request to update notification settings.
      *
-     * Updates the authenticated trooper's notification preferences:
-     * 1. Updates the trooper's global notification_frequency
-     * 2. Delegates per-organization can_notify updates to AssignTrooperNotificationsCommand
-     * 3. Flashes a success message
-     * 4. Redirects back to the notification settings page
+     * Workflow:
+     * 1. Retrieves the authenticated trooper from the request
+     * 2. Dispatches UpdateTrooperCommand to update global notification_frequency
+     * 3. Dispatches UpdateTrooperNotificationsCommand to update per-organization can_notify flags
+     * 4. Flashes success message via FlashMessageService
+     * 5. Redirects to account.notifications route
      *
      * @param NotificationRequest $request Validated request containing notification_frequency and organizations data
-     * @param AssignTrooperNotificationsCommand $assign_notifications Service to update per-organization notification preferences
      * @return RedirectResponse Redirect to account.notifications route with success message
      */
     public function __invoke(NotificationRequest $request): RedirectResponse
