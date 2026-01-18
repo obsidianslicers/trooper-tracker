@@ -63,16 +63,16 @@ class MagicBus
      * - MyCommand -> MyCommandHandler
      * - GetUserQuery -> GetUserQueryHandler
      *
-     * Handlers implementing ShouldRunAfterResponse will be executed after the HTTP
-     * response is sent. These handlers must process messages implementing CommandInterface
-     * and will return null immediately.
+     * Handler behavior modifiers:
+     * - Handlers using ShouldBeTransactional trait: Wrapped in a database transaction
+     * - Handlers using ShouldRunAfterResponse trait: Executed after HTTP response is sent (Commands only)
      *
      * @param object $message The Command or Query object to dispatch
      * @return mixed The result returned by the handler's __invoke method, or null for deferred commands
      *
      * @throws \RuntimeException If the handler class does not exist
      * @throws \RuntimeException If the handler does not implement HandlerInterface
-     * @throws \RuntimeException If handler implements ShouldRunAfterResponse but handler is not a CommandHandlerInterface
+     * @throws \RuntimeException If handler uses ShouldRunAfterResponse but is not a CommandHandlerInterface
      */
     public function send(object $message): mixed
     {
@@ -112,6 +112,19 @@ class MagicBus
         return $handler($message);
     }
 
+    /**
+     * Checks if a handler class uses a specific trait.
+     *
+     * This method recursively checks the handler class and all its parent classes
+     * for the specified trait. If the trait is found and it's a concern trait,
+     * it validates that the handler properly implements CommandHandlerInterface.
+     *
+     * @param string $handler_class The fully qualified handler class name
+     * @param string $trait The fully qualified trait name to check for
+     * @return bool True if the handler uses the trait, false otherwise
+     *
+     * @throws \RuntimeException If trait requires CommandHandlerInterface but handler doesn't implement it
+     */
     private function usesTrait(string $handler_class, string $trait): bool
     {
         $result = in_array($trait, class_uses_recursive($handler_class), true);
@@ -124,6 +137,20 @@ class MagicBus
         return $result;
     }
 
+    /**
+     * Validates that a handler implements CommandHandlerInterface when using command-only traits.
+     *
+     * Certain traits like ShouldRunAfterResponse and ShouldBeTransactional should only be
+     * applied to Command handlers, not Query handlers, because:
+     * - Queries must return results synchronously (can't be deferred)
+     * - Queries should be read-only (transactions are for write operations)
+     *
+     * @param string $handler_class The fully qualified handler class name
+     * @param string $trait The trait name being checked (for error messages)
+     * @return void
+     *
+     * @throws \RuntimeException If the handler doesn't implement CommandHandlerInterface
+     */
     private function checkForCommandInterface(string $handler_class, string $trait): void
     {
         if (!is_subclass_of($handler_class, CommandHandlerInterface::class))

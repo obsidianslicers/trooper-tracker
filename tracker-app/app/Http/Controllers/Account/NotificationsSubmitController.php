@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Account;
 
-use App\Http\Controllers\Controller;
+use App\Features\Troopers\Commands\UpdateTrooperCommand;
+use App\Features\Troopers\Commands\UpdateTrooperNotificationsCommand;
+use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Account\NotificationRequest;
-use App\Models\Organization;
-use App\Models\Trooper;
-use App\Models\TrooperAssignment;
-use App\Services\FlashMessageService;
 use App\Services\Troopers\AssignTrooperNotificationsCommand;
 use Illuminate\Http\RedirectResponse;
 
@@ -26,17 +24,8 @@ use Illuminate\Http\RedirectResponse;
  * - Delegates per-organization updates to AssignTrooperNotificationsCommand
  * - Returns redirect with success flash message
  */
-class NotificationsSubmitController extends Controller
+class NotificationsSubmitController extends MagicBusController
 {
-    /**
-     * NotificationsSubmitController constructor.
-     *
-     * @param FlashMessageService $flash The service for creating flash messages.
-     */
-    public function __construct(private readonly FlashMessageService $flash)
-    {
-    }
-
     /**
      * Handle the incoming request to update notification settings.
      *
@@ -50,16 +39,17 @@ class NotificationsSubmitController extends Controller
      * @param AssignTrooperNotificationsCommand $assign_notifications Service to update per-organization notification preferences
      * @return RedirectResponse Redirect to account.notifications route with success message
      */
-    public function __invoke(
-        NotificationRequest $request,
-        AssignTrooperNotificationsCommand $assign_notifications): RedirectResponse
+    public function __invoke(NotificationRequest $request): RedirectResponse
     {
         $trooper = $request->user();
 
-        $trooper->notification_frequency = $request->validated('notification_frequency');
-        $trooper->save();
+        $update_cmd = new UpdateTrooperCommand($trooper, $request->validated());
 
-        $assign_notifications($trooper, $request->validated('organizations', []));
+        $this->bus->send($update_cmd);
+
+        $update_notifications_cmd = new UpdateTrooperNotificationsCommand($trooper, $request->validated('organizations', []));
+
+        $this->bus->send($update_notifications_cmd);
 
         $this->flash->updated($trooper);
 

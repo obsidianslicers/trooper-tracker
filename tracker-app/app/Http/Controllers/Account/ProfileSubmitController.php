@@ -4,26 +4,17 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Account;
 
-use App\Http\Controllers\Controller;
+use App\Features\Troopers\Commands\UpdateTrooperCommand;
+use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Account\ProfileRequest;
-use App\Services\FlashMessageService;
 use App\Services\Troopers\UpdateTrooperProfileCommand;
 use Illuminate\Http\RedirectResponse;
 
 /**
  * Handles the form submission for updating the authenticated user's profile.
  */
-class ProfileSubmitController extends Controller
+class ProfileSubmitController extends MagicBusController
 {
-    /**
-     * ProfileSubmitController constructor.
-     *
-     * @param FlashMessageService $flash The service for creating flash messages.
-     */
-    public function __construct(private readonly FlashMessageService $flash)
-    {
-    }
-
     /**
      * Handle the incoming request to update the authenticated user's profile.
      *
@@ -33,15 +24,13 @@ class ProfileSubmitController extends Controller
      * @param ProfileRequest $request The validated profile form request.
      * @return RedirectResponse A redirect response to the account profile page.
      */
-    public function __invoke(
-        ProfileRequest $request,
-        UpdateTrooperProfileCommand $update_profile): RedirectResponse
+    public function __invoke(ProfileRequest $request): RedirectResponse
     {
         $trooper = $request->user();
 
-        $update_profile($trooper, $request->validated());
+        $update_cmd = new UpdateTrooperCommand($trooper, $request->validated());
 
-        $trooper->save();
+        $this->bus->send($update_cmd);
 
         $this->flash->updated($trooper);
 

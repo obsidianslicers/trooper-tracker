@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
+use App\Features\Organizations\Queries\GetOrganizationsQuery;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\EventOrganization;
@@ -60,7 +61,7 @@ class ListController extends Controller
 
         $events = $query->get();
 
-        $costume_organizations = Organization::ofTypeOrganizations()->orderBy(Organization::NAME)->get();
+        $costume_organizations = $this->bus->send(new GetOrganizationsQuery());
 
         $data = compact('events', 'filter', 'costume_organizations', 'hosting_organization');
 

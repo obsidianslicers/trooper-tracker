@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Widgets;
 
 use App\Features\Notices\Queries\GetNoticesForDisplayQuery;
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -14,7 +14,7 @@ use Illuminate\Http\Request;
  * This controller determines the number of notices visible to the authenticated user
  * and fetches the specific notice if only one is available.
  */
-class NoticeDisplayHtmxController extends Controller
+class NoticeDisplayHtmxController extends MagicBusController
 {
     /**
      * Handle the incoming request to display the notice widget.

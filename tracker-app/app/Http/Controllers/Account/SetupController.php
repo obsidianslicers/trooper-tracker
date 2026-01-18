@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Account;
 
-use App\Http\Controllers\Controller;
+use App\Features\Troopers\Queries\GetTrooperAssignmentsQuery;
+use App\Http\Controllers\MagicBusController;
 use App\Services\Troopers\GetTrooperOrganizationMembershipsQuery;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -16,7 +17,7 @@ use Illuminate\Http\Request;
  * assignments (regions/units), allowing them to review or configure their organizational
  * memberships and associated hierarchy.
  */
-class SetupController extends Controller
+class SetupController extends MagicBusController
 {
     /**
      * Handle the incoming request to display the trooper setup page.
@@ -28,13 +29,13 @@ class SetupController extends Controller
      * @param GetTrooperOrganizationMembershipsQuery $get_trooper_organizations The service to get trooper organization memberships.
      * @return View The rendered setup page view.
      */
-    public function __invoke(
-        Request $request,
-        GetTrooperOrganizationMembershipsQuery $get_trooper_organizations): View
+    public function __invoke(Request $request): View
     {
         $trooper = $request->user();
 
-        $organization_memberships = $get_trooper_organizations($trooper);
+        $get_assignments = new GetTrooperAssignmentsQuery($trooper);
+
+        $organization_memberships = $this->bus->send(message: $get_assignments);
 
         $data = compact('trooper', 'organization_memberships');
 

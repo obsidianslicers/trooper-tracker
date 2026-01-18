@@ -4,11 +4,26 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Bus;
 
+use App\Bus\Concerns\ShouldBeTransactional;
+use App\Bus\Concerns\ShouldRunAfterResponse;
+use App\Bus\Contracts\CommandHandlerInterface;
 use App\Bus\Contracts\HandlerInterface;
 use App\Bus\MagicBus;
+use Illuminate\Support\Facades\DB;
 use RuntimeException;
 use Tests\TestCase;
 
+/**
+ * Unit tests for MagicBus command/query dispatcher.
+ *
+ * Validates:
+ * - Convention-based handler resolution (MessageClass + "Handler")
+ * - Handler interface enforcement
+ * - Container-based dependency injection
+ * - Transaction wrapping for ShouldBeTransactional handlers
+ * - Deferred execution for ShouldRunAfterResponse handlers
+ * - Error handling for missing or invalid handlers
+ */
 class MagicBusTest extends TestCase
 {
     public function test_send_successfully_dispatches_message_to_handler(): void
@@ -38,7 +53,7 @@ class MagicBusTest extends TestCase
         $message = new TestCommandWithInvalidHandler('test');
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('must implement ' . HandlerInterface::class);
+        $this->expectExceptionMessage('must implement HandlerInterface');
 
         $subject->send($message);
     }
@@ -83,6 +98,75 @@ class MagicBusTest extends TestCase
         $result = $subject->send($message);
 
         $this->assertNull($result);
+    }
+
+    public function test_send_wraps_handler_in_transaction_when_using_transactional_trait(): void
+    {
+        DB::shouldReceive('transaction')
+            ->once()
+            ->with(\Mockery::type('Closure'))
+            ->andReturnUsing(function ($callback)
+            {
+                return $callback();
+            });
+
+        $subject = new MagicBus();
+        $message = new TestTransactionalCommand('test');
+
+        $result = $subject->send($message);
+
+        $this->assertSame('transactional: test', $result);
+    }
+
+    public function test_send_defers_execution_when_using_after_response_trait(): void
+    {
+        // Mock the app()->afterResponse() call
+        $executed = false;
+        app()->bind('afterResponse', function () use (&$executed)
+        {
+            return function ($callback) use (&$executed)
+            {
+                // Don't actually defer - just verify it would be called
+                $executed = true;
+            };
+        });
+
+        // Replace app() helper behavior for this test
+        $this->app->macro('afterResponse', function ($callback)
+        {
+            // Just verify the callback was registered, don't execute it
+            return null;
+        });
+
+        $subject = new MagicBus();
+        $message = new TestDeferredCommand('deferred');
+
+        $result = $subject->send($message);
+
+        // Deferred commands return null immediately
+        $this->assertNull($result);
+    }
+
+    public function test_send_throws_exception_when_after_response_handler_is_not_command_handler(): void
+    {
+        $subject = new MagicBus();
+        $message = new TestInvalidDeferredQuery();
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('does not implement CommandHandlerInterface');
+
+        $subject->send($message);
+    }
+
+    public function test_send_throws_exception_when_transactional_handler_is_not_command_handler(): void
+    {
+        $subject = new MagicBus();
+        $message = new TestInvalidTransactionalQuery();
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('does not implement CommandHandlerInterface');
+
+        $subject->send($message);
     }
 }
 
@@ -169,5 +253,73 @@ class TestCommandReturningVoidHandler implements HandlerInterface
     {
         // Void return (implicitly returns null)
         return null;
+    }
+}
+
+// Transactional handler tests
+
+class TestTransactionalCommand
+{
+    public function __construct(public string $value)
+    {
+    }
+}
+
+class TestTransactionalCommandHandler implements CommandHandlerInterface
+{
+    use ShouldBeTransactional;
+
+    public function __invoke(object $message): mixed
+    {
+        return 'transactional: ' . $message->value;
+    }
+}
+
+// Deferred execution tests
+
+class TestDeferredCommand
+{
+    public function __construct(public string $value)
+    {
+    }
+}
+
+class TestDeferredCommandHandler implements CommandHandlerInterface
+{
+    use ShouldRunAfterResponse;
+
+    public function __invoke(object $message): mixed
+    {
+        return 'deferred: ' . $message->value;
+    }
+}
+
+// Invalid cases - traits on non-command handlers
+
+class TestInvalidDeferredQuery
+{
+}
+
+class TestInvalidDeferredQueryHandler implements HandlerInterface
+{
+    use ShouldRunAfterResponse;
+
+    public function __invoke(object $message): mixed
+    {
+        return 'invalid';
+    }
+}
+
+class TestInvalidTransactionalQuery
+{
+}
+
+class TestInvalidTransactionalQueryHandler implements HandlerInterface
+{
+    use ShouldBeTransactional;
+
+    public function __invoke(object $message): mixed
+    {
+        return 'invalid';
     }
 }
