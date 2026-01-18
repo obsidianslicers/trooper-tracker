@@ -18,9 +18,9 @@ use App\Models\TrooperAssignment;
  *
  * All results are ordered by trooper name for consistent UI display.
  *
- * @implements QueryHandlerInterface<GetTrooperAssignmentsQuery>
+ * @implements QueryHandlerInterface<GetTrooperCostumesQuery>
  */
-readonly class GetTrooperAssignmentsQueryHandler implements QueryHandlerInterface
+readonly class GetTrooperCostumesQueryHandler implements QueryHandlerInterface
 {
     /**
      * Handle the query to retrieve troopers for picker components.
@@ -31,33 +31,13 @@ readonly class GetTrooperAssignmentsQueryHandler implements QueryHandlerInterfac
      * 3. If filter has criteria: Apply search term and role filtering
      * 4. Always return the result collection
      *
-     * @param GetTrooperAssignmentsQuery $message The query containing filter criteria
+     * @param GetTrooperCostumesQuery $message The query containing filter criteria
      * @return \Illuminate\Support\Collection<int, Trooper> Collection of troopers
      */
     public function __invoke(object $message): mixed
     {
-        /** @var GetTrooperAssignmentsQuery $message */
+        /** @var GetTrooperCostumesQuery $message */
 
-        $organizations = Organization::ofTypeOrganizations()
-            ->orderBy(Organization::NAME)
-            ->get();
-
-        $assignments = $message->trooper->trooper_assignments()
-            ->with('organization')
-            ->where(TrooperAssignment::IS_MEMBER, true)
-            ->get();
-
-        foreach ($organizations as $organization)
-        {
-            foreach ($assignments as $assignment)
-            {
-                if (str_starts_with($assignment->organization->node_path, $organization->node_path))
-                {
-                    $organization->assignment = $assignment->organization;
-                }
-            }
-        }
-
-        return $organizations;
+        return $message->trooper->trooper_costumes()->with('organization_costume.organization')->get();
     }
 }

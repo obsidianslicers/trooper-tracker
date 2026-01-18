@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Account;
 
-use App\Http\Controllers\Controller;
+use App\Features\Troopers\Queries\GetTrooperCostumesQuery;
+use App\Http\Controllers\MagicBusController;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\TrooperCostume;
@@ -30,7 +31,7 @@ use Illuminate\Http\Request;
  *
  * This enables dynamic costume assignment without full page reload.
  */
-class CostumesSubmitHtmxController extends Controller
+class CostumesSubmitHtmxController extends MagicBusController
 {
     /**
      * Add a costume to the authenticated trooper's profile.
@@ -83,7 +84,9 @@ class CostumesSubmitHtmxController extends Controller
             }
         }
 
-        $trooper_costumes = $trooper->trooper_costumes()->with('organization_costume.organization')->get();
+        $trooper_costumes_query = new GetTrooperCostumesQuery($trooper);
+
+        $trooper_costumes = $this->bus->send($trooper_costumes_query);
 
         $data = compact('trooper_costumes');
 

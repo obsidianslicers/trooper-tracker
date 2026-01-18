@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Account;
 
-use App\Http\Controllers\Controller;
+use App\Features\Troopers\Queries\GetTrooperCostumesQuery;
+use App\Http\Controllers\MagicBusController;
 use App\Models\TrooperCostume;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -26,7 +27,7 @@ use Illuminate\Http\Request;
  *
  * This enables dynamic costume removal without full page reload.
  */
-class CostumesDeleteHtmxController extends Controller
+class CostumesDeleteHtmxController extends MagicBusController
 {
     /**
      * Remove a costume from the authenticated trooper's profile.
@@ -58,7 +59,9 @@ class CostumesDeleteHtmxController extends Controller
             }
         }
 
-        $trooper_costumes = $trooper->trooper_costumes()->with('organization_costume.organization')->get();
+        $trooper_costumes_query = new GetTrooperCostumesQuery($trooper);
+
+        $trooper_costumes = $this->bus->send($trooper_costumes_query);
 
         $data = compact('trooper_costumes');
 
