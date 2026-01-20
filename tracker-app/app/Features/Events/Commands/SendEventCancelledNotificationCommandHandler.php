@@ -11,6 +11,7 @@ use App\Models\Event;
 use App\Models\EventNotification;
 use App\Models\Trooper;
 use Illuminate\Support\Facades\Mail;
+use App\Bus\Contracts\CommandHandlerInterface;
 
 /**
  * Handler for sending event cancellation notifications to individual troopers.
@@ -21,7 +22,7 @@ use Illuminate\Support\Facades\Mail;
  *
  * @implements CommandHandlerInterface<SendEventCancelledNotificationCommand>
  */
-class SendEventCancelledNotificationCommandHandler
+readonly class SendEventCancelledNotificationCommandHandler implements CommandHandlerInterface
 {
     /**
      * Send cancellation notification email to a trooper.

@@ -7,19 +7,22 @@ namespace App\Features\Events\Commands;
 use App\Models\Event;
 use App\Models\Trooper;
 
+/**
+ * Command to send event cancellation notification to a trooper.
+ *
+ * Triggers an email notification to a trooper who had signed up for an event
+ * that has been cancelled. Unlike regular event notifications, cancellation
+ * notifications are sent regardless of the trooper's notification preferences.
+ *
+ * @see SendEventCancelledNotificationCommandHandler
+ */
 readonly class SendEventCancelledNotificationCommand
 {
     /**
-     * Create event notifications and send instant emails to eligible troopers.
+     * Create a new command instance.
      *
-     * Iterates through the provided trooper collection and creates EventNotification
-     * records for each trooper with a valid email address. Troopers with instant
-     * notification preferences receive immediate emails, while others have their
-     * notifications queued for daily digest processing.
-     *
-     * @param Event $event The event to create notifications for.
-     * @param Trooper $trooper The Trooper model to notify.
-     * @return void
+     * @param Event $event The cancelled event.
+     * @param Trooper $trooper The trooper who signed up for the event.
      */
     public function __construct(
         public readonly Event $event,

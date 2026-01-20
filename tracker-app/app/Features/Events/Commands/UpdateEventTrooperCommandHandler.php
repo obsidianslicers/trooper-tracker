@@ -7,21 +7,20 @@ namespace App\Features\Events\Commands;
 use App\Bus\Contracts\CommandHandlerInterface;
 
 /**
- * Handler for updating trooper profile information.
+ * Handler for updating an event trooper's sign-up information.
  *
- * Fills the trooper model with validated data and saves.
- * If complete_setup flag is true, sets the setup_completed_at timestamp
- * to mark the trooper's initial profile setup as complete.
+ * Updates an existing EventTrooper record with validated data and persists
+ * the changes to the database.
  *
  * @implements CommandHandlerInterface<UpdateEventTrooperCommand>
  */
 readonly class UpdateEventTrooperCommandHandler implements CommandHandlerInterface
 {
     /**
-     * Execute the command to update trooper profile.
+     * Execute the command to update event trooper information.
      *
-     * @param UpdateEventTrooperCommand $message The command with trooper and update data
-     * @return null
+     * @param UpdateEventTrooperCommand $message The command with event trooper and update data.
+     * @return null Always returns null.
      */
     public function __invoke(object $message): mixed
     {

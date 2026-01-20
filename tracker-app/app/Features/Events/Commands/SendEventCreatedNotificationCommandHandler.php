@@ -10,6 +10,7 @@ use App\Models\Event;
 use App\Models\EventNotification;
 use App\Models\Trooper;
 use Illuminate\Support\Facades\Mail;
+use App\Bus\Contracts\CommandHandlerInterface;
 
 /**
  * Handler for creating event notifications and sending instant emails to individual troopers.
@@ -21,7 +22,7 @@ use Illuminate\Support\Facades\Mail;
  *
  * @implements CommandHandlerInterface<SendEventCreatedNotificationCommand>
  */
-class SendEventCreatedNotificationCommandHandler
+readonly class SendEventCreatedNotificationCommandHandler implements CommandHandlerInterface
 {
     /**
      * Create notification record and send instant email if applicable.

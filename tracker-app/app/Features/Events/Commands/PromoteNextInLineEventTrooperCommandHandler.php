@@ -11,21 +11,27 @@ use App\Models\EventTrooper;
 use Illuminate\Support\Facades\Mail;
 
 /**
- * Handler for updating trooper profile information.
+ * Handler for promoting the next standby trooper to confirmed attendance.
  *
- * Fills the trooper model with validated data and saves.
- * If complete_setup flag is true, sets the setup_completed_at timestamp
- * to mark the trooper's initial profile setup as complete.
+ * Searches for the next trooper with STAND_BY status for the same shift,
+ * promotes them to GOING status, and sends them a TrooperNextInLine email notification.
  *
  * @implements CommandHandlerInterface<PromoteNextInLineEventTrooperCommand>
  */
 readonly class PromoteNextInLineEventTrooperCommandHandler implements CommandHandlerInterface
 {
     /**
-     * Execute the command to update trooper profile.
+     * Execute the command to promote the next standby trooper.
      *
-     * @param PromoteNextInLineEventTrooperCommand $message The command with trooper and update data
-     * @return null
+     * Workflow:
+     * 1. Find the next trooper with STAND_BY status for the same shift
+     * 2. Match handler/member role of cancelled trooper
+     * 3. Order by sign-up time (first in gets promoted)
+     * 4. Update status to GOING
+     * 5. Send notification email
+     *
+     * @param PromoteNextInLineEventTrooperCommand $message The command with the cancelled trooper info.
+     * @return null Always returns null.
      */
     public function __invoke(object $message): mixed
     {
