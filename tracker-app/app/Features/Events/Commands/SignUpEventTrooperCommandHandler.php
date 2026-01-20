@@ -6,33 +6,29 @@ namespace App\Features\Events\Commands;
 
 use App\Enums\EventTrooperStatus;
 use App\Models\EventTrooper;
+use App\Bus\Contracts\CommandHandlerInterface;
 
 /**
- * Handler for creating event notifications and sending instant emails to individual troopers.
+ * Handler for signing up a trooper for an event shift.
  *
- * Creates EventNotification records for eligible troopers and immediately
- * queues emails for those with INSTANT notification preferences. Troopers
- * with DAILY preferences have unprocessed notifications created for batch
- * processing by the daily digest command.
+ * Creates an EventTrooper record with GOING status, linking the trooper
+ * to the specified event shift and tracking who added the sign-up.
  *
  * @implements CommandHandlerInterface<SignUpEventTrooperCommand>
  */
-class SignUpEventTrooperCommandHandler
+readonly class SignUpEventTrooperCommandHandler implements CommandHandlerInterface
 {
     /**
-     * Create notification record and send instant email if applicable.
+     * Execute the command to sign up a trooper for an event shift.
      *
-     * Workflow:
-     * 1. Validate trooper has a valid email address
-     * 2. Create EventNotification record
-     * 3. If trooper has INSTANT preference:
-     *    - Mark notification as processed immediately
-     *    - Queue InstantEventNotification email
-     * 4. If trooper has DAILY preference:
-     *    - Leave notification unprocessed for batch processing
+     * Creates a new EventTrooper record with:
+     * - GOING status (confirmed attendance)
+     * - Link to event shift
+     * - Link to trooper
+     * - Tracking of who added the sign-up
      *
-     * @param SignUpEventTrooperCommand $message The command containing event and trooper
-     * @return EventTrooper The created EventTrooper record
+     * @param SignUpEventTrooperCommand $message The command containing shift, trooper, and added_by info.
+     * @return EventTrooper The created EventTrooper record.
      */
     public function __invoke(object $message): mixed
     {

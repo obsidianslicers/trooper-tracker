@@ -7,10 +7,10 @@ namespace App\Features\Events\Commands;
 use App\Models\EventTrooper;
 
 /**
- * Command to update trooper profile information.
+ * Command to update an event trooper's sign-up information.
  *
- * Updates the trooper model with validated data and optionally marks
- * the trooper's initial setup as completed by setting setup_completed_at.
+ * Updates an existing EventTrooper record with validated data,
+ * such as status changes, costume selections, or other attributes.
  *
  * @see UpdateEventTrooperCommandHandler
  */
@@ -19,8 +19,8 @@ readonly class UpdateEventTrooperCommand
     /**
      * Create a new command instance.
      *
-     * @param EventTrooper $event_trooper The event trooper to update
-     * @param array<string, mixed> $valid_data Validated attributes to update on the event trooper
+     * @param EventTrooper $event_trooper The event trooper record to update.
+     * @param array<string, mixed> $valid_data Validated attributes to update.
      */
     public function __construct(
         public EventTrooper $event_trooper,

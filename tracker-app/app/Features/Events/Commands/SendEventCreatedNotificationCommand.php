@@ -7,19 +7,21 @@ namespace App\Features\Events\Commands;
 use App\Models\Event;
 use App\Models\Trooper;
 
+/**
+ * Command to create event notification for a trooper when a new event is published.
+ *
+ * Creates an EventNotification record and optionally sends an instant email
+ * based on the trooper's notification frequency preference (INSTANT vs DAILY).
+ *
+ * @see SendEventCreatedNotificationCommandHandler
+ */
 readonly class SendEventCreatedNotificationCommand
 {
     /**
-     * Create event notifications and send instant emails to eligible troopers.
+     * Create a new command instance.
      *
-     * Iterates through the provided trooper collection and creates EventNotification
-     * records for each trooper with a valid email address. Troopers with instant
-     * notification preferences receive immediate emails, while others have their
-     * notifications queued for daily digest processing.
-     *
-     * @param Event $event The event to create notifications for.
-     * @param Trooper $trooper The Trooper model to notify.
-     * @return void
+     * @param Event $event The event to create notification for.
+     * @param Trooper $trooper The trooper to notify.
      */
     public function __construct(
         public readonly Event $event,

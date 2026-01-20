@@ -7,10 +7,11 @@ namespace App\Features\Events\Commands;
 use App\Models\EventTrooper;
 
 /**
- * Command to promote the next event trooper in line.
+ * Command to promote the next standby trooper when someone cancels.
  *
- * Updates the trooper model with validated data and optionally marks
- * the trooper's initial setup as completed by setting setup_completed_at.
+ * When a trooper cancels their event sign-up, this command finds the next
+ * trooper on standby (STAND_BY status) for the same shift and promotes them
+ * to GOING status, sending them a notification email.
  *
  * @see PromoteNextInLineEventTrooperCommandHandler
  */
@@ -19,7 +20,7 @@ readonly class PromoteNextInLineEventTrooperCommand
     /**
      * Create a new command instance.
      *
-     * @param EventTrooper $event_trooper The event trooper that cancelled
+     * @param EventTrooper $event_trooper The event trooper who cancelled (used to find their shift).
      */
     public function __construct(public readonly EventTrooper $event_trooper)
     {
