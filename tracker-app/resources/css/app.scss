@@ -39,19 +39,22 @@ a:hover {
     border-radius: 6px;
 }
 
+.event-calendar {
+    table-layout: fixed;
+    width: 100%;
 
-/*
+    tbody tr {
+        td {
+            vertical-align: top;
+            font-family: 'Montserrat', sans-serif;
 
+            &:nth-child(odd) {
+                background-color: rgba(0, 0, 0, 0.15);
+            }
 
-/* Smoky black background 
-
-/* Make the buttons blend into the smoky background 
-.event-image-share-buttons .btn {
-    border: none;
-    color: #fff;
+            div.calendar-content {
+                min-height: 125px;
+            }
+        }
+    }
 }
-
-.event-image-share-buttons .btn:hover {
-    background: rgba(255, 255, 255, 0.15);
-}
-*/

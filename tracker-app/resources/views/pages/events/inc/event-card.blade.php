@@ -1,9 +1,10 @@
-@props(['event'])
 @php($bg = $event->at_risk ? 'bg-danger' : 'bg-primary')
 @php($bg = $event->is_locked ? 'bg-secondary' : $bg)
 
 <div class="col"
-     data-event-name="{{ $event->name }}">
+     x-show="matches($el)"
+     data-event-name="{{ $event->name }}"
+     data-event-hosting-organization-id="{{ $event->organization_id  }}">
     <div class="card h-100"
          data-route="{{ route('events.display', compact('event')) }}">
         <div class="card-header {{ $bg }} d-flex align-items-center">
@@ -71,10 +72,12 @@
 
         <div class="card-footer bg-secondary p-0">
             <ul class="list-group list-group-flush">
+                {{-- we only show the positive, no "X" for those groups they didn't want --}}
                 @foreach($event->organizations as $organization)
-                    <li class="list-group-item">
+                    <li class="list-group-item"
+                        data-event-costume-organization-id="{{ $organization->id }}">
                         <x-yes-no class="me-2"
-                                  :value="true" />
+                                  :value="$organization->pivot->can_attend ?? false" />
                         {{ $organization->name }}
                     </li>
                 @endforeach

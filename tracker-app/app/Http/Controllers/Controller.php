@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Bus\MagicBus;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 abstract class Controller

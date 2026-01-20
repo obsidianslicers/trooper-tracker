@@ -16,7 +16,7 @@ use App\Models\TrooperAssignment;
  *
  * @package App\Services\Troopers
  */
-class UpdateTrooperMembershipsCommand
+class UpdateTrooperMembershipsCommandX
 {
     /**
      * Update the trooper's organization memberships.

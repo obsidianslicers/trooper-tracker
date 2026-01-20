@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Events;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use App\Models\Event;
 use App\Models\EventUpload;
 use Exception;
@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\ImageManager;
 
-class UploadImageController extends Controller
+class UploadImageController extends MagicBusController
 {
     public function __invoke(Request $request, Event $event)
     {

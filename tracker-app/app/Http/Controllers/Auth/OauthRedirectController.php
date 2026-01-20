@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
@@ -16,7 +16,7 @@ use Laravel\Socialite\Facades\Socialite;
  * authorization page where they can grant permission for the
  * application to access their account information.
  */
-class OauthRedirectController extends Controller
+class OauthRedirectController extends MagicBusController
 {
     /**
      * Handle the incoming request to initiate OAuth authorization.

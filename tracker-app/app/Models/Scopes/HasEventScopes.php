@@ -54,7 +54,7 @@ trait HasEventScopes
         ];
 
         return $query->whereIn(self::STATUS, $status_list)
-            ->where(self::EVENT_START, '>=', now())
+            ->where(self::EVENT_START, '>=', now()->startOfDay())
             ->orderBy(self::EVENT_START);
     }
 

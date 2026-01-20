@@ -1,6 +1,6 @@
 # Troop Tracker
 
-Troop Tracker is a scalable, immersive dashboard application designed to manage trooper assignments, moderation workflows, and hierarchical notifications across organizations, regions, and units. Built with Laravel, Blade, Bootstrap 5, HTMX, and JavaScript, it balances technical rigor with creative flair.
+**Troop Tracker** is the Empire’s official operations dashboard, engineered to impose order upon trooper assignments, moderation workflows, and hierarchical communications across organizations, regions, and units. Forged with Laravel, Blade, Bootstrap 5, HTMX, and Alpine‑driven JavaScript, it delivers the precision, discipline, and ruthless efficiency expected of any system operating under Imperial authority.
 
 ---
 
@@ -12,19 +12,31 @@ Progress continues at a pace deemed acceptable by the Empire. New features, refi
 
 ---
 
+## For Developers Entering the War Room
+
+This codebase is structured for maintainability, testability, and the occasional emergency refactor ordered from high command. Expect Commands, Queries, Handlers, and a strict separation of concerns. Expect HTMX to fire without warning. Expect Alpine components to behave with military precision. Above all, expect the unexpected — the Empire innovates aggressively.
+
+---
+
 ## Features
 
-*   **Hierarchical Access Control** - Enforces strict Org → Region → Unit hierarchy
-*   **Trooper Management** - Multiple roles per trooper with unique indexes
-*   **Notice/Messaging System** - Bubble-up logic from units → regions → orgs
-*   **Immersive Dashboard** - Themed UI with Bootstrap 5 and Blade components
+*   **Hierarchical Access Control**: Strict Organization → Region → Unit permissions with automatic inheritance and scoped visibility.
+*   **Trooper Profiles & Roles**: Multi‑organization membership, role‑based permissions, notification preferences, and costume metadata.
+*   **Event & Shift Management**: Full event lifecycle, multi‑shift scheduling, handler vs trooper capacity rules, and automatic waitlist promotion.
+*   **Real‑Time HTMX Interactions**: Instant UI updates for sign‑ups, cancellations, costume changes, and shift displays without full page reloads.
+*   **CQRS + MagicBus Architecture**: Commands for domain actions, Queries for read models, and clean separation of concerns across the entire app.
+*   **Notification & Messaging System**: Bubble‑up logic for org → region → unit notices, plus event‑driven email workflows (e.g., next‑in‑line promotions).
+*   **Themed, Component‑Driven UI**: Bootstrap 5 + Blade Components + Alpine.js  for interactive selectors, filters, and modals.
+*   **Transaction‑Safe Upload Pipeline**: Atomic image uploads with Intervention v3, driver selection, thumbnail generation, and orphan‑prevention.
+*   **Domain‑Driven Frontend Architecture**: Namespaced Alpine components mirroring backend domains, zero global pollution, and expressive semantic APIs.
+*   **Calendar & Event Discovery Tools**: Filterable event listings, organization pickers, costume‑type filters.
 
 ---
 
 ## Tech Stack
 
 *   **Backend**: Laravel 12.x, Blade templating
-*   **Frontend**: Bootstrap 5.2x, HTMX 2.x, Alpine 2.x, JS
+*   **Frontend**: Bootstrap 5.2x, HTMX 2.x, Alpine 3.x, JS
 *   **Database**: MySQL
 *   **Testing**: PHPUnit
 *   **Version Control**: Git + GitHub

@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace App\Features\Events\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
-use App\Enums\EventTrooperStatus;
-use App\Models\EventShift;
-use App\Models\EventTrooper;
+use App\Models\Event;
+use App\Models\EventOrganization;
 use App\Models\Trooper;
 
 /**
@@ -17,9 +16,9 @@ use App\Models\Trooper;
  * belonging to the cancelled event. These troopers will receive
  * cancellation notifications regardless of their notification preferences.
  *
- * @implements QueryHandlerInterface<GetTroopersForEventCancelledQuery>
+ * @implements QueryHandlerInterface<GetEventsForDisplayQuery>
  */
-readonly class GetTroopersForEventCancelledQueryHandler implements QueryHandlerInterface
+readonly class GetEventsForDisplayQueryHandler implements QueryHandlerInterface
 {
     /**
      * Execute the query to retrieve troopers for cancellation notifications.
@@ -30,26 +29,21 @@ readonly class GetTroopersForEventCancelledQueryHandler implements QueryHandlerI
      * 3. Join through event_shifts to match the cancelled event
      * 4. Return collection of Trooper models
      *
-     * @param GetTroopersForEventCancelledQuery $message The query containing the cancelled event
+     * @param GetEventsForDisplayQuery $message The query containing the cancelled event
      * @return \Illuminate\Support\Collection<int, Trooper> Active troopers who signed up for the event
      */
     public function __invoke(object $message): mixed
     {
-        /** @var GetTroopersForEventCancelledQuery $message */
+        /** @var GetEventsForDisplayQuery $message */
 
-        $event_id = $message->event->id;
-
-        $filter = function ($q) use ($event_id)
+        $with = ['organization', 'organizations' => function ($query)
         {
-            $q->where(EventTrooper::STATUS, EventTrooperStatus::GOING)
-                ->whereHas('event_shift', function ($q) use ($event_id)
-                {
-                    $q->where(EventShift::EVENT_ID, $event_id);
-                });
-        };
+            $query->wherePivot(EventOrganization::CAN_ATTEND, true);
+        }];
 
-        return Trooper::active()
-            ->whereHas('event_troopers', $filter)
+        return Event::with($with)
+            ->withShifts()
+            ->upcoming()
             ->get();
     }
 }

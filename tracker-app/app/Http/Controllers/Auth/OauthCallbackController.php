@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
-use App\Enums\MembershipStatus;
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use App\Models\OauthLogin;
 use App\Models\Trooper;
 use Illuminate\Http\RedirectResponse;
@@ -24,7 +23,7 @@ use Laravel\Socialite\Facades\Socialite;
  * - Initiating registration flow for new troopers
  * - Linking OAuth providers to existing trooper accounts
  */
-class OauthCallbackController extends Controller
+class OauthCallbackController extends MagicBusController
 {
     /**
      * Handle the incoming OAuth callback request.

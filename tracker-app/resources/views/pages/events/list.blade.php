@@ -4,83 +4,36 @@
 
 @section('content')
 
-<div class="row p-3"
-     hx-get="{{ route('widgets.notices-htmx') }}"
-     hx-trigger="load"
-     hx-swap="outerHTML">
-    <div class="col text-center">
-        <x-spinner />
-    </div>
-</div>
-
-<x-card :label="'Support'">
-    <div hx-get="{{ route('widgets.support-htmx') }}"
+    <div class="row p-3"
+         hx-get="{{ route('widgets.notices-htmx') }}"
          hx-trigger="load"
          hx-swap="outerHTML">
-        <x-loading />
+        <div class="col text-center">
+            <x-spinner />
+        </div>
     </div>
-</x-card>
 
-@php($organization_id = 0)
-<form method="GET"
-      action="{{ route('events.list', ['organization_id' => $organization_id]) }}">
-    <div class="row mb-3">
-
-        <div class="col-sm-12 col-md-4">
-
-            <x-input-container>
-                <x-label>
-                    Search Events:
-                </x-label>
-                <x-input-text :property="'search_term'"
-                              :placeholder="'Search Event Name (at least 3 chars)'"
-                              :value="$filter->search_term ?? null" />
-            </x-input-container>
-
+    <x-card :label="'Support'">
+        <div hx-get="{{ route('widgets.support-htmx') }}"
+             hx-trigger="load"
+             hx-swap="outerHTML">
+            <x-loading />
         </div>
-        <div class="col-sm-12 col-md-4">
-            <x-input-container>
-                <x-label>
-                    Hosting Organization:
-                </x-label>
-                <x-input-picker :property="'organization_id'"
-                                :route="'pickers.organization'"
-                                :text="$hosting_organization->name ?? 'Hosting Organization'"
-                                :value="$filter->organization_id ?? null" />
-            </x-input-container>
-            <x-modal-picker :label="'Select the Hosting Organization'" />
-        </div>
-        <div class="col-sm-12 col-md-4">
-            <x-input-container>
-                <x-label>
-                    Requested Character Types:
-                </x-label>
-                <x-input-select :property="'costume_organization_id'"
-                                :options="$costume_organizations->pluck('name', 'id')->toArray()"
-                                :value="$filter->costume_organization_id ?? null"
-                                :placeholder="'-- Requested Characters --'" />
-            </x-input-container>
-        </div>
-        <div class="col-12 text-end">
-            <x-submit-container>
-                <x-submit-button>
-                    Apply Filters
-                </x-submit-button>
-                <x-link-button-cancel :url="route('events.list')">
-                    Clear Filters
-                </x-link-button-cancel>
-            </x-submit-container>
+    </x-card>
+
+    <div x-data="Events.Search.eventSelector()">
+
+        @include('pages.events.inc.event-filters', compact('costume_organizations'))
+
+        <div class="row row-cols-1 row-cols-md-3 g-4 mt-1 event-cards">
+
+            @foreach ($events as $event)
+                @include('pages.events.inc.event-card', compact('event'))
+            @endforeach
+
         </div>
 
     </div>
-</form>
-
-
-<x-event-cards>
-    @foreach ($events as $event)
-        <x-event-card :event="$event" />
-    @endforeach
-</x-event-cards>
 
 @endsection
 
@@ -95,23 +48,6 @@
                         window.location.href = route;
                     }
                 });
-            });
-        });
-        document.querySelector('input[name=search_term]').addEventListener('input', function () {
-            const query = this.value.toLowerCase().trim();
-            const cards = document.querySelectorAll('[data-event-name]');
-            cards.forEach(card => {
-                const name = card.dataset.eventName.toLowerCase();
-                if (query.length == 0) {
-                    card.classList.remove('d-none');
-                    return;
-                }
-                if (name.includes(query)) {
-                    card.classList.remove('d-none');
-                }
-                else {
-                    card.classList.add('d-none');
-                }
             });
         });
     </script>

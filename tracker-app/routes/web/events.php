@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Events\CalendarController;
 use App\Http\Controllers\Events\EventDisplayController;
 use App\Http\Controllers\Events\ListController;
 use App\Http\Controllers\Events\ShiftCompleteController;
@@ -17,6 +18,7 @@ Route::prefix('events')
     ->group(function ()
     {
         Route::get('/', ListController::class)->name('list');
+        Route::get('/calendar', CalendarController::class)->name('calendar');
         Route::get('/display/{event}', EventDisplayController::class)->name('display');
         Route::post('/upload/{event}', UploadImageController::class)->name('upload-image');
         Route::post('/signup/{event_shift}', SignUpHtmxController::class)->name('signup-htmx');

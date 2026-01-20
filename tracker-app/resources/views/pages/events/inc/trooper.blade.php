@@ -41,6 +41,7 @@
                     </i>
                 @endif
                 @if($event_trooper->backup_costume != null)
+                    <br />
                     {{ $event_trooper->backup_costume->name ?? 'N/A' }}
                     <br />
                     <i class="small text-muted">

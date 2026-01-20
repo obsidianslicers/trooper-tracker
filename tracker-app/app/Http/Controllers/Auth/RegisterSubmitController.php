@@ -4,46 +4,47 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
+use App\Features\Troopers\Commands\RegisterTrooperCommand;
+use App\Features\Troopers\Commands\UpdateTrooperMembershipsCommand;
+use App\Features\Troopers\Commands\UpdateTrooperNotificationsCommand;
+use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Mail\Auth\TrooperRegistered;
 use App\Models\Organization;
-use App\Services\FlashMessageService;
 use App\Services\Troopers\AssignTrooperIdentifiersCommand;
-use App\Services\Troopers\AssignTrooperMembershipsCommand;
-use App\Services\Troopers\AssignTrooperNotificationsCommand;
-use App\Services\Troopers\RegisterTrooperCommand;
 use Illuminate\Http\RedirectResponse;
 use Mail;
 
 /**
- * Handles the submission of the user registration form.
+ * Handles the submission of the trooper registration form.
+ *
+ * This controller processes the complete registration flow by:
+ * - Creating the trooper account with PENDING status
+ * - Assigning organization memberships and notification preferences
+ * - Linking OAuth accounts if applicable
+ * - Sending confirmation email
+ * - Redirecting to the thank you page
  */
-class RegisterSubmitController extends Controller
+class RegisterSubmitController extends MagicBusController
 {
-    /**
-     * @param FlashMessageService $flash The flash message service.
-     */
-    public function __construct(private readonly FlashMessageService $flash)
-    {
-    }
-
     /**
      * Handle the incoming registration request.
      *
+     * Orchestrates the multi-step registration process including trooper creation,
+     * organization assignments, notification preferences, and email confirmation.
+     * The newly created trooper will have PENDING status until approved by an admin.
+     *
      * @param RegisterRequest $request The validated registration form request.
-     * @return RedirectResponse A redirect response back to the registration page with a status message or errors.
+     * @param AssignTrooperIdentifiersCommand $assign_identifiers Service to assign TK numbers and identifiers.
+     * @return RedirectResponse A redirect to the thank you page after successful registration.
      */
     public function __invoke(
         RegisterRequest $request,
-        RegisterTrooperCommand $register_trooper,
-        AssignTrooperIdentifiersCommand $assign_identifiers,
-        AssignTrooperNotificationsCommand $assign_notifications,
-        AssignTrooperMembershipsCommand $assign_memberships): RedirectResponse
+        AssignTrooperIdentifiersCommand $assign_identifiers): RedirectResponse
     {
-        $auth_user_id = null;
+        $register_cmd = new RegisterTrooperCommand($request->validated());
 
-        $trooper = $register_trooper($request->validated());
+        $trooper = $this->bus->send($register_cmd);
 
         $organizations = $request->validated('organizations', []);
 
@@ -51,8 +52,14 @@ class RegisterSubmitController extends Controller
         $notifications = $this->getNotifications($organizations);
 
         $assign_identifiers($trooper, $organizations);
-        $assign_memberships($trooper, $memberships);
-        $assign_notifications($trooper, $notifications);
+
+        $membership_command = new UpdateTrooperMembershipsCommand($trooper, $memberships);
+
+        $this->bus->send($membership_command);
+
+        $notification_command = new UpdateTrooperNotificationsCommand($trooper, $notifications);
+
+        $this->bus->send($notification_command);
 
         Mail::to($trooper->email)->queue(new TrooperRegistered());
 
@@ -82,12 +89,12 @@ class RegisterSubmitController extends Controller
 
                 if (isset($data['region_id']))
                 {
-                    $notifications[$data['region_id']] = true;
+                    $notifications[$data['region_id']]['can_notify'] = true;
                 }
 
                 if (isset($data['unit_id']))
                 {
-                    $notifications[$data['unit_id']] = true;
+                    $notifications[$data['unit_id']]['can_notify'] = true;
                 }
             }
         }
@@ -126,11 +133,11 @@ class RegisterSubmitController extends Controller
 
                         if ($region->organizations()->count() == 0)
                         {
-                            $memberships[$data['region_id']]['is_member'] = true;
+                            $memberships[$organization_id]['assignment'] = $data['region_id'];
                         }
                         elseif (isset($data['unit_id']))
                         {
-                            $memberships[$data['unit_id']]['is_member'] = true;
+                            $memberships[$organization_id]['assignment'] = $data['unit_id'];
                         }
                     }
                 }

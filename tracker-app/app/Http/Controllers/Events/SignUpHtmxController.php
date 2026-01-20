@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Events;
 
 use App\Enums\EventTrooperStatus;
-use App\Http\Controllers\Controller;
+use App\Features\Events\Queries\GetEventShiftDisplayQuery;
+use App\Http\Controllers\MagicBusController;
 use App\Mail\Events\TrooperSignUp;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
-use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
@@ -24,7 +24,7 @@ use Illuminate\Support\Facades\Mail;
  * or the standby list based on shift capacity, and returns the updated shift
  * container view for dynamic page updates.
  */
-class SignUpHtmxController extends Controller
+class SignUpHtmxController extends MagicBusController
 {
     /**
      * Handle the incoming HTMX request to sign up a trooper for an event shift.
@@ -59,33 +59,11 @@ class SignUpHtmxController extends Controller
             Mail::to($trooper->email)->queue(new TrooperSignUp($event_trooper));
         }
 
-        $with = [
-            'event_troopers.trooper',
-            'event_troopers.added_by_trooper',
-            'event_troopers.organization_costume.organization',
-            'event_troopers' => function ($query)
-            {
-                $query->orderBy(EventTrooper::SIGNED_UP_AT, 'asc');
-            },
-        ];
+        $event_shift_query = new GetEventShiftDisplayQuery($event_shift, $trooper);
 
-        $event_shift = EventShift::with($with)->findOrFail($event_shift->id);
+        $event_shift = $this->bus->send($event_shift_query);
 
         $event = $event_shift->event;
-
-        //  re-link shifts to event for view access (see SignUpController)
-        $event_shift->event = $event;
-
-        foreach ($event_shift->event_troopers as $event_trooper)
-        {
-            $event_trooper->event_shift = $event_shift;
-
-            if ($event_trooper->canUpdateCostume($event_shift, $auth_trooper))
-            {
-                //  performance optimization: load costumes only if the trooper can update
-                $event_trooper->costumes = $event_trooper->getCostumes();
-            }
-        }
 
         $can_moderate = $trooper->isModeratorForOrganization($event->organization);
 
