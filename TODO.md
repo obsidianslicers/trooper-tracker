@@ -4,9 +4,10 @@
 
 - home pages alernate views:
   - map view
-  - calendar view
 
 ### EVENT WIP COMPLETED
+- Home Page Calendar View
+  - **IMPLEMENTED**
 - Getting error on event e-mail parser submission
   - **IMPLEMENTATION**: server side handled via global exception handler
 - Confirm troops, when a troop is finish, trooper needs to confirm attendance to get credit
