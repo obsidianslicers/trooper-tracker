@@ -46,7 +46,9 @@ class SignUpUpdateHtmxController extends MagicBusController
                 ? $event_trooper->event_shift->handlersMaxed()
                 : $event_trooper->event_shift->troopersMaxed();
 
-            $event_trooper_cmd = new UpdateEventTrooperCommand($event_trooper, $request->validated('status'));
+            $valid_data = ['status' => $request->validated('status')];
+
+            $event_trooper_cmd = new UpdateEventTrooperCommand($event_trooper, $valid_data);
 
             $this->bus->send($event_trooper_cmd);
 
@@ -60,13 +62,17 @@ class SignUpUpdateHtmxController extends MagicBusController
         }
         elseif ($request->has('costume_id'))
         {
-            $event_trooper_cmd = new UpdateEventTrooperCommand($event_trooper, $request->validated('costume_id'));
+            $valid_data = ['costume_id' => $request->validated('costume_id')];
+
+            $event_trooper_cmd = new UpdateEventTrooperCommand($event_trooper, $valid_data);
 
             $this->bus->send($event_trooper_cmd);
         }
         elseif ($request->has('backup_costume_id'))
         {
-            $event_trooper_cmd = new UpdateEventTrooperCommand($event_trooper, $request->validated('backup_costume_id'));
+            $valid_data = ['backup_costume_id' => $request->validated('backup_costume_id')];
+
+            $event_trooper_cmd = new UpdateEventTrooperCommand($event_trooper, $valid_data);
 
             $this->bus->send($event_trooper_cmd);
         }

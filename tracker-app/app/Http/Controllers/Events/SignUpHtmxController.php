@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Events;
 
 use App\Enums\EventTrooperStatus;
+use App\Features\Events\Commands\SignUpEventTrooperCommand;
 use App\Features\Events\Queries\GetEventShiftDisplayQuery;
 use App\Http\Controllers\MagicBusController;
 use App\Mail\Events\TrooperSignUp;
@@ -52,7 +53,9 @@ class SignUpHtmxController extends MagicBusController
 
         if ($event_shift->canSignUp($trooper))
         {
-            $event_trooper = $this->addTrooper($event_shift, $trooper);
+            $event_trooper_cmd = new SignUpEventTrooperCommand($event_shift, $trooper, $auth_trooper);
+
+            $event_trooper = $this->bus->send($event_trooper_cmd);
 
             $can_signup = true;
 
@@ -91,40 +94,5 @@ class SignUpHtmxController extends MagicBusController
         }
 
         return $response;
-    }
-
-    private function addTrooper(EventShift $event_shift, Trooper $trooper): EventTrooper
-    {
-        $current_id = Auth::user()->id;
-
-        $event_trooper = new EventTrooper();
-
-        $event_trooper->event_shift_id = $event_shift->id;
-        $event_trooper->trooper_id = $trooper->id;
-        $event_trooper->is_handler = $trooper->is_handler;
-        $event_trooper->signed_up_at = now();
-        $event_trooper->added_by_trooper_id = $current_id == $trooper->id ? null : $current_id;
-
-        $status = EventTrooperStatus::GOING;
-
-        if ($event_trooper->is_handler)
-        {
-            if ($event_shift->handlersMaxed())
-            {
-                $status = EventTrooperStatus::STAND_BY;
-            }
-        }
-        else
-        {
-            if ($event_shift->troopersMaxed())
-            {
-                $status = EventTrooperStatus::STAND_BY;
-            }
-        }
-
-        $event_trooper->status = $status;
-        $event_trooper->save();
-
-        return $event_trooper;
     }
 }
