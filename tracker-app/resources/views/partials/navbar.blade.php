@@ -7,8 +7,23 @@
                      height="24px"
                      width="24px"
                      src="{{ url('img/icons/troop-tracker-32x32.png') }}" />
-                <span class="ms-1">Events / Troops</span>
             </a>
+            <ul class="navbar-nav flex-row">
+                <li class="nav-item"> <a href="{{ route('events.list') }}"
+                       class="nav-link px-2 d-flex align-items-center">
+                        <i class="fa fa-fw fa-list fa-lg me-2"></i>
+                        <span class="d-none d-sm-inline me-1">Events </span>
+                        List
+                    </a>
+                </li>
+                <li class="nav-item"> <a href="{{ route('events.calendar') }}"
+                       class="nav-link px-2 d-flex align-items-center">
+                        <i class="fa fa-fw fa-calendar-days fa-lg me-2"></i>
+                        <span class="d-none d-sm-inline me-1">Events </span>
+                        Calendar
+                    </a>
+                </li>
+            </ul>
         @else
             <a class="navbar-brand"
                href="{{ route('home') }}">
@@ -63,25 +78,3 @@
         </div>
     </div>
 </div>
-
-{{--
-<nav class="navbar navbar-dark navbar-expand-lg bg-black rounded-3 p-0">
-    <div class="container-fluid justify-content-center">
-        <!-- Hamburger toggle -->
-        <button class="navbar-toggler ms-auto me-3 my-2"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#pillNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <div class="collapse navbar-collapse justify-content-center"
-             id="pillNav">
-            <ul class="navbar-nav flex-wrap">
-
-
-            </ul>
-        </div>
-    </div>
-</nav>
---}}

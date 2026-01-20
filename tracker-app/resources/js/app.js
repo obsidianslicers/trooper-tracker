@@ -51,6 +51,9 @@ Alpine.plugin(AccountPlugin);
 import AdminPlugin from './admin/index.js';
 Alpine.plugin(AdminPlugin);
 
+import EventPlugin from './events/index.js';
+Alpine.plugin(EventPlugin);
+
 window.Alpine = Alpine;
 Alpine.start();
 

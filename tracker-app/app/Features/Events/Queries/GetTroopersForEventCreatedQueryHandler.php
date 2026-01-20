@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace App\Features\Events\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
-use App\Enums\MembershipRole;
 use App\Enums\NotificationFrequency;
-use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 

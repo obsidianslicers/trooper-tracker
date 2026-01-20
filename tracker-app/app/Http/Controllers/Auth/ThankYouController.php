@@ -4,22 +4,20 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use Illuminate\Contracts\View\View;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Handles the thank you page after registration.
  */
-class ThankYouController extends Controller
+class ThankYouController extends MagicBusController
 {
     /**
      * Handle the incoming request to display the thank you page.
      *
      * @param Request $request The incoming HTTP request.
-     * @return RedirectResponse A redirect response to the login page.
+     * @return View A view response displaying the thank you page.
      */
     public function __invoke(Request $request): View
     {

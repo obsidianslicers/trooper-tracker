@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
-use App\Http\Controllers\Controller;
+use App\Features\Events\Queries\GetEventDisplayQuery;
+use App\Http\Controllers\MagicBusController;
 use App\Models\Event;
-use App\Models\EventTrooper;
-use App\Models\Organization;
 use App\Services\BreadCrumbService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -20,14 +19,9 @@ use Illuminate\Http\Request;
  * It loads the event with all related data including organizations, shifts,
  * and trooper assignments.
  */
-class EventDisplayController extends Controller
+class EventDisplayController extends MagicBusController
 {
-    /**
-     * Create a new controller instance.
-     *
-     * @param BreadCrumbService $crumbs The breadcrumb service for navigation
-     */
-    public function __construct(private readonly BreadCrumbService $crumbs)
+    protected function initialized(): void
     {
         $this->crumbs->addRoute('Events', 'events.list');
     }
@@ -47,43 +41,9 @@ class EventDisplayController extends Controller
     {
         $trooper = $request->user();
 
-        $with = [
-            'organization',
-            'organizations.organization',
-            'organizations' => function ($query)
-            {
-                $query->orderBy(Organization::NAME);
-            },
-            'event_shifts.event_troopers.trooper',
-            'event_shifts.event_troopers.added_by_trooper',
-            'event_shifts.event_troopers.organization_costume.organization',
-            'event_shifts.event_troopers.backup_costume.organization',
-            'event_shifts.event_troopers' => function ($query)
-            {
-                $query->orderBy(EventTrooper::SIGNED_UP_AT);
-            },
-        ];
+        $event_query = new GetEventDisplayQuery($event, $trooper);
 
-        $event = Event::with($with)
-            ->withShifts()
-            ->findOrFail($event->id);
-
-        //  re-link shifts to event for view access (see SignUpHtmxController)
-        foreach ($event->event_shifts as $event_shift)
-        {
-            $event_shift->event = $event;
-
-            foreach ($event_shift->event_troopers as $event_trooper)
-            {
-                $event_trooper->event_shift = $event_shift;
-
-                if ($event_trooper->canUpdateCostume($event_shift, $trooper))
-                {
-                    //  performance optimization: load costumes only if the trooper can update
-                    $event_trooper->costumes = $event_trooper->getCostumes();
-                }
-            }
-        }
+        $event = $this->bus->send($event_query);
 
         $can_moderate = $trooper->isModeratorForOrganization($event->organization);
 

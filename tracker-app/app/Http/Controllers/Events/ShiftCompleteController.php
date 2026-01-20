@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Events;
 
 use App\Enums\EventTrooperStatus;
-use App\Http\Controllers\Controller;
+use App\Features\Events\Commands\UpdateEventTrooperCommand;
+use App\Http\Controllers\MagicBusController;
 use App\Models\EventTrooper;
 use App\Services\BreadCrumbService;
 use Illuminate\Contracts\View\View;
@@ -19,14 +20,9 @@ use Illuminate\Support\Facades\Crypt;
  * allow troopers to update their attendance status by clicking encrypted URLs.
  * The status is decrypted from the URL and applied to the event trooper record.
  */
-class ShiftCompleteController extends Controller
+class ShiftCompleteController extends MagicBusController
 {
-    /**
-     * Create a new controller instance.
-     *
-     * @param BreadCrumbService $crumbs The breadcrumb service for navigation
-     */
-    public function __construct(private readonly BreadCrumbService $crumbs)
+    protected function initialized()
     {
         $this->crumbs->addRoute('Events', 'events.list');
     }
@@ -46,8 +42,13 @@ class ShiftCompleteController extends Controller
     {
         $trooper_status = EventTrooperStatus::from(Crypt::decryptString($status));
 
-        $event_trooper->status = $trooper_status;
-        $event_trooper->save();
+        $valid_data = [
+            EventTrooper::STATUS => $trooper_status,
+        ];
+
+        $event_trooper_cmd = new UpdateEventTrooperCommand($event_trooper, $valid_data);
+
+        $this->bus->send($event_trooper_cmd);
 
         return view('events.shift-complete', compact('event_trooper'));
     }

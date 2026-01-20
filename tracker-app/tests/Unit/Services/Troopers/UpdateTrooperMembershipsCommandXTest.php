@@ -7,12 +7,12 @@ namespace Tests\Unit\Services\Troopers;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
-use App\Services\Troopers\UpdateTrooperMembershipsCommand;
+use App\Services\Troopers\UpdateTrooperMembershipsCommandX;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Tests for UpdateTrooperMembershipsCommand.
+ * Tests for UpdateTrooperMembershipsCommandX.
  *
  * Verifies:
  * - Creates new TrooperAssignment when assignment doesn't exist.
@@ -20,16 +20,16 @@ use Tests\TestCase;
  * - Skips organizations without assignment ID.
  * - Handles multiple organizations in one call.
  */
-class UpdateTrooperMembershipsCommandTest extends TestCase
+class UpdateTrooperMembershipsCommandXTest extends TestCase
 {
     use RefreshDatabase;
 
-    private UpdateTrooperMembershipsCommand $subject;
+    private UpdateTrooperMembershipsCommandX $subject;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->subject = new UpdateTrooperMembershipsCommand();
+        $this->subject = new UpdateTrooperMembershipsCommandX();
     }
 
     public function test_invoke_creates_new_assignment_when_not_exists(): void

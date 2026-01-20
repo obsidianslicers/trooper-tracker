@@ -7,7 +7,6 @@ namespace App\Http\Controllers;
 use App\Models\Event;
 use App\Models\EventUpload;
 use Illuminate\Contracts\View\View;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 /**
@@ -17,7 +16,7 @@ use Illuminate\Http\Request;
  * that allows users to share event information via various channels
  * such as social media, email, or direct links.
  */
-class ShareEventController extends Controller
+class ShareEventController extends MagicBusController
 {
     /**
      * Handle the incoming request to display the event sharing page.
@@ -28,9 +27,9 @@ class ShareEventController extends Controller
      *
      * @param Request $request The incoming HTTP request.
      * @param Event $event The event to be shared.
-     * @return View|RedirectResponse The rendered sharing page view or a redirect response.
+     * @return View The rendered sharing page view.
      */
-    public function __invoke(Request $request, Event $event): View|RedirectResponse
+    public function __invoke(Request $request, Event $event): View
     {
         $image_id = $request->query('event_upload');
 

@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
-use App\Models\Organization;
-use App\Services\FlashMessageService;
-use App\Services\Organizations\GetOrganizationHierarchyQuery;
+use App\Features\Organizations\Queries\GetOrganizationHierarchyQuery;
+use App\Http\Controllers\MagicBusController;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
@@ -19,16 +17,8 @@ use Illuminate\Support\Facades\Session;
  * organizations and pre-fills data from the OAuth session if the trooper
  * is registering via an OAuth provider.
  */
-class RegisterController extends Controller
+class RegisterController extends MagicBusController
 {
-    /**
-     * @param FlashMessageService $flash The flash message service.
-     */
-    public function __construct(
-        private readonly FlashMessageService $flash,
-    ) {
-    }
-
     /**
      * Handle the incoming request to display the registration form.
      *
@@ -39,9 +29,7 @@ class RegisterController extends Controller
      * @param Request $request The incoming HTTP request.
      * @return View The rendered registration page view with organizations and registration data.
      */
-    public function __invoke(
-        Request $request,
-        GetOrganizationHierarchyQuery $get_organization_hierarchy): View
+    public function __invoke(Request $request): View
     {
         $registration_auth = Session::get('registration_auth');
 
@@ -51,7 +39,9 @@ class RegisterController extends Controller
 
         $registration_method = old('registration_method', $registration_auth['method'] ?? 'email');
 
-        $organization_hierarchy = $get_organization_hierarchy()->map(fn(array $org) => (object) $org);
+        $hierarchy_query = new GetOrganizationHierarchyQuery();
+
+        $organization_hierarchy = $this->bus->send($hierarchy_query)->map(fn(array $org) => (object) $org);
 
         foreach ($organization_hierarchy as $organization)
         {

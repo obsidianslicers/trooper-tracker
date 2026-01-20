@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Auth;
  * data and rendering the primary account view where they can manage
  * their profile, settings, and other account-related information.
  */
-class HomeController extends Controller
+class HomeController extends MagicBusController
 {
     /**
      * Handle the incoming request to display the account page.

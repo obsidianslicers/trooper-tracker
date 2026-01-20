@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Auth;
 
 use App\Enums\MembershipStatus;
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Models\Trooper;
-use App\Services\FlashMessageService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -22,15 +21,8 @@ use Illuminate\Support\Facades\Hash;
  * - Creating authenticated sessions with optional "remember me" functionality
  * - Providing appropriate error messages for various failure scenarios
  */
-class LoginSubmitController extends Controller
+class LoginSubmitController extends MagicBusController
 {
-    /**
-     * @param FlashMessageService $flash The flash message service for user notifications.
-     */
-    public function __construct(private readonly FlashMessageService $flash)
-    {
-    }
-
     /**
      * Handles the incoming login request and authenticates the trooper.
      *

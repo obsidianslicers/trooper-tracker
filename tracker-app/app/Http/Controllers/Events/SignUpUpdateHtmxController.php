@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Events;
 
 use App\Enums\EventTrooperStatus;
-use App\Http\Controllers\Controller;
+use App\Features\Events\Commands\PromoteNextInLineEventTrooperCommand;
+use App\Features\Events\Commands\UpdateEventTrooperCommand;
+use App\Features\Events\Queries\GetNextTrooperInLineForEventQuery;
+use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Events\SetupUpdateHtmxRequest;
 use App\Mail\Events\TrooperNextInLine;
 use App\Models\EventTrooper;
@@ -20,7 +23,7 @@ use Illuminate\Support\Facades\Mail;
  * When a trooper cancels from a full event, it automatically promotes the next
  * stand-by trooper to attending status.
  */
-class SignUpUpdateHtmxController extends Controller
+class SignUpUpdateHtmxController extends MagicBusController
 {
     /**
      * Handle the incoming HTMX request to update event trooper status or costume.
@@ -39,48 +42,33 @@ class SignUpUpdateHtmxController extends Controller
 
         if ($request->has('status'))
         {
-            $is_full = false;
+            $is_full = $event_trooper->is_handler
+                ? $event_trooper->event_shift->handlersMaxed()
+                : $event_trooper->event_shift->troopersMaxed();
 
-            if ($event_trooper->is_handler)
-            {
-                $is_full = $event_trooper->event_shift->handlersMaxed();
-            }
-            else
-            {
-                $is_full = $event_trooper->event_shift->troopersMaxed();
-            }
+            $event_trooper_cmd = new UpdateEventTrooperCommand($event_trooper, $request->validated('status'));
 
-            $event_trooper->status = $request->validated('status');
-            $event_trooper->save();
+            $this->bus->send($event_trooper_cmd);
 
             if ($is_full && $event_trooper->status == EventTrooperStatus::CANCELLED)
             {
                 // notify next in line that they can now attend
-                $next_in_line = $event_trooper->event_shift
-                    ->event_troopers()
-                    ->where(EventTrooper::STATUS, EventTrooperStatus::STAND_BY)
-                    ->where(EventTrooper::IS_HANDLER, $event_trooper->is_handler)
-                    ->orderBy(EventTrooper::SIGNED_UP_AT)
-                    ->first();
+                $next_in_line_cmd = new PromoteNextInLineEventTrooperCommand($event_trooper);
 
-                if ($next_in_line)
-                {
-                    $next_in_line->status = EventTrooperStatus::GOING;
-                    $next_in_line->save();
-
-                    Mail::to($next_in_line->trooper->email)->queue(new TrooperNextInLine($next_in_line));
-                }
+                $this->bus->send($next_in_line_cmd);
             }
         }
         elseif ($request->has('costume_id'))
         {
-            $event_trooper->costume_id = $request->validated('costume_id');
-            $event_trooper->save();
+            $event_trooper_cmd = new UpdateEventTrooperCommand($event_trooper, $request->validated('costume_id'));
+
+            $this->bus->send($event_trooper_cmd);
         }
         elseif ($request->has('backup_costume_id'))
         {
-            $event_trooper->backup_costume_id = $request->validated('backup_costume_id');
-            $event_trooper->save();
+            $event_trooper_cmd = new UpdateEventTrooperCommand($event_trooper, $request->validated('backup_costume_id'));
+
+            $this->bus->send($event_trooper_cmd);
         }
 
         return response('ok', 200);
