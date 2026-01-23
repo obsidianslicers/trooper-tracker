@@ -13,7 +13,6 @@ use App\Http\Requests\Auth\RegisterRequest;
 use App\Jobs\SendTrooperRegisteredNotificationsJob;
 use App\Mail\Auth\TrooperRegistered;
 use App\Models\Organization;
-use App\Services\Troopers\AssignTrooperIdentifiersCommand;
 use Illuminate\Http\RedirectResponse;
 use Mail;
 
@@ -37,7 +36,6 @@ class RegisterSubmitController extends MagicBusController
      * The newly created trooper will have PENDING status until approved by an admin.
      *
      * @param RegisterRequest $request The validated registration form request.
-     * @param AssignTrooperIdentifiersCommand $assign_identifiers Service to assign TK numbers and identifiers.
      * @return RedirectResponse A redirect to the thank you page after successful registration.
      */
     public function __invoke(RegisterRequest $request): RedirectResponse

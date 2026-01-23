@@ -4,18 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
-use App\Enums\EventTrooperStatus;
 use App\Features\Events\Commands\SignUpEventTrooperCommand;
 use App\Features\Events\Queries\GetEventShiftDisplayQuery;
 use App\Http\Controllers\MagicBusController;
-use App\Mail\Events\TrooperSignUp;
 use App\Models\EventShift;
-use App\Models\EventTrooper;
 use App\Models\Trooper;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;
 
 /**
  * Handles HTMX-driven event shift sign-up creation.
