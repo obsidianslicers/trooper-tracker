@@ -19,7 +19,7 @@ use Tests\TestCase;
  *
  * Verifies:
  * - Job sends exception emails to all administrator troopers
- * - Uses GetTrooperAdministratorsQuery to retrieve administrators
+ * - Uses GetTroopersByRoleQuery to retrieve administrators
  * - Queues ExceptionOccurred mailable for each administrator
  * - Passes exception and context to mailable
  * - Handles empty administrator list gracefully

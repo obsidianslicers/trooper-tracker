@@ -6,21 +6,21 @@ namespace Tests\Unit\Features\Troopers\Queries;
 
 use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
-use App\Features\Troopers\Queries\GetTrooperAdministratorsQuery;
-use App\Features\Troopers\Queries\GetTrooperAdministratorsQueryHandler;
+use App\Features\Troopers\Queries\GetTroopersByRoleQuery;
+use App\Features\Troopers\Queries\GetTroopersByRoleQueryHandler;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Unit tests for GetTrooperAdministratorsQueryHandler.
+ * Unit tests for GetTroopersByRoleQueryHandler.
  *
  * Verifies:
  * - Returns only troopers with ADMINISTRATOR role
  * - Filters out non-administrator troopers
  * - Orders results appropriately
  */
-class GetTrooperAdministratorsQueryHandlerTest extends TestCase
+class GetTroopersByRoleQueryHandlerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -37,8 +37,8 @@ class GetTrooperAdministratorsQueryHandlerTest extends TestCase
             Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
         ]);
 
-        $query = new GetTrooperAdministratorsQuery();
-        $subject = new GetTrooperAdministratorsQueryHandler();
+        $query = new GetTroopersByRoleQuery(MembershipRole::ADMINISTRATOR);
+        $subject = new GetTroopersByRoleQueryHandler();
 
         // Act
         $result = $subject($query);
@@ -56,8 +56,8 @@ class GetTrooperAdministratorsQueryHandlerTest extends TestCase
             Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
         ]);
 
-        $query = new GetTrooperAdministratorsQuery();
-        $subject = new GetTrooperAdministratorsQueryHandler();
+        $query = new GetTroopersByRoleQuery(MembershipRole::ADMINISTRATOR);
+        $subject = new GetTroopersByRoleQueryHandler();
 
         // Act
         $result = $subject($query);
@@ -74,8 +74,8 @@ class GetTrooperAdministratorsQueryHandlerTest extends TestCase
             Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
         ]);
 
-        $query = new GetTrooperAdministratorsQuery();
-        $subject = new GetTrooperAdministratorsQueryHandler();
+        $query = new GetTroopersByRoleQuery(MembershipRole::ADMINISTRATOR);
+        $subject = new GetTroopersByRoleQueryHandler();
 
         // Act
         $result = $subject($query);
@@ -97,8 +97,8 @@ class GetTrooperAdministratorsQueryHandlerTest extends TestCase
             Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
         ]);
 
-        $query = new GetTrooperAdministratorsQuery();
-        $subject = new GetTrooperAdministratorsQueryHandler();
+        $query = new GetTroopersByRoleQuery(MembershipRole::ADMINISTRATOR);
+        $subject = new GetTroopersByRoleQueryHandler();
 
         // Act
         $result = $subject($query);

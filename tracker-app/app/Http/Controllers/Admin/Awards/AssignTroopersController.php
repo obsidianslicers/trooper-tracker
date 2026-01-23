@@ -6,7 +6,6 @@ namespace App\Http\Controllers\Admin\Awards;
 
 use App\Http\Controllers\Controller;
 use App\Models\Award;
-use App\Models\Trooper;
 use App\Services\BreadCrumbService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;

@@ -10,7 +10,7 @@
             @if (isset($model->deleted_at))
                 <span class="text-muted">
                     soft deleted
-                    @isset($model->deleted_id)
+                    @isset($model->deleted_id)w
                         by {{ $model->deleted_by->name }}
                     @endisset
                     {{ $model->deleted_at->diffForHumans() }}

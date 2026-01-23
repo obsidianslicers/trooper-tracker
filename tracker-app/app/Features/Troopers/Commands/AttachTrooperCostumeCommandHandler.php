@@ -31,8 +31,6 @@ readonly class AttachTrooperCostumeCommandHandler implements CommandHandlerInter
      */
     public function __invoke(object $message): mixed
     {
-        /** @var AttachTrooperCostumeCommand $message */
-
         $organization = Organization::withActiveTroopers($message->trooper->id)
             ->where(Organization::ID, $message->organization_id)
             ->first();

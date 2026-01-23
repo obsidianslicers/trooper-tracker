@@ -64,7 +64,7 @@ class Organization extends BaseOrganization
     /**
      * Get all event organizations associated with this organization.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<EventOrganization>
      */
     public function event_organizations()
     {
@@ -78,7 +78,7 @@ class Organization extends BaseOrganization
      *
      * @return Organization The top-level organization.
      */
-    public function getSourceClub(): Organization
+    public function getPrimaryClub(): Organization
     {
         $organization = $this;
 
@@ -96,8 +96,6 @@ class Organization extends BaseOrganization
      * Assigns sequence numbers starting at 900, incrementing by 100 for each
      * organization, then its regions, then each region's units. This establishes
      * a consistent ordering for the organizational hierarchy.
-     *
-     * @return void
      */
     public static function resequenceAll()
     {

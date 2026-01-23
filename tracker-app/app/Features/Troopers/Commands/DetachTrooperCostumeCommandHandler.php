@@ -25,8 +25,6 @@ readonly class DetachTrooperCostumeCommandHandler implements CommandHandlerInter
      */
     public function __invoke(object $message): mixed
     {
-        /** @var DetachTrooperCostumeCommand $message */
-
         $trooper_costume = $message->trooper->trooper_costumes()
             ->where(TrooperCostume::ID, $message->costume_id)
             ->first();

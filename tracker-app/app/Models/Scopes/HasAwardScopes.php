@@ -43,9 +43,9 @@ trait HasAwardScopes
     }
 
     /**
-     * Scope a query to only include notices that can be managed by a given moderator.
+     * Scope a query to only include awards that can be managed by a given moderator.
      *
-     * A notice is moderated if its organization falls within the moderator's
+     * An award is moderated if its organization falls within the moderator's
      * assigned organizational hierarchy.
      *
      * @param Builder $query The Eloquent query builder.

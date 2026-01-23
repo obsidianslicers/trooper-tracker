@@ -29,8 +29,6 @@ readonly class GetTrooperCostumesQueryHandler implements QueryHandlerInterface
      */
     public function __invoke(object $message): mixed
     {
-        /** @var GetTrooperCostumesQuery $message */
-
         return $message->trooper->trooper_costumes()->with('organization_costume.organization')->get();
     }
 }

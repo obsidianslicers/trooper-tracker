@@ -18,6 +18,7 @@
     "dependencies": {
         "@alpinejs/collapse": "^3.15.3",
         "@alpinejs/intersect": "^3.15.3",
+        "@alpinejs/mask": "^3.15.4",
         "@alpinejs/persist": "^3.15.3",
         "alpinejs": "^3.15.3",
         "bootstrap": "^5.2.3",

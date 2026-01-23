@@ -11,7 +11,7 @@
         <x-card>
             <form method="POST"
                   novalidate="novalidate"
-                  x-data="Admin.Events.eventCreation({ mode: '{{ $mode }}', organizationId: {{ $event->organization_id ?? 'null' }}, organizationName: '{{ $event->organization?->name ?? 'null' }}', clubName: '{{ $event->organization?->getSourceClub()?->name ?? 'null' }}' })">
+                  x-data="Admin.Events.eventCreation({ mode: '{{ $mode }}', organizationId: {{ $event->organization_id ?? 'null' }}, organizationName: '{{ $event->organization?->name ?? 'null' }}', clubName: '{{ $event->organization?->getPrimaryClub()?->name ?? 'null' }}' })">
                 @csrf
 
                 <x-message>

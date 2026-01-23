@@ -16,7 +16,8 @@ class EventFactory extends Factory
     public function definition(): array
     {
         return [
-            Event::ORGANIZATION_ID => \App\Models\Organization::factory(),
+            Event::ORGANIZATION_ID => $this->faker->randomDigitNotNull(),
+            Event::PRIMARY_ORGANIZATION_ID => \App\Models\Organization::factory(),
             Event::NAME => $this->faker->name(),
             Event::TYPE => $this->faker->word(),
             Event::STATUS => $this->faker->word(),

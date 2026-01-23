@@ -9,7 +9,15 @@ use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 class SanitizeHtmlCast implements CastsAttributes
 {
     /**
-     * Decode HTML entities and strip tags on get.
+     * Transform the attribute from the underlying model value.
+     *
+     * Returns the value as-is without modification (sanitization occurs on set).
+     *
+     * @param mixed $model The model instance.
+     * @param string $key The attribute key.
+     * @param mixed $value The raw value from the database.
+     * @param array $attributes All model attributes.
+     * @return string|null The unchanged value.
      */
     public function get($model, string $key, $value, array $attributes)
     {
@@ -22,7 +30,15 @@ class SanitizeHtmlCast implements CastsAttributes
     }
 
     /**
-     * Pass-through on set (optional: sanitize on write if desired).
+     * Transform the attribute to its underlying model value.
+     *
+     * Decodes HTML entities and strips all HTML tags before storing in the database.
+     *
+     * @param mixed $model The model instance.
+     * @param string $key The attribute key.
+     * @param mixed $value The value to be stored.
+     * @param array $attributes All model attributes.
+     * @return string|null The sanitized value with tags stripped.
      */
     public function set($model, string $key, $value, array $attributes)
     {

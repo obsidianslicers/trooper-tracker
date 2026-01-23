@@ -31,12 +31,13 @@ class CreateCostumeSubmitController extends Controller
     /**
      * Handle the incoming request to create a new costume.
      *
-     * Validates the request, creates a new costume under the given parent organization,
-     * determines its type, saves it, and then redirects with a success message.
+     * Validates the request, creates a new OrganizationCostume record under the given
+     * organization, saves it, and redirects to the costumes management page with a
+     * success message.
      *
      * @param CreateCostumeRequest $request The validated request containing the new costume's data.
-     * @param Organization $organization The parent organization.
-     * @return RedirectResponse A redirect response to the organization list.
+     * @param Organization $organization The organization to create the costume for.
+     * @return RedirectResponse A redirect to the organization's costumes management page.
      */
     public function __invoke(CreateCostumeRequest $request, Organization $organization): RedirectResponse
     {

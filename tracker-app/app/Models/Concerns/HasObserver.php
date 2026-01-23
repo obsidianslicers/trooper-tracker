@@ -7,12 +7,24 @@ namespace App\Models\Concerns;
 use Illuminate\Support\Str;
 use RuntimeException;
 
+/**
+ * Provides automatic observer registration for models.
+ *
+ * This trait automatically registers a model observer class based on the model's
+ * class name. It expects an observer class to exist at App\Models\Observers\{ModelName}Observer.
+ * Throws a RuntimeException if the expected observer class is not found.
+ */
 trait HasObserver
 {
     /**
-     * Bootstrap the trait.
+     * Boot the HasObserver trait for a model.
+     *
+     * Automatically detects and registers an observer class based on the model's
+     * class name. For example, a Trooper model will look for TrooperObserver.
+     * Throws RuntimeException if the observer class doesn't exist.
      *
      * @return void
+     * @throws RuntimeException If the expected observer class is not found.
      */
     public static function bootHasObserver()
     {

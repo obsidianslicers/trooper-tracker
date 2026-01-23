@@ -35,7 +35,6 @@ readonly class GetOrganizationsForPickerQueryHandler implements QueryHandlerInte
      */
     public function __invoke(object $message): mixed
     {
-        /** @var GetOrganizationsForPickerQuery $message */
         $organizations = collect([]);
 
         if ($message->moderated_only)

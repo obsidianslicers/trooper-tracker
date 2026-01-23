@@ -4,7 +4,29 @@
 
 @section('content')
 
-    <x-dashboard-cards>
+    <x-dashboard-cards x-data="Admin.cardNavigator()"
+                       x-on:click="navigate">
+        @if($not_approved)
+            <x-dashboard-card :label="'Trooper Approvals'"
+                              :icon="'fa-user-check'"
+                              :url="route('admin.troopers.approvals')">
+                <p class="text-warning">
+                    {{ $not_approved }} awaiting approval
+                </p>
+            </x-dashboard-card>
+        @endif
+        <x-dashboard-card :label="'Troopers'"
+                          :icon="'fa-users-gear'"
+                          :url="route('admin.troopers.list')">
+            Manage Trooper's profile, authority, and memberships.
+        </x-dashboard-card>
+        <x-dashboard-card :label="'Notices to the Troops'"
+                          :icon="'fa-message'"
+                          :url="route('admin.notices.list')">
+            <p>
+                Manage Site Messages
+            </p>
+        </x-dashboard-card>
         <x-dashboard-card :label="'Events'"
                           :icon="'fa-calendar-days'"
                           :url="route('admin.events.list')">
@@ -19,24 +41,6 @@
                 Create, Update Awards, as well as assign them to troopers
             </p>
         </x-dashboard-card>
-        <x-dashboard-card :label="'Troopers'"
-                          :icon="'fa-users-gear'"
-                          :url="$not_approved > 0 ? route('admin.troopers.approvals') : '#'">
-            @if($not_approved)
-                <p class="text-warning">
-                    {{ $not_approved }} awaiting approval
-                </p>
-            @else
-                Approve and Manage Troopers
-            @endif
-        </x-dashboard-card>
-        <x-dashboard-card :label="'Notices to the Troops'"
-                          :icon="'fa-message'"
-                          :url="route('admin.notices.list')">
-            <p>
-                Manage Site Messages
-            </p>
-        </x-dashboard-card>
         <x-dashboard-card :label="'Organizations'"
                           :icon="'fa-wrench'"
                           :url="route('admin.organizations.list')">
@@ -44,29 +48,13 @@
                 Create, Update, and Manage Organizations, Regions, Units
             </p>
         </x-dashboard-card>
-        <x-dashboard-card :label="'Reports'"
-                          :icon="'fa-wrench'"
-                          :url="'#'">
+        <x-dashboard-card :label="'Reports & Stats'"
+                          :icon="'fa-file-lines'"
+                          :url="route('admin.reports.display')">
             <p>
-                TODO: View Reports
+                View Reports &amp; Statistics
             </p>
         </x-dashboard-card>
     </x-dashboard-cards>
 
-@endsection
-
-@section('page-script')
-    <script type="text/javascript">
-        document.addEventListener('DOMContentLoaded', function () {
-            const cards = document.querySelectorAll('.card[data-route]');
-            cards.forEach(function (card) {
-                card.addEventListener('click', function () {
-                    const route = card.getAttribute('data-route');
-                    if (route) {
-                        window.location.href = route;
-                    }
-                });
-            });
-        });
-    </script>
 @endsection

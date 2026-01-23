@@ -22,9 +22,11 @@ class EventOrganization extends BaseEventOrganization
     use HasEventOrganizationScopes;
 
     /**
-     * Get all troopers associated with this event through event shifts.
+     * Get all event troopers associated with this event organization through event shifts.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
+     * The relationship traverses: EventOrganization -> Event -> EventShift -> EventTrooper
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough<EventTrooper>
      */
     public function troopers(): HasManyThrough
     {

@@ -33,7 +33,6 @@ readonly class GetOrganizationCostumesQueryHandler implements QueryHandlerInterf
      */
     public function __invoke(object $message): mixed
     {
-        /** @var GetOrganizationCostumesQuery $message */
         $with = [
             'organization_costumes' => function ($q)
             {

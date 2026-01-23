@@ -13,32 +13,32 @@ class OrganizationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_get_source_club_returns_self_when_top_level(): void
+    public function test_get_primary_organization_returns_self_when_top_level(): void
     {
         // Arrange
         $club = Organization::factory()->create(); // Default is ORGANIZATION (top level)
 
         // Act
-        $source_club = $club->getSourceClub();
+        $source_club = $club->getPrimaryClub();
 
         // Assert
         $this->assertSame($club->id, $source_club->id);
     }
 
-    public function test_get_source_club_returns_parent_when_one_level_deep(): void
+    public function test_get_primary_organization_returns_parent_when_one_level_deep(): void
     {
         // Arrange
         $club = Organization::factory()->create();
         $region = Organization::factory()->region()->create(['parent_id' => $club->id]);
 
         // Act
-        $source_club = $region->getSourceClub();
+        $source_club = $region->getPrimaryClub();
 
         // Assert
         $this->assertSame($club->id, $source_club->id);
     }
 
-    public function test_get_source_club_returns_top_level_when_multiple_levels_deep(): void
+    public function test_get_primary_organization_returns_top_level_when_multiple_levels_deep(): void
     {
         // Arrange
         $club = Organization::factory()->create();
@@ -46,7 +46,7 @@ class OrganizationTest extends TestCase
         $unit = Organization::factory()->unit()->create(['parent_id' => $region->id]);
 
         // Act
-        $source_club = $unit->getSourceClub();
+        $source_club = $unit->getPrimaryClub();
 
         // Assert
         $this->assertSame($club->id, $source_club->id);

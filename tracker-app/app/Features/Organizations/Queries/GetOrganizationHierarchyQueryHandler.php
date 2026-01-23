@@ -8,10 +8,10 @@ use App\Bus\Contracts\QueryHandlerInterface;
 use App\Models\Organization;
 
 /**
- * Handler for retrieving all organizations of type 'organization'.
+ * Handler for retrieving the organization hierarchy.
  *
- * Filters organizations using the ofTypeOrganizations() scope to exclude
- * regions and units from the results. Returns organizations ordered by name.
+ * Returns a nested hierarchical structure of organizations → regions → units.
+ * Each level contains 'id', 'name', and nested children arrays.
  *
  * @implements QueryHandlerInterface<GetOrganizationHierarchyQuery>
  */
@@ -39,7 +39,6 @@ readonly class GetOrganizationHierarchyQueryHandler implements QueryHandlerInter
      */
     public function __invoke(object $message): mixed
     {
-        /** @var GetOrganizationHierarchyQuery $message */
         $q = Organization::fullyLoaded();
 
         if ($message->organization_id !== null)

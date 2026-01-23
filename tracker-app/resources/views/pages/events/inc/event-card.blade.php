@@ -9,10 +9,14 @@
          data-route="{{ route('events.display', compact('event')) }}">
         <div class="card-header {{ $bg }} d-flex align-items-center">
             <span class="p-2">
-                <x-logo :storage_path="$event->organization->image_path_sm ?? ''"
-                        :default_path="'img/icons/organization-32x32.png'"
-                        :width="32"
-                        :height="32" />
+                @if($event->at_risk)
+                    <i class="fa fa-fw fa-warning fa-2x pe-2"></i>
+                @else
+                    <x-logo :storage_path="$event->organization->image_path_sm ?? ''"
+                            :default_path="'img/icons/organization-32x32.png'"
+                            :width="32"
+                            :height="32" />
+                @endif
             </span>
             <span class="p-1 text-white">
                 {{ $event->name }}
@@ -20,6 +24,11 @@
         </div>
 
         <div class="card-body">
+            @if($event->at_risk)
+                <p class="card-text text-muted">
+                    At risk of cancellation
+                </p>
+            @endif
             <p class="card-text">
                 <a href="https://www.google.com/maps/search/?api=1&query={{ $event->venue_address }}"
                    target="_blank"

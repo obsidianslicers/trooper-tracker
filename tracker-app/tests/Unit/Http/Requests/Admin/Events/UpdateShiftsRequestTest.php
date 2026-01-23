@@ -31,7 +31,7 @@ class UpdateShiftsRequestTest extends TestCase
             ->asModerator()
             ->withAssignment($this->organization, moderator: true)
             ->create();
-        $this->event = Event::factory()->for($this->organization)->create();
+        $this->event = Event::factory()->withOrganization($this->organization)->create();
 
         $this->subject->setUserResolver(fn() => $this->user);
         $this->subject->setRouteResolver(function ()
@@ -359,7 +359,7 @@ class UpdateShiftsRequestTest extends TestCase
         // Arrange
         $unit = Organization::factory()->unit()->create();
         $region = $unit->parent;
-        $unit_event = Event::factory()->for($unit)->create();
+        $unit_event = Event::factory()->withOrganization($unit)->create();
 
         $moderator = Trooper::factory()
             ->asModerator()

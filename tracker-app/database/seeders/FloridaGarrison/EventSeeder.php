@@ -11,6 +11,7 @@ use App\Models\Event;
 use App\Models\EventOrganization;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
+use App\Models\Observers\EventObserver;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
@@ -83,11 +84,13 @@ class EventSeeder extends Seeder
         if ($legacy->squad <= 0)
         {
             $event->organization_id = $fl_garrison->id;
+            $event->primary_organization_id = $fl_garrison->getPrimaryClub()->id;
         }
         else
         {
             $unit = $this->getOrganization($this->squad_maps[$legacy->squad]['id']);
             $event->organization_id = $unit->id;
+            $event->primary_organization_id = $unit->getPrimaryClub()->id;
         }
     }
 

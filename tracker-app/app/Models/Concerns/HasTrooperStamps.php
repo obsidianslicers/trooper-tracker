@@ -8,8 +8,24 @@ use App\Models\Trooper;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Auth;
 
+/**
+ * Provides automatic trooper stamping for model lifecycle events.
+ *
+ * This trait automatically records which authenticated trooper created, updated,
+ * or deleted a model by setting created_id, updated_id, and deleted_id fields.
+ * It also provides relationships to access the associated Trooper models.
+ */
 trait HasTrooperStamps
 {
+    /**
+     * Boot the HasTrooperStamps trait for a model.
+     *
+     * Registers event listeners for creating, updating, restoring, and deleting
+     * events to automatically set trooper ID fields based on the authenticated user.
+     * For soft-deleting models, sets deleted_id on deletion and clears it on restore.
+     *
+     * @return void
+     */
     public static function bootHasTrooperStamps(): void
     {
         static::creating(function ($model)
@@ -55,9 +71,9 @@ trait HasTrooperStamps
     }
 
     /**
-     * Get the user that created the model.
+     * Get the trooper that created the model.
      *
-     * @return BelongsTo
+     * @return BelongsTo<Trooper, self>
      */
     public function created_by(): BelongsTo
     {
@@ -65,9 +81,9 @@ trait HasTrooperStamps
     }
 
     /**
-     * Get the user that edited the model.
+     * Get the trooper that last updated the model.
      *
-     * @return BelongsTo
+     * @return BelongsTo<Trooper, self>
      */
     public function updated_by(): BelongsTo
     {
@@ -75,9 +91,9 @@ trait HasTrooperStamps
     }
 
     /**
-     * Get the user that deleted the model.
+     * Get the trooper that soft-deleted the model.
      *
-     * @return BelongsTo
+     * @return BelongsTo<Trooper, self>
      */
     public function deleted_by(): BelongsTo
     {
@@ -85,9 +101,9 @@ trait HasTrooperStamps
     }
 
     /**
-     * Has the model loaded the SoftDeletes trait.
+     * Check if the model uses the SoftDeletes trait.
      *
-     * @return bool
+     * @return bool True if the model uses SoftDeletes, false otherwise.
      */
     private static function usingSoftDeletes(): bool
     {

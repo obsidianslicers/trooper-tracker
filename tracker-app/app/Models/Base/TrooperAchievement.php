@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $id
  * @property int $trooper_id
  * @property int|null $trooper_rank
+ * @property int|null $trooper_events
  * @property bool $trooped_all_squads
  * @property bool $first_troop_completed
  * @property bool $trooped_10
@@ -49,6 +50,7 @@ class TrooperAchievement extends Model
     const ID = 'id';
     const TROOPER_ID = 'trooper_id';
     const TROOPER_RANK = 'trooper_rank';
+    const TROOPER_EVENTS = 'trooper_events';
     const TROOPED_ALL_SQUADS = 'trooped_all_squads';
     const FIRST_TROOP_COMPLETED = 'first_troop_completed';
     const TROOPED_10 = 'trooped_10';
@@ -75,6 +77,7 @@ class TrooperAchievement extends Model
         self::ID => 'int',
         self::TROOPER_ID => 'int',
         self::TROOPER_RANK => 'int',
+        self::TROOPER_EVENTS => 'int',
         self::TROOPED_ALL_SQUADS => 'bool',
         self::FIRST_TROOP_COMPLETED => 'bool',
         self::TROOPED_10 => 'bool',
@@ -99,6 +102,7 @@ class TrooperAchievement extends Model
     protected $fillable = [
         self::TROOPER_ID,
         self::TROOPER_RANK,
+        self::TROOPER_EVENTS,
         self::TROOPED_ALL_SQUADS,
         self::FIRST_TROOP_COMPLETED,
         self::TROOPED_10,

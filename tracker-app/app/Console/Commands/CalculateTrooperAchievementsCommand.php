@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Enums\EventStatus;
-use App\Models\TrooperAchievement;
-use DB;
+use App\Bus\MagicBus;
+use App\Features\Troopers\Commands\StoreTrooperAchievementsCommand;
+use App\Features\Troopers\Queries\GetTrooperEventStatsQuery;
 use Illuminate\Console\Command;
-use Illuminate\Support\Collection;
 
 /**
  * Artisan command to calculate and store trooper achievements based on their event history.
@@ -36,84 +35,19 @@ class CalculateTrooperAchievementsCommand extends Command
     /**
      * Execute the console command.
      *
+     * Orchestrates the achievement calculation process by:
+     * 1. Dispatching GetTrooperEventStatsQuery to retrieve aggregated event statistics
+     * 2. Dispatching StoreTrooperAchievementsCommand to process and store achievements
+     *
+     * @param MagicBus $bus The message bus for dispatching queries and commands
      * @return void
      */
-    public function handle(): void
+    public function handle(MagicBus $bus): void
     {
-        $this->storeAchievements();
-    }
-
-    /**
-     * Fetches trooper event statistics and stores their achievements.
-     *
-     * This method iterates through each trooper's aggregated event data,
-     * determines which achievements they have earned, and updates the
-     * `trooper_achievements` table accordingly.
-     *
-     * @return void
-     */
-    private function storeAchievements(): void
-    {
-        $trooper_events = $this->getTrooperEvents();
+        $trooper_events = $bus->send(new GetTrooperEventStatsQuery());
 
         $this->info("Storing trooper achievements...Count={$trooper_events->count()}");
 
-        for ($i = 0, $len = $trooper_events->count(); $i < $len; $i++)
-        {
-            $trooper_event = $trooper_events[$i];
-            $count = $trooper_event->event_count;
-            $hours = $trooper_event->total_hours;
-            $direct_funds = $trooper_event->total_direct;
-            $indirect_funds = $trooper_event->total_indirect;
-
-            $where = [TrooperAchievement::TROOPER_ID => $trooper_events[$i]->trooper_id];
-
-            $values = [
-                TrooperAchievement::TROOPER_RANK => ($i + 1),
-                TrooperAchievement::FIRST_TROOP_COMPLETED => $count >= 1,
-                TrooperAchievement::TROOPED_10 => $count >= 10,
-                TrooperAchievement::TROOPED_25 => $count >= 25,
-                TrooperAchievement::TROOPED_50 => $count >= 50,
-                TrooperAchievement::TROOPED_75 => $count >= 75,
-                TrooperAchievement::TROOPED_100 => $count >= 100,
-                TrooperAchievement::TROOPED_150 => $count >= 150,
-                TrooperAchievement::TROOPED_200 => $count >= 200,
-                TrooperAchievement::TROOPED_250 => $count >= 250,
-                TrooperAchievement::TROOPED_300 => $count >= 300,
-                TrooperAchievement::TROOPED_400 => $count >= 400,
-                TrooperAchievement::TROOPED_500 => $count >= 500,
-                TrooperAchievement::TROOPED_501 => $count >= 501,
-                TrooperAchievement::VOLUNTEER_HOURS => $hours,
-                TrooperAchievement::DIRECT_FUNDS => $direct_funds,
-                TrooperAchievement::INDIRECT_FUNDS => $indirect_funds,
-            ];
-
-            TrooperAchievement::updateOrCreate($where, $values);
-        }
-    }
-
-    /**
-     * Retrieves aggregated event data for all troopers.
-     *
-     * @return Collection
-     */
-    private function getTrooperEvents(): Collection
-    {
-        $select = 'tt_event_troopers.trooper_id, ' .
-            'COUNT(1) as event_count, ' .
-            'SUM(tt_events.charity_direct_funds) as total_direct, ' .
-            'SUM(tt_events.charity_indirect_funds) as total_indirect, ' .
-            'SUM(TIMESTAMPDIFF(HOUR, tt_event_shifts.shift_starts_at, tt_event_shifts.shift_ends_at) + tt_events.charity_hours) as total_hours';
-
-        $trooper_events = DB::table('tt_event_troopers')
-            ->selectRaw($select)
-            ->join('tt_event_shifts', 'tt_event_troopers.event_shift_id', '=', 'tt_event_shifts.id')
-            ->join('tt_events', 'tt_event_shifts.event_id', '=', 'tt_events.id')
-            ->where('tt_events.status', EventStatus::CLOSED)
-            ->groupBy('tt_event_troopers.trooper_id')
-            ->orderByDesc('event_count')
-            ->get();
-
-        return $trooper_events;
+        $bus->send(new StoreTrooperAchievementsCommand($trooper_events));
     }
 }

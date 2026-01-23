@@ -21,35 +21,38 @@ use App\Models\TrooperAssignment;
 readonly class UpdateTrooperMembershipsCommandHandler implements CommandHandlerInterface
 {
     /**
-     * Execute the command to update memberships.
+     * Execute the command to update trooper organization memberships.
      *
-     * @param UpdateTrooperMembershipsCommand $message The command with trooper and membership data
+     * Syncs TrooperAssignment records (is_member flags) for each organization
+     * based on the valid_data array. Creates, updates, or deletes assignments
+     * as needed to match the submitted form data.
+     *
+     * @param UpdateTrooperMembershipsCommand $message The command with trooper and membership assignment data
      * @return null
      */
     public function __invoke(object $message): mixed
     {
-        /** @var UpdateTrooperMembershipsCommand $message */
         foreach ($message->valid_data as $organization_id => $data)
         {
-            $assignmentId = $data['assignment'] ?? null;
+            $assignment_id = $data['assignment'] ?? null;
 
-            if (!$assignmentId)
+            if (!$assignment_id)
             {
                 continue;
             }
 
-            $assignment = $message->trooper->trooper_assignments
-                ->firstWhere('organization_id', $assignmentId);
+            $trooper_assignment = $message->trooper->trooper_assignments
+                ->firstWhere('organization_id', $assignment_id);
 
-            if (!$assignment)
+            if (!$trooper_assignment)
             {
-                $assignment = new TrooperAssignment();
-                $assignment->trooper_id = $message->trooper->id;
-                $assignment->organization_id = $assignmentId;
+                $trooper_assignment = new TrooperAssignment();
+                $trooper_assignment->trooper_id = $message->trooper->id;
+                $trooper_assignment->organization_id = $assignment_id;
             }
 
-            $assignment->is_member = true;
-            $assignment->save();
+            $trooper_assignment->is_member = true;
+            $trooper_assignment->save();
         }
 
         return null;

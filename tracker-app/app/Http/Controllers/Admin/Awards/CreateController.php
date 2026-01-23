@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Awards;
 
-use App\Enums\AwardType;
 use App\Http\Controllers\Controller;
 use App\Models\Award;
 use App\Models\Organization;
@@ -12,7 +11,6 @@ use App\Models\Trooper;
 use App\Services\BreadCrumbService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Class CreateController

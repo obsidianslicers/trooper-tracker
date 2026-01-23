@@ -35,8 +35,6 @@ readonly class GetTroopersForEventCreatedQueryHandler implements QueryHandlerInt
      */
     public function __invoke(object $message): mixed
     {
-        /** @var GetTroopersForEventCreatedQuery $message */
-
         $organization_id = $message->event->organization_id;
 
         return Trooper::active()

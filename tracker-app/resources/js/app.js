@@ -36,11 +36,13 @@ import Alpine from 'alpinejs';
 
 import collapse from '@alpinejs/collapse';
 import intersect from '@alpinejs/intersect';
+import mask from '@alpinejs/mask';
 import persist from '@alpinejs/persist';
 
 Alpine.plugin(collapse);
 Alpine.plugin(persist);
 Alpine.plugin(intersect);
+Alpine.plugin(mask);
 
 import AuthPlugin from './auth/index.js';
 Alpine.plugin(AuthPlugin);

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\EventTrooperStatus;
 use App\Models\Base\EventTrooper as BaseEventTrooper;
+use App\Models\Concerns\HasAuditTrail;
 use App\Models\Concerns\HasTrooperStamps;
 use App\Models\Scopes\HasEventTrooperScopes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -22,6 +23,29 @@ class EventTrooper extends BaseEventTrooper
     use HasEventTrooperScopes;
     use HasFactory;
     use HasTrooperStamps;
+    use HasAuditTrail;
+
+    /**
+     * Define the model attributes should be audited for changes.
+     *
+     * @return array<int, string> Array of attribute names to audit.
+     */
+    protected function audits(): array
+    {
+        return [
+            self::STATUS,
+        ];
+    }
+
+    /**
+     * Get a human-readable label for the trooper.
+     *
+     * @return string The label representing the trooper.
+     */
+    public function getAuditLabel(): string
+    {
+        return $this->event_shift->event->name . ' (' . $this->event_shift->time_display . ')';
+    }
 
     /**
      * Get the attributes that should be cast.

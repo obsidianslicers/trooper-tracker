@@ -15,14 +15,14 @@
             @csrf
 
             <div x-data="{ membership_role: '{{ $trooper->membership_role->value }}' }">
-            
+
                 <x-input-container>
                     <x-label>
                         Trooper:
                     </x-label>
                     <x-input-text :property="'trooper_name'"
-                                :disabled="true"
-                                :value="$trooper->name" />
+                                  :disabled="true"
+                                  :value="$trooper->name" />
                 </x-input-container>
 
                 <x-input-container>
@@ -70,24 +70,24 @@
                                 @foreach(range(0, $organization->depth - 1) as $i)
                                     <i class="fa fa-fw"></i>
                                 @endforeach
-                                <label for="{{'moderators.' . $organization->id . '.selected'}}">
+                                <label for="{{'organizations.' . $organization->id . '.is_moderator'}}">
                                     {{ $organization->name }}
                                 </label>
                             </td>
                             <td class="cascade">
                                 @if($organization->type != \App\Enums\OrganizationType::ORGANIZATION)
-                                    <x-input-checkbox :property="'moderators.' . $organization->id . '.selected'"
-                                                    :checked="$parent_selected || ($trooper_assignment->is_moderator ?? false)"
-                                                    :disabled="$parent_selected && $organization->type == \App\Enums\OrganizationType::UNIT" />
+                                    <x-input-checkbox :property="'organizations.' . $organization->id . '.is_moderator'"
+                                                      :checked="$parent_selected || ($trooper_assignment->is_moderator ?? false)"
+                                                      :disabled="$parent_selected && $organization->type == \App\Enums\OrganizationType::UNIT" />
                                 @endif
                             </td>
                             <td class="text-center">
                                 <x-yes-no :blank="true"
-                                        :value="$trooper_assignment->can_notify ?? false" />
+                                          :value="$trooper_assignment->can_notify ?? false" />
                             </td>
                             <td class="text-center">
                                 <x-yes-no :blank="true"
-                                        :value="$trooper_assignment->is_member ?? false" />
+                                          :value="$trooper_assignment->is_member ?? false" />
                             </td>
                         </tr>
                         @endforeach

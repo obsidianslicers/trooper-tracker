@@ -28,13 +28,15 @@ readonly class GetTrooperNoticesQueryHandler implements QueryHandlerInterface
      * - Trooper's organization memberships
      * - Global notices (organization_id is null)
      * - Active status (is_active = true)
+     * - Unread only (unread_only = true filters to notices not yet read)
+     *
+     * Results are ordered by starts_at timestamp (ascending).
      *
      * @param GetTrooperNoticesQuery $message The query containing the trooper
      * @return \Illuminate\Support\Collection<int, Notice> Collection of visible notices
      */
     public function __invoke(object $message): mixed
     {
-        /** @var GetTrooperNoticesQuery $message */
         return Notice::visibleTo($message->trooper, true)
             ->orderBy(Notice::STARTS_AT)
             ->get();

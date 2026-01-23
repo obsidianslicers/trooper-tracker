@@ -24,6 +24,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * 
  * @property int $id
  * @property int $organization_id
+ * @property int $primary_organization_id
  * @property string $name
  * @property string $type
  * @property string $status
@@ -85,6 +86,7 @@ class Event extends Model
     use SoftDeletes;
     const ID = 'id';
     const ORGANIZATION_ID = 'organization_id';
+    const PRIMARY_ORGANIZATION_ID = 'primary_organization_id';
     const NAME = 'name';
     const TYPE = 'type';
     const STATUS = 'status';
@@ -137,6 +139,7 @@ class Event extends Model
     protected $casts = [
         self::ID => 'int',
         self::ORGANIZATION_ID => 'int',
+        self::PRIMARY_ORGANIZATION_ID => 'int',
         self::CREATE_NOTIFICATIONS_SENT_AT => 'datetime',
         self::CANCEL_NOTIFICATIONS_SENT_AT => 'datetime',
         self::LATITUDE => 'float',
@@ -167,6 +170,7 @@ class Event extends Model
 
     protected $fillable = [
         self::ORGANIZATION_ID,
+        self::PRIMARY_ORGANIZATION_ID,
         self::NAME,
         self::TYPE,
         self::STATUS,
@@ -212,7 +216,7 @@ class Event extends Model
 
     public function organization(): BelongsTo
     {
-        return $this->belongsTo(Organization::class);
+        return $this->belongsTo(Organization::class, \App\Models\Event::PRIMARY_ORGANIZATION_ID);
     }
 
     public function event_notifications(): HasMany

@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Bus\MagicBus;
 use App\Enums\EventStatus;
-use App\Services\Events\GetEventsToCloseQuery;
+use App\Features\Events\Queries\GetEventsToCloseQuery;
 use Illuminate\Console\Command;
 
 /**
@@ -35,15 +36,15 @@ class CloseEventsCommand extends Command
      * Execute the console command.
      *
      * Orchestrates the event closing process by:
-     * 1. Querying for active events that have ended via GetEventsToCloseQuery
+     * 1. Dispatching GetEventsToCloseQuery to retrieve active events that have ended
      * 2. Updating each event's status to CLOSED
      *
-     * @param GetEventsToCloseQuery $get_events_to_close Service to retrieve events needing closure
+     * @param MagicBus $bus The message bus for dispatching queries
      * @return void
      */
-    public function handle(GetEventsToCloseQuery $get_events_to_close): void
+    public function handle(MagicBus $bus): void
     {
-        $events = $get_events_to_close();
+        $events = $bus->send(new GetEventsToCloseQuery());
 
         foreach ($events as $event)
         {

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Troopers;
 
-use App\Http\Controllers\Controller;
+use App\Features\Troopers\Commands\UpdateTrooperCommand;
+use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Troopers\ProfileRequest;
 use App\Models\Trooper;
-use App\Services\FlashMessageService;
 use Illuminate\Http\RedirectResponse;
 
 /**
@@ -16,17 +16,8 @@ use Illuminate\Http\RedirectResponse;
  * Handles the form submission for updating a trooper's profile.
  * @package App\Http\Controllers\Admin\Troopers
  */
-class ProfileSubmitController extends Controller
+class ProfileSubmitController extends MagicBusController
 {
-    /**
-     * ProfileSubmitController constructor.
-     *
-     * @param FlashMessageService $flash The service for creating flash messages.
-     */
-    public function __construct(private readonly FlashMessageService $flash)
-    {
-    }
-
     /**
      * Handle the incoming request to update a trooper's profile information.
      *
@@ -40,12 +31,9 @@ class ProfileSubmitController extends Controller
      */
     public function __invoke(ProfileRequest $request, Trooper $trooper): RedirectResponse
     {
-        $trooper->name = $request->name;
-        $trooper->email = $request->email;
-        $trooper->phone = $request->phone;
-        $trooper->membership_status = $request->membership_status;
+        $profile_cmd = new UpdateTrooperCommand($trooper, $request->validated());
 
-        $trooper->save();
+        $this->bus->send($profile_cmd);
 
         $this->flash->updated($trooper);
 

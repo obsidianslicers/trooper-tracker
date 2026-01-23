@@ -6,12 +6,12 @@ namespace Tests\Unit\Services\Troopers;
 
 use App\Enums\MembershipRole;
 use App\Models\Trooper;
-use App\Services\Troopers\GetTrooperAdministratorsQuery;
+use App\Services\Troopers\GetTroopersByRoleQuery;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Unit tests for GetTrooperAdministratorsQuery.
+ * Unit tests for GetTroopersByRoleQuery.
  *
  * Verifies:
  * - Retrieves all troopers with administrator role
@@ -19,14 +19,14 @@ use Tests\TestCase;
  * - Excludes non-administrator troopers
  * - Returns Collection instance
  */
-class GetTrooperAdministratorsQueryTest extends TestCase
+class GetTroopersByRoleQueryTest extends TestCase
 {
     use RefreshDatabase;
 
     public function test_invoke_returns_collection(): void
     {
         // Arrange
-        $subject = new GetTrooperAdministratorsQuery();
+        $subject = new GetTroopersByRoleQuery();
 
         // Act
         $result = $subject();
@@ -38,7 +38,7 @@ class GetTrooperAdministratorsQueryTest extends TestCase
     public function test_invoke_returns_all_administrator_troopers(): void
     {
         // Arrange
-        $subject = new GetTrooperAdministratorsQuery();
+        $subject = new GetTroopersByRoleQuery();
         $admin1 = Trooper::factory()->asAdministrator()->create();
         $admin2 = Trooper::factory()->asAdministrator()->create();
         $admin3 = Trooper::factory()->asAdministrator()->create();
@@ -56,7 +56,7 @@ class GetTrooperAdministratorsQueryTest extends TestCase
     public function test_invoke_excludes_non_administrator_troopers(): void
     {
         // Arrange
-        $subject = new GetTrooperAdministratorsQuery();
+        $subject = new GetTroopersByRoleQuery();
         $admin = Trooper::factory()->asAdministrator()->create();
         $moderator = Trooper::factory()->asModerator()->create();
         $regular = Trooper::factory()->asActive()->create();
@@ -74,7 +74,7 @@ class GetTrooperAdministratorsQueryTest extends TestCase
     public function test_invoke_returns_empty_collection_when_no_administrators(): void
     {
         // Arrange
-        $subject = new GetTrooperAdministratorsQuery();
+        $subject = new GetTroopersByRoleQuery();
         Trooper::factory()->asActive()->create();
         Trooper::factory()->asModerator()->create();
 
@@ -88,7 +88,7 @@ class GetTrooperAdministratorsQueryTest extends TestCase
     public function test_invoke_filters_by_membership_role_administrator(): void
     {
         // Arrange
-        $subject = new GetTrooperAdministratorsQuery();
+        $subject = new GetTroopersByRoleQuery();
         Trooper::factory()->create([
             Trooper::MEMBERSHIP_ROLE => MembershipRole::ADMINISTRATOR,
         ]);
@@ -110,7 +110,7 @@ class GetTrooperAdministratorsQueryTest extends TestCase
     public function test_invoke_returns_all_matching_records_without_pagination(): void
     {
         // Arrange
-        $subject = new GetTrooperAdministratorsQuery();
+        $subject = new GetTroopersByRoleQuery();
 
         // Create many administrators
         for ($i = 0; $i < 25; $i++)
@@ -128,7 +128,7 @@ class GetTrooperAdministratorsQueryTest extends TestCase
     public function test_invoke_includes_pending_administrators(): void
     {
         // Arrange
-        $subject = new GetTrooperAdministratorsQuery();
+        $subject = new GetTroopersByRoleQuery();
         $pending_admin = Trooper::factory()->asPending()->create([
             Trooper::MEMBERSHIP_ROLE => MembershipRole::ADMINISTRATOR,
         ]);
@@ -144,7 +144,7 @@ class GetTrooperAdministratorsQueryTest extends TestCase
     public function test_invoke_includes_retired_administrators(): void
     {
         // Arrange
-        $subject = new GetTrooperAdministratorsQuery();
+        $subject = new GetTroopersByRoleQuery();
         $retired_admin = Trooper::factory()->asRetired()->create([
             Trooper::MEMBERSHIP_ROLE => MembershipRole::ADMINISTRATOR,
         ]);
@@ -160,7 +160,7 @@ class GetTrooperAdministratorsQueryTest extends TestCase
     public function test_invoke_returns_trooper_instances(): void
     {
         // Arrange
-        $subject = new GetTrooperAdministratorsQuery();
+        $subject = new GetTroopersByRoleQuery();
         Trooper::factory()->asAdministrator()->create();
 
         // Act
@@ -173,7 +173,7 @@ class GetTrooperAdministratorsQueryTest extends TestCase
     public function test_invoke_preserves_trooper_attributes(): void
     {
         // Arrange
-        $subject = new GetTrooperAdministratorsQuery();
+        $subject = new GetTroopersByRoleQuery();
         $admin = Trooper::factory()->asAdministrator()->create([
             Trooper::NAME => 'Admin Trooper',
             Trooper::EMAIL => 'admin@501st.com',
@@ -192,7 +192,7 @@ class GetTrooperAdministratorsQueryTest extends TestCase
     public function test_invoke_can_be_called_multiple_times(): void
     {
         // Arrange
-        $subject = new GetTrooperAdministratorsQuery();
+        $subject = new GetTroopersByRoleQuery();
         Trooper::factory()->asAdministrator()->count(3)->create();
 
         // Act

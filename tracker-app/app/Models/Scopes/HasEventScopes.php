@@ -20,8 +20,7 @@ trait HasEventScopes
     /**
      * Scope a query to only include active events.
      *
-     * Active events are those with OPEN, DRAFT, or SIGN_UP_LOCKED status
-     * that have ended before the current time, ordered by start date.
+     * Active events are those with OPEN, DRAFT, or SIGN_UP_LOCKED status.
      *
      * @param Builder<self> $query The Eloquent query builder.
      * @return Builder<self>

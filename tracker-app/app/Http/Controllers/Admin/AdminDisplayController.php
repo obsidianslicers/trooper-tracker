@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use App\Models\Trooper;
-use App\Services\FlashMessageService;
 use Illuminate\Contracts\View\View;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 /**
@@ -17,29 +15,21 @@ use Illuminate\Http\Request;
  * This controller provides a summary of administrative tasks, such as displaying
  * the count of troopers pending approval and setting a relevant flash message.
  */
-class AdminDisplayController extends Controller
+class AdminDisplayController extends MagicBusController
 {
-    /**
-     * Creates a new AdminDisplayController instance.
-     *
-     * @param FlashMessageService $flash The flash message service.
-     */
-    public function __construct(
-        private readonly FlashMessageService $flash,
-    ) {
-    }
-
     /**
      * Handle the incoming request to display the admin dashboard.
      *
      * It calculates the number of troopers pending approval, sets a corresponding
      * flash message, and renders the main admin view.
      *
-     * @return View|RedirectResponse The rendered admin dashboard view or a redirect response.
+     * @return View The rendered admin dashboard view or a redirect response.
      */
-    public function __invoke(Request $request): View|RedirectResponse
+    public function __invoke(Request $request): View
     {
-        $not_approved = Trooper::pendingApprovals()->count();
+        $trooper = $request->user();
+
+        $not_approved = Trooper::pendingApprovals()->moderatedBy($trooper)->count();
 
         if ($not_approved == 1)
         {
@@ -55,7 +45,7 @@ class AdminDisplayController extends Controller
             $this->flash->warning($msg);
         }
 
-        $data = ['not_approved' => $not_approved];
+        $data = compact('not_approved');
 
         return view('pages.admin.display', $data);
     }

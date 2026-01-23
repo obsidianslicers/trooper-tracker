@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Organizations;
 
-use App\Enums\OrganizationType;
 use App\Http\Controllers\Controller;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
@@ -32,14 +31,14 @@ class CreateCostumeController extends Controller
     }
 
     /**
-     * Handle the request to display the organization creation page.
+     * Handle the request to display the costume creation page.
      *
      * Authorizes the user, sets up breadcrumbs, and returns the view
-     * containing the form to create a new sub-organization.
+     * containing the form to create a new costume for the organization.
      *
      * @param Request $request The incoming HTTP request object.
-     * @param Organization $organization The parent organization under which to create a new one.
-     * @return View The rendered organization creation view.
+     * @param Organization $organization The organization to create a costume for.
+     * @return View The rendered costume creation view (pages.admin.organizations.create-costume).
      */
     public function __invoke(Request $request, Organization $organization): View
     {

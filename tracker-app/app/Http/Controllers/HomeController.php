@@ -10,21 +10,20 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 /**
- * Handles the display of the main account management page.
+ * Displays the application home page.
  *
- * This controller is responsible for fetching the authenticated user's
- * data and rendering the primary account view where they can manage
- * their profile, settings, and other account-related information.
+ * This controller renders the public landing page. For authenticated troopers,
+ * it redirects to the events list. For guests, it displays the home page.
  */
 class HomeController extends MagicBusController
 {
     /**
-     * Handle the incoming request to display the account page.
+     * Handle the incoming request to display the home page.
      *
-     * This method retrieves the authenticated user's trooper profile and
-     * renders the main account management view with the trooper's data.
+     * Redirects authenticated troopers to the events list, or renders
+     * the public home page for guests.
      *
-     * @return View The rendered account page view.
+     * @return View|RedirectResponse The rendered home page view or redirect to events list.
      */
     public function __invoke(Request $request): View|RedirectResponse
     {

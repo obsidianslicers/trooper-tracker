@@ -8,12 +8,12 @@ use App\Models\Event;
 use App\Models\Trooper;
 
 /**
- * Query to retrieve events for display based on filter criteria.
+ * Query to retrieve a single event for display with all related data.
  *
- * Returns all events that match the given filter criteria, including
- * associated organizations, shifts, and other relevant details.
+ * Returns the specified event with eagerly loaded relationships including
+ * organizations, shifts, trooper sign-ups, and other relevant details.
  *
- * @see GetEventsForDisplayQueryHandler
+ * @see GetEventDisplayQueryHandler
  */
 readonly class GetEventDisplayQuery
 {
@@ -21,6 +21,7 @@ readonly class GetEventDisplayQuery
      * Create a new query instance.
      *
      * @param Event $event The event to retrieve for display
+     * @param Trooper $trooper The trooper viewing the event
      */
     public function __construct(
         public readonly Event $event,

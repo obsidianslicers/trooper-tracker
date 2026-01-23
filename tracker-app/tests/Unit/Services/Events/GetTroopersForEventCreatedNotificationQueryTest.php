@@ -33,7 +33,7 @@ class GetTroopersForEventCreatedNotificationQueryTest extends TestCase
         parent::setUp();
         $this->subject = new GetTroopersForEventCreatedNotificationQuery();
         $this->organization = Organization::factory()->create();
-        $this->event = Event::factory()->for($this->organization)->create();
+        $this->event = Event::factory()->withOrganization($this->organization)->create();
     }
 
     public function test_invoke_returns_active_trooper_with_instant_notification_and_can_notify(): void

@@ -6,7 +6,6 @@ namespace App\Features\Troopers\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Models\Organization;
-use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 
 /**
@@ -36,8 +35,6 @@ readonly class GetTrooperNotificationsQueryHandler implements QueryHandlerInterf
      */
     public function __invoke(object $message): mixed
     {
-        /** @var GetTrooperNotificationsQuery $message */
-
         $organizations = Organization::fullyLoaded()->get();
 
         $trooper_assignments = $message->trooper->trooper_assignments()

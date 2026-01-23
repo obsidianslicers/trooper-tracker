@@ -38,11 +38,12 @@
                                   x-bind:disabled="$registration_method != 'email'" />
                 </x-input-container>
 
-                <x-input-container>
+                <x-input-container x-data>
                     <x-label>
                         Phone (Optional):
                     </x-label>
-                    <x-input-text :property="'phone'" />
+                    <x-input-text :property="'phone'"
+                                  x-mask="(999) 999-9999" />
                 </x-input-container>
 
                 @if($registration_method == 'email')

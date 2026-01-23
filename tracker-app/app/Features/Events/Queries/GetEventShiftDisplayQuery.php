@@ -8,12 +8,12 @@ use App\Models\EventShift;
 use App\Models\Trooper;
 
 /**
- * Query to retrieve events for display based on filter criteria.
+ * Query to retrieve a single event shift for display with all related data.
  *
- * Returns all events that match the given filter criteria, including
- * associated organizations, shifts, and other relevant details.
+ * Returns the specified event shift with eagerly loaded relationships including
+ * the parent event, trooper sign-ups, costumes, and other relevant details.
  *
- * @see GetEventsForDisplayQueryHandler
+ * @see GetEventShiftDisplayQueryHandler
  */
 readonly class GetEventShiftDisplayQuery
 {
@@ -21,6 +21,7 @@ readonly class GetEventShiftDisplayQuery
      * Create a new query instance.
      *
      * @param EventShift $event_shift The event shift to retrieve for display
+     * @param Trooper $trooper The trooper viewing the event shift
      */
     public function __construct(
         public readonly EventShift $event_shift,

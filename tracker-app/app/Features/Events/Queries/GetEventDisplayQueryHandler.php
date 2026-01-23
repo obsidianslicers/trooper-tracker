@@ -6,39 +6,34 @@ namespace App\Features\Events\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Models\Event;
-use App\Models\EventOrganization;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\Trooper;
 
 /**
- * Handler for retrieving troopers who signed up for a cancelled event.
+ * Handler for retrieving a single event for display.
  *
- * Queries for all active troopers with a "going" status for any shift
- * belonging to the cancelled event. These troopers will receive
- * cancellation notifications regardless of their notification preferences.
+ * Returns event data with all shifts, trooper sign-ups, and related information
+ * needed for rendering the event display page.
  *
  * @implements QueryHandlerInterface<GetEventDisplayQuery>
  */
 readonly class GetEventDisplayQueryHandler implements QueryHandlerInterface
 {
     /**
-     * Execute the query to retrieve troopers for cancellation notifications.
+     * Execute the query to retrieve a single event for display.
      *
      * Process:
-     * 1. Filter active troopers
-     * 2. Find troopers with EventTrooper status = GOING
-     * 3. Join through event_shifts to match the cancelled event
-     * 4. Return collection of Trooper models
+     * 1. Load event with ID from query
+     * 2. Eager load shifts, trooper sign-ups, and related data
+     * 3. Return Event model with all relationships loaded
      *
-     * @param GetEventDisplayQuery $message The query containing the cancelled event
+     * @param GetEventDisplayQuery $message The query containing the event ID
      * @return Event The event with all related data for display
      */
     public function __invoke(object $message): mixed
     {
-        /** @var GetEventDisplayQuery $message */
-
         $with = [
             'organization',
             'organizations.organization',

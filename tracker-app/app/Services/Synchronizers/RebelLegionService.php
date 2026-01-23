@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services\Synchronizers;
 
-use App\Models\Event;
-use Exception;
-
 
 /**
  * Service class for managing Rebel Legion organization data.

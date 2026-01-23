@@ -76,7 +76,7 @@ class EventPolicyTest extends TestCase
         // Arrange
         $unit = Organization::factory()->unit()->create();
         $trooper = Trooper::factory()->asModerator()->withAssignment($unit, moderator: true)->create();
-        $event = Event::factory()->for($unit)->create();
+        $event = Event::factory()->withOrganization($unit)->create();
 
         // Act
         $result = $this->subject->update($trooper, $event);
@@ -91,7 +91,7 @@ class EventPolicyTest extends TestCase
         $moderated_unit = Organization::factory()->unit()->create();
         $unmoderated_unit = Organization::factory()->unit()->create();
         $trooper = Trooper::factory()->asModerator()->withAssignment($moderated_unit, moderator: true)->create();
-        $event = Event::factory()->for($unmoderated_unit)->create();
+        $event = Event::factory()->withOrganization($unmoderated_unit)->create();
 
         // Act
         $result = $this->subject->update($trooper, $event);

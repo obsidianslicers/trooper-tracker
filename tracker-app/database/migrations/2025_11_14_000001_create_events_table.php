@@ -22,6 +22,11 @@ return new class extends Migration
                 ->constrained('tt_organizations')
                 ->cascadeOnDelete();
 
+            // Hosting Primary Organization|Club assignment
+            $table->foreignId('primary_organization_id')
+                ->constrained('tt_organizations')
+                ->cascadeOnDelete();
+
             // $table->integer('thread_id')->default(0);
             // $table->integer('post_id')->default(0);
             $table->string('name', 256);

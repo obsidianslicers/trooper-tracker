@@ -185,10 +185,10 @@ class AuthorityRequestTest extends TestCase
         // Arrange
         $good_data = [
             'membership_role' => MembershipRole::MODERATOR->value,
-            'moderators' => [
-                1 => ['selected' => true],
-                2 => ['selected' => false],
-                3 => ['selected' => true],
+            'organizations' => [
+                1 => ['is_moderator' => true],
+                2 => ['is_moderator' => false],
+                3 => ['is_moderator' => true],
             ],
         ];
 
@@ -205,8 +205,8 @@ class AuthorityRequestTest extends TestCase
         // Arrange
         $bad_data = [
             'membership_role' => MembershipRole::MODERATOR->value,
-            'moderators' => [
-                1 => ['selected' => 'yes'], // Should be boolean
+            'organizations' => [
+                1 => ['is_moderator' => 'yes'], // Should be boolean
             ],
         ];
 
@@ -216,7 +216,7 @@ class AuthorityRequestTest extends TestCase
 
         // Assert
         $this->assertTrue($validator->fails());
-        $this->assertTrue($validator->errors()->has('moderators.1.selected'));
+        $this->assertTrue($validator->errors()->has('organizations.1.is_moderator'));
     }
 
     public function test_validation_passes_with_empty_moderators_array(): void
@@ -224,7 +224,7 @@ class AuthorityRequestTest extends TestCase
         // Arrange
         $good_data = [
             'membership_role' => MembershipRole::MEMBER->value,
-            'moderators' => [],
+            'organizations' => [],
         ];
 
         // Act
@@ -279,12 +279,12 @@ class AuthorityRequestTest extends TestCase
         // Arrange
         $good_data = [
             'membership_role' => MembershipRole::MODERATOR->value,
-            'moderators' => [
-                10 => ['selected' => true],
-                20 => ['selected' => false],
-                30 => ['selected' => true],
-                40 => ['selected' => false],
-                50 => ['selected' => true],
+            'organizations' => [
+                10 => ['is_moderator' => true],
+                20 => ['is_moderator' => false],
+                30 => ['is_moderator' => true],
+                40 => ['is_moderator' => false],
+                50 => ['is_moderator' => true],
             ],
         ];
 
@@ -301,9 +301,9 @@ class AuthorityRequestTest extends TestCase
         // Arrange
         $good_data = [
             'membership_role' => MembershipRole::MODERATOR->value,
-            'moderators' => [
-                1 => ['selected' => 1], // Numeric 1 is considered boolean true
-                2 => ['selected' => 0], // Numeric 0 is considered boolean false
+            'organizations' => [
+                1 => ['is_moderator' => 1], // Numeric 1 is considered boolean true
+                2 => ['is_moderator' => 0], // Numeric 0 is considered boolean false
             ],
         ];
 
