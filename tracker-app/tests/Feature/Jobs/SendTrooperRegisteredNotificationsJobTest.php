@@ -67,6 +67,45 @@ class SendTrooperRegisteredNotificationsJobTest extends TestCase
         // Arrange
         $moderator1 = Trooper::factory()->asModerator()->create();
         $moderator2 = Trooper::factory()->asModerator()->create();
+
+        // Get or create organizations for the moderators and create moderator assignments
+        $org1 = $moderator1->organizations->first() ?? \App\Models\Organization::factory()->create();
+        $org2 = $moderator2->organizations->first() ?? \App\Models\Organization::factory()->create();
+
+        // Create moderator assignments for the moderators
+        $moderator1->trooper_assignments()->create([
+            'organization_id' => $org1->id,
+            'is_moderator' => true,
+            'is_member' => true,
+            'can_notify' => true,
+        ]);
+
+        $moderator2->trooper_assignments()->create([
+            'organization_id' => $org2->id,
+            'is_moderator' => true,
+            'is_member' => true,
+            'can_notify' => true,
+        ]);
+
+        // Attach the trooper to the same organizations so moderators can moderate them
+        $this->trooper->organizations()->attach($org1->id, ['identifier' => 'TK-12345']);
+        $this->trooper->organizations()->attach($org2->id, ['identifier' => 'TK-67890']);
+
+        // Create trooper assignments for the new trooper as well
+        $this->trooper->trooper_assignments()->create([
+            'organization_id' => $org1->id,
+            'is_moderator' => false,
+            'is_member' => true,
+            'can_notify' => true,
+        ]);
+
+        $this->trooper->trooper_assignments()->create([
+            'organization_id' => $org2->id,
+            'is_moderator' => false,
+            'is_member' => true,
+            'can_notify' => true,
+        ]);
+
         $moderators = new Collection([$moderator1, $moderator2]);
 
         $this->bus_mock->shouldReceive('send')
@@ -91,6 +130,25 @@ class SendTrooperRegisteredNotificationsJobTest extends TestCase
         // Arrange
         $admin = Trooper::factory()->asAdministrator()->create();
         $moderator = Trooper::factory()->asModerator()->create();
+
+        // Set up moderator with organization assignment
+        $org = $moderator->organizations->first() ?? \App\Models\Organization::factory()->create();
+
+        $moderator->trooper_assignments()->create([
+            'organization_id' => $org->id,
+            'is_moderator' => true,
+            'is_member' => true,
+            'can_notify' => true,
+        ]);
+
+        // Attach the trooper to the organization and create assignment
+        $this->trooper->organizations()->attach($org->id, ['identifier' => 'TK-12345']);
+        $this->trooper->trooper_assignments()->create([
+            'organization_id' => $org->id,
+            'is_moderator' => false,
+            'is_member' => true,
+            'can_notify' => true,
+        ]);
 
         $admins = new Collection([$admin]);
         $moderators = new Collection([$moderator]);
@@ -146,6 +204,26 @@ class SendTrooperRegisteredNotificationsJobTest extends TestCase
     {
         // Arrange
         $moderator = Trooper::factory()->asModerator()->create();
+
+        // Set up moderator with organization assignment
+        $org = $moderator->organizations->first() ?? \App\Models\Organization::factory()->create();
+
+        $moderator->trooper_assignments()->create([
+            'organization_id' => $org->id,
+            'is_moderator' => true,
+            'is_member' => true,
+            'can_notify' => true,
+        ]);
+
+        // Attach the trooper to the organization and create assignment
+        $this->trooper->organizations()->attach($org->id, ['identifier' => 'TK-12345']);
+        $this->trooper->trooper_assignments()->create([
+            'organization_id' => $org->id,
+            'is_moderator' => false,
+            'is_member' => true,
+            'can_notify' => true,
+        ]);
+
         $moderators = new Collection([$moderator]);
 
         $this->bus_mock->shouldReceive('send')
@@ -225,7 +303,7 @@ class SendTrooperRegisteredNotificationsJobTest extends TestCase
             ->with(\Mockery::on(function ($query)
             {
                 return $query instanceof \App\Features\Troopers\Queries\GetTroopersByRoleQuery
-                    && $query->role === MembershipRole::ADMINISTRATOR;
+                    && $query->membership_role === MembershipRole::ADMINISTRATOR;
             }))
             ->andReturn(new Collection());
 
@@ -251,7 +329,7 @@ class SendTrooperRegisteredNotificationsJobTest extends TestCase
             ->with(\Mockery::on(function ($query)
             {
                 return $query instanceof \App\Features\Troopers\Queries\GetTroopersByRoleQuery
-                    && $query->role === MembershipRole::MODERATOR;
+                    && $query->membership_role === MembershipRole::MODERATOR;
             }))
             ->andReturn(new Collection());
 
@@ -272,8 +350,35 @@ class SendTrooperRegisteredNotificationsJobTest extends TestCase
         // Create a moderator who CANNOT moderate the new trooper (different scope)
         $unauthorized_moderator = Trooper::factory()->asModerator()->create();
 
+        // Set up the authorized moderator with organization assignment
+        $org1 = $authorized_moderator->organizations->first() ?? \App\Models\Organization::factory()->create();
+
+        $authorized_moderator->trooper_assignments()->create([
+            'organization_id' => $org1->id,
+            'is_moderator' => true,
+            'is_member' => true,
+            'can_notify' => true,
+        ]);
+
+        // Set up the unauthorized moderator with a different organization
+        $org2 = \App\Models\Organization::factory()->create();
+        $unauthorized_moderator->organizations()->attach($org2->id, ['identifier' => 'TK-99999']);
+
+        $unauthorized_moderator->trooper_assignments()->create([
+            'organization_id' => $org2->id,
+            'is_moderator' => true,
+            'is_member' => true,
+            'can_notify' => true,
+        ]);
+
         // Set up the new trooper to be moderated by the authorized moderator only
-        $new_trooper->organizations()->attach($authorized_moderator->organizations->first());
+        $new_trooper->organizations()->attach($org1->id, ['identifier' => 'TK-12345']);
+        $new_trooper->trooper_assignments()->create([
+            'organization_id' => $org1->id,
+            'is_moderator' => false,
+            'is_member' => true,
+            'can_notify' => true,
+        ]);
 
         $moderators = new Collection([$authorized_moderator, $unauthorized_moderator]);
 
@@ -291,14 +396,10 @@ class SendTrooperRegisteredNotificationsJobTest extends TestCase
         $subject->handle($this->bus_mock);
 
         // Assert - only the authorized moderator should receive email
+        Mail::assertQueued(TrooperAwaitingApproval::class, 1);
         Mail::assertQueued(TrooperAwaitingApproval::class, function ($mail) use ($authorized_moderator)
         {
             return $mail->hasTo($authorized_moderator->email);
-        });
-
-        Mail::assertNotQueued(TrooperAwaitingApproval::class, function ($mail) use ($unauthorized_moderator)
-        {
-            return $mail->hasTo($unauthorized_moderator->email);
         });
     }
 
@@ -367,7 +468,24 @@ class SendTrooperRegisteredNotificationsJobTest extends TestCase
         $new_trooper = Trooper::factory()->create();
         $moderator = Trooper::factory()->asModerator()->create();
 
-        $new_trooper->organizations()->attach($moderator->organizations->first());
+        // Set up moderator with organization assignment
+        $org = $moderator->organizations->first() ?? \App\Models\Organization::factory()->create();
+
+        $moderator->trooper_assignments()->create([
+            'organization_id' => $org->id,
+            'is_moderator' => true,
+            'is_member' => true,
+            'can_notify' => true,
+        ]);
+
+        // Attach the trooper to the organization and create assignment
+        $new_trooper->organizations()->attach($org->id, ['identifier' => 'TK-12345']);
+        $new_trooper->trooper_assignments()->create([
+            'organization_id' => $org->id,
+            'is_moderator' => false,
+            'is_member' => true,
+            'can_notify' => true,
+        ]);
 
         $moderators = new Collection([$moderator]);
 
