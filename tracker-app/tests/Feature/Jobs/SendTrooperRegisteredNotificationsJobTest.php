@@ -67,6 +67,45 @@ class SendTrooperRegisteredNotificationsJobTest extends TestCase
         // Arrange
         $moderator1 = Trooper::factory()->asModerator()->create();
         $moderator2 = Trooper::factory()->asModerator()->create();
+
+        // Get or create organizations for the moderators and create moderator assignments
+        $org1 = $moderator1->organizations->first() ?? \App\Models\Organization::factory()->create();
+        $org2 = $moderator2->organizations->first() ?? \App\Models\Organization::factory()->create();
+
+        // Create moderator assignments for the moderators
+        $moderator1->trooper_assignments()->create([
+            'organization_id' => $org1->id,
+            'is_moderator' => true,
+            'is_member' => true,
+            'can_notify' => true,
+        ]);
+
+        $moderator2->trooper_assignments()->create([
+            'organization_id' => $org2->id,
+            'is_moderator' => true,
+            'is_member' => true,
+            'can_notify' => true,
+        ]);
+
+        // Attach the trooper to the same organizations so moderators can moderate them
+        $this->trooper->organizations()->attach($org1->id, ['identifier' => 'TK-12345']);
+        $this->trooper->organizations()->attach($org2->id, ['identifier' => 'TK-67890']);
+
+        // Create trooper assignments for the new trooper as well
+        $this->trooper->trooper_assignments()->create([
+            'organization_id' => $org1->id,
+            'is_moderator' => false,
+            'is_member' => true,
+            'can_notify' => true,
+        ]);
+
+        $this->trooper->trooper_assignments()->create([
+            'organization_id' => $org2->id,
+            'is_moderator' => false,
+            'is_member' => true,
+            'can_notify' => true,
+        ]);
+
         $moderators = new Collection([$moderator1, $moderator2]);
 
         $this->bus_mock->shouldReceive('send')
@@ -91,6 +130,25 @@ class SendTrooperRegisteredNotificationsJobTest extends TestCase
         // Arrange
         $admin = Trooper::factory()->asAdministrator()->create();
         $moderator = Trooper::factory()->asModerator()->create();
+
+        // Set up moderator with organization assignment
+        $org = $moderator->organizations->first() ?? \App\Models\Organization::factory()->create();
+
+        $moderator->trooper_assignments()->create([
+            'organization_id' => $org->id,
+            'is_moderator' => true,
+            'is_member' => true,
+            'can_notify' => true,
+        ]);
+
+        // Attach the trooper to the organization and create assignment
+        $this->trooper->organizations()->attach($org->id, ['identifier' => 'TK-12345']);
+        $this->trooper->trooper_assignments()->create([
+            'organization_id' => $org->id,
+            'is_moderator' => false,
+            'is_member' => true,
+            'can_notify' => true,
+        ]);
 
         $admins = new Collection([$admin]);
         $moderators = new Collection([$moderator]);
