@@ -13,22 +13,25 @@ use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
 
 /**
- * Class UpdateController
+ * Handles organization logo image uploads.
  *
- * Handles displaying the form to update an existing organization.
- * @package App\Http\Controllers\Admin\Organizations
+ * This controller processes organization logo uploads, normalizing images to
+ * square transparent canvases and creating both large (128x128) and small (32x32)
+ * versions stored in the public storage disk.
  */
 class UpdateImageController extends Controller
 {
     /**
-     * Handle the request to display the organization update page.
+     * Handle the organization logo upload request.
      *
-     * Authorizes the user, sets up breadcrumbs, and returns the view
-     * containing the form to update an existing organization.
+     * Validates the uploaded logo image (max 2MB, PNG/JPG/JPEG/WEBP), normalizes it
+     * to a square transparent canvas, creates large (128x128) and small (32x32) versions,
+     * stores them in public storage, updates the organization's image paths, and returns
+     * the image display view.
      *
      * @param Request $request The incoming HTTP request object.
-     * @param Organization $organization The organization to be updated.
-     * @return View The rendered organization update view.
+     * @param Organization $organization The organization to update the logo for.
+     * @return View The organization image display view (pages.admin.organizations.image).
      */
     public function __invoke(Request $request, Organization $organization): View
     {

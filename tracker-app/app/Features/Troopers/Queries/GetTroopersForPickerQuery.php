@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Features\Troopers\Queries;
 
 use App\Models\Filters\TrooperFilter;
-use App\Models\Trooper;
 
 /**
  * Query to retrieve troopers for use in picker/dropdown components.

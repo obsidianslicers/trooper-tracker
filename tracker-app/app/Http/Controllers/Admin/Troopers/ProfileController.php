@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Troopers;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use App\Models\Trooper;
 use App\Services\BreadCrumbService;
 use Illuminate\Contracts\View\View;
@@ -16,14 +16,9 @@ use Illuminate\Http\Request;
  * Handles the display of a single trooper's profile page.
  * @package App\Http\Controllers\Admin\Troopers
  */
-class ProfileController extends Controller
+class ProfileController extends MagicBusController
 {
-    /**
-     * ProfileController constructor.
-     *
-     * @param BreadCrumbService $crumbs The breadcrumb service for managing navigation history.
-     */
-    public function __construct(private readonly BreadCrumbService $crumbs)
+    protected function initialized()
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
         $this->crumbs->addRoute('Troopers', 'admin.troopers.list');

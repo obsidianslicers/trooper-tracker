@@ -48,7 +48,7 @@ class CreateSubmitController extends Controller
      * Redirects to the event's update page with a success message.
      *
      * @param CreateRequest $request The validated request containing the event data.
-     * @param UpdateEventCommand $udpate_event Command to update event properties.
+     * @param UpdateEventCommand $update_event Command to update event properties.
      * @param UpdateEventOrganizationsCommand $update_event_organizations Command to update organization associations.
      * @return RedirectResponse Redirect to the new event's update page.
      */
@@ -59,7 +59,7 @@ class CreateSubmitController extends Controller
     {
         $organization = Organization::findOrFail($request->validated('organization_id'));
 
-        $costume_club = $organization->getSourceClub();
+        $costume_club = $organization->getPrimaryClub();
 
         $event = new Event();
 

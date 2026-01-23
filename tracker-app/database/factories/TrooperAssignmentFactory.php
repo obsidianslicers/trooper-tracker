@@ -15,6 +15,9 @@ class TrooperAssignmentFactory extends BaseTrooperAssignmentFactory
     public function definition(): array
     {
         return array_merge(parent::definition(), [
+            TrooperAssignment::CAN_NOTIFY => false,
+            TrooperAssignment::IS_MEMBER => false,
+            TrooperAssignment::IS_MODERATOR => false,
         ]);
     }
 

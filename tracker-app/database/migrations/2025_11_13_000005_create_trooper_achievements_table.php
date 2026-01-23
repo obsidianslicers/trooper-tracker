@@ -21,6 +21,7 @@ return new class extends Migration
 
             // $table->dateTime('member_since');
             $table->integer('trooper_rank')->nullable();
+            $table->integer('trooper_events')->nullable();
 
             // Squad completion
             $table->boolean('trooped_all_squads')->default(false);

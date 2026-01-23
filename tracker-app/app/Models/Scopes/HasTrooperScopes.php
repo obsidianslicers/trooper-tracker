@@ -36,11 +36,11 @@ trait HasTrooperScopes
     public function scopePendingApprovals(Builder $query): Builder
     {
         $with = [
-            'trooper_assignments.organization.parent',
             'trooper_assignments' =>
                 function ($q)
                 {
-                    $q->where(TrooperAssignment::IS_MEMBER, true);
+                    $q->where(TrooperAssignment::IS_MEMBER, true)
+                        ->with('organization.parent');
                 }
         ];
 

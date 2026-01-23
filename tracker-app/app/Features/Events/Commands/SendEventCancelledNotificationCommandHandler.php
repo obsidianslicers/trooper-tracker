@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Features\Events\Commands;
 
-use App\Enums\NotificationFrequency;
 use App\Mail\Events\CancelledEventNotification;
-use App\Mail\Events\InstantEventNotification;
 use App\Models\Event;
 use App\Models\EventNotification;
 use App\Models\Trooper;

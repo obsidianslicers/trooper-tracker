@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models\Observers;
 
 use App\Models\Event;
+use App\Models\Organization;
 use App\Services\GeocodingService;
 use App\Services\GoogleService;
 use Throwable;
@@ -14,6 +15,16 @@ use Throwable;
  */
 class EventObserver
 {
+    public function creating(Event $event): void
+    {
+        if ($event->organization_id !== null)
+        {
+            $organization = Organization::findOrFail($event->organization_id);
+
+            $event->primary_organization_id = $organization->getPrimaryClub()->id;
+        }
+    }
+
     /**
      * Handle the Event "created" event.
      *

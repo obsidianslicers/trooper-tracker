@@ -23,12 +23,15 @@ readonly class RegisterTrooperCommandHandler implements CommandHandlerInterface
     /**
      * Execute the command to register a new trooper.
      *
-     * @param RegisterTrooperCommand $message The command with trooper and update data
-     * @return Trooper 
+     * Creates a new Trooper record with the provided data. Hashes the password
+     * if provided, otherwise generates a unique password. Always sets
+     * setup_completed_at to mark registration as complete.
+     *
+     * @param RegisterTrooperCommand $message The command with trooper registration data
+     * @return Trooper
      */
     public function __invoke(object $message): mixed
     {
-        /** @var RegisterTrooperCommand $message */
         $trooper = new Trooper();
 
         $trooper->name = $message->valid_data['name'];

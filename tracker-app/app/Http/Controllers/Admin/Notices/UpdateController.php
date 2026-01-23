@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Notices;
 
-use App\Enums\NoticeType;
 use App\Http\Controllers\Controller;
 use App\Models\Notice;
 use App\Services\BreadCrumbService;

@@ -42,9 +42,11 @@ class SignUpEventTrooperCommandHandlerTest extends TestCase
         $result = $subject($command);
 
         // Assert
-        $this->assertInstanceOf(EventTrooper::class, $result);
-        $this->assertEquals($shift->id, $result->event_shift_id);
-        $this->assertEquals($trooper->id, $result->trooper_id);
+        $this->assertNull($result);
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::EVENT_SHIFT_ID => $shift->id,
+            EventTrooper::TROOPER_ID => $trooper->id,
+        ]);
     }
 
     public function test_invoke_sets_added_by_trooper_when_different(): void
@@ -63,7 +65,11 @@ class SignUpEventTrooperCommandHandlerTest extends TestCase
         $result = $subject($command);
 
         // Assert
-        $this->assertEquals($added_by_trooper->id, $result->added_by_trooper_id);
+        $this->assertNull($result);
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::ADDED_BY_TROOPER_ID => $added_by_trooper->id,
+        ]);
     }
 
     public function test_invoke_sets_added_by_trooper_null_when_self_signup(): void
@@ -81,7 +87,11 @@ class SignUpEventTrooperCommandHandlerTest extends TestCase
         $result = $subject($command);
 
         // Assert
-        $this->assertNull($result->added_by_trooper_id);
+        $this->assertNull($result);
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::ADDED_BY_TROOPER_ID => null,
+        ]);
     }
 
     public function test_invoke_sets_signed_up_at_timestamp(): void
@@ -99,10 +109,12 @@ class SignUpEventTrooperCommandHandlerTest extends TestCase
         $result = $subject($command);
 
         // Assert
-        $this->assertNotNull($result->signed_up_at);
+        $this->assertNull($result);
+        $event_trooper = EventTrooper::where(EventTrooper::TROOPER_ID, $trooper->id)->first();
+        $this->assertNotNull($event_trooper->signed_up_at);
     }
 
-    public function test_invoke_returns_event_trooper(): void
+    public function test_invoke_returns_null(): void
     {
         // Arrange
         $event = Event::factory()->create();
@@ -117,7 +129,6 @@ class SignUpEventTrooperCommandHandlerTest extends TestCase
         $result = $subject($command);
 
         // Assert
-        $this->assertInstanceOf(EventTrooper::class, $result);
-        $this->assertTrue($result->exists);
+        $this->assertNull($result);
     }
 }

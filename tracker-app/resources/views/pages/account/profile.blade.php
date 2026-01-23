@@ -29,12 +29,13 @@
                                   :value="$trooper->email" />
                 </x-input-container>
 
-                <x-input-container>
+                <x-input-container x-data>
                     <x-label>
                         Phone (Optional):
                     </x-label>
                     <x-input-text :property="'phone'"
-                                  :value="$trooper->phone" />
+                                  :value="$trooper->phone"
+                                  x-mask="(999) 999-9999" />
                 </x-input-container>
 
                 <x-input-container>

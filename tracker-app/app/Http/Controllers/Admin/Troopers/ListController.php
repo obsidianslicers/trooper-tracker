@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Troopers;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use App\Models\Filters\TrooperFilter;
 use App\Models\Trooper;
 use App\Services\BreadCrumbService;
@@ -22,14 +22,9 @@ use Illuminate\Http\Request;
  * other roles see only the troopers they are assigned to moderate.
  * @package App\Http\Controllers\Admin\Troopers
  */
-class ListController extends Controller
+class ListController extends MagicBusController
 {
-    /**
-     * ListController constructor.
-     *
-     * @param BreadCrumbService $crumbs The breadcrumb service for managing navigation history.
-     */
-    public function __construct(private readonly BreadCrumbService $crumbs)
+    protected function initialized()
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
     }

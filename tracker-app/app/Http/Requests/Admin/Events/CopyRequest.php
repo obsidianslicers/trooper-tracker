@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin\Events;
 
-use App\Enums\EventStatus;
 use App\Models\Event;
-use App\Models\EventOrganization;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Http\FormRequest;
 

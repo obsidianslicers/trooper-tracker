@@ -40,12 +40,12 @@ class EventUpload extends BaseEventUpload
     }
 
     /**
-     * Get the URL for the uploaded file.
+     * Get the URL for the large version of the uploaded file.
      *
      * If the filename contains a slash, it's treated as a complete path.
      * Otherwise, it's assumed to be in the 'images/uploads/' directory.
      *
-     * @return string The full URL to the uploaded file
+     * @return string The full URL to the large uploaded file
      */
     public function getLargeUrlAttribute(): string
     {

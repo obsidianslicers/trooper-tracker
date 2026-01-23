@@ -169,6 +169,8 @@ Trooper::factory()->state([Trooper::EMAIL => 'custom@example.com']);
 | Variables | `snake_case` | `$local_variable`, `$event_date` |
 | Test Methods | `snake_case` with `test_` prefix | `test_invoke_handles_unapproved_user()` |
 
+**Note**: Laravel relationship methods within the TroopTracker follow the `snake_case` convention (e.g. `trooper_events()`), vs the well known Eloquent convention of using `camelCase`.
+
 ### Type Hints
 
 **REQUIRED:** All function/method signatures must include explicit scalar type hints:

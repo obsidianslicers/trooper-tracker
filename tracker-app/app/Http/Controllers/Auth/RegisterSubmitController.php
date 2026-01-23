@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Auth;
 
 use App\Features\Troopers\Commands\RegisterTrooperCommand;
+use App\Features\Troopers\Commands\UpdateTrooperIdentifiersCommand;
 use App\Features\Troopers\Commands\UpdateTrooperMembershipsCommand;
 use App\Features\Troopers\Commands\UpdateTrooperNotificationsCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Jobs\SendTrooperRegisteredNotificationsJob;
 use App\Mail\Auth\TrooperRegistered;
 use App\Models\Organization;
 use App\Services\Troopers\AssignTrooperIdentifiersCommand;
@@ -38,9 +40,7 @@ class RegisterSubmitController extends MagicBusController
      * @param AssignTrooperIdentifiersCommand $assign_identifiers Service to assign TK numbers and identifiers.
      * @return RedirectResponse A redirect to the thank you page after successful registration.
      */
-    public function __invoke(
-        RegisterRequest $request,
-        AssignTrooperIdentifiersCommand $assign_identifiers): RedirectResponse
+    public function __invoke(RegisterRequest $request): RedirectResponse
     {
         $register_cmd = new RegisterTrooperCommand($request->validated());
 
@@ -51,7 +51,9 @@ class RegisterSubmitController extends MagicBusController
         $memberships = $this->getMemberships($organizations);
         $notifications = $this->getNotifications($organizations);
 
-        $assign_identifiers($trooper, $organizations);
+        $identifier_command = new UpdateTrooperIdentifiersCommand($trooper, $organizations);
+
+        $this->bus->send($identifier_command);
 
         $membership_command = new UpdateTrooperMembershipsCommand($trooper, $memberships);
 
@@ -62,6 +64,8 @@ class RegisterSubmitController extends MagicBusController
         $this->bus->send($notification_command);
 
         Mail::to($trooper->email)->queue(new TrooperRegistered());
+
+        dispatch(new SendTrooperRegisteredNotificationsJob($trooper));
 
         $this->flash->success('Request submitted successfully! You will receive an e-mail when your request is approved or denied.');
 

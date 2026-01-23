@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Features\Events\Commands;
 
-use App\Enums\EventTrooperStatus;
-use App\Models\EventTrooper;
 use App\Bus\Contracts\CommandHandlerInterface;
+use App\Enums\EventTrooperStatus;
+use App\Mail\Events\TrooperSignUp;
+use App\Models\EventTrooper;
+use Illuminate\Support\Facades\Mail;
 
 /**
  * Handler for signing up a trooper for an event shift.
@@ -22,17 +24,18 @@ readonly class SignUpEventTrooperCommandHandler implements CommandHandlerInterfa
      * Execute the command to sign up a trooper for an event shift.
      *
      * Creates a new EventTrooper record with:
-     * - GOING status (confirmed attendance)
+     * - GOING status if capacity allows, STAND_BY if handlers/troopers maxed out
      * - Link to event shift
      * - Link to trooper
      * - Tracking of who added the sign-up
      *
+     * Saves the EventTrooper record and queues a TrooperSignUp email notification.
+     *
      * @param SignUpEventTrooperCommand $message The command containing shift, trooper, and added_by info.
-     * @return EventTrooper The created EventTrooper record.
+     * @return null
      */
     public function __invoke(object $message): mixed
     {
-        /** @var SignUpEventTrooperCommand $message */
         $event_trooper = new EventTrooper();
 
         $event_trooper->event_shift_id = $message->event_shift->id;
@@ -60,6 +63,8 @@ readonly class SignUpEventTrooperCommandHandler implements CommandHandlerInterfa
         $event_trooper->status = $status;
         $event_trooper->save();
 
-        return $event_trooper;
+        Mail::to($message->trooper->email)->queue(new TrooperSignUp($event_trooper));
+
+        return null;
     }
 }

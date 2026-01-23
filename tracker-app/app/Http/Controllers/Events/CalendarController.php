@@ -14,21 +14,21 @@ use Illuminate\Http\Request;
 /**
  * Displays the calendar view of upcoming events.
  *
- * This controller renders the main events listing page, showing all upcoming
- * events with their organizations, shifts, and attendance information. Only
- * events where the user's organization can attend are included.
+ * This controller renders a 12-month calendar grid view showing upcoming
+ * events grouped by date. Each month displays weeks with events marked
+ * on their corresponding dates.
  */
 class CalendarController extends MagicBusController
 {
     /**
-     * Handle the incoming request to display the events list page.
+     * Handle the incoming request to display the calendar page.
      *
-     * Retrieves all upcoming events with their associated organizations
-     * (filtered to only those that can attend), shifts, and organizer details.
-     * Events are ordered by date and filtered to only show future events.
+     * Retrieves all upcoming events grouped by date and generates a 12-month
+     * calendar grid (weeks starting Sunday, ending Saturday) for displaying
+     * events in a calendar layout.
      *
      * @param Request $request The incoming request
-     * @return View The rendered events list page with upcoming events
+     * @return View The rendered events calendar page with upcoming events
      */
     public function __invoke(Request $request): View
     {

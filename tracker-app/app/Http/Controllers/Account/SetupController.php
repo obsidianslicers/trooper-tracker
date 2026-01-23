@@ -6,7 +6,6 @@ namespace App\Http\Controllers\Account;
 
 use App\Features\Troopers\Queries\GetTrooperAssignmentsQuery;
 use App\Http\Controllers\MagicBusController;
-use App\Services\Troopers\GetTrooperOrganizationMembershipsQuery;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -39,9 +38,9 @@ class SetupController extends MagicBusController
     {
         $trooper = $request->user();
 
-        $get_assignments = new GetTrooperAssignmentsQuery($trooper);
+        $assignments_query = new GetTrooperAssignmentsQuery($trooper);
 
-        $organization_memberships = $this->bus->send(message: $get_assignments);
+        $organization_memberships = $this->bus->send(message: $assignments_query);
 
         $data = compact('trooper', 'organization_memberships');
 

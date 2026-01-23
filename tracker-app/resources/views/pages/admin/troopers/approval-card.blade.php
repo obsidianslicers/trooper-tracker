@@ -5,10 +5,6 @@
     </div>
     <div class="card-body">
         <dl class="row mb-0">
-            <dt class="col-4">Username:</dt>
-            <dd class="col-8">{{ $trooper->username }}</dd>
-            <dt class="col-4">Name:</dt>
-            <dd class="col-8">{{ $trooper->name }}</dd>
             <dt class="col-4">Email:</dt>
             <dd class="col-8">{{ $trooper->email }}</dd>
             <dt class="col-4">Phone:</dt>

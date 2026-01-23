@@ -7,35 +7,32 @@ namespace App\Features\Events\Queries;
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Models\Event;
 use App\Models\EventOrganization;
-use App\Models\Trooper;
 
 /**
- * Handler for retrieving troopers who signed up for a cancelled event.
+ * Handler for retrieving events for display.
  *
- * Queries for all active troopers with a "going" status for any shift
- * belonging to the cancelled event. These troopers will receive
- * cancellation notifications regardless of their notification preferences.
+ * Returns a filtered collection of events based on status, date range,
+ * and organization criteria. Used for event list pages and calendars.
  *
  * @implements QueryHandlerInterface<GetEventsForDisplayQuery>
  */
 readonly class GetEventsForDisplayQueryHandler implements QueryHandlerInterface
 {
     /**
-     * Execute the query to retrieve troopers for cancellation notifications.
+     * Execute the query to retrieve upcoming events for display.
      *
      * Process:
-     * 1. Filter active troopers
-     * 2. Find troopers with EventTrooper status = GOING
-     * 3. Join through event_shifts to match the cancelled event
-     * 4. Return collection of Trooper models
+     * 1. Filter events with status = OPEN
+     * 2. Filter events with event_date >= today
+     * 3. Order by event_date ascending
+     * 4. Eager load shifts and related data
+     * 5. Return collection of Event models
      *
-     * @param GetEventsForDisplayQuery $message The query containing the cancelled event
-     * @return \Illuminate\Support\Collection<int, Trooper> Active troopers who signed up for the event
+     * @param GetEventsForDisplayQuery $message The query (no parameters)
+     * @return \Illuminate\Support\Collection<int, Event> Collection of upcoming open events
      */
     public function __invoke(object $message): mixed
     {
-        /** @var GetEventsForDisplayQuery $message */
-
         $with = ['organization', 'organizations' => function ($query)
         {
             $query->wherePivot(EventOrganization::CAN_ATTEND, true);

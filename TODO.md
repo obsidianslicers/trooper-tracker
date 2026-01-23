@@ -34,8 +34,6 @@
 ### WORK IN PROGRESS
 - command-staff Statistics page show - Last API syncs with 501st. Rebel Legion API is dead.
 - Profile page to show off acheivements, donations made, costumes (501st api)
-- A way to show a log of who is changing a troopers status on the backend for accountability (see notifications page on Troop Tracker 1.0)
-- I also had a tool to show active troopers that did not have a documented troop in the last year for census purposes.
 
 
 ### EVENT WIP COMPLETED
@@ -50,6 +48,8 @@
   -  Troop Count Per Trooper (Report to get amount of troops attended by each trooper. You can do all or search by club)
   -  Donation Count Per Event (Donation Stats by date, can sort by charity event only and/or events with data only) this can be done as total or by club/squad
   -  Costume troop count between dates (Can see amount of troops done in a costume between certain dates)
+  - A way to show a log of who is changing a troopers status on the backend for accountability (see notifications page on Troop Tracker 1.0)
+  - I also had a tool to show active troopers that did not have a documented troop in the last year for census purposes.
 - Statistics
   -  Costume used most
   -  Volunteers at Troops (Total count of troopers at all events)
@@ -76,3 +76,30 @@
 The queries and commands are influx as we migrate from a service pattern to a message pattern. Moving from the Services folder to the Features folder, then refactoring the controllers. Note not all the controllers have been migrated to either a CQRS or a semi-CQRS pattern. The controllers are in flux with patterns, and tests.
 
 End goal is to convert all the controllers to the MagicBus CQRS pattern.
+
+Handler interface
+```php
+/**
+ * @template T of Command
+ */
+interface CommandHandlerInterface
+{
+    /**
+     * @param T $message
+     */
+    public function __invoke(object $message): mixed;
+}
+```
+Handler implementation
+```php
+/**
+ * @implements CommandHandlerInterface<SignUpEventTrooperCommand>
+ */
+class SignUpEventTrooperHandler implements CommandHandlerInterface
+{
+    public function __invoke(object $message): mixed
+    {
+        // IDE now knows $message is SignUpEventTrooperCommand
+    }
+}
+```

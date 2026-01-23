@@ -32,8 +32,6 @@ readonly class GetTrooperNoticeForDisplayQueryHandler implements QueryHandlerInt
      */
     public function __invoke(object $message): mixed
     {
-        /** @var GetTrooperNoticeForDisplayQuery $message */
-
         $notice = null;
 
         $count = Notice::visibleTo($message->trooper, $message->unread_only)->count();

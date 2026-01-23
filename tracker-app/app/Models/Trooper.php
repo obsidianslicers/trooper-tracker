@@ -8,6 +8,7 @@ use App\Enums\NotificationFrequency;
 use App\Enums\TrooperTheme;
 use App\Models\Base\Trooper as BaseTrooper;
 use App\Models\Casts\LowerCast;
+use App\Models\Concerns\HasAuditTrail;
 use App\Models\Concerns\HasFilter;
 use App\Models\Concerns\HasObserver;
 use App\Models\Scopes\HasTrooperScopes;
@@ -41,6 +42,30 @@ class Trooper extends BaseTrooper implements
     use Notifiable;
     use HasTrooperScopes;
     use HasObserver;
+    use HasAuditTrail;
+
+    /**
+     * Define the model attributes should be audited for changes.
+     *
+     * @return array<int, string> Array of attribute names to audit.
+     */
+    protected function audits(): array
+    {
+        return [
+            self::MEMBERSHIP_ROLE,
+            self::MEMBERSHIP_STATUS,
+        ];
+    }
+
+    /**
+     * Get a human-readable label for the trooper.
+     *
+     * @return string The label representing the trooper.
+     */
+    public function getAuditLabel(): string
+    {
+        return $this->name . ' (' . $this->email . ')';
+    }
 
     /**
      * Get the attributes that should be cast.

@@ -42,7 +42,7 @@ readonly class GetOrganizationsForPickerQuery
      */
     public function __construct(public readonly Trooper $trooper, array $data)
     {
-        $this->moderated_only = $data['moderated_only'] ?? false;
-        $this->organization_id = $data['organization_id'] ?? null;
+        $this->moderated_only = boolval($data['moderated_only'] ?? false);
+        $this->organization_id = empty($data['organization_id']) ? null : intval($data['organization_id']);
     }
 }

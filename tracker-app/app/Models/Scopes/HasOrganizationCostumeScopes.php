@@ -4,16 +4,14 @@ declare(strict_types=1);
 
 namespace App\Models\Scopes;
 
-use App\Models\EventOrganization;
 use App\Models\EventShift;
-use App\Models\EventTrooper;
 use App\Models\Trooper;
 use App\Models\TrooperCostume;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 /**
- * Trait containing local scopes for the Costume model.
+ * Trait containing local scopes for the OrganizationCostume model.
  */
 trait HasOrganizationCostumeScopes
 {

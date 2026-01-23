@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Troopers;
 
-use App\Enums\MembershipStatus;
-use App\Http\Controllers\Controller;
+use App\Features\Troopers\Commands\ApproveTrooperCommand;
+use App\Http\Controllers\MagicBusController;
 use App\Mail\Admin\Troopers\TrooperApproved;
 use App\Models\Trooper;
+use App\Models\TrooperAssignment;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -21,7 +22,7 @@ use Illuminate\Support\Facades\Mail;
  * and returns a view fragment with a flash message in the response headers for HTMX to process.
  * @package App\Http\Controllers\Admin\Troopers
  */
-class ApprovalSubmitHtmxController extends Controller
+class ApprovalSubmitHtmxController extends MagicBusController
 {
     /**
      * Handle the incoming request to approve a trooper's membership.
@@ -38,13 +39,21 @@ class ApprovalSubmitHtmxController extends Controller
     {
         $this->authorize('approve', $trooper);
 
+        $approval_cmd = new ApproveTrooperCommand($trooper, true);
+
+        $this->bus->send($approval_cmd);
+
+        $with = [
+            'trooper_assignments' => function ($q)
+            {
+                $q->where(TrooperAssignment::IS_MEMBER, true)
+                    ->with('organization.parent');
+            },
+        ];
+
+        $trooper->load($with);
+
         $data = compact('trooper');
-
-        $trooper->membership_status = MembershipStatus::ACTIVE;
-
-        $trooper->save();
-
-        Mail::to($trooper->email)->queue(new TrooperApproved($trooper));
 
         $message = json_encode([
             'message' => "Trooper {$trooper->name} approved!",

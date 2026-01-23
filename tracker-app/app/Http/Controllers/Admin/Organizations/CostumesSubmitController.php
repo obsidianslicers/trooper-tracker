@@ -6,7 +6,6 @@ namespace App\Http\Controllers\Admin\Organizations;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Organizations\UpdateCostumesRequest;
-use App\Http\Requests\Admin\Organizations\UpdateRequest;
 use App\Models\Organization;
 use App\Services\FlashMessageService;
 use Illuminate\Http\RedirectResponse;

@@ -35,8 +35,6 @@ readonly class PromoteNextInLineEventTrooperCommandHandler implements CommandHan
      */
     public function __invoke(object $message): mixed
     {
-        /** @var PromoteNextInLineEventTrooperCommand $message */
-
         $next_in_line = $message->event_trooper->event_shift
             ->event_troopers()
             ->where(EventTrooper::STATUS, EventTrooperStatus::STAND_BY)

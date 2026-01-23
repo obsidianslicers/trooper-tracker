@@ -27,11 +27,12 @@ class UpdateRequestTest extends TestCase
         parent::setUp();
         $this->subject = new UpdateRequest();
         $this->organization = Organization::factory()->create();
+        $this->organization->refresh();
         $this->user = Trooper::factory()
             ->asModerator()
             ->withAssignment($this->organization, moderator: true)
             ->create();
-        $this->event = Event::factory()->for($this->organization)->create();
+        $this->event = Event::factory()->withOrganization($this->organization)->create();
 
         $this->subject->setUserResolver(fn() => $this->user);
         $this->subject->setRouteResolver(function ()
@@ -57,6 +58,10 @@ class UpdateRequestTest extends TestCase
 
     public function test_authorize_returns_true_for_moderator_of_organization(): void
     {
+        $this->user->refresh();
+        $this->organization->refresh();
+        $this->event->refresh();
+
         $this->assertTrue($this->subject->authorize());
     }
 
@@ -694,7 +699,7 @@ class UpdateRequestTest extends TestCase
         // Arrange
         $unit = Organization::factory()->unit()->create();
         $region = $unit->parent;
-        $unit_event = Event::factory()->for($unit)->create();
+        $unit_event = Event::factory()->withOrganization($unit)->create();
 
         $moderator = Trooper::factory()
             ->asModerator()

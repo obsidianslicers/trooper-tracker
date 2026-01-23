@@ -30,11 +30,12 @@ class SignUpHtmxController extends MagicBusController
     /**
      * Handle the incoming HTMX request to sign up a trooper for an event shift.
      *
-     * Creates a new EventTrooper record for the authenticated user, automatically
-     * determining their status (GOING or STAND_BY) based on the shift's capacity
-     * limits for troopers and handlers. Returns the updated shift container view.
+     * Creates a new EventTrooper record for the specified or authenticated trooper,
+     * automatically determining their status (GOING or STAND_BY) based on the shift's
+     * capacity limits. Supports moderators signing up other troopers via trooper_id
+     * parameter. Returns the updated shift container view.
      *
-     * @param Request $request The incoming request containing the authenticated user
+     * @param Request $request The incoming request (may contain optional trooper_id for moderator signups)
      * @param EventShift $event_shift The event shift the trooper is signing up for
      * @return Response The rendered shift container with updated trooper list
      */
@@ -46,20 +47,19 @@ class SignUpHtmxController extends MagicBusController
 
         if ($request->has('trooper_id'))
         {
+            //  auth_trooper is signing up on behalf of another trooper
             $trooper = Trooper::active()->findOrFail($request->input('trooper_id'));
         }
 
-        $can_signup = false;
+        $signed_up = false;
 
         if ($event_shift->canSignUp($trooper))
         {
             $event_trooper_cmd = new SignUpEventTrooperCommand($event_shift, $trooper, $auth_trooper);
 
-            $event_trooper = $this->bus->send($event_trooper_cmd);
+            $this->bus->send($event_trooper_cmd);
 
-            $can_signup = true;
-
-            Mail::to($trooper->email)->queue(new TrooperSignUp($event_trooper));
+            $signed_up = true;
         }
 
         $event_shift_query = new GetEventShiftDisplayQuery($event_shift, $trooper);
@@ -74,7 +74,7 @@ class SignUpHtmxController extends MagicBusController
 
         $response = response()->view('pages.events.inc.shift-container', $data);
 
-        if (!$can_signup)
+        if (!$signed_up)
         {
             $count = $event_shift->event->getShiftCountFor($trooper);
 

@@ -4,33 +4,31 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Troopers;
 
-use App\Enums\OrganizationType;
-use App\Http\Controllers\Controller;
+use App\Features\Troopers\Commands\UpdateTrooperIdentifiersCommand;
+use App\Features\Troopers\Commands\UpdateTrooperMembershipsCommand;
+use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Troopers\MembershipRequest;
-use App\Models\Organization;
 use App\Models\Trooper;
-use App\Models\TrooperAssignment;
-use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Collection;
 
 /**
- * Handles the display of a trooper's membership management page.
+ * Handles the submission of trooper membership updates.
  *
- * Presents organizational memberships and related assignments for a given trooper
- * so administrators and moderators can review or adjust membership details.
+ * Processes form submissions to update a trooper's organization memberships
+ * and identifiers via UpdateTrooperIdentifiersCommand and UpdateTrooperMembershipsCommand.
  */
-class MembershipSubmitController extends Controller
+class MembershipSubmitController extends MagicBusController
 {
     /**
-     * Handle the incoming request to display a trooper's authority page.
+     * Handle the incoming request to update a trooper's organization memberships.
      *
-     * This method authorizes the user, sets up breadcrumbs, and returns the view
-     * for managing a specific trooper's roles and organizational assignments.
+     * This method authorizes the user, validates the membership data, dispatches
+     * UpdateTrooperIdentifiersCommand and UpdateTrooperMembershipsCommand, and
+     * redirects back to the membership page.
      *
      * @param MembershipRequest $request The incoming HTTP request.
-     * @param Trooper $trooper The trooper whose authorities are to be displayed.
-     * @return View|RedirectResponse The rendered authority page view or a redirect response.
+     * @param Trooper $trooper The trooper whose memberships are being updated.
+     * @return RedirectResponse A redirect to the membership page.
      */
     public function __invoke(MembershipRequest $request, Trooper $trooper): RedirectResponse
     {
@@ -38,41 +36,13 @@ class MembershipSubmitController extends Controller
 
         $organizations = $request->validated('organizations', []);
 
-        foreach ($organizations as $organization_id => $data)
-        {
-            $identifier = $data['identifier'] ?? null;
+        $identifier_cmd = new UpdateTrooperIdentifiersCommand($trooper, $organizations);
 
-            if ($identifier)
-            {
-                // syncWithoutDetaching (or upsert) to avoid removing existing
-                // memberships not included in the request
-                $trooper->organizations()->syncWithoutDetaching([
-                    $organization_id => ['identifier' => $identifier],
-                ]);
+        $this->bus->send($identifier_cmd);
 
-                $assignment_id = $data['assignment'];
+        $membership_cmd = new UpdateTrooperMembershipsCommand($trooper, $organizations);
 
-                //  FYI - someone can be a member as a "member" or a handler
-                $trooper_assignment = $trooper->trooper_assignments()
-                    ->where(TrooperAssignment::ORGANIZATION_ID, $assignment_id)
-                    ->first();
-
-                if ($trooper_assignment)
-                {
-                    // update existing assignment
-                    $trooper_assignment->is_member = true;
-                    $trooper_assignment->save();
-                }
-                else
-                {
-                    // create new assignment
-                    $trooper->trooper_assignments()->create([
-                        TrooperAssignment::ORGANIZATION_ID => $assignment_id,
-                        TrooperAssignment::IS_MEMBER => true,
-                    ]);
-                }
-            }
-        }
+        $this->bus->send($membership_cmd);
 
         $data = compact('trooper');
 

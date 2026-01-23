@@ -9,7 +9,10 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 /**
- * Handles the inactive account page.
+ * Displays the inactive account page.
+ *
+ * This controller renders a page shown to troopers whose accounts have been
+ * deactivated (retired status) when they attempt to log in or access the application.
  */
 class InactiveController extends MagicBusController
 {

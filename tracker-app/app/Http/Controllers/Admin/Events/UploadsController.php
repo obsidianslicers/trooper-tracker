@@ -6,19 +6,15 @@ namespace App\Http\Controllers\Admin\Events;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
-use App\Models\EventOrganization;
-use App\Models\Organization;
 use App\Services\BreadCrumbService;
-use App\Services\FlashMessageService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 /**
- * Displays the event update form.
+ * Displays the event uploads management page.
  *
- * Provides administrators and moderators with a form to update existing event details,
- * including venue information, contact details, and organization associations.
- * Shows a draft warning if the event is not yet published.
+ * Provides administrators and moderators with an interface to manage event photo
+ * uploads, including viewing existing uploads and uploading new administrative images.
  */
 class UploadsController extends Controller
 {
@@ -34,11 +30,11 @@ class UploadsController extends Controller
     }
 
     /**
-     * Displays the event uploads form.
+     * Displays the event uploads management page.
      *
      * Authorizes that the user can update the event via policy check.
-     * Loads all organizations for the organization selection interface.
-     * Sets up breadcrumbs and renders the uploads form view.
+     * Sets up breadcrumbs and renders the uploads management view where
+     * administrators can view and manage event photos.
      *
      * @param Request $request The incoming HTTP request.
      * @param Event $event The event to be updated (route model binding).

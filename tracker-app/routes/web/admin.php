@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Admin\AdminDisplayController;
-use App\Http\Controllers\Admin\Awards\AwardDisplayController;
 use Illuminate\Support\Facades\Route;
 
 

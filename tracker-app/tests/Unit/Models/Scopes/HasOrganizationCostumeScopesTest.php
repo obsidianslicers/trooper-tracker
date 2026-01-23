@@ -91,7 +91,7 @@ class HasOrganizationCostumeScopesTest extends TestCase
         // Arrange
         $trooper = Trooper::factory()->create();
         $organization = Organization::factory()->create();
-        $event = Event::factory()->for($organization)->create();
+        $event = Event::factory()->withOrganization($organization)->create();
         $event_shift = EventShift::factory()->for($event)->create();
 
         $costume = OrganizationCostume::factory()->for($organization)->create();
@@ -114,7 +114,7 @@ class HasOrganizationCostumeScopesTest extends TestCase
         // Arrange
         $trooper = Trooper::factory()->create();
         $organization = Organization::factory()->create();
-        $event = Event::factory()->for($organization)->create();
+        $event = Event::factory()->withOrganization($organization)->create();
         $event_shift = EventShift::factory()->for($event)->create();
 
         $costume = OrganizationCostume::factory()->for($organization)->create();
@@ -136,7 +136,7 @@ class HasOrganizationCostumeScopesTest extends TestCase
         // Arrange
         $trooper = Trooper::factory()->create();
         $organization = Organization::factory()->create();
-        $event = Event::factory()->for($organization)->create();
+        $event = Event::factory()->withOrganization($organization)->create();
         $event_shift = EventShift::factory()->for($event)->create();
 
         $costume = OrganizationCostume::factory()->for($organization)->create();
@@ -159,7 +159,7 @@ class HasOrganizationCostumeScopesTest extends TestCase
         $trooper = Trooper::factory()->create();
         $other_trooper = Trooper::factory()->create();
         $organization = Organization::factory()->create();
-        $event = Event::factory()->for($organization)->create();
+        $event = Event::factory()->withOrganization($organization)->create();
         $event_shift = EventShift::factory()->for($event)->create();
 
         $costume = OrganizationCostume::factory()->for($organization)->create();
@@ -197,7 +197,7 @@ class HasOrganizationCostumeScopesTest extends TestCase
         $trooper = Trooper::factory()->create();
         $other_trooper = Trooper::factory()->create();
         $organization = Organization::factory()->create();
-        $event = Event::factory()->for($organization)->create();
+        $event = Event::factory()->withOrganization($organization)->create();
         $event_shift = EventShift::factory()->for($event)->create();
 
         $costume = OrganizationCostume::factory()->for($organization)->create();
@@ -227,7 +227,7 @@ class HasOrganizationCostumeScopesTest extends TestCase
         // Arrange
         $trooper = Trooper::factory()->create();
         $organization = Organization::factory()->create();
-        $event = Event::factory()->for($organization)->create();
+        $event = Event::factory()->withOrganization($organization)->create();
         $event_shift = EventShift::factory()->for($event)->create();
 
         $costume1 = OrganizationCostume::factory()->for($organization)->create();
@@ -265,7 +265,7 @@ class HasOrganizationCostumeScopesTest extends TestCase
         $trooper = Trooper::factory()->create();
         $organization1 = Organization::factory()->create();
         $organization2 = Organization::factory()->create();
-        $event = Event::factory()->for($organization1)->create();
+        $event = Event::factory()->withOrganization($organization1)->create();
         $event_shift = EventShift::factory()->for($event)->create();
 
         $costume1 = OrganizationCostume::factory()->for($organization1)->create();

@@ -4,14 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Troopers;
 
-use App\Enums\MembershipRole;
-use App\Http\Controllers\Controller;
+use App\Features\Troopers\Queries\GetTrooperApprovalsQuery;
+use App\Http\Controllers\MagicBusController;
 use App\Models\Trooper;
-use App\Services\BreadCrumbService;
 use Illuminate\Contracts\View\View;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Class TrooperApprovalDisplayController
@@ -20,14 +17,9 @@ use Illuminate\Support\Facades\Auth;
  * @package App\Http\Controllers\Admin\Troopers
  * This controller retrieves a list of troopers awaiting approval and displays them to authorized command staff.
  */
-class ApprovalListController extends Controller
+class ApprovalListController extends MagicBusController
 {
-    /**
-     * TrooperApprovalDisplayController constructor.
-     *
-     * @param BreadCrumbService $crumbs The breadcrumb service for managing navigation history.
-     */
-    public function __construct(private readonly BreadCrumbService $crumbs)
+    protected function initialized()
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
         $this->crumbs->addRoute('Troopers', 'admin.troopers.list');
@@ -40,15 +32,15 @@ class ApprovalListController extends Controller
      * it filters the list to show only troopers they are responsible for moderating.
      *
      * @param Request $request The incoming HTTP request.
-     * @return View|RedirectResponse A view containing the list of troopers pending approval.
+     * @return View A view containing the list of troopers pending approval.
      */
-    public function __invoke(Request $request): View|RedirectResponse
+    public function __invoke(Request $request): View
     {
         $trooper = $request->user();
 
-        $query = Trooper::pendingApprovals()->moderatedBy($trooper);
+        $approval_query = new GetTrooperApprovalsQuery($trooper);
 
-        $troopers = $query->get();
+        $troopers = $this->bus->send($approval_query);
 
         $data = compact('troopers');
 

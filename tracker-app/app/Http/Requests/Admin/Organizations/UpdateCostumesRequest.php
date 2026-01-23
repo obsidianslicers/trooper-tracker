@@ -5,11 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Requests\Admin\Organizations;
 
 use App\Models\Organization;
-use App\Models\OrganizationCostume;
 use App\Rules\Admin\Organizations\UniqueCostumeNameRule;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 /**
  * Handles the validation for updating an existing organization's costumes.

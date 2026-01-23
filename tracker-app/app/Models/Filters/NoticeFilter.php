@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Models\Filters;
 
-use App\Enums\NoticeType;
 use App\Models\Notice;
 use Illuminate\Database\Eloquent\Builder;
 

@@ -5,12 +5,10 @@ declare(strict_types=1);
 namespace App\Services\Synchronizers;
 
 use App\Enums\MembershipStatus;
-use App\Models\Event;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperOrganization;
 use App\Services\GoogleService;
-use Exception;
 
 /**
  * Artisan command to calculate and store trooper achievements based on their event history.

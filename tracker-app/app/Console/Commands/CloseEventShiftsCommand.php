@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Bus\MagicBus;
 use App\Enums\EventStatus;
+use App\Features\Events\Queries\GetEventShiftsToCloseQuery;
 use App\Mail\Events\EventShiftComplete;
-use App\Services\Events\GetEventShiftsToCloseQuery;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Mail;
 
@@ -38,23 +39,23 @@ class CloseEventShiftsCommand extends Command
      * Execute the console command.
      *
      * Orchestrates the event shift closing process by:
-     * 1. Querying for active event shifts that have ended via GetEventShiftsToCloseQuery
+     * 1. Dispatching GetEventShiftsToCloseQuery to retrieve active event shifts that have ended
      * 2. Updating each shift's status to CLOSED
      * 3. Sending EventShiftComplete emails to troopers with GOING status
      *
-     * @param GetEventShiftsToCloseQuery $get_event_shifts_to_close Service to retrieve shifts needing closure
+     * @param MagicBus $bus The message bus for dispatching queries
      * @return void
      */
-    public function handle(GetEventShiftsToCloseQuery $get_event_shifts_to_close): void
+    public function handle(MagicBus $bus): void
     {
-        $event_shifts = $get_event_shifts_to_close();
+        $event_shifts = $bus->send(new GetEventShiftsToCloseQuery());
 
         foreach ($event_shifts as $event_shift)
         {
             $event_shift->status = EventStatus::CLOSED;
             $event_shift->save();
 
-            //  EMAIL DAH TROOPERZ!
+            //  EMAIL DAH TROOPAHZ!
             foreach ($event_shift->event_troopers as $event_trooper)
             {
                 if ($event_trooper->is_going)

@@ -34,8 +34,6 @@ readonly class GetTroopersForPickerQueryHandler implements QueryHandlerInterface
      */
     public function __invoke(object $message): mixed
     {
-        /** @var GetTroopersForPickerQuery $message */
-
         $query = Trooper::active()->orderBy(Trooper::NAME);
 
         if ($message->organization_id)

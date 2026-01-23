@@ -6,7 +6,6 @@ namespace App\Features\Troopers\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Models\Organization;
-use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 
 /**
@@ -37,8 +36,6 @@ readonly class GetTrooperAssignmentsQueryHandler implements QueryHandlerInterfac
      */
     public function __invoke(object $message): mixed
     {
-        /** @var GetTrooperAssignmentsQuery $message */
-
         $organizations = Organization::ofTypeOrganizations()
             ->orderBy(Organization::NAME)
             ->get();

@@ -11,6 +11,7 @@ use App\Models\AwardTrooper;
 use App\Models\EventNotification;
 use App\Models\EventTrooper;
 use App\Models\EventUpload;
+use App\Models\ModelChange;
 use App\Models\Notice;
 use App\Models\NoticeTrooper;
 use App\Models\OauthLogin;
@@ -52,6 +53,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Collection|EventNotification[] $event_notifications
  * @property Collection|EventTrooper[] $event_troopers
  * @property Collection|EventUpload[] $event_uploads
+ * @property Collection|ModelChange[] $model_changes
  * @property Collection|Notice[] $notices
  * @property Collection|OauthLogin[] $oauth_logins
  * @property TrooperAchievement|null $trooper_achievement
@@ -132,6 +134,11 @@ class Trooper extends Model
     public function event_uploads(): HasMany
     {
         return $this->hasMany(EventUpload::class);
+    }
+
+    public function model_changes(): HasMany
+    {
+        return $this->hasMany(ModelChange::class);
     }
 
     public function notices(): BelongsToMany

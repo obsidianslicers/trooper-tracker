@@ -24,7 +24,6 @@ readonly class UpdateEventTrooperCommandHandler implements CommandHandlerInterfa
      */
     public function __invoke(object $message): mixed
     {
-        /** @var UpdateEventTrooperCommand $message */
         $message->event_trooper->fill($message->valid_data);
 
         $message->event_trooper->save();

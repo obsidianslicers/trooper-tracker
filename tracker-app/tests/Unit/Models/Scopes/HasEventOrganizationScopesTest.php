@@ -22,7 +22,7 @@ class HasEventOrganizationScopesTest extends TestCase
     {
         // Arrange
         $organization = Organization::factory()->create();
-        $event = Event::factory()->for($organization)->create();
+        $event = Event::factory()->withOrganization($organization)->create();
         $event_shift = EventShift::factory()->for($event)->create();
 
         EventOrganization::factory()->create([
@@ -45,7 +45,7 @@ class HasEventOrganizationScopesTest extends TestCase
     {
         // Arrange
         $organization = Organization::factory()->create();
-        $event = Event::factory()->for($organization)->create();
+        $event = Event::factory()->withOrganization($organization)->create();
         $event_shift = EventShift::factory()->for($event)->create();
 
         EventOrganization::factory()->create([
@@ -67,7 +67,7 @@ class HasEventOrganizationScopesTest extends TestCase
     {
         // Arrange
         $organization = Organization::factory()->create();
-        $event = Event::factory()->for($organization)->create();
+        $event = Event::factory()->withOrganization($organization)->create();
         $event_shift = EventShift::factory()->for($event)->create();
         $trooper = Trooper::factory()->create();
         $costume = OrganizationCostume::factory()->for($organization)->create();
@@ -98,7 +98,7 @@ class HasEventOrganizationScopesTest extends TestCase
     {
         // Arrange
         $organization = Organization::factory()->create();
-        $event = Event::factory()->for($organization)->create();
+        $event = Event::factory()->withOrganization($organization)->create();
         $event_shift = EventShift::factory()->for($event)->create();
         $costume = OrganizationCostume::factory()->for($organization)->create();
 
@@ -128,7 +128,7 @@ class HasEventOrganizationScopesTest extends TestCase
     {
         // Arrange
         $organization = Organization::factory()->create();
-        $event = Event::factory()->for($organization)->create();
+        $event = Event::factory()->withOrganization($organization)->create();
         $event_shift = EventShift::factory()->for($event)->create();
         $costume = OrganizationCostume::factory()->for($organization)->create();
 
@@ -157,7 +157,7 @@ class HasEventOrganizationScopesTest extends TestCase
     {
         // Arrange
         $organization = Organization::factory()->create();
-        $event = Event::factory()->for($organization)->create();
+        $event = Event::factory()->withOrganization($organization)->create();
         $event_shift = EventShift::factory()->for($event)->create();
         $costume = OrganizationCostume::factory()->for($organization)->create();
 
@@ -188,7 +188,7 @@ class HasEventOrganizationScopesTest extends TestCase
         $organization1 = Organization::factory()->create();
         $organization2 = Organization::factory()->create();
         $organization3 = Organization::factory()->create();
-        $event = Event::factory()->for($organization1)->create();
+        $event = Event::factory()->withOrganization($organization1)->create();
         $event_shift = EventShift::factory()->for($event)->create();
         $costume1 = OrganizationCostume::factory()->for($organization1)->create();
         $costume2 = OrganizationCostume::factory()->for($organization2)->create();
@@ -240,7 +240,7 @@ class HasEventOrganizationScopesTest extends TestCase
     {
         // Arrange
         $organization = Organization::factory()->create();
-        $event = Event::factory()->for($organization)->create();
+        $event = Event::factory()->withOrganization($organization)->create();
         $event_shift = EventShift::factory()->for($event)->create();
 
         EventOrganization::factory()->create([
@@ -262,7 +262,7 @@ class HasEventOrganizationScopesTest extends TestCase
     {
         // Arrange
         $organization = Organization::factory()->create();
-        $event = Event::factory()->for($organization)->create();
+        $event = Event::factory()->withOrganization($organization)->create();
         $event_shift1 = EventShift::factory()->for($event)->create();
         $event_shift2 = EventShift::factory()->for($event)->create();
         $costume = OrganizationCostume::factory()->for($organization)->create();

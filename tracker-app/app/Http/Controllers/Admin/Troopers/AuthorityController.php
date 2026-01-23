@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Troopers;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use App\Models\Organization;
 use App\Models\Trooper;
-use App\Services\BreadCrumbService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -17,14 +16,9 @@ use Illuminate\Http\Request;
  * Handles the display of a trooper's authority management page.
  * @package App\Http\Controllers\Admin\Troopers
  */
-class AuthorityController extends Controller
+class AuthorityController extends MagicBusController
 {
-    /**
-     * AuthorityController constructor.
-     *
-     * @param BreadCrumbService $crumbs The breadcrumb service for managing navigation history.
-     */
-    public function __construct(private readonly BreadCrumbService $crumbs)
+    protected function initialized()
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
         $this->crumbs->addRoute('Troopers', 'admin.troopers.list');

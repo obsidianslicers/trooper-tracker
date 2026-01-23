@@ -38,7 +38,7 @@ class SetupUpdateHtmxRequestTest extends TestCase
         $this->user = Trooper::factory()
             ->withAssignment($this->organization, member: true)
             ->create();
-        $this->event = Event::factory()->for($this->organization)->create();
+        $this->event = Event::factory()->withOrganization($this->organization)->create();
         $this->event_shift = EventShift::factory()->for($this->event)->create();
         $this->event_trooper = EventTrooper::factory()
             ->for($this->event_shift, 'event_shift')

@@ -118,7 +118,7 @@ class Organization extends Model
 
     public function events(): HasMany
     {
-        return $this->hasMany(Event::class);
+        return $this->hasMany(Event::class, Event::PRIMARY_ORGANIZATION_ID);
     }
 
     public function notices(): HasMany

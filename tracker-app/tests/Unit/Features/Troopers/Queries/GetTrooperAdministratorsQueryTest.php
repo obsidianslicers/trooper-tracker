@@ -4,17 +4,18 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Features\Troopers\Queries;
 
-use App\Features\Troopers\Queries\GetTrooperAdministratorsQuery;
+use App\Enums\MembershipRole;
+use App\Features\Troopers\Queries\GetTroopersByRoleQuery;
 use Tests\TestCase;
 
-class GetTrooperAdministratorsQueryTest extends TestCase
+class GetTroopersByRoleQueryTest extends TestCase
 {
     public function test_construct_with_no_parameters(): void
     {
         // Act
-        $subject = new GetTrooperAdministratorsQuery();
+        $subject = new GetTroopersByRoleQuery(MembershipRole::ADMINISTRATOR);
 
         // Assert
-        $this->assertInstanceOf(GetTrooperAdministratorsQuery::class, $subject);
+        $this->assertInstanceOf(GetTroopersByRoleQuery::class, $subject);
     }
 }

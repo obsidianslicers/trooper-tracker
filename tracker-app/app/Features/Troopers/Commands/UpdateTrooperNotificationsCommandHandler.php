@@ -30,7 +30,6 @@ readonly class UpdateTrooperNotificationsCommandHandler implements CommandHandle
      */
     public function __invoke(object $message): mixed
     {
-        /** @var UpdateTrooperNotificationsCommand $message */
         $message->trooper->trooper_assignments()->update(['can_notify' => false]);
 
         $assignments = $message->trooper->trooper_assignments()->get();

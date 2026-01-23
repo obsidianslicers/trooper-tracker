@@ -35,8 +35,6 @@ readonly class GetTroopersForEventCancelledQueryHandler implements QueryHandlerI
      */
     public function __invoke(object $message): mixed
     {
-        /** @var GetTroopersForEventCancelledQuery $message */
-
         $event_id = $message->event->id;
 
         $filter = function ($q) use ($event_id)
