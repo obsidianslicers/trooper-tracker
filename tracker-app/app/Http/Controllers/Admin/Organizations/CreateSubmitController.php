@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Organizations;
 
 use App\Enums\OrganizationType;
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Organizations\CreateRequest;
 use App\Models\Organization;
-use App\Services\FlashMessageService;
 use Illuminate\Http\RedirectResponse;
 use InvalidArgumentException;
 
@@ -18,17 +17,8 @@ use InvalidArgumentException;
  * Handles the submission of the form for creating a new organization.
  * @package App\Http\Controllers\Admin\Organizations
  */
-class CreateSubmitController extends Controller
+class CreateSubmitController extends MagicBusController
 {
-    /**
-     * CreateSubmitController constructor.
-     *
-     * @param FlashMessageService $flash The service for displaying flash messages.
-     */
-    public function __construct(private readonly FlashMessageService $flash)
-    {
-    }
-
     /**
      * Handle the incoming request to create a new organization.
      *

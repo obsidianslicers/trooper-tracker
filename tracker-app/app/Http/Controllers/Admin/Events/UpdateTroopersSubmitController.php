@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Events\UpdateTroopersRequest;
 use App\Models\Event;
-use App\Services\FlashMessageService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -17,17 +16,8 @@ use Illuminate\Http\Request;
  * Handles updating the status of event trooper registrations (approved, standby, etc.).
  * Iterates through submitted trooper IDs and updates their EventTrooper status.
  */
-class UpdateTroopersSubmitController extends Controller
+class UpdateTroopersSubmitController extends MagicBusController
 {
-    /**
-     * Creates a new UpdateTroopersSubmitController instance.
-     *
-     * @param FlashMessageService $flash Service for displaying flash messages to users.
-     */
-    public function __construct(private readonly FlashMessageService $flash)
-    {
-    }
-
     /**
      * Updates event trooper statuses from the validated form submission.
      *

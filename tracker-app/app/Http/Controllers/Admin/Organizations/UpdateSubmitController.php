@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Organizations;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Organizations\UpdateRequest;
 use App\Models\Organization;
-use App\Services\FlashMessageService;
 use Illuminate\Http\RedirectResponse;
 
 /**
@@ -16,17 +15,8 @@ use Illuminate\Http\RedirectResponse;
  * Handles the submission of the form for updating an existing organization.
  * @package App\Http\Controllers\Admin\Organizations
  */
-class UpdateSubmitController extends Controller
+class UpdateSubmitController extends MagicBusController
 {
-    /**
-     * UpdateSubmitController constructor.
-     *
-     * @param FlashMessageService $flash The service for displaying flash messages.
-     */
-    public function __construct(private readonly FlashMessageService $flash)
-    {
-    }
-
     /**
      * Handle the incoming request to update an organization.
      *

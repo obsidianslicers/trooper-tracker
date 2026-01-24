@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Organizations;
 
 use App\Enums\OrganizationType;
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use App\Models\Organization;
-use App\Services\BreadCrumbService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -17,14 +16,9 @@ use Illuminate\Http\Request;
  * Handles displaying the form to create a new organization under a parent.
  * @package App\Http\Controllers\Admin\Organizations
  */
-class CreateController extends Controller
+class CreateController extends MagicBusController
 {
-    /**
-     * CreateController constructor.
-     *
-     * @param BreadCrumbService $crumbs The service for managing breadcrumbs.
-     */
-    public function __construct(private readonly BreadCrumbService $crumbs)
+    protected function initialized()
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
         $this->crumbs->addRoute('Organizations', 'admin.organizations.list');

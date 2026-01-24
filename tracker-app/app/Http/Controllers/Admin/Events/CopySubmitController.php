@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Events\CopyRequest;
 use App\Models\Event;
 use App\Models\Trooper;
-use App\Services\FlashMessageService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 
@@ -21,17 +20,8 @@ use Illuminate\Http\RedirectResponse;
  * the original and new start dates. All shifts are also copied with adjusted times.
  * The copied event is created in DRAFT status regardless of the source event status.
  */
-class CopySubmitController extends Controller
+class CopySubmitController extends MagicBusController
 {
-    /**
-     * Creates a new CopySubmitController instance.
-     *
-     * @param FlashMessageService $flash Service for displaying flash messages to users.
-     */
-    public function __construct(private readonly FlashMessageService $flash)
-    {
-    }
-
     /**
      * Creates a copy of an existing event with adjusted dates.
      *

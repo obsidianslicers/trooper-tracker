@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Organizations;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use App\Models\Organization;
-use App\Services\BreadCrumbService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -19,14 +18,9 @@ use Illuminate\Support\Facades\Auth;
  * status for the authenticated user.
  * @package App\Http\Controllers\Admin\Organizations
  */
-class ListController extends Controller
+class ListController extends MagicBusController
 {
-    /**
-     * ListController constructor.
-     *
-     * @param BreadCrumbService $crumbs The service for managing breadcrumbs.
-     */
-    public function __construct(private readonly BreadCrumbService $crumbs)
+    protected function initialized()
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
     }

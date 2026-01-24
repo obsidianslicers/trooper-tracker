@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Organizations;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Services\BreadCrumbService;
@@ -17,14 +17,9 @@ use Illuminate\Http\Request;
  * Handles displaying the form to manage costumes for an organization.
  * @package App\Http\Controllers\Admin\Organizations
  */
-class CostumesController extends Controller
+class CostumesController extends MagicBusController
 {
-    /**
-     * CostumesController constructor.
-     *
-     * @param BreadCrumbService $crumbs The service for managing breadcrumbs.
-     */
-    public function __construct(private readonly BreadCrumbService $crumbs)
+    protected function initialized()
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
         $this->crumbs->addRoute('Organizations', 'admin.organizations.list');

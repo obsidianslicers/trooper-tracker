@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Awards;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Awards\UpdateRequest;
 use App\Models\Award;
-use App\Services\FlashMessageService;
 use Illuminate\Http\RedirectResponse;
 
 /**
@@ -16,17 +15,8 @@ use Illuminate\Http\RedirectResponse;
  * Handles the submission of the form for updating an existing award.
  * @package App\Http\Controllers\Admin\Awards
  */
-class UpdateSubmitController extends Controller
+class UpdateSubmitController extends MagicBusController
 {
-    /**
-     * UpdateSubmitController constructor.
-     *
-     * @param FlashMessageService $flash The service for displaying flash messages.
-     */
-    public function __construct(private readonly FlashMessageService $flash)
-    {
-    }
-
     /**
      * Handle the incoming request to update a award.
      *

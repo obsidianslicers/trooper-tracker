@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Organizations;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Organizations\CreateCostumeRequest;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
-use App\Services\FlashMessageService;
 use Illuminate\Http\RedirectResponse;
 
 /**
@@ -17,17 +16,8 @@ use Illuminate\Http\RedirectResponse;
  * Handles the submission of the form for creating a new costume under a parent organization.
  * @package App\Http\Controllers\Admin\Organizations
  */
-class CreateCostumeSubmitController extends Controller
+class CreateCostumeSubmitController extends MagicBusController
 {
-    /**
-     * CreateCostumeSubmitController constructor.
-     *
-     * @param FlashMessageService $flash The service for displaying flash messages.
-     */
-    public function __construct(private readonly FlashMessageService $flash)
-    {
-    }
-
     /**
      * Handle the incoming request to create a new costume.
      *

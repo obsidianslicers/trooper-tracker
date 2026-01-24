@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use App\Models\Event;
 use App\Models\Organization;
-use App\Services\BreadCrumbService;
-use App\Services\FlashMessageService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -19,16 +17,9 @@ use Illuminate\Http\Request;
  * including venue information, contact details, and organization associations.
  * Shows a draft warning if the event is not yet published.
  */
-class UpdateController extends Controller
+class UpdateController extends MagicBusController
 {
-    /**
-     * Creates a new UpdateController instance.
-     *
-     * @param BreadCrumbService $crumbs Service for managing breadcrumb navigation.
-     */
-    public function __construct(
-        private readonly BreadCrumbService $crumbs,
-        private readonly FlashMessageService $flash)
+    protected function initialized()
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
         $this->crumbs->addRoute('Events', 'admin.events.list');

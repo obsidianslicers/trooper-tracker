@@ -6,11 +6,10 @@ namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
 use App\Enums\EventType;
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Models\Trooper;
-use App\Services\BreadCrumbService;
 use App\Services\Organizations\GetOrganizationHierarchyQuery;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -25,14 +24,9 @@ use Illuminate\Support\Collection;
  * optionally assigns an organization based on query parameters. Provides the
  * organization hierarchy for form selection.
  */
-class CreateController extends Controller
+class CreateController extends MagicBusController
 {
-    /**
-     * Creates a new CreateController instance.
-     *
-     * @param BreadCrumbService $crumbs Service for managing breadcrumb navigation.
-     */
-    public function __construct(private readonly BreadCrumbService $crumbs)
+    protected function initialized()
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
         $this->crumbs->addRoute('Events', 'admin.events.list');

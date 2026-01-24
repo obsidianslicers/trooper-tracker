@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Events\UpdateRequest;
 use App\Jobs\SendEventCancelledNotificationsJob;
 use App\Jobs\SendEventCreatedNotificationsJob;
@@ -13,7 +13,6 @@ use App\Models\Event;
 use App\Models\EventOrganization;
 use App\Services\Events\UpdateEventCommand;
 use App\Services\Events\UpdateEventOrganizationsCommand;
-use App\Services\FlashMessageService;
 use Illuminate\Http\RedirectResponse;
 
 /**
@@ -23,17 +22,8 @@ use Illuminate\Http\RedirectResponse;
  * event dates, amenities, and organization associations. Updates both the event record
  * and its related EventOrganization pivot records for access control.
  */
-class UpdateSubmitController extends Controller
+class UpdateSubmitController extends MagicBusController
 {
-    /**
-     * Creates a new UpdateSubmitController instance.
-     *
-     * @param FlashMessageService $flash Service for displaying flash messages to users.
-     */
-    public function __construct(private readonly FlashMessageService $flash)
-    {
-    }
-
     /**
      * Updates an existing event from the validated form submission.
      *

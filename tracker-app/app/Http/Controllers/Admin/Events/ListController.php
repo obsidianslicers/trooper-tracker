@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use App\Models\Filters\EventFilter;
 use App\Models\Organization;
-use App\Services\BreadCrumbService;
 use App\Services\Events\GetEventsForAdminQuery;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -34,14 +33,9 @@ use Illuminate\Http\Request;
  * - search_term: Search events by name
  * - page: Pagination page number
  */
-class ListController extends Controller
+class ListController extends MagicBusController
 {
-    /**
-     * Creates a new ListController instance.
-     *
-     * @param BreadCrumbService $crumbs Service for managing breadcrumb navigation.
-     */
-    public function __construct(private readonly BreadCrumbService $crumbs)
+    protected function initialized()
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
     }

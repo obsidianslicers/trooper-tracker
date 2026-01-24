@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Events\CreateRequest;
 use App\Jobs\SendEventCreatedNotificationsJob;
 use App\Models\Base\EventShift;
@@ -14,7 +14,6 @@ use App\Models\EventOrganization;
 use App\Models\Organization;
 use App\Services\Events\UpdateEventCommand;
 use App\Services\Events\UpdateEventOrganizationsCommand;
-use App\Services\FlashMessageService;
 use Illuminate\Http\RedirectResponse;
 
 /**
@@ -26,18 +25,8 @@ use Illuminate\Http\RedirectResponse;
  * from the form. Dispatches notification jobs for events created in OPEN or
  * SIGN_UP_LOCKED status.
  */
-class CreateSubmitController extends Controller
+class CreateSubmitController extends MagicBusController
 {
-    /**
-     * Creates a new CreateSubmitController instance.
-     *
-     * @param FlashMessageService $flash Service for displaying flash messages to users.
-     */
-    public function __construct(
-        private readonly FlashMessageService $flash)
-    {
-    }
-
     /**
      * Creates a new event from validated form submission.
      *

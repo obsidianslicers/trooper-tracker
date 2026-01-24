@@ -4,16 +4,18 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Console\Commands;
 
+use App\Bus\MagicBus;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
+use App\Features\Events\Queries\GetEventShiftsToCloseQuery;
 use App\Mail\Events\EventShiftComplete;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
-use App\Services\Events\GetEventShiftsToCloseQuery;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
@@ -262,14 +264,14 @@ class CloseEventShiftsCommandTest extends TestCase
             'shift_ends_at' => Carbon::yesterday(),
         ]);
 
-        $service = app(GetEventShiftsToCloseQuery::class);
-        $shifts_before = $service();
+        $bus = app(MagicBus::class);
+        $shifts_before = $bus->send(new GetEventShiftsToCloseQuery());
 
         // Act
         $this->artisan('tracker:close-event-shifts')->assertExitCode(0);
 
-        // Assert - verify service would no longer return this shift
-        $shifts_after = $service();
+        // Assert - verify query would no longer return this shift
+        $shifts_after = $bus->send(new GetEventShiftsToCloseQuery());
         $this->assertCount(1, $shifts_before);
         $this->assertCount(0, $shifts_after);
     }

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Admin\Events;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use App\Models\Event;
 use App\Models\EventUpload;
 use Exception;
@@ -18,7 +18,7 @@ use Intervention\Image\ImageManager;
  * creating both original and thumbnail versions. Images are marked as administrative
  * uploads. Nearly identical to Events\UploadImageController but sets is_administrative=true.
  */
-class UploadImageController extends Controller
+class UploadImageController extends MagicBusController
 {
     /**
      * Handle the incoming administrative image upload request.

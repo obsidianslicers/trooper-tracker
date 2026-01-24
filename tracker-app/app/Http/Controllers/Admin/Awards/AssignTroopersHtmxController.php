@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Awards;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use App\Models\Award;
 use App\Models\Trooper;
 use Illuminate\Contracts\View\View;
@@ -16,7 +16,7 @@ use Illuminate\Http\Request;
  * Handles HTMX requests for the award assignment form.
  * @package App\Http\Controllers\Admin\Awards
  */
-class AssignTroopersHtmxController extends Controller
+class AssignTroopersHtmxController extends MagicBusController
 {
     /**
      * Handle the HTMX request to add a selected trooper to the assignment list.
