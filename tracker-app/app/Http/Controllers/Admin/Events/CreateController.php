@@ -49,7 +49,7 @@ class CreateController extends MagicBusController
 
         $trooper = $request->user();
 
-        $organization_hierarchy_query = new GetOrganizationHierarchyQuery($trooper);
+        $organization_hierarchy_query = new GetOrganizationHierarchyQuery();
 
         $organization_hierarchy = $this->bus->send($organization_hierarchy_query)->map(fn(array $org) => (object) $org);
 
