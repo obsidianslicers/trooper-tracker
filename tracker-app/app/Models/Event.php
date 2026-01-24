@@ -12,6 +12,7 @@ use App\Models\Concerns\HasTrooperStamps;
 use App\Models\Scopes\HasEventScopes;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
@@ -55,6 +56,16 @@ class Event extends BaseEvent
             self::EVENT_WEBSITE => SanitizeHtmlCast::class,
             self::REQUESTED_CHARACTER_TYPES => SanitizeHtmlCast::class,
         ]);
+    }
+
+    public function organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class, self::ORGANIZATION_ID);
+    }
+
+    public function primary_organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class, self::PRIMARY_ORGANIZATION_ID);
     }
 
     /**

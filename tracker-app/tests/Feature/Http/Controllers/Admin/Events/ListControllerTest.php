@@ -15,15 +15,21 @@ use Tests\TestCase;
 /**
  * Feature tests for Admin Events ListController.
  *
+ * Tests the ADR pattern implementation:
+ * - Action: ListController orchestrates via MagicBus
+ * - Domain: GetEventsForModeratorQuery/Handler filters events
+ * - Responder: Blade view renders event list
+ *
  * Verifies:
  * - Administrators can view all events
- * - Moderators can view only events from their organizations
+ * - Moderators can view only events from their moderated organizations
  * - Event filtering by status works correctly
  * - Event filtering by organization works correctly
  * - Event search by name works correctly
- * - Pagination works correctly
+ * - Pagination works correctly with preserved query strings
  * - View displays correct data structure
  * - Authentication is required
+ * - Invalid organization_id returns 404
  */
 class ListControllerTest extends TestCase
 {
@@ -269,7 +275,7 @@ class ListControllerTest extends TestCase
         $response->assertOk();
         $response->assertViewHas('events', function ($events)
         {
-            return $events->total() === 20 && $events->perPage() === 15;
+            return $events->total() === 20 && $events->perPage() === 25;
         });
     }
 

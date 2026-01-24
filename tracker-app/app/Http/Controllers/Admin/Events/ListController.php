@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
+use App\Features\Events\Queries\GetEventsForModeratorQuery;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Filters\EventFilter;
 use App\Models\Organization;
-use App\Services\Events\GetEventsForAdminQuery;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -17,7 +17,7 @@ use Illuminate\Http\Request;
  *
  * This controller follows the **Action-Domain-Responder (ADR)** pattern:
  * - **Action (Controller):** Orchestrates the request handling and view rendering
- * - **Domain (Service):** GetEventsForAdminQuery performs the business logic of filtering and retrieving events
+ * - **Domain (Query/Handler):** GetEventsForModeratorQuery retrieves events through MagicBus
  * - **Responder:** Blade view renders the event list table
  *
  * Key features:
@@ -46,22 +46,22 @@ class ListController extends MagicBusController
      * Orchestrates the event retrieval workflow:
      * 1. Authenticates the trooper (via middleware)
      * 2. Retrieves organization filter if provided
-     * 3. Delegates to GetEventsForAdminQuery for filtered, paginated results
+     * 3. Dispatches GetEventsForModeratorQuery via MagicBus for filtered, paginated results
      * 4. Prepares view data with events, filters, and status options
      *
      * @param Request $request The incoming HTTP request with optional filter parameters.
      * @param EventFilter $filter The filter service for applying query constraints.
-     * @param GetEventsForAdminQuery $get_events Service to retrieve filtered and paginated events.
      * @return View The event list view with filtered and paginated results.
      */
-    public function __invoke(
-        Request $request,
-        EventFilter $filter,
-        GetEventsForAdminQuery $get_events): View
+    public function __invoke(Request $request, EventFilter $filter): View
     {
+        $trooper = $request->user();
+
         $organization = $this->getOrganization($request);
 
-        $events = $get_events($request->user(), $filter);
+        $get_events_query = new GetEventsForModeratorQuery($filter, $trooper);
+
+        $events = $this->bus->send($get_events_query);
 
         $status_options = EventStatus::toArray();
 
