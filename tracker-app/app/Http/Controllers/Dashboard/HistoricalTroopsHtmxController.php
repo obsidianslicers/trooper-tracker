@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Dashboard;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use App\Models\EventShift;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Auth;
  * This controller fetches past event sign-ups (historical troops) for a given trooper
  * and returns a view partial containing the list, sorted by most recent first.
  */
-class HistoricalTroopsHtmxController extends Controller
+class HistoricalTroopsHtmxController extends MagicBusController
 {
     /**
      * Handle the incoming request to display the historical troops partial.
