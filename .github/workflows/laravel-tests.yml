@@ -39,9 +39,6 @@ jobs:
       - name: Run Tests
         working-directory: ./tracker-app
         run: |
-          # Copy test environment
-          cp .env.test .env
-
           # Ensure Laravel boots cleanly
           php artisan key:generate
 
@@ -49,4 +46,5 @@ jobs:
           php artisan migrate --force
           
           # Run the test suite
-          php artisan test --profile --filter=SendEventCreatedNotificationCommandHandlerTest
+          #php artisan test --profile --filter=SendEventCreatedNotificationCommandHandlerTest
+          php artisan test --profile --filter=test_where_is_the_hang
