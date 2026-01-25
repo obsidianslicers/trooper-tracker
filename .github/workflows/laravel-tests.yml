@@ -37,7 +37,7 @@ jobs:
 
           # Force in-memory SQLite + in-memory cache/session
           export DB_CONNECTION=sqlite
-          export DB_DATABASE=":memory:"\
+          export DB_DATABASE=":memory:"
           export CACHE_DRIVER=array
           export SESSION_DRIVER=array
           export QUEUE_CONNECTION=sync
