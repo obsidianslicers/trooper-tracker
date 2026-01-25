@@ -46,4 +46,4 @@ jobs:
           php artisan key:generate  
 
           # Run the test suite
-          php artisan test -v --filter=SendEventCreatedNotificationCommandHandlerTest
+          php artisan test --profile --filter=SendEventCreatedNotificationCommandHandlerTest
