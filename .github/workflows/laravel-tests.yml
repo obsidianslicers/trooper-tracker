@@ -32,7 +32,6 @@ jobs:
           cp .env.test .env
           php artisan key:generate
           php artisan config:clear
-          php artisan cache:clear
 
       - name: Run Tests
         working-directory: ./tracker-app
