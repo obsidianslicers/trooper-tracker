@@ -22,21 +22,24 @@ jobs:
           extensions: mbstring, bcmath, sqlite, intl, pdo_sqlite, gd
           coverage: none
 
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.composer/cache
+            vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('tracker-app/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
       - name: Install Composer Dependencies
         working-directory: ./tracker-app
         run: composer install --no-interaction --prefer-dist --no-progress
-      
-      - name: Set up test environment
-        working-directory: ./tracker-app
-        run: |
-          cp .env.test .env
-          php artisan key:generate
-          php artisan config:clear
 
       - name: Run Tests
         working-directory: ./tracker-app
         env:
-          DB_CONNECTION: sqlite
-          DB_DATABASE: ":memory:"
-        run: php artisan test
-
+          APP_KEY: ${{ secrets.TT_APP_KEY }}
+        run: |
+          # Run the test suite
+          php artisan test --env=testing --profile --filter=SendEventCreatedNotificationCommandHandlerTest
