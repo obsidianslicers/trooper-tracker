@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
+use App\Features\Events\Commands\UpdateEventCommand;
+use App\Features\Events\Commands\UpdateEventOrganizationsCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Events\UpdateRequest;
 use App\Jobs\SendEventCancelledNotificationsJob;
 use App\Jobs\SendEventCreatedNotificationsJob;
 use App\Models\Event;
 use App\Models\EventOrganization;
-use App\Services\Events\UpdateEventCommand;
-use App\Services\Events\UpdateEventOrganizationsCommand;
 use Illuminate\Http\RedirectResponse;
 
 /**
@@ -37,15 +37,13 @@ class UpdateSubmitController extends MagicBusController
      */
     public function __invoke(
         UpdateRequest $request,
-        Event $event,
-        UpdateEventCommand $update_event,
-        UpdateEventOrganizationsCommand $update_event_organizations): RedirectResponse
+        Event $event): RedirectResponse
     {
         $current_status = $event->status;
         $updated_status = EventStatus::from($request->validated('status'));
 
-        $update_event($event, $request->validated());
-        $update_event_organizations($event, $request->validated('organizations') ?? []);
+        $this->bus->send(new UpdateEventCommand($event, $request->validated()));
+        $this->bus->send(new UpdateEventOrganizationsCommand($event, $request->validated('organizations') ?? []));
 
         if ($current_status != $updated_status)
         {
