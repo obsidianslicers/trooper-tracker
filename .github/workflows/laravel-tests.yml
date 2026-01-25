@@ -43,7 +43,10 @@ jobs:
           cp .env.test .env
 
           # Ensure Laravel boots cleanly
-          php artisan key:generate  
+          php artisan key:generate
 
+          touch /dev/shm/test.sqlite
+          php artisan migrate --force
+          
           # Run the test suite
           php artisan test --profile --filter=SendEventCreatedNotificationCommandHandlerTest
