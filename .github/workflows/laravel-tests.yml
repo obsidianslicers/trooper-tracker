@@ -29,12 +29,15 @@ jobs:
       - name: Run Tests
         working-directory: ./tracker-app
         run: |
+          # Clear cached config
+          rm -f bootstrap/cache/config.php
+
           # Copy test environment
           cp .env.test .env
 
           # Force in-memory SQLite + in-memory cache/session
           export DB_CONNECTION=sqlite
-          export DB_DATABASE=":memory:"
+          export DB_DATABASE=":memory:"\
           export CACHE_DRIVER=array
           export SESSION_DRIVER=array
           export QUEUE_CONNECTION=sync
