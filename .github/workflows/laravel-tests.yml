@@ -29,23 +29,34 @@ jobs:
       - name: Run Tests
         working-directory: ./tracker-app
         run: |
-          # Clear cached config
           rm -f bootstrap/cache/config.php
-
-          # Copy test environment
           cp .env.test .env
 
-          # Force in-memory SQLite + in-memory cache/session
-          export DB_CONNECTION=sqlite
-          export DB_DATABASE=":memory:"
-          export CACHE_DRIVER=array
-          export SESSION_DRIVER=array
-          export QUEUE_CONNECTION=sync
-
-          # Ensure Laravel boots cleanly
+          DB_CONNECTION=sqlite \
+          DB_DATABASE=':memory:' \
+          CACHE_DRIVER=array \
+          SESSION_DRIVER=array \
+          QUEUE_CONNECTION=sync \
           php artisan key:generate
+
+          DB_CONNECTION=sqlite \
+          DB_DATABASE=':memory:' \
+          CACHE_DRIVER=array \
+          SESSION_DRIVER=array \
+          QUEUE_CONNECTION=sync \
           php artisan config:clear
+
+          DB_CONNECTION=sqlite \
+          DB_DATABASE=':memory:' \
+          CACHE_DRIVER=array \
+          SESSION_DRIVER=array \
+          QUEUE_CONNECTION=sync \
           php artisan cache:clear
 
-          # Run the test suite
+          DB_CONNECTION=sqlite \
+          DB_DATABASE=':memory:' \
+          CACHE_DRIVER=array \
+          SESSION_DRIVER=array \
+          QUEUE_CONNECTION=sync \
           php artisan test
+
