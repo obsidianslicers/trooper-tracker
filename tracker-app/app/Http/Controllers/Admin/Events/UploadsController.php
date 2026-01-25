@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use App\Models\Event;
-use App\Services\BreadCrumbService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -16,14 +15,9 @@ use Illuminate\Http\Request;
  * Provides administrators and moderators with an interface to manage event photo
  * uploads, including viewing existing uploads and uploading new administrative images.
  */
-class UploadsController extends Controller
+class UploadsController extends MagicBusController
 {
-    /**
-     * Creates a new UploadsController instance.
-     *
-     * @param BreadCrumbService $crumbs Service for managing breadcrumb navigation.
-     */
-    public function __construct(private readonly BreadCrumbService $crumbs)
+    protected function initialized()
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
         $this->crumbs->addRoute('Events', 'admin.events.list');

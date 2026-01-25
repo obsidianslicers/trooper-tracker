@@ -2,17 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\Services\Events;
+namespace Tests\Unit\Features\Events\Commands;
 
 use App\Enums\EventStatus;
+use App\Features\Events\Commands\UpdateEventCommand;
+use App\Features\Events\Commands\UpdateEventCommandHandler;
 use App\Models\Event;
-use App\Services\Events\UpdateEventCommand;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Tests for UpdateEventCommand.
+ * Tests for UpdateEventCommand and UpdateEventCommandHandler.
  *
  * Verifies:
  * - Updates event's core properties including name, status, and attendance limits.
@@ -28,12 +29,12 @@ class UpdateEventCommandTest extends TestCase
 {
     use RefreshDatabase;
 
-    private UpdateEventCommand $subject;
+    private UpdateEventCommandHandler $subject;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->subject = new UpdateEventCommand();
+        $this->subject = new UpdateEventCommandHandler();
     }
 
     /**
@@ -73,8 +74,10 @@ class UpdateEventCommandTest extends TestCase
             'status' => EventStatus::OPEN->value,
         ]);
 
+        $command = new UpdateEventCommand($event, $data);
+
         // Act
-        ($this->subject)($event, $data);
+        ($this->subject)($command);
 
         // Assert
         $event->refresh();
@@ -101,8 +104,10 @@ class UpdateEventCommandTest extends TestCase
             'tentative_signups_allowed' => true,
         ]);
 
+        $command = new UpdateEventCommand($event, $data);
+
         // Act
-        ($this->subject)($event, $data);
+        ($this->subject)($command);
 
         // Assert
         $event->refresh();
@@ -127,8 +132,10 @@ class UpdateEventCommandTest extends TestCase
             'longitude' => -74.0060,
         ]);
 
+        $command = new UpdateEventCommand($event, $data);
+
         // Act
-        ($this->subject)($event, $data);
+        ($this->subject)($command);
 
         // Assert
         $event->refresh();
@@ -153,8 +160,10 @@ class UpdateEventCommandTest extends TestCase
             'contact_email' => 'john@example.com',
         ]);
 
+        $command = new UpdateEventCommand($event, $data);
+
         // Act
-        ($this->subject)($event, $data);
+        ($this->subject)($command);
 
         // Assert
         $event->refresh();
@@ -186,8 +195,10 @@ class UpdateEventCommandTest extends TestCase
             'venue_country' => 'USA',
         ]);
 
+        $command = new UpdateEventCommand($event, $data);
+
         // Act
-        ($this->subject)($event, $data);
+        ($this->subject)($command);
 
         // Assert
         $event->refresh();
@@ -215,8 +226,10 @@ class UpdateEventCommandTest extends TestCase
             'event_website' => 'https://example.com/event',
         ]);
 
+        $command = new UpdateEventCommand($event, $data);
+
         // Act
-        ($this->subject)($event, $data);
+        ($this->subject)($command);
 
         // Assert
         $event->refresh();
@@ -242,8 +255,10 @@ class UpdateEventCommandTest extends TestCase
             'requested_character_types' => 'Stormtroopers and Rebels',
         ]);
 
+        $command = new UpdateEventCommand($event, $data);
+
         // Act
-        ($this->subject)($event, $data);
+        ($this->subject)($command);
 
         // Assert
         $event->refresh();
@@ -268,8 +283,10 @@ class UpdateEventCommandTest extends TestCase
             'amenities' => 'Restrooms, Food, Water',
         ]);
 
+        $command = new UpdateEventCommand($event, $data);
+
         // Act
-        ($this->subject)($event, $data);
+        ($this->subject)($command);
 
         // Assert
         $event->refresh();
@@ -302,8 +319,10 @@ class UpdateEventCommandTest extends TestCase
             'charity_notes' => 'Funds raised through silent auction',
         ]);
 
+        $command = new UpdateEventCommand($event, $data);
+
         // Act
-        ($this->subject)($event, $data);
+        ($this->subject)($command);
 
         // Assert
         $event->refresh();
@@ -331,8 +350,10 @@ class UpdateEventCommandTest extends TestCase
             'source' => 'email',
         ]);
 
+        $command = new UpdateEventCommand($event, $data);
+
         // Act
-        ($this->subject)($event, $data);
+        ($this->subject)($command);
 
         // Assert
         $event->refresh();
@@ -353,8 +374,10 @@ class UpdateEventCommandTest extends TestCase
             'status' => $event->status->value,
         ]);
 
+        $command = new UpdateEventCommand($event, $data);
+
         // Act
-        ($this->subject)($event, $data);
+        ($this->subject)($command);
 
         // Assert
         $event->refresh();
@@ -373,8 +396,10 @@ class UpdateEventCommandTest extends TestCase
             'status' => EventStatus::OPEN->value,
         ]);
 
+        $command = new UpdateEventCommand($event, $data);
+
         // Act
-        ($this->subject)($event, $data);
+        ($this->subject)($command);
 
         // Assert
         $this->assertDatabaseHas('tt_events', [

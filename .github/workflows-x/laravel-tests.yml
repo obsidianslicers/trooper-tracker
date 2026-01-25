@@ -23,14 +23,20 @@ jobs:
           coverage: none
 
       - name: Install Composer Dependencies
+        working-directory: ./tracker-app
         run: composer install --no-interaction --prefer-dist --no-progress
+      
+      - name: Set up test environment
         working-directory: ./tracker-app
-
-      - name: Copy Environment File
-        run: cp .env.test .env
-        working-directory: ./tracker-app
+        run: |
+          cp .env.test .env
+          php artisan key:generate
+          php artisan config:clear
 
       - name: Run Tests
-        run: php artisan test
         working-directory: ./tracker-app
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ":memory:"
+        run: php artisan test
 

@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use App\Models\Event;
 use App\Models\EventShift;
-use App\Services\BreadCrumbService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -17,14 +16,9 @@ use Illuminate\Http\Request;
  * Provides administrators and moderators with a form to manage event shifts,
  * including creating new shifts and updating existing shift times.
  */
-class UpdateShiftsController extends Controller
+class UpdateShiftsController extends MagicBusController
 {
-    /**
-     * Creates a new UpdateShiftsController instance.
-     *
-     * @param BreadCrumbService $crumbs Service for managing breadcrumb navigation.
-     */
-    public function __construct(private readonly BreadCrumbService $crumbs)
+    protected function initialized()
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
         $this->crumbs->addRoute('Events', 'admin.events.list');

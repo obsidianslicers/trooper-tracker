@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Events\UpdateShiftsRequest;
 use App\Models\Event;
 use App\Models\EventShift;
-use App\Services\FlashMessageService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 
@@ -18,17 +17,8 @@ use Illuminate\Http\RedirectResponse;
  * Handles creating new event shifts and updating existing shift start/end times.
  * Parses date and time inputs to create Carbon datetime objects for storage.
  */
-class UpdateShiftsSubmitController extends Controller
+class UpdateShiftsSubmitController extends MagicBusController
 {
-    /**
-     * Creates a new UpdateShiftsSubmitController instance.
-     *
-     * @param FlashMessageService $flash Service for displaying flash messages to users.
-     */
-    public function __construct(private readonly FlashMessageService $flash)
-    {
-    }
-
     /**
      * Updates or creates event shifts from the validated form submission.
      *

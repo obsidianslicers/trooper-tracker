@@ -6,7 +6,6 @@ namespace App\Http\Controllers\Account;
 
 use App\Features\Notices\Queries\GetTrooperNoticesQuery;
 use App\Http\Controllers\MagicBusController;
-use App\Models\Notice;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 

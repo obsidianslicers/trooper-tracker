@@ -57,7 +57,7 @@ class BreadCrumbService
      */
     public function addRoute(string $title, string $route, array $parms = []): void
     {
-        $url = route($route, $parms ?? []);
+        $url = route($route, $parms);
 
         $crumb = new BreadCrumb($title, $url);
 

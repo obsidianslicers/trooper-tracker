@@ -11,7 +11,6 @@ use App\Models\Event;
 use App\Models\EventOrganization;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
-use App\Models\Observers\EventObserver;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;

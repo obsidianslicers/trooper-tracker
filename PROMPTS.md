@@ -40,3 +40,41 @@ During this process:
 - if you generate any temporary or analysis files, delete them immediately after use
 - ensure the workspace contains only the original project files after the refactor
 ```
+
+## Update PHPDoc Comments and Tests
+
+This prompt audits and corrects PHPDoc across the selected controllers, updates their feature tests to match current behavior, and ensures every referenced Query and QueryHandler has proper unit test coverage—creating or adjusting tests as needed while keeping all changes scoped strictly to the files in context.
+
+```
+Work only with the files currently selected in the chat context, plus any
+Query or QueryHandler classes referenced by them.
+
+Perform the following tasks:
+
+1. PHPDoc Audit (Controllers)
+   - Review and correct all PHPDoc comments in the selected controller files.
+   - Ensure class-level and method-level PHPDoc accurately describe the code.
+   - Remove stale or incorrect annotations.
+   - Do not modify method signatures, logic, or namespaces.
+
+2. Controller Feature Tests
+   - Update the corresponding feature tests so they match the refactored
+     controller behavior and structure.
+   - Fix any broken imports, route names, or expectations.
+   - Ensure the tests reflect the new MagicBusController pattern if relevant.
+
+3. Query & QueryHandler Unit Tests
+   - For any Query or QueryHandler referenced by these controllers, ensure
+     there are proper unit tests.
+   - If tests exist, update them to match the current code.
+   - If tests do not exist, create new unit tests following the project's
+     existing testing conventions.
+   - Do not modify the Query or Handler logic itself.
+
+Constraints:
+- Do not touch unrelated files.
+- Do not introduce new dependencies.
+- Keep all changes minimal, accurate, and aligned with the existing project style.
+
+Apply all edits automatically.
+```

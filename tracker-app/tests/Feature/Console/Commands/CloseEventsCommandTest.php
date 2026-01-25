@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Console\Commands;
 
+use App\Bus\MagicBus;
 use App\Enums\EventStatus;
+use App\Features\Events\Queries\GetEventsToCloseQuery;
 use App\Models\Event;
-use App\Services\Events\GetEventsToCloseQuery;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Tests\TestCase;
 
 class CloseEventsCommandTest extends TestCase
@@ -122,14 +124,14 @@ class CloseEventsCommandTest extends TestCase
             'event_end' => Carbon::yesterday(),
         ]);
 
-        $service = app(GetEventsToCloseQuery::class);
-        $events_before = $service();
+        $bus = app(MagicBus::class);
+        $events_before = $bus->send(new GetEventsToCloseQuery());
 
         // Act
         $this->artisan('tracker:close-events')->assertExitCode(0);
 
-        // Assert - verify service would no longer return this event
-        $events_after = $service();
+        // Assert - verify query would no longer return this event
+        $events_after = $bus->send(new GetEventsToCloseQuery());
         $this->assertCount(1, $events_before);
         $this->assertCount(0, $events_after);
     }

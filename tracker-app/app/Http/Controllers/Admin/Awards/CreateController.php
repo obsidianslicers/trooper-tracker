@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Awards;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use App\Models\Award;
 use App\Models\Organization;
 use App\Models\Trooper;
-use App\Services\BreadCrumbService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -18,14 +17,9 @@ use Illuminate\Http\Request;
  * Handles displaying the form to create a new award.
  * @package App\Http\Controllers\Admin\Awards
  */
-class CreateController extends Controller
+class CreateController extends MagicBusController
 {
-    /**
-     * CreateController constructor.
-     *
-     * @param BreadCrumbService $crumbs The service for managing breadcrumbs.
-     */
-    public function __construct(private readonly BreadCrumbService $crumbs)
+    protected function initialized()
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
         $this->crumbs->addRoute('Awards', 'admin.awards.list');

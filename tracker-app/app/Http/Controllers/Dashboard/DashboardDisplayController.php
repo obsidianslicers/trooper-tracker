@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Dashboard;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
-use App\Services\BreadCrumbService;
-use App\Services\FlashMessageService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,20 +20,8 @@ use Illuminate\Support\Facades\Auth;
  *
  * This controller gathers various statistics for a trooper, such as troop counts by organization and costume, and displays them.
  */
-class DashboardDisplayController extends Controller
+class DashboardDisplayController extends MagicBusController
 {
-    /**
-     * Creates a new DashboardDisplayController instance.
-     *
-     * @param FlashMessageService $flash The flash message service.
-     * @param BreadCrumbService $crumbs The breadcrumb service.
-     */
-    public function __construct(
-        private readonly FlashMessageService $flash,
-        private readonly BreadCrumbService $crumbs,
-    ) {
-    }
-
     /**
      * Handle the incoming request to display the dashboard page for a trooper.
      *

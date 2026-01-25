@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Account;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -17,7 +17,7 @@ use Illuminate\Http\Request;
  * - Renders the account profile page where troopers can view and manage
  *   their personal information, contact details, and profile settings
  */
-class ProfileController extends Controller
+class ProfileController extends MagicBusController
 {
     /**
      * Handle the incoming request to display the profile page.

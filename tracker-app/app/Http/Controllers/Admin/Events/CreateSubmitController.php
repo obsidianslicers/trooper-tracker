@@ -5,16 +5,15 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
-use App\Http\Controllers\Controller;
+use App\Features\Events\Commands\UpdateEventCommand;
+use App\Features\Events\Commands\UpdateEventOrganizationsCommand;
+use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Events\CreateRequest;
 use App\Jobs\SendEventCreatedNotificationsJob;
 use App\Models\Base\EventShift;
 use App\Models\Event;
 use App\Models\EventOrganization;
 use App\Models\Organization;
-use App\Services\Events\UpdateEventCommand;
-use App\Services\Events\UpdateEventOrganizationsCommand;
-use App\Services\FlashMessageService;
 use Illuminate\Http\RedirectResponse;
 
 /**
@@ -26,18 +25,8 @@ use Illuminate\Http\RedirectResponse;
  * from the form. Dispatches notification jobs for events created in OPEN or
  * SIGN_UP_LOCKED status.
  */
-class CreateSubmitController extends Controller
+class CreateSubmitController extends MagicBusController
 {
-    /**
-     * Creates a new CreateSubmitController instance.
-     *
-     * @param FlashMessageService $flash Service for displaying flash messages to users.
-     */
-    public function __construct(
-        private readonly FlashMessageService $flash)
-    {
-    }
-
     /**
      * Creates a new event from validated form submission.
      *
@@ -48,14 +37,10 @@ class CreateSubmitController extends Controller
      * Redirects to the event's update page with a success message.
      *
      * @param CreateRequest $request The validated request containing the event data.
-     * @param UpdateEventCommand $update_event Command to update event properties.
-     * @param UpdateEventOrganizationsCommand $update_event_organizations Command to update organization associations.
      * @return RedirectResponse Redirect to the new event's update page.
      */
     public function __invoke(
-        CreateRequest $request,
-        UpdateEventCommand $udpate_event,
-        UpdateEventOrganizationsCommand $update_event_organizations): RedirectResponse
+        CreateRequest $request): RedirectResponse
     {
         $organization = Organization::findOrFail($request->validated('organization_id'));
 
@@ -65,7 +50,7 @@ class CreateSubmitController extends Controller
 
         $event->organization_id = $organization->id;
 
-        $udpate_event($event, $request->validated());
+        $this->bus->send(new UpdateEventCommand($event, $request->validated()));
 
         if ($event->status == EventStatus::OPEN || $event->status == EventStatus::SIGN_UP_LOCKED)
         {
@@ -84,7 +69,7 @@ class CreateSubmitController extends Controller
         $event_shift->shift_ends_at = $event->event_end;
         $event_shift->save();
 
-        $update_event_organizations($event, $request->validated('organizations') ?? []);
+        $this->bus->send(new UpdateEventOrganizationsCommand($event, $request->validated('organizations') ?? []));
 
         $this->flash->created($event);
 

@@ -44,7 +44,7 @@ class LoginSubmitController extends MagicBusController
         //  trooper existance is checked via LoginRequest
         $trooper = Trooper::query()->byEmail($email)->first();
 
-        if ($trooper->membership_status == MembershipStatus::PENDING)
+        if ($trooper->membership_status === MembershipStatus::PENDING)
         {
             $this->flash->warning('Your access has not been approved yet. Please refer to command staff for additional information.');
 
@@ -53,7 +53,7 @@ class LoginSubmitController extends MagicBusController
                 ->withErrors(['email' => 'Refer to command staff']);
         }
 
-        if ($trooper->membership_status != MembershipStatus::ACTIVE)
+        if ($trooper->membership_status !== MembershipStatus::ACTIVE)
         {
             //  retired
             $this->flash->danger('You cannot access this account. Please refer to command staff for additional information (retired).');

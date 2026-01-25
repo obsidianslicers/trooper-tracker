@@ -2,17 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\Services\Events;
+namespace Tests\Unit\Features\Events\Commands;
 
+use App\Features\Events\Commands\UpdateEventOrganizationsCommand;
+use App\Features\Events\Commands\UpdateEventOrganizationsCommandHandler;
 use App\Models\Event;
 use App\Models\EventOrganization;
 use App\Models\Organization;
-use App\Services\Events\UpdateEventOrganizationsCommand;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Tests for UpdateEventOrganizationsCommand.
+ * Tests for UpdateEventOrganizationsCommand and UpdateEventOrganizationsCommandHandler.
  *
  * Verifies:
  * - Synchronizes event organization relationships with provided data.
@@ -26,12 +27,12 @@ class UpdateEventOrganizationsCommandTest extends TestCase
 {
     use RefreshDatabase;
 
-    private UpdateEventOrganizationsCommand $subject;
+    private UpdateEventOrganizationsCommandHandler $subject;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->subject = new UpdateEventOrganizationsCommand();
+        $this->subject = new UpdateEventOrganizationsCommandHandler();
     }
 
     public function test_invoke_updates_organization_can_attend_permission(): void
@@ -50,8 +51,10 @@ class UpdateEventOrganizationsCommandTest extends TestCase
             ],
         ];
 
+        $command = new UpdateEventOrganizationsCommand($event, $data);
+
         // Act
-        ($this->subject)($event, $data);
+        ($this->subject)($command);
 
         // Assert
         $event->refresh();
@@ -83,8 +86,10 @@ class UpdateEventOrganizationsCommandTest extends TestCase
             ],
         ];
 
+        $command = new UpdateEventOrganizationsCommand($event, $data);
+
         // Act
-        ($this->subject)($event, $data);
+        ($this->subject)($command);
 
         // Assert
         $event->refresh();
@@ -122,8 +127,10 @@ class UpdateEventOrganizationsCommandTest extends TestCase
             ],
         ];
 
+        $command = new UpdateEventOrganizationsCommand($event, $data);
+
         // Act
-        ($this->subject)($event, $data);
+        ($this->subject)($command);
 
         // Assert
         $event->refresh();
@@ -181,8 +188,10 @@ class UpdateEventOrganizationsCommandTest extends TestCase
             // org3 not in data, should get defaults
         ];
 
+        $command = new UpdateEventOrganizationsCommand($event, $data);
+
         // Act
-        ($this->subject)($event, $data);
+        ($this->subject)($command);
 
         // Assert
         $event->refresh();
@@ -214,8 +223,10 @@ class UpdateEventOrganizationsCommandTest extends TestCase
 
         $data = [];
 
+        $command = new UpdateEventOrganizationsCommand($event, $data);
+
         // Act
-        ($this->subject)($event, $data);
+        ($this->subject)($command);
 
         // Assert
         $event->refresh();
@@ -262,8 +273,10 @@ class UpdateEventOrganizationsCommandTest extends TestCase
             ],
         ];
 
+        $command = new UpdateEventOrganizationsCommand($event, $data);
+
         // Act
-        ($this->subject)($event, $data);
+        ($this->subject)($command);
 
         // Assert
         $event->refresh();
@@ -302,8 +315,10 @@ class UpdateEventOrganizationsCommandTest extends TestCase
             ],
         ];
 
+        $command = new UpdateEventOrganizationsCommand($event, $data);
+
         // Act
-        ($this->subject)($event, $data);
+        ($this->subject)($command);
 
         // Assert
         $this->assertDatabaseHas('tt_event_organizations', [
@@ -335,8 +350,10 @@ class UpdateEventOrganizationsCommandTest extends TestCase
             ],
         ];
 
+        $command = new UpdateEventOrganizationsCommand($event, $data);
+
         // Act
-        ($this->subject)($event, $data);
+        ($this->subject)($command);
 
         // Assert
         $event->refresh();

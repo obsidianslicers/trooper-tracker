@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Awards;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Awards\AssignTroopersRequest;
 use App\Models\Award;
 use App\Models\AwardTrooper;
-use App\Services\FlashMessageService;
 use Illuminate\Http\RedirectResponse;
 
 /**
@@ -17,17 +16,8 @@ use Illuminate\Http\RedirectResponse;
  * Handles the submission of the form for assigning an award to troopers.
  * @package App\Http\Controllers\Admin\Awards
  */
-class AssignTroopersSubmitController extends Controller
+class AssignTroopersSubmitController extends MagicBusController
 {
-    /**
-     * AssignTroopersSubmitController constructor.
-     *
-     * @param FlashMessageService $flash The service for displaying flash messages.
-     */
-    public function __construct(private readonly FlashMessageService $flash)
-    {
-    }
-
     /**
      * Handle the incoming request to assign the award to troopers.
      *
@@ -45,16 +35,20 @@ class AssignTroopersSubmitController extends Controller
         $trooperIds = $request->validated('trooper_ids', []);
         $awardDate = $request->validated('award_date');
 
-        foreach ($trooperIds as $trooperId) {
+        foreach ($trooperIds as $trooperId)
+        {
             // Check if already assigned
             $existing = AwardTrooper::where('award_id', $award->id)
                 ->where('trooper_id', $trooperId)
                 ->first();
 
-            if ($existing) {
+            if ($existing)
+            {
                 // Update the award date for existing assignments
                 $existing->update(['award_date' => $awardDate]);
-            } else {
+            }
+            else
+            {
                 // Create new assignment
                 AwardTrooper::create([
                     'award_id' => $award->id,

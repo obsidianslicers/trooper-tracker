@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Dashboard;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use App\Models\AwardTrooper;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Auth;
  * This controller fetches all awards earned by a given trooper and returns
  * a view partial containing the list.
  */
-class AwardsHtmxController extends Controller
+class AwardsHtmxController extends MagicBusController
 {
     /**
      * Handle the incoming request to display the awards partial.

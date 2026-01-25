@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Notices;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use App\Models\Filters\NoticeFilter;
 use App\Models\Notice;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
-use App\Services\BreadCrumbService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -24,14 +23,9 @@ use Illuminate\Http\Request;
  * non-administrator users can only see notices for organizations they moderate.
  * @package App\Http\Controllers\Admin\Notices
  */
-class ListController extends Controller
+class ListController extends MagicBusController
 {
-    /**
-     * ListController constructor.
-     *
-     * @param BreadCrumbService $crumbs The service for managing breadcrumbs.
-     */
-    public function __construct(private readonly BreadCrumbService $crumbs)
+    protected function initialized()
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
     }

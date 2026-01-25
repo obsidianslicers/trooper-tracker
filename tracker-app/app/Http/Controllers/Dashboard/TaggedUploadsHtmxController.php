@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Dashboard;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use App\Models\EventUpload;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Auth;
  * This controller fetches all event uploads where a given trooper has been tagged
  * and returns a view partial containing the list of those uploads.
  */
-class TaggedUploadsHtmxController extends Controller
+class TaggedUploadsHtmxController extends MagicBusController
 {
     /**
      * Handle the incoming request to display the tagged uploads partial.

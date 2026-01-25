@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Organizations;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\MagicBusController;
 use App\Models\Organization;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -19,7 +19,7 @@ use Intervention\Image\ImageManager;
  * square transparent canvases and creating both large (128x128) and small (32x32)
  * versions stored in the public storage disk.
  */
-class UpdateImageController extends Controller
+class UpdateImageController extends MagicBusController
 {
     /**
      * Handle the organization logo upload request.
