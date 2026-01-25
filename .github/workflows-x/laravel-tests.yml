@@ -25,18 +25,24 @@ jobs:
       - name: Install Composer Dependencies
         working-directory: ./tracker-app
         run: composer install --no-interaction --prefer-dist --no-progress
-      
-      - name: Set up test environment
-        working-directory: ./tracker-app
-        run: |
-          cp .env.test .env
-          php artisan key:generate
-          php artisan config:clear
 
       - name: Run Tests
         working-directory: ./tracker-app
-        env:
-          DB_CONNECTION: sqlite
-          DB_DATABASE: ":memory:"
-        run: php artisan test
+        run: |
+          # Copy test environment
+          cp .env.test .env
 
+          # Force in-memory SQLite + in-memory cache/session
+          export DB_CONNECTION=sqlite
+          export DB_DATABASE=":memory:"
+          export CACHE_DRIVER=array
+          export SESSION_DRIVER=array
+          export QUEUE_CONNECTION=sync
+
+          # Ensure Laravel boots cleanly
+          php artisan key:generate
+          php artisan config:clear
+          php artisan cache:clear
+
+          # Run the test suite
+          php artisan test
