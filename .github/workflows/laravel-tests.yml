@@ -36,9 +36,7 @@ jobs:
           cp .env.test .env
 
           # Ensure Laravel boots cleanly
-          php artisan key:generate
-          php artisan config:clear
-          php artisan cache:clear
+          php artisan key:generate  
 
           # Run the test suite
           php artisan test
