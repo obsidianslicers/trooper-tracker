@@ -38,10 +38,8 @@ jobs:
 
       - name: Run Tests
         working-directory: ./tracker-app
+        env:
+          APP_KEY: ${{ secrets.TT_APP_KEY }}
         run: |
-          # Ensure Laravel boots cleanly
-          php artisan key:generate
-          
           # Run the test suite
           #php artisan test --profile --filter=SendEventCreatedNotificationCommandHandlerTest
-          php artisan test --profile --filter=test_where_is_the_hang

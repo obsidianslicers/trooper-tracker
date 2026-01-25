@@ -19,31 +19,6 @@ class SendEventCreatedNotificationCommandHandlerTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_where_is_the_hang(): void
-    {
-        $notification = EventNotification::factory()->create();
-
-        $start = microtime(true);
-        // 1. Check Serialization
-        serialize($notification);
-        dump('Serialization took: ' . (microtime(true) - $start));
-
-        // 2. Check View Rendering
-        $start = microtime(true);
-        view('emails.events.instant-event-notification', [
-            'event_notification' => $notification,
-            'event' => $notification->event,
-            'event_shifts' => $notification->event->event_shifts ?? collect(),
-        ])->render();
-        dump('View Render took: ' . (microtime(true) - $start));
-
-        // 3. Check Mail Fake Handshake
-        $start = microtime(true);
-        Mail::fake();
-        Mail::to('test@example.com')->send(new InstantEventNotification($notification));
-        dump('Mail Send took: ' . (microtime(true) - $start));
-    }
-
     public function test_invoke_creates_notification_for_instant_trooper(): void
     {
         // Arrange
