@@ -11,11 +11,11 @@ trait HasTrooperPermissionsTrait
 {
     protected function isAdministrator(Trooper $trooper): bool
     {
-        return $trooper->membership_role == MembershipRole::ADMINISTRATOR;
+        return $trooper->membership_role === MembershipRole::ADMINISTRATOR;
     }
 
     protected function isModerator(Trooper $trooper): bool
     {
-        return $trooper->membership_role == MembershipRole::MODERATOR;
+        return $trooper->membership_role === MembershipRole::MODERATOR;
     }
 }

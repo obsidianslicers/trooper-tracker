@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Support\Stringable;
 
 if (!function_exists('qs'))
 {
@@ -39,9 +40,9 @@ if (!function_exists('qs'))
     /**
      * Convert a property.name to a bracketed[name]
      * @param string $property
-     * @return array|string|null
+     * @return string
      */
-    function to_bracket_name(string $property)
+    function to_bracket_name(string $property): string
     {
         $bracketed = preg_replace('/\.(\d+)/', '[$1]', $property);
         $bracketed = preg_replace('/\.(\w+)/', '[$1]', $bracketed);
@@ -51,9 +52,9 @@ if (!function_exists('qs'))
     /**
      * Convert a PROPERTY_NAME to a property_name
      * @param string $value
-     * @return array|string|null
+     * @return Stringable
      */
-    function to_title(string $value)
+    function to_title(string $value): Stringable
     {
         return Str::of($value)
             ->lower()
