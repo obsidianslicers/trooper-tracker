@@ -48,7 +48,7 @@ return Application::configure(basePath: dirname(__DIR__))
     {
         $exceptions->reportable(function (Throwable $e)
         {
-            if (app()->environment('production', 'prod', 'prd'))
+            if (app()->environment('production', 'prod', 'prd') && method_exists(Cache::getFacadeRoot(), 'throttle'))
             {
                 if (Cache::throttle('exception-email')->allow(1)->every(60)->hit())
                 {
