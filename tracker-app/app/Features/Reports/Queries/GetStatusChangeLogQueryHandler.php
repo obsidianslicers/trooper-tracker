@@ -2,12 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Features\Changes\Queries;
+namespace App\Features\Reports\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
+use App\Enums\EventTrooperStatus;
 use App\Models\EventTrooper;
-use App\Models\StatusChange;
-use App\Models\Trooper;
 use Carbon\Carbon;
 
 /**
@@ -46,17 +45,20 @@ readonly class GetStatusChangeLogQueryHandler implements QueryHandlerInterface
             $lookback = Carbon::parse($lookback);
         }
 
-        $trooperIds = Trooper::moderatedBy($message->moderator)->pluck('id');
-
         $with = [
             'trooper',
             'event_shift.updated_by',
             'event_shift.event'
         ];
 
+        $filter = function ($qx) use ($message)
+        {
+            $qx->moderatedBy($message->moderator);
+        };
+
         return EventTrooper::with($with)
-            ->whereIn(EventTrooper::TROOPER_ID, $trooperIds)
-            ->where(EventTrooper::STATUS, 'attended')
+            ->whereHas('trooper', $filter)
+            ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED)
             ->where(EventTrooper::UPDATED_AT, '>=', $lookback)
             ->whereColumn(EventTrooper::UPDATED_ID, '!=', EventTrooper::TROOPER_ID)
             ->orderByDesc(EventTrooper::UPDATED_AT)

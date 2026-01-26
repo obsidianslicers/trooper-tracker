@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Admin\Reports\ReportDisplayController;
 use App\Http\Controllers\Admin\Reports\StatusChangeLogController;
+use App\Http\Controllers\Admin\Reports\TroopersWithoutActivityController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -15,4 +16,5 @@ Route::prefix('admin/reports')
     {
         Route::get('/', ReportDisplayController::class)->name('display');
         Route::get('/status-change-log', StatusChangeLogController::class)->name('status-change-log');
+        Route::get('/troopers-without-activity', TroopersWithoutActivityController::class)->name('troopers-without-activity');
     });

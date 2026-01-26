@@ -31,11 +31,12 @@
                 total or by club/squad
             </p>
         </x-dashboard-card>
-        <x-dashboard-card :label="'Active Troopers w/o a Troop'"
+        <x-dashboard-card :label="'Troopers Without Activity'"
                           :icon="'fa-file-lines'"
-                          :url="'#'">
+                          :url="route('admin.reports.troopers-without-activity')">
             <p>
-                <b class="text-danger">TODO:</b> Active Troopers without a Troop (Report to identify active troopers who are not assigned to any troop)
+                Active Troopers who have not {{ \App\Enums\EventTrooperStatus::ATTENDED->name }}
+                an event in the last 12 months.
             </p>
         </x-dashboard-card>
         <x-dashboard-card :label="'Trooper Status Change Log'"

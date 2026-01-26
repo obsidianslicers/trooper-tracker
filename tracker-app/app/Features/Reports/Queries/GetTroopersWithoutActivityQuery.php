@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Features\Changes\Queries;
+namespace App\Features\Reports\Queries;
 
 use App\Models\Trooper;
 use Carbon\Carbon;
@@ -10,7 +10,7 @@ use Carbon\Carbon;
 /**
  * @see GetStatusChangeLogQueryHandler
  */
-readonly class GetStatusChangeLogQuery
+readonly class GetTroopersWithoutActivityQuery
 {
     /**
      * Create a new query instance.

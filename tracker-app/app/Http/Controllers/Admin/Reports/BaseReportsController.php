@@ -11,5 +11,6 @@ class BaseReportsController extends MagicBusController
     protected function initialized()
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
+        $this->crumbs->addRoute('Reports', 'admin.reports.display');
     }
 }

@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Reports;
 
-use App\Features\Changes\Queries\GetStatusChangeLogQuery;
+use App\Features\Reports\Queries\GetStatusChangeLogQuery;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
-use Laravel\Boost\Mcp\Tools\GetAbsoluteUrl;
 
 /**
  * Handles the display of the main administration dashboard.
