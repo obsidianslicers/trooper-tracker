@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Reports;
 
+use App\Features\Changes\Queries\GetStatusChangeLogQuery;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Laravel\Boost\Mcp\Tools\GetAbsoluteUrl;
 
 /**
  * Handles the display of the main administration dashboard.
@@ -13,7 +15,7 @@ use Illuminate\Http\Request;
  * This controller provides a summary of administrative tasks, such as displaying
  * the count of troopers pending approval and setting a relevant flash message.
  */
-class ReportDisplayController extends BaseReportsController
+class StatusChangeLogController extends BaseReportsController
 {
     /**
      * Handle the incoming request to display the admin dashboard.
@@ -25,6 +27,14 @@ class ReportDisplayController extends BaseReportsController
      */
     public function __invoke(Request $request): View
     {
-        return view('pages.admin.reports.display');
+        $trooper = $request->user();
+
+        $changes_query = new GetStatusChangeLogQuery($trooper, 30);
+
+        $changes = $this->bus->send($changes_query);
+
+        $data = compact('changes');
+
+        return view('pages.admin.reports.status-change-log', $data);
     }
 }
