@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use App\Enums\AchievementType;
 use App\Models\Base\TrooperAchievement as BaseTrooperAchievement;
+use App\Models\Casts\AchievementValueCast;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
@@ -17,11 +20,33 @@ class TrooperAchievement extends BaseTrooperAchievement
 {
     use HasFactory;
 
-    public const DISPLAY_ORDER = [
-        AchievementType::TROOPED_ALL_SQUADS->value => 1,
-        AchievementType::TROOPER_EVENTS->value => 2,
-        AchievementType::FIRST_TROOP->value => 3,
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'trooper_id',
+        'type',
+        'value',
+        'earned_on',
+    ];
 
+    /**
+     * Display order for achievements.
+     *
+     * Maps achievement type values to their sort order for UI display.
+     * Lower numbers appear first. Unmapped achievements default to PHP_INT_MAX.
+     */
+    public const DISPLAY_ORDER = [
+            //  metrics
+        AchievementType::TROOPER_RANK->value => 1,
+        AchievementType::TROOPER_SHIFTS->value => 2,
+        AchievementType::VOLUNTEER_HOURS->value => 3,
+        AchievementType::DIRECT_FUNDS->value => 4,
+        AchievementType::INDIRECT_FUNDS->value => 5,
+            //  milestones
+        AchievementType::FIRST_TROOP->value => 1,
         AchievementType::TROOPED_10->value => 10,
         AchievementType::TROOPED_25->value => 25,
         AchievementType::TROOPED_50->value => 50,
@@ -37,69 +62,30 @@ class TrooperAchievement extends BaseTrooperAchievement
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * The attributes that should be cast.
      *
-     * @return array<string, string>
+     * @var array<string, string>
      */
-    protected function casts()
-    {
-        return array_merge($this->casts, [
-            self::TYPE => AchievementType::class,
-        ]);
-    }
+    protected $casts = [
+        self::TYPE => AchievementType::class,
+        self::VALUE => AchievementValueCast::class,
+    ];
+
+    /**
+     * Get the display order for this achievement.
+     *
+     * Returns a numeric value used for sorting achievements in the UI.
+     * Known achievements use predefined order values, while unknown
+     * achievements are sorted to the end (PHP_INT_MAX).
+     *
+     * @return int Sort order value
+     */
     public function getDisplayOrderAttribute(): int
     {
-        return self::DISPLAY_ORDER[$this->achievement] ?? PHP_INT_MAX;
+        //  we only have display orders for known achievements
+        //  unknown achievements go to the end of the list
+        //  and are not part of the achievement enumerable list
+        //  but displayed as one-offs
+        return self::DISPLAY_ORDER[$this->type->value] ?? PHP_INT_MAX;
     }
-
-    public function getIconAttribute(): string
-    {
-        return match ($this->type)
-        {
-            AchievementType::TROOPED_ALL_SQUADS => 'fa-network-wired',
-            AchievementType::TROOPER_EVENTS => 'fa-user-plus',
-            AchievementType::FIRST_TROOP => 'fa-flag-checkered',
-
-            AchievementType::TROOPED_10 => 'fa-shield-halved',
-            AchievementType::TROOPED_25 => 'fa-user-shield',
-            AchievementType::TROOPED_50 => 'fa-medal',
-            AchievementType::TROOPED_75 => 'fa-star-half-stroke',
-            AchievementType::TROOPED_100 => 'fa-star',
-            AchievementType::TROOPED_150 => 'fa-trophy',
-            AchievementType::TROOPED_200 => 'fa-helmet-safety',
-            AchievementType::TROOPED_250 => 'fa-award',
-            AchievementType::TROOPED_300 => 'fa-certificate',
-            AchievementType::TROOPED_400 => 'fa-crown',
-            AchievementType::TROOPED_500 => 'fa-gem',
-            AchievementType::TROOPED_501 => 'fa-brands fa-empire',
-
-            default => 'fa-circle-question',
-        };
-    }
-
-    public function getTitleAttribute(): string
-    {
-        return match ($this->type)
-        {
-            AchievementType::TROOPED_ALL_SQUADS => 'All Squads - Sector Sweep',
-            AchievementType::TROOPER_EVENTS => 'Initiated - Trooper Status Achieved',
-            AchievementType::FIRST_TROOP => '1 Troop - Mission Initiated',
-
-            AchievementType::TROOPED_10 => '10 Troops - Outer Rim',
-            AchievementType::TROOPED_25 => '25 Troops - Garrison Guard',
-            AchievementType::TROOPED_50 => '50 Troops - Service Medal',
-            AchievementType::TROOPED_75 => '75 Troops - Rising Star',
-            AchievementType::TROOPED_100 => '100 Troops - Centurion Crest',
-            AchievementType::TROOPED_150 => '150 Troops - Campaign Captain',
-            AchievementType::TROOPED_200 => '200 Troops - Elite Status',
-            AchievementType::TROOPED_250 => '250 Troops - Command Honor',
-            AchievementType::TROOPED_300 => '300 Troops - Doctrine Seal',
-            AchievementType::TROOPED_400 => '400 Troops - Core Crown',
-            AchievementType::TROOPED_500 => '500 Troops - Kyber Gem',
-            AchievementType::TROOPED_501 => '501 Troops - Vader’s Fist',
-
-            default => 'Unknown Achievement',
-        };
-    }
-
 }

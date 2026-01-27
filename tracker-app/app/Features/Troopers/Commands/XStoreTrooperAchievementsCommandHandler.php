@@ -45,7 +45,7 @@ readonly class StoreTrooperAchievementsCommandHandler implements CommandHandlerI
                 $value = match ($achievement)
                 {
                     AchievementType::TROOPER_RANK => $index + 1,
-                    AchievementType::TROOPER_EVENTS => $trooper->event_count,
+                    AchievementType::TROOPER_SHIFTS => $trooper->event_count,
                     AchievementType::VOLUNTEER_HOURS => $trooper->total_hours,
                     AchievementType::DIRECT_FUNDS => $trooper->total_direct,
                     AchievementType::INDIRECT_FUNDS => $trooper->total_indirect,
@@ -66,12 +66,6 @@ readonly class StoreTrooperAchievementsCommandHandler implements CommandHandlerI
                     AchievementType::TROOPED_500 => $trooper->event_count >= 500,
                     AchievementType::TROOPED_501 => $trooper->event_count >= 501,
                 };
-
-                // Skip false boolean achievements
-                if ($value === false)
-                {
-                    continue;
-                }
 
                 $where = [
                     TrooperAchievement::TROOPER_ID => $trooper->id,

@@ -10,7 +10,6 @@ use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use Illuminate\Contracts\View\View;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -29,9 +28,9 @@ class DashboardDisplayController extends MagicBusController
      * and displays them on the main dashboard view. Redirects if the trooper is not found.
      *
      * @param Request $request The incoming HTTP request.
-     * @return View|RedirectResponse The rendered dashboard page view or a redirect response.
+     * @return View The rendered dashboard page view.
      */
-    public function __invoke(Request $request): View|RedirectResponse
+    public function __invoke(Request $request): View
     {
         $trooper_id = (int) $request->get('trooper_id', Auth::user()->id);
 
@@ -42,9 +41,18 @@ class DashboardDisplayController extends MagicBusController
             $this->crumbs->addRoute('Profile', 'account.profile');
         }
 
+        $metrics = $trooper->trooper_achievements
+            ->filter(fn($a) => $a->type->isMetric())
+            ->sortBy('display_order');
+
+        $milestones = $trooper->trooper_achievements
+            ->filter(fn($a) => $a->type->isMilestone())
+            ->sortBy('display_order');
+
         $data = [
             'trooper' => $trooper,
-            'achievements' => $trooper->trooper_achievements->sortBy('display_order'),
+            'milestones' => $milestones,
+            'metrics' => $metrics,
             'total_troops_by_organization' => $this->getTroopsByOrganization($trooper),
             'total_troops_by_costume' => $this->getTroopsByCostume($trooper),
         ];

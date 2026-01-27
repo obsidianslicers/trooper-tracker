@@ -1,4 +1,4 @@
-<span class="badge bg-dark d-inline-flex align-items-center gap-2">
-    <i class="fa-solid fa-fw {{ $icon }}"></i>
-    {{ $title }}
+<span class="badge d-inline-flex align-items-center gap-2 {{ $milestone->type == \App\Enums\AchievementType::TROOPED_501 ? 'text-success' : '' }}">
+    <i class="fa-solid fa-fw {{ $milestone->type->toIcon() }}"></i>
+    {{ $milestone->type->toTitle() }}
 </span>

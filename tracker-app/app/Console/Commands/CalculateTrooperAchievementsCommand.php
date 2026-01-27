@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Bus\MagicBus;
+use App\Features\Troopers\Commands\RecalculateTrooperRankCommand;
 use App\Features\Troopers\Commands\StoreTrooperAchievementsCommand;
 use App\Features\Troopers\Queries\GetTrooperEventStatsQuery;
 use Illuminate\Console\Command;
@@ -44,10 +45,8 @@ class CalculateTrooperAchievementsCommand extends Command
      */
     public function handle(MagicBus $bus): void
     {
-        $trooper_events = $bus->send(new GetTrooperEventStatsQuery());
+        // $bus->send(new StoreTrooperAchievementsCommand($trooper_events));
 
-        $this->info("Storing trooper achievements... Count={$trooper_events->count()}");
-
-        $bus->send(new StoreTrooperAchievementsCommand($trooper_events));
+        $bus->send(new RecalculateTrooperRankCommand());
     }
 }
