@@ -5,7 +5,7 @@
 @section('content')
 
     @include('pages.dashboard.overview')
-    @include('pages.dashboard.achievements', compact('achievements'))
+    @include('pages.dashboard.achievements', compact('milestones'))
     @include('pages.dashboard.organization-breakdown')
     @include('pages.dashboard.costume-breakdown')
 
@@ -100,17 +100,19 @@
             </x-card>
         </div>
 
-        <!-- Donations -->
-        <div class="tab-pane fade"
-             id="donations">
-            <x-card :label="'Support Donations'">
-                <div hx-get="{{ route('dashboard.donations-htmx', ['trooper_id' => $trooper->id]) }}"
-                     hx-trigger="load"
-                     hx-swap="outerHTML">
-                    <x-loading />
-                </div>
-            </x-card>
-        </div>
+        @if(config('tracker.support.url'))
+            <!-- Donations -->
+            <div class="tab-pane fade"
+                 id="donations">
+                <x-card :label="'Support Donations'">
+                    <div hx-get="{{ route('dashboard.donations-htmx', ['trooper_id' => $trooper->id]) }}"
+                         hx-trigger="load"
+                         hx-swap="outerHTML">
+                        <x-loading />
+                    </div>
+                </x-card>
+            </div>
+        @endif
 
     </div>
 

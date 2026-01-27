@@ -41,7 +41,6 @@ class Trooper extends BaseTrooper implements
     use HasFactory;
     use Notifiable;
     use HasTrooperScopes;
-    use HasObserver;
     use HasAuditTrail;
 
     /**

@@ -6,8 +6,10 @@ namespace App\Features\Troopers\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Enums\EventStatus;
+use App\Enums\EventTrooperStatus;
 use App\Enums\MembershipStatus;
 use App\Models\Event;
+use App\Models\EventTrooper;
 use App\Models\Trooper;
 use Illuminate\Support\Collection;
 
@@ -43,9 +45,13 @@ readonly class GetTrooperEventStatsQueryHandler implements QueryHandlerInterface
     {
         // Load all troopers with their closed-event relationships
         $with = [
+            'event_troopers' => function ($q)
+            {
+                $q->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED);
+            },
             'event_troopers.event_shift.event' => function ($q)
             {
-                $q->where('status', EventStatus::CLOSED)->orderByDesc(Event::EVENT_END);
+                $q->where(Event::STATUS, EventStatus::CLOSED)->orderByDesc(Event::EVENT_END);
             }
         ];
 
@@ -79,6 +85,8 @@ readonly class GetTrooperEventStatsQueryHandler implements QueryHandlerInterface
             $trooper->total_indirect = $total_indirect;
             $trooper->total_hours = $total_hours;
         }
+
+        echo "count={$troopers->count()}" . PHP_EOL;
 
         return $troopers->sortByDesc('event_count')->values();
     }
