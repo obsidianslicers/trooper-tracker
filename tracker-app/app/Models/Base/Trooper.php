@@ -6,6 +6,15 @@
 
 namespace App\Models\Base;
 
+use App\Models\Award;
+use App\Models\AwardTrooper;
+use App\Models\EventNotification;
+use App\Models\EventTrooper;
+use App\Models\EventUpload;
+use App\Models\ModelChange;
+use App\Models\Notice;
+use App\Models\NoticeTrooper;
+use App\Models\OauthLogin;
 use App\Models\Organization;
 use App\Models\TrooperAchievement;
 use App\Models\TrooperAssignment;
@@ -30,15 +39,23 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Carbon|null $setup_completed_at
  * @property string $password
  * @property string $theme
- * @property Carbon|null $last_active_at
  * @property string $membership_status
  * @property string $membership_role
  * @property string $notification_frequency
+ * @property Carbon|null $achievements_updated_at
+ * @property Carbon|null $last_active_at
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property string|null $deleted_at
  * 
+ * @property Collection|Award[] $awards
+ * @property Collection|EventNotification[] $event_notifications
+ * @property Collection|EventTrooper[] $event_troopers
+ * @property Collection|EventUpload[] $event_uploads
+ * @property Collection|ModelChange[] $model_changes
+ * @property Collection|Notice[] $notices
+ * @property Collection|OauthLogin[] $oauth_logins
  * @property Collection|TrooperAchievement[] $trooper_achievements
  * @property Collection|TrooperAssignment[] $trooper_assignments
  * @property Collection|TrooperCostume[] $trooper_costumes
@@ -58,10 +75,11 @@ class Trooper extends Model
     const SETUP_COMPLETED_AT = 'setup_completed_at';
     const PASSWORD = 'password';
     const THEME = 'theme';
-    const LAST_ACTIVE_AT = 'last_active_at';
     const MEMBERSHIP_STATUS = 'membership_status';
     const MEMBERSHIP_ROLE = 'membership_role';
     const NOTIFICATION_FREQUENCY = 'notification_frequency';
+    const ACHIEVEMENTS_UPDATED_AT = 'achievements_updated_at';
+    const LAST_ACTIVE_AT = 'last_active_at';
     const REMEMBER_TOKEN = 'remember_token';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
@@ -72,6 +90,7 @@ class Trooper extends Model
         self::ID => 'int',
         self::EMAIL_VERIFIED_AT => 'datetime',
         self::SETUP_COMPLETED_AT => 'datetime',
+        self::ACHIEVEMENTS_UPDATED_AT => 'datetime',
         self::LAST_ACTIVE_AT => 'datetime',
         self::CREATED_AT => 'datetime',
         self::UPDATED_AT => 'datetime'
@@ -90,12 +109,52 @@ class Trooper extends Model
         self::SETUP_COMPLETED_AT,
         self::PASSWORD,
         self::THEME,
-        self::LAST_ACTIVE_AT,
         self::MEMBERSHIP_STATUS,
         self::MEMBERSHIP_ROLE,
         self::NOTIFICATION_FREQUENCY,
+        self::ACHIEVEMENTS_UPDATED_AT,
+        self::LAST_ACTIVE_AT,
         self::REMEMBER_TOKEN
     ];
+
+    public function awards(): BelongsToMany
+    {
+        return $this->belongsToMany(Award::class, 'tt_award_troopers')
+                    ->withPivot(AwardTrooper::ID, AwardTrooper::AWARD_DATE, AwardTrooper::DELETED_AT, AwardTrooper::CREATED_ID, AwardTrooper::UPDATED_ID, AwardTrooper::DELETED_ID)
+                    ->withTimestamps();
+    }
+
+    public function event_notifications(): HasMany
+    {
+        return $this->hasMany(EventNotification::class);
+    }
+
+    public function event_troopers(): HasMany
+    {
+        return $this->hasMany(EventTrooper::class);
+    }
+
+    public function event_uploads(): HasMany
+    {
+        return $this->hasMany(EventUpload::class);
+    }
+
+    public function model_changes(): HasMany
+    {
+        return $this->hasMany(ModelChange::class);
+    }
+
+    public function notices(): BelongsToMany
+    {
+        return $this->belongsToMany(Notice::class, 'tt_notice_troopers')
+                    ->withPivot(NoticeTrooper::ID, NoticeTrooper::IS_READ, NoticeTrooper::DELETED_AT, NoticeTrooper::CREATED_ID, NoticeTrooper::UPDATED_ID, NoticeTrooper::DELETED_ID)
+                    ->withTimestamps();
+    }
+
+    public function oauth_logins(): HasMany
+    {
+        return $this->hasMany(OauthLogin::class);
+    }
 
     public function trooper_achievements(): HasMany
     {

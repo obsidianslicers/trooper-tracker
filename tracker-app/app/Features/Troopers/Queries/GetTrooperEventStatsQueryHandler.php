@@ -6,6 +6,8 @@ namespace App\Features\Troopers\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Enums\EventStatus;
+use App\Enums\MembershipStatus;
+use App\Models\Event;
 use App\Models\Trooper;
 use Illuminate\Support\Collection;
 
@@ -40,14 +42,17 @@ readonly class GetTrooperEventStatsQueryHandler implements QueryHandlerInterface
     public function __invoke(object $message): mixed
     {
         // Load all troopers with their closed-event relationships
-        $troopers = Trooper::query()
-            ->with([
-                'event_troopers.event_shift.event' => fn($q) => $q->where('status', EventStatus::CLOSED)
-            ])
-            ->get();
+        $with = [
+            'event_troopers.event_shift.event' => function ($q)
+            {
+                $q->where('status', EventStatus::CLOSED)->orderByDesc(Event::EVENT_END);
+            }
+        ];
+
+        $troopers = Trooper::with($with)->get();
 
         // Map each trooper into an aggregated stats row
-        $stats = $troopers->map(function (Trooper $trooper)
+        foreach ($troopers as $trooper)
         {
             $event_troopers = $trooper->event_troopers;
             $event_count = $event_troopers->count();
@@ -69,16 +74,12 @@ readonly class GetTrooperEventStatsQueryHandler implements QueryHandlerInterface
                 return $shift_hours + $event->charity_hours;
             });
 
-            return (object) [
-                'trooper_id' => $trooper->id,
-                'event_count' => $event_count,
-                'total_direct' => $total_direct,
-                'total_indirect' => $total_indirect,
-                'total_hours' => $total_hours,
-            ];
-        });
+            $trooper->event_count = $event_count;
+            $trooper->total_direct = $total_direct;
+            $trooper->total_indirect = $total_indirect;
+            $trooper->total_hours = $total_hours;
+        }
 
-        // Order by event_count descending to match original SQL behavior
-        return $stats->sortByDesc('event_count')->values();
+        return $troopers->sortByDesc('event_count')->values();
     }
 }

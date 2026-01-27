@@ -17,6 +17,8 @@ class OauthLoginFactory extends Factory
     {
         return [
             OauthLogin::TROOPER_ID => \App\Models\Trooper::factory(),
+            OauthLogin::PROVIDER => $this->faker->word(),
+            OauthLogin::PROVIDER_ID => $this->faker->randomDigitNotNull(),
         ];
     }
 }

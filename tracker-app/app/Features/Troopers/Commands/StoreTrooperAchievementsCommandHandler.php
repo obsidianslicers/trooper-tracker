@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Features\Troopers\Commands;
 
 use App\Bus\Contracts\CommandHandlerInterface;
+use App\Enums\AchievementType;
 use App\Models\TrooperAchievement;
 
 /**
@@ -35,42 +36,58 @@ readonly class StoreTrooperAchievementsCommandHandler implements CommandHandlerI
      */
     public function __invoke(object $message): mixed
     {
-        $trooper_events = $message->trooper_stats;
+        $troopers = $message->trooper_stats;
 
-        for ($i = 0, $len = $trooper_events->count(); $i < $len; $i++)
+        foreach ($troopers as $index => $trooper)
         {
-            $trooper_event = $trooper_events[$i];
-            $count = $trooper_event->event_count;
-            $hours = $trooper_event->total_hours;
-            $direct_funds = $trooper_event->total_direct;
-            $indirect_funds = $trooper_event->total_indirect;
+            foreach (AchievementType::cases() as $achievement)
+            {
+                $value = match ($achievement)
+                {
+                    AchievementType::TROOPER_RANK => $index + 1,
+                    AchievementType::TROOPER_EVENTS => $trooper->event_count,
+                    AchievementType::VOLUNTEER_HOURS => $trooper->total_hours,
+                    AchievementType::DIRECT_FUNDS => $trooper->total_direct,
+                    AchievementType::INDIRECT_FUNDS => $trooper->total_indirect,
 
-            $where = [TrooperAchievement::TROOPER_ID => $trooper_events[$i]->trooper_id];
+                    AchievementType::TROOPED_ALL_SQUADS => $trooper->trooped_all_squads ?? false,
+                    AchievementType::FIRST_TROOP => $trooper->event_count >= 1,
 
-            $values = [
-                TrooperAchievement::TROOPER_RANK => ($i + 1),
-                TrooperAchievement::TROOPER_EVENTS => $count,
-                TrooperAchievement::FIRST_TROOP_COMPLETED => $count >= 1,
-                TrooperAchievement::TROOPED_10 => $count >= 10,
-                TrooperAchievement::TROOPED_25 => $count >= 25,
-                TrooperAchievement::TROOPED_50 => $count >= 50,
-                TrooperAchievement::TROOPED_75 => $count >= 75,
-                TrooperAchievement::TROOPED_100 => $count >= 100,
-                TrooperAchievement::TROOPED_150 => $count >= 150,
-                TrooperAchievement::TROOPED_200 => $count >= 200,
-                TrooperAchievement::TROOPED_250 => $count >= 250,
-                TrooperAchievement::TROOPED_300 => $count >= 300,
-                TrooperAchievement::TROOPED_400 => $count >= 400,
-                TrooperAchievement::TROOPED_500 => $count >= 500,
-                TrooperAchievement::TROOPED_501 => $count >= 501,
-                TrooperAchievement::VOLUNTEER_HOURS => $hours,
-                TrooperAchievement::DIRECT_FUNDS => $direct_funds,
-                TrooperAchievement::INDIRECT_FUNDS => $indirect_funds,
-            ];
+                    AchievementType::TROOPED_10 => $trooper->event_count >= 10,
+                    AchievementType::TROOPED_25 => $trooper->event_count >= 25,
+                    AchievementType::TROOPED_50 => $trooper->event_count >= 50,
+                    AchievementType::TROOPED_75 => $trooper->event_count >= 75,
+                    AchievementType::TROOPED_100 => $trooper->event_count >= 100,
+                    AchievementType::TROOPED_150 => $trooper->event_count >= 150,
+                    AchievementType::TROOPED_200 => $trooper->event_count >= 200,
+                    AchievementType::TROOPED_250 => $trooper->event_count >= 250,
+                    AchievementType::TROOPED_300 => $trooper->event_count >= 300,
+                    AchievementType::TROOPED_400 => $trooper->event_count >= 400,
+                    AchievementType::TROOPED_500 => $trooper->event_count >= 500,
+                    AchievementType::TROOPED_501 => $trooper->event_count >= 501,
+                };
 
-            TrooperAchievement::updateOrCreate($where, $values);
+                // Skip false boolean achievements
+                if ($value === false)
+                {
+                    continue;
+                }
+
+                $where = [
+                    TrooperAchievement::TROOPER_ID => $trooper->id,
+                    TrooperAchievement::TYPE => $achievement->value,
+                ];
+
+                $set = [
+                    TrooperAchievement::VALUE => is_bool($value) ? null : $value,
+                    TrooperAchievement::EARNED_ON => now(),
+                ];
+
+                TrooperAchievement::firstOrCreate($where, $set);
+            }
         }
 
         return null;
     }
+
 }

@@ -75,11 +75,6 @@ class TrooperSeeder extends Seeder
             $t->save();
 
             $where = ['trooper_id' => $t->id];
-
-            if (!TrooperAchievement::where($where)->exists())
-            {
-                TrooperAchievement::create($where);
-            }
         }
     }
 }

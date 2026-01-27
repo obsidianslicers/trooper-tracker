@@ -6,6 +6,7 @@
 
 namespace App\Models\Base;
 
+use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\TrooperCostume;
 use Carbon\Carbon;
@@ -30,6 +31,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $deleted_id
  * 
  * @property Organization $organization
+ * @property Collection|EventTrooper[] $event_troopers
  * @property Collection|TrooperCostume[] $trooper_costumes
  *
  * @package App\Models\Base
@@ -69,6 +71,11 @@ class OrganizationCostume extends Model
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
+    }
+
+    public function event_troopers(): HasMany
+    {
+        return $this->hasMany(EventTrooper::class, EventTrooper::COSTUME_ID);
     }
 
     public function trooper_costumes(): HasMany

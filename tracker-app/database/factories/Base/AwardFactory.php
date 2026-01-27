@@ -17,6 +17,9 @@ class AwardFactory extends Factory
     {
         return [
             Award::ORGANIZATION_ID => \App\Models\Organization::factory(),
+            Award::NAME => $this->faker->unique()->name(),
+            Award::FREQUENCY => $this->faker->word(),
+            Award::HAS_MULTIPLE_RECIPIENTS => $this->faker->randomNumber(1),
         ];
     }
 }

@@ -6,6 +6,9 @@
 
 namespace App\Models\Base;
 
+use App\Models\Award;
+use App\Models\Event;
+use App\Models\Notice;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
@@ -42,6 +45,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $deleted_id
  * 
  * @property \App\Models\Organization|null $organization
+ * @property Collection|Award[] $awards
+ * @property Collection|Event[] $events
+ * @property Collection|Notice[] $notices
  * @property Collection|OrganizationCostume[] $organization_costumes
  * @property Collection|\App\Models\Organization[] $organizations
  * @property Collection|TrooperAssignment[] $trooper_assignments
@@ -103,6 +109,21 @@ class Organization extends Model
     public function organization(): BelongsTo
     {
         return $this->belongsTo(\App\Models\Organization::class, \App\Models\Organization::PARENT_ID);
+    }
+
+    public function awards(): HasMany
+    {
+        return $this->hasMany(Award::class);
+    }
+
+    public function events(): HasMany
+    {
+        return $this->hasMany(Event::class, Event::PRIMARY_ORGANIZATION_ID);
+    }
+
+    public function notices(): HasMany
+    {
+        return $this->hasMany(Notice::class);
     }
 
     public function organization_costumes(): HasMany

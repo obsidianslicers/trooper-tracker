@@ -46,7 +46,7 @@ class CalculateTrooperAchievementsCommand extends Command
     {
         $trooper_events = $bus->send(new GetTrooperEventStatsQuery());
 
-        $this->info("Storing trooper achievements...Count={$trooper_events->count()}");
+        $this->info("Storing trooper achievements... Count={$trooper_events->count()}");
 
         $bus->send(new StoreTrooperAchievementsCommand($trooper_events));
     }

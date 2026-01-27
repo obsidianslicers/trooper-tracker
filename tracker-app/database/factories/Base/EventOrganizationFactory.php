@@ -18,6 +18,7 @@ class EventOrganizationFactory extends Factory
         return [
             EventOrganization::EVENT_ID => \App\Models\Event::factory(),
             EventOrganization::ORGANIZATION_ID => \App\Models\Organization::factory(),
+            EventOrganization::CAN_ATTEND => $this->faker->randomNumber(1),
         ];
     }
 }

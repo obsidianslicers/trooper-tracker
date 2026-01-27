@@ -25,11 +25,13 @@ return new class extends Migration
             $table->dateTime('setup_completed_at')->nullable();
             $table->string('password', 256);
             $table->string('theme', 16)->default('stormtrooper');
-            $table->dateTime('last_active_at')->nullable();
             $table->string('membership_status', 16)->default(MembershipStatus::PENDING->value);
             $table->string('membership_role', 16)->default(MembershipRole::MEMBER->value);
 
             $table->string('notification_frequency', 16)->default(NotificationFrequency::NEVER->value);
+
+            $table->dateTime('achievements_updated_at')->nullable();
+            $table->dateTime('last_active_at')->nullable();
 
             $table->rememberToken();
             $table->timestamps();

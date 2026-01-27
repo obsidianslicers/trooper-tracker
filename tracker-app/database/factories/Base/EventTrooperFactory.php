@@ -16,11 +16,14 @@ class EventTrooperFactory extends Factory
     public function definition(): array
     {
         return [
-            EventTrooper::BACKUP_COSTUME_ID => \App\Models\OrganizationCostume::factory(),
-            EventTrooper::ADDED_BY_TROOPER_ID => \App\Models\Trooper::factory(),
+            EventTrooper::EVENT_SHIFT_ID => \App\Models\EventShift::factory(),
             EventTrooper::TROOPER_ID => \App\Models\Trooper::factory(),
             EventTrooper::COSTUME_ID => \App\Models\OrganizationCostume::factory(),
-            EventTrooper::EVENT_SHIFT_ID => \App\Models\EventShift::factory(),
+            EventTrooper::BACKUP_COSTUME_ID => \App\Models\OrganizationCostume::factory(),
+            EventTrooper::ADDED_BY_TROOPER_ID => \App\Models\Trooper::factory(),
+            EventTrooper::IS_HANDLER => $this->faker->randomNumber(1),
+            EventTrooper::STATUS => $this->faker->word(),
+            EventTrooper::SIGNED_UP_AT => $this->faker->dateTime(),
         ];
     }
 }

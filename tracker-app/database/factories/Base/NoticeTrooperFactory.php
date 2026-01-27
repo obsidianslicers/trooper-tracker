@@ -18,6 +18,7 @@ class NoticeTrooperFactory extends Factory
         return [
             NoticeTrooper::NOTICE_ID => \App\Models\Notice::factory(),
             NoticeTrooper::TROOPER_ID => \App\Models\Trooper::factory(),
+            NoticeTrooper::IS_READ => $this->faker->randomNumber(1),
         ];
     }
 }

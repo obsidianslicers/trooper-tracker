@@ -16,7 +16,10 @@ class ModelChangeFactory extends Factory
     public function definition(): array
     {
         return [
+            ModelChange::AUDITABLE_TYPE => $this->faker->word(),
+            ModelChange::AUDITABLE_ID => $this->faker->randomDigitNotNull(),
             ModelChange::TROOPER_ID => \App\Models\Trooper::factory(),
+            ModelChange::FIELD_NAME => $this->faker->word(),
         ];
     }
 }
