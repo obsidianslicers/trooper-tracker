@@ -17,7 +17,7 @@ use Tests\TestCase;
  * Verifies:
  * - Authenticated troopers can view their notification settings
  * - Organizations are properly loaded with hierarchical structure
- * - Selected organizations are marked based on can_notify assignments
+ * - Selected organizations are marked based on should_notify assignments
  * - Notification frequency is included in view data
  * - Unauthenticated users are redirected to login
  * - View is rendered with correct data structure
@@ -80,14 +80,14 @@ class NotificationsControllerTest extends TestCase
         TrooperAssignment::factory()->create([
             TrooperAssignment::TROOPER_ID => $trooper->id,
             TrooperAssignment::ORGANIZATION_ID => $org_enabled->id,
-            TrooperAssignment::CAN_NOTIFY => true,
+            TrooperAssignment::SHOULD_NOTIFY => true,
         ]);
 
         // Create assignment with notifications disabled
         TrooperAssignment::factory()->create([
             TrooperAssignment::TROOPER_ID => $trooper->id,
             TrooperAssignment::ORGANIZATION_ID => $org_disabled->id,
-            TrooperAssignment::CAN_NOTIFY => false,
+            TrooperAssignment::SHOULD_NOTIFY => false,
         ]);
 
         // Act
@@ -139,7 +139,7 @@ class NotificationsControllerTest extends TestCase
         TrooperAssignment::factory()->create([
             TrooperAssignment::TROOPER_ID => $trooper->id,
             TrooperAssignment::ORGANIZATION_ID => $region->id,
-            TrooperAssignment::CAN_NOTIFY => true,
+            TrooperAssignment::SHOULD_NOTIFY => true,
             TrooperAssignment::IS_MEMBER => false,
         ]);
 
@@ -172,13 +172,13 @@ class NotificationsControllerTest extends TestCase
         TrooperAssignment::factory()->create([
             TrooperAssignment::TROOPER_ID => $trooper->id,
             TrooperAssignment::ORGANIZATION_ID => $org1->id,
-            TrooperAssignment::CAN_NOTIFY => true,
+            TrooperAssignment::SHOULD_NOTIFY => true,
         ]);
 
         TrooperAssignment::factory()->create([
             TrooperAssignment::TROOPER_ID => $trooper->id,
             TrooperAssignment::ORGANIZATION_ID => $org3->id,
-            TrooperAssignment::CAN_NOTIFY => true,
+            TrooperAssignment::SHOULD_NOTIFY => true,
         ]);
 
         // Act
@@ -279,7 +279,7 @@ class NotificationsControllerTest extends TestCase
         $this->assertNotNull($grandchild_org);
     }
 
-    public function test_invoke_only_marks_assignments_with_can_notify_true(): void
+    public function test_invoke_only_marks_assignments_with_should_notify_true(): void
     {
         // Arrange
         $trooper = Trooper::factory()->asActive()->create();
@@ -287,17 +287,17 @@ class NotificationsControllerTest extends TestCase
         $org2 = Organization::factory()->create();
         $org3 = Organization::factory()->create();
 
-        // Create assignments with different can_notify values
+        // Create assignments with different should_notify values
         TrooperAssignment::factory()->create([
             TrooperAssignment::TROOPER_ID => $trooper->id,
             TrooperAssignment::ORGANIZATION_ID => $org1->id,
-            TrooperAssignment::CAN_NOTIFY => true,
+            TrooperAssignment::SHOULD_NOTIFY => true,
         ]);
 
         TrooperAssignment::factory()->create([
             TrooperAssignment::TROOPER_ID => $trooper->id,
             TrooperAssignment::ORGANIZATION_ID => $org2->id,
-            TrooperAssignment::CAN_NOTIFY => false,
+            TrooperAssignment::SHOULD_NOTIFY => false,
         ]);
 
         // org3 has no assignment
@@ -349,7 +349,7 @@ class NotificationsControllerTest extends TestCase
         TrooperAssignment::factory()->create([
             TrooperAssignment::TROOPER_ID => $trooper->id,
             TrooperAssignment::ORGANIZATION_ID => $org2->id,
-            TrooperAssignment::CAN_NOTIFY => true,
+            TrooperAssignment::SHOULD_NOTIFY => true,
         ]);
 
         // Act

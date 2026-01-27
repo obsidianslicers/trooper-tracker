@@ -33,7 +33,7 @@ class GetTroopersForEventCreatedQueryHandlerTest extends TestCase
         TrooperAssignment::factory()->create([
             TrooperAssignment::TROOPER_ID => $trooper->id,
             TrooperAssignment::ORGANIZATION_ID => $organization->id,
-            TrooperAssignment::CAN_NOTIFY => true,
+            TrooperAssignment::SHOULD_NOTIFY => true,
         ]);
 
         $query = new GetTroopersForEventCreatedQuery($event);
@@ -62,7 +62,7 @@ class GetTroopersForEventCreatedQueryHandlerTest extends TestCase
         TrooperAssignment::factory()->create([
             TrooperAssignment::TROOPER_ID => $trooper->id,
             TrooperAssignment::ORGANIZATION_ID => $organization->id,
-            TrooperAssignment::CAN_NOTIFY => true,
+            TrooperAssignment::SHOULD_NOTIFY => true,
         ]);
 
         $query = new GetTroopersForEventCreatedQuery($event);
@@ -75,7 +75,7 @@ class GetTroopersForEventCreatedQueryHandlerTest extends TestCase
         $this->assertCount(0, $result);
     }
 
-    public function test_invoke_excludes_troopers_without_can_notify(): void
+    public function test_invoke_excludes_troopers_without_should_notify(): void
     {
         // Arrange
         $organization = Organization::factory()->create();
@@ -90,7 +90,7 @@ class GetTroopersForEventCreatedQueryHandlerTest extends TestCase
         TrooperAssignment::factory()->create([
             TrooperAssignment::TROOPER_ID => $trooper->id,
             TrooperAssignment::ORGANIZATION_ID => $organization->id,
-            TrooperAssignment::CAN_NOTIFY => false,
+            TrooperAssignment::SHOULD_NOTIFY => false,
         ]);
 
         $query = new GetTroopersForEventCreatedQuery($event);
@@ -118,7 +118,7 @@ class GetTroopersForEventCreatedQueryHandlerTest extends TestCase
         TrooperAssignment::factory()->create([
             TrooperAssignment::TROOPER_ID => $retired_trooper->id,
             TrooperAssignment::ORGANIZATION_ID => $organization->id,
-            TrooperAssignment::CAN_NOTIFY => true,
+            TrooperAssignment::SHOULD_NOTIFY => true,
         ]);
 
         $query = new GetTroopersForEventCreatedQuery($event);
@@ -148,7 +148,7 @@ class GetTroopersForEventCreatedQueryHandlerTest extends TestCase
         TrooperAssignment::factory()->create([
             TrooperAssignment::TROOPER_ID => $trooper->id,
             TrooperAssignment::ORGANIZATION_ID => $organization2->id,
-            TrooperAssignment::CAN_NOTIFY => true,
+            TrooperAssignment::SHOULD_NOTIFY => true,
         ]);
 
         $query = new GetTroopersForEventCreatedQuery($event);
@@ -194,7 +194,7 @@ class GetTroopersForEventCreatedQueryHandlerTest extends TestCase
         TrooperAssignment::factory()->create([
             TrooperAssignment::TROOPER_ID => $trooper->id,
             TrooperAssignment::ORGANIZATION_ID => $organization->id,
-            TrooperAssignment::CAN_NOTIFY => true,
+            TrooperAssignment::SHOULD_NOTIFY => true,
         ]);
 
         $query = new GetTroopersForEventCreatedQuery($event);

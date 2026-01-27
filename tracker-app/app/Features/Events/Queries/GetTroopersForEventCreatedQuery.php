@@ -13,7 +13,7 @@ use App\Models\Event;
  * for the organization hosting the event. Filters by:
  * - Active membership status
  * - Notification frequency not set to NEVER
- * - can_notify flag enabled for the event's organization
+ * - should_notify flag enabled for the event's organization
  *
  * @see GetTroopersForEventCreatedQueryHandler
  */

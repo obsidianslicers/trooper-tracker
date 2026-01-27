@@ -24,7 +24,7 @@ class UpdateTrooperNotificationsCommandTest extends TestCase
     {
         // Arrange
         $trooper = Trooper::factory()->asActive()->create();
-        $valid_data = [1 => ['can_notify' => true], 2 => ['can_notify' => false]];
+        $valid_data = [1 => ['should_notify' => true], 2 => ['should_notify' => false]];
 
         // Act
         $subject = new UpdateTrooperNotificationsCommand($trooper, $valid_data);

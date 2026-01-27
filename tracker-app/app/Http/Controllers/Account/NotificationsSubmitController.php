@@ -15,7 +15,7 @@ use Illuminate\Http\RedirectResponse;
  *
  * This controller processes updates to:
  * - Global notification frequency (NEVER, INSTANT, DAILY)
- * - Per-organization notification preferences (can_notify flags)
+ * - Per-organization notification preferences (should_notify flags)
  *
  * The controller follows the ADR pattern:
  * - Validates input via NotificationRequest
@@ -31,7 +31,7 @@ class NotificationsSubmitController extends MagicBusController
      * Workflow:
      * 1. Retrieves the authenticated trooper from the request
      * 2. Dispatches UpdateTrooperCommand to update global notification_frequency
-     * 3. Dispatches UpdateTrooperNotificationsCommand to update per-organization can_notify flags
+     * 3. Dispatches UpdateTrooperNotificationsCommand to update per-organization should_notify flags
      * 4. Flashes success message via FlashMessageService
      * 5. Redirects to account.notifications route
      *

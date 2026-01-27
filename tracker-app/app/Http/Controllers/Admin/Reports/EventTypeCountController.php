@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Reports;
 
-use App\Http\Controllers\MagicBusController;
+use App\Features\Reports\Queries\GetEventTypeCountQuery;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -14,13 +14,8 @@ use Illuminate\Http\Request;
  * This controller provides a summary of administrative tasks, such as displaying
  * the count of troopers pending approval and setting a relevant flash message.
  */
-class ReportDisplayController extends MagicBusController
+class EventTypeCountController extends BaseReportsController
 {
-    protected function initialized()
-    {
-        $this->crumbs->addRoute('Command Staff', 'admin.display');
-    }
-
     /**
      * Handle the incoming request to display the admin dashboard.
      *
@@ -31,6 +26,16 @@ class ReportDisplayController extends MagicBusController
      */
     public function __invoke(Request $request): View
     {
-        return view('pages.admin.reports.display');
+        $trooper = $request->user();
+
+        $lookback = 30;
+
+        $event_types_query = new GetEventTypeCountQuery($trooper, $lookback);
+
+        $event_types = $this->bus->send($event_types_query);
+
+        $data = compact('event_types', 'lookback');
+
+        return view('pages.admin.reports.event-type-count', $data);
     }
 }

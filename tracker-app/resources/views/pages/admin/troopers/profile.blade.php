@@ -24,6 +24,15 @@
 
                 <x-input-container>
                     <x-label>
+                        Last Active:
+                    </x-label>
+                    <x-input-text :property="'last_active_at'"
+                                  :disabled="true"
+                                  :value="$trooper->last_active_at?->format('D - M d, Y') ?? 'Never'" />
+                </x-input-container>
+
+                <x-input-container>
+                    <x-label>
                         Email:
                     </x-label>
                     <x-input-text :property="'email'"

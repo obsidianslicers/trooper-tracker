@@ -17,7 +17,7 @@ use Tests\TestCase;
  * Verifies:
  * - Authorization always returns true for authenticated users
  * - notification_frequency validation (required, valid enum values)
- * - organizations.*.can_notify validation (optional boolean)
+ * - organizations.*.should_notify validation (optional boolean)
  * - Validation rules are correctly structured
  */
 class NotificationRequestTest extends TestCase
@@ -95,7 +95,7 @@ class NotificationRequestTest extends TestCase
         }
     }
 
-    public function test_rules_accept_boolean_can_notify_values(): void
+    public function test_rules_accept_boolean_should_notify_values(): void
     {
         // Arrange
         $subject = new NotificationRequest();
@@ -104,8 +104,8 @@ class NotificationRequestTest extends TestCase
         $valid_data = [
             'notification_frequency' => NotificationFrequency::INSTANT->value,
             'organizations' => [
-                1 => ['can_notify' => true],
-                2 => ['can_notify' => false],
+                1 => ['should_notify' => true],
+                2 => ['should_notify' => false],
             ],
         ];
 
@@ -152,7 +152,7 @@ class NotificationRequestTest extends TestCase
         $this->assertFalse($validator->fails());
     }
 
-    public function test_rules_allow_organizations_without_can_notify(): void
+    public function test_rules_allow_organizations_without_should_notify(): void
     {
         // Arrange
         $subject = new NotificationRequest();
@@ -161,7 +161,7 @@ class NotificationRequestTest extends TestCase
         $data = [
             'notification_frequency' => NotificationFrequency::INSTANT->value,
             'organizations' => [
-                1 => [], // can_notify not provided
+                1 => [], // should_notify not provided
             ],
         ];
 
@@ -181,10 +181,10 @@ class NotificationRequestTest extends TestCase
         $data = [
             'notification_frequency' => NotificationFrequency::DAILY->value,
             'organizations' => [
-                1 => ['can_notify' => true],
-                2 => ['can_notify' => false],
-                3 => ['can_notify' => true],
-                4 => ['can_notify' => false],
+                1 => ['should_notify' => true],
+                2 => ['should_notify' => false],
+                3 => ['should_notify' => true],
+                4 => ['should_notify' => false],
             ],
         ];
 
@@ -209,7 +209,7 @@ class NotificationRequestTest extends TestCase
         $this->assertContains('required', $rules[Trooper::NOTIFICATION_FREQUENCY]);
     }
 
-    public function test_rules_structure_contains_organizations_can_notify_rule(): void
+    public function test_rules_structure_contains_organizations_should_notify_rule(): void
     {
         // Arrange
         $subject = new NotificationRequest();
@@ -218,8 +218,8 @@ class NotificationRequestTest extends TestCase
         $rules = $subject->rules();
 
         // Assert
-        $this->assertArrayHasKey('organizations.*.can_notify', $rules);
-        $this->assertContains('boolean', $rules['organizations.*.can_notify']);
+        $this->assertArrayHasKey('organizations.*.should_notify', $rules);
+        $this->assertContains('boolean', $rules['organizations.*.should_notify']);
     }
 
     public function test_rules_notification_frequency_validates_against_enum(): void

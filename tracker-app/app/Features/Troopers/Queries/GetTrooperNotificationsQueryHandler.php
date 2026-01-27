@@ -13,7 +13,7 @@ use App\Models\TrooperAssignment;
  *
  * Returns the full organization hierarchy (organizations → regions → units)
  * with each node marked with a 'selected' property indicating whether
- * the trooper has notifications enabled (can_notify = true) for that organization.
+ * the trooper has notifications enabled (should_notify = true) for that organization.
  *
  * This data structure is used for displaying hierarchical notification
  * preference forms where troopers can enable/disable notifications per organization.
@@ -27,7 +27,7 @@ readonly class GetTrooperNotificationsQueryHandler implements QueryHandlerInterf
      *
      * Process:
      * 1. Load full organization hierarchy using fullyLoaded() scope
-     * 2. Get trooper's assignments where can_notify = true
+     * 2. Get trooper's assignments where should_notify = true
      * 3. Mark each organization/region/unit as 'selected' if assignment exists
      *
      * @param GetTrooperNotificationsQuery $message The query containing the trooper
@@ -38,7 +38,7 @@ readonly class GetTrooperNotificationsQueryHandler implements QueryHandlerInterf
         $organizations = Organization::fullyLoaded()->get();
 
         $trooper_assignments = $message->trooper->trooper_assignments()
-            ->where(TrooperAssignment::CAN_NOTIFY, true)
+            ->where(TrooperAssignment::SHOULD_NOTIFY, true)
             ->pluck(TrooperAssignment::ORGANIZATION_ID)
             ->toArray();
 

@@ -150,7 +150,7 @@ class TrooperOrganizationSeeder extends Seeder
             $t->organization_id = $organization_id;
         }
 
-        $t->can_notify = $notify;
+        $t->should_notify = $notify;
         $t->is_member = $member;
         $t->is_moderator = $moderator;
 

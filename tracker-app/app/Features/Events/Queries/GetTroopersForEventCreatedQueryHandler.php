@@ -14,7 +14,7 @@ use App\Models\TrooperAssignment;
  *
  * Queries for active troopers who have opted in to receive notifications
  * for the organization hosting the event. Respects trooper notification
- * preferences (NEVER, INSTANT, DAILY) and per-organization can_notify settings.
+ * preferences (NEVER, INSTANT, DAILY) and per-organization should_notify settings.
  *
  * @implements QueryHandlerInterface<GetTroopersForEventCreatedQuery>
  */
@@ -26,7 +26,7 @@ readonly class GetTroopersForEventCreatedQueryHandler implements QueryHandlerInt
      * Process:
      * 1. Filter active troopers
      * 2. Exclude troopers with notification_frequency = NEVER
-     * 3. Filter by trooper_assignments where can_notify = true
+     * 3. Filter by trooper_assignments where should_notify = true
      * 4. Match organization_id to the event's organization
      * 5. Return collection of Trooper models
      *
@@ -41,7 +41,7 @@ readonly class GetTroopersForEventCreatedQueryHandler implements QueryHandlerInt
             ->where(Trooper::NOTIFICATION_FREQUENCY, '!=', NotificationFrequency::NEVER)
             ->whereHas('trooper_assignments', function ($q) use ($organization_id)
             {
-                $q->where(TrooperAssignment::CAN_NOTIFY, true)
+                $q->where(TrooperAssignment::SHOULD_NOTIFY, true)
                     ->where(TrooperAssignment::ORGANIZATION_ID, $organization_id);
             })
             ->get();

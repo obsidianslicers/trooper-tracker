@@ -25,7 +25,7 @@ return new class extends Migration
                 ->constrained('tt_organizations')
                 ->cascadeOnDelete();
 
-            $table->boolean('can_notify')->default(false);
+            $table->boolean('should_notify')->default(false);
             $table->boolean('is_member')->default(false);
             $table->boolean('is_moderator')->default(false);
 

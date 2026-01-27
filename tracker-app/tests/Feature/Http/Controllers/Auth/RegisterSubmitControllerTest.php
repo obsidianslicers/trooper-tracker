@@ -297,7 +297,7 @@ class RegisterSubmitControllerTest extends TestCase
             ->where(TrooperAssignment::ORGANIZATION_ID, $club->id)
             ->first();
         $this->assertNotNull($club_assignment);
-        $this->assertTrue($club_assignment->can_notify);
+        $this->assertTrue($club_assignment->should_notify);
 
         $region_assignment = TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $trooper->id)
             ->where(TrooperAssignment::ORGANIZATION_ID, $region->id)

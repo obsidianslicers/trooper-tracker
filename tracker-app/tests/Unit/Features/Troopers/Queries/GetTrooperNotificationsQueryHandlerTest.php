@@ -57,7 +57,7 @@ class GetTrooperNotificationsQueryHandlerTest extends TestCase
         $this->assertFalse($result->first()->selected);
     }
 
-    public function test_invoke_does_not_mark_organizations_without_can_notify(): void
+    public function test_invoke_does_not_mark_organizations_without_should_notify(): void
     {
         // Arrange
         $trooper = Trooper::factory()->asActive()->create();
@@ -69,7 +69,7 @@ class GetTrooperNotificationsQueryHandlerTest extends TestCase
         TrooperAssignment::factory()->create([
             TrooperAssignment::TROOPER_ID => $trooper->id,
             TrooperAssignment::ORGANIZATION_ID => $organization->id,
-            TrooperAssignment::CAN_NOTIFY => false,
+            TrooperAssignment::SHOULD_NOTIFY => false,
         ]);
 
         $query = new GetTrooperNotificationsQuery($trooper);

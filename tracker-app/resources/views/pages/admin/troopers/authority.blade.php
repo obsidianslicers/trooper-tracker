@@ -83,7 +83,7 @@
                             </td>
                             <td class="text-center">
                                 <x-yes-no :blank="true"
-                                          :value="$trooper_assignment->can_notify ?? false" />
+                                          :value="$trooper_assignment->should_notify ?? false" />
                             </td>
                             <td class="text-center">
                                 <x-yes-no :blank="true"

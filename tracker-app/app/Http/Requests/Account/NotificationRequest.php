@@ -12,9 +12,9 @@ use Illuminate\Foundation\Http\FormRequest;
  * Validates trooper notification settings and per-organization notification preferences.
  *
  * This request validates the trooper's global notification frequency preference and
- * per-organization notification settings (can_notify flags). The validation ensures:
+ * per-organization notification settings (should_notify flags). The validation ensures:
  * - notification_frequency is a valid NotificationFrequency enum value
- * - organizations array contains boolean can_notify values for each organization
+ * - organizations array contains boolean should_notify values for each organization
  *
  * @package App\Http\Requests\Account
  */
@@ -35,7 +35,7 @@ class NotificationRequest extends FormRequest
      *
      * Validates:
      * - notification_frequency: Required, must be a valid NotificationFrequency enum value
-     * - organizations.*.can_notify: Optional boolean for each organization's notification preference
+     * - organizations.*.should_notify: Optional boolean for each organization's notification preference
      *
      * @return array<string, mixed> The validation rules for notification settings.
      */
@@ -46,7 +46,7 @@ class NotificationRequest extends FormRequest
                 'required',
                 'in:' . NotificationFrequency::toValidator(),
             ],
-            'organizations.*.can_notify' => ['boolean']
+            'organizations.*.should_notify' => ['boolean']
         ];
 
         return $rules;

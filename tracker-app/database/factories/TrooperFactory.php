@@ -111,7 +111,7 @@ class TrooperFactory extends BaseTrooperFactory
             $trooper->trooper_assignments()->create([
                 TrooperAssignment::ORGANIZATION_ID => $organization->id,
                 TrooperAssignment::IS_MEMBER => $member,
-                TrooperAssignment::CAN_NOTIFY => $notify,
+                TrooperAssignment::SHOULD_NOTIFY => $notify,
                 TrooperAssignment::IS_MODERATOR => $moderator,
             ]);
         });

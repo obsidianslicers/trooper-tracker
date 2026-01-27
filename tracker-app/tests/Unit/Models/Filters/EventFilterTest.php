@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Models\Filters;
 
 use App\Enums\EventStatus;
+use App\Enums\EventType;
 use App\Models\Event;
 use App\Models\Filters\EventFilter;
 use App\Models\Organization;
@@ -22,6 +23,20 @@ class EventFilterTest extends TestCase
         Event::factory()->closed()->create();
 
         $request = new Request(['status' => EventStatus::OPEN->value]);
+        $subject = new EventFilter($request);
+
+        $query = $subject->apply(Event::query());
+
+        $this->assertEquals(1, $query->count());
+        $this->assertEquals($active_event->id, $query->first()->id);
+    }
+
+    public function test_it_can_filter_by_type(): void
+    {
+        $active_event = Event::factory()->create(['type' => EventType::LUCAS_FILM_LIMITED]);
+        Event::factory()->create(['type' => EventType::CHARITY]);
+
+        $request = new Request(['type' => EventType::LUCAS_FILM_LIMITED->value]);
         $subject = new EventFilter($request);
 
         $query = $subject->apply(Event::query());
