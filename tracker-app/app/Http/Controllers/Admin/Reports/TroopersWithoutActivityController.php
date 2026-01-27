@@ -28,11 +28,13 @@ class TroopersWithoutActivityController extends BaseReportsController
     {
         $trooper = $request->user();
 
-        $troopers_query = new GetTroopersWithoutActivityQuery($trooper, now()->subYear());
+        $lookback = now()->subMonths(12);
+
+        $troopers_query = new GetTroopersWithoutActivityQuery($trooper, $lookback);
 
         $troopers = $this->bus->send($troopers_query);
 
-        $data = compact('troopers');
+        $data = compact('troopers', 'lookback');
 
         return view('pages.admin.reports.troopers-without-activity', $data);
     }

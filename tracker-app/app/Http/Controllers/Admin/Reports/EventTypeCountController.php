@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Reports;
 
-use App\Features\Reports\Queries\GetStatusChangeLogQuery;
+use App\Features\Reports\Queries\GetEventTypeCountQuery;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -14,7 +14,7 @@ use Illuminate\Http\Request;
  * This controller provides a summary of administrative tasks, such as displaying
  * the count of troopers pending approval and setting a relevant flash message.
  */
-class StatusChangeLogController extends BaseReportsController
+class EventTypeCountController extends BaseReportsController
 {
     /**
      * Handle the incoming request to display the admin dashboard.
@@ -30,12 +30,12 @@ class StatusChangeLogController extends BaseReportsController
 
         $lookback = 30;
 
-        $changes_query = new GetStatusChangeLogQuery($trooper, $lookback);
+        $event_types_query = new GetEventTypeCountQuery($trooper, $lookback);
 
-        $changes = $this->bus->send($changes_query);
+        $event_types = $this->bus->send($event_types_query);
 
-        $data = compact('changes', 'lookback');
+        $data = compact('event_types', 'lookback');
 
-        return view('pages.admin.reports.status-change-log', $data);
+        return view('pages.admin.reports.event-type-count', $data);
     }
 }

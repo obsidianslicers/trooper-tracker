@@ -37,7 +37,7 @@
 
                     @foreach ($organizations as $organization)
                         <x-input-container class="ps-5">
-                            <x-input-checkbox :property="'organizations.' . $organization->id . '.can_notify'"
+                            <x-input-checkbox :property="'organizations.' . $organization->id . '.should_notify'"
                                               :label="$organization->name"
                                               :value="1"
                                               :checked="$organization->selected"
@@ -45,7 +45,7 @@
                                               x-on:change="toggleOrganization({{ $organization->id }}, $event.target.checked)" />
                             @foreach ($organization->organizations as $region)
                                 <x-input-container class="ps-5">
-                                    <x-input-checkbox :property="'organizations.' . $region->id . '.can_notify'"
+                                    <x-input-checkbox :property="'organizations.' . $region->id . '.should_notify'"
                                                       :label="$region->name"
                                                       :value="1"
                                                       :checked="$region->selected"
@@ -54,7 +54,7 @@
                                                       x-on:change="toggleRegion({{ $region->id }}, $event.target.checked)" />
                                     @foreach ($region->organizations as $unit)
                                         <x-input-container class="ps-5">
-                                            <x-input-checkbox :property="'organizations.' . $unit->id . '.can_notify'"
+                                            <x-input-checkbox :property="'organizations.' . $unit->id . '.should_notify'"
                                                               :label="$unit->name"
                                                               :value="1"
                                                               :checked="$unit->selected"

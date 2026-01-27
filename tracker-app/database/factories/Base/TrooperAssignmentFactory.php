@@ -18,7 +18,7 @@ class TrooperAssignmentFactory extends Factory
         return [
             TrooperAssignment::TROOPER_ID => \App\Models\Trooper::factory(),
             TrooperAssignment::ORGANIZATION_ID => \App\Models\Organization::factory(),
-            TrooperAssignment::CAN_NOTIFY => $this->faker->randomNumber(1),
+            TrooperAssignment::SHOULD_NOTIFY => $this->faker->randomNumber(1),
             TrooperAssignment::IS_MEMBER => $this->faker->randomNumber(1),
             TrooperAssignment::IS_MODERATOR => $this->faker->randomNumber(1),
         ];

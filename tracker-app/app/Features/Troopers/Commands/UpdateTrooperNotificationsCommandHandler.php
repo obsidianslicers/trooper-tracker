@@ -11,9 +11,9 @@ use App\Models\TrooperAssignment;
  * Handler for updating trooper notification preferences.
  *
  * Process:
- * 1. Resets all existing assignments to can_notify = false
+ * 1. Resets all existing assignments to should_notify = false
  * 2. Updates or creates assignments for each provided organization
- * 3. Sets can_notify flag based on the provided data
+ * 3. Sets should_notify flag based on the provided data
  *
  * This ensures notification preferences are completely replaced,
  * not incrementally updated.
@@ -30,7 +30,7 @@ readonly class UpdateTrooperNotificationsCommandHandler implements CommandHandle
      */
     public function __invoke(object $message): mixed
     {
-        $message->trooper->trooper_assignments()->update(['can_notify' => false]);
+        $message->trooper->trooper_assignments()->update(['should_notify' => false]);
 
         $assignments = $message->trooper->trooper_assignments()->get();
 
@@ -45,7 +45,7 @@ readonly class UpdateTrooperNotificationsCommandHandler implements CommandHandle
                 $assignment->organization_id = $organization_id;
             }
 
-            $assignment->can_notify = $data['can_notify'] ?? false;
+            $assignment->should_notify = $data['should_notify'] ?? false;
 
             $assignment->save();
         }

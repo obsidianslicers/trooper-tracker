@@ -56,8 +56,8 @@ class NotificationsSubmitControllerTest extends TestCase
             ->post(route('account.notifications'), [
                 'notification_frequency' => NotificationFrequency::INSTANT->value,
                 'organizations' => [
-                    $org1->id => ['can_notify' => true],
-                    $org2->id => ['can_notify' => false],
+                    $org1->id => ['should_notify' => true],
+                    $org2->id => ['should_notify' => false],
                 ],
             ]);
 
@@ -66,13 +66,13 @@ class NotificationsSubmitControllerTest extends TestCase
             ->where(TrooperAssignment::ORGANIZATION_ID, $org1->id)
             ->first();
         $this->assertNotNull($assignment1);
-        $this->assertTrue($assignment1->can_notify);
+        $this->assertTrue($assignment1->should_notify);
 
         $assignment2 = TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $trooper->id)
             ->where(TrooperAssignment::ORGANIZATION_ID, $org2->id)
             ->first();
         $this->assertNotNull($assignment2);
-        $this->assertFalse($assignment2->can_notify);
+        $this->assertFalse($assignment2->should_notify);
     }
 
     public function test_invoke_updates_existing_organization_notification_preferences(): void
@@ -84,7 +84,7 @@ class NotificationsSubmitControllerTest extends TestCase
         $existing_assignment = TrooperAssignment::factory()->create([
             TrooperAssignment::TROOPER_ID => $trooper->id,
             TrooperAssignment::ORGANIZATION_ID => $organization->id,
-            TrooperAssignment::CAN_NOTIFY => false,
+            TrooperAssignment::SHOULD_NOTIFY => false,
         ]);
 
         // Act
@@ -92,13 +92,13 @@ class NotificationsSubmitControllerTest extends TestCase
             ->post(route('account.notifications'), [
                 'notification_frequency' => NotificationFrequency::INSTANT->value,
                 'organizations' => [
-                    $organization->id => ['can_notify' => true],
+                    $organization->id => ['should_notify' => true],
                 ],
             ]);
 
         // Assert
         $existing_assignment->refresh();
-        $this->assertTrue($existing_assignment->can_notify);
+        $this->assertTrue($existing_assignment->should_notify);
     }
 
     public function test_invoke_disables_notifications_for_organizations_not_in_request(): void
@@ -112,13 +112,13 @@ class NotificationsSubmitControllerTest extends TestCase
         TrooperAssignment::factory()->create([
             TrooperAssignment::TROOPER_ID => $trooper->id,
             TrooperAssignment::ORGANIZATION_ID => $org_to_keep->id,
-            TrooperAssignment::CAN_NOTIFY => true,
+            TrooperAssignment::SHOULD_NOTIFY => true,
         ]);
 
         $assignment_to_disable = TrooperAssignment::factory()->create([
             TrooperAssignment::TROOPER_ID => $trooper->id,
             TrooperAssignment::ORGANIZATION_ID => $org_to_disable->id,
-            TrooperAssignment::CAN_NOTIFY => true,
+            TrooperAssignment::SHOULD_NOTIFY => true,
         ]);
 
         // Act - only include org_to_keep in the request
@@ -126,13 +126,13 @@ class NotificationsSubmitControllerTest extends TestCase
             ->post(route('account.notifications'), [
                 'notification_frequency' => NotificationFrequency::INSTANT->value,
                 'organizations' => [
-                    $org_to_keep->id => ['can_notify' => true],
+                    $org_to_keep->id => ['should_notify' => true],
                 ],
             ]);
 
         // Assert - org_to_disable should have notifications disabled
         $assignment_to_disable->refresh();
-        $this->assertFalse($assignment_to_disable->can_notify);
+        $this->assertFalse($assignment_to_disable->should_notify);
     }
 
     public function test_invoke_handles_empty_organizations_array(): void
@@ -146,7 +146,7 @@ class NotificationsSubmitControllerTest extends TestCase
         $existing_assignment = TrooperAssignment::factory()->create([
             TrooperAssignment::TROOPER_ID => $trooper->id,
             TrooperAssignment::ORGANIZATION_ID => $organization->id,
-            TrooperAssignment::CAN_NOTIFY => true,
+            TrooperAssignment::SHOULD_NOTIFY => true,
         ]);
 
         // Act - submit with empty organizations array
@@ -158,7 +158,7 @@ class NotificationsSubmitControllerTest extends TestCase
 
         // Assert - existing assignment should be disabled
         $existing_assignment->refresh();
-        $this->assertFalse($existing_assignment->can_notify);
+        $this->assertFalse($existing_assignment->should_notify);
     }
 
     public function test_invoke_redirects_to_notifications_route(): void
@@ -232,7 +232,7 @@ class NotificationsSubmitControllerTest extends TestCase
         $response->assertSessionHasErrors('notification_frequency');
     }
 
-    public function test_invoke_validates_organization_can_notify_is_boolean(): void
+    public function test_invoke_validates_organization_should_notify_is_boolean(): void
     {
         // Arrange
         $trooper = Trooper::factory()->asActive()->create();
@@ -243,12 +243,12 @@ class NotificationsSubmitControllerTest extends TestCase
             ->post(route('account.notifications'), [
                 'notification_frequency' => NotificationFrequency::INSTANT->value,
                 'organizations' => [
-                    $organization->id => ['can_notify' => 'not_a_boolean'],
+                    $organization->id => ['should_notify' => 'not_a_boolean'],
                 ],
             ]);
 
         // Assert
-        $response->assertSessionHasErrors("organizations.{$organization->id}.can_notify");
+        $response->assertSessionHasErrors("organizations.{$organization->id}.should_notify");
     }
 
     public function test_invoke_updates_all_notification_preferences_atomically(): void
@@ -265,8 +265,8 @@ class NotificationsSubmitControllerTest extends TestCase
             ->post(route('account.notifications'), [
                 'notification_frequency' => NotificationFrequency::DAILY->value,
                 'organizations' => [
-                    $org1->id => ['can_notify' => true],
-                    $org2->id => ['can_notify' => false],
+                    $org1->id => ['should_notify' => true],
+                    $org2->id => ['should_notify' => false],
                 ],
             ]);
 
@@ -279,12 +279,12 @@ class NotificationsSubmitControllerTest extends TestCase
         $assignment1 = $trooper->trooper_assignments()
             ->where(TrooperAssignment::ORGANIZATION_ID, $org1->id)
             ->first();
-        $this->assertTrue($assignment1->can_notify);
+        $this->assertTrue($assignment1->should_notify);
 
         $assignment2 = $trooper->trooper_assignments()
             ->where(TrooperAssignment::ORGANIZATION_ID, $org2->id)
             ->first();
-        $this->assertFalse($assignment2->can_notify);
+        $this->assertFalse($assignment2->should_notify);
     }
 
     public function test_invoke_accepts_all_valid_notification_frequency_values(): void

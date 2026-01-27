@@ -16,8 +16,8 @@ use Tests\TestCase;
  * Unit tests for UpdateTrooperNotificationsCommandHandler.
  *
  * Verifies:
- * - Resets all existing assignments to can_notify = false
- * - Creates new assignments with can_notify flag
+ * - Resets all existing assignments to should_notify = false
+ * - Creates new assignments with should_notify flag
  * - Updates existing assignments
  */
 class UpdateTrooperNotificationsCommandHandlerTest extends TestCase
@@ -33,7 +33,7 @@ class UpdateTrooperNotificationsCommandHandlerTest extends TestCase
         TrooperAssignment::factory()->create([
             TrooperAssignment::TROOPER_ID => $trooper->id,
             TrooperAssignment::ORGANIZATION_ID => $organization->id,
-            TrooperAssignment::CAN_NOTIFY => true,
+            TrooperAssignment::SHOULD_NOTIFY => true,
         ]);
 
         $command = new UpdateTrooperNotificationsCommand($trooper, []);
@@ -44,16 +44,16 @@ class UpdateTrooperNotificationsCommandHandlerTest extends TestCase
 
         // Assert
         $assignment = TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $trooper->id)->first();
-        $this->assertFalse($assignment->can_notify);
+        $this->assertFalse($assignment->should_notify);
     }
 
-    public function test_invoke_creates_new_assignment_with_can_notify_true(): void
+    public function test_invoke_creates_new_assignment_with_should_notify_true(): void
     {
         // Arrange
         $trooper = Trooper::factory()->asActive()->create();
         $organization = Organization::factory()->create();
 
-        $valid_data = [$organization->id => ['can_notify' => true]];
+        $valid_data = [$organization->id => ['should_notify' => true]];
         $command = new UpdateTrooperNotificationsCommand($trooper, $valid_data);
         $subject = new UpdateTrooperNotificationsCommandHandler();
 
@@ -65,7 +65,7 @@ class UpdateTrooperNotificationsCommandHandlerTest extends TestCase
             ->where(TrooperAssignment::ORGANIZATION_ID, $organization->id)
             ->first();
         $this->assertNotNull($assignment);
-        $this->assertTrue($assignment->can_notify);
+        $this->assertTrue($assignment->should_notify);
     }
 
     public function test_invoke_updates_existing_assignment(): void
@@ -77,10 +77,10 @@ class UpdateTrooperNotificationsCommandHandlerTest extends TestCase
         $existing = TrooperAssignment::factory()->create([
             TrooperAssignment::TROOPER_ID => $trooper->id,
             TrooperAssignment::ORGANIZATION_ID => $organization->id,
-            TrooperAssignment::CAN_NOTIFY => false,
+            TrooperAssignment::SHOULD_NOTIFY => false,
         ]);
 
-        $valid_data = [$organization->id => ['can_notify' => true]];
+        $valid_data = [$organization->id => ['should_notify' => true]];
         $command = new UpdateTrooperNotificationsCommand($trooper, $valid_data);
         $subject = new UpdateTrooperNotificationsCommandHandler();
 
@@ -89,7 +89,7 @@ class UpdateTrooperNotificationsCommandHandlerTest extends TestCase
 
         // Assert
         $existing->refresh();
-        $this->assertTrue($existing->can_notify);
+        $this->assertTrue($existing->should_notify);
     }
 
     public function test_invoke_returns_null(): void

@@ -77,14 +77,14 @@ class SendTrooperRegisteredNotificationsJobTest extends TestCase
             'organization_id' => $org1->id,
             'is_moderator' => true,
             'is_member' => true,
-            'can_notify' => true,
+            'should_notify' => true,
         ]);
 
         $moderator2->trooper_assignments()->create([
             'organization_id' => $org2->id,
             'is_moderator' => true,
             'is_member' => true,
-            'can_notify' => true,
+            'should_notify' => true,
         ]);
 
         // Attach the trooper to the same organizations so moderators can moderate them
@@ -96,14 +96,14 @@ class SendTrooperRegisteredNotificationsJobTest extends TestCase
             'organization_id' => $org1->id,
             'is_moderator' => false,
             'is_member' => true,
-            'can_notify' => true,
+            'should_notify' => true,
         ]);
 
         $this->trooper->trooper_assignments()->create([
             'organization_id' => $org2->id,
             'is_moderator' => false,
             'is_member' => true,
-            'can_notify' => true,
+            'should_notify' => true,
         ]);
 
         $moderators = new Collection([$moderator1, $moderator2]);
@@ -138,7 +138,7 @@ class SendTrooperRegisteredNotificationsJobTest extends TestCase
             'organization_id' => $org->id,
             'is_moderator' => true,
             'is_member' => true,
-            'can_notify' => true,
+            'should_notify' => true,
         ]);
 
         // Attach the trooper to the organization and create assignment
@@ -147,7 +147,7 @@ class SendTrooperRegisteredNotificationsJobTest extends TestCase
             'organization_id' => $org->id,
             'is_moderator' => false,
             'is_member' => true,
-            'can_notify' => true,
+            'should_notify' => true,
         ]);
 
         $admins = new Collection([$admin]);
@@ -212,7 +212,7 @@ class SendTrooperRegisteredNotificationsJobTest extends TestCase
             'organization_id' => $org->id,
             'is_moderator' => true,
             'is_member' => true,
-            'can_notify' => true,
+            'should_notify' => true,
         ]);
 
         // Attach the trooper to the organization and create assignment
@@ -221,7 +221,7 @@ class SendTrooperRegisteredNotificationsJobTest extends TestCase
             'organization_id' => $org->id,
             'is_moderator' => false,
             'is_member' => true,
-            'can_notify' => true,
+            'should_notify' => true,
         ]);
 
         $moderators = new Collection([$moderator]);
@@ -357,7 +357,7 @@ class SendTrooperRegisteredNotificationsJobTest extends TestCase
             'organization_id' => $org1->id,
             'is_moderator' => true,
             'is_member' => true,
-            'can_notify' => true,
+            'should_notify' => true,
         ]);
 
         // Set up the unauthorized moderator with a different organization
@@ -368,7 +368,7 @@ class SendTrooperRegisteredNotificationsJobTest extends TestCase
             'organization_id' => $org2->id,
             'is_moderator' => true,
             'is_member' => true,
-            'can_notify' => true,
+            'should_notify' => true,
         ]);
 
         // Set up the new trooper to be moderated by the authorized moderator only
@@ -377,7 +377,7 @@ class SendTrooperRegisteredNotificationsJobTest extends TestCase
             'organization_id' => $org1->id,
             'is_moderator' => false,
             'is_member' => true,
-            'can_notify' => true,
+            'should_notify' => true,
         ]);
 
         $moderators = new Collection([$authorized_moderator, $unauthorized_moderator]);
@@ -475,7 +475,7 @@ class SendTrooperRegisteredNotificationsJobTest extends TestCase
             'organization_id' => $org->id,
             'is_moderator' => true,
             'is_member' => true,
-            'can_notify' => true,
+            'should_notify' => true,
         ]);
 
         // Attach the trooper to the organization and create assignment
@@ -484,7 +484,7 @@ class SendTrooperRegisteredNotificationsJobTest extends TestCase
             'organization_id' => $org->id,
             'is_moderator' => false,
             'is_member' => true,
-            'can_notify' => true,
+            'should_notify' => true,
         ]);
 
         $moderators = new Collection([$moderator]);

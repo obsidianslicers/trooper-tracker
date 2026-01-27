@@ -37,6 +37,8 @@
                                     @if($organization->type == \App\Enums\OrganizationType::ORGANIZATION)
                                         <x-action-link-create :label="'Add Region'"
                                                               :url="route('admin.organizations.create', ['parent' => $organization])" />
+                                        <x-action-link-update :label="'Costumes'"
+                                                              :url="route('admin.organizations.costumes', compact('organization'))" />
                                     @endif
                                     @if($organization->type == \App\Enums\OrganizationType::REGION)
                                         <x-action-link-create :label="'Add Unit'"

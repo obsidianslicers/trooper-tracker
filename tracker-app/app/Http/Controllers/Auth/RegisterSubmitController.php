@@ -77,7 +77,7 @@ class RegisterSubmitController extends MagicBusController
      * for selected organizations and their associated regions/units.
      *
      * @param array $organizations The organizations data from the registration form
-     * @return array Array keyed by organization ID with can_notify flags
+     * @return array Array keyed by organization ID with should_notify flags
      */
     private function getNotifications(array $organizations): array
     {
@@ -87,16 +87,16 @@ class RegisterSubmitController extends MagicBusController
         {
             if (!empty($data['selected']))
             {
-                $notifications[$organization_id]['can_notify'] = true;
+                $notifications[$organization_id]['should_notify'] = true;
 
                 if (isset($data['region_id']))
                 {
-                    $notifications[$data['region_id']]['can_notify'] = true;
+                    $notifications[$data['region_id']]['should_notify'] = true;
                 }
 
                 if (isset($data['unit_id']))
                 {
-                    $notifications[$data['unit_id']]['can_notify'] = true;
+                    $notifications[$data['unit_id']]['should_notify'] = true;
                 }
             }
         }

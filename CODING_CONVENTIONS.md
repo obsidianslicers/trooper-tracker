@@ -53,7 +53,7 @@ To leverage Laravel's Eloquent ORM conventions and simplify relationship definit
 | :--- | :--- | :--- |
 | **Table Names** | Plural, `snake_case` | `troopers`, `event_troopers` |
 | **Column Names** | `snake_case` | `first_name`, `event_date` |
-| **Boolean Column Names** | `is_`, `can_`, `has` | `is_verified`, `can_allowed`, `has_limits` |
+| **Boolean Column Names** | `is_`, `can_`, `has_`, `should_` | `is_verified`, `can_allow`, `has_limits` |
 | **Primary Key** | `id` | An auto-incrementing integer named `id`. |
 | **Foreign Keys** | Singular table name + `_id` | A `posts` table has a `user_id` column to link to the `users` table. |
 | **Pivot Tables** | Singular table names, alphabetized, joined by `_` | `role_user` for a `roles` and `users` relationship. |

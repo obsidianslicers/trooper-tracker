@@ -7,7 +7,8 @@
     <x-table class="caption-top">
         <caption>
             Troopers who {{ \App\Enums\EventTrooperStatus::ATTENDED->name }} an event where
-            their status was updated by someone other than the trooper in action.
+            their status was updated by someone other than the trooper in action for
+            the last {{ $lookback }} days.
         </caption>
         <thead>
             <tr>
@@ -44,7 +45,7 @@
             @empty
                 <tr>
                     <td colspan="5">
-                        No status changes found.
+                        No status changes found that were updated by anyone but the trooper.
                     </td>
                 </tr>
             @endforelse

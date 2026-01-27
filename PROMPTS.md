@@ -78,3 +78,47 @@ Constraints:
 
 Apply all edits automatically.
 ```
+
+## Update the Database Diagram
+
+This prompt generates a complete DATABASE.md file, including table structures, column definitions, constraints, inferred relationships, and a Mermaid ER diagram visualizing table dependencies. The output provides an up‑to‑date, human‑readable reference for the database schema.
+
+```
+You are operating inside a Laravel project. Your task is to analyze *all* migration files in the workspace and produce a complete DATABASE.md file at the project root.
+
+Requirements:
+
+1. Scan every migration to determine:
+   - All tables created
+   - All columns and their types
+   - Primary keys, unique constraints, indexes
+   - Foreign keys and their referenced tables
+   - Pivot tables and many-to-many relationships
+   - Soft deletes, timestamps, morphs, and other Laravel helpers
+
+2. Build a DATABASE.md file containing:
+   - A high-level overview of the database structure
+   - A table-by-table breakdown with:
+     - Table name
+     - Purpose (infer from naming conventions)
+     - Columns with types and constraints
+     - Foreign keys and relationships
+     - Notes on pivot tables or polymorphic relations
+
+3. Include a Mermaid ER diagram showing table dependencies:
+   - Use `erDiagram` syntax
+   - Show relationships using correct cardinality
+   - Include all foreign key links discovered in migrations
+
+4. Formatting rules:
+   - Use clean GitHub-flavored Markdown
+   - Use headings, subheadings, and tables for clarity
+   - Place the Mermaid diagram near the top under an “Entity Relationship Diagram” section
+   - Do not modify any project files except creating/updating DATABASE.md
+
+5. After generating the file, output the full contents of DATABASE.md so I can review it before saving.
+
+Do not guess table structures beyond what migrations define. Infer relationships only when foreign keys or naming conventions clearly indicate them.
+
+Begin by analyzing all migrations and then produce the complete DATABASE.md content.
+```

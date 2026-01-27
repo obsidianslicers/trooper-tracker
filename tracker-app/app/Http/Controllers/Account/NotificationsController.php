@@ -29,7 +29,7 @@ class NotificationsController extends MagicBusController
      * 3. Renders the notification settings page with:
      *    - Hierarchical organization list (Org → Region → Unit)
      *    - Current notification_frequency setting
-     *    - Selected organizations marked with can_notify = true
+     *    - Selected organizations marked with should_notify = true
      *
      * @param Request $request The incoming HTTP request containing the authenticated trooper
      * @return View The rendered notification settings view (pages.account.notifications)

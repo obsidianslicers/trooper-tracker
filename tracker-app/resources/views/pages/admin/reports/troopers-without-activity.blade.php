@@ -1,13 +1,13 @@
 @extends('layouts.base')
 
-@section('page-title', 'Status Change Log')
+@section('page-title', 'Troopers Without Activity')
 
 @section('content')
 
     <x-table class="caption-top">
         <caption>
             Active Troopers who have not {{ \App\Enums\EventTrooperStatus::ATTENDED->name }}
-            an event in the last 12 months.
+            an event since {{ $lookback->format('M d, Y') }}.
         </caption>
         <thead>
             <tr>
@@ -30,7 +30,7 @@
             @empty
                 <tr>
                     <td colspan="5">
-                        No troopers found, all present an accounted for.
+                        No troopers found, all present and accounted for.
                     </td>
                 </tr>
             @endforelse

@@ -11,7 +11,7 @@ use App\Models\Trooper;
  *
  * Returns the organizational hierarchy with each organization marked
  * to indicate whether the trooper has notification preferences enabled
- * for that organization (can_notify flag on TrooperAssignment).
+ * for that organization (should_notify flag on TrooperAssignment).
  *
  * @see GetTrooperNotificationsQueryHandler
  */
