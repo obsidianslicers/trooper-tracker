@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\AchievementType;
 use App\Models\Base\TrooperAchievement as BaseTrooperAchievement;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -15,4 +16,16 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class TrooperAchievement extends BaseTrooperAchievement
 {
     use HasFactory;
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts()
+    {
+        return array_merge($this->casts, [
+            self::TYPE => AchievementType::class,
+        ]);
+    }
 }

@@ -18,9 +18,6 @@ class EventUploadFactory extends Factory
         return [
             EventUpload::EVENT_ID => \App\Models\Event::factory(),
             EventUpload::TROOPER_ID => \App\Models\Trooper::factory(),
-            EventUpload::IMAGE_PATH_LG => $this->faker->word(),
-            EventUpload::IMAGE_PATH_SM => $this->faker->word(),
-            EventUpload::IS_ADMINISTRATIVE => $this->faker->randomNumber(1),
         ];
     }
 }

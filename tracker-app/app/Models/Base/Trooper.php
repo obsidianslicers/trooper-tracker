@@ -6,15 +6,6 @@
 
 namespace App\Models\Base;
 
-use App\Models\Award;
-use App\Models\AwardTrooper;
-use App\Models\EventNotification;
-use App\Models\EventTrooper;
-use App\Models\EventUpload;
-use App\Models\ModelChange;
-use App\Models\Notice;
-use App\Models\NoticeTrooper;
-use App\Models\OauthLogin;
 use App\Models\Organization;
 use App\Models\TrooperAchievement;
 use App\Models\TrooperAssignment;
@@ -26,7 +17,6 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -49,14 +39,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Carbon|null $updated_at
  * @property string|null $deleted_at
  * 
- * @property Collection|Award[] $awards
- * @property Collection|EventNotification[] $event_notifications
- * @property Collection|EventTrooper[] $event_troopers
- * @property Collection|EventUpload[] $event_uploads
- * @property Collection|ModelChange[] $model_changes
- * @property Collection|Notice[] $notices
- * @property Collection|OauthLogin[] $oauth_logins
- * @property TrooperAchievement|null $trooper_achievement
+ * @property Collection|TrooperAchievement[] $trooper_achievements
  * @property Collection|TrooperAssignment[] $trooper_assignments
  * @property Collection|TrooperCostume[] $trooper_costumes
  * @property Collection|TrooperDonation[] $trooper_donations
@@ -114,48 +97,9 @@ class Trooper extends Model
         self::REMEMBER_TOKEN
     ];
 
-    public function awards(): BelongsToMany
+    public function trooper_achievements(): HasMany
     {
-        return $this->belongsToMany(Award::class, 'tt_award_troopers')
-                    ->withPivot(AwardTrooper::ID, AwardTrooper::AWARD_DATE, AwardTrooper::DELETED_AT, AwardTrooper::CREATED_ID, AwardTrooper::UPDATED_ID, AwardTrooper::DELETED_ID)
-                    ->withTimestamps();
-    }
-
-    public function event_notifications(): HasMany
-    {
-        return $this->hasMany(EventNotification::class);
-    }
-
-    public function event_troopers(): HasMany
-    {
-        return $this->hasMany(EventTrooper::class);
-    }
-
-    public function event_uploads(): HasMany
-    {
-        return $this->hasMany(EventUpload::class);
-    }
-
-    public function model_changes(): HasMany
-    {
-        return $this->hasMany(ModelChange::class);
-    }
-
-    public function notices(): BelongsToMany
-    {
-        return $this->belongsToMany(Notice::class, 'tt_notice_troopers')
-                    ->withPivot(NoticeTrooper::ID, NoticeTrooper::IS_READ, NoticeTrooper::DELETED_AT, NoticeTrooper::CREATED_ID, NoticeTrooper::UPDATED_ID, NoticeTrooper::DELETED_ID)
-                    ->withTimestamps();
-    }
-
-    public function oauth_logins(): HasMany
-    {
-        return $this->hasMany(OauthLogin::class);
-    }
-
-    public function trooper_achievement(): HasOne
-    {
-        return $this->hasOne(TrooperAchievement::class);
+        return $this->hasMany(TrooperAchievement::class);
     }
 
     public function trooper_assignments(): HasMany

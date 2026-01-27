@@ -32,7 +32,9 @@ enum NoticeType: string
     case DANGER = 'danger';
 
     /**
-     * Return the description for a single enum case.
+     * Get the Star Wars-themed description for this notice type.
+     *
+     * @return string Themed message based on notice type
      */
     public function description(): string
     {
@@ -46,8 +48,9 @@ enum NoticeType: string
     }
 
     /**
-     * Summary of toDescriptions
-     * @return array{danger: string, info: string, success: string, warning: string}
+     * Get an array of all notice type descriptions.
+     *
+     * @return array{danger: string, info: string, success: string, warning: string} Associative array of type => description
      */
     public static function toDescriptions(): array
     {
@@ -60,8 +63,9 @@ enum NoticeType: string
     }
 
     /**
-     * Summary of toOptions
-     * @return array{danger: string, info: string, success: string, warning: string}
+     * Get an array of notice type options with emoji icons.
+     *
+     * @return array{danger: string, info: string, success: string, warning: string} Associative array of type => emoji + description
      */
     public static function toOptions(): array
     {

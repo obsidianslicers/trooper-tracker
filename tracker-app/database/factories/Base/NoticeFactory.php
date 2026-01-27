@@ -17,10 +17,6 @@ class NoticeFactory extends Factory
     {
         return [
             Notice::ORGANIZATION_ID => \App\Models\Organization::factory(),
-            Notice::STARTS_AT => $this->faker->unixTime(),
-            Notice::TITLE => $this->faker->title(),
-            Notice::TYPE => $this->faker->word(),
-            Notice::MESSAGE => $this->faker->text(),
         ];
     }
 }

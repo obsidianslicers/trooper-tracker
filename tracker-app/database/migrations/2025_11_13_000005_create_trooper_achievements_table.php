@@ -19,39 +19,15 @@ return new class extends Migration
                 ->constrained('tt_troopers')
                 ->cascadeOnDelete();
 
-            // $table->dateTime('member_since');
-            $table->integer('trooper_rank')->nullable();
-            $table->integer('trooper_events')->nullable();
-
-            // Squad completion
-            $table->boolean('trooped_all_squads')->default(false);
-
-            // First troop
-            $table->boolean('first_troop_completed')->default(false);
-
-            // Troop count milestones
-            $table->boolean('trooped_10')->default(false);
-            $table->boolean('trooped_25')->default(false);
-            $table->boolean('trooped_50')->default(false);
-            $table->boolean('trooped_75')->default(false);
-            $table->boolean('trooped_100')->default(false);
-            $table->boolean('trooped_150')->default(false);
-            $table->boolean('trooped_200')->default(false);
-            $table->boolean('trooped_250')->default(false);
-            $table->boolean('trooped_300')->default(false);
-            $table->boolean('trooped_400')->default(false);
-            $table->boolean('trooped_500')->default(false);
-            $table->boolean('trooped_501')->default(false);
-
-            $table->float('volunteer_hours')->default(0);
-            $table->float('direct_funds')->default(0);
-            $table->float('indirect_funds')->default(0);
+            $table->string('type', 64);
+            $table->string('value', 64)->nullable();
+            $table->date('earned_on')->nullable();
 
             $table->timestamps();
             $table->softDeletes();
 
             // Prevent duplicate entries
-            $table->unique(columns: ['trooper_id']);
+            $table->unique(['trooper_id', 'type']);
         });
     }
 
