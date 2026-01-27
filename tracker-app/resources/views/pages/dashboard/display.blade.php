@@ -5,7 +5,7 @@
 @section('content')
 
     @include('pages.dashboard.overview')
-    @include('pages.dashboard.achievements', ['trooper_achievement' => $trooper->trooper_achievement])
+    @include('pages.dashboard.achievements', compact('achievements'))
     @include('pages.dashboard.organization-breakdown')
     @include('pages.dashboard.costume-breakdown')
 

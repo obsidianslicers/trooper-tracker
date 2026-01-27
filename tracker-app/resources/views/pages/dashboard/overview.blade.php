@@ -32,29 +32,43 @@
                 <tr>
                     <th>Trooper Rank:</th>
                     <td>
+                        {{--
                         @if(isset($trooper->trooper_rank))
-                            <x-number-format :value="$trooper->trooper_achievement->trooper_rank"
-                                             :prefix="'#'" />
+                        <x-number-format :value="$trooper->trooper_achievement->trooper_rank"
+                                         :prefix="'#'" />
                         @else
-                            <span class="text-muted">
-                                N/A
-                            </span>
+                        <span class="text-muted">
+                            N/A
+                        </span>
                         @endif
+                        --}}
                     </td>
                 </tr>
                 <tr>
                     <th>Volunteer Hours</th>
-                    <td><x-number-format :value="$trooper->trooper_achievement->volunteer_hours" /></td>
+                    <td>
+                        {{--
+                        <x-number-format :value="$trooper->trooper_achievement->volunteer_hours" />
+                        --}}
+                    </td>
                 </tr>
                 <tr>
                     <th>Direct Donations</th>
-                    <td><x-number-format :value="$trooper->trooper_achievement->direct_funds"
-                                         :prefix="'$'" /></td>
+                    <td>
+                        {{--
+                        <x-number-format :value="$trooper->trooper_achievement->direct_funds"
+                                         :prefix="'$'" />
+                        --}}
+                    </td>
                 </tr>
                 <tr>
                     <th>Indirect Donations</th>
-                    <td><x-number-format :value="$trooper->trooper_achievement->indirect_funds"
-                                         :prefix="'$'" /></td>
+                    <td>
+                        {{--
+                        <x-number-format :value="$trooper->trooper_achievement->indirect_funds"
+                                         :prefix="'$'" />
+                        --}}
+                    </td>
                 </tr>
             </x-table>
 

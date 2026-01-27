@@ -35,7 +35,7 @@ class DashboardDisplayController extends MagicBusController
     {
         $trooper_id = (int) $request->get('trooper_id', Auth::user()->id);
 
-        $trooper = Trooper::with('trooper_achievement')->findOrFail($trooper_id);
+        $trooper = Trooper::with('trooper_achievements')->findOrFail($trooper_id);
 
         if ($trooper_id == Auth::user()->id)
         {
@@ -44,6 +44,7 @@ class DashboardDisplayController extends MagicBusController
 
         $data = [
             'trooper' => $trooper,
+            'achievements' => $trooper->trooper_achievements->sortBy('display_order'),
             'total_troops_by_organization' => $this->getTroopsByOrganization($trooper),
             'total_troops_by_costume' => $this->getTroopsByCostume($trooper),
         ];
