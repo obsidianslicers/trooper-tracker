@@ -6,7 +6,7 @@ namespace App\Features\Reports\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Enums\EventStatus;
-use App\Enums\EventType;
+use App\Enums\EventVolunteer;
 use App\Models\Event;
 use Carbon\Carbon;
 
@@ -19,9 +19,9 @@ use Carbon\Carbon;
  *
  * Filters changes based on the lookback period specified in the query.
  *
- * @implements QueryHandlerInterface<GetEventTypeCountQuery>
+ * @implements QueryHandlerInterface<GetEventVolunteerCountQuery>
  */
-readonly class GetEventTypeCountQueryHandler implements QueryHandlerInterface
+readonly class GetEventVolunteerCountQueryHandler implements QueryHandlerInterface
 {
     /**
      * Execute the query to retrieve model change history.
@@ -30,7 +30,7 @@ readonly class GetEventTypeCountQueryHandler implements QueryHandlerInterface
      * StatusChange records for the trooper and their associated EventTrooper records.
      * Returns all changes since the lookback date.
      *
-     * @param GetEventTypeCountQuery $message The query containing trooper and lookback criteria.
+     * @param GetEventVolunteerCountQuery $message The query containing trooper and lookback criteria.
      */
     public function __invoke(object $message): mixed
     {
@@ -66,19 +66,15 @@ readonly class GetEventTypeCountQueryHandler implements QueryHandlerInterface
             ->moderatedBy($message->moderator)
             ->where(Event::STATUS, EventStatus::CLOSED)
             ->where(Event::EVENT_START, '>=', $lookback)
-            ->orderBy(Event::TYPE)
-            ->get()
-            ->groupBy(Event::TYPE)
-            ->map(function ($events, $type) use ($total_counter, $unique_counter)
+            ->orderByDesc(Event::EVENT_END)
+            ->get()->each(function (Event $event)
             {
-                return (object) [
-                    'event_type' => EventType::from($type),
-                    'count' => $events->count(),
-                    'total_trooper_count' => $events->sum($total_counter),
-                    'unique_trooper_count' => $unique_counter($events)
-                ];
-            })
-            ->values();
+                $event->event_shifts_count = $event->event_shifts->count();
+                // Total trooper rows across all shifts
+                $event->total_trooper_count = $event->event_shifts->sum(fn($shift) => $shift->event_troopers->count());
+                // Unique troopers across all shifts
+                $event->unique_trooper_count = $event->event_shifts->flatMap(fn($shift) => $shift->event_troopers->pluck('trooper_id'))->unique()->count();
+            });
 
     }
 }

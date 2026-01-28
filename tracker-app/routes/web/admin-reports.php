@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Admin\Reports\EventTypeCountController;
+use App\Http\Controllers\Admin\Reports\EventVolunteerCountController;
 use App\Http\Controllers\Admin\Reports\ReportDisplayController;
 use App\Http\Controllers\Admin\Reports\StatusChangeLogController;
 use App\Http\Controllers\Admin\Reports\TroopersWithoutActivityController;
@@ -19,4 +20,5 @@ Route::prefix('admin/reports')
         Route::get('/status-change-log', StatusChangeLogController::class)->name('status-change-log');
         Route::get('/troopers-without-activity', TroopersWithoutActivityController::class)->name('troopers-without-activity');
         Route::get('/event-type-count', EventTypeCountController::class)->name('event-type-count');
+        Route::get('/event-volunteer-count', EventVolunteerCountController::class)->name('event-volunteer-count');
     });

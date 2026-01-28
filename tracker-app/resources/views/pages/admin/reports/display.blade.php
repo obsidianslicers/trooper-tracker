@@ -63,10 +63,9 @@
         </x-dashboard-card>
         <x-dashboard-card :label="'Volunteers at Events'"
                           :icon="'fa-file-lines'"
-                          :url="'#'">
+                          :url="route('admin.reports.event-volunteer-count')">
             <p>
-                <b class="text-danger">TODO:</b> Volunteers at Events
-                (Total count of troopers at all events)
+                Volunteers at Events (Total count of troopers at all events)
             </p>
         </x-dashboard-card>
         <x-dashboard-card :label="'Costume Used Most at Events'"
