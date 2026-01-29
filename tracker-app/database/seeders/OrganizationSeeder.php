@@ -45,40 +45,46 @@ class OrganizationSeeder extends Seeder
                 'identifier_display' => 'TKID',
                 'identifier_validation' => 'integer|between:1000,99999',
                 'service_class' => TheLegionService::class,
+                'sync_sheet_id' => null,
             ],
             [
                 'name' => 'Rebel Legion',
                 'description' => 'Rebel-aligned Star Wars costuming group.',
                 'identifier_display' => 'Forum Username',
-                'service_class' => RebelLegionService::class
+                'service_class' => RebelLegionService::class,
+                'sync_sheet_id' => '1I3FuS_uPg2nuC80PEA6tKYaVBd1Qh1allTOdVz3M6x0'
             ],
             [
                 'name' => 'Mandalorian Mercs',
                 'description' => 'Custom Mandalorian armor builders and costumers.',
                 'identifier_display' => 'CAT #',
                 'identifier_validation' => 'integer',
-                'service_class' => MandalorianMercsService::class
+                'service_class' => MandalorianMercsService::class,
+                'sync_sheet_id' => null,
             ],
             [
                 'name' => 'Dark Empire',
                 'description' => 'Expanded universe costuming group for dark side characters.',
                 'identifier_display' => '#',
                 'identifier_validation' => 'integer',
-                'service_class' => DarkEmpireServices::class
+                'service_class' => DarkEmpireServices::class,
+                'sync_sheet_id' => null,
             ],
             [
                 'name' => 'Droid Builders',
                 'description' => 'Star Wars droid construction and robotics enthusiast group.',
                 'identifier_display' => '#',
                 'identifier_validation' => 'integer',
-                'service_class' => DroidBuildersService::class
+                'service_class' => DroidBuildersService::class,
+                'sync_sheet_id' => null,
             ],
             [
                 'name' => 'Saber Guild',
                 'description' => 'Lightsaber performance and Jedi/Sith costuming group.',
                 'identifier_display' => 'SG #',
                 'identifier_validation' => 'integer',
-                'service_class' => SaberGuildServices::class
+                'service_class' => SaberGuildServices::class,
+                'sync_sheet_id' => null,
             ],
         ];
 
