@@ -30,33 +30,13 @@ class DroidBuildersService extends BaseOrganizationService
 
     public function syncAllMembers(): void
     {
-        $values = $this->google->getSheet("195NT1crFYL_ECVyzoaD2F1QXGW5WxlnBDfDaLVtM87Y", "Sheet1");
-
-        for ($i = 1, $j = count($values); $i < $j; $i++)
-        {
-            $forum_id = $this->cleanInput($values[$i][0]);
-            //         $droidname = cleanInput($value[1]);
-            //         $imageurl = cleanInput($value[2]);
-
-            $trooper = $this->organization->troopers()
-                ->wherePivot(TrooperOrganization::IDENTIFIER, $forum_id)
-                ->first();
-
-            $this->updateTrooperStatus($trooper, $forum_id);
-        }
     }
 
     public function syncMember(string $identifier): void
     {
-        $this->syncAllMembers();
     }
 
     private function updateTrooperStatus(Trooper $trooper): void
     {
-        $pivot = $trooper->pivot;
-
-        $pivot->verified_at = now();
-        $pivot->membership_status = MembershipStatus::ACTIVE;
-        $pivot->save();
     }
 }

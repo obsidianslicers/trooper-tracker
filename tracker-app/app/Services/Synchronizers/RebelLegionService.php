@@ -13,6 +13,7 @@ use Illuminate\Support\Carbon;
 use DOMDocument;
 use DOMXPath;
 use Exception;
+use Illuminate\Support\Facades\Log;
 
 /**
  * RebelLegionService

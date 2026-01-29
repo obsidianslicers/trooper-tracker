@@ -40,7 +40,6 @@ class SynchronizeOrganizations extends Command
         $organizations = Organization::ofTypeOrganizations()
             ->whereNotNull(Organization::SERVICE_CLASS)
             ->orderBy(Organization::NAME)
-            ->where('name', '501st Legion') // For testing purposes only
             ->get();
 
         foreach ($organizations as $organization)
