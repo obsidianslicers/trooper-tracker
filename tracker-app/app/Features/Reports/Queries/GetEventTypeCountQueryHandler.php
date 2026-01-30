@@ -30,20 +30,11 @@ readonly class GetEventTypeCountQueryHandler implements QueryHandlerInterface
      * StatusChange records for the trooper and their associated EventTrooper records.
      * Returns all changes since the lookback date.
      *
-     * @param GetEventTypeCountQuery $message The query containing trooper and lookback criteria.
+     * @param  GetEventTypeCountQuery  $message  The query containing trooper and lookback criteria.
      */
     public function __invoke(object $message): mixed
     {
-        $lookback = $message->lookback;
-
-        if (is_int($lookback))
-        {
-            $lookback = now()->subDays($lookback);
-        }
-        elseif (is_string($lookback))
-        {
-            $lookback = Carbon::parse($lookback);
-        }
+        $lookback = $message->parseLookback();
 
         $total_counter = function ($event)
         {
@@ -75,10 +66,9 @@ readonly class GetEventTypeCountQueryHandler implements QueryHandlerInterface
                     'event_type' => EventType::from($type),
                     'count' => $events->count(),
                     'total_trooper_count' => $events->sum($total_counter),
-                    'unique_trooper_count' => $unique_counter($events)
+                    'unique_trooper_count' => $unique_counter($events),
                 ];
             })
             ->values();
-
     }
 }

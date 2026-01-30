@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Reports;
 
-use App\Features\Reports\Queries\GetEventVolunteerCountQuery;
+use App\Features\Reports\Queries\GetTrooperEventSummaryQuery;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -14,7 +14,7 @@ use Illuminate\Http\Request;
  * This controller provides a summary of administrative tasks, such as displaying
  * the count of troopers pending approval and setting a relevant flash message.
  */
-class EventVolunteerCountController extends BaseReportsController
+class TrooperEventSummaryController extends BaseReportsController
 {
     /**
      * Handle the incoming request to display the admin dashboard.
@@ -30,12 +30,12 @@ class EventVolunteerCountController extends BaseReportsController
 
         $lookback = 30;
 
-        $event_volunteers_query = new GetEventVolunteerCountQuery($trooper, $lookback);
+        $trooper_events_query = new GetTrooperEventSummaryQuery($trooper, $lookback);
 
-        $event_volunteers = $this->bus->send($event_volunteers_query);
+        $trooper_events = $this->bus->send($trooper_events_query);
 
-        $data = compact('event_volunteers', 'lookback');
+        $data = compact('trooper_events', 'lookback');
 
-        return view('pages.admin.reports.event-volunteer-count', $data);
+        return view('pages.admin.reports.trooper-event-summary', $data);
     }
 }

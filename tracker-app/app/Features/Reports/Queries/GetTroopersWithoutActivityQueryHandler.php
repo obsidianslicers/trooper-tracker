@@ -31,21 +31,12 @@ readonly class GetTroopersWithoutActivityQueryHandler implements QueryHandlerInt
      * StatusChange records for the trooper and their associated EventTrooper records.
      * Returns all changes since the lookback date.
      *
-     * @param GetTroopersWithoutActivityQuery $message The query containing trooper and lookback criteria.
+     * @param  GetTroopersWithoutActivityQuery  $message  The query containing trooper and lookback criteria.
      * @return \Illuminate\Support\Collection<int, Trooper> Collection of model changes.
      */
     public function __invoke(object $message): mixed
     {
-        $lookback = $message->lookback;
-
-        if (is_int($lookback))
-        {
-            $lookback = now()->subDays($lookback);
-        }
-        elseif (is_string($lookback))
-        {
-            $lookback = Carbon::parse($lookback);
-        }
+        $lookback = $message->parseLookback();
 
         $filter = function ($qx) use ($lookback)
         {

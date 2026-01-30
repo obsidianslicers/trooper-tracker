@@ -9,9 +9,9 @@ use App\Models\Trooper;
 use Carbon\Carbon;
 
 /**
- * @see GetStatusChangeLogQueryHandler
+ * @see GetTrooperEventCountQueryHandler
  */
-readonly class GetTroopersWithoutActivityQuery
+readonly class GetTrooperEventSummaryQuery
 {
     use HasLookback;
 
