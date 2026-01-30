@@ -18,7 +18,6 @@ class CopyRequest extends FormRequest
      *
      * Checks if the user has permission to copy the event specified in the route.
      *
-     * @return bool
      * @throws AuthorizationException if the event is not found.
      */
     public function authorize(): bool
@@ -41,8 +40,8 @@ class CopyRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            Event::NAME => ['required', 'string', 'max:128',],
-            Event::EVENT_START => ['required', 'date', 'after:today',],
+            Event::NAME => ['required', 'string', 'max:128'],
+            Event::EVENT_START => ['required', 'date', 'after:today'],
         ];
 
         return $rules;

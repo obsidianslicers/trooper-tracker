@@ -42,7 +42,7 @@ class CreateRequest extends FormRequest
                 'required',
                 'string',
                 'max:64',
-                new UniqueNameRule(false, $this->route('parent'))
+                new UniqueNameRule(false, $this->route('parent')),
             ],
         ];
 

@@ -10,6 +10,7 @@ use Database\Seeders\FloridaGarrison\EventSeeder;
 use Database\Seeders\FloridaGarrison\EventUploadSeeder;
 use Database\Seeders\FloridaGarrison\EventUploadTrooperSeeder;
 use Database\Seeders\FloridaGarrison\OrganizationCostumeSeeder;
+use Database\Seeders\FloridaGarrison\OrganizationSeeder as FloridaGarrisonOrganizationSeeder;
 use Database\Seeders\FloridaGarrison\TrooperCostumeSeeder;
 use Database\Seeders\FloridaGarrison\TrooperDonationSeeder;
 use Database\Seeders\FloridaGarrison\TrooperOrganizationSeeder;
@@ -28,6 +29,7 @@ class FloridaGarrisonSeeder extends Seeder
     public function run(): void
     {
         $this->call(OrganizationSeeder::class);
+        $this->call(FloridaGarrisonOrganizationSeeder::class);
         $this->call(OrganizationCostumeSeeder::class);
 
         $this->call(TrooperSeeder::class);

@@ -12,8 +12,6 @@ class LoginRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     *
-     * @return boolean
      */
     public function authorize(): bool
     {
@@ -42,9 +40,9 @@ class LoginRequest extends FormRequest
     public function messages(): array
     {
         return [
-            Trooper::EMAIL . '.required' => 'Email is required.',
-            Trooper::EMAIL . '.exists' => 'This email does not exist in our records - do you need to setup your account?',
-            Trooper::PASSWORD . '.required' => 'Password is required.',
+            Trooper::EMAIL.'.required' => 'Email is required.',
+            Trooper::EMAIL.'.exists' => 'This email does not exist in our records - do you need to setup your account?',
+            Trooper::PASSWORD.'.required' => 'Password is required.',
         ];
     }
 

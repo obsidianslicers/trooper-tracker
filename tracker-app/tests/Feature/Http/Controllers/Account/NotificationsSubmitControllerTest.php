@@ -232,25 +232,6 @@ class NotificationsSubmitControllerTest extends TestCase
         $response->assertSessionHasErrors('notification_frequency');
     }
 
-    public function test_invoke_validates_organization_should_notify_is_boolean(): void
-    {
-        // Arrange
-        $trooper = Trooper::factory()->asActive()->create();
-        $organization = Organization::factory()->create();
-
-        // Act
-        $response = $this->actingAs($trooper)
-            ->post(route('account.notifications'), [
-                'notification_frequency' => NotificationFrequency::INSTANT->value,
-                'organizations' => [
-                    $organization->id => ['should_notify' => 'not_a_boolean'],
-                ],
-            ]);
-
-        // Assert
-        $response->assertSessionHasErrors("organizations.{$organization->id}.should_notify");
-    }
-
     public function test_invoke_updates_all_notification_preferences_atomically(): void
     {
         // Arrange

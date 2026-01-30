@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Admin\Troopers;
 
 use App\Enums\MembershipStatus;
+use App\Http\Requests\Concerns\HasNormalizers;
 use App\Models\Trooper;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Http\FormRequest;
@@ -18,6 +19,8 @@ use Illuminate\Foundation\Http\FormRequest;
  */
 class ProfileRequest extends FormRequest
 {
+    use HasNormalizers;
+
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -25,6 +28,7 @@ class ProfileRequest extends FormRequest
      * user has permission to update the trooper's profile.
      *
      * @return bool Returns true if the user can update the trooper.
+     *
      * @throws AuthorizationException if the trooper is not found in the route.
      */
     public function authorize(): bool
@@ -54,7 +58,12 @@ class ProfileRequest extends FormRequest
             Trooper::NAME => ['required', 'string', 'max:256'],
             Trooper::EMAIL => ['required', 'string', 'email', 'max:256'],
             Trooper::PHONE => ['nullable', 'string', 'max:16'],
-            Trooper::MEMBERSHIP_STATUS => ['nullable', 'string', 'max:16', 'in:' . MembershipStatus::toValidator()],
+            Trooper::MEMBERSHIP_STATUS => [
+                'nullable',
+                'string',
+                'max:16',
+                'in:'.MembershipStatus::toValidator(),
+            ],
         ];
 
         return $rules;
@@ -67,11 +76,11 @@ class ProfileRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
-        if ($this->has('phone'))
+        if ($this->has('phone') && ! empty($this->input('phone')))
         {
-            $this->merge([
-                'phone' => preg_replace('/\D+/', '', $this->input('phone') ?? ''),
-            ]);
+            $phone = $this->normalizePhoneInput($this->input('phone'));
+
+            $this->merge(['phone' => $phone]);
         }
     }
 }
