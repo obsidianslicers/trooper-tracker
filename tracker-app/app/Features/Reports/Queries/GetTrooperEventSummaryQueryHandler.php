@@ -13,26 +13,25 @@ use App\Models\Trooper;
 use Carbon\Carbon;
 
 /**
- * Handler for retrieving model change history for a trooper.
+ * Handler for retrieving trooper event participation summary.
  *
- * Returns a collection of StatusChange records representing changes to:
- * - The Trooper model itself (direct changes)
- * - EventTrooper records associated with the trooper
- *
- * Filters changes based on the lookback period specified in the query.
+ * Returns all troopers who attended events within the lookback period,
+ * with calculated statistics for shift and event attendance.
  *
  * @implements QueryHandlerInterface<GetTrooperEventSummaryQuery>
  */
 readonly class GetTrooperEventSummaryQueryHandler implements QueryHandlerInterface
 {
     /**
-     * Execute the query to retrieve model change history.
+     * Execute the query to retrieve trooper event summaries.
      *
-     * Converts the lookback parameter to a Carbon date if needed, then queries
-     * StatusChange records for the trooper and their associated EventTrooper records.
-     * Returns all changes since the lookback date.
+     * Retrieves troopers with attended events and calculates:
+     * - event_shifts_count: Total shifts attended
+     * - events_count: Unique events attended
+     * - attended_event_ids: List of unique event IDs
      *
-     * @param  GetTrooperEventSummaryQuery  $message  The query containing trooper and lookback criteria.
+     * @param  GetTrooperEventSummaryQuery  $message  The query containing moderator and lookback criteria.
+     * @return \Illuminate\Support\Collection<int, Trooper> Collection of troopers with summary data.
      */
     public function __invoke(object $message): mixed
     {
@@ -72,7 +71,7 @@ readonly class GetTrooperEventSummaryQueryHandler implements QueryHandlerInterfa
                 $trooper->event_shifts_count = $trooper->event_troopers->count();
                 // Unique events attended
                 $trooper->events_count = $trooper->event_troopers->map(fn($et) => $et->event_shift->event_id)->unique()->count();
-                // Optional: list of event IDs 
+                // Optional: list of event IDs
                 $trooper->attended_event_ids = $trooper->event_troopers->map(fn($et) => $et->event_shift->event_id)->unique()->values();
             });
     }

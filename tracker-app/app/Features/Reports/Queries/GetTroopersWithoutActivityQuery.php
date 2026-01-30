@@ -9,7 +9,12 @@ use App\Models\Trooper;
 use Carbon\Carbon;
 
 /**
- * @see GetStatusChangeLogQueryHandler
+ * Query to retrieve troopers without recent event activity.
+ *
+ * Returns active troopers who have not attended any events
+ * within the specified lookback period.
+ *
+ * @see GetTroopersWithoutActivityQueryHandler
  */
 readonly class GetTroopersWithoutActivityQuery
 {
@@ -18,7 +23,7 @@ readonly class GetTroopersWithoutActivityQuery
     /**
      * Create a new query instance.
      *
-     * @param  Trooper  $moderator  The moderator whose change history to retrieve.
+     * @param  Trooper  $moderator  The moderator whose managed troopers to check.
      * @param  int|string|Carbon  $lookback  Days to look back (int), date string, or Carbon date.
      */
     public function __construct(

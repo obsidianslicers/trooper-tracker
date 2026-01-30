@@ -11,26 +11,25 @@ use App\Models\Event;
 use Carbon\Carbon;
 
 /**
- * Handler for retrieving model change history for a trooper.
+ * Handler for retrieving event summary statistics.
  *
- * Returns a collection of StatusChange records representing changes to:
- * - The Trooper model itself (direct changes)
- * - EventTrooper records associated with the trooper
- *
- * Filters changes based on the lookback period specified in the query.
+ * Returns a collection of closed events moderated by the specified trooper,
+ * with shift counts and trooper participation metrics (total and unique).
  *
  * @implements QueryHandlerInterface<GetEventSummaryQuery>
  */
 readonly class GetEventSummaryQueryHandler implements QueryHandlerInterface
 {
     /**
-     * Execute the query to retrieve model change history.
+     * Execute the query to retrieve event summaries.
      *
-     * Converts the lookback parameter to a Carbon date if needed, then queries
-     * StatusChange records for the trooper and their associated EventTrooper records.
-     * Returns all changes since the lookback date.
+     * Retrieves closed events within the lookback period and calculates:
+     * - event_shifts_count: Number of shifts per event
+     * - total_trooper_count: Total trooper signups across all shifts
+     * - unique_trooper_count: Unique troopers across all shifts
      *
-     * @param  GetEventSummaryQuery  $message  The query containing trooper and lookback criteria.
+     * @param  GetEventSummaryQuery  $message  The query containing moderator and lookback criteria.
+     * @return \Illuminate\Support\Collection<int, Event> Collection of events with summary data.
      */
     public function __invoke(object $message): mixed
     {

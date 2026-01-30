@@ -10,8 +10,6 @@ trait HasLookback
 {
     /**
      * Convert the lookback parameter to a Carbon date if needed.
-     *
-     * @return Carbon
      */
     public function parseLookback(): Carbon
     {

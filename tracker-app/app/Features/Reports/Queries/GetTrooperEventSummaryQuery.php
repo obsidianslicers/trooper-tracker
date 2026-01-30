@@ -9,7 +9,12 @@ use App\Models\Trooper;
 use Carbon\Carbon;
 
 /**
- * @see GetTrooperEventCountQueryHandler
+ * Query to retrieve trooper event participation summary.
+ *
+ * Returns statistics for each trooper showing their event attendance
+ * within the specified lookback period.
+ *
+ * @see GetTrooperEventSummaryQueryHandler
  */
 readonly class GetTrooperEventSummaryQuery
 {
@@ -18,7 +23,7 @@ readonly class GetTrooperEventSummaryQuery
     /**
      * Create a new query instance.
      *
-     * @param  Trooper  $moderator  The moderator whose change history to retrieve.
+     * @param  Trooper  $moderator  The moderator whose managed troopers to summarize.
      * @param  int|string|Carbon  $lookback  Days to look back (int), date string, or Carbon date.
      */
     public function __construct(
