@@ -29,7 +29,6 @@ class SetupUpdateHtmxRequest extends FormRequest
      * Checks if the user is either the trooper themselves or a moderator
      * of the trooper's organization(s).
      *
-     * @return bool
      * @throws AuthorizationException if the event trooper is not found.
      */
     public function authorize(): bool
@@ -79,7 +78,7 @@ class SetupUpdateHtmxRequest extends FormRequest
                 'nullable',
                 'string',
                 'max:16',
-                'in:' . EventTrooperStatus::toValidator()
+                'in:'.EventTrooperStatus::toValidator(),
             ],
             EventTrooper::COSTUME_ID => [
                 'nullable',

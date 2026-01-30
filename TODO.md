@@ -1,6 +1,11 @@
-## EVENTS
+### MISC
 
-### WORK IN PROGRESS
+- move docs to docs\ folder
+- setup pint
+- smash to single commit prior to beta 
+- lock down main
+
+### EVENTS WORK IN PROGRESS
 
 - home pages alernate views:
   - map view

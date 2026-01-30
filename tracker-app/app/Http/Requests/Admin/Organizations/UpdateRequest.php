@@ -25,6 +25,7 @@ class UpdateRequest extends FormRequest
      * user has permission to update it.
      *
      * @return bool Returns true if the user can update the organization.
+     *
      * @throws AuthorizationException if the organization is not found in the route.
      */
     public function authorize(): bool
@@ -54,7 +55,7 @@ class UpdateRequest extends FormRequest
                 'required',
                 'string',
                 'max:64',
-                new UniqueNameRule(true, $this->route('organization'))
+                new UniqueNameRule(true, $this->route('organization')),
             ],
         ];
 

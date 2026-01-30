@@ -25,6 +25,7 @@ class UpdateRequest extends FormRequest
      * user has permission to update it.
      *
      * @return bool Returns true if the user can update the notice.
+     *
      * @throws AuthorizationException if the notice is not found in the route.
      */
     public function authorize(): bool
@@ -63,7 +64,7 @@ class UpdateRequest extends FormRequest
                 'required',
                 'string',
                 'max:16',
-                'in:' . NoticeType::toValidator()
+                'in:'.NoticeType::toValidator(),
             ],
             Notice::STARTS_AT => ['required', 'date'],
             Notice::ENDS_AT => ['required', 'date', 'after:starts_at'],

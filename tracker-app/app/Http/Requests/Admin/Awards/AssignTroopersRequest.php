@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin\Awards;
 
-use App\Models\Award;
 use App\Models\Trooper;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -43,7 +42,7 @@ class AssignTroopersRequest extends FormRequest
             ],
             'trooper_ids.*' => [
                 'integer',
-                'exists:' . Trooper::class . ',' . Trooper::ID,
+                'exists:'.Trooper::class.','.Trooper::ID,
             ],
             'award_date' => [
                 'required',

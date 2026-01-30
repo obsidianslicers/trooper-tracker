@@ -24,13 +24,10 @@ use Illuminate\Validation\Rule;
  * - `withValidator()` attaches custom, user-facing error messages for organization rules.
  * - `getOrganizations()` caches organizations for efficient repeated access.
  *
- * @package App\Http\Requests\Account
  * @property \Illuminate\Support\Collection|null $organizations Cached organizations for rule generation
  */
 class SetupRequest extends FormRequest
 {
-    private ?Collection $organizations = null;
-
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -63,7 +60,7 @@ class SetupRequest extends FormRequest
                 'required',
                 'string',
                 'max:16',
-                'in:' . NotificationFrequency::toValidator()
+                'in:'.NotificationFrequency::toValidator(),
             ],
         ];
 
@@ -114,10 +111,12 @@ class SetupRequest extends FormRequest
      */
     private function getOrganizations(): Collection
     {
-        if (!isset($this->organizations))
-        {
-            $this->organizations = Organization::fullyLoaded()->get();
-        }
-        return $this->organizations;
+        $getter = function (): Collection {
+            return Organization::fullyLoaded()->get();
+        };
+
+        $organizations = once($getter);
+
+        return $organizations;
     }
 }

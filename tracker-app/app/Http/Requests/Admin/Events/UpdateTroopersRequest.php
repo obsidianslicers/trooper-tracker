@@ -18,7 +18,6 @@ class UpdateTroopersRequest extends FormRequest
      *
      * Checks if the user has permission to update the event specified in the route.
      *
-     * @return bool
      * @throws AuthorizationException if the event is not found.
      */
     public function authorize(): bool
@@ -41,7 +40,7 @@ class UpdateTroopersRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'troopers.*.status' => ['nullable', 'in:' . EventTrooperStatus::toValidator()],
+            'troopers.*.status' => ['nullable', 'in:'.EventTrooperStatus::toValidator()],
         ];
 
         return $rules;
