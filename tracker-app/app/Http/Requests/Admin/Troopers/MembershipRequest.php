@@ -6,7 +6,6 @@ namespace App\Http\Requests\Admin\Troopers;
 
 use App\Enums\MembershipRole;
 use App\Models\Organization;
-use App\Models\Trooper;
 use App\Rules\Admin\Troopers\OrganizationLeafNodeRule;
 use App\Rules\Auth\UniqueOrganizationIdentifierRule;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -29,8 +28,6 @@ use Illuminate\Validation\Rule;
  */
 class MembershipRequest extends FormRequest
 {
-    private ?Collection $organizations_cache = null;
-
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -38,6 +35,7 @@ class MembershipRequest extends FormRequest
      * user is an administrator. Only administrators can modify membership settings.
      *
      * @return bool Returns true if the user is an administrator.
+     *
      * @throws AuthorizationException If the trooper is not found in the route.
      */
     public function authorize(): bool
@@ -68,6 +66,27 @@ class MembershipRequest extends FormRequest
     }
 
     /**
+     * Get custom attribute names for validator errors.
+     *
+     * This method generates user-friendly attribute names for organization
+     * identifiers and assignments to improve error messages.
+     *
+     * @return array<string, string> Custom attribute names for validation errors.
+     */
+    public function attributes(): array
+    {
+        $attributes = [];
+
+        foreach ($this->getOrganizations() as $organization)
+        {
+            $attributes["organizations.{$organization->id}.identifier"] = "{$organization->name} identifier";
+            $attributes["organizations.{$organization->id}.assignment"] = "{$organization->name} assignment";
+        }
+
+        return $attributes;
+    }
+
+    /**
      * Generate dynamic validation rules for organization memberships.
      *
      * Validates that selected organizations:
@@ -92,7 +111,7 @@ class MembershipRequest extends FormRequest
         foreach ($organizations as $organization)
         {
             // Validate identifier if organization requires it
-            if (!empty($organization->identifier_validation))
+            if (! empty($organization->identifier_validation))
             {
                 $base_rules = explode('|', $organization->identifier_validation);
 
@@ -105,7 +124,7 @@ class MembershipRequest extends FormRequest
 
             // Validate assignment - required when identifier is provided, must be a leaf node and descendant
             $rules["organizations.{$organization->id}.assignment"] = [
-                Rule::requiredIf(fn() => !empty($this->input("organizations.{$organization->id}.identifier"))),
+                Rule::requiredIf(fn () => ! empty($this->input("organizations.{$organization->id}.identifier"))),
                 'nullable',
                 Rule::exists(Organization::class, Organization::ID),
                 new OrganizationLeafNodeRule($organization),
@@ -125,10 +144,14 @@ class MembershipRequest extends FormRequest
      */
     private function getOrganizations(): Collection
     {
-        if (!isset($this->organizations_cache))
-        {
-            $this->organizations_cache = Organization::ofTypeOrganizations()->get();
-        }
-        return $this->organizations_cache;
+        $getter = function (): Collection {
+            return Organization::ofTypeOrganizations()
+                ->orderBy(Organization::NAME)
+                ->get();
+        };
+
+        $organizations = once($getter);
+
+        return $organizations;
     }
 }

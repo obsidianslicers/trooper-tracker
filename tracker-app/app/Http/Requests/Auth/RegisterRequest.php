@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Auth;
 
+use App\Http\Requests\Concerns\HasNormalizers;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Rules\Auth\AtLeastOneOrganizationSelectedRule;
@@ -24,13 +25,13 @@ use Illuminate\Validation\Rule;
  * - `prepareForValidation()` sanitizes phone numbers by stripping non-digits.
  * - `withValidator()` adds custom, user-facing messages for dynamically generated rules.
  *
- * @package App\Http\Requests\Auth
  * @see App\Models\Organization::fullyLoaded()
+ *
  * @property \Illuminate\Support\Collection|null $organizations Cached organizations used when generating rules
  */
 class RegisterRequest extends FormRequest
 {
-    private ?Collection $organizations = null;
+    use HasNormalizers;
 
     /**
      * Determine if the user is authorized to make this request.
@@ -56,7 +57,7 @@ class RegisterRequest extends FormRequest
                 'string',
                 'email',
                 'max:256',
-                Rule::unique(Trooper::class, Trooper::EMAIL)
+                Rule::unique(Trooper::class, Trooper::EMAIL),
             ],
             'phone' => ['nullable', 'string', 'max:10'],
             'account_type' => ['required', 'in:member,handler'],
@@ -81,11 +82,11 @@ class RegisterRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
-        if ($this->has('phone'))
+        if ($this->has('phone') && ! empty($this->input('phone')))
         {
-            $this->merge([
-                'phone' => preg_replace('/\D+/', '', $this->input('phone')),
-            ]);
+            $phone = $this->normalizePhoneInput($this->input('phone'));
+
+            $this->merge(['phone' => $phone]);
         }
 
         $registration_auth = Session::get('registration_auth');
@@ -96,6 +97,13 @@ class RegisterRequest extends FormRequest
                 'email' => trim($registration_auth['email']),
             ]);
         }
+
+        $organizations = $this->normalizeBooleanFields(
+            $this->input('organizations', []),
+            ['selected']
+        );
+
+        $this->merge(['organizations' => $organizations]);
     }
 
     /**
@@ -112,7 +120,7 @@ class RegisterRequest extends FormRequest
     private function getOrganizationValidationRules(): array
     {
         $rules = [
-            'organizations' => ['array', new AtLeastOneOrganizationSelectedRule()],
+            'organizations' => ['array', new AtLeastOneOrganizationSelectedRule],
             'organizations.*.selected' => ['nullable', 'boolean'],
         ];
 
@@ -121,7 +129,7 @@ class RegisterRequest extends FormRequest
         foreach ($organizations as $organization)
         {
             //  organization.*.identifier rules
-            if (!empty($organization->identifier_validation))
+            if (! empty($organization->identifier_validation))
             {
                 // Parse the base validation rules (e.g., 'integer|between:1000,99999')
                 $base_rules = explode('|', $organization->identifier_validation);
@@ -130,7 +138,7 @@ class RegisterRequest extends FormRequest
                 // For handlers: all identifier rules are skipped (optional and unvalidated).
                 $organization_rules = [
                     Rule::when(
-                        fn() => $this->account_type === 'member' && $this->input("organizations.{$organization->id}.selected") === '1',
+                        fn () => $this->account_type === 'member' && $this->input("organizations.{$organization->id}.selected") === '1',
                         array_merge(
                             ['required'],
                             $base_rules,
@@ -148,12 +156,12 @@ class RegisterRequest extends FormRequest
             {
                 // Require region when organization is selected
                 $rules["organizations.{$organization->id}.region_id"] = [
-                    Rule::requiredIf(fn() => $this->input("organizations.{$organization->id}.selected") === '1'),
+                    Rule::requiredIf(fn () => $this->input("organizations.{$organization->id}.selected") === '1'),
                     Rule::when(
-                        fn() => $this->input("organizations.{$organization->id}.selected") === '1',
+                        fn () => $this->input("organizations.{$organization->id}.selected") === '1',
                         Rule::exists(Organization::class, Organization::ID)
                             ->whereIn('id', $regions->pluck('id'))
-                    )
+                    ),
                 ];
 
                 // For each region, check if it has units and require unit_id accordingly
@@ -165,9 +173,9 @@ class RegisterRequest extends FormRequest
                     {
                         // Require unit when this specific region is selected
                         $rules["organizations.{$organization->id}.unit_id"] = [
-                            Rule::requiredIf(fn() => $this->input("organizations.{$organization->id}.region_id") == $region->id),
+                            Rule::requiredIf(fn () => $this->input("organizations.{$organization->id}.region_id") == $region->id),
                             Rule::when(
-                                fn() => $this->input("organizations.{$organization->id}.selected") === '1' && !empty($this->input("organizations.{$organization->id}.unit_id")),
+                                fn () => $this->input("organizations.{$organization->id}.selected") === '1' && ! empty($this->input("organizations.{$organization->id}.unit_id")),
                                 Rule::exists(Organization::class, Organization::ID)
                                     ->whereIn('id', $units->pluck('id'))
                             ),
@@ -186,7 +194,7 @@ class RegisterRequest extends FormRequest
      * This method is used to add custom, user-friendly error messages for the
      * dynamically generated organization identifier rules.
      *
-     * @param \Illuminate\Validation\Validator $validator
+     * @param  \Illuminate\Validation\Validator  $validator
      */
     public function withValidator($validator): void
     {
@@ -198,9 +206,9 @@ class RegisterRequest extends FormRequest
         {
             $key = "organizations.{$organization->id}.identifier";
 
-            if (!empty($organization->identifier_validation))
+            if (! empty($organization->identifier_validation))
             {
-                //$messages["{$key}"] = "The {$organization->identifier_display} for {$organization->name} is required";
+                // $messages["{$key}"] = "The {$organization->identifier_display} for {$organization->name} is required";
 
                 $rules = explode('|', string: $organization->identifier_validation);
 
@@ -248,10 +256,12 @@ class RegisterRequest extends FormRequest
 
     private function getOrganizations(): Collection
     {
-        if (!isset($this->organizations))
-        {
-            $this->organizations = Organization::fullyLoaded()->get();
-        }
-        return $this->organizations;
+        $getter = function (): Collection {
+            return Organization::fullyLoaded()->get();
+        };
+
+        $organizations = once($getter);
+
+        return $organizations;
     }
 }

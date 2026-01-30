@@ -24,6 +24,7 @@ class UpdateRequest extends FormRequest
      * user has permission to update it.
      *
      * @return bool Returns true if the user can update the award.
+     *
      * @throws AuthorizationException if the award is not found in the route.
      */
     public function authorize(): bool

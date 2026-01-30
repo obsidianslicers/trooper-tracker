@@ -99,7 +99,7 @@ class Organization extends BaseOrganization
      */
     public static function resequenceAll()
     {
-        $organizations = self::ofTypeOrganizations()->orderBy('name')->get();
+        $organizations = self::ofTypeOrganizations()->orderBy(self::NAME)->get();
 
         $seq = 900;
 
@@ -109,7 +109,7 @@ class Organization extends BaseOrganization
 
             $organization->updateQuietly([self::SEQUENCE => $seq]);
 
-            $regions = $organization->organizations()->ofTypeRegions()->orderBy('name')->get();
+            $regions = $organization->organizations()->ofTypeRegions()->orderBy(self::NAME)->get();
 
             foreach ($regions as $region)
             {
@@ -117,7 +117,7 @@ class Organization extends BaseOrganization
 
                 $region->updateQuietly([self::SEQUENCE => $seq]);
 
-                $units = $region->organizations()->ofTypeUnits()->orderBy('name')->get();
+                $units = $region->organizations()->ofTypeUnits()->orderBy(self::NAME)->get();
 
                 foreach ($units as $unit)
                 {

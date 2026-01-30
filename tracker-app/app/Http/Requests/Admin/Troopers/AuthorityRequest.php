@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Requests\Admin\Troopers;
 
 use App\Enums\MembershipRole;
+use App\Http\Requests\Concerns\HasNormalizers;
 use App\Models\Trooper;
+use App\Models\TrooperAssignment;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -18,6 +20,8 @@ use Illuminate\Foundation\Http\FormRequest;
  */
 class AuthorityRequest extends FormRequest
 {
+    use HasNormalizers;
+
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -25,6 +29,7 @@ class AuthorityRequest extends FormRequest
      * user is an administrator. Only administrators can modify authority settings.
      *
      * @return bool Returns true if the user is an administrator.
+     *
      * @throws AuthorizationException if the trooper is not found in the route.
      */
     public function authorize(): bool
@@ -52,10 +57,26 @@ class AuthorityRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            Trooper::MEMBERSHIP_ROLE => ['nullable', 'string', 'max:16', 'in:' . MembershipRole::toValidator()],
-            'organizations.*.is_moderator' => ['boolean']
+            Trooper::MEMBERSHIP_ROLE => ['nullable', 'string', 'max:16', 'in:'.MembershipRole::toValidator()],
+            'organizations.*.'.TrooperAssignment::IS_MODERATOR => ['boolean'],
         ];
 
         return $rules;
+    }
+
+    /**
+     * Prepare the data for validation.
+     *
+     * Converts the 'is_moderator' values in the 'organizations' input
+     * to booleans for proper validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        $organizations = $this->normalizeBooleanFields(
+            $this->input('organizations', []),
+            [TrooperAssignment::IS_MODERATOR]
+        );
+
+        $this->merge(['organizations' => $organizations]);
     }
 }

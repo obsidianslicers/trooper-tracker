@@ -50,7 +50,7 @@ class CreateRequest extends FormRequest
                 'required',
                 'string',
                 'max:16',
-                'in:' . AwardFrequency::toValidator()
+                'in:'.AwardFrequency::toValidator(),
             ],
         ];
 

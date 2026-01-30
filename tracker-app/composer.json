@@ -45,6 +45,7 @@
         }
     },
     "scripts": {
+        "pint": "pint app --exclude=app/Models/Base",
         "setup": [
             "composer install",
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
