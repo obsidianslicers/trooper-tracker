@@ -26,80 +26,80 @@ class RebelLegionService extends BaseOrganizationService
 {
     public function syncCostumes(): void
     {
-        // For the Rebel Legion we derive costumes from member profiles during
-        // member sync. This method is left intentionally minimal to match the
-        // project's other synchronizers.
-    }
-
-    public function syncAllMembers(): void
-    {
         // Use the organization's configured sheet id; if not set, skip syncing.
         $sheetId = $this->organization->sync_sheet_id ?? null;
 
-        if (empty($sheetId))
-        {
-            error_log("RebelLegionService: no sync_sheet_id configured for organization {$this->organization->name}; skipping syncAllMembers.");
+        if (empty($sheetId)) {
+            Log::info("RebelLegionService: no sync_sheet_id configured for organization {$this->organization->name}; skipping syncCostumes.");
             return;
         }
 
         $google = app(\App\Services\GoogleService::class);
 
-        // Troopers sheet columns expected: [legionId, name, rebelforum]
-        $trooperRows = $google->getSheet($sheetId, 'Troopers');
+        // Costumes sheet columns expected: [legionId, costumename, costumeimage]
+        $costumeRows = $google->getSheet($sheetId, 'Costumes');
 
-        if (is_array($trooperRows))
+        if (is_array($costumeRows))
         {
             $first = true;
-            foreach ($trooperRows as $row)
+            foreach ($costumeRows as $row)
             {
                 if ($first) { $first = false; continue; } // skip header
 
-                $legionId = $row[0] ?? null;
-                $name = $row[1] ?? null;
-                $forum = $row[2] ?? null;
+                $legionId      = $row[0] ?? null;
+                $costumeName   = $row[1] ?? null;
+                $costumeImage  = $row[2] ?? null;
 
-                if (empty($forum)) { continue; }
+                if (empty($costumeName)) { continue; }
 
-                // Find local trooper pivot by forum username
-                $trooper = $this->organization->troopers()
-                    ->wherePivot(TrooperOrganization::IDENTIFIER, $forum)
+                // Find existing costume for THIS organization by name
+                $costume = $this->organization->organization_costumes()
+                    ->where('name', $costumeName)
                     ->first();
 
-                if ($trooper === null)
+                if ($costume === null)
                 {
-                    continue;
+                    $costume = new OrganizationCostume();
+                    $costume->organization_id = $this->organization->id;
+                    $costume->name = $costumeName;
                 }
-
-                $pivot = $trooper->pivot;
 
                 $updates = [];
-                if (!empty($name) && Schema::hasColumn('tt_trooper_organizations', 'display_name'))
-                {
-                    $updates['display_name'] = $name;
-                }
 
-                if (!empty($legionId))
-                {
-                    // Persist the external legion id into our pivot identifier
-                    $updates['identifier'] = (string) $forum;
-                }
-
-                if (Schema::hasColumn('tt_trooper_organizations', 'verified_at'))
+                // Always mark verified
+                if (Schema::hasColumn('tt_organization_costumes', 'verified_at'))
                 {
                     $updates['verified_at'] = now();
+                }
+                else
+                {
+                    // if you *know* the model has it regardless of schema checks, you can set directly
+                    $costume->verified_at = now();
+                }
+
+                // Only update image if provided (prevents blanking existing values)
+                if (!empty($costumeImage) && Schema::hasColumn('tt_organization_costumes', 'image_path'))
+                {
+                    $updates['image_path'] = $costumeImage;
                 }
 
                 if (!empty($updates))
                 {
-                    foreach ($updates as $k => $v) { $pivot->{$k} = $v; }
-                    $pivot->save();
+                    foreach ($updates as $k => $v) { $costume->{$k} = $v; }
                 }
+
+                $costume->save();
             }
         }
     }
 
+    public function syncAllMembers(): void
+    {
+        // Not supported for Rebel Legion
+    }
+
     public function syncMember(string $identifier): void
     {
- 
+        // Not supported for Rebel Legion
     }
 }

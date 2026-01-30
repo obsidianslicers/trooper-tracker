@@ -180,17 +180,14 @@ class Trooper extends Model
     {
         return $this->belongsToMany(Organization::class, 'tt_trooper_organizations')
                     ->withPivot(
-                        TrooperOrganization::ID,
-                        TrooperOrganization::IDENTIFIER,
-                        TrooperOrganization::MEMBERSHIP_STATUS,
-                        TrooperOrganization::VERIFIED_AT,
-                        TrooperOrganization::JOINED_AT,
-                        TrooperOrganization::DISPLAY_NAME,
-                        TrooperOrganization::DELETED_AT,
-                        TrooperOrganization::CREATED_ID,
-                        TrooperOrganization::UPDATED_ID,
-                        TrooperOrganization::DELETED_ID
-                    )
+                    TrooperOrganization::ID,
+                    TrooperOrganization::IDENTIFIER,
+                    TrooperOrganization::MEMBERSHIP_STATUS,
+                    TrooperOrganization::VERIFIED_AT,
+                    TrooperOrganization::DELETED_AT,
+                    TrooperOrganization::CREATED_ID,
+                    TrooperOrganization::UPDATED_ID,
+                    TrooperOrganization::DELETED_ID)
                     ->withTimestamps();
     }
 }
