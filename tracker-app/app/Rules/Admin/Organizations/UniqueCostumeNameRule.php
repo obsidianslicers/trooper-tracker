@@ -22,12 +22,11 @@ class UniqueCostumeNameRule implements ValidationRule
     /**
      * Create a new rule instance.
      *
-     * @param Organization $organization The organization to check uniqueness within
+     * @param  Organization  $organization  The organization to check uniqueness within
      */
     public function __construct(
         private readonly Organization $organization
-    ) {
-    }
+    ) {}
 
     /**
      * Run the validation rule.
@@ -36,10 +35,10 @@ class UniqueCostumeNameRule implements ValidationRule
      * Extracts the costume ID from the attribute name (e.g., "costumes.123.name" -> 123)
      * and uses it to exclude that costume from the uniqueness check.
      *
-     * @param string $attribute The name of the attribute being validated
-     * @param mixed $value The value of the attribute being validated
-     * @param Closure $fail The failure callback
-     * @return void
+     * @param  string  $attribute  The name of the attribute being validated
+     * @param  mixed  $value  The value of the attribute being validated
+     * @param  Closure  $fail  The failure callback
+     * @return void This rule never returns a value; it only triggers $fail().
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
