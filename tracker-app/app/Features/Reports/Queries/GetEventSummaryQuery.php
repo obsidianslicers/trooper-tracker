@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Features\Reports\Queries;
 
+use App\Enums\EventStatus;
 use App\Features\Reports\Concerns\HasLookback;
 use App\Models\Trooper;
 use Carbon\Carbon;
@@ -30,6 +31,7 @@ readonly class GetEventSummaryQuery
         public readonly Trooper $moderator,
         public readonly int|string|Carbon $lookback,
         public readonly bool $show_all = false,
+        public readonly EventStatus $status = EventStatus::CLOSED,
     ) {
     }
 }

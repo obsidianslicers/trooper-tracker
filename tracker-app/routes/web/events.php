@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Events\CalendarController;
+use App\Http\Controllers\Events\CancelledController;
 use App\Http\Controllers\Events\ClosedController;
 use App\Http\Controllers\Events\EventDisplayController;
 use App\Http\Controllers\Events\ListController;
@@ -23,6 +24,7 @@ Route::prefix('events')
         Route::get('/calendar', CalendarController::class)->name('calendar');
         Route::get('/map', MapController::class)->name('map');
         Route::get('/closed', ClosedController::class)->name('closed');
+        Route::get('/cancelled', CancelledController::class)->name('cancelled');
         Route::get('/display/{event}', EventDisplayController::class)->name('display');
         Route::post('/upload/{event}', UploadImageController::class)->name('upload-image');
         Route::post('/signup/{event_shift}', SignUpHtmxController::class)->name('signup-htmx');

@@ -55,7 +55,7 @@ readonly class GetEventSummaryQueryHandler implements QueryHandlerInterface
             $q = $q->moderatedBy($message->moderator);
         }
 
-        return $q->where(Event::STATUS, EventStatus::CLOSED)
+        return $q->where(Event::STATUS, $message->status)
             ->where(Event::EVENT_START, '>=', $lookback)
             ->orderByDesc(Event::EVENT_END)
             ->get()
