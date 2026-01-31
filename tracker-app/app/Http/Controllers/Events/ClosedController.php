@@ -33,7 +33,7 @@ class ClosedController extends MagicBusController
     {
         $trooper = $request->user();
 
-        $lookback = 180;
+        $lookback = 30;
 
         $events_query = new GetEventSummaryQuery($trooper, $lookback, true);
 
