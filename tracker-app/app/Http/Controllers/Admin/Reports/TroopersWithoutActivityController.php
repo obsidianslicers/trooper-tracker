@@ -9,20 +9,21 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 /**
- * Handles the display of the main administration dashboard.
+ * Controller for displaying troopers without recent activity.
  *
- * This controller provides a summary of administrative tasks, such as displaying
- * the count of troopers pending approval and setting a relevant flash message.
+ * Shows active troopers who have not attended events within
+ * the lookback period (12 months by default).
  */
 class TroopersWithoutActivityController extends BaseReportsController
 {
     /**
-     * Handle the incoming request to display the admin dashboard.
+     * Display the troopers without activity report.
      *
-     * It calculates the number of troopers pending approval, sets a corresponding
-     * flash message, and renders the main admin view.
+     * Retrieves active troopers moderated by the authenticated trooper
+     * who have no ATTENDED event signups within the last 12 months.
      *
-     * @return View The rendered admin dashboard view or a redirect response.
+     * @param  Request  $request  The HTTP request.
+     * @return View The troopers without activity report view.
      */
     public function __invoke(Request $request): View
     {

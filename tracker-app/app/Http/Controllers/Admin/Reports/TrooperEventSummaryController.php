@@ -9,20 +9,22 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 /**
- * Handles the display of the main administration dashboard.
+ * Controller for displaying trooper event participation summary.
  *
- * This controller provides a summary of administrative tasks, such as displaying
- * the count of troopers pending approval and setting a relevant flash message.
+ * Shows statistics for each trooper's event attendance within
+ * the lookback period.
  */
 class TrooperEventSummaryController extends BaseReportsController
 {
     /**
-     * Handle the incoming request to display the admin dashboard.
+     * Display the trooper event summary report.
      *
-     * It calculates the number of troopers pending approval, sets a corresponding
-     * flash message, and renders the main admin view.
+     * Retrieves troopers who attended events within the lookback period
+     * with statistics including total shifts attended, unique events attended,
+     * and event IDs.
      *
-     * @return View The rendered admin dashboard view or a redirect response.
+     * @param  Request  $request  The HTTP request.
+     * @return View The trooper event summary report view.
      */
     public function __invoke(Request $request): View
     {

@@ -44,14 +44,6 @@
                 an event where their status was updated by someone other than the trooper in action.
             </p>
         </x-dashboard-card>
-        <x-dashboard-card :label="'Costume Troop Counts Between Dates'"
-                          :icon="'fa-file-lines'"
-                          :url="'#'">
-            <p>
-                <b class="text-danger">TODO:</b> Costume troop count between dates
-                (Can see amount of events done in a costume between certain dates)
-            </p>
-        </x-dashboard-card>
         <x-dashboard-card :label="'Costume Used Most at Events'"
                           :icon="'fa-chart-line'"
                           :url="'#'">
