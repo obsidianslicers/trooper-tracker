@@ -21,47 +21,57 @@ Progress continues at a pace deemed acceptable by the Empire. New features, refi
 
 ## For Developers Entering the War Room
 
-This codebase is structured for maintainability, testability, and the occasional emergency refactor ordered from high command. Expect Commands, Queries, Handlers, and a strict separation of concerns. Expect HTMX to fire without warning. Expect Alpine components to behave with military precision. Above all, expect the unexpected — the Empire innovates aggressively.
+This codebase is structured for maintainability, testability, and the occasional emergency refactor ordered from high command. The architecture follows **Action-Domain-Responder (ADR)** with **Command/Query Separation** via **MagicBus**. Controllers are thin orchestrators, Commands handle writes, Queries handle reads, and Handlers contain the business logic. Expect HTMX to fire without warning. Expect Alpine components to behave with military precision. Above all, expect the unexpected — the Empire innovates aggressively.
+
+### Architecture at a Glance
+
+- **MagicBus**: Convention-based command/query dispatcher (Message → MessageHandler)
+- **Features by Domain**: Commands & Queries organized under `app/Features/` (Events, Troopers, Organizations, Reports, Notices, Changes)
+- **Invokable Controllers**: Single-action controllers following ADR pattern
+- **Auto-Generated Models**: Base models in `app/Models/Base/` (never edit), extended models in `app/Models/`
+- **Policies & Rules**: Authorization via policies, custom validation rules organized by feature
+- **Transactional Handlers**: Database transactions via `ShouldBeTransactional` trait
+- **Deferred Execution**: Background processing via `ShouldRunAfterResponse` trait
 
 ---
 
 ## Features
 
-*   **Hierarchical Access Control**: Strict Organization → Region → Unit permissions with automatic inheritance and scoped visibility.
-*   **Trooper Profiles & Roles**: Multi‑organization membership, role‑based permissions, notification preferences, and costume metadata.
-*   **Event & Shift Management**: Full event lifecycle, multi‑shift scheduling, handler vs trooper capacity rules, and automatic waitlist promotion.
-*   **Real‑Time HTMX Interactions**: Instant UI updates for sign‑ups, cancellations, costume changes, and shift displays without full page reloads.
-*   **CQRS + MagicBus Architecture**: Commands for domain actions, Queries for read models, and clean separation of concerns across the entire app.
-*   **Notification & Messaging System**: Bubble‑up logic for org → region → unit notices, plus event‑driven email workflows (e.g., next‑in‑line promotions).
-*   **Themed, Component‑Driven UI**: Bootstrap 5 + Blade Components + Alpine.js  for interactive selectors, filters, and modals.
-*   **Transaction‑Safe Upload Pipeline**: Atomic image uploads with Intervention v3, driver selection, thumbnail generation, and orphan‑prevention.
-*   **Domain‑Driven Frontend Architecture**: Namespaced Alpine components mirroring backend domains, zero global pollution, and expressive semantic APIs.
-*   **Calendar & Event Discovery Tools**: Filterable event listings, organization pickers, costume‑type filters.
+### Core Capabilities
+
+*   **Hierarchical Access Control**: Strict Organization → Region → Unit permissions with automatic inheritance and scoped visibility via authorization policies
+*   **Trooper Management**: Multi‑organization membership, role‑based permissions (member/moderator/administrator), notification preferences, costume tracking, and achievement badges
+*   **Event & Shift Management**: Full event lifecycle (draft/open/closed/cancelled), multi‑shift scheduling, organization-specific invitations, trooper signup tracking (going/tentative/unavailable)
+*   **Real‑Time HTMX Interactions**: Instant UI updates for sign‑ups, cancellations, costume changes, and shift displays without full page reloads
+*   **Smart Notifications**: Configurable frequency (never/instant/daily), event creation/cancellation emails, daily digest aggregation
+*   **Awards & Recognition**: Organization-based awards with frequency controls (once/monthly/yearly), multi-recipient support
+*   **Notice System**: Organization-scoped announcements with read tracking and type-based styling (info/warning/alert)
+*   **Event Photo Gallery**: Photo uploads with trooper tagging, large/thumbnail variants, administrative photo flags
+
+### Architecture & Developer Experience
+
+*   **MagicBus Command/Query Pattern**: Commands for writes, Queries for reads, automatic handler resolution by convention
+*   **Feature-Organized Code**: Domain logic grouped by business area (Events, Troopers, Organizations, Reports, Notices, Changes)
+*   **Themed, Component‑Driven PHP 8.2+, Blade templating
+*   **Frontend**: Bootstrap 5.2x, HTMX 2.x, Alpine 3.x, JavaScript
+*   **Database**: MySQL with Reliese Laravel model generation
+*   **Testing**: PHPUnit (Feature tests for Controllers/Jobs/Commands, Unit tests for Handlers/Services)
+*   **Queue**: Laravel queue system with database driver
+*   **Mail**: Laravel mailable classes with queue support
+*   **Authentication**: Laravel Breeze with multi-provider OAuth (Google, XenForo)orization**: Policy-based access control for all resources (Troopers, Events, Organizations, Notices, Awards)
+*   **Custom Validation Rules**: Feature-organized validation rules for complex business logic
+*   **Audit Trail System**: Polymorphic change tracking via `ModelChange`, trooper stamps (created_id/updated_id/deleted_id)
+*   **Multi-Provider Auth**: Email, Google OAuth, XenForo OAuth with unified registration pipeline
 
 ---
 
-## Tech Stack
-
-*   **Backend**: Laravel 12.x, Blade templating
-*   **Frontend**: Bootstrap 5.2x, HTMX 2.x, Alpine 3.x, JS
-*   **Database**: MySQL
-*   **Testing**: PHPUnit
-*   **Version Control**: Git + GitHub
-
----
-
-## Installation
-
-1.  Clone the repository:
-    ```bash
-    git clone https://github.com/your-org/troop-tracker.git
-    cd troop-tracker
+## Tech Stack/tracker-app
     ```
 
 2.  Install dependencies:
     ```bash
     composer install
-    npm install && npm run build
+    npm install
     ```
 
 3.  Configure environment:
@@ -69,9 +79,112 @@ This codebase is structured for maintainability, testability, and the occasional
     cp .env.example .env
     php artisan key:generate
     ```
+    
+    Update `.env` with your database credentials and OAuth provider keys (Google, XenForo).
 
-4.  Run migrations:
+4.  Run migrations and seeders:
     ```bash
+    php artisan migrate --seed
+    ```
+
+5.  Generate base models (if schema changes):
+    ```bash
+    php artisan code:models
+    php artisan tracker:generate-factories
+    ```
+
+6.  Start the development environment:
+    ```bash
+    # Terminal 1: Laravel development server
+    php artisan serve
+    
+    # Terminal 2: Vite asset compilation
+    npm run dev
+    
+    # Terminal 3: Queue worker (for background jobs)
+    php artisan queue:work
+3.  Configure environment:
+    ```bash
+    cp .env.example .env
+    php artisan key:generate
+    ```full test suite:
+```bash
+php artisan test
+```
+
+Run specific test types:
+```bash
+# FKey Commands
+
+```bash
+# Daily notification emails
+php artisan tracker:send-daily-event-notifications
+
+# Auto-close completed events and shifts
+php artisan tracker:close-events
+php artisan tracker:close-event-shifts
+
+# Recalculate trooper achievements and badges
+php artisan tracker:calculate-trooper-achievements
+
+# Sync with external organization systems
+php artisan tracker:synchronize-organizations
+
+# Code formatting
+./vendor/bin/pint
+```
+
+## Project Structure
+
+```
+tracker-app/
+├── app/
+│   ├── Bus/                    # MagicBus command/query dispatcher
+│   ├── Features/               # Domain-organized Commands & Queries
+│   │   ├── Events/
+│   │   ├── Troopers/
+│   │   ├── Organizations/
+│   │   ├── Reports/
+│   │   ├── Notices/
+│   │   └── Changes/
+│   ├── Http/Controllers/       # Thin ADR controllers
+│   ├── Models/                 # Extended Eloquent models
+│   │   └── Base/              # Auto-generated (DO NOT EDIT)
+│   ├── Policies/               # Authorization policies
+│   ├── Rules/                  # Custom validation rules
+│   ├── Services/               # Standalone services
+│   ├── Jobs/                   # Queue jobs
+│   └── Console/Commands/       # Artisan commands
+├── docs/                       # Project documentation
+├── resources/views/            # Blade templates
+├── routes/web/                 # Feature-organized routes
+└── tests/
+    ├── Feature/                # HTTP, Job, Command tests
+    └── Unit/                   # Handler, Service, Policy tests
+```
+
+## Documentation
+
+*   **[Project Structure](docs/PROJECT_STRUCTURE.md)** - Directory organization and component reference
+*   **[Coding Conventions](docs/CODING_CONVENTIONS.md)** - Architecture patterns, MagicBus, ADR, testing strategy
+*   **[Database Schema](docs/DATABASE.md)** - Complete table reference with ERD
+*   **[Authentication Flow](docs/AUTHENTICATION.md)** - Multi-provider auth and registration pipeline
+*   **[Notifications](docs/NOTIFICATIONS.md)** - Event notification system architecture
+*   **[Cheat Sheet](docs/CHEAT_SHEET.md)** - Common Artisan commands
+*   **[VSCode Extensions](docs/VSCODE_EXTENSIONS.md)** - Recommended extensions for development
+*   **[Code of Conduct](CODE_OF_CONDUCT.md)** - Community guidelines
+*   **[Contributing Guide](CONTRIBUTING.md)** - How to contribute
+php artisan test tests/Feature/Http/Controllers/Events/EventDisplayControllerTest.php
+
+# With coverage
+php artisan test --coverage
+```
+
+### Test Organization
+
+- **Feature Tests**: Full HTTP request/response cycle, job orchestration, command execution
+- **Unit Tests**: Business logic in Command/Query handlers, validation rules, policies
+- **Test Database**: SQLite in-memory for fast, isolated tests ```bash
     php artisan migrate
     ```
 

@@ -375,9 +375,9 @@ php artisan queue:work
 
 ### Critical Reference Files
 
-- **[CODING_CONVENTIONS.md](../CODING_CONVENTIONS.md)** - Detailed conventions and architectural patterns
-- **[AUTHENTICATION.md](../AUTHENTICATION.md)** - Multi-provider auth flow (Email, Google, XenForo OAuth)
-- **[NOTIFICATIONS.md](../NOTIFICATIONS.md)** - Event notification system architecture
+- **[CODING_CONVENTIONS.md](../docs/CODING_CONVENTIONS.md)** - Detailed conventions and architectural patterns
+- **[AUTHENTICATION.md](../docs/AUTHENTICATION.md)** - Multi-provider auth flow (Email, Google, XenForo OAuth)
+- **[NOTIFICATIONS.md](../docs/NOTIFICATIONS.md)** - Event notification system architecture
 
 ### Directory Structure
 
@@ -428,11 +428,3 @@ MembershipStatus::toValidator();  // 'pending,active,retired'
 4. **Keep controllers thin** - business logic belongs in Services
 5. **Use factory states** - add helper methods to factories instead of inline state
 6. **Test behavior, not structure** - avoid brittle assertions on markup/DOM
-
-## Additional Resources
-
-See the following documents for deeper dives:
-
-- Architecture patterns: [CODING_CONVENTIONS.md](../CODING_CONVENTIONS.md)
-- Auth flows: [AUTHENTICATION.md](../AUTHENTICATION.md)
-- Notification system: [NOTIFICATIONS.md](../NOTIFICATIONS.md)

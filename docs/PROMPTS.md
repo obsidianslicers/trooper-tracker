@@ -186,3 +186,37 @@ You are auditing this Laravel application.
 
 Begin by scanning app/ and identifying any issues that require clarification.
 ```
+
+## Update README
+
+```
+You are auditing this Laravel application.
+
+1. Analyze the entire app/ directory:
+   - Identify all major subsystems, architectural patterns, domain boundaries, and conventions.
+   - Detect new features, renamed components, removed components, or significant structural changes.
+   - Understand the project’s current capabilities at a high level without rewriting business logic.
+
+2. Using that analysis, prepare updates for the project’s README.md:
+   - Ensure the README accurately reflects the current architecture, features, and conventions.
+   - Fix outdated descriptions, terminology, or references.
+   - Add missing high‑level sections when new subsystems or capabilities exist.
+   - Remove or rewrite sections that no longer match the codebase.
+   - Preserve the README’s existing tone, structure, and voice.
+   - Maintain consistent formatting, headings, code fences, and terminology.
+
+3. Before modifying the README:
+   - If any ambiguity, conflict, missing context, or unclear mapping arises between the code and the README, STOP and ask me for clarification before making changes.
+   - Provide a concise description of the issue and the options for resolving it.
+
+4. After all clarifications are resolved:
+   - Apply changes directly to README.md.
+   - Do not modify anything outside README.md.
+   - Do not explain the changes unless asked.
+
+5. When finished:
+   - Report what sections were updated and why.
+   - Do not summarize the codebase; only summarize documentation changes.
+
+Begin by scanning app/ and identifying any issues that require clarification.
+```
