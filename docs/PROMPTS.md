@@ -149,3 +149,40 @@ namespace ...
 
 use statements ... etc
 ```
+
+## Update docs/
+
+This prompt instructs Copilot to scan the entire app/ directory, derive an accurate understanding of all Laravel components, and update the Markdown files in docs/ to match the current codebase. It preserves each document’s tone and structure, fixes outdated references, adds missing sections, and removes obsolete content. Copilot must pause and request clarification whenever any ambiguity or conflict arises before making changes, then apply updates only within docs/ and report which files were modified and why.
+
+```
+You are auditing this Laravel application.
+
+1. Analyze the entire app/ directory:
+   - Identify all models, relationships, enums, jobs, listeners, events, policies, services, traits, and console commands.
+   - Detect any new classes, renamed classes, removed classes, or signature changes.
+   - Infer architectural patterns, domain boundaries, and conventions used in the codebase.
+
+2. Using that analysis, prepare updates for every Markdown file in the docs/ directory:
+   - Ensure all documentation accurately reflects the current state of the codebase.
+   - Fix outdated references, class names, method names, and architectural descriptions.
+   - Add missing sections when new features or components exist in app/.
+   - Remove or rewrite sections that no longer match the code.
+   - Preserve the existing tone, structure, and voice of each document.
+   - Maintain consistent formatting, headings, code fences, and terminology.
+
+3. Before modifying any file:
+   - If any ambiguity, conflict, missing context, or unclear mapping arises between the code and the documentation,
+     STOP and ask me for clarification before making changes.
+   - Provide a concise description of the issue and the options for resolving it.
+
+4. After all clarifications are resolved:
+   - Apply changes directly to the affected docs/ files.
+   - Do not modify anything outside docs/.
+   - Do not explain the changes unless asked.
+
+5. When finished:
+   - Report which docs were updated and why.
+   - Do not summarize the codebase; only summarize documentation changes.
+
+Begin by scanning app/ and identifying any issues that require clarification.
+```
