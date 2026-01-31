@@ -23,8 +23,7 @@
         Thanks again for registering. You're one step closer to being part of the <b>{{ config('app.name') }}</b>.
         Until then, keep your blaster polished and your helmet fog-free.
     </p>
-    <p style="margin-top:20px; font-weight:bold; color:#333;">
-        - Imperial Administration, {{ config('app.name') }}
-    </p>
+
+    @include('emails.inc.signature')
 
 @endsection
