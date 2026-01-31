@@ -100,20 +100,20 @@ Route::post('/login', LoginSubmitController::class);
 
 ### 8.1. Orchestration Pattern
 
-Jobs and Console Commands should follow the **Orchestration Pattern**, acting as thin orchestrators that coordinate calls to Service classes. This keeps the business logic in the Domain layer (Service classes) where it can be reused and tested in isolation.
+Jobs and Console Commands should follow the **Orchestration Pattern**, acting as thin orchestrators that dispatch Commands and Queries through the MagicBus. This keeps the business logic in the Domain layer (Command/Query Handlers) where it can be reused and tested in isolation.
 
 **Key Principles:**
 
--   **Jobs and Commands are Orchestrators:** They should coordinate workflow, not implement business logic.
--   **Business Logic Lives in Services:** Extract all domain logic into dedicated Service classes.
--   **Reusability:** Service classes can be called from Controllers, Jobs, Commands, or other Services.
--   **Testability:** Service classes are easier to unit test because they have no dependencies on Laravel's job/command infrastructure.
+-   **Jobs and Commands are Orchestrators:** They should coordinate workflow by dispatching Commands/Queries, not implement business logic.
+-   **Business Logic Lives in Handlers:** Extract all domain logic into dedicated Command and Query Handlers in `app/Features/`.
+-   **Reusability:** Handlers can be called from Controllers, Jobs, Console Commands, or other Handlers via MagicBus.
+-   **Testability:** Handlers are easier to unit test because they have no dependencies on Laravel's job/command infrastructure.
 
 **Example:**
 
 ```php
-// app/Jobs/SendEventNotificationsJob.php
-class SendEventNotificationsJob implements ShouldQueue
+// app/Jobs/SendEventCreatedNotificationsJob.php
+class SendEventCreatedNotificationsJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -123,69 +123,53 @@ class SendEventNotificationsJob implements ShouldQueue
     }
 
     /**
-     * Execute the job by orchestrating the service call.
+     * Execute the job by dispatching commands via MagicBus.
      */
-    public function handle(EventNotificationService $service): void
+    public function handle(MagicBus $bus): void
     {
-        // Orchestrate - delegate to service
-        $service->sendNotificationsForEvent($this->event);
+        // Orchestrate - dispatch command through MagicBus
+        $bus->send(new SendEventCreatedNotificationCommand($this->event));
     }
 }
 
-// app/Console/Commands/SendDailyEventDigestCommand.php
-class SendDailyEventDigestCommand extends Command
+// app/Console/Commands/SendDailyEventNotifications.php
+class SendDailyEventNotifications extends Command
 {
-    protected $signature = 'events:send-daily-digest';
-    protected $description = 'Send daily event digest to troopers';
+    protected $signature = 'tracker:send-daily-event-notifications';
+    protected $description = 'Send daily event digest emails to troopers';
 
     /**
-     * Execute the console command by orchestrating the service call.
+     * Execute the console command by dispatching queries/commands via MagicBus.
      */
-    public function handle(EventNotificationService $service): int
+    public function handle(MagicBus $bus): int
     {
-        // Orchestrate - delegate to service
-        $sent_count = $service->sendDailyDigests();
+        // Orchestrate - get eligible troopers via query
+        $troopers = $bus->send(new GetTroopersForDailyEventNotificationsQuery());
         
-        $this->info("Sent {$sent_count} daily digests.");
+        // Dispatch command for each trooper
+        foreach ($troopers as $trooper) {
+            $bus->send(new SendEventDailyNotificationCommand($trooper));
+        }
+        
+        $this->info("Sent {$troopers->count()} daily digests.");
         
         return Command::SUCCESS;
     }
 }
 
-// app/Services/EventNotificationService.php
-class EventNotificationService
+// app/Features/Events/Commands/SendEventCreatedNotificationCommandHandler.php
+readonly class SendEventCreatedNotificationCommandHandler implements CommandHandlerInterface
 {
     /**
-     * Business logic: Send notifications for an event.
+     * Business logic: Create notification records and queue emails.
      */
-    public function sendNotificationsForEvent(Event $event): void
+    public function __invoke(SendEventCreatedNotificationCommand $command): void
     {
-        // Business logic here
-        $troopers = $this->getEligibleTroopers($event);
+        $troopers = $this->getEligibleTroopers($command->event);
         
         foreach ($troopers as $trooper) {
-            $this->createNotification($event, $trooper);
+            $this->createNotificationAndQueueEmail($command->event, $trooper);
         }
-    }
-
-    /**
-     * Business logic: Send daily digest emails.
-     */
-    public function sendDailyDigests(): int
-    {
-        // Business logic here
-        $notifications = $this->getPendingDailyNotifications();
-        
-        // Send and track
-        $sent_count = 0;
-        foreach ($notifications as $notification) {
-            Mail::to($notification->trooper)->queue(
-                new DailyEventNotification($notification)
-            );
-            $sent_count++;
-        }
-        
-        return $sent_count;
     }
     
     // Additional private helper methods...
@@ -195,10 +179,11 @@ class EventNotificationService
 **Benefits:**
 
 -   Jobs and Commands remain simple, focused, and easy to understand
--   Business logic is centralized in Services for consistency
--   Services can be reused across different entry points (web, CLI, queue)
--   Unit testing is simplified by testing Services independently
+-   Business logic is centralized in Handlers for consistency
+-   Handlers can be reused across different entry points (web, CLI, queue)
+-   Unit testing is simplified by testing Handlers independently
 -   Aligns with the Single Responsibility Principle
+-   Maintains consistency with the MagicBus Command/Query pattern used in Controllers
 
 ## 9. MagicBus: Command/Query Pattern
 
