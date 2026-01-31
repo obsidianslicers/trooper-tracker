@@ -29,6 +29,7 @@ readonly class GetEventSummaryQuery
     public function __construct(
         public readonly Trooper $moderator,
         public readonly int|string|Carbon $lookback,
+        public readonly bool $show_all = false,
     ) {
     }
 }

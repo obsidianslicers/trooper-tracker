@@ -66,6 +66,14 @@
                                     Map
                                 </x-nav-link>
                             @endif
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <x-nav-link :url="route('events.closed')"
+                                        :active="request()->routeIs('events.*')">
+                                <i class="fa fa-fw fa-list fa-lg me-2"></i>
+                                Completed
+                            </x-nav-link>
                         </ul>
                     </li>
 

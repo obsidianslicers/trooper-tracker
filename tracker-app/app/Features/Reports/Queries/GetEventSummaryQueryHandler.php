@@ -36,6 +36,11 @@ readonly class GetEventSummaryQueryHandler implements QueryHandlerInterface
         $lookback = $message->parseLookback();
 
         $with = [
+            'organization:id,name,image_path_sm',
+            'organizations' => function ($q)
+            {
+                $q->select('tt_organizations.id', 'tt_organizations.name')->withPivot('id', 'can_attend');
+            },
             'event_shifts:id,event_id',
             'event_shifts.event_troopers' => function ($q)
             {
@@ -43,9 +48,14 @@ readonly class GetEventSummaryQueryHandler implements QueryHandlerInterface
             },
         ];
 
-        return Event::with($with)
-            ->moderatedBy($message->moderator)
-            ->where(Event::STATUS, EventStatus::CLOSED)
+        $q = Event::with($with);
+
+        if (!$message->show_all)
+        {
+            $q = $q->moderatedBy($message->moderator);
+        }
+
+        return $q->where(Event::STATUS, EventStatus::CLOSED)
             ->where(Event::EVENT_START, '>=', $lookback)
             ->orderByDesc(Event::EVENT_END)
             ->get()
