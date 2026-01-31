@@ -8,22 +8,6 @@
                      width="24px"
                      src="{{ url('img/icons/troop-tracker-32x32.png') }}" />
             </a>
-            <ul class="navbar-nav flex-row">
-                <li class="nav-item"> <a href="{{ route('events.list') }}"
-                       class="nav-link px-2 d-flex align-items-center">
-                        <i class="fa fa-fw fa-list fa-lg me-2"></i>
-                        <span class="d-none d-sm-inline me-1">Events </span>
-                        List
-                    </a>
-                </li>
-                <li class="nav-item"> <a href="{{ route('events.calendar') }}"
-                       class="nav-link px-2 d-flex align-items-center">
-                        <i class="fa fa-fw fa-calendar-days fa-lg me-2"></i>
-                        <span class="d-none d-sm-inline me-1">Events </span>
-                        Calendar
-                    </a>
-                </li>
-            </ul>
         @else
             <a class="navbar-brand"
                href="{{ route('home') }}">
@@ -56,6 +40,35 @@
                 @endrole
 
                 @auth
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle"
+                           href="#"
+                           role="button"
+                           data-bs-toggle="dropdown">
+                            Events
+                        </a>
+
+                        <ul class="dropdown-menu">
+                            <x-nav-link :url="route('events.list')"
+                                        :active="request()->routeIs('events.*')">
+                                <i class="fa fa-fw fa-list fa-lg me-2"></i>
+                                List
+                            </x-nav-link>
+                            <x-nav-link :url="route('events.calendar')"
+                                        :active="request()->routeIs('events.*')">
+                                <i class="fa fa-fw fa-calendar-days fa-lg me-2"></i>
+                                Calendar
+                            </x-nav-link>
+                            @if(config('services.google.maps_api_key'))
+                                <x-nav-link :url="route('events.map')"
+                                            :active="request()->routeIs('events.*')">
+                                    <i class="fa fa-fw fa-map fa-lg me-2"></i>
+                                    Map
+                                </x-nav-link>
+                            @endif
+                        </ul>
+                    </li>
+
                     <x-nav-link :url="route('account.profile')"
                                 :active="request()->routeIs('account.*')">
                         Account

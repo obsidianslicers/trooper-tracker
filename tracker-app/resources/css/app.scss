@@ -58,3 +58,13 @@ a:hover {
         }
     }
 }
+
+// for google maps
+.gm-style-iw-chr button {
+    background-color: rgba(0, 0, 0, 0.6) !important;
+    border-radius: 25% !important;
+}
+
+.gm-style-iw-chr button span {
+    background-color: white !important;
+}
