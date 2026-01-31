@@ -23,11 +23,9 @@ class OrganizationLeafNodeRule implements ValidationRule
     /**
      * Creates a new rule instance.
      *
-     * @param Organization $organization The parent organization that the selected organization must be a descendant of.
+     * @param  Organization  $organization  The parent organization that the selected organization must be a descendant of.
      */
-    public function __construct(private readonly Organization $organization)
-    {
-    }
+    public function __construct(private readonly Organization $organization) {}
 
     /**
      * Run the validation rule.
@@ -35,28 +33,29 @@ class OrganizationLeafNodeRule implements ValidationRule
      * Validates that the provided organization ID represents a leaf node descendant
      * of the parent organization.
      *
-     * @param  string  $attribute The name of the attribute being validated.
-     * @param  mixed  $value The organization ID being validated.
-     * @param  \Closure(string): \Illuminate\Translation\PotentiallyTranslatedString  $fail The closure to call on validation failure.
+     * @param  string  $attribute  The name of the attribute being validated.
+     * @param  mixed  $value  The organization ID being validated.
+     * @param  \Closure(string): \Illuminate\Translation\PotentiallyTranslatedString  $fail  The closure to call on validation failure.
+     * @return void This rule never returns a value; it only triggers $fail().
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        if (!$value)
+        if (! $value)
         {
             return;
         }
 
         $picked_organization = Organization::find($value);
 
-        if (!$picked_organization)
+        if (! $picked_organization)
         {
             return;
         }
 
         // Check if picked organization is a descendant of the parent organization
-        if (!str_starts_with($picked_organization->node_path, $this->organization->node_path))
+        if (! str_starts_with($picked_organization->node_path, $this->organization->node_path))
         {
-            $fail('The selected organization must be within ' . $this->organization->name . '.');
+            $fail('The selected organization must be within '.$this->organization->name.'.');
         }
 
         // Check if picked organization has no children (is a leaf node)

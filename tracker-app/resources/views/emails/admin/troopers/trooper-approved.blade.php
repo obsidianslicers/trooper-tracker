@@ -23,8 +23,7 @@
         the galaxy depends on it. In the meantime, polish that bucket - we expect it to shine brighter
         than a Tatooine sunrise.
     </p>
-    <p style="margin-top:20px; font-weight:bold; color:#333;">
-        - Imperial Administration, {{ config('app.name') }}
-    </p>
+
+    @include('emails.inc.signature')
 
 @endsection
