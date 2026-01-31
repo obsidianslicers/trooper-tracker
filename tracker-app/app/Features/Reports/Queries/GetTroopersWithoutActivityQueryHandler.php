@@ -12,40 +12,28 @@ use App\Models\Trooper;
 use Carbon\Carbon;
 
 /**
- * Handler for retrieving model change history for a trooper.
+ * Handler for retrieving troopers without recent event activity.
  *
- * Returns a collection of StatusChange records representing changes to:
- * - The Trooper model itself (direct changes)
- * - EventTrooper records associated with the trooper
- *
- * Filters changes based on the lookback period specified in the query.
+ * Returns active troopers who have not attended any events since
+ * before the lookback date (i.e., inactive during the lookback period).
  *
  * @implements QueryHandlerInterface<GetTroopersWithoutActivityQuery>
  */
 readonly class GetTroopersWithoutActivityQueryHandler implements QueryHandlerInterface
 {
     /**
-     * Execute the query to retrieve model change history.
+     * Execute the query to find inactive troopers.
      *
-     * Converts the lookback parameter to a Carbon date if needed, then queries
-     * StatusChange records for the trooper and their associated EventTrooper records.
-     * Returns all changes since the lookback date.
+     * Retrieves active troopers managed by the moderator who:
+     * - Have no ATTENDED event signups since the lookback date
+     * - Are currently in ACTIVE membership status
      *
-     * @param GetTroopersWithoutActivityQuery $message The query containing trooper and lookback criteria.
-     * @return \Illuminate\Support\Collection<int, Trooper> Collection of model changes.
+     * @param  GetTroopersWithoutActivityQuery  $message  The query containing moderator and lookback criteria.
+     * @return \Illuminate\Support\Collection<int, Trooper> Collection of inactive troopers.
      */
     public function __invoke(object $message): mixed
     {
-        $lookback = $message->lookback;
-
-        if (is_int($lookback))
-        {
-            $lookback = now()->subDays($lookback);
-        }
-        elseif (is_string($lookback))
-        {
-            $lookback = Carbon::parse($lookback);
-        }
+        $lookback = $message->parseLookback();
 
         $filter = function ($qx) use ($lookback)
         {

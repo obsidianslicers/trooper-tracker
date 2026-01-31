@@ -122,3 +122,30 @@ Do not guess table structures beyond what migrations define. Infer relationships
 
 Begin by analyzing all migrations and then produce the complete DATABASE.md content.
 ```
+
+## Ensure all file use strong type checks
+
+It checks every PHP file under app/** except app/Models/Base/** to ensure the first non‑comment line is declare(strict_types=1);, inserting or moving it to the top if needed while leaving all other code, comments, namespaces, and formatting untouched. Copilot should apply fixes directly, report modified files, and ensure each file begins with <?php, then the strict types declaration, followed by the namespace and use statements.
+
+```
+Scan every PHP file under app/** with the exception of app/Models/Base/** and verify that the first non-comment line is:
+
+declare(strict_types=1);
+
+For each file:
+- If the declaration is missing, insert it as the very first line.
+- If it exists but is not the first line, move it to the top.
+- Do NOT modify any other code, comments, namespaces, imports, or formatting.
+- Preserve all spacing and file structure except what is required to correctly place the declaration.
+- Apply fixes directly to the files.
+- Report which files were modified.
+
+the start of each file should look like the following template
+<?php
+
+declare(strict_types=1);
+
+namespace ...
+
+use statements ... etc
+```
