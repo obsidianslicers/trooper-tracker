@@ -71,8 +71,13 @@
                             </li>
                             <x-nav-link :url="route('events.closed')"
                                         :active="request()->routeIs('events.*')">
-                                <i class="fa fa-fw fa-list fa-lg me-2"></i>
+                                <i class="fa fa-fw fa-circle-check fa-lg me-2"></i>
                                 Completed
+                            </x-nav-link>
+                            <x-nav-link :url="route('events.cancelled')"
+                                        :active="request()->routeIs('events.*')">
+                                <i class="fa fa-fw fa-ban fa-lg me-2"></i>
+                                Cancelled
                             </x-nav-link>
                         </ul>
                     </li>
