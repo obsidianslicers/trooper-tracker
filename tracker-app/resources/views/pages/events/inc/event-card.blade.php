@@ -6,7 +6,8 @@
      data-event-name="{{ $event->name }}"
      data-event-hosting-organization-id="{{ $event->organization_id  }}">
     <div class="card h-100"
-         data-route="{{ route('events.display', compact('event')) }}">
+         data-route="{{ route('events.display', compact('event')) }}"
+         x-on:click="window.location = $el.dataset.route">
         <div class="card-header {{ $bg }} d-flex align-items-center">
             <span class="p-2">
                 @if($event->at_risk)
@@ -32,7 +33,8 @@
             <p class="card-text">
                 <a href="https://www.google.com/maps/search/?api=1&query={{ $event->venue_address }}"
                    target="_blank"
-                   class="text-decoration-none">
+                   class="text-decoration-none"
+                   x-on:click.stop>
                     <i class="fa fa-fw fa-location-dot me-2"></i>
                     {{ $event->venue_address }}
                 </a>

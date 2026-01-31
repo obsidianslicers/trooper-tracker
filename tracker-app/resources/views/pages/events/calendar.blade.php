@@ -59,10 +59,11 @@
                                         @if (isset($events[$key]))
                                             @foreach ($events[$key] as $event)
                                                 <div class="event-card small mt-1 p-1 pointer"
-                                                     x-show="matches($el)"
                                                      data-route="{{ route('events.display', compact('event')) }}"
                                                      data-event-name="{{ $event->name }}"
-                                                     data-event-hosting-organization-id="{{ $event->organization_id }}">
+                                                     data-event-hosting-organization-id="{{ $event->organization_id }}"
+                                                     x-show="matches($el)"
+                                                     x-on:click="window.location = $el.dataset.route">
 
                                                     <x-logo :storage_path="$event->organization->image_path_sm ?? ''"
                                                             :default_path="'img/icons/organization-32x32.png'"
@@ -88,7 +89,6 @@
                     @endforeach
                 </tbody>
             </x-table>
-
 
         @endforeach
 
