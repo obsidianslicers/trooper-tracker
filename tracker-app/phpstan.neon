@@ -1,0 +1,20 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: 6
+
+    paths:
+        - app/helpers.php
+        - app/Bus
+
+    checkUninitializedProperties: true
+    checkImplicitMixed: true
+
+    # Optional but recommended
+    treatPhpDocTypesAsCertain: false
+    
+    ignoreErrors:
+        - '#is used zero times and is not analysed#'
+
+

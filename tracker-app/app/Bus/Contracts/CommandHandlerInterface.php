@@ -35,10 +35,12 @@ namespace App\Bus\Contracts;
  * }
  * ```
  *
+ * @template TMessage of object
+ *
+ * @extends HandlerInterface<TMessage>
+ *
  * @see \App\Bus\MagicBus
  * @see \App\Bus\Contracts\HandlerInterface
  * @see \App\Bus\Concerns\ShouldRunAfterResponse
  */
-interface CommandHandlerInterface extends HandlerInterface
-{
-}
+interface CommandHandlerInterface extends HandlerInterface {}
