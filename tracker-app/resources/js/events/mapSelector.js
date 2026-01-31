@@ -9,6 +9,8 @@ export default function mapSelector(events) {
                 zoom: 8,
             });
 
+            this.centerOnUser();
+
             events.forEach(event => {
                 const marker = new google.maps.Marker({
                     position: { lat: event.lat, lng: event.lng },
@@ -45,6 +47,41 @@ export default function mapSelector(events) {
             });
 
             info.open(this.map, marker);
+        },
+
+        centerOnUser() {
+            if (!navigator.geolocation) {
+                console.warn("Geolocation not supported");
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    const { latitude, longitude } = pos.coords;
+
+                    this.map.setCenter({ lat: latitude, lng: longitude });
+                    this.map.setZoom(12);
+
+                    // Optional: drop a marker for the user
+                    new google.maps.Marker({
+                        position: { lat: latitude, lng: longitude },
+                        map: this.map,
+                        title: "You are here",
+                        icon: {
+                            path: google.maps.SymbolPath.CIRCLE,
+                            scale: 6,
+                            fillColor: "#0d6efd",
+                            fillOpacity: 1,
+                            strokeColor: "#fff",
+                            strokeWeight: 2,
+                        },
+                    });
+                },
+                (err) => {
+                    console.warn("User denied geolocation", err);
+                }
+            );
         }
+
     }
 }
