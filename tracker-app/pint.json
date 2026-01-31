@@ -16,6 +16,10 @@
         },
         "curly_braces_position": {
             "control_structures_opening_brace": "next_line_unless_newline_at_signature_end"
+        },
+        "not_operator_with_successor_space": false,
+        "unary_operator_spaces": {
+            "only_dec_inc": true
         }
     }
 }

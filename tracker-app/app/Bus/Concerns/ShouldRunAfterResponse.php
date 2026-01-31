@@ -34,6 +34,4 @@ namespace App\Bus\Concerns;
  * @see \App\Bus\MagicBus::send()
  * @see \App\Bus\Contracts\CommandInterface
  */
-trait ShouldRunAfterResponse
-{
-}
+trait ShouldRunAfterResponse {}

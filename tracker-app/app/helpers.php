@@ -11,8 +11,8 @@ if (!function_exists('qs'))
     /**
      * Build a query string by merging the current request query with overrides.
      *
-     * @param  array  $overrides
-     * @return array
+     * @param  array<string, mixed>  $overrides
+     * @return array<string, mixed>
      */
     function qs(array $overrides = []): array
     {
@@ -22,10 +22,9 @@ if (!function_exists('qs'))
     /**
      * Return a Storage URL if the file exists, otherwise fall back to a public asset.
      *
-     * @param  string|null  $path   Path relative to the storage disk
-     * @param  string       $default Relative path under public/ (e.g. 'img/icons/foo.png')
-     * @param  string       $disk   Storage disk to check (default 'public')
-     * @return string
+     * @param  string|null  $path  Path relative to the storage disk
+     * @param  string  $default  Relative path under public/ (e.g. 'img/icons/foo.png')
+     * @param  string  $disk  Storage disk to check (default 'public')
      */
     function map_image_url(?string $path, string $default, string $disk = 'public'): string
     {
@@ -39,20 +38,17 @@ if (!function_exists('qs'))
 
     /**
      * Convert a property.name to a bracketed[name]
-     * @param string $property
-     * @return string
      */
     function to_bracket_name(string $property): string
     {
         $bracketed = preg_replace('/\.(\d+)/', '[$1]', $property);
         $bracketed = preg_replace('/\.(\w+)/', '[$1]', $bracketed);
+
         return $bracketed;
     }
 
     /**
      * Convert a PROPERTY_NAME to a property_name
-     * @param string $value
-     * @return Stringable
      */
     function to_title(string $value): Stringable
     {

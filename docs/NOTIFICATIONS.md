@@ -49,24 +49,25 @@ flowchart TD
 
 **Triggered When:** An event's status changes to "open" (published)
 
-**Purpose:** Creates notification records for all active troopers and sends instant emails to those with instant notification preferences.
+**Purpose:** Orchestrates the creation of notification records for all active troopers.
 
-**Process:**
-1. Loads all active troopers who haven't opted out of notifications (`notification_frequency != NEVER`)
-2. Checks for existing notifications to prevent duplicates
-3. For each eligible trooper:
-   - Validates their email address
-   - Creates an `EventNotification` record
-   - **If notification_frequency is INSTANT:**
-     - Marks notification as processed immediately
-     - Queues instant email via `InstantEventNotification` mailable
-   - **If notification_frequency is DAILY:**
-     - Leaves notification unprocessed
-     - Will be picked up by the daily notification command
+**Implementation:** This job dispatches the `SendEventCreatedNotificationCommand` for each eligible trooper through the MagicBus. The command handler:
 
-**Key Models:**
+1. Validates trooper's email address
+2. Creates an `EventNotification` record
+3. **If notification_frequency is INSTANT:**
+   - Marks notification as processed immediately
+   - Queues instant email via `InstantEventNotification` mailable
+4. **If notification_frequency is DAILY:**
+   - Leaves notification unprocessed
+   - Will be picked up by the daily notification command
+
+**Key Components:**
+- `SendEventCreatedNotificationsJob` - Queue job that orchestrates the process
+- `SendEventCreatedNotificationCommand` - Command dispatched for each trooper
+- `SendEventCreatedNotificationCommandHandler` - Handles notification creation logic
 - `Event` - The event being notified about
-- `EventNotification` - Tracks which troopers have been notified about which events
+- `EventNotification` - Tracks which troopers have been notified
 - `Trooper` - Active troopers with valid email addresses
 
 ## Daily Event Notification Command
@@ -95,19 +96,29 @@ flowchart TD
 
 **Command:** `php artisan tracker:send-daily-event-notifications`
 
-**Purpose:** Sends a digest email containing all unprocessed event notifications to troopers who prefer daily notifications.
+**Purpose:** Sends digest emails containing all unprocessed event notifications to troopers who prefer daily notifications.
+
+**Implementation:** This Artisan command orchestrates the daily notification process by:
+
+1. Dispatching `GetTroopersForDailyEventNotificationsQuery` to retrieve eligible troopers
+2. Dispatching `SendEventDailyNotificationCommand` for each trooper
+3. The command handler queues the digest email and marks notifications as processed
 
 **Process:**
-1. Queries all active troopers with `notification_frequency = DAILY`
-2. Filters to only those with unprocessed notifications (`processed_at IS NULL`)
-3. For each eligible trooper:
-   - Validates their email address
-   - Loads all their unprocessed `EventNotification` records
+1. Queries all active troopers with `notification_frequency = DAILY` and unprocessed notifications
+2. For each eligible trooper:
+   - Validates their email address via command handler
    - Queues a single digest email via `DailyEventNotification` mailable
-   - Marks all notifications as processed
+   - Marks all event_notifications as processed (sets `processed_at` timestamp)
+
+**Key Components:**
+- `SendDailyEventNotifications` - Artisan command (orchestrator)
+- `GetTroopersForDailyEventNotificationsQuery` - Retrieves eligible troopers
+- `SendEventDailyNotificationCommand` - Command for each trooper
+- `SendEventDailyNotificationCommandHandler` - Handles email queueing and marking processed
 
 **Scheduling:**
-This command should be scheduled in `app/Console/Kernel.php` to run at the desired time each day.
+This command should be scheduled to run daily.
 
 ## Event Cancelled Notifications
 
@@ -139,13 +150,19 @@ flowchart TD
 
 **Purpose:** Notifies all troopers who signed up for the cancelled event.
 
-**Process:**
+**Implementation:** This job dispatches the `SendEventCancelledNotificationCommand` through the MagicBus. The command handler:
+
 1. Checks if cancellation notifications have already been sent (via `create_notifications_sent_at`)
 2. Queries all active troopers with `GOING` status for any shift in the event
 3. For each trooper:
    - Validates their email address
    - Queues cancellation email via `CancelledEventNotification` mailable
 4. Updates event's `create_notifications_sent_at` timestamp to prevent duplicate sends
+
+**Key Components:**
+- `SendEventCancelledNotificationsJob` - Queue job (orchestrator)
+- `SendEventCancelledNotificationCommand` - Command for the cancelled event
+- `SendEventCancelledNotificationCommandHandler` - Handles notification logic
 
 **Important Notes:**
 - Cancellation notifications are sent **regardless of notification frequency**
@@ -196,9 +213,21 @@ Tracks which troopers have been notified about which events.
 
 ## Implementation Details
 
+### Architecture
+
+The notification system follows the **Command/Query** pattern:
+
+- **Jobs** (SendEventCreatedNotificationsJob, SendEventCancelledNotificationsJob) orchestrate workflow
+- **Commands** (SendEventCreatedNotificationCommand, SendEventDailyNotificationCommand, SendEventCancelledNotificationCommand) represent write operations
+- **Command Handlers** contain the actual business logic for creating notifications and queueing emails
+- **Queries** (GetTroopersForDailyEventNotificationsQuery) retrieve eligible troopers
+- **MagicBus** dispatches commands and queries to their handlers
+
+This separation ensures business logic is testable and reusable across different entry points.
+
 ### Email Validation
 
-All notification jobs validate trooper email addresses using:
+All notification command handlers validate trooper email addresses using:
 
 ```php
 $trooper->emailAppearsValid()

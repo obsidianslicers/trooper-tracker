@@ -67,7 +67,7 @@ class MagicBus
      * - Handlers using ShouldBeTransactional trait: Wrapped in a database transaction
      * - Handlers using ShouldRunAfterResponse trait: Executed after HTTP response is sent (Commands only)
      *
-     * @param object $message The Command or Query object to dispatch
+     * @param  object  $message  The Command or Query object to dispatch
      * @return mixed The result returned by the handler's __invoke method, or null for deferred commands
      *
      * @throws \RuntimeException If the handler class does not exist
@@ -77,7 +77,7 @@ class MagicBus
     public function send(object $message): mixed
     {
         // Convention: MyTask -> MyTaskHandler
-        $handler_class = get_class($message) . 'Handler';
+        $handler_class = get_class($message).'Handler';
 
         if (!class_exists($handler_class))
         {
@@ -93,16 +93,15 @@ class MagicBus
 
         if ($this->usesTrait($handler_class, ShouldBeTransactional::class))
         {
-            return DB::transaction(fn() => $handler($message));
+            return DB::transaction(fn () => $handler($message));
         }
 
         if ($this->usesTrait($handler_class, ShouldRunAfterResponse::class))
         {
             // Defer execution until after the HTTP response is sent
-            app()->afterResponse(function () use ($handler, $message)
-            {
+            dispatch(function () use ($handler, $message) {
                 $handler($message);
-            });
+            })->afterResponse();
 
             // Deferred commands do not return a value
             return null;
@@ -119,8 +118,8 @@ class MagicBus
      * for the specified trait. If the trait is found and it's a concern trait,
      * it validates that the handler properly implements CommandHandlerInterface.
      *
-     * @param string $handler_class The fully qualified handler class name
-     * @param string $trait The fully qualified trait name to check for
+     * @param  string  $handler_class  The fully qualified handler class name
+     * @param  string  $trait  The fully qualified trait name to check for
      * @return bool True if the handler uses the trait, false otherwise
      *
      * @throws \RuntimeException If trait requires CommandHandlerInterface but handler doesn't implement it
@@ -145,9 +144,8 @@ class MagicBus
      * - Queries must return results synchronously (can't be deferred)
      * - Queries should be read-only (transactions are for write operations)
      *
-     * @param string $handler_class The fully qualified handler class name
-     * @param string $trait The trait name being checked (for error messages)
-     * @return void
+     * @param  string  $handler_class  The fully qualified handler class name
+     * @param  string  $trait  The trait name being checked (for error messages)
      *
      * @throws \RuntimeException If the handler doesn't implement CommandHandlerInterface
      */

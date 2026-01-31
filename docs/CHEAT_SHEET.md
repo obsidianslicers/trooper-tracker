@@ -14,11 +14,27 @@ Use the `make` commands to quickly scaffold new classes. Many commands can be co
 | `php artisan make:migration create_squads_table` | Creates a new database migration file. |
 | `php artisan make:factory SquadFactory` | Creates a new model factory. |
 | `php artisan make:seeder UnitSeeder` | Creates a new database seeder class. |
+| `php artisan make:policy TrooperPolicy --model=Trooper` | Creates a new authorization policy class. |
+| `php artisan make:rule UniqueIdentifierRule` | Creates a new custom validation rule. |
+| `php artisan make:command SendNotifications` | Creates a new Artisan console command. |
 | `php artisan make:test UserAuthenticationTest` | Creates a new feature test file in `tests/Feature`. |
 | `php artisan make:test TrooperRepositoryTest --unit` | Creates a new unit test file in `tests/Unit`. |
 | `php artisan code:models --table=units` | (From `reliese/laravel`) Generates a model from an existing `units` table. |
 | `php artisan code:models` | (From `reliese/laravel`) Generates all class models. |
 | `php artisan tracker:generate-factories` | Generates all base factory classes. |
+
+## Custom Application Commands
+
+Troop Tracker includes several custom Artisan commands for maintenance and automation:
+
+| Command | Description |
+|---|---|
+| `php artisan tracker:send-daily-event-notifications` | Sends daily event digest emails to troopers with pending notifications. |
+| `php artisan tracker:close-events` | Auto-closes events after their end date. |
+| `php artisan tracker:close-event-shifts` | Auto-closes shifts after completion. |
+| `php artisan tracker:calculate-trooper-achievements` | Recalculates trooper stats and achievement badges. |
+| `php artisan tracker:synchronize-organizations` | Syncs with external organization systems. |
+| `php artisan tracker:generate-factories` | Generates factory classes from base models. |
 
 ## Database Migrations & Seeding
 
