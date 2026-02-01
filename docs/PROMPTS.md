@@ -187,7 +187,9 @@ You are auditing this Laravel application.
 Begin by scanning app/ and identifying any issues that require clarification.
 ```
 
-## Update README
+## Update DOCS
+
+### README
 
 ```
 You are auditing this Laravel application.
@@ -219,4 +221,31 @@ You are auditing this Laravel application.
    - Do not summarize the codebase; only summarize documentation changes.
 
 Begin by scanning app/ and identifying any issues that require clarification.
+```
+
+### All DOCS
+
+```
+Audit all documentation files in the docs/ folder and the README with the following goals:
+
+1. Make every document concise and focused. Remove filler, redundant explanations, and repeated architectural descriptions that already exist elsewhere.
+
+2. Ensure each document has a clear, unique purpose. No file should duplicate content found in README, ARCHITECTURE, PROJECT_STRUCTURE, or other docs. Consolidate or rewrite sections to eliminate overlap.
+
+3. Create a consistent hierarchy across all docs:
+   - README = high-level overview + contributor quickstart + links into docs
+   - docs/ARCHITECTURE = full system architecture (ADR, MagicBus, domains, data flow)
+   - docs/PROJECT_STRUCTURE = directory and subsystem layout
+   - docs/DATABASE = schema, relationships, ERD
+   - docs/AUTHENTICATION, docs/NOTIFICATIONS, docs/XENFORO_OAUTH = subsystem-specific guides
+   - docs/CHEAT_SHEET, docs/COMPOSER, docs/NPM, docs/VSCODE_EXTENSIONS = tooling and workflow references
+   - docs/DEPLOY = deployment instructions for building out a new server, but leave the quick deploy instructions in the cheat_sheet
+
+4. For any repeated information across files, keep the most complete version in the correct canonical document and replace the duplicates with short summaries + links.
+
+5. Standardize tone, formatting, and section headings across all docs while preserving the project's Imperial voice.
+
+6. Do not change the project's lore or personality. Only tighten, reorganize, and clarify.
+
+Apply all edits directly to the files in the docs/ folder and update the README links accordingly.
 ```
