@@ -32,7 +32,7 @@ Troop Tracker follows **Action-Domain-Responder (ADR)** with **Command/Query Sep
 - **HTMX + Alpine**: Progressive enhancement for dynamic UI without full page reloads
 - **Queue Processing**: Background jobs orchestrate handlers via MagicBus
 
-**[Read full architecture documentation →](docs/architecture/overview.md)**
+**[Read full architecture documentation →](docs/ARCHITECTURE.md)**
 
 ---
 
@@ -183,22 +183,29 @@ Read the documentation in this order for maximum comprehension efficiency.
 
 **Start here** - Essential reading before writing code:
 
-1. **[Architecture Overview](docs/ARCHITECTURE.md)** - ADR, MagicBus, Command/Query patterns, domain organization, testing strategy
-2. **[Coding Conventions](docs/CODING_CONVENTIONS.md)** - Naming conventions, code style, architectural patterns
-3. **[Project Structure](docs/PROJECT_STRUCTURE.md)** - Directory organization, Features layout, component reference
-4. **[Database Schema](docs/DATABASE.md)** - Complete table reference with relationships and ERD
+1. **[Architecture](docs/ARCHITECTURE.md)** - ADR, MagicBus, Command/Query patterns, domain organization, testing strategy
+2. **[Coding Conventions](docs/CODING_CONVENTIONS.md)** - Naming conventions, code style, architectural standards
+3. **[Project Structure](docs/PROJECT_STRUCTURE.md)** - Directory layout and file organization
+4. **[Database Schema](docs/DATABASE.md)** - Table reference, relationships, ERD
 
-**Optional but recommended:**
+**Recommended for all contributors:**
 
-4. **[Cheat Sheet](docs/CHEAT_SHEET.md)** - Quick reference for common Artisan commands and workflows.
-5. **[VSCode Extensions](docs/VSCODE_EXTENSIONS.md)** - Recommended editor setup for optimal development experience.
+5. **[Cheat Sheet](docs/CHEAT_SHEET.md)** - Quick reference for Artisan commands and workflows
+6. **[VSCode Extensions](docs/VSCODE_EXTENSIONS.md)** - Recommended editor setup
 
 ### For Feature-Specific Work
 
 Consult these when working on specific subsystems:
 
-- **[Authentication Flow](docs/AUTHENTICATION.md)** - Multi-provider auth (Email, Google OAuth, XenForo OAuth) and registration pipeline
-- **[Notifications](docs/NOTIFICATIONS.md)** - Event notification system (instant, daily digest, cancellations)
+- **[Authentication](docs/AUTHENTICATION.md)** - Multi-provider auth and registration pipeline
+- **[Notifications](docs/NOTIFICATIONS.md)** - Event notification system (instant/daily/cancellations)
+- **[XenForo OAuth](docs/XENFORO_OAUTH.md)** - Forum integration via OAuth2
+
+### Deployment & Tooling
+
+- **[Deployment Guide](docs/DEPLOY.md)** - Production server setup and deployment procedures
+- **[Composer Dependencies](docs/COMPOSER.md)** - PHP package reference
+- **[NPM Dependencies](docs/NPM.md)** - Frontend package reference
 
 ### For Contributors
 

@@ -1,10 +1,10 @@
-# Laravel Artisan Cheat Sheet
+# Artisan Command Reference
 
-This section provides a quick reference for common `php artisan` commands used during development.
+Quick reference for common Laravel Artisan commands.
 
-## Generating Code (`make:*`)
+## Code Generation (`make:*`)
 
-Use the `make` commands to quickly scaffold new classes. Many commands can be combined with flags for convenience.
+Scaffold new classes with `make` commands:
 
 | Command | Description |
 |---|---|

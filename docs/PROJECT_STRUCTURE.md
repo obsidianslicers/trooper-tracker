@@ -1,6 +1,8 @@
 # Project Structure
 
-This document describes the organization of the Troop Tracker application codebase.
+This document maps the Troop Tracker directory structure and file organization.
+
+**For architectural patterns and design decisions, see [ARCHITECTURE.md](ARCHITECTURE.md).**
 
 ## Directory Overview
 
@@ -52,7 +54,7 @@ tracker-app/
 
 ## Features Directory
 
-The `app/Features/` directory contains domain-organized business logic following the **Command/Query Separation** pattern. Each feature area is organized into Commands and Queries with their corresponding Handlers.
+The `app/Features/` directory contains domain-organized business logic (Commands and Queries with their handlers).
 
 ### Structure
 

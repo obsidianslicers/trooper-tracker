@@ -1,13 +1,11 @@
-# XenForo OAuth2 Provider for Laravel Socialite
+# XenForo OAuth2 Integration
 
-This custom Socialite provider enables OAuth2 authentication with XenForo 2.3+ forums.
+Custom Socialite provider for XenForo 2.3+ forum authentication.
 
-## Features
-
-- Full OAuth2 support for XenForo 2.3+
-- Supports both confidential and public client types
-- PKCE support (recommended for all clients)
-- User profile retrieval including avatar URLs
+**Capabilities:**
+- OAuth2 authentication with XenForo forums
+- PKCE support for enhanced security
+- User profile and avatar retrieval
 - Configurable scopes
 
 ## Configuration

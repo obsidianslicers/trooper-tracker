@@ -1,10 +1,12 @@
 # Deployment Guide
 
-This document provides step-by-step instructions for deploying Troop Tracker to production environments.
+Production deployment instructions for Troop Tracker.
+
+**For quick deployments, see deployment commands in [CHEAT_SHEET.md](CHEAT_SHEET.md).**
 
 ## Server Requirements
 
-### Minimum Requirements
+### Minimum Specs
 
 - **PHP:** 8.2 or higher
 - **Database:** MySQL 8.0 or higher
