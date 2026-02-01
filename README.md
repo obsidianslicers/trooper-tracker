@@ -48,8 +48,6 @@ Troop Tracker follows **Action-Domain-Responder (ADR)** with **Command/Query Sep
 - Architecture, database schema, authentication flows, coding conventions
 - See [Documentation Guide](#documentation-guide) for reading order
 
-**`sql-scripts/`** - Database utility scripts
-
 **Root Files** - `README.md`, `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, GitHub Actions
 
 ---
