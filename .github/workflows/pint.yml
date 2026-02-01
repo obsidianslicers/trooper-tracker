@@ -10,12 +10,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Call the reusable workflow
-      - name: Install PHP + Composer
-        uses: ./.github/workflows/composer-install.yml
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
         with:
-          php_version: '8.2'
-          working_directory: './tracker-app'  
+          php-version: '8.4'
+          coverage: none
+
+      - name: Install Composer dependencies
+        working-directory: ./tracker-app
+        run: |
+          composer install --no-interaction --no-progress
+          composer dump-autoload 
 
       - name: Run Pint in test mode
         working-directory: ./tracker-app
