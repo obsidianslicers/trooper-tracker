@@ -24,4 +24,5 @@ jobs:
           composer dump-autoload 
 
       - name: Run PHPStan
+        working-directory: ./tracker-app
         run: vendor/bin/phpstan analyse --no-progress --memory-limit=1G
