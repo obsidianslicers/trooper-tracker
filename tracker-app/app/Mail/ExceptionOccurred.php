@@ -33,9 +33,9 @@ class ExceptionOccurred extends Mailable implements ShouldQueue
     /**
      * Create a new exception notification email instance.
      *
-     * @param Trooper $trooper The administrator trooper receiving the notification.
-     * @param Throwable $exception The exception that occurred in the application.
-     * @param array<string, mixed> $context Additional context data (e.g., request details, user info, environment).
+     * @param  Trooper  $trooper  The administrator trooper receiving the notification.
+     * @param  Throwable  $exception  The exception that occurred in the application.
+     * @param  array<string, mixed>  $context  Additional context data (e.g., request details, user info, environment).
      */
     public function __construct(
         private readonly Trooper $trooper,

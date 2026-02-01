@@ -26,7 +26,7 @@ class TrooperNextInLine extends Mailable implements ShouldQueue
     /**
      * Create a new trooper next-in-line notification email instance.
      *
-     * @param EventTrooper $event_trooper The event trooper assignment that was confirmed
+     * @param  EventTrooper  $event_trooper  The event trooper assignment that was confirmed
      */
     public function __construct(private readonly EventTrooper $event_trooper)
     {

@@ -7,6 +7,9 @@ parameters:
     paths:
         - app/helpers.php
         - app/Bus
+        - app/Mail
+        - app/Policies
+        - app/Rules
 
     checkUninitializedProperties: true
     checkImplicitMixed: true

@@ -28,7 +28,7 @@ class EventShiftComplete extends Mailable implements ShouldQueue
     /**
      * Create a new event shift completion email instance.
      *
-     * @param EventTrooper $event_trooper The event trooper assignment to notify about
+     * @param  EventTrooper  $event_trooper  The event trooper assignment to notify about
      */
     public function __construct(private readonly EventTrooper $event_trooper)
     {
@@ -65,7 +65,7 @@ class EventShiftComplete extends Mailable implements ShouldQueue
                 'event_shift' => $this->event_trooper->event_shift,
                 'event' => $this->event_trooper->event_shift->event,
                 'able_status' => Crypt::encryptString(EventTrooperStatus::ATTENDED->value),
-                'unable_status' => Crypt::encryptString(EventTrooperStatus::UNABLE_TO_ATTEND->value)
+                'unable_status' => Crypt::encryptString(EventTrooperStatus::UNABLE_TO_ATTEND->value),
             ]
         );
     }
