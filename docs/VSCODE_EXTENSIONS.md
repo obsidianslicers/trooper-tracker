@@ -1,10 +1,8 @@
-# VS Code Extensions for PHP & Laravel Development
+# VS Code Extensions
 
-This document provides recommendations and essential configurations for using VS Code effectively when contributing to the Troop Tracker project. Following these guidelines will help maintain code consistency, improve productivity, and streamline your development workflow.
+Recommended extensions for PHP and Laravel development.
 
-## 1. Extensions Utilized
-
-These extensions enhance the PHP and Laravel development experience within VS Code.
+## Required Extensions
 
 | Extension | Description |
 |-----------|-------------|
@@ -16,6 +14,6 @@ These extensions enhance the PHP and Laravel development experience within VS Co
 | `mehedidracula.php-namespace-resolver` | PHP Namespace Resolver — automates `use` statement imports, sorting, and cleanup for cleaner, maintainable code |
 | `shufo.vscode-blade-formatter` | Laravle Blade Formatter — an opinionated Blade file formatter for VSCode. |
 
-## 2. VS Code Settings
+## VS Code Settings
 
-To ensure a consistent development community, the `settings.json` configuration file has been committed to this repository.
+Project-wide settings are committed in `.vscode/settings.json`.

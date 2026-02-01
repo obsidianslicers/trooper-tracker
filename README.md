@@ -21,19 +21,34 @@ Progress continues at a pace deemed acceptable by the Empire. New features, refi
 
 ---
 
-## For Developers Entering the War Room
+## Architecture
 
-This codebase is structured for maintainability, testability, and the occasional emergency refactor ordered from high command. The architecture follows **Action-Domain-Responder (ADR)** with **Command/Query Separation** via **MagicBus**. Controllers are thin orchestrators, Commands handle writes, Queries handle reads, and Handlers contain the business logic. Expect HTMX to fire without warning. Expect Alpine components to behave with military precision. Above all, expect the unexpected — the Empire innovates aggressively.
+Troop Tracker follows **Action-Domain-Responder (ADR)** with **Command/Query Separation** via **MagicBus**. Controllers orchestrate, handlers execute business logic, responses render results.
 
-### Architecture at a Glance
+**Key Patterns:**
+- **MagicBus**: Convention-based dispatcher routes Commands (writes) and Queries (reads) to handlers
+- **Feature Organization**: Business logic grouped by domain in `app/Features/` (Events, Troopers, Organizations, Reports, Notices, Changes)
+- **Auto-Generated Models**: Base models in `app/Models/Base/` (never edit), extended in `app/Models/`
+- **HTMX + Alpine**: Progressive enhancement for dynamic UI without full page reloads
+- **Queue Processing**: Background jobs orchestrate handlers via MagicBus
 
-- **MagicBus**: Convention-based command/query dispatcher (Message → MessageHandler)
-- **Features by Domain**: Commands & Queries organized under `app/Features/` (Events, Troopers, Organizations, Reports, Notices, Changes)
-- **Invokable Controllers**: Single-action controllers following ADR pattern
-- **Auto-Generated Models**: Base models in `app/Models/Base/` (never edit), extended models in `app/Models/`
-- **Policies & Rules**: Authorization via policies, custom validation rules organized by feature
-- **Transactional Handlers**: Database transactions via `ShouldBeTransactional` trait
-- **Deferred Execution**: Background processing via `ShouldRunAfterResponse` trait
+**[Read full architecture documentation →](docs/ARCHITECTURE.md)**
+
+---
+
+## Repository Structure
+
+### Top-Level Folders
+
+**`tracker-app/`** - The Laravel application (run all commands from here)
+- Complete Laravel 12.x source, tests, and dependencies
+- See [Project Structure](docs/PROJECT_STRUCTURE.md) for internal organization
+
+**`docs/`** - Project documentation
+- Architecture, database schema, authentication flows, coding conventions
+- See [Documentation Guide](#documentation-guide) for reading order
+
+**Root Files** - `README.md`, `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, GitHub Actions
 
 ---
 
@@ -50,173 +65,154 @@ This codebase is structured for maintainability, testability, and the occasional
 *   **Notice System**: Organization-scoped announcements with read tracking and type-based styling (info/warning/alert)
 *   **Event Photo Gallery**: Photo uploads with trooper tagging, large/thumbnail variants, administrative photo flags
 
-### Architecture & Developer Experience
+### Developer Experience
 
-*   **MagicBus Command/Query Pattern**: Commands for writes, Queries for reads, automatic handler resolution by convention
-*   **Feature-Organized Code**: Domain logic grouped by business area (Events, Troopers, Organizations, Reports, Notices, Changes)
-*   **Themed, Component‑Driven PHP 8.2+, Blade templating
-*   **Frontend**: Bootstrap 5.2x, HTMX 2.x, Alpine 3.x, JavaScript
-*   **Database**: MySQL with Reliese Laravel model generation
-*   **Testing**: PHPUnit (Feature tests for Controllers/Jobs/Commands, Unit tests for Handlers/Services)
-*   **Queue**: Laravel queue system with database driver
-*   **Mail**: Laravel mailable classes with queue support
-*   **Authentication**: Laravel Breeze with multi-provider OAuth (Google, XenForo)orization**: Policy-based access control for all resources (Troopers, Events, Organizations, Notices, Awards)
-*   **Custom Validation Rules**: Feature-organized validation rules for complex business logic
-*   **Audit Trail System**: Polymorphic change tracking via `ModelChange`, trooper stamps (created_id/updated_id/deleted_id)
-*   **Multi-Provider Auth**: Email, Google OAuth, XenForo OAuth with unified registration pipeline
+*   **MagicBus Command/Query Pattern**: Automatic handler resolution, Commands for writes, Queries for reads
+*   **Feature-Organized Code**: Domain logic grouped by business area
+*   **Component-Driven Blade**: PHP 8.2+ with server-rendered templates
+*   **Progressive Enhancement**: Bootstrap 5.2x + HTMX 2.x + Alpine 3.x
+*   **Auto-Generated Models**: MySQL with Reliese Laravel base model generation
+*   **Comprehensive Testing**: Feature tests (Controllers/Jobs/Commands), Unit tests (Handlers/Services)
+*   **Policy-Based Authorization**: Scoped access control for all resources
+*   **Audit Trail**: Polymorphic change tracking with trooper stamps
 
 ---
 
-## Tech Stack/tracker-app
-    ```
+## Tech Stack
 
-2.  Install dependencies:
-    ```bash
-    composer install
-    npm install
-    ```
+- **PHP 8.2+** with strict types and scalar type hints
+- **Laravel 12.x** with Breeze authentication
+- **Database**: MySQL (production), SQLite (testing)
+- **Frontend**: Blade templates + Bootstrap 5.2x + HTMX 2.x + Alpine 3.x
+- **Queue**: Database-backed Laravel queue
+- **Mail**: Laravel mailable classes with queue support
+- **Testing**: PHPUnit with Feature/Unit test separation
+- **Models**: Auto-generated via Reliese Laravel
 
-3.  Configure environment:
-    ```bash
-    cp .env.example .env
-    php artisan key:generate
-    ```
-    
-    Update `.env` with your database credentials and OAuth provider keys (Google, XenForo).
+---
 
-4.  Run migrations and seeders:
-    ```bash
-    php artisan migrate --seed
-    ```
+## Contributor Quickstart
 
-5.  Generate base models (if schema changes):
-    ```bash
-    php artisan code:models
-    php artisan tracker:generate-factories
-    ```
+Get operational in under 5 minutes. All commands run from the `tracker-app/` directory.
 
-6.  Start the development environment:
-    ```bash
-    # Terminal 1: Laravel development server
-    php artisan serve
-    
-    # Terminal 2: Vite asset compilation
-    npm run dev
-    
-    # Terminal 3: Queue worker (for background jobs)
-    php artisan queue:work
-3.  Configure environment:
-    ```bash
-    cp .env.example .env
-    php artisan key:generate
-    ```full test suite:
+### 1. Install
+
 ```bash
+# Clone and navigate to the Laravel app directory
+git clone https://github.com/obsidianslicers/trooper-tracker.git
+cd trooper-tracker/tracker-app
+
+# Install PHP and JavaScript dependencies
+composer install
+npm install
+
+# Configure environment
+cp .env.example .env
+php artisan key:generate
+```
+
+**Configure your `.env` file** - See [Environment Variables](docs/ENVIRONMENT_VARIABLES.md) for complete reference:
+- Set database credentials
+- Add OAuth keys if testing Google/XenForo login (optional for basic development)
+- Queue driver defaults to `database`
+
+### 2. Run
+
+```bash
+# Set up database with sample data
+php artisan migrate --seed
+
+# Start development servers (requires 3 terminals)
+php artisan serve           # Terminal 1: Laravel app (http://localhost:8000)
+npm run dev                 # Terminal 2: Vite asset compilation
+php artisan queue:work      # Terminal 3: Background job processing
+```
+
+**Default Login:**
+- Check seeder output for admin credentials or create a new account
+- All new accounts require admin approval (approve via database or create as active)
+
+### 3. Test
+
+```bash
+# Run full test suite (Feature + Unit)
 php artisan test
-```
 
-Run specific test types:
-```bash
-# FKey Commands
+# Run with coverage report
+php artisan test --coverage
 
-```bash
-# Daily notification emails
-php artisan tracker:send-daily-event-notifications
-
-# Auto-close completed events and shifts
-php artisan tracker:close-events
-php artisan tracker:close-event-shifts
-
-# Recalculate trooper achievements and badges
-php artisan tracker:calculate-trooper-achievements
-
-# Sync with external organization systems
-php artisan tracker:synchronize-organizations
-
-# Code formatting
-./vendor/bin/pint
-```
-
-## Project Structure
-
-```
-tracker-app/
-├── app/
-│   ├── Bus/                    # MagicBus command/query dispatcher
-│   ├── Features/               # Domain-organized Commands & Queries
-│   │   ├── Events/
-│   │   ├── Troopers/
-│   │   ├── Organizations/
-│   │   ├── Reports/
-│   │   ├── Notices/
-│   │   └── Changes/
-│   ├── Http/Controllers/       # Thin ADR controllers
-│   ├── Models/                 # Extended Eloquent models
-│   │   └── Base/              # Auto-generated (DO NOT EDIT)
-│   ├── Policies/               # Authorization policies
-│   ├── Rules/                  # Custom validation rules
-│   ├── Services/               # Standalone services
-│   ├── Jobs/                   # Queue jobs
-│   └── Console/Commands/       # Artisan commands
-├── docs/                       # Project documentation
-├── resources/views/            # Blade templates
-├── routes/web/                 # Feature-organized routes
-└── tests/
-    ├── Feature/                # HTTP, Job, Command tests
-    └── Unit/                   # Handler, Service, Policy tests
-```
-
-## Documentation
-
-*   **[Project Structure](docs/PROJECT_STRUCTURE.md)** - Directory organization and component reference
-*   **[Coding Conventions](docs/CODING_CONVENTIONS.md)** - Architecture patterns, MagicBus, ADR, testing strategy
-*   **[Database Schema](docs/DATABASE.md)** - Complete table reference with ERD
-*   **[Authentication Flow](docs/AUTHENTICATION.md)** - Multi-provider auth and registration pipeline
-*   **[Notifications](docs/NOTIFICATIONS.md)** - Event notification system architecture
-*   **[Cheat Sheet](docs/CHEAT_SHEET.md)** - Common Artisan commands
-*   **[VSCode Extensions](docs/VSCODE_EXTENSIONS.md)** - Recommended extensions for development
-*   **[Code of Conduct](CODE_OF_CONDUCT.md)** - Community guidelines
-*   **[Contributing Guide](CONTRIBUTING.md)** - How to contribute
+# Run specific test file
 php artisan test tests/Feature/Http/Controllers/Events/EventDisplayControllerTest.php
 
-# With coverage
-php artisan test --coverage
+# Verify code style
+./vendor/bin/pint --test
 ```
 
-### Test Organization
+**Before submitting PRs:**
+- All tests must pass: `php artisan test`
+- Code must pass linting: `./vendor/bin/pint`
+- Follow conventions in `docs/CODING_CONVENTIONS.md`
 
-- **Feature Tests**: Full HTTP request/response cycle, job orchestration, command execution
-- **Unit Tests**: Business logic in Command/Query handlers, validation rules, policies
-- **Test Database**: SQLite in-memory for fast, isolated tests ```bash
-    php artisan migrate
-    ```
+### Common Development Commands
 
-5.  Start the development server:
-    ```bash
-    php artisan serve
-    npm run dev
-    ```
-
----
-
-## Testing
-
-Run the test suite:
 ```bash
-php artisan test
+# Generate base models after schema changes
+php artisan code:models
+php artisan tracker:generate-factories
+
+# Run scheduled tasks manually
+php artisan tracker:send-daily-event-notifications
+php artisan tracker:close-events
+php artisan tracker:calculate-trooper-achievements
+
+# Clear caches during development
+php artisan config:clear
+php artisan route:clear
+php artisan view:clear
 ```
 
 ---
 
-## Additional Resources
+## Documentation Guide
 
-*   [Code of Conduct](CODE_OF_CONDUCT.md)
-*   [Cheat Sheet](CHEAT_SHEET.md)
-*   [Coding Conventions](CODING_CONVENTIONS.md)
-*   [Contributing Guide](CONTRIBUTING.md)
-*   [VSCode Extensions](VSCODE_EXTENSIONS.md)
+Read the documentation in this order for maximum comprehension efficiency.
+
+### For New Contributors
+
+**Start here** - Essential reading before writing code:
+
+1. **[Architecture](docs/ARCHITECTURE.md)** - ADR, MagicBus, Command/Query patterns, domain organization, testing strategy
+2. **[Coding Conventions](docs/CODING_CONVENTIONS.md)** - Naming conventions, code style, architectural standards
+3. **[Project Structure](docs/PROJECT_STRUCTURE.md)** - Directory layout and file organization
+4. **[Database Schema](docs/DATABASE.md)** - Table reference, relationships, ERD
+
+**Recommended for all contributors:**
+
+5. **[Cheat Sheet](docs/CHEAT_SHEET.md)** - Quick reference for Artisan commands and workflows
+6. **[VSCode Extensions](docs/VSCODE_EXTENSIONS.md)** - Recommended editor setup
+
+### For Feature-Specific Work
+
+Consult these when working on specific subsystems:
+
+- **[Authentication](docs/AUTHENTICATION.md)** - Multi-provider auth and registration pipeline
+- **[Notifications](docs/NOTIFICATIONS.md)** - Event notification system (instant/daily/cancellations)
+- **[XenForo OAuth](docs/XENFORO_OAUTH.md)** - Forum integration via OAuth2
+
+### Deployment & Tooling
+
+- **[Environment Variables](docs/ENVIRONMENT_VARIABLES.md)** - Complete `.env` configuration reference
+- **[Deployment Guide](docs/DEPLOY.md)** - Production server setup and deployment procedures
+- **[Composer Dependencies](docs/COMPOSER.md)** - PHP package reference
+- **[NPM Dependencies](docs/NPM.md)** - Frontend package reference
+
+### For Contributors
+
+- **[Contributing Guide](CONTRIBUTING.md)** - Submission workflow, PR requirements, code review process
+- **[Code of Conduct](CODE_OF_CONDUCT.md)** - Community standards and enforcement
 
 ---
 
 ## Contributing
 
-We welcome contributions! Please see the [Contributing Guide](CONTRIBUTING.md) for detailed instructions on how to get started.
+Contributions are accepted and processed with the efficiency expected of Imperial operations. Review the [Contributing Guide](CONTRIBUTING.md) for submission protocols, then consult [Coding Conventions](docs/CODING_CONVENTIONS.md) for architectural requirements. All contributions must pass automated testing and code style validation before consideration.

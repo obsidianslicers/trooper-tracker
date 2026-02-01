@@ -1,18 +1,13 @@
 # Event Notifications
 
-This document describes how the Troop Tracker application manages and sends event notifications to troopers.
+Event notification system for informing troopers about new events and cancellations.
 
-## Overview
+**Notification Types:**
+- **Instant**: Email sent immediately on event creation
+- **Daily**: Digest email with all events since last notification
+- **Never**: No notifications sent
 
-The notification system informs troopers about new events and event cancellations based on their individual preferences. Troopers can choose to receive notifications **instantly**, in a **daily digest**, or **never**.
-
-## Notification Frequencies
-
-Troopers can configure their notification preferences through their profile settings. The system supports three notification frequencies:
-
-- **`NEVER`** - The trooper will not receive any event notifications
-- **`INSTANT`** - The trooper receives an email immediately when an event is created
-- **`DAILY`** - The trooper receives a daily digest email containing all new events posted since their last notification
+## How It Works
 
 ## Event Created Notifications
 

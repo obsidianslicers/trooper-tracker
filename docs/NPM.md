@@ -1,10 +1,10 @@
 # NPM Dependencies
 
-This document provides an overview of all NPM packages used in the Troop Tracker project. It is designed to help new contributors understand the frontend technology stack.
+Overview of frontend packages and build tools.
 
-## Production Dependencies (`dependencies`)
+## Production Dependencies
 
-These packages are bundled into the frontend application and shipped to production.
+Bundled into the frontend application:
 
 | Package | Purpose |
 |---|---|
@@ -20,9 +20,9 @@ These packages are bundled into the frontend application and shipped to producti
 | `jquery` | A fast, small, and feature-rich JavaScript library that simplifies DOM manipulation, event handling, and AJAX interactions. |
 | `typeahead.js` | A flexible JavaScript library that provides autocomplete/typeahead functionality for input fields with customizable suggestion engines. |
 
-## Development Dependencies (`devDependencies`)
+## Development Dependencies
 
-These packages are only used during development and the build process. They are not shipped to production.
+Used during development and build process only:
 
 | Package | Purpose |
 |---|---|

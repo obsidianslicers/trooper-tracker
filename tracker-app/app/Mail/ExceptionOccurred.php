@@ -53,7 +53,7 @@ class ExceptionOccurred extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Troop Tracker - Exception Occurred!'
+            subject: config('mail.prefix').' Exception Occurred!'
         );
     }
 

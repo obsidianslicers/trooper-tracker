@@ -62,17 +62,15 @@ To leverage Laravel's Eloquent ORM conventions and simplify relationship definit
 
 ## 6. Architecture
 
-For new and refactored features, we will adopt the **Action-Domain-Responder (ADR)** pattern. This pattern helps to separate concerns and organize application logic cleanly.
+This project follows **Action-Domain-Responder (ADR)** with **Command/Query Separation** via **MagicBus**. Controllers orchestrate, handlers execute business logic.
 
-This pattern is a practical application of several SOLID principles:
+**See [ARCHITECTURE.md](ARCHITECTURE.md) for comprehensive architectural documentation.**
 
--   **Single Responsibility Principle (S):** Each component has one job.
-    -   The **Action**'s responsibility is to interpret the HTTP request and orchestrate the call to the Domain. In Laravel, this is our invokable Controller.
-    -   The **Domain**'s responsibility is to execute the core business logic. In our application, this layer consists of **Eloquent Models** and dedicated **Service classes** that are completely unaware of the web context.
-    -   The **Responder**'s responsibility is to build the HTTP response from the data the Domain returns. This will typically be a **Blade view**, a **JSON response**, or a redirect.
-
--   **Dependency Inversion Principle (D):** It inverts the traditional flow of control.
-    -   High-level components (Actions) depend on abstractions, not on low-level components (Domain). The Domain logic doesn't know or care that it was called by a web controller; it could just as easily be called from an Artisan command or a queue job. This decoupling makes our business logic (the most valuable part of our code) more reusable and easier to test in isolation.
+Key architectural standards:
+- Use invokable controllers (single-action)
+- Dispatch Commands/Queries through MagicBus
+- Keep handlers focused and testable
+- Follow SOLID principles
 
 ## 7. Controllers
 
@@ -187,41 +185,11 @@ readonly class SendEventCreatedNotificationCommandHandler implements CommandHand
 
 ## 9. MagicBus: Command/Query Pattern
 
-The application uses a **MagicBus** implementation for organizing business logic using the Command/Query Separation pattern. This pattern provides a clean way to separate **write operations** (Commands) from **read operations** (Queries).
+This project uses **MagicBus** for Command/Query Separation. See [ARCHITECTURE.md](ARCHITECTURE.md) for conceptual overview.
 
-### 9.1. Overview
+### 9.1. Naming Convention
 
-**MagicBus** is a simple dispatcher that automatically routes Commands and Queries to their corresponding Handlers using a naming convention. This eliminates boilerplate routing code while maintaining explicit, testable components.
-
-**Key Benefits:**
-- **Convention over Configuration:** Handlers are auto-discovered by naming convention
-- **Single Responsibility:** Each handler does one thing
-- **Dependency Injection:** Handlers are resolved through Laravel's container
-- **Testability:** Handlers can be unit tested in isolation
-- **Reusability:** Handlers can be called from Controllers, Jobs, Commands, or other handlers
-
-### 9.2. Structure
-
-Business logic is organized in `app/Features/` by domain area:
-
-```
-app/Features/
-├── Events/
-│   ├── Commands/          # Write operations (create, update, delete)
-│   └── Queries/           # Read operations (fetch, search, report)
-├── Organizations/
-│   ├── Commands/
-│   └── Queries/
-├── Troopers/
-│   ├── Commands/
-│   └── Queries/
-└── Reports/
-    └── Queries/           # Reporting queries only
-```
-
-### 9.3. Naming Convention
-
-The MagicBus uses strict naming to auto-resolve handlers:
+MagicBus auto-resolves handlers by convention:
 
 | Type | Message Class | Handler Class |
 |------|---------------|---------------|
@@ -232,7 +200,7 @@ The MagicBus uses strict naming to auto-resolve handlers:
 
 **Rule:** `{MessageClass} + "Handler" = {HandlerClass}`
 
-### 9.4. Creating Commands
+### 9.2. Creating Commands
 
 Commands represent **write operations** that change state.
 
@@ -267,7 +235,7 @@ readonly class CreateEventCommandHandler implements CommandHandlerInterface
 }
 ```
 
-### 9.5. Creating Queries
+### 9.3. Creating Queries
 
 Queries represent **read operations** that fetch data without changing state.
 
@@ -296,7 +264,7 @@ readonly class GetTroopersByRoleQueryHandler implements QueryHandlerInterface
 }
 ```
 
-### 9.6. Dispatching via MagicBus
+### 9.4. Dispatching via MagicBus
 
 Use the `MagicBus` facade or inject `MagicBus` into your controllers:
 
@@ -335,7 +303,7 @@ class SendEventNotificationsJob implements ShouldQueue
 }
 ```
 
-### 9.7. MagicBusController
+### 9.5. MagicBusController
 
 For simple CRUD operations, use `MagicBusController` to avoid creating dedicated controller classes:
 
@@ -350,7 +318,7 @@ The `MagicBusController` automatically:
 2. Dispatches it through MagicBus
 3. Returns the result
 
-### 9.8. Handler Modifiers
+### 9.6. Handler Modifiers
 
 Handlers can use traits to modify their execution behavior:
 
@@ -384,7 +352,7 @@ readonly class SendNotificationCommandHandler implements CommandHandlerInterface
 }
 ```
 
-### 9.9. Testing Commands and Queries
+### 9.7. Testing Commands and Queries
 
 **Unit Test a Handler:**
 ```php
@@ -420,7 +388,7 @@ public function test_create_event_endpoint(): void
 }
 ```
 
-### 9.10. Best Practices
+### 9.8. Best Practices
 
 **DO:**
 - ✅ Make Command/Query classes readonly with public properties
@@ -437,7 +405,7 @@ public function test_create_event_endpoint(): void
 - ❌ Return void from Queries (they should return data)
 - ❌ Mix Commands and Queries in the same handler
 
-### 9.11. Integration with ADR
+### 9.9. Integration with ADR
 
 The MagicBus pattern complements the Action-Domain-Responder architecture:
 
@@ -451,7 +419,7 @@ This separation ensures business logic is reusable and testable independent of H
 
 A robust test suite is essential for our refactoring efforts. All new features and refactored code must be accompanied by tests.
 
-### 9.1. Test Strategy
+### 10.1. Test Strategy
 
 The appropriate test type depends on the component being tested:
 
@@ -462,7 +430,7 @@ The appropriate test type depends on the component being tested:
 
 This strategy ensures that our orchestration layers (Controllers, Jobs, Commands) are tested in realistic scenarios, while our business logic (Services) receives fast, isolated unit test coverage.
 
-### 9.2. Test Method Naming
+### 10.2. Test Method Naming
 
 All test method names must be `snake_cased` and begin with the `test_` prefix. The name should clearly describe what the test is asserting.
 
@@ -473,7 +441,7 @@ public function test_invoke_handles_unapproved_user(): void
 }
 ```
 
-### 9.3. Subject Under Test
+### 10.3. Subject Under Test
 
 When instantiating the class being tested, the variable name **must** be `$subject`.
 
@@ -486,7 +454,7 @@ public function test_something(): void
 }
 ```
 
-### 9.4. Mocking
+### 10.4. Mocking
 
 When creating mocks, use **Mockery** with the `shouldReceive()` chain for setting up expectations. This provides a clear, readable format.
 

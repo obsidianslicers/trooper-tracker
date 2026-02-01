@@ -1,10 +1,10 @@
-# Laravel Artisan Cheat Sheet
+# Artisan Command Reference
 
-This section provides a quick reference for common `php artisan` commands used during development.
+Quick reference for common Laravel Artisan commands.
 
-## Generating Code (`make:*`)
+## Code Generation (`make:*`)
 
-Use the `make` commands to quickly scaffold new classes. Many commands can be combined with flags for convenience.
+Scaffold new classes with `make` commands:
 
 | Command | Description |
 |---|---|
@@ -73,7 +73,9 @@ Use these commands to run your PHPUnit test suite.
 
 ## Deployment (to Production)
 
-These commands are typically run on your production server as part of your deployment process to ensure optimal performance.
+**See [ENVIRONMENT_VARIABLES.md](ENVIRONMENT_VARIABLES.md) for production `.env` configuration.**
+
+These commands are typically run on your production server:
 
 ```
 #!/bin/bash

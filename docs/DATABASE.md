@@ -1,20 +1,13 @@
-# Troop Tracker Database Schema
+# Database Schema
 
-## Overview
+Schema reference for Troop Tracker's MySQL database.
 
-The Troop Tracker database is designed to support a **501st Legion** and **Star Wars costuming club** management system. The schema facilitates:
+**Key Entities:**
+- Troopers (members), Organizations (clubs/garrisons/squads), Events (troops/appearances)
+- Costumes, Awards, Achievements, Notices, Notifications
+- OAuth authentication, Photo uploads, Audit trails
 
-- **Trooper management** (members of costuming organizations)
-- **Organization hierarchy** (clubs, garrisons, squads)
-- **Event coordination** (troops/appearances with shifts and signups)
-- **Costume tracking** and approvals
-- **Award and achievement** systems
-- **Notification and messaging** systems
-- **OAuth authentication** integration
-- **Photo uploads** with trooper tagging
-- **Audit trails** for model changes
-
-All tables use the `tt_` prefix (Troop Tracker) and follow Laravel conventions with `snake_case` naming, soft deletes, and timestamps.
+All tables use `tt_` prefix with `snake_case` naming, soft deletes, and timestamps.
 
 ---
 

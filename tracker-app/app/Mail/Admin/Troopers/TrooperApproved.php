@@ -40,7 +40,7 @@ class TrooperApproved extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Troop Tracker - Welcome, Trooper! You Passed Inspection!'
+            subject: config('mail.prefix').' Welcome, Trooper! You Passed Inspection!'
         );
     }
 

@@ -40,7 +40,7 @@ class CancelledEventNotification extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Troop Tracker - Event Cancelled'
+            subject: config('mail.prefix').' Event Cancelled'
         );
     }
 

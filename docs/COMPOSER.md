@@ -1,10 +1,8 @@
 # Composer Dependencies
 
-This document outlines the Composer dependencies used in the Troop Tracker project. It is intended to help developers understand the purpose of each package.
+Overview of Composer packages used in Troop Tracker.
 
-## Production Dependencies (`require`)
-
-These packages are required for the application to run in a production environment.
+## Production Dependencies
 
 | Package | Purpose |
 |---|---|
@@ -16,11 +14,9 @@ These packages are required for the application to run in a production environme
 | `laravel/tinker` | An interactive REPL (Read-Eval-Print Loop) for Laravel. Allows developers to interact with the application and its objects via the command line. |
 | `spatie/calendar-links` | A library to generate "Add to Calendar" links for various calendar services (Google, iCal, Outlook). Enhances user experience for event management. |
 
----
+## Development Dependencies
 
-## Development Dependencies (`require-dev`)
-
-These packages are only used for local development and testing. They are not installed in the production environment.
+Used for local development and testing only:
 
 | Package | Purpose |
 |---|---|

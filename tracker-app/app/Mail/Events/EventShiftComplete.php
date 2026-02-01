@@ -43,7 +43,7 @@ class EventShiftComplete extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Troop Tracker - Event Shift Complete - Action Required'
+            subject: config('mail.prefix').' Event Shift Complete - Action Required'
         );
     }
 

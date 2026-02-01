@@ -1,29 +1,21 @@
-# User Signup & Onboarding Flow
+# Authentication & Onboarding
 
-This document describes the unified signup and onboarding flow for Troop Tracker.  
-All identity providers — **Email**, **Google OAuth**, and **XenForo OAuth** — follow the same secure, consistent registration pipeline.
+Unified signup flow for all identity providers (Email, Google OAuth, XenForo OAuth).
 
-The system ensures:
-
-- Every user completes the **Registration Completion Form**
-- Every user is **approved by an admin/moderator** before gaining access
+**Key Features:**
+- Multi-provider authentication with unified registration
+- Mandatory admin approval before access
+- Secure session-based registration flow
 
 ---
 
-## Overview
+## Authentication Flow
 
-Troop Tracker separates **identity** from **registration**:
+Troop Tracker separates identity verification from registration:
 
-- **Identity step**  
-  Proves who the user is (Email, Google, XenForo)
-
-- **Registration step**  
-  Collects required information (TK number, name, etc.)
-
-- **Approval step**  
-  Admins verify and activate the account
-
-This ensures a clean, secure, and unified onboarding experience.
+- **Identity**: Proves who the user is
+- **Registration**: Collects required information
+- **Approval**: Admins verify and activate accounts
 
 ---
 
@@ -73,7 +65,9 @@ Once approved, users may log in using:
 
 - Email + password  
 - Google OAuth  
-- XenForo OAuth  
+- XenForo OAuth
+
+**OAuth Configuration:** See [ENVIRONMENT_VARIABLES.md](ENVIRONMENT_VARIABLES.md) for OAuth client ID/secret setup.  
 
 ---
 
