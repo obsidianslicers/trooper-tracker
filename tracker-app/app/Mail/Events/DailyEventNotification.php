@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Mail\Events;
 
+use App\Models\EventNotification;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Collection;
 
 /**
  * Mailable for daily event notification digest.
@@ -26,7 +27,7 @@ class DailyEventNotification extends Mailable implements ShouldQueue
     /**
      * Create a new daily event notification email instance.
      *
-     * @param Collection $event_notifications Collection of EventNotification models to include in digest
+     * @param  Collection<int,EventNotification>  $event_notifications  Collection of EventNotification models to include in digest
      */
     public function __construct(private readonly Collection $event_notifications)
     {
@@ -55,7 +56,7 @@ class DailyEventNotification extends Mailable implements ShouldQueue
      */
     public function content(): Content
     {
-        $this->event_notifications->load(['event', 'event.organization', 'event.event_shifts',]);
+        $this->event_notifications->load(['event', 'event.organization', 'event.event_shifts']);
 
         return new Content(
             view: 'emails.events.daily-event-notification',
@@ -81,8 +82,7 @@ class DailyEventNotification extends Mailable implements ShouldQueue
      * Updates each event notification's sent_at timestamp to track when
      * the notifications were delivered to the recipient.
      *
-     * @param \Symfony\Component\Mime\Email $message The sent email message instance
-     * @return void
+     * @param  \Symfony\Component\Mime\Email  $message  The sent email message instance
      */
     public function sent($message): void
     {

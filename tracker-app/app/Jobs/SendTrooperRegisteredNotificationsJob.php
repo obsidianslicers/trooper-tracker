@@ -8,7 +8,6 @@ use App\Bus\MagicBus;
 use App\Enums\MembershipRole;
 use App\Features\Troopers\Queries\GetTroopersByRoleQuery;
 use App\Mail\Admin\Troopers\TrooperAwaitingApproval;
-use App\Models\Event;
 use App\Models\Trooper;
 use App\Policies\TrooperPolicy;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -21,8 +20,6 @@ use Illuminate\Support\Facades\Mail;
  * This job notifies all administrators and moderators with valid email addresses
  * when a new trooper completes registration. This allows admins to review and approve
  * pending trooper accounts in a timely manner.
- *
- * @package App\Jobs
  */
 class SendTrooperRegisteredNotificationsJob implements ShouldQueue
 {
@@ -31,7 +28,7 @@ class SendTrooperRegisteredNotificationsJob implements ShouldQueue
     /**
      * Create a new job instance.
      *
-     * @param Trooper $trooper The newly registered trooper awaiting approval.
+     * @param  Trooper  $trooper  The newly registered trooper awaiting approval.
      */
     public function __construct(private readonly Trooper $trooper)
     {
@@ -45,8 +42,7 @@ class SendTrooperRegisteredNotificationsJob implements ShouldQueue
      * about the newly registered trooper awaiting approval. Only troopers with valid
      * email addresses receive notifications.
      *
-     * @param MagicBus $bus The message bus for dispatching queries
-     * @return void
+     * @param  MagicBus  $bus  The message bus for dispatching queries
      */
     public function handle(MagicBus $bus): void
     {
@@ -58,7 +54,7 @@ class SendTrooperRegisteredNotificationsJob implements ShouldQueue
         {
             if ($admin->emailAppearsValid())
             {
-                Mail::to($admin->email)->queue(new TrooperAwaitingApproval());
+                Mail::to($admin->email)->queue(new TrooperAwaitingApproval);
             }
         }
 
@@ -66,13 +62,13 @@ class SendTrooperRegisteredNotificationsJob implements ShouldQueue
 
         $moderators = $bus->send($moderators_query);
 
-        $policy = new TrooperPolicy();
+        $policy = new TrooperPolicy;
 
         foreach ($moderators as $moderator)
         {
             if ($moderator->emailAppearsValid() && $policy->moderate($moderator, $this->trooper))
             {
-                Mail::to($moderator->email)->queue(new TrooperAwaitingApproval());
+                Mail::to($moderator->email)->queue(new TrooperAwaitingApproval);
             }
         }
     }

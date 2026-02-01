@@ -27,7 +27,9 @@ class AtLeastOneOrganizationSelectedRule implements ValidationRule
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        if (! is_array($value) || ! collect($value)->contains(fn ($organization) => ! empty($organization['selected'])))
+        $finder = fn (array $organization): bool => !empty($organization['selected']);
+
+        if (!is_array($value) || !collect($value)->contains($finder))
         {
             $fail('Please select at least one organization.');
         }

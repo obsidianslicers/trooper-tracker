@@ -6,8 +6,10 @@
 <!--
 [![Laravel Tests](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/laravel-tests.yml/badge.svg)](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/laravel-tests.yml)
 
-[![Laravel Style](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/laravel-pint-pr.yml/badge.svg)](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/laravel-pint-pr.yml)
 -->
+[![Laravel Style](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/pint.yml/badge.svg)](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/pint.yml)
+
+[![Laravel Stan](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/phpstan.yml/badge.svg)](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/phpstan.yml)
 
 ---
 

@@ -14,13 +14,21 @@ jobs:
 
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+          php-version: '8.4'
           coverage: none
 
-      - name: Install dependencies
+      - name: Install Composer dependencies
         working-directory: ./tracker-app
-        run: composer install --no-interaction --no-progress
+        run: |
+          composer install --no-interaction --no-progress
+          composer dump-autoload 
 
       - name: Run Pint in test mode
         working-directory: ./tracker-app
-        run: ./vendor/bin/pint app/helpers.php app/Bus --test
+        run: |
+          ./vendor/bin/pint app/helpers.php --test
+          ./vendor/bin/pint app/Bus --test
+          ./vendor/bin/pint app/Jobs --test
+          ./vendor/bin/pint app/Mail --test
+          ./vendor/bin/pint app/Policies --test
+          ./vendor/bin/pint app/Rules --test

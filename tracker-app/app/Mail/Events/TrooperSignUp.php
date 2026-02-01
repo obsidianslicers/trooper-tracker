@@ -25,7 +25,7 @@ class TrooperSignUp extends Mailable implements ShouldQueue
     /**
      * Create a new event sign-up confirmation email instance.
      *
-     * @param EventTrooper $event_trooper The event trooper assignment that was created
+     * @param  EventTrooper  $event_trooper  The event trooper assignment that was created
      */
     public function __construct(private readonly EventTrooper $event_trooper)
     {
