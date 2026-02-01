@@ -28,9 +28,11 @@ On your XenForo forum, create an OAuth2 client:
 
 4. After creation, note your **Client ID** and **Client Secret**
 
-### 2. Laravel Environment Variables
+### 2. Laravel Configuration
 
-Add the following to your `.env` file:
+**Environment Variables:** See [ENVIRONMENT_VARIABLES.md](ENVIRONMENT_VARIABLES.md) for complete reference.
+
+Add to your `.env` file:
 
 ```env
 XENFORO_CLIENT_ID=your-client-id-here
@@ -39,11 +41,9 @@ XENFORO_REDIRECT_URI=https://yourdomain.com/auth/xenforo/callback
 XENFORO_BASE_URL=https://forum.example.com
 ```
 
-**Note**: `XENFORO_BASE_URL` should be the base URL of your XenForo installation (without trailing slash).
+### 3. Service Provider Configuration
 
-### 3. Configuration File
-
-The provider configuration is already set up in `config/services.php`:
+The provider configuration is in `config/services.php`:
 
 ```php
 'xenforo' => [

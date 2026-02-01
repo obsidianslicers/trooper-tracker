@@ -42,7 +42,7 @@ class DailyEventNotification extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Troop Tracker - New Event Posted'
+            subject: config('mail.prefix').' New Event Posted'
         );
     }
 

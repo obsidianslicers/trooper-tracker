@@ -38,7 +38,7 @@ class TrooperAwaitingApproval extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Troop Tracker - Awaiting Approval',
+            subject: config('mail.prefix').' Awaiting Approval',
         );
     }
 

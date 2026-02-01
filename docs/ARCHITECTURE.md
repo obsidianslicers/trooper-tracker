@@ -237,17 +237,9 @@ readonly class SendNotificationCommandHandler implements CommandHandlerInterface
 
 ## Configuration
 
-### Environment Variables
+**See [ENVIRONMENT_VARIABLES.md](ENVIRONMENT_VARIABLES.md) for complete `.env` reference.**
 
-Key configuration in `.env`:
-
-- **Database**: Connection, credentials, driver
-- **OAuth**: Google and XenForo client IDs/secrets
-- **Queue**: Driver selection (database, redis, sync)
-- **Mail**: SMTP configuration, from address
-- **App**: Debug mode, environment, key
-
-### Config Files
+Key configuration files:
 
 - `config/tracker.php` - Application-specific settings
 - `config/auth.php` - Authentication guards and providers

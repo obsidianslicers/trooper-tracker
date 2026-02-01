@@ -73,7 +73,9 @@ Use these commands to run your PHPUnit test suite.
 
 ## Deployment (to Production)
 
-These commands are typically run on your production server as part of your deployment process to ensure optimal performance.
+**See [ENVIRONMENT_VARIABLES.md](ENVIRONMENT_VARIABLES.md) for production `.env` configuration.**
+
+These commands are typically run on your production server:
 
 ```
 #!/bin/bash

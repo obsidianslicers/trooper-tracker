@@ -40,7 +40,7 @@ class TrooperSignUp extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Troop Tracker - Event Sign-Up Confirmation'
+            subject: config('mail.prefix').' Event Sign-Up Confirmation'
         );
     }
 

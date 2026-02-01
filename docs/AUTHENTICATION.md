@@ -65,7 +65,9 @@ Once approved, users may log in using:
 
 - Email + password  
 - Google OAuth  
-- XenForo OAuth  
+- XenForo OAuth
+
+**OAuth Configuration:** See [ENVIRONMENT_VARIABLES.md](ENVIRONMENT_VARIABLES.md) for OAuth client ID/secret setup.  
 
 ---
 

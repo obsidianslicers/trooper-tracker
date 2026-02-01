@@ -115,4 +115,16 @@ return [
         'name' => env('MAIL_FROM_NAME', 'Example'),
     ],
 
+    /*
+    |-------------------------------------------------------------------------- 
+    | Mail Subject Prefix
+    |--------------------------------------------------------------------------
+    |
+    | This setting allows you to specify a prefix that will be added to the
+    | subject line of all outgoing emails. This can be useful for easily
+    | identifying emails sent from this application.
+    |
+    */
+    'prefix' => env('MAIL_SUBJECT_PREFIX', '[Troop Tracker]'),
+
 ];

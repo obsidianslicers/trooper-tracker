@@ -111,10 +111,10 @@ cp .env.example .env
 php artisan key:generate
 ```
 
-**Configure your `.env` file:**
-- Set database credentials (MySQL recommended, SQLite works for local dev)
+**Configure your `.env` file** - See [Environment Variables](docs/ENVIRONMENT_VARIABLES.md) for complete reference:
+- Set database credentials
 - Add OAuth keys if testing Google/XenForo login (optional for basic development)
-- Queue driver defaults to `database` (no additional setup needed)
+- Queue driver defaults to `database`
 
 ### 2. Run
 
@@ -201,6 +201,7 @@ Consult these when working on specific subsystems:
 
 ### Deployment & Tooling
 
+- **[Environment Variables](docs/ENVIRONMENT_VARIABLES.md)** - Complete `.env` configuration reference
 - **[Deployment Guide](docs/DEPLOY.md)** - Production server setup and deployment procedures
 - **[Composer Dependencies](docs/COMPOSER.md)** - PHP package reference
 - **[NPM Dependencies](docs/NPM.md)** - Frontend package reference
