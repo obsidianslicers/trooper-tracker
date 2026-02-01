@@ -28,7 +28,9 @@ jobs:
           restore-keys: composer-
 
       - name: Install dependencies
-        run: composer install --no-progress --prefer-dist
+        run: |
+          composer install --no-progress --prefer-dist
+          composer dump-autoload
 
       - name: Run PHPStan
         run: vendor/bin/phpstan analyse --no-progress --memory-limit=1G
