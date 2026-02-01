@@ -58,13 +58,13 @@ class SendEventCancelledNotificationsJobTest extends TestCase
 
         // Assert
         $this->event->refresh();
-        $this->assertNotNull($this->event->create_notifications_sent_at);
+        $this->assertNotNull($this->event->cancel_notifications_sent_at);
     }
 
     public function test_handle_does_not_send_when_already_sent(): void
     {
         // Arrange
-        $this->event->create_notifications_sent_at = now();
+        $this->event->cancel_notifications_sent_at = now();
         $this->event->save();
 
         $this->bus_mock->shouldNotReceive('send');
@@ -101,8 +101,8 @@ class SendEventCancelledNotificationsJobTest extends TestCase
 
         // Assert
         $this->event->refresh();
-        $this->assertNotNull($this->event->create_notifications_sent_at);
-        $this->assertEqualsWithDelta(now()->timestamp, $this->event->create_notifications_sent_at->timestamp, 2);
+        $this->assertNotNull($this->event->cancel_notifications_sent_at);
+        $this->assertEqualsWithDelta(now()->timestamp, $this->event->cancel_notifications_sent_at->timestamp, 2);
     }
 
     public function test_handle_sends_notifications_with_empty_trooper_collection(): void
@@ -121,7 +121,7 @@ class SendEventCancelledNotificationsJobTest extends TestCase
 
         // Assert
         $this->event->refresh();
-        $this->assertNotNull($this->event->create_notifications_sent_at);
+        $this->assertNotNull($this->event->cancel_notifications_sent_at);
     }
 
     public function test_job_implements_should_queue(): void
