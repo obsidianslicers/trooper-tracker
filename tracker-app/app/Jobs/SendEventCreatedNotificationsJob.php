@@ -18,8 +18,6 @@ use Illuminate\Foundation\Queue\Queueable;
  * valid email addresses and haven't already been notified about the event.
  * Troopers with instant notification preferences receive emails immediately,
  * while others have their notifications queued for batch processing.
- *
- * @package App\Jobs
  */
 class SendEventCreatedNotificationsJob implements ShouldQueue
 {
@@ -28,7 +26,7 @@ class SendEventCreatedNotificationsJob implements ShouldQueue
     /**
      * Create a new job instance.
      *
-     * @param Event $event The event to create notifications for.
+     * @param  Event  $event  The event to create notifications for.
      */
     public function __construct(private readonly Event $event)
     {
@@ -41,8 +39,6 @@ class SendEventCreatedNotificationsJob implements ShouldQueue
      * Processes all active troopers and creates event notifications based on their
      * notification preferences. Troopers with instant notifications receive emails
      * immediately, while others have notifications queued for later batch processing.
-     *
-     * @return void
      */
     public function handle(MagicBus $bus): void
     {

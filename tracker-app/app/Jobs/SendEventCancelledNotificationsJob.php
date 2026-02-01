@@ -17,8 +17,6 @@ use Illuminate\Foundation\Queue\Queueable;
  * This job notifies all troopers with a "going" status for event shifts belonging
  * to a cancelled event. Only troopers with valid email addresses receive notifications.
  * The job runs once per event, tracked by the cancel_notifications_sent_at timestamp.
- *
- * @package App\Jobs
  */
 class SendEventCancelledNotificationsJob implements ShouldQueue
 {
@@ -27,7 +25,7 @@ class SendEventCancelledNotificationsJob implements ShouldQueue
     /**
      * Create a new job instance.
      *
-     * @param Event $event The cancelled event to send notifications for.
+     * @param  Event  $event  The cancelled event to send notifications for.
      */
     public function __construct(private readonly Event $event)
     {
@@ -40,8 +38,6 @@ class SendEventCancelledNotificationsJob implements ShouldQueue
      * Sends cancellation emails to all troopers who were marked as "going" for any
      * shift in the cancelled event. Updates the event's cancel_notifications_sent_at
      * timestamp to prevent duplicate notifications.
-     *
-     * @return void
      */
     public function handle(MagicBus $bus): void
     {

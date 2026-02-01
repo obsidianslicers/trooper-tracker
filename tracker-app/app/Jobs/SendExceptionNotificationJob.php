@@ -40,22 +40,18 @@ class SendExceptionNotificationJob implements ShouldQueue
     /**
      * Create a new exception notification job instance.
      *
-     * @param Throwable $exception The exception that occurred in the application.
-     * @param array<string, mixed> $context Additional context about when/where exception occurred (request, user, etc.).
+     * @param  Throwable  $exception  The exception that occurred in the application.
+     * @param  array<string, mixed>  $context  Additional context about when/where exception occurred (request, user, etc.).
      */
     public function __construct(
         private readonly Throwable $exception,
-        private readonly array $context = [])
-    {
-    }
+        private readonly array $context = []) {}
 
     /**
      * Execute the job to send exception notifications.
      *
      * Retrieves all administrator troopers and queues an exception notification
      * email to each one. Uses Mail::queue() for asynchronous delivery.
-     *
-     * @return void
      */
     public function handle(MagicBus $bus): void
     {

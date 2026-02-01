@@ -26,7 +26,7 @@ class DailyEventNotification extends Mailable implements ShouldQueue
 
     /**
      * Create a new daily event notification email instance.
-     * 
+     *
      * @param  Collection<int,EventNotification>  $event_notifications  Collection of EventNotification models to include in digest
      */
     public function __construct(private readonly Collection $event_notifications)
