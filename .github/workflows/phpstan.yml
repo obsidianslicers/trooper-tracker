@@ -10,27 +10,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+      # Call the reusable workflow - name: Install PHP + Composer uses: ./.github/workflows/reusable-composer-install.yml with: php_version: '8.2'
+      - name: Install PHP + Composer
+        uses: ./.github/workflows/inc/composer-install.yml
         with:
-          php-version: '8.3'
-          extensions: mbstring, intl, pdo_mysql
-          coverage: none
-
-      - name: Cache Composer dependencies
-        uses: actions/cache@v4
-        with:
-          path: vendor
-          key: composer-${{ hashFiles('composer.lock') }}
-          restore-keys: composer-
-
-      - name: Install dependencies
-        run: |
-          composer install --no-progress --prefer-dist
-          composer dump-autoload
+          php_version: '8.2'
+          working_directory: './tracker-app'  
 
       - name: Run PHPStan
         run: vendor/bin/phpstan analyse --no-progress --memory-limit=1G

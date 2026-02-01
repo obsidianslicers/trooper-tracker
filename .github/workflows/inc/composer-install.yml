@@ -1,0 +1,30 @@
+name: Reusable Composer Install
+
+on:
+  workflow_call:
+    inputs:
+      php_version:
+        required: true
+        type: string
+      working_directory:
+        required: true
+        type: string
+
+jobs:
+  composer-install:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ inputs.php_version }}
+          coverage: none
+
+      - name: Install Composer dependencies
+        working-directory: ${{ inputs.working_directory }}
+        run: |
+          composer install --no-interaction --no-progress
+          composer dump-autoload
+
