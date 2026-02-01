@@ -10,9 +10,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Call the reusable workflow - name: Install PHP + Composer uses: ./.github/workflows/reusable-composer-install.yml with: php_version: '8.2'
+      # Call the reusable workflow
       - name: Install PHP + Composer
-        uses: ./.github/workflows/inc/composer-install.yml
+        uses: ./.github/workflows/composer-install.yml
         with:
           php_version: '8.2'
           working_directory: './tracker-app'  
