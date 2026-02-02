@@ -13,7 +13,6 @@ use Illuminate\Http\RedirectResponse;
  * Class CreateSubmitController
  *
  * Handles the submission of the form for creating a new award.
- * @package App\Http\Controllers\Admin\Awards
  */
 class CreateSubmitController extends MagicBusController
 {
@@ -23,12 +22,12 @@ class CreateSubmitController extends MagicBusController
      * Validates the request, creates a new award with the provided data,
      * saves it, and then redirects with a success message.
      *
-     * @param CreateRequest $request The validated request containing the new award's data.
+     * @param  CreateRequest  $request  The validated request containing the new award's data.
      * @return RedirectResponse A redirect response to the awards list.
      */
     public function __invoke(CreateRequest $request): RedirectResponse
     {
-        $award = new Award();
+        $award = new Award;
 
         $award->organization_id = $request->validated('organization_id');
         $award->name = $request->validated('name');

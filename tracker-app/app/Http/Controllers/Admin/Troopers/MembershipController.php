@@ -31,8 +31,8 @@ class MembershipController extends MagicBusController
      * organization memberships via GetTrooperMembershipsQuery, and returns the view
      * for managing a specific trooper's organization memberships.
      *
-     * @param Request $request The incoming HTTP request.
-     * @param Trooper $trooper The trooper whose organization memberships are to be displayed.
+     * @param  Request  $request  The incoming HTTP request.
+     * @param  Trooper  $trooper  The trooper whose organization memberships are to be displayed.
      * @return View The rendered authority page view.
      */
     public function __invoke(Request $request, Trooper $trooper): View

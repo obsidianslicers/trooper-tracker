@@ -26,7 +26,7 @@ class RegisterController extends MagicBusController
      * authentication information from the session (if OAuth was used). The
      * registration data includes the email and method (OAuth provider or manual).
      *
-     * @param Request $request The incoming HTTP request.
+     * @param  Request  $request  The incoming HTTP request.
      * @return View The rendered registration page view with organizations and registration data.
      */
     public function __invoke(Request $request): View
@@ -39,9 +39,9 @@ class RegisterController extends MagicBusController
 
         $registration_method = old('registration_method', $registration_auth['method'] ?? 'email');
 
-        $hierarchy_query = new GetOrganizationHierarchyQuery();
+        $hierarchy_query = new GetOrganizationHierarchyQuery;
 
-        $organization_hierarchy = $this->bus->send($hierarchy_query)->map(fn(array $org) => (object) $org);
+        $organization_hierarchy = $this->bus->send($hierarchy_query)->map(fn (array $org) => (object) $org);
 
         foreach ($organization_hierarchy as $organization)
         {

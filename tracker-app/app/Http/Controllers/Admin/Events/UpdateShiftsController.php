@@ -31,8 +31,8 @@ class UpdateShiftsController extends MagicBusController
      * Loads existing shifts ordered by start time and renders the shift
      * management view.
      *
-     * @param Request $request The incoming HTTP request.
-     * @param Event $event The event whose shifts are being managed (route model binding).
+     * @param  Request  $request  The incoming HTTP request.
+     * @param  Event  $event  The event whose shifts are being managed (route model binding).
      * @return View The shift management form view.
      */
     public function __invoke(Request $request, Event $event): View

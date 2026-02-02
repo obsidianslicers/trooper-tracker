@@ -6,7 +6,6 @@ namespace App\Http\Controllers\Admin\Troopers;
 
 use App\Http\Controllers\MagicBusController;
 use App\Models\Trooper;
-use App\Services\BreadCrumbService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -14,7 +13,6 @@ use Illuminate\Http\Request;
  * Class ProfileController
  *
  * Handles the display of a single trooper's profile page.
- * @package App\Http\Controllers\Admin\Troopers
  */
 class ProfileController extends MagicBusController
 {
@@ -30,8 +28,8 @@ class ProfileController extends MagicBusController
      * This method authorizes the user, sets up breadcrumbs, and returns the view
      * for a specific trooper's profile.
      *
-     * @param Request $request The incoming HTTP request.
-     * @param Trooper $trooper The trooper whose profile is to be displayed.
+     * @param  Request  $request  The incoming HTTP request.
+     * @param  Trooper  $trooper  The trooper whose profile is to be displayed.
      * @return View The rendered profile page view.
      */
     public function __invoke(Request $request, Trooper $trooper): View

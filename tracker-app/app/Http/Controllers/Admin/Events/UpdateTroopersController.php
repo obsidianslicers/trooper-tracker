@@ -31,8 +31,8 @@ class UpdateTroopersController extends MagicBusController
      * Loads event shifts with roster scope and renders the trooper
      * management view.
      *
-     * @param Request $request The incoming HTTP request.
-     * @param Event $event The event whose trooper roster is being managed (route model binding).
+     * @param  Request  $request  The incoming HTTP request.
+     * @param  Event  $event  The event whose trooper roster is being managed (route model binding).
      * @return View The trooper roster management form view.
      */
     public function __invoke(Request $request, Event $event): View

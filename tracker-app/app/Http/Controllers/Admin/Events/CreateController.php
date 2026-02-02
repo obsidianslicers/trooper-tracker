@@ -39,8 +39,8 @@ class CreateController extends MagicBusController
      * an organization from query parameters. Returns the view with the event,
      * organization hierarchy, and available organizations.
      *
-     * @param Request $request The incoming HTTP request object.
-     * @param Event $event Event model (injected but not used, new instance created).
+     * @param  Request  $request  The incoming HTTP request object.
+     * @param  Event  $event  Event model (injected but not used, new instance created).
      * @return View The rendered event creation view.
      */
     public function __invoke(Request $request, Event $event): View
@@ -49,11 +49,11 @@ class CreateController extends MagicBusController
 
         $trooper = $request->user();
 
-        $organization_hierarchy_query = new GetOrganizationHierarchyQuery();
+        $organization_hierarchy_query = new GetOrganizationHierarchyQuery;
 
-        $organization_hierarchy = $this->bus->send($organization_hierarchy_query)->map(fn(array $org) => (object) $org);
+        $organization_hierarchy = $this->bus->send($organization_hierarchy_query)->map(fn (array $org) => (object) $org);
 
-        $event = new Event();
+        $event = new Event;
 
         // Set defaults
         $event->type = EventType::REGULAR;
@@ -98,7 +98,7 @@ class CreateController extends MagicBusController
         }
         else
         {
-            $event->organization_id = old('organization_id', $event->organization_id . '');
+            $event->organization_id = old('organization_id', $event->organization_id.'');
         }
 
         if ($event->organization_id != null)

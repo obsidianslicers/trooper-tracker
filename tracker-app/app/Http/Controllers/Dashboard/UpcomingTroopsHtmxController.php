@@ -21,7 +21,7 @@ class UpcomingTroopsHtmxController extends MagicBusController
     /**
      * Handle the incoming request to display the upcoming troops partial.
      *
-     * @param Request $request The incoming HTTP request.
+     * @param  Request  $request  The incoming HTTP request.
      * @return View The rendered view partial for upcoming troops.
      */
     public function __invoke(Request $request): View

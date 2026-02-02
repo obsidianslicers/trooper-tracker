@@ -29,8 +29,8 @@ class UpdateImageController extends MagicBusController
      * stores them in public storage, updates the organization's image paths, and returns
      * the image display view.
      *
-     * @param Request $request The incoming HTTP request object.
-     * @param Organization $organization The organization to update the logo for.
+     * @param  Request  $request  The incoming HTTP request object.
+     * @param  Organization  $organization  The organization to update the logo for.
      * @return View The organization image display view (pages.admin.organizations.image).
      */
     public function __invoke(Request $request, Organization $organization): View
@@ -44,7 +44,7 @@ class UpdateImageController extends MagicBusController
         $file = $request->file('logo');
 
         // Create manager with GD or Imagick driver
-        $manager = new ImageManager(new Driver());
+        $manager = new ImageManager(new Driver);
 
         // Read the uploaded file
         $image = $manager->read($file->getPathname());

@@ -23,8 +23,8 @@ class RegistrationMiddleware
      * Checks for the presence and expiration of the registration_auth session data.
      * Redirects to signup with an error message if the session is invalid or expired.
      *
-     * @param Request $request The incoming HTTP request
-     * @param Closure $next The next middleware in the pipeline
+     * @param  Request  $request  The incoming HTTP request
+     * @param  Closure  $next  The next middleware in the pipeline
      * @return mixed The response from the next middleware or a redirect
      */
     public function handle(Request $request, Closure $next)

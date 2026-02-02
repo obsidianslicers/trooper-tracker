@@ -24,7 +24,7 @@ class HistoricalTroopsHtmxController extends MagicBusController
      * Fetches historical troops for the specified or authenticated trooper,
      * sorts them by end date in descending order, and returns the corresponding view.
      *
-     * @param Request $request The incoming HTTP request, which may contain a 'trooper_id'.
+     * @param  Request  $request  The incoming HTTP request, which may contain a 'trooper_id'.
      * @return View The rendered view partial for historical troops.
      */
     public function __invoke(Request $request): View

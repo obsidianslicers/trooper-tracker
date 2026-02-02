@@ -25,8 +25,8 @@ class ShareEventController extends MagicBusController
      * view where users can generate and copy shareable links or share
      * directly to social media platforms.
      *
-     * @param Request $request The incoming HTTP request.
-     * @param Event $event The event to be shared.
+     * @param  Request  $request  The incoming HTTP request.
+     * @param  Event  $event  The event to be shared.
      * @return View The rendered sharing page view.
      */
     public function __invoke(Request $request, Event $event): View

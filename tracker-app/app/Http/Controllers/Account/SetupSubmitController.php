@@ -13,28 +13,14 @@ use Illuminate\Http\RedirectResponse;
 /**
  * Handles form submission for trooper organization membership setup.
  *
- * This controller follows the ADR pattern as an Action that:
- * - Validates organization selections via SetupRequest
- * - Updates trooper's email and marks setup as completed
- * - Persists organization membership/assignment selections as TrooperAssignment records
- * - Redirects to costume setup page (next step in onboarding)
- *
- * This is typically the first step in trooper onboarding after account approval,
- * where they configure which organizations they belong to and their roles within them.
+ * This controller validates organization selections, marks setup as completed,
+ * persists organization memberships, and redirects to the costume setup page.
+ * This is the first step in trooper onboarding after account approval.
  */
 class SetupSubmitController extends MagicBusController
 {
     /**
      * Handle the incoming request to process organization setup submission.
-     *
-     * Workflow:
-     * 1. Retrieves the authenticated trooper from the request
-     * 2. Dispatches UpdateTrooperCommand with complete_setup=true to mark onboarding progress
-     * 3. Dispatches UpdateTrooperMembershipsCommand to persist organization selections
-     * 4. Redirects to account.costumes route (next onboarding step)
-     *
-     * @param SetupRequest $request The validated setup form request containing organizations data
-     * @return RedirectResponse Redirect to account.costumes route
      */
     public function __invoke(SetupRequest $request): RedirectResponse
     {

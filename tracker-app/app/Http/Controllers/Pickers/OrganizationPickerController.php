@@ -26,7 +26,7 @@ class OrganizationPickerController extends MagicBusController
      * organizations the authenticated user is assigned to moderate. Otherwise,
      * it returns an empty list.
      *
-     * @param Request $request The incoming HTTP request.
+     * @param  Request  $request  The incoming HTTP request.
      * @return View The rendered organization picker view.
      */
     public function __invoke(Request $request): View
@@ -37,7 +37,7 @@ class OrganizationPickerController extends MagicBusController
 
         if ($property === null)
         {
-            throw new Exception("Missing property parameter");
+            throw new Exception('Missing property parameter');
         }
 
         $query = new GetOrganizationsForPickerQuery($trooper, $request->query());

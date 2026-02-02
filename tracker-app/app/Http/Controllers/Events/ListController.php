@@ -26,16 +26,16 @@ class ListController extends MagicBusController
      * (filtered to only those that can attend), shifts, and organizer details.
      * Events are ordered by date and filtered to only show future events.
      *
-     * @param Request $request The incoming request
+     * @param  Request  $request  The incoming request
      * @return View The rendered events list page with upcoming events
      */
     public function __invoke(Request $request): View
     {
-        $events_query = new GetEventsForDisplayQuery();
+        $events_query = new GetEventsForDisplayQuery;
 
         $events = $this->bus->send($events_query);
 
-        $costume_organizations = $this->bus->send(new GetOrganizationsQuery());
+        $costume_organizations = $this->bus->send(new GetOrganizationsQuery);
 
         $data = compact('events', 'costume_organizations');
 

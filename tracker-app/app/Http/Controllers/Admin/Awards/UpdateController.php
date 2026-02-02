@@ -13,7 +13,6 @@ use Illuminate\Http\Request;
  * Class UpdateController
  *
  * Handles displaying the form to update an existing award.
- * @package App\Http\Controllers\Admin\Awards
  */
 class UpdateController extends MagicBusController
 {
@@ -29,8 +28,8 @@ class UpdateController extends MagicBusController
      * Authorizes the user, sets up breadcrumbs, and returns the view
      * containing the form to update an existing award.
      *
-     * @param Request $request The incoming HTTP request object.
-     * @param Award $award The award to be updated.
+     * @param  Request  $request  The incoming HTTP request object.
+     * @param  Award  $award  The award to be updated.
      * @return View The rendered award update view.
      */
     public function __invoke(Request $request, Award $award): View

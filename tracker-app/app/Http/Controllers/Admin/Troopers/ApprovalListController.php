@@ -14,8 +14,6 @@ use Illuminate\Http\Request;
  * Class TrooperApprovalDisplayController
  *
  * Handles the display of troopers pending approval.
- * @package App\Http\Controllers\Admin\Troopers
- * This controller retrieves a list of troopers awaiting approval and displays them to authorized command staff.
  */
 class ApprovalListController extends MagicBusController
 {
@@ -31,7 +29,7 @@ class ApprovalListController extends MagicBusController
      * This method retrieves all troopers with a 'pending' status. For non-admin users,
      * it filters the list to show only troopers they are responsible for moderating.
      *
-     * @param Request $request The incoming HTTP request.
+     * @param  Request  $request  The incoming HTTP request.
      * @return View A view containing the list of troopers pending approval.
      */
     public function __invoke(Request $request): View

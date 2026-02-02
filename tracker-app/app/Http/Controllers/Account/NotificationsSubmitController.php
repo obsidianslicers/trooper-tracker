@@ -35,7 +35,7 @@ class NotificationsSubmitController extends MagicBusController
      * 4. Flashes success message via FlashMessageService
      * 5. Redirects to account.notifications route
      *
-     * @param NotificationRequest $request Validated request containing notification_frequency and organizations data
+     * @param  NotificationRequest  $request  Validated request containing notification_frequency and organizations data
      * @return RedirectResponse Redirect to account.notifications route with success message
      */
     public function __invoke(NotificationRequest $request): RedirectResponse

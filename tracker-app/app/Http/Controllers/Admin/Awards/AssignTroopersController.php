@@ -13,7 +13,6 @@ use Illuminate\Http\Request;
  * Class AssignTroopersController
  *
  * Handles displaying the form to assign an award to troopers.
- * @package App\Http\Controllers\Admin\Awards
  */
 class AssignTroopersController extends MagicBusController
 {
@@ -29,8 +28,8 @@ class AssignTroopersController extends MagicBusController
      * Authorizes the user, sets up breadcrumbs, and returns the view containing
      * the form to assign the award to troopers.
      *
-     * @param Request $request The incoming HTTP request object.
-     * @param Award $award The award to assign.
+     * @param  Request  $request  The incoming HTTP request object.
+     * @param  Award  $award  The award to assign.
      * @return View The rendered award assignment view.
      */
     public function __invoke(Request $request, Award $award): View

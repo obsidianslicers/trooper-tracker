@@ -25,8 +25,8 @@ class UpdateTroopersSubmitController extends MagicBusController
      * registered to the event. Only updates troopers that exist in the event.
      * Redirects back to the trooper management page with a success message.
      *
-     * @param UpdateTroopersRequest $request The validated trooper status update request.
-     * @param Event $event The event whose troopers are being updated (route model binding).
+     * @param  UpdateTroopersRequest  $request  The validated trooper status update request.
+     * @param  Event  $event  The event whose troopers are being updated (route model binding).
      * @return RedirectResponse Redirect to the event's trooper management page.
      */
     public function __invoke(UpdateTroopersRequest $request, Event $event): RedirectResponse
@@ -39,7 +39,7 @@ class UpdateTroopersSubmitController extends MagicBusController
 
         foreach ($troopers as $id => $input)
         {
-            $event_trooper = $event_troopers->filter(fn($et) => $et->id === (int) $id)->first();
+            $event_trooper = $event_troopers->filter(fn ($et) => $et->id === (int) $id)->first();
 
             if ($event_trooper === null)
             {

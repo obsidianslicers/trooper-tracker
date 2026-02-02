@@ -21,7 +21,7 @@ class TrooperNextInLineTest extends TestCase
 
         $envelope = $subject->envelope();
 
-        $this->assertEquals('Troop Tracker - Event Sign-Up Status Update - GOING', $envelope->subject);
+        $this->assertEquals('[Troop Tracker] Event Sign-Up Status Update - GOING', $envelope->subject);
     }
 
     public function test_it_uses_correct_view(): void

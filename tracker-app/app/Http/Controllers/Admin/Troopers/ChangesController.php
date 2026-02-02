@@ -31,8 +31,8 @@ class ChangesController extends MagicBusController
      * recent model changes via GetModelChangesForTrooperQuery, and returns the view
      * showing the trooper's audit trail of changes.
      *
-     * @param Request $request The incoming HTTP request.
-     * @param Trooper $trooper The trooper whose change history is to be displayed.
+     * @param  Request  $request  The incoming HTTP request.
+     * @param  Trooper  $trooper  The trooper whose change history is to be displayed.
      * @return View The rendered changes history page view.
      */
     public function __invoke(Request $request, Trooper $trooper): View

@@ -30,8 +30,8 @@ class UploadsController extends MagicBusController
      * Sets up breadcrumbs and renders the uploads management view where
      * administrators can view and manage event photos.
      *
-     * @param Request $request The incoming HTTP request.
-     * @param Event $event The event to be updated (route model binding).
+     * @param  Request  $request  The incoming HTTP request.
+     * @param  Event  $event  The event to be updated (route model binding).
      * @return View The event uploads form view.
      */
     public function __invoke(Request $request, Event $event): View

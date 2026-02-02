@@ -8,7 +8,6 @@ use App\Features\Events\Queries\GetEventsForDisplayQuery;
 use App\Features\Organizations\Queries\GetOrganizationsQuery;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Event;
-use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -28,7 +27,7 @@ class MapController extends MagicBusController
      * calendar grid (weeks starting Sunday, ending Saturday) for displaying
      * events in a calendar layout.
      *
-     * @param Request $request The incoming request
+     * @param  Request  $request  The incoming request
      * @return View The rendered events calendar page with upcoming events
      */
     public function __invoke(Request $request): View
@@ -51,15 +50,14 @@ class MapController extends MagicBusController
             ->whereNotNull(Event::LATITUDE)
             ->whereNotNull(Event::LONGITUDE)
             ->get()
-            ->each(function (Event $event)
-            {
+            ->each(function (Event $event) {
                 $event->lng = $event->longitude;
                 $event->lat = $event->latitude;
                 $event->url = route('events.display', ['event' => $event->id]);
                 $event->date_range = $event->time_display;
             });
 
-        $costume_organizations = $this->bus->send(new GetOrganizationsQuery());
+        $costume_organizations = $this->bus->send(new GetOrganizationsQuery);
 
         $data = compact('events', 'costume_organizations');
 

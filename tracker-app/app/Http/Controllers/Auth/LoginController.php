@@ -24,7 +24,7 @@ class LoginController extends MagicBusController
      * If the trooper is already authenticated, redirects them to the home page.
      * Otherwise, displays the login form with available authentication methods.
      *
-     * @param Request $request The incoming HTTP request.
+     * @param  Request  $request  The incoming HTTP request.
      * @return View|RedirectResponse The login page view or redirect to home if authenticated.
      */
     public function __invoke(Request $request): View|RedirectResponse

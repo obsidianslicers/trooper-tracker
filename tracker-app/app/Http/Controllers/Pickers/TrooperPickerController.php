@@ -23,7 +23,7 @@ class TrooperPickerController extends MagicBusController
     /**
      * Handle the incoming request to display the trooper picker view.
      *
-     * @param Request $request The incoming HTTP request.
+     * @param  Request  $request  The incoming HTTP request.
      * @return View The rendered trooper picker view.
      */
     public function __invoke(Request $request, TrooperFilter $filter): View
@@ -36,7 +36,7 @@ class TrooperPickerController extends MagicBusController
 
         if ($property === null)
         {
-            throw new Exception("Missing property parameter");
+            throw new Exception('Missing property parameter');
         }
 
         $organization_id = $request->query('organization_id');

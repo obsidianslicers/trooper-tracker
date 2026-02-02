@@ -21,7 +21,5 @@ abstract class MagicBusController
         $this->initialized();
     }
 
-    protected function initialized()
-    {
-    }
+    protected function initialized() {}
 }

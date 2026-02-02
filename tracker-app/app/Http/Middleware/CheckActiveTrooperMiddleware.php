@@ -25,9 +25,10 @@ class CheckActiveTrooperMiddleware
      * Checks that the authenticated user exists and has an active membership status.
      * Aborts with 401 if either condition is not met.
      *
-     * @param Request $request The incoming HTTP request
-     * @param Closure $next The next middleware in the pipeline
+     * @param  Request  $request  The incoming HTTP request
+     * @param  Closure  $next  The next middleware in the pipeline
      * @return Response The HTTP response from the next middleware
+     *
      * @throws \Symfony\Component\HttpKernel\Exception\HttpException 401 if user is not authenticated or not active
      */
     public function handle(Request $request, Closure $next): Response

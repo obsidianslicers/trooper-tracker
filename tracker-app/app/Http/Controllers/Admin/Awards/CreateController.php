@@ -15,7 +15,6 @@ use Illuminate\Http\Request;
  * Class CreateController
  *
  * Handles displaying the form to create a new award.
- * @package App\Http\Controllers\Admin\Awards
  */
 class CreateController extends MagicBusController
 {
@@ -34,7 +33,7 @@ class CreateController extends MagicBusController
      * provided, it pre-selects that organization. It ensures non-administrators
      * can only interact with awards and organizations they are authorized to moderate.
      *
-     * @param Request $request The incoming HTTP request object.
+     * @param  Request  $request  The incoming HTTP request object.
      * @return View The rendered award creation view.
      */
     public function __invoke(Request $request): View
@@ -59,13 +58,13 @@ class CreateController extends MagicBusController
      * (ensuring the user has moderation rights) and copies its properties to a new
      * Award object.
      *
-     * @param Request $request The incoming HTTP request.
-     * @param Trooper $trooper The authenticated trooper.
+     * @param  Request  $request  The incoming HTTP request.
+     * @param  Trooper  $trooper  The authenticated trooper.
      * @return Award The new Award instance.
      */
     private function getAward(Request $request, Trooper $trooper): Award
     {
-        $award = new Award();
+        $award = new Award;
 
         // Default for new awards
         $award->frequency = \App\Enums\AwardFrequency::ONCE;
@@ -77,7 +76,7 @@ class CreateController extends MagicBusController
             $copy = Award::moderatedBy($trooper)->findOrFail($copy_id);
 
             $award->organization_id = $copy->organization_id;
-            $award->name = 'Copy of ' . $copy->name;
+            $award->name = 'Copy of '.$copy->name;
             $award->frequency = $copy->frequency;
         }
 
@@ -92,9 +91,9 @@ class CreateController extends MagicBusController
      * a ModelNotFoundException if a moderator attempts to assign an un-moderated
      * organization.
      *
-     * @param Request $request The incoming HTTP request.
-     * @param Award $award The award being created.
-     * @param Trooper $trooper The authenticated trooper.
+     * @param  Request  $request  The incoming HTTP request.
+     * @param  Award  $award  The award being created.
+     * @param  Trooper  $trooper  The authenticated trooper.
      * @return void
      */
     private function assignOrganization(Request $request, Award $award, Trooper $trooper)

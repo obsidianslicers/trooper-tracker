@@ -8,7 +8,6 @@ use App\Enums\EventTrooperStatus;
 use App\Features\Events\Commands\UpdateEventTrooperCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Models\EventTrooper;
-use App\Services\BreadCrumbService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
@@ -33,9 +32,9 @@ class ShiftCompleteController extends MagicBusController
      * Decrypts the status parameter from the URL, updates the event trooper's
      * status, and displays a confirmation page.
      *
-     * @param Request $request The incoming request
-     * @param EventTrooper $event_trooper The event trooper assignment to update
-     * @param string $status Encrypted status value to apply
+     * @param  Request  $request  The incoming request
+     * @param  EventTrooper  $event_trooper  The event trooper assignment to update
+     * @param  string  $status  Encrypted status value to apply
      * @return View The status update confirmation page
      */
     public function __invoke(Request $request, EventTrooper $event_trooper, string $status): View

@@ -58,17 +58,14 @@ Perform the following tasks:
    - Do not modify method signatures, logic, or namespaces.
 
 2. Controller Feature Tests
-   - Update the corresponding feature tests so they match the refactored
-     controller behavior and structure.
+   - Update the corresponding feature tests so they match the refactored controller behavior and structure.
    - Fix any broken imports, route names, or expectations.
    - Ensure the tests reflect the new MagicBusController pattern if relevant.
 
 3. Query & QueryHandler Unit Tests
-   - For any Query or QueryHandler referenced by these controllers, ensure
-     there are proper unit tests.
+   - For any Query or QueryHandler referenced by these controllers, ensure there are proper unit tests.
    - If tests exist, update them to match the current code.
-   - If tests do not exist, create new unit tests following the project's
-     existing testing conventions.
+   - If tests do not exist, create new unit tests following the project's existing testing conventions.
    - Do not modify the Query or Handler logic itself.
 
 Constraints:
@@ -81,10 +78,10 @@ Apply all edits automatically.
 
 ## Update the Database Diagram
 
-This prompt generates a complete DATABASE.md file, including table structures, column definitions, constraints, inferred relationships, and a Mermaid ER diagram visualizing table dependencies. The output provides an up‑to‑date, human‑readable reference for the database schema.
+This prompt generates a complete docs/DATABASE.md file, including table structures, column definitions, constraints, inferred relationships, and a Mermaid ER diagram visualizing table dependencies. The output provides an up‑to‑date, human‑readable reference for the database schema.
 
 ```
-You are operating inside a Laravel project. Your task is to analyze *all* migration files in the workspace and produce a complete DATABASE.md file at the project root.
+You are operating inside a Laravel project. Your task is to analyze *all* migration files in the workspace and produce a complete docs/DATABASE.md file at the project root.
 
 Requirements:
 
@@ -96,7 +93,7 @@ Requirements:
    - Pivot tables and many-to-many relationships
    - Soft deletes, timestamps, morphs, and other Laravel helpers
 
-2. Build a DATABASE.md file containing:
+2. Build a docs/DATABASE.md file containing:
    - A high-level overview of the database structure
    - A table-by-table breakdown with:
      - Table name
@@ -114,16 +111,16 @@ Requirements:
    - Use clean GitHub-flavored Markdown
    - Use headings, subheadings, and tables for clarity
    - Place the Mermaid diagram near the top under an “Entity Relationship Diagram” section
-   - Do not modify any project files except creating/updating DATABASE.md
+   - Do not modify any project files except creating/updating docs/DATABASE.md
 
-5. After generating the file, output the full contents of DATABASE.md so I can review it before saving.
+5. After generating the file, output the full contents of docs/DATABASE.md so I can review it before saving.
 
 Do not guess table structures beyond what migrations define. Infer relationships only when foreign keys or naming conventions clearly indicate them.
 
-Begin by analyzing all migrations and then produce the complete DATABASE.md content.
+Begin by analyzing all migrations and then produce the complete docs/DATABASE.md content.
 ```
 
-## Ensure all file use strong type checks
+## Ensure all fileS use strong type checks
 
 It checks every PHP file under app/** except app/Models/Base/** to ensure the first non‑comment line is declare(strict_types=1);, inserting or moving it to the top if needed while leaving all other code, comments, namespaces, and formatting untouched. Copilot should apply fixes directly, report modified files, and ensure each file begins with <?php, then the strict types declaration, followed by the namespace and use statements.
 
@@ -150,7 +147,10 @@ namespace ...
 use statements ... etc
 ```
 
-## Update docs/
+## Update DOCS
+
+
+### Update docs/
 
 This prompt instructs Copilot to scan the entire app/ directory, derive an accurate understanding of all Laravel components, and update the Markdown files in docs/ to match the current codebase. It preserves each document’s tone and structure, fixes outdated references, adds missing sections, and removes obsolete content. Copilot must pause and request clarification whenever any ambiguity or conflict arises before making changes, then apply updates only within docs/ and report which files were modified and why.
 
@@ -186,8 +186,6 @@ You are auditing this Laravel application.
 
 Begin by scanning app/ and identifying any issues that require clarification.
 ```
-
-## Update DOCS
 
 ### README
 

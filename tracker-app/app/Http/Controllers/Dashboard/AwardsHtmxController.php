@@ -21,7 +21,7 @@ class AwardsHtmxController extends MagicBusController
     /**
      * Handle the incoming request to display the awards partial.
      *
-     * @param Request $request The incoming HTTP request, which may contain a 'trooper_id'.
+     * @param  Request  $request  The incoming HTTP request, which may contain a 'trooper_id'.
      * @return View The rendered view partial for the trooper's awards.
      */
     public function __invoke(Request $request): View

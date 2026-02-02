@@ -7,7 +7,6 @@ namespace App\Http\Controllers\Admin\Troopers;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Filters\TrooperFilter;
 use App\Models\Trooper;
-use App\Services\BreadCrumbService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -20,7 +19,6 @@ use Illuminate\Http\Request;
  * This controller fetches and displays a list of troopers, filtering the results
  * based on the authenticated user's role. Administrators see all troopers, while
  * other roles see only the troopers they are assigned to moderate.
- * @package App\Http\Controllers\Admin\Troopers
  */
 class ListController extends MagicBusController
 {
@@ -35,7 +33,7 @@ class ListController extends MagicBusController
      * Sets up breadcrumbs, retrieves the appropriate list of troopers based on the
      * user's role, and returns the main troopers display view.
      *
-     * @param Request $request The incoming HTTP request.
+     * @param  Request  $request  The incoming HTTP request.
      * @return View|RedirectResponse The rendered dashboard page view or a redirect response.
      */
     public function __invoke(Request $request, TrooperFilter $filter): View|RedirectResponse
@@ -45,7 +43,7 @@ class ListController extends MagicBusController
         $data = [
             'troopers' => $troopers,
             'membership_role' => $request->query('membership_role'),
-            'search_term' => $request->query('search_term')
+            'search_term' => $request->query('search_term'),
         ];
 
         return view('pages.admin.troopers.list', $data);
@@ -58,7 +56,8 @@ class ListController extends MagicBusController
      * 'membership_role' and 'search_term'. If the authenticated user is not an
      * Administrator, the results are further constrained to only troopers moderated
      * by the current user.
-     * @param Request $request The incoming HTTP request, containing potential filters.
+     *
+     * @param  Request  $request  The incoming HTTP request, containing potential filters.
      * @return LengthAwarePaginator A paginated list of troopers.
      */
     private function getTroopers(Request $request, TrooperFilter $filter): LengthAwarePaginator

@@ -27,16 +27,16 @@ class CalendarController extends MagicBusController
      * calendar grid (weeks starting Sunday, ending Saturday) for displaying
      * events in a calendar layout.
      *
-     * @param Request $request The incoming request
+     * @param  Request  $request  The incoming request
      * @return View The rendered events calendar page with upcoming events
      */
     public function __invoke(Request $request): View
     {
-        $events_query = new GetEventsForDisplayQuery();
+        $events_query = new GetEventsForDisplayQuery;
 
-        $events = $this->bus->send($events_query)->groupBy(fn($event) => $event->event_start->toDateString());
+        $events = $this->bus->send($events_query)->groupBy(fn ($event) => $event->event_start->toDateString());
 
-        $costume_organizations = $this->bus->send(new GetOrganizationsQuery());
+        $costume_organizations = $this->bus->send(new GetOrganizationsQuery);
 
         $months = [];
 
@@ -62,7 +62,7 @@ class CalendarController extends MagicBusController
                 }
             }
 
-            $months[] = ['date' => $month, 'weeks' => $weeks,];
+            $months[] = ['date' => $month, 'weeks' => $weeks];
         }
 
         $data = compact('events', 'months', 'costume_organizations');

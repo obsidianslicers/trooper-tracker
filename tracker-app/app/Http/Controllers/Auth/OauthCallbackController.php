@@ -34,8 +34,8 @@ class OauthCallbackController extends MagicBusController
      * 3. New trooper (no account) -> Store OAuth data and redirect to registration
      * 4. Existing trooper (by email) without OAuth link -> Link the provider and log in
      *
-     * @param Request $request The incoming HTTP request.
-     * @param string $provider The OAuth provider name (google, xenforo, etc.).
+     * @param  Request  $request  The incoming HTTP request.
+     * @param  string  $provider  The OAuth provider name (google, xenforo, etc.).
      * @return RedirectResponse A redirect to the appropriate destination.
      */
     public function __invoke(Request $request, string $provider): RedirectResponse

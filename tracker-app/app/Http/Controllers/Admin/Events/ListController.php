@@ -49,8 +49,8 @@ class ListController extends MagicBusController
      * 3. Dispatches GetEventsForModeratorQuery via MagicBus for filtered, paginated results
      * 4. Prepares view data with events, filters, and status options
      *
-     * @param Request $request The incoming HTTP request with optional filter parameters.
-     * @param EventFilter $filter The filter service for applying query constraints.
+     * @param  Request  $request  The incoming HTTP request with optional filter parameters.
+     * @param  EventFilter  $filter  The filter service for applying query constraints.
      * @return View The event list view with filtered and paginated results.
      */
     public function __invoke(Request $request, EventFilter $filter): View
@@ -79,8 +79,9 @@ class ListController extends MagicBusController
     /**
      * Retrieves the organization from the request if an 'organization_id' is provided.
      *
-     * @param Request $request The incoming HTTP request.
+     * @param  Request  $request  The incoming HTTP request.
      * @return Organization|null The found Organization or null if no ID is provided.
+     *
      * @throws \Illuminate\Database\Eloquent\ModelNotFoundException if an `organization_id` is provided but not found.
      */
     private function getOrganization(Request $request): ?Organization

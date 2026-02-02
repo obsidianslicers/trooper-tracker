@@ -11,23 +11,16 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 /**
- * Displays the list of recently finished events.
+ * Displays the list of recently cancelled events.
  *
- * This controller renders the main events listing page, showing all recently finished
- * events with their organizations, shifts, and attendance information. Only
- * events where the user's organization can attend are included.
+ * This controller renders the cancelled events listing page, showing events
+ * that were cancelled within the last 30 days with their organizations,
+ * shifts, and attendance information.
  */
 class CancelledController extends MagicBusController
 {
     /**
-     * Handle the incoming request to display the events list page.
-     *
-     * Retrieves all recently closed events with their associated organizations
-     * (filtered to only those that can attend), shifts, and organizer details.
-     * Events are ordered by date and filtered to only show future events.
-     *
-     * @param Request $request The incoming request
-     * @return View The rendered events list page with upcoming events
+     * Handle the incoming request to display the cancelled events list page.
      */
     public function __invoke(Request $request): View
     {
@@ -39,7 +32,7 @@ class CancelledController extends MagicBusController
 
         $events = $this->bus->send($events_query);
 
-        $costume_organizations = $this->bus->send(new GetOrganizationsQuery());
+        $costume_organizations = $this->bus->send(new GetOrganizationsQuery);
 
         $data = compact('events', 'lookback', 'costume_organizations');
 

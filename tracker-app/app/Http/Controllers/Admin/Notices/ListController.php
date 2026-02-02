@@ -21,7 +21,6 @@ use Illuminate\Http\Request;
  * This controller fetches and displays a paginated list of notices, which can be
  * filtered by scope (active, past, future) and by organization. It ensures that
  * non-administrator users can only see notices for organizations they moderate.
- * @package App\Http\Controllers\Admin\Notices
  */
 class ListController extends MagicBusController
 {
@@ -38,7 +37,7 @@ class ListController extends MagicBusController
      * is provided in the request, the list is further filtered to that organization.
      * Non-administrator users will only see notices for organizations they moderate.
      *
-     * @param Request $request The incoming HTTP request object.
+     * @param  Request  $request  The incoming HTTP request object.
      * @return View The rendered view for the notices list.
      */
     public function __invoke(Request $request, NoticeFilter $filter): View
@@ -50,7 +49,7 @@ class ListController extends MagicBusController
         $data = [
             'notices' => $notices,
             'organization' => $organization,
-            'scope' => $request->query('scope', 'active')
+            'scope' => $request->query('scope', 'active'),
         ];
 
         return view('pages.admin.notices.list', $data);
@@ -59,8 +58,9 @@ class ListController extends MagicBusController
     /**
      * Retrieves the organization from the request if an 'organization_id' is provided.
      *
-     * @param Request $request The incoming HTTP request.
+     * @param  Request  $request  The incoming HTTP request.
      * @return Organization|null The found Organization or null if no ID is provided.
+     *
      * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
      */
     private function getOrganization(Request $request): ?Organization
@@ -81,9 +81,9 @@ class ListController extends MagicBusController
      * The query is built based on the requested scope (active, past, future), an
      * optional organization filter, and the user's authorization level (admin vs. moderator).
      *
-     * @param Request $request The incoming HTTP request.
-     * @param Trooper $trooper The authenticated trooper.
-     * @param Organization|null $organization The organization to filter by, if any.
+     * @param  Request  $request  The incoming HTTP request.
+     * @param  Trooper  $trooper  The authenticated trooper.
+     * @param  Organization|null  $organization  The organization to filter by, if any.
      * @return LengthAwarePaginator The paginated list of notices.
      */
     private function getNotices(Request $request, NoticeFilter $filter): LengthAwarePaginator
@@ -91,11 +91,10 @@ class ListController extends MagicBusController
         $trooper = $request->user();
 
         $q = Notice::with([
-            'organization.trooper_assignments' => function ($q) use ($trooper)
-            {
+            'organization.trooper_assignments' => function ($q) use ($trooper) {
                 $q->where(TrooperAssignment::TROOPER_ID, $trooper->id)
                     ->where(TrooperAssignment::IS_MODERATOR, true);
-            }
+            },
         ]);
 
         $q = $q->filterWith($filter)->moderatedBy($trooper);

@@ -32,8 +32,8 @@ class UpdateController extends MagicBusController
      * Loads all organizations for the organization selection interface.
      * Sets up breadcrumbs and renders the update form view.
      *
-     * @param Request $request The incoming HTTP request.
-     * @param Event $event The event to be updated (route model binding).
+     * @param  Request  $request  The incoming HTTP request.
+     * @param  Event  $event  The event to be updated (route model binding).
      * @return View The event update form view.
      */
     public function __invoke(Request $request, Event $event): View
@@ -52,8 +52,8 @@ class UpdateController extends MagicBusController
         foreach ($organizations as $organization)
         {
             $event_organization = $event->organizations
-                ->filter(fn($eo) => $eo->id == $organization->id)
-                ->filter(fn($eo) => $eo->pivot->can_attend)
+                ->filter(fn ($eo) => $eo->id == $organization->id)
+                ->filter(fn ($eo) => $eo->pivot->can_attend)
                 ->first();
 
             $organization->pivot = $event_organization->pivot ?? null;

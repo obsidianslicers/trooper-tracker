@@ -31,8 +31,8 @@ class EventsController extends MagicBusController
      * recent events via GetMostRecentEventsForTrooperQuery, and returns the view
      * showing the trooper's event participation history.
      *
-     * @param Request $request The incoming HTTP request.
-     * @param Trooper $trooper The trooper whose events history is to be displayed.
+     * @param  Request  $request  The incoming HTTP request.
+     * @param  Trooper  $trooper  The trooper whose events history is to be displayed.
      * @return View The rendered authority page view.
      */
     public function __invoke(Request $request, Trooper $trooper): View

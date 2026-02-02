@@ -14,7 +14,6 @@ use Illuminate\Http\RedirectResponse;
  * Class ProfileSubmitController
  *
  * Handles the form submission for updating a trooper's profile.
- * @package App\Http\Controllers\Admin\Troopers
  */
 class ProfileSubmitController extends MagicBusController
 {
@@ -25,8 +24,8 @@ class ProfileSubmitController extends MagicBusController
      * specified trooper's attributes, flashes a success message to the session,
      * and redirects the user back to the main trooper list.
      *
-     * @param ProfileRequest $request The validated form request.
-     * @param Trooper $trooper The trooper to be updated.
+     * @param  ProfileRequest  $request  The validated form request.
+     * @param  Trooper  $trooper  The trooper to be updated.
      * @return RedirectResponse A redirect response to the trooper list page.
      */
     public function __invoke(ProfileRequest $request, Trooper $trooper): RedirectResponse

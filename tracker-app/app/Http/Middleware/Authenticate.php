@@ -21,7 +21,7 @@ class Authenticate extends Middleware
      * Returns the login route URL for non-JSON requests, or null for JSON requests
      * (which will receive a 401 response instead of a redirect).
      *
-     * @param Request $request The incoming HTTP request
+     * @param  Request  $request  The incoming HTTP request
      * @return string|null The login route URL or null for JSON requests
      */
     protected function redirectTo(Request $request): ?string

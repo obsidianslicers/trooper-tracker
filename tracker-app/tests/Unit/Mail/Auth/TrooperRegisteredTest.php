@@ -17,7 +17,7 @@ class TrooperRegisteredTest extends TestCase
 
         $envelope = $subject->envelope();
 
-        $this->assertEquals('Troop Tracker - Thanks for Registering!', $envelope->subject);
+        $this->assertEquals('[Troop Tracker] Thanks for Registering!', $envelope->subject);
     }
 
     public function test_it_uses_correct_view(): void

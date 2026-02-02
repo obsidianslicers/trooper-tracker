@@ -33,7 +33,7 @@ class LoginSubmitController extends MagicBusController
      * 4. Verifies the password against the stored hash
      * 5. Logs in the trooper and redirects to the intended page
      *
-     * @param LoginRequest $request The validated login form request containing email and password.
+     * @param  LoginRequest  $request  The validated login form request containing email and password.
      * @return RedirectResponse A redirect to the events list on success, or back with errors on failure.
      */
     public function __invoke(LoginRequest $request): RedirectResponse

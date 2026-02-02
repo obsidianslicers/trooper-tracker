@@ -15,7 +15,6 @@ use Illuminate\Http\RedirectResponse;
  *
  * Handles the form submission for a trooper's authority settings, including their
  * membership role and which organizations they are assigned to moderate.
- * @package App\Http\Controllers\Admin\Troopers
  */
 class AuthoritySubmitController extends MagicBusController
 {
@@ -26,8 +25,8 @@ class AuthoritySubmitController extends MagicBusController
      * syncs their organization moderation assignments, and then redirects to the
      * main trooper list.
      *
-     * @param AuthorityRequest $request The validated form request.
-     * @param Trooper $trooper The trooper whose authorities are being updated.
+     * @param  AuthorityRequest  $request  The validated form request.
+     * @param  Trooper  $trooper  The trooper whose authorities are being updated.
      * @return RedirectResponse A redirect response to the trooper list page.
      */
     public function __invoke(AuthorityRequest $request, Trooper $trooper): RedirectResponse

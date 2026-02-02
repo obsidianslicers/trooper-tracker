@@ -14,7 +14,6 @@ use Illuminate\Http\Request;
  * Class CreateController
  *
  * Handles displaying the form to create a new organization under a parent.
- * @package App\Http\Controllers\Admin\Organizations
  */
 class CreateController extends MagicBusController
 {
@@ -30,15 +29,15 @@ class CreateController extends MagicBusController
      * Authorizes the user, sets up breadcrumbs, and returns the view
      * containing the form to create a new sub-organization.
      *
-     * @param Request $request The incoming HTTP request object.
-     * @param Organization $parent The parent organization under which to create a new one.
+     * @param  Request  $request  The incoming HTTP request object.
+     * @param  Organization  $parent  The parent organization under which to create a new one.
      * @return View The rendered organization creation view.
      */
     public function __invoke(Request $request, Organization $parent): View
     {
         $this->authorize('update', $parent);
 
-        $organization = new Organization();
+        $organization = new Organization;
 
         if ($parent->type == OrganizationType::ORGANIZATION)
         {
@@ -51,7 +50,7 @@ class CreateController extends MagicBusController
 
         $data = [
             'parent' => $parent,
-            'organization' => $organization
+            'organization' => $organization,
         ];
 
         return view('pages.admin.organizations.create', $data);

@@ -13,7 +13,6 @@ use Illuminate\Http\RedirectResponse;
  * Class UpdateSubmitController
  *
  * Handles the submission of the form for updating an existing notice.
- * @package App\Http\Controllers\Admin\Notices
  */
 class UpdateSubmitController extends MagicBusController
 {
@@ -23,8 +22,8 @@ class UpdateSubmitController extends MagicBusController
      * Validates the request, updates the notice's properties, saves it,
      * and then redirects with a success message.
      *
-     * @param UpdateRequest $request The validated request containing the updated data.
-     * @param Notice $notice The notice to be updated.
+     * @param  UpdateRequest  $request  The validated request containing the updated data.
+     * @param  Notice  $notice  The notice to be updated.
      * @return RedirectResponse A redirect response to the notices list.
      */
     public function __invoke(UpdateRequest $request, Notice $notice): RedirectResponse

@@ -26,8 +26,8 @@ class MembershipSubmitController extends MagicBusController
      * UpdateTrooperIdentifiersCommand and UpdateTrooperMembershipsCommand, and
      * redirects back to the membership page.
      *
-     * @param MembershipRequest $request The incoming HTTP request.
-     * @param Trooper $trooper The trooper whose memberships are being updated.
+     * @param  MembershipRequest  $request  The incoming HTTP request.
+     * @param  Trooper  $trooper  The trooper whose memberships are being updated.
      * @return RedirectResponse A redirect to the membership page.
      */
     public function __invoke(MembershipRequest $request, Trooper $trooper): RedirectResponse

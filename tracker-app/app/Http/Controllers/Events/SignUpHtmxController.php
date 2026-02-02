@@ -30,8 +30,8 @@ class SignUpHtmxController extends MagicBusController
      * capacity limits. Supports moderators signing up other troopers via trooper_id
      * parameter. Returns the updated shift container view.
      *
-     * @param Request $request The incoming request (may contain optional trooper_id for moderator signups)
-     * @param EventShift $event_shift The event shift the trooper is signing up for
+     * @param  Request  $request  The incoming request (may contain optional trooper_id for moderator signups)
+     * @param  EventShift  $event_shift  The event shift the trooper is signing up for
      * @return Response The rendered shift container with updated trooper list
      */
     public function __invoke(Request $request, EventShift $event_shift): Response
@@ -78,10 +78,10 @@ class SignUpHtmxController extends MagicBusController
                 //  handle the case where the trooper has maxed out their allowed shifts
 
                 $message = json_encode([
-                    'message' => "You have reached the maximum number of shift sign-ups allowed.",
+                    'message' => 'You have reached the maximum number of shift sign-ups allowed.',
                     'type' => 'danger',
                     'focus' => true,
-                    'fadeOut' => 5000
+                    'fadeOut' => 5000,
                 ]);
 
                 $response = $response->header('X-Flash-Message', $message);

@@ -451,7 +451,16 @@
                         <table width="100%">
                             <tr>
                                 <td class="aligncenter content-block">
-                                    Troop Tracker
+                                    {{ config('app.name') }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="aligncenter content-block">
+                                    If you wish to modify your notification subscription,
+                                    you may do so using your
+                                    <a href="{{ route('account.notifications') }}">
+                                        Imperial control panel
+                                    </a>.
                                 </td>
                             </tr>
                         </table>

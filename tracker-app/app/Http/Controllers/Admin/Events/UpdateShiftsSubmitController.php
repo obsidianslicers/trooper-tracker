@@ -26,8 +26,8 @@ class UpdateShiftsSubmitController extends MagicBusController
      * Parses date and time strings into Carbon datetime objects for database storage.
      * Redirects back to the shifts management page with a success message.
      *
-     * @param UpdateShiftsRequest $request The validated shift update request.
-     * @param Event $event The event whose shifts are being updated (route model binding).
+     * @param  UpdateShiftsRequest  $request  The validated shift update request.
+     * @param  Event  $event  The event whose shifts are being updated (route model binding).
      * @return RedirectResponse Redirect to the event's shift management page.
      */
     public function __invoke(UpdateShiftsRequest $request, Event $event): RedirectResponse
@@ -38,17 +38,17 @@ class UpdateShiftsSubmitController extends MagicBusController
 
         foreach ($shifts as $id => $input)
         {
-            $shift = new EventShift();
+            $shift = new EventShift;
 
             $shift->event_id = $event->id;
 
             if ($id > 0)
             {
-                $shift = $event->event_shifts->filter(fn($s) => $s->id === $id)->first();
+                $shift = $event->event_shifts->filter(fn ($s) => $s->id === $id)->first();
             }
 
-            $shift->shift_starts_at = Carbon::parse($input['date'] . ' ' . $input['starts_at']);
-            $shift->shift_ends_at = Carbon::parse($input['date'] . ' ' . $input['ends_at']);
+            $shift->shift_starts_at = Carbon::parse($input['date'].' '.$input['starts_at']);
+            $shift->shift_ends_at = Carbon::parse($input['date'].' '.$input['ends_at']);
 
             $shift->save();
         }

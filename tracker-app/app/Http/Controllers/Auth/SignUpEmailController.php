@@ -25,7 +25,7 @@ class SignUpEmailController extends MagicBusController
      * this as an email-based registration flow. The email field is null and
      * will be collected on the registration form.
      *
-     * @param Request $request The incoming HTTP request.
+     * @param  Request  $request  The incoming HTTP request.
      * @return RedirectResponse A redirect to the registration form.
      */
     public function __invoke(Request $request): RedirectResponse
