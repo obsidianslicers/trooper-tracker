@@ -19,15 +19,15 @@ use Illuminate\Http\RedirectResponse;
 class AuthoritySubmitController extends MagicBusController
 {
     /**
-     * Handle the incoming request to update a trooper's authority settings.
+     * Handle the incoming request to update a trooper's authority settings
      *
      * This method validates the request, updates the trooper's membership role,
      * syncs their organization moderation assignments, and then redirects to the
      * main trooper list.
      *
-     * @param  AuthorityRequest  $request  The validated form request.
-     * @param  Trooper  $trooper  The trooper whose authorities are being updated.
-     * @return RedirectResponse A redirect response to the trooper list page.
+     * @param  AuthorityRequest  $request  The validated form request
+     * @param  Trooper  $trooper  The trooper whose authorities are being updated
+     * @return RedirectResponse A redirect response to the trooper list page
      */
     public function __invoke(AuthorityRequest $request, Trooper $trooper): RedirectResponse
     {

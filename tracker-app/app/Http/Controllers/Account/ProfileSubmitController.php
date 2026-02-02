@@ -19,6 +19,9 @@ class ProfileSubmitController extends MagicBusController
 {
     /**
      * Handle the incoming request to update the trooper's profile.
+     *
+     * @param  ProfileRequest  $request  The validated profile update request
+     * @return RedirectResponse Redirect to the profile page with success message
      */
     public function __invoke(ProfileRequest $request): RedirectResponse
     {

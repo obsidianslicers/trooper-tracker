@@ -21,6 +21,9 @@ class SetupSubmitController extends MagicBusController
 {
     /**
      * Handle the incoming request to process organization setup submission.
+     *
+     * @param  SetupRequest  $request  The validated setup request
+     * @return RedirectResponse Redirect to the costume setup page
      */
     public function __invoke(SetupRequest $request): RedirectResponse
     {

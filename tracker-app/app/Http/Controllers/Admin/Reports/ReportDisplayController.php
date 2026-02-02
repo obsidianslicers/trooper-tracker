@@ -16,16 +16,16 @@ use Illuminate\Http\Request;
  */
 class ReportDisplayController extends MagicBusController
 {
-    protected function initialized()
+    protected function initialized(): void
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
     }
 
     /**
-     * Display the reports menu page.
+     * Display the reports menu page
      *
-     * @param  Request  $request  The HTTP request.
-     * @return View The reports menu view.
+     * @param  Request  $request  The HTTP request
+     * @return View The reports menu view
      */
     public function __invoke(Request $request): View
     {

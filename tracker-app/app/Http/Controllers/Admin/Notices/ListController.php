@@ -24,21 +24,22 @@ use Illuminate\Http\Request;
  */
 class ListController extends MagicBusController
 {
-    protected function initialized()
+    protected function initialized(): void
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
     }
 
     /**
-     * Handle the request to display the notices list page.
+     * Handle the request to display the notices list page
      *
      * Sets up breadcrumbs and retrieves a paginated list of notices.
      * The list is filtered to show only active notices. If an 'organization_id'
      * is provided in the request, the list is further filtered to that organization.
      * Non-administrator users will only see notices for organizations they moderate.
      *
-     * @param  Request  $request  The incoming HTTP request object.
-     * @return View The rendered view for the notices list.
+     * @param  Request  $request  The incoming HTTP request object
+     * @param  NoticeFilter  $filter  The filter service for applying query constraints
+     * @return View The rendered view for the notices list
      */
     public function __invoke(Request $request, NoticeFilter $filter): View
     {

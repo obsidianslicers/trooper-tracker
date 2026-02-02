@@ -20,15 +20,15 @@ use Illuminate\Http\RedirectResponse;
 class UpdateShiftsSubmitController extends MagicBusController
 {
     /**
-     * Updates or creates event shifts from the validated form submission.
+     * Updates or creates event shifts from the validated form submission
      *
      * Processes the validated request to create new shifts or update existing ones.
      * Parses date and time strings into Carbon datetime objects for database storage.
      * Redirects back to the shifts management page with a success message.
      *
-     * @param  UpdateShiftsRequest  $request  The validated shift update request.
-     * @param  Event  $event  The event whose shifts are being updated (route model binding).
-     * @return RedirectResponse Redirect to the event's shift management page.
+     * @param  UpdateShiftsRequest  $request  The validated shift update request
+     * @param  Event  $event  The event whose shifts are being updated (route model binding)
+     * @return RedirectResponse Redirect to the event's shift management page
      */
     public function __invoke(UpdateShiftsRequest $request, Event $event): RedirectResponse
     {

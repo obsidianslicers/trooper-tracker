@@ -20,7 +20,10 @@ use Illuminate\Http\Request;
 class CancelledController extends MagicBusController
 {
     /**
-     * Handle the incoming request to display the cancelled events list page.
+     * Handle the incoming request to display the cancelled events list page
+     *
+     * @param  Request  $request  The incoming HTTP request
+     * @return View The rendered cancelled events list page
      */
     public function __invoke(Request $request): View
     {

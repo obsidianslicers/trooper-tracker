@@ -19,14 +19,14 @@ use Illuminate\Foundation\Http\FormRequest;
 class UpdateRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * Determine if the user is authorized to make this request
      *
      * Verifies that the organization exists in the route and that the authenticated
      * user has permission to update it.
      *
-     * @return bool Returns true if the user can update the organization.
+     * @return bool Returns true if the user can update the organization
      *
-     * @throws AuthorizationException if the organization is not found in the route.
+     * @throws AuthorizationException if the organization is not found in the route
      */
     public function authorize(): bool
     {
@@ -41,12 +41,12 @@ class UpdateRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Get the validation rules that apply to the request
      *
      * Validates the organization name ensuring it's unique among sibling organizations,
      * excluding the current organization from the uniqueness check.
      *
-     * @return array<string, mixed> The validation rules for updating an organization.
+     * @return array<string, mixed> The validation rules for updating an organization
      */
     public function rules(): array
     {

@@ -17,13 +17,13 @@ use Illuminate\Http\RedirectResponse;
 class CreateSubmitController extends MagicBusController
 {
     /**
-     * Handle the incoming request to create a new notice.
+     * Handle the incoming request to create a new notice
      *
      * Validates the request, creates a new notice with the provided data,
      * saves it, and then redirects with a success message.
      *
-     * @param  CreateRequest  $request  The validated request containing the new notice's data.
-     * @return RedirectResponse A redirect response to the notices list.
+     * @param  CreateRequest  $request  The validated request containing the new notice's data
+     * @return RedirectResponse A redirect response to the notices list
      */
     public function __invoke(CreateRequest $request): RedirectResponse
     {

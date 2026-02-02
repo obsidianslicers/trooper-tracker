@@ -24,21 +24,22 @@ use Illuminate\Http\Request;
  */
 class ListController extends MagicBusController
 {
-    protected function initialized()
+    protected function initialized(): void
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
     }
 
     /**
-     * Handle the request to display the awards list page.
+     * Handle the request to display the awards list page
      *
      * Sets up breadcrumbs and retrieves a paginated list of awards.
      * The list is filtered to show only active awards. If an 'organization_id'
      * is provided in the request, the list is further filtered to that organization.
      * Non-administrator users will only see awards for organizations they moderate.
      *
-     * @param  Request  $request  The incoming HTTP request object.
-     * @return View The rendered view for the awards list.
+     * @param  Request  $request  The incoming HTTP request object
+     * @param  AwardFilter  $filter  The filter service for applying query constraints
+     * @return View The rendered view for the awards list
      */
     public function __invoke(Request $request, AwardFilter $filter): View
     {

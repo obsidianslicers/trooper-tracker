@@ -16,21 +16,21 @@ use Illuminate\Http\Request;
  */
 class ProfileController extends MagicBusController
 {
-    protected function initialized()
+    protected function initialized(): void
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
         $this->crumbs->addRoute('Troopers', 'admin.troopers.list');
     }
 
     /**
-     * Handle the incoming request to display a trooper's profile page.
+     * Handle the incoming request to display a trooper's profile page
      *
      * This method authorizes the user, sets up breadcrumbs, and returns the view
      * for a specific trooper's profile.
      *
-     * @param  Request  $request  The incoming HTTP request.
-     * @param  Trooper  $trooper  The trooper whose profile is to be displayed.
-     * @return View The rendered profile page view.
+     * @param  Request  $request  The incoming HTTP request
+     * @param  Trooper  $trooper  The trooper whose profile is to be displayed
+     * @return View The rendered profile page view
      */
     public function __invoke(Request $request, Trooper $trooper): View
     {

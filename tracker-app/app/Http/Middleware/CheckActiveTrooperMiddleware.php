@@ -29,7 +29,7 @@ class CheckActiveTrooperMiddleware
      * @param  Closure  $next  The next middleware in the pipeline
      * @return Response The HTTP response from the next middleware
      *
-     * @throws \Symfony\Component\HttpKernel\Exception\HttpException 401 if user is not authenticated or not active
+     * @throws \Symfony\Component\HttpKernel\Exception\HttpException If user is not authenticated or not active (401)
      */
     public function handle(Request $request, Closure $next): Response
     {

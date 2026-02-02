@@ -26,8 +26,8 @@ class RegisterController extends MagicBusController
      * authentication information from the session (if OAuth was used). The
      * registration data includes the email and method (OAuth provider or manual).
      *
-     * @param  Request  $request  The incoming HTTP request.
-     * @return View The rendered registration page view with organizations and registration data.
+     * @param  Request  $request  The incoming HTTP request
+     * @return View The rendered registration page view with organizations and registration data
      */
     public function __invoke(Request $request): View
     {

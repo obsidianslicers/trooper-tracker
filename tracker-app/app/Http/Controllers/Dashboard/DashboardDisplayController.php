@@ -22,13 +22,13 @@ use Illuminate\Support\Facades\Auth;
 class DashboardDisplayController extends MagicBusController
 {
     /**
-     * Handle the incoming request to display the dashboard page for a trooper.
+     * Handle the incoming request to display the dashboard page for a trooper
      *
      * Fetches all relevant statistics for a given trooper (or the authenticated user)
      * and displays them on the main dashboard view. Redirects if the trooper is not found.
      *
-     * @param  Request  $request  The incoming HTTP request.
-     * @return View The rendered dashboard page view.
+     * @param  Request  $request  The incoming HTTP request
+     * @return View The rendered dashboard page view
      */
     public function __invoke(Request $request): View
     {
@@ -61,13 +61,13 @@ class DashboardDisplayController extends MagicBusController
     }
 
     /**
-     * Retrieves the total troop count for a trooper, grouped by organization.
+     * Retrieves the total troop count for a trooper, grouped by organization
      *
      * This method only includes organizations the trooper has trooped with and orders
      * them by the number of appearances.
      *
-     * @param  Trooper  $trooper  The trooper to calculate statistics for.
-     * @return Collection A collection of Organization models, each with a `troop_count` attribute.
+     * @param  Trooper  $trooper  The trooper to calculate statistics for
+     * @return Collection A collection of Organization models, each with a `troop_count` attribute
      */
     private function getTroopsByOrganization(Trooper $trooper): Collection
     {
@@ -88,13 +88,13 @@ class DashboardDisplayController extends MagicBusController
     }
 
     /**
-     * Retrieves the total troop count for a trooper, grouped by costume.
+     * Retrieves the total troop count for a trooper, grouped by costume
      *
      * This method only includes costumes the trooper has actually worn and orders
      * them by the number of appearances. It excludes 'N/A' costumes.
      *
-     * @param  Trooper  $trooper  The trooper to calculate statistics for.
-     * @return Collection A collection of Costume models, each with a `troop_count` attribute.
+     * @param  Trooper  $trooper  The trooper to calculate statistics for
+     * @return Collection A collection of Costume models, each with a `troop_count` attribute
      */
     private function getTroopsByCostume(Trooper $trooper): Collection
     {

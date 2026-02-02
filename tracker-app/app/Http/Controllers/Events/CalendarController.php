@@ -21,13 +21,13 @@ use Illuminate\Http\Request;
 class CalendarController extends MagicBusController
 {
     /**
-     * Handle the incoming request to display the calendar page.
+     * Handle the incoming request to display the calendar page
      *
      * Retrieves all upcoming events grouped by date and generates a 12-month
      * calendar grid (weeks starting Sunday, ending Saturday) for displaying
      * events in a calendar layout.
      *
-     * @param  Request  $request  The incoming request
+     * @param  Request  $request  The incoming HTTP request
      * @return View The rendered events calendar page with upcoming events
      */
     public function __invoke(Request $request): View

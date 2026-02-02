@@ -20,14 +20,16 @@ use Illuminate\Http\Request;
 class OrganizationPickerController extends MagicBusController
 {
     /**
-     * Handle the incoming request to display the organization picker view.
+     * Handle the incoming request to display the organization picker view
      *
      * If the 'moderatored_only' query parameter is present, it fetches only the
      * organizations the authenticated user is assigned to moderate. Otherwise,
      * it returns an empty list.
      *
-     * @param  Request  $request  The incoming HTTP request.
-     * @return View The rendered organization picker view.
+     * @param  Request  $request  The incoming HTTP request
+     * @return View The rendered organization picker view
+     *
+     * @throws Exception If property parameter is missing
      */
     public function __invoke(Request $request): View
     {

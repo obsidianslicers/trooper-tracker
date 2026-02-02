@@ -40,12 +40,12 @@ class CreateRequest extends FormRequest
     use CommonRules;
 
     /**
-     * Determine if the authenticated user is authorized to create an event.
+     * Determine if the authenticated user is authorized to create an event
      *
      * Uses the EventPolicy to check if the user has permission to create events.
      * Typically allows administrators and moderators.
      *
-     * @return bool True if the user can create events, false otherwise.
+     * @return bool True if the user can create events, false otherwise
      */
     public function authorize(): bool
     {
@@ -54,7 +54,7 @@ class CreateRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules for event creation.
+     * Get the validation rules for event creation
      *
      * Retrieves common validation rules from the CommonRules trait and adds
      * organization_id validation to ensure the user can only create events for
@@ -63,7 +63,7 @@ class CreateRequest extends FormRequest
      * For administrators: Can select any organization
      * For moderators: Can only select organizations they moderate (filtered by moderatedBy scope)
      *
-     * @return array<string, mixed> The validation rules for creating an event.
+     * @return array<string, mixed> The validation rules for creating an event
      */
     public function rules(): array
     {

@@ -21,13 +21,13 @@ use Illuminate\Support\Facades\Crypt;
  */
 class ShiftCompleteController extends MagicBusController
 {
-    protected function initialized()
+    protected function initialized(): void
     {
         $this->crumbs->addRoute('Events', 'events.list');
     }
 
     /**
-     * Handle the incoming request to update a trooper's event status.
+     * Handle the incoming request to update a trooper's event status
      *
      * Decrypts the status parameter from the URL, updates the event trooper's
      * status, and displays a confirmation page.

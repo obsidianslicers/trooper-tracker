@@ -23,7 +23,7 @@ use Illuminate\Http\Response;
 class SignUpUpdateHtmxController extends MagicBusController
 {
     /**
-     * Handle the incoming HTMX request to update event trooper status or costume.
+     * Handle the incoming HTMX request to update event trooper status or costume
      *
      * Processes two types of updates:
      * - Status changes: Updates the trooper's attendance status and handles waitlist promotion

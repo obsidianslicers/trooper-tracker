@@ -19,6 +19,9 @@ class NoticesController extends MagicBusController
 {
     /**
      * Display the notices page for the authenticated trooper.
+     *
+     * @param  Request  $request  The incoming HTTP request
+     * @return View The rendered notices page
      */
     public function __invoke(Request $request): View
     {

@@ -31,10 +31,10 @@ class CheckActorRoleMiddleware
      * @param  Request  $request  The incoming HTTP request
      * @param  Closure  $next  The next middleware in the pipeline
      * @param  string  ...$roles  Variable number of role names to check against
-     * @return mixed The response from the next middleware if authorized
+     * @return Response The response from the next middleware if authorized
      *
      * @throws InvalidArgumentException If an invalid role string is provided
-     * @throws \Symfony\Component\HttpKernel\Exception\HttpException 401 if not authenticated, 403 if unauthorized
+     * @throws \Symfony\Component\HttpKernel\Exception\HttpException If not authenticated (401) or unauthorized (403)
      */
     public function handle(Request $request, Closure $next, ...$roles)
     {

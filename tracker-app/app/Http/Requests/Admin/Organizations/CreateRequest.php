@@ -18,9 +18,9 @@ use Illuminate\Foundation\Http\FormRequest;
 class CreateRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * Determine if the user is authorized to make this request
      *
-     * @return bool Returns true if the user has permission to create organizations.
+     * @return bool Returns true if the user has permission to create organizations
      */
     public function authorize(): bool
     {
@@ -28,12 +28,12 @@ class CreateRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Get the validation rules that apply to the request
      *
      * Validates the organization name ensuring it's unique among sibling organizations
      * under the same parent organization.
      *
-     * @return array<string, mixed> The validation rules for creating an organization.
+     * @return array<string, mixed> The validation rules for creating an organization
      */
     public function rules(): array
     {

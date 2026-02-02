@@ -19,8 +19,8 @@ class InactiveController extends MagicBusController
     /**
      * Handle the incoming request to display the inactive account page.
      *
-     * @param  Request  $request  The incoming HTTP request.
-     * @return View A view response displaying the inactive account page.
+     * @param  Request  $request  The incoming HTTP request
+     * @return View A view response displaying the inactive account page
      */
     public function __invoke(Request $request): View
     {

@@ -23,7 +23,7 @@ use Illuminate\Http\Response;
 class SignUpHtmxController extends MagicBusController
 {
     /**
-     * Handle the incoming HTMX request to sign up a trooper for an event shift.
+     * Handle the incoming HTMX request to sign up a trooper for an event shift
      *
      * Creates a new EventTrooper record for the specified or authenticated trooper,
      * automatically determining their status (GOING or STAND_BY) based on the shift's

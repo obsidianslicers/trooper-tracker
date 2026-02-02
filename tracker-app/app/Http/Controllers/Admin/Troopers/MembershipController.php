@@ -18,22 +18,22 @@ use Illuminate\Http\Request;
  */
 class MembershipController extends MagicBusController
 {
-    protected function initialized()
+    protected function initialized(): void
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
         $this->crumbs->addRoute('Troopers', 'admin.troopers.list');
     }
 
     /**
-     * Handle the incoming request to display a trooper's membership page.
+     * Handle the incoming request to display a trooper's membership page
      *
      * This method authorizes the user, sets up breadcrumbs, loads the trooper's
      * organization memberships via GetTrooperMembershipsQuery, and returns the view
      * for managing a specific trooper's organization memberships.
      *
-     * @param  Request  $request  The incoming HTTP request.
-     * @param  Trooper  $trooper  The trooper whose organization memberships are to be displayed.
-     * @return View The rendered authority page view.
+     * @param  Request  $request  The incoming HTTP request
+     * @param  Trooper  $trooper  The trooper whose organization memberships are to be displayed
+     * @return View The rendered authority page view
      */
     public function __invoke(Request $request, Trooper $trooper): View
     {

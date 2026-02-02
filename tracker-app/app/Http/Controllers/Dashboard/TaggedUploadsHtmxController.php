@@ -19,10 +19,10 @@ use Illuminate\Support\Facades\Auth;
 class TaggedUploadsHtmxController extends MagicBusController
 {
     /**
-     * Handle the incoming request to display the tagged uploads partial.
+     * Handle the incoming request to display the tagged uploads partial
      *
-     * @param  Request  $request  The incoming HTTP request, which may contain a 'trooper_id'.
-     * @return View The rendered view partial for the trooper's tagged uploads.
+     * @param  Request  $request  The incoming HTTP request, which may contain a 'trooper_id'
+     * @return View The rendered view partial for the trooper's tagged uploads
      */
     public function __invoke(Request $request): View
     {

@@ -17,14 +17,14 @@ use Illuminate\Http\Request;
 class TrooperEventSummaryController extends BaseReportsController
 {
     /**
-     * Display the trooper event summary report.
+     * Display the trooper event summary report
      *
      * Retrieves troopers who attended events within the lookback period
      * with statistics including total shifts attended, unique events attended,
      * and event IDs.
      *
-     * @param  Request  $request  The HTTP request.
-     * @return View The trooper event summary report view.
+     * @param  Request  $request  The HTTP request
+     * @return View The trooper event summary report view
      */
     public function __invoke(Request $request): View
     {

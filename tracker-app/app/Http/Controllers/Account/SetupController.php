@@ -20,6 +20,9 @@ class SetupController extends MagicBusController
 {
     /**
      * Handle the incoming request to display the organization setup page.
+     *
+     * @param  Request  $request  The incoming HTTP request
+     * @return View The rendered organization setup page
      */
     public function __invoke(Request $request): View
     {

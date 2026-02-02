@@ -35,8 +35,8 @@ class CostumesDeleteHtmxController extends MagicBusController
      * Validates costume_id is provided, finds the TrooperCostume record scoped to
      * the authenticated trooper, and soft-deletes it. Returns updated costume table HTML.
      *
-     * @param  Request  $request  The incoming HTTP request containing costume_id.
-     * @return View The costumes table partial for HTMX replacement.
+     * @param  Request  $request  The incoming HTTP request containing costume_id
+     * @return View The costumes table partial for HTMX replacement
      */
     public function __invoke(Request $request): View
     {

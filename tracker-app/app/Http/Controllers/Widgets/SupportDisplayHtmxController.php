@@ -15,10 +15,10 @@ use Illuminate\Http\Request;
 class SupportDisplayHtmxController extends MagicBusController
 {
     /**
-     * Handle the incoming request to display the support widget.
+     * Handle the incoming request to display the support widget
      *
-     * @param  Request  $request  The incoming HTTP request.
-     * @return View The rendered support widget view.
+     * @param  Request  $request  The incoming HTTP request
+     * @return View The rendered support widget view
      */
     public function __invoke(Request $request): View
     {
@@ -43,9 +43,9 @@ class SupportDisplayHtmxController extends MagicBusController
     }
 
     /**
-     * Retrieves a message based on the current day of the week.
+     * Retrieves a message based on the current day of the week
      *
-     * @return string The message for the current day.
+     * @return string The message for the current day
      */
     private function getMessage(): string
     {

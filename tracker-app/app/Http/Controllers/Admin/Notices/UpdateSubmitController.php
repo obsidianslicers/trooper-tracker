@@ -17,14 +17,14 @@ use Illuminate\Http\RedirectResponse;
 class UpdateSubmitController extends MagicBusController
 {
     /**
-     * Handle the incoming request to update a notice.
+     * Handle the incoming request to update a notice
      *
      * Validates the request, updates the notice's properties, saves it,
      * and then redirects with a success message.
      *
-     * @param  UpdateRequest  $request  The validated request containing the updated data.
-     * @param  Notice  $notice  The notice to be updated.
-     * @return RedirectResponse A redirect response to the notices list.
+     * @param  UpdateRequest  $request  The validated request containing the updated data
+     * @param  Notice  $notice  The notice to be updated
+     * @return RedirectResponse A redirect response to the notices list
      */
     public function __invoke(UpdateRequest $request, Notice $notice): RedirectResponse
     {

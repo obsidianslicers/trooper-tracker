@@ -17,14 +17,14 @@ use Illuminate\Http\Request;
 class StatusChangeLogController extends BaseReportsController
 {
     /**
-     * Display the status change log report.
+     * Display the status change log report
      *
      * Retrieves EventTrooper records marked as ATTENDED by moderators
      * (not self-updated) within the lookback period for troopers
      * moderated by the authenticated trooper.
      *
-     * @param  Request  $request  The HTTP request.
-     * @return View The status change log report view.
+     * @param  Request  $request  The HTTP request
+     * @return View The status change log report view
      */
     public function __invoke(Request $request): View
     {

@@ -28,7 +28,7 @@ use Illuminate\Http\RedirectResponse;
 class CreateSubmitController extends MagicBusController
 {
     /**
-     * Creates a new event from validated form submission.
+     * Creates a new event from validated form submission
      *
      * Validates the request, creates a new event with the provided data,
      * creates an EventOrganization record for the source club, creates an
@@ -36,8 +36,8 @@ class CreateSubmitController extends MagicBusController
      * associations, and dispatches notifications if the event is published.
      * Redirects to the event's update page with a success message.
      *
-     * @param  CreateRequest  $request  The validated request containing the event data.
-     * @return RedirectResponse Redirect to the new event's update page.
+     * @param  CreateRequest  $request  The validated request containing the event data
+     * @return RedirectResponse Redirect to the new event's update page
      */
     public function __invoke(
         CreateRequest $request): RedirectResponse

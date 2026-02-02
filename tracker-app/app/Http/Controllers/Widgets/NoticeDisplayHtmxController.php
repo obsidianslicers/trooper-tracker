@@ -17,9 +17,10 @@ use Illuminate\Http\Request;
 class NoticeDisplayHtmxController extends MagicBusController
 {
     /**
-     * Handle the incoming request to display the notice widget.
+     * Handle the incoming request to display the notice widget
      *
-     * @return View The rendered notice widget view.
+     * @param  Request  $request  The incoming HTTP request
+     * @return View The rendered notice widget view
      */
     public function __invoke(Request $request): View
     {

@@ -29,14 +29,14 @@ use Illuminate\Validation\Rule;
 class MembershipRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * Determine if the user is authorized to make this request
      *
      * Verifies that the trooper exists in the route and that the authenticated
      * user is an administrator. Only administrators can modify membership settings.
      *
-     * @return bool Returns true if the user is an administrator.
+     * @return bool Returns true if the user is an administrator
      *
-     * @throws AuthorizationException If the trooper is not found in the route.
+     * @throws AuthorizationException If the trooper is not found in the route
      */
     public function authorize(): bool
     {
@@ -51,12 +51,12 @@ class MembershipRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Get the validation rules that apply to the request
      *
      * Generates dynamic validation rules for organization memberships.
      * Organizations are selected via popup picker and must be leaf nodes.
      *
-     * @return array<string, mixed> The validation rules for organization memberships.
+     * @return array<string, mixed> The validation rules for organization memberships
      */
     public function rules(): array
     {
@@ -66,12 +66,12 @@ class MembershipRequest extends FormRequest
     }
 
     /**
-     * Get custom attribute names for validator errors.
+     * Get custom attribute names for validator errors
      *
      * This method generates user-friendly attribute names for organization
      * identifiers and assignments to improve error messages.
      *
-     * @return array<string, string> Custom attribute names for validation errors.
+     * @return array<string, string> Custom attribute names for validation errors
      */
     public function attributes(): array
     {
@@ -87,7 +87,7 @@ class MembershipRequest extends FormRequest
     }
 
     /**
-     * Generate dynamic validation rules for organization memberships.
+     * Generate dynamic validation rules for organization memberships
      *
      * Validates that selected organizations:
      * - Are required when an identifier is provided
@@ -95,7 +95,7 @@ class MembershipRequest extends FormRequest
      * - Are leaf nodes (have no child organizations)
      * - Have valid identifiers according to organization-specific rules
      *
-     * @return array<string, mixed> Validation rules for organization memberships.
+     * @return array<string, mixed> Validation rules for organization memberships
      */
     private function getOrganizationValidationRules(): array
     {
@@ -111,7 +111,7 @@ class MembershipRequest extends FormRequest
         foreach ($organizations as $organization)
         {
             // Validate identifier if organization requires it
-            if (! empty($organization->identifier_validation))
+            if (!empty($organization->identifier_validation))
             {
                 $base_rules = explode('|', $organization->identifier_validation);
 
@@ -124,7 +124,7 @@ class MembershipRequest extends FormRequest
 
             // Validate assignment - required when identifier is provided, must be a leaf node and descendant
             $rules["organizations.{$organization->id}.assignment"] = [
-                Rule::requiredIf(fn () => ! empty($this->input("organizations.{$organization->id}.identifier"))),
+                Rule::requiredIf(fn () => !empty($this->input("organizations.{$organization->id}.identifier"))),
                 'nullable',
                 Rule::exists(Organization::class, Organization::ID),
                 new OrganizationLeafNodeRule($organization),
@@ -135,12 +135,12 @@ class MembershipRequest extends FormRequest
     }
 
     /**
-     * Retrieve and cache all organizations for validation.
+     * Retrieve and cache all organizations for validation
      *
      * Fetches all active organizations and caches them to avoid multiple
      * database queries during validation rule generation.
      *
-     * @return \Illuminate\Database\Eloquent\Collection The collection of active organizations.
+     * @return \Illuminate\Database\Eloquent\Collection The collection of active organizations
      */
     private function getOrganizations(): Collection
     {

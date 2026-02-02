@@ -25,15 +25,15 @@ use Illuminate\Http\RedirectResponse;
 class UpdateSubmitController extends MagicBusController
 {
     /**
-     * Updates an existing event from the validated form submission.
+     * Updates an existing event from the validated form submission
      *
      * Processes the validated request to update the event's properties
      * and organization access permissions. Redirects back to the update
      * form with a success message.
      *
-     * @param  UpdateRequest  $request  The validated event update request.
-     * @param  Event  $event  The event to update (route model binding).
-     * @return RedirectResponse Redirect to the event's update page.
+     * @param  UpdateRequest  $request  The validated event update request
+     * @param  Event  $event  The event to update (route model binding)
+     * @return RedirectResponse Redirect to the event's update page
      */
     public function __invoke(
         UpdateRequest $request,

@@ -35,8 +35,8 @@ class RegisterSubmitController extends MagicBusController
      * organization assignments, notification preferences, and email confirmation.
      * The newly created trooper will have PENDING status until approved by an admin.
      *
-     * @param  RegisterRequest  $request  The validated registration form request.
-     * @return RedirectResponse A redirect to the thank you page after successful registration.
+     * @param  RegisterRequest  $request  The validated registration form request
+     * @return RedirectResponse A redirect to the thank you page after successful registration
      */
     public function __invoke(RegisterRequest $request): RedirectResponse
     {

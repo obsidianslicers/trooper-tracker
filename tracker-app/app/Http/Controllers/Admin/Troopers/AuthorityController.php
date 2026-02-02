@@ -17,21 +17,21 @@ use Illuminate\Http\Request;
  */
 class AuthorityController extends MagicBusController
 {
-    protected function initialized()
+    protected function initialized(): void
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
         $this->crumbs->addRoute('Troopers', 'admin.troopers.list');
     }
 
     /**
-     * Handle the incoming request to display a trooper's authority page.
+     * Handle the incoming request to display a trooper's authority page
      *
      * This method authorizes the user, sets up breadcrumbs, and returns the view
      * for managing a specific trooper's roles and organizational assignments.
      *
-     * @param  Request  $request  The incoming HTTP request.
-     * @param  Trooper  $trooper  The trooper whose authorities are to be displayed.
-     * @return View The rendered authority page view.
+     * @param  Request  $request  The incoming HTTP request
+     * @param  Trooper  $trooper  The trooper whose authorities are to be displayed
+     * @return View The rendered authority page view
      */
     public function __invoke(Request $request, Trooper $trooper): View
     {

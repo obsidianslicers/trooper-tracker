@@ -34,9 +34,9 @@ class NoticesSubmitHtmxController extends MagicBusController
      * Creates or updates a NoticeTrooper record marking the notice as read.
      * Returns an HTML button fragment that HTMX will swap into the page.
      *
-     * @param  Request  $request  The incoming HTTP request containing authenticated trooper.
-     * @param  Notice  $notice  The notice to mark as read (route model binding).
-     * @return Response The HTML button response for HTMX replacement.
+     * @param  Request  $request  The incoming HTTP request containing authenticated trooper
+     * @param  Notice  $notice  The notice to mark as read (route model binding)
+     * @return Response The HTML button response for HTMX replacement
      */
     public function __invoke(Request $request, Notice $notice): Response|View
     {

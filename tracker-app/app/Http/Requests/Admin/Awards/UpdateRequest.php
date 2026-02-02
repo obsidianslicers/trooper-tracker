@@ -18,14 +18,14 @@ use Illuminate\Foundation\Http\FormRequest;
 class UpdateRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * Determine if the user is authorized to make this request
      *
      * Verifies that the award exists in the route and that the authenticated
      * user has permission to update it.
      *
-     * @return bool Returns true if the user can update the award.
+     * @return bool Returns true if the user can update the award
      *
-     * @throws AuthorizationException if the award is not found in the route.
+     * @throws AuthorizationException if the award is not found in the route
      */
     public function authorize(): bool
     {
@@ -40,11 +40,11 @@ class UpdateRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Get the validation rules that apply to the request
      *
      * Only validates the award name as other fields are immutable.
      *
-     * @return array<string, mixed> The validation rules for updating an award.
+     * @return array<string, mixed> The validation rules for updating an award
      */
     public function rules(): array
     {

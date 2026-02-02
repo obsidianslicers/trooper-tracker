@@ -17,13 +17,13 @@ use Illuminate\Http\RedirectResponse;
 class CreateSubmitController extends MagicBusController
 {
     /**
-     * Handle the incoming request to create a new award.
+     * Handle the incoming request to create a new award
      *
      * Validates the request, creates a new award with the provided data,
      * saves it, and then redirects with a success message.
      *
-     * @param  CreateRequest  $request  The validated request containing the new award's data.
-     * @return RedirectResponse A redirect response to the awards list.
+     * @param  CreateRequest  $request  The validated request containing the new award's data
+     * @return RedirectResponse A redirect response to the awards list
      */
     public function __invoke(CreateRequest $request): RedirectResponse
     {

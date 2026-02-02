@@ -32,7 +32,7 @@ class FlashMessageMiddleware
      *
      * @param  Request  $request  The incoming HTTP request
      * @param  Closure  $next  The next middleware in the pipeline
-     * @return mixed The response from the next middleware
+     * @return Response The response from the next middleware
      */
     public function handle(Request $request, Closure $next)
     {

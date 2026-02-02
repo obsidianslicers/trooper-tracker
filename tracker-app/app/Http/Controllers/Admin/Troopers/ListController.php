@@ -22,19 +22,20 @@ use Illuminate\Http\Request;
  */
 class ListController extends MagicBusController
 {
-    protected function initialized()
+    protected function initialized(): void
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
     }
 
     /**
-     * Handle the incoming request to display the troopers list page.
+     * Handle the incoming request to display the troopers list page
      *
      * Sets up breadcrumbs, retrieves the appropriate list of troopers based on the
      * user's role, and returns the main troopers display view.
      *
-     * @param  Request  $request  The incoming HTTP request.
-     * @return View|RedirectResponse The rendered dashboard page view or a redirect response.
+     * @param  Request  $request  The incoming HTTP request
+     * @param  TrooperFilter  $filter  The filter service for applying query constraints
+     * @return View|RedirectResponse The rendered dashboard page view or a redirect response
      */
     public function __invoke(Request $request, TrooperFilter $filter): View|RedirectResponse
     {

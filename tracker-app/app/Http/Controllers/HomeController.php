@@ -23,7 +23,8 @@ class HomeController extends MagicBusController
      * Redirects authenticated troopers to the events list, or renders
      * the public home page for guests.
      *
-     * @return View|RedirectResponse The rendered home page view or redirect to events list.
+     * @param  Request  $request  The incoming HTTP request
+     * @return View|RedirectResponse The rendered home page view or redirect to events list
      */
     public function __invoke(Request $request): View|RedirectResponse
     {

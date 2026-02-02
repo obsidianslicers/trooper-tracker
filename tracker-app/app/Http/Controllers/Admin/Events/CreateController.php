@@ -25,23 +25,23 @@ use Illuminate\Support\Collection;
  */
 class CreateController extends MagicBusController
 {
-    protected function initialized()
+    protected function initialized(): void
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
         $this->crumbs->addRoute('Events', 'admin.events.list');
     }
 
     /**
-     * Displays the event creation form with a new event instance.
+     * Displays the event creation form with a new event instance
      *
      * Authorizes the user can create events, initializes a new Event model
      * with default values (REGULAR type, DRAFT status), and optionally assigns
      * an organization from query parameters. Returns the view with the event,
      * organization hierarchy, and available organizations.
      *
-     * @param  Request  $request  The incoming HTTP request object.
-     * @param  Event  $event  Event model (injected but not used, new instance created).
-     * @return View The rendered event creation view.
+     * @param  Request  $request  The incoming HTTP request object
+     * @param  Event  $event  Event model (injected but not used, new instance created)
+     * @return View The rendered event creation view
      */
     public function __invoke(Request $request, Event $event): View
     {

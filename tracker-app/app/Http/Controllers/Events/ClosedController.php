@@ -20,7 +20,10 @@ use Illuminate\Http\Request;
 class ClosedController extends MagicBusController
 {
     /**
-     * Handle the incoming request to display the closed events list page.
+     * Handle the incoming request to display the closed events list page
+     *
+     * @param  Request  $request  The incoming HTTP request
+     * @return View The rendered closed events list page
      */
     public function __invoke(Request $request): View
     {

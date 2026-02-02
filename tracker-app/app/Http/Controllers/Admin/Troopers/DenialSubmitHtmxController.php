@@ -22,15 +22,15 @@ use Illuminate\Http\Response;
 class DenialSubmitHtmxController extends MagicBusController
 {
     /**
-     * Handle the incoming request to deny a trooper's membership.
+     * Handle the incoming request to deny a trooper's membership
      *
      * This method authorizes the action, updates the trooper's status to 'Denied',
      * saves the model, and returns a view with a custom 'X-Flash-Message' header
      * for HTMX to display a danger message.
      *
-     * @param  Request  $request  The incoming HTTP request.
-     * @param  Trooper  $trooper  The trooper pending approval.
-     * @return Response|View A response object containing the view and a custom header.
+     * @param  Request  $request  The incoming HTTP request
+     * @param  Trooper  $trooper  The trooper pending approval
+     * @return Response|View A response object containing the view and a custom header
      */
     public function __invoke(Request $request, Trooper $trooper): Response|View
     {

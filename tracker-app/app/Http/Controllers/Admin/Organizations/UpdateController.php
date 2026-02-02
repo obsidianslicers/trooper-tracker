@@ -16,21 +16,21 @@ use Illuminate\Http\Request;
  */
 class UpdateController extends MagicBusController
 {
-    protected function initialized()
+    protected function initialized(): void
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
         $this->crumbs->addRoute('Organizations', 'admin.organizations.list');
     }
 
     /**
-     * Handle the request to display the organization update page.
+     * Handle the request to display the organization update page
      *
      * Authorizes the user, sets up breadcrumbs, and returns the view
      * containing the form to update an existing organization.
      *
-     * @param  Request  $request  The incoming HTTP request object.
-     * @param  Organization  $organization  The organization to be updated.
-     * @return View The rendered organization update view.
+     * @param  Request  $request  The incoming HTTP request object
+     * @param  Organization  $organization  The organization to be updated
+     * @return View The rendered organization update view
      */
     public function __invoke(Request $request, Organization $organization): View
     {

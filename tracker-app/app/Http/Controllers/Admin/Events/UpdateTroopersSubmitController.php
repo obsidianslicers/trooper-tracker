@@ -19,15 +19,15 @@ use Illuminate\Http\Request;
 class UpdateTroopersSubmitController extends MagicBusController
 {
     /**
-     * Updates event trooper statuses from the validated form submission.
+     * Updates event trooper statuses from the validated form submission
      *
      * Processes the validated request to update status values for troopers
      * registered to the event. Only updates troopers that exist in the event.
      * Redirects back to the trooper management page with a success message.
      *
-     * @param  UpdateTroopersRequest  $request  The validated trooper status update request.
-     * @param  Event  $event  The event whose troopers are being updated (route model binding).
-     * @return RedirectResponse Redirect to the event's trooper management page.
+     * @param  UpdateTroopersRequest  $request  The validated trooper status update request
+     * @param  Event  $event  The event whose troopers are being updated (route model binding)
+     * @return RedirectResponse Redirect to the event's trooper management page
      */
     public function __invoke(UpdateTroopersRequest $request, Event $event): RedirectResponse
     {

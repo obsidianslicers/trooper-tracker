@@ -18,15 +18,15 @@ use Illuminate\Http\RedirectResponse;
 class CreateCostumeSubmitController extends MagicBusController
 {
     /**
-     * Handle the incoming request to create a new costume.
+     * Handle the incoming request to create a new costume
      *
      * Validates the request, creates a new OrganizationCostume record under the given
      * organization, saves it, and redirects to the costumes management page with a
      * success message.
      *
-     * @param  CreateCostumeRequest  $request  The validated request containing the new costume's data.
-     * @param  Organization  $organization  The organization to create the costume for.
-     * @return RedirectResponse A redirect to the organization's costumes management page.
+     * @param  CreateCostumeRequest  $request  The validated request containing the new costume's data
+     * @param  Organization  $organization  The organization to create the costume for
+     * @return RedirectResponse A redirect to the organization's costumes management page
      */
     public function __invoke(CreateCostumeRequest $request, Organization $organization): RedirectResponse
     {

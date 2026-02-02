@@ -19,13 +19,13 @@ use Illuminate\Support\Facades\Auth;
 class HistoricalTroopsHtmxController extends MagicBusController
 {
     /**
-     * Handle the incoming request to display the historical troops partial.
+     * Handle the incoming request to display the historical troops partial
      *
      * Fetches historical troops for the specified or authenticated trooper,
      * sorts them by end date in descending order, and returns the corresponding view.
      *
-     * @param  Request  $request  The incoming HTTP request, which may contain a 'trooper_id'.
-     * @return View The rendered view partial for historical troops.
+     * @param  Request  $request  The incoming HTTP request, which may contain a 'trooper_id'
+     * @return View The rendered view partial for historical troops
      */
     public function __invoke(Request $request): View
     {

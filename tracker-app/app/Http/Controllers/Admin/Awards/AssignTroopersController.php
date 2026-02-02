@@ -16,21 +16,21 @@ use Illuminate\Http\Request;
  */
 class AssignTroopersController extends MagicBusController
 {
-    protected function initialized()
+    protected function initialized(): void
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
         $this->crumbs->addRoute('Awards', 'admin.awards.list');
     }
 
     /**
-     * Handle the request to display the award assignment page.
+     * Handle the request to display the award assignment page
      *
      * Authorizes the user, sets up breadcrumbs, and returns the view containing
      * the form to assign the award to troopers.
      *
-     * @param  Request  $request  The incoming HTTP request object.
-     * @param  Award  $award  The award to assign.
-     * @return View The rendered award assignment view.
+     * @param  Request  $request  The incoming HTTP request object
+     * @param  Award  $award  The award to assign
+     * @return View The rendered award assignment view
      */
     public function __invoke(Request $request, Award $award): View
     {

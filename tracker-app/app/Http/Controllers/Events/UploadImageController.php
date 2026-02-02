@@ -23,15 +23,15 @@ use Intervention\Image\ImageManager;
 class UploadImageController extends MagicBusController
 {
     /**
-     * Handle the incoming image upload request.
+     * Handle the incoming image upload request
      *
      * Validates uploaded images (max 4MB, PNG/JPG/JPEG/WEBP), normalizes them
      * to square transparent canvases, generates thumbnails (128x128), and stores
      * both versions. Creates EventUpload records linked to the trooper and event.
      *
-     * @param  Request  $request  The incoming HTTP request with 'images' file array.
-     * @param  Event  $event  The event to attach uploads to.
-     * @return \Illuminate\Http\Response Response with updated upload display view and flash message header.
+     * @param  Request  $request  The incoming HTTP request with 'images' file array
+     * @param  Event  $event  The event to attach uploads to
+     * @return \Illuminate\Http\Response Response with updated upload display view and flash message header
      */
     public function __invoke(Request $request, Event $event)
     {

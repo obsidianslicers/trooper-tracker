@@ -22,9 +22,9 @@ use Illuminate\Validation\Rule;
 class CreateRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * Determine if the user is authorized to make this request
      *
-     * @return bool Returns true if the user has permission to create notices.
+     * @return bool Returns true if the user has permission to create notices
      */
     public function authorize(): bool
     {
@@ -33,13 +33,13 @@ class CreateRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Get the validation rules that apply to the request
      *
      * Validates the notice title, message, type enum value, date range, and organization.
      * Administrators can optionally assign an organization or leave it null for global notices.
      * Moderators must assign an organization they have permission to manage.
      *
-     * @return array<string, mixed> The validation rules for creating a notice.
+     * @return array<string, mixed> The validation rules for creating a notice
      */
     public function rules(): array
     {

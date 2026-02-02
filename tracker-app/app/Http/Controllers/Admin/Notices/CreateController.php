@@ -19,14 +19,14 @@ use Illuminate\Http\Request;
  */
 class CreateController extends MagicBusController
 {
-    protected function initialized()
+    protected function initialized(): void
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
         $this->crumbs->addRoute('Notices', 'admin.notices.list');
     }
 
     /**
-     * Handle the request to display the notice creation page.
+     * Handle the request to display the notice creation page
      *
      * Authorizes the user, sets up breadcrumbs, and returns the view containing
      * the form to create a new notice. If a `copy_id` is provided, it pre-populates
@@ -34,8 +34,8 @@ class CreateController extends MagicBusController
      * provided, it pre-selects that organization. It ensures non-administrators
      * can only interact with notices and organizations they are authorized to moderate.
      *
-     * @param  Request  $request  The incoming HTTP request object.
-     * @return View The rendered notice creation view.
+     * @param  Request  $request  The incoming HTTP request object
+     * @return View The rendered notice creation view
      */
     public function __invoke(Request $request): View
     {

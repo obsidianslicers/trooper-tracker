@@ -22,6 +22,9 @@ class CostumesController extends MagicBusController
 {
     /**
      * Display the costume management page for the authenticated trooper.
+     *
+     * @param  Request  $request  The incoming HTTP request
+     * @return View The rendered costume management page
      */
     public function __invoke(Request $request): View
     {

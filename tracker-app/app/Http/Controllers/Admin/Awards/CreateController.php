@@ -18,14 +18,14 @@ use Illuminate\Http\Request;
  */
 class CreateController extends MagicBusController
 {
-    protected function initialized()
+    protected function initialized(): void
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
         $this->crumbs->addRoute('Awards', 'admin.awards.list');
     }
 
     /**
-     * Handle the request to display the award creation page.
+     * Handle the request to display the award creation page
      *
      * Authorizes the user, sets up breadcrumbs, and returns the view containing
      * the form to create a new award. If a `copy_id` is provided, it pre-populates
@@ -33,8 +33,8 @@ class CreateController extends MagicBusController
      * provided, it pre-selects that organization. It ensures non-administrators
      * can only interact with awards and organizations they are authorized to moderate.
      *
-     * @param  Request  $request  The incoming HTTP request object.
-     * @return View The rendered award creation view.
+     * @param  Request  $request  The incoming HTTP request object
+     * @return View The rendered award creation view
      */
     public function __invoke(Request $request): View
     {

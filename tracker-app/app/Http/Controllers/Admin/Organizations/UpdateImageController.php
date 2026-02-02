@@ -22,16 +22,16 @@ use Intervention\Image\ImageManager;
 class UpdateImageController extends MagicBusController
 {
     /**
-     * Handle the organization logo upload request.
+     * Handle the organization logo upload request
      *
      * Validates the uploaded logo image (max 2MB, PNG/JPG/JPEG/WEBP), normalizes it
      * to a square transparent canvas, creates large (128x128) and small (32x32) versions,
      * stores them in public storage, updates the organization's image paths, and returns
      * the image display view.
      *
-     * @param  Request  $request  The incoming HTTP request object.
-     * @param  Organization  $organization  The organization to update the logo for.
-     * @return View The organization image display view (pages.admin.organizations.image).
+     * @param  Request  $request  The incoming HTTP request object
+     * @param  Organization  $organization  The organization to update the logo for
+     * @return View The organization image display view (pages.admin.organizations.image)
      */
     public function __invoke(Request $request, Organization $organization): View
     {

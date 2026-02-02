@@ -19,6 +19,9 @@ class NotificationsController extends MagicBusController
 {
     /**
      * Handle the incoming request to display the notification settings.
+     *
+     * @param  Request  $request  The incoming HTTP request
+     * @return View The rendered notification settings page
      */
     public function __invoke(Request $request): View
     {

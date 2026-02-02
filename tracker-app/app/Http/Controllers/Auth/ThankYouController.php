@@ -19,8 +19,8 @@ class ThankYouController extends MagicBusController
     /**
      * Handle the incoming request to display the thank you page.
      *
-     * @param  Request  $request  The incoming HTTP request.
-     * @return View A view response displaying the thank you page.
+     * @param  Request  $request  The incoming HTTP request
+     * @return View A view response displaying the thank you page
      */
     public function __invoke(Request $request): View
     {

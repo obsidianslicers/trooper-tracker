@@ -20,15 +20,15 @@ use Illuminate\Http\RedirectResponse;
 class MembershipSubmitController extends MagicBusController
 {
     /**
-     * Handle the incoming request to update a trooper's organization memberships.
+     * Handle the incoming request to update a trooper's organization memberships
      *
      * This method authorizes the user, validates the membership data, dispatches
      * UpdateTrooperIdentifiersCommand and UpdateTrooperMembershipsCommand, and
      * redirects back to the membership page.
      *
-     * @param  MembershipRequest  $request  The incoming HTTP request.
-     * @param  Trooper  $trooper  The trooper whose memberships are being updated.
-     * @return RedirectResponse A redirect to the membership page.
+     * @param  MembershipRequest  $request  The incoming HTTP request
+     * @param  Trooper  $trooper  The trooper whose memberships are being updated
+     * @return RedirectResponse A redirect to the membership page
      */
     public function __invoke(MembershipRequest $request, Trooper $trooper): RedirectResponse
     {

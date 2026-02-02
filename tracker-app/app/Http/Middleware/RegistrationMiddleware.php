@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use Closure;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Middleware to protect registration flow routes.
@@ -25,9 +27,9 @@ class RegistrationMiddleware
      *
      * @param  Request  $request  The incoming HTTP request
      * @param  Closure  $next  The next middleware in the pipeline
-     * @return mixed The response from the next middleware or a redirect
+     * @return Response|RedirectResponse The response from the next middleware or a redirect to signup
      */
-    public function handle(Request $request, Closure $next)
+    public function handle(Request $request, Closure $next): Response|RedirectResponse
     {
         $registration_auth = Session::get('registration_auth');
 

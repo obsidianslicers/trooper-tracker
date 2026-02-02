@@ -17,21 +17,21 @@ use Illuminate\Http\Request;
  */
 class CostumesController extends MagicBusController
 {
-    protected function initialized()
+    protected function initialized(): void
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
         $this->crumbs->addRoute('Organizations', 'admin.organizations.list');
     }
 
     /**
-     * Handle the request to display the organization costumes page.
+     * Handle the request to display the organization costumes page
      *
      * Authorizes the user, sets up breadcrumbs, and returns the view
      * containing the form to manage costumes for an organization.
      *
-     * @param  Request  $request  The incoming HTTP request object.
-     * @param  Organization  $organization  The organization whose costumes are to be managed.
-     * @return View The rendered organization costumes view.
+     * @param  Request  $request  The incoming HTTP request object
+     * @param  Organization  $organization  The organization whose costumes are to be managed
+     * @return View The rendered organization costumes view
      */
     public function __invoke(Request $request, Organization $organization): View
     {
