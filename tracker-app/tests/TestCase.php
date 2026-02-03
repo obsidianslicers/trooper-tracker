@@ -21,6 +21,9 @@ abstract class TestCase extends BaseTestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        // Tells Laravel to ignore missing Vite assets
+        $this->withoutVite();
     }
 
     protected function tearDown(): void

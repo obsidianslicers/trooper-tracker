@@ -51,7 +51,7 @@ class SetupRequest extends FormRequest
             Trooper::EMAIL => [
                 'required',
                 'string',
-                'email:rfc,dns',
+                'email:rfc',
                 'max:256',
                 Rule::unique(Trooper::class, Trooper::EMAIL)
                     ->ignore($this->user()->id, Trooper::ID),
@@ -60,7 +60,7 @@ class SetupRequest extends FormRequest
                 'required',
                 'string',
                 'max:16',
-                'in:'.NotificationFrequency::toValidator(),
+                'in:' . NotificationFrequency::toValidator(),
             ],
         ];
 
@@ -111,7 +111,8 @@ class SetupRequest extends FormRequest
      */
     private function getOrganizations(): Collection
     {
-        $getter = function (): Collection {
+        $getter = function (): Collection
+        {
             return Organization::fullyLoaded()->get();
         };
 
