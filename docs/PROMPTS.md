@@ -41,7 +41,7 @@ During this process:
 - ensure the workspace contains only the original project files after the refactor
 ```
 
-## Update PHPDoc Comments and Tests
+## Update PHPDoc Comments and Tests (would not recommend - split comment work from tests)
 
 This prompt audits and corrects PHPDoc across the selected controllers, updates their feature tests to match current behavior, and ensures every referenced Query and QueryHandler has proper unit test coverage—creating or adjusting tests as needed while keeping all changes scoped strictly to the files in context.
 
@@ -246,4 +246,27 @@ Audit all documentation files in the docs/ folder and the README with the follow
 6. Do not change the project's lore or personality. Only tighten, reorganize, and clarify.
 
 Apply all edits directly to the files in the docs/ folder and update the README links accordingly.
+```
+
+## PHPSTAN
+
+```
+Resolve the PHPStan errors shown below using the following rules:
+
+1. Make only the smallest, safest changes required to satisfy PHPStan.
+2. Do NOT modify business logic, control flow, naming, architecture, or domain concepts.
+3. Only fix issues that are purely mechanical, such as:
+   - missing or incorrect type hints
+   - missing or incorrect return types
+   - missing or incorrect imports
+   - incorrect or missing docblocks
+   - incorrect or missing generics
+   - incorrect interface or abstract method signatures
+   - missing @property, @method, or @mixin annotations for Laravel/Larastan
+   - incorrect collection or array shapes
+4. Do NOT introduce new classes, traits, helpers, or abstractions.
+5. Do NOT rewrite or “improve” code beyond what PHPStan requires.
+6. If any error requires architectural or domain knowledge, STOP and ask me before making changes.
+7. Apply all fixes directly to the affected files.
+
 ```
