@@ -7,7 +7,6 @@ namespace App\Http\Controllers\Events;
 use App\Features\Events\Queries\GetEventDisplayQuery;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Event;
-use App\Services\BreadCrumbService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -21,20 +20,23 @@ use Illuminate\Http\Request;
  */
 class EventDisplayController extends MagicBusController
 {
+    /**
+     * Initialize controller by setting up breadcrumb navigation.
+     */
     protected function initialized(): void
     {
         $this->crumbs->addRoute('Events', 'events.list');
     }
 
     /**
-     * Handle the incoming request to display the event sign-up page.
+     * Handle the incoming request to display the event sign-up page
      *
      * Loads the event with all shifts, trooper assignments, and organization
      * details. Each shift is enriched with its parent event reference for
      * easy access in the view.
      *
-     * @param Request $request The incoming request
-     * @param Event $event The event to display for sign-up
+     * @param  Request  $request  The incoming HTTP request
+     * @param  Event  $event  The event to display for sign-up
      * @return View The rendered event sign-up page
      */
     public function __invoke(Request $request, Event $event): View

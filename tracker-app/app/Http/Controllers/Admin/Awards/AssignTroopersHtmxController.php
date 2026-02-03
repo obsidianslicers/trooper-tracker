@@ -14,16 +14,15 @@ use Illuminate\Http\Request;
  * Class AssignTroopersHtmxController
  *
  * Handles HTMX requests for the award assignment form.
- * @package App\Http\Controllers\Admin\Awards
  */
 class AssignTroopersHtmxController extends MagicBusController
 {
     /**
-     * Handle the HTMX request to add a selected trooper to the assignment list.
+     * Handle the HTMX request to add a selected trooper to the assignment list
      *
-     * @param Request $request The incoming HTTP request.
-     * @param Award $award The award being assigned.
-     * @return View The rendered trooper selection item.
+     * @param  Request  $request  The incoming HTTP request
+     * @param  Award  $award  The award being assigned
+     * @return View The rendered trooper selection item
      */
     public function __invoke(Request $request, Award $award): View
     {

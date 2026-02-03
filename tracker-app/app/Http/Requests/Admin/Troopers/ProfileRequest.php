@@ -22,14 +22,14 @@ class ProfileRequest extends FormRequest
     use HasNormalizers;
 
     /**
-     * Determine if the user is authorized to make this request.
+     * Determine if the user is authorized to make this request
      *
      * Verifies that the trooper exists in the route and that the authenticated
      * user has permission to update the trooper's profile.
      *
-     * @return bool Returns true if the user can update the trooper.
+     * @return bool Returns true if the user can update the trooper
      *
-     * @throws AuthorizationException if the trooper is not found in the route.
+     * @throws AuthorizationException if the trooper is not found in the route
      */
     public function authorize(): bool
     {
@@ -44,13 +44,13 @@ class ProfileRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Get the validation rules that apply to the request
      *
      * Validates the trooper's name, email, phone, and membership status.
      * The membership status can be updated by administrators to approve or manage
      * trooper accounts.
      *
-     * @return array<string, mixed> The validation rules for updating a trooper's profile.
+     * @return array<string, mixed> The validation rules for updating a trooper's profile
      */
     public function rules(): array
     {
@@ -70,13 +70,13 @@ class ProfileRequest extends FormRequest
     }
 
     /**
-     * Prepare the data for validation.
+     * Prepare the data for validation
      *
      * This method sanitizes the phone number by removing any non-digit characters.
      */
     protected function prepareForValidation(): void
     {
-        if ($this->has('phone') && ! empty($this->input('phone')))
+        if ($this->has('phone') && !empty($this->input('phone')))
         {
             $phone = $this->normalizePhoneInput($this->input('phone'));
 

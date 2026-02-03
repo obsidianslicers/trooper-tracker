@@ -14,11 +14,11 @@ use Illuminate\Foundation\Http\FormRequest;
 class CopyRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * Determine if the user is authorized to make this request
      *
      * Checks if the user has permission to copy the event specified in the route.
      *
-     * @throws AuthorizationException if the event is not found.
+     * @throws AuthorizationException if the event is not found
      */
     public function authorize(): bool
     {
@@ -33,9 +33,9 @@ class CopyRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Get the validation rules that apply to the request
      *
-     * @return array<string, mixed> The validation rules for the request.
+     * @return array<string, mixed> The validation rules for the request
      */
     public function rules(): array
     {

@@ -80,7 +80,7 @@ Troop Tracker follows **Action-Domain-Responder (ADR)** with **Command/Query Sep
 
 ## Tech Stack
 
-- **PHP 8.2+** with strict types and scalar type hints
+- **PHP 8.x+** with strict types and scalar type hints
 - **Laravel 12.x** with Breeze authentication
 - **Database**: MySQL (production), SQLite (testing)
 - **Frontend**: Blade templates + Bootstrap 5.2x + HTMX 2.x + Alpine 3.x
@@ -120,7 +120,9 @@ php artisan key:generate
 
 ```bash
 # Set up database with sample data
-php artisan migrate --seed
+php artisan migrate
+php artisan db:seed --class=OrganizationSeeder
+php artisan db:seed --class=ActorSeeder
 
 # Start development servers (requires 3 terminals)
 php artisan serve           # Terminal 1: Laravel app (http://localhost:8000)
@@ -129,28 +131,28 @@ php artisan queue:work      # Terminal 3: Background job processing
 ```
 
 **Default Login:**
-- Check seeder output for admin credentials or create a new account
+- Check ActorSeeder for admin credentials or create a new account
 - All new accounts require admin approval (approve via database or create as active)
 
 ### 3. Test
 
 ```bash
 # Run full test suite (Feature + Unit)
+composer test:freshdb # just once is all it takes
 php artisan test
 
 # Run with coverage report
-php artisan test --coverage
+#php artisan test --coverage
 
 # Run specific test file
-php artisan test tests/Feature/Http/Controllers/Events/EventDisplayControllerTest.php
-
-# Verify code style
-./vendor/bin/pint --test
+#php artisan test tests/Feature/Http/Controllers/Events/EventDisplayControllerTest.php
 ```
 
 **Before submitting PRs:**
+- New/Updated Code must be tested
 - All tests must pass: `php artisan test`
-- Code must pass linting: `./vendor/bin/pint`
+- Code must pass formatting: `composer pint:format`
+- Code must pass static analysis: `composer stan`
 - Follow conventions in `docs/CODING_CONVENTIONS.md`
 
 ### Common Development Commands

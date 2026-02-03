@@ -23,9 +23,9 @@ class NotificationRequest extends FormRequest
     use HasNormalizers;
 
     /**
-     * Determine if the user is authorized to make this request.
+     * Determine if the user is authorized to make this request
      *
-     * @return bool Returns true, allowing authenticated troopers to update their notification settings.
+     * @return bool Returns true, allowing authenticated troopers to update their notification settings
      */
     public function authorize(): bool
     {
@@ -33,13 +33,13 @@ class NotificationRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Get the validation rules that apply to the request
      *
      * Validates:
      * - notification_frequency: Required, must be a valid NotificationFrequency enum value
      * - organizations.*.should_notify: Optional boolean for each organization's notification preference
      *
-     * @return array<string, mixed> The validation rules for notification settings.
+     * @return array<string, mixed> The validation rules for notification settings
      */
     public function rules(): array
     {
@@ -55,7 +55,7 @@ class NotificationRequest extends FormRequest
     }
 
     /**
-     * Prepare the data for validation.
+     * Prepare the data for validation
      *
      * Converts the 'should_notify' values in the 'organizations' input
      * to booleans for proper validation.

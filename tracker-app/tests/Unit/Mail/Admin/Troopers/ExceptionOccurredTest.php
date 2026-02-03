@@ -49,7 +49,7 @@ class ExceptionOccurredTest extends TestCase
         $envelope = $subject->envelope();
 
         // Assert
-        $this->assertEquals('Troop Tracker - Exception Occurred!', $envelope->subject);
+        $this->assertEquals('[Troop Tracker] Exception Occurred!', $envelope->subject);
     }
 
     public function test_content_uses_correct_view(): void

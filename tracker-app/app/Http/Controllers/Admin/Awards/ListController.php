@@ -21,25 +21,25 @@ use Illuminate\Http\Request;
  * This controller fetches and displays a paginated list of awards, which can be
  * filtered by scope (active, past, future) and by organization. It ensures that
  * non-administrator users can only see awards for organizations they moderate.
- * @package App\Http\Controllers\Admin\Awards
  */
 class ListController extends MagicBusController
 {
-    protected function initialized()
+    protected function initialized(): void
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
     }
 
     /**
-     * Handle the request to display the awards list page.
+     * Handle the request to display the awards list page
      *
      * Sets up breadcrumbs and retrieves a paginated list of awards.
      * The list is filtered to show only active awards. If an 'organization_id'
      * is provided in the request, the list is further filtered to that organization.
      * Non-administrator users will only see awards for organizations they moderate.
      *
-     * @param Request $request The incoming HTTP request object.
-     * @return View The rendered view for the awards list.
+     * @param  Request  $request  The incoming HTTP request object
+     * @param  AwardFilter  $filter  The filter service for applying query constraints
+     * @return View The rendered view for the awards list
      */
     public function __invoke(Request $request, AwardFilter $filter): View
     {
@@ -58,8 +58,9 @@ class ListController extends MagicBusController
     /**
      * Retrieves the organization from the request if an 'organization_id' is provided.
      *
-     * @param Request $request The incoming HTTP request.
+     * @param  Request  $request  The incoming HTTP request.
      * @return Organization|null The found Organization or null if no ID is provided.
+     *
      * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
      */
     private function getOrganization(Request $request): ?Organization
@@ -80,9 +81,9 @@ class ListController extends MagicBusController
      * The query is built based on the requested scope (active, past, future), an
      * optional organization filter, and the user's authorization level (admin vs. moderator).
      *
-     * @param Request $request The incoming HTTP request.
-     * @param Trooper $trooper The authenticated trooper.
-     * @param Organization|null $organization The organization to filter by, if any.
+     * @param  Request  $request  The incoming HTTP request.
+     * @param  Trooper  $trooper  The authenticated trooper.
+     * @param  Organization|null  $organization  The organization to filter by, if any.
      * @return LengthAwarePaginator The paginated list of awards.
      */
     private function getAwards(Request $request, AwardFilter $filter): LengthAwarePaginator
@@ -90,11 +91,10 @@ class ListController extends MagicBusController
         $trooper = $request->user();
 
         $q = Award::with([
-            'organization.trooper_assignments' => function ($q) use ($trooper)
-            {
+            'organization.trooper_assignments' => function ($q) use ($trooper) {
                 $q->where(TrooperAssignment::TROOPER_ID, $trooper->id)
                     ->where(TrooperAssignment::IS_MODERATOR, true);
-            }
+            },
         ]);
 
         $q = $q->filterWith($filter)->moderatedBy($trooper);

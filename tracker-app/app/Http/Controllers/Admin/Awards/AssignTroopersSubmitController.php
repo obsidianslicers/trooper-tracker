@@ -14,19 +14,18 @@ use Illuminate\Http\RedirectResponse;
  * Class AssignTroopersSubmitController
  *
  * Handles the submission of the form for assigning an award to troopers.
- * @package App\Http\Controllers\Admin\Awards
  */
 class AssignTroopersSubmitController extends MagicBusController
 {
     /**
-     * Handle the incoming request to assign the award to troopers.
+     * Handle the incoming request to assign the award to troopers
      *
      * Validates the request, creates AwardTrooper records for the selected troopers,
      * saves them, and then redirects with a success message.
      *
-     * @param AssignTroopersRequest $request The validated request containing the troopers to assign.
-     * @param Award $award The award being assigned.
-     * @return RedirectResponse A redirect response to the awards list-troopers.
+     * @param  AssignTroopersRequest  $request  The validated request containing the troopers to assign
+     * @param  Award  $award  The award being assigned
+     * @return RedirectResponse A redirect response to the awards list-troopers
      */
     public function __invoke(AssignTroopersRequest $request, Award $award): RedirectResponse
     {

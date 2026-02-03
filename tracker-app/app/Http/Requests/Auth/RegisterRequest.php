@@ -34,9 +34,9 @@ class RegisterRequest extends FormRequest
     use HasNormalizers;
 
     /**
-     * Determine if the user is authorized to make this request.
+     * Determine if the user is authorized to make this request
      *
-     * @return bool Returns true as registration is open to guests.
+     * @return bool Returns true as registration is open to guests
      */
     public function authorize(): bool
     {
@@ -44,9 +44,9 @@ class RegisterRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Get the validation rules that apply to the request
      *
-     * @return array<string, mixed> The combined validation rules for the registration form.
+     * @return array<string, mixed> The combined validation rules for the registration form
      */
     public function rules(): array
     {
@@ -76,13 +76,13 @@ class RegisterRequest extends FormRequest
     }
 
     /**
-     * Prepare the data for validation.
+     * Prepare the data for validation
      *
      * This method sanitizes the phone number by removing any non-digit characters.
      */
     protected function prepareForValidation(): void
     {
-        if ($this->has('phone') && ! empty($this->input('phone')))
+        if ($this->has('phone') && !empty($this->input('phone')))
         {
             $phone = $this->normalizePhoneInput($this->input('phone'));
 
@@ -107,7 +107,7 @@ class RegisterRequest extends FormRequest
     }
 
     /**
-     * Generates dynamic validation rules for selected organizations.
+     * Generates dynamic validation rules for selected organizations
      *
      * Fetches active organizations and constructs validation rules for their specific identifiers
      * (e.g., TKID, CAT #) and associated regions, applying custom rule objects.
@@ -115,7 +115,7 @@ class RegisterRequest extends FormRequest
      * For handlers, organization identifiers are optional. For other account types,
      * identifiers are required when the organization is selected.
      *
-     * @return array<string, mixed> An array of validation rules for the 'organizations' input.
+     * @return array<string, mixed> An array of validation rules for the 'organizations' input
      */
     private function getOrganizationValidationRules(): array
     {
@@ -129,7 +129,7 @@ class RegisterRequest extends FormRequest
         foreach ($organizations as $organization)
         {
             //  organization.*.identifier rules
-            if (! empty($organization->identifier_validation))
+            if (!empty($organization->identifier_validation))
             {
                 // Parse the base validation rules (e.g., 'integer|between:1000,99999')
                 $base_rules = explode('|', $organization->identifier_validation);
@@ -175,7 +175,7 @@ class RegisterRequest extends FormRequest
                         $rules["organizations.{$organization->id}.unit_id"] = [
                             Rule::requiredIf(fn () => $this->input("organizations.{$organization->id}.region_id") == $region->id),
                             Rule::when(
-                                fn () => $this->input("organizations.{$organization->id}.selected") === '1' && ! empty($this->input("organizations.{$organization->id}.unit_id")),
+                                fn () => $this->input("organizations.{$organization->id}.selected") === '1' && !empty($this->input("organizations.{$organization->id}.unit_id")),
                                 Rule::exists(Organization::class, Organization::ID)
                                     ->whereIn('id', $units->pluck('id'))
                             ),
@@ -189,7 +189,7 @@ class RegisterRequest extends FormRequest
     }
 
     /**
-     * Configure the validator instance.
+     * Configure the validator instance
      *
      * This method is used to add custom, user-friendly error messages for the
      * dynamically generated organization identifier rules.
@@ -206,7 +206,7 @@ class RegisterRequest extends FormRequest
         {
             $key = "organizations.{$organization->id}.identifier";
 
-            if (! empty($organization->identifier_validation))
+            if (!empty($organization->identifier_validation))
             {
                 // $messages["{$key}"] = "The {$organization->identifier_display} for {$organization->name} is required";
 

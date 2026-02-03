@@ -7,13 +7,10 @@ namespace App\Http\Controllers\Events;
 use App\Enums\EventTrooperStatus;
 use App\Features\Events\Commands\PromoteNextInLineEventTrooperCommand;
 use App\Features\Events\Commands\UpdateEventTrooperCommand;
-use App\Features\Events\Queries\GetNextTrooperInLineForEventQuery;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Events\SetupUpdateHtmxRequest;
-use App\Mail\Events\TrooperNextInLine;
 use App\Models\EventTrooper;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Mail;
 
 /**
  * Handles HTMX-driven updates to event trooper sign-up details.
@@ -26,14 +23,14 @@ use Illuminate\Support\Facades\Mail;
 class SignUpUpdateHtmxController extends MagicBusController
 {
     /**
-     * Handle the incoming HTMX request to update event trooper status or costume.
+     * Handle the incoming HTMX request to update event trooper status or costume
      *
      * Processes two types of updates:
      * - Status changes: Updates the trooper's attendance status and handles waitlist promotion
      * - Costume changes: Updates the trooper's selected costume for the event
      *
-     * @param SetupUpdateHtmxRequest $request The validated request containing status or costume_id
-     * @param EventTrooper $event_trooper The event trooper record to update
+     * @param  SetupUpdateHtmxRequest  $request  The validated request containing status or costume_id
+     * @param  EventTrooper  $event_trooper  The event trooper record to update
      * @return Response HTTP 200 response indicating success
      */
     public function __invoke(SetupUpdateHtmxRequest $request, EventTrooper $event_trooper): Response

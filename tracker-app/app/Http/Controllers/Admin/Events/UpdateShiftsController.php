@@ -18,22 +18,22 @@ use Illuminate\Http\Request;
  */
 class UpdateShiftsController extends MagicBusController
 {
-    protected function initialized()
+    protected function initialized(): void
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
         $this->crumbs->addRoute('Events', 'admin.events.list');
     }
 
     /**
-     * Displays the shift management form.
+     * Displays the shift management form
      *
      * Authorizes that the user can update the event via policy check.
      * Loads existing shifts ordered by start time and renders the shift
      * management view.
      *
-     * @param Request $request The incoming HTTP request.
-     * @param Event $event The event whose shifts are being managed (route model binding).
-     * @return View The shift management form view.
+     * @param  Request  $request  The incoming HTTP request
+     * @param  Event  $event  The event whose shifts are being managed (route model binding)
+     * @return View The shift management form view
      */
     public function __invoke(Request $request, Event $event): View
     {

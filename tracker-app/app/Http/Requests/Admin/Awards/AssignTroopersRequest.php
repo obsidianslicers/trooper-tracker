@@ -16,9 +16,9 @@ use Illuminate\Foundation\Http\FormRequest;
 class AssignTroopersRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * Determine if the user is authorized to make this request
      *
-     * @return bool Returns true if the user has permission to update the award.
+     * @return bool Returns true if the user has permission to update the award
      */
     public function authorize(): bool
     {
@@ -26,11 +26,11 @@ class AssignTroopersRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Get the validation rules that apply to the request
      *
      * Validates the trooper IDs and award date.
      *
-     * @return array<string, mixed> The validation rules for assigning an award.
+     * @return array<string, mixed> The validation rules for assigning an award
      */
     public function rules(): array
     {

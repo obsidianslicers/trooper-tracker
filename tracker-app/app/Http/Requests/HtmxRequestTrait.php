@@ -16,6 +16,8 @@ trait HtmxRequestTrait
 {
     /**
      * Indicates that the request is made via HTMX.
+     *
+     * @return bool True if the HX-Request header is present and truthy
      */
     public function isHtmxRequest(): bool
     {
@@ -24,6 +26,8 @@ trait HtmxRequestTrait
 
     /**
      * Indicates that the request is via an element using `hx-boost`.
+     *
+     * @return bool True if the HX-Boosted header is present and truthy
      */
     public function isBoosted(): bool
     {
@@ -32,6 +36,8 @@ trait HtmxRequestTrait
 
     /**
      * Indicates if the request is for history restoration after a miss in the local history cache.
+     *
+     * @return bool True if the HX-History-Restore-Request header is present and truthy
      */
     public function isHistoryRestoreRequest(): bool
     {
@@ -40,6 +46,8 @@ trait HtmxRequestTrait
 
     /**
      * The current URL of the browser when the HTMX request was made.
+     *
+     * @return string|null The current browser URL or null if not provided
      */
     public function getCurrentUrl(): ?string
     {
@@ -48,6 +56,8 @@ trait HtmxRequestTrait
 
     /**
      * The user response to an `hx-prompt`.
+     *
+     * @return string|null The prompt response or null if not provided
      */
     public function getPromptResponse(): ?string
     {
@@ -56,6 +66,8 @@ trait HtmxRequestTrait
 
     /**
      * The `id` of the target element if it exists.
+     *
+     * @return string|null The target element ID or null if not provided
      */
     public function getTarget(): ?string
     {
@@ -64,6 +76,8 @@ trait HtmxRequestTrait
 
     /**
      * The `name` of the triggered element if it exists.
+     *
+     * @return string|null The trigger element name or null if not provided
      */
     public function getTriggerName(): ?string
     {
@@ -72,6 +86,8 @@ trait HtmxRequestTrait
 
     /**
      * The `id` of the triggered element if it exists.
+     *
+     * @return string|null The trigger element ID or null if not provided
      */
     public function getTriggerId(): ?string
     {

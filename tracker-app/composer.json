@@ -47,8 +47,26 @@
         }
     },
     "scripts": {
-        "pint": "pint app --exclude=app/Models/Base",
+        "pint:format": [
+            "pint app/helpers.php",
+            "pint app/Bus",
+            "pint app/Http/Controllers",
+            "pint app/Http/Middleware",
+            "pint app/Http/Requests",
+            "pint app/Jobs",
+            "pint app/Mail",
+            "pint app/Policies",
+            "pint app/Rules"
+        ],
         "stan": "phpstan analyse --memory-limit=1G",
+        "test:fresh": [
+            "@test:freshdb",
+            "@php artisan test"
+        ],
+        "test:freshdb": [
+            "@php -r \"file_exists('database/database.sqlite') && unlink('database/database.sqlite');\"",
+            "@php -r \"touch('database/database.sqlite');\""
+        ],
         "setup": [
             "composer install",
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",

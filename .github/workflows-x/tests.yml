@@ -1,8 +1,6 @@
-name: Laravel Tests
+name: Tests
 
 on:
-  push:
-    branches: [ "main" ]
   pull_request:
     types: [opened, synchronize, reopened]
     branches: [ "main" ]
@@ -18,7 +16,7 @@ jobs:
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+          php-version: '8.4'
           extensions: mbstring, bcmath, sqlite, intl, pdo_sqlite, gd
           coverage: none
 
@@ -42,4 +40,5 @@ jobs:
           APP_KEY: ${{ secrets.TT_APP_KEY }}
         run: |
           # Run the test suite
-          php artisan test --env=testing --profile --filter=SendEventCreatedNotificationCommandHandlerTest
+          composer test:freshdb
+          php artisan test 

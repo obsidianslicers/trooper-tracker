@@ -11,7 +11,7 @@ use Illuminate\Validation\Rule;
 class LoginRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * Determine if the user is authorized to make this request
      */
     public function authorize(): bool
     {
@@ -47,7 +47,7 @@ class LoginRequest extends FormRequest
     }
 
     /**
-     * Prepare the data for validation by normalizing inputs.
+     * Prepare the data for validation by normalizing inputs
      */
     protected function prepareForValidation(): void
     {

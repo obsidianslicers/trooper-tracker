@@ -16,18 +16,17 @@ use Illuminate\Http\Request;
  * Class CreateController
  *
  * Handles displaying the form to create a new notice.
- * @package App\Http\Controllers\Admin\Notices
  */
 class CreateController extends MagicBusController
 {
-    protected function initialized()
+    protected function initialized(): void
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
         $this->crumbs->addRoute('Notices', 'admin.notices.list');
     }
 
     /**
-     * Handle the request to display the notice creation page.
+     * Handle the request to display the notice creation page
      *
      * Authorizes the user, sets up breadcrumbs, and returns the view containing
      * the form to create a new notice. If a `copy_id` is provided, it pre-populates
@@ -35,8 +34,8 @@ class CreateController extends MagicBusController
      * provided, it pre-selects that organization. It ensures non-administrators
      * can only interact with notices and organizations they are authorized to moderate.
      *
-     * @param Request $request The incoming HTTP request object.
-     * @return View The rendered notice creation view.
+     * @param  Request  $request  The incoming HTTP request object
+     * @return View The rendered notice creation view
      */
     public function __invoke(Request $request): View
     {
@@ -62,13 +61,13 @@ class CreateController extends MagicBusController
      * (ensuring the user has moderation rights) and copies its properties to a new
      * Notice object.
      *
-     * @param Request $request The incoming HTTP request.
-     * @param Trooper $trooper The authenticated trooper.
+     * @param  Request  $request  The incoming HTTP request.
+     * @param  Trooper  $trooper  The authenticated trooper.
      * @return Notice The new Notice instance.
      */
     private function getNotice(Request $request, Trooper $trooper): Notice
     {
-        $notice = new Notice();
+        $notice = new Notice;
         $notice->type = NoticeType::INFO;
 
         if ($request->has('copy_id'))
@@ -79,7 +78,7 @@ class CreateController extends MagicBusController
 
             $notice->organization_id = $copy->organization_id;
             $notice->type = $copy->type;
-            $notice->title = 'Copy of ' . $copy->title;
+            $notice->title = 'Copy of '.$copy->title;
             $notice->starts_at = $copy->starts_at;
             $notice->ends_at = $copy->ends_at;
             $notice->message = $copy->message;
@@ -96,9 +95,9 @@ class CreateController extends MagicBusController
      * a ModelNotFoundException if a moderator attempts to assign an un-moderated
      * organization.
      *
-     * @param Request $request The incoming HTTP request.
-     * @param Notice $notice The notice being created.
-     * @param Trooper $trooper The authenticated trooper.
+     * @param  Request  $request  The incoming HTTP request.
+     * @param  Notice  $notice  The notice being created.
+     * @param  Trooper  $trooper  The authenticated trooper.
      * @return void
      */
     private function assignOrganization(Request $request, Notice $notice, Trooper $trooper)

@@ -23,14 +23,14 @@ class AuthorityRequest extends FormRequest
     use HasNormalizers;
 
     /**
-     * Determine if the user is authorized to make this request.
+     * Determine if the user is authorized to make this request
      *
      * Verifies that the trooper exists in the route and that the authenticated
      * user is an administrator. Only administrators can modify authority settings.
      *
-     * @return bool Returns true if the user is an administrator.
+     * @return bool Returns true if the user is an administrator
      *
-     * @throws AuthorizationException if the trooper is not found in the route.
+     * @throws AuthorizationException if the trooper is not found in the route
      */
     public function authorize(): bool
     {
@@ -45,14 +45,14 @@ class AuthorityRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Get the validation rules that apply to the request
      *
      * Validates the membership role enum value and moderator organization selections.
      * The membership role can be nullable and must be a valid MembershipRole enum value.
      * Moderator selections are boolean values indicating which organizations the trooper
      * moderates.
      *
-     * @return array<string, mixed> The validation rules for updating trooper authority.
+     * @return array<string, mixed> The validation rules for updating trooper authority
      */
     public function rules(): array
     {
@@ -65,7 +65,7 @@ class AuthorityRequest extends FormRequest
     }
 
     /**
-     * Prepare the data for validation.
+     * Prepare the data for validation
      *
      * Converts the 'is_moderator' values in the 'organizations' input
      * to booleans for proper validation.

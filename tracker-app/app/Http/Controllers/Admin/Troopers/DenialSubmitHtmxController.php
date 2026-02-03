@@ -18,20 +18,19 @@ use Illuminate\Http\Response;
  * Handles the submission of a trooper's membership denial via an HTMX request.
  * This controller updates the trooper's status to 'Denied' and returns a view
  * fragment with a flash message in the response headers for HTMX to process.
- * @package App\Http\Controllers\Admin\Troopers
  */
 class DenialSubmitHtmxController extends MagicBusController
 {
     /**
-     * Handle the incoming request to deny a trooper's membership.
+     * Handle the incoming request to deny a trooper's membership
      *
      * This method authorizes the action, updates the trooper's status to 'Denied',
      * saves the model, and returns a view with a custom 'X-Flash-Message' header
      * for HTMX to display a danger message.
      *
-     * @param Request $request The incoming HTTP request.
-     * @param Trooper $trooper The trooper pending approval.
-     * @return Response|View A response object containing the view and a custom header.
+     * @param  Request  $request  The incoming HTTP request
+     * @param  Trooper  $trooper  The trooper pending approval
+     * @return Response|View A response object containing the view and a custom header
      */
     public function __invoke(Request $request, Trooper $trooper): Response|View
     {
@@ -42,8 +41,7 @@ class DenialSubmitHtmxController extends MagicBusController
         $this->bus->send($approval_cmd);
 
         $with = [
-            'trooper_assignments' => function ($q)
-            {
+            'trooper_assignments' => function ($q) {
                 $q->where(TrooperAssignment::IS_MEMBER, true)
                     ->with('organization.parent');
             },

@@ -17,14 +17,14 @@ use Illuminate\Http\Request;
 class EventTypeCountController extends BaseReportsController
 {
     /**
-     * Display the event type count report.
+     * Display the event type count report
      *
      * Retrieves event statistics grouped by type (Regular, Charity, etc.)
      * with counts and trooper participation metrics for events moderated
      * by the authenticated trooper.
      *
-     * @param  Request  $request  The HTTP request.
-     * @return View The event type count report view.
+     * @param  Request  $request  The HTTP request
+     * @return View The event type count report view
      */
     public function __invoke(Request $request): View
     {

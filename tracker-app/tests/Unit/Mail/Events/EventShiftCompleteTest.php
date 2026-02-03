@@ -21,7 +21,7 @@ class EventShiftCompleteTest extends TestCase
 
         $envelope = $subject->envelope();
 
-        $this->assertEquals('Troop Tracker - Event Shift Complete - Action Required', $envelope->subject);
+        $this->assertEquals('[Troop Tracker] Event Shift Complete - Action Required', $envelope->subject);
     }
 
     public function test_it_uses_correct_view(): void

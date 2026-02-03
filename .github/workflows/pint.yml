@@ -28,6 +28,9 @@ jobs:
         run: |
           ./vendor/bin/pint app/helpers.php --test
           ./vendor/bin/pint app/Bus --test
+          ./vendor/bin/pint app/Http/Controllers --test
+          ./vendor/bin/pint app/Http/Middleware --test
+          ./vendor/bin/pint app/Http/Requests --test
           ./vendor/bin/pint app/Jobs --test
           ./vendor/bin/pint app/Mail --test
           ./vendor/bin/pint app/Policies --test

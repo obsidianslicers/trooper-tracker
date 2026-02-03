@@ -19,10 +19,10 @@ use Illuminate\Support\Facades\Auth;
 class DonationsHtmxController extends MagicBusController
 {
     /**
-     * Handle the incoming request to display the donations partial.
+     * Handle the incoming request to display the donations partial
      *
-     * @param Request $request The incoming HTTP request, which may contain a 'trooper_id'.
-     * @return View The rendered view partial for the trooper's donations.
+     * @param  Request  $request  The incoming HTTP request, which may contain a 'trooper_id'
+     * @return View The rendered view partial for the trooper's donations
      */
     public function __invoke(Request $request): View
     {

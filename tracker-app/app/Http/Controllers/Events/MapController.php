@@ -8,28 +8,27 @@ use App\Features\Events\Queries\GetEventsForDisplayQuery;
 use App\Features\Organizations\Queries\GetOrganizationsQuery;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Event;
-use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 /**
  * Displays the map view of upcoming events.
  *
- * This controller renders a 12-month calendar grid view showing upcoming
- * events grouped by date. Each month displays weeks with events marked
- * on their corresponding dates.
+ * This controller renders a geographic map showing upcoming events with geocoded
+ * locations. Events are filtered to only include those with valid latitude/longitude
+ * coordinates for proper map display.
  */
 class MapController extends MagicBusController
 {
     /**
-     * Handle the incoming request to display the map page.
+     * Handle the incoming request to display the map page
      *
-     * Retrieves all upcoming events grouped by date and generates a 12-month
-     * calendar grid (weeks starting Sunday, ending Saturday) for displaying
-     * events in a calendar layout.
+     * Retrieves all upcoming events with valid geocoded locations and renders
+     * them on an interactive map view. Each event includes its coordinates,
+     * name, dates, and a link to the event details page.
      *
-     * @param Request $request The incoming request
-     * @return View The rendered events calendar page with upcoming events
+     * @param  Request  $request  The incoming HTTP request
+     * @return View The rendered events map page with geocoded events
      */
     public function __invoke(Request $request): View
     {
@@ -51,15 +50,14 @@ class MapController extends MagicBusController
             ->whereNotNull(Event::LATITUDE)
             ->whereNotNull(Event::LONGITUDE)
             ->get()
-            ->each(function (Event $event)
-            {
+            ->each(function (Event $event) {
                 $event->lng = $event->longitude;
                 $event->lat = $event->latitude;
                 $event->url = route('events.display', ['event' => $event->id]);
                 $event->date_range = $event->time_display;
             });
 
-        $costume_organizations = $this->bus->send(new GetOrganizationsQuery());
+        $costume_organizations = $this->bus->send(new GetOrganizationsQuery);
 
         $data = compact('events', 'costume_organizations');
 

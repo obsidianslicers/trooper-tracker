@@ -19,14 +19,14 @@ use Illuminate\Foundation\Http\FormRequest;
 class UpdateRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * Determine if the user is authorized to make this request
      *
      * Verifies that the notice exists in the route and that the authenticated
      * user has permission to update it.
      *
-     * @return bool Returns true if the user can update the notice.
+     * @return bool Returns true if the user can update the notice
      *
-     * @throws AuthorizationException if the notice is not found in the route.
+     * @throws AuthorizationException if the notice is not found in the route
      */
     public function authorize(): bool
     {
@@ -41,12 +41,12 @@ class UpdateRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Get the validation rules that apply to the request
      *
      * Validates the notice title, message, type enum value, and date range.
      * The organization is immutable and not included in update validation.
      *
-     * @return array<string, mixed> The validation rules for updating a notice.
+     * @return array<string, mixed> The validation rules for updating a notice
      */
     public function rules(): array
     {

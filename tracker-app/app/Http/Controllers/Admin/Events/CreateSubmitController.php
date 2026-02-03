@@ -28,7 +28,7 @@ use Illuminate\Http\RedirectResponse;
 class CreateSubmitController extends MagicBusController
 {
     /**
-     * Creates a new event from validated form submission.
+     * Creates a new event from validated form submission
      *
      * Validates the request, creates a new event with the provided data,
      * creates an EventOrganization record for the source club, creates an
@@ -36,8 +36,8 @@ class CreateSubmitController extends MagicBusController
      * associations, and dispatches notifications if the event is published.
      * Redirects to the event's update page with a success message.
      *
-     * @param CreateRequest $request The validated request containing the event data.
-     * @return RedirectResponse Redirect to the new event's update page.
+     * @param  CreateRequest  $request  The validated request containing the event data
+     * @return RedirectResponse Redirect to the new event's update page
      */
     public function __invoke(
         CreateRequest $request): RedirectResponse
@@ -46,7 +46,7 @@ class CreateSubmitController extends MagicBusController
 
         $costume_club = $organization->getPrimaryClub();
 
-        $event = new Event();
+        $event = new Event;
 
         $event->organization_id = $organization->id;
 
@@ -57,13 +57,13 @@ class CreateSubmitController extends MagicBusController
             dispatch(new SendEventCreatedNotificationsJob($event));
         }
 
-        $event_organization = new EventOrganization();
+        $event_organization = new EventOrganization;
         $event_organization->event_id = $event->id;
         $event_organization->organization_id = $costume_club->id;
         $event_organization->can_attend = true;
         $event_organization->save();
 
-        $event_shift = new EventShift();
+        $event_shift = new EventShift;
         $event_shift->event_id = $event->id;
         $event_shift->shift_starts_at = $event->event_start;
         $event_shift->shift_ends_at = $event->event_end;
@@ -76,4 +76,3 @@ class CreateSubmitController extends MagicBusController
         return redirect()->route('admin.events.update', compact('event'));
     }
 }
-

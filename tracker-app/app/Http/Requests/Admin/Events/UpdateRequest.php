@@ -33,11 +33,11 @@ class UpdateRequest extends FormRequest
     use HasNormalizers;
 
     /**
-     * Determine if the user is authorized to make this request.
+     * Determine if the user is authorized to make this request
      *
      * Checks if the user has permission to update the event specified in the route.
      *
-     * @throws AuthorizationException if the event is not found.
+     * @throws AuthorizationException if the event is not found
      */
     public function authorize(): bool
     {
@@ -52,9 +52,9 @@ class UpdateRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Get the validation rules that apply to the request
      *
-     * @return array<string, mixed> The validation rules for the request.
+     * @return array<string, mixed> The validation rules for the request
      */
     public function rules(): array
     {
@@ -77,7 +77,7 @@ class UpdateRequest extends FormRequest
     }
 
     /**
-     * Prepare the data for validation.
+     * Prepare the data for validation
      *
      * This method ensures that each organization in the input array has a 'can_attend' attribute, defaulting to false if it is not present.
      */
@@ -91,7 +91,7 @@ class UpdateRequest extends FormRequest
 
         foreach ($organizations as $organization_id => $organization)
         {
-            if (! $organizations[$organization_id][EventOrganization::CAN_ATTEND])
+            if (!$organizations[$organization_id][EventOrganization::CAN_ATTEND])
             {
                 $organizations[$organization_id][EventOrganization::TROOPERS_ALLOWED] = null;
                 $organizations[$organization_id][EventOrganization::HANDLERS_ALLOWED] = null;

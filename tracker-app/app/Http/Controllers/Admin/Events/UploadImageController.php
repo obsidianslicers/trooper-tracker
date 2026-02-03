@@ -23,20 +23,20 @@ use Intervention\Image\ImageManager;
 class UploadImageController extends MagicBusController
 {
     /**
-     * Handle the incoming administrative image upload request.
+     * Handle the incoming administrative image upload request
      *
      * Validates uploaded images (max 4MB, PNG/JPG/JPEG/WEBP), normalizes them
      * to square transparent canvases, generates thumbnails (128x128), and stores
      * both versions. Creates EventUpload records marked as administrative uploads.
      *
-     * @param Request $request The incoming HTTP request with 'images' file array.
-     * @param Event $event The event to attach uploads to.
-     * @return \Illuminate\Http\Response Response with uploads page view and flash message header.
+     * @param  Request  $request  The incoming HTTP request with 'images' file array
+     * @param  Event  $event  The event to attach uploads to
+     * @return \Illuminate\Http\Response Response with uploads page view and flash message header
      */
     public function __invoke(Request $request, Event $event)
     {
         // SAME CODE AS EVENTS\UPLOADIMAGECONTROLLER.PHP
-        //  except for is_administrative flag on upload 
+        //  except for is_administrative flag on upload
 
         $trooper_id = $request->user()->id;
 
@@ -69,7 +69,7 @@ class UploadImageController extends MagicBusController
                 $thumbnail = clone $canvas;
                 $thumbnail->scaleDown(128, 128);
 
-                $thumbnail_path = "uploads/events/{$event->id}/thumbnails/" . pathinfo($file->hashName(), PATHINFO_FILENAME) . ".png";
+                $thumbnail_path = "uploads/events/{$event->id}/thumbnails/".pathinfo($file->hashName(), PATHINFO_FILENAME).'.png';
 
                 Storage::disk('public')->put(
                     $thumbnail_path,
@@ -82,12 +82,12 @@ class UploadImageController extends MagicBusController
 
                 Storage::disk('public')->delete($original_path);
 
-                Log::error("Image upload failed for {$file->getClientOriginalName()}", ['error' => $e->getMessage(),]);
+                Log::error("Image upload failed for {$file->getClientOriginalName()}", ['error' => $e->getMessage()]);
 
                 continue;
             }
 
-            $event_upload = new EventUpload();
+            $event_upload = new EventUpload;
 
             $event_upload->event_id = $event->id;
             $event_upload->trooper_id = $trooper_id;
@@ -101,7 +101,7 @@ class UploadImageController extends MagicBusController
         }
 
         $message = json_encode([
-            'message' => $uploads == 1 ? "Image Uploaded!" : "{$uploads} Images Uploaded!",
+            'message' => $uploads == 1 ? 'Image Uploaded!' : "{$uploads} Images Uploaded!",
             'type' => $fails ? 'danger' : 'success',
         ]);
 

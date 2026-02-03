@@ -14,24 +14,23 @@ use Illuminate\Http\RedirectResponse;
  * Class CreateCostumeSubmitController
  *
  * Handles the submission of the form for creating a new costume under a parent organization.
- * @package App\Http\Controllers\Admin\Organizations
  */
 class CreateCostumeSubmitController extends MagicBusController
 {
     /**
-     * Handle the incoming request to create a new costume.
+     * Handle the incoming request to create a new costume
      *
      * Validates the request, creates a new OrganizationCostume record under the given
      * organization, saves it, and redirects to the costumes management page with a
      * success message.
      *
-     * @param CreateCostumeRequest $request The validated request containing the new costume's data.
-     * @param Organization $organization The organization to create the costume for.
-     * @return RedirectResponse A redirect to the organization's costumes management page.
+     * @param  CreateCostumeRequest  $request  The validated request containing the new costume's data
+     * @param  Organization  $organization  The organization to create the costume for
+     * @return RedirectResponse A redirect to the organization's costumes management page
      */
     public function __invoke(CreateCostumeRequest $request, Organization $organization): RedirectResponse
     {
-        $organization_costume = new OrganizationCostume();
+        $organization_costume = new OrganizationCostume;
 
         $organization_costume->organization_id = $organization->id;
         $organization_costume->name = $request->validated('name');

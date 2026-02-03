@@ -21,9 +21,9 @@ abstract class TestCase extends BaseTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        config()->set('debugbar.enabled', false);
-        app()->forgetInstance('debugbar');
-        ini_set('memory_limit', '512M'); // or -1 for unlimited
+
+        // Tells Laravel to ignore missing Vite assets
+        $this->withoutVite();
     }
 
     protected function tearDown(): void

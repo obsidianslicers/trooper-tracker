@@ -21,10 +21,13 @@ use Illuminate\Http\Request;
 class TrooperPickerController extends MagicBusController
 {
     /**
-     * Handle the incoming request to display the trooper picker view.
+     * Handle the incoming request to display the trooper picker view
      *
-     * @param Request $request The incoming HTTP request.
-     * @return View The rendered trooper picker view.
+     * @param  Request  $request  The incoming HTTP request
+     * @param  TrooperFilter  $filter  The filter service for applying query constraints
+     * @return View The rendered trooper picker view
+     *
+     * @throws Exception If property parameter is missing
      */
     public function __invoke(Request $request, TrooperFilter $filter): View
     {
@@ -36,7 +39,7 @@ class TrooperPickerController extends MagicBusController
 
         if ($property === null)
         {
-            throw new Exception("Missing property parameter");
+            throw new Exception('Missing property parameter');
         }
 
         $organization_id = $request->query('organization_id');

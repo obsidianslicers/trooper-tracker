@@ -22,8 +22,8 @@ class HtmxDispatchHeaderMiddleware
      * If the request contains an X-Dispatch-ID header, this method copies it
      * to the response to ensure HTMX event tracking continues properly.
      *
-     * @param Request $request The incoming HTTP request
-     * @param Closure $next The next middleware in the pipeline
+     * @param  Request  $request  The incoming HTTP request
+     * @param  Closure  $next  The next middleware in the pipeline
      * @return Response The HTTP response with preserved dispatch headers
      */
     public function handle(Request $request, Closure $next): Response
@@ -36,6 +36,5 @@ class HtmxDispatchHeaderMiddleware
         }
 
         return $response;
-
     }
 }

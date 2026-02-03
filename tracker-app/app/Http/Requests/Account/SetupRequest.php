@@ -29,9 +29,9 @@ use Illuminate\Validation\Rule;
 class SetupRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * Determine if the user is authorized to make this request
      *
-     * @return bool Returns true as registration is open to guests.
+     * @return bool Returns true as registration is open to guests
      */
     public function authorize(): bool
     {
@@ -39,11 +39,11 @@ class SetupRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Get the validation rules that apply to the request
      *
      * Combines base email rules with dynamically generated organization hierarchy rules.
      *
-     * @return array<string, mixed> The combined validation rules for the setup form.
+     * @return array<string, mixed> The combined validation rules for the setup form
      */
     public function rules(): array
     {
@@ -51,7 +51,7 @@ class SetupRequest extends FormRequest
             Trooper::EMAIL => [
                 'required',
                 'string',
-                'email:rfc,dns',
+                'email:rfc',
                 'max:256',
                 Rule::unique(Trooper::class, Trooper::EMAIL)
                     ->ignore($this->user()->id, Trooper::ID),
@@ -70,14 +70,14 @@ class SetupRequest extends FormRequest
     }
 
     /**
-     * Generate dynamic validation rules for organization memberships.
+     * Generate dynamic validation rules for organization memberships
      *
      * Validates that selected organizations:
      * - Exist in the database
      * - Are leaf nodes (have no child organizations)
      * - Have valid identifiers according to organization-specific rules
      *
-     * @return array<string, mixed> Validation rules for organization memberships.
+     * @return array<string, mixed> Validation rules for organization memberships
      */
     private function getOrganizationValidationRules(): array
     {
@@ -102,12 +102,12 @@ class SetupRequest extends FormRequest
     }
 
     /**
-     * Get or cache the fully loaded organization hierarchy for validation.
+     * Get or cache the fully loaded organization hierarchy for validation
      *
      * Retrieves organizations with regions and units preloaded, caching the result
      * to avoid multiple database queries during validation rule generation.
      *
-     * @return Collection The collection of active organizations with hierarchy.
+     * @return Collection The collection of active organizations with hierarchy
      */
     private function getOrganizations(): Collection
     {

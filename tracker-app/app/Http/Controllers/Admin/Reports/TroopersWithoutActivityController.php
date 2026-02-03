@@ -17,13 +17,13 @@ use Illuminate\Http\Request;
 class TroopersWithoutActivityController extends BaseReportsController
 {
     /**
-     * Display the troopers without activity report.
+     * Display the troopers without activity report
      *
      * Retrieves active troopers moderated by the authenticated trooper
      * who have no ATTENDED event signups within the last 12 months.
      *
-     * @param  Request  $request  The HTTP request.
-     * @return View The troopers without activity report view.
+     * @param  Request  $request  The HTTP request
+     * @return View The troopers without activity report view
      */
     public function __invoke(Request $request): View
     {

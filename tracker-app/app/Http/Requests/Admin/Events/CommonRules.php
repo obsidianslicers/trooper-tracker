@@ -27,13 +27,13 @@ use App\Models\EventOrganization;
 trait CommonRules
 {
     /**
-     * Get common validation rules for event requests.
+     * Get common validation rules for event requests
      *
      * Returns an array of validation rules applied to both event creation
      * and update operations. All rules ensure data integrity while allowing
      * flexibility for optional fields.
      *
-     * @return array<string, mixed> The validation rules array.
+     * @return array<string, mixed> The validation rules array
      */
     protected function getCommonRules(): array
     {

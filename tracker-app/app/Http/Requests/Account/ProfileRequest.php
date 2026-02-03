@@ -21,9 +21,9 @@ class ProfileRequest extends FormRequest
     use HasNormalizers;
 
     /**
-     * Determine if the user is authorized to make this request.
+     * Determine if the user is authorized to make this request
      *
-     * @return bool Returns true as any authenticated user can update their profile.
+     * @return bool Returns true as any authenticated user can update their profile
      */
     public function authorize(): bool
     {
@@ -31,9 +31,9 @@ class ProfileRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Get the validation rules that apply to the request
      *
-     * @return array<string, mixed> The validation rules for the profile update form.
+     * @return array<string, mixed> The validation rules for the profile update form
      */
     public function rules(): array
     {
@@ -48,13 +48,13 @@ class ProfileRequest extends FormRequest
     }
 
     /**
-     * Prepare the data for validation.
+     * Prepare the data for validation
      *
      * This method sanitizes the phone number by removing any non-digit characters.
      */
     protected function prepareForValidation(): void
     {
-        if ($this->has('phone') && ! empty($this->input('phone')))
+        if ($this->has('phone') && !empty($this->input('phone')))
         {
             $phone = $this->normalizePhoneInput($this->input('phone'));
 

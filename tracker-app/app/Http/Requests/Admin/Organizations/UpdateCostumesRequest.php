@@ -20,14 +20,14 @@ use Illuminate\Foundation\Http\FormRequest;
 class UpdateCostumesRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * Determine if the user is authorized to make this request
      *
      * Verifies that the organization exists in the route and that the authenticated
      * user has permission to update it.
      *
-     * @return bool Returns true if the user can update the organization.
+     * @return bool Returns true if the user can update the organization
      *
-     * @throws AuthorizationException if the organization is not found in the route.
+     * @throws AuthorizationException if the organization is not found in the route
      */
     public function authorize(): bool
     {
@@ -42,12 +42,12 @@ class UpdateCostumesRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Get the validation rules that apply to the request
      *
      * Validates the costume name ensuring it's unique among sibling costumes,
      * excluding the current costume from the uniqueness check.
      *
-     * @return array<string, mixed> The validation rules for updating an organization's costumes.
+     * @return array<string, mixed> The validation rules for updating an organization's costumes
      */
     public function rules(): array
     {

@@ -8,28 +8,26 @@ use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Notices\CreateRequest;
 use App\Models\Notice;
 use Illuminate\Http\RedirectResponse;
-use InvalidArgumentException;
 
 /**
  * Class CreateSubmitController
  *
  * Handles the submission of the form for creating a new notice.
- * @package App\Http\Controllers\Admin\Notices
  */
 class CreateSubmitController extends MagicBusController
 {
     /**
-     * Handle the incoming request to create a new notice.
+     * Handle the incoming request to create a new notice
      *
      * Validates the request, creates a new notice with the provided data,
      * saves it, and then redirects with a success message.
      *
-     * @param CreateRequest $request The validated request containing the new notice's data.
-     * @return RedirectResponse A redirect response to the notices list.
+     * @param  CreateRequest  $request  The validated request containing the new notice's data
+     * @return RedirectResponse A redirect response to the notices list
      */
     public function __invoke(CreateRequest $request): RedirectResponse
     {
-        $notice = new Notice();
+        $notice = new Notice;
 
         $notice->organization_id = $request->validated('organization_id');
         $notice->title = $request->validated('title');

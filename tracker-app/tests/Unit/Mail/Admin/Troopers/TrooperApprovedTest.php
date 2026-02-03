@@ -21,7 +21,7 @@ class TrooperApprovedTest extends TestCase
 
         $envelope = $subject->envelope();
 
-        $this->assertEquals('Troop Tracker - Welcome, Trooper! You Passed Inspection!', $envelope->subject);
+        $this->assertEquals('[Troop Tracker] Welcome, Trooper! You Passed Inspection!', $envelope->subject);
     }
 
     public function test_it_uses_correct_view(): void
