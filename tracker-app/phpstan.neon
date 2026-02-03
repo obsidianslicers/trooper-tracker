@@ -21,7 +21,9 @@ parameters:
     # Optional but recommended
     treatPhpDocTypesAsCertain: false
     
+    reportUnmatchedIgnoredErrors: false
     ignoreErrors:
-        - '#is used zero times and is not analysed#'
+        - identifier: trait.unused
+        - identifier: encapsedStringPart.nonString
 
 
