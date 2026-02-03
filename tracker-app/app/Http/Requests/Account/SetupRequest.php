@@ -60,7 +60,7 @@ class SetupRequest extends FormRequest
                 'required',
                 'string',
                 'max:16',
-                'in:' . NotificationFrequency::toValidator(),
+                'in:'.NotificationFrequency::toValidator(),
             ],
         ];
 
@@ -111,8 +111,7 @@ class SetupRequest extends FormRequest
      */
     private function getOrganizations(): Collection
     {
-        $getter = function (): Collection
-        {
+        $getter = function (): Collection {
             return Organization::fullyLoaded()->get();
         };
 
