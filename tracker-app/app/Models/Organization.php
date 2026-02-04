@@ -64,6 +64,16 @@ class Organization extends BaseOrganization
     }
 
     /**
+     * Get trooper uploads for this organization.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function trooper_uploads()
+    {
+        return $this->hasMany(\App\Models\TrooperUpload::class, 'organization_id');
+    }
+
+    /**
      * Get all event organizations associated with this organization.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany<EventOrganization>

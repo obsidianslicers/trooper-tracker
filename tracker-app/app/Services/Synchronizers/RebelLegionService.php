@@ -7,6 +7,7 @@ namespace App\Services\Synchronizers;
 use App\Enums\MembershipStatus;
 use App\Models\OrganizationCostume;
 use App\Models\TrooperOrganization;
+use App\Models\TrooperUpload;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Carbon;
@@ -19,7 +20,7 @@ use Illuminate\Support\Facades\Log;
  * RebelLegionService
  *
  * Convert the original procedural Rebel Legion scraper into a project-style
- * synchronizer. It scrapes member profile pages to find costume names/images
+ * synchronizer. It scrapes member information to find costume names/images
  * and updates organization costumes and membership pivots accordingly.
  */
 class RebelLegionService extends BaseOrganizationService
@@ -52,43 +53,44 @@ class RebelLegionService extends BaseOrganizationService
 
                 if (empty($costumeName)) { continue; }
 
-                // Find existing costume for THIS organization by name
-                $costume = $this->organization->organization_costumes()
-                    ->where('name', $costumeName)
+                // Create or update a TrooperUpload record for this costume
+                // Map sheet columns to tt_trooper_uploads fields:
+                // - identifier => 'Rebel Legion Forum Username' (as provided in sheet)
+                // - costume_name => 'Costume Name'
+                // - large_image_url => 'Costume Image URL'
+                $identifier = is_null($legionId) ? '' : (string) $legionId;
+
+                if (empty($identifier)) {
+                    // If no identifier present, log and skip
+                    Log::warning("RebelLegionService: skipping costume '{$costumeName}' with empty identifier for org {$this->organization->id}");
+                    continue;
+                }
+
+                $upload = TrooperUpload::where('organization_id', $this->organization->id)
+                    ->where('identifier', $identifier)
+                    ->where('costume_name', $costumeName)
                     ->first();
 
-                if ($costume === null)
-                {
-                    $costume = new OrganizationCostume();
-                    $costume->organization_id = $this->organization->id;
-                    $costume->name = $costumeName;
-                }
+                $data = [
+                    'organization_id' => $this->organization->id,
+                    'identifier' => $identifier,
+                    'costume_name' => $costumeName,
+                    'large_image_url' => $costumeImage ?: null,
+                ];
 
-                $updates = [];
+                if ($upload === null) {
+                    TrooperUpload::create($data);
+                } else {
+                    $shouldUpdate = false;
+                    if (($upload->large_image_url ?? null) !== ($data['large_image_url'] ?? null)) {
+                        $upload->large_image_url = $data['large_image_url'];
+                        $shouldUpdate = true;
+                    }
 
-                // Always mark verified
-                if (Schema::hasColumn('tt_organization_costumes', 'verified_at'))
-                {
-                    $updates['verified_at'] = now();
+                    if ($shouldUpdate) {
+                        $upload->save();
+                    }
                 }
-                else
-                {
-                    // if you *know* the model has it regardless of schema checks, you can set directly
-                    $costume->verified_at = now();
-                }
-
-                // Only update image if provided (prevents blanking existing values)
-                if (!empty($costumeImage) && Schema::hasColumn('tt_organization_costumes', 'image_path'))
-                {
-                    $updates['image_path'] = $costumeImage;
-                }
-
-                if (!empty($updates))
-                {
-                    foreach ($updates as $k => $v) { $costume->{$k} = $v; }
-                }
-
-                $costume->save();
             }
         }
     }
