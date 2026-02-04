@@ -13,28 +13,19 @@
 
     <x-dashboard-cards x-data="Admin.cardNavigator()"
                        x-on:click="navigate">
-        <x-dashboard-card :label="'Search Events'"
+        <x-dashboard-card :label="'Event Summary'"
                           :icon="'fa-file-lines'"
-                          :url="'#'">
+                          :url="route('admin.reports.event-summary')">
             <p>
-                <b class="text-danger">TODO:</b> Search all events by name, trooper attended, dates, TKID
+                Event Summary (Total count of troopers at all events)
             </p>
         </x-dashboard-card>
-        <x-dashboard-card :label="'Event Counts per Trooper'"
+        <x-dashboard-card :label="'Trooper Event Summary'"
                           :icon="'fa-file-lines'"
-                          :url="'#'">
+                          :url="route('admin.reports.trooper-event-summary')">
             <p>
-                <b class="text-danger">TODO:</b> Troop Count per Trooper
+                Trooper Event Summary
                 (Report to get amount of events attended by each trooper. You can do all or search by club)
-            </p>
-        </x-dashboard-card>
-        <x-dashboard-card :label="'Donation Counts per Event'"
-                          :icon="'fa-file-lines'"
-                          :url="'#'">
-            <p>
-                <b class="text-danger">TODO:</b> Donation Count per Event
-                (Donation Stats by date, can sort by charity event only and/or events with data only)
-                this can be done as total or by club/squad
             </p>
         </x-dashboard-card>
         <x-dashboard-card :label="'Troopers Without Activity'"
@@ -53,35 +44,12 @@
                 an event where their status was updated by someone other than the trooper in action.
             </p>
         </x-dashboard-card>
-        <x-dashboard-card :label="'Costume Troop Counts Between Dates'"
-                          :icon="'fa-file-lines'"
-                          :url="'#'">
-            <p>
-                <b class="text-danger">TODO:</b> Costume troop count between dates
-                (Can see amount of events done in a costume between certain dates)
-            </p>
-        </x-dashboard-card>
-        <x-dashboard-card :label="'Volunteers at Events'"
-                          :icon="'fa-file-lines'"
-                          :url="'#'">
-            <p>
-                <b class="text-danger">TODO:</b> Volunteers at Events
-                (Total count of troopers at all events)
-            </p>
-        </x-dashboard-card>
         <x-dashboard-card :label="'Costume Used Most at Events'"
                           :icon="'fa-chart-line'"
                           :url="'#'">
             <p>
                 <b class="text-danger">TODO:</b> Costume used most at Events
                 (Report to see which costume was used the most at events between certain dates)
-            </p>
-        </x-dashboard-card>
-        <x-dashboard-card :label="'Donations Raised'"
-                          :icon="'fa-chart-line'"
-                          :url="'#'">
-            <p>
-                <b class="text-danger">TODO:</b> Direct Donations Raised &amp; Indirect Donations Raised
             </p>
         </x-dashboard-card>
         <x-dashboard-card :label="'Event Types Counts'"

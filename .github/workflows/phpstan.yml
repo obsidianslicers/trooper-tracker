@@ -1,0 +1,28 @@
+name: PHPStan (PR)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [ "main" ]
+
+jobs:
+  phpstan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: Install Composer dependencies
+        working-directory: ./tracker-app
+        run: |
+          composer install --no-interaction --no-progress
+          composer dump-autoload 
+
+      - name: Run PHPStan
+        working-directory: ./tracker-app
+        run: vendor/bin/phpstan analyse --no-progress --memory-limit=1G

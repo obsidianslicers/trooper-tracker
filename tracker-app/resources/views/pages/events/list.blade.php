@@ -36,19 +36,3 @@
     </div>
 
 @endsection
-
-@section('page-script')
-    <script type="text/javascript">
-        document.addEventListener('DOMContentLoaded', function () {
-            const cards = document.querySelectorAll('.card[data-route]');
-            cards.forEach(function (card) {
-                card.addEventListener('click', function () {
-                    const route = card.getAttribute('data-route');
-                    if (route) {
-                        window.location.href = route;
-                    }
-                });
-            });
-        });
-    </script>
-@endsection

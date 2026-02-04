@@ -25,7 +25,7 @@ class CancelledEventNotification extends Mailable implements ShouldQueue
     /**
      * Create a new cancelled event notification email instance.
      *
-     * @param Event $event The event that was cancelled
+     * @param  Event  $event  The event that was cancelled
      */
     public function __construct(private readonly Event $event)
     {
@@ -40,7 +40,7 @@ class CancelledEventNotification extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Troop Tracker - Event Cancelled'
+            subject: config('mail.prefix').' Event Cancelled'
         );
     }
 
@@ -67,20 +67,5 @@ class CancelledEventNotification extends Mailable implements ShouldQueue
     public function attachments(): array
     {
         return [];
-    }
-
-    /**
-     * Callback executed after the email is successfully sent.
-     *
-     * Updates the event notification's sent_at timestamp to track when
-     * the notification was delivered to the recipient.
-     *
-     * @param \Symfony\Component\Mime\Email $message The sent email message instance.
-     * @return void
-     */
-    public function sent($message): void
-    {
-        $this->event_notification->sent_at = now();
-        $this->event_notification->save();
     }
 }

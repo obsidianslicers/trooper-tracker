@@ -9,20 +9,22 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 /**
- * Handles the display of the main administration dashboard.
+ * Controller for displaying event type count report.
  *
- * This controller provides a summary of administrative tasks, such as displaying
- * the count of troopers pending approval and setting a relevant flash message.
+ * Shows event statistics grouped by type with counts and
+ * trooper participation metrics for each type.
  */
 class EventTypeCountController extends BaseReportsController
 {
     /**
-     * Handle the incoming request to display the admin dashboard.
+     * Display the event type count report
      *
-     * It calculates the number of troopers pending approval, sets a corresponding
-     * flash message, and renders the main admin view.
+     * Retrieves event statistics grouped by type (Regular, Charity, etc.)
+     * with counts and trooper participation metrics for events moderated
+     * by the authenticated trooper.
      *
-     * @return View The rendered admin dashboard view or a redirect response.
+     * @param  Request  $request  The HTTP request
+     * @return View The event type count report view
      */
     public function __invoke(Request $request): View
     {

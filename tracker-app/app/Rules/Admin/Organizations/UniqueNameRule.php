@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Rules\Admin\Organizations;
 
 use App\Models\Organization;
@@ -18,27 +20,26 @@ class UniqueNameRule implements ValidationRule
     /**
      * Creates a new rule instance.
      *
-     * @param bool $is_updating Indicates if the validation is for an update operation.
-     * @param Organization $organization For creation, this is the parent. For updates, this is the organization being updated.
+     * @param  bool  $is_updating  Indicates if the validation is for an update operation.
+     * @param  Organization  $organization  For creation, this is the parent. For updates, this is the organization being updated.
      */
     public function __construct(
         private bool $is_updating,
-        private readonly Organization $organization)
-    {
-    }
+        private readonly Organization $organization) {}
 
     /**
      * Run the validation rule.
      *
      * Checks if the provided organization name already exists at the same hierarchical level.
      *
-     * @param  string  $attribute The name of the attribute being validated.
-     * @param  mixed  $value The value of the attribute being validated.
-     * @param  \Closure(string): \Illuminate\Translation\PotentiallyTranslatedString  $fail The closure to call on validation failure.
+     * @param  string  $attribute  The name of the attribute being validated.
+     * @param  mixed  $value  The value of the attribute being validated.
+     * @param  \Closure(string): \Illuminate\Translation\PotentiallyTranslatedString  $fail  The closure to call on validation failure.
+     * @return void This rule never returns a value; it only triggers $fail().
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        if (!empty($value))
+        if (! empty($value))
         {
             if ($this->is_updating)
             {

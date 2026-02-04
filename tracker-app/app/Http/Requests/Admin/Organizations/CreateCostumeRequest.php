@@ -18,9 +18,9 @@ use Illuminate\Foundation\Http\FormRequest;
 class CreateCostumeRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * Determine if the user is authorized to make this request
      *
-     * @return bool Returns true if the user has permission to create costumes.
+     * @return bool Returns true if the user has permission to create costumes
      */
     public function authorize(): bool
     {
@@ -35,12 +35,12 @@ class CreateCostumeRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Get the validation rules that apply to the request
      *
      * Validates the costume name ensuring it's unique among sibling costumes
      * under the same parent organization.
      *
-     * @return array<string, mixed> The validation rules for creating a costume.
+     * @return array<string, mixed> The validation rules for creating a costume
      */
     public function rules(): array
     {

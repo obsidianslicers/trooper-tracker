@@ -25,7 +25,7 @@ class TrooperApproved extends Mailable implements ShouldQueue
     /**
      * Create a new trooper approval email instance.
      *
-     * @param Trooper $trooper The trooper who was approved
+     * @param  Trooper  $trooper  The trooper who was approved
      */
     public function __construct(private readonly Trooper $trooper)
     {
@@ -40,7 +40,7 @@ class TrooperApproved extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Troop Tracker - Welcome, Trooper! You Passed Inspection!'
+            subject: config('mail.prefix').' Welcome, Trooper! You Passed Inspection!'
         );
     }
 
@@ -54,7 +54,7 @@ class TrooperApproved extends Mailable implements ShouldQueue
         return new Content(
             view: 'emails.admin.troopers.trooper-approved',
             with: [
-                'trooper' => $this->trooper
+                'trooper' => $this->trooper,
             ]
         );
     }

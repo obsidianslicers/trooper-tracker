@@ -13,19 +13,18 @@ use Illuminate\Http\RedirectResponse;
  * Class CostumesSubmitController
  *
  * Handles the submission of the form for managing costumes for an organization.
- * @package App\Http\Controllers\Admin\Organizations
  */
 class CostumesSubmitController extends MagicBusController
 {
     /**
-     * Handle the incoming request to update an organization's costumes.
+     * Handle the incoming request to update an organization's costumes
      *
      * Validates the request, updates the organization's costumes, saves it,
      * and then redirects with a success message.
      *
-     * @param UpdateCostumesRequest $request The validated request containing the updated data.
-     * @param Organization $organization The organization to be updated.
-     * @return RedirectResponse A redirect response to the organization list.
+     * @param  UpdateCostumesRequest  $request  The validated request containing the updated data
+     * @param  Organization  $organization  The organization to be updated
+     * @return RedirectResponse A redirect response to the organization list
      */
     public function __invoke(UpdateCostumesRequest $request, Organization $organization): RedirectResponse
     {

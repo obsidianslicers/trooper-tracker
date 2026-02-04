@@ -41,8 +41,8 @@ class CostumesSubmitHtmxController extends MagicBusController
      *
      * Then attaches the costume and returns updated costume table HTML.
      *
-     * @param Request $request The incoming HTTP request containing organization_id and costume_id.
-     * @return View The costumes table partial for HTMX replacement.
+     * @param  Request  $request  The incoming HTTP request containing organization_id and costume_id
+     * @return View The costumes table partial for HTMX replacement
      */
     public function __invoke(Request $request): View
     {

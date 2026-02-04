@@ -20,9 +20,9 @@ use Illuminate\Validation\Rule;
 class CreateRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * Determine if the user is authorized to make this request
      *
-     * @return bool Returns true if the user has permission to create awards.
+     * @return bool Returns true if the user has permission to create awards
      */
     public function authorize(): bool
     {
@@ -31,12 +31,12 @@ class CreateRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Get the validation rules that apply to the request
      *
      * Validates the award name, frequency enum value, and ensures the organization
      * is one that the authenticated moderator has permission to manage.
      *
-     * @return array<string, mixed> The validation rules for creating an award.
+     * @return array<string, mixed> The validation rules for creating an award
      */
     public function rules(): array
     {
@@ -50,7 +50,7 @@ class CreateRequest extends FormRequest
                 'required',
                 'string',
                 'max:16',
-                'in:' . AwardFrequency::toValidator()
+                'in:'.AwardFrequency::toValidator(),
             ],
         ];
 

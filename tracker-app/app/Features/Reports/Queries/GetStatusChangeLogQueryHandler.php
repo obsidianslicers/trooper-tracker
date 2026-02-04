@@ -10,45 +10,35 @@ use App\Models\EventTrooper;
 use Carbon\Carbon;
 
 /**
- * Handler for retrieving model change history for a trooper.
+ * Handler for retrieving event trooper status change log.
  *
- * Returns a collection of StatusChange records representing changes to:
- * - The Trooper model itself (direct changes)
- * - EventTrooper records associated with the trooper
- *
- * Filters changes based on the lookback period specified in the query.
+ * Returns EventTrooper records marked as ATTENDED within the lookback period,
+ * where the status was changed by a moderator (not self-updated).
  *
  * @implements QueryHandlerInterface<GetStatusChangeLogQuery>
  */
 readonly class GetStatusChangeLogQueryHandler implements QueryHandlerInterface
 {
     /**
-     * Execute the query to retrieve model change history.
+     * Execute the query to retrieve status change history.
      *
-     * Converts the lookback parameter to a Carbon date if needed, then queries
-     * StatusChange records for the trooper and their associated EventTrooper records.
-     * Returns all changes since the lookback date.
+     * Retrieves EventTrooper records that were:
+     * - Marked as ATTENDED
+     * - Updated within the lookback period
+     * - Updated by someone other than the trooper themselves
+     * - For troopers moderated by the specified moderator
      *
-     * @param GetStatusChangeLogQuery $message The query containing trooper and lookback criteria.
-     * @return \Illuminate\Support\Collection<int, EventTrooper> Collection of model changes.
+     * @param  GetStatusChangeLogQuery  $message  The query containing moderator and lookback criteria.
+     * @return \Illuminate\Support\Collection<int, EventTrooper> Collection of status changes.
      */
     public function __invoke(object $message): mixed
     {
-        $lookback = $message->lookback;
-
-        if (is_int($lookback))
-        {
-            $lookback = now()->subDays($lookback);
-        }
-        elseif (is_string($lookback))
-        {
-            $lookback = Carbon::parse($lookback);
-        }
+        $lookback = $message->parseLookback();
 
         $with = [
             'trooper',
             'event_shift.updated_by',
-            'event_shift.event'
+            'event_shift.event',
         ];
 
         $filter = function ($qx) use ($message)

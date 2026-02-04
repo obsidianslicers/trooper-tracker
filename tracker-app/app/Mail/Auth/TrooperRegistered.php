@@ -37,7 +37,7 @@ class TrooperRegistered extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Troop Tracker - Thanks for Registering!',
+            subject: config('mail.prefix').' Thanks for Registering!',
         );
     }
 

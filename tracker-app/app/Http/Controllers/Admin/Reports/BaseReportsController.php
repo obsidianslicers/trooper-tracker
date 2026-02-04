@@ -8,7 +8,7 @@ use App\Http\Controllers\MagicBusController;
 
 class BaseReportsController extends MagicBusController
 {
-    protected function initialized()
+    protected function initialized(): void
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
         $this->crumbs->addRoute('Reports', 'admin.reports.display');

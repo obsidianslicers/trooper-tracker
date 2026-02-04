@@ -26,7 +26,7 @@ class InstantEventNotification extends Mailable implements ShouldQueue
     /**
      * Create a new instant event notification email instance.
      *
-     * @param EventNotification $event_notification The notification record to send
+     * @param  EventNotification  $event_notification  The notification record to send
      */
     public function __construct(private readonly EventNotification $event_notification)
     {
@@ -41,7 +41,7 @@ class InstantEventNotification extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Troop Tracker - New Event Posted'
+            subject: config('mail.prefix').' New Event Posted'
         );
     }
 
@@ -78,8 +78,7 @@ class InstantEventNotification extends Mailable implements ShouldQueue
      * Updates the event notification's sent_at timestamp to track when
      * the notification was delivered to the recipient.
      *
-     * @param \Symfony\Component\Mime\Email $message The sent email message instance
-     * @return void
+     * @param  \Symfony\Component\Mime\Email  $message  The sent email message instance
      */
     public function sent($message): void
     {

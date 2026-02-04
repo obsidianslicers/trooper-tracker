@@ -19,8 +19,6 @@
 
     @include('emails.events.inc.details', compact('event', 'event_shift', 'link'))
 
-    <p style="margin-top:20px; font-weight:bold; color:#333;">
-        - Imperial Administration, {{ config('app.name') }}
-    </p>
+    @include('emails.inc.signature')
 
 @endsection

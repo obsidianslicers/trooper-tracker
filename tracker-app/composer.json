@@ -20,12 +20,14 @@
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.16",
         "fakerphp/faker": "^1.23",
+        "larastan/larastan": "^3.9",
         "laravel/boost": "^1.8",
         "laravel/pail": "^1.2.2",
         "laravel/pint": "^1.24",
         "laravel/sail": "^1.41",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.6",
+        "phpstan/phpstan": "^2.1",
         "phpunit/phpunit": "^11.5.3",
         "reliese/laravel": "^1.4"
     },
@@ -45,6 +47,26 @@
         }
     },
     "scripts": {
+        "pint:format": [
+            "pint app/helpers.php",
+            "pint app/Bus",
+            "pint app/Http/Controllers",
+            "pint app/Http/Middleware",
+            "pint app/Http/Requests",
+            "pint app/Jobs",
+            "pint app/Mail",
+            "pint app/Policies",
+            "pint app/Rules"
+        ],
+        "stan": "phpstan analyse --memory-limit=1G",
+        "test:fresh": [
+            "@test:freshdb",
+            "@php artisan test"
+        ],
+        "test:freshdb": [
+            "@php -r \"file_exists('database/database.sqlite') && unlink('database/database.sqlite');\"",
+            "@php -r \"touch('database/database.sqlite');\""
+        ],
         "setup": [
             "composer install",
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",

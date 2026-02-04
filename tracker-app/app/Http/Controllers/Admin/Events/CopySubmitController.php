@@ -23,16 +23,16 @@ use Illuminate\Http\RedirectResponse;
 class CopySubmitController extends MagicBusController
 {
     /**
-     * Creates a copy of an existing event with adjusted dates.
+     * Creates a copy of an existing event with adjusted dates
      *
      * Processes the validated request to create a new event based on the source event.
      * Calculates the time difference between old and new start dates, then applies
      * this difference to all event and shift times. Copies all event shifts and
      * organization associations to the new event. Sets the new event to DRAFT status.
      *
-     * @param CopyRequest $request The validated event copy request.
-     * @param Event $event The source event to copy (route model binding).
-     * @return RedirectResponse Redirect to the copied event's update page.
+     * @param  CopyRequest  $request  The validated event copy request
+     * @param  Event  $event  The source event to copy (route model binding)
+     * @return RedirectResponse Redirect to the copied event's update page
      */
     public function __invoke(CopyRequest $request, Event $event): RedirectResponse
     {
@@ -77,6 +77,4 @@ class CopySubmitController extends MagicBusController
 
         return $event_copy;
     }
-
 }
-

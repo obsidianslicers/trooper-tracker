@@ -18,12 +18,13 @@ use Illuminate\Http\Request;
 class AdminDisplayController extends MagicBusController
 {
     /**
-     * Handle the incoming request to display the admin dashboard.
+     * Handle the incoming request to display the admin dashboard
      *
      * It calculates the number of troopers pending approval, sets a corresponding
      * flash message, and renders the main admin view.
      *
-     * @return View The rendered admin dashboard view or a redirect response.
+     * @param  Request  $request  The incoming HTTP request
+     * @return View The rendered admin dashboard view or a redirect response
      */
     public function __invoke(Request $request): View
     {

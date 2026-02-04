@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Middleware;
 
 use Closure;
@@ -23,8 +25,8 @@ class TrooperSetupRequiredMiddleware
      * redirects to the account setup page unless they're already on the setup page,
      * logout route, or picker routes.
      *
-     * @param Request $request The incoming HTTP request
-     * @param Closure $next The next middleware in the pipeline
+     * @param  Request  $request  The incoming HTTP request
+     * @param  Closure  $next  The next middleware in the pipeline
      * @return Response The HTTP response from the next middleware or a redirect to setup
      */
     public function handle(Request $request, Closure $next): Response

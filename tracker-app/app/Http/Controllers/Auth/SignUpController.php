@@ -20,8 +20,8 @@ class SignUpController extends MagicBusController
     /**
      * Handle the incoming request to display the sign-up method selection page.
      *
-     * @param Request $request The incoming HTTP request.
-     * @return View The rendered sign-up page view showing registration method options.
+     * @param  Request  $request  The incoming HTTP request
+     * @return View The rendered sign-up page view showing registration method options
      */
     public function __invoke(Request $request): View
     {

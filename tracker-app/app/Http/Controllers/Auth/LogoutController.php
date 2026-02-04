@@ -23,8 +23,8 @@ class LogoutController extends MagicBusController
      * Terminates the trooper's authenticated session, flashes a success message,
      * and redirects to the login page with a logout confirmation flag.
      *
-     * @param Request $request The incoming HTTP request.
-     * @return RedirectResponse A redirect to the login page with logged_out flag.
+     * @param  Request  $request  The incoming HTTP request
+     * @return RedirectResponse A redirect to the login page with logged_out flag
      */
     public function __invoke(Request $request): RedirectResponse
     {

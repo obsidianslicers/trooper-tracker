@@ -24,13 +24,12 @@ class SetupUpdateHtmxRequest extends FormRequest
     use HtmxValidation;
 
     /**
-     * Determine if the user is authorized to make this request.
+     * Determine if the user is authorized to make this request
      *
      * Checks if the user is either the trooper themselves or a moderator
      * of the trooper's organization(s).
      *
-     * @return bool
-     * @throws AuthorizationException if the event trooper is not found.
+     * @throws AuthorizationException if the event trooper is not found
      */
     public function authorize(): bool
     {
@@ -55,12 +54,12 @@ class SetupUpdateHtmxRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Get the validation rules that apply to the request
      *
      * The costume_id validation is dynamically restricted to only costumes
      * from organizations that can attend this specific event.
      *
-     * @return array<string, mixed> The validation rules for the request.
+     * @return array<string, mixed> The validation rules for the request
      */
     public function rules(): array
     {
@@ -79,7 +78,7 @@ class SetupUpdateHtmxRequest extends FormRequest
                 'nullable',
                 'string',
                 'max:16',
-                'in:' . EventTrooperStatus::toValidator()
+                'in:'.EventTrooperStatus::toValidator(),
             ],
             EventTrooper::COSTUME_ID => [
                 'nullable',

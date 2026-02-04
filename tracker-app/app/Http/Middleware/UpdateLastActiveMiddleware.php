@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Middleware;
 
 use Closure;
@@ -22,8 +24,8 @@ class UpdateLastActiveMiddleware
      * or more than 3 minutes have passed since the last update. This throttling
      * prevents excessive database writes while maintaining reasonable accuracy.
      *
-     * @param Request $request The incoming HTTP request
-     * @param Closure $next The next middleware in the pipeline
+     * @param  Request  $request  The incoming HTTP request
+     * @param  Closure  $next  The next middleware in the pipeline
      * @return Response The HTTP response from the next middleware
      */
     public function handle(Request $request, Closure $next): Response

@@ -1,12 +1,23 @@
-## EVENTS
+### CI/CD
 
-### WORK IN PROGRESS
+stan/pint - WIP
+- app/helpers.php
+- app/Bus
+- # app/Http/Controllers
+- # app/Http/Middleware
+- # app/Http/Requests
+- app/Jobs
+- app/Mail
+- app/Policies
+- app/Rules
 
-- home pages alernate views:
-  - map view
+### MISC
+
+- smash to single commit prior to beta 
+- lock down main
 
 ### EVENT WIP COMPLETED
-- Home Page Calendar View
+- Home Page Calendar/Map View
   - **IMPLEMENTED**
 - Getting error on event e-mail parser submission
   - **IMPLEMENTATION**: server side handled via global exception handler

@@ -28,8 +28,6 @@ use Illuminate\Validation\ValidationException;
  *     }
  * }
  * ```
- *
- * @package App\Http\Requests
  */
 trait HtmxValidation
 {
@@ -41,8 +39,7 @@ trait HtmxValidation
      * this method returns early without throwing an exception. For standard requests,
      * it delegates to the parent implementation which throws a ValidationException.
      *
-     * @param \Illuminate\Contracts\Validation\Validator $validator The validator instance containing validation errors.
-     * @return void
+     * @param  ValidatorInterface  $validator  The validator instance containing validation errors
      */
     protected function failedValidation(ValidatorInterface $validator): void
     {
@@ -64,8 +61,9 @@ trait HtmxValidation
      * is useful when you need explicit control over when validation occurs, rather than relying
      * on Laravel's automatic validation in the controller.
      *
-     * @return array<string, mixed> The validated data that passed all validation rules.
-     * @throws \Illuminate\Validation\ValidationException When validation fails.
+     * @return array<string, mixed> The validated data that passed all validation rules
+     *
+     * @throws \Illuminate\Validation\ValidationException When validation fails
      */
     public function validateInputs(): array
     {

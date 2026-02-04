@@ -34,9 +34,11 @@ namespace App\Bus\Contracts;
  * }
  * ```
  *
+ * @template TMessage of object
+ *
+ * @extends HandlerInterface<TMessage>
+ *
  * @see \App\Bus\MagicBus
  * @see \App\Bus\Contracts\HandlerInterface
  */
-interface QueryHandlerInterface extends HandlerInterface
-{
-}
+interface QueryHandlerInterface extends HandlerInterface {}

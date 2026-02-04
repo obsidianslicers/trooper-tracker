@@ -15,23 +15,24 @@ use InvalidArgumentException;
  * Class CreateSubmitController
  *
  * Handles the submission of the form for creating a new organization.
- * @package App\Http\Controllers\Admin\Organizations
  */
 class CreateSubmitController extends MagicBusController
 {
     /**
-     * Handle the incoming request to create a new organization.
+     * Handle the incoming request to create a new organization
      *
      * Validates the request, creates a new organization under the given parent,
      * determines its type, saves it, and then redirects with a success message.
      *
-     * @param CreateRequest $request The validated request containing the new organization's data.
-     * @param Organization $parent The parent organization.
-     * @return RedirectResponse A redirect response to the organization list.
+     * @param  CreateRequest  $request  The validated request containing the new organization's data
+     * @param  Organization  $parent  The parent organization
+     * @return RedirectResponse A redirect response to the organization list
+     *
+     * @throws InvalidArgumentException If parent type doesn't allow child organizations
      */
     public function __invoke(CreateRequest $request, Organization $parent): RedirectResponse
     {
-        $organization = new Organization();
+        $organization = new Organization;
 
         $organization->parent_id = $parent->id;
         $organization->name = $request->validated('name');

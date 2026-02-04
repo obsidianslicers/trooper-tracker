@@ -9,25 +9,23 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 /**
- * Handles the display of the main administration dashboard.
+ * Controller for displaying the reports menu.
  *
- * This controller provides a summary of administrative tasks, such as displaying
- * the count of troopers pending approval and setting a relevant flash message.
+ * Shows the main reports landing page with links to various
+ * administrative reports.
  */
 class ReportDisplayController extends MagicBusController
 {
-    protected function initialized()
+    protected function initialized(): void
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
     }
 
     /**
-     * Handle the incoming request to display the admin dashboard.
+     * Display the reports menu page
      *
-     * It calculates the number of troopers pending approval, sets a corresponding
-     * flash message, and renders the main admin view.
-     *
-     * @return View The rendered admin dashboard view or a redirect response.
+     * @param  Request  $request  The HTTP request
+     * @return View The reports menu view
      */
     public function __invoke(Request $request): View
     {

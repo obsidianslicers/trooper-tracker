@@ -33,6 +33,7 @@ namespace App\Bus\Contracts;
  * ```
  *
  * @template TMessage of object
+ *
  * @see \App\Bus\MagicBus
  * @see \App\Bus\Contracts\CommandHandlerInterface
  * @see \App\Bus\Contracts\QueryHandlerInterface
@@ -46,7 +47,7 @@ interface HandlerInterface
      * or Query is dispatched. The implementation should contain the core
      * business logic for processing the message.
      *
-     * @param TMessage $message The Command or Query message to process
+     * @param  TMessage  $message  The Command or Query message to process
      * @return mixed The result of handling the message (may be void for Commands)
      */
     public function __invoke(object $message): mixed;

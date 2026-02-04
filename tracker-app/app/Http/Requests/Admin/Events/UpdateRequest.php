@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin\Events;
 
+use App\Http\Requests\Concerns\HasNormalizers;
 use App\Models\Event;
 use App\Models\EventOrganization;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -29,14 +30,14 @@ use Illuminate\Foundation\Http\FormRequest;
 class UpdateRequest extends FormRequest
 {
     use CommonRules;
+    use HasNormalizers;
 
     /**
-     * Determine if the user is authorized to make this request.
+     * Determine if the user is authorized to make this request
      *
      * Checks if the user has permission to update the event specified in the route.
      *
-     * @return bool
-     * @throws AuthorizationException if the event is not found.
+     * @throws AuthorizationException if the event is not found
      */
     public function authorize(): bool
     {
@@ -51,9 +52,9 @@ class UpdateRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Get the validation rules that apply to the request
      *
-     * @return array<string, mixed> The validation rules for the request.
+     * @return array<string, mixed> The validation rules for the request
      */
     public function rules(): array
     {
@@ -70,34 +71,30 @@ class UpdateRequest extends FormRequest
     public function messages(): array
     {
         return [
-            Event::TROOPERS_ALLOWED . '.required_if' =>
-                'The troopers allowed field is required when limit organizations is set to Yes.',
-            Event::HANDLERS_ALLOWED . '.required_if' =>
-                'The handlers allowed field is required when limit organizations is set to Yes.',
+            Event::TROOPERS_ALLOWED.'.required_if' => 'The troopers allowed field is required when limit organizations is set to Yes.',
+            Event::HANDLERS_ALLOWED.'.required_if' => 'The handlers allowed field is required when limit organizations is set to Yes.',
         ];
     }
 
     /**
-     * Prepare the data for validation.
+     * Prepare the data for validation
      *
      * This method ensures that each organization in the input array has a 'can_attend' attribute, defaulting to false if it is not present.
      */
     protected function prepareForValidation(): void
     {
-        $organizations = $this->input('organizations', []);
+        $organizations = $this->normalizeBooleanFields(
+            $this->input('organizations', []),
+            [EventOrganization::CAN_ATTEND],
+            true
+        );
 
-        foreach ($organizations as $key => $org)
+        foreach ($organizations as $organization_id => $organization)
         {
-            // If 'can_attend' is missing, default to false
-            $can_attend = $org[EventOrganization::CAN_ATTEND] ?? false;
-
-            // Coerce to boolean (handles "on", "1", "true", etc.)
-            $organizations[$key][EventOrganization::CAN_ATTEND] = filter_var($can_attend, FILTER_VALIDATE_BOOLEAN);
-
-            if (!$organizations[$key][EventOrganization::CAN_ATTEND])
+            if (!$organizations[$organization_id][EventOrganization::CAN_ATTEND])
             {
-                $organizations[$key][EventOrganization::TROOPERS_ALLOWED] = null;
-                $organizations[$key][EventOrganization::HANDLERS_ALLOWED] = null;
+                $organizations[$organization_id][EventOrganization::TROOPERS_ALLOWED] = null;
+                $organizations[$organization_id][EventOrganization::HANDLERS_ALLOWED] = null;
             }
         }
 

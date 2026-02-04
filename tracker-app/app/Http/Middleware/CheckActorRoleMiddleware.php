@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Middleware;
 
 use App\Enums\MembershipRole;
@@ -26,12 +28,13 @@ class CheckActorRoleMiddleware
      * specified roles. Roles can be passed as string values that will be converted
      * to MembershipRole enums.
      *
-     * @param Request $request The incoming HTTP request
-     * @param Closure $next The next middleware in the pipeline
-     * @param string ...$roles Variable number of role names to check against
-     * @return mixed The response from the next middleware if authorized
+     * @param  Request  $request  The incoming HTTP request
+     * @param  Closure  $next  The next middleware in the pipeline
+     * @param  string  ...$roles  Variable number of role names to check against
+     * @return Response The response from the next middleware if authorized
+     *
      * @throws InvalidArgumentException If an invalid role string is provided
-     * @throws \Symfony\Component\HttpKernel\Exception\HttpException 401 if not authenticated, 403 if unauthorized
+     * @throws \Symfony\Component\HttpKernel\Exception\HttpException If not authenticated (401) or unauthorized (403)
      */
     public function handle(Request $request, Closure $next, ...$roles)
     {

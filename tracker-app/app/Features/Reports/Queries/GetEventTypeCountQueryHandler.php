@@ -6,46 +6,34 @@ namespace App\Features\Reports\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Enums\EventStatus;
-use App\Enums\EventTrooperStatus;
 use App\Enums\EventType;
 use App\Models\Event;
-use App\Models\EventTrooper;
 use Carbon\Carbon;
 
 /**
- * Handler for retrieving model change history for a trooper.
+ * Handler for retrieving event statistics grouped by type.
  *
- * Returns a collection of StatusChange records representing changes to:
- * - The Trooper model itself (direct changes)
- * - EventTrooper records associated with the trooper
- *
- * Filters changes based on the lookback period specified in the query.
+ * Returns aggregated counts and trooper participation metrics for each event type
+ * (e.g., Official, Unofficial, Training) within the lookback period.
  *
  * @implements QueryHandlerInterface<GetEventTypeCountQuery>
  */
 readonly class GetEventTypeCountQueryHandler implements QueryHandlerInterface
 {
     /**
-     * Execute the query to retrieve model change history.
+     * Execute the query to retrieve event type statistics.
      *
-     * Converts the lookback parameter to a Carbon date if needed, then queries
-     * StatusChange records for the trooper and their associated EventTrooper records.
-     * Returns all changes since the lookback date.
+     * Groups closed events by type and calculates for each:
+     * - count: Number of events of this type
+     * - total_trooper_count: Total signups across all events
+     * - unique_trooper_count: Unique troopers across all events
      *
-     * @param GetEventTypeCountQuery $message The query containing trooper and lookback criteria.
+     * @param  GetEventTypeCountQuery  $message  The query containing moderator and lookback criteria.
+     * @return \Illuminate\Support\Collection<int, object> Collection of event type statistics.
      */
     public function __invoke(object $message): mixed
     {
-        $lookback = $message->lookback;
-
-        if (is_int($lookback))
-        {
-            $lookback = now()->subDays($lookback);
-        }
-        elseif (is_string($lookback))
-        {
-            $lookback = Carbon::parse($lookback);
-        }
+        $lookback = $message->parseLookback();
 
         $total_counter = function ($event)
         {
@@ -77,10 +65,9 @@ readonly class GetEventTypeCountQueryHandler implements QueryHandlerInterface
                     'event_type' => EventType::from($type),
                     'count' => $events->count(),
                     'total_trooper_count' => $events->sum($total_counter),
-                    'unique_trooper_count' => $unique_counter($events)
+                    'unique_trooper_count' => $unique_counter($events),
                 ];
             })
             ->values();
-
     }
 }

@@ -14,17 +14,17 @@ use Illuminate\Validation\Rule;
  * Handles the validation for creating a new notice.
  *
  * This class defines validation rules for creating notices, ensuring that the notice
- * title, message, type, and date range are properly validated. The organization 
- * assignment rules vary based on the user's role: administrators can create global 
- * notices (no organization) or organization-specific notices, while moderators must 
+ * title, message, type, and date range are properly validated. The organization
+ * assignment rules vary based on the user's role: administrators can create global
+ * notices (no organization) or organization-specific notices, while moderators must
  * assign the notice to an organization they moderate.
  */
 class CreateRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * Determine if the user is authorized to make this request
      *
-     * @return bool Returns true if the user has permission to create notices.
+     * @return bool Returns true if the user has permission to create notices
      */
     public function authorize(): bool
     {
@@ -33,13 +33,13 @@ class CreateRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Get the validation rules that apply to the request
      *
      * Validates the notice title, message, type enum value, date range, and organization.
      * Administrators can optionally assign an organization or leave it null for global notices.
      * Moderators must assign an organization they have permission to manage.
      *
-     * @return array<string, mixed> The validation rules for creating a notice.
+     * @return array<string, mixed> The validation rules for creating a notice
      */
     public function rules(): array
     {
@@ -57,7 +57,7 @@ class CreateRequest extends FormRequest
                 'required',
                 'string',
                 'max:16',
-                'in:' . NoticeType::toValidator()
+                'in:'.NoticeType::toValidator(),
             ],
             Notice::STARTS_AT => ['required', 'date'],
             Notice::ENDS_AT => ['required', 'date', 'after:starts_at'],
@@ -71,7 +71,7 @@ class CreateRequest extends FormRequest
             // Admins can either leave it null or pick any existing org
             $rules[Notice::ORGANIZATION_ID] = [
                 'nullable',
-                Rule::exists(Organization::class, Organization::ID)
+                Rule::exists(Organization::class, Organization::ID),
             ];
         }
         else
@@ -83,7 +83,6 @@ class CreateRequest extends FormRequest
                     ->whereIn('id', Organization::moderatedBy($trooper)->pluck('id')),
             ];
         }
-
 
         return $rules;
     }

@@ -35,8 +35,8 @@ class RegisterSubmitController extends MagicBusController
      * organization assignments, notification preferences, and email confirmation.
      * The newly created trooper will have PENDING status until approved by an admin.
      *
-     * @param RegisterRequest $request The validated registration form request.
-     * @return RedirectResponse A redirect to the thank you page after successful registration.
+     * @param  RegisterRequest  $request  The validated registration form request
+     * @return RedirectResponse A redirect to the thank you page after successful registration
      */
     public function __invoke(RegisterRequest $request): RedirectResponse
     {
@@ -61,7 +61,7 @@ class RegisterSubmitController extends MagicBusController
 
         $this->bus->send($notification_command);
 
-        Mail::to($trooper->email)->queue(new TrooperRegistered());
+        Mail::to($trooper->email)->queue(new TrooperRegistered);
 
         dispatch(new SendTrooperRegisteredNotificationsJob($trooper));
 
@@ -76,7 +76,7 @@ class RegisterSubmitController extends MagicBusController
      * Builds an array of organization IDs with notification flags enabled
      * for selected organizations and their associated regions/units.
      *
-     * @param array $organizations The organizations data from the registration form
+     * @param  array  $organizations  The organizations data from the registration form
      * @return array Array keyed by organization ID with should_notify flags
      */
     private function getNotifications(array $organizations): array
@@ -112,7 +112,7 @@ class RegisterSubmitController extends MagicBusController
      * If a region has no units, membership is assigned to the region; otherwise,
      * membership is assigned to the selected unit.
      *
-     * @param array $organizations The organizations data from the registration form
+     * @param  array  $organizations  The organizations data from the registration form
      * @return array Array keyed by organization ID with is_member flags
      */
     private function getMemberships(array $organizations): array

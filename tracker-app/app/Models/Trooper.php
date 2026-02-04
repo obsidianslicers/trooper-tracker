@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use App\Enums\MembershipRole;
@@ -10,7 +12,6 @@ use App\Models\Base\Trooper as BaseTrooper;
 use App\Models\Casts\LowerCast;
 use App\Models\Concerns\HasAuditTrail;
 use App\Models\Concerns\HasFilter;
-use App\Models\Concerns\HasObserver;
 use App\Models\Scopes\HasTrooperScopes;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Auth\MustVerifyEmail;
@@ -36,12 +37,11 @@ class Trooper extends BaseTrooper implements
     CanResetPasswordContract
 {
     use Authenticatable, Authorizable, CanResetPassword, MustVerifyEmail;
-
-    use HasFilter;
-    use HasFactory;
-    use Notifiable;
-    use HasTrooperScopes;
     use HasAuditTrail;
+    use HasFactory;
+    use HasFilter;
+    use HasTrooperScopes;
+    use Notifiable;
 
     /**
      * Define the model attributes should be audited for changes.
@@ -63,7 +63,7 @@ class Trooper extends BaseTrooper implements
      */
     public function getAuditLabel(): string
     {
-        return $this->name . ' (' . $this->email . ')';
+        return $this->name.' ('.$this->email.')';
     }
 
     /**
@@ -78,7 +78,7 @@ class Trooper extends BaseTrooper implements
             self::MEMBERSHIP_STATUS => MembershipStatus::class,
             self::MEMBERSHIP_ROLE => MembershipRole::class,
             self::EMAIL => LowerCast::class,
-            self::THEME => TrooperTheme::class
+            self::THEME => TrooperTheme::class,
         ]);
     }
 
@@ -152,7 +152,7 @@ class Trooper extends BaseTrooper implements
      * Administrators are always considered moderators for all organizations.
      * Moderators must have a moderator assignment for the specific organization.
      *
-     * @param Organization $organization The organization to check moderator status for
+     * @param  Organization  $organization  The organization to check moderator status for
      * @return bool True if trooper is a moderator for the organization
      */
     public function isModeratorForOrganization(Organization $organization): bool

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Rules\Auth;
 
 use App\Models\Organization;
@@ -19,25 +21,24 @@ class UniqueOrganizationIdentifierRule implements ValidationRule
     /**
      * Creates a new rule instance.
      *
-     * @param Organization $organization The organization against which the identifier's uniqueness will be checked.
-     * @param Trooper|null $trooper The trooper being validated, if any.
+     * @param  Organization  $organization  The organization against which the identifier's uniqueness will be checked.
+     * @param  Trooper|null  $trooper  The trooper being validated, if any.
      */
     public function __construct(
         private readonly Organization $organization,
-        private readonly ?Trooper $trooper = null)
-    {
-    }
+        private readonly ?Trooper $trooper = null) {}
 
     /**
      * Run the validation rule.
      *
-     * @param  string  $attribute The name of the attribute being validated.
-     * @param  mixed  $value The value of the attribute being validated.
-     * @param  \Closure(string): \Illuminate\Translation\PotentiallyTranslatedString  $fail The closure to call on validation failure.
+     * @param  string  $attribute  The name of the attribute being validated.
+     * @param  mixed  $value  The value of the attribute being validated.
+     * @param  \Closure(string): \Illuminate\Translation\PotentiallyTranslatedString  $fail  The closure to call on validation failure.
+     * @return void This rule never returns a value; it only triggers $fail().
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        if (!empty($value))
+        if (! empty($value))
         {
             $query = $this->organization->troopers()
                 ->wherePivot(TrooperOrganization::IDENTIFIER, $value);
