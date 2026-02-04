@@ -14,6 +14,10 @@ use DOMDocument;
 use DOMXPath;
 use Exception;
 use stdClass;
+use Illuminate\Support\Facades\Log;
+use App\Models\TrooperUpload;
+use Illuminate\Support\Facades\Schema;
+
 
 class TheLegionService extends BaseOrganizationService
 {
@@ -53,6 +57,100 @@ class TheLegionService extends BaseOrganizationService
             $costume->verified_at = now();
 
             $costume->save();
+        }
+        
+        // Additionally, fetch per-trooper costumes via the 501st member API
+        // and populate the tt_trooper_uploads table so we have per-member images.
+        if (! Schema::hasTable('tt_trooper_uploads')) {
+            Log::warning('TheLegionService: tt_trooper_uploads table not present; skipping per-trooper costume fetch.');
+            return;
+        }
+
+        $troopers = $this->organization->troopers()->get();
+
+        foreach ($troopers as $trooper) {
+            $legionId = $trooper->pivot->identifier ?? null;
+            if (empty($legionId)) {
+                continue;
+            }
+
+            $url = "https://www.501st.com/memberAPI/v3/legionId/{$legionId}/costumes";
+
+            try {
+                $json = @file_get_contents($url);
+            } catch (Exception $e) {
+                Log::error('TheLegionService: error fetching costumes for legionId ' . $legionId . ' - ' . $e->getMessage());
+                continue;
+            }
+
+            if (empty($json)) {
+                continue;
+            }
+
+            $data = json_decode($json, true);
+            if (! is_array($data) || empty($data['costumes'])) {
+                continue;
+            }
+
+            foreach ($data['costumes'] as $c) {
+                $costumeName = $c['costumeName'] ?? null;
+                if (empty($costumeName)) {
+                    continue;
+                }
+
+                // Ensure OrganizationCostume exists (preserve existing behaviour)
+                $orgCostume = $this->organization->organization_costumes()
+                    ->where('name', $costumeName)
+                    ->first();
+
+                if ($orgCostume === null) {
+                    $orgCostume = new OrganizationCostume();
+                    $orgCostume->organization_id = $this->organization->id;
+                    $orgCostume->name = $costumeName;
+                }
+
+                if (Schema::hasColumn('tt_organization_costumes', 'verified_at')) {
+                    $orgCostume->verified_at = now();
+                }
+
+                $orgCostume->save();
+
+                // Create or update TrooperUpload
+                $identifier = (string)$legionId;
+
+                $uploadData = [
+                    'organization_id' => $this->organization->id,
+                    'identifier' => $identifier,
+                    'prefix' => $c['prefix'] ?? null,
+                    'costume_name' => $costumeName,
+                    'small_image_url' => $c['thumbnail'] ?? null,
+                    'large_image_url' => $c['photoURL'] ?? ($c['photo'] ?? null),
+                    'bucket_off_url' => $c['bucketOffPhoto'] ?? null,
+                ];
+
+                try {
+                    $upload = TrooperUpload::firstWhere([
+                        'organization_id' => $this->organization->id,
+                        'identifier' => $identifier,
+                        'costume_name' => $costumeName,
+                    ]);
+
+                    if ($upload === null) {
+                        TrooperUpload::create($uploadData);
+                    } else {
+                        $changed = false;
+                        foreach (['prefix','small_image_url','large_image_url','bucket_off_url'] as $k) {
+                            if (($upload->{$k} ?? null) !== ($uploadData[$k] ?? null)) {
+                                $upload->{$k} = $uploadData[$k] ?? null;
+                                $changed = true;
+                            }
+                        }
+                        if ($changed) { $upload->save(); }
+                    }
+                } catch (Exception $e) {
+                    Log::error('TheLegionService: failed to create/update TrooperUpload for ' . $identifier . ' - ' . $e->getMessage());
+                }
+            }
         }
     }
 
