@@ -15,7 +15,6 @@ use DOMXPath;
 use Exception;
 use stdClass;
 use Illuminate\Support\Facades\Log;
-use App\Models\TrooperUpload;
 use Illuminate\Support\Facades\Schema;
 
 
@@ -60,12 +59,7 @@ class TheLegionService extends BaseOrganizationService
         }
         
         // Additionally, fetch per-trooper costumes via the 501st member API
-        // and populate the tt_trooper_uploads table so we have per-member images.
-        if (! Schema::hasTable('tt_trooper_uploads')) {
-            Log::warning('TheLegionService: tt_trooper_uploads table not present; skipping per-trooper costume fetch.');
-            return;
-        }
-
+        // and populate tt_trooper_costumes with per-member images and prefixes.
         $troopers = $this->organization->troopers()->get();
 
         foreach ($troopers as $trooper) {
@@ -98,7 +92,7 @@ class TheLegionService extends BaseOrganizationService
                     continue;
                 }
 
-                // Ensure OrganizationCostume exists (preserve existing behaviour)
+                // Ensure OrganizationCostume exists
                 $orgCostume = $this->organization->organization_costumes()
                     ->where('name', $costumeName)
                     ->first();
@@ -115,40 +109,49 @@ class TheLegionService extends BaseOrganizationService
 
                 $orgCostume->save();
 
-                // Create or update TrooperUpload
-                $identifier = (string)$legionId;
-
-                $uploadData = [
-                    'organization_id' => $this->organization->id,
-                    'identifier' => $identifier,
-                    'prefix' => $c['prefix'] ?? null,
-                    'costume_name' => $costumeName,
-                    'small_image_url' => $c['thumbnail'] ?? null,
-                    'large_image_url' => $c['photoURL'] ?? ($c['photo'] ?? null),
-                    'bucket_off_url' => $c['bucketOffPhoto'] ?? null,
-                ];
-
+                // Create or update TrooperCostume (link trooper -> organization costume)
                 try {
-                    $upload = TrooperUpload::firstWhere([
-                        'organization_id' => $this->organization->id,
-                        'identifier' => $identifier,
-                        'costume_name' => $costumeName,
-                    ]);
+                    // find or create org costume (do not set verified_at when creating)
+                    $orgCostume = $this->organization->organization_costumes()
+                        ->where('name', $costumeName)
+                        ->first();
 
-                    if ($upload === null) {
-                        TrooperUpload::create($uploadData);
+                    if ($orgCostume === null) {
+                        $orgCostume = new OrganizationCostume();
+                        $orgCostume->organization_id = $this->organization->id;
+                        $orgCostume->name = $costumeName;
+                        $orgCostume->verified_at = null;
+                        $orgCostume->save();
+                    }
+
+                    // Now ensure TrooperCostume exists
+                    $trooperCostume = \App\Models\TrooperCostume::where('trooper_id', $trooper->id)
+                        ->where('costume_id', $orgCostume->id)
+                        ->first();
+
+                    $tcData = [
+                        'trooper_id' => $trooper->id,
+                        'costume_id' => $orgCostume->id,
+                        'costume_prefix' => $c['prefix'] ?? null,
+                        'small_image_url' => $c['thumbnail'] ?? null,
+                        'large_image_url' => $c['photoURL'] ?? ($c['photo'] ?? null),
+                        'bucket_off_url' => $c['bucketOffPhoto'] ?? null,
+                    ];
+
+                    if ($trooperCostume === null) {
+                        \App\Models\TrooperCostume::create($tcData);
                     } else {
                         $changed = false;
-                        foreach (['prefix','small_image_url','large_image_url','bucket_off_url'] as $k) {
-                            if (($upload->{$k} ?? null) !== ($uploadData[$k] ?? null)) {
-                                $upload->{$k} = $uploadData[$k] ?? null;
+                        foreach (['costume_prefix','small_image_url','large_image_url','bucket_off_url'] as $k) {
+                            if (($trooperCostume->{$k} ?? null) !== ($tcData[$k] ?? null)) {
+                                $trooperCostume->{$k} = $tcData[$k] ?? null;
                                 $changed = true;
                             }
                         }
-                        if ($changed) { $upload->save(); }
+                        if ($changed) { $trooperCostume->save(); }
                     }
                 } catch (Exception $e) {
-                    Log::error('TheLegionService: failed to create/update TrooperUpload for ' . $identifier . ' - ' . $e->getMessage());
+                    Log::error('TheLegionService: failed to create/update TrooperCostume for legionId ' . $legionId . ' - ' . $e->getMessage());
                 }
             }
         }

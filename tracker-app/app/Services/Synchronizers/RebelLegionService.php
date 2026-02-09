@@ -7,7 +7,7 @@ namespace App\Services\Synchronizers;
 use App\Enums\MembershipStatus;
 use App\Models\OrganizationCostume;
 use App\Models\TrooperOrganization;
-use App\Models\TrooperUpload;
+use App\Models\TrooperCostume;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Carbon;
@@ -53,43 +53,62 @@ class RebelLegionService extends BaseOrganizationService
 
                 if (empty($costumeName)) { continue; }
 
-                // Create or update a TrooperUpload record for this costume
-                // Map sheet columns to tt_trooper_uploads fields:
-                // - identifier => 'Rebel Legion Forum Username' (as provided in sheet)
-                // - costume_name => 'Costume Name'
-                // - large_image_url => 'Costume Image URL'
+                // Map to organization costume and trooper costume
                 $identifier = is_null($legionId) ? '' : (string) $legionId;
 
                 if (empty($identifier)) {
-                    // If no identifier present, log and skip
                     Log::warning("RebelLegionService: skipping costume '{$costumeName}' with empty identifier for org {$this->organization->id}");
                     continue;
                 }
 
-                $upload = TrooperUpload::where('organization_id', $this->organization->id)
-                    ->where('identifier', $identifier)
-                    ->where('costume_name', $costumeName)
+                // Ensure organization costume exists (do not set verified_at)
+                $orgCostume = $this->organization->organization_costumes()
+                    ->where('name', $costumeName)
                     ->first();
 
-                $data = [
-                    'organization_id' => $this->organization->id,
-                    'identifier' => $identifier,
-                    'costume_name' => $costumeName,
+                if ($orgCostume === null) {
+                    $orgCostume = new OrganizationCostume();
+                    $orgCostume->organization_id = $this->organization->id;
+                    $orgCostume->name = $costumeName;
+                    $orgCostume->verified_at = null;
+                    $orgCostume->save();
+                }
+
+                // find trooper by identifier on pivot
+                $trooper = $this->organization->troopers()
+                    ->wherePivot(TrooperOrganization::IDENTIFIER, $identifier)
+                    ->first();
+
+                if ($trooper === null) {
+                    // no matching trooper in local DB
+                    continue;
+                }
+
+                // create or update TrooperCostume
+                $tc = TrooperCostume::where('trooper_id', $trooper->id)
+                    ->where('costume_id', $orgCostume->id)
+                    ->first();
+
+                $tcData = [
+                    'trooper_id' => $trooper->id,
+                    'costume_id' => $orgCostume->id,
+                    'costume_prefix' => null,
+                    'small_image_url' => null,
                     'large_image_url' => $costumeImage ?: null,
+                    'bucket_off_url' => null,
                 ];
 
-                if ($upload === null) {
-                    TrooperUpload::create($data);
+                if ($tc === null) {
+                    TrooperCostume::create($tcData);
                 } else {
-                    $shouldUpdate = false;
-                    if (($upload->large_image_url ?? null) !== ($data['large_image_url'] ?? null)) {
-                        $upload->large_image_url = $data['large_image_url'];
-                        $shouldUpdate = true;
+                    $changed = false;
+                    foreach (['large_image_url'] as $k) {
+                        if (($tc->{$k} ?? null) !== ($tcData[$k] ?? null)) {
+                            $tc->{$k} = $tcData[$k] ?? null;
+                            $changed = true;
+                        }
                     }
-
-                    if ($shouldUpdate) {
-                        $upload->save();
-                    }
+                    if ($changed) { $tc->save(); }
                 }
             }
         }

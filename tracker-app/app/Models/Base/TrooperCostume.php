@@ -37,6 +37,10 @@ class TrooperCostume extends Model
     const ID = 'id';
     const TROOPER_ID = 'trooper_id';
     const COSTUME_ID = 'costume_id';
+    const COSTUME_PREFIX = 'costume_prefix';
+    const SMALL_IMAGE_URL = 'small_image_url';
+    const LARGE_IMAGE_URL = 'large_image_url';
+    const BUCKET_OFF_URL = 'bucket_off_url';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
     const DELETED_AT = 'deleted_at';
@@ -49,6 +53,10 @@ class TrooperCostume extends Model
         self::ID => 'int',
         self::TROOPER_ID => 'int',
         self::COSTUME_ID => 'int',
+        self::COSTUME_PREFIX => 'string',
+        self::SMALL_IMAGE_URL => 'string',
+        self::LARGE_IMAGE_URL => 'string',
+        self::BUCKET_OFF_URL => 'string',
         self::CREATED_AT => 'datetime',
         self::UPDATED_AT => 'datetime',
         self::CREATED_ID => 'int',
@@ -58,7 +66,11 @@ class TrooperCostume extends Model
 
     protected $fillable = [
         self::TROOPER_ID,
-        self::COSTUME_ID
+        self::COSTUME_ID,
+        self::COSTUME_PREFIX,
+        self::SMALL_IMAGE_URL,
+        self::LARGE_IMAGE_URL,
+        self::BUCKET_OFF_URL
     ];
 
     public function organization_costume(): BelongsTo
