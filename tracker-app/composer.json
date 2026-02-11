@@ -50,12 +50,14 @@
         "pint:format": [
             "pint app/helpers.php",
             "pint app/Bus",
-            "pint app/Http/Controllers",
-            "pint app/Http/Middleware",
-            "pint app/Http/Requests",
+            "pint app/Contracts",
+            "pint app/Enums",
+            "pint app/Facades",
+            "pint app/Http",
             "pint app/Jobs",
             "pint app/Mail",
             "pint app/Policies",
+            "pint app/Providers",
             "pint app/Rules"
         ],
         "stan": "phpstan analyse --memory-limit=1G",

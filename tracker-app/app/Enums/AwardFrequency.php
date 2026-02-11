@@ -37,6 +37,7 @@ enum AwardFrequency: string
      * The award is given out on an annual basis.
      */
     case ANNUALLY = 'annually';
+
     public function normalizeDate(Carbon|string $date): Carbon
     {
         $date = is_string($date) ? Carbon::parse($date) : $date;

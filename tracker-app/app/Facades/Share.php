@@ -10,33 +10,25 @@ class Share
 {
     /**
      * The url of the page to share
-     *
-     * @var string
      */
     private string $url;
 
     /**
      * The generated urls
      *
-     * @var string
+     * @var array<string, string>
      */
     private array $social_urls = [];
 
     /**
-     * Optional text for Twitter
-     * and Linkedin title
-     *
-     * @var string
+     * Optional text for Twitter and LinkedIn title
      */
     private string $title;
 
     /**
-     * Return a string with html at the end
-     * of the chain.
-     *
-     * @return string
+     * Return a string with html at the end of the chain.
      */
-    public function __toString()
+    public function __toString(): string
     {
         $html = '<div class="btn-group" role="group">';
 
@@ -44,8 +36,8 @@ class Share
         {
             $fa_icon = config("share.{$provider}.fa-icon");
 
-            $html .= '<a href="' . e($url) . '" class="btn btn-outline-secondary" target="_blank" rel="noopener noreferrer">';
-            $html .= '<i class="fa fa-brands ' . e($fa_icon) . '"></i>';
+            $html .= '<a href="'.e($url).'" class="btn btn-outline-secondary" target="_blank" rel="noopener noreferrer">';
+            $html .= '<i class="fa fa-brands '.e($fa_icon).'"></i>';
             $html .= '</a>';
         }
 
@@ -55,11 +47,13 @@ class Share
     }
 
     /**
-     * @param string $url
-     * @param string $title
+     * Set the page URL and title to share.
+     *
+     * @param  string  $url  The URL to share
+     * @param  string  $title  The title of the page
      * @return $this
      */
-    public function page($url, $title)
+    public function page(string $url, string $title): static
     {
         $this->url = $url;
         $this->title = $title;
@@ -68,13 +62,12 @@ class Share
     }
 
     /**
-     * @param string|null $title
-     * @param array $options
-     * @param string|null $prefix
-     * @param string|null $suffix
+     * Set the current page URL and optional title to share.
+     *
+     * @param  string|null  $title  Optional title for the current page
      * @return $this
      */
-    public function currentPage($title = null)
+    public function currentPage(?string $title = null): static
     {
         $url = request()->getUri();
 
@@ -82,13 +75,13 @@ class Share
     }
 
     /**
-     * Facebook share link
+     * Add Facebook share link.
      *
      * @return $this
      */
-    public function facebook()
+    public function facebook(): static
     {
-        $url = config('share.facebook.uri') . $this->url;
+        $url = config('share.facebook.uri').$this->url;
 
         $this->buildLink('facebook', $url);
 
@@ -96,14 +89,14 @@ class Share
     }
 
     /**
-     * Twitter share link
+     * Add Twitter share link.
      *
      * @return $this
      */
-    public function twitter()
+    public function twitter(): static
     {
         $base = config('share.twitter.uri');
-        $url = $base . '?text=' . urlencode($this->title) . '&url=' . $this->url;
+        $url = $base.'?text='.urlencode($this->title).'&url='.$this->url;
 
         $this->buildLink('twitter', $url);
 
@@ -111,14 +104,14 @@ class Share
     }
 
     /**
-     * Reddit share link
+     * Add Reddit share link.
      *
      * @return $this
      */
-    public function reddit()
+    public function reddit(): static
     {
         $base = config('share.reddit.uri');
-        $url = $base . '?title=' . urlencode($this->title) . '&url=' . $this->url;
+        $url = $base.'?title='.urlencode($this->title).'&url='.$this->url;
 
         $this->buildLink('reddit', $url);
 
@@ -126,14 +119,14 @@ class Share
     }
 
     /**
-     * Telegram share link
+     * Add Telegram share link.
      *
      * @return $this
      */
-    public function telegram()
+    public function telegram(): static
     {
         $base = config('share.telegram.uri');
-        $url = $base . '?url=' . $this->url . '&text=' . urlencode($this->title);
+        $url = $base.'?url='.$this->url.'&text='.urlencode($this->title);
 
         $this->buildLink('telegram', $url);
 
@@ -141,13 +134,13 @@ class Share
     }
 
     /**
-     * Whatsapp share link
+     * Add WhatsApp share link.
      *
      * @return $this
      */
-    public function whatsapp()
+    public function whatsapp(): static
     {
-        $url = config('share.whatsapp.uri') . $this->url;
+        $url = config('share.whatsapp.uri').$this->url;
 
         $this->buildLink('whatsapp', $url);
 
@@ -155,15 +148,15 @@ class Share
     }
 
     /**
-     * Linked in share link
+     * Add LinkedIn share link.
      *
      * @return $this
      */
-    public function linkedin()
+    public function linkedin(): static
     {
         $base = config('share.linkedin.uri');
         $mini = config('share.linkedin.extra.mini');
-        $url = $base . '?mini=' . $mini . '&url=' . $this->url . '&title=' . urlencode($this->title);
+        $url = $base.'?mini='.$mini.'&url='.$this->url.'&title='.urlencode($this->title);
 
         $this->buildLink('linkedin', $url);
 
@@ -171,13 +164,13 @@ class Share
     }
 
     /**
-     * Pinterest share link
+     * Add Pinterest share link.
      *
      * @return $this
      */
-    public function pinterest()
+    public function pinterest(): static
     {
-        $url = config('share.pinterest.uri') . $this->url;
+        $url = config('share.pinterest.uri').$this->url;
 
         $this->buildLink('pinterest', $url);
 
@@ -187,9 +180,9 @@ class Share
     /**
      * Get the raw generated links.
      *
-     * @return string|array
+     * @return string|array<string, string>
      */
-    public function getRawLinks()
+    public function getRawLinks(): string|array
     {
         if (count($this->social_urls) === 1)
         {
@@ -200,14 +193,13 @@ class Share
     }
 
     /**
-     * Build a single link
+     * Build a single link.
      *
-     * @param string $provider
-     * @param string $url
+     * @param  string  $provider  The social media provider name
+     * @param  string  $url  The generated share URL
      */
-    private function buildLink($provider, $url)
+    private function buildLink(string $provider, string $url): void
     {
-
         $this->social_urls[$provider] = $url;
     }
 }
