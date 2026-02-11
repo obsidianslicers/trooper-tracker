@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Awards;
 
+use App\Enums\AwardFrequency;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Award;
 use App\Models\Organization;
@@ -12,8 +13,6 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 /**
- * Class CreateController
- *
  * Handles displaying the form to create a new award.
  */
 class CreateController extends MagicBusController
@@ -25,16 +24,14 @@ class CreateController extends MagicBusController
     }
 
     /**
-     * Handle the request to display the award creation page
+     * Handle the request to display the award creation page.
      *
-     * Authorizes the user, sets up breadcrumbs, and returns the view containing
-     * the form to create a new award. If a `copy_id` is provided, it pre-populates
-     * the form with data from an existing award. If an `organization_id` is
-     * provided, it pre-selects that organization. It ensures non-administrators
-     * can only interact with awards and organizations they are authorized to moderate.
+     * Authorizes the trooper, then prepares an Award instance. If a `copy_id` is
+     * present, it copies data from a moderated award. If an `organization_id` is
+     * present, it pre-selects that organization within moderation constraints.
      *
-     * @param  Request  $request  The incoming HTTP request object
-     * @return View The rendered award creation view
+     * @param  Request  $request  The incoming HTTP request object.
+     * @return View The rendered award creation view.
      */
     public function __invoke(Request $request): View
     {
@@ -42,7 +39,7 @@ class CreateController extends MagicBusController
 
         $trooper = $request->user();
 
-        $award = $this->getAward($request, $trooper);
+        $award = $this->createAward($request, $trooper);
 
         $this->assignOrganization($request, $award, $trooper);
 
@@ -52,22 +49,21 @@ class CreateController extends MagicBusController
     }
 
     /**
-     * Creates a new Award instance, optionally copying data from an existing award.
+     * Create a new Award instance, optionally copying data from an existing award.
      *
-     * If a 'copy_id' is present in the request, it finds the corresponding award
-     * (ensuring the user has moderation rights) and copies its properties to a new
-     * Award object.
+     * If a `copy_id` is present, it copies data from a moderated award into the
+     * new Award instance.
      *
      * @param  Request  $request  The incoming HTTP request.
      * @param  Trooper  $trooper  The authenticated trooper.
      * @return Award The new Award instance.
      */
-    private function getAward(Request $request, Trooper $trooper): Award
+    private function createAward(Request $request, Trooper $trooper): Award
     {
         $award = new Award;
 
         // Default for new awards
-        $award->frequency = \App\Enums\AwardFrequency::ONCE;
+        $award->frequency = AwardFrequency::ONCE;
 
         if ($request->has('copy_id'))
         {
@@ -75,21 +71,22 @@ class CreateController extends MagicBusController
 
             $copy = Award::moderatedBy($trooper)->findOrFail($copy_id);
 
-            $award->organization_id = $copy->organization_id;
-            $award->name = 'Copy of '.$copy->name;
-            $award->frequency = $copy->frequency;
+            if ($copy)
+            {
+                $award = $copy->replicate();
+
+                $award->name = $copy->name.' (Copy)';
+            }
         }
 
         return $award;
     }
 
     /**
-     * Assigns an organization to the award if an 'organization_id' is provided.
+     * Assign an organization to the award when `organization_id` is provided.
      *
-     * This method ensures that if the user is not an administrator, they can only
-     * assign an organization that they are authorized to moderate. It will throw
-     * a ModelNotFoundException if a moderator attempts to assign an un-moderated
-     * organization.
+     * Ensures the organization is moderated by the trooper when not an
+     * administrator, and throws if the organization cannot be found.
      *
      * @param  Request  $request  The incoming HTTP request.
      * @param  Award  $award  The award being created.

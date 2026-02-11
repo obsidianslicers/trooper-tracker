@@ -35,6 +35,8 @@ readonly class ApproveTrooperCommandHandler implements CommandHandlerInterface
             ? MembershipStatus::ACTIVE
             : MembershipStatus::DENIED;
 
+        $message->trooper->save();
+
         Mail::to($message->trooper->email)->queue(new TrooperApproved($message->trooper));
 
         return null;

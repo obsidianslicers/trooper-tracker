@@ -58,6 +58,7 @@ class AuthorityRequest extends FormRequest
     {
         $rules = [
             Trooper::MEMBERSHIP_ROLE => ['nullable', 'string', 'max:16', 'in:'.MembershipRole::toValidator()],
+            'organizations' => ['array'],
             'organizations.*.'.TrooperAssignment::IS_MODERATOR => ['boolean'],
         ];
 

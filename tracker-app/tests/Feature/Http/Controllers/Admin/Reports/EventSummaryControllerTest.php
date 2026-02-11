@@ -60,15 +60,21 @@ class EventSummaryControllerTest extends TestCase
     {
         $administrator = Trooper::factory()->asAdministrator()->create();
         $other_moderator = Trooper::factory()->asModerator()->create();
+        $event_start = now()->subDays(7);
+        $event_end = now()->subDays(6);
 
         // Create events moderated by different people
         Event::factory()->create([
             Event::STATUS => EventStatus::CLOSED,
             Event::CREATED_ID => $other_moderator->id,
+            Event::EVENT_START => $event_start,
+            Event::EVENT_END => $event_end,
         ]);
         Event::factory()->create([
             Event::STATUS => EventStatus::CLOSED,
             Event::CREATED_ID => $other_moderator->id,
+            Event::EVENT_START => $event_start,
+            Event::EVENT_END => $event_end,
         ]);
 
         $response = $this->actingAs($administrator)->get(route('admin.reports.event-summary'));
@@ -106,21 +112,29 @@ class EventSummaryControllerTest extends TestCase
     public function test_invoke_only_includes_closed_events(): void
     {
         $administrator = Trooper::factory()->asAdministrator()->create();
+        $event_start = now()->subDays(7);
+        $event_end = now()->subDays(6);
 
         // Create events with different statuses
         Event::factory()->create([
             Event::STATUS => EventStatus::CLOSED,
             Event::CREATED_ID => $administrator->id,
+            Event::EVENT_START => $event_start,
+            Event::EVENT_END => $event_end,
         ]);
 
         Event::factory()->create([
             Event::STATUS => EventStatus::OPEN,
             Event::CREATED_ID => $administrator->id,
+            Event::EVENT_START => $event_start,
+            Event::EVENT_END => $event_end,
         ]);
 
         Event::factory()->create([
             Event::STATUS => EventStatus::CANCELLED,
             Event::CREATED_ID => $administrator->id,
+            Event::EVENT_START => $event_start,
+            Event::EVENT_END => $event_end,
         ]);
 
         $response = $this->actingAs($administrator)->get(route('admin.reports.event-summary'));

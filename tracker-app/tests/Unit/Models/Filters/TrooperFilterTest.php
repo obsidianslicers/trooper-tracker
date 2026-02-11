@@ -31,8 +31,8 @@ class TrooperFilterTest extends TestCase
 
     public function test_it_can_filter_by_search_term(): void
     {
-        $trooper_to_find = Trooper::factory()->create(['name' => 'John Doe']);
-        Trooper::factory()->create(['name' => 'Jane Smith']);
+        $trooper_to_find = Trooper::factory()->create(['display_name' => 'John Doe']);
+        Trooper::factory()->create(['display_name' => 'Jane Smith']);
 
         $request = new Request(['search_term' => 'John']);
         $subject = new TrooperFilter($request);
@@ -45,8 +45,8 @@ class TrooperFilterTest extends TestCase
 
     public function test_it_ignores_search_term_if_too_short(): void
     {
-        Trooper::factory()->create(['name' => 'John Doe']);
-        Trooper::factory()->create(['name' => 'Jane Smith']);
+        Trooper::factory()->create(['display_name' => 'John Doe']);
+        Trooper::factory()->create(['display_name' => 'Jane Smith']);
 
         $request = new Request(['search_term' => 'Jo']);
         $subject = new TrooperFilter($request);
@@ -61,17 +61,17 @@ class TrooperFilterTest extends TestCase
         // The trooper we expect to find
         $matching_trooper = Trooper::factory()->create([
             'membership_role' => MembershipRole::ADMINISTRATOR,
-            'name' => 'Find This Active Trooper',
+            'display_name' => 'Find This Active Trooper',
         ]);
 
         // Decoys
         Trooper::factory()->create([
             'membership_role' => MembershipRole::MEMBER,
-            'name' => 'Do Not Find This Reserve Trooper',
+            'display_name' => 'Do Not Find This Reserve Trooper',
         ]);
         Trooper::factory()->create([
             'membership_role' => MembershipRole::ADMINISTRATOR,
-            'name' => 'Another Active Trooper',
+            'display_name' => 'Another Active Trooper',
         ]);
 
         $request = new Request([

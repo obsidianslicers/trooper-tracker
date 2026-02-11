@@ -35,7 +35,8 @@ class ProfileRequestTest extends TestCase
     {
         // Arrange
         $good_data = [
-            'name' => 'John Doe',
+            'legal_name' => 'John Doe',
+            'display_name' => 'John Doe',
             'email' => 'john.doe@example.com',
             'phone' => '555-1234',
             'theme' => TrooperTheme::STORMTROOPER->value,
@@ -53,7 +54,8 @@ class ProfileRequestTest extends TestCase
     {
         // Arrange
         $good_data = [
-            'name' => 'Jane Smith',
+            'legal_name' => 'Jane Smith',
+            'display_name' => 'Jane Smith',
             'email' => 'jane@example.com',
             'theme' => TrooperTheme::SITH->value,
         ];
@@ -70,7 +72,8 @@ class ProfileRequestTest extends TestCase
     {
         // Arrange
         $bad_data = [
-            'name' => '',
+            'legal_name' => '',
+            'display_name' => '',
             'email' => 'test@example.com',
             'theme' => TrooperTheme::STORMTROOPER->value,
         ];
@@ -81,14 +84,15 @@ class ProfileRequestTest extends TestCase
 
         // Assert
         $this->assertTrue($validator->fails());
-        $this->assertTrue($validator->errors()->has('name'));
+        $this->assertTrue($validator->errors()->has('display_name'));
     }
 
     public function test_validation_fails_with_missing_email(): void
     {
         // Arrange
         $bad_data = [
-            'name' => 'Test User',
+            'legal_name' => 'Test User',
+            'display_name' => 'Test User',
             'email' => '',
             'theme' => TrooperTheme::STORMTROOPER->value,
         ];
@@ -106,7 +110,8 @@ class ProfileRequestTest extends TestCase
     {
         // Arrange
         $bad_data = [
-            'name' => 'Test User',
+            'legal_name' => 'Test User',
+            'display_name' => 'Test User',
             'email' => 'not-an-email',
             'theme' => TrooperTheme::STORMTROOPER->value,
         ];
@@ -124,7 +129,8 @@ class ProfileRequestTest extends TestCase
     {
         // Arrange
         $bad_data = [
-            'name' => 'Test User',
+            'legal_name' => 'Test User',
+            'display_name' => 'Test User',
             'email' => 'test@example.com',
             'theme' => '',
         ];
@@ -142,7 +148,8 @@ class ProfileRequestTest extends TestCase
     {
         // Arrange
         $bad_data = [
-            'name' => 'Test User',
+            'legal_name' => 'Test User',
+            'display_name' => 'Test User',
             'email' => 'test@example.com',
             'theme' => 'invalid-theme',
         ];
@@ -160,7 +167,8 @@ class ProfileRequestTest extends TestCase
     {
         // Arrange
         $bad_data = [
-            'name' => str_repeat('a', 257),
+            'legal_name' => str_repeat('a', 257),
+            'display_name' => str_repeat('a', 257),
             'email' => 'test@example.com',
             'theme' => TrooperTheme::STORMTROOPER->value,
         ];
@@ -171,14 +179,15 @@ class ProfileRequestTest extends TestCase
 
         // Assert
         $this->assertTrue($validator->fails());
-        $this->assertTrue($validator->errors()->has('name'));
+        $this->assertTrue($validator->errors()->has('display_name'));
     }
 
     public function test_validation_fails_with_email_exceeding_max_length(): void
     {
         // Arrange
         $bad_data = [
-            'name' => 'Test User',
+            'legal_name' => 'Test User',
+            'display_name' => 'Test User',
             'email' => str_repeat('a', 250) . '@test.com',
             'theme' => TrooperTheme::STORMTROOPER->value,
         ];
@@ -196,7 +205,8 @@ class ProfileRequestTest extends TestCase
     {
         // Arrange
         $bad_data = [
-            'name' => 'Test User',
+            'legal_name' => 'Test User',
+            'display_name' => 'Test User',
             'email' => 'test@example.com',
             'phone' => str_repeat('1', 17),
             'theme' => TrooperTheme::STORMTROOPER->value,
@@ -215,7 +225,8 @@ class ProfileRequestTest extends TestCase
     {
         // Arrange
         $input_data = [
-            'name' => 'Test User',
+            'legal_name' => 'Test User',
+            'display_name' => 'Test User',
             'email' => 'test@example.com',
             'phone' => '(555) 123-4567',
             'theme' => TrooperTheme::STORMTROOPER->value,
@@ -233,7 +244,8 @@ class ProfileRequestTest extends TestCase
     {
         // Arrange
         $input_data = [
-            'name' => 'Test User',
+            'legal_name' => 'Test User',
+            'display_name' => 'Test User',
             'email' => 'test@example.com',
             'theme' => TrooperTheme::STORMTROOPER->value,
         ];
@@ -250,7 +262,8 @@ class ProfileRequestTest extends TestCase
     {
         // Arrange
         $input_data = [
-            'name' => 'Test User',
+            'legal_name' => 'Test User',
+            'display_name' => 'Test User',
             'email' => 'test@example.com',
             'phone' => '',
             'theme' => TrooperTheme::STORMTROOPER->value,

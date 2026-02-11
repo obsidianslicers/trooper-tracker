@@ -24,6 +24,9 @@
             <th>
                 Organization
             </th>
+            <th class="text-end">
+                Troopers
+            </th>
             <th>
                 <x-link-button-create :url="route('admin.awards.create', ['organization_id' => $organization_id])">
                     Award
@@ -52,6 +55,9 @@
                         </a>
                     @endif
                 </td>
+                <td class="text-end">
+                    <x-number-format :value="$award->troopers_count" />
+                </td>
                 <td>
                     <x-action-menu>
                         @if(Auth::user()->is_administrator || $award->organization->trooper_assignments->count() > 0)
@@ -68,7 +74,7 @@
     </tbody>
     <tfoot>
         <tr>
-            <td colspan="4">
+            <td colspan="5">
                 {{ $awards->links() }}
             </td>
         </tr>

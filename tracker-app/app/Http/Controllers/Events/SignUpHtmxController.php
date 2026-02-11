@@ -73,7 +73,7 @@ class SignUpHtmxController extends MagicBusController
         {
             $count = $event_shift->event->getShiftCountFor($trooper);
 
-            if ($count >= $event_shift->event->shifts_allowed)
+            if ($event_shift->event->shifts_allowed !== null && $count >= $event_shift->event->shifts_allowed)
             {
                 //  handle the case where the trooper has maxed out their allowed shifts
 

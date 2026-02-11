@@ -63,6 +63,8 @@ class Organization extends BaseOrganization
         return $this->hasManyThrough(EventTrooper::class, OrganizationCostume::class);
     }
 
+
+
     /**
      * Get all event organizations associated with this organization.
      *

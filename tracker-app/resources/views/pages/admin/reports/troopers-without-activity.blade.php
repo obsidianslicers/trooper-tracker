@@ -20,7 +20,7 @@
                 <tr>
                     <td>
                         <a href="{{ route('admin.troopers.profile', $trooper) }}">
-                            {{ $trooper->name }}
+                            {{ $trooper->display_name }}
                         </a>
                     </td>
                     <td>

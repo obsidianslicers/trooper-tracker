@@ -70,7 +70,7 @@ class ExceptionOccurredTest extends TestCase
     {
         // Arrange
         $trooper = Trooper::factory()->asAdministrator()->create([
-            Trooper::NAME => 'Admin Trooper',
+            Trooper::DISPLAY_NAME => 'Admin Trooper',
             Trooper::EMAIL => 'admin@501st.com',
         ]);
         $exception = new Exception('Test exception');

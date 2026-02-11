@@ -20,7 +20,8 @@ class RegisterTrooperCommandHandlerTest extends TestCase
     {
         // Arrange
         $valid_data = [
-            'name' => 'Test Member',
+            'legal_name' => 'Test Member',
+            'display_name' => 'Test Member',
             'email' => 'member@example.com',
             'phone' => '555-1234',
             'password' => 'password123',
@@ -37,7 +38,7 @@ class RegisterTrooperCommandHandlerTest extends TestCase
         $this->assertInstanceOf(Trooper::class, $result);
         $this->assertDatabaseHas(Trooper::class, [
             Trooper::EMAIL => 'member@example.com',
-            Trooper::NAME => 'Test Member',
+            Trooper::DISPLAY_NAME => 'Test Member',
             Trooper::PHONE => '555-1234',
             Trooper::MEMBERSHIP_ROLE => MembershipRole::MEMBER,
         ]);
@@ -47,7 +48,8 @@ class RegisterTrooperCommandHandlerTest extends TestCase
     {
         // Arrange
         $valid_data = [
-            'name' => 'Test Handler',
+            'legal_name' => 'Test Handler',
+            'display_name' => 'Test Handler',
             'email' => 'handler@example.com',
             'password' => 'password123',
             'account_type' => 'handler',
@@ -70,7 +72,8 @@ class RegisterTrooperCommandHandlerTest extends TestCase
     {
         // Arrange
         $valid_data = [
-            'name' => 'Test Trooper',
+            'legal_name' => 'Test Trooper',
+            'display_name' => 'Test Trooper',
             'email' => 'test@example.com',
             'password' => 'plain-password',
             'account_type' => 'member',
@@ -91,7 +94,8 @@ class RegisterTrooperCommandHandlerTest extends TestCase
     {
         // Arrange
         $valid_data = [
-            'name' => 'Test Trooper',
+            'legal_name' => 'Test Trooper',
+            'display_name' => 'Test Trooper',
             'email' => 'test@example.com',
             'account_type' => 'member',
         ];
@@ -111,7 +115,8 @@ class RegisterTrooperCommandHandlerTest extends TestCase
     {
         // Arrange
         $valid_data = [
-            'name' => 'Test Trooper',
+            'legal_name' => 'Test Trooper',
+            'display_name' => 'Test Trooper',
             'email' => 'test@example.com',
             'password' => 'password123',
             'account_type' => 'member',
@@ -131,7 +136,8 @@ class RegisterTrooperCommandHandlerTest extends TestCase
     {
         // Arrange
         $valid_data = [
-            'name' => 'Test Trooper',
+            'legal_name' => 'Test Trooper',
+            'display_name' => 'Test Trooper',
             'email' => 'test@example.com',
             'password' => 'password123',
             'account_type' => 'member',
@@ -152,7 +158,8 @@ class RegisterTrooperCommandHandlerTest extends TestCase
     {
         // Arrange
         $valid_data = [
-            'name' => 'Test Trooper',
+            'legal_name' => 'Test Trooper',
+            'display_name' => 'Test Trooper',
             'email' => 'test@example.com',
             'password' => 'password123',
             'account_type' => 'member',
@@ -167,7 +174,7 @@ class RegisterTrooperCommandHandlerTest extends TestCase
         // Assert
         $this->assertInstanceOf(Trooper::class, $result);
         $this->assertTrue($result->exists);
-        $this->assertEquals('Test Trooper', $result->name);
+        $this->assertEquals('Test Trooper', $result->display_name);
         $this->assertEquals('test@example.com', $result->email);
     }
 }

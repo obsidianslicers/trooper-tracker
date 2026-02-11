@@ -18,7 +18,7 @@
     {{-- if they are a normal user and already signed up - they can sign up a friend --}}
     {{-- or they are a moderator - they can sign up a friend --}}
     <button class="btn btn-sm btn-outline-info"
-            hx-get="{{ route('pickers.trooper', ['property' => 'add-shift-trooper-' . $event_shift->id]) }}"
+            hx-get="{{ route('pickers.trooper', ['property' => 'add-shift-trooper-' . $event_shift->id, 'event' => 'trooper:selected']) }}"
             hx-target="#modal-picker .modal-body"
             hx-trigger="click"
             data-bs-toggle="modal"

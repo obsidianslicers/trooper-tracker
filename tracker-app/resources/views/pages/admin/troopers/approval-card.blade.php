@@ -1,10 +1,14 @@
 <div id="trooper-approval-{{ $trooper->id }}"
      class="card h-100 shadow-sm">
     <div class="card-header text-uppercase">
-        {{ $trooper->name }}
+        {{ $trooper->display_name }}
     </div>
     <div class="card-body">
         <dl class="row mb-0">
+            <dt class="col-4">Legal Name:</dt>
+            <dd class="col-8">{{ $trooper->legal_name }}</dd>
+            <dt class="col-4">Display Name:</dt>
+            <dd class="col-8">{{ $trooper->display_name }}</dd>
             <dt class="col-4">Email:</dt>
             <dd class="col-8">{{ $trooper->email }}</dd>
             <dt class="col-4">Phone:</dt>

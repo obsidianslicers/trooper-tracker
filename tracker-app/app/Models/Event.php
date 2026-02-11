@@ -156,6 +156,16 @@ class Event extends BaseEvent
     }
 
     /**
+     * Check if the event is closed (completed or cancelled).
+     *
+     * @return bool
+     */
+    public function getCanUpdateTrooperStatusAttribute(): bool
+    {
+        return $this->is_active || $this->event_end->isAfter(now()->subDays(30));
+    }
+
+    /**
      * Check if the event is at risk (starts within 5 days but has no troopers signed up).
      *
      * @return bool

@@ -65,7 +65,7 @@ class ListController extends MagicBusController
     {
         $trooper = $request->user();
 
-        $q = Trooper::moderatedBy($trooper)->orderBy(Trooper::NAME);
+        $q = Trooper::moderatedBy($trooper)->orderBy(Trooper::DISPLAY_NAME);
 
         $q = $q->filterWith($filter);
 

@@ -31,6 +31,18 @@
 
                 <x-input-container>
                     <x-label>
+                        Legal Name:
+                    </x-label>
+                    <x-input-text :property="'legal_name'"
+                                  :value="$trooper->legal_name" />
+                    <x-input-help>
+                        Used for official records and communications with event staff. This will not be
+                        shared publicly, but should be your real name for safety and accountability reasons.
+                    </x-input-help>
+                </x-input-container>
+
+                <x-input-container>
+                    <x-label>
                         Notification Frequency:
                     </x-label>
                     <x-input-select :property="'notification_frequency'"

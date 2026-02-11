@@ -28,8 +28,12 @@ class TrooperFactory extends BaseTrooperFactory
      */
     public function definition(): array
     {
+        $name = $this->faker->firstName() . ' ' . $this->faker->lastName();
+
         return array_merge(parent::definition(), [
             Trooper::EMAIL => $this->faker->safeEmail(),
+            Trooper::DISPLAY_NAME => $name,
+            Trooper::LEGAL_NAME => $name,
             Trooper::NOTIFICATION_FREQUENCY => NotificationFrequency::INSTANT,
             Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
             Trooper::MEMBERSHIP_ROLE => MembershipRole::MEMBER,

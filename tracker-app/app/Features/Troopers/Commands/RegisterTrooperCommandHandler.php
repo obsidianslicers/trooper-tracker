@@ -34,7 +34,8 @@ readonly class RegisterTrooperCommandHandler implements CommandHandlerInterface
     {
         $trooper = new Trooper();
 
-        $trooper->name = $message->valid_data['name'];
+        $trooper->legal_name = $message->valid_data['legal_name'];
+        $trooper->display_name = $message->valid_data['display_name'];
         $trooper->email = $message->valid_data['email'];
         $trooper->phone = $message->valid_data['phone'] ?? null;
         $trooper->password = Hash::make($message->valid_data['password'] ?? uniqid());

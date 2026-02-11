@@ -39,15 +39,27 @@ class UniqueNameRule implements ValidationRule
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        if (! empty($value))
+        if (!empty($value))
         {
             if ($this->is_updating)
             {
-                //  updating
-                $exists = $this->organization->parent->organizations()
-                    ->where(Organization::ID, '!=', $this->organization->id)
-                    ->where(Organization::NAME, $value)
-                    ->exists();
+                //  updating - check siblings
+                if ($this->organization->parent === null)
+                {
+                    // Root organization - check against other root organizations
+                    $exists = Organization::query()
+                        ->where(Organization::ID, '!=', $this->organization->id)
+                        ->whereNull('parent_id')
+                        ->where(Organization::NAME, $value)
+                        ->exists();
+                }
+                else
+                {
+                    $exists = $this->organization->parent->organizations()
+                        ->where(Organization::ID, '!=', $this->organization->id)
+                        ->where(Organization::NAME, $value)
+                        ->exists();
+                }
             }
             else
             {

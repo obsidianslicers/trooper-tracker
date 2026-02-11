@@ -32,7 +32,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * Class Trooper
  * 
  * @property int $id
- * @property string $name
+ * @property string|null $legal_name
+ * @property string|null $display_name
  * @property string|null $phone
  * @property string $email
  * @property Carbon|null $email_verified_at
@@ -68,7 +69,8 @@ class Trooper extends Model
 {
     use SoftDeletes;
     const ID = 'id';
-    const NAME = 'name';
+    const LEGAL_NAME = 'legal_name';
+    const DISPLAY_NAME = 'display_name';
     const PHONE = 'phone';
     const EMAIL = 'email';
     const EMAIL_VERIFIED_AT = 'email_verified_at';
@@ -102,7 +104,8 @@ class Trooper extends Model
     ];
 
     protected $fillable = [
-        self::NAME,
+        self::LEGAL_NAME,
+        self::DISPLAY_NAME,
         self::PHONE,
         self::EMAIL,
         self::EMAIL_VERIFIED_AT,

@@ -54,7 +54,7 @@
                         @forelse($event_shift->event_troopers as $event_trooper)
                             <tr>
                                 <td class="ps-4">
-                                    {{ $event_trooper->trooper->name }}
+                                    {{ $event_trooper->trooper->display_name }}
                                 </td>
                                 <td>
                                     {{ $event_trooper->organization_costume->name ?? 'N/A' }}
@@ -83,7 +83,7 @@
                 </x-table>
 
                 <x-submit-container>
-                    @if($event->is_active)
+                    @if(Auth::user()->is_administrator || $event->can_update_trooper_status)
                         <x-submit-button>Update</x-submit-button>
                     @endif
                     <x-link-button-cancel :url="route('admin.events.troopers', compact('event'))" />

@@ -38,7 +38,7 @@ readonly class GetTroopersByRoleQueryHandler implements QueryHandlerInterface
     {
         return Trooper::active()
             ->where(Trooper::MEMBERSHIP_ROLE, $message->membership_role)
-            ->orderBy(Trooper::NAME)
+            ->orderBy(Trooper::DISPLAY_NAME)
             ->get();
     }
 }
