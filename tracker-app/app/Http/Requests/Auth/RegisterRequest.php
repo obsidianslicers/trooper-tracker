@@ -51,7 +51,8 @@ class RegisterRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'name' => ['required', 'string', 'max:255'],
+            'legal_name' => ['required', 'string', 'max:255'],
+            'display_name' => ['required', 'string', 'max:255'],
             'email' => [
                 'required',
                 'string',
@@ -59,7 +60,7 @@ class RegisterRequest extends FormRequest
                 'max:256',
                 Rule::unique(Trooper::class, Trooper::EMAIL),
             ],
-            'phone' => ['nullable', 'string', 'max:10'],
+            'phone' => ['nullable', 'string', 'max:16'],
             'account_type' => ['required', 'in:member,handler'],
         ];
 

@@ -32,8 +32,9 @@ class AuthoritySubmitController extends MagicBusController
     public function __invoke(AuthorityRequest $request, Trooper $trooper): RedirectResponse
     {
         $membership_role = $request->validated('membership_role');
+        $organizations = $request->validated('organizations', []);
 
-        $authority_cmd = new UpdateTrooperAuthorityCommand($trooper, $membership_role, $request->validated('organizations'));
+        $authority_cmd = new UpdateTrooperAuthorityCommand($trooper, $membership_role, $organizations);
 
         $this->bus->send($authority_cmd);
 

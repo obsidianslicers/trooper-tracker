@@ -26,10 +26,10 @@ class UpdateTrooperCommandHandlerTest extends TestCase
     {
         // Arrange
         $trooper = Trooper::factory()->asActive()->create([
-            Trooper::NAME => 'Old Name',
+            Trooper::DISPLAY_NAME => 'Old Name',
         ]);
 
-        $valid_data = [Trooper::NAME => 'New Name'];
+        $valid_data = [Trooper::DISPLAY_NAME => 'New Name'];
         $command = new UpdateTrooperCommand($trooper, $valid_data);
         $subject = new UpdateTrooperCommandHandler();
 
@@ -38,7 +38,7 @@ class UpdateTrooperCommandHandlerTest extends TestCase
 
         // Assert
         $trooper->refresh();
-        $this->assertEquals('New Name', $trooper->name);
+        $this->assertEquals('New Name', $trooper->display_name);
     }
 
     public function test_invoke_sets_setup_completed_at_when_complete_setup_is_true(): void
@@ -48,7 +48,7 @@ class UpdateTrooperCommandHandlerTest extends TestCase
             Trooper::SETUP_COMPLETED_AT => null,
         ]);
 
-        $valid_data = [Trooper::NAME => 'Test Name'];
+        $valid_data = [Trooper::DISPLAY_NAME => 'Test Name'];
         $command = new UpdateTrooperCommand($trooper, $valid_data, true);
         $subject = new UpdateTrooperCommandHandler();
 
@@ -67,7 +67,7 @@ class UpdateTrooperCommandHandlerTest extends TestCase
             Trooper::SETUP_COMPLETED_AT => null,
         ]);
 
-        $valid_data = [Trooper::NAME => 'Test Name'];
+        $valid_data = [Trooper::DISPLAY_NAME => 'Test Name'];
         $command = new UpdateTrooperCommand($trooper, $valid_data, false);
         $subject = new UpdateTrooperCommandHandler();
 

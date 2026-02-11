@@ -43,7 +43,7 @@ class CreateController extends MagicBusController
 
         $trooper = $request->user();
 
-        $notice = $this->getNotice($request, $trooper);
+        $notice = $this->createNotice($request, $trooper);
 
         $this->assignOrganization($request, $notice, $trooper);
 
@@ -65,7 +65,7 @@ class CreateController extends MagicBusController
      * @param  Trooper  $trooper  The authenticated trooper.
      * @return Notice The new Notice instance.
      */
-    private function getNotice(Request $request, Trooper $trooper): Notice
+    private function createNotice(Request $request, Trooper $trooper): Notice
     {
         $notice = new Notice;
         $notice->type = NoticeType::INFO;
@@ -76,12 +76,12 @@ class CreateController extends MagicBusController
 
             $copy = Notice::moderatedBy($trooper)->findOrFail($copy_id);
 
-            $notice->organization_id = $copy->organization_id;
-            $notice->type = $copy->type;
-            $notice->title = 'Copy of '.$copy->title;
-            $notice->starts_at = $copy->starts_at;
-            $notice->ends_at = $copy->ends_at;
-            $notice->message = $copy->message;
+            if ($copy)
+            {
+                $notice = $copy->replicate();
+
+                $notice->title = $copy->title.' (Copy)';
+            }
         }
 
         return $notice;

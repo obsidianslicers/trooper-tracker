@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Models;
 
 use App\Enums\EventStatus;
@@ -122,6 +124,63 @@ class EventTest extends TestCase
 
         // Act & Assert
         $this->assertFalse($event->is_active);
+    }
+
+    public function test_can_update_trooper_status_returns_true_for_active_events(): void
+    {
+        // Arrange
+        Carbon::setTestNow('2026-10-01 12:00:00');
+        $event = Event::factory()->make([
+            'status' => EventStatus::OPEN,
+            'event_end' => Carbon::now()->subDays(90),
+        ]);
+
+        // Act
+        $can_update = $event->can_update_trooper_status;
+
+        // Assert
+        $this->assertTrue($can_update);
+
+        // Cleanup
+        Carbon::setTestNow();
+    }
+
+    public function test_can_update_trooper_status_returns_true_within_30_days_after_event_end(): void
+    {
+        // Arrange
+        Carbon::setTestNow('2026-10-01 12:00:00');
+        $event = Event::factory()->make([
+            'status' => EventStatus::CLOSED,
+            'event_end' => Carbon::now()->subDays(10),
+        ]);
+
+        // Act
+        $can_update = $event->can_update_trooper_status;
+
+        // Assert
+        $this->assertTrue($can_update);
+
+        // Cleanup
+        Carbon::setTestNow();
+    }
+
+    public function test_can_update_trooper_status_returns_false_after_30_days_for_inactive_events(): void
+    {
+        // Arrange
+        Carbon::setTestNow('2026-10-01 12:00:00');
+        $event = Event::factory()->make([
+            'status' => EventStatus::CLOSED,
+            'event_end' => Carbon::now()->subDays(31),
+        ]);
+
+        // Act
+        $can_update = $event->can_update_trooper_status;
+
+        // Assert
+        $this->assertFalse($can_update);
+
+        // Cleanup
+        Carbon::setTestNow();
     }
 
     public function test_at_risk_attribute_returns_true_when_event_starts_soon_with_no_troopers(): void

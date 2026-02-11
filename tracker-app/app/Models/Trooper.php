@@ -63,7 +63,7 @@ class Trooper extends BaseTrooper implements
      */
     public function getAuditLabel(): string
     {
-        return $this->name.' ('.$this->email.')';
+        return $this->display_name . ' (' . $this->email . ')';
     }
 
     /**

@@ -15,14 +15,13 @@
                 {{ $event_trooper->event_shift->time_display }}
             </span>
         </h4>
-        @if($event_trooper->attended)
+        @if($event_trooper->event_shift->event->can_update_trooper_status)
             <p>
-                Excellent work trooper! Imperial records now reflect your heroic presence
-                and ... yes, we double-checked the sensors this time.
+                {{ $message }}
             </p>
         @else
             <p>
-                The dark side sensed your effort ... if not your presence.
+                The event has been closed for some time now, please contact your Imperial Records Officer.
             </p>
         @endif
     </div>

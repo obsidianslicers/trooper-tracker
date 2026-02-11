@@ -16,10 +16,18 @@
 
                 <x-input-container>
                     <x-label>
+                        Legal Name:
+                    </x-label>
+                    <x-input-text :property="'legal_name'"
+                                  :value="$trooper->legal_name" />
+                </x-input-container>
+
+                <x-input-container>
+                    <x-label>
                         Display Name:
                     </x-label>
-                    <x-input-text :property="'name'"
-                                  :value="$trooper->name" />
+                    <x-input-text :property="'display_name'"
+                                  :value="$trooper->display_name" />
                 </x-input-container>
 
                 <x-input-container>

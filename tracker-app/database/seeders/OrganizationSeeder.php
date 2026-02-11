@@ -48,6 +48,7 @@ class OrganizationSeeder extends Seeder
                 'name' => 'Rebel Legion',
                 'description' => 'Rebel-aligned Star Wars costuming group.',
                 'identifier_display' => 'Forum Username',
+                'sync_sheet_id' => '1I3FuS_uPg2nuC80PEA6tKYaVBd1Qh1allTOdVz3M6x0',
                 'identifier_validation' => 'string|max:64',
                 'service_class' => RebelLegionService::class
             ],

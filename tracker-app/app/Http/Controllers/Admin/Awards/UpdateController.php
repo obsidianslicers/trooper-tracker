@@ -10,9 +10,10 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 /**
- * Class UpdateController
- *
  * Handles displaying the form to update an existing award.
+ *
+ * Displays the award update form allowing administrators and moderators to
+ * modify the award's properties (name, frequency, organization).
  */
 class UpdateController extends MagicBusController
 {

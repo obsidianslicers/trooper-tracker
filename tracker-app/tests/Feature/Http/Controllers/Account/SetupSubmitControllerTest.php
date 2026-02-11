@@ -38,8 +38,9 @@ class SetupSubmitControllerTest extends TestCase
         ]);
 
         $data = [
-            'email' => 'new@gmail.com',
-            'notification_frequency' => NotificationFrequency::INSTANT->value,
+            Trooper::LEGAL_NAME => 'Updated Trooper',
+            Trooper::EMAIL => 'new@gmail.com',
+            Trooper::NOTIFICATION_FREQUENCY => NotificationFrequency::INSTANT->value,
             'organizations' => [],
         ];
 
@@ -51,6 +52,7 @@ class SetupSubmitControllerTest extends TestCase
         $response->assertRedirect(route('account.costumes'));
 
         $trooper->refresh();
+        $this->assertEquals('Updated Trooper', $trooper->legal_name);
         $this->assertEquals('new@gmail.com', $trooper->email);
         $this->assertEquals(NotificationFrequency::INSTANT, $trooper->notification_frequency);
         $this->assertNotNull($trooper->setup_completed_at);
@@ -63,8 +65,9 @@ class SetupSubmitControllerTest extends TestCase
         $organization = Organization::factory()->create();
 
         $data = [
-            'email' => 'test@gmail.com',
-            'notification_frequency' => NotificationFrequency::DAILY->value,
+            Trooper::LEGAL_NAME => 'Test Trooper',
+            Trooper::EMAIL => 'test@gmail.com',
+            Trooper::NOTIFICATION_FREQUENCY => NotificationFrequency::DAILY->value,
             'organizations' => [
                 $organization->id => [
                     'assignment' => $organization->id,
@@ -94,8 +97,9 @@ class SetupSubmitControllerTest extends TestCase
         $org2 = Organization::factory()->create();
 
         $data = [
-            'email' => 'test@gmail.com',
-            'notification_frequency' => NotificationFrequency::DAILY->value,
+            Trooper::LEGAL_NAME => 'Test Trooper',
+            Trooper::EMAIL => 'test@gmail.com',
+            Trooper::NOTIFICATION_FREQUENCY => NotificationFrequency::DAILY->value,
             'organizations' => [
                 $org1->id => [
                     'assignment' => $org1->id,
@@ -132,8 +136,9 @@ class SetupSubmitControllerTest extends TestCase
         $trooper = Trooper::factory()->create();
 
         $data = [
-            'email' => 'test@gmail.com',
-            'notification_frequency' => NotificationFrequency::DAILY->value,
+            Trooper::LEGAL_NAME => 'Test Trooper',
+            Trooper::EMAIL => 'test@gmail.com',
+            Trooper::NOTIFICATION_FREQUENCY => NotificationFrequency::DAILY->value,
             'organizations' => [],
         ];
 
@@ -151,7 +156,8 @@ class SetupSubmitControllerTest extends TestCase
         $trooper = Trooper::factory()->create();
 
         $data = [
-            'notification_frequency' => NotificationFrequency::DAILY->value,
+            Trooper::LEGAL_NAME => 'Test Trooper',
+            Trooper::NOTIFICATION_FREQUENCY => NotificationFrequency::DAILY->value,
             'organizations' => [],
         ];
 
@@ -169,7 +175,8 @@ class SetupSubmitControllerTest extends TestCase
         $trooper = Trooper::factory()->create();
 
         $data = [
-            'email' => 'test@gmail.com',
+            Trooper::LEGAL_NAME => 'Test Trooper',
+            Trooper::EMAIL => 'test@gmail.com',
             'organizations' => [],
         ];
 
@@ -187,8 +194,9 @@ class SetupSubmitControllerTest extends TestCase
         $trooper = Trooper::factory()->create();
 
         $data = [
-            'email' => 'invalid-email',
-            'notification_frequency' => NotificationFrequency::DAILY->value,
+            Trooper::LEGAL_NAME => 'Test Trooper',
+            Trooper::EMAIL => 'invalid-email',
+            Trooper::NOTIFICATION_FREQUENCY => NotificationFrequency::DAILY->value,
             'organizations' => [],
         ];
 
@@ -212,8 +220,9 @@ class SetupSubmitControllerTest extends TestCase
         ]);
 
         $data = [
-            'email' => 'existing@example.com',
-            'notification_frequency' => NotificationFrequency::DAILY->value,
+            Trooper::LEGAL_NAME => 'Test Trooper',
+            Trooper::EMAIL => 'existing@example.com',
+            Trooper::NOTIFICATION_FREQUENCY => NotificationFrequency::DAILY->value,
             'organizations' => [],
         ];
 
@@ -233,8 +242,9 @@ class SetupSubmitControllerTest extends TestCase
         ]);
 
         $data = [
-            'email' => 'current@gmail.com',
-            'notification_frequency' => NotificationFrequency::DAILY->value,
+            Trooper::LEGAL_NAME => 'Test Trooper',
+            Trooper::EMAIL => 'current@gmail.com',
+            Trooper::NOTIFICATION_FREQUENCY => NotificationFrequency::DAILY->value,
             'organizations' => [],
         ];
 
@@ -253,8 +263,9 @@ class SetupSubmitControllerTest extends TestCase
         $trooper = Trooper::factory()->create();
 
         $data = [
-            'email' => 'test@gmail.com',
-            'notification_frequency' => 'invalid-frequency',
+            Trooper::LEGAL_NAME => 'Test Trooper',
+            Trooper::EMAIL => 'test@gmail.com',
+            Trooper::NOTIFICATION_FREQUENCY => 'invalid-frequency',
             'organizations' => [],
         ];
 
@@ -270,8 +281,9 @@ class SetupSubmitControllerTest extends TestCase
     {
         // Arrange
         $data = [
-            'email' => 'test@gmail.com',
-            'notification_frequency' => NotificationFrequency::DAILY->value,
+            Trooper::LEGAL_NAME => 'Test Trooper',
+            Trooper::EMAIL => 'test@gmail.com',
+            Trooper::NOTIFICATION_FREQUENCY => NotificationFrequency::DAILY->value,
             'organizations' => [],
         ];
 

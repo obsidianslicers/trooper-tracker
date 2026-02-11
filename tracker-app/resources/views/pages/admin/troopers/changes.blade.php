@@ -23,7 +23,7 @@
                     </x-label>
                     <x-input-text :property="'trooper_name'"
                                   :disabled="true"
-                                  :value="$trooper->name" />
+                                  :value="$trooper->display_name" />
                 </x-input-container>
 
                 <x-input-container>
@@ -67,7 +67,7 @@
                                     {{ $change->created_at->diffForHumans() }}
                                 </td>
                                 <td class="text-nowrap">
-                                    {{ $change->trooper->name ?? 'System' }}
+                                    {{ $change->trooper->display_name ?? 'System' }}
                                 </td>
                             </tr>
                         @endforeach

@@ -24,17 +24,20 @@ readonly class GetTroopersForPickerQueryHandler implements QueryHandlerInterface
      * Handle the query to retrieve troopers for picker components.
      *
      * Query behavior:
-     * 1. Start with active troopers ordered by name
+     * 1. Start with active troopers who have completed setup, ordered by name
      * 2. If organization_id is set: Filter to troopers belonging to that organization
-     * 3. If filter has criteria: Apply search term and role filtering
-     * 4. Always return the result collection
+     * 3. If moderated_only is set: Filter to troopers moderated by the requesting trooper
+     * 4. If filter has criteria: Apply search term and role filtering and return results
+     * 5. If no filter criteria: Return empty collection
      *
-     * @param GetTroopersForPickerQuery $message The query containing filter criteria
-     * @return \Illuminate\Support\Collection<int, Trooper> Collection of troopers
+     * @param GetTroopersForPickerQuery $message The query containing filter and scope criteria
+     * @return \Illuminate\Support\Collection<int, Trooper> Collection of filtered troopers, or empty if no filter applied
      */
     public function __invoke(object $message): mixed
     {
-        $query = Trooper::active()->orderBy(Trooper::NAME);
+        $query = Trooper::active()
+            ->whereNotNull(Trooper::SETUP_COMPLETED_AT)
+            ->orderBy(Trooper::DISPLAY_NAME);
 
         if ($message->organization_id)
         {
@@ -44,11 +47,18 @@ readonly class GetTroopersForPickerQueryHandler implements QueryHandlerInterface
             });
         }
 
+        if ($message->moderated_only)
+        {
+            $query = $query->moderatedBy($message->trooper);
+        }
+
         if ($message->filter->hasFilter())
         {
             $query = $query->filterWith($message->filter);
+
+            return $query->get();
         }
 
-        return $query->get();
+        return collect([]);
     }
 }

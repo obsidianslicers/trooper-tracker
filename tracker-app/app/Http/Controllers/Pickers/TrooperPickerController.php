@@ -43,16 +43,19 @@ class TrooperPickerController extends MagicBusController
         }
 
         $organization_id = $request->query('organization_id');
+
         if ($organization_id !== null)
         {
             $organization_id = (int) $organization_id;
         }
 
-        $query = new GetTroopersForPickerQuery($filter, $organization_id);
+        $query = new GetTroopersForPickerQuery($trooper, $filter, $request->query());
 
         $troopers = $this->bus->send($query);
 
-        $data = compact('troopers', 'property', 'search_term');
+        $event_name = $request->query('event', '');
+
+        $data = compact('troopers', 'property', 'search_term', 'organization_id', 'event_name');
 
         return view('pickers.trooper', $data);
     }

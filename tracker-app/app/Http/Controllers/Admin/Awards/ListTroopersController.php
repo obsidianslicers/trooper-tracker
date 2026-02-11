@@ -11,9 +11,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 /**
- * Class UpdateController
- *
- * Handles displaying the form to update an existing award.
+ * Handles displaying the list of troopers assigned to an award.
  */
 class ListTroopersController extends MagicBusController
 {
@@ -24,14 +22,14 @@ class ListTroopersController extends MagicBusController
     }
 
     /**
-     * Handle the request to display the award update page
+     * Handle the request to display the award trooper list page.
      *
-     * Authorizes the user, sets up breadcrumbs, and returns the view
-     * containing the form to update an existing award.
+     * Authorizes the trooper and returns the view containing the award's
+     * assigned troopers.
      *
-     * @param  Request  $request  The incoming HTTP request object
-     * @param  Award  $award  The award to be updated
-     * @return View The rendered award update view
+     * @param  Request  $request  The incoming HTTP request object.
+     * @param  Award  $award  The award being viewed.
+     * @return View The rendered award trooper list view.
      */
     public function __invoke(Request $request, Award $award): View
     {

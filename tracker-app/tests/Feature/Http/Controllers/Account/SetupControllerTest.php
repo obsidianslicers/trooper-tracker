@@ -43,7 +43,7 @@ class SetupControllerTest extends TestCase
     {
         // Arrange
         $trooper = Trooper::factory()->create([
-            Trooper::NAME => 'Test Trooper',
+            Trooper::DISPLAY_NAME => 'Test Trooper',
         ]);
 
         // Act
@@ -54,7 +54,7 @@ class SetupControllerTest extends TestCase
         $response->assertViewHas('trooper', function ($viewTrooper) use ($trooper)
         {
             return $viewTrooper->id === $trooper->id
-                && $viewTrooper->name === 'Test Trooper';
+                && $viewTrooper->display_name === 'Test Trooper';
         });
     }
 

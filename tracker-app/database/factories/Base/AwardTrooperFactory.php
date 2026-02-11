@@ -18,7 +18,7 @@ class AwardTrooperFactory extends Factory
         return [
             AwardTrooper::AWARD_ID => \App\Models\Award::factory(),
             AwardTrooper::TROOPER_ID => \App\Models\Trooper::factory(),
-            AwardTrooper::AWARD_DATE => $this->faker->dateTime(),
+            AwardTrooper::AWARD_DATE => $this->faker->date(),
         ];
     }
 }

@@ -22,7 +22,7 @@
                     </x-label>
                     <x-input-text :property="'trooper_name'"
                                   :disabled="true"
-                                  :value="$trooper->name" />
+                                  :value="$trooper->display_name" />
                 </x-input-container>
 
                 <x-input-container>

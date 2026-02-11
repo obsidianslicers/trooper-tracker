@@ -38,7 +38,8 @@ class ProfileRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            Trooper::NAME => ['required', 'string', 'max:256'],
+            Trooper::LEGAL_NAME => ['required', 'string', 'max:256'],
+            Trooper::DISPLAY_NAME => ['required', 'string', 'max:256'],
             Trooper::EMAIL => ['required', 'string', 'email', 'max:256'],
             Trooper::PHONE => ['nullable', 'string', 'max:16'],
             Trooper::THEME => ['required', 'string', 'max:16', 'in:'.TrooperTheme::toValidator()],

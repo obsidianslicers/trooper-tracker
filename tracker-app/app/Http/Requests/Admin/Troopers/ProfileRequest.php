@@ -46,7 +46,7 @@ class ProfileRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request
      *
-     * Validates the trooper's name, email, phone, and membership status.
+     * Validates the trooper's legal name, display name, email, phone, and membership status.
      * The membership status can be updated by administrators to approve or manage
      * trooper accounts.
      *
@@ -55,7 +55,8 @@ class ProfileRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            Trooper::NAME => ['required', 'string', 'max:256'],
+            Trooper::LEGAL_NAME => ['required', 'string', 'max:256'],
+            Trooper::DISPLAY_NAME => ['required', 'string', 'max:256'],
             Trooper::EMAIL => ['required', 'string', 'email', 'max:256'],
             Trooper::PHONE => ['nullable', 'string', 'max:16'],
             Trooper::MEMBERSHIP_STATUS => [

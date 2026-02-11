@@ -95,6 +95,7 @@ enum EventTrooperStatus: string
             self::PENDING => 'fa-hourglass-half',
             self::NOT_PICKED => 'fa-ban',
             self::NO_SHOW => 'fa-user-slash',
+            self::UNABLE_TO_ATTEND => 'fa-circle-xmark',
         };
     }
 
@@ -116,6 +117,7 @@ enum EventTrooperStatus: string
             self::PENDING => 'text-info',
             self::NOT_PICKED => 'text-secondary',
             self::NO_SHOW => 'text-muted',
+            self::UNABLE_TO_ATTEND => 'text-danger',
         };
     }
 
