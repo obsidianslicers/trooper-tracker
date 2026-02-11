@@ -26,13 +26,10 @@ class AppServiceProvider extends ServiceProvider
      * Register application services.
      *
      * Registers scoped bindings for services like BreadCrumbService.
-     *
-     * @return void
      */
     public function register(): void
     {
-        $this->app->scoped(BreadCrumbService::class, function ()
-        {
+        $this->app->scoped(BreadCrumbService::class, function () {
             return new BreadCrumbService;
         });
     }
@@ -47,8 +44,6 @@ class AppServiceProvider extends ServiceProvider
      * - Migration repository configuration
      * - Database blueprint macros (trooperstamps)
      * - Blade directives (@role)
-     *
-     * @return void
      */
     public function boot(): void
     {
@@ -57,16 +52,14 @@ class AppServiceProvider extends ServiceProvider
         //
         //  HTMX REQUEST MACRO
         //
-        Request::macro('isHtmx', function ()
-        {
+        Request::macro('isHtmx', function () {
             return $this->headers->has('HX-Request');
         });
 
         //
         //  SOCIALITE CUSTOM PROVIDERS
         //
-        Socialite::extend('xenforo', function ($app)
-        {
+        Socialite::extend('xenforo', function ($app) {
             $config = $app['config']['services.xenforo'];
 
             return Socialite::buildProvider(XenforoProvider::class, $config);
@@ -75,8 +68,7 @@ class AppServiceProvider extends ServiceProvider
         //
         //  MIGRATION
         //
-        $this->app->extend(MigrationRepositoryInterface::class, function ($repository, $app)
-        {
+        $this->app->extend(MigrationRepositoryInterface::class, function ($repository, $app) {
             return new DatabaseMigrationRepository(
                 $app['db'],
                 'tt_migrations'
@@ -86,8 +78,7 @@ class AppServiceProvider extends ServiceProvider
         //
         //  DATABASE MIGRATION MACRO
         //
-        Blueprint::macro('trooperstamps', function ()
-        {
+        Blueprint::macro('trooperstamps', function () {
             $this->unsignedBigInteger('created_id')->nullable();
             $this->unsignedBigInteger('updated_id')->nullable();
             $this->unsignedBigInteger('deleted_id')->nullable();
@@ -96,8 +87,7 @@ class AppServiceProvider extends ServiceProvider
         //
         //  BLADE BOOTS
         //
-        Blade::if('role', function (MembershipRole|string|array $roles): bool
-        {
+        Blade::if('role', function (MembershipRole|string|array $roles): bool {
             if (!Auth::check())
             {
                 return false;
@@ -116,8 +106,7 @@ class AppServiceProvider extends ServiceProvider
                 $roles = array_map('trim', explode(',', $roles));
             }
 
-            $normalized = collect($roles)->map(function ($role)
-            {
+            $normalized = collect($roles)->map(function ($role) {
                 if ($role instanceof MembershipRole)
                 {
                     return $role;
