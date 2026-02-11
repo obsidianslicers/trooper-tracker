@@ -23,18 +23,32 @@ use ValueError;
 class AppServiceProvider extends ServiceProvider
 {
     /**
-     * Register any application services.
+     * Register application services.
+     *
+     * Registers scoped bindings for services like BreadCrumbService.
+     *
+     * @return void
      */
     public function register(): void
     {
         $this->app->scoped(BreadCrumbService::class, function ()
         {
-            return new BreadCrumbService();
+            return new BreadCrumbService;
         });
     }
 
     /**
-     * Bootstrap any application services.
+     * Bootstrap application services.
+     *
+     * Sets up:
+     * - Bootstrap 5 pagination
+     * - HTMX request detection macro
+     * - Custom Socialite providers (XenForo)
+     * - Migration repository configuration
+     * - Database blueprint macros (trooperstamps)
+     * - Blade directives (@role)
+     *
+     * @return void
      */
     public function boot(): void
     {

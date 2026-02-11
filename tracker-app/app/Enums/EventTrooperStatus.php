@@ -58,7 +58,7 @@ enum EventTrooperStatus: string
      * Returns the statuses that a trooper can select when signing up for an event.
      * If tentative sign-ups are allowed, includes the TENTATIVE option.
      *
-     * @param bool $tentative_signups_allowed Whether tentative status is available
+     * @param  bool  $tentative_signups_allowed  Whether tentative status is available
      * @return array<string, string> Array with status values as keys and formatted names as values
      */
     public static function toSignUpArray(bool $tentative_signups_allowed): array
