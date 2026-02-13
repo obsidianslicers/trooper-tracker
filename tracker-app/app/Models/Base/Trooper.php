@@ -26,25 +26,24 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Class Trooper
  * 
  * @property int $id
- * @property string|null $legal_name
- * @property string|null $display_name
+ * @property string $name
  * @property string|null $phone
  * @property string $email
  * @property Carbon|null $email_verified_at
  * @property Carbon|null $setup_completed_at
  * @property string $password
  * @property string $theme
+ * @property Carbon|null $last_active_at
  * @property string $membership_status
  * @property string $membership_role
  * @property string $notification_frequency
- * @property Carbon|null $achievements_updated_at
- * @property Carbon|null $last_active_at
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -57,7 +56,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Collection|ModelChange[] $model_changes
  * @property Collection|Notice[] $notices
  * @property Collection|OauthLogin[] $oauth_logins
- * @property Collection|TrooperAchievement[] $trooper_achievements
+ * @property TrooperAchievement|null $trooper_achievement
  * @property Collection|TrooperAssignment[] $trooper_assignments
  * @property Collection|TrooperCostume[] $trooper_costumes
  * @property Collection|TrooperDonation[] $trooper_donations
@@ -69,19 +68,17 @@ class Trooper extends Model
 {
     use SoftDeletes;
     const ID = 'id';
-    const LEGAL_NAME = 'legal_name';
-    const DISPLAY_NAME = 'display_name';
+    const NAME = 'name';
     const PHONE = 'phone';
     const EMAIL = 'email';
     const EMAIL_VERIFIED_AT = 'email_verified_at';
     const SETUP_COMPLETED_AT = 'setup_completed_at';
     const PASSWORD = 'password';
     const THEME = 'theme';
+    const LAST_ACTIVE_AT = 'last_active_at';
     const MEMBERSHIP_STATUS = 'membership_status';
     const MEMBERSHIP_ROLE = 'membership_role';
     const NOTIFICATION_FREQUENCY = 'notification_frequency';
-    const ACHIEVEMENTS_UPDATED_AT = 'achievements_updated_at';
-    const LAST_ACTIVE_AT = 'last_active_at';
     const REMEMBER_TOKEN = 'remember_token';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
@@ -92,7 +89,6 @@ class Trooper extends Model
         self::ID => 'int',
         self::EMAIL_VERIFIED_AT => 'datetime',
         self::SETUP_COMPLETED_AT => 'datetime',
-        self::ACHIEVEMENTS_UPDATED_AT => 'datetime',
         self::LAST_ACTIVE_AT => 'datetime',
         self::CREATED_AT => 'datetime',
         self::UPDATED_AT => 'datetime'
@@ -104,19 +100,17 @@ class Trooper extends Model
     ];
 
     protected $fillable = [
-        self::LEGAL_NAME,
-        self::DISPLAY_NAME,
+        self::NAME,
         self::PHONE,
         self::EMAIL,
         self::EMAIL_VERIFIED_AT,
         self::SETUP_COMPLETED_AT,
         self::PASSWORD,
         self::THEME,
+        self::LAST_ACTIVE_AT,
         self::MEMBERSHIP_STATUS,
         self::MEMBERSHIP_ROLE,
         self::NOTIFICATION_FREQUENCY,
-        self::ACHIEVEMENTS_UPDATED_AT,
-        self::LAST_ACTIVE_AT,
         self::REMEMBER_TOKEN
     ];
 
@@ -159,9 +153,9 @@ class Trooper extends Model
         return $this->hasMany(OauthLogin::class);
     }
 
-    public function trooper_achievements(): HasMany
+    public function trooper_achievement(): HasOne
     {
-        return $this->hasMany(TrooperAchievement::class);
+        return $this->hasOne(TrooperAchievement::class);
     }
 
     public function trooper_assignments(): HasMany
@@ -182,15 +176,7 @@ class Trooper extends Model
     public function organizations(): BelongsToMany
     {
         return $this->belongsToMany(Organization::class, 'tt_trooper_organizations')
-                    ->withPivot(
-                    TrooperOrganization::ID,
-                    TrooperOrganization::IDENTIFIER,
-                    TrooperOrganization::MEMBERSHIP_STATUS,
-                    TrooperOrganization::VERIFIED_AT,
-                    TrooperOrganization::DELETED_AT,
-                    TrooperOrganization::CREATED_ID,
-                    TrooperOrganization::UPDATED_ID,
-                    TrooperOrganization::DELETED_ID)
+                    ->withPivot(TrooperOrganization::ID, TrooperOrganization::IDENTIFIER, TrooperOrganization::MEMBERSHIP_STATUS, TrooperOrganization::VERIFIED_AT, TrooperOrganization::DELETED_AT, TrooperOrganization::CREATED_ID, TrooperOrganization::UPDATED_ID, TrooperOrganization::DELETED_ID)
                     ->withTimestamps();
     }
 }

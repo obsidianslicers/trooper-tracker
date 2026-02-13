@@ -19,7 +19,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $id
  * @property int $trooper_id
  * @property int $organization_id
- * @property bool $should_notify
+ * @property bool $can_notify
  * @property bool $is_member
  * @property bool $is_moderator
  * @property Carbon|null $created_at
@@ -40,7 +40,7 @@ class TrooperAssignment extends Model
     const ID = 'id';
     const TROOPER_ID = 'trooper_id';
     const ORGANIZATION_ID = 'organization_id';
-    const SHOULD_NOTIFY = 'should_notify';
+    const CAN_NOTIFY = 'can_notify';
     const IS_MEMBER = 'is_member';
     const IS_MODERATOR = 'is_moderator';
     const CREATED_AT = 'created_at';
@@ -55,7 +55,7 @@ class TrooperAssignment extends Model
         self::ID => 'int',
         self::TROOPER_ID => 'int',
         self::ORGANIZATION_ID => 'int',
-        self::SHOULD_NOTIFY => 'bool',
+        self::CAN_NOTIFY => 'bool',
         self::IS_MEMBER => 'bool',
         self::IS_MODERATOR => 'bool',
         self::CREATED_AT => 'datetime',
@@ -68,7 +68,7 @@ class TrooperAssignment extends Model
     protected $fillable = [
         self::TROOPER_ID,
         self::ORGANIZATION_ID,
-        self::SHOULD_NOTIFY,
+        self::CAN_NOTIFY,
         self::IS_MEMBER,
         self::IS_MODERATOR
     ];

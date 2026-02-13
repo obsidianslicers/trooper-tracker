@@ -36,6 +36,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $image_path_lg
  * @property string|null $image_path_sm
  * @property string|null $service_class
+ * @property string|null $sync_sheet_id
  * @property string|null $description
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at

@@ -19,6 +19,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $id
  * @property int $trooper_id
  * @property int $costume_id
+ * @property string|null $costume_prefix
+ * @property string|null $small_image_url
+ * @property string|null $large_image_url
+ * @property string|null $bucket_off_url
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property string|null $deleted_at
@@ -53,10 +57,6 @@ class TrooperCostume extends Model
         self::ID => 'int',
         self::TROOPER_ID => 'int',
         self::COSTUME_ID => 'int',
-        self::COSTUME_PREFIX => 'string',
-        self::SMALL_IMAGE_URL => 'string',
-        self::LARGE_IMAGE_URL => 'string',
-        self::BUCKET_OFF_URL => 'string',
         self::CREATED_AT => 'datetime',
         self::UPDATED_AT => 'datetime',
         self::CREATED_ID => 'int',

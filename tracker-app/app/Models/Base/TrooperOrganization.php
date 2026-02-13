@@ -68,6 +68,7 @@ class TrooperOrganization extends Model
         self::ORGANIZATION_ID,
         self::IDENTIFIER,
         self::MEMBERSHIP_STATUS,
+        self::VERIFIED_AT
     ];
 
     public function organization(): BelongsTo
