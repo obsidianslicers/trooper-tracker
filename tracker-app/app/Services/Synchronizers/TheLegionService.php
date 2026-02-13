@@ -38,120 +38,133 @@ class TheLegionService extends BaseOrganizationService
         foreach ($links as $link)
         {
             //AR - ARC Trooper (CW) (Phase 1): Fordo
-            list($codex, $name) = explode(" - ", $link->textContent, 2);
+            list($codex, $costume_name) = explode(" - ", $link->textContent, 2);
 
-            $name = trim($name);
+            $costume_name = trim($costume_name);
 
-            $costume = $this->organization->organization_costumes()
-                ->where(OrganizationCostume::NAME, $name)
+            $org_costume = $this->organization->organization_costumes()
+                ->where(OrganizationCostume::NAME, $costume_name)
                 ->first();
 
-            if ($costume === null)
+            if ($org_costume === null)
             {
-                $costume = new OrganizationCostume();
-                $costume->organization_id = $this->organization->id;
-                $costume->name = $name;
+                $org_costume = new OrganizationCostume();
+                $org_costume->organization_id = $this->organization->id;
+                $org_costume->name = $costume_name;
             }
 
-            $costume->verified_at = now();
+            $org_costume->verified_at = now();
 
-            $costume->save();
+            $org_costume->save();
         }
         
         // Additionally, fetch per-trooper costumes via the 501st member API
         // and populate tt_trooper_costumes with per-member images and prefixes.
         $troopers = $this->organization->troopers()->get();
 
-        foreach ($troopers as $trooper) {
-            $legionId = $trooper->pivot->identifier ?? null;
-            if (empty($legionId)) {
+        foreach ($troopers as $trooper)
+        {
+            $legion_id = $trooper->pivot->identifier ?? null;
+            if (empty($legion_id))
+            {
                 continue;
             }
 
-            $url = "https://www.501st.com/memberAPI/v3/legionId/{$legionId}/costumes";
+            $url = "https://www.501st.com/memberAPI/v3/legionId/{$legion_id}/costumes";
 
-            try {
+            try
+            {
                 $json = @file_get_contents($url);
             } catch (Exception $e) {
-                Log::error('TheLegionService: error fetching costumes for legionId ' . $legionId . ' - ' . $e->getMessage());
+                Log::error('TheLegionService: error fetching costumes for legionId ' . $legion_id . ' - ' . $e->getMessage());
                 continue;
             }
 
-            if (empty($json)) {
+            if (empty($json))
+                {
                 continue;
             }
 
             $data = json_decode($json, true);
-            if (! is_array($data) || empty($data['costumes'])) {
+            if (! is_array($data) || empty($data['costumes']))
+            {
                 continue;
             }
 
-            foreach ($data['costumes'] as $c) {
-                $costumeName = $c['costumeName'] ?? null;
-                if (empty($costumeName)) {
+            foreach ($data['costumes'] as $c)
+            {
+                $costume_name = $c['costumeName'] ?? null;
+                if (empty($costume_name))
+                {
                     continue;
                 }
 
                 // Ensure OrganizationCostume exists
-                $orgCostume = $this->organization->organization_costumes()
-                    ->where('name', $costumeName)
+                $org_costume = $this->organization->organization_costumes()
+                    ->where('name', $costume_name)
                     ->first();
 
-                if ($orgCostume === null) {
-                    $orgCostume = new OrganizationCostume();
-                    $orgCostume->organization_id = $this->organization->id;
-                    $orgCostume->name = $costumeName;
+                if ($org_costume === null)
+                {
+                    $org_costume = new OrganizationCostume();
+                    $org_costume->organization_id = $this->organization->id;
+                    $org_costume->name = $costume_name;
                 }
 
-                if (Schema::hasColumn('tt_organization_costumes', 'verified_at')) {
-                    $orgCostume->verified_at = now();
+                if (Schema::hasColumn('tt_organization_costumes', 'verified_at'))
+                {
+                    $org_costume->verified_at = now();
                 }
 
-                $orgCostume->save();
+                $org_costume->save();
 
                 // Create or update TrooperCostume (link trooper -> organization costume)
-                try {
+                try
+                {
                     // find or create org costume (do not set verified_at when creating)
-                    $orgCostume = $this->organization->organization_costumes()
-                        ->where('name', $costumeName)
+                    $org_costume = $this->organization->organization_costumes()
+                        ->where('name', $costume_name)
                         ->first();
 
-                    if ($orgCostume === null) {
-                        $orgCostume = new OrganizationCostume();
-                        $orgCostume->organization_id = $this->organization->id;
-                        $orgCostume->name = $costumeName;
-                        $orgCostume->verified_at = null;
-                        $orgCostume->save();
+                    if ($org_costume === null)
+                    {
+                        $org_costume = new OrganizationCostume();
+                        $org_costume->organization_id = $this->organization->id;
+                        $org_costume->name = $costume_name;
+                        $org_costume->verified_at = null;
+                        $org_costume->save();
                     }
 
-                    // Now ensure TrooperCostume exists
-                    $trooperCostume = \App\Models\TrooperCostume::where('trooper_id', $trooper->id)
-                        ->where('costume_id', $orgCostume->id)
+                    // Now ensure trooper_costume exists
+                    $trooper_costume = \App\Models\TrooperCostume::where('trooper_id', $trooper->id)
+                        ->where('costume_id', $org_costume->id)
                         ->first();
 
-                    $tcData = [
+                    $tc_data = [
                         'trooper_id' => $trooper->id,
-                        'costume_id' => $orgCostume->id,
+                        'costume_id' => $org_costume->id,
                         'costume_prefix' => $c['prefix'] ?? null,
                         'small_image_url' => $c['thumbnail'] ?? null,
                         'large_image_url' => $c['photoURL'] ?? ($c['photo'] ?? null),
                         'bucket_off_url' => $c['bucketOffPhoto'] ?? null,
                     ];
 
-                    if ($trooperCostume === null) {
-                        \App\Models\TrooperCostume::create($tcData);
+                    if ($trooper_costume === null)
+                    {
+                        \App\Models\TrooperCostume::create($tc_data);
                     } else {
                         $changed = false;
                         foreach (['costume_prefix','small_image_url','large_image_url','bucket_off_url'] as $k) {
-                            if (($trooperCostume->{$k} ?? null) !== ($tcData[$k] ?? null)) {
-                                $trooperCostume->{$k} = $tcData[$k] ?? null;
+                            if (($trooper_costume->{$k} ?? null) !== ($tc_data[$k] ?? null))
+                            {
+                                $trooper_costume->{$k} = $tc_data[$k] ?? null;
                                 $changed = true;
                             }
                         }
-                        if ($changed) { $trooperCostume->save(); }
+                        if ($changed) { $trooper_costume->save(); }
                     }
                 } catch (Exception $e) {
-                    Log::error('TheLegionService: failed to create/update TrooperCostume for legionId ' . $legionId . ' - ' . $e->getMessage());
+                    Log::error('TheLegionService: failed to create/update TrooperCostume for legionId ' . $legion_id . ' - ' . $e->getMessage());
                 }
             }
         }
@@ -219,7 +232,12 @@ class TheLegionService extends BaseOrganizationService
     {
         $pivot = $trooper->pivot;
 
-        if (isset($member->error))
+        $member_error = $member->error ?? null;
+        $member_approved = $member->memberApproved ?? null;
+        $member_standing = $member->memberStanding ?? null;
+        $member_status = $member->memberStatus ?? null;
+
+        if (isset($member_error))
         {
             if ($pivot->membership_status == MembershipStatus::ACTIVE)
             {
@@ -232,9 +250,9 @@ class TheLegionService extends BaseOrganizationService
         {
             $status = $pivot->status;
 
-            if ($member->memberApproved == 'YES' && $member->memberStanding == 'Good')
+            if ($member_approved == 'YES' && $member_standing == 'Good')
             {
-                switch ($member->memberStatus)
+                switch ($member_status)
                 {
                     case 'Active':
                         $status = MembershipStatus::ACTIVE;
