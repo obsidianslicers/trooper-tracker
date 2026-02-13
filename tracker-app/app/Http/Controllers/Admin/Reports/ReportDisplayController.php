@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Reports;
 
+use App\Features\Reports\Queries\GetDashboardMetricsQuery;
 use App\Http\Controllers\MagicBusController;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -29,6 +30,12 @@ class ReportDisplayController extends MagicBusController
      */
     public function __invoke(Request $request): View
     {
-        return view('pages.admin.reports.display');
+        $days = (int) $request->query('days', '30');
+
+        $dashboard = $this->bus->send(new GetDashboardMetricsQuery($days));
+
+        $data = compact('dashboard', 'days');
+
+        return view('pages.admin.reports.display', $data);
     }
 }

@@ -4,8 +4,10 @@
 
 @section('content')
 
+    @include('pages.admin.reports.inc.dashboard')
+
     <x-message>
-        Report data has been filtered to align with your current moderation privileges.
+        Report data below will be filtered to align with your current moderation privileges.
         Should your clearance ever improve, additional results may become available.
         Until then, thank you for your patience.
         We admire your initiative, even if the Empire does not.
