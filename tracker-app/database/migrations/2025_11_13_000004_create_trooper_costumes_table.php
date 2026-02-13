@@ -21,6 +21,18 @@ return new class extends Migration
             $table->foreignId('costume_id')
                 ->constrained('tt_organization_costumes')
                 ->cascadeOnDelete();
+            $table->string('costume_prefix')
+                ->nullable()
+                ->after('costume_id');
+            $table->string('small_image_url')
+                ->nullable()
+                ->after('costume_prefix');
+            $table->string('large_image_url')
+                ->nullable()->after('small_image_url');
+            $table->string('bucket_off_url')
+                ->nullable()
+                ->after('large_image_url');
+
 
             $table->timestamps();
             $table->softDeletes();
