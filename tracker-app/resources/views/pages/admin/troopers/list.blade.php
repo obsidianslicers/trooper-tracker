@@ -67,7 +67,7 @@
                         @else
                             <i class="fa fa-fw fa-times text-danger pe-2"></i>
                         @endif
-                        {{ $trooper->name }}
+                        {{ $trooper->display_name }}
                         <br />
                         @if($trooper->email[0] == '^')
                             <span class="text-muted">( missing email )</span>

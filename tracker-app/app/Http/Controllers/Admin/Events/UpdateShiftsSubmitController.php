@@ -34,7 +34,7 @@ class UpdateShiftsSubmitController extends MagicBusController
     {
         $this->authorize('update', $event);
 
-        $shifts = $request->validated('shifts');
+        $shifts = $request->validated('shifts', []);
 
         foreach ($shifts as $id => $input)
         {

@@ -13,6 +13,7 @@ parameters:
         - app/Jobs
         - app/Mail
         - app/Policies
+        - app/Providers
         - app/Rules
 
     checkUninitializedProperties: true
@@ -25,5 +26,6 @@ parameters:
     ignoreErrors:
         - identifier: trait.unused
         - identifier: encapsedStringPart.nonString
+        - identifier: offsetAccess.nonOffsetAccessible
 
 

@@ -58,7 +58,7 @@ enum NoticeType: string
             'info' => 'NOW HEAR THIS!',
             'success' => 'MISSION ACCOMPLISHED!',
             'warning' => 'ATTENTION TROOPERS!',
-            'danger' => 'BATTLE STATIONS!'
+            'danger' => 'BATTLE STATIONS!',
         ];
     }
 

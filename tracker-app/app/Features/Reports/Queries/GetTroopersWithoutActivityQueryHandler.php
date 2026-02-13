@@ -44,7 +44,7 @@ readonly class GetTroopersWithoutActivityQueryHandler implements QueryHandlerInt
         return Trooper::moderatedBy($message->moderator)
             ->where(Trooper::MEMBERSHIP_STATUS, MembershipStatus::ACTIVE)
             ->whereDoesntHave('event_troopers', $filter)
-            ->orderBy(Trooper::NAME)
+            ->orderBy(Trooper::DISPLAY_NAME)
             ->get();
     }
 }

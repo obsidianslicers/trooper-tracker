@@ -23,6 +23,29 @@ Tasks:
 Apply this consistently across all files in [TARGET_PATH].
 ```
 
+## Provide Tests
+
+A test‑coverage audit ensures every class under a given path has a corresponding, meaningful test suite. It standardizes expectations for contributors, prevents silent regressions, and keeps the codebase maintainable as it grows.
+
+```
+Audit and ensure test coverage for every class in [TARGET_PATH] and all subfolders.
+
+Scope:
+- All PHP classes in [TARGET_PATH]/**
+- Include nested subfolders
+- Only create or update tests; do not modify application code
+
+Tasks:
+- Ensure each class has a corresponding test file following project naming conventions.
+- Ensure each public method has meaningful test coverage that reflects its behavior and responsibilities.
+- Add missing tests where coverage is incomplete or absent.
+- Update outdated or incorrect tests to match current class behavior.
+- Do NOT change method signatures, namespaces, imports, or business logic in the source classes.
+- Keep all changes confined to the test suite.
+
+Apply this consistently across all files in [TARGET_PATH].
+```
+
 ## Clean up Usings
 
 It instructs Copilot Chat to scan all PHP files under app/**, clean up their use statements by removing unused or duplicate imports and collapsing redundant namespace entries, and to perform the entire refactor without leaving behind any temporary or analysis files—deleting them immediately if they are created—so that only the original project files remain after the cleanup.
@@ -120,7 +143,7 @@ Do not guess table structures beyond what migrations define. Infer relationships
 Begin by analyzing all migrations and then produce the complete docs/DATABASE.md content.
 ```
 
-## Ensure all fileS use strong type checks
+## Ensure all files use strong type checks
 
 It checks every PHP file under app/** except app/Models/Base/** to ensure the first non‑comment line is declare(strict_types=1);, inserting or moving it to the top if needed while leaving all other code, comments, namespaces, and formatting untouched. Copilot should apply fixes directly, report modified files, and ensure each file begins with <?php, then the strict types declaration, followed by the namespace and use statements.
 

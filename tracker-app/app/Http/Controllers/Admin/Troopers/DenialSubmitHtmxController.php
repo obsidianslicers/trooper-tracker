@@ -52,7 +52,7 @@ class DenialSubmitHtmxController extends MagicBusController
         $data = compact('trooper');
 
         $message = json_encode([
-            'message' => "Trooper {$trooper->name} denied",
+            'message' => "Trooper {$trooper->display_name} denied",
             'type' => 'danger',
             'focus' => true,
         ]);

@@ -185,17 +185,17 @@ class GetTroopersWithoutActivityQueryHandlerTest extends TestCase
         $moderator = Trooper::factory()->create([
             Trooper::MEMBERSHIP_ROLE => MembershipRole::ADMINISTRATOR,
             Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
-            Trooper::NAME => 'Moderator Name',
+            Trooper::DISPLAY_NAME => 'Moderator Name',
         ]);
 
         $trooper1 = Trooper::factory()->create([
             Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
-            Trooper::NAME => 'Zulu Trooper',
+            Trooper::DISPLAY_NAME => 'Zulu Trooper',
         ]);
 
         $trooper2 = Trooper::factory()->create([
             Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
-            Trooper::NAME => 'Alpha Trooper',
+            Trooper::DISPLAY_NAME => 'Alpha Trooper',
         ]);
 
         $query = new GetTroopersWithoutActivityQuery($moderator, 30);
@@ -206,8 +206,8 @@ class GetTroopersWithoutActivityQueryHandlerTest extends TestCase
 
         // Assert
         $this->assertCount(3, $result); // moderator + 2 troopers
-        $this->assertEquals('Alpha Trooper', $result->first()->name);
-        $this->assertEquals('Zulu Trooper', $result->last()->name);
+        $this->assertEquals('Alpha Trooper', $result->first()->display_name);
+        $this->assertEquals('Zulu Trooper', $result->last()->display_name);
     }
 
     public function test_invoke_returns_empty_collection_when_all_active(): void

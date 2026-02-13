@@ -23,10 +23,25 @@
 
                 <x-input-container>
                     <x-label>
-                        Display Name (first &amp; last name, or use a nickname):
+                        Legal Name:
                     </x-label>
                     <x-input-text autofocus
-                                  :property="'name'" />
+                                  :property="'legal_name'" />
+                    <x-input-help>
+                        Used for official records and communications with event staff. This will not be
+                        shared publicly, but should be your real name for safety and accountability reasons.
+                    </x-input-help>
+                </x-input-container>
+
+                <x-input-container>
+                    <x-label>
+                        Display Name:
+                   </x-label>
+                    <x-input-text autofocus
+                                  :property="'display_name'" />
+                    <x-input-help>
+                        This is the name that will be shown publicly on your profile and on the dashboard.
+                    </x-input-help>
                 </x-input-container>
 
                 <x-input-container>

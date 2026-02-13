@@ -48,6 +48,7 @@ class SetupRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
+            Trooper::LEGAL_NAME => ['required', 'string', 'max:256'],
             Trooper::EMAIL => [
                 'required',
                 'string',

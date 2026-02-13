@@ -291,8 +291,8 @@ class GetTrooperEventSummaryQueryHandlerTest extends TestCase
             Trooper::MEMBERSHIP_ROLE => MembershipRole::ADMINISTRATOR,
         ]);
 
-        $trooper1 = Trooper::factory()->create([Trooper::NAME => 'Zulu Trooper']);
-        $trooper2 = Trooper::factory()->create([Trooper::NAME => 'Alpha Trooper']);
+        $trooper1 = Trooper::factory()->create([Trooper::DISPLAY_NAME => 'Zulu Trooper']);
+        $trooper2 = Trooper::factory()->create([Trooper::DISPLAY_NAME => 'Alpha Trooper']);
 
         $event = Event::factory()->create([
             Event::STATUS => EventStatus::CLOSED,

@@ -24,7 +24,7 @@ trait HasEnumHelpers
         $cases = self::cases();
 
         // Sort by case->name
-        usort($cases, fn($a, $b) => strcmp($a->name, $b->name));
+        usort($cases, fn ($a, $b) => strcmp($a->name, $b->name));
 
         $pairs = [];
 
@@ -46,7 +46,7 @@ trait HasEnumHelpers
         $cases = self::cases();
 
         // Sort by case->name
-        usort($cases, fn($a, $b) => strcmp($a->name, $b->name));
+        usort($cases, fn ($a, $b) => strcmp($a->name, $b->name));
 
         $values = [];
 

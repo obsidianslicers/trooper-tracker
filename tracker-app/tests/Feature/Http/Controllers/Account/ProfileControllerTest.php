@@ -60,7 +60,7 @@ class ProfileControllerTest extends TestCase
         // Arrange
         $trooper = Trooper::factory()->asActive()->create([
             Trooper::EMAIL => 'test@example.com',
-            Trooper::NAME => 'John',
+            Trooper::DISPLAY_NAME => 'John',
         ]);
 
         // Act
@@ -70,7 +70,7 @@ class ProfileControllerTest extends TestCase
         // Assert
         $view_trooper = $response->viewData('trooper');
         $this->assertEquals('test@example.com', $view_trooper->email);
-        $this->assertEquals('John', $view_trooper->name);
+        $this->assertEquals('John', $view_trooper->display_name);
     }
 
     public function test_invoke_requires_authentication(): void
@@ -188,7 +188,7 @@ class ProfileControllerTest extends TestCase
         // Arrange
         $trooper = Trooper::factory()->asActive()->create([
             Trooper::EMAIL => 'trooper@501st.com',
-            Trooper::NAME => 'Luke',
+            Trooper::DISPLAY_NAME => 'Luke',
             Trooper::PHONE => '555-1234',
             Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
             Trooper::MEMBERSHIP_ROLE => MembershipRole::MEMBER,
@@ -201,7 +201,7 @@ class ProfileControllerTest extends TestCase
         // Assert
         $view_trooper = $response->viewData('trooper');
         $this->assertEquals('trooper@501st.com', $view_trooper->email);
-        $this->assertEquals('Luke', $view_trooper->name);
+        $this->assertEquals('Luke', $view_trooper->display_name);
         $this->assertEquals('555-1234', $view_trooper->phone);
         $this->assertEquals(MembershipStatus::ACTIVE, $view_trooper->membership_status);
         $this->assertEquals(MembershipRole::MEMBER, $view_trooper->membership_role);

@@ -33,7 +33,7 @@ class UpdateTroopersSubmitController extends MagicBusController
     {
         $this->authorize('update', $event);
 
-        $troopers = $request->validated('troopers');
+        $troopers = $request->validated('troopers', []);
 
         $event_troopers = $event->troopers()->get();
 

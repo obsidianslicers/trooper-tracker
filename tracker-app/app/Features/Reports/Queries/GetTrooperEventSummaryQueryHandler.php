@@ -64,7 +64,7 @@ readonly class GetTrooperEventSummaryQueryHandler implements QueryHandlerInterfa
                 $q->where(Event::STATUS, EventStatus::CLOSED)
                     ->where(Event::EVENT_START, '>=', $lookback);
             })
-            ->orderBy(Trooper::NAME)
+            ->orderBy(Trooper::DISPLAY_NAME)
             ->get()->each(function (Trooper $trooper)
             {
                 // Total attended shifts

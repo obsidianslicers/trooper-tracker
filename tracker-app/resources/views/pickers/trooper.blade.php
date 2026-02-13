@@ -25,13 +25,17 @@
 </form>
 <ul id="trooper-search-results"
     class="list-group list-group-flush">
-    @foreach($troopers as $trooper)
+    @forelse($troopers as $trooper)
         <li class="list-group-item pointer"
             data-property="{{ $property }}"
             data-id="{{ $trooper->id }}"
-            data-name="{{ $trooper->name }}"
-            data-event="trooper:selected">
-            {{ $trooper->name }}
+            data-name="{{ $trooper->display_name }}"
+            data-event="{{ $event_name }}">
+            {{ $trooper->display_name }}
         </li>
-    @endforeach
+    @empty
+        <li class="list-group-item">
+            No troopers could be found.
+        </li>
+    @endforelse
 </ul>

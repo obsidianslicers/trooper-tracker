@@ -11,7 +11,7 @@
                 <span class="text-muted">
                     soft deleted
                     @isset($model->deleted_id)w
-                        by {{ $model->deleted_by->name }}
+                        by {{ $model->deleted_by->display_name }}
                     @endisset
                     {{ $model->deleted_at->diffForHumans() }}
                 </span>
@@ -19,7 +19,7 @@
                 <span class="text-muted">
                     created
                     @isset($model->created_id)
-                        by {{ $model->created_by->name }}
+                        by {{ $model->created_by->display_name }}
                     @endisset
                     {{ $model->created_at->diffForHumans() }}
                 </span>
@@ -27,7 +27,7 @@
                 <span class="text-muted">
                     updated
                     @isset($model->updated_id)
-                        by {{ $model->updated_by->name }}
+                        by {{ $model->updated_by->display_name }}
                     @endisset
                     {{ $model->updated_at->diffForHumans() }}
                 </span>

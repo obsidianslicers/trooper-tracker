@@ -2,12 +2,11 @@
 
 Event notification system for informing troopers about new events and cancellations.
 
-**Notification Types:**
+## Notification Types
+
 - **Instant**: Email sent immediately on event creation
 - **Daily**: Digest email with all events since last notification
 - **Never**: No notifications sent
-
-## How It Works
 
 ## Event Created Notifications
 
@@ -164,6 +163,66 @@ flowchart TD
 - This ensures troopers who committed to an event are always notified of cancellations
 - The notification is sent only once per event
 
+## Event Shift Completion Notifications
+
+### Workflow
+
+```mermaid
+flowchart TD
+   A[Scheduled Task Runs] --> B[tracker:close-event-shifts]
+   B --> C[Load Ended Event Shifts]
+   C --> D{For Each Shift}
+   D --> E[Set Shift Status to CLOSED]
+   E --> F[Load Event Troopers]
+   F --> G{Is Trooper Going?}
+   G -->|No| F
+   G -->|Yes| H[Queue EventShiftComplete Email]
+```
+
+### CloseEventShiftsCommand
+
+**Command:** `php artisan tracker:close-event-shifts`
+
+**Purpose:** Closes ended event shifts and notifies troopers who attended.
+
+**Implementation:** This Artisan command orchestrates the shift closing process by:
+
+1. Dispatching `GetEventShiftsToCloseQuery` to retrieve ended shifts
+2. Updating each shift's status to `CLOSED`
+3. Queueing `EventShiftComplete` emails for troopers with `GOING` status
+
+**Key Components:**
+- `CloseEventShiftsCommand` - Artisan command (orchestrator)
+- `GetEventShiftsToCloseQuery` - Retrieves shifts that have ended
+- `EventShiftComplete` - Mailable sent to attending troopers
+
+## Event Closing Command
+
+### Workflow
+
+```mermaid
+flowchart TD
+   A[Scheduled Task Runs] --> B[tracker:close-events]
+   B --> C[Load Ended Events]
+   C --> D{For Each Event}
+   D --> E[Set Event Status to CLOSED]
+```
+
+### CloseEventsCommand
+
+**Command:** `php artisan tracker:close-events`
+
+**Purpose:** Closes events whose end date has passed.
+
+**Implementation:** This Artisan command orchestrates the event closing process by:
+
+1. Dispatching `GetEventsToCloseQuery` to retrieve ended events
+2. Updating each event's status to `CLOSED`
+
+**Key Components:**
+- `CloseEventsCommand` - Artisan command (orchestrator)
+- `GetEventsToCloseQuery` - Retrieves events that have ended
+
 ## Email Templates
 
 ### InstantEventNotification
@@ -184,27 +243,9 @@ flowchart TD
 - **Data:** Cancelled event details
 - **Tracks:** Via event's `create_notifications_sent_at` timestamp
 
-## Database Schema
+## Database References
 
-### EventNotification Table
-
-Tracks which troopers have been notified about which events.
-
-| Column | Type | Description |
-|--------|------|-------------|
-| `id` | int | Primary key |
-| `event_id` | int | Foreign key to events table |
-| `trooper_id` | int | Foreign key to troopers table |
-| `processed_at` | timestamp | When notification was processed (NULL for pending daily notifications) |
-| `sent_at` | timestamp | When email was successfully sent |
-| `created_at` | timestamp | Record creation time |
-| `updated_at` | timestamp | Record update time |
-
-### Event Table (Notification Fields)
-
-| Column | Type | Description |
-|--------|------|-------------|
-| `create_notifications_sent_at` | timestamp | When creation/cancellation notifications were sent |
+See [docs/DATABASE.md](docs/DATABASE.md) for table details and column references.
 
 ## Implementation Details
 
@@ -279,13 +320,3 @@ All notification emails implement `ShouldQueue` and are processed asynchronously
 2. Check for troopers with `notification_frequency = DAILY`
 3. Confirm unprocessed `EventNotification` records exist
 4. Review command output and logs
-
-## Future Enhancements
-
-Potential improvements to the notification system:
-
-- **Weekly digest option** for less frequent notifications
-- **Organization-specific notifications** (only notify about events for trooper's organizations)
-- **Event type filters** (trooper chooses which types of events to be notified about)
-- **SMS/Push notifications** as alternatives to email
-- **Notification history** dashboard for troopers to review past notifications

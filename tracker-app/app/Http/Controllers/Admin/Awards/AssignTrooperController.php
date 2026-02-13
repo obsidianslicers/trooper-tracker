@@ -6,15 +6,17 @@ namespace App\Http\Controllers\Admin\Awards;
 
 use App\Http\Controllers\MagicBusController;
 use App\Models\Award;
+use App\Models\AwardTrooper;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 /**
- * Class AssignTroopersController
+ * Handles displaying the form to assign an award to a single trooper.
  *
- * Handles displaying the form to assign an award to troopers.
+ * Displays the single-trooper award assignment form, allowing administrators
+ * and moderators to award a specific trooper with an award on a specified date.
  */
-class AssignTroopersController extends MagicBusController
+class AssignTrooperController extends MagicBusController
 {
     protected function initialized(): void
     {
@@ -36,10 +38,12 @@ class AssignTroopersController extends MagicBusController
     {
         $this->authorize('update', $award);
 
-        $award->load('troopers');
+        $award_trooper = new AwardTrooper;
 
-        $data = compact('award');
+        $award_date = $award->frequency->normalizeDate(now());
 
-        return view('pages.admin.awards.assign-troopers', $data);
+        $data = compact('award', 'award_trooper', 'award_date');
+
+        return view('pages.admin.awards.assign-trooper', $data);
     }
 }

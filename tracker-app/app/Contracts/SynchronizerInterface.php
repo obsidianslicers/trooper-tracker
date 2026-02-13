@@ -20,8 +20,6 @@ interface SynchronizerInterface
      * Fetches costume records from the external platform and updates
      * the local database to match. This typically includes costume types,
      * approval status, and associated trooper assignments.
-     *
-     * @return void
      */
     public function syncCostumes(): void;
 
@@ -31,8 +29,6 @@ interface SynchronizerInterface
      * Performs a full synchronization of all trooper/member data from
      * the external platform. This is typically used for initial setup
      * or periodic full refreshes to ensure data consistency.
-     *
-     * @return void
      */
     public function syncAllMembers(): void;
 
@@ -43,8 +39,7 @@ interface SynchronizerInterface
      * information from the external platform using their unique identifier.
      * This is useful for on-demand updates or after specific events.
      *
-     * @param string $identifier The unique identifier for the member in the external system
-     * @return void
+     * @param  string  $identifier  The unique identifier for the member in the external system
      */
     public function syncMember(string $identifier): void;
 }

@@ -15,12 +15,10 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 /**
- * Class ListController
- *
  * Handles the display of the main awards list in the admin section.
- * This controller fetches and displays a paginated list of awards, which can be
- * filtered by scope (active, past, future) and by organization. It ensures that
- * non-administrator users can only see awards for organizations they moderate.
+ *
+ * Fetches a paginated list of awards and applies filters. Non-administrator
+ * troopers can only see awards for organizations they moderate.
  */
 class ListController extends MagicBusController
 {
@@ -30,16 +28,14 @@ class ListController extends MagicBusController
     }
 
     /**
-     * Handle the request to display the awards list page
+     * Handle the request to display the awards list page.
      *
-     * Sets up breadcrumbs and retrieves a paginated list of awards.
-     * The list is filtered to show only active awards. If an 'organization_id'
-     * is provided in the request, the list is further filtered to that organization.
-     * Non-administrator users will only see awards for organizations they moderate.
+     * Retrieves a paginated list of awards using the requested filters and
+     * includes an optional organization context for the view.
      *
-     * @param  Request  $request  The incoming HTTP request object
-     * @param  AwardFilter  $filter  The filter service for applying query constraints
-     * @return View The rendered view for the awards list
+     * @param  Request  $request  The incoming HTTP request object.
+     * @param  AwardFilter  $filter  The filter service for applying query constraints.
+     * @return View The rendered view for the awards list.
      */
     public function __invoke(Request $request, AwardFilter $filter): View
     {
@@ -47,16 +43,13 @@ class ListController extends MagicBusController
 
         $awards = $this->getAwards($request, $filter);
 
-        $data = [
-            'awards' => $awards,
-            'organization' => $organization,
-        ];
+        $data = compact('awards', 'organization');
 
         return view('pages.admin.awards.list', $data);
     }
 
     /**
-     * Retrieves the organization from the request if an 'organization_id' is provided.
+     * Retrieve the organization from the request if an `organization_id` is provided.
      *
      * @param  Request  $request  The incoming HTTP request.
      * @return Organization|null The found Organization or null if no ID is provided.
@@ -76,14 +69,13 @@ class ListController extends MagicBusController
     }
 
     /**
-     * Builds and executes the query to retrieve a paginated list of awards.
+     * Build and execute the query to retrieve a paginated list of awards.
      *
-     * The query is built based on the requested scope (active, past, future), an
-     * optional organization filter, and the user's authorization level (admin vs. moderator).
+     * Applies the award filter and limits results to awards moderated by the
+     * authenticated trooper.
      *
      * @param  Request  $request  The incoming HTTP request.
-     * @param  Trooper  $trooper  The authenticated trooper.
-     * @param  Organization|null  $organization  The organization to filter by, if any.
+     * @param  AwardFilter  $filter  The filter service for applying query constraints.
      * @return LengthAwarePaginator The paginated list of awards.
      */
     private function getAwards(Request $request, AwardFilter $filter): LengthAwarePaginator
@@ -96,6 +88,8 @@ class ListController extends MagicBusController
                     ->where(TrooperAssignment::IS_MODERATOR, true);
             },
         ]);
+
+        $q = $q->withCount('troopers');
 
         $q = $q->filterWith($filter)->moderatedBy($trooper);
 

@@ -13,12 +13,14 @@ class ShareServiceProvider extends ServiceProvider
 {
     /**
      * Register the application services.
+     *
+     * Binds the Share class to the service container and registers
+     * the ShareFacade alias.
      */
-    public function register()
+    public function register(): void
     {
-        $this->app->bind(Share::class, function ()
-        {
-            return new Share();
+        $this->app->bind(Share::class, function () {
+            return new Share;
         });
 
         AliasLoader::getInstance()->alias('Share', ShareFacade::class);
@@ -27,7 +29,5 @@ class ShareServiceProvider extends ServiceProvider
     /**
      * Bootstrap the application services.
      */
-    public function boot()
-    {
-    }
+    public function boot(): void {}
 }

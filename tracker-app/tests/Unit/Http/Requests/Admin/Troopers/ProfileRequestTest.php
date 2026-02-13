@@ -109,7 +109,8 @@ class ProfileRequestTest extends TestCase
     {
         // Arrange
         $good_data = [
-            'name' => 'John Doe',
+            'legal_name' => 'John Doe',
+            'display_name' => 'John Doe',
             'email' => 'john.doe@example.com',
             'phone' => '555-1234',
             'membership_status' => MembershipStatus::ACTIVE->value,
@@ -127,7 +128,8 @@ class ProfileRequestTest extends TestCase
     {
         // Arrange
         $good_data = [
-            'name' => 'Jane Smith',
+            'legal_name' => 'Jane Smith',
+            'display_name' => 'Jane Smith',
             'email' => 'jane@example.com',
         ];
 
@@ -139,11 +141,12 @@ class ProfileRequestTest extends TestCase
         $this->assertTrue($validator->passes());
     }
 
-    public function test_validation_fails_with_missing_name(): void
+    public function test_validation_fails_with_missing_legal_name(): void
     {
         // Arrange
         $bad_data = [
-            'name' => '',
+            'legal_name' => '',
+            'display_name' => 'Test User',
             'email' => 'test@example.com',
         ];
 
@@ -153,14 +156,15 @@ class ProfileRequestTest extends TestCase
 
         // Assert
         $this->assertTrue($validator->fails());
-        $this->assertTrue($validator->errors()->has('name'));
+        $this->assertTrue($validator->errors()->has('legal_name'));
     }
 
     public function test_validation_fails_with_missing_email(): void
     {
         // Arrange
         $bad_data = [
-            'name' => 'Test User',
+            'legal_name' => 'Test User',
+            'display_name' => 'Test User',
             'email' => '',
         ];
 
@@ -177,7 +181,8 @@ class ProfileRequestTest extends TestCase
     {
         // Arrange
         $bad_data = [
-            'name' => 'Test User',
+            'legal_name' => 'Test User',
+            'display_name' => 'Test User',
             'email' => 'not-an-email',
         ];
 
@@ -190,11 +195,12 @@ class ProfileRequestTest extends TestCase
         $this->assertTrue($validator->errors()->has('email'));
     }
 
-    public function test_validation_fails_with_name_exceeding_max_length(): void
+    public function test_validation_fails_with_legal_name_exceeding_max_length(): void
     {
         // Arrange
         $bad_data = [
-            'name' => str_repeat('a', 257),
+            'legal_name' => str_repeat('a', 257),
+            'display_name' => 'Test User',
             'email' => 'test@example.com',
         ];
 
@@ -204,14 +210,15 @@ class ProfileRequestTest extends TestCase
 
         // Assert
         $this->assertTrue($validator->fails());
-        $this->assertTrue($validator->errors()->has('name'));
+        $this->assertTrue($validator->errors()->has('legal_name'));
     }
 
     public function test_validation_fails_with_email_exceeding_max_length(): void
     {
         // Arrange
         $bad_data = [
-            'name' => 'Test User',
+            'legal_name' => 'Test User',
+            'display_name' => 'Test User',
             'email' => str_repeat('a', 250) . '@test.com',
         ];
 
@@ -228,7 +235,8 @@ class ProfileRequestTest extends TestCase
     {
         // Arrange
         $bad_data = [
-            'name' => 'Test User',
+            'legal_name' => 'Test User',
+            'display_name' => 'Test User',
             'email' => 'test@example.com',
             'phone' => str_repeat('1', 17),
         ];
@@ -246,7 +254,8 @@ class ProfileRequestTest extends TestCase
     {
         // Arrange
         $good_data = [
-            'name' => 'Test User',
+            'legal_name' => 'Test User',
+            'display_name' => 'Test User',
             'email' => 'test@example.com',
             'phone' => null,
         ];
@@ -263,7 +272,8 @@ class ProfileRequestTest extends TestCase
     {
         // Arrange
         $good_data = [
-            'name' => 'Test User',
+            'legal_name' => 'Test User',
+            'display_name' => 'Test User',
             'email' => 'test@example.com',
             'membership_status' => null,
         ];
@@ -280,7 +290,8 @@ class ProfileRequestTest extends TestCase
     {
         // Arrange
         $bad_data = [
-            'name' => 'Test User',
+            'legal_name' => 'Test User',
+            'display_name' => 'Test User',
             'email' => 'test@example.com',
             'membership_status' => 'invalid-status',
         ];
@@ -306,7 +317,8 @@ class ProfileRequestTest extends TestCase
         foreach ($statuses as $status)
         {
             $good_data = [
-                'name' => 'Test User',
+                'legal_name' => 'Test User',
+                'display_name' => 'Test User',
                 'email' => 'test@example.com',
                 'membership_status' => $status,
             ];
@@ -324,7 +336,8 @@ class ProfileRequestTest extends TestCase
     {
         // Arrange
         $input_data = [
-            'name' => 'Test User',
+            'legal_name' => 'Test User',
+            'display_name' => 'Test User',
             'email' => 'test@example.com',
             'phone' => '(555) 123-4567',
         ];
@@ -341,7 +354,8 @@ class ProfileRequestTest extends TestCase
     {
         // Arrange
         $input_data = [
-            'name' => 'Test User',
+            'legal_name' => 'Test User',
+            'display_name' => 'Test User',
             'email' => 'test@example.com',
         ];
 
@@ -357,7 +371,8 @@ class ProfileRequestTest extends TestCase
     {
         // Arrange
         $input_data = [
-            'name' => 'Test User',
+            'legal_name' => 'Test User',
+            'display_name' => 'Test User',
             'email' => 'test@example.com',
             'phone' => '',
         ];
@@ -370,11 +385,12 @@ class ProfileRequestTest extends TestCase
         $this->assertEquals('', $this->subject->input('phone'));
     }
 
-    public function test_validation_passes_with_name_at_max_length(): void
+    public function test_validation_passes_with_legal_name_at_max_length(): void
     {
         // Arrange
         $good_data = [
-            'name' => str_repeat('a', 256),
+            'legal_name' => str_repeat('a', 256),
+            'display_name' => 'Test User',
             'email' => 'test@example.com',
         ];
 
@@ -390,7 +406,8 @@ class ProfileRequestTest extends TestCase
     {
         // Arrange
         $good_data = [
-            'name' => 'Test User',
+            'legal_name' => 'Test User',
+            'display_name' => 'Test User',
             'email' => str_repeat('a', 246) . '@test.com', // 256 total
         ];
 
@@ -406,7 +423,8 @@ class ProfileRequestTest extends TestCase
     {
         // Arrange
         $good_data = [
-            'name' => 'Test User',
+            'legal_name' => 'Test User',
+            'display_name' => 'Test User',
             'email' => 'test@example.com',
             'phone' => str_repeat('1', 16),
         ];

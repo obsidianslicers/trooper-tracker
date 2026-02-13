@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Enums;
 
-/** 
+/**
  * Defines the possible statuses for an event.
  */
 enum EventStatus: string
@@ -12,7 +12,7 @@ enum EventStatus: string
     use HasEnumHelpers;
 
     /**
-     * The event is in draft mode 
+     * The event is in draft mode
      */
     case DRAFT = 'draft';
     /**

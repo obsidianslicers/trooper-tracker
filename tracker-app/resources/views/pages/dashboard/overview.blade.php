@@ -5,7 +5,7 @@
 
         <div class="col-md-8 col-lg-6 align-self-start">
             <h4 class="mb-2 text-upper">
-                {{ $trooper->name }}
+                {{ $trooper->display_name }}
             </h4>
             <x-table>
                 <tr>

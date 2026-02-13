@@ -52,7 +52,7 @@ class ApprovalSubmitHtmxController extends MagicBusController
         $data = compact('trooper');
 
         $message = json_encode([
-            'message' => "Trooper {$trooper->name} approved!",
+            'message' => "Trooper {$trooper->display_name} approved!",
             'type' => 'success',
         ]);
 

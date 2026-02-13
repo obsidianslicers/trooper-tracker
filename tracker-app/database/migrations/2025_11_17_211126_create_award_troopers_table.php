@@ -23,11 +23,14 @@ return new class extends Migration
                 ->constrained('tt_troopers')
                 ->cascadeOnDelete();
 
-            $table->dateTime('award_date');
+            $table->date('award_date');
 
             $table->timestamps();
             $table->softDeletes();
             $table->trooperstamps();
+
+            // Prevent duplicate entries
+            $table->unique(columns: ['award_id', 'trooper_id', 'award_date']);
         });
     }
 

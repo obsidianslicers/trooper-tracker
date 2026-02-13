@@ -18,7 +18,8 @@ return new class extends Migration
         {
             $table->id();
 
-            $table->string('name', 128);
+            $table->string('display_name', 128);
+            $table->string('legal_name', 128);
             $table->string('phone', 32)->nullable();
             $table->string('email', 256)->unique();
             $table->timestamp('email_verified_at')->nullable();

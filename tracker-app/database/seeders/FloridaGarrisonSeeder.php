@@ -38,7 +38,6 @@ class FloridaGarrisonSeeder extends Seeder
         $this->call(TrooperCostumeSeeder::class);
 
         $this->call(AwardSeeder::class);
-        $this->call(AwardTrooperSeeder::class);
 
         if (config('app.debug') === true)
         {
