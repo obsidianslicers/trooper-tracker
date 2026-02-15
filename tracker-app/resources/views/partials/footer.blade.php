@@ -139,7 +139,7 @@
                 <div class="col-md-6 text-md-end">
                     Logged in as:
                     <a href="{{ route('account.profile') }}">
-                        <strong>{{ Auth::user()->name }}</strong>
+                        <strong>{{ Auth::user()->display_name }}</strong>
                     </a>
                 </div>
             </div>

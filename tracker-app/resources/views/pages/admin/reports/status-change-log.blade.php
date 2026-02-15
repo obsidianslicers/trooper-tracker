@@ -35,11 +35,11 @@
                     </td>
                     <td>
                         <a href="{{ route('admin.troopers.changes', $change->trooper) }}">
-                            {{ $change->trooper->name }}
+                            {{ $change->trooper->display_name }}
                         </a>
                     </td>
                     <td>
-                        {{ $change->updated_by->name }}
+                        {{ $change->updated_by->display_name }}
                     </td>
                 </tr>
             @empty

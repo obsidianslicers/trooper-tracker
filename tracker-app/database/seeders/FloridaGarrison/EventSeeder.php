@@ -28,7 +28,7 @@ class EventSeeder extends Seeder
     private $costumes;
     private $squad_maps;
     private $trooper_status_map;
-    private $sign_ups;
+    // private $sign_ups;
     private $trooper_ids;
     private $handler_ids;
     private $organizations;
@@ -69,11 +69,11 @@ class EventSeeder extends Seeder
             EventTrooperStatus::cases(),
             fn($case) => $case !== EventTrooperStatus::NONE
         ));
-        $this->sign_ups = DB::table('event_sign_up')
-            ->join('tt_troopers', 'event_sign_up.trooperid', '=', 'tt_troopers.id')
-            ->join('tt_event_shifts', 'event_sign_up.troopid', '=', 'tt_event_shifts.id')
-            ->select('event_sign_up.*')
-            ->get();
+        // $this->sign_ups = DB::table('event_sign_up')
+        //     ->join('tt_troopers', 'event_sign_up.trooperid', '=', 'tt_troopers.id')
+        //     ->join('tt_event_shifts', 'event_sign_up.troopid', '=', 'tt_event_shifts.id')
+        //     ->select('event_sign_up.*')
+        //     ->get();
     }
 
     private function overlayOrganization($legacy, $event)
@@ -173,7 +173,15 @@ class EventSeeder extends Seeder
 
     private function overlayTroopers($legacy_id, $shift_id)
     {
-        $troopers = $this->sign_ups->filter(fn($s) => $s->troopid == $legacy_id);
+        // $troopers = $this->sign_ups->filter(fn($s) => $s->troopid == $legacy_id);
+        // Mission Correction: Fetch signups for THIS specific legacy shift 
+        // effectively bypassing the "empty table at start" issue.
+        $troopers = DB::table('event_sign_up')
+            ->join('tt_troopers', 'event_sign_up.trooperid', '=', 'tt_troopers.id')
+            ->join('tt_event_shifts', 'event_sign_up.troopid', '=', 'tt_event_shifts.id')
+            ->where('event_sign_up.troopid', $legacy_id)
+            ->select('event_sign_up.*')
+            ->get();
 
         foreach ($troopers as $sign_up)
         {
@@ -268,16 +276,14 @@ class EventSeeder extends Seeder
 
     private function getOrganization($id)
     {
+        $organizations = once(fn() => Organization::all()->keyBy('id'));
+
         if ($id <= 0)
         {
-            $organization = once(fn() => Organization::where('name', 'Florida Garrison')->first());
-        }
-        else
-        {
-            $organization = once(fn() => Organization::findOrFail($id));
+            return $organizations->filter(fn($org) => $org->name === 'Florida Garrison')->first();
         }
 
-        return $organization;
+        return $organizations[$id];
     }
 
     private function getLegacyEvents()
