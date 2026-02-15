@@ -8,7 +8,6 @@ use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
 use App\Enums\NotificationFrequency;
 use App\Models\Trooper;
-use App\Models\TrooperAchievement;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 

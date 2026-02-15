@@ -1,13 +1,13 @@
 <div class="row mb-3 trooper-status-{{ $event_trooper->status->value }}">
     <div class="col-7 col-md-4 order-1 order-md-1">
         <a href="{{ route('dashboard.display', ['trooper_id' => $event_trooper->trooper->id]) }}">
-            {{ $event_trooper->trooper->name }}
+            {{ $event_trooper->trooper->display_name }}
         </a>
         @if($event_trooper->added_by_trooper_id > 0)
             <br />
             <i class="small text-muted">
                 <i class="fa fa-fw fa-user-plus"></i>
-                {{ $event_trooper->added_by_trooper->name }}
+                {{ $event_trooper->added_by_trooper->display_name }}
             </i>
         @endif
     </div>

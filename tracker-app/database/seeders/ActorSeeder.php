@@ -24,7 +24,7 @@ class ActorSeeder extends Seeder
 
     private function admin()
     {
-        $actor = Trooper::find(501) ?? new Trooper(['id' => 501]);
+        $actor = new Trooper();
 
         $actor->display_name = 'Sith Lord';
         $actor->legal_name = 'Sith Lord';
@@ -55,7 +55,7 @@ class ActorSeeder extends Seeder
 
     private function makaze()
     {
-        $actor = Trooper::find(502) ?? new Trooper(['id' => 502]);
+        $actor = new Trooper();
 
         $actor->display_name = 'Sith Lord Junior';
         $actor->legal_name = 'Sith Lord Junior';
