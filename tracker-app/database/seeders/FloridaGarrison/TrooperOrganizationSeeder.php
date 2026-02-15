@@ -118,6 +118,16 @@ class TrooperOrganizationSeeder extends Seeder
 
     private function loadTrooperOrganization($trooper, $organization, $identifier)
     {
+        $exists = TrooperOrganization::where(TrooperOrganization::ORGANIZATION_ID, $organization->id)
+            ->where(TrooperOrganization::IDENTIFIER, $identifier)
+            ->exists();
+
+        if ($exists)
+        {
+            //  already exists, skip
+            return;
+        }
+
         $to = TrooperOrganization::where(TrooperOrganization::TROOPER_ID, $trooper->id)
             ->where(TrooperOrganization::ORGANIZATION_ID, $organization->id)
             ->first();
@@ -159,8 +169,8 @@ class TrooperOrganizationSeeder extends Seeder
 
     private function getOrganization($id)
     {
-        $organization = once(fn() => Organization::findOrFail($id));
+        $organizations = once(fn() => Organization::all()->keyBy('id'));
 
-        return $organization;
+        return $organizations[$id];
     }
 }
