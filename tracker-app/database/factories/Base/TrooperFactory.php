@@ -16,6 +16,8 @@ class TrooperFactory extends Factory
     public function definition(): array
     {
         return [
+            Trooper::DISPLAY_NAME => $this->faker->word(),
+            Trooper::LEGAL_NAME => $this->faker->word(),
             Trooper::EMAIL => $this->faker->unique()->email(),
             Trooper::PASSWORD => Hash::make(Trooper::PASSWORD),
             Trooper::THEME => $this->faker->word(),

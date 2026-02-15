@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $id
  * @property int $organization_id
  * @property string $name
+ * @property string|null $prefix
  * @property Carbon|null $verified_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -42,6 +43,7 @@ class OrganizationCostume extends Model
     const ID = 'id';
     const ORGANIZATION_ID = 'organization_id';
     const NAME = 'name';
+    const PREFIX = 'prefix';
     const VERIFIED_AT = 'verified_at';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
@@ -65,6 +67,7 @@ class OrganizationCostume extends Model
     protected $fillable = [
         self::ORGANIZATION_ID,
         self::NAME,
+        self::PREFIX,
         self::VERIFIED_AT
     ];
 
