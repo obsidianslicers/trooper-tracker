@@ -6,6 +6,7 @@ use App\Http\Controllers\Events\CalendarController;
 use App\Http\Controllers\Events\CancelledController;
 use App\Http\Controllers\Events\ClosedController;
 use App\Http\Controllers\Events\EventDisplayController;
+use App\Http\Controllers\Events\LeaderboardController;
 use App\Http\Controllers\Events\ListController;
 use App\Http\Controllers\Events\MapController;
 use App\Http\Controllers\Events\ShiftCompleteController;
@@ -21,6 +22,7 @@ Route::prefix('events')
     ->group(function ()
     {
         Route::get('/', ListController::class)->name('list');
+        Route::get('/leaderboard', LeaderboardController::class)->name('leaderboard');
         Route::get('/calendar', CalendarController::class)->name('calendar');
         Route::get('/map', MapController::class)->name('map');
         Route::get('/closed', ClosedController::class)->name('closed');

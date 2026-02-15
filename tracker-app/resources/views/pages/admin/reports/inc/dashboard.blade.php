@@ -5,14 +5,7 @@
             Operations Dashboard
         </h2>
 
-        <div class="btn-group shadow-sm">
-            @foreach([30, 60, 90, 180, 360] as $interval)
-                <a href="{{ request()->fullUrlWithQuery(['days' => $interval]) }}"
-                   class="btn btn-outline-dark text-uppercase small fw-bold {{ ($days ?? 30) == $interval ? 'active' : '' }}">
-                    {{ $interval }}D
-                </a>
-            @endforeach
-        </div>
+        <x-lookback :days="$days" />
     </div>
 
     <div class="row g-3 mb-4">
@@ -202,6 +195,7 @@
         <div class="col-lg-4">
             <div class="card border-0 shadow-sm h-100 bg-dark text-white">
                 <div class="card-body d-flex flex-column justify-content-around">
+                    {{--
                     <div class="d-flex justify-content-between align-items-center">
                         <span class="small text-uppercase opacity-75"
                               data-bs-toggle="tooltip"
@@ -219,6 +213,7 @@
                              style="width: {{ $dashboard['engagement']['notice_penetration'] }}%">
                         </div>
                     </div>
+                    --}}
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <span class="small"
                               data-bs-toggle="tooltip"
