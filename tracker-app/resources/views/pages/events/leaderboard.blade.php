@@ -58,7 +58,7 @@
         <div class="col-xl-4 col-md-12">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-header bg-dark text-white text-uppercase small fw-bold">
-                    <i class="fa-solid fa-bolt me-2"></i> Top Trooopers
+                    <i class="fa-solid fa-bolt me-2"></i> Top 5 Trooopers
                 </div>
                 <div class="card-body">
                     @foreach($leaderboard['operatives'] as $op)
