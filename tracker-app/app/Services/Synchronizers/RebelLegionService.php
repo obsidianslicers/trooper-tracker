@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services\Synchronizers;
 
-use App\Models\OrganizationCostume;
-use App\Models\Trooper;
-use App\Models\TrooperOrganization;
-use App\Models\TrooperCostume;
 use Illuminate\Support\Facades\Log;
 
 /**

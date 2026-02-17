@@ -103,6 +103,11 @@ abstract class BaseOrganizationService implements SynchronizerInterface
 
     protected function cleanInput($value): mixed
     {
+        if ($value === null)
+        {
+            return null;
+        }
+
         $value = filter_var($value, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 
         return $value;
