@@ -13,7 +13,6 @@ use Carbon\Carbon;
 use DOMDocument;
 use DOMXPath;
 use Exception;
-use stdClass;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 
@@ -57,7 +56,7 @@ class TheLegionService extends BaseOrganizationService
 
             $org_costume->save();
         }
-        
+
         // Additionally, fetch per-trooper costumes via the 501st member API
         // and populate tt_trooper_costumes with per-member images and prefixes.
         $troopers = $this->organization->troopers()->get();
@@ -75,18 +74,20 @@ class TheLegionService extends BaseOrganizationService
             try
             {
                 $json = @file_get_contents($url);
-            } catch (Exception $e) {
+            }
+            catch (Exception $e)
+            {
                 Log::error('TheLegionService: error fetching costumes for legionId ' . $legion_id . ' - ' . $e->getMessage());
                 continue;
             }
 
             if (empty($json))
-                {
+            {
                 continue;
             }
 
             $data = json_decode($json, true);
-            if (! is_array($data) || empty($data['costumes']))
+            if (!is_array($data) || empty($data['costumes']))
             {
                 continue;
             }
@@ -152,18 +153,26 @@ class TheLegionService extends BaseOrganizationService
                     if ($trooper_costume === null)
                     {
                         \App\Models\TrooperCostume::create($tc_data);
-                    } else {
+                    }
+                    else
+                    {
                         $changed = false;
-                        foreach (['costume_prefix','small_image_url','large_image_url','bucket_off_url'] as $k) {
+                        foreach (['costume_prefix', 'small_image_url', 'large_image_url', 'bucket_off_url'] as $k)
+                        {
                             if (($trooper_costume->{$k} ?? null) !== ($tc_data[$k] ?? null))
                             {
                                 $trooper_costume->{$k} = $tc_data[$k] ?? null;
                                 $changed = true;
                             }
                         }
-                        if ($changed) { $trooper_costume->save(); }
+                        if ($changed)
+                        {
+                            $trooper_costume->save();
+                        }
                     }
-                } catch (Exception $e) {
+                }
+                catch (Exception $e)
+                {
                     Log::error('TheLegionService: failed to create/update TrooperCostume for legionId ' . $legion_id . ' - ' . $e->getMessage());
                 }
             }

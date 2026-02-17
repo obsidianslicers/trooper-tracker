@@ -75,7 +75,7 @@ class OrganizationSeeder extends Seeder
                 'identifier_display' => '#',
                 'identifier_validation' => 'integer',
                 'service_class' => DroidBuildersService::class,
-                'sync_sheet_id' => null,
+                'sync_sheet_id' => '195NT1crFYL_ECVyzoaD2F1QXGW5WxlnBDfDaLVtM87Y',
             ],
             [
                 'name' => 'Saber Guild',
@@ -83,7 +83,7 @@ class OrganizationSeeder extends Seeder
                 'identifier_display' => 'SG #',
                 'identifier_validation' => 'integer',
                 'service_class' => SaberGuildServices::class,
-                'sync_sheet_id' => null,
+                'sync_sheet_id' => '1PcveycMujakkKeG2m4y8iFunrFbo2KVpQJ00GyPI3b8',
             ],
         ];
 

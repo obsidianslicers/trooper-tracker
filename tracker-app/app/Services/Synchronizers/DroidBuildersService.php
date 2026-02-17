@@ -4,28 +4,56 @@ declare(strict_types=1);
 
 namespace App\Services\Synchronizers;
 
-use App\Enums\MembershipStatus;
-use App\Models\Organization;
-use App\Models\Trooper;
-use App\Models\TrooperOrganization;
-use App\Services\GoogleService;
+use Illuminate\Support\Facades\Log;
 
 /**
- * Artisan command to calculate and store trooper achievements based on their event history.
+ * DroidBuildersService
  *
- * This command aggregates event data for each trooper, such as total troops,
+ * This service aggregates event data for each trooper, such as total troops,
  * volunteer hours, and funds raised, and then updates their corresponding
  * achievements in the database.
  */
 class DroidBuildersService extends BaseOrganizationService
 {
-    public function __construct(private readonly GoogleService $google, Organization $organization)
-    {
-        parent::__construct($organization);
-    }
-
     public function syncCostumes(): void
     {
+        $costume_rows = $this->getSheetRows();
+
+        foreach ($costume_rows as $row)
+        {
+            $forum_id = $this->cleanInput($row[0] ?? null);
+            $costume_name = $this->cleanInput($row[1] ?? null);
+            $costume_image = $this->cleanInput($row[2] ?? null);
+
+            if (empty($costume_name))
+            {
+                continue;
+            }
+
+            // Map to organization costume and trooper costume
+            $identifier = $forum_id . '';
+
+            if (empty($identifier))
+            {
+                Log::warning(__CLASS__ . " skipping trooper costume '{$costume_name}' with empty identifier for org {$this->organization->id}");
+
+                continue;
+            }
+
+            // Ensure organization costume exists (do not set verified_at)
+            $org_costume = $this->getOrganizationCostume($costume_name);
+
+            $trooper = $this->getTrooper($identifier);
+
+            if ($trooper === null)
+            {
+                Log::warning(__CLASS__ . " no trooper found for identifier '{$identifier}' for org {$this->organization->id}; skipping costume '{$costume_name}'");
+
+                continue;
+            }
+
+            $this->syncTrooperCostume($trooper, $org_costume, $costume_image);
+        }
     }
 
     public function syncAllMembers(): void
@@ -33,10 +61,6 @@ class DroidBuildersService extends BaseOrganizationService
     }
 
     public function syncMember(string $identifier): void
-    {
-    }
-
-    private function updateTrooperStatus(Trooper $trooper): void
     {
     }
 }
