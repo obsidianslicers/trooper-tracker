@@ -66,7 +66,7 @@ readonly class GetDashboardMetricsQueryHandler implements QueryHandlerInterface
             ->whereHas('event_troopers', function ($q) use ($date)
             {
                 $q->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED)
-                    ->where(EventTrooper::CREATED_AT, '>=', $date);
+                    ->where(EventTrooper::SIGNED_UP_AT, '>=', $date);
             })
             ->count();
 
@@ -74,7 +74,7 @@ readonly class GetDashboardMetricsQueryHandler implements QueryHandlerInterface
             ->whereDoesntHave('event_troopers', function ($q) use ($date)
             {
                 $q->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED)
-                    ->where(EventTrooper::CREATED_AT, '>=', $date);
+                    ->where(EventTrooper::SIGNED_UP_AT, '>=', $date);
             })
             ->count();
 

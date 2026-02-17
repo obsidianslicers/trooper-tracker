@@ -69,11 +69,6 @@ class EventSeeder extends Seeder
             EventTrooperStatus::cases(),
             fn($case) => $case !== EventTrooperStatus::NONE
         ));
-        // $this->sign_ups = DB::table('event_sign_up')
-        //     ->join('tt_troopers', 'event_sign_up.trooperid', '=', 'tt_troopers.id')
-        //     ->join('tt_event_shifts', 'event_sign_up.troopid', '=', 'tt_event_shifts.id')
-        //     ->select('event_sign_up.*')
-        //     ->get();
     }
 
     private function overlayOrganization($legacy, $event)

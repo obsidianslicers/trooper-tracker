@@ -18,13 +18,13 @@ class OrganizationCostumeSeeder extends Seeder
      */
     public function run(): void
     {
-        $club_map = collect($this->getClubMap());
+        $club_map = collect($this->getCostumeClubMap());
 
         $legacy_costumes = DB::table('costumes')->get();
 
-        foreach ($legacy_costumes as $column => $costume)
+        foreach ($legacy_costumes as $costume)
         {
-            $club = $club_map->firstWhere('legacy_id', $costume->club) ?? null;
+            $club = $club_map->firstWhere('costume_club_id', $costume->club) ?? null;
 
             if (is_null($club))
             {
