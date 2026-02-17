@@ -45,4 +45,50 @@ trait HasClubMaps
 
         return $map;
     }
+
+    protected function getCostumeClubMap(): array
+    {
+        // Hardcoded costumeClubID → organization name
+        $legacy_clubs = [
+            0 => ['name' => '501st Legion', 'column' => 'p501', 'identity' => 'tkid', 'legacy_id' => 0],
+            1 => ['name' => 'Rebel Legion', 'column' => 'pRebel', 'identity' => 'rebelforum', 'legacy_id' => 6],
+            3 => ['name' => 'Droid Builders', 'column' => 'pDroid', 'identity' => '', 'legacy_id' => 7],
+            2 => ['name' => 'Mandalorian Mercs', 'column' => 'pMando', 'identity' => 'mandoid', 'legacy_id' => 8],
+            //4 => ['name' => 'Other', 'column' => 'pOther', 'identity' => ''],
+            6 => ['name' => 'Saber Guild', 'column' => 'pSG', 'identity' => 'sgid', 'legacy_id' => 10],
+            13 => ['name' => 'Dark Empire', 'column' => 'pDE', 'identity' => 'de_id', 'legacy_id' => 13],
+        ];
+        /*
+            5  => 'Dual (501st + Rebel)',
+            7  => 'Dual-Mando (501st + Mando)',
+            8  => 'Dual-Mando (RL + Mando)',
+            9  => 'Dual-Saber (501st + SG)',
+            10 => 'Dual-Saber (RL + SG)',
+            11 => 'Triple-Dual (501st + RL + SG)',
+            12 => 'Triple-Dual (501st + RL + Mando)',
+            */
+
+        // Build final map: costumeClubID → organization_id
+        $map = [];
+
+        foreach ($legacy_clubs as $costume_club_id => $meta)
+        {
+            $organization = Organization::firstWhere(Organization::NAME, $meta['name']);
+
+            if ($organization)
+            {
+                $map[$meta['column']] = [
+                    'id' => $organization->id,
+                    'costume_club_id' => $costume_club_id,
+                    'identity' => $meta['identity'],
+                ];
+            }
+            else
+            {
+                throw new Exception("Organization not found for name: {$meta['name']}");
+            }
+        }
+
+        return $map;
+    }
 }
