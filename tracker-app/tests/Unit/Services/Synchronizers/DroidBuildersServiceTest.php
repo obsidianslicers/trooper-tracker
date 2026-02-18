@@ -63,7 +63,7 @@ class DroidBuildersServiceTest extends TestCase
 
         $org_costume = OrganizationCostume::where(OrganizationCostume::NAME, 'R2-D2')->first();
         $this->assertNotNull($org_costume);
-        $this->assertTrue($org_costume->verified_at !== null);
+        $this->assertTrue($org_costume->synchronized_at !== null);
 
         $trooper_costume = TrooperCostume::where(TrooperCostume::TROOPER_ID, $trooper->id)
             ->where(TrooperCostume::COSTUME_ID, $org_costume->id)

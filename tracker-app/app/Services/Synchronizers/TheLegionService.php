@@ -7,7 +7,6 @@ namespace App\Services\Synchronizers;
 use App\Enums\MembershipStatus;
 use App\Models\Trooper;
 use App\Models\TrooperCostume;
-use App\Models\TrooperOrganization;
 use Illuminate\Support\Facades\Http;
 use Symfony\Component\DomCrawler\Crawler;
 
@@ -17,6 +16,8 @@ class TheLegionService extends BaseOrganizationService
     {
         $this->syncCostumes();
         $this->syncTroopers();
+
+        $this->updateOrganizationSync();
     }
 
     private function syncCostumes(): void
@@ -97,7 +98,7 @@ class TheLegionService extends BaseOrganizationService
                 $trooper_costume->large_image_url = $c['photoURL'] ?? ($c['photo'] ?? null);
                 $trooper_costume->small_image_url = $c['thumbnail'] ?? null;
                 $trooper_costume->bucket_off_url = $c['bucketOffPhoto'] ?? null;
-                $trooper_costume->verified_at = now();
+                $trooper_costume->synchronized_at = now();
 
                 $trooper_costume->save();
             }

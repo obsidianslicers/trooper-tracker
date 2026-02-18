@@ -53,7 +53,7 @@ class DatabaseSeeder extends Seeder
             // Assign to Garrison via Pivot
             $trooper->organizations()->attach($garrison->id, [
                 'status' => 'active',
-                'verified_at' => now()->subMonths(6),
+                'synchronized_at' => now()->subMonths(6),
             ]);
 
             // Assign 1-2 approved costumes

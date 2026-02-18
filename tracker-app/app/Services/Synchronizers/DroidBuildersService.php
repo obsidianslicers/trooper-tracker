@@ -53,5 +53,7 @@ class DroidBuildersService extends BaseOrganizationService
 
             $this->syncTrooperCostume($trooper, $org_costume, $costume_image);
         }
+
+        $this->updateOrganizationSync();
     }
 }

@@ -55,6 +55,12 @@ abstract class BaseOrganizationService implements SynchronizerInterface
         return $rows;
     }
 
+    protected function updateOrganizationSync(): void
+    {
+        $this->organization->synchronized_at = now();
+        $this->organization->save();
+    }
+
     protected function getOrCreateOrganizationCostume(string $costume_name, ?string $prefix = null): OrganizationCostume
     {
         if (isset($this->costume_cache[$costume_name]))
@@ -77,7 +83,7 @@ abstract class BaseOrganizationService implements SynchronizerInterface
             $org_costume->prefix = $prefix;
         }
 
-        $org_costume->verified_at = now();
+        $org_costume->synchronized_at = now();
         $org_costume->save();
 
         $this->costume_cache[$costume_name] = $org_costume;
@@ -120,7 +126,7 @@ abstract class BaseOrganizationService implements SynchronizerInterface
 
         $pivot = $trooper->pivot;
 
-        $pivot->verified_at = now();
+        $pivot->synchronized_at = now();
         $pivot->membership_status = $status;
         $pivot->save();
     }

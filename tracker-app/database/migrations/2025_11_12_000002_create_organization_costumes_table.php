@@ -21,7 +21,7 @@ return new class extends Migration
 
             $table->string('name', 128);
             $table->string('prefix', 8)->nullable();
-            $table->dateTime('verified_at')->nullable();
+            $table->dateTime('synchronized_at')->nullable();
 
             $table->timestamps();
             $table->softDeletes();

@@ -37,6 +37,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $image_path_sm
  * @property string|null $service_class
  * @property string|null $sync_sheet_id
+ * @property Carbon|null $synchronized_at
  * @property string|null $description
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -72,6 +73,7 @@ class Organization extends Model
     const IMAGE_PATH_SM = 'image_path_sm';
     const SERVICE_CLASS = 'service_class';
     const SYNC_SHEET_ID = 'sync_sheet_id';
+    const SYNCHRONIZED_AT = 'synchronized_at';
     const DESCRIPTION = 'description';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
@@ -86,6 +88,7 @@ class Organization extends Model
         self::PARENT_ID => 'int',
         self::DEPTH => 'int',
         self::SEQUENCE => 'int',
+        self::SYNCHRONIZED_AT => 'datetime',
         self::CREATED_AT => 'datetime',
         self::UPDATED_AT => 'datetime',
         self::CREATED_ID => 'int',
@@ -106,6 +109,7 @@ class Organization extends Model
         self::IMAGE_PATH_SM,
         self::SERVICE_CLASS,
         self::SYNC_SHEET_ID,
+        self::SYNCHRONIZED_AT,
         self::DESCRIPTION
     ];
 
@@ -147,7 +151,7 @@ class Organization extends Model
     public function troopers(): BelongsToMany
     {
         return $this->belongsToMany(Trooper::class, 'tt_trooper_organizations')
-                    ->withPivot(TrooperOrganization::ID, TrooperOrganization::IDENTIFIER, TrooperOrganization::MEMBERSHIP_STATUS, TrooperOrganization::VERIFIED_AT, TrooperOrganization::DELETED_AT, TrooperOrganization::CREATED_ID, TrooperOrganization::UPDATED_ID, TrooperOrganization::DELETED_ID)
+                    ->withPivot(TrooperOrganization::ID, TrooperOrganization::IDENTIFIER, TrooperOrganization::MEMBERSHIP_STATUS, TrooperOrganization::SYNCHRONIZED_AT, TrooperOrganization::DELETED_AT, TrooperOrganization::CREATED_ID, TrooperOrganization::UPDATED_ID, TrooperOrganization::DELETED_ID)
                     ->withTimestamps();
     }
 }
