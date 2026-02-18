@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\MagicBusController;
+use App\Models\Base\TrooperCostume as BaseTrooperCostume;
 use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
-use App\Models\Base\TrooperCostume as BaseTrooperCostume;
 use App\Models\TrooperCostume;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -60,18 +60,18 @@ class DashboardDisplayController extends MagicBusController
             'total_troops_by_costume' => $this->getTroopsByCostume($trooper),
             // synced costumes for this trooper (those with at least one image)
             'synced_costumes' => OrganizationCostume::whereHas('trooper_costumes', function ($q) use ($trooper_id) {
-                    $q->where(TrooperCostume::TROOPER_ID, $trooper_id)
-                      ->where(function($q2) {
-                          $q2->whereNotNull(BaseTrooperCostume::LARGE_IMAGE_URL)
-                             ->orWhereNotNull(BaseTrooperCostume::SMALL_IMAGE_URL);
-                      });
-                })->with(['trooper_costumes' => function ($q) use ($trooper_id) {
-                    $q->where(TrooperCostume::TROOPER_ID, $trooper_id)
-                      ->where(function($q2) {
-                          $q2->whereNotNull(BaseTrooperCostume::LARGE_IMAGE_URL)
-                             ->orWhereNotNull(BaseTrooperCostume::SMALL_IMAGE_URL);
-                      })->orderBy('id', 'desc');
-                }])->orderBy('name')->get(),
+                $q->where(TrooperCostume::TROOPER_ID, $trooper_id)
+                    ->where(function ($q2) {
+                        $q2->whereNotNull(BaseTrooperCostume::LARGE_IMAGE_URL)
+                            ->orWhereNotNull(BaseTrooperCostume::SMALL_IMAGE_URL);
+                    });
+            })->with(['trooper_costumes' => function ($q) use ($trooper_id) {
+                $q->where(TrooperCostume::TROOPER_ID, $trooper_id)
+                    ->where(function ($q2) {
+                        $q2->whereNotNull(BaseTrooperCostume::LARGE_IMAGE_URL)
+                            ->orWhereNotNull(BaseTrooperCostume::SMALL_IMAGE_URL);
+                    })->orderBy('id', 'desc');
+            }])->orderBy('name')->get(),
         ];
 
         return view('pages.dashboard.display', $data);
