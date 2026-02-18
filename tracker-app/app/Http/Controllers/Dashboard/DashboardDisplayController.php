@@ -19,7 +19,8 @@ use Illuminate\Support\Facades\Auth;
 /**
  * Handles the display of the main trooper dashboard.
  *
- * This controller gathers various statistics for a trooper, such as troop counts by organization and costume, and displays them.
+ * This controller gathers various statistics for a trooper, such as troop
+ * counts by organization and costume, and displays them.
  */
 class DashboardDisplayController extends MagicBusController
 {
