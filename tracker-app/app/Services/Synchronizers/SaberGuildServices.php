@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Synchronizers;
 
+use App\Enums\MembershipStatus;
 use Illuminate\Support\Facades\Log;
 
 
@@ -15,7 +16,7 @@ use Illuminate\Support\Facades\Log;
  */
 class SaberGuildServices extends BaseOrganizationService
 {
-    public function syncCostumes(): void
+    public function synchronize(): void
     {
         $costume_rows = $this->getSheetRows();
 
@@ -37,8 +38,6 @@ class SaberGuildServices extends BaseOrganizationService
 
             if (empty($identifier))
             {
-                Log::warning(__CLASS__ . " skipping trooper costume '{$costume_name}' with empty identifier for org {$this->organization->id}");
-
                 continue;
             }
 
@@ -50,78 +49,18 @@ class SaberGuildServices extends BaseOrganizationService
             }
 
             // Ensure organization costume exists 
-            $org_costume = $this->getOrganizationCostume($costume_name);
+            $org_costume = $this->getOrCreateOrganizationCostume($costume_name);
 
             $trooper = $this->getTrooper($identifier);
 
             if ($trooper === null)
             {
-                Log::warning(__CLASS__ . " no trooper found for identifier '{$identifier}' for org {$this->organization->id}; skipping costume '{$costume_name}'");
-
                 continue;
             }
 
+            $this->syncTrooperStatus($trooper, MembershipStatus::ACTIVE);
+
             $this->syncTrooperCostume($trooper, $org_costume, $costume_image);
         }
-    }
-
-    //     /*<?php
-
-    // * This file is used for scraping Saber Guild data.
-// * 
-// * This should be run weekly by a cronjob.
-// *
-// * @author  Matthew Drennan
-// *
-// *
-
-    // // Include config
-// include(dirname(__DIR__) . '/../../config.php');
-
-    // // Get Simple PHP DOM Tool - just a note, for this code to work, $stripRN must be false in tool
-// include(dirname(__DIR__) . '/../../tool/dom/simple_html_dom.php');
-
-    // // Purge SG troopers
-// $statement = $conn->prepare("DELETE FROM sg_troopers");
-// $statement->execute();
-
-    // // Pull extra data from spreadsheet
-// $values = getSheet("1PcveycMujakkKeG2m4y8iFunrFbo2KVpQJ00GyPI3b8", "Sheet1");
-
-
-    // // Set up count
-// $i = 0;
-
-    // foreach($values as $value)
-// {
-// // If not first
-// if($i != 0)
-// {
-//     // Set up image
-
-    //     $value[2] = cleanInput($value[2]);
-//     $value[0] = cleanInput($value[0]);
-//     $value[1] = cleanInput($value[1]);
-//     $value[3] = cleanInput($value[3]);
-//     $image = cleanInput($image);
-
-    //     // Insert into database
-//     $statement = $conn->prepare("INSERT INTO sg_troopers (
-//     $statement->execute();
-
-
-    // }
-
-    // // Increment
-// $i++;
-// }
-
-    // 
-    public function syncAllMembers(): void
-    {
-    }
-
-    public function syncMember(string $identifier): void
-    {
     }
 }

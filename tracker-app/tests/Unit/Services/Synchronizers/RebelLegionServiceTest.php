@@ -59,7 +59,7 @@ class RebelLegionServiceTest extends TestCase
             ->with('test-sheet-id', 'Costumes')
             ->andReturn($sheet_data);
 
-        $this->subject->syncCostumes();
+        $this->subject->synchronize();
 
         $org_costume = OrganizationCostume::where(OrganizationCostume::NAME, 'Stormtrooper')->first();
         $this->assertNotNull($org_costume);
@@ -85,7 +85,7 @@ class RebelLegionServiceTest extends TestCase
             ->with('test-sheet-id', 'Costumes')
             ->andReturn($sheet_data);
 
-        $this->subject->syncCostumes();
+        $this->subject->synchronize();
 
         $org_costumes = OrganizationCostume::all();
         $this->assertEquals(0, $org_costumes->count());
@@ -104,7 +104,7 @@ class RebelLegionServiceTest extends TestCase
             ->with('test-sheet-id', 'Costumes')
             ->andReturn($sheet_data);
 
-        $this->subject->syncCostumes();
+        $this->subject->synchronize();
 
         $org_costumes = OrganizationCostume::all();
         $this->assertEquals(0, $org_costumes->count());
@@ -122,7 +122,7 @@ class RebelLegionServiceTest extends TestCase
             ->with('test-sheet-id', 'Costumes')
             ->andReturn($sheet_data);
 
-        $this->subject->syncCostumes();
+        $this->subject->synchronize();
 
         // Organization costume is created, but trooper costume is not
         $org_costume = OrganizationCostume::where(OrganizationCostume::NAME, 'Stormtrooper')->first();
@@ -135,7 +135,7 @@ class RebelLegionServiceTest extends TestCase
     {
         $this->organization->update([Organization::SYNC_SHEET_ID => null]);
 
-        $this->subject->syncCostumes();
+        $this->subject->synchronize();
 
         $org_costumes = OrganizationCostume::all();
         $this->assertEquals(0, $org_costumes->count());
@@ -148,7 +148,7 @@ class RebelLegionServiceTest extends TestCase
             ->with('test-sheet-id', 'Costumes')
             ->andReturn(false);
 
-        $this->subject->syncCostumes();
+        $this->subject->synchronize();
 
         $org_costumes = OrganizationCostume::all();
         $this->assertEquals(0, $org_costumes->count());
@@ -175,7 +175,7 @@ class RebelLegionServiceTest extends TestCase
             ->with('test-sheet-id', 'Costumes')
             ->andReturn($sheet_data);
 
-        $this->subject->syncCostumes();
+        $this->subject->synchronize();
 
         $org_costume = OrganizationCostume::where(OrganizationCostume::NAME, '&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;')->first();
         $this->assertNotNull($org_costume);
@@ -213,7 +213,7 @@ class RebelLegionServiceTest extends TestCase
             ->with('test-sheet-id', 'Costumes')
             ->andReturn($sheet_data);
 
-        $this->subject->syncCostumes();
+        $this->subject->synchronize();
 
         $stormtrooper_costume = OrganizationCostume::where(OrganizationCostume::NAME, 'Stormtrooper')->first();
         $tie_pilot_costume = OrganizationCostume::where(OrganizationCostume::NAME, 'TIE Pilot')->first();
@@ -264,7 +264,7 @@ class RebelLegionServiceTest extends TestCase
             ->with('test-sheet-id', 'Costumes')
             ->andReturn($sheet_data);
 
-        $this->subject->syncCostumes();
+        $this->subject->synchronize();
 
         $trooper_costume = TrooperCostume::where(TrooperCostume::TROOPER_ID, $trooper->id)
             ->where(TrooperCostume::COSTUME_ID, $org_costume->id)
@@ -272,17 +272,5 @@ class RebelLegionServiceTest extends TestCase
 
         $this->assertNotNull($trooper_costume);
         $this->assertEquals('https://example.com/new_image.jpg', $trooper_costume->large_image_url);
-    }
-
-    public function test_sync_all_members_not_supported(): void
-    {
-        $this->subject->syncAllMembers();
-        $this->assertTrue(true);
-    }
-
-    public function test_sync_member_not_supported(): void
-    {
-        $this->subject->syncMember('12345');
-        $this->assertTrue(true);
     }
 }

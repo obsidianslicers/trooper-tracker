@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Synchronizers;
 
 use App\Contracts\SynchronizerInterface;
+use App\Enums\MembershipStatus;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
@@ -15,13 +16,15 @@ use Illuminate\Support\Facades\Log;
 
 abstract class BaseOrganizationService implements SynchronizerInterface
 {
+    private array $costume_cache = [];
+
     public function __construct(
         protected readonly Organization $organization,
         protected readonly GoogleService $google)
     {
     }
 
-    public abstract function syncCostumes(): void;
+    public abstract function synchronize(): void;
 
     protected function getSheetRows(bool $skip_header = true): array
     {
@@ -29,7 +32,7 @@ abstract class BaseOrganizationService implements SynchronizerInterface
 
         if (empty($sheet_id))
         {
-            Log::info(__CLASS__ . " missing sync_sheet_id configured for organization {$this->organization->name}.");
+            Log::info(__CLASS__ . ":{$this->organization->name} No 'sync_sheet_id' configured");
 
             return [];
         }
@@ -39,7 +42,7 @@ abstract class BaseOrganizationService implements SynchronizerInterface
 
         if (is_array($rows) === false)
         {
-            Log::warning(__CLASS__ . " no rows found in 'Costumes' sheet for organization {$this->organization->name} with sheet_id {$sheet_id}.");
+            Log::warning(__CLASS__ . ":{$this->organization->name} No rows found");
 
             return [];
         }
@@ -52,8 +55,15 @@ abstract class BaseOrganizationService implements SynchronizerInterface
         return $rows;
     }
 
-    protected function getOrganizationCostume(string $costume_name): OrganizationCostume
+    protected function getOrCreateOrganizationCostume(string $costume_name, ?string $prefix = null): OrganizationCostume
     {
+        if (isset($this->costume_cache[$costume_name]))
+        {
+            return $this->costume_cache[$costume_name];
+        }
+
+        Log::info(__CLASS__ . ":{$this->organization->name} Synchronizing Costume {$costume_name}");
+
         // find trooper by identifier on pivot
         $org_costume = $this->organization->organization_costumes()
             ->where(OrganizationCostume::NAME, $costume_name)
@@ -64,16 +74,21 @@ abstract class BaseOrganizationService implements SynchronizerInterface
             $org_costume = new OrganizationCostume();
             $org_costume->organization_id = $this->organization->id;
             $org_costume->name = $costume_name;
+            $org_costume->prefix = $prefix;
         }
 
         $org_costume->verified_at = now();
         $org_costume->save();
+
+        $this->costume_cache[$costume_name] = $org_costume;
 
         return $org_costume;
     }
 
     protected function getTrooper(string $identifier): ?Trooper
     {
+        Log::info(__CLASS__ . ":{$this->organization->name} Getting Trooper {$identifier}");
+
         return $this->organization->troopers()
             ->wherePivot(TrooperOrganization::IDENTIFIER, $identifier)
             ->first();
@@ -81,6 +96,8 @@ abstract class BaseOrganizationService implements SynchronizerInterface
 
     protected function syncTrooperCostume(Trooper $trooper, OrganizationCostume $org_costume, ?string $costume_image): void
     {
+        Log::info(__CLASS__ . ":{$this->organization->name} Synchronizing Trooper Costume {$org_costume->name} for Trooper {$trooper->display_name}");
+
         $trooper_costume = TrooperCostume::where(TrooperCostume::TROOPER_ID, $trooper->id)
             ->where(TrooperCostume::COSTUME_ID, $org_costume->id)
             ->first();
@@ -97,9 +114,16 @@ abstract class BaseOrganizationService implements SynchronizerInterface
         $trooper_costume->save();
     }
 
-    public abstract function syncAllMembers(): void;
+    protected function syncTrooperStatus(Trooper $trooper, MembershipStatus $status): void
+    {
+        Log::info(__CLASS__ . ":{$this->organization->name} Synchronizing Trooper Status {$status->name} for {$trooper->dsiplay_name}");
 
-    public abstract function syncMember(string $identifier): void;
+        $pivot = $trooper->pivot;
+
+        $pivot->verified_at = now();
+        $pivot->membership_status = $status;
+        $pivot->save();
+    }
 
     protected function cleanInput($value): mixed
     {

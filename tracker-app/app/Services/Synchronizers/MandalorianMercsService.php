@@ -12,15 +12,7 @@ namespace App\Services\Synchronizers;
  */
 class MandalorianMercsService extends BaseOrganizationService
 {
-    public function syncCostumes(): void
-    {
-    }
-
-    public function syncAllMembers(): void
-    {
-    }
-
-    public function syncMember(string $identifier): void
+    public function synchronize(): void
     {
     }
 }

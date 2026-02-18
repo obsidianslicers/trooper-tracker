@@ -59,7 +59,7 @@ class SaberGuildServicesTest extends TestCase
             ->with('test-sheet-id', 'Costumes')
             ->andReturn($sheet_data);
 
-        $this->subject->syncCostumes();
+        $this->subject->synchronize();
 
         $org_costume = OrganizationCostume::where(OrganizationCostume::NAME, 'Jedi Knight')->first();
         $this->assertNotNull($org_costume);
@@ -93,7 +93,7 @@ class SaberGuildServicesTest extends TestCase
             ->with('test-sheet-id', 'Costumes')
             ->andReturn($sheet_data);
 
-        $this->subject->syncCostumes();
+        $this->subject->synchronize();
 
         $org_costume = OrganizationCostume::where(OrganizationCostume::NAME, 'Knight Costume')->first();
         $trooper_costume = TrooperCostume::where(TrooperCostume::TROOPER_ID, $trooper->id)
@@ -127,7 +127,7 @@ class SaberGuildServicesTest extends TestCase
             ->with('test-sheet-id', 'Costumes')
             ->andReturn($sheet_data);
 
-        $this->subject->syncCostumes();
+        $this->subject->synchronize();
 
         $org_costume = OrganizationCostume::where(OrganizationCostume::NAME, 'Costume')->first();
         $trooper_costume = TrooperCostume::where(TrooperCostume::TROOPER_ID, $trooper->id)
@@ -151,7 +151,7 @@ class SaberGuildServicesTest extends TestCase
             ->with('test-sheet-id', 'Costumes')
             ->andReturn($sheet_data);
 
-        $this->subject->syncCostumes();
+        $this->subject->synchronize();
 
         $org_costumes = OrganizationCostume::all();
         $this->assertEquals(0, $org_costumes->count());
@@ -169,7 +169,7 @@ class SaberGuildServicesTest extends TestCase
             ->with('test-sheet-id', 'Costumes')
             ->andReturn($sheet_data);
 
-        $this->subject->syncCostumes();
+        $this->subject->synchronize();
 
         $org_costumes = OrganizationCostume::all();
         $this->assertEquals(0, $org_costumes->count());
@@ -187,7 +187,7 @@ class SaberGuildServicesTest extends TestCase
             ->with('test-sheet-id', 'Costumes')
             ->andReturn($sheet_data);
 
-        $this->subject->syncCostumes();
+        $this->subject->synchronize();
 
         // Organization costume is created, but trooper costume is not
         $org_costume = OrganizationCostume::where(OrganizationCostume::NAME, 'Jedi Knight')->first();
@@ -200,7 +200,7 @@ class SaberGuildServicesTest extends TestCase
     {
         $this->organization->update([Organization::SYNC_SHEET_ID => null]);
 
-        $this->subject->syncCostumes();
+        $this->subject->synchronize();
 
         $org_costumes = OrganizationCostume::all();
         $this->assertEquals(0, $org_costumes->count());
@@ -213,7 +213,7 @@ class SaberGuildServicesTest extends TestCase
             ->with('test-sheet-id', 'Costumes')
             ->andReturn(false);
 
-        $this->subject->syncCostumes();
+        $this->subject->synchronize();
 
         $org_costumes = OrganizationCostume::all();
         $this->assertEquals(0, $org_costumes->count());
@@ -240,7 +240,7 @@ class SaberGuildServicesTest extends TestCase
             ->with('test-sheet-id', 'Costumes')
             ->andReturn($sheet_data);
 
-        $this->subject->syncCostumes();
+        $this->subject->synchronize();
 
         $org_costume = OrganizationCostume::where(OrganizationCostume::NAME, '&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;')->first();
         $this->assertNotNull($org_costume);
@@ -268,21 +268,9 @@ class SaberGuildServicesTest extends TestCase
             ->with('test-sheet-id', 'Costumes')
             ->andReturn($sheet_data);
 
-        $this->subject->syncCostumes();
+        $this->subject->synchronize();
 
         $trooper_costumes = TrooperCostume::where(TrooperCostume::TROOPER_ID, $trooper->id)->get();
         $this->assertEquals(2, $trooper_costumes->count());
-    }
-
-    public function test_sync_all_members_not_implemented(): void
-    {
-        $this->subject->syncAllMembers();
-        $this->assertTrue(true);
-    }
-
-    public function test_sync_member_not_implemented(): void
-    {
-        $this->subject->syncMember('12345');
-        $this->assertTrue(true);
     }
 }

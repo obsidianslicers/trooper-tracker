@@ -48,9 +48,9 @@ class SynchronizeOrganizations extends Command
 
             $service_class = app($service_class, compact('organization'));
 
-            $service_class->syncAllMembers();
+            $service_class->synchronize();
 
-            $service_class->syncCostumes();
+            $this->info("Synchronized organization: {$organization->name}");
         }
     }
 }

@@ -37,3 +37,4 @@ jobs:
           ./vendor/bin/pint app/Policies --test
           ./vendor/bin/pint app/Providers --test
           ./vendor/bin/pint app/Rules --test
+          ./vendor/bin/pint app/Services --test

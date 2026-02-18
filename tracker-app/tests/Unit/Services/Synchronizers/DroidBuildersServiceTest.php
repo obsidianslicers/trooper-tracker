@@ -59,7 +59,7 @@ class DroidBuildersServiceTest extends TestCase
             ->with('test-sheet-id', 'Costumes')
             ->andReturn($sheet_data);
 
-        $this->subject->syncCostumes();
+        $this->subject->synchronize();
 
         $org_costume = OrganizationCostume::where(OrganizationCostume::NAME, 'R2-D2')->first();
         $this->assertNotNull($org_costume);
@@ -85,7 +85,7 @@ class DroidBuildersServiceTest extends TestCase
             ->with('test-sheet-id', 'Costumes')
             ->andReturn($sheet_data);
 
-        $this->subject->syncCostumes();
+        $this->subject->synchronize();
 
         $org_costumes = OrganizationCostume::all();
         $this->assertEquals(0, $org_costumes->count());
@@ -104,7 +104,7 @@ class DroidBuildersServiceTest extends TestCase
             ->with('test-sheet-id', 'Costumes')
             ->andReturn($sheet_data);
 
-        $this->subject->syncCostumes();
+        $this->subject->synchronize();
 
         $org_costumes = OrganizationCostume::all();
         $this->assertEquals(0, $org_costumes->count());
@@ -122,7 +122,7 @@ class DroidBuildersServiceTest extends TestCase
             ->with('test-sheet-id', 'Costumes')
             ->andReturn($sheet_data);
 
-        $this->subject->syncCostumes();
+        $this->subject->synchronize();
 
         // Organization costume is created, but trooper costume is not
         $org_costume = OrganizationCostume::where(OrganizationCostume::NAME, 'R2-D2')->first();
@@ -135,7 +135,7 @@ class DroidBuildersServiceTest extends TestCase
     {
         $this->organization->update([Organization::SYNC_SHEET_ID => null]);
 
-        $this->subject->syncCostumes();
+        $this->subject->synchronize();
 
         $org_costumes = OrganizationCostume::all();
         $this->assertEquals(0, $org_costumes->count());
@@ -148,7 +148,7 @@ class DroidBuildersServiceTest extends TestCase
             ->with('test-sheet-id', 'Costumes')
             ->andReturn(false);
 
-        $this->subject->syncCostumes();
+        $this->subject->synchronize();
 
         $org_costumes = OrganizationCostume::all();
         $this->assertEquals(0, $org_costumes->count());
@@ -175,7 +175,7 @@ class DroidBuildersServiceTest extends TestCase
             ->with('test-sheet-id', 'Costumes')
             ->andReturn($sheet_data);
 
-        $this->subject->syncCostumes();
+        $this->subject->synchronize();
 
         $org_costume = OrganizationCostume::where(OrganizationCostume::NAME, '&lt;img src=x onerror=&quot;alert(1)&quot;&gt;')->first();
         $this->assertNotNull($org_costume);
@@ -213,7 +213,7 @@ class DroidBuildersServiceTest extends TestCase
             ->with('test-sheet-id', 'Costumes')
             ->andReturn($sheet_data);
 
-        $this->subject->syncCostumes();
+        $this->subject->synchronize();
 
         $r2d2_costume = OrganizationCostume::where(OrganizationCostume::NAME, 'R2-D2')->first();
         $c3po_costume = OrganizationCostume::where(OrganizationCostume::NAME, 'C-3PO')->first();
@@ -264,7 +264,7 @@ class DroidBuildersServiceTest extends TestCase
             ->with('test-sheet-id', 'Costumes')
             ->andReturn($sheet_data);
 
-        $this->subject->syncCostumes();
+        $this->subject->synchronize();
 
         $trooper_costume = TrooperCostume::where(TrooperCostume::TROOPER_ID, $trooper->id)
             ->where(TrooperCostume::COSTUME_ID, $org_costume->id)
@@ -295,7 +295,7 @@ class DroidBuildersServiceTest extends TestCase
             ->with('test-sheet-id', 'Costumes')
             ->andReturn($sheet_data);
 
-        $this->subject->syncCostumes();
+        $this->subject->synchronize();
 
         $org_costume = OrganizationCostume::where(OrganizationCostume::NAME, 'R2-D2')->first();
         $trooper_costume = TrooperCostume::where(TrooperCostume::TROOPER_ID, $trooper->id)
@@ -305,17 +305,5 @@ class DroidBuildersServiceTest extends TestCase
         $this->assertNotNull($trooper_costume);
         // cleanInput(null) now returns null
         $this->assertNull($trooper_costume->large_image_url);
-    }
-
-    public function test_sync_all_members_not_implemented(): void
-    {
-        $this->subject->syncAllMembers();
-        $this->assertTrue(true);
-    }
-
-    public function test_sync_member_not_implemented(): void
-    {
-        $this->subject->syncMember('12345');
-        $this->assertTrue(true);
     }
 }

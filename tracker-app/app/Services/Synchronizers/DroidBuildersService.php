@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Synchronizers;
 
+use App\Enums\MembershipStatus;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -15,7 +16,7 @@ use Illuminate\Support\Facades\Log;
  */
 class DroidBuildersService extends BaseOrganizationService
 {
-    public function syncCostumes(): void
+    public function synchronize(): void
     {
         $costume_rows = $this->getSheetRows();
 
@@ -35,32 +36,22 @@ class DroidBuildersService extends BaseOrganizationService
 
             if (empty($identifier))
             {
-                Log::warning(__CLASS__ . " skipping trooper costume '{$costume_name}' with empty identifier for org {$this->organization->id}");
-
                 continue;
             }
 
-            // Ensure organization costume exists (do not set verified_at)
-            $org_costume = $this->getOrganizationCostume($costume_name);
+            // Ensure organization costume exists
+            $org_costume = $this->getOrCreateOrganizationCostume($costume_name);
 
             $trooper = $this->getTrooper($identifier);
 
             if ($trooper === null)
             {
-                Log::warning(__CLASS__ . " no trooper found for identifier '{$identifier}' for org {$this->organization->id}; skipping costume '{$costume_name}'");
-
                 continue;
             }
 
+            $this->syncTrooperStatus($trooper, MembershipStatus::ACTIVE);
+
             $this->syncTrooperCostume($trooper, $org_costume, $costume_image);
         }
-    }
-
-    public function syncAllMembers(): void
-    {
-    }
-
-    public function syncMember(string $identifier): void
-    {
     }
 }
