@@ -9,6 +9,8 @@ use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
+use App\Models\Base\TrooperCostume as BaseTrooperCostume;
+use App\Models\TrooperCostume;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -55,6 +57,20 @@ class DashboardDisplayController extends MagicBusController
             'metrics' => $metrics,
             'total_troops_by_organization' => $this->getTroopsByOrganization($trooper),
             'total_troops_by_costume' => $this->getTroopsByCostume($trooper),
+            // synced costumes for this trooper (those with at least one image)
+            'synced_costumes' => OrganizationCostume::whereHas('trooper_costumes', function ($q) use ($trooper_id) {
+                    $q->where(TrooperCostume::TROOPER_ID, $trooper_id)
+                      ->where(function($q2) {
+                          $q2->whereNotNull(BaseTrooperCostume::LARGE_IMAGE_URL)
+                             ->orWhereNotNull(BaseTrooperCostume::SMALL_IMAGE_URL);
+                      });
+                })->with(['trooper_costumes' => function ($q) use ($trooper_id) {
+                    $q->where(TrooperCostume::TROOPER_ID, $trooper_id)
+                      ->where(function($q2) {
+                          $q2->whereNotNull(BaseTrooperCostume::LARGE_IMAGE_URL)
+                             ->orWhereNotNull(BaseTrooperCostume::SMALL_IMAGE_URL);
+                      })->orderBy('id', 'desc');
+                }])->orderBy('name')->get(),
         ];
 
         return view('pages.dashboard.display', $data);

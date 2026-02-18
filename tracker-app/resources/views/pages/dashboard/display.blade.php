@@ -36,6 +36,13 @@
         <li class="nav-item">
             <a class="nav-link"
                data-bs-toggle="tab"
+               href="#synced-costumes">
+                Synced Costumes
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link"
+               data-bs-toggle="tab"
                href="#photos">
                 Tagged Photos
             </a>
@@ -84,6 +91,41 @@
                      hx-trigger="load"
                      hx-swap="outerHTML">
                     <x-loading />
+                </div>
+            </x-card>
+        </div>
+
+        <!-- Synced Costumes -->
+        <div class="tab-pane fade"
+             id="synced-costumes">
+            <x-card :label="'Synced Costumes'">
+                <div style="max-height:420px; overflow:auto;">
+                    @forelse($synced_costumes as $sc)
+                        @php
+                            // collect large image and bucket-off variants (if present)
+                            $images = collect();
+                            foreach ($sc->trooper_costumes as $tc) {
+                                if (! empty($tc->large_image_url)) { $images->push($tc->large_image_url); }
+                                if (! empty($tc->bucket_off_url)) { $images->push($tc->bucket_off_url); }
+                            }
+                            $images = $images->filter()->unique()->values();
+                        @endphp
+                        <div class="mb-3">
+                            <div class="small text-muted">{{ $sc->name }}</div>
+                            <div class="d-flex gap-2 mt-1">
+                                @foreach($images as $img)
+                                    <a href="{{ $img }}" target="_blank" rel="noopener noreferrer">
+                                        <img src="{{ $img }}" alt="{{ $sc->name }}" class="img-fluid rounded" style="width:128px; height:128px; object-fit:cover;">
+                                    </a>
+                                @endforeach
+                                @if($images->isEmpty())
+                                    <div class="text-muted small">No images</div>
+                                @endif
+                            </div>
+                        </div>
+                    @empty
+                        <div class="small text-muted">No synced costumes for this trooper.</div>
+                    @endforelse
                 </div>
             </x-card>
         </div>
