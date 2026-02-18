@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Services\Synchronizers;
 
 use App\Enums\MembershipStatus;
-use Illuminate\Support\Facades\Log;
 
 /**
  * RebelLegionService
@@ -32,7 +31,7 @@ class RebelLegionService extends BaseOrganizationService
             }
 
             // Map to organization costume and trooper costume
-            $identifier = $forum_id . '';
+            $identifier = $forum_id.'';
 
             if (empty($identifier))
             {

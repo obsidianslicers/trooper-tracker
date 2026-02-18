@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Services\Synchronizers;
 
 use App\Enums\MembershipStatus;
-use Illuminate\Support\Facades\Log;
-
 
 /**
  * Service class for managing Mandalorian Mercs organization data.
@@ -34,7 +32,7 @@ class SaberGuildServices extends BaseOrganizationService
             }
 
             // Map to organization costume and trooper costume
-            $identifier = $forum_id . '';
+            $identifier = $forum_id.'';
 
             if (empty($identifier))
             {
@@ -42,13 +40,13 @@ class SaberGuildServices extends BaseOrganizationService
             }
 
             // Convert Google Drive link
-            if (strpos($costume_image, "view?usp=drivesdk") !== false)
+            if (strpos($costume_image, 'view?usp=drivesdk') !== false)
             {
-                $segments = explode("/", $costume_image);
-                $costume_image = "https://drive.google.com/uc?id=" . $segments[5] . "";
+                $segments = explode('/', $costume_image);
+                $costume_image = 'https://drive.google.com/uc?id='.$segments[5].'';
             }
 
-            // Ensure organization costume exists 
+            // Ensure organization costume exists
             $org_costume = $this->getOrCreateOrganizationCostume($costume_name);
 
             $trooper = $this->getTrooper($identifier);

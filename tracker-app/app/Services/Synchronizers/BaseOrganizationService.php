@@ -20,11 +20,9 @@ abstract class BaseOrganizationService implements SynchronizerInterface
 
     public function __construct(
         protected readonly Organization $organization,
-        protected readonly GoogleService $google)
-    {
-    }
+        protected readonly GoogleService $google) {}
 
-    public abstract function synchronize(): void;
+    abstract public function synchronize(): void;
 
     protected function getSheetRows(bool $skip_header = true): array
     {
@@ -32,7 +30,7 @@ abstract class BaseOrganizationService implements SynchronizerInterface
 
         if (empty($sheet_id))
         {
-            Log::info(__CLASS__ . ":{$this->organization->name} No 'sync_sheet_id' configured");
+            Log::info(__CLASS__.":{$this->organization->name} No 'sync_sheet_id' configured");
 
             return [];
         }
@@ -42,7 +40,7 @@ abstract class BaseOrganizationService implements SynchronizerInterface
 
         if (is_array($rows) === false)
         {
-            Log::warning(__CLASS__ . ":{$this->organization->name} No rows found");
+            Log::warning(__CLASS__.":{$this->organization->name} No rows found");
 
             return [];
         }
@@ -68,7 +66,7 @@ abstract class BaseOrganizationService implements SynchronizerInterface
             return $this->costume_cache[$costume_name];
         }
 
-        Log::info(__CLASS__ . ":{$this->organization->name} Synchronizing Costume {$costume_name}");
+        Log::info(__CLASS__.":{$this->organization->name} Synchronizing Costume {$costume_name}");
 
         // find trooper by identifier on pivot
         $org_costume = $this->organization->organization_costumes()
@@ -77,7 +75,7 @@ abstract class BaseOrganizationService implements SynchronizerInterface
 
         if ($org_costume === null)
         {
-            $org_costume = new OrganizationCostume();
+            $org_costume = new OrganizationCostume;
             $org_costume->organization_id = $this->organization->id;
             $org_costume->name = $costume_name;
             $org_costume->prefix = $prefix;
@@ -93,7 +91,7 @@ abstract class BaseOrganizationService implements SynchronizerInterface
 
     protected function getTrooper(string $identifier): ?Trooper
     {
-        Log::info(__CLASS__ . ":{$this->organization->name} Getting Trooper {$identifier}");
+        Log::info(__CLASS__.":{$this->organization->name} Getting Trooper {$identifier}");
 
         return $this->organization->troopers()
             ->wherePivot(TrooperOrganization::IDENTIFIER, $identifier)
@@ -102,7 +100,7 @@ abstract class BaseOrganizationService implements SynchronizerInterface
 
     protected function syncTrooperCostume(Trooper $trooper, OrganizationCostume $org_costume, ?string $costume_image): void
     {
-        Log::info(__CLASS__ . ":{$this->organization->name} Synchronizing Trooper Costume {$org_costume->name} for Trooper {$trooper->display_name}");
+        Log::info(__CLASS__.":{$this->organization->name} Synchronizing Trooper Costume {$org_costume->name} for Trooper {$trooper->display_name}");
 
         $trooper_costume = TrooperCostume::where(TrooperCostume::TROOPER_ID, $trooper->id)
             ->where(TrooperCostume::COSTUME_ID, $org_costume->id)
@@ -110,7 +108,7 @@ abstract class BaseOrganizationService implements SynchronizerInterface
 
         if ($trooper_costume === null)
         {
-            $trooper_costume = new TrooperCostume();
+            $trooper_costume = new TrooperCostume;
             $trooper_costume->trooper_id = $trooper->id;
             $trooper_costume->costume_id = $org_costume->id;
         }
@@ -122,7 +120,7 @@ abstract class BaseOrganizationService implements SynchronizerInterface
 
     protected function syncTrooperStatus(Trooper $trooper, MembershipStatus $status): void
     {
-        Log::info(__CLASS__ . ":{$this->organization->name} Synchronizing Trooper Status {$status->name} for {$trooper->dsiplay_name}");
+        Log::info(__CLASS__.":{$this->organization->name} Synchronizing Trooper Status {$status->name} for {$trooper->dsiplay_name}");
 
         $pivot = $trooper->pivot;
 

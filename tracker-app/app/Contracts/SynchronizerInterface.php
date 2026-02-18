@@ -25,8 +25,6 @@ interface SynchronizerInterface
      * trooper and costume data from external sources into the database.
      * The scope and specific operations depend on the concrete implementation
      * (e.g., syncing costumes, updating membership status, etc.).
-     *
-     * @return void
      */
     public function synchronize(): void;
 }

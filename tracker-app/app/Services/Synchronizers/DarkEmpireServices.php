@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services\Synchronizers;
 
-
 /**
  * Service class for managing Mandalorian Mercs organization data.
  *
@@ -13,7 +12,5 @@ namespace App\Services\Synchronizers;
  */
 class DarkEmpireServices extends BaseOrganizationService
 {
-    public function synchronize(): void
-    {
-    }
+    public function synchronize(): void {}
 }

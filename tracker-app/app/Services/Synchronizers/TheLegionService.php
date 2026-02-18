@@ -59,7 +59,7 @@ class TheLegionService extends BaseOrganizationService
                 continue;
             }
 
-            $trooper = $this->getTrooper($json['legionId'] . '');
+            $trooper = $this->getTrooper($json['legionId'].'');
 
             if ($trooper === null)
             {
@@ -90,7 +90,7 @@ class TheLegionService extends BaseOrganizationService
 
                 if ($trooper_costume === null)
                 {
-                    $trooper_costume = new TrooperCostume();
+                    $trooper_costume = new TrooperCostume;
                     $trooper_costume->trooper_id = $trooper->id;
                     $trooper_costume->costume_id = $org_costume->id;
                 }
@@ -140,4 +140,3 @@ class TheLegionService extends BaseOrganizationService
         return $pivot->membership_status;
     }
 }
-
