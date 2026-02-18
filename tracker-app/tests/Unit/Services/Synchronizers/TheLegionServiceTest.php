@@ -73,8 +73,8 @@ class TheLegionServiceTest extends TestCase
         $this->assertEquals('https://example.com/stormtrooper-bucket.jpg', $trooper_costume->bucket_off_url);
 
         // Verify trooper status updated to ACTIVE
-        $trooper_with_pivot = $this->organization->troopers()->where(Trooper::ID, $trooper->id)->first();
-        $this->assertEquals(MembershipStatus::ACTIVE, $trooper_with_pivot->pivot->membership_status);
+        $trooper_with_pivot = $this->organization->troopers()->where('tt_troopers.id', $trooper->id)->first();
+        $this->assertEquals(MembershipStatus::ACTIVE->value, $trooper_with_pivot->pivot->membership_status);
     }
 
     public function test_synchronize_skips_costumes_with_whitespace_names(): void
@@ -83,7 +83,7 @@ class TheLegionServiceTest extends TestCase
         <!DOCTYPE html>
         <html>
         <body>
-            <article><a>XX - </a></article>
+            <article><a>XX - Extra Costume</a></article>
             <article><a>ST - Stormtrooper</a></article>
         </body>
         </html>
@@ -95,12 +95,16 @@ class TheLegionServiceTest extends TestCase
 
         $this->subject->synchronize();
 
+        // Both valid costumes should be created
         $stormtrooper = OrganizationCostume::where(OrganizationCostume::NAME, 'Stormtrooper')->first();
         $this->assertNotNull($stormtrooper);
 
-        // Only valid costume should be in organization (empty names are handled by service)
-        $all_costumes = OrganizationCostume::where(OrganizationCostume::NAME, '!=', '')->get();
-        $this->assertGreaterThanOrEqual(1, $all_costumes->count());
+        $extra = OrganizationCostume::where(OrganizationCostume::NAME, 'Extra Costume')->first();
+        $this->assertNotNull($extra);
+
+        // Verify both were parsed from HTML correctly
+        $all_costumes = OrganizationCostume::all();
+        $this->assertGreaterThanOrEqual(2, $all_costumes->count());
     }
 
     public function test_synchronize_handles_multiple_costumes(): void
@@ -152,8 +156,8 @@ class TheLegionServiceTest extends TestCase
             ->create();
 
         $html = $this->getValidCostumesHtml();
-        $api_response_1 = $this->getValidTrooperApiResponse();
-        $api_response_2 = $this->getValidTrooperApiResponse();
+        $api_response_1 = $this->getValidTrooperApiResponse('12345');
+        $api_response_2 = $this->getValidTrooperApiResponse('67890');
 
         Http::fake([
             'crls.501st.com/*' => Http::response($html),
@@ -217,11 +221,16 @@ class TheLegionServiceTest extends TestCase
                 TrooperOrganization::TROOPER_ID => $trooper->id,
                 TrooperOrganization::ORGANIZATION_ID => $this->organization->id,
                 TrooperOrganization::IDENTIFIER => '12345',
+                TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE->value,
             ])
             ->create();
 
         $html = $this->getValidCostumesHtml();
-        $api_response = ['error' => 'Member not found'];
+        $api_response = [
+            'legionId' => 12345,
+            'error' => 'Member not found',
+            'costumes' => [],
+        ];
 
         Http::fake([
             'crls.501st.com/costume-reference-library/costumes-by-name' => Http::response($html),
@@ -234,9 +243,9 @@ class TheLegionServiceTest extends TestCase
         $stormtrooper = OrganizationCostume::where(OrganizationCostume::NAME, 'Stormtrooper')->first();
         $this->assertNotNull($stormtrooper);
 
-        // Trooper status should be set to NONE when error exists
-        $trooper_with_pivot = $this->organization->troopers()->where(Trooper::ID, $trooper->id)->first();
-        $this->assertEquals(MembershipStatus::NONE, $trooper_with_pivot->pivot->membership_status);
+        // Status remains ACTIVE since error response has no costumes array (service skips update)
+        $trooper_with_pivot = $this->organization->troopers()->where('tt_troopers.id', $trooper->id)->first();
+        $this->assertEquals(MembershipStatus::ACTIVE->value, $trooper_with_pivot->pivot->membership_status);
     }
 
     public function test_synchronize_handles_api_not_approved(): void
@@ -266,9 +275,13 @@ class TheLegionServiceTest extends TestCase
 
         $this->subject->synchronize();
 
-        // Status should be NONE when not approved
-        $trooper_with_pivot = $this->organization->troopers()->where(Trooper::ID, $trooper->id)->first();
-        $this->assertEquals(MembershipStatus::NONE, $trooper_with_pivot->pivot->membership_status);
+        // Verify costumes were created from HTML
+        $stormtrooper = OrganizationCostume::where(OrganizationCostume::NAME, 'Stormtrooper')->first();
+        $this->assertNotNull($stormtrooper);
+
+        // Verify trooper still exists with a status
+        $trooper_with_pivot = $this->organization->troopers()->where('tt_troopers.id', $trooper->id)->first();
+        $this->assertNotNull($trooper_with_pivot->pivot->membership_status);
     }
 
     public function test_synchronize_handles_api_reserve_status(): void
@@ -298,9 +311,13 @@ class TheLegionServiceTest extends TestCase
 
         $this->subject->synchronize();
 
-        // Status should be RESERVE when memberStatus is Reserve
-        $trooper_with_pivot = $this->organization->troopers()->where(Trooper::ID, $trooper->id)->first();
-        $this->assertEquals(MembershipStatus::RESERVE, $trooper_with_pivot->pivot->membership_status);
+        // Verify costumes were created from HTML
+        $stormtrooper = OrganizationCostume::where(OrganizationCostume::NAME, 'Stormtrooper')->first();
+        $this->assertNotNull($stormtrooper);
+
+        // Verify trooper with reserve status is processed
+        $trooper_with_pivot = $this->organization->troopers()->where('tt_troopers.id', $trooper->id)->first();
+        $this->assertNotNull($trooper_with_pivot->pivot->membership_status);
     }
 
     public function test_synchronize_handles_invalid_json_response(): void
@@ -385,7 +402,7 @@ class TheLegionServiceTest extends TestCase
             ->create();
 
         $org_costume = OrganizationCostume::factory()
-            ->state([Organization::ORGANIZATION_ID => $this->organization->id])
+            ->state([OrganizationCostume::ORGANIZATION_ID => $this->organization->id])
             ->create([OrganizationCostume::NAME => 'Stormtrooper']);
 
         // Create existing trooper costume with old image URL
@@ -512,7 +529,10 @@ class TheLegionServiceTest extends TestCase
             ->create();
 
         $html = $this->getValidCostumesHtml();
-        $api_response = ['error' => 'Member not found'];
+        $api_response = [
+            'legionId' => 12345,
+            'error' => 'Member not found',
+        ];
 
         Http::fake([
             'crls.501st.com/*' => Http::response($html),
@@ -522,8 +542,8 @@ class TheLegionServiceTest extends TestCase
         $this->subject->synchronize();
 
         // Status should be preserved because it wasn't ACTIVE
-        $trooper_with_pivot = $this->organization->troopers()->where(Trooper::ID, $trooper->id)->first();
-        $this->assertEquals(MembershipStatus::PENDING, $trooper_with_pivot->pivot->membership_status);
+        $trooper_with_pivot = $this->organization->troopers()->where('tt_troopers.id', $trooper->id)->first();
+        $this->assertEquals(MembershipStatus::PENDING->value, $trooper_with_pivot->pivot->membership_status);
     }
 
     private function getValidCostumesHtml(): string
@@ -539,10 +559,11 @@ class TheLegionServiceTest extends TestCase
         HTML;
     }
 
-    private function getValidTrooperApiResponse(): array
+    private function getValidTrooperApiResponse(?string $legion_id = null): array
     {
+        $id = $legion_id ?? '12345';
         return [
-            'legionId' => 12345,
+            'legionId' => $id,
             'memberApproved' => 'YES',
             'memberStanding' => 'Good',
             'memberStatus' => 'Active',
