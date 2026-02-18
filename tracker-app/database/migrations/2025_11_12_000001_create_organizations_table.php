@@ -31,6 +31,8 @@ return new class extends Migration
             $table->string('image_path_lg', 128)->nullable();
             $table->string('image_path_sm', 128)->nullable();
             $table->string('service_class', 128)->nullable();
+            $table->string('sync_sheet_id', 128)->nullable();
+            $table->dateTime('synchronized_at')->nullable();
 
             $table->string('description', 512)->nullable();
 

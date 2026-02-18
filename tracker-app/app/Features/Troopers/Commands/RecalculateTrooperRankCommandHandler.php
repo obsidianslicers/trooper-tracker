@@ -50,7 +50,15 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
             $q->where(Trooper::ID, $message->trooper_id);
         }
 
-        $q->chunk(200, fn($troopers) => $this->processChunk($troopers));
+        $q->chunk(200, function ($troopers) use ($message)
+        {
+            //  only process rank if we're processing all troopers, otherwise
+            //  the rank won't be accurate since we're not reordering all the 
+            //  troopers by attendance
+            $process_rank = $message->trooper_id === null;
+
+            $this->processChunk($troopers, $process_rank);
+        });
 
         return null;
     }
@@ -68,13 +76,18 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
      * @param \Illuminate\Support\Collection $troopers Chunk of troopers to process
      * @return void
      */
-    private function processChunk($troopers): void
+    private function processChunk($troopers, bool $process_rank): void
     {
         foreach ($troopers as $trooper)
         {
             $metrics = $this->computeMetrics($trooper);
 
-            $this->updateAchievement($trooper, AchievementType::TROOPER_RANK, $this->rank);
+            if ($process_rank)
+            {
+                //  if we're only processing a single trooper, we don't want to update their rank
+                //  since it won't be accurate (we're not reordering all the troopers by attendance)
+                $this->updateAchievement($trooper, AchievementType::TROOPER_RANK, $this->rank);
+            }
             $this->updateAchievement($trooper, AchievementType::TROOPER_SHIFTS, $trooper->event_count);
             $this->updateAchievement($trooper, AchievementType::VOLUNTEER_HOURS, $metrics['total_hours']);
             $this->updateAchievement($trooper, AchievementType::DIRECT_FUNDS, $metrics['total_direct']);

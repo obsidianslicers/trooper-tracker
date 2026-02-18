@@ -20,7 +20,8 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
             $table->string('name', 128);
-            $table->dateTime('verified_at')->nullable();
+            $table->string('prefix', 8)->nullable();
+            $table->dateTime('synchronized_at')->nullable();
 
             $table->timestamps();
             $table->softDeletes();

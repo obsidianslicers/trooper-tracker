@@ -13,7 +13,7 @@ Schedule::command('tracker:close-events')
     ->timezone($timezone);
 
 Schedule::command('tracker:calculate-trooper-achievements')
-    ->dailyAt('01:00')
+    ->dailyAt('02:00')
     ->timezone($timezone);
 
 Schedule::command('tracker:send-daily-event-notifications')

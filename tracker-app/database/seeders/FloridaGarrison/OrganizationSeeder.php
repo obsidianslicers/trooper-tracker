@@ -7,12 +7,6 @@ namespace Database\Seeders\FloridaGarrison;
 use App\Enums\OrganizationType;
 use App\Models\Observers\OrganizationObserver;
 use App\Models\Organization;
-use App\Services\Synchronizers\DarkEmpireServices;
-use App\Services\Synchronizers\DroidBuildersService;
-use App\Services\Synchronizers\MandalorianMercsService;
-use App\Services\Synchronizers\RebelLegionService;
-use App\Services\Synchronizers\SaberGuildServices;
-use App\Services\Synchronizers\TheLegionService;
 use Illuminate\Database\Seeder;
 
 class OrganizationSeeder extends Seeder

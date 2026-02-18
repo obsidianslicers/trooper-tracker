@@ -25,7 +25,7 @@ return new class extends Migration
 
             $table->string('identifier', 64);
             $table->string('membership_status', 16)->default(MembershipStatus::PENDING->value);
-            $table->dateTime('verified_at')->nullable();
+            $table->dateTime('synchronized_at')->nullable();
 
             $table->timestamps();
             $table->softDeletes();

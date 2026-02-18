@@ -6,16 +6,13 @@ namespace App\Console\Commands;
 
 use App\Bus\MagicBus;
 use App\Features\Troopers\Commands\RecalculateTrooperRankCommand;
-use App\Features\Troopers\Commands\StoreTrooperAchievementsCommand;
-use App\Features\Troopers\Queries\GetTrooperEventStatsQuery;
 use Illuminate\Console\Command;
 
 /**
- * Artisan command to calculate and store trooper achievements based on their event history.
+ * Artisan command to recalculate trooper ranks based on their event history.
  *
- * This command aggregates event data for each trooper, such as total troops,
- * volunteer hours, and funds raised, and then updates their corresponding
- * achievements in the database.
+ * This command dispatches the rank recalculation process, which aggregates
+ * event data for each trooper and updates their corresponding rank in the database.
  */
 class CalculateTrooperAchievementsCommand extends Command
 {
@@ -36,17 +33,14 @@ class CalculateTrooperAchievementsCommand extends Command
     /**
      * Execute the console command.
      *
-     * Orchestrates the achievement calculation process by:
-     * 1. Dispatching GetTrooperEventStatsQuery to retrieve aggregated event statistics
-     * 2. Dispatching StoreTrooperAchievementsCommand to process and store achievements
+     * Orchestrates the trooper rank recalculation process by dispatching
+     * the RecalculateTrooperRankCommand through the message bus.
      *
-     * @param MagicBus $bus The message bus for dispatching queries and commands
+     * @param MagicBus $bus The message bus for dispatching commands
      * @return void
      */
     public function handle(MagicBus $bus): void
     {
-        // $bus->send(new StoreTrooperAchievementsCommand($trooper_events));
-
         $bus->send(new RecalculateTrooperRankCommand());
     }
 }

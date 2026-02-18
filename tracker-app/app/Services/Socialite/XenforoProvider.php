@@ -34,8 +34,6 @@ class XenforoProvider extends AbstractProvider implements ProviderInterface
 
     /**
      * Get the base URL for the XenForo instance.
-     *
-     * @return string
      */
     protected function getBaseUrl(): string
     {
@@ -45,40 +43,37 @@ class XenforoProvider extends AbstractProvider implements ProviderInterface
     /**
      * Get the authentication URL for the provider.
      *
-     * @param string $state
-     * @return string
+     * @param  string  $state
      */
     protected function getAuthUrl($state): string
     {
         return $this->buildAuthUrlFromBase(
-            $this->getBaseUrl() . '/oauth/authorize',
+            $this->getBaseUrl().'/oauth/authorize',
             $state
         );
     }
 
     /**
      * Get the token URL for the provider.
-     *
-     * @return string
      */
     protected function getTokenUrl(): string
     {
-        return $this->getBaseUrl() . '/oauth/token';
+        return $this->getBaseUrl().'/oauth/token';
     }
 
     /**
      * Get the raw user for the given access token.
      *
-     * @param string $token
+     * @param  string  $token
      * @return array<string, mixed>
      */
     protected function getUserByToken($token): array
     {
         $response = $this->getHttpClient()->get(
-            $this->getBaseUrl() . '/api/me',
+            $this->getBaseUrl().'/api/me',
             [
                 'headers' => [
-                    'Authorization' => 'Bearer ' . $token,
+                    'Authorization' => 'Bearer '.$token,
                     'Accept' => 'application/json',
                 ],
             ]
@@ -90,14 +85,13 @@ class XenforoProvider extends AbstractProvider implements ProviderInterface
     /**
      * Map the raw user array to a Socialite User instance.
      *
-     * @param array<string, mixed> $user
-     * @return \Laravel\Socialite\Two\User
+     * @param  array<string, mixed>  $user
      */
     protected function mapUserToObject(array $user): User
     {
         $user_data = $user['user'] ?? $user;
 
-        return (new User())->setRaw($user)->map([
+        return (new User)->setRaw($user)->map([
             'id' => $user_data['user_id'] ?? null,
             'nickname' => $user_data['username'] ?? null,
             'name' => $user_data['username'] ?? null,
@@ -109,8 +103,7 @@ class XenforoProvider extends AbstractProvider implements ProviderInterface
     /**
      * Get the avatar URL for the user.
      *
-     * @param array<string, mixed> $user_data
-     * @return string|null
+     * @param  array<string, mixed>  $user_data
      */
     protected function getAvatarUrl(array $user_data): ?string
     {
@@ -135,7 +128,7 @@ class XenforoProvider extends AbstractProvider implements ProviderInterface
     /**
      * Get the POST fields for the token request.
      *
-     * @param string $code
+     * @param  string  $code
      * @return array<string, string>
      */
     protected function getTokenFields($code): array

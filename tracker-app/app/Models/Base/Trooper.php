@@ -32,8 +32,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * Class Trooper
  * 
  * @property int $id
- * @property string|null $legal_name
- * @property string|null $display_name
+ * @property string $display_name
+ * @property string $legal_name
  * @property string|null $phone
  * @property string $email
  * @property Carbon|null $email_verified_at
@@ -69,8 +69,8 @@ class Trooper extends Model
 {
     use SoftDeletes;
     const ID = 'id';
-    const LEGAL_NAME = 'legal_name';
     const DISPLAY_NAME = 'display_name';
+    const LEGAL_NAME = 'legal_name';
     const PHONE = 'phone';
     const EMAIL = 'email';
     const EMAIL_VERIFIED_AT = 'email_verified_at';
@@ -104,8 +104,8 @@ class Trooper extends Model
     ];
 
     protected $fillable = [
-        self::LEGAL_NAME,
         self::DISPLAY_NAME,
+        self::LEGAL_NAME,
         self::PHONE,
         self::EMAIL,
         self::EMAIL_VERIFIED_AT,
@@ -182,7 +182,7 @@ class Trooper extends Model
     public function organizations(): BelongsToMany
     {
         return $this->belongsToMany(Organization::class, 'tt_trooper_organizations')
-                    ->withPivot(TrooperOrganization::ID, TrooperOrganization::IDENTIFIER, TrooperOrganization::MEMBERSHIP_STATUS, TrooperOrganization::VERIFIED_AT, TrooperOrganization::DELETED_AT, TrooperOrganization::CREATED_ID, TrooperOrganization::UPDATED_ID, TrooperOrganization::DELETED_ID)
+                    ->withPivot(TrooperOrganization::ID, TrooperOrganization::IDENTIFIER, TrooperOrganization::MEMBERSHIP_STATUS, TrooperOrganization::SYNCHRONIZED_AT, TrooperOrganization::DELETED_AT, TrooperOrganization::CREATED_ID, TrooperOrganization::UPDATED_ID, TrooperOrganization::DELETED_ID)
                     ->withTimestamps();
     }
 }

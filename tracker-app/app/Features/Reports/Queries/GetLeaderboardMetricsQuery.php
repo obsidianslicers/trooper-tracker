@@ -12,9 +12,9 @@ use Carbon\Carbon;
  *
  * Provides the time window used by the dashboard metrics handler.
  *
- * @see GetDashboardMetricsQueryHandler
+ * @see GetLeaderboardMetricsQueryHandler
  */
-readonly class GetDashboardMetricsQuery
+readonly class GetLeaderboardMetricsQuery
 {
     use HasLookback;
 

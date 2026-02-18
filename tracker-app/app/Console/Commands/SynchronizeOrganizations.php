@@ -40,7 +40,6 @@ class SynchronizeOrganizations extends Command
         $organizations = Organization::ofTypeOrganizations()
             ->whereNotNull(Organization::SERVICE_CLASS)
             ->orderBy(Organization::NAME)
-            ->where('name', '501st Legion') // For testing purposes only
             ->get();
 
         foreach ($organizations as $organization)
@@ -49,9 +48,9 @@ class SynchronizeOrganizations extends Command
 
             $service_class = app($service_class, compact('organization'));
 
-            $service_class->syncAllMembers();
+            $service_class->synchronize();
 
-            $service_class->syncCostumes();
+            $this->info("Synchronized organization: {$organization->name}");
         }
     }
 }

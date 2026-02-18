@@ -73,7 +73,7 @@
                         @if(Auth::user()->is_administrator && $notice->organization === null)
                             <x-action-link-update :url="route('admin.notices.update', ['notice' => $notice])" />
                             <x-action-link-copy :url="route('admin.notices.create', ['copy_id' => $notice->id])" />
-                        @elseif($notice->organization->trooper_assignments->count() > 0)
+                        @elseif(Auth::user()->is_administrator || $notice->organization->trooper_assignments->count() > 0)
                             <x-action-link-update :url="route('admin.notices.update', ['notice' => $notice])" />
                             <x-action-link-copy :url="route('admin.notices.create', ['copy_id' => $notice->id])" />
                         @endif

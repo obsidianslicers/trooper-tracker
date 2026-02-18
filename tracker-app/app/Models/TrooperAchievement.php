@@ -21,18 +21,6 @@ class TrooperAchievement extends BaseTrooperAchievement
     use HasFactory;
 
     /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
-    protected $fillable = [
-        'trooper_id',
-        'type',
-        'value',
-        'earned_on',
-    ];
-
-    /**
      * Display order for achievements.
      *
      * Maps achievement type values to their sort order for UI display.

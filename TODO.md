@@ -74,6 +74,17 @@ stan/pint - WIP
   - volunteer hours
   - direct and indirect donations
 
+### CLUB-SYNC
+- Edit Google Excel ID from UI
+- Dashboard (view costumes and pictures)
+- Join Date
+
+### MOBILE API
+- Begin converting old API to new API
+
+### COSTUMES
+- Update/Delete Costumes from UI
+
 ## INTEGRATIONS
 - Xenforo tie in modules (When posting a event, cross post to Xenforo, use the comments on forum for tracker, ability to see forum link on event)
 - Discord bot cross (When posting a event, cross post to Discord)

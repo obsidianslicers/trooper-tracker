@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\MagicBusController;
+use App\Models\Base\TrooperCostume as BaseTrooperCostume;
 use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
+use App\Models\TrooperCostume;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -17,7 +19,8 @@ use Illuminate\Support\Facades\Auth;
 /**
  * Handles the display of the main trooper dashboard.
  *
- * This controller gathers various statistics for a trooper, such as troop counts by organization and costume, and displays them.
+ * This controller gathers various statistics for a trooper, such as troop
+ * counts by organization and costume, and displays them.
  */
 class DashboardDisplayController extends MagicBusController
 {
@@ -55,6 +58,20 @@ class DashboardDisplayController extends MagicBusController
             'metrics' => $metrics,
             'total_troops_by_organization' => $this->getTroopsByOrganization($trooper),
             'total_troops_by_costume' => $this->getTroopsByCostume($trooper),
+            // synced costumes for this trooper (those with at least one image)
+            'synced_costumes' => OrganizationCostume::whereHas('trooper_costumes', function ($q) use ($trooper_id) {
+                $q->where(TrooperCostume::TROOPER_ID, $trooper_id)
+                    ->where(function ($q2) {
+                        $q2->whereNotNull(BaseTrooperCostume::LARGE_IMAGE_URL)
+                            ->orWhereNotNull(BaseTrooperCostume::SMALL_IMAGE_URL);
+                    });
+            })->with(['trooper_costumes' => function ($q) use ($trooper_id) {
+                $q->where(TrooperCostume::TROOPER_ID, $trooper_id)
+                    ->where(function ($q2) {
+                        $q2->whereNotNull(BaseTrooperCostume::LARGE_IMAGE_URL)
+                            ->orWhereNotNull(BaseTrooperCostume::SMALL_IMAGE_URL);
+                    })->orderBy('id', 'desc');
+            }])->orderBy('name')->get(),
         ];
 
         return view('pages.dashboard.display', $data);

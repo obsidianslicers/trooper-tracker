@@ -24,7 +24,7 @@ class FlashMessageService
     /**
      * Adds a success flash message on a created model.
      *
-     * @param Model $model The model that was created.
+     * @param  Model  $model  The model that was created.
      */
     public function created(Model $model): void
     {
@@ -34,7 +34,7 @@ class FlashMessageService
     /**
      * Adds a success flash message on a updated model.
      *
-     * @param Model $model The model that was updated.
+     * @param  Model  $model  The model that was updated.
      */
     public function updated(Model $model): void
     {
@@ -44,7 +44,7 @@ class FlashMessageService
     /**
      * Adds a success flash message on a deleted model.
      *
-     * @param Model $model The model that was deleted.
+     * @param  Model  $model  The model that was deleted.
      */
     public function deleted(Model $model): void
     {
@@ -54,8 +54,8 @@ class FlashMessageService
     /**
      * Builds and adds a flash message for a model action (created, updated, deleted).
      *
-     * @param Model $model The model instance for which to create the message.
-     * @param string $action The action performed on the model (e.g., 'created').
+     * @param  Model  $model  The model instance for which to create the message.
+     * @param  string  $action  The action performed on the model (e.g., 'created').
      */
     private function addModelMessage(Model $model, string $action): void
     {
@@ -86,7 +86,7 @@ class FlashMessageService
     /**
      * Adds a success flash message.
      *
-     * @param string $message The message content.
+     * @param  string  $message  The message content.
      */
     public function success(string $message): void
     {
@@ -96,7 +96,7 @@ class FlashMessageService
     /**
      * Adds a warning flash message.
      *
-     * @param string $message The message content.
+     * @param  string  $message  The message content.
      */
     public function warning(string $message): void
     {
@@ -106,7 +106,7 @@ class FlashMessageService
     /**
      * Adds a danger/error flash message.
      *
-     * @param string $message The message content.
+     * @param  string  $message  The message content.
      */
     public function danger(string $message): void
     {
@@ -116,8 +116,8 @@ class FlashMessageService
     /**
      * Adds a message to the session flash data.
      *
-     * @param string $type The type of message (e.g., 'success', 'warning').
-     * @param string $message The message content.
+     * @param  string  $type  The type of message (e.g., 'success', 'warning').
+     * @param  string  $message  The message content.
      */
     private function addMessage(string $type, string $message): void
     {
@@ -143,5 +143,4 @@ class FlashMessageService
 
         return $messages;
     }
-
 }

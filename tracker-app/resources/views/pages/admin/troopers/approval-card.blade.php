@@ -40,7 +40,7 @@
                         </td>
                         <td>
                             {{ $organization->pivot->identifier }}
-                            @if($organization->pivot->verified_at != null)
+                            @if($organization->pivot->synchronized_at != null)
                                 <i class="fa fa-fw fa-circle-check text-success float-end my-1"></i>
                             @endif
                         </td>

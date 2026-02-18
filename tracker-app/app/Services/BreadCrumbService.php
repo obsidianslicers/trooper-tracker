@@ -39,7 +39,7 @@ class BreadCrumbService
     /**
      * Adds a new breadcrumb to the trail with just a title (no link).
      *
-     * @param string $title The display text for the breadcrumb.
+     * @param  string  $title  The display text for the breadcrumb.
      */
     public function add(string $title): void
     {
@@ -51,9 +51,9 @@ class BreadCrumbService
     /**
      * Adds a new breadcrumb to the trail with a title and a link generated from a Laravel route.
      *
-     * @param string $title The display text for the breadcrumb.
-     * @param string $route The name of the route to generate the URL from.
-     * @param array<string, mixed> $parms Optional parameters to pass to the route helper.
+     * @param  string  $title  The display text for the breadcrumb.
+     * @param  string  $route  The name of the route to generate the URL from.
+     * @param  array<string, mixed>  $parms  Optional parameters to pass to the route helper.
      */
     public function addRoute(string $title, string $route, array $parms = []): void
     {

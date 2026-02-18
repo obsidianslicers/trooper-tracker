@@ -22,6 +22,11 @@ return new class extends Migration
                 ->constrained('tt_organization_costumes')
                 ->cascadeOnDelete();
 
+            $table->string('small_image_url', 128)->nullable();
+            $table->string('large_image_url', 128)->nullable();
+            $table->string('bucket_off_url', 128)->nullable();
+            $table->dateTime('synchronized_at')->nullable();
+
             $table->timestamps();
             $table->softDeletes();
             $table->trooperstamps();

@@ -12,12 +12,10 @@ class BreadCrumb
     /**
      * Creates a new BreadCrumb instance.
      *
-     * @param string $title The display text for the breadcrumb.
-     * @param string $url The URL the breadcrumb links to. Defaults to an empty string for non-linked crumbs.
+     * @param  string  $title  The display text for the breadcrumb.
+     * @param  string  $url  The URL the breadcrumb links to. Defaults to an empty string for non-linked crumbs.
      */
     public function __construct(
         public readonly string $title,
-        public readonly string $url = '')
-    {
-    }
+        public readonly string $url = '') {}
 }

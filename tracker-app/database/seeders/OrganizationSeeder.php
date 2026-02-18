@@ -43,6 +43,7 @@ class OrganizationSeeder extends Seeder
                 'identifier_display' => 'TKID',
                 'identifier_validation' => 'integer|between:1000,99999',
                 'service_class' => TheLegionService::class,
+                'sync_sheet_id' => null,
             ],
             [
                 'name' => 'Rebel Legion',
@@ -57,28 +58,32 @@ class OrganizationSeeder extends Seeder
                 'description' => 'Custom Mandalorian armor builders and costumers.',
                 'identifier_display' => 'CAT #',
                 'identifier_validation' => 'integer',
-                'service_class' => MandalorianMercsService::class
+                'service_class' => MandalorianMercsService::class,
+                'sync_sheet_id' => null,
             ],
             [
                 'name' => 'Dark Empire',
                 'description' => 'Expanded universe costuming group for dark side characters.',
                 'identifier_display' => '#',
                 'identifier_validation' => 'integer',
-                'service_class' => DarkEmpireServices::class
+                'service_class' => DarkEmpireServices::class,
+                'sync_sheet_id' => null,
             ],
             [
                 'name' => 'Droid Builders',
                 'description' => 'Star Wars droid construction and robotics enthusiast group.',
                 'identifier_display' => '#',
                 'identifier_validation' => 'integer',
-                'service_class' => DroidBuildersService::class
+                'service_class' => DroidBuildersService::class,
+                'sync_sheet_id' => '195NT1crFYL_ECVyzoaD2F1QXGW5WxlnBDfDaLVtM87Y',
             ],
             [
                 'name' => 'Saber Guild',
                 'description' => 'Lightsaber performance and Jedi/Sith costuming group.',
                 'identifier_display' => 'SG #',
                 'identifier_validation' => 'integer',
-                'service_class' => SaberGuildServices::class
+                'service_class' => SaberGuildServices::class,
+                'sync_sheet_id' => '1PcveycMujakkKeG2m4y8iFunrFbo2KVpQJ00GyPI3b8',
             ],
         ];
 
