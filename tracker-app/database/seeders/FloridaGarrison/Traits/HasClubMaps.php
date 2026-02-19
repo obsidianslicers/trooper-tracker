@@ -91,7 +91,7 @@ trait HasClubMaps
         $legacy_clubs = [
             0 => ['name' => '501st Legion', 'column' => 'p501', 'identity' => 'tkid'],
             6 => ['name' => 'Rebel Legion', 'column' => 'pRebel', 'identity' => 'rebelforum'],
-            7 => ['name' => 'Droid Builders', 'column' => 'pDroid', 'identity' => ''],
+            7 => ['name' => 'Droid Builders', 'column' => 'pDroid', 'identity' => 'forum_id'],
             8 => ['name' => 'Mandalorian Mercs', 'column' => 'pMando', 'identity' => 'mandoid'],
             //9 => ['name' => 'Other', 'column' => 'pOther', 'identity' => ''],
             10 => ['name' => 'Saber Guild', 'column' => 'pSG', 'identity' => 'sgid'],

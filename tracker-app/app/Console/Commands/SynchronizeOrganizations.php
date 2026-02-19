@@ -45,13 +45,6 @@ class SynchronizeOrganizations extends Command
 
         foreach ($organizations as $organization)
         {
-            if ($organization->service_class === TheLegionService::class)
-            {
-                $this->info("TEST Skipping organization with no service class: {$organization->name}");
-
-                continue;
-            }
-
             $service_class = $organization->service_class;
 
             $service_class = app($service_class, compact('organization'));

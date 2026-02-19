@@ -44,11 +44,6 @@ class DroidBuildersService extends BaseOrganizationService
 
             $trooper = $this->getTrooper($identifier);
 
-            if ($identifier === 'DarthMushu')
-            {
-                dd($trooper);
-            }
-
             if ($trooper === null)
             {
                 continue;
