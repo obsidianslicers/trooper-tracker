@@ -10,12 +10,18 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 /**
- * Class UpdateController
+ * Displays the form for updating an existing costume.
  *
- * Handles displaying the form to update an existing costume.
+ * An invokable controller that authorizes the user, retrieves the costume,
+ * and renders the costume update form with appropriate breadcrumbs.
  */
 class UpdateController extends MagicBusController
 {
+    /**
+     * Set up breadcrumbs for the costume update page.
+     *
+     * @return void
+     */
     protected function initialized(): void
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
@@ -23,14 +29,13 @@ class UpdateController extends MagicBusController
     }
 
     /**
-     * Handle the request to display the costume update page
+     * Handle the request to display the costume update page.
      *
-     * Authorizes the user, sets up breadcrumbs, and returns the view
-     * containing the form to update an existing costume.
+     * Authorizes the user, retrieves the costume, and renders the costume
+     * update form.
      *
-     * @param  Request  $request  The incoming HTTP request object
-     * @param  Costume  $costume  The costume to be updated
-     * @return View The rendered costume update view
+     * @param Costume $costume The costume to be updated (route model binding).
+     * @return View The rendered costume update view.
      */
     public function __invoke(Request $request, Costume $costume): View
     {

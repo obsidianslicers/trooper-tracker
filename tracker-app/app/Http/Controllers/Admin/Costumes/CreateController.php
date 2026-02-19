@@ -10,12 +10,18 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 /**
- * Class CreateController
+ * Displays the form for creating a new costume.
  *
- * Handles displaying the form to create a new costume .
+ * An invokable controller that authorizes the user and renders the costume
+ * creation form with appropriate breadcrumbs.
  */
 class CreateController extends MagicBusController
 {
+    /**
+     * Set up breadcrumbs for the costume creation page.
+     *
+     * @return void
+     */
     protected function initialized(): void
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
@@ -23,10 +29,12 @@ class CreateController extends MagicBusController
     }
 
     /**
-     * Handle the request to display the costume creation page
+     * Handle the request to display the costume creation page.
      *
-     * @param  Request  $request  The incoming HTTP request object
-     * @return View The rendered costume creation view
+     * Authorizes the user, initializes a new Costume instance, and renders
+     * the costume creation form.
+     *
+     * @return View The rendered costume creation view.
      */
     public function __invoke(Request $request): View
     {

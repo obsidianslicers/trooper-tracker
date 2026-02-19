@@ -10,18 +10,17 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 /**
- * Handles the validation for creating a new costume.
+ * Request class for validating new costume creation.
  *
- * This class defines validation rules for creating child costumes under a parent
- * costume. It ensures the costume name is unique among siblings within the
- * same parent costume using a custom validation rule.
+ * Defines validation rules for costume creation, ensuring the costume name
+ * is unique globally across the system.
  */
 class CreateRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request
+     * Determine if the user is authorized to make this request.
      *
-     * @return bool Returns true if the user has permission to create costumes, false otherwise
+     * @return bool True if the user has permission to create costumes.
      */
     public function authorize(): bool
     {
@@ -29,10 +28,7 @@ class CreateRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request
-     *
-     * Validates the costume name ensuring it's unique among sibling costumes
-     * under the same parent costume.
+     * Get the validation rules that apply to the request.
      *
      * @return array<string, mixed> The validation rules for creating a costume
      */

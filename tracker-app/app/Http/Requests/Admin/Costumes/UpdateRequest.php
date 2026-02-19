@@ -10,24 +10,21 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 /**
- * Handles the validation for updating an existing costume.
+ * Request class for validating costume updates.
  *
- * This class defines validation rules for updating costume information.
- * It ensures the costume name remains unique among sibling costumes
- * (children of the same parent) while excluding the costume being updated
- * from the uniqueness check.
+ * Defines validation rules for costume updates, ensuring the costume name
+ * remains unique globally while excluding the current costume from the check.
  */
 class UpdateRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request
+     * Determine if the user is authorized to make this request.
      *
      * Verifies that the costume exists in the route and that the authenticated
      * user has permission to update it.
      *
-     * @return bool Returns true if the user can update the costume
-     *
-     * @throws AuthorizationException if the costume is not found in the route
+     * @return bool True if the user is authorized to update the costume.
+     * @throws AuthorizationException If the costume is not found in the route.
      */
     public function authorize(): bool
     {
@@ -42,12 +39,12 @@ class UpdateRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request
+     * Get the validation rules that apply to the request.
      *
-     * Validates the costume name ensuring it's unique among sibling costumes,
-     * excluding the current costume from the uniqueness check.
+     * Validates the costume name ensuring it remains unique, excluding the
+     * current costume from the uniqueness check.
      *
-     * @return array<string, mixed> The validation rules for updating a costume
+     * @return array<string, mixed> The validation rules for updating a costume.
      */
     public function rules(): array
     {

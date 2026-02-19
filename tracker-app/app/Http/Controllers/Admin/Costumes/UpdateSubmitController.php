@@ -10,21 +10,22 @@ use App\Models\Costume;
 use Illuminate\Http\RedirectResponse;
 
 /**
- * Class UpdateSubmitController
+ * Handles submission of the form for updating an existing costume.
  *
- * Handles the submission of the form for updating an existing costume.
+ * An invokable controller that validates the request, updates the costume's
+ * name, and redirects to the costume list page.
  */
 class UpdateSubmitController extends MagicBusController
 {
     /**
-     * Handle the incoming request to update an costume
+     * Handle the incoming request to update a costume.
      *
      * Validates the request, updates the costume's name, saves it,
-     * and then redirects with a success message.
+     * and redirects to the costume list with a success message.
      *
-     * @param  UpdateRequest  $request  The validated request containing the updated data
-     * @param  Costume  $costume  The costume to be updated
-     * @return RedirectResponse A redirect response to the costume list
+     * @param UpdateRequest $request The validated request containing the updated data.
+     * @param Costume $costume The costume to be updated (route model binding).
+     * @return RedirectResponse A redirect response to the costume list.
      */
     public function __invoke(UpdateRequest $request, Costume $costume): RedirectResponse
     {
