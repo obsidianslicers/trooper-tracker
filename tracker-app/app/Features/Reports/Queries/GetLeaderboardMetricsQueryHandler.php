@@ -12,7 +12,7 @@ use App\Enums\OrganizationType;
 use App\Models\Event;
 use App\Models\EventTrooper;
 use App\Models\Organization;
-use App\Models\OrganizationCostume;
+use App\Models\Costume;
 use App\Models\Trooper;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -72,13 +72,13 @@ readonly class GetLeaderboardMetricsQueryHandler implements QueryHandlerInterfac
             })
             ->whereNotNull('costume_id')
             ->select('costume_id', \DB::raw('count(*) as occurrence_count'))
-            ->whereDoesntHave('organization_costume', function ($q)
+            ->whereDoesntHave('costume', function ($q)
             {
-                $q->whereIn(OrganizationCostume::NAME, ['N/A', 'NA', 'Handler',]);
+                $q->whereIn(Costume::NAME, ['N/A', 'NA', 'Handler',]);
             })
-            ->with(['organization_costume' => function ($q)
+            ->with(['costume' => function ($q)
             {
-                $q->select(OrganizationCostume::ID, OrganizationCostume::NAME);
+                $q->select(Costume::ID, Costume::NAME);
             }])
             ->groupBy('costume_id')
             ->orderByDesc('occurrence_count')
@@ -87,7 +87,7 @@ readonly class GetLeaderboardMetricsQueryHandler implements QueryHandlerInterfac
             ->map(function ($record)
             {
                 return [
-                    'name' => $record->organization_costume->name ?? 'Unknown Kit',
+                    'name' => $record->costume->name ?? 'Unknown Kit',
                     'count' => $record->occurrence_count,
                 ];
             });
