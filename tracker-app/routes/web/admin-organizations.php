@@ -3,10 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Admin\Organizations\CostumesController;
-use App\Http\Controllers\Admin\Organizations\CostumesSubmitController;
 use App\Http\Controllers\Admin\Organizations\CreateController;
-use App\Http\Controllers\Admin\Organizations\CreateCostumeController;
-use App\Http\Controllers\Admin\Organizations\CreateCostumeSubmitController;
 use App\Http\Controllers\Admin\Organizations\CreateSubmitController;
 use App\Http\Controllers\Admin\Organizations\ListController;
 use App\Http\Controllers\Admin\Organizations\UpdateController;
@@ -27,7 +24,4 @@ Route::prefix('admin/organizations')
         Route::post('/{organization}/update', UpdateSubmitController::class);
         Route::post('/{organization}/image', UpdateImageController::class)->name('update-image');
         Route::get('/{organization}/costumes', CostumesController::class)->name('costumes');
-        Route::post('/{organization}/costumes', CostumesSubmitController::class);
-        Route::get('/{organization}/costumes/create', CreateCostumeController::class)->name('create-costume');
-        Route::post('/{organization}/costumes/create', CreateCostumeSubmitController::class);
     });
