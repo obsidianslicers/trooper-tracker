@@ -41,6 +41,15 @@
                 Create, Update Awards, as well as assign them to troopers
             </p>
         </x-dashboard-card>
+        @can('create', \App\Models\Costume::class)
+            <x-dashboard-card :label="'Costumes'"
+                              :icon="'fa-wrench'"
+                              :url="route('admin.costumes.list')">
+                <p>
+                    Create, Update, and Manage Costumes
+                </p>
+            </x-dashboard-card>
+        @endcan
         <x-dashboard-card :label="'Organizations'"
                           :icon="'fa-wrench'"
                           :url="route('admin.organizations.list')">

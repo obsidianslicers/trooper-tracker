@@ -16,8 +16,8 @@ Route::prefix('admin/costumes')
     ->group(function ()
     {
         Route::get('/', ListController::class)->name('list');
-        Route::get('/{parent}/create', CreateController::class)->name('create');
-        Route::post('/{parent}/create', CreateSubmitController::class);
+        Route::get('/create', CreateController::class)->name('create');
+        Route::post('/create', CreateSubmitController::class);
         Route::get('/{costume}/update', UpdateController::class)->name('update');
         Route::post('/{costume}/update', UpdateSubmitController::class);
     });

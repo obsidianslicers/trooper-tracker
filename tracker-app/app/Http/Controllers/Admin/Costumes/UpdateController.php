@@ -36,9 +36,7 @@ class UpdateController extends MagicBusController
     {
         $this->authorize('update', $costume);
 
-        $data = [
-            'costume' => $costume,
-        ];
+        $data = compact('costume');
 
         return view('pages.admin.costumes.update', $data);
     }

@@ -35,11 +35,9 @@ class ListController extends MagicBusController
      */
     public function __invoke(Request $request): View
     {
-        $costumes = Costume::withAllAssignments(Auth::user()->id)->get();
+        $costumes = Costume::orderBy(Costume::NAME)->get();
 
-        $data = [
-            'costumes' => $costumes,
-        ];
+        $data = compact('costumes');
 
         return view('pages.admin.costumes.list', $data);
     }

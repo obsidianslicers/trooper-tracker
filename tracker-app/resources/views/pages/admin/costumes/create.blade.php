@@ -1,10 +1,10 @@
 @extends('layouts.base')
 
-@section('page-title', 'Create Organization')
+@section('page-title', 'Create Costume')
 
 @section('content')
 
-    <x-transmission-bar :id="'organization'" />
+    <x-transmission-bar :id="'costume'" />
 
     <x-slim-container>
 
@@ -15,26 +15,17 @@
 
                 <x-input-container>
                     <x-label>
-                        Parent:
-                    </x-label>
-                    <x-input-text :property="'parent_name'"
-                                  :disabled="true"
-                                  :value="$parent->name" />
-                </x-input-container>
-
-                <x-input-container>
-                    <x-label>
                         Name:
                     </x-label>
                     <x-input-text :property="'name'"
-                                  :value="$organization->name" />
+                                  :value="$costume->name" />
                 </x-input-container>
 
                 <x-submit-container>
                     <x-submit-button>
                         Create
                     </x-submit-button>
-                    <x-link-button-cancel :url="route('admin.organizations.list')" />
+                    <x-link-button-cancel :url="route('admin.costumes.list')" />
                 </x-submit-container>
 
             </form>
