@@ -12,5 +12,7 @@ namespace App\Services\Synchronizers;
  */
 class DarkEmpireServices extends BaseOrganizationService
 {
-    public function synchronize(): void {}
+    protected function synchronize(): void
+    {
+    }
 }

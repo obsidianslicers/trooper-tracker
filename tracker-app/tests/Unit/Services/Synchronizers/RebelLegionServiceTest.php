@@ -69,7 +69,7 @@ class RebelLegionServiceTest extends TestCase
             ->where(TrooperCostume::COSTUME_ID, $org_costume->id)
             ->first();
         $this->assertNotNull($trooper_costume);
-        $this->assertEquals('https://example.com/image.jpg', $trooper_costume->large_image_url);
+        $this->assertEquals('https://example.com/image.jpg', $trooper_costume->image_url_lg);
     }
 
     public function test_sync_costumes_skips_empty_costume_names(): void
@@ -271,6 +271,6 @@ class RebelLegionServiceTest extends TestCase
             ->first();
 
         $this->assertNotNull($trooper_costume);
-        $this->assertEquals('https://example.com/new_image.jpg', $trooper_costume->large_image_url);
+        $this->assertEquals('https://example.com/new_image.jpg', $trooper_costume->image_url_lg);
     }
 }

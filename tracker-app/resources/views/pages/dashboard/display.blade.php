@@ -104,9 +104,16 @@
                         @php
                             // collect large image and bucket-off variants (if present)
                             $images = collect();
-                            foreach ($sc->trooper_costumes as $tc) {
-                                if (! empty($tc->large_image_url)) { $images->push($tc->large_image_url); }
-                                if (! empty($tc->bucket_off_url)) { $images->push($tc->bucket_off_url); }
+                            foreach ($sc->trooper_costumes as $tc)
+                            {
+                                if (!empty($tc->image_url_lg))
+                                {
+                                    $images->push($tc->large_image_url);
+                                }
+                                if (!empty($tc->image_url_bucket_off))
+                                {
+                                    $images->push($tc->image_url_bucket_off);
+                                }
                             }
                             $images = $images->filter()->unique()->values();
                         @endphp
@@ -114,8 +121,13 @@
                             <div class="small text-muted">{{ $sc->name }}</div>
                             <div class="d-flex gap-2 mt-1">
                                 @foreach($images as $img)
-                                    <a href="{{ $img }}" target="_blank" rel="noopener noreferrer">
-                                        <img src="{{ $img }}" alt="{{ $sc->name }}" class="img-fluid rounded" style="width:128px; height:128px; object-fit:cover;">
+                                    <a href="{{ $img }}"
+                                       target="_blank"
+                                       rel="noopener noreferrer">
+                                        <img src="{{ $img }}"
+                                             alt="{{ $sc->name }}"
+                                             class="img-fluid rounded"
+                                             style="width:128px; height:128px; object-fit:cover;">
                                     </a>
                                 @endforeach
                                 @if($images->isEmpty())

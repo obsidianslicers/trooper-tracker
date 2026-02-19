@@ -18,13 +18,13 @@ return new class extends Migration
             $table->foreignId('trooper_id')
                 ->constrained('tt_troopers')
                 ->cascadeOnDelete();
-            $table->foreignId('costume_id')
+            $table->foreignId('organization_costume_id')
                 ->constrained('tt_organization_costumes')
                 ->cascadeOnDelete();
 
-            $table->string('small_image_url', 128)->nullable();
-            $table->string('large_image_url', 128)->nullable();
-            $table->string('bucket_off_url', 128)->nullable();
+            $table->string('image_url_sm', 128)->nullable();
+            $table->string('image_url_lg', 128)->nullable();
+            $table->string('image_url_bucket_off', 128)->nullable();
             $table->dateTime('synchronized_at')->nullable();
 
             $table->timestamps();
@@ -32,7 +32,7 @@ return new class extends Migration
             $table->trooperstamps();
 
             // Prevent duplicate entries
-            $table->unique(columns: ['trooper_id', 'costume_id']);
+            $table->unique(columns: ['trooper_id', 'organization_costume_id']);
         });
     }
 

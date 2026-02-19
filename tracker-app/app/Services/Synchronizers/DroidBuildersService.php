@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Synchronizers;
 
 use App\Enums\MembershipStatus;
+use App\Models\TrooperCostume;
 
 /**
  * DroidBuildersService
@@ -15,9 +16,9 @@ use App\Enums\MembershipStatus;
  */
 class DroidBuildersService extends BaseOrganizationService
 {
-    public function synchronize(): void
+    protected function synchronize(): void
     {
-        $costume_rows = $this->getSheetRows();
+        $costume_rows = $this->getSheetRows('Sheet1');
 
         foreach ($costume_rows as $row)
         {
@@ -31,7 +32,7 @@ class DroidBuildersService extends BaseOrganizationService
             }
 
             // Map to organization costume and trooper costume
-            $identifier = $forum_id.'';
+            $identifier = $forum_id . '';
 
             if (empty($identifier))
             {
@@ -43,6 +44,11 @@ class DroidBuildersService extends BaseOrganizationService
 
             $trooper = $this->getTrooper($identifier);
 
+            if ($identifier === 'DarthMushu')
+            {
+                dd($trooper);
+            }
+
             if ($trooper === null)
             {
                 continue;
@@ -50,9 +56,11 @@ class DroidBuildersService extends BaseOrganizationService
 
             $this->syncTrooperStatus($trooper, MembershipStatus::ACTIVE);
 
-            $this->syncTrooperCostume($trooper, $org_costume, $costume_image);
-        }
+            $attributes = [
+                TrooperCostume::IMAGE_URL_LG => $costume_image,
+            ];
 
-        $this->updateOrganizationSync();
+            $this->syncTrooperCostume($trooper, $org_costume, $attributes);
+        }
     }
 }

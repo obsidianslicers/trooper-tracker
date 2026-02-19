@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Database\Seeders;
 
 use Database\Seeders\FloridaGarrison\AwardSeeder;
-use Database\Seeders\FloridaGarrison\AwardTrooperSeeder;
+use Database\Seeders\FloridaGarrison\CostumeSeeder;
 use Database\Seeders\FloridaGarrison\EventSeeder;
 use Database\Seeders\FloridaGarrison\EventUploadSeeder;
 use Database\Seeders\FloridaGarrison\EventUploadTrooperSeeder;
@@ -28,6 +28,7 @@ class FloridaGarrisonSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->call(CostumeSeeder::class);
         $this->call(OrganizationSeeder::class);
         $this->call(FloridaGarrisonOrganizationSeeder::class);
         $this->call(OrganizationCostumeSeeder::class);

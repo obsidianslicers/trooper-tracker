@@ -26,5 +26,5 @@ interface SynchronizerInterface
      * The scope and specific operations depend on the concrete implementation
      * (e.g., syncing costumes, updating membership status, etc.).
      */
-    public function synchronize(): void;
+    public function run(): void;
 }

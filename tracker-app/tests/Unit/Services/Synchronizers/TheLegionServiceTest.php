@@ -68,9 +68,9 @@ class TheLegionServiceTest extends TestCase
             ->where(TrooperCostume::COSTUME_ID, $stormtrooper->id)
             ->first();
         $this->assertNotNull($trooper_costume);
-        $this->assertEquals('https://example.com/stormtrooper.jpg', $trooper_costume->large_image_url);
-        $this->assertEquals('https://example.com/stormtrooper-thumb.jpg', $trooper_costume->small_image_url);
-        $this->assertEquals('https://example.com/stormtrooper-bucket.jpg', $trooper_costume->bucket_off_url);
+        $this->assertEquals('https://example.com/stormtrooper.jpg', $trooper_costume->image_url_lg);
+        $this->assertEquals('https://example.com/stormtrooper-thumb.jpg', $trooper_costume->image_url_sm);
+        $this->assertEquals('https://example.com/stormtrooper-bucket.jpg', $trooper_costume->image_url_bucket_off);
 
         // Verify trooper status updated to ACTIVE
         $trooper_with_pivot = $this->organization->troopers()->where('tt_troopers.id', $trooper->id)->first();
@@ -425,7 +425,7 @@ class TheLegionServiceTest extends TestCase
 
         // Verify image URL was updated
         $updated_costume = TrooperCostume::find($trooper_costume->id);
-        $this->assertEquals('https://example.com/stormtrooper.jpg', $updated_costume->large_image_url);
+        $this->assertEquals('https://example.com/stormtrooper.jpg', $updated_costume->image_url_lg);
     }
 
     public function test_synchronize_handles_costume_without_thumbnail(): void
@@ -468,7 +468,7 @@ class TheLegionServiceTest extends TestCase
             ->first();
 
         $this->assertNotNull($trooper_costume);
-        $this->assertNull($trooper_costume->small_image_url);
+        $this->assertNull($trooper_costume->image_url_sm);
     }
 
     public function test_synchronize_skips_trooper_not_found(): void

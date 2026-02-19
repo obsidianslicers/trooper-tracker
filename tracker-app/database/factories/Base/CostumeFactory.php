@@ -4,9 +4,9 @@ namespace Database\Factories\Base;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
-use App\Models\OrganizationCostume;
+use App\Models\Costume;
 
-class OrganizationCostumeFactory extends Factory
+class CostumeFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -16,8 +16,7 @@ class OrganizationCostumeFactory extends Factory
     public function definition(): array
     {
         return [
-            OrganizationCostume::ORGANIZATION_ID => \App\Models\Organization::factory(),
-            OrganizationCostume::COSTUME_ID => \App\Models\Costume::factory(),
+            Costume::NAME => $this->faker->unique()->name(),
         ];
     }
 }

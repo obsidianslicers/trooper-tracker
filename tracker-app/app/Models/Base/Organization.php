@@ -7,6 +7,7 @@
 namespace App\Models\Base;
 
 use App\Models\Award;
+use App\Models\Costume;
 use App\Models\Event;
 use App\Models\Notice;
 use App\Models\OrganizationCostume;
@@ -50,7 +51,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Collection|Award[] $awards
  * @property Collection|Event[] $events
  * @property Collection|Notice[] $notices
- * @property Collection|OrganizationCostume[] $organization_costumes
+ * @property Collection|Costume[] $costumes
  * @property Collection|\App\Models\Organization[] $organizations
  * @property Collection|TrooperAssignment[] $trooper_assignments
  * @property Collection|Trooper[] $troopers
@@ -133,9 +134,11 @@ class Organization extends Model
         return $this->hasMany(Notice::class);
     }
 
-    public function organization_costumes(): HasMany
+    public function costumes(): BelongsToMany
     {
-        return $this->hasMany(OrganizationCostume::class);
+        return $this->belongsToMany(Costume::class, 'tt_organization_costumes')
+                    ->withPivot(OrganizationCostume::ID, OrganizationCostume::PREFIX, OrganizationCostume::SYNCHRONIZED_AT, OrganizationCostume::DELETED_AT, OrganizationCostume::CREATED_ID, OrganizationCostume::UPDATED_ID, OrganizationCostume::DELETED_ID)
+                    ->withTimestamps();
     }
 
     public function organizations(): HasMany

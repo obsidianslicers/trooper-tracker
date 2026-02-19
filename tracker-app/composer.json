@@ -64,6 +64,17 @@
             "pint app/Services"
         ],
         "stan": "phpstan analyse --memory-limit=1G",
+        "db:migrate-all": [
+            "@db:regen",
+            "@php artisan db:seed --class=FloridaGarrisonSeeder"
+        ],
+        "db:regen": [
+            "@test:freshdb",
+            "@php artisan migrate:rollback --force",
+            "@php artisan migrate",
+            "@php artisan code:model",
+            "@php artisan tracker:generate-factories"
+        ],
         "test:fresh": [
             "@test:freshdb",
             "@php artisan test"

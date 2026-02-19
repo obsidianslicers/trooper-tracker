@@ -19,7 +19,10 @@ return new class extends Migration
                 ->constrained('tt_organizations')
                 ->cascadeOnDelete();
 
-            $table->string('name', 128);
+            $table->foreignId('costume_id')
+                ->constrained('tt_costumes')
+                ->cascadeOnDelete();
+
             $table->string('prefix', 8)->nullable();
             $table->dateTime('synchronized_at')->nullable();
 
@@ -27,7 +30,7 @@ return new class extends Migration
             $table->softDeletes();
             $table->trooperstamps();
 
-            $table->unique(['organization_id', 'name']);
+            $table->unique(['organization_id', 'costume_id']);
         });
     }
 

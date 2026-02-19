@@ -12,5 +12,7 @@ namespace App\Services\Synchronizers;
  */
 class MandalorianMercsService extends BaseOrganizationService
 {
-    public function synchronize(): void {}
+    protected function synchronize(): void
+    {
+    }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Models\Organization;
+use App\Services\Synchronizers\TheLegionService;
 use Illuminate\Console\Command;
 
 /**
@@ -44,11 +45,18 @@ class SynchronizeOrganizations extends Command
 
         foreach ($organizations as $organization)
         {
+            if ($organization->service_class === TheLegionService::class)
+            {
+                $this->info("TEST Skipping organization with no service class: {$organization->name}");
+
+                continue;
+            }
+
             $service_class = $organization->service_class;
 
             $service_class = app($service_class, compact('organization'));
 
-            $service_class->synchronize();
+            $service_class->run();
 
             $this->info("Synchronized organization: {$organization->name}");
         }

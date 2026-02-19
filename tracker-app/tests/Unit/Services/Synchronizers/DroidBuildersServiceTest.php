@@ -69,7 +69,7 @@ class DroidBuildersServiceTest extends TestCase
             ->where(TrooperCostume::COSTUME_ID, $org_costume->id)
             ->first();
         $this->assertNotNull($trooper_costume);
-        $this->assertEquals('https://example.com/r2d2.jpg', $trooper_costume->large_image_url);
+        $this->assertEquals('https://example.com/r2d2.jpg', $trooper_costume->image_url_lg);
     }
 
     public function test_sync_costumes_skips_empty_costume_names(): void
@@ -271,7 +271,7 @@ class DroidBuildersServiceTest extends TestCase
             ->first();
 
         $this->assertNotNull($trooper_costume);
-        $this->assertEquals('https://example.com/new_image.jpg', $trooper_costume->large_image_url);
+        $this->assertEquals('https://example.com/new_image.jpg', $trooper_costume->image_url_lg);
     }
 
     public function test_sync_costumes_with_null_image_url(): void
@@ -304,6 +304,6 @@ class DroidBuildersServiceTest extends TestCase
 
         $this->assertNotNull($trooper_costume);
         // cleanInput(null) now returns null
-        $this->assertNull($trooper_costume->large_image_url);
+        $this->assertNull($trooper_costume->image_url_lg);
     }
 }

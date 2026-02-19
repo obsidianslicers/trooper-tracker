@@ -6,6 +6,7 @@ namespace App\Services\Synchronizers;
 
 use App\Contracts\SynchronizerInterface;
 use App\Enums\MembershipStatus;
+use App\Models\Costume;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
@@ -20,27 +21,40 @@ abstract class BaseOrganizationService implements SynchronizerInterface
 
     public function __construct(
         protected readonly Organization $organization,
-        protected readonly GoogleService $google) {}
+        protected readonly GoogleService $google)
+    {
+    }
 
-    abstract public function synchronize(): void;
+    public function run(): void
+    {
+        Log::info(__CLASS__ . ":{$this->organization->name} Starting synchronization");
 
-    protected function getSheetRows(bool $skip_header = true): array
+        $this->synchronize();
+
+        $this->updateOrganizationSync();
+
+        Log::info(__CLASS__ . ":{$this->organization->name} Finished synchronization");
+    }
+
+    abstract protected function synchronize(): void;
+
+    protected function getSheetRows(string $sheet_name, bool $skip_header = true): array
     {
         $sheet_id = $this->organization->sync_sheet_id;
 
         if (empty($sheet_id))
         {
-            Log::info(__CLASS__.":{$this->organization->name} No 'sync_sheet_id' configured");
+            Log::info(__CLASS__ . ":{$this->organization->name} No 'sync_sheet_id' configured");
 
             return [];
         }
 
         // Costumes sheet columns expected: [legionId, costumename, costumeimage]
-        $rows = $this->google->getSheet($sheet_id, 'Costumes');
+        $rows = $this->google->getSheet($sheet_id, $sheet_name);
 
         if (is_array($rows) === false)
         {
-            Log::warning(__CLASS__.":{$this->organization->name} No rows found");
+            Log::warning(__CLASS__ . ":{$this->organization->name} No rows found");
 
             return [];
         }
@@ -66,18 +80,25 @@ abstract class BaseOrganizationService implements SynchronizerInterface
             return $this->costume_cache[$costume_name];
         }
 
-        Log::info(__CLASS__.":{$this->organization->name} Synchronizing Costume {$costume_name}");
+        $costume = Costume::where(Costume::NAME, $costume_name)->first();
 
-        // find trooper by identifier on pivot
-        $org_costume = $this->organization->organization_costumes()
-            ->where(OrganizationCostume::NAME, $costume_name)
+        if ($costume === null)
+        {
+            $costume = new Costume();
+            $costume->name = $costume_name;
+            $costume->save();
+        }
+
+        $org_costume = OrganizationCostume::query()
+            ->where(OrganizationCostume::ORGANIZATION_ID, $this->organization->id)
+            ->where(OrganizationCostume::COSTUME_ID, $costume->id)
             ->first();
 
         if ($org_costume === null)
         {
             $org_costume = new OrganizationCostume;
             $org_costume->organization_id = $this->organization->id;
-            $org_costume->name = $costume_name;
+            $org_costume->costume_id = $costume->id;
             $org_costume->prefix = $prefix;
         }
 
@@ -91,36 +112,40 @@ abstract class BaseOrganizationService implements SynchronizerInterface
 
     protected function getTrooper(string $identifier): ?Trooper
     {
-        Log::info(__CLASS__.":{$this->organization->name} Getting Trooper {$identifier}");
+        Log::info(__CLASS__ . ":{$this->organization->name} Getting Trooper {$identifier}");
 
         return $this->organization->troopers()
             ->wherePivot(TrooperOrganization::IDENTIFIER, $identifier)
             ->first();
     }
 
-    protected function syncTrooperCostume(Trooper $trooper, OrganizationCostume $org_costume, ?string $costume_image): void
+    protected function syncTrooperCostume(Trooper $trooper, OrganizationCostume $org_costume, array $attributes): void
     {
-        Log::info(__CLASS__.":{$this->organization->name} Synchronizing Trooper Costume {$org_costume->name} for Trooper {$trooper->display_name}");
+        Log::info(__CLASS__ . ":{$this->organization->name} Synchronizing Trooper Costume {$org_costume->name} for Trooper {$trooper->display_name}");
 
-        $trooper_costume = TrooperCostume::where(TrooperCostume::TROOPER_ID, $trooper->id)
-            ->where(TrooperCostume::COSTUME_ID, $org_costume->id)
+        $trooper_costume = TrooperCostume::query()
+            ->where(TrooperCostume::TROOPER_ID, $trooper->id)
+            ->where(TrooperCostume::ORGANIZATION_COSTUME_ID, $org_costume->id)
             ->first();
 
         if ($trooper_costume === null)
         {
             $trooper_costume = new TrooperCostume;
             $trooper_costume->trooper_id = $trooper->id;
-            $trooper_costume->costume_id = $org_costume->id;
+            $trooper_costume->organization_costume_id = $org_costume->id;
         }
 
-        $trooper_costume->large_image_url = $costume_image;
+        foreach ($attributes as $key => $value)
+        {
+            $trooper_costume->{$key} = $value;
+        }
 
         $trooper_costume->save();
     }
 
     protected function syncTrooperStatus(Trooper $trooper, MembershipStatus $status): void
     {
-        Log::info(__CLASS__.":{$this->organization->name} Synchronizing Trooper Status {$status->name} for {$trooper->dsiplay_name}");
+        Log::info(__CLASS__ . ":{$this->organization->name} Synchronizing Trooper Status {$status->name} for {$trooper->display_name}");
 
         $pivot = $trooper->pivot;
 
