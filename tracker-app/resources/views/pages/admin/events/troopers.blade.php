@@ -57,11 +57,15 @@
                                     {{ $event_trooper->trooper->display_name }}
                                 </td>
                                 <td>
-                                    {{ $event_trooper->organization_costume->name ?? 'N/A' }}
+                                    @if($event_trooper->costume)
+                                    {{ $event_trooper->costume->name }}
                                     <br />
                                     <i class="small text-muted">
-                                        {{ $event_trooper->organization_costume->organization->name ?? 'N/A' }}
+                                        {{ $event_trooper->display_clubs }}
                                     </i>
+                                    @else
+                                    N/A
+                                    @endif
                                 </td>
                                 <td>
                                     <x-input-select :property="'troopers.' . $event_trooper->id . '.status'"

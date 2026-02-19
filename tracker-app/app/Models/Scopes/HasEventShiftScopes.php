@@ -78,9 +78,9 @@ trait HasEventShiftScopes
     public function scopeRoster(Builder $query): Builder
     {
         $with = [
-            'event_troopers.trooper',
-            'event_troopers.organization_costume.organization',
-            'event_troopers.backup_costume.organization',
+            'event_troopers.trooper.trooper_costumes.organization_costume',
+            'event_troopers.costume',
+            'event_troopers.backup_costume',
         ];
 
         return $query->with($with)->orderBy(self::SHIFT_STARTS_AT);
