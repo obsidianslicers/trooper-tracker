@@ -128,11 +128,11 @@ trait HasEventDisplayAssembler
     {
         $potential_orgs = collect($event_trooper->costume_organization_ids ?? []);
 
-        $event_trooper->costume_organizations = $this->buildDisplayOrganizations($event_trooper, $potential_orgs);
+        $event_trooper->costume_organizations = $this->buildDisplayOrganizations($event_trooper, $potential_orgs, $event_trooper->costume_id);
 
         $potential_orgs = collect($event_trooper->backup_costume_organization_ids ?? []);
 
-        $event_trooper->backup_costume_organizations = $this->buildDisplayOrganizations($event_trooper, $potential_orgs);
+        $event_trooper->backup_costume_organizations = $this->buildDisplayOrganizations($event_trooper, $potential_orgs, $event_trooper->backup_costume_id);
 
         return $event_trooper;
     }
@@ -141,7 +141,7 @@ trait HasEventDisplayAssembler
      * Builds a display-friendly organization listing for a trooper's costume in an event.
      *
      * Validates costume approval by:
-     * 1. Finding trooper_costumes where organization_costume relationship matches the event_trooper's costume_id
+     * 1. Finding trooper_costumes where organization_costume relationship matches the event_trooper's costume_id (or backup_costume_id)
      * 2. Extracting organization_ids from approved costumes
      * 3. Intersecting with potential_orgs IDs to show only approved + eligible organizations
      * 4. Resolving organization names via $this->organizations keyed collection
@@ -153,13 +153,14 @@ trait HasEventDisplayAssembler
      *
      * @param EventTrooper $event_trooper The trooper assignment (provides access to costume_id and approved costumes)
      * @param Collection $potential_orgs Organization IDs that were potentially selected for this costume
+     * @param int|null $costume_id The costume ID to use for filtering approved organizations
      * @return string Display string ready for view rendering
      */
-    private function buildDisplayOrganizations(EventTrooper $event_trooper, Collection $potential_orgs): string
+    private function buildDisplayOrganizations(EventTrooper $event_trooper, Collection $potential_orgs, $costume_id): string
     {
         // Filter actual approvals by reaching through to the organization_costume
         $approved_orgs = $event_trooper->trooper->trooper_costumes
-            ->filter(fn($tc) => optional($tc->organization_costume)->costume_id == $event_trooper->costume_id)
+            ->filter(fn($tc) => optional($tc->organization_costume)->costume_id == $costume_id)
             ->pluck('organization_costume.organization_id')
             ->unique();
 
