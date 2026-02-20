@@ -68,7 +68,7 @@ class EventTrooper extends BaseEventTrooper
      */
     public function backup_costume(): BelongsTo
     {
-        return $this->belongsTo(OrganizationCostume::class, self::BACKUP_COSTUME_ID);
+        return $this->belongsTo(Costume::class, self::BACKUP_COSTUME_ID);
     }
 
     /**

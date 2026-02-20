@@ -54,7 +54,9 @@
                         @forelse($event_shift->event_troopers as $event_trooper)
                             <tr>
                                 <td class="ps-4">
-                                    {{ $event_trooper->trooper->display_name }}
+                                    <a href="{{ route('admin.troopers.profile', ['trooper' => $event_trooper->trooper_id]) }}">
+                                        {{ $event_trooper->trooper->display_name }}
+                                    </a>
                                 </td>
                                 <td>
                                     @if($event_trooper->costume)

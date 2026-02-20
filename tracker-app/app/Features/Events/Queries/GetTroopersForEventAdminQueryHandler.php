@@ -1,0 +1,123 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Features\Events\Queries;
+
+use App\Bus\Contracts\QueryHandlerInterface;
+use App\Models\Costume;
+use App\Models\EventShift;
+use App\Models\EventTrooper;
+use App\Models\Organization;
+use App\Models\OrganizationCostume;
+use App\Models\Trooper;
+use App\Models\TrooperCostume;
+use Illuminate\Support\Collection;
+
+/**
+ * Handler for enriching event shifts with trooper and costume data.
+ *
+ * Retrieves all shifts for an event with related troopers and costumes,
+ * then transforms the data to compute organization/club display names
+ * for administrative display.
+ *
+ * @implements QueryHandlerInterface<GetTroopersForEventAdminQuery>
+ */
+readonly class GetTroopersForEventAdminQueryHandler implements QueryHandlerInterface
+{
+    private Collection $organizations;
+
+    public function __construct()
+    {
+        $this->organizations = Organization::ofTypeOrganizations()->pluck('name', 'id');
+    }
+
+    /**
+     * Execute the query to retrieve and enrich event shifts with trooper data.
+     *
+     * Process:
+     * 1. Retrieve all shifts for the event
+     * 2. Eager load related troopers, costumes, and assignments
+     * 3. Transform troopers to compute display_clubs for each EventTrooper
+     * 4. Return enriched collection of EventShift models
+     *
+     * @param GetTroopersForEventAdminQuery $message The query containing the event.
+     * @return \Illuminate\Support\Collection<int, EventShift> Event shifts with enriched trooper data.
+     */
+    public function __invoke(object $message): mixed
+    {
+        $event_shifts = $message->event->event_shifts()
+            ->with($this->buildRelations())
+            ->orderBy(EventShift::SHIFT_STARTS_AT)
+            ->get();
+
+        $event_shifts->each(fn($shift) => $this->transformEventShift($shift));
+
+        return $event_shifts;
+    }
+
+    private function buildRelations(): array
+    {
+        $trooper_columns = [
+            Trooper::ID,
+            Trooper::DISPLAY_NAME,
+        ];
+
+        $trooper_costume_columns = [
+            TrooperCostume::ID,
+            TrooperCostume::TROOPER_ID,
+            TrooperCostume::ORGANIZATION_COSTUME_ID,
+        ];
+
+        $organization_costume_columns = [
+            OrganizationCostume::ID,
+            OrganizationCostume::COSTUME_ID,
+            OrganizationCostume::ORGANIZATION_ID,
+        ];
+
+        $costume_columns = [
+            Costume::ID,
+            Costume::NAME,
+        ];
+
+        $with = [
+            'event_troopers.trooper:' . implode(',', $trooper_columns),
+            'event_troopers.trooper.trooper_costumes:' . implode(',', $trooper_costume_columns),
+            'event_troopers.trooper.trooper_costumes.organization_costume:' . implode(',', $organization_costume_columns),
+            'event_troopers.costume:' . implode(',', $costume_columns),
+            'event_troopers.backup_costume:' . implode(',', $costume_columns),
+        ];
+
+        return $with;
+    }
+
+
+    private function transformEventShift(EventShift $event_shift): void
+    {
+        $event_shift->event_troopers->transform(fn($et) => $this->transformEventTrooper($et));
+    }
+
+
+    private function transformEventTrooper(EventTrooper $event_trooper): EventTrooper
+    {
+        $potential_orgs = collect($event_trooper->costume_organization_ids ?? []);
+
+        // Filter actual approvals by reaching through to the organization_costume
+        $approved_orgs = $event_trooper->trooper->trooper_costumes
+            ->filter(fn($tc) => optional($tc->organization_costume)->costume_id == $event_trooper->costume_id)
+            ->pluck('organization_costume.organization_id')
+            ->unique();
+
+        $final_orgs = $potential_orgs->intersect($approved_orgs);
+
+        $names = $final_orgs->map(fn($id) => $this->organizations[$id] ?? '??');
+
+        // Legacy string building
+        $prefix = $names->count() > 1 ? '(*) ' : '';
+        $name_list = $names->isEmpty() ? '(unattached)' : $names->implode(', ');
+
+        $event_trooper->display_clubs = "{$prefix}{$name_list}";
+
+        return $event_trooper;
+    }
+}
