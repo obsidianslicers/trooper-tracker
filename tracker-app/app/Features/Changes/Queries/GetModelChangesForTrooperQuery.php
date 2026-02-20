@@ -21,12 +21,11 @@ readonly class GetModelChangesForTrooperQuery
     /**
      * Create a new query instance.
      *
-     * @param Trooper $trooper The trooper whose change history to retrieve.
-     * @param int|string|Carbon $lookback Days to look back (int), date string, or Carbon date.
+     * @param  Trooper  $trooper  The trooper whose change history to retrieve.
+     * @param  int|string|Carbon  $lookback  Days to look back (int), date string, or Carbon date.
      */
     public function __construct(
         public readonly Trooper $trooper,
         public readonly int|string|Carbon $lookback,
-    ) {
-    }
+    ) {}
 }

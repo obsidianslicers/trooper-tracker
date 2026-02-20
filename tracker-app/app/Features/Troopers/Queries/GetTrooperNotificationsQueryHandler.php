@@ -30,7 +30,7 @@ readonly class GetTrooperNotificationsQueryHandler implements QueryHandlerInterf
      * 2. Get trooper's assignments where should_notify = true
      * 3. Mark each organization/region/unit as 'selected' if assignment exists
      *
-     * @param GetTrooperNotificationsQuery $message The query containing the trooper
+     * @param  GetTrooperNotificationsQuery  $message  The query containing the trooper
      * @return \Illuminate\Support\Collection<int, Organization> Organizations with selected flags
      */
     public function __invoke(object $message): mixed

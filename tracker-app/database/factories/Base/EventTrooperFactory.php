@@ -18,7 +18,7 @@ class EventTrooperFactory extends Factory
         return [
             EventTrooper::EVENT_SHIFT_ID => \App\Models\EventShift::factory(),
             EventTrooper::TROOPER_ID => \App\Models\Trooper::factory(),
-            EventTrooper::COSTUME_ID => \App\Models\OrganizationCostume::factory(),
+            EventTrooper::COSTUME_ID => \App\Models\Costume::factory(),
             EventTrooper::BACKUP_COSTUME_ID => \App\Models\OrganizationCostume::factory(),
             EventTrooper::ADDED_BY_TROOPER_ID => \App\Models\Trooper::factory(),
             EventTrooper::IS_HANDLER => $this->faker->randomNumber(1),

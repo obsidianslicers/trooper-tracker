@@ -30,7 +30,7 @@ readonly class GetOrganizationsForPickerQueryHandler implements QueryHandlerInte
      *    (matched using the organization's node_path for hierarchical filtering)
      * 3. Otherwise: Returns all organizations
      *
-     * @param GetOrganizationsForPickerQuery $message The query containing filter criteria
+     * @param  GetOrganizationsForPickerQuery  $message  The query containing filter criteria
      * @return \Illuminate\Support\Collection<int, Organization> Collection of organizations
      */
     public function __invoke(object $message): mixed
@@ -50,7 +50,7 @@ readonly class GetOrganizationsForPickerQueryHandler implements QueryHandlerInte
 
             $organization = Organization::findOrFail($organization_id);
 
-            $organizations = Organization::where(Organization::NODE_PATH, 'like', $organization->node_path . '%')
+            $organizations = Organization::where(Organization::NODE_PATH, 'like', $organization->node_path.'%')
                 ->orderBy(Organization::SEQUENCE)
                 ->get();
         }

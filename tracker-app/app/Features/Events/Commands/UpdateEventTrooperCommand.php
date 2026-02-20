@@ -19,13 +19,11 @@ readonly class UpdateEventTrooperCommand
     /**
      * Create a new command instance.
      *
-     * @param EventTrooper $event_trooper The event trooper record to update.
-     * @param array<string, mixed> $valid_data Validated attributes to update.
+     * @param  EventTrooper  $event_trooper  The event trooper record to update.
+     * @param  array<string, mixed>  $valid_data  Validated attributes to update.
      */
     public function __construct(
         public EventTrooper $event_trooper,
         public array $valid_data,
-    ) {
-    }
+    ) {}
 }
-

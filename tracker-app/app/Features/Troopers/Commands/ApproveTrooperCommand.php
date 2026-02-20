@@ -19,13 +19,11 @@ readonly class ApproveTrooperCommand
     /**
      * Create a new command instance.
      *
-     * @param Trooper $trooper The trooper to approve or deny
-     * @param bool $is_approved Whether the trooper is approved (true) or denied (false)
+     * @param  Trooper  $trooper  The trooper to approve or deny
+     * @param  bool  $is_approved  Whether the trooper is approved (true) or denied (false)
      */
     public function __construct(
         public Trooper $trooper,
-        public readonly bool $is_approved,
-    ) {
-    }
+        public bool $is_approved,
+    ) {}
 }
-

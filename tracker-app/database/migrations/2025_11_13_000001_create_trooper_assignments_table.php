@@ -1,7 +1,5 @@
 <?php
 
-use App\Enums\MembershipRole;
-use App\Enums\MembershipStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

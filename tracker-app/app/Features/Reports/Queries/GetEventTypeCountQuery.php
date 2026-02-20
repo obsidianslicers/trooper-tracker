@@ -29,6 +29,5 @@ readonly class GetEventTypeCountQuery
     public function __construct(
         public readonly Trooper $moderator,
         public readonly int|string|Carbon $lookback,
-    ) {
-    }
+    ) {}
 }

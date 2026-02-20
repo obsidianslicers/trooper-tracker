@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Account;
 
+use App\Models\Costume;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
+use App\Models\TrooperOrganization;
 use App\Models\TrooperCostume;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -40,7 +42,7 @@ class CostumesControllerTest extends TestCase
         $response->assertViewIs('pages.account.costumes');
     }
 
-    public function test_invoke_passes_organization_costumes_to_view(): void
+    public function test_invoke_passes_costumes_to_view(): void
     {
         // Arrange
         $trooper = Trooper::factory()->asActive()->create();
@@ -50,7 +52,7 @@ class CostumesControllerTest extends TestCase
             ->get(route('account.costumes'));
 
         // Assert
-        $response->assertViewHas('organization_costumes');
+        $response->assertViewHas('costumes');
     }
 
     public function test_invoke_passes_trooper_costumes_to_view(): void
@@ -78,9 +80,12 @@ class CostumesControllerTest extends TestCase
             TrooperAssignment::IS_MEMBER => true,
         ]);
 
-        $costume = OrganizationCostume::factory()->create([
+        $costume = Costume::factory()->create([
+            Costume::NAME => 'TK-421 Stormtrooper',
+        ]);
+        $organization_costume = OrganizationCostume::factory()->create([
             OrganizationCostume::ORGANIZATION_ID => $organization->id,
-            OrganizationCostume::NAME => 'TK-421 Stormtrooper',
+            OrganizationCostume::COSTUME_ID => $costume->id,
         ]);
 
         // Act
@@ -88,7 +93,7 @@ class CostumesControllerTest extends TestCase
             ->get(route('account.costumes'));
 
         // Assert
-        $response->assertViewHas('organization_costumes', function ($costumes) use ($costume)
+        $response->assertViewHas('costumes', function ($costumes) use ($costume)
         {
             return $costumes->contains('id', $costume->id);
         });
@@ -100,13 +105,15 @@ class CostumesControllerTest extends TestCase
         $organization = Organization::factory()->create();
         $trooper = Trooper::factory()->asActive()->create();
 
-        $costume = OrganizationCostume::factory()->create([
+        $costume = Costume::factory()->create();
+        $organization_costume = OrganizationCostume::factory()->create([
             OrganizationCostume::ORGANIZATION_ID => $organization->id,
+            OrganizationCostume::COSTUME_ID => $costume->id,
         ]);
 
         $trooper_costume = TrooperCostume::factory()->create([
             TrooperCostume::TROOPER_ID => $trooper->id,
-            TrooperCostume::COSTUME_ID => $costume->id,
+            TrooperCostume::ORGANIZATION_COSTUME_ID => $organization_costume->id,
         ]);
 
         // Act
@@ -120,7 +127,7 @@ class CostumesControllerTest extends TestCase
         });
     }
 
-    public function test_invoke_only_shows_costumes_from_organizations_trooper_is_member_of(): void
+    public function test_invoke_filters_costume_organizations_by_membership(): void
     {
         // Arrange
         $organization1 = Organization::factory()->create();
@@ -128,20 +135,25 @@ class CostumesControllerTest extends TestCase
         $trooper = Trooper::factory()->asActive()->create();
 
         // Trooper is member of organization1 only
-        TrooperAssignment::factory()->create([
-            TrooperAssignment::TROOPER_ID => $trooper->id,
-            TrooperAssignment::ORGANIZATION_ID => $organization1->id,
-            TrooperAssignment::IS_MEMBER => true,
+        TrooperOrganization::factory()->create([
+            TrooperOrganization::TROOPER_ID => $trooper->id,
+            TrooperOrganization::ORGANIZATION_ID => $organization1->id,
         ]);
 
-        $costume1 = OrganizationCostume::factory()->create([
+        $costume1 = Costume::factory()->create([
+            Costume::NAME => 'Stormtrooper',
+        ]);
+        OrganizationCostume::factory()->create([
             OrganizationCostume::ORGANIZATION_ID => $organization1->id,
-            OrganizationCostume::NAME => 'Stormtrooper',
+            OrganizationCostume::COSTUME_ID => $costume1->id,
         ]);
 
-        $costume2 = OrganizationCostume::factory()->create([
+        $costume2 = Costume::factory()->create([
+            Costume::NAME => 'Darth Vader',
+        ]);
+        OrganizationCostume::factory()->create([
             OrganizationCostume::ORGANIZATION_ID => $organization2->id,
-            OrganizationCostume::NAME => 'Darth Vader',
+            OrganizationCostume::COSTUME_ID => $costume2->id,
         ]);
 
         // Act
@@ -149,10 +161,20 @@ class CostumesControllerTest extends TestCase
             ->get(route('account.costumes'));
 
         // Assert
-        $response->assertViewHas('organization_costumes', function ($costumes) use ($costume1, $costume2)
+        $response->assertViewHas('costumes', function ($costumes) use ($costume1, $costume2, $organization1)
         {
-            return $costumes->contains('id', $costume1->id)
-                && !$costumes->contains('id', $costume2->id);
+            $first = $costumes->firstWhere('id', $costume1->id);
+            $second = $costumes->firstWhere('id', $costume2->id);
+
+            if ($first === null || $second === null)
+            {
+                return false;
+            }
+
+            $first_org_ids = $first->organization_costumes->pluck(OrganizationCostume::ORGANIZATION_ID);
+            $second_org_ids = $second->organization_costumes->pluck(OrganizationCostume::ORGANIZATION_ID);
+
+            return $first_org_ids->contains($organization1->id) && $second_org_ids->isEmpty();
         });
     }
 
@@ -171,13 +193,15 @@ class CostumesControllerTest extends TestCase
         $organization = Organization::factory()->create();
         $trooper = Trooper::factory()->asActive()->create();
 
-        $costume = OrganizationCostume::factory()->create([
+        $costume = Costume::factory()->create();
+        $organization_costume = OrganizationCostume::factory()->create([
             OrganizationCostume::ORGANIZATION_ID => $organization->id,
+            OrganizationCostume::COSTUME_ID => $costume->id,
         ]);
 
         TrooperCostume::factory()->create([
             TrooperCostume::TROOPER_ID => $trooper->id,
-            TrooperCostume::COSTUME_ID => $costume->id,
+            TrooperCostume::ORGANIZATION_COSTUME_ID => $organization_costume->id,
         ]);
 
         // Enable query logging
@@ -220,7 +244,7 @@ class CostumesControllerTest extends TestCase
         });
     }
 
-    public function test_invoke_shows_empty_organization_costumes_when_not_member_of_any_organization(): void
+    public function test_invoke_shows_empty_costumes_when_not_member_of_any_organization(): void
     {
         // Arrange
         $trooper = Trooper::factory()->asActive()->create();
@@ -230,7 +254,7 @@ class CostumesControllerTest extends TestCase
             ->get(route('account.costumes'));
 
         // Assert
-        $response->assertViewHas('organization_costumes', function ($costumes)
+        $response->assertViewHas('costumes', function ($costumes)
         {
             return $costumes->isEmpty();
         });
@@ -255,12 +279,16 @@ class CostumesControllerTest extends TestCase
             TrooperAssignment::IS_MEMBER => true,
         ]);
 
-        $costume1 = OrganizationCostume::factory()->create([
+        $costume1 = Costume::factory()->create();
+        OrganizationCostume::factory()->create([
             OrganizationCostume::ORGANIZATION_ID => $organization1->id,
+            OrganizationCostume::COSTUME_ID => $costume1->id,
         ]);
 
-        $costume2 = OrganizationCostume::factory()->create([
+        $costume2 = Costume::factory()->create();
+        OrganizationCostume::factory()->create([
             OrganizationCostume::ORGANIZATION_ID => $organization2->id,
+            OrganizationCostume::COSTUME_ID => $costume2->id,
         ]);
 
         // Act
@@ -268,7 +296,7 @@ class CostumesControllerTest extends TestCase
             ->get(route('account.costumes'));
 
         // Assert
-        $response->assertViewHas('organization_costumes', function ($costumes) use ($costume1, $costume2)
+        $response->assertViewHas('costumes', function ($costumes) use ($costume1, $costume2)
         {
             return $costumes->contains('id', $costume1->id)
                 && $costumes->contains('id', $costume2->id);
@@ -281,27 +309,33 @@ class CostumesControllerTest extends TestCase
         $organization = Organization::factory()->create();
         $trooper = Trooper::factory()->asActive()->create();
 
-        $costume1 = OrganizationCostume::factory()->create([
+        $costume1 = Costume::factory()->create();
+        $organization_costume1 = OrganizationCostume::factory()->create([
             OrganizationCostume::ORGANIZATION_ID => $organization->id,
+            OrganizationCostume::COSTUME_ID => $costume1->id,
         ]);
-        $costume2 = OrganizationCostume::factory()->create([
+        $costume2 = Costume::factory()->create();
+        $organization_costume2 = OrganizationCostume::factory()->create([
             OrganizationCostume::ORGANIZATION_ID => $organization->id,
+            OrganizationCostume::COSTUME_ID => $costume2->id,
         ]);
-        $costume3 = OrganizationCostume::factory()->create([
+        $costume3 = Costume::factory()->create();
+        $organization_costume3 = OrganizationCostume::factory()->create([
             OrganizationCostume::ORGANIZATION_ID => $organization->id,
+            OrganizationCostume::COSTUME_ID => $costume3->id,
         ]);
 
         TrooperCostume::factory()->create([
             TrooperCostume::TROOPER_ID => $trooper->id,
-            TrooperCostume::COSTUME_ID => $costume1->id,
+            TrooperCostume::ORGANIZATION_COSTUME_ID => $organization_costume1->id,
         ]);
         TrooperCostume::factory()->create([
             TrooperCostume::TROOPER_ID => $trooper->id,
-            TrooperCostume::COSTUME_ID => $costume2->id,
+            TrooperCostume::ORGANIZATION_COSTUME_ID => $organization_costume2->id,
         ]);
         TrooperCostume::factory()->create([
             TrooperCostume::TROOPER_ID => $trooper->id,
-            TrooperCostume::COSTUME_ID => $costume3->id,
+            TrooperCostume::ORGANIZATION_COSTUME_ID => $organization_costume3->id,
         ]);
 
         // Act
@@ -322,14 +356,16 @@ class CostumesControllerTest extends TestCase
         $trooper1 = Trooper::factory()->asActive()->create();
         $trooper2 = Trooper::factory()->asActive()->create();
 
-        $costume = OrganizationCostume::factory()->create([
+        $costume = Costume::factory()->create();
+        $organization_costume = OrganizationCostume::factory()->create([
             OrganizationCostume::ORGANIZATION_ID => $organization->id,
+            OrganizationCostume::COSTUME_ID => $costume->id,
         ]);
 
         // Only trooper1 has this costume
         TrooperCostume::factory()->create([
             TrooperCostume::TROOPER_ID => $trooper1->id,
-            TrooperCostume::COSTUME_ID => $costume->id,
+            TrooperCostume::ORGANIZATION_COSTUME_ID => $organization_costume->id,
         ]);
 
         // Act

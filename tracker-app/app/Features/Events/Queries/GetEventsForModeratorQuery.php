@@ -24,14 +24,13 @@ readonly class GetEventsForModeratorQuery
     /**
      * Create a new query instance.
      *
-     * @param EventFilter $filter The filter instance containing status, organization, and search criteria.
-     * @param Trooper $moderator The trooper whose permissions determine event visibility.
-     * @param int $page_size Number of results per page (default: 25).
+     * @param  EventFilter  $filter  The filter instance containing status, organization, and search criteria.
+     * @param  Trooper  $moderator  The trooper whose permissions determine event visibility.
+     * @param  int  $page_size  Number of results per page (default: 25).
      */
     public function __construct(
         public readonly EventFilter $filter,
         public readonly Trooper $moderator,
         public readonly int $page_size = 25,
-    ) {
-    }
+    ) {}
 }

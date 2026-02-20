@@ -31,11 +31,20 @@ document.addEventListener('DOMContentLoaded', () => {  // Attach listener to eve
     document.querySelectorAll('form').forEach(form => {
         form.addEventListener('submit', () => {
             const button = form.querySelector('button[type=submit]');
-            if (button) {
-                button.disabled = true;
-                button.dataset.originalText = button.innerHTML;
-                button.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Submitting ...';
-            }
+
+            if (!button) return;
+
+            // If the form or button has HTMX attributes, 
+            // abort this listener and let the HTMX-specific logic handle it.
+            const isHtmx = form.hasAttribute('hx-post') ||
+                form.hasAttribute('hx-put') ||
+                button.hasAttribute('hx-post');
+
+            if (isHtmx) return;
+
+            button.disabled = true;
+            button.dataset.originalText = button.innerHTML;
+            button.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Submitting ...';
         });
     });
 });

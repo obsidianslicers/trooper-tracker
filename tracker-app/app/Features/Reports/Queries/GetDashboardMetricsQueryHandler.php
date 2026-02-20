@@ -5,8 +5,19 @@ declare(strict_types=1);
 namespace App\Features\Reports\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
-use App\Enums\{EventStatus, EventTrooperStatus, MembershipRole, MembershipStatus, OrganizationType};
-use App\Models\{Trooper, Event, EventTrooper, Notice, AwardTrooper, EventShift, TrooperDonation, Organization};
+use App\Enums\EventStatus;
+use App\Enums\EventTrooperStatus;
+use App\Enums\MembershipRole;
+use App\Enums\MembershipStatus;
+use App\Enums\OrganizationType;
+use App\Models\AwardTrooper;
+use App\Models\Event;
+use App\Models\EventShift;
+use App\Models\EventTrooper;
+use App\Models\Notice;
+use App\Models\Organization;
+use App\Models\Trooper;
+use App\Models\TrooperDonation;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
@@ -63,16 +74,14 @@ readonly class GetDashboardMetricsQueryHandler implements QueryHandlerInterface
             ->count();
 
         $attendance_count = Trooper::where(Trooper::MEMBERSHIP_STATUS, MembershipStatus::ACTIVE)
-            ->whereHas('event_troopers', function ($q) use ($date)
-            {
+            ->whereHas('event_troopers', function ($q) use ($date) {
                 $q->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED)
                     ->where(EventTrooper::SIGNED_UP_AT, '>=', $date);
             })
             ->count();
 
         $attrition_risk = Trooper::where(Trooper::MEMBERSHIP_STATUS, MembershipStatus::ACTIVE)
-            ->whereDoesntHave('event_troopers', function ($q) use ($date)
-            {
+            ->whereDoesntHave('event_troopers', function ($q) use ($date) {
                 $q->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED)
                     ->where(EventTrooper::SIGNED_UP_AT, '>=', $date);
             })
@@ -118,7 +127,7 @@ readonly class GetDashboardMetricsQueryHandler implements QueryHandlerInterface
             ->where(Event::STATUS, EventStatus::CLOSED)
             ->get();
 
-        $total_credits = $closed_events->sum(fn($e) => $e->charity_direct_funds + $e->charity_indirect_funds);
+        $total_credits = $closed_events->sum(fn ($e) => $e->charity_direct_funds + $e->charity_indirect_funds);
         $volunteer_hours = $closed_events->sum('charity_hours');
 
         $internal_donations = TrooperDonation::where(TrooperDonation::CREATED_AT, '>=', $date)
@@ -135,8 +144,7 @@ readonly class GetDashboardMetricsQueryHandler implements QueryHandlerInterface
      */
     private function getEngagementMetrics(Carbon $date): array
     {
-        $notices = Notice::withCount(['troopers', 'troopers as read_count' => function ($q)
-        {
+        $notices = Notice::withCount(['troopers', 'troopers as read_count' => function ($q) {
             $q->where('is_read', true);
         }])->where(Notice::STARTS_AT, '>=', $date)->get();
 
@@ -145,7 +153,7 @@ readonly class GetDashboardMetricsQueryHandler implements QueryHandlerInterface
 
         $notice_penetration = $total_interactions > 0 ? ($total_reads / $total_interactions) * 100 : 0;
         $award_velocity = AwardTrooper::where(AwardTrooper::CREATED_AT, '>=', $date)->count();
-        $photo_activity = Event::whereHas('event_uploads', fn($q) => $q->where(Event::CREATED_AT, '>=', $date))->count();
+        $photo_activity = Event::whereHas('event_uploads', fn ($q) => $q->where(Event::CREATED_AT, '>=', $date))->count();
 
         return compact('notice_penetration', 'award_velocity', 'photo_activity');
     }
@@ -164,36 +172,33 @@ readonly class GetDashboardMetricsQueryHandler implements QueryHandlerInterface
             Event::ORGANIZATION_ID,
             Event::PRIMARY_ORGANIZATION_ID,
             Event::CHARITY_DIRECT_FUNDS,
-            Event::CHARITY_INDIRECT_FUNDS
+            Event::CHARITY_INDIRECT_FUNDS,
         ];
         $shift_fields = [EventShift::ID, EventShift::EVENT_ID];
         $trooper_fields = [EventTrooper::ID, EventTrooper::EVENT_SHIFT_ID, EventTrooper::TROOPER_ID];
 
         return Organization::select($org_fields)
             ->with([
-                'events' => function ($q) use ($date, $event_fields, $trooper_fields)
-                {
+                'events' => function ($q) use ($date, $event_fields, $trooper_fields) {
                     $q->select($event_fields)
                         ->where(Event::EVENT_START, '>=', $date)
                         ->where(Event::STATUS, EventStatus::CLOSED)
                         // Load the signups that are specifically in 'going' status
                         ->with([
-                            'event_shifts.event_troopers' => function ($sq) use ($trooper_fields)
-                            {
+                            'event_shifts.event_troopers' => function ($sq) use ($trooper_fields) {
                                 $sq->select($trooper_fields)
                                     ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED);
                             }]);
                 }])
             ->where(Organization::TYPE, OrganizationType::ORGANIZATION)
             ->get()
-            ->map(function ($org)
-            {
+            ->map(function ($org) {
                 // 1. Flatten the events into their shifts
                 // 2. Flatten those shifts into their troopers
                 // 3. Pluck unique trooper IDs
                 $attended_count = $org->events
-                    ->flatMap(fn($event) => $event->event_shifts)
-                    ->flatMap(fn($shift) => $shift->event_troopers)
+                    ->flatMap(fn ($event) => $event->event_shifts)
+                    ->flatMap(fn ($shift) => $shift->event_troopers)
                     ->pluck('trooper_id')
                     ->unique()
                     ->count();
@@ -202,9 +207,9 @@ readonly class GetDashboardMetricsQueryHandler implements QueryHandlerInterface
                     'name' => $org->name,
                     'events_completed' => $org->events->count(),
                     'troopers_attended' => $attended_count,
-                    'direct_funds_raised' => $org->events->sum(fn($e) => $e->charity_direct_funds),
-                    'indirect_funds_raised' => $org->events->sum(fn($e) => $e->charity_indirect_funds),
-                    'total_funds_raised' => $org->events->sum(fn($e) => $e->charity_direct_funds + $e->charity_indirect_funds)
+                    'direct_funds_raised' => $org->events->sum(fn ($e) => $e->charity_direct_funds),
+                    'indirect_funds_raised' => $org->events->sum(fn ($e) => $e->charity_indirect_funds),
+                    'total_funds_raised' => $org->events->sum(fn ($e) => $e->charity_direct_funds + $e->charity_indirect_funds),
                 ];
             })
             ->sortByDesc('total_funds_raised')

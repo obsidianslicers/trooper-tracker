@@ -31,12 +31,12 @@ readonly class SignUpEventTrooperCommandHandler implements CommandHandlerInterfa
      *
      * Saves the EventTrooper record and queues a TrooperSignUp email notification.
      *
-     * @param SignUpEventTrooperCommand $message The command containing shift, trooper, and added_by info.
+     * @param  SignUpEventTrooperCommand  $message  The command containing shift, trooper, and added_by info.
      * @return null
      */
     public function __invoke(object $message): mixed
     {
-        $event_trooper = new EventTrooper();
+        $event_trooper = new EventTrooper;
 
         $event_trooper->event_shift_id = $message->event_shift->id;
         $event_trooper->trooper_id = $message->trooper->id;

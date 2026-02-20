@@ -36,7 +36,7 @@ class TrooperOrganizationSeeder extends Seeder
 
     private function assignOrganizationAndRegion($trooper)
     {
-        $club_map = $this->getClubMap();
+        $club_map = $this->getOrganizationClubMap();
 
         foreach ($club_map as $column => $club)
         {
@@ -106,7 +106,8 @@ class TrooperOrganizationSeeder extends Seeder
 
             $unit = $this->getOrganization($squad['id']);
 
-            $region_assignment = TrooperAssignment::where(TrooperAssignment::ORGANIZATION_ID, $unit->parent_id)
+            $region_assignment = TrooperAssignment::query()
+                ->where(TrooperAssignment::ORGANIZATION_ID, $unit->parent_id)
                 ->where(TrooperAssignment::TROOPER_ID, $trooper->id)
                 ->first();
 
@@ -118,7 +119,8 @@ class TrooperOrganizationSeeder extends Seeder
 
     private function loadTrooperOrganization($trooper, $organization, $identifier)
     {
-        $exists = TrooperOrganization::where(TrooperOrganization::ORGANIZATION_ID, $organization->id)
+        $exists = TrooperOrganization::query()
+            ->where(TrooperOrganization::ORGANIZATION_ID, $organization->id)
             ->where(TrooperOrganization::IDENTIFIER, $identifier)
             ->exists();
 
@@ -128,43 +130,45 @@ class TrooperOrganizationSeeder extends Seeder
             return;
         }
 
-        $to = TrooperOrganization::where(TrooperOrganization::TROOPER_ID, $trooper->id)
+        $trooper_org = TrooperOrganization::query()
+            ->where(TrooperOrganization::TROOPER_ID, $trooper->id)
             ->where(TrooperOrganization::ORGANIZATION_ID, $organization->id)
             ->first();
 
-        if ($to === null)
+        if ($trooper_org === null)
         {
-            $to = new TrooperOrganization();
+            $trooper_org = new TrooperOrganization();
 
-            $to->trooper_id = $trooper->id;
-            $to->organization_id = $organization->id;
+            $trooper_org->trooper_id = $trooper->id;
+            $trooper_org->organization_id = $organization->id;
         }
 
-        $to->membership_status = MembershipStatus::ACTIVE;
-        $to->identifier = $identifier;
+        $trooper_org->membership_status = MembershipStatus::ACTIVE;
+        $trooper_org->identifier = $identifier;
 
-        $to->save();
+        $trooper_org->save();
     }
 
     private function loadTrooperAssignment($trooper_id, $organization_id, $notify, $member, $moderator)
     {
-        $t = TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $trooper_id)
+        $trooper_assignment = TrooperAssignment::query()
+            ->where(TrooperAssignment::TROOPER_ID, $trooper_id)
             ->where(TrooperAssignment::ORGANIZATION_ID, $organization_id)
             ->first();
 
-        if ($t === null)
+        if ($trooper_assignment === null)
         {
-            $t = new TrooperAssignment();
+            $trooper_assignment = new TrooperAssignment();
 
-            $t->trooper_id = $trooper_id;
-            $t->organization_id = $organization_id;
+            $trooper_assignment->trooper_id = $trooper_id;
+            $trooper_assignment->organization_id = $organization_id;
         }
 
-        $t->should_notify = $notify;
-        $t->is_member = $member;
-        $t->is_moderator = $moderator;
+        $trooper_assignment->should_notify = $notify;
+        $trooper_assignment->is_member = $member;
+        $trooper_assignment->is_moderator = $moderator;
 
-        $t->save();
+        $trooper_assignment->save();
     }
 
     private function getOrganization($id)

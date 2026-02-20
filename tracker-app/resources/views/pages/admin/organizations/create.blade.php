@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', 'Update Organization')
+@section('page-title', 'Create Organization')
 
 @section('content')
 

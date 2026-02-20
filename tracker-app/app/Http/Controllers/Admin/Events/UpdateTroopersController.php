@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
+use App\Features\Events\Queries\GetTroopersForEventAdminQuery;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Event;
 use Illuminate\Contracts\View\View;
@@ -27,11 +28,11 @@ class UpdateTroopersController extends MagicBusController
     /**
      * Displays the trooper roster management form
      *
-     * Authorizes that the user can update the event via policy check.
-     * Loads event shifts with roster scope and renders the trooper
-     * management view.
+     * Authorizes administrative permission to update the event via policy.
+     * Retrieves event shifts with enriched trooper and costume data via
+     * GetTroopersForEventAdminQuery and renders the roster management view.
      *
-     * @param  Request  $request  The incoming HTTP request
+     * @param  Request  $request  The incoming HTTP request (unused)
      * @param  Event  $event  The event whose trooper roster is being managed (route model binding)
      * @return View The trooper roster management form view
      */
@@ -39,7 +40,9 @@ class UpdateTroopersController extends MagicBusController
     {
         $this->authorize('update', $event);
 
-        $event_shifts = $event->event_shifts()->roster()->get();
+        $query = new GetTroopersForEventAdminQuery($event);
+
+        $event_shifts = $this->bus->send($query);
 
         $data = compact('event', 'event_shifts');
 

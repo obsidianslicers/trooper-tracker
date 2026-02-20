@@ -28,7 +28,7 @@ readonly class GetEventShiftsToCloseQueryHandler implements QueryHandlerInterfac
      * 3. Eager load event.organization and event_troopers.trooper
      * 4. Return collection of EventShift models
      *
-     * @param GetEventShiftsToCloseQuery $message The query (no parameters)
+     * @param  GetEventShiftsToCloseQuery  $message  The query (no parameters)
      * @return Collection<int, EventShift> Collection of event shifts that need to be closed
      */
     public function __invoke(object $message): mixed

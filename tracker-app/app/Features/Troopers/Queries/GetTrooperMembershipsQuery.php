@@ -20,9 +20,7 @@ readonly class GetTrooperMembershipsQuery
     /**
      * Create a new query instance.
      *
-     * @param Trooper $trooper The trooper whose memberships to retrieve
+     * @param  Trooper  $trooper  The trooper whose memberships to retrieve
      */
-    public function __construct(public readonly Trooper $trooper)
-    {
-    }
+    public function __construct(public readonly Trooper $trooper) {}
 }

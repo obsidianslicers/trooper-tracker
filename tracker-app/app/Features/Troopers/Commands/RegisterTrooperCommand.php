@@ -19,10 +19,7 @@ readonly class RegisterTrooperCommand
     /**
      * Create a new command instance.
      *
-     * @param array<string, mixed> $valid_data Validated attributes to update on the trooper
+     * @param  array<string, mixed>  $valid_data  Validated attributes to update on the trooper
      */
-    public function __construct(public array $valid_data)
-    {
-    }
+    public function __construct(public array $valid_data) {}
 }
-

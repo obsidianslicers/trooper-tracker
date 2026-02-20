@@ -6,6 +6,7 @@ namespace Tests\Unit\Features\Troopers\Commands;
 
 use App\Features\Troopers\Commands\DetachTrooperCostumeCommand;
 use App\Features\Troopers\Commands\DetachTrooperCostumeCommandHandler;
+use App\Models\Costume;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\TrooperCostume;
@@ -28,14 +29,17 @@ class DetachTrooperCostumeCommandHandlerTest extends TestCase
     {
         // Arrange
         $trooper = Trooper::factory()->asActive()->create();
-        $org_costume = OrganizationCostume::factory()->create();
+        $costume = Costume::factory()->create();
+        $org_costume = OrganizationCostume::factory()->create([
+            OrganizationCostume::COSTUME_ID => $costume->id,
+        ]);
 
         $trooper_costume = TrooperCostume::factory()->create([
             TrooperCostume::TROOPER_ID => $trooper->id,
-            TrooperCostume::COSTUME_ID => $org_costume->id,
+            TrooperCostume::ORGANIZATION_COSTUME_ID => $org_costume->id,
         ]);
 
-        $command = new DetachTrooperCostumeCommand($trooper, $trooper_costume->id);
+        $command = new DetachTrooperCostumeCommand($trooper, $costume->id);
         $subject = new DetachTrooperCostumeCommandHandler();
 
         // Act

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Models\Scopes;
 
 use App\Enums\EventTrooperStatus;
-use App\Models\Trooper;
 use Illuminate\Database\Eloquent\Builder;
 
 /**

@@ -20,12 +20,11 @@ readonly class GetEventShiftDisplayQuery
     /**
      * Create a new query instance.
      *
-     * @param EventShift $event_shift The event shift to retrieve for display
-     * @param Trooper $trooper The trooper viewing the event shift
+     * @param  EventShift  $event_shift  The event shift to retrieve for display
+     * @param  Trooper  $trooper  The trooper viewing the event shift
      */
     public function __construct(
         public readonly EventShift $event_shift,
         public readonly Trooper $trooper,
-    ) {
-    }
+    ) {}
 }

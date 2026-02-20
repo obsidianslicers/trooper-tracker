@@ -81,11 +81,9 @@
                         </td>
                     </tr>
                 @empty
-                    <tr>
-                        <td colspan="7">
-                            There are not any events that have been cancelled in the last {{ $lookback }} days.
-                        </td>
-                    </tr>
+                    <x-table-empty :colspan="7">
+                        There are not any events that have been cancelled in the last {{ $lookback }} days.
+                    </x-table-empty>
                 @endforelse
             </tbody>
             <tfoot>

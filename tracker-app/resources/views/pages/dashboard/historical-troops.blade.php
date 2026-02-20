@@ -28,7 +28,7 @@
                 <td>
                     @foreach($shift->event_troopers as $event_trooper)
                         @if(isset($event_trooper->organization_costume) && $event_trooper->organization_costume->name != 'N/A')
-                            {{ $event_trooper->organization_costume->full_name }}
+                            TODO
                         @else
                             <span class="text-muted">N/A</span>
                         @endif
@@ -36,11 +36,9 @@
                 </td>
             </tr>
         @empty
-            <tr>
-                <td colspan="4">
-                    No Troops ... Yet!
-                </td>
-            </tr>
+            <x-table-empty :colspan="4">
+                No Troops ... Yet!
+            </x-table-empty>
         @endforelse
     </tbody>
 </x-table>

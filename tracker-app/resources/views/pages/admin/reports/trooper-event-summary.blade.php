@@ -39,11 +39,9 @@
                     </td>
                 </tr>
             @empty
-                <tr>
-                    <td colspan="3">
-                        There are not any troopers with closed events in the last {{ $lookback }} days.
-                    </td>
-                </tr>
+                <x-table-empty :colspan="3">
+                    There are not any troopers with closed events in the last {{ $lookback }} days.
+                </x-table-empty>
             @endforelse
         </tbody>
         <tfoot>

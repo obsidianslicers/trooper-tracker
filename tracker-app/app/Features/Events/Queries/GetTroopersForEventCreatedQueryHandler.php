@@ -30,7 +30,7 @@ readonly class GetTroopersForEventCreatedQueryHandler implements QueryHandlerInt
      * 4. Match organization_id to the event's organization
      * 5. Return collection of Trooper models
      *
-     * @param GetTroopersForEventCreatedQuery $message The query containing the new event
+     * @param  GetTroopersForEventCreatedQuery  $message  The query containing the new event
      * @return \Illuminate\Support\Collection<int, Trooper> Active troopers eligible for notifications
      */
     public function __invoke(object $message): mixed
@@ -39,8 +39,7 @@ readonly class GetTroopersForEventCreatedQueryHandler implements QueryHandlerInt
 
         return Trooper::active()
             ->where(Trooper::NOTIFICATION_FREQUENCY, '!=', NotificationFrequency::NEVER)
-            ->whereHas('trooper_assignments', function ($q) use ($organization_id)
-            {
+            ->whereHas('trooper_assignments', function ($q) use ($organization_id) {
                 $q->where(TrooperAssignment::SHOULD_NOTIFY, true)
                     ->where(TrooperAssignment::ORGANIZATION_ID, $organization_id);
             })

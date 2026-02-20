@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Features\Events\Commands;
 
+use App\Bus\Contracts\CommandHandlerInterface;
 use App\Mail\Events\CancelledEventNotification;
 use App\Models\Event;
 use App\Models\EventNotification;
 use App\Models\Trooper;
 use Illuminate\Support\Facades\Mail;
-use App\Bus\Contracts\CommandHandlerInterface;
 
 /**
  * Handler for sending event cancellation notifications to individual troopers.
@@ -29,7 +29,7 @@ readonly class SendEventCancelledNotificationCommandHandler implements CommandHa
      * CancelledEventNotification email. Does not create EventNotification
      * records as cancellations are tracked differently.
      *
-     * @param SendEventCancelledNotificationCommand $message The command containing event and trooper
+     * @param  SendEventCancelledNotificationCommand  $message  The command containing event and trooper
      * @return null Always returns null
      */
     public function __invoke(object $message): mixed

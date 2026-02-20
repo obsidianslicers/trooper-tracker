@@ -19,9 +19,7 @@ readonly class GetMostRecentEventsForTrooperQuery
     /**
      * Create a new query instance.
      *
-     * @param Trooper $trooper The trooper whose recent events to retrieve
+     * @param  Trooper  $trooper  The trooper whose recent events to retrieve
      */
-    public function __construct(public readonly Trooper $trooper)
-    {
-    }
+    public function __construct(public readonly Trooper $trooper) {}
 }

@@ -27,7 +27,7 @@ readonly class UpdateTrooperMembershipsCommandHandler implements CommandHandlerI
      * based on the valid_data array. Creates, updates, or deletes assignments
      * as needed to match the submitted form data.
      *
-     * @param UpdateTrooperMembershipsCommand $message The command with trooper and membership assignment data
+     * @param  UpdateTrooperMembershipsCommand  $message  The command with trooper and membership assignment data
      * @return null
      */
     public function __invoke(object $message): mixed
@@ -46,7 +46,7 @@ readonly class UpdateTrooperMembershipsCommandHandler implements CommandHandlerI
 
             if (!$trooper_assignment)
             {
-                $trooper_assignment = new TrooperAssignment();
+                $trooper_assignment = new TrooperAssignment;
                 $trooper_assignment->trooper_id = $message->trooper->id;
                 $trooper_assignment->organization_id = $assignment_id;
             }
@@ -58,4 +58,3 @@ readonly class UpdateTrooperMembershipsCommandHandler implements CommandHandlerI
         return null;
     }
 }
-

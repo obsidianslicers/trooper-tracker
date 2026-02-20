@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\Events;
 
 use App\Enums\EventTrooperStatus;
+use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventOrganization;
 use App\Models\EventShift;
@@ -184,14 +185,16 @@ class SignUpUpdateHtmxControllerTest extends TestCase
     private function createCostumeForTrooper(
         Trooper $trooper,
         Organization $organization
-    ): OrganizationCostume {
-        $costume = OrganizationCostume::factory()->create([
+    ): Costume {
+        $costume = Costume::factory()->create();
+        $org_costume = OrganizationCostume::factory()->create([
             OrganizationCostume::ORGANIZATION_ID => $organization->id,
+            OrganizationCostume::COSTUME_ID => $costume->id,
         ]);
 
         TrooperCostume::factory()->create([
             TrooperCostume::TROOPER_ID => $trooper->id,
-            TrooperCostume::COSTUME_ID => $costume->id,
+            TrooperCostume::ORGANIZATION_COSTUME_ID => $org_costume->id,
         ]);
 
         return $costume;

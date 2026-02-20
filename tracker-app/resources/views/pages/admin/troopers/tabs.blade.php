@@ -10,6 +10,9 @@
     <x-tab :label="'Memberships'"
            :target="route('admin.troopers.membership', compact('trooper'))"
            :active="request()->routeIs('admin.troopers.membership')" />
+    <x-tab :label="'Costumes'"
+           :target="route('admin.troopers.costumes', compact('trooper'))"
+           :active="request()->routeIs('admin.troopers.costumes')" />
     <x-tab :label="'Events'"
            :target="route('admin.troopers.events', compact('trooper'))"
            :active="request()->routeIs('admin.troopers.events')" />

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Synchronizers;
 
 use App\Enums\MembershipStatus;
+use App\Models\TrooperCostume;
 
 /**
  * Service class for managing Mandalorian Mercs organization data.
@@ -14,9 +15,9 @@ use App\Enums\MembershipStatus;
  */
 class SaberGuildServices extends BaseOrganizationService
 {
-    public function synchronize(): void
+    protected function synchronize(): void
     {
-        $costume_rows = $this->getSheetRows();
+        $costume_rows = $this->getSheetRows('Sheet1');
 
         foreach ($costume_rows as $row)
         {
@@ -58,9 +59,11 @@ class SaberGuildServices extends BaseOrganizationService
 
             $this->syncTrooperStatus($trooper, MembershipStatus::ACTIVE);
 
-            $this->syncTrooperCostume($trooper, $org_costume, $costume_image);
-        }
+            $attributes = [
+                TrooperCostume::IMAGE_URL_LG => $costume_image,
+            ];
 
-        $this->updateOrganizationSync();
+            $this->syncTrooperCostume($trooper, $org_costume, $attributes);
+        }
     }
 }

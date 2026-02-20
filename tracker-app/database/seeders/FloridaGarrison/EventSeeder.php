@@ -12,9 +12,10 @@ use App\Models\EventOrganization;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Organization;
-use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use Carbon\Carbon;
+use Database\Seeders\FloridaGarrison\Traits\HasClubMaps;
+use Database\Seeders\FloridaGarrison\Traits\HasCostumeMaps;
 use Database\Seeders\FloridaGarrison\Traits\HasEnumMaps;
 use Database\Seeders\FloridaGarrison\Traits\HasSquadMaps;
 use Illuminate\Database\Seeder;
@@ -23,9 +24,12 @@ use Illuminate\Support\Facades\DB;
 class EventSeeder extends Seeder
 {
     use HasSquadMaps;
+    use HasClubMaps;
     use HasEnumMaps;
+    use HasCostumeMaps;
 
-    private $costumes;
+    private $costume_maps;
+    private $costume_club_maps;
     private $squad_maps;
     private $trooper_status_map;
     // private $sign_ups;
@@ -62,13 +66,33 @@ class EventSeeder extends Seeder
     {
         $this->trooper_ids = Trooper::all()->pluck(Trooper::ID, Trooper::ID)->toArray();
         $this->handler_ids = Trooper::where(Trooper::MEMBERSHIP_ROLE, MembershipRole::HANDLER)->pluck(Trooper::ID, Trooper::ID)->toArray();
-        $this->costumes = OrganizationCostume::all()->pluck(OrganizationCostume::ID)->toArray();
         $this->squad_maps = $this->getSquadMap();
         $this->organizations = Organization::ofTypeOrganizations()->get();
         $this->trooper_status_map = array_values(array_filter(
             EventTrooperStatus::cases(),
             fn($case) => $case !== EventTrooperStatus::NONE
         ));
+
+        $costume_club_maps = $this->getCostumeClubMap();
+
+        $this->costume_club_maps = [];
+
+        foreach ($costume_club_maps as $club)
+        {
+            $this->costume_club_maps[$club['costume_club_id']] = $club;
+        }
+
+        $legacy_costumes = $this->getMappedLegacyCostumes();
+
+        $this->costume_maps = [];
+
+        foreach ($legacy_costumes as $costume_name => $legacy_costume)
+        {
+            foreach ($legacy_costume['ids'] as $legacy_id)
+            {
+                $this->costume_maps[$legacy_id] = $legacy_costume;
+            }
+        }
     }
 
     private function overlayOrganization($legacy, $event)
@@ -90,7 +114,7 @@ class EventSeeder extends Seeder
 
     private function overlayOrganizations($legacy, $event)
     {
-        $fl_garrison = $this->getOrganization(-1);
+        // $fl_garrison = $this->getOrganization(-1);
 
         $columns = [
             'limit501st' => '501st Legion',
@@ -171,51 +195,92 @@ class EventSeeder extends Seeder
         // $troopers = $this->sign_ups->filter(fn($s) => $s->troopid == $legacy_id);
         // Mission Correction: Fetch signups for THIS specific legacy shift 
         // effectively bypassing the "empty table at start" issue.
-        $troopers = DB::table('event_sign_up')
+        $legacy_sign_ups = DB::table('event_sign_up')
             ->join('tt_troopers', 'event_sign_up.trooperid', '=', 'tt_troopers.id')
             ->join('tt_event_shifts', 'event_sign_up.troopid', '=', 'tt_event_shifts.id')
             ->where('event_sign_up.troopid', $legacy_id)
             ->select('event_sign_up.*')
             ->get();
 
-        foreach ($troopers as $sign_up)
+        foreach ($legacy_sign_ups as $legacy_sign_up)
         {
-            $et = EventTrooper::where(EventTrooper::EVENT_SHIFT_ID, $shift_id)
-                ->where(EventTrooper::TROOPER_ID, $sign_up->trooperid)
+            $event_trooper = EventTrooper::where(EventTrooper::EVENT_SHIFT_ID, $shift_id)
+                ->where(EventTrooper::TROOPER_ID, $legacy_sign_up->trooperid)
                 ->first();
 
-            if ($et === null)
+            if ($event_trooper === null)
             {
                 //  first record wins unforunately
-                $et = new EventTrooper();
+                $event_trooper = new EventTrooper();
 
-                $et->event_shift_id = $shift_id;
-                $et->trooper_id = $sign_up->trooperid;
-                $et->status = $this->trooper_status_map[$sign_up->status];
-                $et->signed_up_at = Carbon::parse($sign_up->signuptime);
+                $event_trooper->event_shift_id = $shift_id;
+                $event_trooper->trooper_id = $legacy_sign_up->trooperid;
+                $event_trooper->status = $this->trooper_status_map[$legacy_sign_up->status];
+                $event_trooper->signed_up_at = Carbon::parse($legacy_sign_up->signuptime);
 
-                $et->is_handler = isset($this->handler_ids[$sign_up->trooperid]);
+                $event_trooper->is_handler = isset($this->handler_ids[$legacy_sign_up->trooperid]);
 
-                if ($et->is_handler)
+                if (!$event_trooper->is_handler)
                 {
+                    $event_trooper->costume_id = $this->getMappedCostumeId($legacy_sign_up->costume);
+
+                    $event_trooper->costume_organization_ids = $this->getMappedCostumeOrganizationIds($legacy_sign_up->costume);
+
+                    $event_trooper->backup_costume_id = $this->getMappedCostumeId($legacy_sign_up->costume_backup);
+
+                    $event_trooper->backup_costume_organization_ids = $this->getMappedCostumeOrganizationIds($legacy_sign_up->costume_backup);
                 }
-                else
-                {
-                    $et->costume_id = in_array($sign_up->costume, $this->costumes) ? $sign_up->costume : null;
-                    $et->backup_costume_id = in_array($sign_up->costume_backup, $this->costumes) ? $sign_up->costume_backup : null;
-                }
 
-                if ($sign_up->addedby > 0)
+                if ($legacy_sign_up->addedby > 0)
                 {
-                    if (isset($this->trooper_ids[$sign_up->addedby]))
+                    if (isset($this->trooper_ids[$legacy_sign_up->addedby]))
                     {
-                        $et->added_by_trooper_id = $sign_up->addedby;
+                        $event_trooper->added_by_trooper_id = $legacy_sign_up->addedby;
                     }
                 }
 
-                $et->save();
+                $event_trooper->save();
             }
         }
+    }
+
+    private function getMappedCostumeId($legacy_id): ?int
+    {
+        $legacy_costume = $this->costume_maps[$legacy_id] ?? null;
+
+        if ($legacy_costume === null)
+        {
+            return null;
+        }
+        if ($legacy_costume['id'] == 737)
+        {
+            dd($legacy_id, $this->costume_maps[$legacy_id] ?? null);
+        }
+
+        return $legacy_costume['id'];
+    }
+
+    private function getMappedCostumeOrganizationIds($legacy_id): ?array
+    {
+        $legacy_costume = $this->costume_maps[$legacy_id] ?? null;
+
+        if ($legacy_costume === null)
+        {
+            return null;
+        }
+
+        $organization_ids = [];
+
+        $clubs = $this->expandDualClubIds($legacy_costume['clubs']);
+
+        foreach ($clubs as $club_id)
+        {
+            $club = $this->costume_club_maps[$club_id] ?? null;
+
+            $organization_ids[] = $club['id'];
+        }
+
+        return $organization_ids;
     }
 
     private function overlayEvent($legacy, $event)

@@ -6,7 +6,7 @@
 
 namespace App\Models\Base;
 
-use App\Models\EventTrooper;
+use App\Models\Costume;
 use App\Models\Organization;
 use App\Models\TrooperCostume;
 use Carbon\Carbon;
@@ -21,7 +21,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * 
  * @property int $id
  * @property int $organization_id
- * @property string $name
+ * @property int $costume_id
  * @property string|null $prefix
  * @property Carbon|null $synchronized_at
  * @property Carbon|null $created_at
@@ -31,8 +31,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $updated_id
  * @property int|null $deleted_id
  * 
+ * @property Costume $costume
  * @property Organization $organization
- * @property Collection|EventTrooper[] $event_troopers
  * @property Collection|TrooperCostume[] $trooper_costumes
  *
  * @package App\Models\Base
@@ -42,7 +42,7 @@ class OrganizationCostume extends Model
     use SoftDeletes;
     const ID = 'id';
     const ORGANIZATION_ID = 'organization_id';
-    const NAME = 'name';
+    const COSTUME_ID = 'costume_id';
     const PREFIX = 'prefix';
     const SYNCHRONIZED_AT = 'synchronized_at';
     const CREATED_AT = 'created_at';
@@ -56,6 +56,7 @@ class OrganizationCostume extends Model
     protected $casts = [
         self::ID => 'int',
         self::ORGANIZATION_ID => 'int',
+        self::COSTUME_ID => 'int',
         self::SYNCHRONIZED_AT => 'datetime',
         self::CREATED_AT => 'datetime',
         self::UPDATED_AT => 'datetime',
@@ -66,23 +67,23 @@ class OrganizationCostume extends Model
 
     protected $fillable = [
         self::ORGANIZATION_ID,
-        self::NAME,
+        self::COSTUME_ID,
         self::PREFIX,
         self::SYNCHRONIZED_AT
     ];
+
+    public function costume(): BelongsTo
+    {
+        return $this->belongsTo(Costume::class);
+    }
 
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
     }
 
-    public function event_troopers(): HasMany
-    {
-        return $this->hasMany(EventTrooper::class, EventTrooper::COSTUME_ID);
-    }
-
     public function trooper_costumes(): HasMany
     {
-        return $this->hasMany(TrooperCostume::class, TrooperCostume::COSTUME_ID);
+        return $this->hasMany(TrooperCostume::class);
     }
 }

@@ -17,7 +17,7 @@ class OrganizationCostumeFactory extends Factory
     {
         return [
             OrganizationCostume::ORGANIZATION_ID => \App\Models\Organization::factory(),
-            OrganizationCostume::NAME => $this->faker->name(),
+            OrganizationCostume::COSTUME_ID => \App\Models\Costume::factory(),
         ];
     }
 }

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Features\Events\Commands;
 
+use App\Bus\Contracts\CommandHandlerInterface;
 use App\Enums\NotificationFrequency;
 use App\Mail\Events\InstantEventNotification;
 use App\Models\Event;
 use App\Models\EventNotification;
 use App\Models\Trooper;
 use Illuminate\Support\Facades\Mail;
-use App\Bus\Contracts\CommandHandlerInterface;
 
 /**
  * Handler for creating event notifications and sending instant emails to individual troopers.
@@ -36,7 +36,7 @@ readonly class SendEventCreatedNotificationCommandHandler implements CommandHand
      * 4. If trooper has DAILY preference:
      *    - Leave notification unprocessed for batch processing
      *
-     * @param SendEventCreatedNotificationCommand $message The command containing event and trooper
+     * @param  SendEventCreatedNotificationCommand  $message  The command containing event and trooper
      * @return null Always returns null
      */
     public function __invoke(object $message): mixed
@@ -46,7 +46,7 @@ readonly class SendEventCreatedNotificationCommandHandler implements CommandHand
             return null;
         }
 
-        $notification = new EventNotification();
+        $notification = new EventNotification;
         $notification->event_id = $message->event->id;
         $notification->trooper_id = $message->trooper->id;
 

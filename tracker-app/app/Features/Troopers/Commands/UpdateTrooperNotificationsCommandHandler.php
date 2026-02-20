@@ -25,7 +25,7 @@ readonly class UpdateTrooperNotificationsCommandHandler implements CommandHandle
     /**
      * Execute the command to update notification preferences.
      *
-     * @param UpdateTrooperNotificationsCommand $message The command with trooper and preference data
+     * @param  UpdateTrooperNotificationsCommand  $message  The command with trooper and preference data
      * @return null
      */
     public function __invoke(object $message): mixed
@@ -40,7 +40,7 @@ readonly class UpdateTrooperNotificationsCommandHandler implements CommandHandle
 
             if ($assignment === null)
             {
-                $assignment = new TrooperAssignment();
+                $assignment = new TrooperAssignment;
                 $assignment->trooper_id = $message->trooper->id;
                 $assignment->organization_id = $organization_id;
             }
@@ -53,4 +53,3 @@ readonly class UpdateTrooperNotificationsCommandHandler implements CommandHandle
         return null;
     }
 }
-

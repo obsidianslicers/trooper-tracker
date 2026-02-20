@@ -19,15 +19,12 @@ readonly class UpdateTrooperCommand
     /**
      * Create a new command instance.
      *
-     * @param Trooper $trooper The trooper to update
-     * @param array<string, mixed> $valid_data Validated attributes to update on the trooper
-     * @param bool $complete_setup Whether to mark setup as completed (default: false)
+     * @param  Trooper  $trooper  The trooper to update
+     * @param  array<string, mixed>  $valid_data  Validated attributes to update on the trooper
+     * @param  bool  $complete_setup  Whether to mark setup as completed (default: false)
      */
     public function __construct(
         public Trooper $trooper,
         public array $valid_data,
-        public bool $complete_setup = false)
-    {
-    }
+        public bool $complete_setup = false) {}
 }
-

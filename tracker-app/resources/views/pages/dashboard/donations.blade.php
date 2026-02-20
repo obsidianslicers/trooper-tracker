@@ -18,11 +18,9 @@
                 </td>
             </tr>
         @empty
-            <tr>
-                <td colspan="3">
-                    No Donations ... Yet!
-                </td>
-            </tr>
+            <x-table-empty :colspan="2">
+                No Donations ... Yet!
+            </x-table-empty>
         @endforelse
     </tbody>
 </x-table>

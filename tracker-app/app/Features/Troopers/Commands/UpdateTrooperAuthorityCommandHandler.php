@@ -23,7 +23,7 @@ readonly class UpdateTrooperAuthorityCommandHandler implements CommandHandlerInt
      * Sets the trooper's membership_role (MEMBER, MODERATOR, or ADMINISTRATOR)
      * and saves the trooper model.
      *
-     * @param UpdateTrooperAuthorityCommand $message The command with trooper and membership_role
+     * @param  UpdateTrooperAuthorityCommand  $message  The command with trooper and membership_role
      * @return null
      */
     public function __invoke(object $message): mixed
@@ -50,9 +50,9 @@ readonly class UpdateTrooperAuthorityCommandHandler implements CommandHandlerInt
                 continue;
             }
 
-            $where = [TrooperAssignment::ORGANIZATION_ID => $organization_id,];
+            $where = [TrooperAssignment::ORGANIZATION_ID => $organization_id];
 
-            $set = [TrooperAssignment::IS_MODERATOR => $is_moderator,];
+            $set = [TrooperAssignment::IS_MODERATOR => $is_moderator];
 
             $message->trooper->trooper_assignments()->updateOrCreate($where, $set);
         }
@@ -60,4 +60,3 @@ readonly class UpdateTrooperAuthorityCommandHandler implements CommandHandlerInt
         return null;
     }
 }
-

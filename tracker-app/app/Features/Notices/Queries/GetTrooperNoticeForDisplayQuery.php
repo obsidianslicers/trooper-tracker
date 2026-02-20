@@ -19,12 +19,11 @@ readonly class GetTrooperNoticeForDisplayQuery
     /**
      * Create a new query instance.
      *
-     * @param Trooper $trooper The trooper requesting notice display information
-     * @param bool $unread_only Whether to count only unread notices (default: false)
+     * @param  Trooper  $trooper  The trooper requesting notice display information
+     * @param  bool  $unread_only  Whether to count only unread notices (default: false)
      */
     public function __construct(
         public readonly Trooper $trooper,
         public readonly bool $unread_only = false
-    ) {
-    }
+    ) {}
 }

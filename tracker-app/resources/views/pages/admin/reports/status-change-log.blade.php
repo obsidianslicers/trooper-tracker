@@ -43,11 +43,9 @@
                     </td>
                 </tr>
             @empty
-                <tr>
-                    <td colspan="5">
-                        No status changes found that were updated by anyone but the trooper.
-                    </td>
-                </tr>
+                <x-table-empty :colspan="5">
+                    No status changes found that were updated by anyone but the trooper.
+                </x-table-empty>
             @endforelse
         </tbody>
     </x-table>

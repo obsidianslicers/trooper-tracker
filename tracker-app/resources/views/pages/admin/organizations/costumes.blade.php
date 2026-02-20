@@ -17,17 +17,18 @@
                         Name
                     </th>
                     <th>
-                        <x-link-button-create :url="route('admin.organizations.create-costume', compact('organization'))">
-                            Costume
-                        </x-link-button-create>
+                        Synchronized
                     </th>
                 </tr>
             </thead>
             <tbody>
-                @foreach($organization->organization_costumes as $costume)
+                @foreach($organization->costumes as $costume)
                     <tr>
-                        <td colspan="2">
+                        <td>
                             {{ $costume->name }}
+                        </td>
+                        <td>
+                            <x-date-format :value="$costume->pivot->synchronized_at" />
                         </td>
                     </tr>
                 @endforeach

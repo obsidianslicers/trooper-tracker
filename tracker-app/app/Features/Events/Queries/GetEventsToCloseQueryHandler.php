@@ -26,7 +26,7 @@ readonly class GetEventsToCloseQueryHandler implements QueryHandlerInterface
      * 2. Filter events with event_end < now()
      * 3. Return collection of Event models
      *
-     * @param GetEventsToCloseQuery $message The query (no parameters)
+     * @param  GetEventsToCloseQuery  $message  The query (no parameters)
      * @return Collection<int, Event> Collection of events that need to be closed
      */
     public function __invoke(object $message): mixed

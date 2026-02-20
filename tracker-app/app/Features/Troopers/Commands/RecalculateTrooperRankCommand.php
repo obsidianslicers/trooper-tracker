@@ -23,10 +23,7 @@ readonly class RecalculateTrooperRankCommand
     /**
      * Create a new command instance.
      *
-     * @param int|null $trooper_id The ID of the trooper to recalculate rank for, or null to recalculate all troopers
+     * @param  int|null  $trooper_id  The ID of the trooper to recalculate rank for, or null to recalculate all troopers
      */
-    public function __construct(public readonly ?int $trooper_id = null)
-    {
-    }
+    public function __construct(public readonly ?int $trooper_id = null) {}
 }
-

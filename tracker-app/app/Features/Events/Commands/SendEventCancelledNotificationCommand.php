@@ -21,12 +21,11 @@ readonly class SendEventCancelledNotificationCommand
     /**
      * Create a new command instance.
      *
-     * @param Event $event The cancelled event.
-     * @param Trooper $trooper The trooper who signed up for the event.
+     * @param  Event  $event  The cancelled event.
+     * @param  Trooper  $trooper  The trooper who signed up for the event.
      */
     public function __construct(
         public readonly Event $event,
         public readonly Trooper $trooper,
-    ) {
-    }
+    ) {}
 }
