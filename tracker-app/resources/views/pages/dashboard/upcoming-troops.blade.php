@@ -28,7 +28,7 @@
                 <td>
                     @foreach($shift->event_troopers as $event_trooper)
                         @if(isset($event_trooper->organization_costume) && $event_trooper->organization_costume->name != 'N/A')
-                            {{ $event_trooper->organization_costume->full_name }}
+                            TODO
                         @else
                             <span class="text-muted">N/A</span>
                         @endif

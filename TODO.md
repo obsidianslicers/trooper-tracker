@@ -11,6 +11,10 @@ stan/pint - WIP
 - app/Policies
 - app/Rules
 
+### FIX
+- Trooper Dashboard
+-
+
 ### MISC
 
 - smash to single commit prior to beta 

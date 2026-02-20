@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Synchronizers;
 
+use App\Models\Costume;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
@@ -56,16 +57,16 @@ class SaberGuildServicesTest extends TestCase
 
         $this->google_service
             ->shouldReceive('getSheet')
-            ->with('test-sheet-id', 'Costumes')
+            ->with('test-sheet-id', 'Sheet1')
             ->andReturn($sheet_data);
 
-        $this->subject->synchronize();
+        $this->subject->run();
 
-        $org_costume = OrganizationCostume::where(OrganizationCostume::NAME, 'Jedi Knight')->first();
+        $org_costume = $this->getOrganizationCostumeByName('Jedi Knight');
         $this->assertNotNull($org_costume);
 
         $trooper_costume = TrooperCostume::where(TrooperCostume::TROOPER_ID, $trooper->id)
-            ->where(TrooperCostume::COSTUME_ID, $org_costume->id)
+            ->where(TrooperCostume::ORGANIZATION_COSTUME_ID, $org_costume->id)
             ->first();
         $this->assertNotNull($trooper_costume);
         $this->assertEquals('https://example.com/jedi.jpg', $trooper_costume->image_url_lg);
@@ -90,14 +91,14 @@ class SaberGuildServicesTest extends TestCase
 
         $this->google_service
             ->shouldReceive('getSheet')
-            ->with('test-sheet-id', 'Costumes')
+            ->with('test-sheet-id', 'Sheet1')
             ->andReturn($sheet_data);
 
-        $this->subject->synchronize();
+        $this->subject->run();
 
-        $org_costume = OrganizationCostume::where(OrganizationCostume::NAME, 'Knight Costume')->first();
+        $org_costume = $this->getOrganizationCostumeByName('Knight Costume');
         $trooper_costume = TrooperCostume::where(TrooperCostume::TROOPER_ID, $trooper->id)
-            ->where(TrooperCostume::COSTUME_ID, $org_costume->id)
+            ->where(TrooperCostume::ORGANIZATION_COSTUME_ID, $org_costume->id)
             ->first();
 
         $this->assertNotNull($trooper_costume);
@@ -124,14 +125,14 @@ class SaberGuildServicesTest extends TestCase
 
         $this->google_service
             ->shouldReceive('getSheet')
-            ->with('test-sheet-id', 'Costumes')
+            ->with('test-sheet-id', 'Sheet1')
             ->andReturn($sheet_data);
 
-        $this->subject->synchronize();
+        $this->subject->run();
 
-        $org_costume = OrganizationCostume::where(OrganizationCostume::NAME, 'Costume')->first();
+        $org_costume = $this->getOrganizationCostumeByName('Costume');
         $trooper_costume = TrooperCostume::where(TrooperCostume::TROOPER_ID, $trooper->id)
-            ->where(TrooperCostume::COSTUME_ID, $org_costume->id)
+            ->where(TrooperCostume::ORGANIZATION_COSTUME_ID, $org_costume->id)
             ->first();
 
         $this->assertNotNull($trooper_costume);
@@ -148,10 +149,10 @@ class SaberGuildServicesTest extends TestCase
 
         $this->google_service
             ->shouldReceive('getSheet')
-            ->with('test-sheet-id', 'Costumes')
+            ->with('test-sheet-id', 'Sheet1')
             ->andReturn($sheet_data);
 
-        $this->subject->synchronize();
+        $this->subject->run();
 
         $org_costumes = OrganizationCostume::all();
         $this->assertEquals(0, $org_costumes->count());
@@ -166,10 +167,10 @@ class SaberGuildServicesTest extends TestCase
 
         $this->google_service
             ->shouldReceive('getSheet')
-            ->with('test-sheet-id', 'Costumes')
+            ->with('test-sheet-id', 'Sheet1')
             ->andReturn($sheet_data);
 
-        $this->subject->synchronize();
+        $this->subject->run();
 
         $org_costumes = OrganizationCostume::all();
         $this->assertEquals(0, $org_costumes->count());
@@ -184,13 +185,13 @@ class SaberGuildServicesTest extends TestCase
 
         $this->google_service
             ->shouldReceive('getSheet')
-            ->with('test-sheet-id', 'Costumes')
+            ->with('test-sheet-id', 'Sheet1')
             ->andReturn($sheet_data);
 
-        $this->subject->synchronize();
+        $this->subject->run();
 
         // Organization costume is created, but trooper costume is not
-        $org_costume = OrganizationCostume::where(OrganizationCostume::NAME, 'Jedi Knight')->first();
+        $org_costume = $this->getOrganizationCostumeByName('Jedi Knight');
         $this->assertNotNull($org_costume);
         $trooper_costumes = TrooperCostume::all();
         $this->assertEquals(0, $trooper_costumes->count());
@@ -200,7 +201,7 @@ class SaberGuildServicesTest extends TestCase
     {
         $this->organization->update([Organization::SYNC_SHEET_ID => null]);
 
-        $this->subject->synchronize();
+        $this->subject->run();
 
         $org_costumes = OrganizationCostume::all();
         $this->assertEquals(0, $org_costumes->count());
@@ -210,10 +211,10 @@ class SaberGuildServicesTest extends TestCase
     {
         $this->google_service
             ->shouldReceive('getSheet')
-            ->with('test-sheet-id', 'Costumes')
+            ->with('test-sheet-id', 'Sheet1')
             ->andReturn(false);
 
-        $this->subject->synchronize();
+        $this->subject->run();
 
         $org_costumes = OrganizationCostume::all();
         $this->assertEquals(0, $org_costumes->count());
@@ -237,12 +238,12 @@ class SaberGuildServicesTest extends TestCase
 
         $this->google_service
             ->shouldReceive('getSheet')
-            ->with('test-sheet-id', 'Costumes')
+            ->with('test-sheet-id', 'Sheet1')
             ->andReturn($sheet_data);
 
-        $this->subject->synchronize();
+        $this->subject->run();
 
-        $org_costume = OrganizationCostume::where(OrganizationCostume::NAME, '&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;')->first();
+        $org_costume = $this->getOrganizationCostumeByName('&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;');
         $this->assertNotNull($org_costume);
     }
 
@@ -265,12 +266,26 @@ class SaberGuildServicesTest extends TestCase
 
         $this->google_service
             ->shouldReceive('getSheet')
-            ->with('test-sheet-id', 'Costumes')
+            ->with('test-sheet-id', 'Sheet1')
             ->andReturn($sheet_data);
 
-        $this->subject->synchronize();
+        $this->subject->run();
 
         $trooper_costumes = TrooperCostume::where(TrooperCostume::TROOPER_ID, $trooper->id)->get();
         $this->assertEquals(2, $trooper_costumes->count());
+    }
+
+    private function getOrganizationCostumeByName(string $costume_name): ?OrganizationCostume
+    {
+        $costume = Costume::where(Costume::NAME, $costume_name)->first();
+
+        if ($costume === null)
+        {
+            return null;
+        }
+
+        return OrganizationCostume::where(OrganizationCostume::COSTUME_ID, $costume->id)
+            ->where(OrganizationCostume::ORGANIZATION_ID, $this->organization->id)
+            ->first();
     }
 }

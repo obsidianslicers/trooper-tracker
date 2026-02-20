@@ -8,6 +8,7 @@ use App\Features\Events\Queries\GetTroopersForEventAdminQuery;
 use App\Features\Events\Queries\GetTroopersForEventAdminQueryHandler;
 use App\Models\Costume;
 use App\Models\Event;
+use App\Models\EventOrganization;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Organization;
@@ -58,7 +59,10 @@ class GetTroopersForEventAdminQueryHandlerTest extends TestCase
         $shift = EventShift::factory()->for($event)->create();
         $trooper = Trooper::factory()->asActive()->create();
         $organization = Organization::factory()->create();
-        $org_costume = OrganizationCostume::factory()->for($organization)->create();
+        $costume = Costume::factory()->create();
+        $org_costume = OrganizationCostume::factory()->for($organization)->create([
+            OrganizationCostume::COSTUME_ID => $costume->id,
+        ]);
         TrooperCostume::factory()->create([
             TrooperCostume::TROOPER_ID => $trooper->id,
             TrooperCostume::ORGANIZATION_COSTUME_ID => $org_costume->id,
@@ -66,6 +70,7 @@ class GetTroopersForEventAdminQueryHandlerTest extends TestCase
         EventTrooper::factory()->create([
             EventTrooper::EVENT_SHIFT_ID => $shift->id,
             EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::COSTUME_ID => $costume->id,
             EventTrooper::COSTUME_ORGANIZATION_IDS => [$organization->id],
         ]);
 
@@ -89,8 +94,15 @@ class GetTroopersForEventAdminQueryHandlerTest extends TestCase
         $shift = EventShift::factory()->for($event)->create();
         $trooper = Trooper::factory()->asActive()->create();
         $organization = Organization::factory()->create();
-
-        $org_costume = OrganizationCostume::factory()->for($organization)->create();
+        EventOrganization::factory()->create([
+            EventOrganization::EVENT_ID => $event->id,
+            EventOrganization::ORGANIZATION_ID => $organization->id,
+            EventOrganization::CAN_ATTEND => true,
+        ]);
+        $costume = Costume::factory()->create();
+        $org_costume = OrganizationCostume::factory()->for($organization)->create([
+            OrganizationCostume::COSTUME_ID => $costume->id,
+        ]);
         TrooperCostume::factory()->create([
             TrooperCostume::TROOPER_ID => $trooper->id,
             TrooperCostume::ORGANIZATION_COSTUME_ID => $org_costume->id,
@@ -99,8 +111,9 @@ class GetTroopersForEventAdminQueryHandlerTest extends TestCase
         EventTrooper::factory()->create([
             EventTrooper::EVENT_SHIFT_ID => $shift->id,
             EventTrooper::TROOPER_ID => $trooper->id,
-            EventTrooper::COSTUME_ID => $org_costume->costume_id,
+            EventTrooper::COSTUME_ID => $costume->id,
             EventTrooper::COSTUME_ORGANIZATION_IDS => [$organization->id],
+            EventTrooper::BACKUP_COSTUME_ID => null,
         ]);
 
         $handler = new GetTroopersForEventAdminQueryHandler();
@@ -122,6 +135,11 @@ class GetTroopersForEventAdminQueryHandlerTest extends TestCase
         $shift = EventShift::factory()->for($event)->create();
         $trooper = Trooper::factory()->asActive()->create();
         $potential_org = Organization::factory()->create();
+        EventOrganization::factory()->create([
+            EventOrganization::EVENT_ID => $event->id,
+            EventOrganization::ORGANIZATION_ID => $potential_org->id,
+            EventOrganization::CAN_ATTEND => true,
+        ]);
 
         // Create trooper membership with org identifier in potential organization
         $trooper->organizations()->attach($potential_org->id, [
@@ -129,7 +147,10 @@ class GetTroopersForEventAdminQueryHandlerTest extends TestCase
             'identifier' => 'TEST123',
         ]);
 
-        $org_costume = OrganizationCostume::factory()->for($potential_org)->create();
+        $costume = Costume::factory()->create();
+        $org_costume = OrganizationCostume::factory()->for($potential_org)->create([
+            OrganizationCostume::COSTUME_ID => $costume->id,
+        ]);
         TrooperCostume::factory()->create([
             TrooperCostume::TROOPER_ID => $trooper->id,
             TrooperCostume::ORGANIZATION_COSTUME_ID => $org_costume->id,
@@ -138,8 +159,9 @@ class GetTroopersForEventAdminQueryHandlerTest extends TestCase
         EventTrooper::factory()->create([
             EventTrooper::EVENT_SHIFT_ID => $shift->id,
             EventTrooper::TROOPER_ID => $trooper->id,
-            EventTrooper::COSTUME_ID => $org_costume->costume_id,
+            EventTrooper::COSTUME_ID => $costume->id,
             EventTrooper::COSTUME_ORGANIZATION_IDS => [$potential_org->id],
+            EventTrooper::BACKUP_COSTUME_ID => null,
         ]);
 
         $handler = new GetTroopersForEventAdminQueryHandler();
@@ -254,9 +276,19 @@ class GetTroopersForEventAdminQueryHandlerTest extends TestCase
         $shift = EventShift::factory()->for($event)->create();
         $trooper = Trooper::factory()->asActive()->create();
         $organization = Organization::factory()->create();
-
-        $org_costume1 = OrganizationCostume::factory()->for($organization)->create();
-        $org_costume2 = OrganizationCostume::factory()->for($organization)->create();
+        EventOrganization::factory()->create([
+            EventOrganization::EVENT_ID => $event->id,
+            EventOrganization::ORGANIZATION_ID => $organization->id,
+            EventOrganization::CAN_ATTEND => true,
+        ]);
+        $costume1 = Costume::factory()->create();
+        $costume2 = Costume::factory()->create();
+        $org_costume1 = OrganizationCostume::factory()->for($organization)->create([
+            OrganizationCostume::COSTUME_ID => $costume1->id,
+        ]);
+        $org_costume2 = OrganizationCostume::factory()->for($organization)->create([
+            OrganizationCostume::COSTUME_ID => $costume2->id,
+        ]);
 
         TrooperCostume::factory()->create([
             TrooperCostume::TROOPER_ID => $trooper->id,
@@ -270,8 +302,9 @@ class GetTroopersForEventAdminQueryHandlerTest extends TestCase
         EventTrooper::factory()->create([
             EventTrooper::EVENT_SHIFT_ID => $shift->id,
             EventTrooper::TROOPER_ID => $trooper->id,
-            EventTrooper::COSTUME_ID => $org_costume1->costume_id,
+            EventTrooper::COSTUME_ID => $costume1->id,
             EventTrooper::COSTUME_ORGANIZATION_IDS => [$organization->id],
+            EventTrooper::BACKUP_COSTUME_ID => null,
         ]);
 
         $handler = new GetTroopersForEventAdminQueryHandler();
@@ -294,10 +327,20 @@ class GetTroopersForEventAdminQueryHandlerTest extends TestCase
         $trooper = Trooper::factory()->asActive()->create();
         $approved_org = Organization::factory()->create();
         $excluded_org = Organization::factory()->create();
+        EventOrganization::factory()->create([
+            EventOrganization::EVENT_ID => $event->id,
+            EventOrganization::ORGANIZATION_ID => $approved_org->id,
+            EventOrganization::CAN_ATTEND => true,
+        ]);
+        $costume = Costume::factory()->create();
 
-        // Create costumes for both orgs
-        $approved_org_costume = OrganizationCostume::factory()->for($approved_org)->create();
-        $excluded_org_costume = OrganizationCostume::factory()->for($excluded_org)->create();
+        // Create costumes for both orgs using the same base costume
+        $approved_org_costume = OrganizationCostume::factory()->for($approved_org)->create([
+            OrganizationCostume::COSTUME_ID => $costume->id,
+        ]);
+        $excluded_org_costume = OrganizationCostume::factory()->for($excluded_org)->create([
+            OrganizationCostume::COSTUME_ID => $costume->id,
+        ]);
 
         // Trooper has costumes from both organizations
         TrooperCostume::factory()->create([
@@ -313,8 +356,9 @@ class GetTroopersForEventAdminQueryHandlerTest extends TestCase
         EventTrooper::factory()->create([
             EventTrooper::EVENT_SHIFT_ID => $shift->id,
             EventTrooper::TROOPER_ID => $trooper->id,
-            EventTrooper::COSTUME_ID => $approved_org_costume->costume_id,
+            EventTrooper::COSTUME_ID => $costume->id,
             EventTrooper::COSTUME_ORGANIZATION_IDS => [$approved_org->id],
+            EventTrooper::BACKUP_COSTUME_ID => null,
         ]);
 
         $handler = new GetTroopersForEventAdminQueryHandler();
@@ -337,8 +381,15 @@ class GetTroopersForEventAdminQueryHandlerTest extends TestCase
         $shift = EventShift::factory()->for($event)->create();
         $trooper = Trooper::factory()->asActive()->create();
         $organization = Organization::factory()->create();
-
-        $org_costume = OrganizationCostume::factory()->for($organization)->create();
+        EventOrganization::factory()->create([
+            EventOrganization::EVENT_ID => $event->id,
+            EventOrganization::ORGANIZATION_ID => $organization->id,
+            EventOrganization::CAN_ATTEND => true,
+        ]);
+        $costume = Costume::factory()->create();
+        $org_costume = OrganizationCostume::factory()->for($organization)->create([
+            OrganizationCostume::COSTUME_ID => $costume->id,
+        ]);
 
         TrooperCostume::factory()->create([
             TrooperCostume::TROOPER_ID => $trooper->id,
@@ -348,8 +399,9 @@ class GetTroopersForEventAdminQueryHandlerTest extends TestCase
         EventTrooper::factory()->create([
             EventTrooper::EVENT_SHIFT_ID => $shift->id,
             EventTrooper::TROOPER_ID => $trooper->id,
-            EventTrooper::COSTUME_ID => $org_costume->costume_id,
+            EventTrooper::COSTUME_ID => $costume->id,
             EventTrooper::COSTUME_ORGANIZATION_IDS => [$organization->id],
+            EventTrooper::BACKUP_COSTUME_ID => null,
         ]);
 
         $handler = new GetTroopersForEventAdminQueryHandler();
@@ -372,6 +424,11 @@ class GetTroopersForEventAdminQueryHandlerTest extends TestCase
         $shift = EventShift::factory()->for($event)->create();
         $trooper = Trooper::factory()->asActive()->create();
         $organization = Organization::factory()->create();
+        EventOrganization::factory()->create([
+            EventOrganization::EVENT_ID => $event->id,
+            EventOrganization::ORGANIZATION_ID => $organization->id,
+            EventOrganization::CAN_ATTEND => true,
+        ]);
 
         $costume1 = Costume::factory()->create();
         $costume2 = Costume::factory()->create();
@@ -403,13 +460,60 @@ class GetTroopersForEventAdminQueryHandlerTest extends TestCase
         // Note: backup_costume_organizations computation currently filters by costume_id,
         // not backup_costume_id, so this returns (unattached) when costumes differ
         $this->assertIsString($event_trooper->backup_costume_organizations);
+    }
+
+    public function test_invoke_marks_multiple_organizations_with_prefix(): void
+    {
+        // Arrange
+        $event = Event::factory()->create();
+        $shift = EventShift::factory()->for($event)->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $org1 = Organization::factory()->create();
+        $org2 = Organization::factory()->create();
+        EventOrganization::factory()->create([
+            EventOrganization::EVENT_ID => $event->id,
+            EventOrganization::ORGANIZATION_ID => $org1->id,
+            EventOrganization::CAN_ATTEND => true,
+        ]);
+        EventOrganization::factory()->create([
+            EventOrganization::EVENT_ID => $event->id,
+            EventOrganization::ORGANIZATION_ID => $org2->id,
+            EventOrganization::CAN_ATTEND => true,
+        ]);
+        $costume = Costume::factory()->create();
+
+        $org_costume1 = OrganizationCostume::factory()->for($org1)->create([
+            OrganizationCostume::COSTUME_ID => $costume->id,
+        ]);
+        $org_costume2 = OrganizationCostume::factory()->for($org2)->create([
+            OrganizationCostume::COSTUME_ID => $costume->id,
+        ]);
+
+        TrooperCostume::factory()->create([
+            TrooperCostume::TROOPER_ID => $trooper->id,
+            TrooperCostume::ORGANIZATION_COSTUME_ID => $org_costume1->id,
+        ]);
+        TrooperCostume::factory()->create([
+            TrooperCostume::TROOPER_ID => $trooper->id,
+            TrooperCostume::ORGANIZATION_COSTUME_ID => $org_costume2->id,
+        ]);
+
+        EventTrooper::factory()->create([
+            EventTrooper::EVENT_SHIFT_ID => $shift->id,
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::COSTUME_ID => $costume->id,
+            EventTrooper::COSTUME_ORGANIZATION_IDS => [$org1->id, $org2->id],
+            EventTrooper::BACKUP_COSTUME_ID => null,
+        ]);
+
+        $handler = new GetTroopersForEventAdminQueryHandler();
+        $query = new GetTroopersForEventAdminQuery($event);
 
         // Act
         $result = $handler($query);
 
         // Assert
         $event_trooper = $result->first()->event_troopers->first();
-        // Multiple organizations should include "(*) " prefix
         $this->assertStringStartsWith('(*)', $event_trooper->costume_organizations);
         $this->assertStringContainsString($org1->name, $event_trooper->costume_organizations);
         $this->assertStringContainsString($org2->name, $event_trooper->costume_organizations);
