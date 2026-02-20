@@ -20,7 +20,7 @@ readonly class GetOrganizationsQueryHandler implements QueryHandlerInterface
     /**
      * Execute the query to retrieve all organizations.
      *
-     * @param GetOrganizationsQuery $message The query (no parameters)
+     * @param  GetOrganizationsQuery  $message  The query (no parameters)
      * @return \Illuminate\Support\Collection<int, Organization> Collection of organizations
      */
     public function __invoke(object $message): mixed

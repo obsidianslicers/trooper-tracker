@@ -55,6 +55,7 @@
             "pint app/Contracts",
             "pint app/Enums",
             "pint app/Facades",
+            "pint app/Features",
             "pint app/Http",
             "pint app/Jobs",
             "pint app/Mail",

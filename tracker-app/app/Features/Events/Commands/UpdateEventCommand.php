@@ -20,12 +20,10 @@ readonly class UpdateEventCommand
     /**
      * Create a new command instance.
      *
-     * @param Event $event The event to update
-     * @param array<string, mixed> $data The validated data to update the event with
+     * @param  Event  $event  The event to update
+     * @param  array<string, mixed>  $data  The validated data to update the event with
      */
     public function __construct(
         public Event $event,
-        public array $data)
-    {
-    }
+        public array $data) {}
 }

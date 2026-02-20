@@ -26,7 +26,7 @@ readonly class AttachTrooperCostumeCommandHandler implements CommandHandlerInter
     /**
      * Execute the command to attach a costume.
      *
-     * @param AttachTrooperCostumeCommand $message The command with trooper, organization, and costume IDs
+     * @param  AttachTrooperCostumeCommand  $message  The command with trooper, organization, and costume IDs
      * @return null
      */
     public function __invoke(object $message): mixed
@@ -34,8 +34,7 @@ readonly class AttachTrooperCostumeCommandHandler implements CommandHandlerInter
         //  all organizations the trooper belongs to
         $organization_costumes = OrganizationCostume::query()
             ->whereIn(OrganizationCostume::ID, $message->organization_ids)
-            ->whereHas('organization', function ($query) use ($message)
-            {
+            ->whereHas('organization', function ($query) use ($message) {
                 $query->withActiveTroopers($message->trooper->id);
             })
             ->get();
@@ -62,4 +61,3 @@ readonly class AttachTrooperCostumeCommandHandler implements CommandHandlerInter
         return null;
     }
 }
-

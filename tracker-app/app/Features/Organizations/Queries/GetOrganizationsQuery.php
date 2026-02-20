@@ -12,6 +12,4 @@ namespace App\Features\Organizations\Queries;
  *
  * @see GetOrganizationsQueryHandler
  */
-readonly class GetOrganizationsQuery
-{
-}
+readonly class GetOrganizationsQuery {}

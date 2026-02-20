@@ -22,7 +22,5 @@ readonly class GetTroopersByRoleQuery
      *
      * No parameters required - returns all administrators.
      */
-    public function __construct(public readonly MembershipRole $membership_role)
-    {
-    }
+    public function __construct(public readonly MembershipRole $membership_role) {}
 }

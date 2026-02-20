@@ -30,7 +30,7 @@ readonly class GetTroopersForPickerQueryHandler implements QueryHandlerInterface
      * 4. If filter has criteria: Apply search term and role filtering and return results
      * 5. If no filter criteria: Return empty collection
      *
-     * @param GetTroopersForPickerQuery $message The query containing filter and scope criteria
+     * @param  GetTroopersForPickerQuery  $message  The query containing filter and scope criteria
      * @return \Illuminate\Support\Collection<int, Trooper> Collection of filtered troopers, or empty if no filter applied
      */
     public function __invoke(object $message): mixed
@@ -41,8 +41,7 @@ readonly class GetTroopersForPickerQueryHandler implements QueryHandlerInterface
 
         if ($message->organization_id)
         {
-            $query = $query->whereHas('organizations', function ($q) use ($message)
-            {
+            $query = $query->whereHas('organizations', function ($q) use ($message) {
                 $q->where('tt_organizations.id', $message->organization_id);
             });
         }

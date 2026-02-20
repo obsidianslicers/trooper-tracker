@@ -21,14 +21,13 @@ readonly class DetachTrooperCostumeCommandHandler implements CommandHandlerInter
     /**
      * Execute the command to detach a costume.
      *
-     * @param DetachTrooperCostumeCommand $message The command with trooper and costume ID
+     * @param  DetachTrooperCostumeCommand  $message  The command with trooper and costume ID
      * @return null
      */
     public function __invoke(object $message): mixed
     {
         $trooper_costumes = $message->trooper->trooper_costumes()
-            ->whereHas('organization_costume', function ($query) use ($message)
-            {
+            ->whereHas('organization_costume', function ($query) use ($message) {
                 $query->where(OrganizationCostume::COSTUME_ID, $message->costume_id);
             })
             ->get();
@@ -41,4 +40,3 @@ readonly class DetachTrooperCostumeCommandHandler implements CommandHandlerInter
         return null;
     }
 }
-

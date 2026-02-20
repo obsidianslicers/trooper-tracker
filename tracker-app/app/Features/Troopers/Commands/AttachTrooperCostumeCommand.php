@@ -20,13 +20,11 @@ readonly class AttachTrooperCostumeCommand
     /**
      * Create a new command instance.
      *
-     * @param Trooper $trooper The trooper to attach the costume to
-     * @param array $organization_ids The IDs of the organizations that own the costumes to attach
+     * @param  Trooper  $trooper  The trooper to attach the costume to
+     * @param  array  $organization_ids  The IDs of the organizations that own the costumes to attach
      */
     public function __construct(
         public Trooper $trooper,
         public array $organization_ids
-    ) {
-    }
+    ) {}
 }
-

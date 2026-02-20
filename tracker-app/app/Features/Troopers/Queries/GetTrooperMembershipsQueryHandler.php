@@ -31,7 +31,7 @@ readonly class GetTrooperMembershipsQueryHandler implements QueryHandlerInterfac
      * 3. Get trooper's member assignments (is_member = true)
      * 4. For each organization, find the most specific assignment via node_path
      *
-     * @param GetTrooperMembershipsQuery $message The query containing the trooper
+     * @param  GetTrooperMembershipsQuery  $message  The query containing the trooper
      * @return \Illuminate\Support\Collection<int, Organization> Organizations with identifier and assignment data
      */
     public function __invoke(object $message): mixed

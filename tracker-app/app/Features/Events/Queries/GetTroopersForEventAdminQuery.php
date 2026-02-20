@@ -19,9 +19,7 @@ readonly class GetTroopersForEventAdminQuery
     /**
      * Create a new query instance.
      *
-     * @param Event $event The event for which to retrieve troopers
+     * @param  Event  $event  The event for which to retrieve troopers
      */
-    public function __construct(public readonly Event $event)
-    {
-    }
+    public function __construct(public readonly Event $event) {}
 }

@@ -19,7 +19,5 @@ readonly class GetEventShiftsToCloseQuery
      *
      * No parameters required - returns all event shifts that need closing.
      */
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 }

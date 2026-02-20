@@ -30,18 +30,16 @@ readonly class GetTroopersForEventCancelledQueryHandler implements QueryHandlerI
      * 3. Join through event_shifts to match the cancelled event
      * 4. Return collection of Trooper models
      *
-     * @param GetTroopersForEventCancelledQuery $message The query containing the cancelled event
+     * @param  GetTroopersForEventCancelledQuery  $message  The query containing the cancelled event
      * @return \Illuminate\Support\Collection<int, Trooper> Active troopers who signed up for the event
      */
     public function __invoke(object $message): mixed
     {
         $event_id = $message->event->id;
 
-        $filter = function ($q) use ($event_id)
-        {
+        $filter = function ($q) use ($event_id) {
             $q->where(EventTrooper::STATUS, EventTrooperStatus::GOING)
-                ->whereHas('event_shift', function ($q) use ($event_id)
-                {
+                ->whereHas('event_shift', function ($q) use ($event_id) {
                     $q->where(EventShift::EVENT_ID, $event_id);
                 });
         };

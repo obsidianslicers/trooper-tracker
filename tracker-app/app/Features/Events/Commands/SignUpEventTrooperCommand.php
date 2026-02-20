@@ -21,14 +21,13 @@ readonly class SignUpEventTrooperCommand
     /**
      * Create a new command instance.
      *
-     * @param EventShift $event_shift The event shift to sign up for.
-     * @param Trooper $trooper The trooper signing up for the event.
-     * @param Trooper $added_by_trooper The trooper who added this sign-up (may be same as $trooper).
+     * @param  EventShift  $event_shift  The event shift to sign up for.
+     * @param  Trooper  $trooper  The trooper signing up for the event.
+     * @param  Trooper  $added_by_trooper  The trooper who added this sign-up (may be same as $trooper).
      */
     public function __construct(
         public readonly EventShift $event_shift,
         public readonly Trooper $trooper,
         public readonly Trooper $added_by_trooper,
-    ) {
-    }
+    ) {}
 }

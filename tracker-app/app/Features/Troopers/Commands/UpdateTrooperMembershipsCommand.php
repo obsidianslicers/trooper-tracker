@@ -20,13 +20,11 @@ readonly class UpdateTrooperMembershipsCommand
     /**
      * Create a new command instance.
      *
-     * @param Trooper $trooper The trooper whose memberships to update
-     * @param array<int, array{assignment: int|null}> $valid_data Organization IDs mapped to assignment data
+     * @param  Trooper  $trooper  The trooper whose memberships to update
+     * @param  array<int, array{assignment: int|null}>  $valid_data  Organization IDs mapped to assignment data
      */
     public function __construct(
         public Trooper $trooper,
         public array $valid_data,
-    ) {
-    }
+    ) {}
 }
-

@@ -39,8 +39,6 @@ trait HasEventDisplayAssembler
      *
      * Must be called from the parent class constructor to populate $this->organizations
      * before any assembly or transformation method is invoked.
-     *
-     * @return void
      */
     private function bootHasEventDisplayAssembler(): void
     {
@@ -54,8 +52,8 @@ trait HasEventDisplayAssembler
      * and conditionally loads available costumes via getCostumes() if the trooper can update
      * their costume assignment for this shift.
      *
-     * @param EventShift $event_shift The event shift containing trooper assignments
-     * @param Trooper $trooper The authenticated trooper (used for permission checks)
+     * @param  EventShift  $event_shift  The event shift containing trooper assignments
+     * @param  Trooper  $trooper  The authenticated trooper (used for permission checks)
      * @return EventShift The shift with assembled trooper data and costume options
      */
     private function assembleEventShift(EventShift $event_shift, Trooper $trooper): EventShift
@@ -79,8 +77,8 @@ trait HasEventDisplayAssembler
      * Iterates through each event shift, sets up bidirectional event reference,
      * and delegates to assembleEventShift() for shift-specific trooper data assembly.
      *
-     * @param Event $event The event containing shifts and trooper assignments
-     * @param Trooper $trooper The authenticated trooper (used for permission checks)
+     * @param  Event  $event  The event containing shifts and trooper assignments
+     * @param  Trooper  $trooper  The authenticated trooper (used for permission checks)
      * @return Event The event with fully assembled shift and trooper data
      */
     private function assembleEvent(Event $event, Trooper $trooper): Event
@@ -101,14 +99,13 @@ trait HasEventDisplayAssembler
      * Applies transformEventTrooper() to each trooper in the shift's collection,
      * adding computed display properties for both primary and backup costume organizations.
      *
-     * @param EventShift $event_shift The shift containing trooper assignments to transform
+     * @param  EventShift  $event_shift  The shift containing trooper assignments to transform
      * @return void Modifies event_troopers in place via transform callback
      */
     private function transformEventShift(EventShift $event_shift): void
     {
-        $event_shift->event_troopers->transform(fn($et) => $this->transformEventTrooper($et));
+        $event_shift->event_troopers->transform(fn ($et) => $this->transformEventTrooper($et));
     }
-
 
     /**
      * Transforms an event trooper by building organization display strings.
@@ -121,7 +118,7 @@ trait HasEventDisplayAssembler
      * - Prefix with "(*) " when multiple organizations are selected
      * - Show "(unattached)" when no approved organizations remain
      *
-     * @param EventTrooper $event_trooper The trooper assignment to transform
+     * @param  EventTrooper  $event_trooper  The trooper assignment to transform
      * @return EventTrooper The trooper with computed costume_organizations and backup_costume_organizations properties
      */
     private function transformEventTrooper(EventTrooper $event_trooper): EventTrooper
@@ -151,22 +148,22 @@ trait HasEventDisplayAssembler
      * - No matches: shows "(unattached)"
      * - Otherwise: comma-separated, sorted organization names
      *
-     * @param EventTrooper $event_trooper The trooper assignment (provides access to costume_id and approved costumes)
-     * @param Collection $potential_orgs Organization IDs that were potentially selected for this costume
-     * @param int|null $costume_id The costume ID to use for filtering approved organizations
+     * @param  EventTrooper  $event_trooper  The trooper assignment (provides access to costume_id and approved costumes)
+     * @param  Collection  $potential_orgs  Organization IDs that were potentially selected for this costume
+     * @param  int|null  $costume_id  The costume ID to use for filtering approved organizations
      * @return string Display string ready for view rendering
      */
     private function buildDisplayOrganizations(EventTrooper $event_trooper, Collection $potential_orgs, $costume_id): string
     {
         // Filter actual approvals by reaching through to the organization_costume
         $approved_orgs = $event_trooper->trooper->trooper_costumes
-            ->filter(fn($tc) => optional($tc->organization_costume)->costume_id == $costume_id)
+            ->filter(fn ($tc) => optional($tc->organization_costume)->costume_id == $costume_id)
             ->pluck('organization_costume.organization_id')
             ->unique();
 
         $final_orgs = $potential_orgs->intersect($approved_orgs);
 
-        $names = $final_orgs->map(fn($id) => $this->organizations[$id] ?? '??')->sort();
+        $names = $final_orgs->map(fn ($id) => $this->organizations[$id] ?? '??')->sort();
 
         $prefix = $names->count() > 1 ? '(*) ' : '';
         $name_list = $names->isEmpty() ? '(unattached)' : $names->implode(', ');

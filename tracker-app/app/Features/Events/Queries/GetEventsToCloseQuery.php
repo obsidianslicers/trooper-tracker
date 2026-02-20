@@ -19,7 +19,5 @@ readonly class GetEventsToCloseQuery
      *
      * No parameters required - returns all events that need closing.
      */
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 }

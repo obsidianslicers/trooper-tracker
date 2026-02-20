@@ -17,9 +17,7 @@ readonly class GetOrganizationHierarchyQuery
     /**
      * Create a new query instance.
      *
-     * @param int|null $organization_id Optional organization ID to filter hierarchy to specific org and descendants
+     * @param  int|null  $organization_id  Optional organization ID to filter hierarchy to specific org and descendants
      */
-    public function __construct(public readonly ?int $organization_id = null)
-    {
-    }
+    public function __construct(public readonly ?int $organization_id = null) {}
 }

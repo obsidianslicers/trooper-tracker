@@ -41,7 +41,7 @@ readonly class GetTroopersForEventAdminQueryHandler implements QueryHandlerInter
      * 3. Transform troopers to compute costume_organizations for each EventTrooper
      * 4. Return enriched collection of EventShift models
      *
-     * @param GetTroopersForEventAdminQuery $message The query containing the event.
+     * @param  GetTroopersForEventAdminQuery  $message  The query containing the event.
      * @return \Illuminate\Support\Collection<int, EventShift> Event shifts with enriched trooper data.
      */
     public function __invoke(object $message): mixed
@@ -51,7 +51,7 @@ readonly class GetTroopersForEventAdminQueryHandler implements QueryHandlerInter
             ->orderBy(EventShift::SHIFT_STARTS_AT)
             ->get();
 
-        $event_shifts->each(fn($shift) => $this->transformEventShift($shift));
+        $event_shifts->each(fn ($shift) => $this->transformEventShift($shift));
 
         return $event_shifts;
     }
@@ -81,11 +81,11 @@ readonly class GetTroopersForEventAdminQueryHandler implements QueryHandlerInter
         ];
 
         $with = [
-            'event_troopers.trooper:' . implode(',', $trooper_columns),
-            'event_troopers.trooper.trooper_costumes:' . implode(',', $trooper_costume_columns),
-            'event_troopers.trooper.trooper_costumes.organization_costume:' . implode(',', $organization_costume_columns),
-            'event_troopers.costume:' . implode(',', $costume_columns),
-            'event_troopers.backup_costume:' . implode(',', $costume_columns),
+            'event_troopers.trooper:'.implode(',', $trooper_columns),
+            'event_troopers.trooper.trooper_costumes:'.implode(',', $trooper_costume_columns),
+            'event_troopers.trooper.trooper_costumes.organization_costume:'.implode(',', $organization_costume_columns),
+            'event_troopers.costume:'.implode(',', $costume_columns),
+            'event_troopers.backup_costume:'.implode(',', $costume_columns),
         ];
 
         return $with;

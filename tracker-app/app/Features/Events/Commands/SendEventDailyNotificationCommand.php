@@ -19,10 +19,9 @@ readonly class SendEventDailyNotificationCommand
     /**
      * Create a new command instance.
      *
-     * @param Trooper $trooper The trooper to send daily notifications to
+     * @param  Trooper  $trooper  The trooper to send daily notifications to
      */
     public function __construct(
         public readonly Trooper $trooper
-    ) {
-    }
+    ) {}
 }

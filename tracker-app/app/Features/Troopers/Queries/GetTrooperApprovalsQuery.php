@@ -20,9 +20,7 @@ readonly class GetTrooperApprovalsQuery
     /**
      * Create a new query instance.
      *
-     * @param Trooper $moderator The trooper acting as moderator/administrator
+     * @param  Trooper  $moderator  The trooper acting as moderator/administrator
      */
-    public function __construct(public readonly Trooper $moderator)
-    {
-    }
+    public function __construct(public readonly Trooper $moderator) {}
 }

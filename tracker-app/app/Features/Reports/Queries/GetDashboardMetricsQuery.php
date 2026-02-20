@@ -23,7 +23,5 @@ readonly class GetDashboardMetricsQuery
      *
      * @param  int|string|Carbon  $lookback  Days to look back (int), date string, or Carbon date.
      */
-    public function __construct(public readonly int|string|Carbon $lookback)
-    {
-    }
+    public function __construct(public readonly int|string|Carbon $lookback) {}
 }

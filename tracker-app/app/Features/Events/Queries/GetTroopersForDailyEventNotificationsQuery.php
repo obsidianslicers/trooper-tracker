@@ -19,7 +19,5 @@ readonly class GetTroopersForDailyEventNotificationsQuery
      *
      * No parameters required - returns all troopers needing daily notifications.
      */
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 }

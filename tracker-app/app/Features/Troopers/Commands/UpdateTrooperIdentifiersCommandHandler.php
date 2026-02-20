@@ -20,7 +20,7 @@ readonly class UpdateTrooperIdentifiersCommandHandler implements CommandHandlerI
     /**
      * Execute the command to update memberships.
      *
-     * @param UpdateTrooperIdentifiersCommand $message The command with trooper and membership data
+     * @param  UpdateTrooperIdentifiersCommand  $message  The command with trooper and membership data
      * @return null
      */
     public function __invoke(object $message): mixed
@@ -45,7 +45,7 @@ readonly class UpdateTrooperIdentifiersCommandHandler implements CommandHandlerI
             }
             else
             {
-                $trooper_organization = new TrooperOrganization();
+                $trooper_organization = new TrooperOrganization;
                 $trooper_organization->trooper_id = $message->trooper->id;
                 $trooper_organization->organization_id = $organization_id;
                 $trooper_organization->identifier = $identifier;
@@ -56,4 +56,3 @@ readonly class UpdateTrooperIdentifiersCommandHandler implements CommandHandlerI
         return null;
     }
 }
-

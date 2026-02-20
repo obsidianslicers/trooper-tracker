@@ -8,7 +8,6 @@ use App\Bus\Contracts\QueryHandlerInterface;
 use App\Enums\EventStatus;
 use App\Enums\EventType;
 use App\Models\Event;
-use Carbon\Carbon;
 
 /**
  * Handler for retrieving event statistics grouped by type.
@@ -35,16 +34,13 @@ readonly class GetEventTypeCountQueryHandler implements QueryHandlerInterface
     {
         $lookback = $message->parseLookback();
 
-        $total_counter = function ($event)
-        {
-            return $event->event_shifts->sum(fn($shift) => $shift->event_troopers->count());
+        $total_counter = function ($event) {
+            return $event->event_shifts->sum(fn ($shift) => $shift->event_troopers->count());
         };
 
-        $unique_counter = function ($events)
-        {
-            $trooper_counter = function ($event)
-            {
-                return $event->event_shifts->flatMap(fn($shift) => $shift->event_troopers->pluck('trooper_id'));
+        $unique_counter = function ($events) {
+            $trooper_counter = function ($event) {
+                return $event->event_shifts->flatMap(fn ($shift) => $shift->event_troopers->pluck('trooper_id'));
             };
 
             return $events->flatMap($trooper_counter)
@@ -59,8 +55,7 @@ readonly class GetEventTypeCountQueryHandler implements QueryHandlerInterface
             ->orderBy(Event::TYPE)
             ->get()
             ->groupBy(Event::TYPE)
-            ->map(function ($events, $type) use ($total_counter, $unique_counter)
-            {
+            ->map(function ($events, $type) use ($total_counter, $unique_counter) {
                 return (object) [
                     'event_type' => EventType::from($type),
                     'count' => $events->count(),

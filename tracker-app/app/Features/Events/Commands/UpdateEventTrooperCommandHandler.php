@@ -19,7 +19,7 @@ readonly class UpdateEventTrooperCommandHandler implements CommandHandlerInterfa
     /**
      * Execute the command to update event trooper information.
      *
-     * @param UpdateEventTrooperCommand $message The command with event trooper and update data.
+     * @param  UpdateEventTrooperCommand  $message  The command with event trooper and update data.
      * @return null Always returns null.
      */
     public function __invoke(object $message): mixed
@@ -31,4 +31,3 @@ readonly class UpdateEventTrooperCommandHandler implements CommandHandlerInterfa
         return null;
     }
 }
-

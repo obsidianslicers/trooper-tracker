@@ -32,7 +32,7 @@ readonly class GetTrooperNoticesQueryHandler implements QueryHandlerInterface
      *
      * Results are ordered by starts_at timestamp (ascending).
      *
-     * @param GetTrooperNoticesQuery $message The query containing the trooper
+     * @param  GetTrooperNoticesQuery  $message  The query containing the trooper
      * @return \Illuminate\Support\Collection<int, Notice> Collection of visible notices
      */
     public function __invoke(object $message): mixed
@@ -40,6 +40,5 @@ readonly class GetTrooperNoticesQueryHandler implements QueryHandlerInterface
         return Notice::visibleTo($message->trooper, true)
             ->orderBy(Notice::STARTS_AT)
             ->get();
-
     }
 }

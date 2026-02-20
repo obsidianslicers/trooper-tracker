@@ -19,7 +19,7 @@ readonly class UpdateEventCommandHandler implements CommandHandlerInterface
     /**
      * Execute the command to update the event.
      *
-     * @param UpdateEventCommand $message The command with event and update data
+     * @param  UpdateEventCommand  $message  The command with event and update data
      * @return null
      */
     public function __invoke(object $message): mixed

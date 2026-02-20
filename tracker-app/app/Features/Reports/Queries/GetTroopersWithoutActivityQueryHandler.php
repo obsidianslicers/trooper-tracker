@@ -9,7 +9,6 @@ use App\Enums\EventTrooperStatus;
 use App\Enums\MembershipStatus;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
-use Carbon\Carbon;
 
 /**
  * Handler for retrieving troopers without recent event activity.
@@ -35,8 +34,7 @@ readonly class GetTroopersWithoutActivityQueryHandler implements QueryHandlerInt
     {
         $lookback = $message->parseLookback();
 
-        $filter = function ($qx) use ($lookback)
-        {
+        $filter = function ($qx) use ($lookback) {
             $qx->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED)
                 ->where(EventTrooper::SIGNED_UP_AT, '<', $lookback);
         };

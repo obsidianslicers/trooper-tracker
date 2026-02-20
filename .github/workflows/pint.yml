@@ -31,6 +31,7 @@ jobs:
           ./vendor/bin/pint app/Contracts --test
           ./vendor/bin/pint app/Enums --test
           ./vendor/bin/pint app/Facades --test
+          ./vendor/bin/pint app/Features --test
           ./vendor/bin/pint app/Http --test 
           ./vendor/bin/pint app/Jobs --test
           ./vendor/bin/pint app/Mail --test

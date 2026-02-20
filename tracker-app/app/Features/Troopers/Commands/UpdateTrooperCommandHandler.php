@@ -20,7 +20,7 @@ readonly class UpdateTrooperCommandHandler implements CommandHandlerInterface
     /**
      * Execute the command to update trooper profile.
      *
-     * @param UpdateTrooperCommand $message The command with trooper and update data
+     * @param  UpdateTrooperCommand  $message  The command with trooper and update data
      * @return null
      */
     public function __invoke(object $message): mixed
@@ -37,4 +37,3 @@ readonly class UpdateTrooperCommandHandler implements CommandHandlerInterface
         return null;
     }
 }
-

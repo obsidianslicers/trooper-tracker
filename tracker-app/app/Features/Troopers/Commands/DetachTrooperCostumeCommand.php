@@ -20,13 +20,11 @@ readonly class DetachTrooperCostumeCommand
     /**
      * Create a new command instance.
      *
-     * @param Trooper $trooper The trooper to detach the costume from
-     * @param int $costume_id The TrooperCostume ID to detach (not OrganizationCostume ID)
+     * @param  Trooper  $trooper  The trooper to detach the costume from
+     * @param  int  $costume_id  The TrooperCostume ID to detach (not OrganizationCostume ID)
      */
     public function __construct(
         public Trooper $trooper,
         public int $costume_id
-    ) {
-    }
+    ) {}
 }
-

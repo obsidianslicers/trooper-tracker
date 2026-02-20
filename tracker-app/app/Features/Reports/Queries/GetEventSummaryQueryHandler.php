@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace App\Features\Reports\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
-use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Models\Event;
-use Carbon\Carbon;
 
 /**
  * Handler for retrieving event summary statistics.
@@ -37,13 +35,11 @@ readonly class GetEventSummaryQueryHandler implements QueryHandlerInterface
 
         $with = [
             'organization:id,name,image_path_sm',
-            'organizations' => function ($q)
-            {
+            'organizations' => function ($q) {
                 $q->select('tt_organizations.id', 'tt_organizations.name')->withPivot('id', 'can_attend');
             },
             'event_shifts:id,event_id',
-            'event_shifts.event_troopers' => function ($q)
-            {
+            'event_shifts.event_troopers' => function ($q) {
                 $q->where('status', EventTrooperStatus::ATTENDED)->select('id', 'event_shift_id', 'trooper_id', 'status');
             },
         ];
@@ -59,13 +55,12 @@ readonly class GetEventSummaryQueryHandler implements QueryHandlerInterface
             ->where(Event::EVENT_START, '>=', $lookback)
             ->orderByDesc(Event::EVENT_END)
             ->get()
-            ->each(function (Event $event)
-            {
+            ->each(function (Event $event) {
                 $event->event_shifts_count = $event->event_shifts->count();
                 // Total trooper rows across all shifts
-                $event->total_trooper_count = $event->event_shifts->sum(fn($shift) => $shift->event_troopers->count());
+                $event->total_trooper_count = $event->event_shifts->sum(fn ($shift) => $shift->event_troopers->count());
                 // Unique troopers across all shifts
-                $event->unique_trooper_count = $event->event_shifts->flatMap(fn($shift) => $shift->event_troopers->pluck('trooper_id'))->unique()->count();
+                $event->unique_trooper_count = $event->event_shifts->flatMap(fn ($shift) => $shift->event_troopers->pluck('trooper_id'))->unique()->count();
             });
     }
 }

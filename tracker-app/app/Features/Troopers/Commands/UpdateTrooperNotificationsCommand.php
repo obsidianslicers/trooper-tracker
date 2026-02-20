@@ -20,13 +20,11 @@ readonly class UpdateTrooperNotificationsCommand
     /**
      * Create a new command instance.
      *
-     * @param Trooper $trooper The trooper whose notification preferences to update
-     * @param array<int, array{should_notify: bool}> $valid_data Organization IDs mapped to notification settings
+     * @param  Trooper  $trooper  The trooper whose notification preferences to update
+     * @param  array<int, array{should_notify: bool}>  $valid_data  Organization IDs mapped to notification settings
      */
     public function __construct(
         public Trooper $trooper,
         public array $valid_data,
-    ) {
-    }
+    ) {}
 }
-

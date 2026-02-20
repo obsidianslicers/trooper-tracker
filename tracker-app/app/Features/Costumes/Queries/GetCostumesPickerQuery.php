@@ -17,9 +17,7 @@ readonly class GetCostumesPickerQuery
     /**
      * Create a new query instance.
      *
-     * @param int[]|null $organization_ids Optional array of organization IDs to filter hierarchy to specific orgs and descendants
+     * @param  int[]|null  $organization_ids  Optional array of organization IDs to filter hierarchy to specific orgs and descendants
      */
-    public function __construct(public readonly array $organization_ids)
-    {
-    }
+    public function __construct(public readonly array $organization_ids) {}
 }
