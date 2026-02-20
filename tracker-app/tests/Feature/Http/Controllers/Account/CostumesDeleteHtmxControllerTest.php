@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\Account;
 
 use App\Models\Organization;
+use App\Models\Costume;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\TrooperCostume;
@@ -31,19 +32,21 @@ class CostumesDeleteHtmxControllerTest extends TestCase
         // Arrange
         $organization = Organization::factory()->create();
         $trooper = Trooper::factory()->asActive()->create();
+        $costume = Costume::factory()->create();
 
-        $costume = OrganizationCostume::factory()->create([
+        $organization_costume = OrganizationCostume::factory()->create([
             OrganizationCostume::ORGANIZATION_ID => $organization->id,
+            OrganizationCostume::COSTUME_ID => $costume->id,
         ]);
 
         $trooper_costume = TrooperCostume::factory()->create([
             TrooperCostume::TROOPER_ID => $trooper->id,
-            TrooperCostume::COSTUME_ID => $costume->id,
+            TrooperCostume::ORGANIZATION_COSTUME_ID => $organization_costume->id,
         ]);
 
         // Act
         $response = $this->actingAs($trooper)
-            ->delete('/account/costumes-htmx?costume_id=' . $trooper_costume->id);
+            ->delete('/account/costumes-htmx?costume_id=' . $costume->id);
 
         // Assert
         $this->assertSoftDeleted(TrooperCostume::class, [
@@ -56,19 +59,21 @@ class CostumesDeleteHtmxControllerTest extends TestCase
         // Arrange
         $organization = Organization::factory()->create();
         $trooper = Trooper::factory()->asActive()->create();
+        $costume = Costume::factory()->create();
 
-        $costume = OrganizationCostume::factory()->create([
+        $organization_costume = OrganizationCostume::factory()->create([
             OrganizationCostume::ORGANIZATION_ID => $organization->id,
+            OrganizationCostume::COSTUME_ID => $costume->id,
         ]);
 
         $trooper_costume = TrooperCostume::factory()->create([
             TrooperCostume::TROOPER_ID => $trooper->id,
-            TrooperCostume::COSTUME_ID => $costume->id,
+            TrooperCostume::ORGANIZATION_COSTUME_ID => $organization_costume->id,
         ]);
 
         // Act
         $response = $this->actingAs($trooper)
-            ->delete('/account/costumes-htmx?costume_id=' . $trooper_costume->id);
+            ->delete('/account/costumes-htmx?costume_id=' . $costume->id);
 
         // Assert
         $trooper->refresh();
@@ -80,19 +85,21 @@ class CostumesDeleteHtmxControllerTest extends TestCase
         // Arrange
         $organization = Organization::factory()->create();
         $trooper = Trooper::factory()->asActive()->create();
+        $costume = Costume::factory()->create();
 
-        $costume = OrganizationCostume::factory()->create([
+        $organization_costume = OrganizationCostume::factory()->create([
             OrganizationCostume::ORGANIZATION_ID => $organization->id,
+            OrganizationCostume::COSTUME_ID => $costume->id,
         ]);
 
         $trooper_costume = TrooperCostume::factory()->create([
             TrooperCostume::TROOPER_ID => $trooper->id,
-            TrooperCostume::COSTUME_ID => $costume->id,
+            TrooperCostume::ORGANIZATION_COSTUME_ID => $organization_costume->id,
         ]);
 
         // Act
         $response = $this->actingAs($trooper)
-            ->delete('/account/costumes-htmx?costume_id=' . $trooper_costume->id);
+            ->delete('/account/costumes-htmx?costume_id=' . $costume->id);
 
         // Assert
         $response->assertStatus(200);
@@ -106,24 +113,26 @@ class CostumesDeleteHtmxControllerTest extends TestCase
         $organization = Organization::factory()->create();
         $trooper1 = Trooper::factory()->asActive()->create();
         $trooper2 = Trooper::factory()->asActive()->create();
+        $costume = Costume::factory()->create();
 
-        $costume = OrganizationCostume::factory()->create([
+        $organization_costume = OrganizationCostume::factory()->create([
             OrganizationCostume::ORGANIZATION_ID => $organization->id,
+            OrganizationCostume::COSTUME_ID => $costume->id,
         ]);
 
         $trooper1_costume = TrooperCostume::factory()->create([
             TrooperCostume::TROOPER_ID => $trooper1->id,
-            TrooperCostume::COSTUME_ID => $costume->id,
+            TrooperCostume::ORGANIZATION_COSTUME_ID => $organization_costume->id,
         ]);
 
         $trooper2_costume = TrooperCostume::factory()->create([
             TrooperCostume::TROOPER_ID => $trooper2->id,
-            TrooperCostume::COSTUME_ID => $costume->id,
+            TrooperCostume::ORGANIZATION_COSTUME_ID => $organization_costume->id,
         ]);
 
         // Act - trooper1 tries to delete trooper2's costume
         $response = $this->actingAs($trooper1)
-            ->delete('/account/costumes-htmx?costume_id=' . $trooper2_costume->id);
+            ->delete('/account/costumes-htmx?costume_id=' . $costume->id);
 
         // Assert - trooper2's costume should NOT be deleted
         $this->assertDatabaseHas(TrooperCostume::class, [
@@ -186,25 +195,29 @@ class CostumesDeleteHtmxControllerTest extends TestCase
         $organization = Organization::factory()->create();
         $trooper = Trooper::factory()->asActive()->create();
 
-        $costume1 = OrganizationCostume::factory()->create([
+        $costume1 = Costume::factory()->create();
+        $organization_costume1 = OrganizationCostume::factory()->create([
             OrganizationCostume::ORGANIZATION_ID => $organization->id,
+            OrganizationCostume::COSTUME_ID => $costume1->id,
         ]);
-        $costume2 = OrganizationCostume::factory()->create([
+        $costume2 = Costume::factory()->create();
+        $organization_costume2 = OrganizationCostume::factory()->create([
             OrganizationCostume::ORGANIZATION_ID => $organization->id,
+            OrganizationCostume::COSTUME_ID => $costume2->id,
         ]);
 
         $trooper_costume1 = TrooperCostume::factory()->create([
             TrooperCostume::TROOPER_ID => $trooper->id,
-            TrooperCostume::COSTUME_ID => $costume1->id,
+            TrooperCostume::ORGANIZATION_COSTUME_ID => $organization_costume1->id,
         ]);
         TrooperCostume::factory()->create([
             TrooperCostume::TROOPER_ID => $trooper->id,
-            TrooperCostume::COSTUME_ID => $costume2->id,
+            TrooperCostume::ORGANIZATION_COSTUME_ID => $organization_costume2->id,
         ]);
 
         // Act
         $response = $this->actingAs($trooper)
-            ->delete('/account/costumes-htmx?costume_id=' . $trooper_costume1->id);
+            ->delete('/account/costumes-htmx?costume_id=' . $costume1->id);
 
         // Assert
         $response->assertViewHas('trooper_costumes', function ($costumes)
@@ -225,26 +238,30 @@ class CostumesDeleteHtmxControllerTest extends TestCase
         // Arrange
         $organization = Organization::factory()->create();
         $trooper = Trooper::factory()->asActive()->create();
+        $costume = Costume::factory()->create();
 
-        $costume1 = OrganizationCostume::factory()->create([
+        $organization_costume1 = OrganizationCostume::factory()->create([
             OrganizationCostume::ORGANIZATION_ID => $organization->id,
+            OrganizationCostume::COSTUME_ID => $costume->id,
         ]);
-        $costume2 = OrganizationCostume::factory()->create([
+        $costume2 = Costume::factory()->create();
+        $organization_costume2 = OrganizationCostume::factory()->create([
             OrganizationCostume::ORGANIZATION_ID => $organization->id,
+            OrganizationCostume::COSTUME_ID => $costume2->id,
         ]);
 
         $trooper_costume1 = TrooperCostume::factory()->create([
             TrooperCostume::TROOPER_ID => $trooper->id,
-            TrooperCostume::COSTUME_ID => $costume1->id,
+            TrooperCostume::ORGANIZATION_COSTUME_ID => $organization_costume1->id,
         ]);
         $trooper_costume2 = TrooperCostume::factory()->create([
             TrooperCostume::TROOPER_ID => $trooper->id,
-            TrooperCostume::COSTUME_ID => $costume2->id,
+            TrooperCostume::ORGANIZATION_COSTUME_ID => $organization_costume2->id,
         ]);
 
         // Act - delete first costume
         $response = $this->actingAs($trooper)
-            ->delete('/account/costumes-htmx?costume_id=' . $trooper_costume1->id);
+            ->delete('/account/costumes-htmx?costume_id=' . $costume->id);
 
         // Assert - should only show remaining costume
         $response->assertViewHas('trooper_costumes', function ($costumes) use ($trooper_costume2)
@@ -259,19 +276,21 @@ class CostumesDeleteHtmxControllerTest extends TestCase
         // Arrange
         $organization = Organization::factory()->create();
         $trooper = Trooper::factory()->asActive()->create();
+        $costume = Costume::factory()->create();
 
-        $costume = OrganizationCostume::factory()->create([
+        $organization_costume = OrganizationCostume::factory()->create([
             OrganizationCostume::ORGANIZATION_ID => $organization->id,
+            OrganizationCostume::COSTUME_ID => $costume->id,
         ]);
 
         $trooper_costume = TrooperCostume::factory()->create([
             TrooperCostume::TROOPER_ID => $trooper->id,
-            TrooperCostume::COSTUME_ID => $costume->id,
+            TrooperCostume::ORGANIZATION_COSTUME_ID => $organization_costume->id,
         ]);
 
         // Act
         $response = $this->actingAs($trooper)
-            ->delete('/account/costumes-htmx?costume_id=' . $trooper_costume->id);
+            ->delete('/account/costumes-htmx?costume_id=' . $costume->id);
 
         // Assert - should return empty costume list
         $response->assertViewHas('trooper_costumes', function ($costumes)
@@ -286,24 +305,26 @@ class CostumesDeleteHtmxControllerTest extends TestCase
         $organization = Organization::factory()->create();
         $trooper1 = Trooper::factory()->asActive()->create();
         $trooper2 = Trooper::factory()->asActive()->create();
+        $costume = Costume::factory()->create();
 
-        $costume = OrganizationCostume::factory()->create([
+        $organization_costume = OrganizationCostume::factory()->create([
             OrganizationCostume::ORGANIZATION_ID => $organization->id,
+            OrganizationCostume::COSTUME_ID => $costume->id,
         ]);
 
         $trooper1_costume = TrooperCostume::factory()->create([
             TrooperCostume::TROOPER_ID => $trooper1->id,
-            TrooperCostume::COSTUME_ID => $costume->id,
+            TrooperCostume::ORGANIZATION_COSTUME_ID => $organization_costume->id,
         ]);
 
         $trooper2_costume = TrooperCostume::factory()->create([
             TrooperCostume::TROOPER_ID => $trooper2->id,
-            TrooperCostume::COSTUME_ID => $costume->id,
+            TrooperCostume::ORGANIZATION_COSTUME_ID => $organization_costume->id,
         ]);
 
         // Act - trooper1 deletes their costume
         $response = $this->actingAs($trooper1)
-            ->delete('/account/costumes-htmx?costume_id=' . $trooper1_costume->id);
+            ->delete('/account/costumes-htmx?costume_id=' . $costume->id);
 
         // Assert - only trooper1's costume is deleted
         $this->assertSoftDeleted(TrooperCostume::class, [
@@ -321,22 +342,24 @@ class CostumesDeleteHtmxControllerTest extends TestCase
         // Arrange
         $organization = Organization::factory()->create();
         $trooper = Trooper::factory()->asActive()->create();
+        $costume = Costume::factory()->create();
 
-        $costume = OrganizationCostume::factory()->create([
+        $organization_costume = OrganizationCostume::factory()->create([
             OrganizationCostume::ORGANIZATION_ID => $organization->id,
+            OrganizationCostume::COSTUME_ID => $costume->id,
         ]);
 
         $trooper_costume = TrooperCostume::factory()->create([
             TrooperCostume::TROOPER_ID => $trooper->id,
-            TrooperCostume::COSTUME_ID => $costume->id,
+            TrooperCostume::ORGANIZATION_COSTUME_ID => $organization_costume->id,
         ]);
 
         // Act - delete twice
         $this->actingAs($trooper)
-            ->delete('/account/costumes-htmx?costume_id=' . $trooper_costume->id);
+            ->delete('/account/costumes-htmx?costume_id=' . $costume->id);
 
         $response = $this->actingAs($trooper)
-            ->delete('/account/costumes-htmx?costume_id=' . $trooper_costume->id);
+            ->delete('/account/costumes-htmx?costume_id=' . $costume->id);
 
         // Assert - should handle gracefully
         $response->assertStatus(200);
