@@ -81,7 +81,7 @@ class GetTroopersForEventAdminQueryHandlerTest extends TestCase
         $this->assertEquals($trooper->id, $shift_result->event_troopers->first()->trooper_id);
     }
 
-    public function test_invoke_computes_display_clubs_from_approved_costumes(): void
+    public function test_invoke_computes_display_organizations_from_approved_costumes(): void
     {
         // Arrange
         $event = Event::factory()->create();
@@ -110,8 +110,8 @@ class GetTroopersForEventAdminQueryHandlerTest extends TestCase
 
         // Assert
         $event_trooper = $result->first()->event_troopers->first();
-        $this->assertNotNull($event_trooper->display_clubs);
-        $this->assertStringContainsString($organization->name, $event_trooper->display_clubs);
+        $this->assertNotNull($event_trooper->display_organizations);
+        $this->assertStringContainsString($organization->name, $event_trooper->display_organizations);
     }
 
     public function test_invoke_includes_potential_organizations(): void
@@ -149,8 +149,8 @@ class GetTroopersForEventAdminQueryHandlerTest extends TestCase
 
         // Assert
         $event_trooper = $result->first()->event_troopers->first();
-        $this->assertNotNull($event_trooper->display_clubs);
-        $this->assertStringContainsString($potential_org->name, $event_trooper->display_clubs);
+        $this->assertNotNull($event_trooper->display_organizations);
+        $this->assertStringContainsString($potential_org->name, $event_trooper->display_organizations);
     }
 
     public function test_invoke_filters_by_event_id(): void
@@ -220,8 +220,8 @@ class GetTroopersForEventAdminQueryHandlerTest extends TestCase
         $this->assertCount(1, $result);
         $event_trooper = $result->first()->event_troopers->first();
         // When no costumes or no potential_orgs match approved, shows (unattached)
-        $this->assertIsString($event_trooper->display_clubs);
-        $this->assertStringContainsString('unattached', $event_trooper->display_clubs);
+        $this->assertIsString($event_trooper->display_organizations);
+        $this->assertStringContainsString('unattached', $event_trooper->display_organizations);
     }
 
     public function test_invoke_returns_shifts_in_order(): void
@@ -281,8 +281,8 @@ class GetTroopersForEventAdminQueryHandlerTest extends TestCase
 
         // Assert
         $event_trooper = $result->first()->event_troopers->first();
-        $this->assertNotNull($event_trooper->display_clubs);
-        $this->assertStringContainsString($organization->name, $event_trooper->display_clubs);
+        $this->assertNotNull($event_trooper->display_organizations);
+        $this->assertStringContainsString($organization->name, $event_trooper->display_organizations);
     }
 
     public function test_invoke_excludes_organizations_not_in_costume_organization_ids(): void
@@ -325,11 +325,11 @@ class GetTroopersForEventAdminQueryHandlerTest extends TestCase
         // Assert
         $event_trooper = $result->first()->event_troopers->first();
         // Only approved org should appear, not excluded
-        $this->assertStringContainsString($approved_org->name, $event_trooper->display_clubs);
-        $this->assertStringNotContainsString($excluded_org->name, $event_trooper->display_clubs);
+        $this->assertStringContainsString($approved_org->name, $event_trooper->display_organizations);
+        $this->assertStringNotContainsString($excluded_org->name, $event_trooper->display_organizations);
     }
 
-    public function test_invoke_returns_display_clubs_with_organization_names(): void
+    public function test_invoke_returns_display_organizations_with_organization_names(): void
     {
         // Arrange
         $event = Event::factory()->create();
@@ -359,8 +359,8 @@ class GetTroopersForEventAdminQueryHandlerTest extends TestCase
 
         // Assert
         $event_trooper = $result->first()->event_troopers->first();
-        // Verify display_clubs is a computed attribute with org names
-        $this->assertIsString($event_trooper->display_clubs);
-        $this->assertStringContainsString($organization->name, $event_trooper->display_clubs);
+        // Verify display_organizations is a computed attribute with org names
+        $this->assertIsString($event_trooper->display_organizations);
+        $this->assertStringContainsString($organization->name, $event_trooper->display_organizations);
     }
 }

@@ -63,7 +63,7 @@
                                     {{ $event_trooper->costume->name }}
                                     <br />
                                     <i class="small text-muted">
-                                        {{ $event_trooper->display_clubs }}
+                                        {{ $event_trooper->display_organizations }}
                                     </i>
                                     @else
                                     N/A

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Account;
 
+use App\Features\Costumes\Queries\GetCostumesWithOrganizationQuery;
 use App\Features\Organizations\Queries\GetOrganizationCostumesQuery;
 use App\Features\Troopers\Queries\GetTrooperCostumesQuery;
 use App\Http\Controllers\MagicBusController;
@@ -30,19 +31,15 @@ class CostumesController extends MagicBusController
     {
         $trooper = $request->user();
 
-        $organization_ids = Organization::withActiveTroopers($trooper->id)
-            ->pluck(Organization::ID)
-            ->toArray();
+        $costumes_query = new GetCostumesWithOrganizationQuery();
 
-        $organization_costumes_query = new GetOrganizationCostumesQuery($organization_ids);
-
-        $organization_costumes = $this->bus->send($organization_costumes_query);
+        $costumes = $this->bus->send($costumes_query);
 
         $trooper_costumes_query = new GetTrooperCostumesQuery($trooper);
 
         $trooper_costumes = $this->bus->send($trooper_costumes_query);
 
-        $data = compact('organization_costumes', 'trooper_costumes');
+        $data = compact('trooper_costumes', 'costumes');
 
         return view('pages.account.costumes', $data);
     }

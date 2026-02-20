@@ -36,12 +36,16 @@
                     <thead>
                         <tr>
                             <th>Attached Costume</th>
+                            <th>Organizations</th>
                         </tr>
                     </thead>
-                    @foreach ($trooper_costumes as $trooper_costume)
+                    @foreach ($costumes as $costume)
                         <tr>
                             <td class="text-nowrap">
-                                {{ $trooper_costume->organization_costume->costume->name }}
+                                {{ $costume->name }}
+                            </td>
+                            <td>
+                                {{ $costume->display_organizations }}
                             </td>
                         </tr>
                     @endforeach

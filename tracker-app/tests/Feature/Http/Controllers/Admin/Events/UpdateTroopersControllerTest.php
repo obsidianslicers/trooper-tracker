@@ -152,7 +152,7 @@ class UpdateTroopersControllerTest extends TestCase
         $response->assertNotFound();
     }
 
-    public function test_invoke_enriches_event_troopers_with_display_clubs(): void
+    public function test_invoke_enriches_event_troopers_with_display_organizations(): void
     {
         // Arrange
         $admin = Trooper::factory()->asAdministrator()->create();
@@ -170,7 +170,7 @@ class UpdateTroopersControllerTest extends TestCase
         // Assert
         $event_shifts = $response->viewData('event_shifts');
         $event_trooper = $event_shifts->first()->event_troopers->first();
-        // Verify display_clubs is set by the query handler
-        $this->assertIsString($event_trooper->display_clubs);
+        // Verify display_organizations is set by the query handler
+        $this->assertIsString($event_trooper->display_organizations);
     }
 }
