@@ -28,11 +28,12 @@ trait HasCostumeScopes
     /**
      * Scope: Filter costumes approved for a specific trooper.
      *
-     * Returns costumes that:
-     * 1. Have at least one organization in which the trooper has approved the costume
-     * 2. Eager load organization_costumes with full organization details
-     * 3. Only include organization_costumes that the trooper has actually approved
-     * 4. Optionally filter by specific organization IDs
+     * Returns costumes that either:
+     * 1. Have at least one organization in which the trooper has approved the costume, OR
+     * 2. Are named "Command Staff" or "Handler" (always included regardless of trooper)
+     *
+     * The scope eager loads organization_costumes with organization details and filters
+     * them by trooper approval status.
      *
      * Usage:
      * ```php
@@ -50,9 +51,13 @@ trait HasCostumeScopes
     public function scopeForTrooper(Builder $query, int $trooper_id, Collection|array|null $organization_ids = null): Builder
     {
         return $query
-            ->whereHas('organization_costumes.trooper_costumes', function ($query) use ($trooper_id)
+            ->where(function ($query) use ($trooper_id)
             {
-                $query->where('trooper_id', $trooper_id);
+                $query->whereHas('organization_costumes.trooper_costumes', function ($query) use ($trooper_id)
+                {
+                    $query->where('trooper_id', $trooper_id);
+                })
+                    ->orWhereIn(Costume::NAME, ['Command Staff', 'Handler']);
             })
             ->with(['organization_costumes' => function ($query) use ($trooper_id, $organization_ids)
             {

@@ -130,6 +130,18 @@ class EventTrooper extends BaseEventTrooper
 
         return Costume::forTrooper($this->trooper->id, $organization_ids)
             ->pluck('name', 'id')
+            ->sortBy(function ($name, $id)
+            {
+                if ($name === 'Command Staff')
+                {
+                    return 2;
+                }
+                if ($name === 'Handler')
+                {
+                    return 1;
+                }
+                return 0; // Everything else stays at the top
+            })
             ->toArray();
     }
 

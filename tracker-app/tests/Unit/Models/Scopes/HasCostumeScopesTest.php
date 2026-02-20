@@ -387,4 +387,28 @@ class HasCostumeScopesTest extends TestCase
         // Assert
         $this->assertCount(0, $result);
     }
+
+    public function test_for_trooper_includes_command_staff_and_handler_costumes_without_approval(): void
+    {
+        // Arrange
+        $trooper = Trooper::factory()->asActive()->create();
+        $command_staff = Costume::factory()->create([
+            Costume::NAME => 'Command Staff',
+        ]);
+        $handler = Costume::factory()->create([
+            Costume::NAME => 'Handler',
+        ]);
+        $regular_costume = Costume::factory()->create([
+            Costume::NAME => 'Regular Costume',
+        ]);
+
+        // Act
+        $result = Costume::forTrooper($trooper->id)->get();
+
+        // Assert
+        $costume_ids = $result->pluck(Costume::ID)->toArray();
+        $this->assertContains($command_staff->id, $costume_ids);
+        $this->assertContains($handler->id, $costume_ids);
+        $this->assertNotContains($regular_costume->id, $costume_ids);
+    }
 }

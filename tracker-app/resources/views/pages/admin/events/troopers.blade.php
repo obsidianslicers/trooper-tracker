@@ -73,9 +73,10 @@
                                     @endif
                                     @if($event_trooper->backup_costume)
                                         <br />
-                                        * {{ $event_trooper->backup_costume->name }}
-                                        <br />
                                         <i class="small text-muted">
+                                            <i class="fa fa-fw fa-box-archive"></i>
+                                            {{ $event_trooper->backup_costume->name }}
+                                            <br />
                                             {{ $event_trooper->backup_costume_organizations }}
                                         </i>
                                     @endif
