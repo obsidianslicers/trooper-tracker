@@ -33,19 +33,22 @@
             @if($event_trooper->is_handler)
                 Handler
             @else
-                @if($event_trooper->organization_costume != null)
-                    {{ $event_trooper->organization_costume->name ?? 'N/A' }}
+                @if($event_trooper->costume != null)
+                    <b>
+                        {{ $event_trooper->costume->name }}
+                    </b>
                     <br />
                     <i class="small text-muted">
-                        {{ $event_trooper->organization_costume->organization->name }}
+                        {{ $event_trooper->costume_organizations }}
                     </i>
                 @endif
                 @if($event_trooper->backup_costume != null)
                     <br />
-                    {{ $event_trooper->backup_costume->name ?? 'N/A' }}
-                    <br />
                     <i class="small text-muted">
-                        {{ $event_trooper->backup_costume->organization->name }}
+                        <i class="fa fa-fw fa-box-archive"></i>
+                        {{ $event_trooper->backup_costume->name }}
+                        <br />
+                        {{ $event_trooper->backup_costume_organizations }}
                     </i>
                 @endif
             @endif

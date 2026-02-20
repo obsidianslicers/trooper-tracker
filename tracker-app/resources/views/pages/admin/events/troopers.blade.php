@@ -60,13 +60,23 @@
                                 </td>
                                 <td>
                                     @if($event_trooper->costume)
-                                    {{ $event_trooper->costume->name }}
-                                    <br />
-                                    <i class="small text-muted">
-                                        {{ $event_trooper->display_organizations }}
-                                    </i>
+                                        {{ $event_trooper->costume->name }}
+                                        <br />
+                                        <i class="small text-muted">
+                                            {{ $event_trooper->costume_organizations }}
+                                        </i>
                                     @else
-                                    N/A
+                                        N/A
+                                    @endif
+                                    @if($event_trooper->backup_costume)
+                                        <br />
+                                        * {{ $event_trooper->backup_costume->name }}
+                                        <br />
+                                        <i class="small text-muted">
+                                            {{ $event_trooper->backup_costume_organizations }}
+                                        </i>
+                                    @else
+                                        N/A
                                     @endif
                                 </td>
                                 <td>

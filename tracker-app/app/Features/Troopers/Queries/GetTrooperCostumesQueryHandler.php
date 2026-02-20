@@ -62,7 +62,7 @@ readonly class GetTrooperCostumesQueryHandler implements QueryHandlerInterface
             $prefix = $names->count() > 1 ? '(*) ' : '';
             $name_list = $names->isEmpty() ? '(unattached)' : $names->implode(', ');
 
-            $costume->display_organizations = "{$prefix}{$name_list}";
+            $costume->costume_organizations = "{$prefix}{$name_list}";
         });
 
         return $results;

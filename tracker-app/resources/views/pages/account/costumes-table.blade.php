@@ -17,7 +17,7 @@
                         {{ $trooper_costume->name }}
                     </td>
                     <td>
-                        {{ $trooper_costume->display_organizations }}
+                        {{ $trooper_costume->costume_organizations }}
                     </td>
                     <td class="text-end">
                         <x-button-delete hx-delete="{{ route('account.costumes-htmx', ['costume_id' => $trooper_costume->id]) }}"

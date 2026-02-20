@@ -25,11 +25,11 @@ use Illuminate\Support\Collection;
  */
 readonly class GetTroopersForEventAdminQueryHandler implements QueryHandlerInterface
 {
-    private Collection $organizations;
+    use HasEventDisplayAssembler;
 
     public function __construct()
     {
-        $this->organizations = Organization::ofTypeOrganizations()->pluck('name', 'id');
+        $this->bootHasEventDisplayAssembler();
     }
 
     /**
@@ -38,7 +38,7 @@ readonly class GetTroopersForEventAdminQueryHandler implements QueryHandlerInter
      * Process:
      * 1. Retrieve all shifts for the event
      * 2. Eager load related troopers, costumes, and assignments
-     * 3. Transform troopers to compute display_organizations for each EventTrooper
+     * 3. Transform troopers to compute costume_organizations for each EventTrooper
      * 4. Return enriched collection of EventShift models
      *
      * @param GetTroopersForEventAdminQuery $message The query containing the event.
@@ -89,34 +89,5 @@ readonly class GetTroopersForEventAdminQueryHandler implements QueryHandlerInter
         ];
 
         return $with;
-    }
-
-
-    private function transformEventShift(EventShift $event_shift): void
-    {
-        $event_shift->event_troopers->transform(fn($et) => $this->transformEventTrooper($et));
-    }
-
-
-    private function transformEventTrooper(EventTrooper $event_trooper): EventTrooper
-    {
-        $potential_orgs = collect($event_trooper->costume_organization_ids ?? []);
-
-        // Filter actual approvals by reaching through to the organization_costume
-        $approved_orgs = $event_trooper->trooper->trooper_costumes
-            ->filter(fn($tc) => optional($tc->organization_costume)->costume_id == $event_trooper->costume_id)
-            ->pluck('organization_costume.organization_id')
-            ->unique();
-
-        $final_orgs = $potential_orgs->intersect($approved_orgs);
-
-        $names = $final_orgs->map(fn($id) => $this->organizations[$id] ?? '??')->sort();
-
-        $prefix = $names->count() > 1 ? '(*) ' : '';
-        $name_list = $names->isEmpty() ? '(unattached)' : $names->implode(', ');
-
-        $event_trooper->display_organizations = "{$prefix}{$name_list}";
-
-        return $event_trooper;
     }
 }

@@ -21,6 +21,8 @@ use App\Models\Trooper;
  */
 readonly class GetEventShiftDisplayQueryHandler implements QueryHandlerInterface
 {
+    use HasEventDisplayAssembler;
+
     /**
      * Execute the query to retrieve a single event shift for display.
      *
@@ -46,7 +48,7 @@ readonly class GetEventShiftDisplayQueryHandler implements QueryHandlerInterface
 
         $event_shift = EventShift::with($with)->findOrFail($message->event_shift->id);
 
-        EventDisplayAssembler::assembleEventShift($event_shift, $message->trooper);
+        $this->assembleEventShift($event_shift, $message->trooper);
 
         return $event_shift;
     }

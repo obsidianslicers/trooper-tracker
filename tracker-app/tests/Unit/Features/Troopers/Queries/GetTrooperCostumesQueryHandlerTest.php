@@ -20,7 +20,7 @@ use Tests\TestCase;
  * Verifies:
  * - Returns Costume models filtered by trooper ownership
  * - Eager loads organization_costumes and nested organizations
- * - Computes display_organizations attribute correctly
+ * - Computes costume_organizations attribute correctly
  * - Orders costumes alphabetically by name
  * - Returns empty collection when no costumes
  * - Handles multi-org costumes with (*) prefix
@@ -104,7 +104,7 @@ class GetTrooperCostumesQueryHandlerTest extends TestCase
         $this->assertEquals('Test Garrison', $org_costume_result->organization->name);
     }
 
-    public function test_invoke_computes_display_organizations_for_single_org(): void
+    public function test_invoke_computes_costume_organizations_for_single_org(): void
     {
         // Arrange
         $trooper = Trooper::factory()->asActive()->create();
@@ -128,10 +128,10 @@ class GetTrooperCostumesQueryHandlerTest extends TestCase
 
         // Assert
         $costume_result = $result->first();
-        $this->assertEquals('Florida Garrison', $costume_result->display_organizations);
+        $this->assertEquals('Florida Garrison', $costume_result->costume_organizations);
     }
 
-    public function test_invoke_computes_display_organizations_with_multi_org_prefix(): void
+    public function test_invoke_computes_costume_organizations_with_multi_org_prefix(): void
     {
         // Arrange
         $trooper = Trooper::factory()->asActive()->create();
@@ -165,9 +165,9 @@ class GetTrooperCostumesQueryHandlerTest extends TestCase
 
         // Assert
         $costume_result = $result->first();
-        $this->assertStringStartsWith('(*) ', $costume_result->display_organizations);
-        $this->assertStringContainsString('Florida Garrison', $costume_result->display_organizations);
-        $this->assertStringContainsString('Georgia Garrison', $costume_result->display_organizations);
+        $this->assertStringStartsWith('(*) ', $costume_result->costume_organizations);
+        $this->assertStringContainsString('Florida Garrison', $costume_result->costume_organizations);
+        $this->assertStringContainsString('Georgia Garrison', $costume_result->costume_organizations);
     }
 
     public function test_invoke_sorts_organization_names_alphabetically(): void
@@ -205,7 +205,7 @@ class GetTrooperCostumesQueryHandlerTest extends TestCase
 
         // Assert - Alpha should appear before Zulu even though created after
         $costume_result = $result->first();
-        $this->assertStringContainsString('Alpha Garrison, Zulu Garrison', $costume_result->display_organizations);
+        $this->assertStringContainsString('Alpha Garrison, Zulu Garrison', $costume_result->costume_organizations);
     }
 
     public function test_invoke_orders_costumes_by_name(): void
@@ -317,7 +317,7 @@ class GetTrooperCostumesQueryHandlerTest extends TestCase
         $costume_result = $result->first();
         $this->assertCount(1, $costume_result->organization_costumes);
         $this->assertEquals('Owned Org', $costume_result->organization_costumes->first()->organization->name);
-        $this->assertEquals('Owned Org', $costume_result->display_organizations);
+        $this->assertEquals('Owned Org', $costume_result->costume_organizations);
     }
 
     public function test_invoke_handles_costume_with_no_organization_costumes(): void

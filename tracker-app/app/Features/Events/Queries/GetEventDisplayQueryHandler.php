@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Features\Events\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
+use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
@@ -21,6 +22,13 @@ use App\Models\Trooper;
  */
 readonly class GetEventDisplayQueryHandler implements QueryHandlerInterface
 {
+    use HasEventDisplayAssembler;
+
+    public function __construct()
+    {
+        $this->bootHasEventDisplayAssembler();
+    }
+
     /**
      * Execute the query to retrieve a single event for display.
      *
@@ -34,8 +42,36 @@ readonly class GetEventDisplayQueryHandler implements QueryHandlerInterface
      */
     public function __invoke(object $message): mixed
     {
-        $with = [
-            'organization',
+        $event = Event::with($this->buildRelations())
+            ->withShifts()
+            ->findOrFail($message->event->id);
+
+        $this->assembleEvent($event, $message->trooper);
+
+        $event->event_shifts->each(fn($shift) => $this->transformEventShift($shift));
+
+        return $event;
+    }
+
+    private function buildRelations(): array
+    {
+        $organization_columns = [
+            Organization::ID,
+            Organization::NAME,
+        ];
+
+        $trooper_columns = [
+            Trooper::ID,
+            Trooper::DISPLAY_NAME,
+        ];
+
+        $costume_columns = [
+            Costume::ID,
+            Costume::NAME,
+        ];
+
+        return [
+            'organization:' . implode(',', $organization_columns),
             'organizations.organization',
             'organizations' => function ($query)
             {
@@ -45,22 +81,14 @@ readonly class GetEventDisplayQueryHandler implements QueryHandlerInterface
             {
                 $query->orderBy(EventShift::SHIFT_STARTS_AT, 'asc');
             },
-            'event_shifts.event_troopers.trooper',
-            'event_shifts.event_troopers.added_by_trooper',
-            'event_shifts.event_troopers.organization_costume.organization',
-            'event_shifts.event_troopers.backup_costume.organization',
+            'event_shifts.event_troopers.trooper:' . implode(',', $trooper_columns),
+            'event_shifts.event_troopers.added_by_trooper:' . implode(',', $trooper_columns),
+            'event_shifts.event_troopers.costume:' . implode(',', $costume_columns),
+            'event_shifts.event_troopers.backup_costume:' . implode(',', $costume_columns),
             'event_shifts.event_troopers' => function ($query)
             {
                 $query->orderBy(EventTrooper::SIGNED_UP_AT, 'asc');
             },
         ];
-
-        $event = Event::with($with)
-            ->withShifts()
-            ->findOrFail($message->event->id);
-
-        EventDisplayAssembler::assembleEvent($event, $message->trooper);
-
-        return $event;
     }
 }

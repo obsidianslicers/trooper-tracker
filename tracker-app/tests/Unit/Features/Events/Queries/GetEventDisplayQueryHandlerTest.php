@@ -6,9 +6,14 @@ namespace Tests\Unit\Features\Events\Queries;
 
 use App\Features\Events\Queries\GetEventDisplayQuery;
 use App\Features\Events\Queries\GetEventDisplayQueryHandler;
+use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventShift;
+use App\Models\EventTrooper;
+use App\Models\Organization;
+use App\Models\OrganizationCostume;
 use App\Models\Trooper;
+use App\Models\TrooperCostume;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -117,5 +122,113 @@ class GetEventDisplayQueryHandlerTest extends TestCase
         // Assert
         $shift_result = $result->event_shifts->first();
         $this->assertTrue($shift_result->relationLoaded('event_troopers'));
+    }
+
+    public function test_invoke_computes_costume_organizations_for_all_shifts(): void
+    {
+        // Arrange
+        $event = Event::factory()->create();
+        $shift1 = EventShift::factory()->for($event)->create();
+        $shift2 = EventShift::factory()->for($event)->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $organization = Organization::factory()->create();
+
+        $org_costume = OrganizationCostume::factory()->for($organization)->create();
+        TrooperCostume::factory()->create([
+            TrooperCostume::TROOPER_ID => $trooper->id,
+            TrooperCostume::ORGANIZATION_COSTUME_ID => $org_costume->id,
+        ]);
+
+        // Create EventTroopers in both shifts
+        EventTrooper::factory()->create([
+            EventTrooper::EVENT_SHIFT_ID => $shift1->id,
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::COSTUME_ID => $org_costume->costume_id,
+            EventTrooper::COSTUME_ORGANIZATION_IDS => [$organization->id],
+        ]);
+        EventTrooper::factory()->create([
+            EventTrooper::EVENT_SHIFT_ID => $shift2->id,
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::COSTUME_ID => $org_costume->costume_id,
+            EventTrooper::COSTUME_ORGANIZATION_IDS => [$organization->id],
+        ]);
+
+        $query = new GetEventDisplayQuery($event, $trooper);
+        $subject = new GetEventDisplayQueryHandler();
+
+        // Act
+        $result = $subject($query);
+
+        // Assert
+        foreach ($result->event_shifts as $shift)
+        {
+            foreach ($shift->event_troopers as $event_trooper)
+            {
+                $this->assertStringContainsString($organization->name, $event_trooper->costume_organizations);
+            }
+        }
+    }
+
+    public function test_invoke_computes_backup_costume_organizations(): void
+    {
+        // Arrange
+        $event = Event::factory()->create();
+        $shift = EventShift::factory()->for($event)->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $organization = Organization::factory()->create();
+
+        $costume1 = Costume::factory()->create();
+        $costume2 = Costume::factory()->create();
+
+        $org_costume1 = OrganizationCostume::factory()->for($organization)->create(['costume_id' => $costume1->id]);
+        $org_costume2 = OrganizationCostume::factory()->for($organization)->create(['costume_id' => $costume2->id]);
+
+        TrooperCostume::factory()->create([
+            TrooperCostume::TROOPER_ID => $trooper->id,
+            TrooperCostume::ORGANIZATION_COSTUME_ID => $org_costume2->id,
+        ]);
+
+        EventTrooper::factory()->create([
+            EventTrooper::EVENT_SHIFT_ID => $shift->id,
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::COSTUME_ID => $costume1->id,
+            EventTrooper::BACKUP_COSTUME_ID => $costume2->id,
+            EventTrooper::BACKUP_COSTUME_ORGANIZATION_IDS => [$organization->id],
+        ]);
+
+        $query = new GetEventDisplayQuery($event, $trooper);
+        $subject = new GetEventDisplayQueryHandler();
+
+        // Act
+        $result = $subject($query);
+
+        // Assert
+        $event_trooper = $result->event_shifts->first()->event_troopers->first();
+        $this->assertNotNull($event_trooper->backup_costume_organizations);
+        $this->assertStringContainsString($organization->name, $event_trooper->backup_costume_organizations);
+    }
+
+    public function test_invoke_handles_unattached_costumes(): void
+    {
+        // Arrange
+        $event = Event::factory()->create();
+        $shift = EventShift::factory()->for($event)->create();
+        $trooper = Trooper::factory()->asActive()->create();
+
+        EventTrooper::factory()->create([
+            EventTrooper::EVENT_SHIFT_ID => $shift->id,
+            EventTrooper::TROOPER_ID => $trooper->id,
+            // No costumes attached
+        ]);
+
+        $query = new GetEventDisplayQuery($event, $trooper);
+        $subject = new GetEventDisplayQueryHandler();
+
+        // Act
+        $result = $subject($query);
+
+        // Assert
+        $event_trooper = $result->event_shifts->first()->event_troopers->first();
+        $this->assertStringContainsString('unattached', $event_trooper->costume_organizations);
     }
 }

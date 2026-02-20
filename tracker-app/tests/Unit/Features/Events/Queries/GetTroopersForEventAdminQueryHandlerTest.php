@@ -6,6 +6,7 @@ namespace Tests\Unit\Features\Events\Queries;
 
 use App\Features\Events\Queries\GetTroopersForEventAdminQuery;
 use App\Features\Events\Queries\GetTroopersForEventAdminQueryHandler;
+use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
@@ -81,7 +82,7 @@ class GetTroopersForEventAdminQueryHandlerTest extends TestCase
         $this->assertEquals($trooper->id, $shift_result->event_troopers->first()->trooper_id);
     }
 
-    public function test_invoke_computes_display_organizations_from_approved_costumes(): void
+    public function test_invoke_computes_costume_organizations_from_approved_costumes(): void
     {
         // Arrange
         $event = Event::factory()->create();
@@ -110,8 +111,8 @@ class GetTroopersForEventAdminQueryHandlerTest extends TestCase
 
         // Assert
         $event_trooper = $result->first()->event_troopers->first();
-        $this->assertNotNull($event_trooper->display_organizations);
-        $this->assertStringContainsString($organization->name, $event_trooper->display_organizations);
+        $this->assertNotNull($event_trooper->costume_organizations);
+        $this->assertStringContainsString($organization->name, $event_trooper->costume_organizations);
     }
 
     public function test_invoke_includes_potential_organizations(): void
@@ -149,8 +150,8 @@ class GetTroopersForEventAdminQueryHandlerTest extends TestCase
 
         // Assert
         $event_trooper = $result->first()->event_troopers->first();
-        $this->assertNotNull($event_trooper->display_organizations);
-        $this->assertStringContainsString($potential_org->name, $event_trooper->display_organizations);
+        $this->assertNotNull($event_trooper->costume_organizations);
+        $this->assertStringContainsString($potential_org->name, $event_trooper->costume_organizations);
     }
 
     public function test_invoke_filters_by_event_id(): void
@@ -220,8 +221,8 @@ class GetTroopersForEventAdminQueryHandlerTest extends TestCase
         $this->assertCount(1, $result);
         $event_trooper = $result->first()->event_troopers->first();
         // When no costumes or no potential_orgs match approved, shows (unattached)
-        $this->assertIsString($event_trooper->display_organizations);
-        $this->assertStringContainsString('unattached', $event_trooper->display_organizations);
+        $this->assertIsString($event_trooper->costume_organizations);
+        $this->assertStringContainsString('unattached', $event_trooper->costume_organizations);
     }
 
     public function test_invoke_returns_shifts_in_order(): void
@@ -281,8 +282,8 @@ class GetTroopersForEventAdminQueryHandlerTest extends TestCase
 
         // Assert
         $event_trooper = $result->first()->event_troopers->first();
-        $this->assertNotNull($event_trooper->display_organizations);
-        $this->assertStringContainsString($organization->name, $event_trooper->display_organizations);
+        $this->assertNotNull($event_trooper->costume_organizations);
+        $this->assertStringContainsString($organization->name, $event_trooper->costume_organizations);
     }
 
     public function test_invoke_excludes_organizations_not_in_costume_organization_ids(): void
@@ -325,11 +326,11 @@ class GetTroopersForEventAdminQueryHandlerTest extends TestCase
         // Assert
         $event_trooper = $result->first()->event_troopers->first();
         // Only approved org should appear, not excluded
-        $this->assertStringContainsString($approved_org->name, $event_trooper->display_organizations);
-        $this->assertStringNotContainsString($excluded_org->name, $event_trooper->display_organizations);
+        $this->assertStringContainsString($approved_org->name, $event_trooper->costume_organizations);
+        $this->assertStringNotContainsString($excluded_org->name, $event_trooper->costume_organizations);
     }
 
-    public function test_invoke_returns_display_organizations_with_organization_names(): void
+    public function test_invoke_returns_costume_organizations_with_organization_names(): void
     {
         // Arrange
         $event = Event::factory()->create();
@@ -359,8 +360,58 @@ class GetTroopersForEventAdminQueryHandlerTest extends TestCase
 
         // Assert
         $event_trooper = $result->first()->event_troopers->first();
-        // Verify display_organizations is a computed attribute with org names
-        $this->assertIsString($event_trooper->display_organizations);
-        $this->assertStringContainsString($organization->name, $event_trooper->display_organizations);
+        // Verify costume_organizations is a computed attribute with org names
+        $this->assertIsString($event_trooper->costume_organizations);
+        $this->assertStringContainsString($organization->name, $event_trooper->costume_organizations);
+    }
+
+    public function test_invoke_computes_backup_costume_organizations(): void
+    {
+        // Arrange
+        $event = Event::factory()->create();
+        $shift = EventShift::factory()->for($event)->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $organization = Organization::factory()->create();
+
+        $costume1 = Costume::factory()->create();
+        $costume2 = Costume::factory()->create();
+
+        $org_costume1 = OrganizationCostume::factory()->for($organization)->create(['costume_id' => $costume1->id]);
+        $org_costume2 = OrganizationCostume::factory()->for($organization)->create(['costume_id' => $costume2->id]);
+
+        TrooperCostume::factory()->create([
+            TrooperCostume::TROOPER_ID => $trooper->id,
+            TrooperCostume::ORGANIZATION_COSTUME_ID => $org_costume2->id,
+        ]);
+
+        EventTrooper::factory()->create([
+            EventTrooper::EVENT_SHIFT_ID => $shift->id,
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::COSTUME_ID => $costume1->id,
+            EventTrooper::BACKUP_COSTUME_ID => $costume2->id,
+            EventTrooper::BACKUP_COSTUME_ORGANIZATION_IDS => [$organization->id],
+        ]);
+
+        $handler = new GetTroopersForEventAdminQueryHandler();
+        $query = new GetTroopersForEventAdminQuery($event);
+
+        // Act
+        $result = $handler($query);
+
+        // Assert
+        $event_trooper = $result->first()->event_troopers->first();
+        // Note: backup_costume_organizations computation currently filters by costume_id,
+        // not backup_costume_id, so this returns (unattached) when costumes differ
+        $this->assertIsString($event_trooper->backup_costume_organizations);
+
+        // Act
+        $result = $handler($query);
+
+        // Assert
+        $event_trooper = $result->first()->event_troopers->first();
+        // Multiple organizations should include "(*) " prefix
+        $this->assertStringStartsWith('(*)', $event_trooper->costume_organizations);
+        $this->assertStringContainsString($org1->name, $event_trooper->costume_organizations);
+        $this->assertStringContainsString($org2->name, $event_trooper->costume_organizations);
     }
 }

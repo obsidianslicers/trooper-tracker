@@ -45,7 +45,7 @@
                                 {{ $costume->name }}
                             </td>
                             <td>
-                                {{ $costume->display_organizations }}
+                                {{ $costume->costume_organizations }}
                             </td>
                         </tr>
                     @endforeach
