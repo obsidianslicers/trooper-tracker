@@ -19,7 +19,7 @@ This project remains under active development, which is to say it currently exis
 
 Progress continues at a pace deemed acceptable by the Empire. New features, refinements, and the occasional miracle will be deployed as they reach a state worthy of consumption. Garrison Liasons are encouraged to return in approximately one month to witness the next phase of sanctioned advancement. Until then, patience is not only advised — it is expected.
 
-Update Feb 18th: Despite rumors to the contrary, progress has not stalled. In fact, the project currently stands at an estimated 85% operational readiness, supported by a test suite now exceeding 1,900 trials of loyalty. Minor rebellions within the codebase are being suppressed with appropriate vigor. Observers may take this as a sign that stability is approaching, though only the Empire may determine when "approaching" becomes "arrived." Sensible personnel are advised to check back in roughly one month for the next sanctioned update, assuming the system has not evolved beyond the need for such courtesies.
+Update Feb 18th: Despite rumors to the contrary, progress has not stalled. In fact, the project currently stands at an estimated 85% operational readiness, supported by a test suite now exceeding 2,000 trials of loyalty. Minor rebellions within the codebase are being suppressed with appropriate vigor. Observers may take this as a sign that stability is approaching, though only the Empire may determine when "approaching" becomes "arrived." Sensible personnel are advised to check back in roughly one month for the next sanctioned update, assuming the system has not evolved beyond the need for such courtesies.
 
 ---
 
