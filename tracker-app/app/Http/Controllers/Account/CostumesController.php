@@ -31,7 +31,7 @@ class CostumesController extends MagicBusController
     {
         $trooper = $request->user();
 
-        $organization_ids = $trooper->organizations()->pluck('id')->toArray();
+        $organization_ids = $trooper->organizations()->pluck('organization_id')->toArray();
 
         $costumes_query = new GetCostumesPickerQuery($organization_ids);
 

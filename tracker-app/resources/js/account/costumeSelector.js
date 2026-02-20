@@ -18,6 +18,11 @@ export default function costumeSelector() {
             this.search = costume.name;
             this.showResults = false;
             this.selectedOrgs = [];
+
+            // Efficiency Protocol: If there is only one organization, auto-select it.
+            if (costume.organization_costumes && costume.organization_costumes.length === 1) {
+                this.selectedOrgs.push(costume.organization_costumes[0].id);
+            }
         },
 
         enlistCostume() {
