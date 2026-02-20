@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Features\Troopers\Commands;
 
 use App\Bus\Contracts\CommandHandlerInterface;
+use App\Models\OrganizationCostume;
 use App\Models\TrooperCostume;
 
 /**
@@ -25,11 +26,14 @@ readonly class DetachTrooperCostumeCommandHandler implements CommandHandlerInter
      */
     public function __invoke(object $message): mixed
     {
-        $trooper_costume = $message->trooper->trooper_costumes()
-            ->where(TrooperCostume::ID, $message->costume_id)
-            ->first();
+        $trooper_costumes = $message->trooper->trooper_costumes()
+            ->whereHas('organization_costume', function ($query) use ($message)
+            {
+                $query->where(OrganizationCostume::COSTUME_ID, $message->costume_id);
+            })
+            ->get();
 
-        if ($trooper_costume !== null)
+        foreach ($trooper_costumes as $trooper_costume)
         {
             $trooper_costume->delete();
         }

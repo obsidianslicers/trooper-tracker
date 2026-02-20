@@ -31,33 +31,31 @@ readonly class AttachTrooperCostumeCommandHandler implements CommandHandlerInter
      */
     public function __invoke(object $message): mixed
     {
-        $organization = Organization::withActiveTroopers($message->trooper->id)
-            ->where(Organization::ID, $message->organization_id)
-            ->first();
+        //  all organizations the trooper belongs to
+        $organization_costumes = OrganizationCostume::query()
+            ->whereIn(OrganizationCostume::ID, $message->organization_ids)
+            ->whereHas('organization', function ($query) use ($message)
+            {
+                $query->withActiveTroopers($message->trooper->id);
+            })
+            ->get();
 
-        if (isset($organization))
+        foreach ($organization_costumes as $organization_costume)
         {
-            $costume = $organization->organization_costumes()
-                ->where(OrganizationCostume::ID, $message->costume_id)
+            $trooper_costume = $message->trooper->trooper_costumes()
+                ->withTrashed()
+                ->where(TrooperCostume::ORGANIZATION_COSTUME_ID, $organization_costume->id)
                 ->first();
 
-            if (isset($costume))
+            if ($trooper_costume === null)
             {
-                $trooper_costume = $message->trooper->trooper_costumes()
-                    ->withTrashed()
-                    ->where(TrooperCostume::COSTUME_ID, $message->costume_id)
-                    ->first();
+                $attributes = [TrooperCostume::ORGANIZATION_COSTUME_ID => $organization_costume->id];
 
-                if ($trooper_costume === null)
-                {
-                    $attributes = [TrooperCostume::COSTUME_ID => $message->costume_id];
-
-                    $message->trooper->trooper_costumes()->create($attributes);
-                }
-                else
-                {
-                    $trooper_costume->restore();
-                }
+                $message->trooper->trooper_costumes()->create($attributes);
+            }
+            else
+            {
+                $trooper_costume->restore();
             }
         }
 

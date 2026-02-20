@@ -24,7 +24,7 @@ readonly class ApproveTrooperCommand
      */
     public function __construct(
         public Trooper $trooper,
-        public readonly bool $is_approved,
+        public bool $is_approved,
     ) {
     }
 }

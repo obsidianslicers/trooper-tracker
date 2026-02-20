@@ -48,15 +48,11 @@ class CostumesSubmitHtmxController extends MagicBusController
     {
         $trooper = $request->user();
 
-        $organization_id = (int) $request->input('organization_id', -1);
-        $costume_id = (int) $request->input('costume_id', -1);
+        $organization_ids = $request->input('organization_costume_ids', []);
 
-        if ($organization_id > -1 && $costume_id > -1)
-        {
-            $attach_command = new AttachTrooperCostumeCommand($trooper, $organization_id, $costume_id);
+        $attach_command = new AttachTrooperCostumeCommand($trooper, $organization_ids);
 
-            $this->bus->send($attach_command);
-        }
+        $this->bus->send($attach_command);
 
         $trooper_costumes_query = new GetTrooperCostumesQuery($trooper);
 

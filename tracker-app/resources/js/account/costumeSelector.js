@@ -2,7 +2,6 @@ export default function costumeSelector() {
     return {
         search: '',
         showResults: false,
-        loading: false,
         registry: window.$costumes || [],
         selectedCostume: null,
         selectedOrgs: [],
@@ -11,6 +10,25 @@ export default function costumeSelector() {
             const query = this.search.toLowerCase();
             if (query.length < 2) return [];
             return this.registry.filter(c => c.name.toLowerCase().includes(query));
+        },
+
+        init() {
+            // We listen on the document because HTMX fires there.
+            // Arrow function ensures 'this' refers to the Alpine component.
+            document.addEventListener('htmx:afterRequest', (event) => {
+                // Check if the request was successful and if it was OUR form
+                // (optional: check event.target to ensure it's the right form)
+                if (event.detail.successful) {
+                    this.resetForm();
+                }
+            });
+        },
+
+        resetForm() {
+            this.search = '';
+            this.selectedCostume = null;
+            this.selectedOrgs = [];
+            this.showResults = false;
         },
 
         selectCostume(costume) {
@@ -24,16 +42,5 @@ export default function costumeSelector() {
                 this.selectedOrgs.push(costume.organization_costumes[0].id);
             }
         },
-
-        enlistCostume() {
-            this.loading = true;
-
-            const payload = {
-                organization_costume_ids: this.selectedOrgs,
-                _token: document.querySelector('input[name="_token"]').value
-            };
-
-            console.log('Deploying Payload:', payload);
-        }
     }
 }
