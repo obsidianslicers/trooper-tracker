@@ -26,8 +26,8 @@
 
         <div class="card-body">
             @if($event->at_risk)
-                <p class="card-text text-muted">
-                    At risk of cancellation
+                <p class="card-text text-danger">
+                    ** risk of cancellation **
                 </p>
             @endif
             <p class="card-text">

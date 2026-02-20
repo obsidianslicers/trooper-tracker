@@ -8,7 +8,7 @@ use App\Enums\EventTrooperStatus;
 use App\Features\Events\Commands\PromoteNextInLineEventTrooperCommand;
 use App\Features\Events\Commands\UpdateEventTrooperCommand;
 use App\Http\Controllers\MagicBusController;
-use App\Http\Requests\Events\SetupUpdateHtmxRequest;
+use App\Http\Requests\Events\SignupUpdateHtmxRequest;
 use App\Models\EventTrooper;
 use Illuminate\Http\Response;
 
@@ -29,11 +29,11 @@ class SignUpUpdateHtmxController extends MagicBusController
      * - Status changes: Updates the trooper's attendance status and handles waitlist promotion
      * - Costume changes: Updates the trooper's selected costume for the event
      *
-     * @param  SetupUpdateHtmxRequest  $request  The validated request containing status or costume_id
+     * @param  SignupUpdateHtmxRequest  $request  The validated request containing status or costume_id
      * @param  EventTrooper  $event_trooper  The event trooper record to update
      * @return Response HTTP 200 response indicating success
      */
-    public function __invoke(SetupUpdateHtmxRequest $request, EventTrooper $event_trooper): Response
+    public function __invoke(SignupUpdateHtmxRequest $request, EventTrooper $event_trooper): Response
     {
         $request->validateInputs();
 

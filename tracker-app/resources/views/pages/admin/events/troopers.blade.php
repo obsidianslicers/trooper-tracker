@@ -59,14 +59,17 @@
                                     </a>
                                 </td>
                                 <td>
+                                    @if($event_trooper->costume == null && $event_trooper->backup_costume == null)
+                                        <i class="small text-muted">
+                                            no costume selected
+                                        </i>
+                                    @endif
                                     @if($event_trooper->costume)
                                         {{ $event_trooper->costume->name }}
                                         <br />
                                         <i class="small text-muted">
                                             {{ $event_trooper->costume_organizations }}
                                         </i>
-                                    @else
-                                        N/A
                                     @endif
                                     @if($event_trooper->backup_costume)
                                         <br />
@@ -75,8 +78,6 @@
                                         <i class="small text-muted">
                                             {{ $event_trooper->backup_costume_organizations }}
                                         </i>
-                                    @else
-                                        N/A
                                     @endif
                                 </td>
                                 <td>

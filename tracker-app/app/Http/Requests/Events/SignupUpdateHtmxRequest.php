@@ -6,8 +6,8 @@ namespace App\Http\Requests\Events;
 
 use App\Enums\EventTrooperStatus;
 use App\Http\Requests\HtmxValidation;
+use App\Models\Costume;
 use App\Models\EventTrooper;
-use App\Models\OrganizationCostume;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -19,7 +19,7 @@ use Illuminate\Validation\Rule;
  * their attendance status and costume selection. The costume selection is restricted
  * to costumes from organizations that are allowed to attend the event.
  */
-class SetupUpdateHtmxRequest extends FormRequest
+class SignupUpdateHtmxRequest extends FormRequest
 {
     use HtmxValidation;
 
@@ -69,7 +69,7 @@ class SetupUpdateHtmxRequest extends FormRequest
 
         $organization_ids = $event->event_organizations()->pluckCanAttend($event_shift);
 
-        $valid_costume_ids = OrganizationCostume::forEventShift($event_shift, $this->user(), $organization_ids)
+        $valid_costume_ids = Costume::forTrooper($this->user()->id, $organization_ids)
             ->pluck('id')
             ->toArray();
 
@@ -78,7 +78,7 @@ class SetupUpdateHtmxRequest extends FormRequest
                 'nullable',
                 'string',
                 'max:16',
-                'in:'.EventTrooperStatus::toValidator(),
+                'in:' . EventTrooperStatus::toValidator(),
             ],
             EventTrooper::COSTUME_ID => [
                 'nullable',

@@ -7,6 +7,7 @@ namespace App\Features\Troopers\Queries;
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Models\Base\Organization;
 use App\Models\Costume;
+use App\Models\OrganizationCostume;
 
 /**
  * Handler for retrieving a trooper's costume collection.
@@ -31,23 +32,7 @@ readonly class GetTrooperCostumesQueryHandler implements QueryHandlerInterface
      */
     public function __invoke(object $message): mixed
     {
-        $trooper_id = $message->trooper->id;
-
-        $costumes = Costume::query()
-            ->whereHas('organization_costumes.trooper_costumes', function ($query) use ($trooper_id)
-            {
-                $query->where('trooper_id', $trooper_id);
-            })
-            ->with(['organization_costumes' => function ($query) use ($trooper_id)
-            {
-                // Only pull the organization details if the trooper actually has the approval
-                $with = 'organization:' . Organization::ID . ',' . Organization::NAME;
-                $query->with($with)
-                    ->whereHas('trooper_costumes', function ($q) use ($trooper_id)
-                    {
-                        $q->where('trooper_id', $trooper_id);
-                    });
-            }])
+        $costumes = Costume::forTrooper($message->trooper->id, $message->organization_ids)
             ->orderBy(Costume::NAME)
             ->get();
 

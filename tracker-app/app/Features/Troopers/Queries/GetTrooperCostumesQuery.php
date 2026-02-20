@@ -21,7 +21,9 @@ readonly class GetTrooperCostumesQuery
      *
      * @param Trooper $trooper The trooper whose costumes to retrieve
      */
-    public function __construct(public readonly Trooper $trooper)
+    public function __construct(
+        public Trooper $trooper,
+        public ?array $organization_ids = null)
     {
     }
 }

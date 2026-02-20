@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace Tests\Unit\Http\Requests\Events;
 
 use App\Enums\EventTrooperStatus;
-use App\Http\Requests\Events\SetupUpdateHtmxRequest;
+use App\Http\Requests\Events\SignupUpdateHtmxRequest;
+use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventOrganization;
 use App\Models\EventShift;
@@ -19,11 +20,11 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Validator;
 use Tests\TestCase;
 
-class SetupUpdateHtmxRequestTest extends TestCase
+class SignupUpdateHtmxRequestTest extends TestCase
 {
     use RefreshDatabase;
 
-    private SetupUpdateHtmxRequest $subject;
+    private SignupUpdateHtmxRequest $subject;
     private Trooper $user;
     private Organization $organization;
     private Event $event;
@@ -33,7 +34,7 @@ class SetupUpdateHtmxRequestTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->subject = new SetupUpdateHtmxRequest();
+        $this->subject = new SignupUpdateHtmxRequest();
         $this->organization = Organization::factory()->create();
         $this->user = Trooper::factory()
             ->withAssignment($this->organization, member: true)
@@ -173,10 +174,14 @@ class SetupUpdateHtmxRequestTest extends TestCase
     public function test_validation_passes_with_valid_costume_from_allowed_organization(): void
     {
         // Arrange
-        $costume = OrganizationCostume::factory()->for($this->organization)->create();
+        $costume = Costume::factory()->create();
+        $org_costume = OrganizationCostume::factory()
+            ->for($this->organization)
+            ->for($costume, 'costume')
+            ->create();
         TrooperCostume::factory()
             ->for($this->user, 'trooper')
-            ->for($costume, 'organization_costume')
+            ->for($org_costume, 'organization_costume')
             ->create();
 
         $good_data = [
@@ -208,28 +213,32 @@ class SetupUpdateHtmxRequestTest extends TestCase
 
     public function test_validation_fails_with_costume_from_organization_not_allowed_to_attend(): void
     {
-        // Arrange
-        $other_org = Organization::factory()->create();
+        // Arrange - Create a disallowed organization
+        $disallowed_org = Organization::factory()->create(['name' => 'Disallowed Org']);
         EventOrganization::factory()
             ->for($this->event)
-            ->for($other_org)
+            ->for($disallowed_org)
             ->create(['can_attend' => false]);
 
-        $costume = OrganizationCostume::factory()->for($other_org)->create();
-        TrooperCostume::factory()
-            ->for($this->user, 'trooper')
-            ->for($costume, 'organization_costume')
+        // Create costume and link it to disallowed org
+        $disallowed_costume = Costume::factory()->create();
+        $disallowed_org_costume = OrganizationCostume::factory()
+            ->for($disallowed_org)
+            ->for($disallowed_costume, 'costume')
             ->create();
 
+        // Note: Trooper does NOT have this costume yet (not associated via TrooperCostume)
+        // This ensures the trooper can't use it even though they own costumes in general
+
         $bad_data = [
-            'costume_id' => $costume->id,
+            'costume_id' => $disallowed_costume->id,
         ];
 
         // Act
         $this->subject->merge($bad_data);
         $validator = Validator::make($bad_data, $this->subject->rules());
 
-        // Assert
+        // Assert - Should fail because costume is from disallowed organization
         $this->assertTrue($validator->fails());
         $this->assertTrue($validator->errors()->has('costume_id'));
     }
@@ -238,10 +247,14 @@ class SetupUpdateHtmxRequestTest extends TestCase
     {
         // Arrange
         $other_trooper = Trooper::factory()->create();
-        $costume = OrganizationCostume::factory()->for($this->organization)->create();
+        $costume = Costume::factory()->create();
+        $org_costume = OrganizationCostume::factory()
+            ->for($this->organization)
+            ->for($costume, 'costume')
+            ->create();
         TrooperCostume::factory()
             ->for($other_trooper, 'trooper')
-            ->for($costume, 'organization_costume')
+            ->for($org_costume, 'organization_costume')
             ->create();
 
         $bad_data = [

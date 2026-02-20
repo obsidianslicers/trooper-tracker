@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Enums\EventTrooperStatus;
 use App\Models\Base\EventTrooper as BaseEventTrooper;
 use App\Models\Concerns\HasAuditTrail;
+use App\Models\Concerns\HasObserver;
 use App\Models\Concerns\HasTrooperStamps;
 use App\Models\Scopes\HasEventTrooperScopes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -26,6 +27,7 @@ class EventTrooper extends BaseEventTrooper
     use HasFactory;
     use HasTrooperStamps;
     use HasAuditTrail;
+    use HasObserver;
 
     /**
      * Define the model attributes should be audited for changes.
@@ -126,9 +128,9 @@ class EventTrooper extends BaseEventTrooper
 
         $organization_ids = $this->event_shift->event->event_organizations()->pluckCanAttend($event_shift);
 
-        return OrganizationCostume::with('organization')
-            ->forEventShift($this->event_shift, $this->trooper, $organization_ids)
-            ->toOptions('full_name', 'id');
+        return Costume::forTrooper($this->trooper->id, $organization_ids)
+            ->pluck('name', 'id')
+            ->toArray();
     }
 
     /**
