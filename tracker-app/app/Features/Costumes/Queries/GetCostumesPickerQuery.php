@@ -10,16 +10,16 @@ namespace App\Features\Costumes\Queries;
  * Returns all organizations in a hierarchical structure (organizations, regions, and units)
  * with nested relationships. Optionally filters to a specific organization and its descendants.
  *
- * @see GetCostumesWithOrganizationQueryHandler
+ * @see GetCostumesPickerQueryHandler
  */
-readonly class GetCostumesWithOrganizationQuery
+readonly class GetCostumesPickerQuery
 {
     /**
      * Create a new query instance.
      *
-     * @param int|null $organization_id Optional organization ID to filter hierarchy to specific org and descendants
+     * @param int[]|null $organization_ids Optional array of organization IDs to filter hierarchy to specific orgs and descendants
      */
-    public function __construct(public readonly ?int $organization_id = null)
+    public function __construct(public readonly array $organization_ids)
     {
     }
 }

@@ -12,14 +12,14 @@ use App\Models\OrganizationCostume;
 /**
  * Handler for retrieving the organization hierarchy for costumes.
  *
- * @implements QueryHandlerInterface<GetCostumesWithOrganizationQuery>
+ * @implements QueryHandlerInterface<GetCostumesPickerQuery>
  */
-readonly class GetCostumesWithOrganizationQueryHandler implements QueryHandlerInterface
+readonly class GetCostumesPickerQueryHandler implements QueryHandlerInterface
 {
     /**
      * Handle the query to retrieve costumes with their associated organization hierarchy.
      *
-     * @param GetCostumesWithOrganizationQuery $message The query containing trooper and filter criteria
+     * @param GetCostumesPickerQuery $message The query containing trooper and filter criteria
      * @return \Illuminate\Support\Collection<int, Costume> Collection of organizations with nested hierarchy.
      */
     public function __invoke(object $message): mixed
@@ -27,20 +27,19 @@ readonly class GetCostumesWithOrganizationQueryHandler implements QueryHandlerIn
         $organization_costumes_relation = 'organization_costumes:'
             . OrganizationCostume::ID . ','
             . OrganizationCostume::ORGANIZATION_ID . ','
-            . OrganizationCostume::COSTUME_ID;
+            . OrganizationCostume::COSTUME_ID . ','
+            . OrganizationCostume::PREFIX;
 
         $with = [
             $organization_costumes_relation,
             'organization_costumes.organization:' . Organization::ID . ',' . Organization::NAME
         ];
 
-        if ($message->organization_id)
+        $with['organization_costumes'] = function ($query) use ($message)
         {
-            $with['organization_costumes'] = function ($query) use ($message)
-            {
-                $query->whereHas('organization', fn($q) => $q->where(Organization::ID, $message->organization_id));
-            };
-        }
+            $query->whereHas('organization', fn($q) => $q->whereIn(Organization::ID, $message->organization_ids));
+        };
+
 
         return Costume::with($with)
             ->orderBy(Costume::NAME)

@@ -12,21 +12,18 @@
                   novalidate="novalidate">
                 @csrf
 
-                <div x-data="costumePicker()"
+                <div x-data="Account.Costumes.costumeSelector()"
                      class="card bg-dark text-white shadow-sm mb-4">
                     <div class="card-body">
-                        <h5 class="card-title mb-4">Add Costume to Profile</h5>
-
                         <div class="mb-4 position-relative">
                             <x-label>
                                 1. Find Your Costume
                             </x-label>
-                            <input type="text"
-                                   class="form-control"
-                                   placeholder="Search ... (e.g. Shdadow Scout)"
-                                   x-model="search"
-                                   x-on:focus="showResults = true"
-                                   x-on:click.away="showResults = false">
+                            <x-input-text property="'costume_id'"
+                                          placeholder="Search ... (e.g. Shdadow Scout)"
+                                          x-model="search"
+                                          x-on:focus="showResults = true"
+                                          x-on:click.away="showResults = false" />
 
                             <div x-show="showResults && filteredCostumes.length > 0"
                                  class="list-group position-absolute w-100 mt-1 shadow-lg"
@@ -43,35 +40,49 @@
 
                         <div x-show="selectedCostume"
                              x-transition
-                             class="bg-dark p-3 rounded border border-secondary mb-4">
-                            <label class="d-block text-muted small mb-3">2. Select Approved Organizations</label>
-                            <div class="d-flex flex-wrap gap-2">
-                                <template x-for="org in selectedCostume.organization_costumes"
-                                          x-bind:key="org.oc_id">
-                                    <div class="form-check form-check-inline p-0 m-0">
-                                        <label class="btn btn-sm"
-                                               x-bind:class="selectedOrgs.includes(org.oc_id) ? 'btn-info' : 'btn-outline-secondary'">
+                             class="mb-4">
+                            <x-label>
+                                2. Select Approved Organizations
+                            </x-label>
+
+                            <div class="list-group">
+                                <template x-if="selectedCostume && selectedCostume.organization_costumes.length > 0">
+                                    <template x-for="org in selectedCostume.organization_costumes"
+                                              x-bind:key="org.id">
+                                        <label class="list-group-item bg-dark text-white border-secondary d-flex align-items-center py-3"
+                                               style="cursor: pointer;">
                                             <input type="checkbox"
-                                                   class="d-none"
-                                                   x-bind:value="org.oc_id"
+                                                   class="form-check-input me-3"
+                                                   x-bind:value="org.id"
                                                    x-model="selectedOrgs">
-                                            <span x-text="org.organization.name"></span>
+                                            <div>
+                                                <span class="d-block fw-bold"
+                                                      x-text="org.organization.name"></span>
+                                                <span class="text-muted small"
+                                                      x-text="'Prefix: ' + (org.prefix || 'None')"></span>
+                                            </div>
                                         </label>
-                                    </div>
+                                    </template>
                                 </template>
                             </div>
+
+                            <template x-if="selectedCostume && selectedCostume.organization_costumes.length === 0">
+                                <div class="text-danger small">No organizations found for this costume type.</div>
+                            </template>
                         </div>
 
                         <div class="d-grid">
                             <button type="button"
-                                    class="btn btn-success btn-lg fw-bold"
+                                    class="btn btn-primary"
                                     x-bind:disabled="!selectedCostume || selectedOrgs.length === 0"
                                     x-on:click="enlistCostume()">
-                                <span x-show="!loading">Add to Armory</span>
+                                <span x-show="!loading">
+                                    Add to Armory
+                                </span>
                                 <span x-show="loading"
-                                      class="spinner-border spinner-border-sm me-2"
+                                      class="fa fa-fw fa-spinner fa-spin me-2"
                                       role="status"></span>
-                                <span x-show="loading">Processing...</span>
+                                <span x-show="loading">Submitting ...</span>
                             </button>
                         </div>
                     </div>
@@ -102,40 +113,5 @@
 @section('page-script')
     <script>
         window.$costumes = @json($costumes);
-
-        function costumePicker() {
-            return {
-                search: '',
-                showResults: false,
-                loading: false,
-                registry: window.$costumes || [],
-                selectedCostume: null,
-                selectedOrgs: [],
-
-                get filteredCostumes() {
-                    const query = this.search.toLowerCase();
-                    if (query.length < 2) return [];
-                    return this.registry.filter(c => c.name.toLowerCase().includes(query));
-                },
-
-                selectCostume(costume) {
-                    this.selectedCostume = costume;
-                    this.search = costume.name;
-                    this.showResults = false;
-                    this.selectedOrgs = [];
-                },
-
-                enlistCostume() {
-                    this.loading = true;
-
-                    const payload = {
-                        organization_costume_ids: this.selectedOrgs,
-                        _token: document.querySelector('input[name="_token"]').value
-                    };
-
-                    console.log('Deploying Payload:', payload);
-                }
-            }
-        }
     </script>
 @endsection
