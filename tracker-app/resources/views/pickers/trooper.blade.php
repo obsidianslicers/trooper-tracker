@@ -39,8 +39,8 @@
             @if($search_term && now()->year == 2026)
                 <p class="text-muted">
                     This may be because of the conversion to the new Troop Tracker.
-                    If you are searching for someone and they cannot be found since conversion
-                    to the new Troop Tracker, have they completed their setup yet?
+                    If you are searching for someone and they cannot be found since conversion,
+                    have they completed their setup yet?
                 </p>
             @endif
         </li>
