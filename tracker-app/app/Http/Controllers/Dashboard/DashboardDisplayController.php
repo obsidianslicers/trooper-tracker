@@ -59,19 +59,21 @@ class DashboardDisplayController extends MagicBusController
             'total_troops_by_organization' => $this->getTroopsByOrganization($trooper),
             'total_troops_by_costume' => $this->getTroopsByCostume($trooper),
             // synced costumes for this trooper (those with at least one image)
-            'synced_costumes' => OrganizationCostume::whereHas('trooper_costumes', function ($q) use ($trooper_id) {
+            'synced_costumes' => OrganizationCostume::with('costume')->whereHas('trooper_costumes', function ($q) use ($trooper_id) {
                 $q->where(TrooperCostume::TROOPER_ID, $trooper_id)
                     ->where(function ($q2) {
-                        $q2->whereNotNull(BaseTrooperCostume::LARGE_IMAGE_URL)
-                            ->orWhereNotNull(BaseTrooperCostume::SMALL_IMAGE_URL);
+                        $q2->whereNotNull(BaseTrooperCostume::IMAGE_URL_LG)
+                            ->orWhereNotNull(BaseTrooperCostume::IMAGE_URL_SM);
                     });
             })->with(['trooper_costumes' => function ($q) use ($trooper_id) {
                 $q->where(TrooperCostume::TROOPER_ID, $trooper_id)
                     ->where(function ($q2) {
-                        $q2->whereNotNull(BaseTrooperCostume::LARGE_IMAGE_URL)
-                            ->orWhereNotNull(BaseTrooperCostume::SMALL_IMAGE_URL);
+                        $q2->whereNotNull(BaseTrooperCostume::IMAGE_URL_LG)
+                            ->orWhereNotNull(BaseTrooperCostume::IMAGE_URL_SM);
                     })->orderBy('id', 'desc');
-            }])->orderBy('name')->get(),
+            }])
+                // ->orderBy('costume.name')
+                ->get(),
         ];
 
         return view('pages.dashboard.display', $data);
@@ -88,20 +90,22 @@ class DashboardDisplayController extends MagicBusController
      */
     private function getTroopsByOrganization(Trooper $trooper): Collection
     {
-        $trooper_id = $trooper->id;
+        //  TODO: This can likely be optimized by querying EventTrooper directly and joining to OrganizationCostume/Organization
+        // $trooper_id = $trooper->id;
 
-        return Organization::query()
-            ->whereHas('organization_costumes.event_troopers', function ($q) use ($trooper_id) {
-                $q->where(EventTrooper::TROOPER_ID, $trooper_id);
-            })
-            ->withCount([
-                'organization_costumes as troop_count' => function ($q) use ($trooper_id) {
-                    $q->whereHas('event_troopers', fn ($sub) => $sub->where(EventTrooper::TROOPER_ID, $trooper_id)
-                    );
-                },
-            ])
-            ->orderBy('troop_count', 'desc')
-            ->get();
+        // return Organization::query()
+        //     ->whereHas('organization_costumes.event_troopers', function ($q) use ($trooper_id) {
+        //         $q->where(EventTrooper::TROOPER_ID, $trooper_id);
+        //     })
+        //     ->withCount([
+        //         'organization_costumes as troop_count' => function ($q) use ($trooper_id) {
+        //             $q->whereHas('event_troopers', fn ($sub) => $sub->where(EventTrooper::TROOPER_ID, $trooper_id)
+        //             );
+        //         },
+        //     ])
+        //     ->orderBy('troop_count', 'desc')
+        //     ->get();
+        return collect([]);
     }
 
     /**
@@ -115,15 +119,18 @@ class DashboardDisplayController extends MagicBusController
      */
     private function getTroopsByCostume(Trooper $trooper): Collection
     {
-        $trooper_id = $trooper->id;
+        //  TODO: This can likely be optimized by querying EventTrooper directly and joining to Costume
+        // $trooper_id = $trooper->id;
 
-        return OrganizationCostume::whereHas('event_troopers', fn ($q) => $q->where(EventTrooper::TROOPER_ID, $trooper_id))
-            ->with('organization')
-            ->withCount([
-                'event_troopers as troop_count' => fn ($q) => $q->where(EventTrooper::TROOPER_ID, $trooper_id),
-            ])
-            ->whereNot(OrganizationCostume::NAME, 'N/A')
-            ->orderBy('troop_count', 'desc')
-            ->get();
+        // return OrganizationCostume::whereHas('event_troopers', fn($q) => $q->where(EventTrooper::TROOPER_ID, $trooper_id))
+        //     ->with('organization')
+        //     ->withCount([
+        //         'event_troopers as troop_count' => fn($q) => $q->where(EventTrooper::TROOPER_ID, $trooper_id),
+        //     ])
+        //     ->whereNot(OrganizationCostume::NAME, 'N/A')
+        //     ->orderBy('troop_count', 'desc')
+        //     ->get();
+
+        return collect([]);
     }
 }

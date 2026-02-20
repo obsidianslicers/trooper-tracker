@@ -21,19 +21,17 @@ abstract class BaseOrganizationService implements SynchronizerInterface
 
     public function __construct(
         protected readonly Organization $organization,
-        protected readonly GoogleService $google)
-    {
-    }
+        protected readonly GoogleService $google) {}
 
     public function run(): void
     {
-        Log::info(__CLASS__ . ":{$this->organization->name} Starting synchronization");
+        Log::info(__CLASS__.":{$this->organization->name} Starting synchronization");
 
         $this->synchronize();
 
         $this->updateOrganizationSync();
 
-        Log::info(__CLASS__ . ":{$this->organization->name} Finished synchronization");
+        Log::info(__CLASS__.":{$this->organization->name} Finished synchronization");
     }
 
     abstract protected function synchronize(): void;
@@ -44,7 +42,7 @@ abstract class BaseOrganizationService implements SynchronizerInterface
 
         if (empty($sheet_id))
         {
-            Log::info(__CLASS__ . ":{$this->organization->name} No 'sync_sheet_id' configured");
+            Log::info(__CLASS__.":{$this->organization->name} No 'sync_sheet_id' configured");
 
             return [];
         }
@@ -54,7 +52,7 @@ abstract class BaseOrganizationService implements SynchronizerInterface
 
         if (is_array($rows) === false)
         {
-            Log::warning(__CLASS__ . ":{$this->organization->name} No rows found");
+            Log::warning(__CLASS__.":{$this->organization->name} No rows found");
 
             return [];
         }
@@ -84,7 +82,7 @@ abstract class BaseOrganizationService implements SynchronizerInterface
 
         if ($costume === null)
         {
-            $costume = new Costume();
+            $costume = new Costume;
             $costume->name = $costume_name;
             $costume->save();
         }
@@ -112,7 +110,7 @@ abstract class BaseOrganizationService implements SynchronizerInterface
 
     protected function getTrooper(string $identifier): ?Trooper
     {
-        Log::info(__CLASS__ . ":{$this->organization->name} Getting Trooper {$identifier}");
+        Log::info(__CLASS__.":{$this->organization->name} Getting Trooper {$identifier}");
 
         return $this->organization->troopers()
             ->wherePivot(TrooperOrganization::IDENTIFIER, $identifier)
@@ -121,7 +119,7 @@ abstract class BaseOrganizationService implements SynchronizerInterface
 
     protected function syncTrooperCostume(Trooper $trooper, OrganizationCostume $org_costume, array $attributes): void
     {
-        Log::info(__CLASS__ . ":{$this->organization->name} Synchronizing Trooper Costume {$org_costume->name} for Trooper {$trooper->display_name}");
+        Log::info(__CLASS__.":{$this->organization->name} Synchronizing Trooper Costume {$org_costume->name} for Trooper {$trooper->display_name}");
 
         $trooper_costume = TrooperCostume::query()
             ->where(TrooperCostume::TROOPER_ID, $trooper->id)
@@ -145,7 +143,7 @@ abstract class BaseOrganizationService implements SynchronizerInterface
 
     protected function syncTrooperStatus(Trooper $trooper, MembershipStatus $status): void
     {
-        Log::info(__CLASS__ . ":{$this->organization->name} Synchronizing Trooper Status {$status->name} for {$trooper->display_name}");
+        Log::info(__CLASS__.":{$this->organization->name} Synchronizing Trooper Status {$status->name} for {$trooper->display_name}");
 
         $pivot = $trooper->pivot;
 

@@ -19,8 +19,6 @@ class UpdateController extends MagicBusController
 {
     /**
      * Set up breadcrumbs for the costume update page.
-     *
-     * @return void
      */
     protected function initialized(): void
     {
@@ -34,7 +32,7 @@ class UpdateController extends MagicBusController
      * Authorizes the user, retrieves the costume, and renders the costume
      * update form.
      *
-     * @param Costume $costume The costume to be updated (route model binding).
+     * @param  Costume  $costume  The costume to be updated (route model binding).
      * @return View The rendered costume update view.
      */
     public function __invoke(Request $request, Costume $costume): View

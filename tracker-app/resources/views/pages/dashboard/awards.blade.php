@@ -17,11 +17,9 @@
                 </td>
             </tr>
         @empty
-            <tr>
-                <td colspan="2">
-                    No Awards ... Yet!
-                </td>
-            </tr>
+            <x-table-empty :colspan="2">
+                No Awards ... Yet!
+            </x-table-empty>
         @endforelse
     </tbody>
 </x-table>

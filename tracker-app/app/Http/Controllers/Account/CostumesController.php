@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Account;
 
 use App\Features\Costumes\Queries\GetCostumesPickerQuery;
-use App\Features\Organizations\Queries\GetOrganizationCostumesQuery;
 use App\Features\Troopers\Queries\GetTrooperCostumesQuery;
 use App\Http\Controllers\MagicBusController;
-use App\Models\Organization;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 

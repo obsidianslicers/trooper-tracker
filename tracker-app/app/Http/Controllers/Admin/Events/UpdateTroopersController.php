@@ -7,7 +7,6 @@ namespace App\Http\Controllers\Admin\Events;
 use App\Features\Events\Queries\GetTroopersForEventAdminQuery;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Event;
-use App\Models\Organization;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 

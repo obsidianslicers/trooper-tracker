@@ -250,7 +250,7 @@ class RebelLegionServiceTest extends TestCase
             ->state([
                 TrooperCostume::TROOPER_ID => $trooper->id,
                 TrooperCostume::COSTUME_ID => $org_costume->id,
-                TrooperCostume::LARGE_IMAGE_URL => 'https://example.com/old_image.jpg',
+                TrooperCostume::IMAGE_URL_LG => 'https://example.com/old_image.jpg',
             ])
             ->create();
 

@@ -19,8 +19,6 @@ class CreateController extends MagicBusController
 {
     /**
      * Set up breadcrumbs for the costume creation page.
-     *
-     * @return void
      */
     protected function initialized(): void
     {

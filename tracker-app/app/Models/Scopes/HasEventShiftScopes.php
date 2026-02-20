@@ -54,7 +54,7 @@ trait HasEventShiftScopes
             'event_troopers' => function ($q) use ($trooper_id)
             {
                 $q->where(EventTrooper::TROOPER_ID, $trooper_id)
-                    ->with('organization_costume.organization');
+                    ->with('costume');
             },
         ];
 

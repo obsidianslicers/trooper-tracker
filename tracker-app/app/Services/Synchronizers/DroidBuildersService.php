@@ -32,7 +32,7 @@ class DroidBuildersService extends BaseOrganizationService
             }
 
             // Map to organization costume and trooper costume
-            $identifier = $forum_id . '';
+            $identifier = $forum_id.'';
 
             if (empty($identifier))
             {

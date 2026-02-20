@@ -28,11 +28,9 @@
                     </td>
                 </tr>
             @empty
-                <tr>
-                    <td colspan="5">
-                        No troopers found, all present and accounted for.
-                    </td>
-                </tr>
+                <x-table-empty :colspan="2">
+                    No troopers found, all present and accounted for.
+                </x-table-empty>
             @endforelse
         </tbody>
     </x-table>

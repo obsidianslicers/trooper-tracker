@@ -89,13 +89,9 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr>
-                                <td colspan="3" class="ps-4">
-                                    <i>
-                                        No troopers assigned to this shift.
-                                    </i>
-                                </td>
-                            </tr>
+                            <x-table-empty :colspan="3">
+                                No troopers assigned to this shift.
+                            </x-table-empty>
                         @endforelse
                     @endforeach
                 </x-table>

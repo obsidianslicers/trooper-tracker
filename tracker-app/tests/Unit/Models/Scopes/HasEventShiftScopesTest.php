@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Models\Scopes;
 
+use App\Models\Costume;
+use App\Models\EventTrooper;
 use App\Models\EventShift;
+use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -14,16 +17,27 @@ class HasEventShiftScopesTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Costume::resolveRelationUsing('organization', function (Costume $costume)
+        {
+            return $costume->belongsToMany(
+                Organization::class,
+                OrganizationCostume::class,
+                OrganizationCostume::COSTUME_ID,
+                OrganizationCostume::ORGANIZATION_ID
+            );
+        });
+    }
+
     public function test_scope_active_includes_open_shifts(): void
     {
         // Arrange
-        $costume = OrganizationCostume::factory()->create();
+        $costume = Costume::factory()->create();
         $trooper = Trooper::factory()->create();
-
-        $open_shift = EventShift::factory()
-            ->withAssignment($trooper, $costume)
-            ->open()
-            ->create();
+        $open_shift = $this->createShiftWithAssignment($trooper, $costume, 'open');
 
         // Act
         $result = EventShift::active()->get();
@@ -35,13 +49,9 @@ class HasEventShiftScopesTest extends TestCase
     public function test_scope_active_includes_draft_shifts(): void
     {
         // Arrange
-        $costume = OrganizationCostume::factory()->create();
+        $costume = Costume::factory()->create();
         $trooper = Trooper::factory()->create();
-
-        $draft_shift = EventShift::factory()
-            ->withAssignment($trooper, $costume)
-            ->draft()
-            ->create();
+        $draft_shift = $this->createShiftWithAssignment($trooper, $costume, 'draft');
 
         // Act
         $result = EventShift::active()->get();
@@ -53,13 +63,9 @@ class HasEventShiftScopesTest extends TestCase
     public function test_scope_active_includes_sign_up_locked_shifts(): void
     {
         // Arrange
-        $costume = OrganizationCostume::factory()->create();
+        $costume = Costume::factory()->create();
         $trooper = Trooper::factory()->create();
-
-        $locked_shift = EventShift::factory()
-            ->withAssignment($trooper, $costume)
-            ->signUpLocked()
-            ->create();
+        $locked_shift = $this->createShiftWithAssignment($trooper, $costume, 'signUpLocked');
 
         // Act
         $result = EventShift::active()->get();
@@ -71,13 +77,9 @@ class HasEventShiftScopesTest extends TestCase
     public function test_scope_active_excludes_closed_shifts(): void
     {
         // Arrange
-        $costume = OrganizationCostume::factory()->create();
+        $costume = Costume::factory()->create();
         $trooper = Trooper::factory()->create();
-
-        $closed_shift = EventShift::factory()
-            ->withAssignment($trooper, $costume)
-            ->closed()
-            ->create();
+        $closed_shift = $this->createShiftWithAssignment($trooper, $costume, 'closed');
 
         // Act
         $result = EventShift::active()->get();
@@ -89,19 +91,11 @@ class HasEventShiftScopesTest extends TestCase
     public function test_scope_by_trooper_filters_shifts_by_trooper_participation(): void
     {
         // Arrange
-        $costume = OrganizationCostume::factory()->create();
+        $costume = Costume::factory()->create();
         $trooper = Trooper::factory()->create();
         $other_trooper = Trooper::factory()->create();
-
-        $shift_with_trooper = EventShift::factory()
-            ->withAssignment($trooper, $costume)
-            ->open()
-            ->create();
-
-        $shift_with_other = EventShift::factory()
-            ->withAssignment($other_trooper, $costume)
-            ->open()
-            ->create();
+        $shift_with_trooper = $this->createShiftWithAssignment($trooper, $costume, 'open');
+        $shift_with_other = $this->createShiftWithAssignment($other_trooper, $costume, 'open');
 
         // Act
         $result = EventShift::byTrooper($trooper->id, false)->get();
@@ -115,18 +109,10 @@ class HasEventShiftScopesTest extends TestCase
     public function test_scope_by_trooper_filters_by_open_status(): void
     {
         // Arrange
-        $costume = OrganizationCostume::factory()->create();
+        $costume = Costume::factory()->create();
         $trooper = Trooper::factory()->create();
-
-        $open_shift = EventShift::factory()
-            ->withAssignment($trooper, $costume)
-            ->open()
-            ->create();
-
-        $closed_shift = EventShift::factory()
-            ->withAssignment($trooper, $costume)
-            ->closed()
-            ->create();
+        $open_shift = $this->createShiftWithAssignment($trooper, $costume, 'open');
+        $closed_shift = $this->createShiftWithAssignment($trooper, $costume, 'closed');
 
         // Act
         $result = EventShift::byTrooper($trooper->id, false)->get();
@@ -140,18 +126,10 @@ class HasEventShiftScopesTest extends TestCase
     public function test_scope_by_trooper_filters_by_closed_status(): void
     {
         // Arrange
-        $costume = OrganizationCostume::factory()->create();
+        $costume = Costume::factory()->create();
         $trooper = Trooper::factory()->create();
-
-        $open_shift = EventShift::factory()
-            ->withAssignment($trooper, $costume)
-            ->open()
-            ->create();
-
-        $closed_shift = EventShift::factory()
-            ->withAssignment($trooper, $costume)
-            ->closed()
-            ->create();
+        $open_shift = $this->createShiftWithAssignment($trooper, $costume, 'open');
+        $closed_shift = $this->createShiftWithAssignment($trooper, $costume, 'closed');
 
         // Act
         $result = EventShift::byTrooper($trooper->id, true)->get();
@@ -165,18 +143,30 @@ class HasEventShiftScopesTest extends TestCase
     public function test_scope_by_trooper_eager_loads_event_troopers(): void
     {
         // Arrange
-        $costume = OrganizationCostume::factory()->create();
+        $costume = Costume::factory()->create();
         $trooper = Trooper::factory()->create();
-
-        $shift = EventShift::factory()
-            ->withAssignment($trooper, $costume)
-            ->open()
-            ->create();
+        $shift = $this->createShiftWithAssignment($trooper, $costume, 'open');
 
         // Act
         $result = EventShift::byTrooper($trooper->id, false)->first();
 
         // Assert
         $this->assertTrue($result->relationLoaded('event_troopers'));
+    }
+
+    private function createShiftWithAssignment(
+        Trooper $trooper,
+        Costume $costume,
+        string $state
+    ): EventShift {
+        $shift = EventShift::factory()->{$state}()->create();
+
+        EventTrooper::factory()->create([
+            EventTrooper::EVENT_SHIFT_ID => $shift->id,
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::COSTUME_ID => $costume->id,
+        ]);
+
+        return $shift;
     }
 }

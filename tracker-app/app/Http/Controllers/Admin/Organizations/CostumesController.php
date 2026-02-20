@@ -7,7 +7,6 @@ namespace App\Http\Controllers\Admin\Organizations;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Costume;
 use App\Models\Organization;
-use App\Models\OrganizationCostume;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -39,7 +38,7 @@ class CostumesController extends MagicBusController
         $this->authorize('update', $organization);
 
         $organization->load([
-            'costumes' => fn($q) => $q->orderBy(Costume::NAME),
+            'costumes' => fn ($q) => $q->orderBy(Costume::NAME),
         ]);
 
         $data = compact('organization');

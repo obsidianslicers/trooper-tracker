@@ -23,8 +23,8 @@ class UpdateSubmitController extends MagicBusController
      * Validates the request, updates the costume's name, saves it,
      * and redirects to the costume list with a success message.
      *
-     * @param UpdateRequest $request The validated request containing the updated data.
-     * @param Costume $costume The costume to be updated (route model binding).
+     * @param  UpdateRequest  $request  The validated request containing the updated data.
+     * @param  Costume  $costume  The costume to be updated (route model binding).
      * @return RedirectResponse A redirect response to the costume list.
      */
     public function __invoke(UpdateRequest $request, Costume $costume): RedirectResponse

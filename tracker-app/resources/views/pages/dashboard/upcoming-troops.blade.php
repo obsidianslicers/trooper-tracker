@@ -36,11 +36,9 @@
                 </td>
             </tr>
         @empty
-            <tr>
-                <td colspan="4">
-                    No Upcoming Troops ... Yet!
-                </td>
-            </tr>
+            <x-table-empty :colspan="4">
+                No Upcoming Troops ... Yet!
+            </x-table-empty>
         @endforelse
     </tbody>
 </x-table>

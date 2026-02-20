@@ -24,6 +24,7 @@ class UpdateRequest extends FormRequest
      * user has permission to update it.
      *
      * @return bool True if the user is authorized to update the costume.
+     *
      * @throws AuthorizationException If the costume is not found in the route.
      */
     public function authorize(): bool

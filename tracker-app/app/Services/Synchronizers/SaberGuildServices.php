@@ -33,7 +33,7 @@ class SaberGuildServices extends BaseOrganizationService
             }
 
             // Map to organization costume and trooper costume
-            $identifier = $forum_id . '';
+            $identifier = $forum_id.'';
 
             if (empty($identifier))
             {
@@ -44,7 +44,7 @@ class SaberGuildServices extends BaseOrganizationService
             if (strpos($costume_image, 'view?usp=drivesdk') !== false)
             {
                 $segments = explode('/', $costume_image);
-                $costume_image = 'https://drive.google.com/uc?id=' . $segments[5] . '';
+                $costume_image = 'https://drive.google.com/uc?id='.$segments[5].'';
             }
 
             // Ensure organization costume exists

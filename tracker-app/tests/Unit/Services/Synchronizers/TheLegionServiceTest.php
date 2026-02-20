@@ -411,7 +411,7 @@ class TheLegionServiceTest extends TestCase
                 TrooperCostume::TROOPER_ID => $trooper->id,
                 TrooperCostume::COSTUME_ID => $org_costume->id,
             ])
-            ->create([TrooperCostume::LARGE_IMAGE_URL => 'https://example.com/old.jpg']);
+            ->create([TrooperCostume::IMAGE_URL_LG => 'https://example.com/old.jpg']);
 
         $html = $this->getValidCostumesHtml();
         $api_response = $this->getValidTrooperApiResponse();

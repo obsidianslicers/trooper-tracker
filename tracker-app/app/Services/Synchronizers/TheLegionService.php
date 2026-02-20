@@ -57,7 +57,7 @@ class TheLegionService extends BaseOrganizationService
                 continue;
             }
 
-            $trooper = $this->getTrooper($json['legionId'] . '');
+            $trooper = $this->getTrooper($json['legionId'].'');
 
             if ($trooper === null)
             {
