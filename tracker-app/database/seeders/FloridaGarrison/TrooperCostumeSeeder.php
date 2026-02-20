@@ -75,7 +75,7 @@ class TrooperCostumeSeeder extends Seeder
             ->join('costumes', 'costumes.id', '=', 'event_sign_up.costume')
             ->join('troopers', 'troopers.id', '=', 'event_sign_up.trooperid')
             ->whereRaw('costumes.club IS NOT NULL AND costumes.club != 4')
-            ->whereRaw("costumes.costume not in ('NA', 'N/A', 'Handler')")
+            ->whereRaw("costumes.costume not in ('NA', 'N/A', 'Handler', 'Command Staff')")
             ->selectRaw('distinct costumes.costume, costumes.club, costumes.id, event_sign_up.trooperid')
             ->get();
 
