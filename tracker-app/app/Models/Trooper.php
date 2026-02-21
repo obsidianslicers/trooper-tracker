@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\AchievementType;
 use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
 use App\Enums\NotificationFrequency;
@@ -189,5 +190,18 @@ class Trooper extends BaseTrooper implements
         }
 
         return false;
+    }
+
+    /**
+     * Get the trooper achievement for a specific achievement type.
+     *
+     * @param AchievementType $type The type of achievement to retrieve
+     * @return TrooperAchievement|null The trooper achievement if found, or null if not found
+     */
+    public function getTrooperAchievement(AchievementType $type): ?TrooperAchievement
+    {
+        return $this->trooper_achievements
+            ->where(TrooperAchievement::TYPE, $type)
+            ->first();
     }
 }

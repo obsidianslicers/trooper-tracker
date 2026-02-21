@@ -45,11 +45,11 @@ class DashboardDisplayController extends MagicBusController
         }
 
         $metrics = $trooper->trooper_achievements
-            ->filter(fn ($a) => $a->type->isMetric())
+            ->filter(fn($a) => $a->type->isMetric())
             ->sortBy('display_order');
 
         $milestones = $trooper->trooper_achievements
-            ->filter(fn ($a) => $a->type->isMilestone())
+            ->filter(fn($a) => $a->type->isMilestone())
             ->sortBy('display_order');
 
         $data = [
@@ -59,15 +59,19 @@ class DashboardDisplayController extends MagicBusController
             'total_troops_by_organization' => $this->getTroopsByOrganization($trooper),
             'total_troops_by_costume' => $this->getTroopsByCostume($trooper),
             // synced costumes for this trooper (those with at least one image)
-            'synced_costumes' => OrganizationCostume::with('costume')->whereHas('trooper_costumes', function ($q) use ($trooper_id) {
+            'synced_costumes' => OrganizationCostume::with('costume')->whereHas('trooper_costumes', function ($q) use ($trooper_id)
+            {
                 $q->where(TrooperCostume::TROOPER_ID, $trooper_id)
-                    ->where(function ($q2) {
+                    ->where(function ($q2)
+                    {
                         $q2->whereNotNull(BaseTrooperCostume::IMAGE_URL_LG)
                             ->orWhereNotNull(BaseTrooperCostume::IMAGE_URL_SM);
                     });
-            })->with(['trooper_costumes' => function ($q) use ($trooper_id) {
+            })->with(['trooper_costumes' => function ($q) use ($trooper_id)
+            {
                 $q->where(TrooperCostume::TROOPER_ID, $trooper_id)
-                    ->where(function ($q2) {
+                    ->where(function ($q2)
+                    {
                         $q2->whereNotNull(BaseTrooperCostume::IMAGE_URL_LG)
                             ->orWhereNotNull(BaseTrooperCostume::IMAGE_URL_SM);
                     })->orderBy('id', 'desc');
