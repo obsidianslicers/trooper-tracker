@@ -1,0 +1,46 @@
+<x-table>
+    <thead>
+        <tr>
+            <th></th>
+            <th>Upcoming Shifts</th>
+            <th class="text-center">Date</th>
+            <th>Planned Costume</th>
+        </tr>
+    </thead>
+    <tbody>
+        @forelse($upcoming_shifts as $shift)
+            <tr>
+                <td>
+                    <x-logo :storage_path="$shift->event->organization->image_path_sm ?? ''"
+                            :default_path="'img/icons/organization-32x32.png'"
+                            :width="32"
+                            :height="32" />
+                </td>
+                <td>
+                    <a href="{{ route('events.display', ['event' => $shift->event]) }}">
+                        {{ $shift->event->name }}
+                    </a>
+                </td>
+                <td class="text-center text-nowrap">
+                    <x-date-format :value="$shift->shift_starts_at"
+                                   :format="'M j, Y'" />
+                </td>
+                <td>
+                    {{--
+                    @foreach($shift->event_troopers as $event_trooper)
+                    @if(isset($event_trooper->organization_costume) && $event_trooper->organization_costume->name != 'N/A')
+                    TODO
+                    @else
+                    <span class="text-muted">N/A</span>
+                    @endif
+                    @endforeach
+                    --}}
+                </td>
+            </tr>
+        @empty
+            <x-table-empty :colspan="4">
+                No Upcoming Shifts ... Yet!
+            </x-table-empty>
+        @endforelse
+    </tbody>
+</x-table>

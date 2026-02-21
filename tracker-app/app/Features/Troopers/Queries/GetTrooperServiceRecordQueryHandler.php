@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace App\Features\Troopers\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
+use App\Enums\AchievementType;
+use App\Models\AwardTrooper;
+use App\Models\EventShift;
 use App\Models\Trooper;
 use App\Models\EventTrooper;
 use App\Models\TrooperDonation;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -38,36 +42,81 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
      */
     public function __invoke(object $message): mixed
     {
-        return [
-            'deployment_profile' => $this->getDeploymentProfile($message->trooper_id),
-        ];
-    }
-
-    private function getDeploymentProfile(int $trooper_id): array
-    {
-        $trooper = Trooper::with('trooper_achievements')->findOrFail($trooper_id);
-
-        // // Fetch Total Troops (Shifts) and Total Hours
-        // // Using EventTrooper constants for table discipline
-        // $stats = EventTrooper::where(EventTrooper::TROOPER_ID, $message->trooper_id)
-        //     ->selectRaw('COUNT(*) as total_troops')
-        //     ->selectRaw('SUM(COALESCE(travel_hours, 0) + COALESCE(troop_hours, 0)) as total_hours')
-        //     ->first();
-
-        // // Fetch Donation Totals
-        // $donations = TrooperDonation::where(TrooperDonation::TROOPER_ID, $message->trooper_id)
-        //     ->selectRaw('SUM(amount) as direct_funds')
-        //     ->first();
+        $trooper = Trooper::with('trooper_achievements')->findOrFail($message->trooper_id);
 
         return [
             'trooper' => $trooper,
-            // 'name' => $trooper->name,
-            // 'rank_level' => $trooper->rank,
-            // 'total_troops' => (int) ($stats->total_troops ?? 0),
-            // 'total_hours' => (float) ($stats->total_hours ?? 0),
-            // 'direct_funds' => (float) ($donations->direct_funds ?? 0),
-            // 'member_since' => $trooper->created_at?->format('F Y') ?? 'Unknown',
-            // 'status_label' => 'Active Duty', // Could be driven by Trooper::status enum
+            'service_summary' => $this->getServiceSummary($trooper),
+            'upcoming_shifts' => $this->getUpcomingEventShifts($trooper),
+            'recent_shifts' => $this->getRecentEventShifts($trooper),
+            'recent_donations' => $this->getRecentDonations($trooper),
+            'awards' => $this->getAwards($trooper),
         ];
+    }
+
+    private function getServiceSummary(Trooper $trooper): array
+    {
+        // Map over all AchievementTypes to find Milestones
+        $milestones = collect(AchievementType::cases())
+            ->filter(fn(AchievementType $type) => $type->isMilestone())
+            ->map(function (AchievementType $type) use ($trooper)
+            {
+                // Get value from your existing trooper method
+                $value = $trooper->getAchievementValue($type);
+
+                return [
+                    'type' => $type,
+                    'title' => $type->toTitle(),
+                    'icon' => $type->toIcon(),
+                    'is_earned' => $value !== null && $value > 0,
+                    // If your system tracks the date, you'd pull it here; 
+                    // otherwise, we'll assume 'Active' status
+                ];
+            })
+            ->filter(fn($milestone) => $milestone['is_earned'])
+            ->reverse()
+            ->values()
+            ->toArray();
+
+        return [
+            'total_shifts' => $trooper->getAchievementValue(AchievementType::TROOPER_SHIFTS),
+            'total_hours' => $trooper->getAchievementValue(AchievementType::VOLUNTEER_HOURS),
+            'rank' => $trooper->getAchievementValue(AchievementType::TROOPER_RANK),
+            'rank_title' => $trooper->getTitleByTrooperRank(),
+            'rank_theme' => $trooper->getRankTheme(),
+            'direct_funds' => $trooper->getAchievementValue(AchievementType::DIRECT_FUNDS),
+            'indirect_funds' => $trooper->getAchievementValue(AchievementType::INDIRECT_FUNDS),
+            'milestones' => $milestones,
+        ];
+    }
+
+    private function getUpcomingEventShifts(Trooper $trooper): Collection
+    {
+        return EventShift::with('event.organization')
+            ->byTrooper($trooper->id, false)
+            ->where(EventShift::SHIFT_STARTS_AT, '>', now()->subYear(1))
+            ->orderBy(EventShift::SHIFT_STARTS_AT)
+            ->get();
+    }
+
+    private function getRecentEventShifts(Trooper $trooper): Collection
+    {
+        return EventShift::with('event.organization')
+            ->byTrooper($trooper->id, true)
+            ->where(EventShift::SHIFT_STARTS_AT, '>', now()->subYear(1))
+            ->orderByDesc(EventShift::SHIFT_STARTS_AT)
+            ->get();
+    }
+
+    private function getRecentDonations(Trooper $trooper): Collection
+    {
+        return TrooperDonation::byTrooper($trooper->id)
+            ->where(TrooperDonation::CREATED_AT, '>', now()->subYear())
+            ->get();
+    }
+
+    private function getAwards(Trooper $trooper): Collection
+    {
+        return AwardTrooper::byTrooper($trooper->id)->get();
     }
 }
