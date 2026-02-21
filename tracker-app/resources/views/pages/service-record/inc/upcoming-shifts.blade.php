@@ -21,20 +21,27 @@
                         {{ $shift->event->name }}
                     </a>
                 </td>
-                <td class="text-center text-nowrap">
-                    <x-date-format :value="$shift->shift_starts_at"
-                                   :format="'M j, Y'" />
+                <td class="text-start text-nowrap">
+                    {{ $shift->full_date_display }}
+                    <br />
+                    <span class="text-muted">
+                        {{ $shift->compact_time_display }}
+                    </span>
                 </td>
-                <td>
-                    {{--
-                    @foreach($shift->event_troopers as $event_trooper)
-                    @if(isset($event_trooper->organization_costume) && $event_trooper->organization_costume->name != 'N/A')
-                    TODO
+                <td class="text-start text-nowrap">
+                    @if($shift->event_trooper->is_handler)
+                        Handler
                     @else
-                    <span class="text-muted">N/A</span>
+                        @if($shift->event_trooper->costume != null)
+                            <b>
+                                {{ $shift->event_trooper->costume->name }}
+                            </b>
+                            <br />
+                            <i class="small text-muted">
+                                {{ $shift->event_trooper->costume_organizations }}
+                            </i>
+                        @endif
                     @endif
-                    @endforeach
-                    --}}
                 </td>
             </tr>
         @empty

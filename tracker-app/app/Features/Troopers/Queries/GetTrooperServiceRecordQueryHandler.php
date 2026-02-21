@@ -6,10 +6,15 @@ namespace App\Features\Troopers\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Enums\AchievementType;
+use App\Features\Events\Queries\HasEventDisplayAssembler;
 use App\Models\AwardTrooper;
+use App\Models\Costume;
+use App\Models\Event;
 use App\Models\EventShift;
+use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\EventTrooper;
+use App\Models\TrooperCostume;
 use App\Models\TrooperDonation;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -27,6 +32,13 @@ use Illuminate\Support\Facades\DB;
  */
 readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterface
 {
+    use HasEventDisplayAssembler;
+
+    public function __construct()
+    {
+        $this->bootHasEventDisplayAssembler();
+    }
+
     /**
      * Handle the query to retrieve troopers for picker components.
      *
@@ -92,20 +104,30 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
 
     private function getUpcomingEventShifts(Trooper $trooper): Collection
     {
-        return EventShift::with('event.organization')
+        $shifts = EventShift::with($this->buildEventShiftRelations())
             ->byTrooper($trooper->id, false)
             ->where(EventShift::SHIFT_STARTS_AT, '>', now()->subYear(1))
             ->orderBy(EventShift::SHIFT_STARTS_AT)
             ->get();
+
+        $shifts->each(fn($shift) => $this->transformEventShift($shift));
+        $shifts->each(fn($shift) => $shift->event_trooper = $shift->event_troopers->first());
+
+        return $shifts;
     }
 
     private function getRecentEventShifts(Trooper $trooper): Collection
     {
-        return EventShift::with('event.organization')
+        $shifts = EventShift::with($this->buildEventShiftRelations())
             ->byTrooper($trooper->id, true)
             ->where(EventShift::SHIFT_STARTS_AT, '>', now()->subYear(1))
             ->orderByDesc(EventShift::SHIFT_STARTS_AT)
             ->get();
+
+        $shifts->each(fn($shift) => $this->transformEventShift($shift));
+        $shifts->each(fn($shift) => $shift->event_trooper = $shift->event_troopers->first());
+
+        return $shifts;
     }
 
     private function getRecentDonations(Trooper $trooper): Collection
@@ -118,5 +140,48 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
     private function getAwards(Trooper $trooper): Collection
     {
         return AwardTrooper::byTrooper($trooper->id)->get();
+    }
+
+    private function buildEventShiftRelations(): array
+    {
+        $trooper_columns = [
+            Trooper::ID,
+            Trooper::DISPLAY_NAME,
+        ];
+
+        $trooper_costume_columns = [
+            TrooperCostume::ID,
+            TrooperCostume::TROOPER_ID,
+            TrooperCostume::ORGANIZATION_COSTUME_ID,
+        ];
+
+        $organization_costume_columns = [
+            OrganizationCostume::ID,
+            OrganizationCostume::COSTUME_ID,
+            OrganizationCostume::ORGANIZATION_ID,
+        ];
+
+        $costume_columns = [
+            Costume::ID,
+            Costume::NAME,
+        ];
+
+        $event_columns = [
+            Event::ID,
+            Event::NAME,
+            Event::ORGANIZATION_ID,
+        ];
+
+        $with = [
+            'event.organization',
+            'event:' . implode(',', $event_columns),
+            'event_troopers.trooper:' . implode(',', $trooper_columns),
+            'event_troopers.trooper.trooper_costumes:' . implode(',', $trooper_costume_columns),
+            'event_troopers.trooper.trooper_costumes.organization_costume:' . implode(',', $organization_costume_columns),
+            'event_troopers.costume:' . implode(',', $costume_columns),
+            'event_troopers.backup_costume:' . implode(',', $costume_columns),
+        ];
+
+        return $with;
     }
 }
