@@ -8,6 +8,5 @@ final readonly class GetTrooperServiceRecordQuery
 {
     public function __construct(
         public int $trooper_id
-    ) {
-    }
+    ) {}
 }

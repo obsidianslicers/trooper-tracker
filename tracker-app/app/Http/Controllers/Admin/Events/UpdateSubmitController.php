@@ -57,8 +57,7 @@ class UpdateSubmitController extends MagicBusController
             }
             elseif ($updated_status == EventStatus::CANCELLED)
             {
-                $mark_event_cancelled = function () use ($event)
-                {
+                $mark_event_cancelled = function () use ($event) {
                     foreach ($event->event_shifts as $shift)
                     {
                         $shift->status = EventStatus::CANCELLED;

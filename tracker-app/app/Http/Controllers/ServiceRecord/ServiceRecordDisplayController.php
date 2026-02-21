@@ -7,9 +7,9 @@ namespace App\Http\Controllers\ServiceRecord;
 use App\Features\Troopers\Queries\GetTrooperServiceRecordQuery;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Trooper;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
-use Illuminate\Http\Request;
 
 /**
  * Handles the display of the main trooper service record.
