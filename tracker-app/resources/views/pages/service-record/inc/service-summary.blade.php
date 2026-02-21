@@ -9,7 +9,7 @@
                     <div class="h3 mb-0">
                         <x-number-format :value="$service_summary['total_shifts']" />
                     </div>
-                    <div class="small text-muted">Shifts</div>
+                    <div class="small text-muted">Troops/Missions</div>
                 </div>
             </div>
             <div class="col-6">
