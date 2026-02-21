@@ -29,7 +29,7 @@
                 </tr>
             @empty
                 <x-table-empty :colspan="3">
-                    No Favorite Costumes ... Yet!
+                    No Attached Costumes ... Yet!
                     <p class="text-muted">
                         To add a favorite costume, select your organization/club, then
                         simply select a costume to add to your profile.

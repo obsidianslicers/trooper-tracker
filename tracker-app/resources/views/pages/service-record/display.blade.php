@@ -56,6 +56,15 @@
                             role="presentation">
                             <button class="nav-link text-uppercase small fw-bold"
                                     data-bs-toggle="tab"
+                                    data-bs-target="#costumes"
+                                    aria-selected="false"
+                                    tabindex="-1"
+                                    role="tab">Costumes</button>
+                        </li>
+                        <li class="nav-item"
+                            role="presentation">
+                            <button class="nav-link text-uppercase small fw-bold"
+                                    data-bs-toggle="tab"
                                     data-bs-target="#photos"
                                     aria-selected="false"
                                     tabindex="-1"
@@ -87,6 +96,17 @@
                          id="awards"
                          role="tabpanel">
                         @include('pages.service-record.inc.awards')
+                    </div>
+                    <div class="tab-pane fade"
+                         id="costumes"
+                         role="tabpanel">
+                        @if($trooper->is_handler)
+                            Handlers don't typically have costumes, but they can still earn awards and serve in missions!
+                        @else
+                            @include('pages.service-record.inc.organizations')
+                            <br />
+                            @include('pages.service-record.inc.costumes')
+                        @endif
                     </div>
                     <div class="tab-pane fade"
                          id="photos"

@@ -48,14 +48,14 @@
     </div>
 </div>
 <div class="card border-0 shadow-sm">
-    <div class="card-header bg-dark text-white py-3">
+    <div class="card-header bg-dark text-white">
         <h5 class="card-title mb-0">
             Achievements
         </h5>
     </div>
     <ul class="list-group list-group-flush">
         @foreach($service_summary['milestones'] as $milestone)
-            <li class="list-group-item d-flex align-items-center py-3 {{ $milestone['is_earned'] ? '' : 'bg-light opacity-50' }}">
+            <li class="list-group-item d-flex align-items-center {{ $milestone['is_earned'] ? '' : 'bg-light opacity-50' }}">
                 <span
                       class="badge d-inline-flex align-items-center gap-2 {{ $milestone['type'] == \App\Enums\AchievementType::TROOPED_501 ? 'text-success' : '' }}">
                     <i class="fa-solid fa-fw {{ $milestone['icon'] }}"></i>

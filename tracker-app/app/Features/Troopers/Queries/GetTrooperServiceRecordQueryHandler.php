@@ -11,6 +11,7 @@ use App\Models\AwardTrooper;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventShift;
+use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\EventTrooper;
@@ -58,12 +59,47 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
 
         return [
             'trooper' => $trooper,
+            'trooper_organizations' => $this->getOrganizations($trooper),
+            'trooper_costumes' => $this->getCostumes($trooper),
             'service_summary' => $this->getServiceSummary($trooper),
             'upcoming_shifts' => $this->getUpcomingEventShifts($trooper),
             'recent_shifts' => $this->getRecentEventShifts($trooper),
             'recent_donations' => $this->getRecentDonations($trooper),
             'awards' => $this->getAwards($trooper),
         ];
+    }
+
+    private function getOrganizations(Trooper $trooper): Collection
+    {
+        $organizations = $trooper->organizations()
+            ->orderBy(Organization::NAME)
+            ->get();
+
+        return $organizations;
+    }
+
+    private function getCostumes(Trooper $trooper): Collection
+    {
+        $costumes = Costume::forTrooper($trooper->id, null)
+            ->orderBy(Costume::NAME)
+            ->get()
+            ->filter(fn($c) => !in_array($c->name, ['Command Staff', 'Handler']));
+
+        // Transform for the final output
+        $results = $costumes->each(function ($costume)
+        {
+            $names = $costume->organization_costumes
+                ->map(fn($oc) => $oc->organization->name)
+                ->sort()
+                ->values();
+
+            $prefix = $names->count() > 1 ? '(*) ' : '';
+            $name_list = $names->isEmpty() ? '(unattached)' : $names->implode(', ');
+
+            $costume->costume_organizations = "{$prefix}{$name_list}";
+        });
+
+        return $results;
     }
 
     private function getServiceSummary(Trooper $trooper): array
