@@ -15,44 +15,56 @@ All tables use `tt_` prefix with `snake_case` naming, soft deletes, and timestam
 
 ```mermaid
 erDiagram
-    troopers ||--o{ trooper_organizations : "belongs to"
-    troopers ||--o{ trooper_assignments : "assigned to"
-    troopers ||--o{ trooper_costumes : "owns"
-    troopers ||--o{ trooper_donations : "made"
-    troopers ||--o{ trooper_achievements : "earned"
-    troopers ||--o{ event_troopers : "signs up for"
-    troopers ||--o{ event_uploads : "uploads"
-    troopers ||--o{ event_notifications : "receives"
-    troopers ||--o{ award_troopers : "received"
-    troopers ||--o{ notice_troopers : "views"
-    troopers ||--o{ oauth_logins : "authenticates via"
-    troopers ||--o{ model_changes : "tracked by"
+    %% Core Identity
+    tt_troopers ||--o{ tt_trooper_organizations : "belongs to"
+    tt_troopers ||--o{ tt_trooper_assignments : "assigned to"
+    tt_troopers ||--o{ tt_trooper_costumes : "owns"
+    tt_troopers ||--o{ tt_trooper_donations : "made"
+    tt_troopers ||--o{ tt_trooper_achievements : "earned"
+    tt_troopers ||--o{ tt_event_troopers : "signs up for"
+    tt_troopers ||--o{ tt_event_uploads : "uploads"
+    tt_troopers ||--o{ tt_event_notifications : "receives"
+    tt_troopers ||--o{ tt_award_troopers : "received"
+    tt_troopers ||--o{ tt_notice_troopers : "views"
+    tt_troopers ||--o{ tt_oauth_logins : "authenticates via"
+    tt_troopers ||--o{ tt_model_changes : "tracked by"
     
-    organizations ||--o{ organizations : "parent of"
-    organizations ||--o{ organization_costumes : "approves"
-    organizations ||--o{ trooper_organizations : "has members"
-    organizations ||--o{ trooper_assignments : "assigns troopers"
-    organizations ||--o{ events : "hosts"
-    organizations ||--o{ event_organizations : "invited to"
-    organizations ||--o{ awards : "gives"
-    organizations ||--o{ notices : "publishes"
+    %% Hierarchical Organizations
+    tt_organizations ||--o{ tt_organizations : "parent of"
+    tt_organizations ||--o{ tt_organization_costumes : "approves"
+    tt_organizations ||--o{ tt_trooper_organizations : "has members"
+    tt_organizations ||--o{ tt_trooper_assignments : "assigns troopers"
+    tt_organizations ||--o{ tt_events : "hosts"
+    tt_organizations ||--o{ tt_events : "primary org for"
+    tt_organizations ||--o{ tt_event_organizations : "invited to"
+    tt_organizations ||--o{ tt_awards : "gives"
+    tt_organizations ||--o{ tt_notices : "publishes"
     
-    organization_costumes ||--o{ trooper_costumes : "worn by"
-    organization_costumes ||--o{ event_troopers : "primary costume"
-    organization_costumes ||--o{ event_troopers : "backup costume"
+    %% Costumes
+    tt_costumes ||--o{ tt_organization_costumes : "approved by orgs"
+    tt_organization_costumes ||--o{ tt_trooper_costumes : "worn by"
+    tt_organization_costumes }o--|| tt_organizations : "belongs to"
     
-    events ||--o{ event_shifts : "has"
-    events ||--o{ event_organizations : "invites"
-    events ||--o{ event_uploads : "photos for"
-    events ||--o{ event_notifications : "notifies about"
+    %% Events
+    tt_events ||--o{ tt_event_shifts : "has"
+    tt_events ||--o{ tt_event_organizations : "invites"
+    tt_events ||--o{ tt_event_uploads : "photos for"
+    tt_events ||--o{ tt_event_notifications : "notifies about"
     
-    event_shifts ||--o{ event_troopers : "trooper signups"
+    %% Event Shifts & Signups
+    tt_event_shifts ||--o{ tt_event_troopers : "signups"
+    tt_event_troopers }o--|| tt_costumes : "primary costume"
+    tt_event_troopers }o--|| tt_costumes : "backup costume"
+    tt_event_troopers }o--|| tt_troopers : "added by"
     
-    event_uploads ||--o{ event_upload_troopers : "tags"
+    %% Event Photos
+    tt_event_uploads ||--o{ tt_event_upload_troopers : "tags troopers"
     
-    awards ||--o{ award_troopers : "awarded to"
+    %% Awards
+    tt_awards ||--o{ tt_award_troopers : "awarded to"
     
-    notices ||--o{ notice_troopers : "sent to"
+    %% Notices
+    tt_notices ||--o{ tt_notice_troopers : "delivered to"
 ```
 
 ---
@@ -68,17 +80,19 @@ The authenticated member entity. Stores user accounts for members of the costumi
 | Column | Type | Constraints | Description |
 |--------|------|-------------|-------------|
 | `id` | bigint unsigned | PK, auto-increment | Primary key |
-| `name` | varchar(128) | NOT NULL | Trooper's full name |
+| `display_name` | varchar(128) | NOT NULL | Trooper's display name |
+| `legal_name` | varchar(128) | NOT NULL | Trooper's legal name |
 | `phone` | varchar(32) | nullable | Contact phone number |
 | `email` | varchar(256) | unique, NOT NULL | Email address for authentication |
 | `email_verified_at` | timestamp | nullable | Email verification timestamp |
 | `setup_completed_at` | datetime | nullable | Account setup completion timestamp |
 | `password` | varchar(256) | NOT NULL | Hashed password |
 | `theme` | varchar(16) | default: 'stormtrooper' | UI theme preference |
-| `last_active_at` | datetime | nullable | Last activity timestamp |
 | `membership_status` | varchar(16) | default: 'pending' | Enum: pending, active, retired |
 | `membership_role` | varchar(16) | default: 'member' | Enum: member, moderator, administrator |
 | `notification_frequency` | varchar(16) | default: 'never' | Enum: never, instant, daily |
+| `achievements_updated_at` | datetime | nullable | Last achievement update |
+| `last_active_at` | datetime | nullable | Last activity timestamp |
 | `remember_token` | varchar(100) | nullable | Laravel remember token |
 | `created_at` | timestamp | nullable | Record creation time |
 | `updated_at` | timestamp | nullable | Record update time |
@@ -112,6 +126,8 @@ Hierarchical structure for clubs, garrisons, and squads (Organizations → Regio
 | `image_path_lg` | varchar(128) | nullable | Large logo image path |
 | `image_path_sm` | varchar(128) | nullable | Small logo image path |
 | `service_class` | varchar(128) | nullable | Integration service class name |
+| `sync_sheet_id` | varchar(128) | nullable | Google Sheet ID for sync |
+| `synchronized_at` | datetime | nullable | Last synchronization timestamp |
 | `description` | varchar(512) | nullable | Organization description |
 | `created_at` | timestamp | nullable | Record creation time |
 | `updated_at` | timestamp | nullable | Record update time |
@@ -133,16 +149,14 @@ Hierarchical structure for clubs, garrisons, and squads (Organizations → Regio
 
 ---
 
-#### `tt_organization_costumes`
+#### `tt_costumes`
 
-Approved Star Wars costumes available within an organization.
+Base costume definitions (character types, not individual trooper costumes).
 
 | Column | Type | Constraints | Description |
 |--------|------|-------------|-------------|
 | `id` | bigint unsigned | PK, auto-increment | Primary key |
-| `organization_id` | bigint unsigned | FK to tt_organizations, NOT NULL | Organization that approved costume |
-| `name` | varchar(128) | NOT NULL | Costume name (e.g., "Stormtrooper TK") |
-| `verified_at` | datetime | nullable | Verification timestamp |
+| `name` | varchar(128) | unique, NOT NULL | Costume name (e.g., "Stormtrooper TK") |
 | `created_at` | timestamp | nullable | Record creation time |
 | `updated_at` | timestamp | nullable | Record update time |
 | `deleted_at` | timestamp | nullable | Soft delete timestamp |
@@ -151,13 +165,41 @@ Approved Star Wars costumes available within an organization.
 | `deleted_id` | bigint unsigned | nullable | ID of trooper who deleted |
 
 **Indexes:**
-- Unique on `(organization_id, name)`
+- Unique on `name`
+
+**Notes:**
+- Represents costume types/categories globally
+- Organizations approve these via `tt_organization_costumes`
+
+---
+
+#### `tt_organization_costumes`
+
+Organization-approved costumes with optional prefix identifiers.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `id` | bigint unsigned | PK, auto-increment | Primary key |
+| `organization_id` | bigint unsigned | FK to tt_organizations, NOT NULL | Organization that approved costume |
+| `costume_id` | bigint unsigned | FK to tt_costumes, NOT NULL | Costume being approved |
+| `prefix` | varchar(8) | nullable | Organization costume prefix (e.g., "TK") |
+| `synchronized_at` | datetime | nullable | Last synchronization timestamp |
+| `created_at` | timestamp | nullable | Record creation time |
+| `updated_at` | timestamp | nullable | Record update time |
+| `deleted_at` | timestamp | nullable | Soft delete timestamp |
+| `created_id` | bigint unsigned | nullable | ID of trooper who created |
+| `updated_id` | bigint unsigned | nullable | ID of trooper who last updated |
+| `deleted_id` | bigint unsigned | nullable | ID of trooper who deleted |
+
+**Indexes:**
+- Unique on `(organization_id, costume_id)`
 
 **Foreign Keys:**
 - `organization_id` → `tt_organizations.id` (CASCADE on delete)
+- `costume_id` → `tt_costumes.id` (CASCADE on delete)
 
 **Notes:**
-- Represents costume types/categories, not individual trooper costumes
+- Links base costumes to organizations
 - Troopers link to these via `tt_trooper_costumes`
 
 ---
@@ -175,7 +217,7 @@ Links troopers to organizations with their member ID and verification status.
 | `organization_id` | bigint unsigned | FK to tt_organizations, NOT NULL | Organization trooper belongs to |
 | `identifier` | varchar(64) | NOT NULL | Member ID (e.g., "TK-12345") |
 | `membership_status` | varchar(16) | default: 'pending' | Enum: pending, active, retired |
-| `verified_at` | datetime | nullable | Membership verification timestamp |
+| `synchronized_at` | datetime | nullable | Last synchronization timestamp |
 | `created_at` | timestamp | nullable | Record creation time |
 | `updated_at` | timestamp | nullable | Record update time |
 | `deleted_at` | timestamp | nullable | Soft delete timestamp |
@@ -207,7 +249,7 @@ Defines administrative relationships between troopers and organizations (notific
 | `id` | bigint unsigned | PK, auto-increment | Primary key |
 | `trooper_id` | bigint unsigned | FK to tt_troopers, NOT NULL | Trooper assigned |
 | `organization_id` | bigint unsigned | FK to tt_organizations, NOT NULL | Organization assignment |
-| `should_notify` | boolean | default: false | Should recieve notifications from this org |
+| `should_notify` | boolean | default: false | Should receive notifications from this org |
 | `is_member` | boolean | default: false | Is a member of this org |
 | `is_moderator` | boolean | default: false | Has moderation privileges |
 | `created_at` | timestamp | nullable | Record creation time |
@@ -238,7 +280,11 @@ Links troopers to the costumes they own/wear.
 |--------|------|-------------|-------------|
 | `id` | bigint unsigned | PK, auto-increment | Primary key |
 | `trooper_id` | bigint unsigned | FK to tt_troopers, NOT NULL | Trooper who owns costume |
-| `costume_id` | bigint unsigned | FK to tt_organization_costumes, NOT NULL | Costume owned |
+| `organization_costume_id` | bigint unsigned | FK to tt_organization_costumes, NOT NULL | Organization costume owned |
+| `image_url_sm` | varchar(128) | nullable | Small costume image URL |
+| `image_url_lg` | varchar(128) | nullable | Large costume image URL |
+| `image_url_bucket_off` | varchar(128) | nullable | Bucket-off image URL |
+| `synchronized_at` | datetime | nullable | Last synchronization timestamp |
 | `created_at` | timestamp | nullable | Record creation time |
 | `updated_at` | timestamp | nullable | Record update time |
 | `deleted_at` | timestamp | nullable | Soft delete timestamp |
@@ -247,15 +293,16 @@ Links troopers to the costumes they own/wear.
 | `deleted_id` | bigint unsigned | nullable | ID of trooper who deleted |
 
 **Indexes:**
-- Unique on `(trooper_id, costume_id)`
+- Unique on `(trooper_id, organization_costume_id)`
 
 **Foreign Keys:**
 - `trooper_id` → `tt_troopers.id` (CASCADE on delete)
-- `costume_id` → `tt_organization_costumes.id` (CASCADE on delete)
+- `organization_costume_id` → `tt_organization_costumes.id` (CASCADE on delete)
 
 **Notes:**
-- Many-to-many relationship between troopers and costumes
+- Many-to-many relationship between troopers and organization costumes
 - Tracks which costumes a trooper can wear to events
+- Photos stored via URLs
 
 ---
 
@@ -296,40 +343,24 @@ Tracks trooper milestones, badges, and statistics.
 | Column | Type | Constraints | Description |
 |--------|------|-------------|-------------|
 | `id` | bigint unsigned | PK, auto-increment | Primary key |
-| `trooper_id` | bigint unsigned | FK to tt_troopers, unique, NOT NULL | Trooper's achievements |
-| `trooper_rank` | integer | nullable | Current rank |
-| `trooper_events` | integer | nullable | Event count |
-| `trooped_all_squads` | boolean | default: false | Trooped with all squads badge |
-| `first_troop_completed` | boolean | default: false | First troop completion badge |
-| `trooped_10` | boolean | default: false | 10 troops milestone |
-| `trooped_25` | boolean | default: false | 25 troops milestone |
-| `trooped_50` | boolean | default: false | 50 troops milestone |
-| `trooped_75` | boolean | default: false | 75 troops milestone |
-| `trooped_100` | boolean | default: false | 100 troops milestone |
-| `trooped_150` | boolean | default: false | 150 troops milestone |
-| `trooped_200` | boolean | default: false | 200 troops milestone |
-| `trooped_250` | boolean | default: false | 250 troops milestone |
-| `trooped_300` | boolean | default: false | 300 troops milestone |
-| `trooped_400` | boolean | default: false | 400 troops milestone |
-| `trooped_500` | boolean | default: false | 500 troops milestone |
-| `trooped_501` | boolean | default: false | 501 troops milestone (special) |
-| `volunteer_hours` | float | default: 0 | Total volunteer hours |
-| `direct_funds` | float | default: 0 | Total direct charity funds raised |
-| `indirect_funds` | float | default: 0 | Total indirect charity funds raised |
+| `trooper_id` | bigint unsigned | FK to tt_troopers, NOT NULL | Trooper's achievements |
+| `type` | varchar(64) | NOT NULL | Achievement type identifier |
+| `value` | varchar(64) | nullable | Achievement value/count |
+| `earned_on` | date | nullable | Date achievement was earned |
 | `created_at` | timestamp | nullable | Record creation time |
 | `updated_at` | timestamp | nullable | Record update time |
 | `deleted_at` | timestamp | nullable | Soft delete timestamp |
 
 **Indexes:**
-- Unique on `trooper_id`
+- Unique on `(trooper_id, type)`
 
 **Foreign Keys:**
 - `trooper_id` → `tt_troopers.id` (CASCADE on delete)
 
 **Notes:**
-- One-to-one relationship with troopers
+- Flexible key-value Achievement storage
+- Type identifies which achievement (e.g., "trooped_50", "first_troop")
 - Automatically updated by event participation
-- Milestone booleans enable badge display
 
 ---
 
@@ -475,11 +506,13 @@ Trooper signups for event shifts.
 | `id` | bigint unsigned | PK, auto-increment | Primary key |
 | `event_shift_id` | bigint unsigned | FK to tt_event_shifts, NOT NULL | Shift being signed up for |
 | `trooper_id` | bigint unsigned | FK to tt_troopers, NOT NULL | Trooper signing up |
-| `costume_id` | bigint unsigned | FK to tt_organization_costumes, nullable | Primary costume choice |
-| `backup_costume_id` | bigint unsigned | FK to tt_organization_costumes, nullable | Backup costume choice |
+| `costume_id` | bigint unsigned | FK to tt_costumes, nullable | Primary costume choice |
+| `costume_organization_ids` | json | nullable | Array of organization IDs for primary costume |
+| `backup_costume_id` | bigint unsigned | FK to tt_costumes, nullable | Backup costume choice |
+| `backup_costume_organization_ids` | json | nullable | Array of organization IDs for backup costume |
 | `added_by_trooper_id` | bigint unsigned | FK to tt_troopers, nullable | Trooper who added this signup |
 | `is_handler` | boolean | default: false | Signing up as handler (not in costume) |
-| `status` | varchar(16) | default: 'none', indexed | Enum: none, going, tentative, unavailable |
+| `status` | varchar(16) | default: 'none' | Enum: none, going, tentative, unavailable |
 | `signed_up_at` | datetime | default: CURRENT_TIMESTAMP | Signup timestamp |
 | `created_at` | timestamp | nullable | Record creation time |
 | `updated_at` | timestamp | nullable | Record update time |
@@ -490,19 +523,18 @@ Trooper signups for event shifts.
 
 **Indexes:**
 - Unique on `(event_shift_id, trooper_id)`
-- Index on `status`
 
 **Foreign Keys:**
 - `event_shift_id` → `tt_event_shifts.id` (CASCADE on delete)
 - `trooper_id` → `tt_troopers.id` (CASCADE on delete)
-- `costume_id` → `tt_organization_costumes.id` (CASCADE on delete)
-- `backup_costume_id` → `tt_organization_costumes.id` (CASCADE on delete)
+- `costume_id` → `tt_costumes.id` (CASCADE on delete)
+- `backup_costume_id` → `tt_costumes.id` (CASCADE on delete)
 - `added_by_trooper_id` → `tt_troopers.id` (CASCADE on delete)
 
 **Notes:**
 - Tracks attendance status and costume choice
+- JSON arrays store multiple orgs per costume for multi-club events
 - `added_by_trooper_id` enables admin signups on behalf of others
-- Status index optimizes attendance queries
 
 ---
 
@@ -634,13 +666,16 @@ Records of awards given to troopers.
 | `id` | bigint unsigned | PK, auto-increment | Primary key |
 | `award_id` | bigint unsigned | FK to tt_awards, NOT NULL | Award given |
 | `trooper_id` | bigint unsigned | FK to tt_troopers, NOT NULL | Trooper receiving award |
-| `award_date` | datetime | NOT NULL | Date award was given |
+| `award_date` | date | NOT NULL | Date award was given |
 | `created_at` | timestamp | nullable | Record creation time |
 | `updated_at` | timestamp | nullable | Record update time |
 | `deleted_at` | timestamp | nullable | Soft delete timestamp |
 | `created_id` | bigint unsigned | nullable | ID of trooper who created |
 | `updated_id` | bigint unsigned | nullable | ID of trooper who last updated |
 | `deleted_id` | bigint unsigned | nullable | ID of trooper who deleted |
+
+**Indexes:**
+- Unique on `(award_id, trooper_id, award_date)`
 
 **Foreign Keys:**
 - `award_id` → `tt_awards.id` (CASCADE on delete)
@@ -811,6 +846,83 @@ Polymorphic audit log for model changes.
 
 ---
 
+### Laravel System Tables
+
+#### `tt_cache`
+
+Laravel cache storage.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `key` | varchar(255) | PK | Cache key |
+| `value` | mediumtext | NOT NULL | Cached value |
+| `expiration` | integer | NOT NULL | Expiration timestamp |
+
+---
+
+#### `tt_cache_locks`
+
+Laravel cache lock storage.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `key` | varchar(255) | PK | Lock key |
+| `owner` | varchar(255) | NOT NULL | Lock owner |
+| `expiration` | integer | NOT NULL | Lock expiration |
+
+---
+
+#### `tt_jobs`
+
+Laravel queue jobs table.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `id` | bigint unsigned | PK, auto-increment | Job ID |
+| `queue` | varchar(255) | indexed | Queue name |
+| `payload` | longtext | NOT NULL | Serialized job |
+| `attempts` | tinyint unsigned | NOT NULL | Attempt count |
+| `reserved_at` | integer unsigned | nullable | Reserved timestamp |
+| `available_at` | integer unsigned | NOT NULL | Available timestamp |
+| `created_at` | integer unsigned | NOT NULL | Creation timestamp |
+
+---
+
+#### `tt_job_batches`
+
+Laravel queue batch tracking.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `id` | varchar(255) | PK | Batch ID |
+| `name` | varchar(255) | NOT NULL | Batch name |
+| `total_jobs` | integer | NOT NULL | Total job count |
+| `pending_jobs` | integer | NOT NULL | Pending count |
+| `failed_jobs` | integer | NOT NULL | Failed count |
+| `failed_job_ids` | longtext | NOT NULL | Failed IDs |
+| `options` | mediumtext | nullable | Batch options |
+| `cancelled_at` | integer | nullable | Cancellation time |
+| `created_at` | integer | NOT NULL | Creation time |
+| `finished_at` | integer | nullable | Completion time |
+
+---
+
+#### `tt_failed_jobs`
+
+Laravel failed queue jobs.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `id` | bigint unsigned | PK, auto-increment | Failure ID |
+| `uuid` | varchar(255) | unique | Job UUID |
+| `connection` | text | NOT NULL | Queue connection |
+| `queue` | text | NOT NULL | Queue name |
+| `payload` | longtext | NOT NULL | Serialized job |
+| `exception` | longtext | NOT NULL | Exception trace |
+| `failed_at` | timestamp | default: CURRENT_TIMESTAMP | Failure timestamp |
+
+---
+
 ## Custom Schema Helpers
 
 ### `trooperstamps()` Macro
@@ -836,12 +948,13 @@ All tables and columns follow strict Laravel conventions:
 
 - **Tables:** Plural, `snake_case` with `tt_` prefix
 - **Columns:** `snake_case`
-- **Booleans:** `is_`, `can_`, `has_` prefixes
+- **Booleans:** `is_`, `can_`, `has_`, `allow_`, `should_` prefixes
 - **Primary Keys:** `id` (auto-incrementing bigint unsigned)
 - **Foreign Keys:** `{singular_table}_id`
 - **Pivot Tables:** Alphabetized singular names joined by `_`
 - **Timestamps:** `created_at`, `updated_at`
 - **Soft Deletes:** `deleted_at`
+- **Polymorphic:** `{relation}_type`, `{relation}_id`
 
 ---
 
@@ -857,8 +970,6 @@ The following enum classes are referenced in migrations:
 - **MembershipStatus:** `pending`, `active`, `retired`
 - **NoticeType:** `info`, `warning`, `alert`
 - **NotificationFrequency:** `never`, `instant`, `daily`
-- **OrganizationType:** `club`, `garrison`, `squad`
-- **TrooperTheme:** `stormtrooper`, etc.
 
 ---
 
@@ -866,13 +977,36 @@ The following enum classes are referenced in migrations:
 
 | Parent | Relationship | Child | Type | Notes |
 |--------|--------------|-------|------|-------|
-| troopers | has many | trooper_organizations | 1:N | Membership in orgs |
-| troopers | has many | trooper_assignments | 1:N | Admin assignments |
-| troopers | has many | trooper_costumes | 1:N | Costumes owned |
-| troopers | has many | event_troopers | 1:N | Event signups |
-| troopers | has one | trooper_achievements | 1:1 | Stats and badges |
-| organizations | has many | organizations | 1:N | Self-referencing tree |
-| organizations | has many | organization_costumes | 1:N | Approved costumes |
+| tt_troopers | has many | tt_trooper_organizations | 1:N | Membership in orgs |
+| tt_troopers | has many | tt_trooper_assignments | 1:N | Admin assignments |
+| tt_troopers | has many | tt_trooper_costumes | 1:N | Costumes owned |
+| tt_troopers | has many | tt_event_troopers | 1:N | Event signups |
+| tt_troopers | has many | tt_trooper_achievements | 1:N | Stats and badges |
+| tt_organizations | has many | tt_organizations | 1:N | Self-referencing tree |
+| tt_organizations | has many | tt_organization_costumes | 1:N | Approved costumes |
+| tt_organizations | has many | tt_events | 1:N | Hosted events |
+| tt_costumes | has many | tt_organization_costumes | 1:N | Org approvals |
+| tt_organization_costumes | has many | tt_trooper_costumes | 1:N | Owned by troopers |
+| tt_events | has many | tt_event_shifts | 1:N | Time slots |
+| tt_events | has many | tt_event_organizations | 1:N | Invited orgs |
+| tt_event_shifts | has many | tt_event_troopers | 1:N | Trooper signups |
+| tt_event_uploads | has many | tt_event_upload_troopers | 1:N | Tagged troopers |
+| tt_awards | has many | tt_award_troopers | 1:N | Award recipients |
+| tt_notices | has many | tt_notice_troopers | 1:N | Read tracking |
+
+---
+
+## Integration Notes
+
+- **Google Sheets Sync:** `organizations.sync_sheet_id` enables external data synchronization via service classes
+- **OAuth Providers:** Google and XenForo authentication tracked in `tt_oauth_logins`
+- **Geocoding:** Event latitude/longitude populated via Google Maps API
+- **Photo Storage:** Image paths reference cloud storage (not stored in database)
+- **Queue System:** Event notifications, data synchronization run via Laravel queues
+
+---
+
+*Last Updated: February 19, 2026*
 | organizations | has many | events | 1:N | Hosted events |
 | events | has many | event_shifts | 1:N | Time slots |
 | events | has many | event_organizations | 1:N | Invited orgs |

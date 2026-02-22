@@ -97,6 +97,7 @@ class OrganizationSeeder extends Seeder
             $org->identifier_display = $data['identifier_display'] ?? '';
             $org->identifier_validation = $data['identifier_validation'] ?? '';
             $org->type = OrganizationType::ORGANIZATION;
+            $org->sync_sheet_id = $data['sync_sheet_id'] ?? null;
 
             $org->save();
         }

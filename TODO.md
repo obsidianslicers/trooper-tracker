@@ -19,42 +19,12 @@ stan/pint - WIP
 - smash to single commit prior to beta 
 - lock down main
 
-### EVENT WIP COMPLETED
-- Home Page Calendar/Map View
-  - **IMPLEMENTED**
-- Getting error on event e-mail parser submission
-  - **IMPLEMENTATION**: server side handled via global exception handler
-- Confirm troops, when a troop is finish, trooper needs to confirm attendance to get credit
-  - **IMPLEMENTATION**: console job - event shift complete sends emails to request attendance credit
-- A page of events that are completed (Charity liason team prefers this method (see stats&search page on TT 1.0))
-  - **IMPLEMENTATION**: admin/events page has search/filters by name and status
-- A way to close down the site temporarily with a message to allow command-staff to add events and such in the back end and open back up when they ready... maybe we can replace this with a post event NOW or AT THIS TIME IN THE FUTURE.
-  - **IMPLEMENTATION**: events start in a DRAFT state and won't be visible until updated to OPEN or SIGNUP-LOCKED
-- Make event e-mail parser optional, allow command-staff to fill form fields to create events. Allow command-staff to review form fields before posting e-mail data.
-  - **IMPLEMENTATION**: event/creation allows for parser use or manually entry, or changes after the parse
-  - **IMPLEMENTATION**: events can also be copied
-- Charity information for events, charity liasons use tracker to track charity info.
-  -  Direct Charity Raised ($)
-  -  Indirect Charity Raised ($)
-  -  Charity Name
-  -  Charity Add Hours (This is used to calculate additional or less charity hours, otherwise the event duration is used)
-  -  Charity Note (A note field to add misc, for example collected 15 Star Wars toys)
-  - **IMPLEMENTED**
-- Event Link Manager (A way to link events together so that a trooper can only sign up for a certain amount of troops that are linked together [comes into play for big events like MegaCon])
-  - **IMPLEMENTED**
 
 ## TROOPERS
 
 ### WORK IN PROGRESS
-- command-staff Statistics page show - Last API syncs with 501st. Rebel Legion API is dead.
 - Profile page to show off acheivements, donations made, costumes (501st api)
 
-
-### EVENT WIP COMPLETED
-- command-staff Statistics page to show accounts with admin/mod permissions.
-  - **IMPLEMENTATION**: Trooper admin page allows filtering of admin/mods
-- Roster page to show all troopers in a club/squad. Ability to add troopers to a club / squad and assign additional club/squad information to their account.
-  - **IMPLEMENTATION**: Thru trooper admin page
 
 ## REPORTS
 - Reports
@@ -93,3 +63,5 @@ stan/pint - WIP
   - pull/sync from clubs (http/json/googlesheets)
   - auto verify club identifiers on registration
 
+## MISC
+- Command Staff notifications (ie Bob or Jane's nth Troop), OR add to system notification for all, OR post to FB??

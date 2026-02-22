@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Synchronizers;
 
+use App\Models\Costume;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
@@ -59,17 +60,17 @@ class RebelLegionServiceTest extends TestCase
             ->with('test-sheet-id', 'Costumes')
             ->andReturn($sheet_data);
 
-        $this->subject->synchronize();
+        $this->subject->run();
 
-        $org_costume = OrganizationCostume::where(OrganizationCostume::NAME, 'Stormtrooper')->first();
+        $org_costume = $this->getOrganizationCostumeByName('Stormtrooper');
         $this->assertNotNull($org_costume);
         $this->assertTrue($org_costume->synchronized_at !== null);
 
         $trooper_costume = TrooperCostume::where(TrooperCostume::TROOPER_ID, $trooper->id)
-            ->where(TrooperCostume::COSTUME_ID, $org_costume->id)
+            ->where(TrooperCostume::ORGANIZATION_COSTUME_ID, $org_costume->id)
             ->first();
         $this->assertNotNull($trooper_costume);
-        $this->assertEquals('https://example.com/image.jpg', $trooper_costume->large_image_url);
+        $this->assertEquals('https://example.com/image.jpg', $trooper_costume->image_url_lg);
     }
 
     public function test_sync_costumes_skips_empty_costume_names(): void
@@ -85,7 +86,7 @@ class RebelLegionServiceTest extends TestCase
             ->with('test-sheet-id', 'Costumes')
             ->andReturn($sheet_data);
 
-        $this->subject->synchronize();
+        $this->subject->run();
 
         $org_costumes = OrganizationCostume::all();
         $this->assertEquals(0, $org_costumes->count());
@@ -104,7 +105,7 @@ class RebelLegionServiceTest extends TestCase
             ->with('test-sheet-id', 'Costumes')
             ->andReturn($sheet_data);
 
-        $this->subject->synchronize();
+        $this->subject->run();
 
         $org_costumes = OrganizationCostume::all();
         $this->assertEquals(0, $org_costumes->count());
@@ -122,10 +123,10 @@ class RebelLegionServiceTest extends TestCase
             ->with('test-sheet-id', 'Costumes')
             ->andReturn($sheet_data);
 
-        $this->subject->synchronize();
+        $this->subject->run();
 
         // Organization costume is created, but trooper costume is not
-        $org_costume = OrganizationCostume::where(OrganizationCostume::NAME, 'Stormtrooper')->first();
+        $org_costume = $this->getOrganizationCostumeByName('Stormtrooper');
         $this->assertNotNull($org_costume);
         $trooper_costumes = TrooperCostume::all();
         $this->assertEquals(0, $trooper_costumes->count());
@@ -135,7 +136,7 @@ class RebelLegionServiceTest extends TestCase
     {
         $this->organization->update([Organization::SYNC_SHEET_ID => null]);
 
-        $this->subject->synchronize();
+        $this->subject->run();
 
         $org_costumes = OrganizationCostume::all();
         $this->assertEquals(0, $org_costumes->count());
@@ -148,7 +149,7 @@ class RebelLegionServiceTest extends TestCase
             ->with('test-sheet-id', 'Costumes')
             ->andReturn(false);
 
-        $this->subject->synchronize();
+        $this->subject->run();
 
         $org_costumes = OrganizationCostume::all();
         $this->assertEquals(0, $org_costumes->count());
@@ -175,9 +176,9 @@ class RebelLegionServiceTest extends TestCase
             ->with('test-sheet-id', 'Costumes')
             ->andReturn($sheet_data);
 
-        $this->subject->synchronize();
+        $this->subject->run();
 
-        $org_costume = OrganizationCostume::where(OrganizationCostume::NAME, '&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;')->first();
+        $org_costume = $this->getOrganizationCostumeByName('&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;');
         $this->assertNotNull($org_costume);
     }
 
@@ -213,10 +214,10 @@ class RebelLegionServiceTest extends TestCase
             ->with('test-sheet-id', 'Costumes')
             ->andReturn($sheet_data);
 
-        $this->subject->synchronize();
+        $this->subject->run();
 
-        $stormtrooper_costume = OrganizationCostume::where(OrganizationCostume::NAME, 'Stormtrooper')->first();
-        $tie_pilot_costume = OrganizationCostume::where(OrganizationCostume::NAME, 'TIE Pilot')->first();
+        $stormtrooper_costume = $this->getOrganizationCostumeByName('Stormtrooper');
+        $tie_pilot_costume = $this->getOrganizationCostumeByName('TIE Pilot');
 
         $this->assertNotNull($stormtrooper_costume);
         $this->assertNotNull($tie_pilot_costume);
@@ -239,18 +240,19 @@ class RebelLegionServiceTest extends TestCase
             ])
             ->create();
 
+        $costume = Costume::factory()->create([Costume::NAME => 'Stormtrooper']);
         $org_costume = OrganizationCostume::factory()
             ->state([
                 OrganizationCostume::ORGANIZATION_ID => $this->organization->id,
-                OrganizationCostume::NAME => 'Stormtrooper',
+                OrganizationCostume::COSTUME_ID => $costume->id,
             ])
             ->create();
 
         TrooperCostume::factory()
             ->state([
                 TrooperCostume::TROOPER_ID => $trooper->id,
-                TrooperCostume::COSTUME_ID => $org_costume->id,
-                TrooperCostume::LARGE_IMAGE_URL => 'https://example.com/old_image.jpg',
+                TrooperCostume::ORGANIZATION_COSTUME_ID => $org_costume->id,
+                TrooperCostume::IMAGE_URL_LG => 'https://example.com/old_image.jpg',
             ])
             ->create();
 
@@ -264,13 +266,27 @@ class RebelLegionServiceTest extends TestCase
             ->with('test-sheet-id', 'Costumes')
             ->andReturn($sheet_data);
 
-        $this->subject->synchronize();
+        $this->subject->run();
 
         $trooper_costume = TrooperCostume::where(TrooperCostume::TROOPER_ID, $trooper->id)
-            ->where(TrooperCostume::COSTUME_ID, $org_costume->id)
+            ->where(TrooperCostume::ORGANIZATION_COSTUME_ID, $org_costume->id)
             ->first();
 
         $this->assertNotNull($trooper_costume);
-        $this->assertEquals('https://example.com/new_image.jpg', $trooper_costume->large_image_url);
+        $this->assertEquals('https://example.com/new_image.jpg', $trooper_costume->image_url_lg);
+    }
+
+    private function getOrganizationCostumeByName(string $costume_name): ?OrganizationCostume
+    {
+        $costume = Costume::where(Costume::NAME, $costume_name)->first();
+
+        if ($costume === null)
+        {
+            return null;
+        }
+
+        return OrganizationCostume::where(OrganizationCostume::COSTUME_ID, $costume->id)
+            ->where(OrganizationCostume::ORGANIZATION_ID, $this->organization->id)
+            ->first();
     }
 }

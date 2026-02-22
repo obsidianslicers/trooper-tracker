@@ -20,13 +20,11 @@ readonly class UpdateTrooperIdentifiersCommand
     /**
      * Create a new command instance.
      *
-     * @param Trooper $trooper The trooper whose identifiers to update
-     * @param array<int, array{identifier: string|null}> $valid_data Organization IDs mapped to identifier data
+     * @param  Trooper  $trooper  The trooper whose identifiers to update
+     * @param  array<int, array{identifier: string|null}>  $valid_data  Organization IDs mapped to identifier data
      */
     public function __construct(
         public Trooper $trooper,
         public array $valid_data,
-    ) {
-    }
+    ) {}
 }
-

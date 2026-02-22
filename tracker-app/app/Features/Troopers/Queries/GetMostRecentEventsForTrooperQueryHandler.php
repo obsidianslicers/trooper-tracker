@@ -36,7 +36,7 @@ readonly class GetMostRecentEventsForTrooperQueryHandler implements QueryHandler
      * 3. Set 'event_shift' property on each organization (null if no matches)
      * 4. Return collection of organizations with event_shift data
      *
-     * @param GetMostRecentEventsForTrooperQuery $message The query containing the trooper
+     * @param  GetMostRecentEventsForTrooperQuery  $message  The query containing the trooper
      * @return \Illuminate\Support\Collection<int, Organization> Organizations with event_shift property
      */
     public function __invoke(object $message): mixed
@@ -47,14 +47,11 @@ readonly class GetMostRecentEventsForTrooperQueryHandler implements QueryHandler
 
         foreach ($organizations as $organization)
         {
-            $event_filter = function ($q) use ($organization)
-            {
+            $event_filter = function ($q) use ($organization) {
                 $q->where(Event::PRIMARY_ORGANIZATION_ID, $organization->id);
             };
 
-            $trooper_filter = function ($q) use ($message)
-            {
-
+            $trooper_filter = function ($q) use ($message) {
                 $q->where(EventTrooper::TROOPER_ID, $message->trooper->id)
                     ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED);
             };

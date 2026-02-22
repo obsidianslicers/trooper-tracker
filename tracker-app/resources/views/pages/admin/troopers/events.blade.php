@@ -46,7 +46,9 @@
                             </td>
                             <td>
                                 @if($organization->event_shift)
-                                    {{  $organization->event_shift->event->name }}
+                                    <a href="{{  route('admin.events.update', ['event' => $organization->event_shift->event]) }}">
+                                        {{  $organization->event_shift->event->name }}
+                                    </a>
                                 @else
                                     -
                                 @endif

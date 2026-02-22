@@ -24,13 +24,13 @@ class AttachTrooperCostumeCommandTest extends TestCase
     {
         // Arrange
         $trooper = Trooper::factory()->asActive()->create();
+        $organization_costume_ids = [1, 2];
 
         // Act
-        $subject = new AttachTrooperCostumeCommand($trooper, 1, 2);
+        $subject = new AttachTrooperCostumeCommand($trooper, $organization_costume_ids);
 
         // Assert
         $this->assertSame($trooper, $subject->trooper);
-        $this->assertEquals(1, $subject->organization_id);
-        $this->assertEquals(2, $subject->costume_id);
+        $this->assertSame($organization_costume_ids, $subject->organization_ids);
     }
 }

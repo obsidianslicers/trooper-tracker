@@ -20,9 +20,7 @@ readonly class GetTrooperNotificationsQuery
     /**
      * Create a new query instance.
      *
-     * @param Trooper $trooper The trooper whose notification preferences to retrieve
+     * @param  Trooper  $trooper  The trooper whose notification preferences to retrieve
      */
-    public function __construct(public readonly Trooper $trooper)
-    {
-    }
+    public function __construct(public readonly Trooper $trooper) {}
 }

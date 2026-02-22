@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Features\Troopers\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
-use App\Enums\MembershipRole;
 use App\Models\Trooper;
 
 /**
@@ -31,7 +30,7 @@ readonly class GetTroopersByRoleQueryHandler implements QueryHandlerInterface
      * 3. Order by name
      * 4. Return collection of Trooper models
      *
-     * @param GetTroopersByRoleQuery $message The query (no parameters)
+     * @param  GetTroopersByRoleQuery  $message  The query (no parameters)
      * @return \Illuminate\Support\Collection<int, Trooper> Collection of administrator troopers
      */
     public function __invoke(object $message): mixed

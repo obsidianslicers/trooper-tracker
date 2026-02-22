@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Features\Troopers\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
+use App\Models\Base\Organization;
+use App\Models\Costume;
 
 /**
  * Handler for retrieving a trooper's costume collection.
@@ -24,11 +26,28 @@ readonly class GetTrooperCostumesQueryHandler implements QueryHandlerInterface
      * - organization_costume: The costume template
      * - organization_costume.organization: The owning organization
      *
-     * @param GetTrooperCostumesQuery $message The query containing the trooper
-     * @return \Illuminate\Support\Collection<int, \App\Models\TrooperCostume> Trooper's costumes
+     * @param  GetTrooperCostumesQuery  $message  The query containing the trooper
+     * @return \Illuminate\Support\Collection<int, \App\Models\Costume> Trooper's costumes
      */
     public function __invoke(object $message): mixed
     {
-        return $message->trooper->trooper_costumes()->with('organization_costume.organization')->get();
+        $costumes = Costume::forTrooper($message->trooper->id, $message->organization_ids)
+            ->orderBy(Costume::NAME)
+            ->get();
+
+        // Transform for the final output
+        $results = $costumes->each(function ($costume) {
+            $names = $costume->organization_costumes
+                ->map(fn ($oc) => $oc->organization->name)
+                ->sort()
+                ->values();
+
+            $prefix = $names->count() > 1 ? '(*) ' : '';
+            $name_list = $names->isEmpty() ? '(unattached)' : $names->implode(', ');
+
+            $costume->costume_organizations = "{$prefix}{$name_list}";
+        });
+
+        return $results;
     }
 }

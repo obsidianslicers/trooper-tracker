@@ -20,10 +20,7 @@ readonly class PromoteNextInLineEventTrooperCommand
     /**
      * Create a new command instance.
      *
-     * @param EventTrooper $event_trooper The event trooper who cancelled (used to find their shift).
+     * @param  EventTrooper  $event_trooper  The event trooper who cancelled (used to find their shift).
      */
-    public function __construct(public readonly EventTrooper $event_trooper)
-    {
-    }
+    public function __construct(public readonly EventTrooper $event_trooper) {}
 }
-

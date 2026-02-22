@@ -28,16 +28,15 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
     /**
      * Execute the command to recalculate a trooper's rank.
      *
-     * @param RecalculateTrooperRankCommand $message The command with trooper rank recalculation data
+     * @param  RecalculateTrooperRankCommand  $message  The command with trooper rank recalculation data
      * @return null
      */
     public function __invoke(object $message): mixed
     {
         $with_count = [
-            'event_troopers as event_count' => function ($q)
-            {
+            'event_troopers as event_count' => function ($q) {
                 $q->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED);
-            }
+            },
         ];
 
         $q = Trooper::query()
@@ -50,10 +49,9 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
             $q->where(Trooper::ID, $message->trooper_id);
         }
 
-        $q->chunk(200, function ($troopers) use ($message)
-        {
+        $q->chunk(200, function ($troopers) use ($message) {
             //  only process rank if we're processing all troopers, otherwise
-            //  the rank won't be accurate since we're not reordering all the 
+            //  the rank won't be accurate since we're not reordering all the
             //  troopers by attendance
             $process_rank = $message->trooper_id === null;
 
@@ -73,8 +71,7 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
      * - Direct and indirect funds achievements
      * - Troop threshold milestone achievements
      *
-     * @param \Illuminate\Support\Collection $troopers Chunk of troopers to process
-     * @return void
+     * @param  \Illuminate\Support\Collection  $troopers  Chunk of troopers to process
      */
     private function processChunk($troopers, bool $process_rank): void
     {
@@ -106,10 +103,9 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
      * or create a new one if it doesn't exist. Sets the earned_on timestamp
      * to the current time.
      *
-     * @param Trooper $trooper The trooper whose achievement to update
-     * @param AchievementType $type The type of achievement to update
-     * @param mixed $value The achievement value (rank number, shift count, hours, funds, etc.)
-     * @return void
+     * @param  Trooper  $trooper  The trooper whose achievement to update
+     * @param  AchievementType  $type  The type of achievement to update
+     * @param  mixed  $value  The achievement value (rank number, shift count, hours, funds, etc.)
      */
     private function updateAchievement(Trooper $trooper, AchievementType $type, mixed $value): void
     {
@@ -136,7 +132,7 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
      *
      * Only counts events with ATTENDED status and CLOSED event status.
      *
-     * @param Trooper $trooper The trooper to compute metrics for
+     * @param  Trooper  $trooper  The trooper to compute metrics for
      * @return array{total_direct: int|float, total_indirect: int|float, total_hours: int|float} Computed metrics
      */
     private function computeMetrics(Trooper $trooper): array
@@ -144,8 +140,7 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
         $event_troopers = $trooper->event_troopers()
             ->with('event_shift.event')
             ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED)
-            ->whereHas('event_shift.event', fn($q) =>
-                $q->where(Event::STATUS, EventStatus::CLOSED)
+            ->whereHas('event_shift.event', fn ($q) => $q->where(Event::STATUS, EventStatus::CLOSED)
             )
             ->get();
 
@@ -181,9 +176,8 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
      *
      * Milestone thresholds: 1, 10, 25, 50, 75, 100, 150, 200, 250, 300, 400, 500, 501
      *
-     * @param Trooper $trooper The trooper to check milestones for
-     * @param int $event_count The trooper's total attended event count
-     * @return void
+     * @param  Trooper  $trooper  The trooper to check milestones for
+     * @param  int  $event_count  The trooper's total attended event count
      */
     private function storeTroopThresholdAchievements(Trooper $trooper, int $event_count): void
     {

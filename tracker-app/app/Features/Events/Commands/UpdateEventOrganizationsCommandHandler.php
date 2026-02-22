@@ -22,23 +22,23 @@ readonly class UpdateEventOrganizationsCommandHandler implements CommandHandlerI
     /**
      * Execute the command to update event organization settings.
      *
-     * @param UpdateEventOrganizationsCommand $message The command with event and organization data
+     * @param  UpdateEventOrganizationsCommand  $message  The command with event and organization data
      * @return null
      */
     public function __invoke(object $message): mixed
     {
         $pivot_data = $message->event->organizations()
             ->get()
-            ->mapWithKeys(fn($org) => [
+            ->mapWithKeys(fn ($org) => [
                 $org->id => [
                     EventOrganization::CAN_ATTEND => false,
                     EventOrganization::TROOPERS_ALLOWED => null,
                     EventOrganization::HANDLERS_ALLOWED => null,
-                ]
+                ],
             ])
             ->toArray();
 
-        //  merge arrays - left wins    
+        //  merge arrays - left wins
         $updates = array_replace_recursive($pivot_data, $message->data);
 
         $message->event->organizations()->syncWithoutDetaching($updates);

@@ -29,6 +29,5 @@ readonly class GetTroopersWithoutActivityQuery
     public function __construct(
         public readonly Trooper $moderator,
         public readonly int|string|Carbon $lookback,
-    ) {
-    }
+    ) {}
 }

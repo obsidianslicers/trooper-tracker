@@ -19,7 +19,5 @@ readonly class GetEventsForDisplayQuery
      *
      * No parameters required - returns all events.
      */
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 }

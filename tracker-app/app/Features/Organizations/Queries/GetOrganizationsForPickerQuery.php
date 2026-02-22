@@ -20,25 +20,21 @@ readonly class GetOrganizationsForPickerQuery
 {
     /**
      * Whether to filter to only organizations moderated by the trooper.
-     *
-     * @var bool
      */
     public readonly bool $moderated_only;
 
     /**
      * Optional organization ID to filter by (includes descendants via node_path).
-     *
-     * @var int|null
      */
     public readonly ?int $organization_id;
 
     /**
      * Create a new query instance.
      *
-     * @param Trooper $trooper The trooper requesting organizations
-     * @param array $data Query parameters:
-     *                    - 'moderated_only' (bool): Filter to moderated organizations only (default: false)
-     *                    - 'organization_id' (int|null): Filter to specific org and descendants (default: null)
+     * @param  Trooper  $trooper  The trooper requesting organizations
+     * @param  array  $data  Query parameters:
+     *                       - 'moderated_only' (bool): Filter to moderated organizations only (default: false)
+     *                       - 'organization_id' (int|null): Filter to specific org and descendants (default: null)
      */
     public function __construct(public readonly Trooper $trooper, array $data)
     {

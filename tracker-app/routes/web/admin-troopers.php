@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\Troopers\ApprovalSubmitHtmxController;
 use App\Http\Controllers\Admin\Troopers\AuthorityController;
 use App\Http\Controllers\Admin\Troopers\AuthoritySubmitController;
 use App\Http\Controllers\Admin\Troopers\ChangesController;
+use App\Http\Controllers\Admin\Troopers\CostumesController;
 use App\Http\Controllers\Admin\Troopers\DenialSubmitHtmxController;
 use App\Http\Controllers\Admin\Troopers\EventsController;
 use App\Http\Controllers\Admin\Troopers\ListController;
@@ -35,5 +36,6 @@ Route::prefix('admin/troopers')
         Route::get('/{trooper}/membership', MembershipController::class)->name('membership');
         Route::post('/{trooper}/membership', MembershipSubmitController::class);
         Route::get('/{trooper}/events', EventsController::class)->name('events');
+        Route::get('/{trooper}/costumes', CostumesController::class)->name('costumes');
         Route::get('/{trooper}/changes', ChangesController::class)->name('changes');
     });

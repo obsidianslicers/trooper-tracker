@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Synchronizers;
 
+use App\Models\Costume;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
@@ -56,20 +57,20 @@ class DroidBuildersServiceTest extends TestCase
 
         $this->google_service
             ->shouldReceive('getSheet')
-            ->with('test-sheet-id', 'Costumes')
+            ->with('test-sheet-id', 'Sheet1')
             ->andReturn($sheet_data);
 
-        $this->subject->synchronize();
+        $this->subject->run();
 
-        $org_costume = OrganizationCostume::where(OrganizationCostume::NAME, 'R2-D2')->first();
+        $org_costume = $this->getOrganizationCostumeByName('R2-D2');
         $this->assertNotNull($org_costume);
         $this->assertTrue($org_costume->synchronized_at !== null);
 
         $trooper_costume = TrooperCostume::where(TrooperCostume::TROOPER_ID, $trooper->id)
-            ->where(TrooperCostume::COSTUME_ID, $org_costume->id)
+            ->where(TrooperCostume::ORGANIZATION_COSTUME_ID, $org_costume->id)
             ->first();
         $this->assertNotNull($trooper_costume);
-        $this->assertEquals('https://example.com/r2d2.jpg', $trooper_costume->large_image_url);
+        $this->assertEquals('https://example.com/r2d2.jpg', $trooper_costume->image_url_lg);
     }
 
     public function test_sync_costumes_skips_empty_costume_names(): void
@@ -82,10 +83,10 @@ class DroidBuildersServiceTest extends TestCase
 
         $this->google_service
             ->shouldReceive('getSheet')
-            ->with('test-sheet-id', 'Costumes')
+            ->with('test-sheet-id', 'Sheet1')
             ->andReturn($sheet_data);
 
-        $this->subject->synchronize();
+        $this->subject->run();
 
         $org_costumes = OrganizationCostume::all();
         $this->assertEquals(0, $org_costumes->count());
@@ -101,10 +102,10 @@ class DroidBuildersServiceTest extends TestCase
 
         $this->google_service
             ->shouldReceive('getSheet')
-            ->with('test-sheet-id', 'Costumes')
+            ->with('test-sheet-id', 'Sheet1')
             ->andReturn($sheet_data);
 
-        $this->subject->synchronize();
+        $this->subject->run();
 
         $org_costumes = OrganizationCostume::all();
         $this->assertEquals(0, $org_costumes->count());
@@ -119,13 +120,13 @@ class DroidBuildersServiceTest extends TestCase
 
         $this->google_service
             ->shouldReceive('getSheet')
-            ->with('test-sheet-id', 'Costumes')
+            ->with('test-sheet-id', 'Sheet1')
             ->andReturn($sheet_data);
 
-        $this->subject->synchronize();
+        $this->subject->run();
 
         // Organization costume is created, but trooper costume is not
-        $org_costume = OrganizationCostume::where(OrganizationCostume::NAME, 'R2-D2')->first();
+        $org_costume = $this->getOrganizationCostumeByName('R2-D2');
         $this->assertNotNull($org_costume);
         $trooper_costumes = TrooperCostume::all();
         $this->assertEquals(0, $trooper_costumes->count());
@@ -135,7 +136,7 @@ class DroidBuildersServiceTest extends TestCase
     {
         $this->organization->update([Organization::SYNC_SHEET_ID => null]);
 
-        $this->subject->synchronize();
+        $this->subject->run();
 
         $org_costumes = OrganizationCostume::all();
         $this->assertEquals(0, $org_costumes->count());
@@ -145,10 +146,10 @@ class DroidBuildersServiceTest extends TestCase
     {
         $this->google_service
             ->shouldReceive('getSheet')
-            ->with('test-sheet-id', 'Costumes')
+            ->with('test-sheet-id', 'Sheet1')
             ->andReturn(false);
 
-        $this->subject->synchronize();
+        $this->subject->run();
 
         $org_costumes = OrganizationCostume::all();
         $this->assertEquals(0, $org_costumes->count());
@@ -172,12 +173,12 @@ class DroidBuildersServiceTest extends TestCase
 
         $this->google_service
             ->shouldReceive('getSheet')
-            ->with('test-sheet-id', 'Costumes')
+            ->with('test-sheet-id', 'Sheet1')
             ->andReturn($sheet_data);
 
-        $this->subject->synchronize();
+        $this->subject->run();
 
-        $org_costume = OrganizationCostume::where(OrganizationCostume::NAME, '&lt;img src=x onerror=&quot;alert(1)&quot;&gt;')->first();
+        $org_costume = $this->getOrganizationCostumeByName('&lt;img src=x onerror=&quot;alert(1)&quot;&gt;');
         $this->assertNotNull($org_costume);
     }
 
@@ -210,13 +211,13 @@ class DroidBuildersServiceTest extends TestCase
 
         $this->google_service
             ->shouldReceive('getSheet')
-            ->with('test-sheet-id', 'Costumes')
+            ->with('test-sheet-id', 'Sheet1')
             ->andReturn($sheet_data);
 
-        $this->subject->synchronize();
+        $this->subject->run();
 
-        $r2d2_costume = OrganizationCostume::where(OrganizationCostume::NAME, 'R2-D2')->first();
-        $c3po_costume = OrganizationCostume::where(OrganizationCostume::NAME, 'C-3PO')->first();
+        $r2d2_costume = $this->getOrganizationCostumeByName('R2-D2');
+        $c3po_costume = $this->getOrganizationCostumeByName('C-3PO');
 
         $this->assertNotNull($r2d2_costume);
         $this->assertNotNull($c3po_costume);
@@ -239,18 +240,19 @@ class DroidBuildersServiceTest extends TestCase
             ])
             ->create();
 
+        $costume = Costume::factory()->create([Costume::NAME => 'R2-D2']);
         $org_costume = OrganizationCostume::factory()
             ->state([
                 OrganizationCostume::ORGANIZATION_ID => $this->organization->id,
-                OrganizationCostume::NAME => 'R2-D2',
+                OrganizationCostume::COSTUME_ID => $costume->id,
             ])
             ->create();
 
         TrooperCostume::factory()
             ->state([
                 TrooperCostume::TROOPER_ID => $trooper->id,
-                TrooperCostume::COSTUME_ID => $org_costume->id,
-                TrooperCostume::LARGE_IMAGE_URL => 'https://example.com/old_image.jpg',
+                TrooperCostume::ORGANIZATION_COSTUME_ID => $org_costume->id,
+                TrooperCostume::IMAGE_URL_LG => 'https://example.com/old_image.jpg',
             ])
             ->create();
 
@@ -261,17 +263,17 @@ class DroidBuildersServiceTest extends TestCase
 
         $this->google_service
             ->shouldReceive('getSheet')
-            ->with('test-sheet-id', 'Costumes')
+            ->with('test-sheet-id', 'Sheet1')
             ->andReturn($sheet_data);
 
-        $this->subject->synchronize();
+        $this->subject->run();
 
         $trooper_costume = TrooperCostume::where(TrooperCostume::TROOPER_ID, $trooper->id)
-            ->where(TrooperCostume::COSTUME_ID, $org_costume->id)
+            ->where(TrooperCostume::ORGANIZATION_COSTUME_ID, $org_costume->id)
             ->first();
 
         $this->assertNotNull($trooper_costume);
-        $this->assertEquals('https://example.com/new_image.jpg', $trooper_costume->large_image_url);
+        $this->assertEquals('https://example.com/new_image.jpg', $trooper_costume->image_url_lg);
     }
 
     public function test_sync_costumes_with_null_image_url(): void
@@ -292,18 +294,32 @@ class DroidBuildersServiceTest extends TestCase
 
         $this->google_service
             ->shouldReceive('getSheet')
-            ->with('test-sheet-id', 'Costumes')
+            ->with('test-sheet-id', 'Sheet1')
             ->andReturn($sheet_data);
 
-        $this->subject->synchronize();
+        $this->subject->run();
 
-        $org_costume = OrganizationCostume::where(OrganizationCostume::NAME, 'R2-D2')->first();
+        $org_costume = $this->getOrganizationCostumeByName('R2-D2');
         $trooper_costume = TrooperCostume::where(TrooperCostume::TROOPER_ID, $trooper->id)
-            ->where(TrooperCostume::COSTUME_ID, $org_costume->id)
+            ->where(TrooperCostume::ORGANIZATION_COSTUME_ID, $org_costume->id)
             ->first();
 
         $this->assertNotNull($trooper_costume);
         // cleanInput(null) now returns null
-        $this->assertNull($trooper_costume->large_image_url);
+        $this->assertNull($trooper_costume->image_url_lg);
+    }
+
+    private function getOrganizationCostumeByName(string $costume_name): ?OrganizationCostume
+    {
+        $costume = Costume::where(Costume::NAME, $costume_name)->first();
+
+        if ($costume === null)
+        {
+            return null;
+        }
+
+        return OrganizationCostume::where(OrganizationCostume::COSTUME_ID, $costume->id)
+            ->where(OrganizationCostume::ORGANIZATION_ID, $this->organization->id)
+            ->first();
     }
 }

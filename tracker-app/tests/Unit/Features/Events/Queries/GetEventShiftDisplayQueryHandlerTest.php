@@ -8,7 +8,11 @@ use App\Features\Events\Queries\GetEventShiftDisplayQuery;
 use App\Features\Events\Queries\GetEventShiftDisplayQueryHandler;
 use App\Models\Event;
 use App\Models\EventShift;
+use App\Models\EventTrooper;
+use App\Models\Organization;
+use App\Models\OrganizationCostume;
 use App\Models\Trooper;
+use App\Models\TrooperCostume;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -22,6 +26,7 @@ use Tests\TestCase;
  */
 class GetEventShiftDisplayQueryHandlerTest extends TestCase
 {
+    use RefreshDatabase;
     use RefreshDatabase;
 
     public function test_invoke_returns_event_shift_with_relationships(): void
@@ -78,7 +83,7 @@ class GetEventShiftDisplayQueryHandlerTest extends TestCase
         $this->assertTrue($result->relationLoaded('event_troopers'));
     }
 
-    public function test_invoke_orders_event_troopers_by_created_at(): void
+    public function test_invoke_orders_event_troopers_by_signed_up_at(): void
     {
         // Arrange
         $event = Event::factory()->create();
@@ -88,14 +93,14 @@ class GetEventShiftDisplayQueryHandlerTest extends TestCase
         $later_trooper = Trooper::factory()->create();
         $trooper = Trooper::factory()->create();
 
-        // Create EventTrooper records manually
+        // Create EventTrooper records with different signed_up_at times
         $event_shift->event_troopers()->create([
             'trooper_id' => $later_trooper->id,
-            'created_at' => now()->addMinutes(5),
+            EventTrooper::SIGNED_UP_AT => now()->addMinutes(5),
         ]);
         $event_shift->event_troopers()->create([
             'trooper_id' => $earlier_trooper->id,
-            'created_at' => now(),
+            EventTrooper::SIGNED_UP_AT => now(),
         ]);
 
         $query = new GetEventShiftDisplayQuery($event_shift, $trooper);

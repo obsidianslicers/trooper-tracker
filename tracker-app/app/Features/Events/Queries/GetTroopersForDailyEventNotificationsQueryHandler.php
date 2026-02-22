@@ -30,23 +30,21 @@ readonly class GetTroopersForDailyEventNotificationsQueryHandler implements Quer
      * 4. Eager load unprocessed event_notifications
      * 5. Return collection of Trooper models
      *
-     * @param GetTroopersForDailyEventNotificationsQuery $message The query (no parameters)
+     * @param  GetTroopersForDailyEventNotificationsQuery  $message  The query (no parameters)
      * @return Collection<int, Trooper> Collection of troopers needing daily notifications
      */
     public function __invoke(object $message): mixed
     {
         $with = [
-            'event_notifications' => function ($q)
-            {
+            'event_notifications' => function ($q) {
                 $q->whereNull('processed_at');
-            }
+            },
         ];
 
         return Trooper::active()
             ->with($with)
             ->where(Trooper::NOTIFICATION_FREQUENCY, NotificationFrequency::DAILY)
-            ->whereHas('event_notifications', fn($q) =>
-                $q->whereNull('processed_at')
+            ->whereHas('event_notifications', fn ($q) => $q->whereNull('processed_at')
             )
             ->get();
     }

@@ -27,7 +27,7 @@ readonly class GetTrooperNoticeForDisplayQueryHandler implements QueryHandlerInt
      * Counts visible notices and returns the single notice if only one exists.
      * Uses Notice::visibleTo() scope with the unread_only parameter.
      *
-     * @param GetTrooperNoticeForDisplayQuery $message The query containing trooper and filter criteria
+     * @param  GetTrooperNoticeForDisplayQuery  $message  The query containing trooper and filter criteria
      * @return array{count: int, notice: ?Notice} Display data with count and optional single notice
      */
     public function __invoke(object $message): mixed

@@ -10,7 +10,6 @@ use App\Enums\EventTrooperStatus;
 use App\Models\Event;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
-use Carbon\Carbon;
 
 /**
  * Handler for retrieving trooper event participation summary.
@@ -38,8 +37,7 @@ readonly class GetTrooperEventSummaryQueryHandler implements QueryHandlerInterfa
         $lookback = $message->parseLookback();
 
         $with = [
-            'event_troopers' => function ($q) use ($lookback)
-            {
+            'event_troopers' => function ($q) use ($lookback) {
                 $columns = [
                     EventTrooper::ID,
                     EventTrooper::EVENT_SHIFT_ID,
@@ -48,8 +46,7 @@ readonly class GetTrooperEventSummaryQueryHandler implements QueryHandlerInterfa
                 ];
 
                 $q->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED)
-                    ->whereHas('event_shift.event', function ($q) use ($lookback)
-                    {
+                    ->whereHas('event_shift.event', function ($q) use ($lookback) {
                         $q->where(Event::STATUS, EventStatus::CLOSED)
                             ->where(Event::EVENT_START, '>=', $lookback);
                     })->select($columns);
@@ -59,20 +56,18 @@ readonly class GetTrooperEventSummaryQueryHandler implements QueryHandlerInterfa
         ];
 
         return Trooper::with($with)
-            ->whereHas('event_troopers.event_shift.event', function ($q) use ($lookback)
-            {
+            ->whereHas('event_troopers.event_shift.event', function ($q) use ($lookback) {
                 $q->where(Event::STATUS, EventStatus::CLOSED)
                     ->where(Event::EVENT_START, '>=', $lookback);
             })
             ->orderBy(Trooper::DISPLAY_NAME)
-            ->get()->each(function (Trooper $trooper)
-            {
+            ->get()->each(function (Trooper $trooper) {
                 // Total attended shifts
                 $trooper->event_shifts_count = $trooper->event_troopers->count();
                 // Unique events attended
-                $trooper->events_count = $trooper->event_troopers->map(fn($et) => $et->event_shift->event_id)->unique()->count();
+                $trooper->events_count = $trooper->event_troopers->map(fn ($et) => $et->event_shift->event_id)->unique()->count();
                 // Optional: list of event IDs
-                $trooper->attended_event_ids = $trooper->event_troopers->map(fn($et) => $et->event_shift->event_id)->unique()->values();
+                $trooper->attended_event_ids = $trooper->event_troopers->map(fn ($et) => $et->event_shift->event_id)->unique()->values();
             });
     }
 }

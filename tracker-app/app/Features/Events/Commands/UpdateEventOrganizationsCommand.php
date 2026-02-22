@@ -20,12 +20,10 @@ readonly class UpdateEventOrganizationsCommand
     /**
      * Create a new command instance.
      *
-     * @param Event $event The event to update organization settings for
-     * @param array<int, array<string, mixed>> $data Organization settings keyed by organization_id
+     * @param  Event  $event  The event to update organization settings for
+     * @param  array<int, array<string, mixed>>  $data  Organization settings keyed by organization_id
      */
     public function __construct(
         public Event $event,
-        public array $data)
-    {
-    }
+        public array $data) {}
 }

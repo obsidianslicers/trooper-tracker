@@ -12,12 +12,10 @@ use Symfony\Component\DomCrawler\Crawler;
 
 class TheLegionService extends BaseOrganizationService
 {
-    public function synchronize(): void
+    protected function synchronize(): void
     {
         $this->syncCostumes();
         $this->syncTroopers();
-
-        $this->updateOrganizationSync();
     }
 
     private function syncCostumes(): void
@@ -32,11 +30,11 @@ class TheLegionService extends BaseOrganizationService
             $text = trim($link->textContent);
 
             // AR - ARC Trooper (CW) (Phase 1): Fordo
-            [$codex, $costume_name] = explode(' - ', $text, 2);
+            [$prefix, $costume_name] = explode(' - ', $text, 2);
 
             $costume_name = trim($costume_name);
 
-            $this->getOrCreateOrganizationCostume($costume_name, $codex);
+            $this->getOrCreateOrganizationCostume($costume_name, $prefix);
         }
     }
 
@@ -82,25 +80,13 @@ class TheLegionService extends BaseOrganizationService
                 //  should be set via syncCostumes
                 $org_costume = $this->getOrCreateOrganizationCostume($costume_name);
 
-                // Create or update TrooperCostume (link trooper -> organization costume)
-                // Now ensure trooper_costume exists
-                $trooper_costume = $trooper->trooper_costumes()
-                    ->where(TrooperCostume::COSTUME_ID, $org_costume->id)
-                    ->first();
+                $attributes = [
+                    TrooperCostume::IMAGE_URL_LG => $c['photoURL'] ?? ($c['photo'] ?? null),
+                    TrooperCostume::IMAGE_URL_SM => $c['thumbnail'] ?? null,
+                    TrooperCostume::IMAGE_URL_BUCKET_OFF => $c['bucketOffPhoto'] ?? null,
+                ];
 
-                if ($trooper_costume === null)
-                {
-                    $trooper_costume = new TrooperCostume;
-                    $trooper_costume->trooper_id = $trooper->id;
-                    $trooper_costume->costume_id = $org_costume->id;
-                }
-
-                $trooper_costume->large_image_url = $c['photoURL'] ?? ($c['photo'] ?? null);
-                $trooper_costume->small_image_url = $c['thumbnail'] ?? null;
-                $trooper_costume->bucket_off_url = $c['bucketOffPhoto'] ?? null;
-                $trooper_costume->synchronized_at = now();
-
-                $trooper_costume->save();
+                $this->syncTrooperCostume($trooper, $org_costume, $attributes);
             }
         }
     }

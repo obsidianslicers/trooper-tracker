@@ -6,7 +6,6 @@ namespace App\Features\Events\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Models\Event;
-use App\Models\EventOrganization;
 use App\Models\TrooperAssignment;
 
 /**
@@ -35,17 +34,16 @@ readonly class GetEventsForModeratorQueryHandler implements QueryHandlerInterfac
      * 5. Order by event_end descending
      * 6. Return paginated results with query string preserved
      *
-     * @param GetEventsForModeratorQuery $message The query containing filter, moderator, and page_size.
+     * @param  GetEventsForModeratorQuery  $message  The query containing filter, moderator, and page_size.
      * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator Paginated collection of Event models.
      */
     public function __invoke(object $message): mixed
     {
         $q = Event::with([
-            'organization.trooper_assignments' => function ($q) use ($message)
-            {
+            'organization.trooper_assignments' => function ($q) use ($message) {
                 $q->where(TrooperAssignment::TROOPER_ID, $message->moderator->id)
                     ->where(TrooperAssignment::IS_MODERATOR, true);
-            }
+            },
         ]);
 
         $q = $q->withCount('event_shifts');

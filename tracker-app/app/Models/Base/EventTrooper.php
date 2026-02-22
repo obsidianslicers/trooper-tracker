@@ -6,8 +6,8 @@
 
 namespace App\Models\Base;
 
+use App\Models\Costume;
 use App\Models\EventShift;
-use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
@@ -21,7 +21,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $event_shift_id
  * @property int $trooper_id
  * @property int|null $costume_id
+ * @property array|null $costume_organization_ids
  * @property int|null $backup_costume_id
+ * @property array|null $backup_costume_organization_ids
  * @property int|null $added_by_trooper_id
  * @property bool $is_handler
  * @property string $status
@@ -34,7 +36,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $deleted_id
  * 
  * @property Trooper $trooper
- * @property OrganizationCostume|null $organization_costume
+ * @property Costume|null $costume
  * @property EventShift $event_shift
  *
  * @package App\Models\Base
@@ -46,7 +48,9 @@ class EventTrooper extends Model
     const EVENT_SHIFT_ID = 'event_shift_id';
     const TROOPER_ID = 'trooper_id';
     const COSTUME_ID = 'costume_id';
+    const COSTUME_ORGANIZATION_IDS = 'costume_organization_ids';
     const BACKUP_COSTUME_ID = 'backup_costume_id';
+    const BACKUP_COSTUME_ORGANIZATION_IDS = 'backup_costume_organization_ids';
     const ADDED_BY_TROOPER_ID = 'added_by_trooper_id';
     const IS_HANDLER = 'is_handler';
     const STATUS = 'status';
@@ -64,7 +68,9 @@ class EventTrooper extends Model
         self::EVENT_SHIFT_ID => 'int',
         self::TROOPER_ID => 'int',
         self::COSTUME_ID => 'int',
+        self::COSTUME_ORGANIZATION_IDS => 'json',
         self::BACKUP_COSTUME_ID => 'int',
+        self::BACKUP_COSTUME_ORGANIZATION_IDS => 'json',
         self::ADDED_BY_TROOPER_ID => 'int',
         self::IS_HANDLER => 'bool',
         self::SIGNED_UP_AT => 'datetime',
@@ -79,7 +85,9 @@ class EventTrooper extends Model
         self::EVENT_SHIFT_ID,
         self::TROOPER_ID,
         self::COSTUME_ID,
+        self::COSTUME_ORGANIZATION_IDS,
         self::BACKUP_COSTUME_ID,
+        self::BACKUP_COSTUME_ORGANIZATION_IDS,
         self::ADDED_BY_TROOPER_ID,
         self::IS_HANDLER,
         self::STATUS,
@@ -91,9 +99,9 @@ class EventTrooper extends Model
         return $this->belongsTo(Trooper::class);
     }
 
-    public function organization_costume(): BelongsTo
+    public function costume(): BelongsTo
     {
-        return $this->belongsTo(OrganizationCostume::class, \App\Models\EventTrooper::COSTUME_ID);
+        return $this->belongsTo(Costume::class);
     }
 
     public function event_shift(): BelongsTo

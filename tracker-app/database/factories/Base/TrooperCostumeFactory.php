@@ -17,7 +17,7 @@ class TrooperCostumeFactory extends Factory
     {
         return [
             TrooperCostume::TROOPER_ID => \App\Models\Trooper::factory(),
-            TrooperCostume::COSTUME_ID => \App\Models\OrganizationCostume::factory(),
+            TrooperCostume::ORGANIZATION_COSTUME_ID => \App\Models\OrganizationCostume::factory(),
         ];
     }
 }

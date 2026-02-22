@@ -19,9 +19,7 @@ readonly class GetTrooperNoticesQuery
     /**
      * Create a new query instance.
      *
-     * @param Trooper $trooper The trooper requesting their visible notices
+     * @param  Trooper  $trooper  The trooper requesting their visible notices
      */
-    public function __construct(public readonly Trooper $trooper)
-    {
-    }
+    public function __construct(public readonly Trooper $trooper) {}
 }

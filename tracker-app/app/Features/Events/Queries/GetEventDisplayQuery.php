@@ -20,12 +20,11 @@ readonly class GetEventDisplayQuery
     /**
      * Create a new query instance.
      *
-     * @param Event $event The event to retrieve for display
-     * @param Trooper $trooper The trooper viewing the event
+     * @param  Event  $event  The event to retrieve for display
+     * @param  Trooper  $trooper  The trooper viewing the event
      */
     public function __construct(
         public readonly Event $event,
         public readonly Trooper $trooper,
-    ) {
-    }
+    ) {}
 }

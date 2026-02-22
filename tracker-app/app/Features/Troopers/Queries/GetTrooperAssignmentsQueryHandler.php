@@ -31,7 +31,7 @@ readonly class GetTrooperAssignmentsQueryHandler implements QueryHandlerInterfac
      * 3. For each organization, find matching assignment via node_path
      * 4. Set 'assignment' property to the assigned organization object
      *
-     * @param GetTrooperAssignmentsQuery $message The query containing the trooper
+     * @param  GetTrooperAssignmentsQuery  $message  The query containing the trooper
      * @return \Illuminate\Support\Collection<int, Organization> Organizations with assignment data
      */
     public function __invoke(object $message): mixed

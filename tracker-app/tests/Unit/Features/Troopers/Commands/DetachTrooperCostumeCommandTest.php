@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Features\Troopers\Commands;
 
 use App\Features\Troopers\Commands\DetachTrooperCostumeCommand;
+use App\Models\Costume;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -24,12 +25,13 @@ class DetachTrooperCostumeCommandTest extends TestCase
     {
         // Arrange
         $trooper = Trooper::factory()->asActive()->create();
+        $costume = Costume::factory()->create();
 
         // Act
-        $subject = new DetachTrooperCostumeCommand($trooper, 42);
+        $subject = new DetachTrooperCostumeCommand($trooper, $costume->id);
 
         // Assert
         $this->assertSame($trooper, $subject->trooper);
-        $this->assertEquals(42, $subject->costume_id);
+        $this->assertSame($costume->id, $subject->costume_id);
     }
 }

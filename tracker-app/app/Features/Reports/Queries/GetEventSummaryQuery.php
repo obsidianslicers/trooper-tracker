@@ -32,6 +32,5 @@ readonly class GetEventSummaryQuery
         public readonly int|string|Carbon $lookback,
         public readonly bool $show_all = false,
         public readonly EventStatus $status = EventStatus::CLOSED,
-    ) {
-    }
+    ) {}
 }

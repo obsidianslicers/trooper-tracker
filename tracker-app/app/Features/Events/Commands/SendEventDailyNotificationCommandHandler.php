@@ -29,7 +29,7 @@ readonly class SendEventDailyNotificationCommandHandler implements CommandHandle
      * 3. Queue DailyEventNotification email with pending notifications
      * 4. Mark all event_notifications as processed
      *
-     * @param SendEventDailyNotificationCommand $message The command with trooper
+     * @param  SendEventDailyNotificationCommand  $message  The command with trooper
      * @return null
      */
     public function __invoke(object $message): mixed

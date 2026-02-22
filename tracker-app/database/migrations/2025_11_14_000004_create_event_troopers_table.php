@@ -25,12 +25,14 @@ return new class extends Migration
 
             $table->foreignId('costume_id')
                 ->nullable()
-                ->constrained('tt_organization_costumes')
+                ->constrained('tt_costumes')
                 ->cascadeOnDelete();
+            $table->json('costume_organization_ids')->nullable();
             $table->foreignId('backup_costume_id')
                 ->nullable()
-                ->constrained('tt_organization_costumes')
+                ->constrained('tt_costumes')
                 ->cascadeOnDelete();
+            $table->json('backup_costume_organization_ids')->nullable();
 
             $table->foreignId('added_by_trooper_id')
                 ->nullable()
@@ -38,10 +40,8 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
             $table->boolean('is_handler')->default(false);
-            $table->string('status', 16)->default(EventTrooperStatus::NONE->value)->index();
+            $table->string('status', 16)->default(EventTrooperStatus::NONE->value);
             $table->dateTime('signed_up_at')->useCurrent();
-
-            // $table->string('note')->default('');
 
             $table->timestamps();
             $table->softDeletes();

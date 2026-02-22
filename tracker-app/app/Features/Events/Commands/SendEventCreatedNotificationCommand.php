@@ -20,12 +20,11 @@ readonly class SendEventCreatedNotificationCommand
     /**
      * Create a new command instance.
      *
-     * @param Event $event The event to create notification for.
-     * @param Trooper $trooper The trooper to notify.
+     * @param  Event  $event  The event to create notification for.
+     * @param  Trooper  $trooper  The trooper to notify.
      */
     public function __construct(
         public readonly Event $event,
         public readonly Trooper $trooper,
-    ) {
-    }
+    ) {}
 }

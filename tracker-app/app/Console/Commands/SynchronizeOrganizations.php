@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Models\Organization;
+use App\Services\Synchronizers\TheLegionService;
 use Illuminate\Console\Command;
 
 /**
@@ -48,7 +49,7 @@ class SynchronizeOrganizations extends Command
 
             $service_class = app($service_class, compact('organization'));
 
-            $service_class->synchronize();
+            $service_class->run();
 
             $this->info("Synchronized organization: {$organization->name}");
         }

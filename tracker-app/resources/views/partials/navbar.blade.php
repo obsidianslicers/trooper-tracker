@@ -11,10 +11,12 @@
              id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 @include('partials.inc.navbar-events')
-                <x-nav-link :url="route('events.leaderboard')"
-                            :active="request()->routeIs('events.leaderboard')">
-                    Leaderboard
-                </x-nav-link>
+                @auth
+                    <x-nav-link :url="route('events.leaderboard')"
+                                :active="request()->routeIs('events.leaderboard')">
+                        Leaderboard
+                    </x-nav-link>
+                @endauth
                 @if($forum_url = config('app.xenforo.base_url'))
                     <x-nav-link :url="$forum_url">
                         Forum

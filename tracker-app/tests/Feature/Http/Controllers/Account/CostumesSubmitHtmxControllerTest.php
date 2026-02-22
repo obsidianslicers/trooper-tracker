@@ -21,7 +21,7 @@ use Tests\TestCase;
  * - Creates TrooperCostume record when costume added
  * - Restores soft-deleted costume if previously removed
  * - Returns costumes table partial for HTMX swap
- * - Validates organization_id and costume_id
+ * - Validates organization_costume_ids
  * - Unauthenticated users are redirected to login
  */
 class CostumesSubmitHtmxControllerTest extends TestCase
@@ -47,14 +47,13 @@ class CostumesSubmitHtmxControllerTest extends TestCase
         // Act
         $response = $this->actingAs($trooper)
             ->post(route('account.costumes-htmx'), [
-                'organization_id' => $organization->id,
-                'costume_id' => $costume->id,
+                'organization_costume_ids' => [$costume->id],
             ]);
 
         // Assert
         $this->assertDatabaseHas(TrooperCostume::class, [
             TrooperCostume::TROOPER_ID => $trooper->id,
-            TrooperCostume::COSTUME_ID => $costume->id,
+            TrooperCostume::ORGANIZATION_COSTUME_ID => $costume->id,
         ]);
     }
 
@@ -77,8 +76,7 @@ class CostumesSubmitHtmxControllerTest extends TestCase
         // Act
         $response = $this->actingAs($trooper)
             ->post(route('account.costumes-htmx'), [
-                'organization_id' => $organization->id,
-                'costume_id' => $costume->id,
+                'organization_costume_ids' => [$costume->id],
             ]);
 
         // Assert
@@ -105,8 +103,7 @@ class CostumesSubmitHtmxControllerTest extends TestCase
         // Act
         $response = $this->actingAs($trooper)
             ->post(route('account.costumes-htmx'), [
-                'organization_id' => $organization->id,
-                'costume_id' => $costume->id,
+                'organization_costume_ids' => [$costume->id],
             ]);
 
         // Assert
@@ -130,46 +127,30 @@ class CostumesSubmitHtmxControllerTest extends TestCase
         // Act
         $response = $this->actingAs($trooper)
             ->post(route('account.costumes-htmx'), [
-                'organization_id' => $organization->id,
-                'costume_id' => $costume->id,
+                'organization_costume_ids' => [$costume->id],
             ]);
 
         // Assert - costume should NOT be added
         $this->assertDatabaseMissing(TrooperCostume::class, [
             TrooperCostume::TROOPER_ID => $trooper->id,
-            TrooperCostume::COSTUME_ID => $costume->id,
+            TrooperCostume::ORGANIZATION_COSTUME_ID => $costume->id,
         ]);
     }
 
-    public function test_invoke_prevents_adding_costume_that_doesnt_belong_to_organization(): void
+    public function test_invoke_ignores_non_existent_organization_costume_id(): void
     {
         // Arrange
-        $organization1 = Organization::factory()->create();
-        $organization2 = Organization::factory()->create();
         $trooper = Trooper::factory()->asActive()->create();
-
-        TrooperAssignment::factory()->create([
-            TrooperAssignment::TROOPER_ID => $trooper->id,
-            TrooperAssignment::ORGANIZATION_ID => $organization1->id,
-            TrooperAssignment::IS_MEMBER => true,
-        ]);
-
-        // Costume belongs to organization2, not organization1
-        $costume = OrganizationCostume::factory()->create([
-            OrganizationCostume::ORGANIZATION_ID => $organization2->id,
-        ]);
 
         // Act - trying to add costume from wrong organization
         $response = $this->actingAs($trooper)
             ->post(route('account.costumes-htmx'), [
-                'organization_id' => $organization1->id,
-                'costume_id' => $costume->id,
+                'organization_costume_ids' => [999999],
             ]);
 
         // Assert - costume should NOT be added
         $this->assertDatabaseMissing(TrooperCostume::class, [
             TrooperCostume::TROOPER_ID => $trooper->id,
-            TrooperCostume::COSTUME_ID => $costume->id,
         ]);
     }
 
@@ -192,29 +173,28 @@ class CostumesSubmitHtmxControllerTest extends TestCase
         // Create and soft-delete a trooper costume
         $trooper_costume = TrooperCostume::factory()->create([
             TrooperCostume::TROOPER_ID => $trooper->id,
-            TrooperCostume::COSTUME_ID => $costume->id,
+            TrooperCostume::ORGANIZATION_COSTUME_ID => $costume->id,
         ]);
         $trooper_costume->delete();
 
         // Act - re-add the costume
         $response = $this->actingAs($trooper)
             ->post(route('account.costumes-htmx'), [
-                'organization_id' => $organization->id,
-                'costume_id' => $costume->id,
+                'organization_costume_ids' => [$costume->id],
             ]);
 
         // Assert - costume should be restored, not duplicated
         $this->assertEquals(1, TrooperCostume::withTrashed()
             ->where(TrooperCostume::TROOPER_ID, $trooper->id)
-            ->where(TrooperCostume::COSTUME_ID, $costume->id)
+            ->where(TrooperCostume::ORGANIZATION_COSTUME_ID, $costume->id)
             ->count());
 
         $this->assertEquals(1, TrooperCostume::where(TrooperCostume::TROOPER_ID, $trooper->id)
-            ->where(TrooperCostume::COSTUME_ID, $costume->id)
+            ->where(TrooperCostume::ORGANIZATION_COSTUME_ID, $costume->id)
             ->count());
     }
 
-    public function test_invoke_ignores_invalid_organization_id(): void
+    public function test_invoke_ignores_invalid_organization_costume_id(): void
     {
         // Arrange
         $trooper = Trooper::factory()->asActive()->create();
@@ -222,8 +202,7 @@ class CostumesSubmitHtmxControllerTest extends TestCase
         // Act
         $response = $this->actingAs($trooper)
             ->post(route('account.costumes-htmx'), [
-                'organization_id' => -1,
-                'costume_id' => 1,
+                'organization_costume_ids' => [-1],
             ]);
 
         // Assert
@@ -231,31 +210,21 @@ class CostumesSubmitHtmxControllerTest extends TestCase
         $this->assertEquals(0, $trooper->trooper_costumes()->count());
     }
 
-    public function test_invoke_ignores_invalid_costume_id(): void
+    public function test_invoke_ignores_missing_organization_costume_ids(): void
     {
         // Arrange
-        $organization = Organization::factory()->create();
         $trooper = Trooper::factory()->asActive()->create();
-
-        TrooperAssignment::factory()->create([
-            TrooperAssignment::TROOPER_ID => $trooper->id,
-            TrooperAssignment::ORGANIZATION_ID => $organization->id,
-            TrooperAssignment::IS_MEMBER => true,
-        ]);
 
         // Act
         $response = $this->actingAs($trooper)
-            ->post(route('account.costumes-htmx'), [
-                'organization_id' => $organization->id,
-                'costume_id' => -1,
-            ]);
+            ->post(route('account.costumes-htmx'), []);
 
         // Assert
         $response->assertStatus(200);
         $this->assertEquals(0, $trooper->trooper_costumes()->count());
     }
 
-    public function test_invoke_ignores_missing_organization_id(): void
+    public function test_invoke_ignores_empty_organization_costume_ids(): void
     {
         // Arrange
         $trooper = Trooper::factory()->asActive()->create();
@@ -263,23 +232,7 @@ class CostumesSubmitHtmxControllerTest extends TestCase
         // Act
         $response = $this->actingAs($trooper)
             ->post(route('account.costumes-htmx'), [
-                'costume_id' => 1,
-            ]);
-
-        // Assert
-        $response->assertStatus(200);
-        $this->assertEquals(0, $trooper->trooper_costumes()->count());
-    }
-
-    public function test_invoke_ignores_missing_costume_id(): void
-    {
-        // Arrange
-        $trooper = Trooper::factory()->asActive()->create();
-
-        // Act
-        $response = $this->actingAs($trooper)
-            ->post(route('account.costumes-htmx'), [
-                'organization_id' => 1,
+                'organization_costume_ids' => [],
             ]);
 
         // Assert
@@ -291,8 +244,7 @@ class CostumesSubmitHtmxControllerTest extends TestCase
     {
         // Act
         $response = $this->post(route('account.costumes-htmx'), [
-            'organization_id' => 1,
-            'costume_id' => 1,
+            'organization_costume_ids' => [1],
         ]);
 
         // Assert
@@ -318,8 +270,7 @@ class CostumesSubmitHtmxControllerTest extends TestCase
         // Act
         $response = $this->actingAs($trooper)
             ->post(route('account.costumes-htmx'), [
-                'organization_id' => $organization->id,
-                'costume_id' => $costume->id,
+                'organization_costume_ids' => [$costume->id],
             ]);
 
         // Assert
@@ -356,8 +307,7 @@ class CostumesSubmitHtmxControllerTest extends TestCase
         // Act - trooper1 adds costume
         $response = $this->actingAs($trooper1)
             ->post(route('account.costumes-htmx'), [
-                'organization_id' => $organization->id,
-                'costume_id' => $costume->id,
+                'organization_costume_ids' => [$costume->id],
             ]);
 
         // Assert - only trooper1 has costume
@@ -387,14 +337,12 @@ class CostumesSubmitHtmxControllerTest extends TestCase
         // Act - add both costumes
         $this->actingAs($trooper)
             ->post(route('account.costumes-htmx'), [
-                'organization_id' => $organization->id,
-                'costume_id' => $costume1->id,
+                'organization_costume_ids' => [$costume1->id],
             ]);
 
         $this->actingAs($trooper)
             ->post(route('account.costumes-htmx'), [
-                'organization_id' => $organization->id,
-                'costume_id' => $costume2->id,
+                'organization_costume_ids' => [$costume2->id],
             ]);
 
         // Assert
@@ -420,14 +368,12 @@ class CostumesSubmitHtmxControllerTest extends TestCase
         // Act - add same costume twice
         $this->actingAs($trooper)
             ->post(route('account.costumes-htmx'), [
-                'organization_id' => $organization->id,
-                'costume_id' => $costume->id,
+                'organization_costume_ids' => [$costume->id],
             ]);
 
         $this->actingAs($trooper)
             ->post(route('account.costumes-htmx'), [
-                'organization_id' => $organization->id,
-                'costume_id' => $costume->id,
+                'organization_costume_ids' => [$costume->id],
             ]);
 
         // Assert - should still only have 1 costume

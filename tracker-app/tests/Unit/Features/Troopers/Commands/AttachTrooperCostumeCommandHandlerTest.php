@@ -21,7 +21,7 @@ use Tests\TestCase;
  * - Creates TrooperCostume when costume is valid
  * - Restores soft-deleted TrooperCostume if exists
  * - Validates organization access
- * - Validates costume belongs to organization
+ * - Ignores organization costumes without access
  */
 class AttachTrooperCostumeCommandHandlerTest extends TestCase
 {
@@ -32,7 +32,7 @@ class AttachTrooperCostumeCommandHandlerTest extends TestCase
         // Arrange
         $trooper = Trooper::factory()->asActive()->create();
         $organization = Organization::factory()->create();
-        $costume = OrganizationCostume::factory()->create([
+        $organization_costume = OrganizationCostume::factory()->create([
             OrganizationCostume::ORGANIZATION_ID => $organization->id,
         ]);
 
@@ -43,7 +43,7 @@ class AttachTrooperCostumeCommandHandlerTest extends TestCase
             TrooperAssignment::IS_MEMBER => true,
         ]);
 
-        $command = new AttachTrooperCostumeCommand($trooper, $organization->id, $costume->id);
+        $command = new AttachTrooperCostumeCommand($trooper, [$organization_costume->id]);
         $subject = new AttachTrooperCostumeCommandHandler();
 
         // Act
@@ -51,7 +51,7 @@ class AttachTrooperCostumeCommandHandlerTest extends TestCase
 
         // Assert
         $trooper_costume = TrooperCostume::where(TrooperCostume::TROOPER_ID, $trooper->id)
-            ->where(TrooperCostume::COSTUME_ID, $costume->id)
+            ->where(TrooperCostume::ORGANIZATION_COSTUME_ID, $organization_costume->id)
             ->first();
         $this->assertNotNull($trooper_costume);
     }
@@ -61,13 +61,13 @@ class AttachTrooperCostumeCommandHandlerTest extends TestCase
         // Arrange
         $trooper = Trooper::factory()->asActive()->create();
         $organization = Organization::factory()->create();
-        $costume = OrganizationCostume::factory()->create([
+        $organization_costume = OrganizationCostume::factory()->create([
             OrganizationCostume::ORGANIZATION_ID => $organization->id,
         ]);
 
         $soft_deleted = TrooperCostume::factory()->create([
             TrooperCostume::TROOPER_ID => $trooper->id,
-            TrooperCostume::COSTUME_ID => $costume->id,
+            TrooperCostume::ORGANIZATION_COSTUME_ID => $organization_costume->id,
         ]);
         $soft_deleted->delete();
 
@@ -78,7 +78,7 @@ class AttachTrooperCostumeCommandHandlerTest extends TestCase
             TrooperAssignment::IS_MEMBER => true,
         ]);
 
-        $command = new AttachTrooperCostumeCommand($trooper, $organization->id, $costume->id);
+        $command = new AttachTrooperCostumeCommand($trooper, [$organization_costume->id]);
         $subject = new AttachTrooperCostumeCommandHandler();
 
         // Act
@@ -94,13 +94,13 @@ class AttachTrooperCostumeCommandHandlerTest extends TestCase
         // Arrange
         $trooper = Trooper::factory()->asActive()->create();
         $organization = Organization::factory()->create();
-        $costume = OrganizationCostume::factory()->create([
+        $organization_costume = OrganizationCostume::factory()->create([
             OrganizationCostume::ORGANIZATION_ID => $organization->id,
         ]);
 
         // No assignment - trooper has no access
 
-        $command = new AttachTrooperCostumeCommand($trooper, $organization->id, $costume->id);
+        $command = new AttachTrooperCostumeCommand($trooper, [$organization_costume->id]);
         $subject = new AttachTrooperCostumeCommandHandler();
 
         // Act
@@ -114,7 +114,7 @@ class AttachTrooperCostumeCommandHandlerTest extends TestCase
     {
         // Arrange
         $trooper = Trooper::factory()->asActive()->create();
-        $command = new AttachTrooperCostumeCommand($trooper, 1, 2);
+        $command = new AttachTrooperCostumeCommand($trooper, []);
         $subject = new AttachTrooperCostumeCommandHandler();
 
         // Act

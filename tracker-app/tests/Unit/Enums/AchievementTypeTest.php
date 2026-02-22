@@ -41,18 +41,11 @@ class AchievementTypeTest extends TestCase
         $this->assertEquals('fa-circle-question', AchievementType::TROOPER_RANK->toIcon());
     }
 
-    public function test_to_title_returns_string_with_troop_count(): void
-    {
-        $this->assertStringContainsString('1 Troop', AchievementType::FIRST_TROOP->toTitle());
-        $this->assertStringContainsString('10 Troops', AchievementType::TROOPED_10->toTitle());
-        $this->assertStringContainsString('100 Troops', AchievementType::TROOPED_100->toTitle());
-    }
-
     public function test_to_title_returns_star_wars_themed_names(): void
     {
-        $this->assertStringContainsString('Mission Initiated', AchievementType::FIRST_TROOP->toTitle());
-        $this->assertStringContainsString('Centurion Crest', AchievementType::TROOPED_100->toTitle());
-        $this->assertStringContainsString('Vader\'s Fist', AchievementType::TROOPED_501->toTitle());
+        $this->assertStringContainsString('Combat Readiness Citation', AchievementType::FIRST_TROOP->toTitle());
+        $this->assertStringContainsString('Centurion Legionary Bar', AchievementType::TROOPED_100->toTitle());
+        $this->assertStringContainsString('Vader\'s Fist - Legion of Honor', AchievementType::TROOPED_501->toTitle());
     }
 
     public function test_to_title_includes_sector_sweep_for_all_squads(): void

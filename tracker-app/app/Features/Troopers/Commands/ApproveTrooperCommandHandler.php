@@ -26,7 +26,7 @@ readonly class ApproveTrooperCommandHandler implements CommandHandlerInterface
      * Note: Trooper model changes are NOT persisted (no save() call).
      * Queues a TrooperApproved email notification.
      *
-     * @param ApproveTrooperCommand $message The command with trooper and approval status
+     * @param  ApproveTrooperCommand  $message  The command with trooper and approval status
      * @return null
      */
     public function __invoke(object $message): mixed
@@ -42,4 +42,3 @@ readonly class ApproveTrooperCommandHandler implements CommandHandlerInterface
         return null;
     }
 }
-

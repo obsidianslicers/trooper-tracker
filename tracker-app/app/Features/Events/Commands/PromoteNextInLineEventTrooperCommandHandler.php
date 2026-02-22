@@ -30,7 +30,7 @@ readonly class PromoteNextInLineEventTrooperCommandHandler implements CommandHan
      * 4. Update status to GOING
      * 5. Send notification email
      *
-     * @param PromoteNextInLineEventTrooperCommand $message The command with the cancelled trooper info.
+     * @param  PromoteNextInLineEventTrooperCommand  $message  The command with the cancelled trooper info.
      * @return null Always returns null.
      */
     public function __invoke(object $message): mixed
@@ -54,4 +54,3 @@ readonly class PromoteNextInLineEventTrooperCommandHandler implements CommandHan
         return null;
     }
 }
-

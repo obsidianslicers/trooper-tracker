@@ -20,9 +20,7 @@ readonly class GetTrooperAssignmentsQuery
     /**
      * Create a new query instance.
      *
-     * @param Trooper $trooper The trooper whose assignments to retrieve
+     * @param  Trooper  $trooper  The trooper whose assignments to retrieve
      */
-    public function __construct(public readonly Trooper $trooper)
-    {
-    }
+    public function __construct(public readonly Trooper $trooper) {}
 }

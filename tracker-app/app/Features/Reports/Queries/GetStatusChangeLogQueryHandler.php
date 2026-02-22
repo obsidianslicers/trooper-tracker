@@ -7,7 +7,6 @@ namespace App\Features\Reports\Queries;
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Enums\EventTrooperStatus;
 use App\Models\EventTrooper;
-use Carbon\Carbon;
 
 /**
  * Handler for retrieving event trooper status change log.
@@ -41,8 +40,7 @@ readonly class GetStatusChangeLogQueryHandler implements QueryHandlerInterface
             'event_shift.event',
         ];
 
-        $filter = function ($qx) use ($message)
-        {
+        $filter = function ($qx) use ($message) {
             $qx->moderatedBy($message->moderator);
         };
 

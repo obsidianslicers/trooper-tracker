@@ -18,10 +18,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * 
  * @property int $id
  * @property int $trooper_id
- * @property int $costume_id
- * @property string|null $small_image_url
- * @property string|null $large_image_url
- * @property string|null $bucket_off_url
+ * @property int $organization_costume_id
+ * @property string|null $image_url_sm
+ * @property string|null $image_url_lg
+ * @property string|null $image_url_bucket_off
  * @property Carbon|null $synchronized_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -40,10 +40,10 @@ class TrooperCostume extends Model
     use SoftDeletes;
     const ID = 'id';
     const TROOPER_ID = 'trooper_id';
-    const COSTUME_ID = 'costume_id';
-    const SMALL_IMAGE_URL = 'small_image_url';
-    const LARGE_IMAGE_URL = 'large_image_url';
-    const BUCKET_OFF_URL = 'bucket_off_url';
+    const ORGANIZATION_COSTUME_ID = 'organization_costume_id';
+    const IMAGE_URL_SM = 'image_url_sm';
+    const IMAGE_URL_LG = 'image_url_lg';
+    const IMAGE_URL_BUCKET_OFF = 'image_url_bucket_off';
     const SYNCHRONIZED_AT = 'synchronized_at';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
@@ -56,7 +56,7 @@ class TrooperCostume extends Model
     protected $casts = [
         self::ID => 'int',
         self::TROOPER_ID => 'int',
-        self::COSTUME_ID => 'int',
+        self::ORGANIZATION_COSTUME_ID => 'int',
         self::SYNCHRONIZED_AT => 'datetime',
         self::CREATED_AT => 'datetime',
         self::UPDATED_AT => 'datetime',
@@ -67,16 +67,16 @@ class TrooperCostume extends Model
 
     protected $fillable = [
         self::TROOPER_ID,
-        self::COSTUME_ID,
-        self::SMALL_IMAGE_URL,
-        self::LARGE_IMAGE_URL,
-        self::BUCKET_OFF_URL,
+        self::ORGANIZATION_COSTUME_ID,
+        self::IMAGE_URL_SM,
+        self::IMAGE_URL_LG,
+        self::IMAGE_URL_BUCKET_OFF,
         self::SYNCHRONIZED_AT
     ];
 
     public function organization_costume(): BelongsTo
     {
-        return $this->belongsTo(OrganizationCostume::class, \App\Models\TrooperCostume::COSTUME_ID);
+        return $this->belongsTo(OrganizationCostume::class);
     }
 
     public function trooper(): BelongsTo

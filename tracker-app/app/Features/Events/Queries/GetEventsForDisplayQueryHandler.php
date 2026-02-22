@@ -28,13 +28,12 @@ readonly class GetEventsForDisplayQueryHandler implements QueryHandlerInterface
      * 4. Eager load shifts and related data
      * 5. Return collection of Event models
      *
-     * @param GetEventsForDisplayQuery $message The query (no parameters)
+     * @param  GetEventsForDisplayQuery  $message  The query (no parameters)
      * @return \Illuminate\Support\Collection<int, Event> Collection of upcoming open events
      */
     public function __invoke(object $message): mixed
     {
-        $with = ['organization', 'organizations' => function ($query)
-        {
+        $with = ['organization', 'organizations' => function ($query) {
             $query->wherePivot(EventOrganization::CAN_ATTEND, true);
         }];
 

@@ -11,6 +11,9 @@
                 <th>
                     Name
                 </th>
+                <th>
+                    Synchronized
+                </th>
                 <th></th>
             </tr>
         </thead>
@@ -29,6 +32,11 @@
                         @endforeach
 
                         {{ $organization->name }}
+                    </td>
+                    <td>
+                        @if($organization->type == \App\Enums\OrganizationType::ORGANIZATION)
+                            <x-date-format :value="$organization->synchronized_at" />
+                        @endif
                     </td>
                     <td>
                         @if(Auth::user()->is_administrator || $organization->trooper_assignments->count() > 0)
