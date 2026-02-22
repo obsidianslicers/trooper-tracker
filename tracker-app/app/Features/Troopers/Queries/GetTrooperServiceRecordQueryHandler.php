@@ -19,13 +19,17 @@ use App\Models\TrooperDonation;
 use Illuminate\Support\Collection;
 
 /**
- * Handler for retrieving troopers for picker/dropdown components.
+ * Handler for retrieving a trooper's complete service record.
  *
- * Processes GetTrooperServiceRecordQuery to return troopers based on:
- * - Organization filtering: Returns only troopers belonging to a specific organization
- * - Filter criteria: Applies search term and role filtering via TrooperFilter
+ * Processes GetTrooperServiceRecordQuery to return comprehensive trooper data including:
+ * - Organizations the trooper belongs to
+ * - Approved costumes with organization associations
+ * - Service summary (shifts, hours, rank, funds, milestones)
+ * - Upcoming and recent event shifts
+ * - Recent donations
+ * - Awards received
  *
- * All results are ordered by trooper name for consistent UI display.
+ * All data is formatted for display in the trooper's service record page.
  *
  * @implements QueryHandlerInterface<GetTrooperServiceRecordQuery>
  */
@@ -39,17 +43,20 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
     }
 
     /**
-     * Handle the query to retrieve troopers for picker components.
+     * Handle the query to retrieve a trooper's complete service record.
      *
-     * Query behavior:
-     * 1. Start with active troopers who have completed setup, ordered by name
-     * 2. If organization_id is set: Filter to troopers belonging to that organization
-     * 3. If moderated_only is set: Filter to troopers moderated by the requesting trooper
-     * 4. If filter has criteria: Apply search term and role filtering and return results
-     * 5. If no filter criteria: Return empty collection
+     * Loads the trooper with achievements and returns an array containing:
+     * - trooper: The Trooper model with trooper_achievements loaded
+     * - trooper_organizations: Collection of organizations ordered by name
+     * - trooper_costumes: Collection of approved costumes with organization display strings
+     * - service_summary: Array with shifts, hours, rank, funds, and milestone data
+     * - upcoming_shifts: EventShifts starting after 1 year ago, ordered by start time
+     * - recent_shifts: EventShifts attended in past year, ordered by start time descending
+     * - recent_donations: TrooperDonations from the past year
+     * - awards: AwardTrooper records for the trooper
      *
-     * @param  GetTrooperServiceRecordQuery  $message  The query containing filter and scope criteria
-     * @return array Collection of filtered troopers, or empty if no filter applied
+     * @param  GetTrooperServiceRecordQuery  $message  The query containing the trooper_id
+     * @return array Associative array with trooper service record data
      */
     public function __invoke(object $message): mixed
     {
