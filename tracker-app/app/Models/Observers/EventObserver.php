@@ -8,6 +8,7 @@ use App\Models\Event;
 use App\Models\Organization;
 use App\Services\GeocodingService;
 use App\Services\GoogleService;
+use App\Jobs\SendDiscordEventNotification;
 use Throwable;
 
 /**
@@ -32,7 +33,25 @@ class EventObserver
      */
     public function created(Event $event): void
     {
+        // Geocode the event location after creation to ensure we have an ID for any related data.
         $this->storeGeocode($event);
+
+        // Determine organization name (prefer organization, then primary_organization)
+        $orgName = null;
+        try {
+            $orgName = $event->organization?->name ?? $event->primary_organization?->name ?? null;
+        } catch (\Throwable $e) {
+            $orgName = null;
+        }
+
+        // Dispatch a job to notify Discord when a new event is created.
+        // Pass the organization name (or null) — DiscordNotifier will resolve to a role if configured.
+        SendDiscordEventNotification::dispatch(
+            $event->id,
+            $event->name,
+            $event->comments ?? null,
+            $orgName
+        );
     }
 
     /**
@@ -86,31 +105,31 @@ class EventObserver
         $parts = [];
 
         // Normalize the base address for duplicate detection
-        $base = strtolower($event->venue_address);
+        $base = strtolower((string)$event->venue_address);
 
         // Always start with the raw address field
         $parts[] = trim($event->venue_address);
 
         // Append city if not already included
-        if (!str_contains($base, strtolower($event->venue_city)))
+        if (!empty($event->venue_city) && !str_contains($base, strtolower($event->venue_city)))
         {
             $parts[] = $event->venue_city;
         }
 
         // Append state if not already included
-        if (!str_contains($base, strtolower($event->venue_state)))
+        if (!empty($event->venue_state) && !str_contains($base, strtolower($event->venue_state)))
         {
             $parts[] = $event->venue_state;
         }
 
         // Append ZIP if not already included
-        if (!str_contains($base, strtolower($event->venue_zip)))
+        if (!empty($event->venue_zip) && !str_contains($base, strtolower($event->venue_zip)))
         {
             $parts[] = $event->venue_zip;
         }
 
         // Append country if not already included
-        if (!str_contains($base, strtolower($event->venue_country)))
+        if (!empty($event->venue_country) && !str_contains($base, strtolower($event->venue_country)))
         {
             $parts[] = $event->venue_country;
         }
