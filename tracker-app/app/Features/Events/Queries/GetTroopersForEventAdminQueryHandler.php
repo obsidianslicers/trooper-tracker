@@ -7,12 +7,9 @@ namespace App\Features\Events\Queries;
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Models\Costume;
 use App\Models\EventShift;
-use App\Models\EventTrooper;
-use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\TrooperCostume;
-use Illuminate\Support\Collection;
 
 /**
  * Handler for enriching event shifts with trooper and costume data.

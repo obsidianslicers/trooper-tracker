@@ -68,3 +68,8 @@ a:hover {
 .gm-style-iw-chr button span {
     background-color: white !important;
 }
+
+[data-bs-toggle="tooltip"] {
+    text-decoration: underline dotted;
+    cursor: help;
+}

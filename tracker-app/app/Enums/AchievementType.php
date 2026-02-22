@@ -147,20 +147,19 @@ enum AchievementType: string
             self::TROOPED_ALL_SQUADS => 'fa-network-wired',
             self::TROOPER_SHIFTS => 'fa-user-plus',
 
-            self::FIRST_TROOP => 'fa-flag-checkered',
-            self::TROOPED_10 => 'fa-shield-halved',
-            self::TROOPED_25 => 'fa-user-shield',
-            self::TROOPED_50 => 'fa-medal',
-            self::TROOPED_75 => 'fa-star-half-stroke',
-            self::TROOPED_100 => 'fa-star',
-            self::TROOPED_150 => 'fa-trophy',
-            self::TROOPED_200 => 'fa-helmet-safety',
-            self::TROOPED_250 => 'fa-award',
-            self::TROOPED_300 => 'fa-certificate',
-            self::TROOPED_400 => 'fa-crown',
-            self::TROOPED_500 => 'fa-gem',
-            self::TROOPED_501 => 'fa-brands fa-empire',
-
+            self::FIRST_TROOP => 'fa-file-shield',      // Combat Readiness Citation
+            self::TROOPED_10 => 'fa-ribbon',           // Frontier Service Ribbon
+            self::TROOPED_25 => 'fa-shield-halved',     // Garrison Duty Excellence Medal
+            self::TROOPED_50 => 'fa-medal',            // Imperial Medal of Valor
+            self::TROOPED_75 => 'fa-award',            // Distinguished Service Cross
+            self::TROOPED_100 => 'fa-grip-lines',       // Centurion Legionary Bar (The "Bar")
+            self::TROOPED_150 => 'fa-star',             // Campaign Heroism Star
+            self::TROOPED_200 => 'fa-feather-pointed',  // Order of the Imperial Wing
+            self::TROOPED_250 => 'fa-id-badge',         // High Command Merit Badge
+            self::TROOPED_300 => 'fa-certificate',      // Grand Admiral\'s Citation
+            self::TROOPED_400 => 'fa-crown',            // Medal of the Emperor\'s Will
+            self::TROOPED_500 => 'fa-trophy',           // Honor of the Galactic Empire
+            self::TROOPED_501 => 'fa-brands fa-empire', // Vader\'s Fist
             default => 'fa-circle-question',
         };
     }
@@ -179,19 +178,20 @@ enum AchievementType: string
         {
             self::TROOPED_ALL_SQUADS => 'All Squads - Sector Sweep',
             self::TROOPER_SHIFTS => 'Total Trooper Shifts',
-            self::FIRST_TROOP => '1 Troop - Mission Initiated',
-            self::TROOPED_10 => '10 Troops - Outer Rim',
-            self::TROOPED_25 => '25 Troops - Garrison Guard',
-            self::TROOPED_50 => '50 Troops - Service Medal',
-            self::TROOPED_75 => '75 Troops - Rising Star',
-            self::TROOPED_100 => '100 Troops - Centurion Crest',
-            self::TROOPED_150 => '150 Troops - Campaign Captain',
-            self::TROOPED_200 => '200 Troops - Elite Status',
-            self::TROOPED_250 => '250 Troops - Command Honor',
-            self::TROOPED_300 => '300 Troops - Doctrine Seal',
-            self::TROOPED_400 => '400 Troops - Core Crown',
-            self::TROOPED_500 => '500 Troops - Kyber Gem',
-            self::TROOPED_501 => '501 Troops - Vader\'s Fist',
+
+            self::FIRST_TROOP => 'Combat Readiness Citation',
+            self::TROOPED_10 => 'Frontier Service Ribbon',
+            self::TROOPED_25 => 'Garrison Duty Excellence Medal',
+            self::TROOPED_50 => 'Imperial Medal of Valor',
+            self::TROOPED_75 => 'Distinguished Service Cross',
+            self::TROOPED_100 => 'Centurion Legionary Bar',
+            self::TROOPED_150 => 'Campaign Heroism Star',
+            self::TROOPED_200 => 'Order of the Imperial Wing',
+            self::TROOPED_250 => 'High Command Merit Badge',
+            self::TROOPED_300 => 'Grand Admiral\'s Citation',
+            self::TROOPED_400 => 'Medal of the Emperor\'s Will',
+            self::TROOPED_500 => 'Honor of the Galactic Empire',
+            self::TROOPED_501 => 'Vader\'s Fist - Legion of Honor',
 
             default => to_title($this->name)->toString(),
         };

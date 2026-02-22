@@ -13,7 +13,6 @@
             <div class="card border-0 shadow-sm border-start border-primary border-4 h-100">
                 <div class="card-body">
                     <h6 class="text-muted text-uppercase small fw-bold"
-                        style="text-decoration: underline dotted; cursor: help;"
                         data-bs-toggle="tooltip"
                         data-bs-title="Verified troopers currently marked as 'Active'.">
                         <i class="fa-fw fa-solid fa-users-gear me-1"></i>
@@ -30,7 +29,6 @@
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <h6 class="text-muted text-uppercase small fw-bold"
-                        style="text-decoration: underline dotted; cursor: help;"
                         data-bs-toggle="tooltip"
                         data-bs-title="Total number of troopers in the registry.">
                         <i class="fa-fw fa-solid fa-address-card me-1"></i>
@@ -46,7 +44,6 @@
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <h6 class="text-muted text-uppercase small fw-bold"
-                        style="text-decoration: underline dotted; cursor: help;"
                         data-bs-toggle="tooltip"
                         data-bs-title="Active support staff and handlers.">
                         <i class="fa-fw fa-solid fa-user-shield me-1"></i>
@@ -63,7 +60,6 @@
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <h6 class="text-muted text-uppercase small fw-bold"
-                        style="text-decoration: underline dotted; cursor: help;"
                         data-bs-toggle="tooltip"
                         data-bs-title="New members joined (and activated) within this reporting window.">
                         <i class="fa-fw fa-solid fa-user-plus me-1"></i>
@@ -82,7 +78,6 @@
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <h6 class="text-muted text-uppercase small fw-bold"
-                        style="text-decoration: underline dotted; cursor: help;"
                         data-bs-toggle="tooltip"
                         data-bs-title="Active members with no system activity in this reporting window.">
                         <i class="fa-fw fa-solid fa-ghost me-1"></i>
@@ -98,7 +93,6 @@
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <h6 class="text-muted text-uppercase small fw-bold"
-                        style="text-decoration: underline dotted; cursor: help;"
                         data-bs-toggle="tooltip"
                         data-bs-title="Total individual trooper appearances at events.">
                         <i class="fa-fw fa-solid fa-calendar-check me-1"></i>
@@ -114,7 +108,6 @@
             <div class="card border-0 shadow-sm border-start border-danger border-4 h-100">
                 <div class="card-body">
                     <h6 class="text-danger text-uppercase small fw-bold"
-                        style="text-decoration: underline dotted; cursor: help;"
                         data-bs-toggle="tooltip"
                         data-bs-title="Active members who did not attend an event in this reporting window.">
                         <i class="fa-fw fa-solid fa-triangle-exclamation me-1"></i>
@@ -130,7 +123,6 @@
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
                     <h6 class="text-muted text-uppercase small fw-bold"
-                        style="text-decoration: underline dotted; cursor: help;"
                         data-bs-toggle="tooltip"
                         data-bs-title="Percentage of events successfully completed.">
                         <i class="fa-fw fa-solid fa-check-to-slot me-1"></i>
@@ -146,7 +138,7 @@
     <div class="row g-3 mb-4">
         <div class="col-lg-8">
             <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white border-0 py-3">
+                <div class="card-header border-0 py-3">
                     <h5 class="mb-0 fw-bold">
                         <i class="fa-fw fa-solid fa-hand-holding-dollar me-2 text-primary">
                         </i>
@@ -158,8 +150,7 @@
                         <div class="col-4 border-end">
                             <p class="text-muted mb-1 small"
                                data-bs-toggle="tooltip"
-                               data-bs-title="Combined direct and indirect funds raised for charity during events."
-                               style="text-decoration: underline dotted; cursor: help;">
+                               data-bs-title="Combined direct and indirect funds raised for charity during events.">
                                 Total Credits
                             </p>
                             <h4 class="fw-bold mb-0 text-success">
@@ -169,8 +160,7 @@
                         <div class="col-4 border-end">
                             <p class="text-muted mb-1 small"
                                data-bs-toggle="tooltip"
-                               data-bs-title="Total volunteer-hours contributed by all participating troopers."
-                               style="text-decoration: underline dotted; cursor: help;">
+                               data-bs-title="Total volunteer-hours contributed by all participating troopers.">
                                 Volunteer Hours
                             </p>
                             <h4 class="fw-bold mb-0">
@@ -180,8 +170,7 @@
                         <div class="col-4">
                             <p class="text-muted mb-1 small"
                                data-bs-toggle="tooltip"
-                               data-bs-title="Donations made internally by troopers to support organization goals."
-                               style="text-decoration: underline dotted; cursor: help;">
+                               data-bs-title="Donations made internally by troopers to support organization goals.">
                                 Internal Support
                             </p>
                             <h4 class="fw-bold mb-0">
@@ -199,8 +188,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <span class="small text-uppercase opacity-75"
                               data-bs-toggle="tooltip"
-                              data-bs-title="Percentage of members who have opened and read organization notices."
-                              style="text-decoration: underline dotted; cursor: help;">
+                              data-bs-title="Percentage of members who have opened and read organization notices.">
                             Notice Read Rate
                         </span>
                         <span class="fw-bold">
@@ -217,8 +205,7 @@
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <span class="small"
                               data-bs-toggle="tooltip"
-                              data-bs-title="Number of merit-based awards issued to troopers in this reporting window."
-                              style="text-decoration: underline dotted; cursor: help;">
+                              data-bs-title="Number of merit-based awards issued to troopers in this reporting window.">
                             <i class="fa-fw fa-solid fa-medal me-2 text-warning">
                             </i>
                             Awards Issued
@@ -230,8 +217,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <span class="small"
                               data-bs-toggle="tooltip"
-                              data-bs-title="Amount of gallery activity, measured by events with new photo uploads."
-                              style="text-decoration: underline dotted; cursor: help;">
+                              data-bs-title="Amount of gallery activity, measured by events with new photo uploads.">
                             <i class="fa-fw fa-solid fa-camera me-2 text-info">
                             </i>
                             Photos Tagged
@@ -247,7 +233,7 @@
     <div class="row g-3">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                <div class="card-header border-0 py-3 d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 fw-bold">
                         <i class="fa-fw fa-solid fa-trophy me-2 text-warning">
                         </i>
@@ -263,38 +249,32 @@
                             <tr>
                                 <th class="ps-4"
                                     data-bs-toggle="tooltip"
-                                    data-bs-title="Primary Hosting Organization."
-                                    style="text-decoration: underline dotted; cursor: help;">
+                                    data-bs-title="Primary Hosting Organization.">
                                     Hosting Organization
                                 </th>
                                 <th class="text-center"
                                     data-bs-toggle="tooltip"
-                                    data-bs-title="Successful 'Closed' status events hosted by this organization."
-                                    style="text-decoration: underline dotted; cursor: help;">
+                                    data-bs-title="Successful 'Closed' status events hosted by this organization.">
                                     Events
                                 </th>
                                 <th class="text-center"
                                     data-bs-toggle="tooltip"
-                                    data-bs-title="Total Trooper count who 'Attended' events hosted by this organization (does not take into account costume worn)."
-                                    style="text-decoration: underline dotted; cursor: help;">
+                                    data-bs-title="Total Trooper count who 'Attended' events hosted by this organization (does not take into account costume worn).">
                                     Troopers
                                 </th>
                                 <th class="text-end pe-4"
                                     data-bs-toggle="tooltip"
-                                    data-bs-title="Total direct financial contribution attributed to this organization's efforts."
-                                    style="text-decoration: underline dotted; cursor: help;">
+                                    data-bs-title="Total direct financial contribution attributed to this organization's efforts.">
                                     Direct
                                 </th>
                                 <th class="text-end pe-4"
                                     data-bs-toggle="tooltip"
-                                    data-bs-title="Total indirect financial contribution attributed to this organization's efforts."
-                                    style="text-decoration: underline dotted; cursor: help;">
+                                    data-bs-title="Total indirect financial contribution attributed to this organization's efforts.">
                                     Indirect
                                 </th>
                                 <th class="text-end pe-4"
                                     data-bs-toggle="tooltip"
-                                    data-bs-title="Total financial contribution attributed to this organization's efforts."
-                                    style="text-decoration: underline dotted; cursor: help;">
+                                    data-bs-title="Total financial contribution attributed to this organization's efforts.">
                                     Total
                                 </th>
                             </tr>

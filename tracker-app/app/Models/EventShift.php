@@ -80,10 +80,46 @@ class EventShift extends BaseEventShift
     public function getTimeDisplayAttribute(): string
     {
         //Sat - Oct 03, 2026 - 2:00pm - 4:00pm
-        return $this->shift_starts_at->format('D') . ' - ' .
-            $this->shift_starts_at->format('M d, Y') . ' - ' .
+        return $this->full_date_display . ' - ' .
             $this->shift_starts_at->format('g:ia') . ' - ' .
             $this->shift_ends_at->format('g:ia');
+    }
+
+    /**
+     * Get a formatted time display string for the event.
+     *
+     * Format: "Sat - Oct 03, 2026 - 2:00pm - 4:00pm"
+     *
+     * @return string
+     */
+    public function getFullDateDisplayAttribute(): string
+    {
+        //Sat - Oct 03, 2026 
+        return $this->shift_starts_at->format('D') . ' - ' .
+            $this->shift_starts_at->format('M d, Y');
+    }
+
+    /**
+     * Get a compact formatted time display string for the shift.
+     *
+     * Format: "2-4pm" or "11am-1pm"
+     *
+     * @return string
+     */
+    public function getCompactTimeDisplayAttribute(): string
+    {
+        $start = $this->shift_starts_at;
+        $end = $this->shift_ends_at;
+
+        // Check if we need to show 'am/pm' on the start time
+        // If start and end are both 'pm', we only show it on the end for brevity
+        $startFormat = ($start->format('a') === $end->format('a')) ? 'g' : 'ga';
+
+        // Remove :00 from times to keep it tight (e.g., 2:00pm becomes 2pm)
+        $start_time = str_replace(':00', '', $start->format($startFormat));
+        $end_time = str_replace(':00', '', $end->format('ga'));
+
+        return $start_time . '-' . $end_time;
     }
 
     /**

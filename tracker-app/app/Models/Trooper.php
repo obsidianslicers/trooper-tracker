@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\AchievementType;
 use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
 use App\Enums\NotificationFrequency;
@@ -189,5 +190,85 @@ class Trooper extends BaseTrooper implements
         }
 
         return false;
+    }
+
+    /**
+     * Get the trooper achievement for a specific achievement type.
+     *
+     * @param AchievementType $type The type of achievement to retrieve
+     * @return TrooperAchievement|null The trooper achievement if found, or null if not found
+     */
+    public function getTrooperAchievement(AchievementType $type): ?TrooperAchievement
+    {
+        return $this->trooper_achievements
+            ->where(TrooperAchievement::TYPE, $type)
+            ->first();
+    }
+
+    /**
+     * Get the trooper achievement for a specific achievement type.
+     *
+     * @param AchievementType $type The type of achievement to retrieve
+     * @return mixed|null The value of the trooper achievement if found, or null if not found
+     */
+    public function getAchievementValue(AchievementType $type): mixed
+    {
+        $trooper_achievement = $this->getTrooperAchievement($type);
+
+        if ($trooper_achievement)
+        {
+            return $trooper_achievement->value;
+        }
+
+        return null;
+    }
+
+    /**
+     * Resolve an Imperial Title based on leaderboard position using powers of two.
+     * @return string The Imperial Title.
+     */
+    public function getTitleByTrooperRank(): string
+    {
+        $shifts = $this->getAchievementValue(AchievementType::TROOPER_SHIFTS);
+
+        if ($shifts === null || $shifts < 2)
+        {
+            return 'Recruit';
+        }
+
+        $rank = (int) $this->getAchievementValue(AchievementType::TROOPER_RANK);
+
+        return match (true)
+        {
+            $rank === 1 => 'Grand Moff',
+            $rank <= 2 => 'Moff',
+            $rank <= 4 => 'General',
+            $rank <= 8 => 'Colonel',
+            $rank <= 16 => 'Major',
+            $rank <= 32 => 'Captain',
+            $rank <= 64 => 'Lieutenant',
+            $rank <= 128 => 'Sergeant Major',
+            $rank <= 256 => 'Sergeant',
+            $rank <= 512 => 'Corporal',
+            $rank <= 1024 => 'Specialist',
+            $rank <= 2048 => 'Trooper',
+            default => 'Recruit',
+        };
+    }
+
+    /**
+     * Get the theme color based on rank position.
+     */
+    public function getRankTheme(): string
+    {
+        $rank = (int) $this->getAchievementValue(AchievementType::TROOPER_RANK);
+
+        return match (true)
+        {
+            $rank <= 4 => 'danger',  // Command Red (Grand Moff to General)
+            $rank <= 64 => 'primary', // Operations Blue (Colonel to Captain)
+            $rank <= 128 => 'info',    // Tactical Cyan (Lieutenant)
+            default => 'secondary', // Standard Issue Grey
+        };
     }
 }

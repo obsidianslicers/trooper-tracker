@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
+use App\Enums\EventTrooperStatus;
 use App\Features\Events\Commands\UpdateEventCommand;
 use App\Features\Events\Commands\UpdateEventOrganizationsCommand;
 use App\Http\Controllers\MagicBusController;
@@ -56,6 +57,27 @@ class UpdateSubmitController extends MagicBusController
             }
             elseif ($updated_status == EventStatus::CANCELLED)
             {
+                $mark_event_cancelled = function () use ($event) {
+                    foreach ($event->event_shifts as $shift)
+                    {
+                        $shift->status = EventStatus::CANCELLED;
+                        $shift->save();
+
+                        foreach ($shift->event_troopers as $event_trooper)
+                        {
+                            if ($event_trooper->status === EventTrooperStatus::CANCELLED)
+                            {
+                                continue;
+                            }
+
+                            $event_trooper->status = EventTrooperStatus::CANCELLED;
+                            $event_trooper->save();
+                        }
+                    }
+                };
+
+                dispatch($mark_event_cancelled)->afterResponse();
+
                 dispatch(new SendEventCancelledNotificationsJob($event));
             }
         }
