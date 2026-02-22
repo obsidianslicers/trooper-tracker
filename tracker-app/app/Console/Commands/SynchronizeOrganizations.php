@@ -44,7 +44,7 @@ class SynchronizeOrganizations extends Command
         {
             $organizations = Organization::ofTypeOrganizations()
                 ->whereNotNull(Organization::SERVICE_CLASS)
-                ->orderBy(Organization::NAME)
+                ->orderByDesc(Organization::NAME)
                 ->get();
 
             foreach ($organizations as $organization)
@@ -59,7 +59,7 @@ class SynchronizeOrganizations extends Command
 
                 $readable = CarbonInterval::millisecond($time)->cascade()->forHumans();
 
-                $this->info("Synchronize Ended {$readable}");
+                $this->info("Synchronize Ended:   {$readable}");
             }
         });
 
