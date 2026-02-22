@@ -8,7 +8,6 @@ use App\Models\Event;
 use App\Models\Organization;
 use App\Services\GeocodingService;
 use App\Services\GoogleService;
-use App\Jobs\SendDiscordEventNotification;
 use Throwable;
 
 /**
@@ -46,27 +45,6 @@ class EventObserver
     {
         // Geocode the event location after creation to ensure we have an ID for any related data.
         $this->storeGeocode($event);
-
-        // Determine organization name (prefer organization, then primary_organization)
-        $organization_name = null;
-
-        try
-        {
-            $organization_name = $event->organization?->name ?? $event->primary_organization?->name ?? null;
-        }
-        catch (Throwable $e)
-        {
-            $organization_name = null;
-        }
-
-        // Dispatch a job to notify Discord when a new event is created.
-        // Pass the organization name (or null) — DiscordNotifier will resolve to a role if configured.
-        SendDiscordEventNotification::dispatch(
-            $event->id,
-            $event->name,
-            $event->comments ?? null,
-            $organization_name
-        );
     }
 
     /**

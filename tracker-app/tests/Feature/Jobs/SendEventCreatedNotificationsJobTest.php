@@ -10,6 +10,7 @@ use App\Models\Event;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Http;
 use Mockery\MockInterface;
 use Tests\TestCase;
 
@@ -17,7 +18,7 @@ use Tests\TestCase;
  * Tests for the SendEventCreatedNotificationsJob class.
  *
  * Validates that the job correctly creates and sends event notifications
- * to eligible troopers when a new event is created.
+ * to eligible troopers when a new event is created, and notifies Discord.
  */
 class SendEventCreatedNotificationsJobTest extends TestCase
 {
@@ -33,6 +34,7 @@ class SendEventCreatedNotificationsJobTest extends TestCase
             'create_notifications_sent_at' => null,
         ]);
 
+        Http::fake();
         $this->bus_mock = $this->mock(MagicBus::class);
     }
 
@@ -52,9 +54,10 @@ class SendEventCreatedNotificationsJobTest extends TestCase
             ->andReturn(null);
 
         $subject = new SendEventCreatedNotificationsJob($this->event);
+        $notifier = app(\App\Services\Notifications\DiscordNotifier::class);
 
         // Act
-        $subject->handle($this->bus_mock);
+        $subject->handle($this->bus_mock, $notifier);
 
         // Assert
         $this->event->refresh();
@@ -70,9 +73,10 @@ class SendEventCreatedNotificationsJobTest extends TestCase
         $this->bus_mock->shouldNotReceive('send');
 
         $subject = new SendEventCreatedNotificationsJob($this->event);
+        $notifier = app(\App\Services\Notifications\DiscordNotifier::class);
 
         // Act
-        $subject->handle($this->bus_mock);
+        $subject->handle($this->bus_mock, $notifier);
 
         // Assert - timestamp should remain unchanged
         $original_timestamp = $this->event->create_notifications_sent_at;
@@ -95,9 +99,10 @@ class SendEventCreatedNotificationsJobTest extends TestCase
             ->andReturn(null);
 
         $subject = new SendEventCreatedNotificationsJob($this->event);
+        $notifier = app(\App\Services\Notifications\DiscordNotifier::class);
 
         // Act
-        $subject->handle($this->bus_mock);
+        $subject->handle($this->bus_mock, $notifier);
 
         // Assert
         $this->event->refresh();
@@ -115,9 +120,10 @@ class SendEventCreatedNotificationsJobTest extends TestCase
             ->andReturn($troopers);
 
         $subject = new SendEventCreatedNotificationsJob($this->event);
+        $notifier = app(\App\Services\Notifications\DiscordNotifier::class);
 
         // Act
-        $subject->handle($this->bus_mock);
+        $subject->handle($this->bus_mock, $notifier);
 
         // Assert
         $this->event->refresh();
@@ -134,9 +140,10 @@ class SendEventCreatedNotificationsJobTest extends TestCase
             ->andReturn($troopers);
 
         $subject = new SendEventCreatedNotificationsJob($this->event);
+        $notifier = app(\App\Services\Notifications\DiscordNotifier::class);
 
         // Act
-        $subject->handle($this->bus_mock);
+        $subject->handle($this->bus_mock, $notifier);
     }
 
     public function test_handle_passes_troopers_from_query_to_command(): void
@@ -156,9 +163,10 @@ class SendEventCreatedNotificationsJobTest extends TestCase
             ->andReturn(null);
 
         $subject = new SendEventCreatedNotificationsJob($this->event);
+        $notifier = app(\App\Services\Notifications\DiscordNotifier::class);
 
         // Act
-        $subject->handle($this->bus_mock);
+        $subject->handle($this->bus_mock, $notifier);
     }
 
     public function test_job_implements_should_queue(): void
