@@ -264,4 +264,100 @@ class UpdateRequestTest extends TestCase
         // Assert
         $this->assertTrue($validator->passes());
     }
+
+    public function test_validation_passes_with_valid_sync_sheet_id(): void
+    {
+        // Arrange
+        $good_data = [
+            'name' => 'Updated Name',
+            'sync_sheet_id' => 'abc123def456',
+        ];
+
+        // Act
+        $this->subject->merge($good_data);
+        $validator = Validator::make($good_data, $this->subject->rules());
+
+        // Assert
+        $this->assertTrue($validator->passes());
+    }
+
+    public function test_validation_passes_with_null_sync_sheet_id(): void
+    {
+        // Arrange
+        $good_data = [
+            'name' => 'Updated Name',
+            'sync_sheet_id' => null,
+        ];
+
+        // Act
+        $this->subject->merge($good_data);
+        $validator = Validator::make($good_data, $this->subject->rules());
+
+        // Assert
+        $this->assertTrue($validator->passes());
+    }
+
+    public function test_validation_passes_without_sync_sheet_id(): void
+    {
+        // Arrange
+        $good_data = [
+            'name' => 'Updated Name',
+        ];
+
+        // Act
+        $this->subject->merge($good_data);
+        $validator = Validator::make($good_data, $this->subject->rules());
+
+        // Assert
+        $this->assertTrue($validator->passes());
+    }
+
+    public function test_validation_fails_with_sync_sheet_id_exceeding_max_length(): void
+    {
+        // Arrange
+        $bad_data = [
+            'name' => 'Updated Name',
+            'sync_sheet_id' => str_repeat('a', 129),
+        ];
+
+        // Act
+        $this->subject->merge($bad_data);
+        $validator = Validator::make($bad_data, $this->subject->rules());
+
+        // Assert
+        $this->assertTrue($validator->fails());
+        $this->assertTrue($validator->errors()->has('sync_sheet_id'));
+    }
+
+    public function test_validation_passes_with_sync_sheet_id_at_max_length(): void
+    {
+        // Arrange
+        $good_data = [
+            'name' => 'Updated Name',
+            'sync_sheet_id' => str_repeat('a', 128),
+        ];
+
+        // Act
+        $this->subject->merge($good_data);
+        $validator = Validator::make($good_data, $this->subject->rules());
+
+        // Assert
+        $this->assertTrue($validator->passes());
+    }
+
+    public function test_validation_passes_with_sync_sheet_id_containing_special_characters(): void
+    {
+        // Arrange
+        $good_data = [
+            'name' => 'Updated Name',
+            'sync_sheet_id' => 'sheet-id_123!@#$%',
+        ];
+
+        // Act
+        $this->subject->merge($good_data);
+        $validator = Validator::make($good_data, $this->subject->rules());
+
+        // Assert
+        $this->assertTrue($validator->passes());
+    }
 }

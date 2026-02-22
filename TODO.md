@@ -13,7 +13,6 @@ stan/pint - WIP
 
 ### FIX
 - Trooper Dashboard
--
 
 ### MISC
 
@@ -49,8 +48,6 @@ stan/pint - WIP
   - direct and indirect donations
 
 ### CLUB-SYNC
-- Edit Google Excel ID from UI
-- Dashboard (view costumes and pictures)
 - Join Date
 
 ### MOBILE API
@@ -61,7 +58,6 @@ stan/pint - WIP
 
 ## INTEGRATIONS
 - Xenforo tie in modules (When posting a event, cross post to Xenforo, use the comments on forum for tracker, ability to see forum link on event)
-- Discord bot cross (When posting a event, cross post to Discord)
 - todo:   club/organization identifiers
   - pull/sync from clubs (http/json/googlesheets)
   - auto verify club identifiers on registration

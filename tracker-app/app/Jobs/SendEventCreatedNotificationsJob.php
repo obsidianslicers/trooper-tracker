@@ -8,6 +8,7 @@ use App\Bus\MagicBus;
 use App\Features\Events\Commands\SendEventCreatedNotificationCommand;
 use App\Features\Events\Queries\GetTroopersForEventCreatedQuery;
 use App\Models\Event;
+use App\Services\Notifications\DiscordNotifier;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
@@ -39,8 +40,12 @@ class SendEventCreatedNotificationsJob implements ShouldQueue
      * Processes all active troopers and creates event notifications based on their
      * notification preferences. Troopers with instant notifications receive emails
      * immediately, while others have notifications queued for later batch processing.
+     * Also notifies Discord about the new event with the organization name.
+     *
+     * @param  MagicBus  $bus  The message bus for sending queries and commands.
+     * @param  DiscordNotifier  $notifier  The Discord notification service.
      */
-    public function handle(MagicBus $bus): void
+    public function handle(MagicBus $bus, DiscordNotifier $notifier): void
     {
         if ($this->event->create_notifications_sent_at !== null)
         {
@@ -60,5 +65,10 @@ class SendEventCreatedNotificationsJob implements ShouldQueue
 
         $this->event->create_notifications_sent_at = now();
         $this->event->save();
+
+        //  notify discord about the new event
+        $organization_name = $this->event->organization->name;
+
+        $notifier->sendEventNotification($this->event->id, $this->event->name, $this->event->comments ?? null, $organization_name);
     }
 }
