@@ -1,7 +1,7 @@
 <div id="shift-container-{{ $event_shift->id }}">
     <span id="shift-{{ $event_shift->id }}"></span>
     <x-accordion-card :label="$event_shift->short_time_display"
-                      :open="$shifts_count == 1">
+                      :open="$count_of_shifts == 1">
         <x-transmission-bar :id="'shift-' . $event_shift->id" />
         @include('pages.events.inc.shift-header', compact('event_shift'))
         @foreach($event_shift->event_troopers as $event_trooper)
