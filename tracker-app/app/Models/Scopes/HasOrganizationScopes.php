@@ -26,8 +26,8 @@ trait HasOrganizationScopes
     public function scopeFullyLoaded(Builder $query): Builder
     {
         return $query->with('organizations.organizations.organizations')
-            ->where('type', OrganizationType::ORGANIZATION)
-            ->orderBy(self::NAME);
+            ->where(Organization::TYPE, OrganizationType::ORGANIZATION)
+            ->orderBy(Organization::NAME);
     }
 
     /**
@@ -38,7 +38,7 @@ trait HasOrganizationScopes
      */
     public function scopeOfTypeOrganizations(Builder $query): Builder
     {
-        return $query->where(self::TYPE, OrganizationType::ORGANIZATION);
+        return $query->where(Organization::TYPE, OrganizationType::ORGANIZATION);
     }
 
     /**
@@ -49,7 +49,7 @@ trait HasOrganizationScopes
      */
     public function scopeOfTypeRegions(Builder $query): Builder
     {
-        return $query->where(self::TYPE, OrganizationType::REGION);
+        return $query->where(Organization::TYPE, OrganizationType::REGION);
     }
 
     /**
@@ -60,7 +60,7 @@ trait HasOrganizationScopes
      */
     public function scopeOfTypeUnits(Builder $query): Builder
     {
-        return $query->where(self::TYPE, OrganizationType::UNIT);
+        return $query->where(Organization::TYPE, OrganizationType::UNIT);
     }
 
     /**
@@ -73,8 +73,8 @@ trait HasOrganizationScopes
     public function scopeWithActiveTroopers(Builder $query, ?int $trooper_id = null): Builder
     {
         return $query
-            ->orderBy(self::NAME)
-            ->where(self::TYPE, OrganizationType::ORGANIZATION)
+            ->orderBy(Organization::NAME)
+            ->where(Organization::TYPE, OrganizationType::ORGANIZATION)
             ->whereExists(function ($sub) use ($trooper_id)
             {
                 $sub->select(DB::raw(1))
@@ -99,7 +99,7 @@ trait HasOrganizationScopes
      */
     public function scopeWithAllAssignments(Builder $query, int $trooper_id): Builder
     {
-        return $query->orderBy(self::SEQUENCE)->with([
+        return $query->orderBy(Organization::SEQUENCE)->with([
             'parent',
             'trooper_assignments' => function ($q) use ($trooper_id)
             {
