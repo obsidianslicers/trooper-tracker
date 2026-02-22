@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use Carbon\CarbonInterval;
 use Database\Seeders\FloridaGarrison\AwardSeeder;
 use Database\Seeders\FloridaGarrison\CostumeSeeder;
 use Database\Seeders\FloridaGarrison\EventSeeder;
@@ -17,6 +18,7 @@ use Database\Seeders\FloridaGarrison\TrooperOrganizationSeeder;
 use Database\Seeders\FloridaGarrison\TrooperSeeder;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Benchmark;
 use Illuminate\Support\Facades\Artisan;
 
 class FloridaGarrisonSeeder extends Seeder
@@ -28,35 +30,35 @@ class FloridaGarrisonSeeder extends Seeder
      */
     public function run(): void
     {
-        $start = microtime(true);
-
-        $this->call(CostumeSeeder::class);
-        $this->call(OrganizationSeeder::class);
-        $this->call(FloridaGarrisonOrganizationSeeder::class);
-        $this->call(OrganizationCostumeSeeder::class);
-
-        $this->call(TrooperSeeder::class);
-        $this->call(TrooperDonationSeeder::class);
-        $this->call(TrooperOrganizationSeeder::class);
-        $this->call(TrooperCostumeSeeder::class);
-
-        $this->call(AwardSeeder::class);
-
-        if (config('app.debug') === true)
+        $ms = Benchmark::measure(function ()
         {
-            $this->call(ActorSeeder::class);
-        }
+            $this->call(CostumeSeeder::class);
+            $this->call(OrganizationSeeder::class);
+            $this->call(FloridaGarrisonOrganizationSeeder::class);
+            $this->call(OrganizationCostumeSeeder::class);
 
-        $this->call(EventSeeder::class);
-        $this->call(EventUploadSeeder::class);
-        $this->call(EventUploadTrooperSeeder::class);
+            $this->call(TrooperSeeder::class);
+            $this->call(TrooperDonationSeeder::class);
+            $this->call(TrooperOrganizationSeeder::class);
+            $this->call(TrooperCostumeSeeder::class);
 
-        $end = microtime(true);
+            $this->call(AwardSeeder::class);
 
-        $duration = $end - $start;
+            if (config('app.debug') === true)
+            {
+                $this->call(ActorSeeder::class);
+            }
 
-        $this->command->info("Florida Garrison seeding completed in {$duration} seconds.");
+            $this->call(EventSeeder::class);
+            $this->call(EventUploadSeeder::class);
+            $this->call(EventUploadTrooperSeeder::class);
+        });
+
+        $readable = CarbonInterval::millisecond($ms)->cascade()->forHumans();
+
+        $this->command->info("Florida Garrison seeding completed in {$readable}.");
 
         Artisan::call('tracker:calculate-trooper-achievements');
+        Artisan::call('tracker:synchronize-organizations');
     }
 }

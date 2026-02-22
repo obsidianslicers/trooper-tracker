@@ -55,7 +55,7 @@ trait HasClubMaps
             0 => ['name' => '501st Legion', 'column' => 'p501', 'identity' => 'tkid', 'legacy_id' => 0],
             1 => ['name' => 'Rebel Legion', 'column' => 'pRebel', 'identity' => 'rebelforum', 'legacy_id' => 6],
             2 => ['name' => 'Mandalorian Mercs', 'column' => 'pMando', 'identity' => 'mandoid', 'legacy_id' => 8],
-            3 => ['name' => 'Droid Builders', 'column' => 'pDroid', 'identity' => 'forum_id', 'legacy_id' => 7],
+            3 => ['name' => 'Droid Builders', 'column' => 'pDroid', 'identity' => '', 'legacy_id' => 7],
             //4 => ['name' => 'Other', 'column' => 'pOther', 'identity' => ''],
             6 => ['name' => 'Saber Guild', 'column' => 'pSG', 'identity' => 'sgid', 'legacy_id' => 10],
             13 => ['name' => 'Dark Empire', 'column' => 'pDE', 'identity' => 'de_id', 'legacy_id' => 13],
@@ -74,6 +74,7 @@ trait HasClubMaps
                     'id' => $organization->id,
                     'costume_club_id' => $costume_club_id,
                     'identity' => $meta['identity'],
+                    'permission_column' => $meta['column'],
                 ];
             }
             else
@@ -91,7 +92,7 @@ trait HasClubMaps
         $legacy_clubs = [
             0 => ['name' => '501st Legion', 'column' => 'p501', 'identity' => 'tkid'],
             6 => ['name' => 'Rebel Legion', 'column' => 'pRebel', 'identity' => 'rebelforum'],
-            7 => ['name' => 'Droid Builders', 'column' => 'pDroid', 'identity' => 'forum_id'],
+            7 => ['name' => 'Droid Builders', 'column' => 'pDroid', 'identity' => ''],
             8 => ['name' => 'Mandalorian Mercs', 'column' => 'pMando', 'identity' => 'mandoid'],
             //9 => ['name' => 'Other', 'column' => 'pOther', 'identity' => ''],
             10 => ['name' => 'Saber Guild', 'column' => 'pSG', 'identity' => 'sgid'],
@@ -111,6 +112,7 @@ trait HasClubMaps
                     'id' => $organization->id,
                     'legacy_id' => $legacy_id,
                     'identity' => $meta['identity'],
+                    'permission_column' => $meta['column'],
                 ];
             }
             else

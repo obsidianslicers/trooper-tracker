@@ -42,6 +42,12 @@ class TrooperOrganizationSeeder extends Seeder
         {
             $legacy_id = $club['legacy_id'];
 
+            if ($club['permission_column'] == 'pDroid' || $club['identity'] == '')
+            {
+                //  skip droid builders, no identifier column
+                continue;
+            }
+
             if (!isset($club['id']))
             {
                 //  can't map to the new club

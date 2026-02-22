@@ -6,7 +6,9 @@ namespace App\Console\Commands;
 
 use App\Models\Organization;
 use App\Services\Synchronizers\TheLegionService;
+use Carbon\CarbonInterval;
 use Illuminate\Console\Command;
+use Illuminate\Support\Benchmark;
 
 /**
  * Artisan command to calculate and store trooper achievements based on their event history.
@@ -38,20 +40,31 @@ class SynchronizeOrganizations extends Command
      */
     public function handle(): void
     {
-        $organizations = Organization::ofTypeOrganizations()
-            ->whereNotNull(Organization::SERVICE_CLASS)
-            ->orderBy(Organization::NAME)
-            ->get();
-
-        foreach ($organizations as $organization)
+        $ms = Benchmark::measure(function ()
         {
-            $service_class = $organization->service_class;
+            $organizations = Organization::ofTypeOrganizations()
+                ->whereNotNull(Organization::SERVICE_CLASS)
+                ->orderBy(Organization::NAME)
+                ->get();
 
-            $service_class = app($service_class, compact('organization'));
+            foreach ($organizations as $organization)
+            {
+                $this->info("Synchronize Started: {$organization->name}");
 
-            $service_class->run();
+                $service_class = $organization->service_class;
 
-            $this->info("Synchronized organization: {$organization->name}");
-        }
+                $service_class = app($service_class, compact('organization'));
+
+                $time = Benchmark::measure(fn() => $service_class->run());
+
+                $readable = CarbonInterval::millisecond($time)->cascade()->forHumans();
+
+                $this->info("Synchronize Ended {$readable}");
+            }
+        });
+
+        $readable = CarbonInterval::millisecond($ms)->cascade()->forHumans();
+
+        $this->info("Synchronizer completed in {$readable}.");
     }
 }
