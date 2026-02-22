@@ -69,7 +69,7 @@ readonly class GetLeaderboardMetricsQueryHandler implements QueryHandlerInterfac
             ->whereNotNull('costume_id')
             ->select('costume_id', \DB::raw('count(*) as occurrence_count'))
             ->whereDoesntHave('costume', function ($q) {
-                $q->whereIn(Costume::NAME, ['N/A', 'NA', 'Handler']);
+                $q->whereIn(Costume::NAME, ['N/A', 'NA', Costume::COMMAND_STAFF, Costume::HANDLER]);
             })
             ->with(['costume' => function ($q) {
                 $q->select(Costume::ID, Costume::NAME);

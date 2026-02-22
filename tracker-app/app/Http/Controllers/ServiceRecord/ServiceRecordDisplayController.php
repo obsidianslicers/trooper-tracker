@@ -47,7 +47,7 @@ class ServiceRecordDisplayController extends MagicBusController
 
         $trooper_costumes = $this->bus->send($trooper_costumes_query);
 
-        $trooper_costumes = $trooper_costumes->filter(fn($c) => !in_array($c->name, [Costume::COMMAND_STAFF, Costume::HANDLER]));
+        $trooper_costumes = $trooper_costumes->filter(fn ($c) => !in_array($c->name, [Costume::COMMAND_STAFF, Costume::HANDLER]));
 
         $data['trooper_costumes'] = $trooper_costumes;
 
