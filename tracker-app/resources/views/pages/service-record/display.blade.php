@@ -70,15 +70,17 @@
                                     tabindex="-1"
                                     role="tab">Photos</button>
                         </li>
-                        <li class="nav-item"
-                            role="presentation">
-                            <button class="nav-link text-uppercase small fw-bold"
-                                    data-bs-toggle="tab"
-                                    data-bs-target="#donations"
-                                    aria-selected="false"
-                                    tabindex="-1"
-                                    role="tab">Donations</button>
-                        </li>
+                        @if(config('tracker.support.url'))
+                            <li class="nav-item"
+                                role="presentation">
+                                <button class="nav-link text-uppercase small fw-bold"
+                                        data-bs-toggle="tab"
+                                        data-bs-target="#donations"
+                                        aria-selected="false"
+                                        tabindex="-1"
+                                        role="tab">Support</button>
+                            </li>
+                        @endif
                     </ul>
                 </div>
                 <div class="card-body tab-content">
@@ -111,17 +113,15 @@
                     <div class="tab-pane fade"
                          id="photos"
                          role="tabpanel">
-                        <div id="photo-content"
-                             class="text-center p-5">
-                            <div class="spinner-border text-primary"
-                                 role="status"></div>
+                        @include('pages.service-record.inc.tagged-uploads')
+                    </div>
+                    @if(config('tracker.support.url'))
+                        <div class="tab-pane fade"
+                             id="donations"
+                             role="tabpanel">
+                            @include('pages.service-record.inc.donations')
                         </div>
-                    </div>
-                    <div class="tab-pane fade"
-                         id="donations"
-                         role="tabpanel">
-                        @include('pages.service-record.inc.donations')
-                    </div>
+                    @endif
                 </div>
             </div>
         </div>
