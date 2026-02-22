@@ -111,9 +111,9 @@ trait HasOrganizationScopes
     /**
      * Scope: limit to organizations that can be updated by a given moderator.
      *
-     * @param Builder $query
-     * @param Trooper $trooper
-     * @return Builder
+     * @param Builder<Organization> $query The Eloquent query builder.
+     * @param Trooper $trooper The moderator trooper.
+     * @return Builder<Organization>
      */
     public function scopeModeratedBy(Builder $query, Trooper $trooper): Builder
     {

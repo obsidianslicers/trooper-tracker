@@ -40,6 +40,7 @@ class EventObserver
      * Handle the Event "created" event.
      *
      * @param Event $event The event instance that was created.
+     * @return void
      */
     public function created(Event $event): void
     {

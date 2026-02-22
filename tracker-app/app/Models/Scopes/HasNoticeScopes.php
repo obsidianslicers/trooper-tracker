@@ -76,6 +76,7 @@ trait HasNoticeScopes
      *
      * @param Builder $query The Eloquent query builder.
      * @param Trooper $trooper The trooper whose visibility is being checked.
+     * @param bool $unread_only True to limit results to unread notices.
      * @return Builder<self>
      */
     public function scopeVisibleTo(Builder $query, Trooper $trooper, bool $unread_only = false): Builder
@@ -122,7 +123,7 @@ trait HasNoticeScopes
      *
      * @param Builder $query The Eloquent query builder.
      * @param Trooper $trooper The moderator to filter by.
-     * @return Builder
+     * @return Builder<self>
      */
     public function scopeModeratedBy(Builder $query, Trooper $trooper): Builder
     {

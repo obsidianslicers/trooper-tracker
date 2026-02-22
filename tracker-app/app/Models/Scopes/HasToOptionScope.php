@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Models\Scopes;
 
+/**
+ * Provides a scope for converting query results into select options.
+ */
 trait HasToOptionScope
 {
     /**

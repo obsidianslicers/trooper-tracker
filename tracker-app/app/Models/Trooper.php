@@ -257,6 +257,8 @@ class Trooper extends BaseTrooper implements
 
     /**
      * Get the theme color based on rank position.
+     *
+     * @return string The theme color key used by the UI.
      */
     public function getRankTheme(): string
     {
