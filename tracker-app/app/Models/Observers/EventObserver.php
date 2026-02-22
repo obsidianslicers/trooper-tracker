@@ -13,9 +13,20 @@ use Throwable;
 
 /**
  * Handles lifecycle events for the Event model.
+ *
+ * Observes Event model changes and performs related actions such as geocoding,
+ * and Discord notifications when events are created or updated.
  */
 class EventObserver
 {
+    /**
+     * Handle the Event "creating" event.
+     *
+     * Sets the primary_organization_id based on the event's organization's primary club.
+     *
+     * @param Event $event The event instance being created.
+     * @return void
+     */
     public function creating(Event $event): void
     {
         if ($event->organization_id !== null)
@@ -37,11 +48,15 @@ class EventObserver
         $this->storeGeocode($event);
 
         // Determine organization name (prefer organization, then primary_organization)
-        $orgName = null;
-        try {
-            $orgName = $event->organization?->name ?? $event->primary_organization?->name ?? null;
-        } catch (\Throwable $e) {
-            $orgName = null;
+        $organization_name = null;
+
+        try
+        {
+            $organization_name = $event->organization?->name ?? $event->primary_organization?->name ?? null;
+        }
+        catch (Throwable $e)
+        {
+            $organization_name = null;
         }
 
         // Dispatch a job to notify Discord when a new event is created.
@@ -50,14 +65,17 @@ class EventObserver
             $event->id,
             $event->name,
             $event->comments ?? null,
-            $orgName
+            $organization_name
         );
     }
 
     /**
      * Handle the Event "updated" event.
      *
+     * Re-geocodes the event location if any address components have changed.
+     *
      * @param Event $event The event instance that was updated.
+     * @return void
      */
     public function updated(Event $event): void
     {
@@ -69,6 +87,15 @@ class EventObserver
         }
     }
 
+    /**
+     * Fetch and store geocoding coordinates for an event.
+     *
+     * Uses the Google Maps API if configured, otherwise falls back to Nominatim geocoding.
+     * Silently handles failures by reporting exceptions without stopping execution.
+     *
+     * @param Event $event The event instance to geocode.
+     * @return void
+     */
     private function storeGeocode(Event $event): void
     {
         try
@@ -100,12 +127,21 @@ class EventObserver
         }
     }
 
-    private function buildGeocodeAddress($event): string
+    /**
+     * Build a comma-separated geocoding address string from event venue fields.
+     *
+     * Constructs an address by combining venue address, city, state, zip, and country fields.
+     * Avoids duplicating address components that are already included in the base address.
+     *
+     * @param Event $event The event instance to build the address from.
+     * @return string The formatted address string suitable for geocoding services.
+     */
+    private function buildGeocodeAddress(Event $event): string
     {
         $parts = [];
 
         // Normalize the base address for duplicate detection
-        $base = strtolower((string)$event->venue_address);
+        $base = strtolower((string) $event->venue_address);
 
         // Always start with the raw address field
         $parts[] = trim($event->venue_address);

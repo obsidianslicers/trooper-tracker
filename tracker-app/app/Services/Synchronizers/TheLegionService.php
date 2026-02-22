@@ -9,6 +9,7 @@ use App\Models\Trooper;
 use App\Models\TrooperCostume;
 use App\Models\TrooperOrganization;
 use Carbon\Carbon;
+use Carbon\Exceptions\InvalidFormatException;
 use Illuminate\Support\Facades\Http;
 use Symfony\Component\DomCrawler\Crawler;
 
@@ -73,9 +74,10 @@ class TheLegionService extends BaseOrganizationService
             // Persist join date from the 501st API to the trooper-organization pivot
             $join_date = $json['joinDate'] ?? null;
 
-            if (! empty($join_date))
+            if (!empty($join_date))
             {
-                try {
+                try
+                {
                     $dt = Carbon::parse($join_date);
 
                     $pivot = TrooperOrganization::where(TrooperOrganization::TROOPER_ID, $trooper->id)
@@ -87,8 +89,14 @@ class TheLegionService extends BaseOrganizationService
                         $pivot->{TrooperOrganization::JOIN_DATE} = $dt;
                         $pivot->save();
                     }
-                } catch (\Exception $e) {
+                }
+                catch (InvalidFormatException $e)
+                {
                     // ignore parse errors — do not interrupt synchronization
+                    // if a parse error, if it's something we should be concerned
+                    // about, it will be caught in the future when we attempt to
+                    // parse for display or other purposes, at which point we can
+                    // log or handle as needed.
                 }
             }
 
