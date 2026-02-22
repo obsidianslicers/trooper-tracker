@@ -24,7 +24,6 @@ return Application::configure(basePath: dirname(__DIR__))
             __DIR__ . '/../routes/web/admin-troopers.php',
             __DIR__ . '/../routes/web/admin-reports.php',
             __DIR__ . '/../routes/web/service-record.php',
-            __DIR__ . '/../routes/web/dashboard.php',
         ],
         commands: __DIR__ . '/../routes/console.php',
         health: '/up',
