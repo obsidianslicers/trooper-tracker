@@ -9,5 +9,5 @@
     </div>
 @endif
 @foreach($event->event_shifts as $event_shift)
-    @include('pages.events.inc.shift-container', compact('event_shift', 'event'))
+    @include('pages.events.inc.shift-container', compact('event_shift', 'event', 'shifts_count'))
 @endforeach

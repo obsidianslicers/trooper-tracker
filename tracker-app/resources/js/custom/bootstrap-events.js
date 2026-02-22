@@ -5,13 +5,13 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!icon) return; // skip if no icon
 
         collapseEl.addEventListener('show.bs.collapse', () => {
-            icon.classList.remove('fa-chevron-up');
-            icon.classList.add('fa-chevron-down');
+            icon.classList.remove('fa-plus');
+            icon.classList.add('fa-minus');
         });
 
         collapseEl.addEventListener('hide.bs.collapse', () => {
-            icon.classList.remove('fa-chevron-down');
-            icon.classList.add('fa-chevron-up');
+            icon.classList.remove('fa-minus');
+            icon.classList.add('fa-plus');
         });
     });
 });
