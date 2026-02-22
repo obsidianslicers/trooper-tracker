@@ -11,6 +11,9 @@ stan/pint - WIP
 - app/Policies
 - app/Rules
 
+### FIX
+- Trooper Dashboard
+
 ### MISC
 
 - smash to single commit prior to beta 
@@ -75,8 +78,6 @@ stan/pint - WIP
   - direct and indirect donations
 
 ### CLUB-SYNC
-- Edit Google Excel ID from UI
-- Dashboard (view costumes and pictures)
 - Join Date
 
 ### MOBILE API

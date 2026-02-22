@@ -57,6 +57,11 @@ class UpdateRequest extends FormRequest
                 'max:64',
                 new UniqueNameRule(true, $this->route('organization')),
             ],
+            'sync_sheet_id' => [
+                'nullable',
+                'string',
+                'max:128',
+            ],
         ];
 
         return $rules;

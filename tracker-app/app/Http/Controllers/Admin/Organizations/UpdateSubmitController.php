@@ -29,6 +29,7 @@ class UpdateSubmitController extends MagicBusController
     public function __invoke(UpdateRequest $request, Organization $organization): RedirectResponse
     {
         $organization->name = $request->validated('name');
+        $organization->sync_sheet_id = $request->validated('sync_sheet_id');
 
         $organization->save();
 
