@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use App\Models\TrooperAchievement;
 use Carbon\CarbonInterval;
 use Database\Seeders\FloridaGarrison\AwardSeeder;
 use Database\Seeders\FloridaGarrison\CostumeSeeder;
@@ -59,6 +60,11 @@ class FloridaGarrisonSeeder extends Seeder
         $this->command->info("Florida Garrison seeding completed in {$readable}.");
 
         Artisan::call('tracker:calculate-trooper-achievements');
+
+        //  Set all earned on dates to a month ago to ensure they are not included 
+        //  in the recent achievement notifications.
+        TrooperAchievement::updateQuietly([TrooperAchievement::EARNED_ON => now()->subMonth()]);
+
         Artisan::call('tracker:synchronize-organizations');
     }
 }

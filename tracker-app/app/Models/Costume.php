@@ -12,6 +12,9 @@ class Costume extends BaseCostume
     use HasFactory;
     use HasCostumeScopes;
 
+    public const string COMMAND_STAFF = 'Command Staff';
+    public const string HANDLER = 'Handler';
+
     public function organization_costumes(): HasMany
     {
         return $this->hasMany(OrganizationCostume::class);
