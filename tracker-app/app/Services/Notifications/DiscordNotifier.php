@@ -16,9 +16,15 @@ use Illuminate\Support\Facades\Http;
 final class DiscordNotifier
 {
     /**
-     * Accepts either an integer squad id or a string organization name.
-     * Tries to resolve an exact numeric mapping first, then attempts
-     * to match by name against configured mapping keys.
+     * Resolve a Discord role mention for a squad or organization.
+     *
+     * Attempts to resolve a role mention by looking up the squad/organization in the
+     * configured squad_roles mapping. First tries exact key matches (case-insensitive),
+     * then attempts partial substring matches. Falls back to the default mention if no
+     * match is found or if the squad parameter is null/empty.
+     *
+     * @param int|string|null $squad The squad ID (int), organization name (string), or null.
+     * @return string|null The Discord role mention string (e.g., "<@&123456>"), or null if no mention is configured.
      */
     public function getSquadMention(int|string|null $squad): ?string
     {
@@ -59,9 +65,18 @@ final class DiscordNotifier
     }
 
     /**
-     * Accepts an event id, title, optional description, and a squad which
-     * may be an integer id or a string organization name. The squad value
-     * is resolved by `getSquadMention()` which handles both types.
+     * Send an event notification to Discord via webhook.
+     *
+     * Composes an embedded Discord message with the event details and sends it to the
+     * configured webhook URL. The message includes a squad/organization mention (if configured),
+     * event title, description, a direct link to the event, and timestamp. Returns false if
+     * no webhook is configured.
+     *
+     * @param int $event_id The ID of the event being notified about.
+     * @param string $title The event title to display in the Discord message.
+     * @param string|null $description Optional event description displayed in the embed.
+     * @param int|string|null $squad The squad ID or organization name for role mention resolution.
+     * @return bool True if the webhook was posted successfully, false if no webhook is configured.
      */
     public function sendEventNotification(int $event_id, string $title, ?string $description = null, int|string|null $squad = null): bool
     {
@@ -74,11 +89,11 @@ final class DiscordNotifier
 
         $mention = $this->getSquadMention($squad);
 
-        $content = trim(($mention ? $mention.' ' : '')."$title has been posted.");
+        $content = trim(($mention ? $mention . ' ' : '') . "$title has been posted.");
 
         $payload = [
             'content' => $content,
-            'username' => config('app.name').' Bot',
+            'username' => config('app.name') . ' Bot',
             'tts' => false,
             'embeds' => [
                 [
