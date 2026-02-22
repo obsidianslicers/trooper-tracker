@@ -18,7 +18,9 @@ use Illuminate\Foundation\Http\FormRequest;
 class CreateRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request
+     * Determine if the user is authorized to make this request.
+     *
+     * Verifies that the authenticated user has permission to create organizations.
      *
      * @return bool Returns true if the user has permission to create organizations
      */
@@ -28,7 +30,7 @@ class CreateRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request
+     * Get the validation rules that apply to the request.
      *
      * Validates the organization name ensuring it's unique among sibling organizations
      * under the same parent organization.
@@ -38,7 +40,7 @@ class CreateRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'name' => [
+            Organization::NAME => [
                 'required',
                 'string',
                 'max:64',
