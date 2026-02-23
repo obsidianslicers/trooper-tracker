@@ -250,7 +250,7 @@ class Trooper extends BaseTrooper implements
             $rank <= 128 => 'Sergeant Major',
             $rank <= 256 => 'Sergeant',
             $rank <= 512 => 'Corporal',
-            $rank <= 1024 => 'Specialist',
+            $rank <= 1024 => 'Private',
             $rank <= 2048 => 'Trooper',
             default => 'Recruit',
         };
