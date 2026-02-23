@@ -13,6 +13,7 @@ stan/pint - WIP
 
 ### FIX
 - Trooper Dashboard
+- When closing a troop, you are unable to edit the status again
 
 ### MISC
 
@@ -49,6 +50,10 @@ stan/pint - WIP
 
 ### MOBILE API
 - Begin converting old API to new API
+
+### QOL
+- Make many names of events, troopers clickable and bring to the profile of the trooper
+- Allow using Enter on forms
 
 ### COSTUMES
 - Update/Delete Costumes from UI
