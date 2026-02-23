@@ -6,7 +6,6 @@ namespace App\Services\Notifications;
 
 use App\Models\Organization;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 
 /**
  * Simple Discord notifier service.
@@ -31,16 +30,20 @@ final class DiscordNotifier
     public function getSquadMention(int|string|null $squad): ?string
     {
         // If caller already provided a mention string like <@&123>, return it unchanged.
-        if (is_string($squad) && preg_match('/^<@&\d+>$/', trim($squad))) {
+        if (is_string($squad) && preg_match('/^<@&\d+>$/', trim($squad)))
+        {
             return trim($squad);
         }
 
         // Prefer DB-driven discord_mention on Organization records.
         $org = null;
 
-        if (is_int($squad)) {
+        if (is_int($squad))
+        {
             $org = Organization::find($squad);
-        } elseif (is_string($squad) && $squad !== '') {
+        }
+        elseif (is_string($squad) && $squad !== '')
+        {
             $search = trim($squad);
 
             // exact (case-insensitive) match — prefer most recently created org
@@ -51,16 +54,20 @@ final class DiscordNotifier
             // should match org name "501st") or where the search contains the
             // org name. Load candidates and check in-PHP to keep compatibility
             // across DB drivers.
-            if (! $org) {
+            if (! $org)
+            {
                 $candidates = Organization::whereNotNull('discord_mention')->orderBy('id', 'desc')->get();
 
-                foreach ($candidates as $candidate) {
+                foreach ($candidates as $candidate)
+                {
                     $candidateName = strtolower($candidate->name);
-                    if ($candidateName === '') {
+                    if ($candidateName === '')
+                    {
                         continue;
                     }
 
-                    if (str_contains(strtolower($search), $candidateName) || str_contains($candidateName, strtolower($search))) {
+                    if (str_contains(strtolower($search), $candidateName) || str_contains($candidateName, strtolower($search)))
+                    {
                         $org = $candidate;
                         break;
                     }
@@ -68,7 +75,8 @@ final class DiscordNotifier
             }
         }
 
-        if ($org && ! empty($org->discord_mention)) {
+        if ($org && ! empty($org->discord_mention))
+        {
             return $org->discord_mention;
         }
 
