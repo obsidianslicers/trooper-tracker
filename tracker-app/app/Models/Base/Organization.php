@@ -38,6 +38,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $image_path_sm
  * @property string|null $service_class
  * @property string|null $sync_sheet_id
+ * @property string|null $discord_mention
  * @property Carbon|null $synchronized_at
  * @property string|null $description
  * @property Carbon|null $created_at
@@ -74,6 +75,7 @@ class Organization extends Model
     const IMAGE_PATH_SM = 'image_path_sm';
     const SERVICE_CLASS = 'service_class';
     const SYNC_SHEET_ID = 'sync_sheet_id';
+    const DISCORD_MENTION = 'discord_mention';
     const SYNCHRONIZED_AT = 'synchronized_at';
     const DESCRIPTION = 'description';
     const CREATED_AT = 'created_at';
@@ -110,6 +112,7 @@ class Organization extends Model
         self::IMAGE_PATH_SM,
         self::SERVICE_CLASS,
         self::SYNC_SHEET_ID,
+        self::DISCORD_MENTION,
         self::SYNCHRONIZED_AT,
         self::DESCRIPTION
     ];

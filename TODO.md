@@ -47,9 +47,6 @@ stan/pint - WIP
   - volunteer hours
   - direct and indirect donations
 
-### CLUB-SYNC
-- Join Date
-
 ### MOBILE API
 - Begin converting old API to new API
 

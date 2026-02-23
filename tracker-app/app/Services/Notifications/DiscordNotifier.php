@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services\Notifications;
 
+use App\Models\Organization;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Simple Discord notifier service.
@@ -28,40 +30,50 @@ final class DiscordNotifier
      */
     public function getSquadMention(int|string|null $squad): ?string
     {
-        $squad_role_map = config('discord.squad_roles', []);
+        // If caller already provided a mention string like <@&123>, return it unchanged.
+        if (is_string($squad) && preg_match('/^<@&\d+>$/', trim($squad))) {
+            return trim($squad);
+        }
 
-        // string name lookup: normalize and try exact key match first
-        if (is_string($squad) && $squad !== '')
-        {
-            $search = strtolower($squad);
+        // Prefer DB-driven discord_mention on Organization records.
+        $org = null;
 
-            // direct key matches (string keys in config)
-            foreach ($squad_role_map as $k => $v)
-            {
-                if (!is_int($k))
-                {
-                    if (strtolower((string) $k) === $search)
-                    {
-                        return $v;
+        if (is_int($squad)) {
+            $org = Organization::find($squad);
+        } elseif (is_string($squad) && $squad !== '') {
+            $search = trim($squad);
+
+            // exact (case-insensitive) match — prefer most recently created org
+            $org = Organization::whereRaw('LOWER(name) = ?', [strtolower($search)])->orderBy('id', 'desc')->first();
+
+            // fallback to partial match: try to find orgs where the org name
+            // appears inside the provided search string (e.g. "501st Legion"
+            // should match org name "501st") or where the search contains the
+            // org name. Load candidates and check in-PHP to keep compatibility
+            // across DB drivers.
+            if (! $org) {
+                $candidates = Organization::whereNotNull('discord_mention')->orderBy('id', 'desc')->get();
+
+                foreach ($candidates as $candidate) {
+                    $candidateName = strtolower($candidate->name);
+                    if ($candidateName === '') {
+                        continue;
                     }
-                }
-            }
 
-            // partial contains match: if the organization name contains a key
-            foreach ($squad_role_map as $k => $v)
-            {
-                if (!is_int($k))
-                {
-                    $klower = strtolower((string) $k);
-                    if ($klower !== '' && (str_contains($search, $klower) || str_contains($klower, $search)))
-                    {
-                        return $v;
+                    if (str_contains(strtolower($search), $candidateName) || str_contains($candidateName, strtolower($search))) {
+                        $org = $candidate;
+                        break;
                     }
                 }
             }
         }
 
-        return config('discord.default_mention');
+        if ($org && ! empty($org->discord_mention)) {
+            return $org->discord_mention;
+        }
+
+        // No DB mention found — do not fall back to config-based mappings anymore.
+        return null;
     }
 
     /**
