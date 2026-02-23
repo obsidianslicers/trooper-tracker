@@ -67,6 +67,28 @@
                             </p>
                         </x-input-container>
 
+                        <x-input-container>
+                            <x-label>
+                                Related Forum (Node ID):
+                            </x-label>
+                            <x-input-text :property="'related_forum'"
+                                          :value="$organization->related_forum" />
+                            <p class="form-help">
+                                <i class="text-muted">Optional XenForo forum node id where event threads should be created.</i>
+                            </p>
+                        </x-input-container>
+
+                        <x-input-container>
+                            <x-label>
+                                Related Forum Archive (Node ID):
+                            </x-label>
+                            <x-input-text :property="'related_forum_archive'"
+                                          :value="$organization->related_forum_archive" />
+                            <p class="form-help">
+                                <i class="text-muted">Optional XenForo archive forum node id for moved/archived threads.</i>
+                            </p>
+                        </x-input-container>
+
                         <x-submit-container>
                             <x-submit-button>
                                 Update

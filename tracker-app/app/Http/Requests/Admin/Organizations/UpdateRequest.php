@@ -69,6 +69,14 @@ class UpdateRequest extends FormRequest
                 'string',
                 'max:128',
             ],
+            Organization::RELATED_FORUM => [
+                'nullable',
+                'integer',
+            ],
+            Organization::RELATED_FORUM_ARCHIVE => [
+                'nullable',
+                'integer',
+            ],
         ];
 
         return $rules;

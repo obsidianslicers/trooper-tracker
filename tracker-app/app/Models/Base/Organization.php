@@ -39,6 +39,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $service_class
  * @property string|null $sync_sheet_id
  * @property string|null $discord_mention
+ * @property int|null $related_forum
+ * @property int|null $related_forum_archive
  * @property Carbon|null $synchronized_at
  * @property string|null $description
  * @property Carbon|null $created_at
@@ -76,6 +78,8 @@ class Organization extends Model
     const SERVICE_CLASS = 'service_class';
     const SYNC_SHEET_ID = 'sync_sheet_id';
     const DISCORD_MENTION = 'discord_mention';
+    const RELATED_FORUM = 'related_forum';
+    const RELATED_FORUM_ARCHIVE = 'related_forum_archive';
     const SYNCHRONIZED_AT = 'synchronized_at';
     const DESCRIPTION = 'description';
     const CREATED_AT = 'created_at';
@@ -113,6 +117,8 @@ class Organization extends Model
         self::SERVICE_CLASS,
         self::SYNC_SHEET_ID,
         self::DISCORD_MENTION,
+        self::RELATED_FORUM,
+        self::RELATED_FORUM_ARCHIVE,
         self::SYNCHRONIZED_AT,
         self::DESCRIPTION
     ];

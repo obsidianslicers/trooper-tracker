@@ -31,6 +31,8 @@ class UpdateSubmitController extends MagicBusController
         $organization->name = $request->validated('name');
         $organization->sync_sheet_id = $request->validated('sync_sheet_id');
         $organization->discord_mention = $request->validated('discord_mention');
+        $organization->related_forum = $request->validated('related_forum');
+        $organization->related_forum_archive = $request->validated('related_forum_archive');
 
         $organization->save();
 
