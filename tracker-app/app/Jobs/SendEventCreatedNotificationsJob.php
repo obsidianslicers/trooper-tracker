@@ -78,7 +78,10 @@ class SendEventCreatedNotificationsJob implements ShouldQueue
             // Use ForumBBCodeHelper to generate BBCode message
             $message = \App\Helpers\ForumBBCodeHelper::threadTemplate($this->event);
 
-            $result = $xenforo->create_thread($node_id, $title, $message, 1);
+            // Let XenforoService resolve the XenForo user ID (via OAuth) for the event creator
+            $xenforo_user_id = $xenforo->resolve_user_id_for_trooper($this->event->created_id);
+
+            $result = $xenforo->create_thread($node_id, $title, $message, $xenforo_user_id);
 
             if (($result['status'] ?? 0) < 200 || ($result['status'] ?? 0) >= 300)
             {

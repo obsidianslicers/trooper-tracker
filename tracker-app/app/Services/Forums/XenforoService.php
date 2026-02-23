@@ -2,6 +2,7 @@
 
 namespace App\Services\Forums;
 
+use App\Models\OauthLogin;
 use Illuminate\Support\Facades\Http;
 
 class XenforoService
@@ -52,5 +53,26 @@ class XenforoService
             'status' => $response->status(),
             'body' => $response->json(),
         ];
+    }
+
+    /**
+     * Resolve a XenForo user ID for a given trooper via OAuth mapping.
+     * Returns null if no XenForo OAuth login is linked.
+     */
+    public function resolve_user_id_for_trooper(?int $trooper_id): ?int
+    {
+        if ($trooper_id === null) {
+            return null;
+        }
+
+        $oauth = OauthLogin::where(OauthLogin::TROOPER_ID, $trooper_id)
+            ->where(OauthLogin::PROVIDER, 'xenforo')
+            ->first();
+
+        if ($oauth === null || empty($oauth->provider_id)) {
+            return null;
+        }
+
+        return (int) $oauth->provider_id;
     }
 }
