@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * Add this to .htaccess in Xenforo for this code to work:
+ * SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+ */
+
 declare(strict_types=1);
 
 namespace App\Services\Socialite;
@@ -23,7 +28,10 @@ class XenforoProvider extends AbstractProvider implements ProviderInterface
      *
      * @var array<int, string>
      */
-    protected $scopes = ['read', 'profile'];
+    protected $scopes = [
+        'user:read',
+        'user:write',
+    ];
 
     /**
      * The separating character for the requested scopes.
@@ -47,10 +55,13 @@ class XenforoProvider extends AbstractProvider implements ProviderInterface
      */
     protected function getAuthUrl($state): string
     {
-        return $this->buildAuthUrlFromBase(
-            $this->getBaseUrl().'/oauth/authorize',
-            $state
-        );
+        // XenForo's OAuth authorize endpoint is index.php?oauth2/authorize,
+        // and our query string (client_id, redirect_uri, etc.) must be
+        // appended with &..., not by adding another "?".
+
+        $query = http_build_query($this->getCodeFields($state), '', '&', PHP_QUERY_RFC3986);
+
+        return $this->getBaseUrl().'/index.php?oauth2/authorize&'.$query;
     }
 
     /**
@@ -58,7 +69,7 @@ class XenforoProvider extends AbstractProvider implements ProviderInterface
      */
     protected function getTokenUrl(): string
     {
-        return $this->getBaseUrl().'/oauth/token';
+        return $this->getBaseUrl().'/index.php?api/oauth2/token';
     }
 
     /**
@@ -69,17 +80,16 @@ class XenforoProvider extends AbstractProvider implements ProviderInterface
      */
     protected function getUserByToken($token): array
     {
-        $response = $this->getHttpClient()->get(
-            $this->getBaseUrl().'/api/me',
-            [
-                'headers' => [
-                    'Authorization' => 'Bearer '.$token,
-                    'Accept' => 'application/json',
-                ],
-            ]
-        );
+        $url = $this->getBaseUrl().'/api/me';
 
-        return json_decode($response->getBody(), true);
+        $response = $this->getHttpClient()->get($url, [
+            'headers' => [
+                'Authorization' => 'Bearer '.$token,
+                'Accept' => 'application/json',
+            ],
+        ]);
+
+        return json_decode($response->getBody()->getContents(), true);
     }
 
     /**
@@ -89,7 +99,7 @@ class XenforoProvider extends AbstractProvider implements ProviderInterface
      */
     protected function mapUserToObject(array $user): User
     {
-        $user_data = $user['user'] ?? $user;
+        $user_data = $user['me'] ?? $user;
 
         return (new User)->setRaw($user)->map([
             'id' => $user_data['user_id'] ?? null,
@@ -137,4 +147,5 @@ class XenforoProvider extends AbstractProvider implements ProviderInterface
             'grant_type' => 'authorization_code',
         ]);
     }
+
 }

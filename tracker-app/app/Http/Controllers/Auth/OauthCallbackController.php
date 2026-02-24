@@ -61,6 +61,15 @@ class OauthCallbackController extends MagicBusController
 
         $email = $provider_user->getEmail();
 
+        if (empty($email))
+        {
+            return redirect()
+                ->route('account.xenforo.required')
+                ->withErrors([
+                    'oauth' => 'Your XenForo account did not provide an email address. Please enable email sharing for OAuth or log in with email/password.',
+                ]);
+        }
+
         $trooper = Trooper::byEmail($email)->first();
 
         if ($trooper === null)
@@ -93,7 +102,7 @@ class OauthCallbackController extends MagicBusController
             return redirect()->route('auth.inactive');
         }
 
-        // Link provider
+        // Link provider to existing trooper account
         OauthLogin::create([
             OauthLogin::TROOPER_ID => $trooper->id,
             OauthLogin::PROVIDER => $provider,
