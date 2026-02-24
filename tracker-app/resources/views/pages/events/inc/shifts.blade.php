@@ -1,4 +1,4 @@
-<x-section-title>Troopers</x-section-title>
+<x-section-title>Mission Roster</x-section-title>
 
 @php($count_of_shifts = $event->event_shifts->count())
 @if($count_of_shifts > 1)

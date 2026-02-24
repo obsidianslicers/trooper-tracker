@@ -69,6 +69,8 @@ class SignUpHtmxController extends MagicBusController
 
         $data = compact('event', 'event_shift', 'can_moderate', 'count_of_shifts');
 
+        $data['open'] = true;
+
         $response = response()->view('pages.events.inc.shift-container', $data);
 
         if (!$signed_up)

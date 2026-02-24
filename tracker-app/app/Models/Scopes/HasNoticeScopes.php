@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models\Scopes;
 
 use App\Models\Trooper;
+use App\Models\Notice;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;

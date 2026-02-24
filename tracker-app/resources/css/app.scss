@@ -14,8 +14,13 @@ a:hover {
 }
 
 .trooper-status-cancelled {
-    text-decoration: line-through;
     opacity: 0.6;
+    background-color: #333;
+    filter: brightness(1.5);
+
+    & .cancelled-icon {
+        display: inline !important;
+    }
 }
 
 .event-image-share-wrapper {
