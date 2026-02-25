@@ -51,7 +51,6 @@ class TrooperOrganizationSeeder extends Seeder
             if ($club['permission_column'] == 'pDroid' && $trooper->{$club['permission_column']} < 1)
             {
                 //  skip droid builders, 0 not a member
-                //  no identifier column
                 continue;
             }
 
