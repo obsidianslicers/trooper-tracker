@@ -36,8 +36,13 @@ class EnsureXenforoLinked
             return $next($request);
         }
 
-        // Allow access to the linking routes themselves to avoid redirect loops
-        if ($request->routeIs('account.xenforo.*') || $request->routeIs('auth.oauth-*')) {
+        // Allow access to the linking routes, OAuth routes, and logout so we
+        // don't create redirect loops or block signing out.
+        if (
+            $request->routeIs('account.xenforo.*') ||
+            $request->routeIs('auth.oauth-*') ||
+            $request->routeIs('auth.logout')
+        ) {
             return $next($request);
         }
 
