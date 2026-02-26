@@ -30,6 +30,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $status
  * @property Carbon|null $create_notifications_sent_at
  * @property Carbon|null $cancel_notifications_sent_at
+ * @property bool $create_forum_thread
+ * @property int|null $thread_id
+ * @property int|null $post_id
  * @property float|null $latitude
  * @property float|null $longitude
  * @property int|null $shifts_allowed
@@ -92,6 +95,9 @@ class Event extends Model
     const STATUS = 'status';
     const CREATE_NOTIFICATIONS_SENT_AT = 'create_notifications_sent_at';
     const CANCEL_NOTIFICATIONS_SENT_AT = 'cancel_notifications_sent_at';
+    const CREATE_FORUM_THREAD = 'create_forum_thread';
+    const THREAD_ID = 'thread_id';
+    const POST_ID = 'post_id';
     const LATITUDE = 'latitude';
     const LONGITUDE = 'longitude';
     const SHIFTS_ALLOWED = 'shifts_allowed';
@@ -142,6 +148,9 @@ class Event extends Model
         self::PRIMARY_ORGANIZATION_ID => 'int',
         self::CREATE_NOTIFICATIONS_SENT_AT => 'datetime',
         self::CANCEL_NOTIFICATIONS_SENT_AT => 'datetime',
+        self::CREATE_FORUM_THREAD => 'bool',
+        self::THREAD_ID => 'int',
+        self::POST_ID => 'int',
         self::LATITUDE => 'float',
         self::LONGITUDE => 'float',
         self::SHIFTS_ALLOWED => 'int',
@@ -176,6 +185,9 @@ class Event extends Model
         self::STATUS,
         self::CREATE_NOTIFICATIONS_SENT_AT,
         self::CANCEL_NOTIFICATIONS_SENT_AT,
+        self::CREATE_FORUM_THREAD,
+        self::THREAD_ID,
+        self::POST_ID,
         self::LATITUDE,
         self::LONGITUDE,
         self::SHIFTS_ALLOWED,

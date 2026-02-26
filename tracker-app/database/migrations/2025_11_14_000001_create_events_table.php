@@ -36,6 +36,11 @@ return new class extends Migration
             $table->dateTime('create_notifications_sent_at')->nullable();
             $table->dateTime('cancel_notifications_sent_at')->nullable();
 
+            $table->boolean('create_forum_thread')->default(true);
+
+            $table->integer('thread_id')->nullable();
+            $table->integer('post_id')->nullable();
+
             $table->decimal('latitude', 9, 6)->nullable();
             $table->decimal('longitude', 9, 6)->nullable();
 

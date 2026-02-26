@@ -62,15 +62,21 @@ class SendEventCreatedNotificationsJob implements ShouldQueue
             $this->event->save();
         }
 
-        // Forum posting: always run
+        // Forum posting / notifications
         $organization = $this->event->organization;
         $organization_name = $organization->name;
 
         // Discord notification: always run
         $notifier->sendEventNotification($this->event->id, $this->event->name, $this->event->comments ?? null, $organization_name);
 
-        // XenForo thread creation: only if related forum is configured
-        if (! empty($organization->related_forum))
+        // XenForo thread creation: only if related forum is configured, the event
+        // is configured to create a forum thread, and a thread has not already
+        // been created for this event.
+        if (
+            ! empty($organization->related_forum) &&
+            $this->event->create_forum_thread !== false &&
+            empty($this->event->thread_id)
+        )
         {
             $node_id = (int) $organization->related_forum;
             $title = $this->event->name;
@@ -83,7 +89,22 @@ class SendEventCreatedNotificationsJob implements ShouldQueue
 
             $result = $xenforo->create_thread($node_id, $title, $message, $xenforo_user_id);
 
-            if (($result['status'] ?? 0) < 200 || ($result['status'] ?? 0) >= 300)
+            if (($result['status'] ?? 0) >= 200 && ($result['status'] ?? 0) < 300)
+            {
+                // Attempt to capture the created thread/post IDs from the XenForo API
+                $body = $result['body'] ?? [];
+                if (isset($body['thread']['thread_id'])) {
+                    $this->event->thread_id = (int) $body['thread']['thread_id'];
+                }
+                if (isset($body['post']['post_id'])) {
+                    $this->event->post_id = (int) $body['post']['post_id'];
+                }
+
+                if ($this->event->isDirty(['thread_id', 'post_id'])) {
+                    $this->event->save();
+                }
+            }
+            else
             {
                 app('\Illuminate\Support\Facades\Log')::warning('Failed to create XenForo thread for event', [
                     'event' => $this->event->id,

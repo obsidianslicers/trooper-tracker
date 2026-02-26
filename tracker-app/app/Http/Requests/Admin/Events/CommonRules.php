@@ -75,6 +75,7 @@ trait CommonRules
             Event::ALLOW_PROPS => ['boolean'],
             Event::PARKING_AVAILABLE => ['boolean'],
             Event::ACCESSIBLE => ['boolean'],
+            Event::CREATE_FORUM_THREAD => ['boolean'],
 
             Event::AMENITIES => ['nullable', 'string'],
             Event::COMMENTS => ['nullable', 'string'],
