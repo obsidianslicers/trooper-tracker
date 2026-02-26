@@ -6,7 +6,7 @@
          data-bs-target="#{{ $id }}"
          role="button">
         {{ $label }}
-        <i class="fa-solid fa-chevron-{{ $open ? 'down' : 'up'}} collapse-icon"></i>
+        <i class="fa-solid fa-{{ $open ? 'minus' : 'plus'}} collapse-icon"></i>
     </div>
     <div id="{{ $id }}"
          class="collapse {{ $open ? 'show' : '' }}">

@@ -20,6 +20,7 @@ class OrganizationObserver
      * Handle the Organization "saved" event.
      *
      * @param Organization $organization The organization instance that was saved.
+     * @return void
      */
     public function saved(Organization $organization): void
     {

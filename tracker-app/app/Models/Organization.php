@@ -100,6 +100,8 @@ class Organization extends BaseOrganization
      * Assigns sequence numbers starting at 900, incrementing by 100 for each
      * organization, then its regions, then each region's units. This establishes
      * a consistent ordering for the organizational hierarchy.
+     *
+     * @return void
      */
     public static function resequenceAll()
     {

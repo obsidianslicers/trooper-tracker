@@ -1,4 +1,4 @@
-<x-section-title>Amenities</x-section-title>
+<x-section-title>Logistics &amp; Support</x-section-title>
 <ul class="list-group list-group-flush">
     <li class="list-group-item">
         <x-yes-no class="me-2"

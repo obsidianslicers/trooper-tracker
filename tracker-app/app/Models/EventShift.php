@@ -86,9 +86,9 @@ class EventShift extends BaseEventShift
     }
 
     /**
-     * Get a formatted time display string for the event.
+     * Get a formatted date display string for the shift.
      *
-     * Format: "Sat - Oct 03, 2026 - 2:00pm - 4:00pm"
+     * Format: "Sat - Oct 03, 2026"
      *
      * @return string
      */

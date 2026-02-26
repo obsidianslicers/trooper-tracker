@@ -6,6 +6,9 @@ namespace App\Models\Casts;
 
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 
+/**
+ * Sanitizes HTML from string attributes when storing.
+ */
 class SanitizeHtmlCast implements CastsAttributes
 {
     /**
@@ -16,7 +19,7 @@ class SanitizeHtmlCast implements CastsAttributes
      * @param mixed $model The model instance.
      * @param string $key The attribute key.
      * @param mixed $value The raw value from the database.
-     * @param array $attributes All model attributes.
+     * @param array<string, mixed> $attributes All model attributes.
      * @return string|null The unchanged value.
      */
     public function get($model, string $key, $value, array $attributes)
@@ -37,7 +40,7 @@ class SanitizeHtmlCast implements CastsAttributes
      * @param mixed $model The model instance.
      * @param string $key The attribute key.
      * @param mixed $value The value to be stored.
-     * @param array $attributes All model attributes.
+     * @param array<string, mixed> $attributes All model attributes.
      * @return string|null The sanitized value with tags stripped.
      */
     public function set($model, string $key, $value, array $attributes)

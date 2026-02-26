@@ -1,4 +1,4 @@
-<x-section-title>Attendance Limits</x-section-title>
+<x-section-title>Unit Quotas</x-section-title>
 <x-table>
     <thead>
         <tr>
@@ -19,14 +19,12 @@
                 </td>
                 <td class="text-end">
                     @if($organization->pivot->can_attend)
-                        <x-number-format :value="$organization->pivot->troopers_allowed"
-                                         :nulldisplay="'∞'" />
+                        <x-number-format :value="$organization->pivot->troopers_allowed" />
                     @endif
                 </td>
                 <td class="text-end">
                     @if($organization->pivot->can_attend)
-                        <x-number-format :value="$organization->pivot->handlers_allowed"
-                                         :nulldisplay="'∞'" />
+                        <x-number-format :value="$organization->pivot->handlers_allowed" />
                     @endif
                 </td>
             </tr>

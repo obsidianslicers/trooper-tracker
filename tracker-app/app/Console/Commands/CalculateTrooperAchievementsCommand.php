@@ -6,7 +6,9 @@ namespace App\Console\Commands;
 
 use App\Bus\MagicBus;
 use App\Features\Troopers\Commands\RecalculateTrooperRankCommand;
+use Carbon\CarbonInterval;
 use Illuminate\Console\Command;
+use Illuminate\Support\Benchmark;
 
 /**
  * Artisan command to recalculate trooper ranks based on their event history.
@@ -41,6 +43,13 @@ class CalculateTrooperAchievementsCommand extends Command
      */
     public function handle(MagicBus $bus): void
     {
-        $bus->send(new RecalculateTrooperRankCommand());
+        $ms = Benchmark::measure(function () use ($bus)
+        {
+            $bus->send(new RecalculateTrooperRankCommand());
+        });
+
+        $readable = CarbonInterval::millisecond($ms)->cascade()->forHumans();
+
+        $this->info("Trooper achievement calculation completed in {$readable}.");
     }
 }
