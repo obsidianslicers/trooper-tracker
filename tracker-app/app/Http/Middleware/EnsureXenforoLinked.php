@@ -25,6 +25,11 @@ class EnsureXenforoLinked
      */
     public function handle(Request $request, Closure $next): Response
     {
+        // Allow this behaviour to be toggled via configuration / .env.
+        if (! config('tracker.auth.require_xenforo', false)) {
+            return $next($request);
+        }
+
         $user = Auth::user();
 
         if (! $user) {

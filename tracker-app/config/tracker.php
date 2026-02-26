@@ -49,4 +49,19 @@ return [
         'driver' => env('TRACKER_IMAGE_DRIVER', Intervention\Image\Drivers\Imagick\Driver::class),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Authentication / XenForo Integration
+    |--------------------------------------------------------------------------
+    |
+    | This flag controls whether a linked XenForo account is mandatory for
+    | authenticated troopers. When enabled, the EnsureXenforoLinked middleware
+    | will redirect users without a XenForo link to the linking page.
+    |
+    */
+
+    'auth' => [
+        'require_xenforo' => env('TRACKER_REQUIRE_XENFORO', false),
+    ],
+
 ];

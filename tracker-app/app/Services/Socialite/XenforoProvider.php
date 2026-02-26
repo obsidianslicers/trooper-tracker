@@ -55,13 +55,13 @@ class XenforoProvider extends AbstractProvider implements ProviderInterface
      */
     protected function getAuthUrl($state): string
     {
-        // XenForo's OAuth authorize endpoint is index.php?oauth2/authorize,
-        // and our query string (client_id, redirect_uri, etc.) must be
-        // appended with &..., not by adding another "?".
+        // XenForo's OAuth authorize endpoint path is configurable so that
+        // different XenForo setups can be supported.
+        $authorizePath = config('services.xenforo.authorize_path', '/index.php?oauth2/authorize');
 
         $query = http_build_query($this->getCodeFields($state), '', '&', PHP_QUERY_RFC3986);
 
-        return $this->getBaseUrl().'/index.php?oauth2/authorize&'.$query;
+        return $this->getBaseUrl().rtrim($authorizePath, '&').('&'.$query);
     }
 
     /**
@@ -69,7 +69,9 @@ class XenforoProvider extends AbstractProvider implements ProviderInterface
      */
     protected function getTokenUrl(): string
     {
-        return $this->getBaseUrl().'/index.php?api/oauth2/token';
+        $tokenPath = config('services.xenforo.token_path', '/index.php?api/oauth2/token');
+
+        return $this->getBaseUrl().$tokenPath;
     }
 
     /**
@@ -80,7 +82,9 @@ class XenforoProvider extends AbstractProvider implements ProviderInterface
      */
     protected function getUserByToken($token): array
     {
-        $url = $this->getBaseUrl().'/api/me';
+        $mePath = config('services.xenforo.me_path', '/api/me');
+
+        $url = $this->getBaseUrl().$mePath;
 
         $response = $this->getHttpClient()->get($url, [
             'headers' => [
