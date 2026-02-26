@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models\Scopes;
 
 use App\Models\Trooper;
+use App\Models\Notice;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -21,17 +22,17 @@ trait HasNoticeScopes
      * that is either null or in the future.
      *
      * @param Builder $query The Eloquent query builder.
-     * @return Builder<self>
+     * @return Builder<Notice>
      */
     public function scopeActive(Builder $query): Builder
     {
         $now = Carbon::now();
 
-        return $query->where(self::STARTS_AT, '<=', $now)
+        return $query->where(Notice::STARTS_AT, '<=', $now)
             ->where(function ($q) use ($now)
             {
-                $q->whereNull(self::ENDS_AT)
-                    ->orWhere(self::ENDS_AT, '>=', $now);
+                $q->whereNull(Notice::ENDS_AT)
+                    ->orWhere(Notice::ENDS_AT, '>=', $now);
             });
     }
 
@@ -41,14 +42,14 @@ trait HasNoticeScopes
      * A past notice has both `starts_at` and `ends_at` dates in the past.
      *
      * @param Builder $query The Eloquent query builder.
-     * @return Builder<self>
+     * @return Builder<Notice>
      */
     public function scopePast(Builder $query): Builder
     {
         $now = Carbon::now();
 
-        return $query->where(self::STARTS_AT, '<', $now)
-            ->where(self::ENDS_AT, '<', $now);
+        return $query->where(Notice::STARTS_AT, '<', $now)
+            ->where(Notice::ENDS_AT, '<', $now);
     }
 
     /**
@@ -57,14 +58,14 @@ trait HasNoticeScopes
      * A future notice has both `starts_at` and `ends_at` dates in the future.
      *
      * @param Builder $query The Eloquent query builder.
-     * @return Builder<self>
+     * @return Builder<Notice>
      */
     public function scopeFuture(Builder $query): Builder
     {
         $now = Carbon::now();
 
-        return $query->where(self::STARTS_AT, '>', $now)
-            ->where(self::ENDS_AT, '>', $now);
+        return $query->where(Notice::STARTS_AT, '>', $now)
+            ->where(Notice::ENDS_AT, '>', $now);
     }
 
     /**
@@ -76,7 +77,8 @@ trait HasNoticeScopes
      *
      * @param Builder $query The Eloquent query builder.
      * @param Trooper $trooper The trooper whose visibility is being checked.
-     * @return Builder<self>
+     * @param bool $unread_only True to limit results to unread notices.
+     * @return Builder<Notice>
      */
     public function scopeVisibleTo(Builder $query, Trooper $trooper, bool $unread_only = false): Builder
     {
@@ -122,7 +124,7 @@ trait HasNoticeScopes
      *
      * @param Builder $query The Eloquent query builder.
      * @param Trooper $trooper The moderator to filter by.
-     * @return Builder
+     * @return Builder<Notice>
      */
     public function scopeModeratedBy(Builder $query, Trooper $trooper): Builder
     {

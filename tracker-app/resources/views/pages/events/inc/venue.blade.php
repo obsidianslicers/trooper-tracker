@@ -1,4 +1,4 @@
-<x-section-title>Venue</x-section-title>
+<x-section-title>Mission Coordinates</x-section-title>
 <div class="row">
     <div class="col-12">
         {{ $event->venue }}

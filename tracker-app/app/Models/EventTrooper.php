@@ -132,11 +132,11 @@ class EventTrooper extends BaseEventTrooper
             ->pluck('name', 'id')
             ->sortBy(function ($name, $id)
             {
-                if ($name === 'Command Staff')
+                if ($name === Costume::COMMAND_STAFF)
                 {
                     return 2;
                 }
-                if ($name === 'Handler')
+                if ($name === Costume::HANDLER)
                 {
                     return 1;
                 }

@@ -74,6 +74,7 @@ trait HasClubMaps
                     'id' => $organization->id,
                     'costume_club_id' => $costume_club_id,
                     'identity' => $meta['identity'],
+                    'permission_column' => $meta['column'],
                 ];
             }
             else
@@ -111,6 +112,7 @@ trait HasClubMaps
                     'id' => $organization->id,
                     'legacy_id' => $legacy_id,
                     'identity' => $meta['identity'],
+                    'permission_column' => $meta['column'],
                 ];
             }
             else

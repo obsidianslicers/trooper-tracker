@@ -59,7 +59,11 @@ class SignUpUpdateHtmxController extends MagicBusController
         }
         elseif ($request->has('costume_id'))
         {
-            $valid_data = ['costume_id' => $request->validated('costume_id')];
+            //  costume organization ids handled via observer, so we
+            //  only need to update the costume_id on the event trooper record here
+            $valid_data = [
+                EventTrooper::COSTUME_ID => $request->validated('costume_id'),
+            ];
 
             $event_trooper_cmd = new UpdateEventTrooperCommand($event_trooper, $valid_data);
 
@@ -67,7 +71,11 @@ class SignUpUpdateHtmxController extends MagicBusController
         }
         elseif ($request->has('backup_costume_id'))
         {
-            $valid_data = ['backup_costume_id' => $request->validated('backup_costume_id')];
+            //  backup costume organization ids handled via observer, so we
+            //  only need to update the backup_costume_id on the event trooper record here
+            $valid_data = [
+                EventTrooper::BACKUP_COSTUME_ID => $request->validated('backup_costume_id'),
+            ];
 
             $event_trooper_cmd = new UpdateEventTrooperCommand($event_trooper, $valid_data);
 

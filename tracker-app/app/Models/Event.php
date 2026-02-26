@@ -60,11 +60,21 @@ class Event extends BaseEvent
         ]);
     }
 
+    /**
+     * Get the organization that owns this event.
+     *
+     * @return BelongsTo<Organization, self>
+     */
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class, self::ORGANIZATION_ID);
     }
 
+    /**
+     * Get the primary (top-level) organization for this event.
+     *
+     * @return BelongsTo<Organization, self>
+     */
     public function primary_organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class, self::PRIMARY_ORGANIZATION_ID);
@@ -107,9 +117,9 @@ class Event extends BaseEvent
     }
 
     /**
-     * Get a formatted time display string for the event.
+     * Get a formatted date display string for the event.
      *
-     * Format: "Sat - Oct 03, 2026 - 2:00pm - 4:00pm"
+     * Format: "Sat - Oct 03, 2026"
      *
      * @return string
      */
@@ -192,7 +202,10 @@ class Event extends BaseEvent
     }
 
     /**
-     * Check if the event is closed (completed or cancelled).
+     * Check if trooper status updates are allowed for this event.
+     *
+     * Updates are allowed while the event is active or within the recent
+     * grace period after the event ends.
      *
      * @return bool
      */

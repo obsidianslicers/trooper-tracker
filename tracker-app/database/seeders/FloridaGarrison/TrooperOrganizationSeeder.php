@@ -48,6 +48,12 @@ class TrooperOrganizationSeeder extends Seeder
                 continue;
             }
 
+            if ($club['permission_column'] == 'pDroid' && $trooper->{$club['permission_column']} < 1)
+            {
+                //  skip droid builders, 0 not a member
+                continue;
+            }
+
             $organization = $this->getOrganization($club['id']);
 
             $identifier = '';

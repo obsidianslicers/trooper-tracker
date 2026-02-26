@@ -57,7 +57,7 @@ trait HasCostumeScopes
                 {
                     $query->where('trooper_id', $trooper_id);
                 })
-                    ->orWhereIn(Costume::NAME, ['Command Staff', 'Handler']);
+                    ->orWhereIn(Costume::NAME, [Costume::COMMAND_STAFF, Costume::HANDLER]);
             })
             ->with(['organization_costumes' => function ($query) use ($trooper_id, $organization_ids)
             {

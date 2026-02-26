@@ -1,5 +1,6 @@
 <div class="row mb-3 trooper-status-{{ $event_trooper->status->value }}">
     <div class="col-7 col-md-4 order-1 order-md-1">
+        <i class="d-none fa fa-fw fa-times pe-2 text-danger cancelled-icon"></i>
         <a href="{{ route('service-record.display', ['trooper_id' => $event_trooper->trooper->id]) }}">
             {{ $event_trooper->trooper->display_name }}
         </a>
@@ -24,7 +25,7 @@
             <x-input-select :property="'backup_costume_id'"
                             :options="$event_trooper->costumes"
                             :value="$event_trooper->backup_costume_id"
-                            :placeholder="'-- Select Backup Costume --'"
+                            :placeholder="'-- Select Backup Costume (optional) --'"
                             hx-post="{{ route('events.signup-update-htmx', compact('event_trooper')) }}"
                             hx-indicator="#transmission-bar-shift-{{ $event_trooper->event_shift->id }}"
                             hx-swap="none"

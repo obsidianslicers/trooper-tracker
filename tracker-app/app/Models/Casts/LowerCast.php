@@ -7,6 +7,9 @@ namespace App\Models\Casts;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Casts string attributes to lowercase when storing.
+ */
 final class LowerCast implements CastsAttributes
 {
     /**
@@ -17,7 +20,7 @@ final class LowerCast implements CastsAttributes
      * @param Model $model The model instance.
      * @param string $key The attribute key.
      * @param mixed $value The raw value from the database.
-     * @param array $attributes All model attributes.
+     * @param array<string, mixed> $attributes All model attributes.
      * @return string The unchanged value.
      */
     public function get(Model $model, string $key, mixed $value, array $attributes): string
@@ -33,7 +36,7 @@ final class LowerCast implements CastsAttributes
      * @param Model $model The model instance.
      * @param string $key The attribute key.
      * @param mixed $value The value to be stored.
-     * @param array $attributes All model attributes.
+     * @param array<string, mixed> $attributes All model attributes.
      * @return string The lowercased value.
      */
     public function set(Model $model, string $key, mixed $value, array $attributes): string

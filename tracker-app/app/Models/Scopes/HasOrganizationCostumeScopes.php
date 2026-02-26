@@ -16,7 +16,7 @@ trait HasOrganizationCostumeScopes
      * Scope a query to exclude a set of costumes by their IDs.
      *
      * @param Builder<self> $query The Eloquent query builder.
-     * @param array<int> $costume_ids An array of costume IDs to exclude from the query results.
+     * @param Collection|array<int> $costume_ids Costume IDs to exclude from results.
      * @return Builder<self>
      */
     public function scopeExcluding(Builder $query, Collection|array $costume_ids): Builder

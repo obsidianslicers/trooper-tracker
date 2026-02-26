@@ -250,14 +250,15 @@ class Trooper extends BaseTrooper implements
             $rank <= 128 => 'Sergeant Major',
             $rank <= 256 => 'Sergeant',
             $rank <= 512 => 'Corporal',
-            $rank <= 1024 => 'Private',
-            $rank <= 2048 => 'Trooper',
+            $rank <= 1024 => 'Trooper',
             default => 'Recruit',
         };
     }
 
     /**
      * Get the theme color based on rank position.
+     *
+     * @return string The theme color key used by the UI.
      */
     public function getRankTheme(): string
     {

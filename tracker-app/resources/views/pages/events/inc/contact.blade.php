@@ -1,4 +1,4 @@
-<x-section-title>Contact</x-section-title>
+<x-section-title>Commanding Officer</x-section-title>
 @if($event->contact_name)
     <div class="mt-3 ps-3">
         <p class="mb-1">

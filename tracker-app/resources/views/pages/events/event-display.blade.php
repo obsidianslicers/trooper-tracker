@@ -111,7 +111,7 @@
 
                 @if($event->comments)
                     <div class="mt-3">
-                        <x-section-title>Comments</x-section-title>
+                        <x-section-title>Mission Brief</x-section-title>
                         <p>{!! Str::markdown($event->comments) !!}</p>
                     </div>
                 @endif
@@ -124,7 +124,7 @@
                 @endif
 
                 <div class="mt-5">
-                    <x-section-title>Event Uploads</x-section-title>
+                    <x-section-title>Mission Review</x-section-title>
                     @include('pages.events.inc.upload-display', ['event' => $event, 'is_administrative' => false])
                     <hr />
 

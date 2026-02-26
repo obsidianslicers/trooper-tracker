@@ -7,6 +7,7 @@ namespace App\Http\Controllers\ServiceRecord;
 use App\Features\Troopers\Queries\GetTrooperCostumesQuery;
 use App\Features\Troopers\Queries\GetTrooperServiceRecordQuery;
 use App\Http\Controllers\MagicBusController;
+use App\Models\Costume;
 use App\Models\Trooper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -46,7 +47,7 @@ class ServiceRecordDisplayController extends MagicBusController
 
         $trooper_costumes = $this->bus->send($trooper_costumes_query);
 
-        $trooper_costumes = $trooper_costumes->filter(fn ($c) => !in_array($c->name, ['Command Staff', 'Handler']));
+        $trooper_costumes = $trooper_costumes->filter(fn ($c) => !in_array($c->name, [Costume::COMMAND_STAFF, Costume::HANDLER]));
 
         $data['trooper_costumes'] = $trooper_costumes;
 
