@@ -3,6 +3,7 @@
 namespace App\Services\Forums;
 
 use App\Models\OauthLogin;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 
 class XenforoService
@@ -28,6 +29,12 @@ class XenforoService
         ?int $prefix_id = null,
         array $extra_fields = []
     ): array {
+        // If no explicit XenForo user ID was provided, attempt to resolve it
+        // from the currently authenticated trooper's linked XenForo account.
+        if ($user_id === null) {
+            $user_id = $this->resolve_user_id_for_trooper(Auth::id());
+        }
+
         $url = $this->base_url.'/api/threads';
         $payload = [
             'node_id' => $node_id,
