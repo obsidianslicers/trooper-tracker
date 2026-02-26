@@ -63,7 +63,7 @@ class FloridaGarrisonSeeder extends Seeder
 
         //  Set all earned on dates to a month ago to ensure they are not included 
         //  in the recent achievement notifications.
-        TrooperAchievement::updateQuietly([TrooperAchievement::EARNED_ON => now()->subMonth()]);
+        TrooperAchievement::query()->update([TrooperAchievement::EARNED_ON => now()->subMonth()]);
 
         Artisan::call('tracker:synchronize-organizations');
     }
