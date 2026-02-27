@@ -20,12 +20,12 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
             // Provider info
-            $table->string('provider');        // e.g. "google", "xenforo"
-            $table->string('provider_id');     // the unique ID from the provider
+            $table->string('provider', 64);        // e.g. "google", "xenforo"
+            $table->string('provider_id', 128);     // the unique ID from the provider
 
             // Tokens (optional but recommended)
-            $table->string('token')->nullable();
-            $table->string('refresh_token')->nullable();
+            $table->text('token')->nullable();
+            $table->text('refresh_token')->nullable();
             $table->timestamp('expires_at')->nullable();
 
             $table->timestamps();
