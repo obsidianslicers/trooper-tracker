@@ -69,3 +69,4 @@ stan/pint - WIP
   - add to tt_event_shares table, and email the email address
   - controller takes the UUID as the slug
   - set expiration to event_end + 24 hours
+  - add UI to admin pages to expire link
