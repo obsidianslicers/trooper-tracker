@@ -6,7 +6,7 @@
 
 namespace App\Models\Base;
 
-use App\Models\Organization;
+use App\Models\Event;
 use App\Models\Trooper;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
@@ -14,15 +14,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
- * Class TrooperOrganization
+ * Class EventShare
  * 
  * @property int $id
+ * @property int $event_id
  * @property int $trooper_id
- * @property int $organization_id
- * @property string $identifier
- * @property string $membership_status
- * @property Carbon|null $join_date
- * @property Carbon|null $synchronized_at
+ * @property string $share_token
+ * @property string $recipient_email
+ * @property int $view_count
+ * @property Carbon $expires_at
+ * @property bool $is_revoked
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property string|null $deleted_at
@@ -30,35 +31,37 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $updated_id
  * @property int|null $deleted_id
  * 
- * @property Organization $organization
+ * @property Event $event
  * @property Trooper $trooper
  *
  * @package App\Models\Base
  */
-class TrooperOrganization extends Model
+class EventShare extends Model
 {
     use SoftDeletes;
     const ID = 'id';
+    const EVENT_ID = 'event_id';
     const TROOPER_ID = 'trooper_id';
-    const ORGANIZATION_ID = 'organization_id';
-    const IDENTIFIER = 'identifier';
-    const MEMBERSHIP_STATUS = 'membership_status';
-    const JOIN_DATE = 'join_date';
-    const SYNCHRONIZED_AT = 'synchronized_at';
+    const SHARE_TOKEN = 'share_token';
+    const RECIPIENT_EMAIL = 'recipient_email';
+    const VIEW_COUNT = 'view_count';
+    const EXPIRES_AT = 'expires_at';
+    const IS_REVOKED = 'is_revoked';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
     const DELETED_AT = 'deleted_at';
     const CREATED_ID = 'created_id';
     const UPDATED_ID = 'updated_id';
     const DELETED_ID = 'deleted_id';
-    protected $table = 'tt_trooper_organizations';
+    protected $table = 'tt_event_shares';
 
     protected $casts = [
         self::ID => 'int',
+        self::EVENT_ID => 'int',
         self::TROOPER_ID => 'int',
-        self::ORGANIZATION_ID => 'int',
-        self::JOIN_DATE => 'datetime',
-        self::SYNCHRONIZED_AT => 'datetime',
+        self::VIEW_COUNT => 'int',
+        self::EXPIRES_AT => 'datetime',
+        self::IS_REVOKED => 'bool',
         self::CREATED_AT => 'datetime',
         self::UPDATED_AT => 'datetime',
         self::CREATED_ID => 'int',
@@ -66,18 +69,23 @@ class TrooperOrganization extends Model
         self::DELETED_ID => 'int'
     ];
 
-    protected $fillable = [
-        self::TROOPER_ID,
-        self::ORGANIZATION_ID,
-        self::IDENTIFIER,
-        self::MEMBERSHIP_STATUS,
-        self::JOIN_DATE,
-        self::SYNCHRONIZED_AT
+    protected $hidden = [
+        self::SHARE_TOKEN
     ];
 
-    public function organization(): BelongsTo
+    protected $fillable = [
+        self::EVENT_ID,
+        self::TROOPER_ID,
+        self::SHARE_TOKEN,
+        self::RECIPIENT_EMAIL,
+        self::VIEW_COUNT,
+        self::EXPIRES_AT,
+        self::IS_REVOKED
+    ];
+
+    public function event(): BelongsTo
     {
-        return $this->belongsTo(Organization::class);
+        return $this->belongsTo(Event::class);
     }
 
     public function trooper(): BelongsTo

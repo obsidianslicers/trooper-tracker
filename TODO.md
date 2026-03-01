@@ -64,3 +64,8 @@ stan/pint - WIP
 
 ## MISC
 - Command Staff notifications (ie Bob or Jane's nth Troop), OR add to system notification for all, OR post to FB??
+- Public Roster
+  - @if CS (send link to email input)
+  - add to tt_event_shares table, and email the email address
+  - controller takes the UUID as the slug
+  - set expiration to event_end + 24 hours
