@@ -32,13 +32,15 @@ readonly class GetTrooperCostumesQueryHandler implements QueryHandlerInterface
     public function __invoke(object $message): mixed
     {
         $costumes = Costume::forTrooper($message->trooper->id, $message->organization_ids)
+            ->whereNotIn(Costume::NAME, [Costume::COMMAND_STAFF, Costume::HANDLER])
             ->orderBy(Costume::NAME)
             ->get();
 
         // Transform for the final output
-        $results = $costumes->each(function ($costume) {
+        $results = $costumes->each(function ($costume)
+        {
             $names = $costume->organization_costumes
-                ->map(fn ($oc) => $oc->organization->name)
+                ->map(fn($oc) => $oc->organization->name)
                 ->sort()
                 ->values();
 

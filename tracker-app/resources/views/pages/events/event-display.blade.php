@@ -104,6 +104,7 @@
 
                 <div class="row">
                     <div class="col-12 mb-3">
+                        @include('pages.events.inc.share-roster', compact('event', 'can_moderate'))
                         @include('pages.events.inc.shifts', compact('event'))
                     </div>
                 </div>
