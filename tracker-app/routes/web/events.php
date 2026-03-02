@@ -9,6 +9,7 @@ use App\Http\Controllers\Events\EventDisplayController;
 use App\Http\Controllers\Events\LeaderboardController;
 use App\Http\Controllers\Events\ListController;
 use App\Http\Controllers\Events\MapController;
+use App\Http\Controllers\Events\ShareRosterHtmxController;
 use App\Http\Controllers\Events\ShiftCompleteController;
 use App\Http\Controllers\Events\SignUpHtmxController;
 use App\Http\Controllers\Events\SignUpUpdateHtmxController;
@@ -29,6 +30,7 @@ Route::prefix('events')
         Route::get('/cancelled', CancelledController::class)->name('cancelled');
         Route::get('/display/{event}', EventDisplayController::class)->name('display');
         Route::post('/upload/{event}', UploadImageController::class)->name('upload-image');
+        Route::post('/share-roster/{event}', ShareRosterHtmxController::class)->name('share-roster-htmx');
         Route::post('/signup/{event_shift}', SignUpHtmxController::class)->name('signup-htmx');
         Route::post('/signup/{event_trooper}/trooper', SignUpUpdateHtmxController::class)->name('signup-update-htmx');
         Route::get('/complete/{event_trooper}/{status}', ShiftCompleteController::class)->name('shift-complete');

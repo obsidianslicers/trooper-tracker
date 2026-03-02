@@ -11,6 +11,7 @@ use App\Models\EventShift;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
+use App\Services\GoogleService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -34,6 +35,18 @@ class CopySubmitControllerTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Mock GoogleService to prevent API calls during tests
+        $this->mock(GoogleService::class, function ($mock)
+        {
+            $mock->shouldReceive('getLatitudeLongitude')
+                ->andReturn([0.0, 0.0]);
+        });
+    }
+
     public function test_invoke_requires_authentication(): void
     {
         // Arrange
@@ -55,11 +68,11 @@ class CopySubmitControllerTest extends TestCase
         $admin = Trooper::factory()->asAdministrator()->create();
         $event = Event::factory()->create([
             Event::NAME => 'Original Event',
-            Event::EVENT_START => Carbon::parse('2026-02-01 10:00:00'),
-            Event::EVENT_END => Carbon::parse('2026-02-01 14:00:00'),
+            Event::EVENT_START => Carbon::parse('2026-03-10 10:00:00'),
+            Event::EVENT_END => Carbon::parse('2026-03-10 14:00:00'),
         ]);
 
-        $new_start = Carbon::parse('2026-03-01 10:00:00');
+        $new_start = Carbon::parse('2026-04-01 10:00:00');
 
         // Act
         $response = $this->actingAs($admin)->post(
@@ -92,7 +105,7 @@ class CopySubmitControllerTest extends TestCase
         $event = Event::factory()->create([
             Event::ORGANIZATION_ID => $organization->id,
             Event::NAME => 'Moderated Event',
-            Event::EVENT_START => Carbon::parse('2026-02-01 10:00:00'),
+            Event::EVENT_START => Carbon::parse('2026-03-10 10:00:00'),
         ]);
 
         // Act
@@ -100,7 +113,7 @@ class CopySubmitControllerTest extends TestCase
             route('admin.events.copy', $event),
             [
                 Event::NAME => 'COPY OF Moderated Event',
-                Event::EVENT_START => Carbon::parse('2026-03-01 10:00:00')->toDateTimeString(),
+                Event::EVENT_START => Carbon::parse('2026-04-01 10:00:00')->toDateTimeString(),
             ]
         );
 
@@ -126,7 +139,7 @@ class CopySubmitControllerTest extends TestCase
 
         $event = Event::factory()->create([
             Event::ORGANIZATION_ID => $other_org->id,
-            Event::EVENT_START => Carbon::parse('2026-02-01 10:00:00'),
+            Event::EVENT_START => Carbon::parse('2026-03-10 10:00:00'),
         ]);
 
         // Act
@@ -134,7 +147,7 @@ class CopySubmitControllerTest extends TestCase
             route('admin.events.copy', $event),
             [
                 Event::NAME => 'COPY OF Event',
-                Event::EVENT_START => Carbon::parse('2026-03-01 10:00:00')->toDateTimeString(),
+                Event::EVENT_START => Carbon::parse('2026-04-01 10:00:00')->toDateTimeString(),
             ]
         );
 
@@ -146,9 +159,9 @@ class CopySubmitControllerTest extends TestCase
     {
         // Arrange
         $admin = Trooper::factory()->asAdministrator()->create();
-        $old_start = Carbon::parse('2026-02-01 10:00:00');
-        $old_end = Carbon::parse('2026-02-01 14:00:00');
-        $new_start = Carbon::parse('2026-03-15 10:00:00');
+        $old_start = Carbon::parse('2026-03-10 10:00:00');
+        $old_end = Carbon::parse('2026-03-10 14:00:00');
+        $new_start = Carbon::parse('2026-04-15 10:00:00');
 
         $event = Event::factory()->create([
             Event::NAME => 'Original Event',
@@ -179,24 +192,24 @@ class CopySubmitControllerTest extends TestCase
     {
         // Arrange
         $admin = Trooper::factory()->asAdministrator()->create();
-        $old_start = Carbon::parse('2026-02-01 10:00:00');
-        $new_start = Carbon::parse('2026-03-01 10:00:00');
+        $old_start = Carbon::parse('2026-03-10 10:00:00');
+        $new_start = Carbon::parse('2026-04-01 10:00:00');
 
         $event = Event::factory()->create([
             Event::EVENT_START => $old_start,
-            Event::EVENT_END => Carbon::parse('2026-02-01 14:00:00'),
+            Event::EVENT_END => Carbon::parse('2026-03-10 14:00:00'),
         ]);
 
         EventShift::factory()->create([
             EventShift::EVENT_ID => $event->id,
-            EventShift::SHIFT_STARTS_AT => Carbon::parse('2026-02-01 10:00:00'),
-            EventShift::SHIFT_ENDS_AT => Carbon::parse('2026-02-01 12:00:00'),
+            EventShift::SHIFT_STARTS_AT => Carbon::parse('2026-03-10 10:00:00'),
+            EventShift::SHIFT_ENDS_AT => Carbon::parse('2026-03-10 12:00:00'),
         ]);
 
         EventShift::factory()->create([
             EventShift::EVENT_ID => $event->id,
-            EventShift::SHIFT_STARTS_AT => Carbon::parse('2026-02-01 12:00:00'),
-            EventShift::SHIFT_ENDS_AT => Carbon::parse('2026-02-01 14:00:00'),
+            EventShift::SHIFT_STARTS_AT => Carbon::parse('2026-03-10 12:00:00'),
+            EventShift::SHIFT_ENDS_AT => Carbon::parse('2026-03-10 14:00:00'),
         ]);
 
         // Act
@@ -220,7 +233,7 @@ class CopySubmitControllerTest extends TestCase
         $organization = Organization::factory()->create();
 
         $event = Event::factory()->create([
-            Event::EVENT_START => Carbon::parse('2026-02-01 10:00:00'),
+            Event::EVENT_START => Carbon::parse('2026-03-10 10:00:00'),
         ]);
 
         EventOrganization::factory()->create([
@@ -235,7 +248,7 @@ class CopySubmitControllerTest extends TestCase
             route('admin.events.copy', $event),
             [
                 Event::NAME => 'Copied Event',
-                Event::EVENT_START => Carbon::parse('2026-03-01 10:00:00')->toDateTimeString(),
+                Event::EVENT_START => Carbon::parse('2026-04-01 10:00:00')->toDateTimeString(),
             ]
         );
 
@@ -254,7 +267,7 @@ class CopySubmitControllerTest extends TestCase
         $admin = Trooper::factory()->asAdministrator()->create();
         $event = Event::factory()->create([
             Event::STATUS => EventStatus::OPEN,
-            Event::EVENT_START => Carbon::parse('2026-02-01 10:00:00'),
+            Event::EVENT_START => Carbon::parse('2026-03-10 10:00:00'),
         ]);
 
         // Act
@@ -262,7 +275,7 @@ class CopySubmitControllerTest extends TestCase
             route('admin.events.copy', $event),
             [
                 Event::NAME => 'Copied Event',
-                Event::EVENT_START => Carbon::parse('2026-03-01 10:00:00')->toDateTimeString(),
+                Event::EVENT_START => Carbon::parse('2026-04-01 10:00:00')->toDateTimeString(),
             ]
         );
 
@@ -276,7 +289,7 @@ class CopySubmitControllerTest extends TestCase
         // Arrange
         $admin = Trooper::factory()->asAdministrator()->create();
         $event = Event::factory()->create([
-            Event::EVENT_START => Carbon::parse('2026-02-01 10:00:00'),
+            Event::EVENT_START => Carbon::parse('2026-03-10 10:00:00'),
         ]);
 
         // Act
@@ -284,7 +297,7 @@ class CopySubmitControllerTest extends TestCase
             route('admin.events.copy', $event),
             [
                 Event::NAME => 'Copied Event',
-                Event::EVENT_START => Carbon::parse('2026-03-01 10:00:00')->toDateTimeString(),
+                Event::EVENT_START => Carbon::parse('2026-04-01 10:00:00')->toDateTimeString(),
             ]
         );
 
@@ -298,7 +311,7 @@ class CopySubmitControllerTest extends TestCase
         // Arrange
         $admin = Trooper::factory()->asAdministrator()->create();
         $event = Event::factory()->create([
-            Event::EVENT_START => Carbon::parse('2026-02-01 10:00:00'),
+            Event::EVENT_START => Carbon::parse('2026-03-10 10:00:00'),
         ]);
 
         // Act
@@ -306,7 +319,7 @@ class CopySubmitControllerTest extends TestCase
             route('admin.events.copy', $event),
             [
                 Event::NAME => 'Copied Event',
-                Event::EVENT_START => Carbon::parse('2026-03-01 10:00:00')->toDateTimeString(),
+                Event::EVENT_START => Carbon::parse('2026-04-01 10:00:00')->toDateTimeString(),
             ]
         );
 

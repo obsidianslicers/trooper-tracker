@@ -1,5 +1,7 @@
 <x-section-title>Mission Roster</x-section-title>
 
+@include('pages.events.inc.share-roster', compact('event', 'can_moderate'))
+
 @php($count_of_shifts = $event->event_shifts->count())
 @if($count_of_shifts > 1)
     <div class="row mb-3">
