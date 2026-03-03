@@ -37,10 +37,9 @@ readonly class GetTrooperCostumesQueryHandler implements QueryHandlerInterface
             ->get();
 
         // Transform for the final output
-        $results = $costumes->each(function ($costume)
-        {
+        $results = $costumes->each(function ($costume) {
             $names = $costume->organization_costumes
-                ->map(fn($oc) => $oc->organization->name)
+                ->map(fn ($oc) => $oc->organization->name)
                 ->sort()
                 ->values();
 

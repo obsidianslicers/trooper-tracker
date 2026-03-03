@@ -50,7 +50,7 @@ class ShareRosterHtmxRequest extends FormRequest
             'recipient_email' => [
                 'required',
                 'string',
-                'email'
+                'email',
             ],
         ];
     }

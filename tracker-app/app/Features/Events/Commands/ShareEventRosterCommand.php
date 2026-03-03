@@ -29,6 +29,5 @@ readonly class ShareEventRosterCommand
         public readonly Event $event,
         public readonly string $recipient_email,
         public readonly Trooper $shared_by_trooper,
-    ) {
-    }
+    ) {}
 }

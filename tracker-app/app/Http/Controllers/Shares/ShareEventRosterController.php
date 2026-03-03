@@ -8,7 +8,6 @@ use App\Features\Events\Queries\GetSharedEventRosterQuery;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Event;
 use App\Models\EventShare;
-use App\Models\EventUpload;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -30,8 +29,8 @@ class ShareEventRosterController extends MagicBusController
      * conditionally display content based on the share's viewability (revoked
      * and expiry status are checked in the view layer).
      *
-     * @param  Request    $request  The incoming HTTP request
-     * @param  EventShare $share    The `EventShare` model instance bound by share_token
+     * @param  Request  $request  The incoming HTTP request
+     * @param  EventShare  $share  The `EventShare` model instance bound by share_token
      * @return View The rendered roster sharing page view
      */
     public function __invoke(Request $request, EventShare $share): View

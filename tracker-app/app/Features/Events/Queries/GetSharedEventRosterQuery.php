@@ -24,6 +24,5 @@ readonly class GetSharedEventRosterQuery
      */
     public function __construct(
         public readonly EventShare $event_share,
-    ) {
-    }
+    ) {}
 }

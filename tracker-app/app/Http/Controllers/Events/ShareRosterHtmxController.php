@@ -42,7 +42,7 @@ class ShareRosterHtmxController extends MagicBusController
     {
         $can_moderate = $request->user()->can('update', $event);
 
-        $errors = new ViewErrorBag();
+        $errors = new ViewErrorBag;
 
         $message = null;
 
@@ -64,7 +64,7 @@ class ShareRosterHtmxController extends MagicBusController
 
             $display = implode(', ', $err['recipient_email'] ?? ['Unknown error']);
 
-            $message = 'Failed to share roster: ' . $display;
+            $message = 'Failed to share roster: '.$display;
 
             $errors->put('default', $x->validator->errors());
         }

@@ -39,7 +39,7 @@ readonly class ShareEventRosterCommandHandler implements CommandHandlerInterface
      */
     public function __invoke(object $message): mixed
     {
-        $share = new EventShare();
+        $share = new EventShare;
 
         $share->share_token = Str::uuid()->toString();
         $share->event_id = $message->event->id;

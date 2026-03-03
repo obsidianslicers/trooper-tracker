@@ -41,7 +41,7 @@ class ShareEventRoster extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix') . ' Event Roster Link'
+            subject: config('mail.prefix').' Event Roster Link'
         );
     }
 
