@@ -9,7 +9,7 @@
     <meta property="og:description"
           content="{{ $event->name }} happening {{ $event->time_display }}. View details on the Troop Tracker." />
     <meta property="og:url"
-          content="{{ route('share-event', compact('event')) }}" />
+          content="{{ route('shares.event', compact('event')) }}" />
     <meta property="og:type"
           content="event" />
     <meta property="article:published_time"

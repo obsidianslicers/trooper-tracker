@@ -28,8 +28,9 @@
                     <x-input-text autofocus
                                   :property="'legal_name'" />
                     <x-input-help>
-                        Used for official records and communications with event staff. This will not be
-                        shared publicly, but should be your real name for safety and accountability reasons.
+                        Used for official records and communications with event staff and coordinators.
+                        This will not be displayed publicly on your profile or on the dashboard, but will be
+                        shared with event coordinators for safety and accountability reasons.
                     </x-input-help>
                 </x-input-container>
 

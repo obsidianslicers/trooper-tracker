@@ -44,7 +44,7 @@
                     </div>
                     <div class="col-4 text-end">
                         <div class="d-flex justify-content-end align-items-center gap-2">
-                            {!! Share::page(route('share-event', compact('event')), $event->name)->facebook()->twitter() !!}
+                            {!! Share::page(route('shares.event', compact('event')), $event->name)->facebook()->twitter() !!}
                             @can('update', $event)
                                 <div class="btn-group">
                                     <a href="{{ route('admin.events.update', compact('event')) }}"

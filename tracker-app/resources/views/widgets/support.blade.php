@@ -1,5 +1,5 @@
 <h5 class="mb-3">
-    🎯 November Support Goal -
+    🎯 This Month's Support Goal -
     <span class="text-muted">
         ${{ number_format($goal, 2) }}
     </span>
