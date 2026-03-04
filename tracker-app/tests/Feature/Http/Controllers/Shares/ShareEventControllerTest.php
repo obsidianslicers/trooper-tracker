@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers;
+namespace Tests\Feature\Http\Controllers\Shares;
 
 use App\Models\Event;
 use App\Models\EventUpload;
@@ -25,11 +25,11 @@ class ShareEventControllerTest extends TestCase
         $event = Event::factory()->create();
 
         // Act
-        $response = $this->get(route('share-event', ['event' => $event]));
+        $response = $this->get(route('shares.event', ['event' => $event]));
 
         // Assert
         $response->assertOk();
-        $response->assertViewIs('pages.share-event');
+        $response->assertViewIs('pages.shares.event');
         $response->assertViewHas('event', $event);
         $response->assertViewHas('event_upload', null);
     }
@@ -43,14 +43,14 @@ class ShareEventControllerTest extends TestCase
         ]);
 
         // Act
-        $response = $this->get(route('share-event', [
+        $response = $this->get(route('shares.event', [
             'event' => $event,
             'event_upload' => $event_upload->id,
         ]));
 
         // Assert
         $response->assertOk();
-        $response->assertViewIs('pages.share-event');
+        $response->assertViewIs('pages.shares.event');
         $response->assertViewHas('event', $event);
         $response->assertViewHas('event_upload', function ($view_upload) use ($event_upload)
         {
@@ -68,14 +68,14 @@ class ShareEventControllerTest extends TestCase
         ]);
 
         // Act
-        $response = $this->get(route('share-event', [
+        $response = $this->get(route('shares.event', [
             'event' => $event,
             'event_upload' => $event_upload->id,
         ]));
 
         // Assert
         $response->assertOk();
-        $response->assertViewIs('pages.share-event');
+        $response->assertViewIs('pages.shares.event');
         $response->assertViewHas('event', $event);
         $response->assertViewHas('event_upload', null);
     }
@@ -86,14 +86,14 @@ class ShareEventControllerTest extends TestCase
         $event = Event::factory()->create();
 
         // Act
-        $response = $this->get(route('share-event', [
+        $response = $this->get(route('shares.event', [
             'event' => $event,
             'event_upload' => 99999,
         ]));
 
         // Assert
         $response->assertOk();
-        $response->assertViewIs('pages.share-event');
+        $response->assertViewIs('pages.shares.event');
         $response->assertViewHas('event', $event);
         $response->assertViewHas('event_upload', null);
     }

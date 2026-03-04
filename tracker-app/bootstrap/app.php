@@ -10,6 +10,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: [
             __DIR__ . '/../routes/web/home.php',
+            __DIR__ . '/../routes/web/shares.php',
             __DIR__ . '/../routes/web/events.php',
             __DIR__ . '/../routes/web/auth.php',
             __DIR__ . '/../routes/web/widgets.php',

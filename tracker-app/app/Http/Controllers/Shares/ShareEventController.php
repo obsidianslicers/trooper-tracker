@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Shares;
 
+use App\Http\Controllers\MagicBusController;
 use App\Models\Event;
 use App\Models\EventUpload;
 use Illuminate\Contracts\View\View;
@@ -44,6 +45,6 @@ class ShareEventController extends MagicBusController
 
         $data = compact('event', 'event_upload');
 
-        return view('pages.share-event', $data);
+        return view('pages.shares.event', $data);
     }
 }

@@ -365,4 +365,43 @@ class GetTrooperCostumesQueryHandlerTest extends TestCase
         $this->assertCount(5, $result);
         $this->assertTrue($result->every(fn($item) => $item instanceof Costume));
     }
+
+    public function test_invoke_filters_out_command_staff_and_handler_costumes(): void
+    {
+        // Arrange
+        $trooper = Trooper::factory()->asActive()->create();
+        $organization = Organization::factory()->create();
+
+        // Create regular costumes
+        $regular_costume = Costume::factory()->create(['name' => 'Stormtrooper']);
+
+        // Create excluded costumes
+        $command_staff_costume = Costume::factory()->create(['name' => Costume::COMMAND_STAFF]);
+        $handler_costume = Costume::factory()->create(['name' => Costume::HANDLER]);
+
+        foreach ([$regular_costume, $command_staff_costume, $handler_costume] as $costume)
+        {
+            $org_costume = OrganizationCostume::factory()->create([
+                OrganizationCostume::ORGANIZATION_ID => $organization->id,
+                OrganizationCostume::COSTUME_ID => $costume->id,
+            ]);
+
+            TrooperCostume::factory()->create([
+                TrooperCostume::TROOPER_ID => $trooper->id,
+                TrooperCostume::ORGANIZATION_COSTUME_ID => $org_costume->id,
+            ]);
+        }
+
+        $query = new GetTrooperCostumesQuery($trooper);
+        $subject = new GetTrooperCostumesQueryHandler();
+
+        // Act
+        $result = $subject($query);
+
+        // Assert - only regular costume should be returned
+        $this->assertCount(1, $result);
+        $this->assertEquals('Stormtrooper', $result->first()->name);
+        $this->assertFalse($result->contains('name', Costume::COMMAND_STAFF));
+        $this->assertFalse($result->contains('name', Costume::HANDLER));
+    }
 }

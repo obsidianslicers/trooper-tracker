@@ -8,6 +8,7 @@ namespace App\Models\Base;
 
 use App\Models\EventNotification;
 use App\Models\EventOrganization;
+use App\Models\EventShare;
 use App\Models\EventShift;
 use App\Models\EventUpload;
 use App\Models\Organization;
@@ -79,6 +80,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Organization $organization
  * @property Collection|EventNotification[] $event_notifications
  * @property Collection|Organization[] $organizations
+ * @property Collection|EventShare[] $event_shares
  * @property Collection|EventShift[] $event_shifts
  * @property Collection|EventUpload[] $event_uploads
  *
@@ -241,6 +243,11 @@ class Event extends Model
         return $this->belongsToMany(Organization::class, 'tt_event_organizations')
                     ->withPivot(EventOrganization::ID, EventOrganization::CAN_ATTEND, EventOrganization::TROOPERS_ALLOWED, EventOrganization::HANDLERS_ALLOWED, EventOrganization::DELETED_AT, EventOrganization::CREATED_ID, EventOrganization::UPDATED_ID, EventOrganization::DELETED_ID)
                     ->withTimestamps();
+    }
+
+    public function event_shares(): HasMany
+    {
+        return $this->hasMany(EventShare::class);
     }
 
     public function event_shifts(): HasMany

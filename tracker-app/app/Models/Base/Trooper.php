@@ -9,6 +9,7 @@ namespace App\Models\Base;
 use App\Models\Award;
 use App\Models\AwardTrooper;
 use App\Models\EventNotification;
+use App\Models\EventShare;
 use App\Models\EventTrooper;
 use App\Models\EventUpload;
 use App\Models\ModelChange;
@@ -52,6 +53,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * 
  * @property Collection|Award[] $awards
  * @property Collection|EventNotification[] $event_notifications
+ * @property Collection|EventShare[] $event_shares
  * @property Collection|EventTrooper[] $event_troopers
  * @property Collection|EventUpload[] $event_uploads
  * @property Collection|ModelChange[] $model_changes
@@ -130,6 +132,11 @@ class Trooper extends Model
     public function event_notifications(): HasMany
     {
         return $this->hasMany(EventNotification::class);
+    }
+
+    public function event_shares(): HasMany
+    {
+        return $this->hasMany(EventShare::class);
     }
 
     public function event_troopers(): HasMany
