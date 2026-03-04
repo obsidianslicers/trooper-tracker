@@ -96,8 +96,8 @@ class SendEventCreatedNotificationsJob implements ShouldQueue
                 if (isset($body['thread']['thread_id'])) {
                     $this->event->thread_id = (int) $body['thread']['thread_id'];
                 }
-                if (isset($body['post']['post_id'])) {
-                    $this->event->post_id = (int) $body['post']['post_id'];
+                if (isset($body['thread']['first_post_id'])) {
+                    $this->event->post_id = (int) $body['thread']['first_post_id'];
                 }
 
                 if ($this->event->isDirty(['thread_id', 'post_id'])) {
