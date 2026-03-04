@@ -7,8 +7,10 @@ namespace Tests\Feature\Http\Controllers\Events;
 use App\Enums\EventStatus;
 use App\Models\Event;
 use App\Models\EventShift;
+use App\Models\OauthLogin;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 /**
@@ -125,7 +127,11 @@ class EventDisplayControllerTest extends TestCase
     public function test_invoke_renders_forum_link_when_thread_and_post_present(): void
     {
         // Arrange
-        config(['services.xenforo.base_url' => 'https://forum.example.com']);
+        config([
+            'services.xenforo.base_url' => 'https://forum.example.com',
+            // Prevent the controller from attempting to fetch thread posts in this test
+            'services.xenforo.api_key' => null,
+        ]);
 
         $trooper = Trooper::factory()->asActive()->create();
         $event = Event::factory()->create([
@@ -140,6 +146,83 @@ class EventDisplayControllerTest extends TestCase
         // Assert
         $response->assertOk();
         $response->assertSee('https://forum.example.com/posts/5678/', false);
+    }
+
+    public function test_invoke_renders_forum_comments_from_xenforo_api_when_configured(): void
+    {
+        // Arrange
+        config([
+            'services.xenforo.base_url' => 'https://forum.example.com',
+            'services.xenforo.api_key' => 'test-key',
+        ]);
+
+        Http::fake([
+            'https://forum.example.com/api/threads/1234/posts*' => Http::response([
+                'posts' => [
+                    [
+                        'post_id' => 5678,
+                        'message' => '[b]Starter[/b] post (should not display)',
+                        'post_date' => 1_700_000_000,
+                        'User' => [
+                            'username' => 'ForumUser',
+                            'avatar_urls' => [
+                                's' => 'https://forum.example.com/avatar.jpg',
+                            ],
+                        ],
+                    ],
+                    [
+                        'post_id' => 9000,
+                        'message' => '[b]Older reply[/b] content',
+                        'post_date' => 1_700_000_100,
+                        'User' => [
+                            'username' => 'ForumUser',
+                            'avatar_urls' => [
+                                's' => 'https://forum.example.com/avatar.jpg',
+                            ],
+                        ],
+                    ],
+                    [
+                        'post_id' => 9001,
+                        'message' => '[b]Newest reply[/b] content',
+                        'post_date' => 1_700_000_200,
+                        'User' => [
+                            'username' => 'ForumUser',
+                            'avatar_urls' => [
+                                's' => 'https://forum.example.com/avatar.jpg',
+                            ],
+                        ],
+                    ],
+                ],
+            ], 200),
+        ]);
+
+        $trooper = Trooper::factory()->asActive()->create();
+        OauthLogin::factory()->create([
+            OauthLogin::TROOPER_ID => $trooper->id,
+            OauthLogin::PROVIDER => 'xenforo',
+            OauthLogin::PROVIDER_ID => '123',
+        ]);
+
+        $event = Event::factory()->create([
+            Event::THREAD_ID => 1234,
+            Event::POST_ID => 5678,
+        ]);
+
+        // Act
+        $response = $this->actingAs($trooper)
+            ->get(route('events.display', $event));
+
+        // Assert
+        $response->assertOk();
+        $response->assertSee('ForumUser', false);
+        $response->assertSee('https://forum.example.com/avatar.jpg', false);
+        $response->assertDontSee('Starter post (should not display)', false);
+
+        // Newest reply should appear first.
+        $response->assertSeeInOrder([
+            '<strong>Newest reply</strong> content',
+            '<strong>Older reply</strong> content',
+        ], false);
     }
 
     public function test_invoke_sets_can_moderate_false_for_regular_trooper(): void

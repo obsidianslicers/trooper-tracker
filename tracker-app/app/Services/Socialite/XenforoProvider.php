@@ -151,5 +151,4 @@ class XenforoProvider extends AbstractProvider implements ProviderInterface
             'grant_type' => 'authorization_code',
         ]);
     }
-
 }

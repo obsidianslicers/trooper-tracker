@@ -43,19 +43,21 @@
                     <div class="col-4 text-end">
                         <div class="d-flex justify-content-end align-items-center gap-2">
                             @if(!empty($googleCalendarUrl))
-                                <a href="{{ $googleCalendarUrl }}"
-                                class="btn btn-outline-secondary"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                title="Add to Google Calendar">
-                                    <i class="fab fa-google"></i>
-                                </a>
+                                <div class="btn-group">
+                                    <a href="{{ $googleCalendarUrl }}"
+                                    class="btn btn-outline-secondary"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    title="Add to Google Calendar">
+                                        <i class="fab fa-google"></i>
+                                    </a>
 
-                                <a href="{{ route('events.display-ics', compact('event')) }}"
-                                   class="btn btn-outline-secondary"
-                                   title="Add to Calendar (.ics)">
-                                    <i class="fa fa-fw fa-calendar"></i>
-                                </a>
+                                    <a href="{{ route('events.display-ics', compact('event')) }}"
+                                    class="btn btn-outline-secondary"
+                                    title="Add to Calendar (.ics)">
+                                        <i class="fa fa-fw fa-calendar"></i>
+                                    </a>
+                                </div>
                             @endif
 
                             @if(!empty($xenforoBaseUrl) && !empty($event->thread_id) && !empty($event->post_id))
@@ -174,6 +176,8 @@
                         </div>
                     </div>
                 </div>
+
+                @include('pages.events.inc.xenforo-comments', compact('event', 'xenforoBaseUrl', 'xenforoThreadPosts'))
 
             </div>
         </div>

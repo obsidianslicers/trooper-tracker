@@ -7,8 +7,10 @@ namespace App\Http\Controllers\Events;
 use App\Features\Events\Queries\GetEventDisplayQuery;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Event;
+use App\Services\Forums\XenforoService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Spatie\CalendarLinks\Link;
 
 /**
@@ -40,7 +42,7 @@ class EventDisplayController extends MagicBusController
      * @param  Event  $event  The event to display for sign-up
      * @return View The rendered event sign-up page
      */
-    public function __invoke(Request $request, Event $event): View
+    public function __invoke(Request $request, Event $event, XenforoService $xenforo): View
     {
         $trooper = $request->user();
 
@@ -87,7 +89,21 @@ class EventDisplayController extends MagicBusController
         // XenForo base URL, if configured
         $xenforoBaseUrl = rtrim(config('services.xenforo.base_url', env('XENFORO_BASE_URL', '')), '/');
 
-        $data = compact('event', 'can_moderate', 'bg', 'googleCalendarUrl', 'xenforoBaseUrl');
+        // XenForo thread posts (optional)
+        $xenforoThreadPosts = [];
+        $xenforoApiKey = config('services.xenforo.api_key', env('XENFORO_API_KEY'));
+        if (! empty($xenforoBaseUrl) && ! empty($xenforoApiKey) && ! empty($event->thread_id) && ! empty($event->post_id))
+        {
+            $threadId = (int) $event->thread_id;
+            $excludePostId = (int) $event->post_id;
+            $xenforoThreadPosts = Cache::remember(
+                'xenforo.thread.'.$threadId.'.posts.exclude.'.$excludePostId,
+                now()->addMinutes(5),
+                fn () => $xenforo->get_thread_posts($threadId, exclude_post_id: $excludePostId, per_page: 50, max_pages: 20)
+            );
+        }
+
+        $data = compact('event', 'can_moderate', 'bg', 'googleCalendarUrl', 'xenforoBaseUrl', 'xenforoThreadPosts');
 
         return view('pages.events.event-display', $data);
     }

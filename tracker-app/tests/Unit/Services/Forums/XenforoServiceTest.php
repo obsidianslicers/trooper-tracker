@@ -57,9 +57,9 @@ class XenforoServiceTest extends TestCase
 	public function test_create_thread_uses_explicit_user_id_and_sends_expected_payload(): void
 	{
 		config([
-			'xenforo.base_url' => 'https://forum.example.com',
-			'xenforo.api_key' => 'test-api-key',
-			'xenforo.api_user' => 'api-user',
+			'services.xenforo.base_url' => 'https://forum.example.com',
+			'services.xenforo.api_key' => 'test-api-key',
+			'services.xenforo.api_user' => 'api-user',
 		]);
 
 		Http::fake(fn (HttpRequest $request) => Http::response(['thread_id' => 999], 201));
@@ -101,9 +101,9 @@ class XenforoServiceTest extends TestCase
 	public function test_create_thread_resolves_xenforo_user_from_authenticated_trooper_when_user_id_not_provided(): void
 	{
 		config([
-			'xenforo.base_url' => 'https://forum.example.com',
-			'xenforo.api_key' => 'test-api-key',
-			'xenforo.api_user' => 'api-user',
+			'services.xenforo.base_url' => 'https://forum.example.com',
+			'services.xenforo.api_key' => 'test-api-key',
+			'services.xenforo.api_user' => 'api-user',
 		]);
 
 		Http::fake(fn (HttpRequest $request) => Http::response(['thread_id' => 1000], 200));
