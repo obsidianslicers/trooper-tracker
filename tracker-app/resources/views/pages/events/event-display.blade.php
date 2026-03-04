@@ -44,6 +44,18 @@
                     </div>
                     <div class="col-4 text-end">
                         <div class="d-flex justify-content-end align-items-center gap-2">
+                            @php($xenforoBaseUrl = rtrim(config('services.xenforo.base_url', env('XENFORO_BASE_URL')), '/'))
+
+                            @if(!empty($xenforoBaseUrl) && !empty($event->thread_id) && !empty($event->post_id))
+                                <a href="{{ $xenforoBaseUrl.'/posts/'.$event->post_id.'/' }}"
+                                   class="btn btn-outline-secondary"
+                                   target="_blank"
+                                   rel="noopener noreferrer"
+                                   title="View Forum Post">
+                                    <i class="fa fa-fw fa-comments"></i>
+                                </a>
+                            @endif
+
                             {!! Share::page(route('shares.event', compact('event')), $event->name)->facebook()->twitter() !!}
                             @can('update', $event)
                                 <div class="btn-group">
