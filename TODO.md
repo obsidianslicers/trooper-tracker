@@ -65,6 +65,7 @@ stan/pint - WIP
 - todo:   club/organization identifiers
   - auto verify club identifiers on registration
 - Update forum post every so often
+- Sync TT data to Xenforo (Name, Organization Data, etc)
 
 ## MISC
 - Command Staff notifications (ie Bob or Jane's nth Troop), OR add to system notification for all, OR post to FB??
