@@ -20,19 +20,20 @@ class EnsureXenforoLinked
     /**
      * Handle an incoming request.
      *
-     * @param  Request  $request
      * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
         // Allow this behaviour to be toggled via configuration / .env.
-        if (! config('tracker.auth.require_xenforo', false)) {
+        if (! config('tracker.auth.require_xenforo', false))
+        {
             return $next($request);
         }
 
         $user = Auth::user();
 
-        if (! $user) {
+        if (! $user)
+        {
             return $next($request);
         }
 
@@ -50,7 +51,8 @@ class EnsureXenforoLinked
             ->where(OauthLogin::PROVIDER, 'xenforo')
             ->exists();
 
-        if (! $has_xenforo) {
+        if (! $has_xenforo)
+        {
             return redirect()->route('account.xenforo.required');
         }
 

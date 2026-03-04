@@ -76,8 +76,7 @@ class SendEventCreatedNotificationsJob implements ShouldQueue
             ! empty($organization->related_forum) &&
             $this->event->create_forum_thread !== false &&
             empty($this->event->thread_id)
-        )
-        {
+        ) {
             $node_id = (int) $organization->related_forum;
             $title = $this->event->name;
 
@@ -93,14 +92,17 @@ class SendEventCreatedNotificationsJob implements ShouldQueue
             {
                 // Attempt to capture the created thread/post IDs from the XenForo API
                 $body = $result['body'] ?? [];
-                if (isset($body['thread']['thread_id'])) {
+                if (isset($body['thread']['thread_id']))
+                {
                     $this->event->thread_id = (int) $body['thread']['thread_id'];
                 }
-                if (isset($body['thread']['first_post_id'])) {
+                if (isset($body['thread']['first_post_id']))
+                {
                     $this->event->post_id = (int) $body['thread']['first_post_id'];
                 }
 
-                if ($this->event->isDirty(['thread_id', 'post_id'])) {
+                if ($this->event->isDirty(['thread_id', 'post_id']))
+                {
                     $this->event->save();
                 }
             }

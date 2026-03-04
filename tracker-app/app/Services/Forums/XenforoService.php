@@ -31,7 +31,8 @@ class XenforoService
     ): array {
         // If no explicit XenForo user ID was provided, attempt to resolve it
         // from the currently authenticated trooper's linked XenForo account.
-        if ($user_id === null) {
+        if ($user_id === null)
+        {
             $user_id = $this->resolve_user_id_for_trooper(Auth::id());
         }
 
@@ -68,7 +69,8 @@ class XenforoService
      */
     public function resolve_user_id_for_trooper(?int $trooper_id): ?int
     {
-        if ($trooper_id === null) {
+        if ($trooper_id === null)
+        {
             return null;
         }
 
@@ -76,7 +78,8 @@ class XenforoService
             ->where(OauthLogin::PROVIDER, 'xenforo')
             ->first();
 
-        if ($oauth === null || empty($oauth->provider_id)) {
+        if ($oauth === null || empty($oauth->provider_id))
+        {
             return null;
         }
 
