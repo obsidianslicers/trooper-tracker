@@ -92,13 +92,16 @@ class SendEventCreatedNotificationsJob implements ShouldQueue
             {
                 // Attempt to capture the created thread/post IDs from the XenForo API
                 $body = $result['body'] ?? [];
-                if (isset($body['thread']['thread_id']))
+                if (isset($body['thread']['thread_id']) && is_numeric($body['thread']['thread_id']))
                 {
-                    $this->event->thread_id = (int) $body['thread']['thread_id'];
+                    $thread_id = (int) $body['thread']['thread_id'];
+                    $this->event->thread_id = $thread_id;
                 }
-                if (isset($body['thread']['first_post_id']))
+
+                if (isset($body['thread']['first_post_id']) && is_numeric($body['thread']['first_post_id']))
                 {
-                    $this->event->post_id = (int) $body['thread']['first_post_id'];
+                    $post_id = (int) $body['thread']['first_post_id'];
+                    $this->event->post_id = $post_id;
                 }
 
                 if ($this->event->isDirty(['thread_id', 'post_id']))
