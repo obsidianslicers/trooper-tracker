@@ -62,6 +62,7 @@ stan/pint - WIP
 - Xenforo tie in modules (When posting a event, cross post to Xenforo, use the comments on forum for tracker, ability to see forum link on event)
   -Save Xenforo ID to trooper. Use this ID when posting events to whoever is posting,\.
   -Xenforo Discussions on events
+- Get Xenforo donators, show donations on profile page / Give special badge
 - todo:   club/organization identifiers
   - auto verify club identifiers on registration
 
