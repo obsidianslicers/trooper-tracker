@@ -10,6 +10,7 @@ use App\Models\Award;
 use App\Models\AwardTrooper;
 use App\Models\Notice;
 use App\Models\NoticeTrooper;
+use App\Models\OauthLogin;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
@@ -156,6 +157,18 @@ class TrooperFactory extends BaseTrooperFactory
             ],
             'awards' // relationship name on Trooper
         );
+    }
+
+    public function withXenforoOauth(string $providerId = 'test-xenforo-id'): static
+    {
+        return $this->afterCreating(function (Trooper $trooper) use ($providerId)
+        {
+            OauthLogin::factory()->create([
+                OauthLogin::TROOPER_ID => $trooper->id,
+                OauthLogin::PROVIDER => 'xenforo',
+                OauthLogin::PROVIDER_ID => $providerId,
+            ]);
+        });
     }
 
 }

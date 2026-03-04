@@ -34,6 +34,7 @@
         <env name="NIGHTWATCH_ENABLED" value="false"/>
         <env name="DEBUGBAR_ENABLED" value="false"/>
         <env name="VITE_ENABLED" value="false"/>
+        <env name="TRACKER_REQUIRE_XENFORO" value="false"/>
         <env name="LOG_CHANNEL" value="null"/>
     </php>
 </phpunit>
