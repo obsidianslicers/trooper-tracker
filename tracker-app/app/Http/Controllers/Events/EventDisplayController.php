@@ -9,6 +9,7 @@ use App\Http\Controllers\MagicBusController;
 use App\Models\Event;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Spatie\CalendarLinks\Link;
 
 /**
  * Displays the event sign-up page with all shifts and current trooper assignments.
@@ -49,7 +50,44 @@ class EventDisplayController extends MagicBusController
 
         $can_moderate = $trooper->isModeratorForOrganization($event->organization);
 
-        $data = compact('event', 'can_moderate');
+        // Header background color
+        $bg = $event->at_risk ? 'bg-danger' : 'bg-primary';
+        if ($event->is_locked)
+        {
+            $bg = 'bg-secondary';
+        }
+
+        // Calendar links
+        $googleCalendarUrl = null;
+
+        $start = $event->event_start;
+        $end = $event->event_end ?? ($start?->copy()->addHours(2));
+
+        if ($start !== null && $end !== null)
+        {
+            $locationParts = array_filter([
+                $event->venue,
+                $event->venue_address,
+                $event->venue_city,
+                $event->venue_state,
+                $event->venue_zip,
+                $event->venue_country,
+            ]);
+
+            $location = implode(', ', $locationParts);
+            $description = $event->comments ? strip_tags((string) $event->comments) : '';
+
+            $calendarLink = Link::create($event->name, $start, $end)
+                ->description($description)
+                ->address($location);
+
+            $googleCalendarUrl = $calendarLink->google();
+        }
+
+        // XenForo base URL, if configured
+        $xenforoBaseUrl = rtrim(config('services.xenforo.base_url', env('XENFORO_BASE_URL', '')), '/');
+
+        $data = compact('event', 'can_moderate', 'bg', 'googleCalendarUrl', 'xenforoBaseUrl');
 
         return view('pages.events.event-display', $data);
     }

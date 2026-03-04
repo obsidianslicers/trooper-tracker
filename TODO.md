@@ -53,7 +53,6 @@ stan/pint - WIP
 ### QOL
 - Make many names of events, troopers clickable and bring to the profile of the trooper
 - Allow using Enter on forms
-- Add a button 'Add to Calendar' to events which can be added to Google, iOS Calendar, etc.
 
 ### COSTUMES
 - Update/Delete Costumes from UI
