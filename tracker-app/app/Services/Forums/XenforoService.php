@@ -36,7 +36,7 @@ class XenforoService
             $user_id = $this->resolve_user_id_for_trooper(Auth::id());
         }
 
-        $url = $this->base_url . '/api/threads';
+        $url = $this->base_url.'/api/threads';
         $payload = [
             'node_id' => $node_id,
             'title' => $title,

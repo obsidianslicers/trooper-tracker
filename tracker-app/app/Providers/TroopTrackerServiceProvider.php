@@ -19,16 +19,14 @@ class TroopTrackerServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->bind(TroopTracker::class, function ()
-        {
+        $this->app->bind(TroopTracker::class, function () {
             return new TroopTracker;
         });
 
         AliasLoader::getInstance()->alias('TroopTracker', TroopTrackerFacade::class);
 
-        $this->app->bind(TroopTracker::class, function ()
-        {
-            return new TroopTracker();
+        $this->app->bind(TroopTracker::class, function () {
+            return new TroopTracker;
         });
 
         AliasLoader::getInstance()->alias('TroopTracker', TroopTrackerFacade::class);
@@ -37,7 +35,5 @@ class TroopTrackerServiceProvider extends ServiceProvider
     /**
      * Bootstrap the application services.
      */
-    public function boot(): void
-    {
-    }
+    public function boot(): void {}
 }
