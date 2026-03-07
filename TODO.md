@@ -11,6 +11,10 @@ stan/pint - WIP
 - app/Policies
 - app/Rules
 
+### REFACTOR CONVENTION
+- template includes
+  - path.inc.{page-name}-purpose.blade.php
+
 ### FIX
 - Trooper Dashboard
 - When closing a troop, you are unable to edit the status again
