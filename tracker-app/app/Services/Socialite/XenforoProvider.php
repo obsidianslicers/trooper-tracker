@@ -45,7 +45,7 @@ class XenforoProvider extends AbstractProvider implements ProviderInterface
      */
     protected function getBaseUrl(): string
     {
-        return rtrim(config('services.xenforo.base_url'), '/');
+        return config('services.xenforo.base_url');
     }
 
     /**
@@ -57,11 +57,11 @@ class XenforoProvider extends AbstractProvider implements ProviderInterface
     {
         // XenForo's OAuth authorize endpoint path is configurable so that
         // different XenForo setups can be supported.
-        $authorizePath = config('services.xenforo.authorize_path', '/index.php?oauth2/authorize');
+        $authorizePath = config('services.xenforo.authorize_path');
 
         $query = http_build_query($this->getCodeFields($state), '', '&', PHP_QUERY_RFC3986);
 
-        return $this->getBaseUrl().rtrim($authorizePath, '&').('&'.$query);
+        return $this->getBaseUrl() . rtrim($authorizePath, '&') . ('&' . $query);
     }
 
     /**
@@ -69,9 +69,9 @@ class XenforoProvider extends AbstractProvider implements ProviderInterface
      */
     protected function getTokenUrl(): string
     {
-        $tokenPath = config('services.xenforo.token_path', '/index.php?api/oauth2/token');
+        $tokenPath = config('services.xenforo.token_path');
 
-        return $this->getBaseUrl().$tokenPath;
+        return $this->getBaseUrl() . $tokenPath;
     }
 
     /**
@@ -82,13 +82,13 @@ class XenforoProvider extends AbstractProvider implements ProviderInterface
      */
     protected function getUserByToken($token): array
     {
-        $mePath = config('services.xenforo.me_path', '/api/me');
+        $mePath = config('services.xenforo.me_path');
 
-        $url = $this->getBaseUrl().$mePath;
+        $url = $this->getBaseUrl() . $mePath;
 
         $response = $this->getHttpClient()->get($url, [
             'headers' => [
-                'Authorization' => 'Bearer '.$token,
+                'Authorization' => 'Bearer ' . $token,
                 'Accept' => 'application/json',
             ],
         ]);

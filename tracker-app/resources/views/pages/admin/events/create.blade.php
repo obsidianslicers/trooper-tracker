@@ -463,7 +463,7 @@
                                               x-model="form.referred_by" />
                             </x-input-container>
 
-                            @if(config('services.xenforo.base_url'))
+                            @if(TroopTracker::isXenforoIntegrationConfigured())
                                 <x-input-container>
                                     <x-label>Create XenForo Thread for this Event:</x-label>
                                     <x-input-yesno :property="'create_forum_thread'"

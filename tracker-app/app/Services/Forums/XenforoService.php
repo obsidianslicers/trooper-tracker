@@ -16,9 +16,9 @@ class XenforoService
 
     public function __construct()
     {
-        $this->base_url = rtrim(config('xenforo.base_url', env('XENFORO_BASE_URL', '')), '/');
-        $this->api_key = config('xenforo.api_key', env('XENFORO_API_KEY'));
-        $this->api_user = config('xenforo.api_user', env('XENFORO_API_USER'));
+        $this->base_url = config('services.xenforo.base_url');
+        $this->api_key = config('services.xenforo.api_key');
+        $this->api_user = config('services.xenforo.api_user');
     }
 
     public function create_thread(
@@ -36,7 +36,7 @@ class XenforoService
             $user_id = $this->resolve_user_id_for_trooper(Auth::id());
         }
 
-        $url = $this->base_url.'/api/threads';
+        $url = $this->base_url . '/api/threads';
         $payload = [
             'node_id' => $node_id,
             'title' => $title,

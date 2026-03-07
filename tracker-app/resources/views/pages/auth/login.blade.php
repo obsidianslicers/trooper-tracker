@@ -7,19 +7,19 @@
     <x-slim-container class="mt-4">
         <x-card>
 
-            @if($requireXenforo)
+            @if(TroopTracker::isXenforoOAuthRequired())
                 <x-message type="info" icon="fa-circle-info">
                 You must use Xenforo to login.
                 </x-message>
 
-                @if(!$xenforoOauthConfigured)
+                @if(!TroopTracker::isXenforoOAuthConfigured())
                     <x-message type="danger" icon="fa-circle-xmark">
                         XenForo OAuth is required, but it is not configured. Please contact an administrator.
                     </x-message>
                 @endif
             @endif
 
-            @if($showEmailPasswordLogin)
+            @if(TroopTracker::isEmailPasswordAuthEnabled())
                 <form method="POST"
                       action="{{ route('auth.login') }}"
                       novalidate="novalidate">
@@ -54,11 +54,11 @@
                 </form>
             @endif
 
-            @if($showXenforoLogin || $showGoogleLogin)
+            @if(TroopTracker::isXenforoOAuthConfigured() || TroopTracker::isGoogleOAuthEnabled())
                 <hr />
 
                 <div class="d-grid gap-2 mb-3">
-                    @if($showXenforoLogin)
+                    @if(TroopTracker::isXenforoOAuthConfigured())
                         <a href="{{ route('auth.oauth-redirect', 'xenforo') }}"
                            class="btn btn-outline-secondary w-100 d-flex justify-content-center align-items-center gap-2">
                             <img src="https://xenforo.com/community/styles/default/xenforo/xenforo-favicon.png"
@@ -69,7 +69,7 @@
                         </a>
                     @endif
 
-                    @if($showGoogleLogin)
+                    @if(TroopTracker::isGoogleOAuthEnabled())
                         <a href="{{ route('auth.oauth-redirect', 'google') }}"
                            class="btn btn-outline-secondary w-100 d-flex justify-content-center align-items-center gap-2">
                             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"

@@ -8,20 +8,22 @@
 
         <x-card>
 
-            @if($requireXenforo)
-                <x-message type="info" icon="fa-circle-info">
+            @if(TroopTracker::isXenforoOAuthRequired())
+                <x-message type="info"
+                           icon="fa-circle-info">
                     You must use Xenforo to sign up.
                 </x-message>
 
-                @if(!$xenforoOauthConfigured)
-                    <x-message type="danger" icon="fa-circle-xmark">
+                @if(!TroopTracker::isXenforoOAuthConfigured())
+                    <x-message type="danger"
+                               icon="fa-circle-xmark">
                         XenForo OAuth is required, but it is not configured. Please contact an administrator.
                     </x-message>
                 @endif
             @endif
 
             <div class="row mb-3">
-                @if($showEmailSignup)
+                @if(TroopTracker::isEmailPasswordAuthEnabled())
                     <div class="col-12 mb-3">
                         <a href="{{ route('auth.signup-email') }}"
                            class="btn btn-outline-secondary w-100 d-flex justify-content-center align-items-center gap-2">
@@ -31,7 +33,7 @@
                     </div>
                 @endif
 
-                @if($showXenforoSignup)
+                @if(TroopTracker::isXenforoOAuthConfigured())
                     <div class="col-12 mb-3">
                         <a href="{{ route('auth.oauth-redirect', 'xenforo') }}"
                            class="btn btn-outline-secondary w-100 d-flex justify-content-center align-items-center gap-2">
@@ -44,7 +46,7 @@
                     </div>
                 @endif
 
-                @if($showGoogleSignup)
+                @if(TroopTracker::isGoogleOAuthEnabled())
                     <div class="col-12 mb-3">
                         <a href="{{ route('auth.oauth-redirect', 'google') }}"
                            class="btn btn-outline-secondary w-100 d-flex justify-content-center align-items-center gap-2">

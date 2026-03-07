@@ -84,10 +84,7 @@ class EventDisplayController extends MagicBusController
             $googleCalendarUrl = $calendarLink->google();
         }
 
-        // XenForo base URL, if configured
-        $xenforoBaseUrl = rtrim(config('services.xenforo.base_url', env('XENFORO_BASE_URL', '')), '/');
-
-        $data = compact('event', 'can_moderate', 'bg', 'googleCalendarUrl', 'xenforoBaseUrl');
+        $data = compact('event', 'can_moderate', 'bg', 'googleCalendarUrl');
 
         return view('pages.events.event-display', $data);
     }

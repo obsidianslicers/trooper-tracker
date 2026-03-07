@@ -45,7 +45,7 @@
                                           :value="$organization->name" />
                         </x-input-container>
 
-                        @if($googleSyncConfigured && $organization->type == \App\Enums\OrganizationType::ORGANIZATION)
+                        @if(TroopTracker::isGoogleSyncConfigured() && $organization->type == \App\Enums\OrganizationType::ORGANIZATION)
                             <x-input-container>
                                 <x-label>
                                     Google Sync Sheet ID:
@@ -58,7 +58,7 @@
                             </x-input-container>
                         @endif
 
-                        @if($discordConfigured)
+                        @if(TroopTracker::isDiscordIntegrationConfigured())
                             <x-input-container>
                                 <x-label>
                                     Discord Mention:
@@ -71,7 +71,7 @@
                             </x-input-container>
                         @endif
 
-                        @if($xenforoConfigured)
+                        @if(TroopTracker::isXenforoIntegrationConfigured())
                             <x-input-container>
                                 <x-label>
                                     Related Forum (Node ID):
@@ -82,9 +82,7 @@
                                     <i class="text-muted">Optional XenForo forum node id where event threads should be created.</i>
                                 </p>
                             </x-input-container>
-                        @endif
 
-                        @if($xenforoConfigured)
                             <x-input-container>
                                 <x-label>
                                     Related Forum Archive (Node ID):

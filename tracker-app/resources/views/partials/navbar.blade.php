@@ -17,8 +17,8 @@
                         Leaderboard
                     </x-nav-link>
                 @endauth
-                @if($forum_url = config('app.xenforo.base_url'))
-                    <x-nav-link :url="$forum_url">
+                @if(TroopTracker::isXenforoIntegrationConfigured())
+                    <x-nav-link :url="config('services.xenforo.base_url')">
                         Forum
                     </x-nav-link>
                 @endif

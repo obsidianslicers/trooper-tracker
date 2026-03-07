@@ -34,27 +34,6 @@ class LoginController extends MagicBusController
             return redirect()->route('home');
         }
 
-        $require_xenforo = (bool) config('tracker.auth.require_xenforo');
-
-        $xenforo_oauth_configured = !empty(config('services.xenforo.client_id'))
-            && !empty(config('services.xenforo.client_secret'))
-            && !empty(config('services.xenforo.redirect'));
-
-        $google_oauth_configured = !empty(config('services.google.client_id'))
-            && !empty(config('services.google.client_secret'))
-            && !empty(config('services.google.redirect'));
-
-        $show_email_password_login = !$require_xenforo;
-        $show_xenforo_login = $xenforo_oauth_configured;
-        $show_google_login = !$require_xenforo && $google_oauth_configured;
-
-        return view('pages.auth.login', [
-            'requireXenforo' => $require_xenforo,
-            'xenforoOauthConfigured' => $xenforo_oauth_configured,
-            'googleOauthConfigured' => $google_oauth_configured,
-            'showEmailPasswordLogin' => $show_email_password_login,
-            'showXenforoLogin' => $show_xenforo_login,
-            'showGoogleLogin' => $show_google_login,
-        ]);
+        return view('pages.auth.login');
     }
 }
