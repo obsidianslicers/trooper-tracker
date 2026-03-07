@@ -64,10 +64,9 @@ class SendEventCreatedNotificationsJob implements ShouldQueue
 
         // Forum posting / notifications
         $organization = $this->event->organization;
-        $organization_name = $organization->name;
 
         // Discord notification: always run
-        $notifier->sendEventNotification($this->event->id, $this->event->name, $this->event->comments ?? null, $organization_name);
+        $notifier->sendEventNotification($this->event->id, $this->event->name, $this->event->comments ?? null, $organization);
 
         // XenForo thread creation: only if related forum is configured, the event
         // is configured to create a forum thread, and a thread has not already

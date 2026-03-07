@@ -24,11 +24,16 @@ final class DiscordNotifier
      * then attempts partial substring matches. Falls back to the default mention if no
      * match is found or if the squad parameter is null/empty.
      *
-     * @param  int|string|null  $squad  The squad ID (int), organization name (string), or null.
+     * @param  Organization|int|string|null  $squad  The Organization instance, squad ID (int), organization name (string), or null.
      * @return string|null The Discord role mention string (e.g., "<@&123456>"), or null if no mention is configured.
      */
-    public function getSquadMention(int|string|null $squad): ?string
+    public function getSquadMention(Organization|int|string|null $squad): ?string
     {
+        if ($squad instanceof Organization)
+        {
+            return ! empty($squad->discord_mention) ? (string) $squad->discord_mention : null;
+        }
+
         // If caller already provided a mention string like <@&123>, return it unchanged.
         if (is_string($squad) && preg_match('/^<@&\d+>$/', trim($squad)))
         {
@@ -95,10 +100,10 @@ final class DiscordNotifier
      * @param  int  $event_id  The ID of the event being notified about.
      * @param  string  $title  The event title to display in the Discord message.
      * @param  string|null  $description  Optional event description displayed in the embed.
-     * @param  int|string|null  $squad  The squad ID or organization name for role mention resolution.
+     * @param  Organization|int|string|null  $squad  Organization instance (preferred), squad ID, or org name for mention resolution.
      * @return bool True if the webhook was posted successfully, false if no webhook is configured.
      */
-    public function sendEventNotification(int $event_id, string $title, ?string $description = null, int|string|null $squad = null): bool
+    public function sendEventNotification(int $event_id, string $title, ?string $description = null, Organization|int|string|null $squad = null): bool
     {
         $webhook = config('discord.webhooks.default') ?? config('discord.webhook_url');
 
