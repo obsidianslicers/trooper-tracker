@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
+use App\Facades\TroopTracker;
 use App\Http\Controllers\MagicBusController;
 use App\Models\OauthLogin;
 use App\Models\Trooper;
@@ -25,6 +26,13 @@ use Laravel\Socialite\Facades\Socialite;
  */
 class OauthCallbackController extends MagicBusController
 {
+    private TroopTracker $troop_tracker;
+
+    protected function initialize(): void
+    {
+        $this->troop_tracker = app(TroopTracker::class);
+    }
+
     /**
      * Handle the incoming OAuth callback request.
      *
@@ -40,7 +48,7 @@ class OauthCallbackController extends MagicBusController
      */
     public function __invoke(Request $request, string $provider): RedirectResponse
     {
-        if (config('tracker.auth.require_xenforo') && $provider !== 'xenforo')
+        if ($this->troop_tracker->isXenforoOAuthRequired() && $provider !== 'xenforo')
         {
             $this->flash->warning('Troop Tracker is configured to use XenForo for login.');
 
@@ -72,7 +80,7 @@ class OauthCallbackController extends MagicBusController
         {
             $message = 'Your XenForo account did not provide an email address. Please contact an administrator.';
 
-            if (!config('tracker.auth.require_xenforo'))
+            if (!$this->troop_tracker->isXenforoOAuthRequired())
             {
                 $message .= ' Or log in with email/password.';
             }

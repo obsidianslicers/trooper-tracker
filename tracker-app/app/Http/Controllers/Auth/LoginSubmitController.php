@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Auth;
 
 use App\Enums\MembershipStatus;
+use App\Facades\TroopTracker;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Models\Trooper;
@@ -23,6 +24,13 @@ use Illuminate\Support\Facades\Hash;
  */
 class LoginSubmitController extends MagicBusController
 {
+    private TroopTracker $troop_tracker;
+
+    protected function initialize(): void
+    {
+        $this->troop_tracker = app(TroopTracker::class);
+    }
+
     /**
      * Handles the incoming login request and authenticates the trooper.
      *
@@ -38,7 +46,7 @@ class LoginSubmitController extends MagicBusController
      */
     public function __invoke(LoginRequest $request): RedirectResponse
     {
-        if (config('tracker.auth.require_xenforo'))
+        if ($this->troop_tracker->isXenforoOAuthRequired())
         {
             $this->flash->warning('Email/password login is disabled. Please log in with XenForo.');
 

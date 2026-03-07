@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Facades\TroopTracker;
 use Closure;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -49,7 +50,10 @@ class RegistrationMiddleware
                 ->with('error', 'Your registration session expired.');
         }
 
-        if (config('tracker.auth.require_xenforo') && ($registration_auth['method'] ?? null) !== 'xenforo')
+
+        $troop_tracker = app(TroopTracker::class);
+
+        if ($troop_tracker->isXenforoOAuthRequired() && ($registration_auth['method'] ?? null) !== 'xenforo')
         {
             Session::forget('registration_auth');
 
