@@ -49,6 +49,15 @@ class RegistrationMiddleware
                 ->with('error', 'Your registration session expired.');
         }
 
+        if (config('tracker.auth.require_xenforo') && ($registration_auth['method'] ?? null) !== 'xenforo')
+        {
+            Session::forget('registration_auth');
+
+            return redirect()
+                ->route('auth.signup')
+                ->with('error', 'Please sign up with XenForo.');
+        }
+
         return $next($request);
     }
 }

@@ -40,6 +40,13 @@ class OauthCallbackController extends MagicBusController
      */
     public function __invoke(Request $request, string $provider): RedirectResponse
     {
+        if (config('tracker.auth.require_xenforo') && $provider !== 'xenforo')
+        {
+            $this->flash->warning('Troop Tracker is configured to use XenForo for login.');
+
+            return redirect()->route('auth.login');
+        }
+
         $provider_user = Socialite::driver($provider)->user();
 
         // Find existing social account
@@ -63,10 +70,17 @@ class OauthCallbackController extends MagicBusController
 
         if (empty($email))
         {
+            $message = 'Your XenForo account did not provide an email address. Please contact an administrator.';
+
+            if (!config('tracker.auth.require_xenforo'))
+            {
+                $message .= ' Or log in with email/password.';
+            }
+
             return redirect()
                 ->route('account.xenforo.required')
                 ->withErrors([
-                    'oauth' => 'Your XenForo account did not provide an email address. Please enable email sharing for OAuth or log in with email/password.',
+                    'oauth' => $message,
                 ]);
         }
 

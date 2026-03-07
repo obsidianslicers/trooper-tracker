@@ -144,4 +144,26 @@ class LoginSubmitControllerTest extends TestCase
         $response->assertRedirect(route('events.list'));
         $this->assertTrue(Auth::check());
     }
+
+    public function test_invoke_blocks_email_password_login_when_xenforo_is_required(): void
+    {
+        // Arrange
+        config()->set('tracker.auth.require_xenforo', true);
+
+        $trooper = Trooper::factory()
+            ->asActive()
+            ->withPassword('secret123')
+            ->create([Trooper::EMAIL => 'test@example.com']);
+
+        // Act
+        $response = $this->post(route('auth.login'), [
+            Trooper::EMAIL => 'test@example.com',
+            Trooper::PASSWORD => 'secret123',
+        ]);
+
+        // Assert
+        $response->assertRedirect(route('auth.login'));
+        $response->assertSessionHasErrors(['oauth']);
+        $this->assertFalse(Auth::check());
+    }
 }

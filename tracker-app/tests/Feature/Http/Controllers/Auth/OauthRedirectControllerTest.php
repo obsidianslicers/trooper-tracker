@@ -65,4 +65,16 @@ class OauthRedirectControllerTest extends TestCase
         // Assert
         $response->assertRedirect($redirect_url);
     }
+
+    public function test_invoke_blocks_non_xenforo_oauth_redirect_when_xenforo_is_required(): void
+    {
+        // Arrange
+        config()->set('tracker.auth.require_xenforo', true);
+
+        // Act
+        $response = $this->get(route('auth.oauth-redirect', ['provider' => 'google']));
+
+        // Assert
+        $response->assertRedirect(route('auth.login'));
+    }
 }

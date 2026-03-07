@@ -38,6 +38,15 @@ class LoginSubmitController extends MagicBusController
      */
     public function __invoke(LoginRequest $request): RedirectResponse
     {
+        if (config('tracker.auth.require_xenforo'))
+        {
+            $this->flash->warning('Email/password login is disabled. Please log in with XenForo.');
+
+            return redirect()
+                ->route('auth.login')
+                ->withErrors(['oauth' => 'Email/password login is disabled. Please log in with XenForo.']);
+        }
+
         $email = $request->validated('email');
         $password = $request->validated('password');
 

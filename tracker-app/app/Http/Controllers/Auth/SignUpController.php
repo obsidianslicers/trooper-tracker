@@ -25,6 +25,27 @@ class SignUpController extends MagicBusController
      */
     public function __invoke(Request $request): View
     {
-        return view('pages.auth.signup');
+        $require_xenforo = (bool) config('tracker.auth.require_xenforo');
+
+        $xenforo_oauth_configured = !empty(config('services.xenforo.client_id'))
+            && !empty(config('services.xenforo.client_secret'))
+            && !empty(config('services.xenforo.redirect'));
+
+        $google_oauth_configured = !empty(config('services.google.client_id'))
+            && !empty(config('services.google.client_secret'))
+            && !empty(config('services.google.redirect'));
+
+        $show_email_signup = !$require_xenforo;
+        $show_xenforo_signup = $xenforo_oauth_configured;
+        $show_google_signup = !$require_xenforo && $google_oauth_configured;
+
+        return view('pages.auth.signup', [
+            'requireXenforo' => $require_xenforo,
+            'xenforoOauthConfigured' => $xenforo_oauth_configured,
+            'googleOauthConfigured' => $google_oauth_configured,
+            'showEmailSignup' => $show_email_signup,
+            'showXenforoSignup' => $show_xenforo_signup,
+            'showGoogleSignup' => $show_google_signup,
+        ]);
     }
 }

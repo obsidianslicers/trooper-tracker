@@ -8,16 +8,31 @@
 
         <x-card>
 
+            @if($requireXenforo)
+                <x-message type="info" icon="fa-circle-info">
+                    You must use Xenforo to sign up.
+                </x-message>
+
+                @if(!$xenforoOauthConfigured)
+                    <x-message type="danger" icon="fa-circle-xmark">
+                        XenForo OAuth is required, but it is not configured. Please contact an administrator.
+                    </x-message>
+                @endif
+            @endif
+
             <div class="row mb-3">
-                <div class="col-12 mb-3">
-                    <a href="{{ route('auth.signup-email') }}"
-                       class="btn btn-outline-secondary w-100 d-flex justify-content-center align-items-center gap-2">
-                        <i class="fa fw fa-envelope me-3"></i>
-                        <span>Sign Up with Email</span>
-                    </a>
-                </div>
-                <div class="col-12 mb-3">
-                    @if(config('services.xenforo.client_id'))
+                @if($showEmailSignup)
+                    <div class="col-12 mb-3">
+                        <a href="{{ route('auth.signup-email') }}"
+                           class="btn btn-outline-secondary w-100 d-flex justify-content-center align-items-center gap-2">
+                            <i class="fa fw fa-envelope me-3"></i>
+                            <span>Sign Up with Email</span>
+                        </a>
+                    </div>
+                @endif
+
+                @if($showXenforoSignup)
+                    <div class="col-12 mb-3">
                         <a href="{{ route('auth.oauth-redirect', 'xenforo') }}"
                            class="btn btn-outline-secondary w-100 d-flex justify-content-center align-items-center gap-2">
                             <img src="https://xenforo.com/community/styles/default/xenforo/xenforo-favicon.png"
@@ -26,10 +41,11 @@
                                  class="me-3">
                             <span>Sign Up with {{ config('services.xenforo.name') }}</span>
                         </a>
-                    @endif
-                </div>
-                <div class="col-12 mb-3">
-                    @if(config('services.google.client_id'))
+                    </div>
+                @endif
+
+                @if($showGoogleSignup)
+                    <div class="col-12 mb-3">
                         <a href="{{ route('auth.oauth-redirect', 'google') }}"
                            class="btn btn-outline-secondary w-100 d-flex justify-content-center align-items-center gap-2">
                             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
@@ -38,8 +54,8 @@
                                  class="me-3">
                             <span>Sign Up with Google</span>
                         </a>
-                    @endif
-                </div>
+                    </div>
+                @endif
             </div>
 
         </x-card>

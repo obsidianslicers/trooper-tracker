@@ -30,6 +30,15 @@ class SignUpEmailController extends MagicBusController
      */
     public function __invoke(Request $request): RedirectResponse
     {
+        if (config('tracker.auth.require_xenforo'))
+        {
+            Session::forget('registration_auth');
+
+            $this->flash->warning('Email sign up is disabled. Please sign up with XenForo.');
+
+            return redirect()->route('auth.signup');
+        }
+
         $registration_auth = [
             'method' => 'email',
             'email' => null, // will be filled in on the form

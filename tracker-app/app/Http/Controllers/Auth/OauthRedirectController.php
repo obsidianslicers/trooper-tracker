@@ -30,6 +30,13 @@ class OauthRedirectController extends MagicBusController
      */
     public function __invoke(Request $request, string $provider): RedirectResponse
     {
+        if (config('tracker.auth.require_xenforo') && $provider !== 'xenforo')
+        {
+            $this->flash->warning('Troop Tracker is configured to use XenForo for login.');
+
+            return redirect()->route('auth.login');
+        }
+
         return Socialite::driver($provider)->redirect();
     }
 }
