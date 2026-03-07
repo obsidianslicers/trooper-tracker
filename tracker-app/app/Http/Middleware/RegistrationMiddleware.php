@@ -50,7 +50,6 @@ class RegistrationMiddleware
                 ->with('error', 'Your registration session expired.');
         }
 
-
         $troop_tracker = app(TroopTracker::class);
 
         if ($troop_tracker->isXenforoOAuthRequired() && ($registration_auth['method'] ?? null) !== 'xenforo')
