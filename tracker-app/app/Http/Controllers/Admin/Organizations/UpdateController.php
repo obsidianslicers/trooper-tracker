@@ -36,8 +36,15 @@ class UpdateController extends MagicBusController
     {
         $this->authorize('update', $organization);
 
+        $googleSyncConfigured = is_readable(base_path('google-credentials.json'));
+        $discordConfigured = ! empty(config('discord.webhooks.default') ?? config('discord.webhook_url'));
+        $xenforoConfigured = ! empty(config('services.xenforo.base_url')) && ! empty(config('services.xenforo.api_key'));
+
         $data = [
             'organization' => $organization,
+            'googleSyncConfigured' => $googleSyncConfigured,
+            'discordConfigured' => $discordConfigured,
+            'xenforoConfigured' => $xenforoConfigured,
         ];
 
         return view('pages.admin.organizations.update', $data);
