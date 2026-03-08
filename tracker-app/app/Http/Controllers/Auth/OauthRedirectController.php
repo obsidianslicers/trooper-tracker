@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
+use App\Facades\TroopTracker;
 use App\Http\Controllers\MagicBusController;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,6 +19,13 @@ use Laravel\Socialite\Facades\Socialite;
  */
 class OauthRedirectController extends MagicBusController
 {
+    private TroopTracker $troop_tracker;
+
+    protected function initialized(): void
+    {
+        $this->troop_tracker = app(TroopTracker::class);
+    }
+
     /**
      * Handle the incoming request to initiate OAuth authorization.
      *
@@ -30,6 +38,13 @@ class OauthRedirectController extends MagicBusController
      */
     public function __invoke(Request $request, string $provider): RedirectResponse
     {
+        if ($this->troop_tracker->isXenforoOAuthRequired() && $provider !== 'xenforo')
+        {
+            $this->flash->warning('Troop Tracker is configured to use XenForo for login.');
+
+            return redirect()->route('auth.login');
+        }
+
         return Socialite::driver($provider)->redirect();
     }
 }

@@ -13,7 +13,9 @@ use App\Http\Controllers\Account\ProfileController;
 use App\Http\Controllers\Account\ProfileSubmitController;
 use App\Http\Controllers\Account\SetupController;
 use App\Http\Controllers\Account\SetupSubmitController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Models\OauthLogin;
 
 //  ACCOUNT
 Route::prefix('account')
@@ -34,4 +36,27 @@ Route::prefix('account')
         //  needed a post name to get the middleware to work properly
         Route::get('/setup', SetupController::class)->name('setup');
         Route::post('/setup', SetupSubmitController::class)->name('setup-submit');
+
+        // XenForo linking required page
+        Route::get('/xenforo/required', function () {
+            $user = Auth::user();
+
+            return view('pages.account.xenforo-required', [
+                'user' => $user,
+            ]);
+        })->name('xenforo.required');
+
+        // Optional: show current XenForo link status
+        Route::get('/xenforo', function () {
+            $user = Auth::user();
+
+            $xenforo_login = OauthLogin::where(OauthLogin::TROOPER_ID, $user->id)
+                ->where(OauthLogin::PROVIDER, 'xenforo')
+                ->first();
+
+            return view('pages.account.xenforo', [
+                'user' => $user,
+                'xenforo_login' => $xenforo_login,
+            ]);
+        })->name('xenforo.index');
     });

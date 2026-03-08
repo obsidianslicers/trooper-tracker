@@ -380,6 +380,9 @@ Core event (troop/appearance) table.
 | `status` | varchar(16) | default: 'draft' | Enum: draft, open, closed, cancelled |
 | `create_notifications_sent_at` | datetime | nullable | When creation notifications were sent |
 | `cancel_notifications_sent_at` | datetime | nullable | When cancellation notifications were sent |
+| `create_forum_thread` | boolean | default: true | Auto-create linked forum thread |
+| `thread_id` | integer | nullable | Linked forum thread ID |
+| `post_id` | integer | nullable | Linked forum post ID |
 | `latitude` | decimal(9,6) | nullable | Event location latitude |
 | `longitude` | decimal(9,6) | nullable | Event location longitude |
 | `shifts_allowed` | integer | nullable | Max shifts allowed |

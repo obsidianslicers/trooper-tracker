@@ -147,4 +147,35 @@ class OauthCallbackControllerTest extends TestCase
         $response->assertRedirect(route('auth.inactive'));
         $this->assertFalse(Auth::check());
     }
+
+    public function test_invoke_redirects_to_xenforo_required_when_email_missing(): void
+    {
+        // Arrange
+        $socialite_user = Mockery::mock(SocialiteUser::class);
+        $socialite_user->shouldReceive('getId')->andReturn('xenforo-123');
+        $socialite_user->shouldReceive('getEmail')->andReturn(null);
+
+        Socialite::shouldReceive('driver->user')->andReturn($socialite_user);
+
+        // Act
+        $response = $this->get(route('auth.oauth-callback', ['provider' => 'xenforo']));
+
+        // Assert
+        $response->assertRedirect(route('account.xenforo.required'));
+        $response->assertSessionHasErrors('oauth');
+        $this->assertFalse(Auth::check());
+    }
+
+    public function test_invoke_blocks_non_xenforo_oauth_callback_when_xenforo_is_required(): void
+    {
+        // Arrange
+        config()->set('tracker.auth.require_xenforo', true);
+
+        // Act
+        $response = $this->get(route('auth.oauth-callback', ['provider' => 'google']));
+
+        // Assert
+        $response->assertRedirect(route('auth.login'));
+        $this->assertFalse(Auth::check());
+    }
 }

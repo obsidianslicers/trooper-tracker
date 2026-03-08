@@ -41,6 +41,36 @@ class EventDisplayControllerTest extends TestCase
         $response->assertViewIs('pages.events.event-display');
     }
 
+    public function test_invoke_sets_primary_background_for_non_at_risk_event(): void
+    {
+        // Arrange: closed events are never considered "at risk"
+        $trooper = Trooper::factory()->asActive()->create();
+        $event = Event::factory()->closed()->create();
+
+        // Act
+        $response = $this->actingAs($trooper)
+            ->get(route('events.display', $event));
+
+        // Assert
+        $response->assertViewHas('bg', 'bg-primary');
+    }
+
+    public function test_invoke_sets_secondary_background_when_event_locked(): void
+    {
+        // Arrange
+        $trooper = Trooper::factory()->asActive()->create();
+        $event = Event::factory()->create([
+            Event::STATUS => EventStatus::SIGN_UP_LOCKED,
+        ]);
+
+        // Act
+        $response = $this->actingAs($trooper)
+            ->get(route('events.display', $event));
+
+        // Assert
+        $response->assertViewHas('bg', 'bg-secondary');
+    }
+
     public function test_invoke_passes_event_to_view(): void
     {
         // Arrange
@@ -55,6 +85,24 @@ class EventDisplayControllerTest extends TestCase
         $response->assertViewHas('event');
         $view_event = $response->viewData('event');
         $this->assertEquals($event->id, $view_event->id);
+    }
+
+    public function test_invoke_provides_google_calendar_url_for_event_with_times(): void
+    {
+        // Arrange
+        $trooper = Trooper::factory()->asActive()->create();
+        $event = Event::factory()->create();
+
+        // Act
+        $response = $this->actingAs($trooper)
+            ->get(route('events.display', $event));
+
+        // Assert
+        $response->assertViewHas('googleCalendarUrl');
+        $url = $response->viewData('googleCalendarUrl');
+        $this->assertIsString($url);
+        $this->assertNotSame('', $url);
+        $this->assertStringContainsString('calendar.google', $url);
     }
 
     public function test_invoke_includes_event_shifts(): void
@@ -72,6 +120,26 @@ class EventDisplayControllerTest extends TestCase
         $view_event = $response->viewData('event');
         $this->assertTrue($view_event->relationLoaded('event_shifts'));
         $this->assertCount(2, $view_event->event_shifts);
+    }
+
+    public function test_invoke_renders_forum_link_when_thread_and_post_present(): void
+    {
+        // Arrange
+        config(['services.xenforo.base_url' => 'https://forum.example.com']);
+
+        $trooper = Trooper::factory()->asActive()->create();
+        $event = Event::factory()->create([
+            Event::THREAD_ID => 1234,
+            Event::POST_ID => 5678,
+        ]);
+
+        // Act
+        $response = $this->actingAs($trooper)
+            ->get(route('events.display', $event));
+
+        // Assert
+        $response->assertOk();
+        $response->assertSee('https://forum.example.com/posts/5678/', false);
     }
 
     public function test_invoke_sets_can_moderate_false_for_regular_trooper(): void

@@ -17,6 +17,11 @@
                 <x-message>
                     By default when creating a new event, ALL clubs are defaulted to attend unless otherwise updated.
                     See <b>Character Requests & Attendee Limits</b> section to make adjustments to which clubs can attend.
+                    <br/>
+                    <br/>
+                    All Events start is a {{ \App\Enums\EventStatus::DRAFT->name }} status, which means they
+                    are not visible for sign up until the status is changed to
+                    {{ \App\Enums\EventStatus::OPEN->name }} or {{ \App\Enums\EventStatus::SIGN_UP_LOCKED->name }}.
                 </x-message>
 
                 <x-input-container x-ref="organizationPicker">
@@ -174,7 +179,7 @@
 
                         <x-accordion-card :label="'Schedule'">
                             <x-message>
-                                Once saved, shifts can be added/edits for this event.
+                                Once saved, shifts can be added/edited for this event.
                             </x-message>
                             
                             <x-input-container>
@@ -457,6 +462,18 @@
                                               :value="$event->referred_by"
                                               x-model="form.referred_by" />
                             </x-input-container>
+
+                            @if(TroopTracker::isXenforoIntegrationConfigured())
+                                <x-input-container>
+                                    <x-label>Create XenForo Thread for this Event:</x-label>
+                                    <x-input-yesno :property="'create_forum_thread'"
+                                                   :value="$event->create_forum_thread ?? true"
+                                                   x-model="form.create_forum_thread" />
+                                    <x-input-help>
+                                        Set to "No" to skip creating a forum thread when this event is posted.
+                                    </x-input-help>
+                                </x-input-container>
+                            @endif
                         </x-accordion-card>
 
                     </div>
