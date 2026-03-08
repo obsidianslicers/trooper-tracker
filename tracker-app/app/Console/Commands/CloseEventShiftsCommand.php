@@ -43,12 +43,11 @@ class CloseEventShiftsCommand extends Command
      * 2. Updating each shift's status to CLOSED
      * 3. Sending EventShiftComplete emails to troopers with GOING status
      *
-     * @param MagicBus $bus The message bus for dispatching queries
-     * @return void
+     * @param  MagicBus  $bus  The message bus for dispatching queries
      */
     public function handle(MagicBus $bus): void
     {
-        $event_shifts = $bus->send(new GetEventShiftsToCloseQuery());
+        $event_shifts = $bus->send(new GetEventShiftsToCloseQuery);
 
         foreach ($event_shifts as $event_shift)
         {

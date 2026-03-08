@@ -32,23 +32,21 @@ class GenerateFactoriesCommand extends Command
         $generator = resolve(FactoryGenerator::class);
 
         $this->loadModels($directory)
-            ->filter(function ($model)
-            {
+            ->filter(function ($model) {
                 $model = new ReflectionClass($model);
 
                 return $model->isSubclassOf(Model::class) && !$model->isAbstract();
             })
-            ->each(function ($model) use ($generator)
-            {
+            ->each(function ($model) use ($generator) {
                 $factory = $generator->generate($model);
 
                 if ($factory)
                 {
-                    $this->line('<info>Model factory created:</info> ' . $factory);
+                    $this->line('<info>Model factory created:</info> '.$factory);
                 }
                 else
                 {
-                    $this->line('<error>Failed to create factory for model:</error> ' . $model);
+                    $this->line('<error>Failed to create factory for model:</error> '.$model);
                 }
             });
 
@@ -57,14 +55,13 @@ class GenerateFactoriesCommand extends Command
 
     protected function loadModels(string $directory): Collection
     {
-        return collect(File::files($directory))->map(function (SplFileInfo $file)
-        {
+        return collect(File::files($directory))->map(function (SplFileInfo $file) {
             if (!preg_match('/^namespace\s+([^;]+)/m', $file->getContents(), $matches))
             {
                 return null;
             }
 
-            return $matches[1] . '\\' . $file->getBasename('.php');
+            return $matches[1].'\\'.$file->getBasename('.php');
         })->filter();
     }
 

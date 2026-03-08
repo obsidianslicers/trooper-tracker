@@ -39,12 +39,11 @@ class CloseEventsCommand extends Command
      * 1. Dispatching GetEventsToCloseQuery to retrieve active events that have ended
      * 2. Updating each event's status to CLOSED
      *
-     * @param MagicBus $bus The message bus for dispatching queries
-     * @return void
+     * @param  MagicBus  $bus  The message bus for dispatching queries
      */
     public function handle(MagicBus $bus): void
     {
-        $events = $bus->send(new GetEventsToCloseQuery());
+        $events = $bus->send(new GetEventsToCloseQuery);
 
         foreach ($events as $event)
         {
