@@ -52,10 +52,12 @@
         "pint:format": [
             "pint app/helpers.php",
             "pint app/Bus",
+            "pint app/Console",
             "pint app/Contracts",
             "pint app/Enums",
             "pint app/Facades",
             "pint app/Features",
+            "pint app/Helpers",
             "pint app/Http",
             "pint app/Jobs",
             "pint app/Mail",
@@ -64,6 +66,7 @@
             "pint app/Rules",
             "pint app/Services"
         ],
+        "pint:test": "@pint:format --test",
         "stan": "phpstan analyse --memory-limit=1G",
         "db:migrate-all": [
             "@db:regen",

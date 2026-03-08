@@ -1,387 +1,238 @@
-// --- 0. SASS UTILITIES AND MODULES ---
 @use 'fonts.scss';
 @use "sass:map";
+@use "sass:color";
+@use "sass:string";
+
+@function str-replace($string, $search, $replace: '') {
+    // 2. Change str-index to string.index
+    $index: string.index($string, $search);
+
+    @if $index {
+        // 3. Change str-slice to string.slice and str-length to string.length
+        @return string.slice($string, 1, $index - 1)+$replace +str-replace(string.slice($string, $index + string.length($search)), $search, $replace);
+    }
+
+    @return $string;
+}
 
 // --- 1. THEME DEFINITIONS ---
-
 $custom-theme-colors: (
     "stormtrooper": #ffffff,
     "rebel": #ff9900,
     "sith": #ff0000,
-    "bountyhunter": #6d8f6f,
-    "clone": #6495ed
+    "bountyhunter": #d1b066,
+    "clone": #00d1ff
 );
 
 $themes: (
-    'stormtrooper': (body-bg: #1a1a1a,
-        body-color: #f0f0f0,
-        border-color: #444444,
-        font-family: 'Roboto',
+    'stormtrooper': (body-bg: #050505,
+        body-color: #ffffff,
+        border-color: #ffffff,
+        main-content-bg: #111111,
+        card-bg: #000000,
+        input-bg: #1a1a1a,
         headings-font: 'Black Ops One',
         headings-color: #ffffff,
-        input-bg: #333333,
-        input-color: #f0f0f0,
-        input-border-color: #666666,
-        card-bg: #222222,
-        card-color: #f0f0f0,
-        card-border-color: #111111,
-        secondary: #999999,
-        main-content-bg: #141e28,
-        main-content-border: #444444,
-        success: #00bf00,
-        warning: #ffcc00,
-        danger: #d9534f,
-        info: #5bc0de,
-    ),
-    'rebel': (body-bg: #1a201b,
-        body-color: #e5ffe7,
-        border-color: #4c6255,
-        font-family: 'Open Sans',
-        headings-font: 'Tomorrow',
+        secondary: #444444,
+        success: #28a745,
+        warning: #ffc107,
+        danger: #dc3545,
+        info: #17a2b8),
+    'rebel': (body-bg: #0d0f0d,
+        body-color: #c5d6c7,
+        border-color: #3e4d42,
+        main-content-bg: #161a17,
+        card-bg: #1b211c,
+        input-bg: #1f2620,
+        headings-font: 'Permanent Marker',
         headings-color: #ff9900,
-        input-bg: #2a352e,
-        input-color: #e5ffe7,
-        input-border-color: #556b5e,
-        card-bg: #29342c,
-        card-color: #e5ffe7,
-        card-border-color: #1a231e,
-        secondary: #7d9e87,
-        main-content-bg: #2b382f,
-        main-content-border: #4c6255,
-        success: #008000,
-        warning: #ffb84d,
-        danger: #c41e3a,
-        info: #17a2b8,
-    ),
-    'sith': (body-bg: #f0f0f0,
-        body-color: #ffdddd,
-        border-color: #660000,
-        font-family: 'Inconsolata',
-        headings-font: 'Black Ops One',
-        headings-color: #cc0000,
-        input-bg: #100000,
-        input-color: #ffdddd,
-        input-border-color: #770000,
-        card-bg: #060000,
-        card-color: #ffdddd,
-        card-border-color: #000000,
-        secondary: #990000,
-        main-content-bg: #2a0000,
-        main-content-border: #550000,
-        success: #32cd32,
+        secondary: #5c6b5e,
+        success: #2ecc71,
+        warning: #f1c40f,
+        danger: #e74c3c,
+        info: #3498db),
+    'sith': (body-bg: #0a0000,
+        body-color: #ffcccc,
+        border-color: #800000,
+        main-content-bg: #1a0000,
+        card-bg: #250000,
+        input-bg: #300000,
+        headings-font: 'Metal Mania',
+        headings-color: #ff0000,
+        secondary: #4d0000,
+        success: #800000,
         warning: #ff4500,
         danger: #ff0000,
-        info: #9400d3,
-    ),
-    'bountyhunter': (body-bg: #2c2b29,
-        body-color: #f5f5f0,
-        border-color: #a08153,
-        font-family: 'Montserrat',
-        headings-font: 'Orbitron',
+        info: #4b0082),
+    'bountyhunter': (body-bg: #141311,
+        body-color: #e0d7c5,
+        border-color: #5d5448,
+        main-content-bg: #1f1d1a,
+        card-bg: #262421,
+        input-bg: #2e2b28,
+        headings-font: 'Russo One',
         headings-color: #d1b066,
-        input-bg: #3b3a38,
-        input-color: #f5f5f0,
-        input-border-color: #6f5f46,
-        card-bg: #353432,
-        card-color: #f5f5f0,
-        card-border-color: #6f5f46,
-        secondary: #a3a3a3,
-        main-content-bg: #353432,
-        main-content-border: #a08153,
+        secondary: #6d8f6f,
         success: #5c7e5e,
-        warning: #ffae42,
-        danger: #8b0000,
-        info: #808000,
-    ),
-    'clone': (body-bg: #1c212a,
-        body-color: #f0f8ff,
-        border-color: #4a5c78,
-        font-family: 'Raleway',
-        headings-font: 'Tomorrow',
-        headings-color: #4169e1,
-        input-bg: #272d38,
-        input-color: #f0f8ff,
-        input-border-color: #5d7090,
-        card-bg: #2a303a,
-        card-color: #f0f8ff,
-        card-border-color: #242a34,
-        secondary: #87ceeb,
-        main-content-bg: #303746,
-        main-content-border: #4a5c78,
-        success: #008b8b,
-        warning: #ffd700,
-        danger: #b22222,
-        info: #4682b4,
-    )
+        warning: #e67e22,
+        danger: #c0392b,
+        info: #7f8c8d),
+    'clone': (body-bg: #02060c,
+        body-color: #bde0ff,
+        border-color: #005580,
+        main-content-bg: #081220,
+        card-bg: #0c1a2e,
+        input-bg: #12243d,
+        headings-font: 'Audiowide',
+        headings-color: #00d1ff,
+        secondary: #0088cc,
+        success: #1abc9c,
+        warning: #f39c12,
+        danger: #c0392b,
+        info: #2980b9)
 );
 
 // --- 2. DYNAMIC THEMING LOOP ---
-
 @each $name, $map in $themes {
+    $primary: map.get($custom-theme-colors, $name);
+
     body.theme-#{$name} {
-        // Core Variables
-        --bs-body-bg: #{map.get($map, body-bg)};
-        --bs-body-color: #{map.get($map, body-color)};
-        --bs-border-color: #{map.get($map, border-color)};
-        --bs-card-bg: #{map.get($map, card-bg)};
-        --bs-card-color: #{map.get($map, card-color)};
-        --bs-card-border-color: #{map.get($map, card-border-color)};
-        --main-content-bg: #{map.get($map, main-content-bg)};
-        --main-content-border: #{map.get($map, main-content-border)};
-
-        // Typography Overrides
-        --bs-font-sans-serif: #{map.get($map, font-family)};
-        --bs-headings-font-family: #{map.get($map, headings-font)};
-        --bs-heading-color: #{map.get($map, headings-color)};
-
-        // NEW: Forcefully apply the heading color to all standard heading tags
-        h1,
-        h2,
-        h3,
-        h4,
-        h5,
-        h6 {
-            color: var(--bs-heading-color);
-        }
-
-        // Input Overrides
-        --bs-input-bg: #{map.get($map, input-bg)};
-        --bs-input-color: #{map.get($map, input-color)};
-        --bs-input-border-color: #{map.get($map, input-border-color)};
-
-        // CRITICAL: Bootstrap Color Palette Overrides
-        --bs-primary: #{map.get($custom-theme-colors, $name)};
+        // --- Core Base ---
+        --bs-primary: #{$primary};
         --bs-secondary: #{map.get($map, secondary)};
         --bs-success: #{map.get($map, success)};
         --bs-warning: #{map.get($map, warning)};
         --bs-danger: #{map.get($map, danger)};
         --bs-info: #{map.get($map, info)};
 
-        // --- NESTED CUSTOM CSS OVERRIDES (Theme-Dependent) ---
+        --bs-body-bg: #{map.get($map, body-bg)};
+        --bs-body-color: #{map.get($map, body-color)};
+        --bs-border-color: #{map.get($map, border-color)};
+        --bs-tertiary-bg: #{color.adjust(map.get($map, body-bg), $lightness: 5%)};
 
-        // 1. Buttons (Primary,Success,Danger,etc.)
-        // Method 1: Set the base variables, on Bootstrap/Darkly to calculate hover states.
+        // --- Typography ---
+        --bs-headings-font-family: "#{map.get($map, headings-font)}",
+        sans-serif;
+        --bs-navbar-font-family: "Rajdhani", sans-serif;
+        --bs-heading-color: #{map.get($map, headings-color)};
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        .display-1,
+        .site-title {
+            font-family: var(--bs-headings-font-family);
+            color: var(--bs-heading-color);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px #{color.adjust($primary, $alpha: -0.85)};
+        }
+
+        // --- Buttons ---
         .btn-primary {
-            --bs-btn-bg: var(--bs-primary);
-            --bs-btn-border-color: var(--bs-primary);
+            --bs-btn-bg: #{$primary};
+            --bs-btn-border-color: #{$primary};
+            --bs-btn-color: #{if($name == 'stormtrooper', #000, #fff)};
+            --bs-btn-hover-bg: #{color.adjust($primary, $lightness: -10%)};
+            --bs-btn-hover-border-color: #{color.adjust($primary, $lightness: -10%)};
+            --bs-btn-hover-color: #{if($name == 'stormtrooper', #000, #fff)};
+        }
 
-            // This nested logic targets the Stormtrooper theme's primary button
-            // If the primary color is white, set the text to black.
-            @if $name =='stormtrooper' {
-                --bs-btn-color: #000000;
-                // We must also darken the hover background for contrast
-                --bs-btn-hover-bg: #cccccc;
-                --bs-btn-hover-border-color: #cccccc;
+        // --- Navbar & UI ---
+        .navbar {
+            background-color: #{color.adjust(map.get($map, body-bg), $lightness: 3%)};
+            border-bottom: 2px solid var(--bs-primary);
+        }
+
+        .nav-link,
+        .navbar-brand,
+        .btn {
+            font-family: var(--bs-navbar-font-family);
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        // --- Forms / Inputs & Selects ---
+        --bs-input-bg: #{map.get($map, input-bg)};
+        --bs-input-color: #{map.get($map, body-color)};
+        --bs-input-border-color: var(--bs-border-color);
+        --bs-input-focus-border-color: var(--bs-primary);
+
+        .form-control,
+        .form-select {
+            background-color: var(--bs-input-bg) !important;
+            color: var(--bs-input-color) !important;
+            border-color: var(--bs-input-border-color);
+
+            &:focus {
+                background-color: var(--bs-input-bg) !important;
+                border-color: var(--bs-primary);
+                box-shadow: 0 0 10px #{color.adjust($primary, $alpha: -0.6)};
             }
         }
 
-        .btn-secondary {
-            --bs-btn-bg: var(--bs-secondary);
-            --bs-btn-border-color: var(--bs-secondary);
+        .form-select {
+            // Injects the primary color into the dropdown arrow icon
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='#{str-replace(inspect($primary), '#', '%23')}' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
         }
 
-        .btn-success {
-            --bs-btn-bg: var(--bs-success);
-            --bs-btn-border-color: var(--bs-success);
-        }
+        // --- Modals ---
+        --bs-modal-bg: #{map.get($map, card-bg)};
+        --bs-modal-color: var(--bs-body-color);
+        --bs-modal-border-color: var(--bs-border-color);
+        --bs-modal-header-border-color: var(--bs-border-color);
+        --bs-modal-footer-border-color: var(--bs-border-color);
 
-        .btn-warning {
-            --bs-btn-bg: var(--bs-warning);
-            --bs-btn-border-color: var(--bs-warning);
-        }
+        // --- Dropdowns ---
+        --bs-dropdown-bg: #{map.get($map, card-bg)};
+        --bs-dropdown-color: var(--bs-body-color);
+        --bs-dropdown-link-color: var(--bs-body-color);
+        --bs-dropdown-link-hover-bg: var(--bs-primary);
+        --bs-dropdown-link-hover-color: #{if($name == 'stormtrooper', #000, #fff)};
+        --bs-dropdown-border-color: var(--bs-border-color);
 
-        .btn-danger {
-            --bs-btn-bg: var(--bs-danger);
-            --bs-btn-border-color: var(--bs-danger);
-        }
-
-        .btn-info {
-            --bs-btn-bg: var(--bs-info);
-            --bs-btn-border-color: var(--bs-info);
-        }
-
-
-        // 2. Alerts
+        // --- Alerts ---
         .alert-primary {
-            --bs-alert-bg: #{rgba(var(--bs-primary),0.15)};
+            --bs-alert-bg: #{color.adjust($primary, $alpha: -0.9)};
             --bs-alert-border-color: var(--bs-primary);
             --bs-alert-color: var(--bs-primary);
         }
 
-        .alert-secondary {
-            --bs-alert-bg: #{rgba(var(--bs-secondary), 0.15)};
-            --bs-alert-border-color: var(--bs-secondary);
-            --bs-alert-color: var(--bs-secondary);
-        }
-
-        .alert-success {
-            --bs-alert-bg: #{rgba(var(--bs-success), 0.15)};
-            --bs-alert-border-color: var(--bs-success);
-            --bs-alert-color: var(--bs-success);
-        }
-
-        .alert-warning {
-            --bs-alert-bg: #{rgba(var(--bs-warning), 0.15)};
-            --bs-alert-border-color: var(--bs-warning);
-            --bs-alert-color: var(--bs-warning);
-        }
-
-        .alert-danger {
-            --bs-alert-bg: #{rgba(var(--bs-danger), 0.15)};
-            --bs-alert-border-color: var(--bs-danger);
-            --bs-alert-color: var(--bs-danger);
-        }
-
-        .alert-info {
-            --bs-alert-bg: #{rgba(var(--bs-info), 0.15)};
-            --bs-alert-border-color: var(--bs-info);
-            --bs-alert-color: var(--bs-info);
-        }
-
-
-        // 3. Tables (Table Row States)
-        .table {
-            --bs-table-border-color: var(--main-content-border);
-
-            .table-primary {
-                --bs-table-bg: #{rgba(var(--bs-primary), 0.1)};
-            }
-
-            .table-secondary {
-                --bs-table-bg: #{rgba(var(--bs-secondary), 0.1)};
-            }
-
-            .table-success {
-                --bs-table-bg: #{rgba(var(--bs-success), 0.1)};
-            }
-
-            .table-warning {
-                --bs-table-bg: #{rgba(var(--bs-warning), 0.1)};
-            }
-
-            .table-danger {
-                --bs-table-bg: #{rgba(var(--bs-danger), 0.1)};
-            }
-
-            .table-info {
-                --bs-table-bg: #{rgba(var(--bs-info), 0.1)};
-            }
-
-            .table-primary,
-            .table-secondary,
-            .table-success,
-            .table-warning,
-            .table-danger,
-            .table-info {
-                --bs-table-color: var(--bs-body-color);
-            }
-        }
-
-        // 4. Anchor (<a>) Tag Overrides
-        a {
-            // Setting the link color to the theme's Primary color.
-            color: var(--bs-primary);
-
-            --bs-link-color: var(--bs-primary);
-            text-decoration: none; 
-
-            &:focus,
-            &:hover {
-                text-decoration: none;
-
-                // FIX: Inject high-contrast dark color only for the Stormtrooper's white primary links
-                @if $name =='stormtrooper' {
-                    // Primary: #ffffff (White) -> Hover: Dark Gray
-                    color: #999999;
-                }
-                @else if $name =='rebel' {
-                    // Primary: #ff9900 (Orange) -> Hover: Lighter Orange/Yellow
-                    color: #ffc466;
-                }
-                @else if $name =='sith' {
-                    // Primary: #ff0000 (Red) -> Hover: Lighter Red/Crimson
-                    color: #ff3333;
-                }
-                @else if $name =='bountyhunter' {
-                    // Primary: #5c7e5e (Olive Green) -> Hover: Lighter Olive
-                    color: #8da48f;
-                }
-                @else if $name =='clone' {
-                    // Primary: #6495ed (Cornflower Blue) -> Hover: Lighter Blue
-                    color: #9abaff;
-                }
-                @else {
-                    // Fallback (Should be unused for your defined themes)
-                    color: var(--bs-link-hover-color, var(--bs-primary));
-                }
-            }
-        }
-
-        // Layout (Main Content)
+        // --- Cards & Main Content ---
         .main-content {
-            background-color: var(--main-content-bg);
-            border-color: var(--main-content-border);
+            background-color: #{map.get($map, main-content-bg)};
+            border: 1px solid var(--bs-border-color);
+            box-shadow: inset 0 0 30px #{color.adjust($primary, $alpha: -0.97)};
+            border-radius: 8px;
+            padding: 2rem;
         }
 
-        // Typography
-        h1.site-title {
-            font-family: var(--bs-headings-font-family);
-            font-size: 3rem;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
-
-        .breadcrumb-item,
-        .navbar-brand,
-        .nav-link {
-            font-family: var(--bs-font-sans-serif);
-            font-size: 13px;
-            text-transform: uppercase;
-        }
-
-        // Form Elements
-        .form-check-label {
+        .card {
+            --bs-card-bg: #{map.get($map, card-bg)};
+            --bs-card-border-color: var(--bs-border-color);
+            --bs-card-cap-bg: #{color.adjust(map.get($map, card-bg), $lightness: 5%)};
             color: var(--bs-body-color);
         }
 
-        // Dashboard Cards
-        .dashboard-cards,
-        .event-cards {
-            .card {
-                background-color: var(--bs-card-bg);
-                transition: all 0.2s ease;
-                cursor: pointer;
-
-                &:hover {
-                    box-shadow: 4px 4px 4px 4px var(--bs-card-border-color);
-                    transform: scale(1.05);
-                }
-
-                .card-header {
-                    font-weight: bold;
-                }
-            }
+        // --- Tables ---
+        .table {
+            --bs-table-bg: transparent;
+            --bs-table-color: var(--bs-body-color);
+            --bs-table-border-color: var(--bs-border-color);
+            --bs-table-striped-bg: #{color.adjust(map.get($map, body-bg), $lightness: 2%)};
         }
 
-        // Twitter Typeahead
-        .tt-menu {
-            background-color: var(--bs-input-bg);
-            border: 1px solid var(--bs-input-border-color);
-            border-radius: 0.375rem;
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-            width: 100% !important;
-            padding: 0.25rem 0;
-
-            .tt-suggestion {
-                &.tt-selectable {
-
-                    &:hover,
-                    &:focus {
-                        background-color: var(--bs-body-bg);
-                    }
-                }
-            }
+        // --- Pagination ---
+        .pagination {
+            --bs-pagination-bg: #{map.get($map, card-bg)};
+            --bs-pagination-color: var(--bs-primary);
+            --bs-pagination-border-color: var(--bs-border-color);
+            --bs-pagination-active-bg: var(--bs-primary);
+            --bs-pagination-active-color: #{if($name == 'stormtrooper', #000, #fff)};
+            --bs-pagination-hover-bg: #{color.adjust($primary, $alpha: -0.8)};
         }
     }
 }
