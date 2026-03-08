@@ -22,14 +22,12 @@
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.16",
         "fakerphp/faker": "^1.23",
-        "larastan/larastan": "^3.9",
         "laravel/boost": "^1.8",
         "laravel/pail": "^1.2.2",
         "laravel/pint": "^1.24",
         "laravel/sail": "^1.41",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.6",
-        "phpstan/phpstan": "^2.1",
         "phpunit/phpunit": "^11.5.3",
         "reliese/laravel": "^1.4"
     },
@@ -67,7 +65,6 @@
             "pint app/Services"
         ],
         "pint:test": "@pint:format --test",
-        "stan": "phpstan analyse --memory-limit=1G",
         "db:migrate-all": [
             "@db:regen",
             "@php artisan db:seed --class=FloridaGarrisonSeeder"
