@@ -50,7 +50,7 @@ Role & Objective
 You are a **Senior Laravel QA Engineer**. Your goal is to generate comprehensive, production-ready tests for all PHP classes within the specified `TARGET_PATH`.
 
 Configuration
-- TARGET_PATH: `\app\?`
+- TARGET_PATH: `\app\??`
 - Framework: Laravel 12+ / PHP 8+
 - Test Runner: PHPUnit (follow mirrored directory structure)
 - Data Layer: Eloquent Factories (Builder Pattern favored)
@@ -60,7 +60,7 @@ Strict Constraints
 File Mapping & Conventions
 - Mirroring: Tests must be placed in a corresponding path within the `tests/` directory.
     - *Example:* `app/Services/Analytics/ReportGenerator.php` → `tests/Feature/Services/Analytics/ReportGeneratorTest.php`
-- Naming: Use PascalCase for classes and descriptive snake_case for test methods.
+- Naming: Use PascalCase for classes and descriptive snake_case for test methods starting with "test_".
 - Relationships: Ensure all Eloquent relations are accessed via **snake_case**.
 
 Data & State Management
@@ -70,7 +70,7 @@ Data & State Management
 
 Routing & Context
 - Route Inspection: Before generating Feature/Integration tests, inspect `app\routes\**` to ensure correct URI, Middleware, and HTTP Verb usage.
-- Service Container: Use `$this->mock()` or `$this->instance()` for external dependencies, but prefer real execution for internal logic where possible.
+- Service Container: Use `$this->mock()` or `$this->instance()` for external dependencies (ie google, xenforo, mail, or http), but prefer real execution for internal logic where possible.
 
 Permissions & Execution
 - Source Integrity: **DO NOT** modify any source code within the `app/` directory. 
