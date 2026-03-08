@@ -26,7 +26,7 @@ class LoginSubmitController extends MagicBusController
 {
     private TroopTracker $troop_tracker;
 
-    protected function initialize(): void
+    protected function initialized(): void
     {
         $this->troop_tracker = app(TroopTracker::class);
     }
