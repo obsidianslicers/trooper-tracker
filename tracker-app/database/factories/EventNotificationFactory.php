@@ -21,11 +21,4 @@ class EventNotificationFactory extends BaseEventNotificationFactory
     {
         return array_merge(parent::definition(), []);
     }
-
-    public function withEvent(Event $event): static
-    {
-        return $this->state(fn(array $attributes) => [
-            EventNotification::EVENT_ID => $event->id,
-        ]);
-    }
 }

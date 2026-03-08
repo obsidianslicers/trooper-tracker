@@ -21,18 +21,4 @@ class EventTrooperFactory extends BaseEventTrooperFactory
             EventTrooper::STATUS => EventTrooperStatus::NONE,
         ]);
     }
-
-    public function withShift(EventShift $shift): static
-    {
-        return $this->state(fn(array $attributes) => [
-            EventTrooper::EVENT_SHIFT_ID => $shift->id,
-        ]);
-    }
-
-    public function withTrooper(Trooper $trooper): static
-    {
-        return $this->state(fn(array $attributes) => [
-            EventTrooper::TROOPER_ID => $trooper->id,
-        ]);
-    }
 }

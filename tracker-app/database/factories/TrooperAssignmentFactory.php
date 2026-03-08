@@ -20,11 +20,4 @@ class TrooperAssignmentFactory extends BaseTrooperAssignmentFactory
             TrooperAssignment::IS_MODERATOR => false,
         ]);
     }
-
-    public function member(): static
-    {
-        return $this->state(fn(array $attributes) => [
-            TrooperAssignment::IS_MEMBER => true,
-        ]);
-    }
 }

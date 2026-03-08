@@ -71,45 +71,4 @@ class EventFactory extends BaseEventFactory
             Event::SOURCE => $this->faker->sentence(5),
         ]);
     }
-
-    public function withOrganization(Organization $organization): static
-    {
-        return $this->state(fn(array $attributes) => [
-            Event::ORGANIZATION_ID => $organization,
-        ]);
-    }
-
-    /**
-     * Indicate that the event is closed (historical).
-     *
-     * @return \Illuminate\Database\Eloquent\Factories\Factory
-     */
-    public function closed(): static
-    {
-        return $this->state(function (array $attributes)
-        {
-            return [
-                Event::STATUS => EventStatus::CLOSED,
-                Event::EVENT_START => $attributes[Event::EVENT_START] ?? $this->faker->dateTimeBetween('-2 years', '-1 month'),
-                Event::EVENT_END => $attributes[Event::EVENT_END] ?? $this->faker->dateTimeBetween('-1 month', '-1 day'),
-            ];
-        });
-    }
-
-    /**
-     * Indicate that the event is open (future).
-     *
-     * @return \Illuminate\Database\Eloquent\Factories\Factory
-     */
-    public function open(): static
-    {
-        return $this->state(function (array $attributes)
-        {
-            return [
-                Event::STATUS => EventStatus::OPEN,
-                Event::EVENT_START => $attributes[Event::EVENT_START] ?? $this->faker->dateTimeBetween('now', '+1 month'),
-                Event::EVENT_END => $attributes[Event::EVENT_END] ?? $this->faker->dateTimeBetween('+1 month', '+1 year'),
-            ];
-        });
-    }
 }
