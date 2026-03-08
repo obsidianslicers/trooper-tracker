@@ -31,4 +31,17 @@ class SignUpEmailControllerTest extends TestCase
         $this->assertNull($registration_auth['email']);
         $this->assertNotNull($registration_auth['expires_at']);
     }
+
+    public function test_invoke_blocks_email_signup_when_xenforo_is_required(): void
+    {
+        // Arrange
+        config()->set('tracker.auth.require_xenforo', true);
+
+        // Act
+        $response = $this->get(route('auth.signup-email'));
+
+        // Assert
+        $response->assertRedirect(route('auth.signup'));
+        $response->assertSessionMissing('registration_auth');
+    }
 }

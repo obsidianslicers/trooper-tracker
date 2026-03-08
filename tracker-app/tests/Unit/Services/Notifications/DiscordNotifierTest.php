@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Services\Notifications;
 
 use App\Services\Notifications\DiscordNotifier;
+use App\Models\Organization;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
@@ -30,14 +31,11 @@ class DiscordNotifierTest extends TestCase
      */
     public function test_get_squad_mention_returns_default_for_null_squad(): void
     {
-        // Arrange
-        config(['discord.squad_roles' => [], 'discord.default_mention' => '<@&888>']);
-
         // Act
         $result = $this->subject->getSquadMention(null);
 
-        // Assert
-        $this->assertEquals('<@&888>', $result);
+        // Assert: DB-driven behavior -> no mention configured => null
+        $this->assertNull($result);
     }
 
     /**
@@ -45,15 +43,11 @@ class DiscordNotifierTest extends TestCase
      */
     public function test_get_squad_mention_returns_default_when_no_match(): void
     {
-        // Arrange
-        config(['discord.squad_roles' => ['alpha' => '<@&111>']]);
-        config(['discord.default_mention' => '<@&999>']);
-
         // Act
         $result = $this->subject->getSquadMention('unknown');
 
-        // Assert
-        $this->assertEquals('<@&999>', $result);
+        // Assert: DB-driven behavior -> unknown org => null
+        $this->assertNull($result);
     }
 
     /**
@@ -61,8 +55,8 @@ class DiscordNotifierTest extends TestCase
      */
     public function test_get_squad_mention_finds_exact_string_match(): void
     {
-        // Arrange
-        config(['discord.squad_roles' => ['alpha_squad' => '<@&111>', 'bravo_squad' => '<@&222>']]);
+        // Arrange: create DB org with mention
+        Organization::factory()->create(['name' => 'alpha_squad', 'discord_mention' => '<@&111>']);
 
         // Act
         $result = $this->subject->getSquadMention('alpha_squad');
@@ -77,7 +71,7 @@ class DiscordNotifierTest extends TestCase
     public function test_get_squad_mention_finds_exact_match_case_insensitive(): void
     {
         // Arrange
-        config(['discord.squad_roles' => ['Alpha_Squad' => '<@&111>']]);
+        Organization::factory()->create(['name' => 'Alpha_Squad', 'discord_mention' => '<@&111>']);
 
         // Act
         $result = $this->subject->getSquadMention('ALPHA_SQUAD');
@@ -91,11 +85,8 @@ class DiscordNotifierTest extends TestCase
      */
     public function test_get_squad_mention_finds_partial_substring_match(): void
     {
-        // Arrange
-        config([
-            'discord.squad_roles' => ['501st' => '<@&111>'],
-            'discord.default_mention' => null,
-        ]);
+        // Arrange: create DB org
+        Organization::factory()->create(['name' => '501st', 'discord_mention' => '<@&111>']);
 
         // Act
         $result = $this->subject->getSquadMention('501st Legion');
@@ -130,7 +121,6 @@ class DiscordNotifierTest extends TestCase
         config([
             'discord.webhooks.default' => $webhook_url,
             'discord.squad_roles' => [],
-            'discord.default_mention' => '<@&500>',
             'app.name' => 'Troop Tracker',
         ]);
 
@@ -150,7 +140,7 @@ class DiscordNotifierTest extends TestCase
             $body = json_decode($request->body(), true);
 
             return $url === $webhook_url
-                && $body['content'] === '<@&500> Endor Troop has been posted.'
+                && $body['content'] === 'Endor Troop has been posted.'
                 && $body['username'] === 'Troop Tracker Bot'
                 && $body['tts'] === false
                 && count($body['embeds']) === 1
@@ -170,9 +160,11 @@ class DiscordNotifierTest extends TestCase
         $webhook_url = 'https://discord.com/api/webhooks/123456789/abcdefgh';
         config([
             'discord.webhooks.default' => $webhook_url,
-            'discord.squad_roles' => ['501st' => '<@&777>'],
             'app.name' => 'Troop Tracker',
         ]);
+
+        // create a DB organization with the mention configured
+        Organization::factory()->create(['name' => '501st', 'discord_mention' => '<@&777>']);
 
         // Act
         $result = $this->subject->sendEventNotification(
@@ -185,6 +177,39 @@ class DiscordNotifierTest extends TestCase
         // Assert
         $this->assertTrue($result);
 
+        Http::assertSent(function ($request) use ($webhook_url)
+        {
+            $body = json_decode($request->body(), true);
+
+            return $request->url() === $webhook_url
+                && $body['content'] === '<@&777> Event Title has been posted.';
+        });
+    }
+
+    public function test_send_event_notification_accepts_organization_instance_for_mention(): void
+    {
+        // Arrange
+        $webhook_url = 'https://discord.com/api/webhooks/123456789/abcdefgh';
+        config([
+            'discord.webhooks.default' => $webhook_url,
+            'app.name' => 'Troop Tracker',
+        ]);
+
+        $organization = Organization::factory()->create([
+            'name' => '501st',
+            'discord_mention' => '<@&777>',
+        ]);
+
+        // Act
+        $result = $this->subject->sendEventNotification(
+            1,
+            'Event Title',
+            null,
+            $organization
+        );
+
+        // Assert
+        $this->assertTrue($result);
         Http::assertSent(function ($request) use ($webhook_url)
         {
             $body = json_decode($request->body(), true);

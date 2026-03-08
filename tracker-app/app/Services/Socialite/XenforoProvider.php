@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * Add this to .htaccess in Xenforo for this code to work:
+ * SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+ */
+
 declare(strict_types=1);
 
 namespace App\Services\Socialite;
@@ -23,7 +28,10 @@ class XenforoProvider extends AbstractProvider implements ProviderInterface
      *
      * @var array<int, string>
      */
-    protected $scopes = ['read', 'profile'];
+    protected $scopes = [
+        'user:read',
+        'user:write',
+    ];
 
     /**
      * The separating character for the requested scopes.
@@ -37,7 +45,7 @@ class XenforoProvider extends AbstractProvider implements ProviderInterface
      */
     protected function getBaseUrl(): string
     {
-        return rtrim(config('services.xenforo.base_url'), '/');
+        return config('services.xenforo.base_url');
     }
 
     /**
@@ -47,10 +55,13 @@ class XenforoProvider extends AbstractProvider implements ProviderInterface
      */
     protected function getAuthUrl($state): string
     {
-        return $this->buildAuthUrlFromBase(
-            $this->getBaseUrl().'/oauth/authorize',
-            $state
-        );
+        // XenForo's OAuth authorize endpoint path is configurable so that
+        // different XenForo setups can be supported.
+        $authorizePath = config('services.xenforo.authorize_path');
+
+        $query = http_build_query($this->getCodeFields($state), '', '&', PHP_QUERY_RFC3986);
+
+        return $this->getBaseUrl().rtrim($authorizePath, '&').('&'.$query);
     }
 
     /**
@@ -58,7 +69,9 @@ class XenforoProvider extends AbstractProvider implements ProviderInterface
      */
     protected function getTokenUrl(): string
     {
-        return $this->getBaseUrl().'/oauth/token';
+        $tokenPath = config('services.xenforo.token_path');
+
+        return $this->getBaseUrl().$tokenPath;
     }
 
     /**
@@ -69,17 +82,18 @@ class XenforoProvider extends AbstractProvider implements ProviderInterface
      */
     protected function getUserByToken($token): array
     {
-        $response = $this->getHttpClient()->get(
-            $this->getBaseUrl().'/api/me',
-            [
-                'headers' => [
-                    'Authorization' => 'Bearer '.$token,
-                    'Accept' => 'application/json',
-                ],
-            ]
-        );
+        $mePath = config('services.xenforo.me_path');
 
-        return json_decode($response->getBody(), true);
+        $url = $this->getBaseUrl().$mePath;
+
+        $response = $this->getHttpClient()->get($url, [
+            'headers' => [
+                'Authorization' => 'Bearer '.$token,
+                'Accept' => 'application/json',
+            ],
+        ]);
+
+        return json_decode($response->getBody()->getContents(), true);
     }
 
     /**
@@ -89,7 +103,7 @@ class XenforoProvider extends AbstractProvider implements ProviderInterface
      */
     protected function mapUserToObject(array $user): User
     {
-        $user_data = $user['user'] ?? $user;
+        $user_data = $user['me'] ?? $user;
 
         return (new User)->setRaw($user)->map([
             'id' => $user_data['user_id'] ?? null,

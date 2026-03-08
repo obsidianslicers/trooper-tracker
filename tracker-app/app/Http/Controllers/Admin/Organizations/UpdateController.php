@@ -36,9 +36,7 @@ class UpdateController extends MagicBusController
     {
         $this->authorize('update', $organization);
 
-        $data = [
-            'organization' => $organization,
-        ];
+        $data = compact('organization');
 
         return view('pages.admin.organizations.update', $data);
     }

@@ -8,6 +8,7 @@ use App\Bus\MagicBus;
 use App\Features\Events\Commands\SendEventCreatedNotificationCommand;
 use App\Features\Events\Queries\GetTroopersForEventCreatedQuery;
 use App\Models\Event;
+use App\Services\Forums\XenforoService;
 use App\Services\Notifications\DiscordNotifier;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -45,30 +46,77 @@ class SendEventCreatedNotificationsJob implements ShouldQueue
      * @param  MagicBus  $bus  The message bus for sending queries and commands.
      * @param  DiscordNotifier  $notifier  The Discord notification service.
      */
-    public function handle(MagicBus $bus, DiscordNotifier $notifier): void
+    public function handle(MagicBus $bus, DiscordNotifier $notifier, XenforoService $xenforo): void
     {
-        if ($this->event->create_notifications_sent_at !== null)
+        // Trooper notifications: only send if not already sent
+        if ($this->event->create_notifications_sent_at === null)
         {
-            return;
+            $troopers_query = new GetTroopersForEventCreatedQuery($this->event);
+            $troopers = $bus->send($troopers_query);
+            foreach ($troopers as $trooper)
+            {
+                $send_notification_command = new SendEventCreatedNotificationCommand($this->event, $trooper);
+                $bus->send($send_notification_command);
+            }
+            $this->event->create_notifications_sent_at = now();
+            $this->event->save();
         }
 
-        $troopers_query = new GetTroopersForEventCreatedQuery($this->event);
+        // Forum posting / notifications
+        $organization = $this->event->organization;
 
-        $troopers = $bus->send($troopers_query);
+        // Discord notification: always run
+        $notifier->sendEventNotification($this->event->id, $this->event->name, $this->event->comments ?? null, $organization);
 
-        foreach ($troopers as $trooper)
-        {
-            $send_notification_command = new SendEventCreatedNotificationCommand($this->event, $trooper);
+        // XenForo thread creation: only if related forum is configured, the event
+        // is configured to create a forum thread, and a thread has not already
+        // been created for this event.
+        if (
+            ! empty($organization->related_forum) &&
+            $this->event->create_forum_thread !== false &&
+            empty($this->event->thread_id)
+        ) {
+            $node_id = (int) $organization->related_forum;
+            $title = $this->event->name;
 
-            $bus->send($send_notification_command);
+            // Use ForumBBCodeHelper to generate BBCode message
+            $message = \App\Helpers\ForumBBCodeHelper::threadTemplate($this->event);
+
+            // Let XenforoService resolve the XenForo user ID (via OAuth) for the event creator
+            $xenforo_user_id = $xenforo->resolve_user_id_for_trooper($this->event->created_id);
+
+            $result = $xenforo->create_thread($node_id, $title, $message, $xenforo_user_id);
+
+            if (($result['status'] ?? 0) >= 200 && ($result['status'] ?? 0) < 300)
+            {
+                // Attempt to capture the created thread/post IDs from the XenForo API
+                $body = $result['body'] ?? [];
+                if (isset($body['thread']['thread_id']) && is_numeric($body['thread']['thread_id']))
+                {
+                    $thread_id = (int) $body['thread']['thread_id'];
+                    $this->event->thread_id = $thread_id;
+                }
+
+                if (isset($body['thread']['first_post_id']) && is_numeric($body['thread']['first_post_id']))
+                {
+                    $post_id = (int) $body['thread']['first_post_id'];
+                    $this->event->post_id = $post_id;
+                }
+
+                if ($this->event->isDirty(['thread_id', 'post_id']))
+                {
+                    $this->event->save();
+                }
+            }
+            else
+            {
+                app('\Illuminate\Support\Facades\Log')::warning('Failed to create XenForo thread for event', [
+                    'event' => $this->event->id,
+                    'org' => $organization->id,
+                    'status' => $result['status'] ?? null,
+                    'body' => $result['body'] ?? null,
+                ]);
+            }
         }
-
-        $this->event->create_notifications_sent_at = now();
-        $this->event->save();
-
-        //  notify discord about the new event
-        $organization_name = $this->event->organization->name;
-
-        $notifier->sendEventNotification($this->event->id, $this->event->name, $this->event->comments ?? null, $organization_name);
     }
 }

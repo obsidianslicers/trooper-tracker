@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
+use App\Facades\TroopTracker;
 use App\Http\Controllers\MagicBusController;
 use App\Models\OauthLogin;
 use App\Models\Trooper;
@@ -25,6 +26,13 @@ use Laravel\Socialite\Facades\Socialite;
  */
 class OauthCallbackController extends MagicBusController
 {
+    private TroopTracker $troop_tracker;
+
+    protected function initialized(): void
+    {
+        $this->troop_tracker = app(TroopTracker::class);
+    }
+
     /**
      * Handle the incoming OAuth callback request.
      *
@@ -40,6 +48,13 @@ class OauthCallbackController extends MagicBusController
      */
     public function __invoke(Request $request, string $provider): RedirectResponse
     {
+        if ($this->troop_tracker->isXenforoOAuthRequired() && $provider !== 'xenforo')
+        {
+            $this->flash->warning('Troop Tracker is configured to use XenForo for login.');
+
+            return redirect()->route('auth.login');
+        }
+
         $provider_user = Socialite::driver($provider)->user();
 
         // Find existing social account
@@ -60,6 +75,22 @@ class OauthCallbackController extends MagicBusController
         }
 
         $email = $provider_user->getEmail();
+
+        if (empty($email))
+        {
+            $message = 'Your XenForo account did not provide an email address. Please contact an administrator.';
+
+            if (!$this->troop_tracker->isXenforoOAuthRequired())
+            {
+                $message .= ' Or log in with email/password.';
+            }
+
+            return redirect()
+                ->route('account.xenforo.required')
+                ->withErrors([
+                    'oauth' => $message,
+                ]);
+        }
 
         $trooper = Trooper::byEmail($email)->first();
 
@@ -93,7 +124,7 @@ class OauthCallbackController extends MagicBusController
             return redirect()->route('auth.inactive');
         }
 
-        // Link provider
+        // Link provider to existing trooper account
         OauthLogin::create([
             OauthLogin::TROOPER_ID => $trooper->id,
             OauthLogin::PROVIDER => $provider,

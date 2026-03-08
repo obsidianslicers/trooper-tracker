@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Notifications;
 
+use App\Models\Organization;
 use Illuminate\Support\Facades\Http;
 
 /**
@@ -23,45 +24,69 @@ final class DiscordNotifier
      * then attempts partial substring matches. Falls back to the default mention if no
      * match is found or if the squad parameter is null/empty.
      *
-     * @param  int|string|null  $squad  The squad ID (int), organization name (string), or null.
+     * @param  Organization|int|string|null  $squad  The Organization instance, squad ID (int), organization name (string), or null.
      * @return string|null The Discord role mention string (e.g., "<@&123456>"), or null if no mention is configured.
      */
-    public function getSquadMention(int|string|null $squad): ?string
+    public function getSquadMention(Organization|int|string|null $squad): ?string
     {
-        $squad_role_map = config('discord.squad_roles', []);
-
-        // string name lookup: normalize and try exact key match first
-        if (is_string($squad) && $squad !== '')
+        if ($squad instanceof Organization)
         {
-            $search = strtolower($squad);
+            return ! empty($squad->discord_mention) ? (string) $squad->discord_mention : null;
+        }
 
-            // direct key matches (string keys in config)
-            foreach ($squad_role_map as $k => $v)
+        // If caller already provided a mention string like <@&123>, return it unchanged.
+        if (is_string($squad) && preg_match('/^<@&\d+>$/', trim($squad)))
+        {
+            return trim($squad);
+        }
+
+        // Prefer DB-driven discord_mention on Organization records.
+        $org = null;
+
+        if (is_int($squad))
+        {
+            $org = Organization::find($squad);
+        }
+        elseif (is_string($squad) && $squad !== '')
+        {
+            $search = trim($squad);
+
+            // exact (case-insensitive) match — prefer most recently created org
+            $org = Organization::whereRaw('LOWER(name) = ?', [strtolower($search)])->orderBy('id', 'desc')->first();
+
+            // fallback to partial match: try to find orgs where the org name
+            // appears inside the provided search string (e.g. "501st Legion"
+            // should match org name "501st") or where the search contains the
+            // org name. Load candidates and check in-PHP to keep compatibility
+            // across DB drivers.
+            if (! $org)
             {
-                if (!is_int($k))
+                $candidates = Organization::whereNotNull('discord_mention')->orderBy('id', 'desc')->get();
+
+                foreach ($candidates as $candidate)
                 {
-                    if (strtolower((string) $k) === $search)
+                    $candidateName = strtolower($candidate->name);
+                    if ($candidateName === '')
                     {
-                        return $v;
+                        continue;
                     }
-                }
-            }
 
-            // partial contains match: if the organization name contains a key
-            foreach ($squad_role_map as $k => $v)
-            {
-                if (!is_int($k))
-                {
-                    $klower = strtolower((string) $k);
-                    if ($klower !== '' && (str_contains($search, $klower) || str_contains($klower, $search)))
+                    if (str_contains(strtolower($search), $candidateName) || str_contains($candidateName, strtolower($search)))
                     {
-                        return $v;
+                        $org = $candidate;
+                        break;
                     }
                 }
             }
         }
 
-        return config('discord.default_mention');
+        if ($org && ! empty($org->discord_mention))
+        {
+            return $org->discord_mention;
+        }
+
+        // No DB mention found — do not fall back to config-based mappings anymore.
+        return null;
     }
 
     /**
@@ -75,10 +100,10 @@ final class DiscordNotifier
      * @param  int  $event_id  The ID of the event being notified about.
      * @param  string  $title  The event title to display in the Discord message.
      * @param  string|null  $description  Optional event description displayed in the embed.
-     * @param  int|string|null  $squad  The squad ID or organization name for role mention resolution.
+     * @param  Organization|int|string|null  $squad  Organization instance (preferred), squad ID, or org name for mention resolution.
      * @return bool True if the webhook was posted successfully, false if no webhook is configured.
      */
-    public function sendEventNotification(int $event_id, string $title, ?string $description = null, int|string|null $squad = null): bool
+    public function sendEventNotification(int $event_id, string $title, ?string $description = null, Organization|int|string|null $squad = null): bool
     {
         $webhook = config('discord.webhooks.default') ?? config('discord.webhook_url');
 

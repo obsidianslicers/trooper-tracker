@@ -58,6 +58,7 @@ class CreateController extends MagicBusController
         // Set defaults
         $event->type = EventType::REGULAR;
         $event->status = EventStatus::DRAFT;
+        $event->create_forum_thread = true;
 
         // Fill with old input if available
         if (!empty(old()))

@@ -11,8 +11,13 @@ stan/pint - WIP
 - app/Policies
 - app/Rules
 
+### REFACTOR CONVENTION
+- template includes
+  - path.inc.{page-name}-purpose.blade.php
+
 ### FIX
 - Trooper Dashboard
+- When closing a troop, you are unable to edit the status again
 
 ### MISC
 
@@ -24,7 +29,6 @@ stan/pint - WIP
 
 ### WORK IN PROGRESS
 - Profile page to show off acheivements, donations made, costumes (501st api)
-
 
 ## REPORTS
 - Reports
@@ -47,19 +51,22 @@ stan/pint - WIP
   - volunteer hours
   - direct and indirect donations
 
-### CLUB-SYNC
-- Join Date
-
 ### MOBILE API
 - Begin converting old API to new API
+
+### QOL
+- Make many names of events, troopers clickable and bring to the profile of the trooper
+- Allow using Enter on forms
 
 ### COSTUMES
 - Update/Delete Costumes from UI
 
 ## INTEGRATIONS
 - Xenforo tie in modules (When posting a event, cross post to Xenforo, use the comments on forum for tracker, ability to see forum link on event)
+  -Save Xenforo ID to trooper. Use this ID when posting events to whoever is posting,\.
+  -Xenforo Discussions on events
+- Get Xenforo donators, show donations on profile page / Give special badge
 - todo:   club/organization identifiers
-  - pull/sync from clubs (http/json/googlesheets)
   - auto verify club identifiers on registration
 
 ## MISC

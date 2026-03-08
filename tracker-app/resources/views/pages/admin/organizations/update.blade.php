@@ -45,16 +45,55 @@
                                           :value="$organization->name" />
                         </x-input-container>
 
-                        <x-input-container>
-                            <x-label>
-                                Google Sync Sheet ID:
-                            </x-label>
-                            <x-input-text :property="'sync_sheet_id'"
-                                          :value="$organization->sync_sheet_id" />
-                            <p class="form-help">
-                                <i class="text-muted">Optional Google Sheet ID used for sync.</i>
-                            </p>
-                        </x-input-container>
+                        @if(TroopTracker::isGoogleSyncConfigured() && $organization->type == \App\Enums\OrganizationType::ORGANIZATION)
+                            <x-input-container>
+                                <x-label>
+                                    Google Sync Sheet ID:
+                                </x-label>
+                                <x-input-text :property="'sync_sheet_id'"
+                                              :value="$organization->sync_sheet_id" />
+                                <p class="form-help">
+                                    <i class="text-muted">Optional Google Sheet ID used for sync.</i>
+                                </p>
+                            </x-input-container>
+                        @endif
+
+                        @if(TroopTracker::isDiscordIntegrationConfigured())
+                            <x-input-container>
+                                <x-label>
+                                    Discord Mention:
+                                </x-label>
+                                <x-input-text :property="'discord_mention'"
+                                              :value="$organization->discord_mention" />
+                                <p class="form-help">
+                                    <i class="text-muted">Optional Discord role/user mention (e.g. <code>&lt;@&amp;123456789&gt;</code>).</i>
+                                </p>
+                            </x-input-container>
+                        @endif
+
+                        @if(TroopTracker::isXenforoIntegrationConfigured())
+                            <x-input-container>
+                                <x-label>
+                                    Related Forum (Node ID):
+                                </x-label>
+                                <x-input-text :property="'related_forum'"
+                                              :value="$organization->related_forum" />
+                                <p class="form-help">
+                                    <i class="text-muted">Optional XenForo forum node id where event threads should be created.</i>
+                                </p>
+                            </x-input-container>
+
+                            <x-input-container>
+                                <x-label>
+                                    Related Forum Archive (Node ID):
+                                </x-label>
+                                <x-input-text :property="'related_forum_archive'"
+                                              :value="$organization->related_forum_archive" />
+                                <p class="form-help">
+                                    <i class="text-muted">Optional XenForo archive forum node id for moved/archived threads.</i>
+                                </p>
+                            </x-input-container>
+                        @endif
 
                         <x-submit-container>
                             <x-submit-button>
