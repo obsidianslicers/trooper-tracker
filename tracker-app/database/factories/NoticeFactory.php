@@ -21,4 +21,11 @@ class NoticeFactory extends BaseNoticeFactory
             Notice::TYPE => NoticeType::INFO
         ]);
     }
+
+    public function withOrganization(Organization $organization): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Notice::ORGANIZATION_ID => $organization->{Organization::ID},
+        ]);
+    }
 }

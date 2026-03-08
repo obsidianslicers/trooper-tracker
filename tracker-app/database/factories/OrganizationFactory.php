@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
 use App\Enums\OrganizationType;
@@ -46,6 +48,13 @@ class OrganizationFactory extends BaseOrganizationFactory
     {
         return $this->state(fn(array $attributes): array => [
             Organization::IDENTIFIER_DISPLAY => $identifier_display,
+        ]);
+    }
+
+    public function withRelatedForum(string $related_forum): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Organization::RELATED_FORUM => $related_forum,
         ]);
     }
 }

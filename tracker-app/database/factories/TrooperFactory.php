@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
 use App\Enums\MembershipRole;
@@ -40,6 +42,44 @@ class TrooperFactory extends BaseTrooperFactory
             Trooper::MEMBERSHIP_ROLE => MembershipRole::MEMBER,
             Trooper::THEME => TrooperTheme::STORMTROOPER,
             Trooper::SETUP_COMPLETED_AT => now(),
+        ]);
+    }
+
+    public function asAdministrator(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Trooper::MEMBERSHIP_ROLE => MembershipRole::ADMINISTRATOR,
+            Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
+        ]);
+    }
+
+    public function asModerator(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Trooper::MEMBERSHIP_ROLE => MembershipRole::MODERATOR,
+            Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
+        ]);
+    }
+
+    public function asMember(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Trooper::MEMBERSHIP_ROLE => MembershipRole::MEMBER,
+            Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
+        ]);
+    }
+
+    public function withEmail(string $email): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Trooper::EMAIL => $email,
+        ]);
+    }
+
+    public function withInvalidEmail(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Trooper::EMAIL => fake()->uuid() . 'invalid-email',
         ]);
     }
 

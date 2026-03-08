@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
 use App\Enums\EventTrooperStatus;
@@ -19,6 +21,28 @@ class EventTrooperFactory extends BaseEventTrooperFactory
     {
         return array_merge(parent::definition(), [
             EventTrooper::STATUS => EventTrooperStatus::NONE,
+        ]);
+    }
+
+    public function forEventShift(EventShift $event_shift): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            EventTrooper::EVENT_SHIFT_ID => $event_shift->{EventShift::ID},
+        ]);
+    }
+
+    public function forTrooper(Trooper $trooper): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            EventTrooper::TROOPER_ID => $trooper->{Trooper::ID},
+            EventTrooper::ADDED_BY_TROOPER_ID => $trooper->{Trooper::ID},
+        ]);
+    }
+
+    public function asGoing(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            EventTrooper::STATUS => EventTrooperStatus::GOING,
         ]);
     }
 }

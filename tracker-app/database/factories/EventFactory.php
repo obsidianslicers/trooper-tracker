@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
 use App\Enums\EventStatus;
 use App\Enums\EventType;
 use App\Models\Event;
 use App\Models\Organization;
+use App\Models\Trooper;
 use Database\Factories\Base\EventFactory as BaseEventFactory;
 
 class EventFactory extends BaseEventFactory
@@ -69,6 +72,56 @@ class EventFactory extends BaseEventFactory
             Event::COMMENTS => $this->faker->paragraph(),
             Event::REFERRED_BY => $this->faker->name(),
             Event::SOURCE => $this->faker->sentence(5),
+        ]);
+    }
+
+    public function withOrganization(Organization $organization): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Event::ORGANIZATION_ID => $organization->{Organization::ID},
+            Event::PRIMARY_ORGANIZATION_ID => $organization->{Organization::ID},
+        ]);
+    }
+
+    public function withCreatedByTrooper(Trooper $trooper): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Event::CREATED_ID => $trooper->{Trooper::ID},
+        ]);
+    }
+
+    public function withCreateNotificationsSent(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Event::CREATE_NOTIFICATIONS_SENT_AT => now(),
+        ]);
+    }
+
+    public function withCancelNotificationsSent(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Event::CANCEL_NOTIFICATIONS_SENT_AT => now(),
+        ]);
+    }
+
+    public function withForumThreadEnabled(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Event::CREATE_FORUM_THREAD => true,
+        ]);
+    }
+
+    public function withForumThreadDisabled(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Event::CREATE_FORUM_THREAD => false,
+        ]);
+    }
+
+    public function withForumThreadId(int $thread_id): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Event::THREAD_ID => $thread_id,
         ]);
     }
 }
