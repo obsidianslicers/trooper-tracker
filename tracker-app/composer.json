@@ -73,19 +73,10 @@
             "@php artisan db:seed --class=FloridaGarrisonSeeder"
         ],
         "db:regen": [
-            "@test:freshdb",
             "@php artisan migrate:rollback --force",
             "@php artisan migrate",
             "@php artisan code:model",
             "@php artisan tracker:generate-factories"
-        ],
-        "test:fresh": [
-            "@test:freshdb",
-            "@php artisan test"
-        ],
-        "test:freshdb": [
-            "@php -r \"file_exists('database/database.sqlite') && unlink('database/database.sqlite');\"",
-            "@php -r \"touch('database/database.sqlite');\""
         ],
         "setup": [
             "composer install",
