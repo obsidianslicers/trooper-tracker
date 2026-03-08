@@ -88,9 +88,8 @@
             "npx concurrently -c \"#93c5fd,#c4b5fd,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"npm run dev\" --names='server,queue,vite'"
         ],
         "test": [
-            "@php -d display_errors=1 -d error_reporting=E_ALL vendor/bin/phpunit --testdox",
             "@php artisan config:clear --ansi",
-            "@php artisan test"
+            "@php -d display_errors=1 -d error_reporting=E_ALL vendor/bin/phpunit --testdox --stop-on-failure"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
