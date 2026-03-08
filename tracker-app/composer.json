@@ -89,6 +89,10 @@
         ],
         "test": [
             "@php artisan config:clear --ansi",
+            "@php artisan test"
+        ],
+        "test:ci": [
+            "@php artisan config:clear --ansi",
             "@php -d display_errors=1 -d error_reporting=E_ALL vendor/bin/phpunit --testdox --stop-on-failure"
         ],
         "post-autoload-dump": [
