@@ -40,5 +40,4 @@ jobs:
           APP_KEY: ${{ secrets.TT_APP_KEY }}
         run: |
           # Run the test suite
-          composer test:freshdb
           php artisan test 
