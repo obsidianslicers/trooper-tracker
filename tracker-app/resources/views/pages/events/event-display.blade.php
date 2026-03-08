@@ -41,60 +41,6 @@
                         </div>
                     </div>
                     <div class="col-4 text-end">
-                        <div class="d-flex justify-content-end align-items-center gap-2">
-                            @if(!empty($googleCalendarUrl))
-                                <div class="btn-group">
-                                    <a href="{{ $googleCalendarUrl }}"
-                                    class="btn btn-outline-secondary"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    title="Add to Google Calendar">
-                                        <i class="fab fa-google"></i>
-                                    </a>
-
-                                    <a href="{{ route('events.display-ics', compact('event')) }}"
-                                    class="btn btn-outline-secondary"
-                                    title="Add to Calendar (.ics)">
-                                        <i class="fa fa-fw fa-calendar"></i>
-                                    </a>
-                                </div>
-                            @endif
-
-                            @if(!empty($xenforoBaseUrl) && !empty($event->thread_id) && !empty($event->post_id))
-                                <a href="{{ $xenforoBaseUrl.'/posts/'.$event->post_id.'/' }}"
-                                   class="btn btn-outline-secondary"
-                                   target="_blank"
-                                   rel="noopener noreferrer"
-                                   title="View Forum Post">
-                                    <i class="fa fa-fw fa-comments"></i>
-                                </a>
-                            @endif
-
-                            {!! Share::page(route('shares.event', compact('event')), $event->name)->facebook()->twitter() !!}
-                            @can('update', $event)
-                                <div class="btn-group">
-                                    <a href="{{ route('admin.events.update', compact('event')) }}"
-                                       class="btn btn-outline-danger">
-                                        <i class="fa fa-fw fa-edit text-danger"></i>
-                                    </a>
-                                    <a href="{{ route('admin.events.copy', compact('event')) }}"
-                                       class="btn btn-outline-danger">
-                                        <i class="fa fa-fw fa-copy text-danger"></i>
-                                    </a>
-                                </div>
-                                <div class="col-9">
-                                    {{ $event->organization->name }}
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-3 d-none d-md-inline">
-                                    Status:
-                                </div>
-                                <div class="col-9">
-                                    {{ to_title($event->status->name) }}
-                                </div>
-                            </div>
-                        </div>
                         <div class="col-4 text-end">
                             <div class="d-flex justify-content-end align-items-center gap-2">
                                 @if(!empty($googleCalendarUrl))
@@ -115,8 +61,8 @@
                                     </div>
                                 @endif
 
-                                @if(TroopTracker::isXenforoIntegrationConfigured() && !empty($event->thread_id) && !empty($event->post_id))
-                                    <a href="{{ config('services.xenforo.base_url') . '/posts/' . $event->post_id . '/' }}"
+                                @if(!empty($xenforoBaseUrl) && !empty($event->thread_id) && !empty($event->post_id))
+                                    <a href="{{ $xenforoBaseUrl . '/posts/' . $event->post_id . '/' }}"
                                        class="btn btn-outline-secondary"
                                        target="_blank"
                                        rel="noopener noreferrer"

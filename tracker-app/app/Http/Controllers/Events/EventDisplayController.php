@@ -103,7 +103,14 @@ class EventDisplayController extends MagicBusController
             );
         }
 
-        $data = compact('event', 'can_moderate', 'bg', 'googleCalendarUrl');
+        $data = compact(
+            'event',
+            'can_moderate',
+            'bg',
+            'googleCalendarUrl',
+            'xenforoBaseUrl',
+            'xenforoThreadPosts'
+        );
 
         return view('pages.events.event-display', $data);
     }
