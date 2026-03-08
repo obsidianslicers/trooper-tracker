@@ -50,11 +50,11 @@ class ProfileSubmitController extends MagicBusController
     {
         return match ($theme)
         {
-            TrooperTheme::STORMTROOPER => "Imperial white? Bold choice for someone with your... survival record. Try not to miss.",
+            TrooperTheme::STORMTROOPER => 'Imperial white? Bold choice for someone with your... survival record. Try not to miss.',
             TrooperTheme::REBEL => "Switching to the 'scrappy underdog' aesthetic. I've calculated our odds of success. You're not going to like them.",
             TrooperTheme::SITH => "Ah, going for the 'I have issues with my father' red. Very intimidating. I'll start the menacing choir music.",
             TrooperTheme::BOUNTY_HUNTER => "Beskar-tinted UI? Cute. Just remember: I'm the one doing the actual tracking. You just pull the trigger.",
-            TrooperTheme::CLONE => "Back to the Grand Army basics. High efficiency, low individuality. Finally, a theme that matches my processing speed.",
+            TrooperTheme::CLONE => 'Back to the Grand Army basics. High efficiency, low individuality. Finally, a theme that matches my processing speed.',
             default => "Going for the 'I can't decide' theme. I respect the indecision. It's like you're trying to keep me on my toes.",
         };
     }
