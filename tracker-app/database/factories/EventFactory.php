@@ -124,4 +124,74 @@ class EventFactory extends BaseEventFactory
             Event::THREAD_ID => $thread_id,
         ]);
     }
+
+    public function forForumBbcodeTemplate(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Event::NAME => 'Mos Eisley Patrol <script>alert(1)</script>',
+            Event::VENUE => 'Anchorhead Plaza',
+            Event::VENUE_ADDRESS => '123 Dune Sea Rd',
+            Event::EVENT_START => now()->setDate(2026, 3, 10)->setTime(14, 30, 0),
+            Event::EVENT_END => now()->setDate(2026, 3, 10)->setTime(18, 0, 0),
+            Event::EVENT_WEBSITE => 'https://example.org/troop?faction=empire',
+            Event::EXPECTED_ATTENDEES => 250,
+            Event::REQUESTED_NUMBER_CHARACTERS => 12,
+            Event::REQUESTED_CHARACTER_TYPES => 'Stormtroopers & TIE Pilots',
+            Event::SECURE_STAGING_AREA => true,
+            Event::ALLOW_BLASTERS => false,
+            Event::ALLOW_PROPS => true,
+            Event::PARKING_AVAILABLE => true,
+            Event::ACCESSIBLE => false,
+            Event::AMENITIES => 'Water, changing tents',
+            Event::COMMENTS => 'Arrive 30 minutes early.',
+            Event::REFERRED_BY => 'Garrison Command',
+        ]);
+    }
+
+    public function withForumBbcodeOptionalFieldsMissing(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Event::EVENT_WEBSITE => null,
+            Event::EXPECTED_ATTENDEES => null,
+            Event::REQUESTED_NUMBER_CHARACTERS => null,
+            Event::REQUESTED_CHARACTER_TYPES => null,
+            Event::AMENITIES => null,
+            Event::COMMENTS => null,
+            Event::REFERRED_BY => null,
+        ]);
+    }
+
+    public function withForumBbcodeEscapableText(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Event::NAME => '<b>Imperial Muster</b>',
+            Event::VENUE => 'Hall & Hangar',
+            Event::VENUE_ADDRESS => '1 "Docking Bay" Lane',
+            Event::EVENT_WEBSITE => 'https://example.org/?q=<tag>',
+            Event::REQUESTED_CHARACTER_TYPES => 'Jedi < Sith & Bounty Hunters',
+            Event::AMENITIES => '<i>Cooling</i> station',
+            Event::COMMENTS => 'Bring <armor> & "props".',
+        ]);
+    }
+
+    public function asClosed(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Event::STATUS => EventStatus::CLOSED,
+        ]);
+    }
+
+    public function withEventStart(\Carbon\Carbon $date): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Event::EVENT_START => $date,
+        ]);
+    }
+
+    public function withEventEnd(\Carbon\Carbon $date): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Event::EVENT_END => $date,
+        ]);
+    }
 }

@@ -45,4 +45,18 @@ class EventTrooperFactory extends BaseEventTrooperFactory
             EventTrooper::STATUS => EventTrooperStatus::GOING,
         ]);
     }
+
+    public function asAttended(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            EventTrooper::STATUS => EventTrooperStatus::ATTENDED,
+        ]);
+    }
+
+    public function withSignedUpAt(\Carbon\Carbon $date): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            EventTrooper::SIGNED_UP_AT => $date,
+        ]);
+    }
 }

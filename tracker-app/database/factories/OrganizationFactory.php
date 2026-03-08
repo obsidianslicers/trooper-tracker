@@ -51,6 +51,37 @@ class OrganizationFactory extends BaseOrganizationFactory
         ]);
     }
 
+    public function withSequence(int $sequence): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Organization::SEQUENCE => $sequence,
+        ]);
+    }
+
+    public function asOrganization(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Organization::TYPE => OrganizationType::ORGANIZATION,
+            Organization::DEPTH => 0,
+        ]);
+    }
+
+    public function asRegion(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Organization::TYPE => OrganizationType::REGION,
+            Organization::DEPTH => 1,
+        ]);
+    }
+
+    public function asUnit(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Organization::TYPE => OrganizationType::UNIT,
+            Organization::DEPTH => 2,
+        ]);
+    }
+
     public function withRelatedForum(string $related_forum): static
     {
         return $this->state(fn(array $attributes): array => [

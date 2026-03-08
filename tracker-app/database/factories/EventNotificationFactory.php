@@ -34,4 +34,18 @@ class EventNotificationFactory extends BaseEventNotificationFactory
             EventNotification::TROOPER_ID => $trooper->{Trooper::ID},
         ]);
     }
+
+    public function asProcessed(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            EventNotification::PROCESSED_AT => now(),
+        ]);
+    }
+
+    public function asUnprocessed(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            EventNotification::PROCESSED_AT => null,
+        ]);
+    }
 }

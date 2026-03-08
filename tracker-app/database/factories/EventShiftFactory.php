@@ -31,4 +31,25 @@ class EventShiftFactory extends BaseEventShiftFactory
             EventShift::EVENT_ID => $event->{Event::ID},
         ]);
     }
+
+    public function withShiftStartsAt(\Carbon\Carbon $date): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            EventShift::SHIFT_STARTS_AT => $date,
+        ]);
+    }
+
+    public function withShiftEndsAt(\Carbon\Carbon $date): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            EventShift::SHIFT_ENDS_AT => $date,
+        ]);
+    }
+
+    public function asClosed(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            EventShift::STATUS => EventStatus::CLOSED,
+        ]);
+    }
 }

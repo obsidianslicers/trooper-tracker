@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
 use App\Models\Organization;
@@ -48,6 +50,13 @@ class TrooperAssignmentFactory extends BaseTrooperAssignmentFactory
     {
         return $this->state(fn(array $attributes): array => [
             TrooperAssignment::IS_MODERATOR => true,
+        ]);
+    }
+
+    public function withShouldNotify(bool $should_notify = true): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            TrooperAssignment::SHOULD_NOTIFY => $should_notify,
         ]);
     }
 }

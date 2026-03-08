@@ -28,4 +28,42 @@ class NoticeFactory extends BaseNoticeFactory
             Notice::ORGANIZATION_ID => $organization->{Organization::ID},
         ]);
     }
+
+    public function asGlobal(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Notice::ORGANIZATION_ID => null,
+        ]);
+    }
+
+    public function asActive(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Notice::STARTS_AT => Carbon::now()->subDay(),
+            Notice::ENDS_AT => Carbon::now()->addWeek(),
+        ]);
+    }
+
+    public function asPast(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Notice::STARTS_AT => Carbon::now()->subWeek(),
+            Notice::ENDS_AT => Carbon::now()->subDay(),
+        ]);
+    }
+
+    public function asFuture(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Notice::STARTS_AT => Carbon::now()->addDay(),
+            Notice::ENDS_AT => Carbon::now()->addWeek(),
+        ]);
+    }
+
+    public function withTitle(string $title): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Notice::TITLE => $title,
+        ]);
+    }
 }

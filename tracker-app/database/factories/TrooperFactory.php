@@ -83,4 +83,47 @@ class TrooperFactory extends BaseTrooperFactory
         ]);
     }
 
+    public function asPending(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Trooper::MEMBERSHIP_STATUS => MembershipStatus::PENDING,
+            Trooper::SETUP_COMPLETED_AT => null,
+        ]);
+    }
+
+    public function withDisplayName(string $display_name): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Trooper::DISPLAY_NAME => $display_name,
+        ]);
+    }
+
+    public function withLegalName(string $legal_name): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Trooper::LEGAL_NAME => $legal_name,
+        ]);
+    }
+
+    public function withNotificationFrequency(NotificationFrequency $frequency): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Trooper::NOTIFICATION_FREQUENCY => $frequency,
+        ]);
+    }
+
+    public function withSetupCompleted(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Trooper::SETUP_COMPLETED_AT => now(),
+        ]);
+    }
+
+    public function withSetupIncomplete(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Trooper::SETUP_COMPLETED_AT => null,
+        ]);
+    }
+
 }
