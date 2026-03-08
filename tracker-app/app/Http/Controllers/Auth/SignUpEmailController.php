@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
+use App\Facades\TroopTracker;
 use App\Http\Controllers\MagicBusController;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,6 +19,13 @@ use Illuminate\Support\Facades\Session;
  */
 class SignUpEmailController extends MagicBusController
 {
+    private TroopTracker $troop_tracker;
+
+    protected function initialized(): void
+    {
+        $this->troop_tracker = app(TroopTracker::class);
+    }
+
     /**
      * Handle the incoming request to initiate email registration.
      *
@@ -30,6 +38,15 @@ class SignUpEmailController extends MagicBusController
      */
     public function __invoke(Request $request): RedirectResponse
     {
+        if ($this->troop_tracker->isXenforoOAuthRequired())
+        {
+            Session::forget('registration_auth');
+
+            $this->flash->warning('Email sign up is disabled. Please sign up with XenForo.');
+
+            return redirect()->route('auth.signup');
+        }
+
         $registration_auth = [
             'method' => 'email',
             'email' => null, // will be filled in on the form

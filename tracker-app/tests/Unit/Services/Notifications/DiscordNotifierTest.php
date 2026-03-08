@@ -186,6 +186,39 @@ class DiscordNotifierTest extends TestCase
         });
     }
 
+    public function test_send_event_notification_accepts_organization_instance_for_mention(): void
+    {
+        // Arrange
+        $webhook_url = 'https://discord.com/api/webhooks/123456789/abcdefgh';
+        config([
+            'discord.webhooks.default' => $webhook_url,
+            'app.name' => 'Troop Tracker',
+        ]);
+
+        $organization = Organization::factory()->create([
+            'name' => '501st',
+            'discord_mention' => '<@&777>',
+        ]);
+
+        // Act
+        $result = $this->subject->sendEventNotification(
+            1,
+            'Event Title',
+            null,
+            $organization
+        );
+
+        // Assert
+        $this->assertTrue($result);
+        Http::assertSent(function ($request) use ($webhook_url)
+        {
+            $body = json_decode($request->body(), true);
+
+            return $request->url() === $webhook_url
+                && $body['content'] === '<@&777> Event Title has been posted.';
+        });
+    }
+
     /**
      * Test that sendEventNotification works without description.
      */

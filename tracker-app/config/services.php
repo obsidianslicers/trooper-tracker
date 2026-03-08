@@ -46,9 +46,7 @@ return [
         'client_id' => env('XENFORO_CLIENT_ID'),
         'client_secret' => env('XENFORO_CLIENT_SECRET'),
         'redirect' => env('XENFORO_REDIRECT_URI'),
-        'base_url' => env('XENFORO_BASE_URL'),
-        'api_key' => env('XENFORO_API_KEY'),
-        'api_user' => env('XENFORO_API_USER'),
+        'base_url' => rtrim(env('XENFORO_BASE_URL', ''), '/'),
         'name' => env('XENFORO_NAME'),
         // Configurable OAuth paths so different XenForo setups can be supported.
         // These default to the standard XenForo 2.3 endpoints.

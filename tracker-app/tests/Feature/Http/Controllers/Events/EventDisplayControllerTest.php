@@ -224,7 +224,7 @@ class EventDisplayControllerTest extends TestCase
             '<strong>Older reply</strong> content',
         ], false);
     }
-
+    
     public function test_invoke_sets_can_moderate_false_for_regular_trooper(): void
     {
         // Arrange

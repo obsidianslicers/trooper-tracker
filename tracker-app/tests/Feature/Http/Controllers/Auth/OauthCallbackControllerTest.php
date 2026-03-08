@@ -165,4 +165,17 @@ class OauthCallbackControllerTest extends TestCase
         $response->assertSessionHasErrors('oauth');
         $this->assertFalse(Auth::check());
     }
+
+    public function test_invoke_blocks_non_xenforo_oauth_callback_when_xenforo_is_required(): void
+    {
+        // Arrange
+        config()->set('tracker.auth.require_xenforo', true);
+
+        // Act
+        $response = $this->get(route('auth.oauth-callback', ['provider' => 'google']));
+
+        // Assert
+        $response->assertRedirect(route('auth.login'));
+        $this->assertFalse(Auth::check());
+    }
 }
