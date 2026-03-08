@@ -3,7 +3,9 @@
          xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
          bootstrap="vendor/autoload.php"
          colors="true"
->
+         convertWarningsToExceptions="true"
+         convertDeprecationsToExceptions="true"
+         printerClass="PHPUnit\TextUI\DefaultResultPrinter">
     <testsuites>
         <testsuite name="Unit">
             <directory>tests/Unit</directory>
