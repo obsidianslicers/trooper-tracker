@@ -1,7 +1,7 @@
 {
     "preset": "laravel",
     "exclude": [
-        "app/Models/Base"
+        "Base"
     ],
     "rules": {
         "braces": {
