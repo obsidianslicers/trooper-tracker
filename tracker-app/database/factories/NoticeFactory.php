@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
 use App\Enums\NoticeType;
@@ -27,6 +29,11 @@ class NoticeFactory extends BaseNoticeFactory
         return $this->state(fn(array $attributes): array => [
             Notice::ORGANIZATION_ID => $organization->{Organization::ID},
         ]);
+    }
+
+    public function forOrganization(Organization $organization): static
+    {
+        return $this->withOrganization($organization);
     }
 
     public function asGlobal(): static

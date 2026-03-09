@@ -35,4 +35,19 @@ class TrooperCostumeFactory extends BaseTrooperCostumeFactory
             TrooperCostume::ORGANIZATION_COSTUME_ID => $organization_costume->{OrganizationCostume::ID},
         ]);
     }
+
+    public function forCostume(\App\Models\Costume $costume): static
+    {
+        $organization_costume = OrganizationCostume::where('costume_id', $costume->id)->first();
+
+        if (!$organization_costume)
+        {
+            $organization_costume = OrganizationCostume::factory()
+                ->forCostume($costume)
+                ->forOrganization(\App\Models\Organization::factory()->create())
+                ->create();
+        }
+
+        return $this->forOrganizationCostume($organization_costume);
+    }
 }

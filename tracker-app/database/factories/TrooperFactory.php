@@ -126,4 +126,25 @@ class TrooperFactory extends BaseTrooperFactory
         ]);
     }
 
+    public function asActive(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
+        ]);
+    }
+
+    public function asRetired(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Trooper::MEMBERSHIP_STATUS => MembershipStatus::RETIRED,
+        ]);
+    }
+
+    public function withPassword(string $password): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Trooper::PASSWORD => Hash::make($password),
+        ]);
+    }
+
 }
