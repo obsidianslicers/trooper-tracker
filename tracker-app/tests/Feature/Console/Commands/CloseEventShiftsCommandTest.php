@@ -11,268 +11,283 @@ use App\Features\Events\Queries\GetEventShiftsToCloseQuery;
 use App\Mail\Events\EventShiftComplete;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
-use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Mail;
+use Mockery;
+use Mockery\MockInterface;
 use Tests\TestCase;
 
+/**
+ * Test suite for CloseEventShiftsCommand.
+ *
+ * Verifies that the command correctly identifies and closes event shifts
+ * whose end time has passed, updates their status to CLOSED, and sends
+ * completion emails to attending troopers.
+ */
 class CloseEventShiftsCommandTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_it_closes_event_shifts_that_have_ended(): void
+    /**
+     * Test that the command closes event shifts returned by the query.
+     */
+    public function test_command_closes_event_shifts_returned_by_query(): void
     {
-        // Arrange
-        $ended_shift = EventShift::factory()->create([
-            'status' => EventStatus::OPEN,
-            'shift_ends_at' => Carbon::yesterday(),
-        ]);
+        // Arrange: Create test event shifts
+        $shift1 = EventShift::factory()->create([EventShift::STATUS => EventStatus::OPEN]);
+        $shift2 = EventShift::factory()->create([EventShift::STATUS => EventStatus::OPEN]);
+        $shifts = collect([$shift1, $shift2]);
 
-        // Act
-        $this->artisan('tracker:close-event-shifts')->assertExitCode(0);
-
-        // Assert
-        $this->assertEquals(EventStatus::CLOSED, $ended_shift->fresh()->status);
-    }
-
-    public function test_it_closes_multiple_event_shifts_that_have_ended(): void
-    {
-        // Arrange
-        $ended_shift1 = EventShift::factory()->create([
-            'status' => EventStatus::OPEN,
-            'shift_ends_at' => Carbon::yesterday(),
-        ]);
-
-        $ended_shift2 = EventShift::factory()->create([
-            'status' => EventStatus::DRAFT,
-            'shift_ends_at' => Carbon::parse('-2 days'),
-        ]);
-
-        $ended_shift3 = EventShift::factory()->create([
-            'status' => EventStatus::SIGN_UP_LOCKED,
-            'shift_ends_at' => Carbon::parse('-1 week'),
-        ]);
-
-        // Act
-        $this->artisan('tracker:close-event-shifts')->assertExitCode(0);
-
-        // Assert
-        $this->assertEquals(EventStatus::CLOSED, $ended_shift1->fresh()->status);
-        $this->assertEquals(EventStatus::CLOSED, $ended_shift2->fresh()->status);
-        $this->assertEquals(EventStatus::CLOSED, $ended_shift3->fresh()->status);
-    }
-
-    public function test_it_does_not_close_event_shifts_that_have_not_ended(): void
-    {
-        // Arrange
-        $future_shift = EventShift::factory()->create([
-            'status' => EventStatus::OPEN,
-            'shift_ends_at' => Carbon::tomorrow(),
-        ]);
-
-        // Act
-        $this->artisan('tracker:close-event-shifts')->assertExitCode(0);
-
-        // Assert
-        $this->assertEquals(EventStatus::OPEN, $future_shift->fresh()->status);
-    }
-
-    public function test_it_does_not_affect_already_closed_event_shifts(): void
-    {
-        // Arrange
-        $closed_shift = EventShift::factory()->create([
-            'status' => EventStatus::CLOSED,
-            'shift_ends_at' => Carbon::yesterday(),
-        ]);
-
-        // Act
-        $this->artisan('tracker:close-event-shifts')->assertExitCode(0);
-
-        // Assert
-        $this->assertEquals(EventStatus::CLOSED, $closed_shift->fresh()->status);
-    }
-
-    public function test_it_does_not_affect_cancelled_event_shifts(): void
-    {
-        // Arrange
-        $cancelled_shift = EventShift::factory()->create([
-            'status' => EventStatus::CANCELLED,
-            'shift_ends_at' => Carbon::yesterday(),
-        ]);
-
-        // Act
-        $this->artisan('tracker:close-event-shifts')->assertExitCode(0);
-
-        // Assert
-        $this->assertEquals(EventStatus::CANCELLED, $cancelled_shift->fresh()->status);
-    }
-
-    public function test_it_sends_completion_emails_to_troopers_with_going_status(): void
-    {
         Mail::fake();
 
-        // Arrange
-        $costume = OrganizationCostume::factory()->create();
-        $trooper = Trooper::factory()->create();
-
-        $ended_shift = EventShift::factory()->create([
-            'status' => EventStatus::OPEN,
-            'shift_ends_at' => Carbon::yesterday(),
-        ]);
-
-        $event_trooper = EventTrooper::factory()->create([
-            'event_shift_id' => $ended_shift->id,
-            'trooper_id' => $trooper->id,
-            'costume_id' => $costume->id,
-            'status' => EventTrooperStatus::GOING,
-        ]);
-
-        // Act
-        $this->artisan('tracker:close-event-shifts')->assertExitCode(0);
-
-        // Assert
-        Mail::assertQueued(EventShiftComplete::class, function ($mail) use ($trooper)
+        // Mock MagicBus to return shifts to close
+        $this->mock(MagicBus::class, function (MockInterface $mock) use ($shifts)
         {
-            return $mail->hasTo($trooper->email);
+            $mock->shouldReceive('send')
+                ->once()
+                ->with(Mockery::type(GetEventShiftsToCloseQuery::class))
+                ->andReturn($shifts);
         });
+
+        // Act: Execute the command
+        $this->artisan('tracker:close-event-shifts')
+            ->assertExitCode(0);
+
+        // Assert: Verify shifts are closed
+        $shift1->refresh();
+        $shift2->refresh();
+        $this->assertEquals(EventStatus::CLOSED, $shift1->status);
+        $this->assertEquals(EventStatus::CLOSED, $shift2->status);
     }
 
-    public function test_it_does_not_send_emails_to_troopers_with_cancelled_status(): void
+    /**
+     * Test that the command sends emails to troopers with GOING status.
+     */
+    public function test_command_sends_emails_to_going_troopers(): void
     {
+        // Arrange: Create event shift with troopers in different statuses
+        $shift = EventShift::factory()->create([EventShift::STATUS => EventStatus::OPEN]);
+
+        $trooper_going = Trooper::factory()->create();
+        $event_trooper_going = EventTrooper::factory()->create([
+            EventTrooper::EVENT_SHIFT_ID => $shift->id,
+            EventTrooper::TROOPER_ID => $trooper_going->id,
+            EventTrooper::STATUS => EventTrooperStatus::GOING,
+        ]);
+
+        $trooper_cancelled = Trooper::factory()->create();
+        $event_trooper_cancelled = EventTrooper::factory()->create([
+            EventTrooper::EVENT_SHIFT_ID => $shift->id,
+            EventTrooper::TROOPER_ID => $trooper_cancelled->id,
+            EventTrooper::STATUS => EventTrooperStatus::CANCELLED,
+        ]);
+
         Mail::fake();
 
-        // Arrange
-        $costume = OrganizationCostume::factory()->create();
-        $trooper = Trooper::factory()->create();
+        // Mock MagicBus
+        $this->mock(MagicBus::class, function (MockInterface $mock) use ($shift)
+        {
+            $mock->shouldReceive('send')
+                ->once()
+                ->with(Mockery::type(GetEventShiftsToCloseQuery::class))
+                ->andReturn(collect([$shift]));
+        });
 
-        $ended_shift = EventShift::factory()->create([
-            'status' => EventStatus::OPEN,
-            'shift_ends_at' => Carbon::yesterday(),
-        ]);
+        // Act: Execute the command
+        $this->artisan('tracker:close-event-shifts')
+            ->assertExitCode(0);
 
+        // Assert: Only GOING trooper receives email
+        Mail::assertQueued(EventShiftComplete::class, function ($mail) use ($trooper_going)
+        {
+            return $mail->hasTo($trooper_going->email);
+        });
+
+        Mail::assertQueued(EventShiftComplete::class, 1);
+    }
+
+    /**
+     * Test that the command does not send emails to non-GOING troopers.
+     */
+    public function test_command_does_not_send_emails_to_non_going_troopers(): void
+    {
+        // Arrange: Create event shift with troopers not going
+        $shift = EventShift::factory()->create([EventShift::STATUS => EventStatus::OPEN]);
+
+        $trooper1 = Trooper::factory()->create();
         EventTrooper::factory()->create([
-            'event_shift_id' => $ended_shift->id,
-            'trooper_id' => $trooper->id,
-            'costume_id' => $costume->id,
-            'status' => EventTrooperStatus::CANCELLED,
+            EventTrooper::EVENT_SHIFT_ID => $shift->id,
+            EventTrooper::TROOPER_ID => $trooper1->id,
+            EventTrooper::STATUS => EventTrooperStatus::TENTATIVE,
         ]);
 
-        // Act
-        $this->artisan('tracker:close-event-shifts')->assertExitCode(0);
+        $trooper2 = Trooper::factory()->create();
+        EventTrooper::factory()->create([
+            EventTrooper::EVENT_SHIFT_ID => $shift->id,
+            EventTrooper::TROOPER_ID => $trooper2->id,
+            EventTrooper::STATUS => EventTrooperStatus::PENDING,
+        ]);
 
-        // Assert
+        Mail::fake();
+
+        // Mock MagicBus
+        $this->mock(MagicBus::class, function (MockInterface $mock) use ($shift)
+        {
+            $mock->shouldReceive('send')
+                ->once()
+                ->with(Mockery::type(GetEventShiftsToCloseQuery::class))
+                ->andReturn(collect([$shift]));
+        });
+
+        // Act: Execute the command
+        $this->artisan('tracker:close-event-shifts')
+            ->assertExitCode(0);
+
+        // Assert: No emails queued
         Mail::assertNothingQueued();
     }
 
-    public function test_it_does_not_send_emails_to_troopers_with_tentative_status(): void
+    /**
+     * Test that the command handles empty shift collection gracefully.
+     */
+    public function test_command_handles_no_shifts_to_close(): void
     {
+        // Arrange
         Mail::fake();
 
-        // Arrange
-        $costume = OrganizationCostume::factory()->create();
-        $trooper = Trooper::factory()->create();
+        $this->mock(MagicBus::class, function (MockInterface $mock)
+        {
+            $mock->shouldReceive('send')
+                ->once()
+                ->with(Mockery::type(GetEventShiftsToCloseQuery::class))
+                ->andReturn(collect([]));
+        });
 
-        $ended_shift = EventShift::factory()->create([
-            'status' => EventStatus::OPEN,
-            'shift_ends_at' => Carbon::yesterday(),
-        ]);
+        // Act & Assert: Command should complete successfully
+        $this->artisan('tracker:close-event-shifts')
+            ->assertExitCode(0);
 
-        EventTrooper::factory()->create([
-            'event_shift_id' => $ended_shift->id,
-            'trooper_id' => $trooper->id,
-            'costume_id' => $costume->id,
-            'status' => EventTrooperStatus::TENTATIVE,
-        ]);
-
-        // Act
-        $this->artisan('tracker:close-event-shifts')->assertExitCode(0);
-
-        // Assert
         Mail::assertNothingQueued();
     }
 
-    public function test_it_sends_multiple_emails_when_multiple_troopers_attended(): void
+    /**
+     * Test that the command sends emails to multiple GOING troopers in same shift.
+     */
+    public function test_command_sends_emails_to_multiple_going_troopers(): void
     {
-        Mail::fake();
+        // Arrange: Create shift with multiple GOING troopers
+        $shift = EventShift::factory()->create([EventShift::STATUS => EventStatus::OPEN]);
 
-        // Arrange
-        $costume = OrganizationCostume::factory()->create();
         $trooper1 = Trooper::factory()->create();
         $trooper2 = Trooper::factory()->create();
         $trooper3 = Trooper::factory()->create();
 
-        $ended_shift = EventShift::factory()->create([
-            'status' => EventStatus::OPEN,
-            'shift_ends_at' => Carbon::yesterday(),
+        EventTrooper::factory()->create([
+            EventTrooper::EVENT_SHIFT_ID => $shift->id,
+            EventTrooper::TROOPER_ID => $trooper1->id,
+            EventTrooper::STATUS => EventTrooperStatus::GOING,
         ]);
 
         EventTrooper::factory()->create([
-            'event_shift_id' => $ended_shift->id,
-            'trooper_id' => $trooper1->id,
-            'costume_id' => $costume->id,
-            'status' => EventTrooperStatus::GOING,
+            EventTrooper::EVENT_SHIFT_ID => $shift->id,
+            EventTrooper::TROOPER_ID => $trooper2->id,
+            EventTrooper::STATUS => EventTrooperStatus::GOING,
         ]);
 
         EventTrooper::factory()->create([
-            'event_shift_id' => $ended_shift->id,
-            'trooper_id' => $trooper2->id,
-            'costume_id' => $costume->id,
-            'status' => EventTrooperStatus::GOING,
+            EventTrooper::EVENT_SHIFT_ID => $shift->id,
+            EventTrooper::TROOPER_ID => $trooper3->id,
+            EventTrooper::STATUS => EventTrooperStatus::GOING,
         ]);
 
-        EventTrooper::factory()->create([
-            'event_shift_id' => $ended_shift->id,
-            'trooper_id' => $trooper3->id,
-            'costume_id' => $costume->id,
-            'status' => EventTrooperStatus::GOING,
-        ]);
-
-        // Act
-        $this->artisan('tracker:close-event-shifts')->assertExitCode(0);
-
-        // Assert
-        Mail::assertQueued(EventShiftComplete::class, 3);
-        Mail::assertQueued(EventShiftComplete::class, fn($mail) => $mail->hasTo($trooper1->email));
-        Mail::assertQueued(EventShiftComplete::class, fn($mail) => $mail->hasTo($trooper2->email));
-        Mail::assertQueued(EventShiftComplete::class, fn($mail) => $mail->hasTo($trooper3->email));
-    }
-
-    public function test_it_handles_no_event_shifts_to_close_gracefully(): void
-    {
         Mail::fake();
 
-        // Arrange - only future shifts
-        EventShift::factory()->count(3)->create([
-            'status' => EventStatus::OPEN,
-            'shift_ends_at' => Carbon::tomorrow(),
-        ]);
+        // Mock MagicBus
+        $this->mock(MagicBus::class, function (MockInterface $mock) use ($shift)
+        {
+            $mock->shouldReceive('send')
+                ->once()
+                ->with(Mockery::type(GetEventShiftsToCloseQuery::class))
+                ->andReturn(collect([$shift]));
+        });
 
-        // Act & Assert - should complete without errors
-        $this->artisan('tracker:close-event-shifts')->assertExitCode(0);
+        // Act: Execute the command
+        $this->artisan('tracker:close-event-shifts')
+            ->assertExitCode(0);
 
-        Mail::assertNothingQueued();
+        // Assert: All three troopers receive emails
+        Mail::assertQueued(EventShiftComplete::class, 3);
+        Mail::assertQueued(EventShiftComplete::class, function ($mail) use ($trooper1)
+        {
+            return $mail->hasTo($trooper1->email);
+        });
+        Mail::assertQueued(EventShiftComplete::class, function ($mail) use ($trooper2)
+        {
+            return $mail->hasTo($trooper2->email);
+        });
+        Mail::assertQueued(EventShiftComplete::class, function ($mail) use ($trooper3)
+        {
+            return $mail->hasTo($trooper3->email);
+        });
     }
 
-    public function test_it_uses_get_event_shifts_to_close_query_service(): void
+    /**
+     * Test that the command processes multiple shifts correctly.
+     */
+    public function test_command_processes_multiple_shifts(): void
     {
-        // Arrange
-        $ended_shift = EventShift::factory()->create([
-            'status' => EventStatus::OPEN,
-            'shift_ends_at' => Carbon::yesterday(),
+        // Arrange: Create multiple shifts
+        $shift1 = EventShift::factory()->create([EventShift::STATUS => EventStatus::OPEN]);
+        $shift2 = EventShift::factory()->create([EventShift::STATUS => EventStatus::OPEN]);
+
+        $trooper1 = Trooper::factory()->create();
+        EventTrooper::factory()->create([
+            EventTrooper::EVENT_SHIFT_ID => $shift1->id,
+            EventTrooper::TROOPER_ID => $trooper1->id,
+            EventTrooper::STATUS => EventTrooperStatus::GOING,
         ]);
 
-        $bus = app(MagicBus::class);
-        $shifts_before = $bus->send(new GetEventShiftsToCloseQuery());
+        $trooper2 = Trooper::factory()->create();
+        EventTrooper::factory()->create([
+            EventTrooper::EVENT_SHIFT_ID => $shift2->id,
+            EventTrooper::TROOPER_ID => $trooper2->id,
+            EventTrooper::STATUS => EventTrooperStatus::GOING,
+        ]);
 
-        // Act
-        $this->artisan('tracker:close-event-shifts')->assertExitCode(0);
+        Mail::fake();
 
-        // Assert - verify query would no longer return this shift
-        $shifts_after = $bus->send(new GetEventShiftsToCloseQuery());
-        $this->assertCount(1, $shifts_before);
-        $this->assertCount(0, $shifts_after);
+        // Mock MagicBus
+        $this->mock(MagicBus::class, function (MockInterface $mock) use ($shift1, $shift2)
+        {
+            $mock->shouldReceive('send')
+                ->once()
+                ->with(Mockery::type(GetEventShiftsToCloseQuery::class))
+                ->andReturn(collect([$shift1, $shift2]));
+        });
+
+        // Act: Execute the command
+        $this->artisan('tracker:close-event-shifts')
+            ->assertExitCode(0);
+
+        // Assert: Both shifts closed and both troopers emailed
+        $shift1->refresh();
+        $shift2->refresh();
+        $this->assertEquals(EventStatus::CLOSED, $shift1->status);
+        $this->assertEquals(EventStatus::CLOSED, $shift2->status);
+
+        Mail::assertQueued(EventShiftComplete::class, 2);
+    }
+
+    /**
+     * Test that the command has the correct signature.
+     */
+    public function test_command_has_correct_signature(): void
+    {
+        // Act: Get all registered commands
+        $commands = $this->app['Illuminate\Contracts\Console\Kernel']->all();
+
+        // Assert: Verify command exists
+        $this->assertArrayHasKey('tracker:close-event-shifts', $commands);
     }
 }

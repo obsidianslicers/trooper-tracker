@@ -5,174 +5,134 @@ declare(strict_types=1);
 namespace Tests\Feature\Jobs;
 
 use App\Bus\MagicBus;
+use App\Features\Events\Commands\SendEventCreatedNotificationCommand;
+use App\Features\Events\Queries\GetTroopersForEventCreatedQuery;
 use App\Jobs\SendEventCreatedNotificationsJob;
 use App\Models\Event;
+use App\Models\Organization;
 use App\Models\Trooper;
+use App\Services\Forums\XenforoService;
+use App\Services\Notifications\DiscordNotifier;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Http;
-use Mockery\MockInterface;
+use Mockery;
 use Tests\TestCase;
 
-/**
- * Tests for the SendEventCreatedNotificationsJob class.
- *
- * Validates that the job correctly creates and sends event notifications
- * to eligible troopers when a new event is created, and notifies Discord.
- */
 class SendEventCreatedNotificationsJobTest extends TestCase
 {
     use RefreshDatabase;
 
-    private Event $event;
-    private MockInterface $bus_mock;
-
-    protected function setUp(): void
+    public function test_handle_sends_created_notifications_and_marks_timestamp(): void
     {
-        parent::setUp();
-        $this->event = Event::factory()->create([
-            'create_notifications_sent_at' => null,
-        ]);
+        $organization = Organization::factory()->create();
+        $event = Event::factory()->withOrganization($organization)->withForumThreadDisabled()->create();
+        $trooper_one = Trooper::factory()->create();
+        $trooper_two = Trooper::factory()->create();
 
-        Http::fake();
-        $this->bus_mock = $this->mock(MagicBus::class);
-    }
-
-    public function test_handle_sends_notifications_when_not_already_sent(): void
-    {
-        // Arrange
-        $trooper1 = Trooper::factory()->create();
-        $trooper2 = Trooper::factory()->create();
-        $troopers = new Collection([$trooper1, $trooper2]);
-
-        $this->bus_mock->shouldReceive('send')
+        $bus = Mockery::mock(MagicBus::class);
+        $bus->shouldReceive('send')
             ->once()
-            ->andReturn($troopers);
+            ->withArgs(fn(object $query): bool => $query instanceof GetTroopersForEventCreatedQuery)
+            ->andReturn(collect([$trooper_one, $trooper_two]));
 
-        $this->bus_mock->shouldReceive('send')
-            ->twice()
-            ->andReturn(null);
-
-        $subject = new SendEventCreatedNotificationsJob($this->event);
-        $notifier = app(\App\Services\Notifications\DiscordNotifier::class);
-
-        // Act
-        $subject->handle($this->bus_mock, $notifier);
-
-        // Assert
-        $this->event->refresh();
-        $this->assertNotNull($this->event->create_notifications_sent_at);
-    }
-
-    public function test_handle_does_not_send_when_already_sent(): void
-    {
-        // Arrange
-        $this->event->create_notifications_sent_at = now();
-        $this->event->save();
-
-        $this->bus_mock->shouldNotReceive('send');
-
-        $subject = new SendEventCreatedNotificationsJob($this->event);
-        $notifier = app(\App\Services\Notifications\DiscordNotifier::class);
-
-        // Act
-        $subject->handle($this->bus_mock, $notifier);
-
-        // Assert - timestamp should remain unchanged
-        $original_timestamp = $this->event->create_notifications_sent_at;
-        $this->event->refresh();
-        $this->assertEquals($original_timestamp, $this->event->create_notifications_sent_at);
-    }
-
-    public function test_handle_updates_timestamp_after_sending(): void
-    {
-        // Arrange
-        $trooper = Trooper::factory()->create();
-        $troopers = new Collection([$trooper]);
-
-        $this->bus_mock->shouldReceive('send')
+        $bus->shouldReceive('send')
             ->once()
-            ->andReturn($troopers);
+            ->withArgs(function (object $command) use ($event, $trooper_one): bool
+            {
+                return $command instanceof SendEventCreatedNotificationCommand
+                    && $command->event->id === $event->id
+                    && $command->trooper->id === $trooper_one->id;
+            });
 
-        $this->bus_mock->shouldReceive('send')
+        $bus->shouldReceive('send')
             ->once()
-            ->andReturn(null);
+            ->withArgs(function (object $command) use ($event, $trooper_two): bool
+            {
+                return $command instanceof SendEventCreatedNotificationCommand
+                    && $command->event->id === $event->id
+                    && $command->trooper->id === $trooper_two->id;
+            });
 
-        $subject = new SendEventCreatedNotificationsJob($this->event);
-        $notifier = app(\App\Services\Notifications\DiscordNotifier::class);
+        config(['discord.webhooks.default' => null, 'discord.webhook_url' => null]);
+        $notifier = new DiscordNotifier;
 
-        // Act
-        $subject->handle($this->bus_mock, $notifier);
+        $xenforo = Mockery::mock(XenforoService::class);
+        $xenforo->shouldNotReceive('resolve_user_id_for_trooper');
+        $xenforo->shouldNotReceive('create_thread');
 
-        // Assert
-        $this->event->refresh();
-        $this->assertNotNull($this->event->create_notifications_sent_at);
-        $this->assertEqualsWithDelta(now()->timestamp, $this->event->create_notifications_sent_at->timestamp, 2);
+        $subject = new SendEventCreatedNotificationsJob($event);
+        $subject->handle($bus, $notifier, $xenforo);
+
+        $this->assertNotNull($event->fresh()->create_notifications_sent_at);
     }
 
-    public function test_handle_sends_notifications_with_empty_trooper_collection(): void
+    public function test_handle_skips_trooper_notifications_when_already_marked_sent(): void
     {
-        // Arrange
-        $troopers = new Collection();
+        $organization = Organization::factory()->create();
+        $event = Event::factory()
+            ->withOrganization($organization)
+            ->withCreateNotificationsSent()
+            ->withForumThreadDisabled()
+            ->create();
 
-        $this->bus_mock->shouldReceive('send')
-            ->once()
-            ->andReturn($troopers);
+        $bus = Mockery::mock(MagicBus::class);
+        $bus->shouldNotReceive('send');
 
-        $subject = new SendEventCreatedNotificationsJob($this->event);
-        $notifier = app(\App\Services\Notifications\DiscordNotifier::class);
+        config(['discord.webhooks.default' => null, 'discord.webhook_url' => null]);
+        $notifier = new DiscordNotifier;
 
-        // Act
-        $subject->handle($this->bus_mock, $notifier);
+        $xenforo = Mockery::mock(XenforoService::class);
+        $xenforo->shouldNotReceive('resolve_user_id_for_trooper');
+        $xenforo->shouldNotReceive('create_thread');
 
-        // Assert
-        $this->event->refresh();
-        $this->assertNotNull($this->event->create_notifications_sent_at);
+        $subject = new SendEventCreatedNotificationsJob($event);
+        $subject->handle($bus, $notifier, $xenforo);
+
+        $this->assertNotNull($event->fresh()->create_notifications_sent_at);
     }
 
-    public function test_handle_passes_correct_event_to_query(): void
+    public function test_handle_creates_xenforo_thread_when_forum_configuration_exists(): void
     {
-        // Arrange
-        $troopers = new Collection();
+        $organization = Organization::factory()->withRelatedForum('42')->create();
+        $creator = Trooper::factory()->create();
 
-        $this->bus_mock->shouldReceive('send')
+        $event = Event::factory()
+            ->withOrganization($organization)
+            ->withCreatedByTrooper($creator)
+            ->withCreateNotificationsSent()
+            ->withForumThreadEnabled()
+            ->create();
+
+        $bus = Mockery::mock(MagicBus::class);
+        $bus->shouldNotReceive('send');
+
+        config(['discord.webhooks.default' => null, 'discord.webhook_url' => null]);
+        $notifier = new DiscordNotifier;
+
+        $xenforo = Mockery::mock(XenforoService::class);
+        $xenforo->shouldReceive('resolve_user_id_for_trooper')
             ->once()
-            ->andReturn($troopers);
+            ->with($creator->id)
+            ->andReturn(9876);
 
-        $subject = new SendEventCreatedNotificationsJob($this->event);
-        $notifier = app(\App\Services\Notifications\DiscordNotifier::class);
-
-        // Act
-        $subject->handle($this->bus_mock, $notifier);
-    }
-
-    public function test_handle_passes_troopers_from_query_to_command(): void
-    {
-        // Arrange
-        $trooper1 = Trooper::factory()->create();
-        $trooper2 = Trooper::factory()->create();
-        $trooper3 = Trooper::factory()->create();
-        $troopers = new Collection([$trooper1, $trooper2, $trooper3]);
-
-        $this->bus_mock->shouldReceive('send')
+        $xenforo->shouldReceive('create_thread')
             ->once()
-            ->andReturn($troopers);
+            ->with(42, $event->name, Mockery::type('string'), 9876)
+            ->andReturn([
+                'status' => 201,
+                'body' => [
+                    'thread' => [
+                        'thread_id' => 321,
+                        'first_post_id' => 654,
+                    ],
+                ],
+            ]);
 
-        $this->bus_mock->shouldReceive('send')
-            ->times(3)
-            ->andReturn(null);
+        $subject = new SendEventCreatedNotificationsJob($event);
+        $subject->handle($bus, $notifier, $xenforo);
 
-        $subject = new SendEventCreatedNotificationsJob($this->event);
-        $notifier = app(\App\Services\Notifications\DiscordNotifier::class);
+        $event = $event->fresh();
 
-        // Act
-        $subject->handle($this->bus_mock, $notifier);
-    }
-
-    public function test_job_implements_should_queue(): void
-    {
-        // Assert
-        $subject = new SendEventCreatedNotificationsJob($this->event);
-        $this->assertInstanceOf(\Illuminate\Contracts\Queue\ShouldQueue::class, $subject);
+        $this->assertSame(321, $event->thread_id);
+        $this->assertSame(654, $event->post_id);
     }
 }

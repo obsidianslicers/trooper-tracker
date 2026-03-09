@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
 use App\Enums\EventStatus;
 use App\Enums\EventType;
 use App\Models\Event;
 use App\Models\Organization;
+use App\Models\Trooper;
 use Database\Factories\Base\EventFactory as BaseEventFactory;
 
 class EventFactory extends BaseEventFactory
@@ -74,42 +77,121 @@ class EventFactory extends BaseEventFactory
 
     public function withOrganization(Organization $organization): static
     {
-        return $this->state(fn(array $attributes) => [
-            Event::ORGANIZATION_ID => $organization,
+        return $this->state(fn(array $attributes): array => [
+            Event::ORGANIZATION_ID => $organization->{Organization::ID},
+            Event::PRIMARY_ORGANIZATION_ID => $organization->{Organization::ID},
         ]);
     }
 
-    /**
-     * Indicate that the event is closed (historical).
-     *
-     * @return \Illuminate\Database\Eloquent\Factories\Factory
-     */
-    public function closed(): static
+    public function withCreatedByTrooper(Trooper $trooper): static
     {
-        return $this->state(function (array $attributes)
-        {
-            return [
-                Event::STATUS => EventStatus::CLOSED,
-                Event::EVENT_START => $attributes[Event::EVENT_START] ?? $this->faker->dateTimeBetween('-2 years', '-1 month'),
-                Event::EVENT_END => $attributes[Event::EVENT_END] ?? $this->faker->dateTimeBetween('-1 month', '-1 day'),
-            ];
-        });
+        return $this->state(fn(array $attributes): array => [
+            Event::CREATED_ID => $trooper->{Trooper::ID},
+        ]);
     }
 
-    /**
-     * Indicate that the event is open (future).
-     *
-     * @return \Illuminate\Database\Eloquent\Factories\Factory
-     */
-    public function open(): static
+    public function withCreateNotificationsSent(): static
     {
-        return $this->state(function (array $attributes)
-        {
-            return [
-                Event::STATUS => EventStatus::OPEN,
-                Event::EVENT_START => $attributes[Event::EVENT_START] ?? $this->faker->dateTimeBetween('now', '+1 month'),
-                Event::EVENT_END => $attributes[Event::EVENT_END] ?? $this->faker->dateTimeBetween('+1 month', '+1 year'),
-            ];
-        });
+        return $this->state(fn(array $attributes): array => [
+            Event::CREATE_NOTIFICATIONS_SENT_AT => now(),
+        ]);
+    }
+
+    public function withCancelNotificationsSent(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Event::CANCEL_NOTIFICATIONS_SENT_AT => now(),
+        ]);
+    }
+
+    public function withForumThreadEnabled(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Event::CREATE_FORUM_THREAD => true,
+        ]);
+    }
+
+    public function withForumThreadDisabled(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Event::CREATE_FORUM_THREAD => false,
+        ]);
+    }
+
+    public function withForumThreadId(int $thread_id): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Event::THREAD_ID => $thread_id,
+        ]);
+    }
+
+    public function forForumBbcodeTemplate(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Event::NAME => 'Mos Eisley Patrol <script>alert(1)</script>',
+            Event::VENUE => 'Anchorhead Plaza',
+            Event::VENUE_ADDRESS => '123 Dune Sea Rd',
+            Event::EVENT_START => now()->setDate(2026, 3, 10)->setTime(14, 30, 0),
+            Event::EVENT_END => now()->setDate(2026, 3, 10)->setTime(18, 0, 0),
+            Event::EVENT_WEBSITE => 'https://example.org/troop?faction=empire',
+            Event::EXPECTED_ATTENDEES => 250,
+            Event::REQUESTED_NUMBER_CHARACTERS => 12,
+            Event::REQUESTED_CHARACTER_TYPES => 'Stormtroopers & TIE Pilots',
+            Event::SECURE_STAGING_AREA => true,
+            Event::ALLOW_BLASTERS => false,
+            Event::ALLOW_PROPS => true,
+            Event::PARKING_AVAILABLE => true,
+            Event::ACCESSIBLE => false,
+            Event::AMENITIES => 'Water, changing tents',
+            Event::COMMENTS => 'Arrive 30 minutes early.',
+            Event::REFERRED_BY => 'Garrison Command',
+        ]);
+    }
+
+    public function withForumBbcodeOptionalFieldsMissing(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Event::EVENT_WEBSITE => null,
+            Event::EXPECTED_ATTENDEES => null,
+            Event::REQUESTED_NUMBER_CHARACTERS => null,
+            Event::REQUESTED_CHARACTER_TYPES => null,
+            Event::AMENITIES => null,
+            Event::COMMENTS => null,
+            Event::REFERRED_BY => null,
+        ]);
+    }
+
+    public function withForumBbcodeEscapableText(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Event::NAME => '<b>Imperial Muster</b>',
+            Event::VENUE => 'Hall & Hangar',
+            Event::VENUE_ADDRESS => '1 "Docking Bay" Lane',
+            Event::EVENT_WEBSITE => 'https://example.org/?q=<tag>',
+            Event::REQUESTED_CHARACTER_TYPES => 'Jedi < Sith & Bounty Hunters',
+            Event::AMENITIES => '<i>Cooling</i> station',
+            Event::COMMENTS => 'Bring <armor> & "props".',
+        ]);
+    }
+
+    public function asClosed(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Event::STATUS => EventStatus::CLOSED,
+        ]);
+    }
+
+    public function withEventStart(\Carbon\Carbon $date): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Event::EVENT_START => $date,
+        ]);
+    }
+
+    public function withEventEnd(\Carbon\Carbon $date): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Event::EVENT_END => $date,
+        ]);
     }
 }

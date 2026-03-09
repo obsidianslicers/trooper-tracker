@@ -1,11 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
 use App\Enums\OrganizationType;
 use App\Models\Organization;
 use Database\Factories\Base\OrganizationFactory as BaseOrganizationFactory;
-use Exception;
 
 class OrganizationFactory extends BaseOrganizationFactory
 {
@@ -21,57 +22,70 @@ class OrganizationFactory extends BaseOrganizationFactory
         ]);
     }
 
-    public function region(): static
+    public function withName(string $name): static
     {
-        return $this->state(fn(array $attributes) => [
-            Organization::PARENT_ID => Organization::factory(),
-            Organization::TYPE => OrganizationType::REGION,
+        return $this->state(fn(array $attributes): array => [
+            Organization::NAME => $name,
         ]);
     }
 
-    public function unit(): static
+    public function withNodePath(string $node_path): static
     {
-        return $this->state(fn(array $attributes) => [
-            Organization::PARENT_ID => Organization::factory()->region(),
-            Organization::TYPE => OrganizationType::UNIT,
+        return $this->state(fn(array $attributes): array => [
+            Organization::NODE_PATH => $node_path,
         ]);
     }
 
-    public function withCostume(string $name): static
+    public function withParent(Organization $parent): static
     {
-        return $this->afterCreating(function (Organization $organization) use ($name)
-        {
-            if ($organization->type != OrganizationType::ORGANIZATION)
-            {
-                throw new Exception('Invalid Organization Type for a costume: ' . $organization->type);
-            }
-
-            $organization->organization_costumes()->create([
-                'name' => $name
-            ]);
-        });
-    }
-
-    /**
-     * Set the organization to have identifier validation rules.
-     *
-     * @param string $validation_rules Validation rules for the identifier (default: 'integer|between:10000,99999')
-     * @return static
-     */
-    public function withIdentifierValidation(string $validation_rules = 'integer|between:10000,99999'): static
-    {
-        return $this->state(fn(array $attributes) => [
-            Organization::IDENTIFIER_VALIDATION => $validation_rules,
+        return $this->state(fn(array $attributes): array => [
+            Organization::PARENT_ID => $parent->{Organization::ID},
+            Organization::DEPTH => $parent->{Organization::DEPTH} + 1,
         ]);
     }
 
-    /**
-     * Alias for region() for better readability in tests.
-     *
-     * @return static
-     */
+    public function withIdentifierDisplay(string $identifier_display): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Organization::IDENTIFIER_DISPLAY => $identifier_display,
+        ]);
+    }
+
+    public function withSequence(int $sequence): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Organization::SEQUENCE => $sequence,
+        ]);
+    }
+
+    public function asOrganization(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Organization::TYPE => OrganizationType::ORGANIZATION,
+            Organization::DEPTH => 0,
+        ]);
+    }
+
     public function asRegion(): static
     {
-        return $this->region();
+        return $this->state(fn(array $attributes): array => [
+            Organization::TYPE => OrganizationType::REGION,
+            Organization::DEPTH => 1,
+        ]);
+    }
+
+    public function asUnit(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Organization::TYPE => OrganizationType::UNIT,
+            Organization::DEPTH => 2,
+        ]);
+    }
+
+    public function withRelatedForum(string $related_forum): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Organization::RELATED_FORUM => $related_forum,
+        ]);
     }
 }

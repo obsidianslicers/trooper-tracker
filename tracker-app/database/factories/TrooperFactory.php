@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
 use App\Enums\MembershipRole;
@@ -43,132 +45,106 @@ class TrooperFactory extends BaseTrooperFactory
         ]);
     }
 
-    public function asActive(): static
-    {
-        return $this->withMembershipStatus(MembershipStatus::ACTIVE);
-    }
-
-    public function asRetired(): static
-    {
-        return $this->withMembershipStatus(MembershipStatus::RETIRED);
-    }
-
-    public function asPending(): static
-    {
-        return $this->withMembershipStatus(MembershipStatus::PENDING);
-    }
-
-    public function withPassword(string $password): static
-    {
-        return $this->state(fn(array $attributes) => [
-            Trooper::PASSWORD => Hash::make($password),
-        ]);
-    }
-
-    private function withMemberShipStatus(MembershipStatus $status = MembershipStatus::ACTIVE): static
-    {
-        return $this->state(fn(array $attributes) => [
-            Trooper::MEMBERSHIP_STATUS => $status,
-        ]);
-    }
-
     public function asAdministrator(): static
     {
-        return $this->withMemberShipRole(MembershipRole::ADMINISTRATOR);
+        return $this->state(fn(array $attributes): array => [
+            Trooper::MEMBERSHIP_ROLE => MembershipRole::ADMINISTRATOR,
+            Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
+        ]);
     }
 
     public function asModerator(): static
     {
-        return $this->withMemberShipRole(MembershipRole::MODERATOR);
+        return $this->state(fn(array $attributes): array => [
+            Trooper::MEMBERSHIP_ROLE => MembershipRole::MODERATOR,
+            Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
+        ]);
     }
 
     public function asMember(): static
     {
-        return $this->withMemberShipRole(MembershipRole::MEMBER);
-    }
-
-    public function asHandler(): static
-    {
-        return $this->withMemberShipRole(MembershipRole::HANDLER);
-    }
-
-    private function withMemberShipRole(MembershipRole $role = MembershipRole::MEMBER): static
-    {
-        return $this->state(fn(array $attributes) => [
-            Trooper::MEMBERSHIP_ROLE => $role,
+        return $this->state(fn(array $attributes): array => [
+            Trooper::MEMBERSHIP_ROLE => MembershipRole::MEMBER,
+            Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
         ]);
     }
 
-    public function withOrganization(Organization $organization, string $identifier = 'TK9999'): static
+    public function withEmail(string $email): static
     {
-        return $this->afterCreating(function (Trooper $trooper) use ($organization, $identifier)
-        {
-            $trooper->organizations()->attach($organization->id, [
-                TrooperOrganization::IDENTIFIER => $identifier,
-            ]);
-        });
+        return $this->state(fn(array $attributes): array => [
+            Trooper::EMAIL => $email,
+        ]);
     }
 
-    public function withAssignment(Organization $organization, bool $moderator = false, bool $member = false, bool $notify = false): static
+    public function withInvalidEmail(): static
     {
-        return $this->afterCreating(function (Trooper $trooper) use ($organization, $moderator, $member, $notify)
-        {
-            $trooper->trooper_assignments()->create([
-                TrooperAssignment::ORGANIZATION_ID => $organization->id,
-                TrooperAssignment::IS_MEMBER => $member,
-                TrooperAssignment::SHOULD_NOTIFY => $notify,
-                TrooperAssignment::IS_MODERATOR => $moderator,
-            ]);
-        });
+        return $this->state(fn(array $attributes): array => [
+            Trooper::EMAIL => fake()->uuid() . 'invalid-email',
+        ]);
     }
 
-    public function withCostume(OrganizationCostume $costume): static
+    public function asPending(): static
     {
-        return $this->afterCreating(function (Trooper $trooper) use ($costume)
-        {
-            $trooper->trooper_costumes()->create([
-                TrooperCostume::COSTUME_ID => $costume->id,
-            ]);
-        });
+        return $this->state(fn(array $attributes): array => [
+            Trooper::MEMBERSHIP_STATUS => MembershipStatus::PENDING,
+            Trooper::SETUP_COMPLETED_AT => null,
+        ]);
     }
 
-    public function markAsRead(Notice $notice): static
+    public function withDisplayName(string $display_name): static
     {
-        return $this->afterCreating(function (Trooper $trooper) use ($notice)
-        {
-            NoticeTrooper::firstOrCreate(
-                [
-                    NoticeTrooper::TROOPER_ID => $trooper->id,
-                    NoticeTrooper::NOTICE_ID => $notice->id,
-                ],
-                [
-                    NoticeTrooper::IS_READ => true
-                ]
-            );
-        });
+        return $this->state(fn(array $attributes): array => [
+            Trooper::DISPLAY_NAME => $display_name,
+        ]);
     }
 
-    public function withAwards(int $count = 3): static
+    public function withLegalName(string $legal_name): static
     {
-        return $this->hasAttached(
-            Award::factory()->count($count),
-            [
-                AwardTrooper::AWARD_DATE => $this->faker->dateTimeBetween('-2 years', 'now'),
-            ],
-            'awards' // relationship name on Trooper
-        );
+        return $this->state(fn(array $attributes): array => [
+            Trooper::LEGAL_NAME => $legal_name,
+        ]);
     }
 
-    public function withXenforoOauth(string $providerId = 'test-xenforo-id'): static
+    public function withNotificationFrequency(NotificationFrequency $frequency): static
     {
-        return $this->afterCreating(function (Trooper $trooper) use ($providerId)
-        {
-            OauthLogin::factory()->create([
-                OauthLogin::TROOPER_ID => $trooper->id,
-                OauthLogin::PROVIDER => 'xenforo',
-                OauthLogin::PROVIDER_ID => $providerId,
-            ]);
-        });
+        return $this->state(fn(array $attributes): array => [
+            Trooper::NOTIFICATION_FREQUENCY => $frequency,
+        ]);
+    }
+
+    public function withSetupCompleted(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Trooper::SETUP_COMPLETED_AT => now(),
+        ]);
+    }
+
+    public function withSetupIncomplete(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Trooper::SETUP_COMPLETED_AT => null,
+        ]);
+    }
+
+    public function asActive(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
+        ]);
+    }
+
+    public function asRetired(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Trooper::MEMBERSHIP_STATUS => MembershipStatus::RETIRED,
+        ]);
+    }
+
+    public function withPassword(string $password): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Trooper::PASSWORD => Hash::make($password),
+        ]);
     }
 
 }

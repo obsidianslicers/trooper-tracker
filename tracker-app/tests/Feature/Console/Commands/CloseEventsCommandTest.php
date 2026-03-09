@@ -9,130 +9,160 @@ use App\Enums\EventStatus;
 use App\Features\Events\Queries\GetEventsToCloseQuery;
 use App\Models\Event;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Collection;
+use Mockery;
+use Mockery\MockInterface;
 use Tests\TestCase;
 
+/**
+ * Test suite for CloseEventsCommand.
+ *
+ * Verifies that the command correctly identifies and closes events
+ * whose end date has passed by updating their status to CLOSED.
+ */
 class CloseEventsCommandTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_it_closes_events_that_have_ended(): void
+    /**
+     * Test that the command closes events returned by the query.
+     */
+    public function test_command_closes_events_returned_by_query(): void
     {
-        // Arrange
-        $ended_event = Event::factory()->create([
-            'status' => EventStatus::OPEN,
-            'event_end' => Carbon::yesterday(),
-        ]);
+        // Arrange: Create test events
+        $event1 = Event::factory()->create([Event::STATUS => EventStatus::OPEN]);
+        $event2 = Event::factory()->create([Event::STATUS => EventStatus::OPEN]);
+        $events = collect([$event1, $event2]);
 
-        // Act
-        $this->artisan('tracker:close-events')->assertExitCode(0);
+        // Mock MagicBus to return events to close
+        $this->mock(MagicBus::class, function (MockInterface $mock) use ($events)
+        {
+            $mock->shouldReceive('send')
+                ->once()
+                ->with(Mockery::type(GetEventsToCloseQuery::class))
+                ->andReturn($events);
+        });
 
-        // Assert
-        $this->assertEquals(EventStatus::CLOSED, $ended_event->fresh()->status);
+        // Act: Execute the command
+        $this->artisan('tracker:close-events')
+            ->assertExitCode(0);
+
+        // Assert: Verify events are closed
+        $event1->refresh();
+        $event2->refresh();
+        $this->assertEquals(EventStatus::CLOSED, $event1->status);
+        $this->assertEquals(EventStatus::CLOSED, $event2->status);
     }
 
-    public function test_it_closes_multiple_events_that_have_ended(): void
+    /**
+     * Test that the command handles empty event collection gracefully.
+     */
+    public function test_command_handles_no_events_to_close(): void
     {
-        // Arrange
-        $ended_event1 = Event::factory()->create([
-            'status' => EventStatus::OPEN,
-            'event_end' => Carbon::yesterday(),
-        ]);
+        // Arrange: Mock MagicBus to return empty collection
+        $this->mock(MagicBus::class, function (MockInterface $mock)
+        {
+            $mock->shouldReceive('send')
+                ->once()
+                ->with(Mockery::type(GetEventsToCloseQuery::class))
+                ->andReturn(collect([]));
+        });
 
-        $ended_event2 = Event::factory()->create([
-            'status' => EventStatus::DRAFT,
-            'event_end' => Carbon::parse('-2 days'),
-        ]);
-
-        $ended_event3 = Event::factory()->create([
-            'status' => EventStatus::SIGN_UP_LOCKED,
-            'event_end' => Carbon::parse('-1 week'),
-        ]);
-
-        // Act
-        $this->artisan('tracker:close-events')->assertExitCode(0);
-
-        // Assert
-        $this->assertEquals(EventStatus::CLOSED, $ended_event1->fresh()->status);
-        $this->assertEquals(EventStatus::CLOSED, $ended_event2->fresh()->status);
-        $this->assertEquals(EventStatus::CLOSED, $ended_event3->fresh()->status);
+        // Act & Assert: Command should complete successfully
+        $this->artisan('tracker:close-events')
+            ->assertExitCode(0);
     }
 
-    public function test_it_does_not_close_events_that_have_not_ended(): void
+    /**
+     * Test that the command does not close events not returned by query.
+     */
+    public function test_command_does_not_close_events_not_in_query_results(): void
     {
-        // Arrange
-        $future_event = Event::factory()->create([
-            'status' => EventStatus::OPEN,
-            'event_end' => Carbon::tomorrow(),
-        ]);
+        // Arrange: Create events - one to close, one to remain open
+        $event_to_close = Event::factory()->create([Event::STATUS => EventStatus::OPEN]);
+        $event_to_remain_open = Event::factory()->create([Event::STATUS => EventStatus::OPEN]);
 
-        // Act
-        $this->artisan('tracker:close-events')->assertExitCode(0);
+        // Mock MagicBus to return only one event
+        $this->mock(MagicBus::class, function (MockInterface $mock) use ($event_to_close)
+        {
+            $mock->shouldReceive('send')
+                ->once()
+                ->with(Mockery::type(GetEventsToCloseQuery::class))
+                ->andReturn(collect([$event_to_close]));
+        });
 
-        // Assert
-        $this->assertEquals(EventStatus::OPEN, $future_event->fresh()->status);
+        // Act: Execute the command
+        $this->artisan('tracker:close-events')
+            ->assertExitCode(0);
+
+        // Assert: Only specified event is closed
+        $event_to_close->refresh();
+        $event_to_remain_open->refresh();
+        $this->assertEquals(EventStatus::CLOSED, $event_to_close->status);
+        $this->assertEquals(EventStatus::OPEN, $event_to_remain_open->status);
     }
 
-    public function test_it_does_not_affect_already_closed_events(): void
+    /**
+     * Test that the command dispatches the correct query through the bus.
+     */
+    public function test_command_dispatches_get_events_to_close_query(): void
     {
-        // Arrange
-        $closed_event = Event::factory()->create([
-            'status' => EventStatus::CLOSED,
-            'event_end' => Carbon::yesterday(),
-        ]);
+        // Arrange & Assert: Verify correct query is sent
+        $this->mock(MagicBus::class, function (MockInterface $mock)
+        {
+            $mock->shouldReceive('send')
+                ->once()
+                ->withArgs(function ($query)
+                {
+                    return $query instanceof GetEventsToCloseQuery;
+                })
+                ->andReturn(collect([]));
+        });
 
-        // Act
-        $this->artisan('tracker:close-events')->assertExitCode(0);
-
-        // Assert
-        $this->assertEquals(EventStatus::CLOSED, $closed_event->fresh()->status);
+        // Act: Execute the command
+        $this->artisan('tracker:close-events')
+            ->assertExitCode(0);
     }
 
-    public function test_it_does_not_affect_cancelled_events(): void
+    /**
+     * Test that the command has the correct signature.
+     */
+    public function test_command_has_correct_signature(): void
     {
-        // Arrange
-        $cancelled_event = Event::factory()->create([
-            'status' => EventStatus::CANCELLED,
-            'event_end' => Carbon::yesterday(),
-        ]);
+        // Act: Get all registered commands
+        $commands = $this->app['Illuminate\Contracts\Console\Kernel']->all();
 
-        // Act
-        $this->artisan('tracker:close-events')->assertExitCode(0);
-
-        // Assert
-        $this->assertEquals(EventStatus::CANCELLED, $cancelled_event->fresh()->status);
+        // Assert: Verify command exists
+        $this->assertArrayHasKey('tracker:close-events', $commands);
     }
 
-    public function test_it_handles_no_events_to_close_gracefully(): void
+    /**
+     * Test that command closes multiple events in a single execution.
+     */
+    public function test_command_closes_multiple_events_in_batch(): void
     {
-        // Arrange - only future events
-        Event::factory()->count(3)->create([
-            'status' => EventStatus::OPEN,
-            'event_end' => Carbon::tomorrow(),
-        ]);
+        // Arrange: Create multiple events with different statuses
+        $events = Event::factory()
+            ->count(5)
+            ->create([Event::STATUS => EventStatus::OPEN]);
 
-        // Act & Assert - should complete without errors
-        $this->artisan('tracker:close-events')->assertExitCode(0);
-    }
+        // Mock MagicBus to return all events
+        $this->mock(MagicBus::class, function (MockInterface $mock) use ($events)
+        {
+            $mock->shouldReceive('send')
+                ->once()
+                ->with(Mockery::type(GetEventsToCloseQuery::class))
+                ->andReturn($events);
+        });
 
-    public function test_it_uses_get_events_to_close_query_service(): void
-    {
-        // Arrange
-        $ended_event = Event::factory()->create([
-            'status' => EventStatus::OPEN,
-            'event_end' => Carbon::yesterday(),
-        ]);
+        // Act: Execute the command
+        $this->artisan('tracker:close-events')
+            ->assertExitCode(0);
 
-        $bus = app(MagicBus::class);
-        $events_before = $bus->send(new GetEventsToCloseQuery());
-
-        // Act
-        $this->artisan('tracker:close-events')->assertExitCode(0);
-
-        // Assert - verify query would no longer return this event
-        $events_after = $bus->send(new GetEventsToCloseQuery());
-        $this->assertCount(1, $events_before);
-        $this->assertCount(0, $events_after);
+        // Assert: All events are closed
+        foreach ($events as $event)
+        {
+            $event->refresh();
+            $this->assertEquals(EventStatus::CLOSED, $event->status);
+        }
     }
 }

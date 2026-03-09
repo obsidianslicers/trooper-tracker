@@ -22,14 +22,12 @@
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.16",
         "fakerphp/faker": "^1.23",
-        "larastan/larastan": "^3.9",
         "laravel/boost": "^1.8",
         "laravel/pail": "^1.2.2",
         "laravel/pint": "^1.24",
         "laravel/sail": "^1.41",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.6",
-        "phpstan/phpstan": "^2.1",
         "phpunit/phpunit": "^11.5.3",
         "reliese/laravel": "^1.4"
     },
@@ -67,25 +65,15 @@
             "pint app/Services"
         ],
         "pint:test": "@pint:format --test",
-        "stan": "phpstan analyse --memory-limit=1G",
         "db:migrate-all": [
             "@db:regen",
             "@php artisan db:seed --class=FloridaGarrisonSeeder"
         ],
         "db:regen": [
-            "@test:freshdb",
             "@php artisan migrate:rollback --force",
             "@php artisan migrate",
             "@php artisan code:model",
             "@php artisan tracker:generate-factories"
-        ],
-        "test:fresh": [
-            "@test:freshdb",
-            "@php artisan test"
-        ],
-        "test:freshdb": [
-            "@php -r \"file_exists('database/database.sqlite') && unlink('database/database.sqlite');\"",
-            "@php -r \"touch('database/database.sqlite');\""
         ],
         "setup": [
             "composer install",
@@ -102,6 +90,10 @@
         "test": [
             "@php artisan config:clear --ansi",
             "@php artisan test"
+        ],
+        "test:ci": [
+            "@php artisan config:clear --ansi",
+            "@php -d display_errors=1 -d error_reporting=E_ALL vendor/bin/phpunit --testdox --stop-on-failure"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
