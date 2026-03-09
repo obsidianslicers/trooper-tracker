@@ -11,7 +11,7 @@ This document provides instructions and context for AI coding agents to enhance 
 * Business logic belongs in Services, not Controllers, Jobs, or Commands.
 * Base models in Models/Base must never be edited.
 * Use model constants for column names.
-* Use domain vocabulary: Trooper, Troop, Costume, Organization, Notice.
+* Use domain vocabulary: Trooper, Event/Troop, Costume, Organization, Notice.
 * Tests must be behavior‑driven, not implementation‑driven.
 
 ## Code Generation Rules
@@ -65,9 +65,9 @@ All domain language, models, factories, and tests must reflect this Star Wars co
 ## Tech Stack
 
 - **Laravel:** 12.x (latest features enabled)
-- **PHP:** 8.2+ (strict types, scalar type hints required)
+- **PHP:** 8+ (strict types, scalar type hints required)
 - **Database:** MySQL with auto-generated base models
-- **Frontend:** Blade templates, Bootstrap 5.2x, HTMX 2.x, Alpine.js
+- **Frontend:** Blade templates, Bootstrap 5.2x, HTMX 2.x, Alpine.js 3.x
 - **Testing:** PHPUnit (SQLite in-memory for tests)
 
 ## Architecture Patterns
@@ -98,9 +98,11 @@ Jobs and Commands follow the **Orchestration Pattern** - they coordinate Service
 // ✅ GOOD: Job orchestrates service
 class SendEventCreatedNotificationsJob implements ShouldQueue
 {
-    public function handle(SendEventNotificationsCommand $send_event_notifications): void
+    public function handle(MagicBus $magic_bus): void
     {
-        $send_event_notifications($this->event);
+      $cmd = new SendEventNotificationsCommand($this->event);
+      
+      $magic_bus->send($cmd);
     }
 }
 
@@ -135,7 +137,7 @@ Strict conventions enable Eloquent auto-inference:
 
 | Element | Convention | Example |
 |---------|-----------|---------|
-| Tables | Plural `snake_case` | `troopers`, `event_troopers` |
+| Tables | Plural `snake_case` | `tt_troopers`, `tt_event_troopers` |
 | Columns | `snake_case` | `first_name`, `event_date` |
 | Booleans | `is_`, `can_`, `has_` prefix | `is_verified`, `has_limits` |
 | Primary Key | `id` | Auto-incrementing integer |
@@ -203,7 +205,7 @@ public function findUserById($user_id)
 Use correct domain language throughout the codebase:
 
 - **Trooper** (not User) - authenticated member of the organization
-- **Troop** (not Event) - a costuming event/appearance
+- **Event/Troop** - a costuming event/appearance
 - **Costume** - approved Star Wars costume owned by a trooper
 - **Organization** - costuming club/garrison/squad
 - **Notice** - internal messaging/notification system
@@ -324,51 +326,6 @@ php artisan test
 
 # Specific test file
 php artisan test tests/Feature/Auth/LoginTest.php
-
-# With coverage (configured for SQLite in-memory)
-php artisan test --coverage
-```
-
-### Database & Migrations
-
-```bash
-# Run migrations
-php artisan migrate
-
-# Rollback
-php artisan migrate:rollback
-
-# Fresh + seed
-php artisan migrate:fresh --seed
-
-# Generate base models after schema changes
-php artisan code:models
-```
-
-### Frontend Development
-
-```bash
-# Development (watch mode)
-npm run dev
-
-# Production build
-npm run build
-```
-
-### Key Artisan Commands
-
-```bash
-# Generate factory for a model
-php artisan make:factory TrooperFactory
-
-# Generate invokable controller
-php artisan make:controller LoginSubmitController --invokable
-
-# Run specific job
-php artisan queue:work
-
-# Code quality
-./vendor/bin/pint  # Laravel Pint formatter
 ```
 
 ## Key Files & Directories
@@ -377,7 +334,6 @@ php artisan queue:work
 
 - **[CODING_CONVENTIONS.md](../docs/CODING_CONVENTIONS.md)** - Detailed conventions and architectural patterns
 - **[AUTHENTICATION.md](../docs/AUTHENTICATION.md)** - Multi-provider auth flow (Email, Google, XenForo OAuth)
-- **[NOTIFICATIONS.md](../docs/NOTIFICATIONS.md)** - Event notification system architecture
 
 ### Directory Structure
 
