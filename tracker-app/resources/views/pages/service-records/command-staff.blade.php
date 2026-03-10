@@ -1,0 +1,39 @@
+@extends('layouts.base')
+
+@section('page-title', 'Command Staff')
+
+@section('content')
+    <div class="container-fluid py-4">
+        <div class="row g-4">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h4 mb-0 text-uppercase fw-bold">
+                    <i class="fa-brands fa-empire me-2"></i>
+                </h2>
+            </div>
+
+        </div>
+    </div>
+
+    <x-table>
+        <thead>
+            <tr>
+                <th>Trooper</th>
+                <th>Role</th>
+            </tr>
+        </thead>
+        @forelse($troopers as $trooper)
+            <tr>
+                <td>{{ $trooper->display_name }}</td>
+                <td>{{ to_title($trooper->membership_role->name) }}</td>
+            </tr>
+        @empty
+            <tr>
+                <td colspan="2"
+                    class="text-center">
+                    No command staff found.
+                </td>
+            </tr>
+        @endforelse
+    </x-table>
+@endsection

@@ -54,10 +54,13 @@ class TrooperAchievement extends BaseTrooperAchievement
      *
      * @var array<string, string>
      */
-    protected $casts = [
-        self::TYPE => AchievementType::class,
-        self::VALUE => AchievementValueCast::class,
-    ];
+    protected function casts()
+    {
+        return array_merge($this->casts, [
+            self::TYPE => AchievementType::class,
+            self::VALUE => AchievementValueCast::class,
+        ]);
+    }
 
     /**
      * Get the display order for this achievement.

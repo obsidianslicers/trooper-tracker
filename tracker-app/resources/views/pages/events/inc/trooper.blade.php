@@ -1,7 +1,7 @@
 <div class="row mb-3 trooper-status-{{ $event_trooper->status->value }}">
     <div class="col-7 col-md-4 order-1 order-md-1">
         <i class="d-none fa fa-fw fa-times pe-2 text-danger cancelled-icon"></i>
-        <a href="{{ route('service-record.display', ['trooper_id' => $event_trooper->trooper->id]) }}">
+        <a href="{{ route('service-records.trooper', ['trooper' => $event_trooper->trooper->id]) }}">
             {{ $event_trooper->trooper->display_name }}
         </a>
         @if($event_trooper->added_by_trooper_id > 0)

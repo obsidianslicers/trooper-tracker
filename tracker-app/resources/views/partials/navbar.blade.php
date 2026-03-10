@@ -11,12 +11,7 @@
              id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 @include('partials.inc.navbar-events')
-                @auth
-                    <x-nav-link :url="route('events.leaderboard')"
-                                :active="request()->routeIs('events.leaderboard')">
-                        Leaderboard
-                    </x-nav-link>
-                @endauth
+                @include('partials.inc.navbar-service-records')
                 @if(TroopTracker::isXenforoIntegrationConfigured())
                     <x-nav-link :url="config('services.xenforo.base_url')">
                         Forum

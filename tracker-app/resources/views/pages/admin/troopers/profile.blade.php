@@ -67,7 +67,7 @@
 
                 <x-submit-container>
                     <span class="float-start">
-                        <a href="{{ route('service-record.display') }}"
+                        <a href="{{ route('service-records.trooper', compact('trooper')) }}"
                            class="btn btn-outline-info mb-2">
                             View Dashboard
                         </a>

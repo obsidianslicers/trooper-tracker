@@ -17,7 +17,7 @@
 
     <div class="row g-4">
         <div class="col-lg-4">
-            @include('pages.service-record.inc.service-summary')
+            @include('pages.service-records.inc.service-summary')
         </div>
 
         <div class="col-lg-8">
@@ -87,17 +87,17 @@
                     <div class="tab-pane fade show active"
                          id="upcoming-shifts"
                          role="tabpanel">
-                        @include('pages.service-record.inc.upcoming-shifts')
+                        @include('pages.service-records.inc.upcoming-shifts')
                     </div>
                     <div class="tab-pane fade"
                          id="recent-shifts"
                          role="tabpanel">
-                        @include('pages.service-record.inc.recent-shifts')
+                        @include('pages.service-records.inc.recent-shifts')
                     </div>
                     <div class="tab-pane fade"
                          id="awards"
                          role="tabpanel">
-                        @include('pages.service-record.inc.awards')
+                        @include('pages.service-records.inc.awards')
                     </div>
                     <div class="tab-pane fade"
                          id="costumes"
@@ -105,21 +105,21 @@
                         @if($trooper->is_handler)
                             Handlers don't typically have costumes, but they can still earn awards and serve in missions!
                         @else
-                            @include('pages.service-record.inc.organizations')
+                            @include('pages.service-records.inc.organizations')
                             <br />
-                            @include('pages.service-record.inc.costumes')
+                            @include('pages.service-records.inc.costumes')
                         @endif
                     </div>
                     <div class="tab-pane fade"
                          id="photos"
                          role="tabpanel">
-                        @include('pages.service-record.inc.tagged-uploads')
+                        @include('pages.service-records.inc.tagged-uploads')
                     </div>
                     @if(config('tracker.support.url'))
                         <div class="tab-pane fade"
                              id="donations"
                              role="tabpanel">
-                            @include('pages.service-record.inc.donations')
+                            @include('pages.service-records.inc.donations')
                         </div>
                     @endif
                 </div>
