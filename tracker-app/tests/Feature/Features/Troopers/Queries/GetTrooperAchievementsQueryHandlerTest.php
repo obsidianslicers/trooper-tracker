@@ -49,7 +49,7 @@ class GetTrooperAchievementsQueryHandlerTest extends TestCase
         $this->assertSame(AchievementType::FIRST_TROOP, $result->first()->type);
     }
 
-    public function test_invoke_orders_milestones_by_earned_on_descending(): void
+    public function test_invoke_orders_milestones_by_achievement_date_descending(): void
     {
         $trooper = Trooper::factory()->asMember()->create();
 
@@ -70,8 +70,8 @@ class GetTrooperAchievementsQueryHandlerTest extends TestCase
         $result = $subject(new GetTrooperAchievementsQuery(30));
 
         $this->assertGreaterThanOrEqual(
-            $result->last()->earned_on->timestamp,
-            $result->first()->earned_on->timestamp,
+            $result->last()->achievement_date->timestamp,
+            $result->first()->achievement_date->timestamp,
         );
     }
 }

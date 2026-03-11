@@ -12,7 +12,7 @@
                     {{ $award->award->name }}
                 </td>
                 <td>
-                    <x-date-format :value="$troop->award_date"
+                    <x-date-format :value="$award->award_date"
                                    :format="'M j, Y'" />
                 </td>
             </tr>

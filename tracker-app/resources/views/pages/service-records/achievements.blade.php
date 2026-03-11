@@ -28,12 +28,16 @@
         </thead>
         @forelse($trooper_achievements as $trooper_achievement)
             <tr>
-                <td>{{ $trooper_achievement->trooper->display_name }}</td>
+                <td>
+                    <a href="{{ route('service-records.trooper', ['trooper' => $trooper_achievement->trooper]) }}">
+                        {{ $trooper_achievement->trooper->display_name }}
+                    </a>
+                </td>
                 <td>
                     <i class="fa fa-fw {{ $trooper_achievement->type->toIcon() }} me-2"></i>
                     {{ $trooper_achievement->type->toDescription() }}
                 </td>
-                <td>{{ $trooper_achievement->earned_on->format('M j, Y') }}</td>
+                <td>{{ $trooper_achievement->achievement_date->format('M j, Y') }}</td>
             </tr>
         @empty
             <tr>

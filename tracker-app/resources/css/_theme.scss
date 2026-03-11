@@ -1,6 +1,7 @@
 @use 'fonts.scss';
 @use "sass:map";
 @use "sass:color";
+@use "sass:meta";
 @use "sass:string";
 
 @function str-replace($string, $search, $replace: '') {
@@ -9,7 +10,9 @@
 
     @if $index {
         // 3. Change str-slice to string.slice and str-length to string.length
-        @return string.slice($string, 1, $index - 1)+$replace +str-replace(string.slice($string, $index + string.length($search)), $search, $replace);
+        @return string.slice($string, 1, $index - 1)+$replace +str-replace(string.slice($string, $index + string.length($search)),
+            $search,
+            $replace );
     }
 
     @return $string;
@@ -95,6 +98,11 @@ $themes: (
 // --- 2. DYNAMIC THEMING LOOP ---
 @each $name, $map in $themes {
     $primary: map.get($custom-theme-colors, $name);
+    $contrast-color: #fff;
+
+    @if $name =='stormtrooper' {
+        $contrast-color: #000;
+    }
 
     body.theme-#{$name} {
         // --- Core Base ---
@@ -135,10 +143,10 @@ $themes: (
         .btn-primary {
             --bs-btn-bg: #{$primary};
             --bs-btn-border-color: #{$primary};
-            --bs-btn-color: #{if($name == 'stormtrooper', #000, #fff)};
+            --bs-btn-color: #{$contrast-color};
             --bs-btn-hover-bg: #{color.adjust($primary, $lightness: -10%)};
             --bs-btn-hover-border-color: #{color.adjust($primary, $lightness: -10%)};
-            --bs-btn-hover-color: #{if($name == 'stormtrooper', #000, #fff)};
+            --bs-btn-hover-color: #{$contrast-color};
         }
 
         // --- Navbar & UI ---
@@ -176,7 +184,7 @@ $themes: (
 
         .form-select {
             // Injects the primary color into the dropdown arrow icon
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='#{str-replace(inspect($primary), '#', '%23')}' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='#{str-replace(meta.inspect($primary), '#', '%23')}' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
         }
 
         // --- Modals ---
@@ -191,7 +199,7 @@ $themes: (
         --bs-dropdown-color: var(--bs-body-color);
         --bs-dropdown-link-color: var(--bs-body-color);
         --bs-dropdown-link-hover-bg: var(--bs-primary);
-        --bs-dropdown-link-hover-color: #{if($name == 'stormtrooper', #000, #fff)};
+        --bs-dropdown-link-hover-color: #{$contrast-color};
         --bs-dropdown-border-color: var(--bs-border-color);
 
         // --- Alerts ---
@@ -231,7 +239,7 @@ $themes: (
             --bs-pagination-color: var(--bs-primary);
             --bs-pagination-border-color: var(--bs-border-color);
             --bs-pagination-active-bg: var(--bs-primary);
-            --bs-pagination-active-color: #{if($name == 'stormtrooper', #000, #fff)};
+            --bs-pagination-active-color: #{$contrast-color};
             --bs-pagination-hover-bg: #{color.adjust($primary, $alpha: -0.8)};
         }
     }

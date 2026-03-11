@@ -36,10 +36,10 @@ class TrooperAchievementFactory extends BaseTrooperAchievementFactory
         ]);
     }
 
-    public function earnedOn(Carbon $earned_on): static
+    public function earnedOn(Carbon $achievement_date): static
     {
         return $this->state(fn(array $attributes): array => [
-            TrooperAchievement::EARNED_ON => $earned_on,
+            TrooperAchievement::ACHIEVEMENT_DATE => $achievement_date,
         ]);
     }
 }

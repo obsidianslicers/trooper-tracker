@@ -28,8 +28,8 @@ class CommandStaffControllerTest extends TestCase
         $trooper = Trooper::factory()->asMember()->create();
 
         $command_staff = collect([
-            Trooper::factory()->asAdministrator()->withDisplayName('Alpha Admin')->make(),
-            Trooper::factory()->asModerator()->withDisplayName('Bravo Moderator')->make(),
+            Trooper::factory()->asAdministrator()->withDisplayName('Alpha Admin')->create(),
+            Trooper::factory()->asModerator()->withDisplayName('Bravo Moderator')->create(),
         ]);
 
         $this->mock(MagicBus::class, function (MockInterface $mock) use ($command_staff): void

@@ -38,7 +38,11 @@
                     {{ $award_trooper->award->organization->name }}
                 </td>
                 <td>{{ $award_trooper->award->name }}</td>
-                <td>{{ $award_trooper->trooper->display_name }}</td>
+                <td>
+                    <a href="{{ route('service-records.trooper', ['trooper' => $award_trooper->trooper]) }}">
+                        {{ $award_trooper->trooper->display_name }}
+                    </a>
+                </td>
                 <td>{{ $award_trooper->award_date->format('M j, Y') }}</td>
             </tr>
         @empty

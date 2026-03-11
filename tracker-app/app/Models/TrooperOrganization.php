@@ -21,6 +21,11 @@ class TrooperOrganization extends BaseTrooperOrganization
     use HasFactory;
     use HasTrooperOrganizationScopes;
 
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
     protected function casts(): array
     {
         return array_merge($this->casts, [

@@ -24,8 +24,8 @@ class TrooperSeeder extends Seeder
         {
             $t = Trooper::find($trooper->id) ?? new Trooper(['id' => $trooper->id]);
 
-            $t->legal_name = $trooper->legal_name ?? $trooper->name;
-            $t->display_name = $trooper->name;
+            $t->legal_name = trim($trooper->legal_name ?? $trooper->name);
+            $t->display_name = trim($trooper->name);
             $t->phone = $trooper->phone;
             $t->email = $trooper->email ?? '^' . uniqid();
             $t->password = $trooper->password ?? '^' . uniqid();

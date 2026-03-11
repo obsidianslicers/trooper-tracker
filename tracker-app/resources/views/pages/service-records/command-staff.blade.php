@@ -24,7 +24,11 @@
         </thead>
         @forelse($troopers as $trooper)
             <tr>
-                <td>{{ $trooper->display_name }}</td>
+                <td>
+                    <a href="{{ route('service-records.trooper', compact('trooper')) }}">
+                        {{ $trooper->display_name }}
+                    </a>
+                </td>
                 <td>{{ to_title($trooper->membership_role->name) }}</td>
             </tr>
         @empty

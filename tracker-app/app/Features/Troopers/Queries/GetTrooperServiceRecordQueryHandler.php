@@ -15,6 +15,7 @@ use App\Models\EventUpload;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
+use App\Models\TrooperAssignment;
 use App\Models\TrooperCostume;
 use App\Models\TrooperDonation;
 use Illuminate\Support\Collection;
@@ -81,6 +82,22 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
             ->orderBy(Organization::NAME)
             ->get();
 
+        $assignments = $trooper->trooper_assignments()
+            ->with('organization')
+            ->where(TrooperAssignment::IS_MEMBER, true)
+            ->get();
+
+        foreach ($organizations as $organization)
+        {
+            foreach ($assignments as $assignment)
+            {
+                if (str_starts_with($assignment->organization->node_path, $organization->node_path))
+                {
+                    $organization->assignment = $assignment;
+                }
+            }
+        }
+
         return $organizations;
     }
 
@@ -93,8 +110,9 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
     {
         // Map over all AchievementTypes to find Milestones
         $milestones = collect(AchievementType::cases())
-            ->filter(fn (AchievementType $type) => $type->isMilestone())
-            ->map(function (AchievementType $type) use ($trooper) {
+            ->filter(fn(AchievementType $type) => $type->isMilestone())
+            ->map(function (AchievementType $type) use ($trooper)
+            {
                 // Get value from your existing trooper method
                 $value = $trooper->getAchievementValue($type);
 
@@ -107,7 +125,7 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
                     // otherwise, we'll assume 'Active' status
                 ];
             })
-            ->filter(fn ($milestone) => $milestone['is_earned'])
+            ->filter(fn($milestone) => $milestone['is_earned'])
             ->reverse()
             ->values()
             ->toArray();
@@ -132,8 +150,8 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
             ->orderBy(EventShift::SHIFT_STARTS_AT)
             ->get();
 
-        $shifts->each(fn ($shift) => $this->transformEventShift($shift));
-        $shifts->each(fn ($shift) => $shift->event_trooper = $shift->event_troopers->first());
+        $shifts->each(fn($shift) => $this->transformEventShift($shift));
+        $shifts->each(fn($shift) => $shift->event_trooper = $shift->event_troopers->first());
 
         return $shifts;
     }
@@ -146,8 +164,8 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
             ->orderByDesc(EventShift::SHIFT_STARTS_AT)
             ->get();
 
-        $shifts->each(fn ($shift) => $this->transformEventShift($shift));
-        $shifts->each(fn ($shift) => $shift->event_trooper = $shift->event_troopers->first());
+        $shifts->each(fn($shift) => $this->transformEventShift($shift));
+        $shifts->each(fn($shift) => $shift->event_trooper = $shift->event_troopers->first());
 
         return $shifts;
     }
@@ -196,12 +214,12 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
 
         $with = [
             'event.organization',
-            'event:'.implode(',', $event_columns),
-            'event_troopers.trooper:'.implode(',', $trooper_columns),
-            'event_troopers.trooper.trooper_costumes:'.implode(',', $trooper_costume_columns),
-            'event_troopers.trooper.trooper_costumes.organization_costume:'.implode(',', $organization_costume_columns),
-            'event_troopers.costume:'.implode(',', $costume_columns),
-            'event_troopers.backup_costume:'.implode(',', $costume_columns),
+            'event:' . implode(',', $event_columns),
+            'event_troopers.trooper:' . implode(',', $trooper_columns),
+            'event_troopers.trooper.trooper_costumes:' . implode(',', $trooper_costume_columns),
+            'event_troopers.trooper.trooper_costumes.organization_costume:' . implode(',', $organization_costume_columns),
+            'event_troopers.costume:' . implode(',', $costume_columns),
+            'event_troopers.backup_costume:' . implode(',', $costume_columns),
         ];
 
         return $with;
