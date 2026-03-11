@@ -2,40 +2,61 @@
 
 declare(strict_types=1);
 
-namespace App\Features\Troopers\Commands;
+namespace Database\Seeders\FloridaGarrison;
 
-use App\Bus\Contracts\CommandHandlerInterface;
 use App\Enums\AchievementType;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Models\Event;
+use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
 use App\Models\TrooperAchievement;
+use Illuminate\Support\Carbon;
+use Illuminate\Database\Seeder;
 
-/**
- * Handler for recalculating a trooper's rank based on their event attendance.
- *
- * Updates the trooper's rank achievement by counting the number of events attended
- * and assigning ranks accordingly.
- *
- * @implements CommandHandlerInterface<RecalculateTrooperRankCommand>
- */
-class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
+class TrooperAchievementSeeder extends Seeder
 {
     private int $rank = 1;
 
     /**
-     * Execute the command to recalculate a trooper's rank.
-     *
-     * @param  RecalculateTrooperRankCommand  $message  The command with trooper rank recalculation data
-     * @return null
+     * Run the database seeds.
      */
-    public function __invoke(object $message): mixed
+    public function run(): void
+    {
+        $date_ranges = $this->getDateRanges('2000-01-01');
+
+        foreach ($date_ranges as $date_range)
+        {
+            [$start_date, $end_date] = $date_range;
+
+            $this->rank = 1; // reset rank for each date range
+
+            $this->command->info("   Processing achievements for date range: {$start_date} to {$end_date}");
+
+            $start_date = Carbon::parse($start_date);
+            $end_date = Carbon::parse($end_date);
+
+            $this->runFor($start_date, $end_date);
+        }
+    }
+
+    public function runFor(Carbon $start_date, Carbon $end_date): mixed
     {
         $with_count = [
-            'event_troopers as event_count' => function ($q) {
-                $q->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED);
+            'event_troopers as event_count' => function ($q) use ($end_date)
+            {
+                $q->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED)
+                    ->whereHas('event_shift.event', function ($q) use ($end_date)
+                    {
+                        $q->where(Event::STATUS, EventStatus::CLOSED)
+                            ->where(Event::EVENT_END, '<=', $end_date);
+                    })
+                    ->whereHas('event_shift', function ($q) use ($end_date)
+                    {
+                        $q->where(EventShift::STATUS, EventStatus::CLOSED)
+                            ->where(EventShift::SHIFT_STARTS_AT, '<=', $end_date);
+                    });
             },
         ];
 
@@ -44,18 +65,14 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
             ->withCount($with_count)
             ->orderByDesc('event_count');
 
-        if ($message->trooper_id !== null)
+        $q->chunk(300, function ($troopers) use ($start_date, $end_date)
         {
-            $q->where(Trooper::ID, $message->trooper_id);
-        }
-
-        $q->chunk(200, function ($troopers) use ($message) {
             //  only process rank if we're processing all troopers, otherwise
             //  the rank won't be accurate since we're not reordering all the
             //  troopers by attendance
-            $process_rank = $message->trooper_id === null;
+            $process_rank = true;
 
-            $this->processChunk($troopers, $process_rank);
+            $this->processChunk($troopers, $process_rank, $start_date, $end_date);
         });
 
         return null;
@@ -73,11 +90,11 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
      *
      * @param  \Illuminate\Support\Collection  $troopers  Chunk of troopers to process
      */
-    private function processChunk($troopers, bool $process_rank): void
+    private function processChunk($troopers, bool $process_rank, Carbon $start_date, Carbon $end_date): void
     {
         foreach ($troopers as $trooper)
         {
-            $metrics = $this->computeMetrics($trooper);
+            $metrics = $this->computeMetrics($trooper, $start_date, $end_date);
 
             if ($process_rank)
             {
@@ -90,7 +107,7 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
             $this->updateAchievement($trooper, AchievementType::DIRECT_FUNDS, $metrics['total_direct']);
             $this->updateAchievement($trooper, AchievementType::INDIRECT_FUNDS, $metrics['total_indirect']);
 
-            $this->storeTroopThresholdAchievements($trooper, $trooper->event_count);
+            $this->storeTroopThresholdAchievements($trooper, $trooper->event_count, $end_date);
 
             $this->rank++;
         }
@@ -135,12 +152,17 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
      * @param  Trooper  $trooper  The trooper to compute metrics for
      * @return array{total_direct: int|float, total_indirect: int|float, total_hours: int|float} Computed metrics
      */
-    private function computeMetrics(Trooper $trooper): array
+    private function computeMetrics(Trooper $trooper, Carbon $start_date, Carbon $end_date): array
     {
         $event_troopers = $trooper->event_troopers()
             ->with('event_shift.event')
             ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED)
-            ->whereHas('event_shift.event', fn ($q) => $q->where(Event::STATUS, EventStatus::CLOSED))
+            ->whereHas('event_shift.event', fn($q) => $q->where(Event::STATUS, EventStatus::CLOSED))
+            ->whereHas('event_shift', function ($q) use ($end_date)
+            {
+                $q->where(EventShift::STATUS, EventStatus::CLOSED)
+                    ->where(EventShift::SHIFT_STARTS_AT, '<=', $end_date);
+            })
             ->get();
 
         $total_direct = 0;
@@ -178,7 +200,7 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
      * @param  Trooper  $trooper  The trooper to check milestones for
      * @param  int  $event_count  The trooper's total attended event count
      */
-    private function storeTroopThresholdAchievements(Trooper $trooper, int $event_count): void
+    private function storeTroopThresholdAchievements(Trooper $trooper, int $event_count, Carbon $end_date): void
     {
         foreach (AchievementType::cases() as $achievement)
         {
@@ -214,10 +236,117 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
 
             $set = [
                 TrooperAchievement::VALUE => true,
-                TrooperAchievement::ACHIEVEMENT_DATE => now(),
+                TrooperAchievement::ACHIEVEMENT_DATE => $end_date,
             ];
 
             TrooperAchievement::firstOrCreate($where, $set);
         }
+    }
+
+
+    private function getDateRanges(string $start_date_string): array
+    {
+        $start = Carbon::parse($start_date_string)->startOfDay();
+        $today = Carbon::today();
+        $start_of_current_year = $today->copy()->startOfYear();
+        $ranges = [];
+
+        // Phase 1: Five-year chunks up through 2020.
+        $end_of_2020 = Carbon::create(2020, 12, 31)->endOfDay()->min($today);
+
+        if ($start->lte($end_of_2020))
+        {
+            $chunk_cursor = $start->copy()->startOfYear();
+
+            while ($chunk_cursor->lte($end_of_2020))
+            {
+                $chunk_start = $chunk_cursor->copy()->startOfYear()->max($start);
+                $chunk_end = $chunk_cursor->copy()->addYears(4)->endOfYear()->min($end_of_2020);
+
+                if ($chunk_start->lte($chunk_end))
+                {
+                    $ranges[] = [$chunk_start->format('Y-m-d'), $chunk_end->format('Y-m-d')];
+                }
+
+                $chunk_cursor->addYears(5);
+            }
+        }
+
+        // Phase 2: Year-by-year from 2021 through 2024.
+        $start_of_2021 = Carbon::create(2021, 1, 1)->startOfDay();
+        $end_of_2024 = Carbon::create(2024, 12, 31)->endOfDay()->min($today);
+        $yearly_phase_start = $start->gt($start_of_2021) ? $start : $start_of_2021;
+
+        if ($yearly_phase_start->lte($end_of_2024))
+        {
+            $year_cursor = $yearly_phase_start->copy()->startOfYear();
+
+            while ($year_cursor->lte($end_of_2024))
+            {
+                $year_start = $year_cursor->copy()->startOfYear()->max($yearly_phase_start);
+                $year_end = $year_cursor->copy()->endOfYear()->min($end_of_2024);
+
+                if ($year_start->lte($year_end))
+                {
+                    $ranges[] = [$year_start->format('Y-m-d'), $year_end->format('Y-m-d')];
+                }
+
+                $year_cursor->addYear();
+            }
+        }
+
+        // Phase 3: Quarter-by-quarter for 2025.
+        $start_of_2025 = Carbon::create(2025, 1, 1)->startOfDay();
+        $end_of_2025 = Carbon::create(2025, 12, 31)->endOfDay()->min($today);
+        $quarterly_phase_start = $start->gt($start_of_2025) ? $start : $start_of_2025;
+
+        if ($quarterly_phase_start->lte($end_of_2025))
+        {
+            $quarter_cursor = $quarterly_phase_start->copy()->startOfQuarter();
+
+            while ($quarter_cursor->lte($end_of_2025))
+            {
+                $quarter_start = $quarter_cursor->copy()->startOfQuarter()->max($quarterly_phase_start);
+                $quarter_end = $quarter_cursor->copy()->endOfQuarter()->min($end_of_2025);
+
+                if ($quarter_start->lte($quarter_end))
+                {
+                    $ranges[] = [$quarter_start->format('Y-m-d'), $quarter_end->format('Y-m-d')];
+                }
+
+                $quarter_cursor->addQuarter();
+            }
+        }
+
+        // Phase 4: Week-by-week for the current year.
+        $current_year_phase_start = $start->gt($start_of_current_year)
+            ? $start
+            : $start_of_current_year;
+
+        if ($current_year_phase_start->lte($today))
+        {
+            $week_cursor = $current_year_phase_start->copy()->startOfWeek(Carbon::SUNDAY);
+
+            while ($week_cursor->lte($today))
+            {
+                $week_start = $week_cursor->copy()->startOfWeek(Carbon::SUNDAY)
+                    ->max($current_year_phase_start);
+                $week_end = $week_cursor->copy()->endOfWeek(Carbon::SATURDAY)->min($today);
+
+                if ($week_start->lte($week_end))
+                {
+                    $ranges[] = [$week_start->format('Y-m-d'), $week_end->format('Y-m-d')];
+                }
+
+                if ($week_end->equalTo($today))
+                {
+                    break;
+                }
+
+                $week_cursor->addWeek();
+            }
+        }
+
+        return $ranges;
     }
 }

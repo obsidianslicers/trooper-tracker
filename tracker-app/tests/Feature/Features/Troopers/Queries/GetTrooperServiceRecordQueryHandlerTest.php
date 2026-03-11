@@ -14,6 +14,7 @@ use App\Models\EventTrooper;
 use App\Models\EventUpload;
 use App\Models\EventUploadTrooper;
 use App\Models\Organization;
+use App\Models\TrooperAssignment;
 use App\Models\Trooper;
 use App\Models\TrooperDonation;
 use App\Models\TrooperOrganization;
@@ -31,6 +32,11 @@ class GetTrooperServiceRecordQueryHandlerTest extends TestCase
 
         $organization = Organization::factory()->asOrganization()->withNodePath('100.')->withName('Alpha')->create();
         TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($organization)->withIdentifier('TK-1')->create();
+        $assignment = TrooperAssignment::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($organization)
+            ->asMember()
+            ->create();
 
         $event_upload = EventUpload::factory()->create();
         EventUploadTrooper::factory()->forEventUpload($event_upload)->forTrooper($trooper)->create();
@@ -69,6 +75,11 @@ class GetTrooperServiceRecordQueryHandlerTest extends TestCase
         $this->assertArrayHasKey('recent_donations', $result);
         $this->assertArrayHasKey('awards', $result);
         $this->assertSame($trooper->id, $result['trooper']->id);
+        $this->assertCount(1, $result['trooper_organizations']);
+        $this->assertSame(
+            $assignment->id,
+            $result['trooper_organizations']->first()->assignment->id,
+        );
         $this->assertCount(1, $result['tagged_uploads']);
         $this->assertCount(1, $result['recent_donations']);
         $this->assertCount(1, $result['awards']);

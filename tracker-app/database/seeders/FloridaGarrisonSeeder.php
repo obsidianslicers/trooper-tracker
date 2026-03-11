@@ -13,6 +13,7 @@ use Database\Seeders\FloridaGarrison\EventUploadSeeder;
 use Database\Seeders\FloridaGarrison\EventUploadTrooperSeeder;
 use Database\Seeders\FloridaGarrison\OrganizationCostumeSeeder;
 use Database\Seeders\FloridaGarrison\OrganizationSeeder as FloridaGarrisonOrganizationSeeder;
+use Database\Seeders\FloridaGarrison\TrooperAchievementSeeder;
 use Database\Seeders\FloridaGarrison\TrooperCostumeSeeder;
 use Database\Seeders\FloridaGarrison\TrooperDonationSeeder;
 use Database\Seeders\FloridaGarrison\TrooperOrganizationSeeder;
@@ -53,17 +54,13 @@ class FloridaGarrisonSeeder extends Seeder
             $this->call(EventSeeder::class);
             $this->call(EventUploadSeeder::class);
             $this->call(EventUploadTrooperSeeder::class);
+
+            $this->call(TrooperAchievementSeeder::class);
         });
 
         $readable = CarbonInterval::millisecond($ms)->cascade()->forHumans();
 
         $this->command->info("Florida Garrison seeding completed in {$readable}.");
-
-        Artisan::call('tracker:calculate-trooper-achievements');
-
-        //  Set all earned on dates to a month ago to ensure they are not included 
-        //  in the recent achievement notifications.
-        TrooperAchievement::query()->update([TrooperAchievement::EARNED_ON => now()->subMonth()]);
 
         Artisan::call('tracker:synchronize-organizations');
     }

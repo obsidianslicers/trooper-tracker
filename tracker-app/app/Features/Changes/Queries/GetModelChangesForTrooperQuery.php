@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Features\Changes\Queries;
 
+use App\Features\Concerns\HasLookback;
 use App\Models\Trooper;
 use Carbon\Carbon;
 
@@ -18,6 +19,8 @@ use Carbon\Carbon;
  */
 readonly class GetModelChangesForTrooperQuery
 {
+    use HasLookback;
+
     /**
      * Create a new query instance.
      *

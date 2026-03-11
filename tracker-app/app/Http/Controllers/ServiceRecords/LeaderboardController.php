@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Events;
+namespace App\Http\Controllers\ServiceRecords;
 
 use App\Features\Reports\Queries\GetLeaderboardMetricsQuery;
 use App\Http\Controllers\MagicBusController;
@@ -10,17 +10,14 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 /**
- * Displays the leaderboard page.
- *
- * This controller renders the leaderboard for events.
+ * Displays service record leaderboard metrics.
  */
 class LeaderboardController extends MagicBusController
 {
     /**
-     * Handle the incoming request to display the leaderboard page.
+     * Retrieves leaderboard metrics for a lookback window and renders the leaderboard view.
      *
-     * @param  Request  $request  The incoming HTTP request
-     * @return View The rendered leaderboard view
+     * @throws \RuntimeException
      */
     public function __invoke(Request $request): View
     {
@@ -30,6 +27,6 @@ class LeaderboardController extends MagicBusController
 
         $data = compact('leaderboard', 'days');
 
-        return view('pages.events.leaderboard', $data);
+        return view('pages.service-records.leaderboard', $data);
     }
 }

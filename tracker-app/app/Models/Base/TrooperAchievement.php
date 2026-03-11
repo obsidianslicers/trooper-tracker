@@ -19,7 +19,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $trooper_id
  * @property string $type
  * @property string|null $value
- * @property Carbon|null $earned_on
+ * @property Carbon|null $achievement_date
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property string|null $deleted_at
@@ -35,7 +35,7 @@ class TrooperAchievement extends Model
     const TROOPER_ID = 'trooper_id';
     const TYPE = 'type';
     const VALUE = 'value';
-    const EARNED_ON = 'earned_on';
+    const ACHIEVEMENT_DATE = 'achievement_date';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
     const DELETED_AT = 'deleted_at';
@@ -44,7 +44,7 @@ class TrooperAchievement extends Model
     protected $casts = [
         self::ID => 'int',
         self::TROOPER_ID => 'int',
-        self::EARNED_ON => 'datetime',
+        self::ACHIEVEMENT_DATE => 'datetime',
         self::CREATED_AT => 'datetime',
         self::UPDATED_AT => 'datetime'
     ];
@@ -53,7 +53,7 @@ class TrooperAchievement extends Model
         self::TROOPER_ID,
         self::TYPE,
         self::VALUE,
-        self::EARNED_ON
+        self::ACHIEVEMENT_DATE
     ];
 
     public function trooper(): BelongsTo

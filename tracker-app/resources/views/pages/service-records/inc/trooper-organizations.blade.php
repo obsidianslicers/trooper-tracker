@@ -3,7 +3,7 @@
         <tr>
             <th></th>
             <th>Organization</th>
-            <th>Identifier</th>
+            <th colspan="2">Identifier</th>
             <th></th>
         </tr>
     </thead>
@@ -24,6 +24,9 @@
                 </td>
                 <td>
                     {{ $trooper_organization->pivot->identifier }}
+                </td>
+                <td>
+                    {{ $trooper_organization->assignment->organization->name ?? 'Unassigned' }}
                 </td>
             </tr>
         @empty

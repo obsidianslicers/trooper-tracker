@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Features\Reports\Concerns;
+namespace App\Features\Concerns;
 
 use Carbon\Carbon;
 
@@ -15,7 +15,7 @@ trait HasLookback
     {
         if (is_int($this->lookback))
         {
-            return now()->subDays($this->lookback);
+            return now()->startOfDay()->subDays($this->lookback);
         }
         if (is_string($this->lookback))
         {

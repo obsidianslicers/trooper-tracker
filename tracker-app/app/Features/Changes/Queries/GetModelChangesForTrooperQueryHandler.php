@@ -35,16 +35,7 @@ readonly class GetModelChangesForTrooperQueryHandler implements QueryHandlerInte
      */
     public function __invoke(object $message): mixed
     {
-        $lookback = $message->lookback;
-
-        if (is_int($lookback))
-        {
-            $lookback = now()->subDays($lookback);
-        }
-        elseif (is_string($lookback))
-        {
-            $lookback = Carbon::parse($lookback);
-        }
+        $lookback = $message->parseLookback();
 
         $trooper_filter = function ($q) use ($message) {
             // Direct changes to the Trooper model

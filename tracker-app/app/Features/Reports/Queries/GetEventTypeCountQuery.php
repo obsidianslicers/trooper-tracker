@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Features\Reports\Queries;
 
-use App\Features\Reports\Concerns\HasLookback;
+use App\Features\Concerns\HasLookback;
 use App\Models\Trooper;
 use Carbon\Carbon;
 
