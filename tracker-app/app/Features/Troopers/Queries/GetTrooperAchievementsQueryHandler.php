@@ -26,12 +26,12 @@ readonly class GetTrooperAchievementsQueryHandler implements QueryHandlerInterfa
         $lookback = $message->parseLookback();
 
         $relations = [
-            'trooper:' . implode(',', [Trooper::ID, Trooper::DISPLAY_NAME]),
+            'trooper:'.implode(',', [Trooper::ID, Trooper::DISPLAY_NAME]),
         ];
 
         $types = collect(AchievementType::cases())
-            ->filter(fn(AchievementType $type) => $type->isMilestone())
-            ->map(fn(AchievementType $type) => $type->value)
+            ->filter(fn (AchievementType $type) => $type->isMilestone())
+            ->map(fn (AchievementType $type) => $type->value)
             ->toArray();
 
         return TrooperAchievement::with($relations)

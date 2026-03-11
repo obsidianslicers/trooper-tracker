@@ -34,8 +34,7 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
     public function __invoke(object $message): mixed
     {
         $with_count = [
-            'event_troopers as event_count' => function ($q)
-            {
+            'event_troopers as event_count' => function ($q) {
                 $q->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED);
             },
         ];
@@ -50,8 +49,7 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
             $q->where(Trooper::ID, $message->trooper_id);
         }
 
-        $q->chunk(200, function ($troopers) use ($message)
-        {
+        $q->chunk(200, function ($troopers) use ($message) {
             //  only process rank if we're processing all troopers, otherwise
             //  the rank won't be accurate since we're not reordering all the
             //  troopers by attendance
@@ -142,7 +140,7 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
         $event_troopers = $trooper->event_troopers()
             ->with('event_shift.event')
             ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED)
-            ->whereHas('event_shift.event', fn($q) => $q->where(Event::STATUS, EventStatus::CLOSED))
+            ->whereHas('event_shift.event', fn ($q) => $q->where(Event::STATUS, EventStatus::CLOSED))
             ->get();
 
         $total_direct = 0;
