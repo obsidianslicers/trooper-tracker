@@ -26,7 +26,7 @@ class AwardsControllerTest extends TestCase
 
     public function test_invoke_renders_awards_with_default_days(): void
     {
-        $trooper = Trooper::factory()->asMember()->create();
+        $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
 
         $award_troopers = collect([AwardTrooper::factory()->make()]);
 
@@ -54,7 +54,7 @@ class AwardsControllerTest extends TestCase
 
     public function test_invoke_renders_awards_with_requested_days(): void
     {
-        $trooper = Trooper::factory()->asMember()->create();
+        $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
 
         $this->mock(MagicBus::class, function (MockInterface $mock): void
         {

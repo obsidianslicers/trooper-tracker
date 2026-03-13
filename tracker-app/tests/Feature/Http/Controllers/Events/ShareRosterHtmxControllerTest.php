@@ -15,7 +15,7 @@ class ShareRosterHtmxControllerTest extends TestCase
 
     public function test_invoke_returns_forbidden_for_non_moderator_trooper(): void
     {
-        $trooper = Trooper::factory()->asMember()->create();
+        $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
         $event = Event::factory()->create();
 
         $response = $this->actingAs($trooper)->post(route('events.share-roster-htmx', ['event' => $event->id]), [

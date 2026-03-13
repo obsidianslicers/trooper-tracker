@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Route;
 //  DASHBOARD
 Route::prefix('events')
     ->name('events.')
-    ->middleware(['auth', 'check.active'])
+    ->middleware(['auth', 'verified', 'check.active'])
     ->group(function ()
     {
         Route::get('/', ListController::class)->name('list');

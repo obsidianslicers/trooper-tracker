@@ -15,7 +15,7 @@ class EventCalendarExportControllerTest extends TestCase
 
     public function test_invoke_exports_event_as_ics(): void
     {
-        $trooper = Trooper::factory()->asActive()->create();
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
         $event = Event::factory()->create();
 
         $response = $this->actingAs($trooper)->get(route('events.display-ics', ['event' => $event->id]));

@@ -22,7 +22,7 @@ class TroopTracker
      */
     public function isXenforoOAuthRequired(): bool
     {
-        $require_xenforo = (bool) config('tracker.auth.require_xenforo');
+        $require_xenforo = (bool) config('tracker.auth.require_xenforo', false);
 
         return $require_xenforo && $this->isXenforoOAuthConfigured();
     }

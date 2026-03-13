@@ -20,7 +20,7 @@ class SignUpUpdateHtmxControllerTest extends TestCase
 
     public function test_invoke_updates_event_trooper_status_for_owner(): void
     {
-        $trooper = Trooper::factory()->asActive()->create();
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
         $organization = Organization::factory()->create();
 
         TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();

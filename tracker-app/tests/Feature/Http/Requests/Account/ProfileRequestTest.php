@@ -40,34 +40,6 @@ class ProfileRequestTest extends TestCase
         $this->assertContains('required', $rules[Trooper::DISPLAY_NAME]);
     }
 
-    public function test_rules_requires_email(): void
-    {
-        $subject = new ProfileRequest;
-        $rules = $subject->rules();
-
-        $this->assertArrayHasKey(Trooper::EMAIL, $rules);
-        $this->assertContains('required', $rules[Trooper::EMAIL]);
-        $this->assertContains('email', $rules[Trooper::EMAIL]);
-    }
-
-    public function test_rules_validates_email_format(): void
-    {
-        $subject = new ProfileRequest;
-
-        $validator = Validator::make(
-            [
-                Trooper::LEGAL_NAME => 'Test Trooper',
-                Trooper::DISPLAY_NAME => 'Tester',
-                Trooper::EMAIL => 'not-an-email',
-                Trooper::THEME => TrooperTheme::STORMTROOPER->value,
-            ],
-            $subject->rules()
-        );
-
-        $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey(Trooper::EMAIL, $validator->errors()->toArray());
-    }
-
     public function test_rules_phone_is_nullable(): void
     {
         $subject = new ProfileRequest;
@@ -85,7 +57,6 @@ class ProfileRequestTest extends TestCase
             [
                 Trooper::LEGAL_NAME => 'Test Trooper',
                 Trooper::DISPLAY_NAME => 'Tester',
-                Trooper::EMAIL => 'test@example.com',
                 Trooper::PHONE => '12345678901234567', // 17 chars, max is 16
                 Trooper::THEME => TrooperTheme::STORMTROOPER->value,
             ],
@@ -113,7 +84,6 @@ class ProfileRequestTest extends TestCase
             [
                 Trooper::LEGAL_NAME => 'Test Trooper',
                 Trooper::DISPLAY_NAME => 'Tester',
-                Trooper::EMAIL => 'test@example.com',
                 Trooper::THEME => 'invalid-theme',
             ],
             $subject->rules()
@@ -131,7 +101,6 @@ class ProfileRequestTest extends TestCase
             [
                 Trooper::LEGAL_NAME => 'Test Trooper',
                 Trooper::DISPLAY_NAME => 'Tester',
-                Trooper::EMAIL => 'test@example.com',
                 Trooper::THEME => TrooperTheme::STORMTROOPER->value,
             ],
             $subject->rules()
@@ -148,7 +117,6 @@ class ProfileRequestTest extends TestCase
             [
                 Trooper::LEGAL_NAME => 'Test Trooper',
                 Trooper::DISPLAY_NAME => 'Tester',
-                Trooper::EMAIL => 'test@example.com',
                 Trooper::THEME => TrooperTheme::CLONE ->value,
             ],
             $subject->rules()
@@ -165,7 +133,6 @@ class ProfileRequestTest extends TestCase
             [
                 Trooper::LEGAL_NAME => str_repeat('a', 257),
                 Trooper::DISPLAY_NAME => 'Tester',
-                Trooper::EMAIL => 'test@example.com',
                 Trooper::THEME => TrooperTheme::STORMTROOPER->value,
             ],
             $subject->rules()
@@ -183,7 +150,6 @@ class ProfileRequestTest extends TestCase
             [
                 Trooper::LEGAL_NAME => 'Test Trooper',
                 Trooper::DISPLAY_NAME => str_repeat('a', 257),
-                Trooper::EMAIL => 'test@example.com',
                 Trooper::THEME => TrooperTheme::STORMTROOPER->value,
             ],
             $subject->rules()

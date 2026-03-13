@@ -25,7 +25,7 @@ class CommandStaffControllerTest extends TestCase
 
     public function test_invoke_renders_command_staff_view(): void
     {
-        $trooper = Trooper::factory()->asMember()->create();
+        $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
 
         $command_staff = collect([
             Trooper::factory()->asAdministrator()->withDisplayName('Alpha Admin')->create(),
