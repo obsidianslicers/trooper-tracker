@@ -39,12 +39,11 @@ class SendDailyEventNotifications extends Command
      * 1. Dispatching GetTroopersForDailyEventNotificationsQuery to retrieve troopers
      * 2. Dispatching SendEventDailyNotificationCommand for each trooper
      *
-     * @param MagicBus $bus The message bus for dispatching queries and commands
-     * @return void
+     * @param  MagicBus  $bus  The message bus for dispatching queries and commands
      */
     public function handle(MagicBus $bus): void
     {
-        $troopers = $bus->send(new GetTroopersForDailyEventNotificationsQuery());
+        $troopers = $bus->send(new GetTroopersForDailyEventNotificationsQuery);
 
         foreach ($troopers as $trooper)
         {

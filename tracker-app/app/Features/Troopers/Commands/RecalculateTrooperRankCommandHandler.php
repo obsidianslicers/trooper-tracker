@@ -100,7 +100,7 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
      * Update or create a trooper's achievement with the given value.
      *
      * Uses updateOrCreate to either update an existing achievement record
-     * or create a new one if it doesn't exist. Sets the earned_on timestamp
+     * or create a new one if it doesn't exist. Sets the achievement_date timestamp
      * to the current time.
      *
      * @param  Trooper  $trooper  The trooper whose achievement to update
@@ -116,7 +116,7 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
 
         $set = [
             TrooperAchievement::VALUE => $value,
-            TrooperAchievement::EARNED_ON => now(),
+            TrooperAchievement::ACHIEVEMENT_DATE => now(),
         ];
 
         TrooperAchievement::updateOrCreate($where, $set);
@@ -140,8 +140,7 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
         $event_troopers = $trooper->event_troopers()
             ->with('event_shift.event')
             ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED)
-            ->whereHas('event_shift.event', fn ($q) => $q->where(Event::STATUS, EventStatus::CLOSED)
-            )
+            ->whereHas('event_shift.event', fn ($q) => $q->where(Event::STATUS, EventStatus::CLOSED))
             ->get();
 
         $total_direct = 0;
@@ -215,7 +214,7 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
 
             $set = [
                 TrooperAchievement::VALUE => true,
-                TrooperAchievement::EARNED_ON => now(),
+                TrooperAchievement::ACHIEVEMENT_DATE => now(),
             ];
 
             TrooperAchievement::firstOrCreate($where, $set);

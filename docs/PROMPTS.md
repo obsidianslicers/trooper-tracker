@@ -5,22 +5,40 @@
 This prompt performs a structured audit of PHPDoc blocks within a specified directory. It reviews every class and its public methods, correcting and updating class‑level and method‑level documentation so it accurately reflects the existing code. It removes stale or incorrect annotations, avoids modifying signatures or logic, and focuses solely on improving clarity, correctness, and IDE type inference. The prompt applies recursively through subfolders, respects any excluded paths, and updates only the PHPDoc content while leaving all functional code untouched.
 
 ```
-Audit and correct all PHPDoc comments for every class in [TARGET_PATH] and all subfolders.
+Role & Objective
+You are a **Lead PHP Architect**. Your goal is to analyze the PHP classes in `TARGET_PATH` and ensure all methods, properties, and class headers have accurate, clean, and informative PHPDoc blocks.
 
-Scope:
-- All PHP classes in [TARGET_PATH]/**
-- Include nested subfolders
-- Only modify PHPDoc comments
+Configuration
+- TARGET_PATH: `\app\?`
+- Standard: PSR-5 and PSR-19 (PHPDoc tags)
+- Typing: Strict PHP 8+ type hinting
 
-Tasks:
-- Ensure each class has accurate class-level PHPDoc describing its purpose and responsibilities.
-- Ensure each public method has correct PHPDoc that matches the actual method signature (parameters, return types).
-- Remove any incorrect, stale, or redundant annotations, including @var inside methods.
-- Do NOT add or modify framework-specific annotations (routes, attributes, middleware, validation rules, etc.) unless explicitly requested.
-- Do NOT change method signatures, namespaces, imports, or business logic.
-- Only update PHPDoc blocks so they accurately reflect the code and improve IDE inference.
+Strict Constraints
 
-Apply this consistently across all files in [TARGET_PATH].
+Annotation Rules
+- Redundancy: If a method has native PHP type hints that are fully descriptive (e.g., `public function save(User $user): bool`), do not add a redundant `@param` or `@return` unless it requires an explanation or a specific array shape.
+- Array Shapes: For arrays, use generics-style notation or `object-shape` if possible. 
+    - *Example:* `array<string, int>` or `User[]`.
+- Inheritance: Use `{@inheritDoc}` when a method is strictly implementing an interface method without adding unique behavior.
+
+Content & Tone
+- Clarity: Summaries should start with a third-person singular verb (e.g., "Calculates," "Retrieves," "Authenticates").
+- Exceptions: Always include `@throws` tags for any checked or unchecked exceptions explicitly thrown within the method or its immediate dependencies.
+- Relations: For Eloquent models, ensure `@property` tags are added to the class header for all database columns and relationships (using **snake_case** for relation names).
+
+Execution Guardrails
+- Logic Integrity: **DO NOT** change any executable PHP code (variables, logic, method signatures, or return types). You are only permitted to modify the comment blocks (`/** ... */`).
+- Imports: If a PHPDoc refers to a class not currently imported, add the necessary `use` statement at the top of the file.
+
+Workflow
+1. **Analyze: Scan the file for missing or outdated PHPDocs.
+2. **Scan Routes/DB: If the class is a Controller or Model, check `routes/**` or migrations to ensure the documentation matches the actual data flow.
+3. **Draft: Generate the updated DocBlocks.
+4. **Verify: Ensure the file still passes static analysis (no syntax errors introduced in the comment blocks).
+
+PowerShell Verification
+Provide this command to check for syntax errors after the update:
+`php -l [FILE_PATH]`
 ```
 
 ## Provide Tests
@@ -28,22 +46,42 @@ Apply this consistently across all files in [TARGET_PATH].
 A test‑coverage audit ensures every class under a given path has a corresponding, meaningful test suite. It standardizes expectations for contributors, prevents silent regressions, and keeps the codebase maintainable as it grows.
 
 ```
-Audit and ensure test coverage for every class in [TARGET_PATH] and all subfolders.
+Role & Objective
+You are a **Senior Laravel QA Engineer**. Your goal is to generate comprehensive, production-ready tests for all PHP classes within the specified `TARGET_PATH`.
 
-Scope:
-- All PHP classes in [TARGET_PATH]/**
-- Include nested subfolders
-- Only create or update tests; do not modify application code
+Configuration
+- TARGET_PATH: `\app\??`
+- Framework: Laravel 12+ / PHP 8+
+- Test Runner: PHPUnit (follow mirrored directory structure)
+- Data Layer: Eloquent Factories (Builder Pattern favored)
 
-Tasks:
-- Ensure each class has a corresponding test file following project naming conventions.
-- Ensure each public method has meaningful test coverage that reflects its behavior and responsibilities.
-- Add missing tests where coverage is incomplete or absent.
-- Update outdated or incorrect tests to match current class behavior.
-- Do NOT change method signatures, namespaces, imports, or business logic in the source classes.
-- Keep all changes confined to the test suite.
+Strict Constraints
 
-Apply this consistently across all files in [TARGET_PATH].
+File Mapping & Conventions
+- Mirroring: Tests must be placed in a corresponding path within the `tests/` directory.
+    - *Example:* `app/Services/Analytics/ReportGenerator.php` → `tests/Feature/Services/Analytics/ReportGeneratorTest.php`
+- Naming: Use PascalCase for classes and descriptive snake_case for test methods starting with "test_".
+- Relationships: Ensure all Eloquent relations are accessed via **snake_case**.
+
+Data & State Management
+- Factory Builders: Use Laravel Factories for all database interactions.
+- State Logic: If a specific model state is required, do not manually override attributes in the test. Instead, enhance or create **Factory States** or **Builder methods** within the factory file.
+- Database: Always include `use RefreshDatabase;` or `use DatabaseTransactions;` as appropriate.
+
+Routing & Context
+- Route Inspection: Before generating Feature/Integration tests, inspect `app\routes\**` to ensure correct URI, Middleware, and HTTP Verb usage.
+- Service Container: Use `$this->mock()` or `$this->instance()` for external dependencies (ie google, xenforo, mail, or http), but prefer real execution for internal logic where possible.
+
+Permissions & Execution
+- Source Integrity: **DO NOT** modify any source code within the `app/` directory. 
+- Write Access: You have full permission to create/modify files in `tests/` and `database/factories/`.
+- Validation: Provide a **PowerShell** command to run the specific generated test (e.g., `php artisan test tests/Feature/Path/To/FileTest.php`).
+
+Workflow
+1. **Analyze: Identify the class dependencies and injected contracts.
+2. **Setup: Create/Update the necessary Factories and States.
+3. **Generate: Write the test file in the mirrored `tests/` path.
+4. **Verify: Output the PowerShell snippet to check the results.
 ```
 
 ## Clean up Usings
@@ -64,83 +102,52 @@ During this process:
 - ensure the workspace contains only the original project files after the refactor
 ```
 
-## Update PHPDoc Comments and Tests (would not recommend - split comment work from tests)
-
-This prompt audits and corrects PHPDoc across the selected controllers, updates their feature tests to match current behavior, and ensures every referenced Query and QueryHandler has proper unit test coverage—creating or adjusting tests as needed while keeping all changes scoped strictly to the files in context.
-
-```
-Work only with the files currently selected in the chat context, plus any
-Query or QueryHandler classes referenced by them.
-
-Perform the following tasks:
-
-1. PHPDoc Audit (Controllers)
-   - Review and correct all PHPDoc comments in the selected controller files.
-   - Ensure class-level and method-level PHPDoc accurately describe the code.
-   - Remove stale or incorrect annotations.
-   - Do not modify method signatures, logic, or namespaces.
-
-2. Controller Feature Tests
-   - Update the corresponding feature tests so they match the refactored controller behavior and structure.
-   - Fix any broken imports, route names, or expectations.
-   - Ensure the tests reflect the new MagicBusController pattern if relevant.
-
-3. Query & QueryHandler Unit Tests
-   - For any Query or QueryHandler referenced by these controllers, ensure there are proper unit tests.
-   - If tests exist, update them to match the current code.
-   - If tests do not exist, create new unit tests following the project's existing testing conventions.
-   - Do not modify the Query or Handler logic itself.
-
-Constraints:
-- Do not touch unrelated files.
-- Do not introduce new dependencies.
-- Keep all changes minimal, accurate, and aligned with the existing project style.
-
-Apply all edits automatically.
-```
-
 ## Update the Database Diagram
 
 This prompt generates a complete docs/DATABASE.md file, including table structures, column definitions, constraints, inferred relationships, and a Mermaid ER diagram visualizing table dependencies. The output provides an up‑to‑date, human‑readable reference for the database schema.
 
 ```
-You are operating inside a Laravel project. Your task is to analyze *all* migration files in the workspace and produce a complete docs/DATABASE.md file at the project root.
+Role & Objective
+You are a **Database Architect**. Your task is to perform a static analysis of all Laravel migration files and generate a definitive `/DATABASE.md` file that serves as the "Source of Truth" for the application's schema.
 
-Requirements:
+Configuration
+- Source Material: `database/migrations/*.php`
+- Output File: `/DATABASE.md`
+- Diagram Engine: Mermaid.js (`erDiagram`)
+- Naming Convention: Laravel Snake Case (Eloquent Standard)
 
-1. Scan every migration to determine:
-   - All tables created
-   - All columns and their types
-   - Primary keys, unique constraints, indexes
-   - Foreign keys and their referenced tables
-   - Pivot tables and many-to-many relationships
-   - Soft deletes, timestamps, morphs, and other Laravel helpers
+Strict Constraints
 
-2. Build a docs/DATABASE.md file containing:
-   - A high-level overview of the database structure
-   - A table-by-table breakdown with:
-     - Table name
-     - Purpose (infer from naming conventions)
-     - Columns with types and constraints
-     - Foreign keys and relationships
-     - Notes on pivot tables or polymorphic relations
+Analysis Requirements
+- Comprehensive Scan: Inspect every migration file to map:
+    - Tables, Columns, and Data Types (including `unsignedBigInteger`, `uuid`, etc.).
+    - Constraints: Primary Keys, Unique Indexes, and Spatial Indexes.
+    - Laravel Helpers: `softDeletes()`, `timestamps()`, `rememberToken()`, and `morphs()`.
+- Relationship Discovery: Identify Foreign Keys (`constrained()`), Pivot Tables (by name or `belongsToMany` logic), and Polymorphic relations.
 
-3. Include a Mermaid ER diagram showing table dependencies:
-   - Use `erDiagram` syntax
-   - Show relationships using correct cardinality
-   - Include all foreign key links discovered in migrations
+Documentation Structure
+The `docs/DATABASE.md` must contain:
+- Entity Relationship Diagram: A Mermaid `erDiagram` at the top. Use correct cardinality (e.g., `||--o{` for one-to-many).
+- High-Level Overview: A summary of the database's purpose and architectural style (e.g., "Standard Relational with Polymorphic Meta-tables").
+- Table Dictionary: A section for each table including:
+    - Purpose: Infer from table/column naming (e.g., `order_items` handles line items for purchases).
+    - Schema Table: A Markdown table listing Column, Type, Nullable, and Key constraints.
+    - Relationships: A bulleted list of "Belongs To," "Has Many," or "Morphs To" links.
 
-4. Formatting rules:
-   - Use clean GitHub-flavored Markdown
-   - Use headings, subheadings, and tables for clarity
-   - Place the Mermaid diagram near the top under an “Entity Relationship Diagram” section
-   - Do not modify any project files except creating/updating docs/DATABASE.md
+Formatting & Logic
+- No Hallucinations: Do not guess column names. Only document what is explicitly defined in the migrations.
+- Markdown Excellence: Use GitHub-flavored Markdown with clear heading hierarchies and code blocks for the Mermaid diagram.
+- Integrity: **DO NOT** modify any existing migration or application files. Only create or update `docs/DATABASE.md`.
 
-5. After generating the file, output the full contents of docs/DATABASE.md so I can review it before saving.
+Workflow
+1. **Inventory: List all discovered tables from the migrations.
+2. **Map: Trace foreign key paths to establish the Mermaid diagram logic.
+3. **Draft: Construct the table-by-table dictionary.
+4. **Finalize: Output the complete contents of `docs/DATABASE.md` for review.
 
-Do not guess table structures beyond what migrations define. Infer relationships only when foreign keys or naming conventions clearly indicate them.
-
-Begin by analyzing all migrations and then produce the complete docs/DATABASE.md content.
+Verification Command (PowerShell)
+To verify the migration files exist before starting:
+`Get-ChildItem -Path database/migrations -Filter *.php | Measure-Object`
 ```
 
 ## Ensure all files use strong type checks

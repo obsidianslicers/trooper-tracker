@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
 use App\Enums\EventTrooperStatus;
@@ -22,17 +24,39 @@ class EventTrooperFactory extends BaseEventTrooperFactory
         ]);
     }
 
-    public function withShift(EventShift $shift): static
+    public function forEventShift(EventShift $event_shift): static
     {
-        return $this->state(fn(array $attributes) => [
-            EventTrooper::EVENT_SHIFT_ID => $shift->id,
+        return $this->state(fn(array $attributes): array => [
+            EventTrooper::EVENT_SHIFT_ID => $event_shift->{EventShift::ID},
         ]);
     }
 
-    public function withTrooper(Trooper $trooper): static
+    public function forTrooper(Trooper $trooper): static
     {
-        return $this->state(fn(array $attributes) => [
-            EventTrooper::TROOPER_ID => $trooper->id,
+        return $this->state(fn(array $attributes): array => [
+            EventTrooper::TROOPER_ID => $trooper->{Trooper::ID},
+            EventTrooper::ADDED_BY_TROOPER_ID => $trooper->{Trooper::ID},
+        ]);
+    }
+
+    public function asGoing(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            EventTrooper::STATUS => EventTrooperStatus::GOING,
+        ]);
+    }
+
+    public function asAttended(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            EventTrooper::STATUS => EventTrooperStatus::ATTENDED,
+        ]);
+    }
+
+    public function withSignedUpAt(\Carbon\Carbon $date): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            EventTrooper::SIGNED_UP_AT => $date,
         ]);
     }
 }

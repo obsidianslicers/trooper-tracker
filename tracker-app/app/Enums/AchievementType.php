@@ -198,6 +198,39 @@ enum AchievementType: string
     }
 
     /**
+     * Get the display title for this achievement.
+     *
+     * Returns a Star Wars-themed title for the achievement based on its type.
+     * Includes the troop count and a thematic name for milestone achievements.
+     *
+     * @return string Human-readable achievement description
+     */
+    public function toDescription(): string
+    {
+        return match ($this)
+        {
+            self::TROOPED_ALL_SQUADS => 'All Squads - Sector Sweep',
+            self::TROOPER_SHIFTS => 'Total Trooper Shifts',
+
+            self::FIRST_TROOP => 'First Troop - Combat Readiness Citation',
+            self::TROOPED_10 => '10 Troops - Frontier Service Ribbon',
+            self::TROOPED_25 => '25 Troops - Garrison Duty Excellence Medal',
+            self::TROOPED_50 => '50 Troops - Imperial Medal of Valor',
+            self::TROOPED_75 => '75 Troops - Distinguished Service Cross',
+            self::TROOPED_100 => '100 Troops - Centurion Legionary Bar',
+            self::TROOPED_150 => '150 Troops - Campaign Heroism Star',
+            self::TROOPED_200 => '200 Troops - Order of the Imperial Wing',
+            self::TROOPED_250 => '250 Troops - High Command Merit Badge',
+            self::TROOPED_300 => '300 Troops - Grand Admiral\'s Citation',
+            self::TROOPED_400 => '400 Troops - Medal of the Emperor\'s Will',
+            self::TROOPED_500 => '500 Troops - Honor of the Galactic Empire',
+            self::TROOPED_501 => '501 Troops - Vader\'s Fist - Legion of Honor',
+
+            default => to_title($this->name)->toString(),
+        };
+    }
+
+    /**
      * Check if this achievement is a metric (continuous statistic).
      *
      * Metrics track ongoing statistics like total shifts, hours, or funds raised.

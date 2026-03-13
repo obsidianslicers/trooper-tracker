@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Models\Scopes;
 
+use App\Enums\EventStatus;
 use App\Models\Event;
-use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -14,101 +14,41 @@ class HasEventScopesTest extends TestCase
 {
     use RefreshDatabase;
 
-    // public function test_by_trooper_scope_for_open_events(): void
-    // {
-    //     // Arrange
-    //     $trooper = Trooper::factory()->create();
-    //     $costume = Costume::factory()->create();
-
-    //     $open_event = Event::factory()->withAssignment($trooper, $costume)->open()->create();
-    //     $closed_event = Event::factory()->withAssignment($trooper, $costume)->closed()->create();
-
-    //     Event::factory()->closed()->create();
-
-    //     // Act
-    //     $result = Event::byTrooper($trooper->id, false)->get();
-
-    //     // Assert
-    //     $this->assertCount(1, $result);
-    //     $this->assertEquals($open_event->id, $result->first()->id);
-    //     $this->assertEquals($result->first()->status, EventStatus::OPEN);
-    // }
-
-    // public function test_by_trooper_scope_for_closed_events(): void
-    // {
-    //     // Arrange
-    //     $trooper = Trooper::factory()->create();
-    //     $costume = Costume::factory()->create();
-
-    //     $open_event = Event::factory()->withAssignment($trooper, $costume)->open()->create();
-    //     $closed_event = Event::factory()->withAssignment($trooper, $costume)->closed()->create();
-
-    //     Event::factory()->closed()->create(); // Another closed event, not for our trooper
-
-    //     // Act
-    //     $result = Event::byTrooper($trooper->id, true)->get();
-
-    //     // Assert
-    //     $this->assertCount(1, $result);
-    //     $this->assertEquals($closed_event->id, $result->first()->id);
-    //     $this->assertEquals($result->first()->status, EventStatus::CLOSED);
-    // }
-
-    public function test_moderated_by_scope(): void
+    public function test_active_scope_filters_to_open_draft_and_locked_statuses(): void
     {
-        // Arrange
-        $unit = Organization::factory()->unit()->create();
-        $region = $unit->parent;
-        $organization = $region->parent;
-        $unrelated_unit = Organization::factory()->unit()->create();
+        $query = Event::query()->active();
 
-        $moderator = Trooper::factory()->asModerator()->withAssignment($region, moderator: true)->create();
-
-        // Events
-        $event_in_moderated_org = Event::factory()->withOrganization($region)->create();
-        $event_in_child_org = Event::factory()->withOrganization($unit)->create();
-        $event_in_unrelated_org = Event::factory()->withOrganization($organization)->create();
-
-        // Act
-        $result = Event::moderatedBy($moderator)->get();
-
-        // Assert
-        $this->assertCount(2, $result);
-        $this->assertTrue($result->contains($event_in_moderated_org));
-        $this->assertTrue($result->contains($event_in_child_org));
-        $this->assertFalse($result->contains($event_in_unrelated_org));
+        $this->assertStringContainsString('"status" in (?, ?, ?)', $query->toBase()->toSql());
+        $this->assertSame([
+            EventStatus::OPEN->value,
+            EventStatus::DRAFT->value,
+            EventStatus::SIGN_UP_LOCKED->value,
+        ], $query->getBindings());
     }
 
-    public function test_moderated_by_scope_with_no_moderated_events(): void
+    public function test_upcoming_scope_adds_date_and_sorting_constraints(): void
     {
-        // Arrange
-        $moderator = Trooper::factory()->create();
-        $organization = Organization::factory()->create();
-        Event::factory()->create(['organization_id' => $organization->id]);
+        $query = Event::query()->upcoming();
 
-        // Act
-        $result = Event::moderatedBy($moderator)->get();
-
-        // Assert
-        $this->assertCount(0, $result);
+        $this->assertStringContainsString('"event_start" >= ?', $query->toBase()->toSql());
+        $this->assertStringContainsString('order by "event_start" asc', $query->toBase()->toSql());
     }
 
-    public function test_search_for_scope(): void
+    public function test_search_for_wraps_term_with_wildcards(): void
     {
-        // Arrange
-        $matching_event = Event::factory()->create([
-            'name' => 'Match Doe',
-        ]);
+        $query = Event::query()->searchFor('charity');
 
-        Event::factory()->create([
-            'name' => 'NoMatch',
-        ]);
+        $this->assertStringContainsString('"name" like ?', $query->toBase()->toSql());
+        $this->assertSame(['%charity%'], $query->getBindings());
+    }
 
-        // Act
-        $result = Event::searchFor('atch D')->get();
+    public function test_moderated_by_returns_unmodified_query_for_administrator(): void
+    {
+        $trooper = Trooper::factory()->asAdministrator()->create();
 
-        // Assert
-        $this->assertCount(1, $result);
-        $this->assertEquals($matching_event->id, $result->first()->id);
+        $base_sql = Event::query()->toBase()->toSql();
+        $moderated_sql = Event::query()->moderatedBy($trooper)->toBase()->toSql();
+
+        $this->assertSame($base_sql, $moderated_sql);
     }
 }

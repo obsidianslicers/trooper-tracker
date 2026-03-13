@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Models\Organization;
-use App\Services\Synchronizers\TheLegionService;
 use Carbon\CarbonInterval;
 use Illuminate\Console\Command;
 use Illuminate\Support\Benchmark;
@@ -35,13 +34,10 @@ class SynchronizeOrganizations extends Command
 
     /**
      * Execute the console command.
-     *
-     * @return void
      */
     public function handle(): void
     {
-        $ms = Benchmark::measure(function ()
-        {
+        $ms = Benchmark::measure(function () {
             $organizations = Organization::ofTypeOrganizations()
                 ->whereNotNull(Organization::SERVICE_CLASS)
                 ->orderByDesc(Organization::NAME)
@@ -55,7 +51,7 @@ class SynchronizeOrganizations extends Command
 
                 $service_class = app($service_class, compact('organization'));
 
-                $time = Benchmark::measure(fn() => $service_class->run());
+                $time = Benchmark::measure(fn () => $service_class->run());
 
                 $readable = CarbonInterval::millisecond($time)->cascade()->forHumans();
 

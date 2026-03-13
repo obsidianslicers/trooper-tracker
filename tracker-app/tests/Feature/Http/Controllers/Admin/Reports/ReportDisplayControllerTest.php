@@ -12,31 +12,20 @@ class ReportDisplayControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_invoke_requires_moderator_or_administrator(): void
+    public function test_invoke_displays_reports_dashboard_for_admin(): void
     {
-        $trooper = Trooper::factory()->asActive()->create();
+        $trooper = Trooper::factory()->asAdministrator()->create();
 
         $response = $this->actingAs($trooper)->get(route('admin.reports.display'));
-
-        $response->assertForbidden();
-    }
-
-    public function test_invoke_displays_reports_menu_view(): void
-    {
-        $moderator = Trooper::factory()->asModerator()->create();
-
-        $response = $this->actingAs($moderator)->get(route('admin.reports.display'));
 
         $response->assertOk();
         $response->assertViewIs('pages.admin.reports.display');
     }
 
-    public function test_invoke_administrator_can_access(): void
+    public function test_invoke_requires_authentication(): void
     {
-        $administrator = Trooper::factory()->asAdministrator()->create();
+        $response = $this->get(route('admin.reports.display'));
 
-        $response = $this->actingAs($administrator)->get(route('admin.reports.display'));
-
-        $response->assertOk();
+        $response->assertRedirect(route('auth.login'));
     }
 }

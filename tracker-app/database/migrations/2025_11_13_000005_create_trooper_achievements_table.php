@@ -21,7 +21,7 @@ return new class extends Migration
 
             $table->string('type', 64);
             $table->string('value', 64)->nullable();
-            $table->date('earned_on')->nullable();
+            $table->date('achievement_date')->nullable();
 
             $table->timestamps();
             $table->softDeletes();

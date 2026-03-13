@@ -9,7 +9,7 @@
 -->
 [![Laravel Style](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/pint.yml/badge.svg)](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/pint.yml)
 
-[![Laravel Stan](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/phpstan.yml/badge.svg)](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/phpstan.yml)
+[![Laravel Tests](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/tests.yml/badge.svg)](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/tests.yml)
 
 ---
 
@@ -20,6 +20,8 @@ This project remains under active development, which is to say it currently exis
 Progress continues at a pace deemed acceptable by the Empire. New features, refinements, and the occasional miracle will be deployed as they reach a state worthy of consumption. Garrison Liasons are encouraged to return in approximately one month to witness the next phase of sanctioned advancement. Until then, patience is not only advised — it is expected.
 
 Update Feb 18th: Despite rumors to the contrary, progress has not stalled. In fact, the project currently stands at an estimated 85% operational readiness, supported by a test suite now exceeding 2,000 trials of loyalty. Minor rebellions within the codebase are being suppressed with appropriate vigor. Observers may take this as a sign that stability is approaching, though only the Empire may determine when "approaching" becomes "arrived." Sensible personnel are advised to check back in roughly one month for the next sanctioned update, assuming the system has not evolved beyond the need for such courtesies.
+
+Update Mar 8th: Troop Tracker edges ever closer to UAT, with performance‑rebellious tests being rewritten, optimized, and reminded of their place in the hierarchy; work continues on the configurable XenForo integration, ensuring it can ultimately operate either as a seamless Imperial fusion or a proudly isolationist standalone deployment; and the visual command interfaces have been refreshed with updated Stormtrooper, Bounty Hunter, Rebel, Clone, and Sith themes, each calibrated for maximum intimidation, usability, or in the case of Rebels, remedial hand‑holding — overall, stability is rising, features are aligning, and the system marches toward UAT with the slow, inevitable certainty of an Imperial Star Destroyer entering orbit.
 
 ---
 

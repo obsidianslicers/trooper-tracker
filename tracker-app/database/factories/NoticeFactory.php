@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
 use App\Enums\NoticeType;
@@ -22,34 +24,53 @@ class NoticeFactory extends BaseNoticeFactory
         ]);
     }
 
-    public function active(): static
-    {
-        return $this->state(fn(array $attributes) => [
-            Notice::STARTS_AT => Carbon::now()->subDay(),
-            Notice::ENDS_AT => Carbon::now()->addDays(7),
-        ]);
-    }
-
-    public function future(): static
-    {
-        return $this->state(fn(array $attributes) => [
-            Notice::STARTS_AT => Carbon::now()->addDay(),
-            Notice::ENDS_AT => Carbon::now()->addDays(7),
-        ]);
-    }
-
-    public function past(): static
-    {
-        return $this->state(fn(array $attributes) => [
-            Notice::STARTS_AT => Carbon::now()->subDays(8),
-            Notice::ENDS_AT => Carbon::now()->subDays(7),
-        ]);
-    }
-
     public function withOrganization(Organization $organization): static
     {
-        return $this->state(fn(array $attributes) => [
-            Notice::ORGANIZATION_ID => $organization,
+        return $this->state(fn(array $attributes): array => [
+            Notice::ORGANIZATION_ID => $organization->{Organization::ID},
+        ]);
+    }
+
+    public function forOrganization(Organization $organization): static
+    {
+        return $this->withOrganization($organization);
+    }
+
+    public function asGlobal(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Notice::ORGANIZATION_ID => null,
+        ]);
+    }
+
+    public function asActive(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Notice::STARTS_AT => Carbon::now()->subDay(),
+            Notice::ENDS_AT => Carbon::now()->addWeek(),
+        ]);
+    }
+
+    public function asPast(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Notice::STARTS_AT => Carbon::now()->subWeek(),
+            Notice::ENDS_AT => Carbon::now()->subDay(),
+        ]);
+    }
+
+    public function asFuture(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Notice::STARTS_AT => Carbon::now()->addDay(),
+            Notice::ENDS_AT => Carbon::now()->addWeek(),
+        ]);
+    }
+
+    public function withTitle(string $title): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Notice::TITLE => $title,
         ]);
     }
 }

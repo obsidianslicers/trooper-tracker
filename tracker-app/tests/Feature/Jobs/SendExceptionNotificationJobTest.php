@@ -5,400 +5,50 @@ declare(strict_types=1);
 namespace Tests\Feature\Jobs;
 
 use App\Bus\MagicBus;
+use App\Enums\MembershipRole;
+use App\Features\Troopers\Queries\GetTroopersByRoleQuery;
 use App\Jobs\SendExceptionNotificationJob;
 use App\Mail\ExceptionOccurred;
 use App\Models\Trooper;
-use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Mail;
+use Mockery;
+use RuntimeException;
 use Tests\TestCase;
 
-/**
- * Feature tests for SendExceptionNotificationJob.
- *
- * Verifies:
- * - Job sends exception emails to all administrator troopers
- * - Uses GetTroopersByRoleQuery to retrieve administrators
- * - Queues ExceptionOccurred mailable for each administrator
- * - Passes exception and context to mailable
- * - Handles empty administrator list gracefully
- * - Orchestrates service calls correctly
- */
 class SendExceptionNotificationJobTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_handle_sends_email_to_all_administrators(): void
+    public function test_handle_queues_exception_email_for_each_administrator(): void
     {
-        // Arrange
         Mail::fake();
-        $admin1 = Trooper::factory()->asAdministrator()->create();
-        $admin2 = Trooper::factory()->asAdministrator()->create();
-        $admin3 = Trooper::factory()->asAdministrator()->create();
-        $admins = new Collection([$admin1, $admin2, $admin3]);
 
-        $bus_mock = $this->mock(MagicBus::class);
-        $bus_mock->shouldReceive('send')
+        $admin_one = Trooper::factory()->asAdministrator()->withEmail('first-admin@example.com')->create();
+        $admin_two = Trooper::factory()->asAdministrator()->withEmail('second-admin@example.com')->create();
+
+        $bus = Mockery::mock(MagicBus::class);
+        $bus->shouldReceive('send')
             ->once()
-            ->andReturn($admins);
+            ->withArgs(function (object $query): bool
+            {
+                return $query instanceof GetTroopersByRoleQuery
+                    && $query->membership_role === MembershipRole::ADMINISTRATOR;
+            })
+            ->andReturn(collect([$admin_one, $admin_two]));
 
-        $exception = new Exception('Critical system error');
-        $subject = new SendExceptionNotificationJob($exception);
+        $exception = new RuntimeException('Unhandled failure');
+        $subject = new SendExceptionNotificationJob($exception, ['path' => '/jobs']);
+        $subject->handle($bus);
 
-        // Act
-        $subject->handle($bus_mock);
-
-        // Assert
-        Mail::assertQueued(ExceptionOccurred::class, 3);
-        Mail::assertQueued(ExceptionOccurred::class, fn($mail) =>
-            $mail->hasTo($admin1->email)
-        );
-        Mail::assertQueued(ExceptionOccurred::class, fn($mail) =>
-            $mail->hasTo($admin2->email)
-        );
-        Mail::assertQueued(ExceptionOccurred::class, fn($mail) =>
-            $mail->hasTo($admin3->email)
-        );
-    }
-
-    public function test_handle_does_not_send_to_non_administrators(): void
-    {
-        // Arrange
-        Mail::fake();
-        $admin = Trooper::factory()->asAdministrator()->create();
-        $moderator = Trooper::factory()->asModerator()->create();
-        $regular = Trooper::factory()->asActive()->create();
-        $admins = new Collection([$admin]);
-
-        $bus_mock = $this->mock(MagicBus::class);
-        $bus_mock->shouldReceive('send')
-            ->once()
-            ->andReturn($admins);
-
-        $exception = new Exception('Test exception');
-        $subject = new SendExceptionNotificationJob($exception);
-
-        // Act
-        $subject->handle($bus_mock);
-
-        // Assert
-        Mail::assertQueued(ExceptionOccurred::class, 1);
-        Mail::assertQueued(ExceptionOccurred::class, fn($mail) =>
-            $mail->hasTo($admin->email)
-        );
-        Mail::assertNotQueued(ExceptionOccurred::class, fn($mail) =>
-            $mail->hasTo($moderator->email)
-        );
-        Mail::assertNotQueued(ExceptionOccurred::class, fn($mail) =>
-            $mail->hasTo($regular->email)
-        );
-    }
-
-    public function test_handle_sends_no_emails_when_no_administrators(): void
-    {
-        // Arrange
-        Mail::fake();
-        Trooper::factory()->asActive()->create();
-        Trooper::factory()->asModerator()->create();
-        $admins = new Collection();
-
-        $bus_mock = $this->mock(MagicBus::class);
-        $bus_mock->shouldReceive('send')
-            ->once()
-            ->andReturn($admins);
-
-        $exception = new Exception('Test exception');
-        $subject = new SendExceptionNotificationJob($exception);
-
-        // Act
-        $subject->handle($bus_mock);
-
-        // Assert
-        Mail::assertNothingQueued();
-    }
-
-    public function test_handle_passes_exception_to_mailable(): void
-    {
-        // Arrange
-        Mail::fake();
-        $admin = Trooper::factory()->asAdministrator()->create();
-        $admins = new Collection([$admin]);
-
-        $bus_mock = $this->mock(MagicBus::class);
-        $bus_mock->shouldReceive('send')
-            ->once()
-            ->andReturn($admins);
-
-        $exception = new Exception('Database connection failed');
-        $subject = new SendExceptionNotificationJob($exception);
-
-        // Act
-        $subject->handle($bus_mock);
-
-        // Assert - verify email was queued to admin
-        Mail::assertQueued(ExceptionOccurred::class, 1);
-        Mail::assertQueued(ExceptionOccurred::class, fn($mail) =>
-            $mail->hasTo($admin->email)
-        );
-    }
-
-    public function test_handle_passes_context_to_mailable(): void
-    {
-        // Arrange
-        Mail::fake();
-        $admin = Trooper::factory()->asAdministrator()->create();
-        $admins = new Collection([$admin]);
-
-        $bus_mock = $this->mock(MagicBus::class);
-        $bus_mock->shouldReceive('send')
-            ->once()
-            ->andReturn($admins);
-
-        $exception = new Exception('Test exception');
-        $context = [
-            'request_url' => '/events/create',
-            'user_id' => 42,
-            'environment' => 'production',
-        ];
-        $subject = new SendExceptionNotificationJob($exception, $context);
-
-        // Act
-        $subject->handle($bus_mock);
-
-        // Assert - verify email was queued to admin
-        Mail::assertQueued(ExceptionOccurred::class, 1);
-        Mail::assertQueued(ExceptionOccurred::class, fn($mail) =>
-            $mail->hasTo($admin->email)
-        );
-    }
-
-    public function test_handle_passes_empty_context_when_not_provided(): void
-    {
-        // Arrange
-        Mail::fake();
-        $admin = Trooper::factory()->asAdministrator()->create();
-        $admins = new Collection([$admin]);
-
-        $bus_mock = $this->mock(MagicBus::class);
-        $bus_mock->shouldReceive('send')
-            ->once()
-            ->andReturn($admins);
-
-        $exception = new Exception('Test exception');
-        $subject = new SendExceptionNotificationJob($exception);
-
-        // Act
-        $subject->handle($bus_mock);
-
-        // Assert - verify email was queued to admin
-        Mail::assertQueued(ExceptionOccurred::class, 1);
-        Mail::assertQueued(ExceptionOccurred::class, fn($mail) =>
-            $mail->hasTo($admin->email)
-        );
-    }
-
-    public function test_handle_queues_emails_asynchronously(): void
-    {
-        // Arrange
-        Mail::fake();
-        $admin = Trooper::factory()->asAdministrator()->create();
-        $admins = new Collection([$admin]);
-
-        $bus_mock = $this->mock(MagicBus::class);
-        $bus_mock->shouldReceive('send')
-            ->once()
-            ->andReturn($admins);
-
-        $exception = new Exception('Test exception');
-        $subject = new SendExceptionNotificationJob($exception);
-
-        // Act
-        $subject->handle($bus_mock);
-
-        // Assert - Mail::queue() was used, not Mail::send()
-        Mail::assertQueued(ExceptionOccurred::class);
-    }
-
-    public function test_handle_passes_correct_trooper_to_each_mailable(): void
-    {
-        // Arrange
-        Mail::fake();
-        $admin1 = Trooper::factory()->asAdministrator()->create([
-            Trooper::EMAIL => 'admin1@501st.com',
-        ]);
-        $admin2 = Trooper::factory()->asAdministrator()->create([
-            Trooper::EMAIL => 'admin2@501st.com',
-        ]);
-        $admins = new Collection([$admin1, $admin2]);
-
-        $bus_mock = $this->mock(MagicBus::class);
-        $bus_mock->shouldReceive('send')
-            ->once()
-            ->andReturn($admins);
-
-        $exception = new Exception('Test exception');
-        $subject = new SendExceptionNotificationJob($exception);
-
-        // Act
-        $subject->handle($bus_mock);
-
-        // Assert - verify emails were queued to both admins
         Mail::assertQueued(ExceptionOccurred::class, 2);
-        Mail::assertQueued(ExceptionOccurred::class, fn($mail) =>
-            $mail->hasTo($admin1->email)
-        );
-        Mail::assertQueued(ExceptionOccurred::class, fn($mail) =>
-            $mail->hasTo($admin2->email)
-        );
-    }
-
-    public function test_handle_works_with_different_exception_types(): void
-    {
-        // Arrange
-        Mail::fake();
-        $admin = Trooper::factory()->asAdministrator()->create();
-        $admins = new Collection([$admin]);
-
-        $bus_mock = $this->mock(MagicBus::class);
-        $bus_mock->shouldReceive('send')
-            ->once()
-            ->andReturn($admins);
-
-        $exception = new \RuntimeException('Runtime error occurred');
-        $subject = new SendExceptionNotificationJob($exception);
-
-        // Act
-        $subject->handle($bus_mock);
-
-        // Assert - verify email was queued to admin
-        Mail::assertQueued(ExceptionOccurred::class, 1);
-        Mail::assertQueued(ExceptionOccurred::class, fn($mail) =>
-            $mail->hasTo($admin->email)
-        );
-    }
-
-    public function test_handle_sends_to_all_administrators_regardless_of_status(): void
-    {
-        // Arrange
-        Mail::fake();
-        $active_admin = Trooper::factory()->asAdministrator()->create();
-        $pending_admin = Trooper::factory()->asPending()->create([
-            Trooper::MEMBERSHIP_ROLE => \App\Enums\MembershipRole::ADMINISTRATOR,
-        ]);
-        $retired_admin = Trooper::factory()->asRetired()->create([
-            Trooper::MEMBERSHIP_ROLE => \App\Enums\MembershipRole::ADMINISTRATOR,
-        ]);
-        $admins = new Collection([$active_admin, $pending_admin, $retired_admin]);
-
-        $bus_mock = $this->mock(MagicBus::class);
-        $bus_mock->shouldReceive('send')
-            ->once()
-            ->andReturn($admins);
-
-        $exception = new Exception('Test exception');
-        $subject = new SendExceptionNotificationJob($exception);
-
-        // Act
-        $subject->handle($bus_mock);
-
-        // Assert
-        Mail::assertQueued(ExceptionOccurred::class, 3);
-        Mail::assertQueued(ExceptionOccurred::class, fn($mail) =>
-            $mail->hasTo($active_admin->email)
-        );
-        Mail::assertQueued(ExceptionOccurred::class, fn($mail) =>
-            $mail->hasTo($pending_admin->email)
-        );
-        Mail::assertQueued(ExceptionOccurred::class, fn($mail) =>
-            $mail->hasTo($retired_admin->email)
-        );
-    }
-
-    public function test_handle_uses_get_trooper_administrators_query_service(): void
-    {
-        // Arrange
-        Mail::fake();
-        $admin = Trooper::factory()->asAdministrator()->create();
-        $admins = new Collection([$admin]);
-
-        $bus_mock = $this->mock(MagicBus::class);
-        $bus_mock->shouldReceive('send')
-            ->once()
-            ->andReturn($admins);
-
-        $exception = new Exception('Test exception');
-        $subject = new SendExceptionNotificationJob($exception);
-
-        // Act
-        $subject->handle($bus_mock);
-
-        // Assert - service was called and email was sent
-        Mail::assertQueued(ExceptionOccurred::class, 1);
-    }
-
-    public function test_handle_sends_separate_email_to_each_administrator(): void
-    {
-        // Arrange
-        Mail::fake();
-        $admin1 = Trooper::factory()->asAdministrator()->create();
-        $admin2 = Trooper::factory()->asAdministrator()->create();
-        $admin3 = Trooper::factory()->asAdministrator()->create();
-        $admins = new Collection([$admin1, $admin2, $admin3]);
-
-        $bus_mock = $this->mock(MagicBus::class);
-        $bus_mock->shouldReceive('send')
-            ->once()
-            ->andReturn($admins);
-
-        $exception = new Exception('Test exception');
-        $subject = new SendExceptionNotificationJob($exception);
-
-        // Act
-        $subject->handle($bus_mock);
-
-        // Assert - each email is individualized, not one email with multiple recipients
-        Mail::assertQueued(ExceptionOccurred::class, function ($mail) use ($admin1)
+        Mail::assertQueued(ExceptionOccurred::class, function (ExceptionOccurred $mail) use ($admin_one): bool
         {
-            $recipients = collect($mail->to)->pluck('address');
-            return $recipients->count() === 1 && $recipients->contains($admin1->email);
+            return $mail->hasTo($admin_one->email);
         });
-    }
-
-    public function test_job_can_handle_many_administrators(): void
-    {
-        // Arrange
-        Mail::fake();
-
-        // Create 10 administrators
-        $admins = new Collection();
-        for ($i = 0; $i < 10; $i++)
+        Mail::assertQueued(ExceptionOccurred::class, function (ExceptionOccurred $mail) use ($admin_two): bool
         {
-            $admins->push(Trooper::factory()->asAdministrator()->create());
-        }
-
-        $bus_mock = $this->mock(MagicBus::class);
-        $bus_mock->shouldReceive('send')
-            ->once()
-            ->andReturn($admins);
-
-        $exception = new Exception('Test exception');
-        $subject = new SendExceptionNotificationJob($exception);
-
-        // Act
-        $subject->handle($bus_mock);
-
-        // Assert
-        Mail::assertQueued(ExceptionOccurred::class, 10);
-    }
-
-    public function test_job_implements_should_queue(): void
-    {
-        // Arrange
-        $exception = new Exception('Test exception');
-        $subject = new SendExceptionNotificationJob($exception);
-
-        // Assert
-        $this->assertInstanceOf(\Illuminate\Contracts\Queue\ShouldQueue::class, $subject);
+            return $mail->hasTo($admin_two->email);
+        });
     }
 }

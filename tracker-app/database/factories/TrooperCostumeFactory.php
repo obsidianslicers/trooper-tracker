@@ -1,7 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
+use App\Models\OrganizationCostume;
+use App\Models\Trooper;
+use App\Models\TrooperCostume;
 use Database\Factories\Base\TrooperCostumeFactory as BaseTrooperCostumeFactory;
 
 class TrooperCostumeFactory extends BaseTrooperCostumeFactory
@@ -15,5 +20,34 @@ class TrooperCostumeFactory extends BaseTrooperCostumeFactory
     {
         return array_merge(parent::definition(), [
         ]);
+    }
+
+    public function forTrooper(Trooper $trooper): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            TrooperCostume::TROOPER_ID => $trooper->{Trooper::ID},
+        ]);
+    }
+
+    public function forOrganizationCostume(OrganizationCostume $organization_costume): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            TrooperCostume::ORGANIZATION_COSTUME_ID => $organization_costume->{OrganizationCostume::ID},
+        ]);
+    }
+
+    public function forCostume(\App\Models\Costume $costume): static
+    {
+        $organization_costume = OrganizationCostume::where('costume_id', $costume->id)->first();
+
+        if (!$organization_costume)
+        {
+            $organization_costume = OrganizationCostume::factory()
+                ->forCostume($costume)
+                ->forOrganization(\App\Models\Organization::factory()->create())
+                ->create();
+        }
+
+        return $this->forOrganizationCostume($organization_costume);
     }
 }

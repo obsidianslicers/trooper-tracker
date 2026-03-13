@@ -15,6 +15,7 @@ use App\Models\EventUpload;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
+use App\Models\TrooperAssignment;
 use App\Models\TrooperCostume;
 use App\Models\TrooperDonation;
 use Illuminate\Support\Collection;
@@ -80,6 +81,22 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
         $organizations = $trooper->organizations()
             ->orderBy(Organization::NAME)
             ->get();
+
+        $assignments = $trooper->trooper_assignments()
+            ->with('organization')
+            ->where(TrooperAssignment::IS_MEMBER, true)
+            ->get();
+
+        foreach ($organizations as $organization)
+        {
+            foreach ($assignments as $assignment)
+            {
+                if (str_starts_with($assignment->organization->node_path, $organization->node_path))
+                {
+                    $organization->assignment = $assignment;
+                }
+            }
+        }
 
         return $organizations;
     }

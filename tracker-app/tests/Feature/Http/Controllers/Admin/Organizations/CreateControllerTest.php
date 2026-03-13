@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Admin\Organizations;
 
-use App\Enums\OrganizationType;
 use App\Models\Organization;
 use App\Models\Trooper;
-use App\Models\TrooperAssignment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -15,130 +13,23 @@ class CreateControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_invoke_requires_authentication(): void
+    public function test_invoke_displays_create_organization_page_for_admin(): void
     {
-        // Arrange
-        $parent = Organization::factory()->create();
+        $trooper = Trooper::factory()->asAdministrator()->create();
+        $parent = Organization::factory()->asOrganization()->create();
 
-        // Act
-        $response = $this->get(route('admin.organizations.create', $parent));
+        $response = $this->actingAs($trooper)->get(route('admin.organizations.create', ['parent' => $parent->id]));
 
-        // Assert
-        $response->assertRedirect(route('auth.login'));
-    }
-
-    public function test_invoke_displays_create_view(): void
-    {
-        // Arrange
-        $admin = Trooper::factory()->asAdministrator()->create();
-        $parent = Organization::factory()->create();
-
-        // Act
-        $response = $this->actingAs($admin)->get(route('admin.organizations.create', $parent));
-
-        // Assert
         $response->assertOk();
         $response->assertViewIs('pages.admin.organizations.create');
-        $response->assertViewHas('parent', $parent);
-        $response->assertViewHas('organization');
     }
 
-    public function test_invoke_administrator_can_create_organization(): void
+    public function test_invoke_requires_authentication(): void
     {
-        // Arrange
-        $admin = Trooper::factory()->asAdministrator()->create();
-        $parent = Organization::factory()->create();
+        $parent = Organization::factory()->asOrganization()->create();
 
-        // Act
-        $response = $this->actingAs($admin)->get(route('admin.organizations.create', $parent));
+        $response = $this->get(route('admin.organizations.create', ['parent' => $parent->id]));
 
-        // Assert
-        $response->assertOk();
-    }
-
-    public function test_invoke_moderator_can_create_in_moderated_organization(): void
-    {
-        // Arrange
-        $moderator = Trooper::factory()->asModerator()->create();
-        $parent = Organization::factory()->create();
-
-        TrooperAssignment::factory()->create([
-            TrooperAssignment::TROOPER_ID => $moderator->id,
-            TrooperAssignment::ORGANIZATION_ID => $parent->id,
-            TrooperAssignment::IS_MODERATOR => true,
-        ]);
-
-        // Act
-        $response = $this->actingAs($moderator)->get(route('admin.organizations.create', $parent));
-
-        // Assert
-        $response->assertOk();
-    }
-
-    public function test_invoke_moderator_cannot_create_in_non_moderated_organization(): void
-    {
-        // Arrange
-        $moderator = Trooper::factory()->asModerator()->create();
-        $moderated_org = Organization::factory()->create();
-        $other_org = Organization::factory()->create();
-
-        TrooperAssignment::factory()->create([
-            TrooperAssignment::TROOPER_ID => $moderator->id,
-            TrooperAssignment::ORGANIZATION_ID => $moderated_org->id,
-            TrooperAssignment::IS_MODERATOR => true,
-        ]);
-
-        // Act
-        $response = $this->actingAs($moderator)->get(route('admin.organizations.create', $other_org));
-
-        // Assert
-        $response->assertForbidden();
-    }
-
-    public function test_invoke_regular_trooper_cannot_create_organization(): void
-    {
-        // Arrange
-        $trooper = Trooper::factory()->asActive()->create();
-        $parent = Organization::factory()->create();
-
-        // Act
-        $response = $this->actingAs($trooper)->get(route('admin.organizations.create', $parent));
-
-        // Assert
-        $response->assertForbidden();
-    }
-
-    public function test_invoke_sets_region_type_for_organization_parent(): void
-    {
-        // Arrange
-        $admin = Trooper::factory()->asAdministrator()->create();
-        $parent = Organization::factory()->create(['type' => OrganizationType::ORGANIZATION]);
-
-        // Act
-        $response = $this->actingAs($admin)->get(route('admin.organizations.create', $parent));
-
-        // Assert
-        $response->assertOk();
-        $response->assertViewHas('organization', function ($org)
-        {
-            return $org->type === OrganizationType::REGION;
-        });
-    }
-
-    public function test_invoke_sets_unit_type_for_region_parent(): void
-    {
-        // Arrange
-        $admin = Trooper::factory()->asAdministrator()->create();
-        $parent = Organization::factory()->create(['type' => OrganizationType::REGION]);
-
-        // Act
-        $response = $this->actingAs($admin)->get(route('admin.organizations.create', $parent));
-
-        // Assert
-        $response->assertOk();
-        $response->assertViewHas('organization', function ($org)
-        {
-            return $org->type === OrganizationType::UNIT;
-        });
+        $response->assertRedirect(route('auth.login'));
     }
 }

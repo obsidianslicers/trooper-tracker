@@ -240,17 +240,17 @@ class Trooper extends BaseTrooper implements
 
         return match (true)
         {
-            $rank === 1 => 'Grand Moff',
-            $rank <= 2 => 'Moff',
-            $rank <= 4 => 'General',
-            $rank <= 8 => 'Colonel',
-            $rank <= 16 => 'Major',
-            $rank <= 32 => 'Captain',
-            $rank <= 64 => 'Lieutenant',
-            $rank <= 128 => 'Sergeant Major',
-            $rank <= 256 => 'Sergeant',
-            $rank <= 512 => 'Corporal',
-            $rank <= 1024 => 'Trooper',
+            $rank === 1 => 'Grand Moff',        //  1 Grand Moff
+            $rank <= 3 => 'Moff',               //  2 Moffs
+            $rank <= 7 => 'General',            //  4 Generals
+            $rank <= 15 => 'Colonel',           //  8 Colonels
+            $rank <= 31 => 'Major',             //  16 Majors
+            $rank <= 63 => 'Captain',           //  32 Captains
+            $rank <= 127 => 'Lieutenant',       //  64 Lieutenants
+            $rank <= 255 => 'Sergeant Major',   // 128 Sergeant Majors
+            $rank <= 511 => 'Sergeant',         // 256 Sergeants
+            $rank <= 1023 => 'Corporal',        // 512 Corporals
+            $rank <= 2047 => 'Trooper',         // 1024 Troopers
             default => 'Recruit',
         };
     }

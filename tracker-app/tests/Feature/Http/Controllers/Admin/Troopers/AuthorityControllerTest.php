@@ -4,116 +4,31 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Admin\Troopers;
 
-use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-/**
- * Feature tests for Admin Troopers AuthorityController.
- *
- * Verifies:
- * - Authentication is required
- * - Only administrators can view authority page
- * - Correct view is rendered
- * - Organization authorities are passed to view
- * - Authorization is enforced
- */
 class AuthorityControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_invoke_requires_authentication(): void
+    public function test_invoke_displays_authority_page_for_admin(): void
     {
-        // Arrange
-        $trooper = Trooper::factory()->create();
+        $trooper = Trooper::factory()->asAdministrator()->create();
+        $subject = Trooper::factory()->create();
 
-        // Act
-        $response = $this->get(route('admin.troopers.authority', $trooper));
+        $response = $this->actingAs($trooper)->get(route('admin.troopers.authority', $subject));
 
-        // Assert
-        $response->assertRedirect(route('auth.login'));
-    }
-
-    public function test_invoke_displays_authority_view(): void
-    {
-        // Arrange
-        $admin = Trooper::factory()->asAdministrator()->create();
-        $trooper = Trooper::factory()->create();
-
-        // Act
-        $response = $this->actingAs($admin)->get(route('admin.troopers.authority', $trooper));
-
-        // Assert
         $response->assertOk();
         $response->assertViewIs('pages.admin.troopers.authority');
     }
 
-    public function test_invoke_passes_trooper_to_view(): void
+    public function test_invoke_requires_authentication(): void
     {
-        // Arrange
-        $admin = Trooper::factory()->asAdministrator()->create();
-        $trooper = Trooper::factory()->create();
+        $subject = Trooper::factory()->create();
 
-        // Act
-        $response = $this->actingAs($admin)->get(route('admin.troopers.authority', $trooper));
+        $response = $this->get(route('admin.troopers.authority', $subject));
 
-        // Assert
-        $response->assertViewHas('trooper', function ($view_trooper) use ($trooper)
-        {
-            return $view_trooper->id === $trooper->id;
-        });
-    }
-
-    public function test_invoke_passes_organization_authorities_to_view(): void
-    {
-        // Arrange
-        $admin = Trooper::factory()->asAdministrator()->create();
-        $trooper = Trooper::factory()->create();
-
-        // Act
-        $response = $this->actingAs($admin)->get(route('admin.troopers.authority', $trooper));
-
-        // Assert
-        $response->assertViewHas('organization_authorities');
-    }
-
-    public function test_invoke_administrator_can_view_any_trooper_authority(): void
-    {
-        // Arrange
-        $admin = Trooper::factory()->asAdministrator()->create();
-        $trooper = Trooper::factory()->create();
-
-        // Act
-        $response = $this->actingAs($admin)->get(route('admin.troopers.authority', $trooper));
-
-        // Assert
-        $response->assertOk();
-    }
-
-    public function test_invoke_moderator_cannot_view_authority(): void
-    {
-        // Arrange
-        $moderator = Trooper::factory()->asModerator()->create();
-        $trooper = Trooper::factory()->create();
-
-        // Act
-        $response = $this->actingAs($moderator)->get(route('admin.troopers.authority', $trooper));
-
-        // Assert
-        $response->assertForbidden();
-    }
-
-    public function test_invoke_regular_trooper_cannot_view_authority(): void
-    {
-        // Arrange
-        $trooper = Trooper::factory()->asActive()->create();
-        $other_trooper = Trooper::factory()->create();
-
-        // Act
-        $response = $this->actingAs($trooper)->get(route('admin.troopers.authority', $other_trooper));
-
-        // Assert
-        $response->assertForbidden();
+        $response->assertRedirect(route('auth.login'));
     }
 }

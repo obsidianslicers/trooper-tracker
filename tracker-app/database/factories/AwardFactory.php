@@ -24,7 +24,14 @@ class AwardFactory extends BaseAwardFactory
     public function withOrganization(Organization $organization): static
     {
         return $this->state(fn(array $attributes) => [
-            Award::ORGANIZATION_ID => $organization,
+            Award::ORGANIZATION_ID => $organization->{Organization::ID},
+        ]);
+    }
+
+    public function withFrequency(AwardFrequency $frequency): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Award::FREQUENCY => $frequency,
         ]);
     }
 }
