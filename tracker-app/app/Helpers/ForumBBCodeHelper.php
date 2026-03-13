@@ -3,6 +3,7 @@
 namespace App\Helpers;
 
 use App\Models\Event;
+use App\Enums\EventTrooperStatus;
 
 class ForumBBCodeHelper
 {
@@ -70,6 +71,82 @@ class ForumBBCodeHelper
         // Add sign-up link
         $bb .= "\n[b][u]Sign Up / Event Roster:[/u][/b]\n";
         $bb .= '[url]'.url('/events/'.$event->id).'[/url]';
+
+        return $bb;
+    }
+
+    /**
+     * Generate a detailed, auto-updated roster listing for an event.
+     *
+     * Mirrors the legacy behaviour:
+     *  - Header: [b]Roster:[/b]
+     *  - One line per signup in signup order:
+     *      -[i]Status[/i]: Name (Costume)
+     *  - Fallback when there are no signups.
+     */
+    public static function rosterSummary(Event $event): string
+    {
+        $event->loadMissing('event_shifts.event_troopers.trooper', 'event_shifts.event_troopers.costume');
+
+        $troopers = collect();
+
+        foreach ($event->event_shifts as $shift)
+        {
+            foreach ($shift->event_troopers as $event_trooper)
+            {
+                $troopers->push($event_trooper);
+            }
+        }
+
+        // Sort globally by signup time to approximate the legacy signuptime ordering.
+        $troopers = $troopers->sortBy(function ($event_trooper)
+        {
+            return $event_trooper->signed_up_at;
+        })->values();
+
+        $bb = '[b]Roster:[/b]';
+
+        if ($troopers->isEmpty())
+        {
+            $bb .= "\n-No troopers are signed up for this event.";
+
+            return $bb;
+        }
+
+        foreach ($troopers as $event_trooper)
+        {
+            $status = $event_trooper->status instanceof EventTrooperStatus
+                ? $event_trooper->status
+                : EventTrooperStatus::from((string) $event_trooper->status);
+
+            $status_label = match ($status) {
+                EventTrooperStatus::GOING => 'Going',
+                EventTrooperStatus::STAND_BY => 'Stand-By',
+                EventTrooperStatus::TENTATIVE => 'Tentative',
+                EventTrooperStatus::ATTENDED => 'Attended',
+                EventTrooperStatus::CANCELLED => 'Cancelled',
+                EventTrooperStatus::PENDING => 'Pending',
+                EventTrooperStatus::NOT_PICKED => 'Not Picked',
+                default => 'None',
+            };
+
+            $name = $event_trooper->trooper?->display_name ?? 'Unknown Trooper';
+
+            if ($event_trooper->is_handler)
+            {
+                $costume_label = 'Handler';
+            }
+            elseif ($event_trooper->costume)
+            {
+                $costume_label = $event_trooper->costume->name;
+            }
+            else
+            {
+                $costume_label = 'No Costume Selected';
+            }
+
+            $bb .= "\n-[i]".$status_label."[/i]: ".$name." (".$costume_label.")";
+        }
 
         return $bb;
     }

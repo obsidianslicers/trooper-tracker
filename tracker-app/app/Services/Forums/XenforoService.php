@@ -240,6 +240,57 @@ class XenforoService
     }
 
     /**
+     * Update an existing XenForo post's message body.
+     *
+     * @return array{status:int,body:mixed}
+     */
+    public function update_post(
+        int $post_id,
+        string $message,
+        ?int $user_id = null
+    ): array {
+        if (empty($this->base_url) || empty($this->api_key))
+        {
+            return [
+                'status' => 0,
+                'body' => null,
+            ];
+        }
+
+        if ($post_id <= 0)
+        {
+            return [
+                'status' => 0,
+                'body' => null,
+            ];
+        }
+
+        if ($user_id === null)
+        {
+            $user_id = $this->resolve_user_id_for_trooper(Auth::id());
+        }
+
+        $url = $this->base_url.'/api/posts/'.$post_id;
+
+        $payload = [
+            'message' => $message,
+            'api_bypass_permissions' => 1,
+        ];
+
+        $headers = [
+            'XF-Api-Key' => (string) $this->api_key,
+            'XF-Api-User' => (string) ($user_id ?? $this->api_user ?? ''),
+        ];
+
+        $response = Http::withHeaders($headers)->asForm()->post($url, $payload);
+
+        return [
+            'status' => $response->status(),
+            'body' => $response->json(),
+        ];
+    }
+
+    /**
      * Resolve a XenForo user ID for a given trooper via OAuth mapping.
      * Returns null if no XenForo OAuth login is linked.
      */
