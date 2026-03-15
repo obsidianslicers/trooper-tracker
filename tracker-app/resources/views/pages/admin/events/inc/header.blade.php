@@ -1,7 +1,8 @@
 <x-input-container>
     <x-label>Name:</x-label>
     <x-input-text :property="'name'"
-                  :value="$event->name" />
+                  :value="$event->name"
+                  x-model="form.name" />
 </x-input-container>
 
 <x-input-container>
