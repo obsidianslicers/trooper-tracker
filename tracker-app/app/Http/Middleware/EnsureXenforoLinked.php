@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
-use App\Facades\TroopTracker;
 use App\Models\OauthLogin;
 use Closure;
 use Illuminate\Http\Request;
@@ -25,26 +24,26 @@ class EnsureXenforoLinked
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $troop_tracker = app(TroopTracker::class);
-
-        if (!$troop_tracker->isXenforoOAuthRequired())
+        // Allow this behaviour to be toggled via configuration / .env.
+        if (! config('tracker.auth.require_xenforo', false))
         {
-            //  Don't care - just keep swimming
             return $next($request);
         }
 
         $user = Auth::user();
 
-        if (!$user)
+        if (! $user)
         {
-            //  Not logged in - let the auth middleware handle it
             return $next($request);
         }
 
         // Allow access to the linking routes, OAuth routes, and logout so we
         // don't create redirect loops or block signing out.
-        if ($request->routeIs('account.xenforo.*') || $request->routeIs('auth.*'))
-        {
+        if (
+            $request->routeIs('account.xenforo.*') ||
+            $request->routeIs('auth.oauth-*') ||
+            $request->routeIs('auth.logout')
+        ) {
             return $next($request);
         }
 
@@ -52,7 +51,7 @@ class EnsureXenforoLinked
             ->where(OauthLogin::PROVIDER, 'xenforo')
             ->exists();
 
-        if (!$has_xenforo)
+        if (! $has_xenforo)
         {
             return redirect()->route('account.xenforo.required');
         }
