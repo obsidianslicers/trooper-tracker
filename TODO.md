@@ -66,10 +66,12 @@ stan/pint - WIP
   -Save Xenforo ID to trooper. Use this ID when posting events to whoever is posting,\.
   -Xenforo Discussions on events
 - Get Xenforo donators, show donations on profile page / Give special badge
+- Xenforo e-mail hook to accounts
 - todo:   club/organization identifiers
   - auto verify club identifiers on registration
 
 ## MISC
+- Placeholder (Ability to sign up troopers that do not have a tracker account)
 - Command Staff notifications (ie Bob or Jane's nth Troop), OR add to system notification for all, OR post to FB??
 - Public Roster
   - @if CS (send link to email input)
