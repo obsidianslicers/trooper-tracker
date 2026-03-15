@@ -107,16 +107,16 @@
                             @include('pages.events.inc.amenities', compact('event'))
                         </div>
                         <div class="col-12 col-md-6 mb-3">
-                            @include('pages.events.inc.requested-characters', compact('event'))
+                            @include('pages.events.inc.attendance', compact('event'))
                         </div>
                     </div>
 
                     <div class="row">
                         <div class="col-12 col-md-6 mb-3">
-                            @include('pages.events.inc.attendance', compact('event'))
+                            @include('pages.events.inc.attendance-limits', compact('event'))
                         </div>
                         <div class="col-12 col-md-6 mb-3">
-                            @include('pages.events.inc.attendance-limits', compact('event'))
+                            @include('pages.events.inc.requested-characters', compact('event'))
                         </div>
                     </div>
 

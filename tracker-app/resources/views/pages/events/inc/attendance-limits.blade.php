@@ -2,18 +2,15 @@
 <x-table>
     <thead>
         <tr>
-            <th colspan="2">Organization</th>
+            <th>Organization</th>
             <th class="text-end">Troopers</th>
             <th class="text-end">Handlers</th>
+            <th class="text-end"></th>
         </tr>
     </thead>
     <tbody>
         @foreach($event->organizations as $organization)
             <tr>
-                <td>
-                    <x-yes-no class="me-2"
-                              :value="$organization->pivot->can_attend ?? false" />
-                </td>
                 <td class="text-nowrap">
                     {{ $organization->name }}
                 </td>
@@ -26,6 +23,10 @@
                     @if($organization->pivot->can_attend)
                         <x-number-format :value="$organization->pivot->handlers_allowed" />
                     @endif
+                </td>
+                <td class="text-end">
+                    <x-yes-no class="me-2"
+                              :value="$organization->pivot->can_attend ?? false" />
                 </td>
             </tr>
         @endforeach
