@@ -69,14 +69,14 @@
                 <x-input-text :property="'friends_allowed'"
                               :value="$event->friends_allowed"
                               x-model="form.friends_allowed"
-                              placeholder="blank=unlimited" />
+                              placeholder="blank=unlimited, zero=none" />
             </div>
             <div class="col-12 col-md-6">
                 <x-label>Limit <b class="text-success">Add a Guest</b> Sign-Ups (per shift):</x-label>
                 <x-input-text :property="'guests_allowed'"
                               :value="$event->guests_allowed"
                               x-model="form.guests_allowed"
-                              placeholder="blank=unlimited" />
+                              placeholder="blank=unlimited, zero=none" />
             </div>
         </div>
     </x-input-container>

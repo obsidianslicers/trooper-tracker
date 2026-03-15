@@ -8,6 +8,7 @@ namespace App\Models\Base;
 
 use App\Models\Award;
 use App\Models\AwardTrooper;
+use App\Models\EventGuest;
 use App\Models\EventNotification;
 use App\Models\EventShare;
 use App\Models\EventTrooper;
@@ -52,6 +53,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $deleted_at
  * 
  * @property Collection|Award[] $awards
+ * @property Collection|EventGuest[] $event_guests
  * @property Collection|EventNotification[] $event_notifications
  * @property Collection|EventShare[] $event_shares
  * @property Collection|EventTrooper[] $event_troopers
@@ -127,6 +129,11 @@ class Trooper extends Model
         return $this->belongsToMany(Award::class, 'tt_award_troopers')
                     ->withPivot(AwardTrooper::ID, AwardTrooper::AWARD_DATE, AwardTrooper::DELETED_AT, AwardTrooper::CREATED_ID, AwardTrooper::UPDATED_ID, AwardTrooper::DELETED_ID)
                     ->withTimestamps();
+    }
+
+    public function event_guests(): HasMany
+    {
+        return $this->hasMany(EventGuest::class, EventGuest::ADDED_BY_TROOPER_ID);
     }
 
     public function event_notifications(): HasMany

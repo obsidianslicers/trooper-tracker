@@ -40,6 +40,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $troopers_allowed
  * @property int|null $handlers_allowed
  * @property int|null $friends_allowed
+ * @property int|null $guests_allowed
  * @property bool $tentative_signups_allowed
  * @property int $charity_direct_funds
  * @property int $charity_indirect_funds
@@ -106,6 +107,7 @@ class Event extends Model
     const TROOPERS_ALLOWED = 'troopers_allowed';
     const HANDLERS_ALLOWED = 'handlers_allowed';
     const FRIENDS_ALLOWED = 'friends_allowed';
+    const GUESTS_ALLOWED = 'guests_allowed';
     const TENTATIVE_SIGNUPS_ALLOWED = 'tentative_signups_allowed';
     const CHARITY_DIRECT_FUNDS = 'charity_direct_funds';
     const CHARITY_INDIRECT_FUNDS = 'charity_indirect_funds';
@@ -159,6 +161,7 @@ class Event extends Model
         self::TROOPERS_ALLOWED => 'int',
         self::HANDLERS_ALLOWED => 'int',
         self::FRIENDS_ALLOWED => 'int',
+        self::GUESTS_ALLOWED => 'int',
         self::TENTATIVE_SIGNUPS_ALLOWED => 'bool',
         self::CHARITY_DIRECT_FUNDS => 'int',
         self::CHARITY_INDIRECT_FUNDS => 'int',
@@ -196,6 +199,7 @@ class Event extends Model
         self::TROOPERS_ALLOWED,
         self::HANDLERS_ALLOWED,
         self::FRIENDS_ALLOWED,
+        self::GUESTS_ALLOWED,
         self::TENTATIVE_SIGNUPS_ALLOWED,
         self::CHARITY_DIRECT_FUNDS,
         self::CHARITY_INDIRECT_FUNDS,

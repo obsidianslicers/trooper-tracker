@@ -270,6 +270,41 @@ class EventShift extends BaseEventShift
     }
 
     /**
+     * Check if a trooper can sign up a friend for this shift.
+     *
+     * A trooper can sign up a guest if the shift is open and they are already signed up.
+     *
+     * @param Trooper $trooper The trooper attempting to sign up a guest
+     * @return bool True if the trooper can sign up a guest
+     */
+    public function canSignUpGuest(Trooper $trooper): bool
+    {
+        if ($this->is_open)
+        {
+            if ($this->isGoing($trooper))
+            {
+                $guests_allowed = $this->event->guests_allowed;
+
+                if ($guests_allowed === null)
+                {
+                    return true;
+                }
+
+                $guests = $this->event_guests()
+                    ->where(EventGuest::ADDED_BY_TROOPER_ID, $trooper->id)
+                    ->count();
+
+                if ($guests < $guests_allowed)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Create a calendar link for this shift.
      *
      * Generates a calendar link that can be added to various calendar applications

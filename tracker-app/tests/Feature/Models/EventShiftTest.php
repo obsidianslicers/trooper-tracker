@@ -7,6 +7,7 @@ namespace Tests\Feature\Models;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Models\Event;
+use App\Models\EventGuest;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
@@ -399,6 +400,46 @@ class EventShiftTest extends TestCase
         $this->assertTrue($result);
     }
 
+    public function test_can_sign_up_trooper_returns_true_when_going_and_friends_unlimited(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $event = Event::factory()
+            ->state([
+                Event::STATUS => EventStatus::OPEN,
+                Event::FRIENDS_ALLOWED => null,
+            ])
+            ->create();
+        $subject = EventShift::factory()->forEvent($event)->create();
+        EventTrooper::factory()->forEventShift($subject)->forTrooper($trooper)->asGoing()->create();
+
+        $result = $subject->canSignUpTrooper($trooper);
+
+        $this->assertTrue($result);
+    }
+
+    public function test_can_sign_up_trooper_returns_false_when_at_friends_limit(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $event = Event::factory()
+            ->state([
+                Event::STATUS => EventStatus::OPEN,
+                Event::FRIENDS_ALLOWED => 1,
+            ])
+            ->create();
+        $subject = EventShift::factory()->forEvent($event)->create();
+        EventTrooper::factory()->forEventShift($subject)->forTrooper($trooper)->asGoing()->create();
+        EventTrooper::factory()
+            ->forEventShift($subject)
+            ->state([
+                EventTrooper::ADDED_BY_TROOPER_ID => $trooper->{Trooper::ID},
+            ])
+            ->create();
+
+        $result = $subject->canSignUpTrooper($trooper);
+
+        $this->assertFalse($result);
+    }
+
     public function test_can_sign_up_trooper_returns_false_when_not_going(): void
     {
         $trooper = Trooper::factory()->create();
@@ -423,6 +464,82 @@ class EventShiftTest extends TestCase
             ->create();
 
         $result = $subject->canSignUpTrooper($trooper);
+
+        $this->assertFalse($result);
+    }
+
+    public function test_can_sign_up_guest_returns_true_when_going_and_guests_unlimited(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $event = Event::factory()
+            ->state([
+                Event::STATUS => EventStatus::OPEN,
+                Event::GUESTS_ALLOWED => null,
+            ])
+            ->create();
+        $subject = EventShift::factory()->forEvent($event)->create();
+        EventTrooper::factory()->forEventShift($subject)->forTrooper($trooper)->asGoing()->create();
+
+        $result = $subject->canSignUpGuest($trooper);
+
+        $this->assertTrue($result);
+    }
+
+    public function test_can_sign_up_guest_returns_true_when_going_and_below_limit(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $event = Event::factory()
+            ->state([
+                Event::STATUS => EventStatus::OPEN,
+                Event::GUESTS_ALLOWED => 2,
+            ])
+            ->create();
+        $subject = EventShift::factory()->forEvent($event)->create();
+        EventTrooper::factory()->forEventShift($subject)->forTrooper($trooper)->asGoing()->create();
+        EventGuest::factory()->forEventShift($subject)->forTrooper($trooper)->create();
+
+        $result = $subject->canSignUpGuest($trooper);
+
+        $this->assertTrue($result);
+    }
+
+    public function test_can_sign_up_guest_returns_false_when_at_limit(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $event = Event::factory()
+            ->state([
+                Event::STATUS => EventStatus::OPEN,
+                Event::GUESTS_ALLOWED => 1,
+            ])
+            ->create();
+        $subject = EventShift::factory()->forEvent($event)->create();
+        EventTrooper::factory()->forEventShift($subject)->forTrooper($trooper)->asGoing()->create();
+        EventGuest::factory()->forEventShift($subject)->forTrooper($trooper)->create();
+
+        $result = $subject->canSignUpGuest($trooper);
+
+        $this->assertFalse($result);
+    }
+
+    public function test_can_sign_up_guest_returns_false_when_not_going(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $event = Event::factory()->state([Event::STATUS => EventStatus::OPEN])->create();
+        $subject = EventShift::factory()->forEvent($event)->create();
+
+        $result = $subject->canSignUpGuest($trooper);
+
+        $this->assertFalse($result);
+    }
+
+    public function test_can_sign_up_guest_returns_false_when_shift_not_open(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $event = Event::factory()->asClosed()->create();
+        $subject = EventShift::factory()->forEvent($event)->asClosed()->create();
+        EventTrooper::factory()->forEventShift($subject)->forTrooper($trooper)->asGoing()->create();
+
+        $result = $subject->canSignUpGuest($trooper);
 
         $this->assertFalse($result);
     }

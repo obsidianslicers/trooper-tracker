@@ -48,6 +48,7 @@ return new class extends Migration
             $table->integer('troopers_allowed')->nullable();
             $table->integer('handlers_allowed')->nullable();
             $table->integer('friends_allowed')->nullable();
+            $table->integer('guests_allowed')->nullable();
             $table->boolean('tentative_signups_allowed')->default(false);
 
             $table->integer('charity_direct_funds')->default(0);
