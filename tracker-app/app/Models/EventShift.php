@@ -242,7 +242,7 @@ class EventShift extends BaseEventShift
      * @param Trooper $trooper The trooper attempting to sign up a friend
      * @return bool True if the trooper can sign up a friend
      */
-    public function canSignUpFriend(Trooper $trooper): bool
+    public function canSignUpTrooper(Trooper $trooper): bool
     {
         if ($this->is_open)
         {

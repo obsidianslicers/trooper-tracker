@@ -375,7 +375,7 @@ class EventShiftTest extends TestCase
         $this->assertFalse($result);
     }
 
-    public function test_can_sign_up_friend_returns_true_when_going_and_within_limit(): void
+    public function test_can_sign_up_trooper_returns_true_when_going_and_within_limit(): void
     {
         $trooper = Trooper::factory()->create();
         $event = Event::factory()
@@ -394,12 +394,12 @@ class EventShiftTest extends TestCase
             ->asGoing()
             ->create();
 
-        $result = $subject->canSignUpFriend($trooper);
+        $result = $subject->canSignUpTrooper($trooper);
 
         $this->assertTrue($result);
     }
 
-    public function test_can_sign_up_friend_returns_false_when_not_going(): void
+    public function test_can_sign_up_trooper_returns_false_when_not_going(): void
     {
         $trooper = Trooper::factory()->create();
         $event = Event::factory()->state([Event::STATUS => EventStatus::OPEN])->create();
@@ -408,12 +408,12 @@ class EventShiftTest extends TestCase
             ->state([EventShift::STATUS => EventStatus::OPEN])
             ->create();
 
-        $result = $subject->canSignUpFriend($trooper);
+        $result = $subject->canSignUpTrooper($trooper);
 
         $this->assertFalse($result);
     }
 
-    public function test_can_sign_up_friend_returns_false_when_shift_not_open(): void
+    public function test_can_sign_up_trooper_returns_false_when_shift_not_open(): void
     {
         $trooper = Trooper::factory()->create();
         $event = Event::factory()->state([Event::STATUS => EventStatus::CLOSED])->create();
@@ -422,7 +422,7 @@ class EventShiftTest extends TestCase
             ->state([EventShift::STATUS => EventStatus::CLOSED])
             ->create();
 
-        $result = $subject->canSignUpFriend($trooper);
+        $result = $subject->canSignUpTrooper($trooper);
 
         $this->assertFalse($result);
     }

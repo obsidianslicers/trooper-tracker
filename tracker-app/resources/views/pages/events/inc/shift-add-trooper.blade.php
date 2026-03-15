@@ -14,7 +14,7 @@
         @endif
     </button>
 @endif
-@if($event_shift->is_open && ($event_shift->canSignUpFriend(Auth::user()) || $can_moderate))
+@if($event_shift->is_open && ($event_shift->canSignUpTrooper(Auth::user()) || $can_moderate))
     {{-- if they are a normal user and already signed up - they can sign up a friend --}}
     {{-- or they are a moderator - they can sign up a friend --}}
     <button class="btn btn-sm btn-outline-info"
