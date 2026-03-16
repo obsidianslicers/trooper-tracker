@@ -22,6 +22,11 @@ readonly class GetEventShiftDisplayQueryHandler implements QueryHandlerInterface
 {
     use HasEventDisplayAssembler;
 
+    public function __construct()
+    {
+        $this->bootHasEventDisplayAssembler();
+    }
+
     /**
      * Execute the query to retrieve a single event shift for display.
      *
@@ -50,6 +55,7 @@ readonly class GetEventShiftDisplayQueryHandler implements QueryHandlerInterface
         ];
 
         return [
+            'event',
             'event_troopers.trooper:' . implode(',', $trooper_columns),
             'event_troopers.added_by_trooper:' . implode(',', $trooper_columns),
             'event_troopers' => function ($query)

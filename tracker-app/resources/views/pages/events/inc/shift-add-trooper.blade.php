@@ -20,10 +20,10 @@
         {{-- or they are a moderator - they can sign up a friend --}}
         <button class="btn btn-sm btn-outline-info"
                 hx-get="{{ route('pickers.trooper', ['property' => 'add-shift-trooper-' . $event_shift->id, 'event' => 'trooper:selected']) }}"
-                hx-target="#modal-picker .modal-body"
+                hx-target="#modal-trooper .modal-body"
                 hx-trigger="click"
                 data-bs-toggle="modal"
-                data-bs-target="#modal-picker">
+                data-bs-target="#modal-trooper">
             <i class="fa fa-fw fa-plus-circle me-2"></i>
             Add a Trooper
         </button>
@@ -40,7 +40,12 @@
     @if($event_shift->canSignUpGuest(Auth::user()) || $can_moderate)
         {{-- if they are a normal user and already signed up - they can sign up a guest --}}
         {{-- or they are a moderator - they can sign up a guest --}}
-        <button class="btn btn-sm btn-outline-info">
+        <button class="btn btn-sm btn-outline-info"
+                hx-get="#"
+                hx-target="#modal-guest .modal-body"
+                hx-trigger="click"
+                data-bs-toggle="modal"
+                data-bs-target="#modal-guest">
             <i class="fa fa-fw fa-plus-circle me-2"></i>
             Add a Guest
         </button>

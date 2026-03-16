@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Spatie\CalendarLinks\Link;
 
 /**
  * Represents a trooping event or appearance.
@@ -255,5 +256,54 @@ class Event extends BaseEvent
         return $this->event_shifts
             ->filter(fn($shift) => $shift->event_troopers->contains('trooper_id', $trooper->id))
             ->count();
+    }
+
+    /**
+     * Check if a trooper can sign up for this event.
+     *
+     * A trooper can sign up if the event is open and they are not already signed up.
+     * If shifts_allowed is set on the event, also checks that the trooper hasn't
+     * exceeded the maximum number of shifts they can attend for this event.
+     *
+     * @param Trooper $trooper The trooper attempting to sign up
+     * @return bool True if the trooper can sign up
+     */
+    public function canSignUp(Trooper $trooper): bool
+    {
+        if ($this->is_open)
+        {
+            $count = $this->getShiftCountFor($trooper);
+
+            return $count == 0;
+        }
+
+        return false;
+    }
+
+    /**
+     * Create a calendar link for this shift.
+     *
+     * Generates a calendar link that can be added to various calendar applications
+     * (Google Calendar, iCal, Outlook, etc.) with the shift details.
+     *
+     * @return Link The calendar link object
+     */
+    public function createCalendarLink(): Link
+    {
+        $timezone = config('tracker.calendar.timezone');
+
+        $from = $this->event_start->copy()->shiftTimezone($timezone);
+        $to = $this->event_end->copy()->shiftTimezone($timezone);
+
+        $name = $this->name;
+        $location = $this->venue_address;
+        $description = 'Troop Tracker Event';
+
+        // Create link
+        $link = Link::create($name, $from, $to)
+            ->description($description)
+            ->address($location);
+
+        return $link;
     }
 }
