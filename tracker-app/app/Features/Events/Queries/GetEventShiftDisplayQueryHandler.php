@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Features\Events\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
-use App\Models\Event;
 use App\Models\EventGuest;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
