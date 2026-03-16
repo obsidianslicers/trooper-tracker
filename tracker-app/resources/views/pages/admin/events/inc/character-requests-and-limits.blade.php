@@ -57,7 +57,7 @@
                 <x-input-text :property="'handlers_allowed'"
                               :value="$event->handlers_allowed"
                               x-model="form.handlers_allowed"
-                              placeholder="blank=unlimited" />
+                              placeholder="blank=unlimited, zero=none" />
             </div>
         </div>
     </x-input-container>

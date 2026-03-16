@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Account;
 
 use App\Enums\NotificationFrequency;
+use App\Enums\TrooperTheme;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Rules\Admin\Troopers\OrganizationLeafNodeRule;
@@ -57,11 +58,17 @@ class SetupRequest extends FormRequest
                 Rule::unique(Trooper::class, Trooper::EMAIL)
                     ->ignore($this->user()->id, Trooper::ID),
             ],
+            Trooper::THEME => [
+                'required',
+                'string',
+                'max:16',
+                'in:' . TrooperTheme::toValidator()
+            ],
             Trooper::NOTIFICATION_FREQUENCY => [
                 'required',
                 'string',
                 'max:16',
-                'in:'.NotificationFrequency::toValidator(),
+                'in:' . NotificationFrequency::toValidator(),
             ],
         ];
 
@@ -112,7 +119,8 @@ class SetupRequest extends FormRequest
      */
     private function getOrganizations(): Collection
     {
-        $getter = function (): Collection {
+        $getter = function (): Collection
+        {
             return Organization::fullyLoaded()->get();
         };
 
