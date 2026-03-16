@@ -7,6 +7,7 @@ namespace App\Features\Events\Queries;
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Models\Costume;
 use App\Models\Event;
+use App\Models\EventGuest;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Organization;
@@ -48,7 +49,7 @@ readonly class GetEventDisplayQueryHandler implements QueryHandlerInterface
 
         $this->assembleEvent($event, $message->trooper);
 
-        $event->event_shifts->each(fn ($shift) => $this->transformEventShift($shift));
+        $event->event_shifts->each(fn($shift) => $this->transformEventShift($shift));
 
         return $event;
     }
@@ -71,20 +72,28 @@ readonly class GetEventDisplayQueryHandler implements QueryHandlerInterface
         ];
 
         return [
-            'organization:'.implode(',', $organization_columns),
+            'organization:' . implode(',', $organization_columns),
             'organizations.organization',
-            'organizations' => function ($query) {
+            'organizations' => function ($query)
+            {
                 $query->orderBy(Organization::NAME);
             },
-            'event_shifts' => function ($query) {
+            'event_shifts' => function ($query)
+            {
                 $query->orderBy(EventShift::SHIFT_STARTS_AT, 'asc');
             },
-            'event_shifts.event_troopers.trooper:'.implode(',', $trooper_columns),
+            'event_shifts.event_guests.added_by_trooper:' . implode(',', $trooper_columns),
+            'event_shifts.event_guests' => function ($query)
+            {
+                $query->orderBy(EventGuest::NAME);
+            },
+            'event_shifts.event_troopers.trooper:' . implode(',', $trooper_columns),
             'event_shifts.event_troopers.trooper.trooper_costumes.organization_costume',
-            'event_shifts.event_troopers.added_by_trooper:'.implode(',', $trooper_columns),
-            'event_shifts.event_troopers.costume:'.implode(',', $costume_columns),
-            'event_shifts.event_troopers.backup_costume:'.implode(',', $costume_columns),
-            'event_shifts.event_troopers' => function ($query) {
+            'event_shifts.event_troopers.added_by_trooper:' . implode(',', $trooper_columns),
+            'event_shifts.event_troopers.costume:' . implode(',', $costume_columns),
+            'event_shifts.event_troopers.backup_costume:' . implode(',', $costume_columns),
+            'event_shifts.event_troopers' => function ($query)
+            {
                 $query->orderBy(EventTrooper::SIGNED_UP_AT, 'asc');
             },
         ];

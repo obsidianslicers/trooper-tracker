@@ -18,9 +18,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * 
  * @property int $id
  * @property int $event_shift_id
- * @property int|null $added_by_trooper_id
+ * @property int $added_by_trooper_id
  * @property string $name
- * @property bool $is_handler
  * @property string $status
  * @property Carbon $signed_up_at
  * @property Carbon|null $created_at
@@ -30,7 +29,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $updated_id
  * @property int|null $deleted_id
  * 
- * @property Trooper|null $trooper
+ * @property Trooper $trooper
  * @property EventShift $event_shift
  *
  * @package App\Models\Base
@@ -42,7 +41,6 @@ class EventGuest extends Model
     const EVENT_SHIFT_ID = 'event_shift_id';
     const ADDED_BY_TROOPER_ID = 'added_by_trooper_id';
     const NAME = 'name';
-    const IS_HANDLER = 'is_handler';
     const STATUS = 'status';
     const SIGNED_UP_AT = 'signed_up_at';
     const CREATED_AT = 'created_at';
@@ -57,7 +55,6 @@ class EventGuest extends Model
         self::ID => 'int',
         self::EVENT_SHIFT_ID => 'int',
         self::ADDED_BY_TROOPER_ID => 'int',
-        self::IS_HANDLER => 'bool',
         self::SIGNED_UP_AT => 'datetime',
         self::CREATED_AT => 'datetime',
         self::UPDATED_AT => 'datetime',
@@ -70,7 +67,6 @@ class EventGuest extends Model
         self::EVENT_SHIFT_ID,
         self::ADDED_BY_TROOPER_ID,
         self::NAME,
-        self::IS_HANDLER,
         self::STATUS,
         self::SIGNED_UP_AT
     ];

@@ -18,10 +18,13 @@ class EventGuestFactory extends BaseEventGuestFactory
      */
     public function definition(): array
     {
-        return array_merge(parent::definition(), [
-            EventGuest::IS_HANDLER => false,
+        return [
+            EventGuest::EVENT_SHIFT_ID => \App\Models\EventShift::factory(),
+            EventGuest::ADDED_BY_TROOPER_ID => \App\Models\Trooper::factory(),
+            EventGuest::NAME => $this->faker->name(),
             EventGuest::STATUS => 'going',
-        ]);
+            EventGuest::SIGNED_UP_AT => $this->faker->dateTime(),
+        ];
     }
 
     public function forEventShift(EventShift $event_shift): static
@@ -38,10 +41,11 @@ class EventGuestFactory extends BaseEventGuestFactory
         ]);
     }
 
-    public function asHandler(): static
+    public function withName(string $name): static
     {
         return $this->state(fn(array $attributes): array => [
-            EventGuest::IS_HANDLER => true,
+            EventGuest::NAME => $name,
         ]);
     }
+
 }

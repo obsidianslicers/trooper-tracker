@@ -6,6 +6,7 @@ namespace App\Features\Events\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Models\Event;
+use App\Models\EventGuest;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
@@ -50,10 +51,16 @@ readonly class GetEventShiftDisplayQueryHandler implements QueryHandlerInterface
         ];
 
         return [
-            'event_troopers.trooper:'.implode(',', $trooper_columns),
-            'event_troopers.added_by_trooper:'.implode(',', $trooper_columns),
-            'event_troopers' => function ($query) {
+            'event_troopers.trooper:' . implode(',', $trooper_columns),
+            'event_troopers.added_by_trooper:' . implode(',', $trooper_columns),
+            'event_troopers' => function ($query)
+            {
                 $query->orderBy(EventTrooper::SIGNED_UP_AT, 'asc');
+            },
+            'event_guests.added_by_trooper:' . implode(',', $trooper_columns),
+            'event_guests' => function ($query)
+            {
+                $query->orderBy(EventGuest::NAME, 'asc');
             },
         ];
     }
