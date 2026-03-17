@@ -49,7 +49,7 @@
 
         <div class="modal fade"
              id="modal-guest-{{ $event_shift->id }}"
-             hx-on:close-modal="bootstrap.Modal.getInstance(this).hide()"
+             hx-on:event-shift-guest-added="bootstrap.Modal.getInstance(this).hide()"
              tabindex="-1">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
@@ -76,9 +76,8 @@
                     <div class="modal-footer">
                         <button type="button"
                                 class="btn btn-primary"
-                                hx-post=" route('events.guest-signup') "
-                                hx-include="#modal-guest-{{ $event_shift->id }} :input"
-                                hx-vals='{"shift_id": "{{ $event_shift->id }}"}'
+                                hx-post="{{ route('events.guest-signup-htmx', compact('event_shift')) }}"
+                                hx-include="#modal-guest-{{ $event_shift->id }} textarea[name='guest_names']"
                                 hx-select="#shift-container-{{ $event_shift->id }}"
                                 hx-target="#shift-container-{{ $event_shift->id }}"
                                 hx-swap="outerHTML"
