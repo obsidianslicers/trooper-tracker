@@ -41,13 +41,57 @@
         {{-- if they are a normal user and already signed up - they can sign up a guest --}}
         {{-- or they are a moderator - they can sign up a guest --}}
         <button class="btn btn-sm btn-outline-info"
-                hx-get="#"
-                hx-target="#modal-guest .modal-body"
-                hx-trigger="click"
                 data-bs-toggle="modal"
-                data-bs-target="#modal-guest">
+                data-bs-target="#modal-guest-{{ $event_shift->id }}">
             <i class="fa fa-fw fa-plus-circle me-2"></i>
             Add a Guest
         </button>
+
+        <div class="modal fade"
+             id="modal-guest-{{ $event_shift->id }}"
+             hx-on:close-modal="bootstrap.Modal.getInstance(this).hide()"
+             tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <b class="modal-title">
+                            Add a Guest(s)
+                        </b>
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row mb-1">
+                            <div class="col-12 text-start">
+                                <x-input-text :property="'guest_names'"
+                                              :multiline="true"
+                                              placeholder="Guest Names (one per line)" />
+                                <x-input-help>
+                                    Enter the name of your guest(s). One per line.
+                                </x-input-help>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button"
+                                class="btn btn-primary"
+                                hx-post=" route('events.guest-signup') "
+                                hx-include="#modal-guest-{{ $event_shift->id }} :input"
+                                hx-vals='{"shift_id": "{{ $event_shift->id }}"}'
+                                hx-select="#shift-container-{{ $event_shift->id }}"
+                                hx-target="#shift-container-{{ $event_shift->id }}"
+                                hx-swap="outerHTML"
+                                hx-indicator="#transmission-bar-shift-{{ $event_shift->id }}">
+                            Save Guests
+                        </button>
+                        <button type="button"
+                                class="btn btn-secondary"
+                                data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     @endif
 @endif

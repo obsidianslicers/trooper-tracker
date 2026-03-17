@@ -130,8 +130,6 @@
                         @include('pages.events.inc.requested-characters', compact('event'))
                     </div>
                 </div>
-                <x-modal-picker :id="'modal-trooper'"
-                                :label="'Find a Trooper'" />
 
                 <div class="row">
                     <div class="col-12 col-md-6 mb-3">

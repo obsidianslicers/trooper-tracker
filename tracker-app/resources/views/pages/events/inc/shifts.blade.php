@@ -13,3 +13,6 @@
 @endforeach
 
 @include('pages.events.inc.share-roster', compact('event', 'can_moderate'))
+
+<x-modal-picker :id="'modal-trooper'"
+                :label="'Find a Trooper'" />
