@@ -6,7 +6,6 @@ namespace App\Features\Events\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Models\Event;
-use App\Models\EventOrganization;
 
 /**
  * Handler for retrieving events for display.
@@ -33,11 +32,9 @@ readonly class GetEventsForDisplayQueryHandler implements QueryHandlerInterface
      */
     public function __invoke(object $message): mixed
     {
-        $with = ['organization', 'organizations' => function ($query) {
-            $query->wherePivot(EventOrganization::CAN_ATTEND, true);
-        }];
+        $relations = ['organization', 'organizations'];
 
-        return Event::with($with)
+        return Event::with($relations)
             ->withShifts()
             ->upcoming()
             ->get();
