@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
-use App\Enums\EventGuestStatus;
-use App\Features\Events\Commands\PromoteNextInLineEventGuestCommand;
 use App\Features\Events\Commands\UpdateEventGuestCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Events\GuestUpdateHtmxRequest;
@@ -13,25 +11,18 @@ use App\Models\EventGuest;
 use Illuminate\Http\Response;
 
 /**
- * Handles HTMX-driven updates to event guest sign-up details.
+ * Handles HTMX-driven updates to event guest details.
  *
- * This controller processes updates to a guest's event participation,
- * including status changes (going, cancelled, stand-by) and costume selection.
- * When a guest cancels from a full event, it automatically promotes the next
- * stand-by guest to attending status.
+ * Processes validated guest update payloads and dispatches an
+ * {@see UpdateEventGuestCommand} through the magic bus.
  */
 class GuestUpdateHtmxController extends MagicBusController
 {
     /**
-     * Handle the incoming HTMX request to update event guest status or costume
+     * Processes an HTMX guest update request.
      *
-     * Processes two types of updates:
-     * - Status changes: Updates the guest's attendance status and handles waitlist promotion
-     * - Costume changes: Updates the guest's selected costume for the event
-     *
-     * @param  GuestUpdateHtmxRequest  $request  The validated request containing status or name
-     * @param  EventGuest  $event_guest  The event guest record to update
-     * @return Response HTTP 200 response indicating success
+     * Validates the incoming payload and updates either the guest status or
+     * guest name based on the provided input key.
      */
     public function __invoke(GuestUpdateHtmxRequest $request, EventGuest $event_guest): Response
     {

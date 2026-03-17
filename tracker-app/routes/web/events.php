@@ -31,6 +31,7 @@ Route::prefix('events')
         Route::post('/upload/{event}', UploadImageController::class)->name('upload-image');
         Route::post('/share-roster/{event}', ShareRosterHtmxController::class)->name('share-roster-htmx');
         Route::post('/signup/{event_shift}/shift', SignUpHtmxController::class)->name('signup-htmx');
+        Route::post('/signup/{event_trooper}/trooper', SignUpUpdateHtmxController::class)->name('signup-update-htmx');
         Route::post('/update/{event_guest}/guest', GuestUpdateHtmxController::class)->name('guest-update-htmx');
         Route::get('/complete/{event_trooper}/{status}', ShiftCompleteController::class)->name('shift-complete');
     });
