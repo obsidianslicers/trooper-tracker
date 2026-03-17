@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use App\Enums\EventGuestStatus;
 use App\Models\EventGuest;
 use App\Models\EventShift;
 use App\Models\Trooper;
@@ -22,7 +23,7 @@ class EventGuestFactory extends BaseEventGuestFactory
             EventGuest::EVENT_SHIFT_ID => \App\Models\EventShift::factory(),
             EventGuest::ADDED_BY_TROOPER_ID => \App\Models\Trooper::factory(),
             EventGuest::NAME => $this->faker->name(),
-            EventGuest::STATUS => 'going',
+            EventGuest::STATUS => EventGuestStatus::GOING,
             EventGuest::SIGNED_UP_AT => $this->faker->dateTime(),
         ];
     }
@@ -45,6 +46,27 @@ class EventGuestFactory extends BaseEventGuestFactory
     {
         return $this->state(fn(array $attributes): array => [
             EventGuest::NAME => $name,
+        ]);
+    }
+
+    public function asGoing(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            EventGuest::STATUS => EventGuestStatus::GOING,
+        ]);
+    }
+
+    public function asCancelled(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            EventGuest::STATUS => EventGuestStatus::CANCELLED,
+        ]);
+    }
+
+    public function withSignedUpAt(\Carbon\Carbon $date): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            EventGuest::SIGNED_UP_AT => $date,
         ]);
     }
 

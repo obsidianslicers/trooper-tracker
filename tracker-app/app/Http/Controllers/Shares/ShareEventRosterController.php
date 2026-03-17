@@ -6,7 +6,6 @@ namespace App\Http\Controllers\Shares;
 
 use App\Features\Events\Queries\GetSharedEventRosterQuery;
 use App\Http\Controllers\MagicBusController;
-use App\Models\Event;
 use App\Models\EventShare;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
