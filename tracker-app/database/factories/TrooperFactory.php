@@ -140,6 +140,20 @@ class TrooperFactory extends BaseTrooperFactory
         ]);
     }
 
+    public function withVerifiedEmail(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Trooper::EMAIL_VERIFIED_AT => now(),
+        ]);
+    }
+
+    public function withUnverifiedEmail(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Trooper::EMAIL_VERIFIED_AT => null,
+        ]);
+    }
+
     public function withPassword(string $password): static
     {
         return $this->state(fn(array $attributes): array => [

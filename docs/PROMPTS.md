@@ -12,6 +12,7 @@ Configuration
 - TARGET_PATH: `\app\?`
 - Standard: PSR-5 and PSR-19 (PHPDoc tags)
 - Typing: Strict PHP 8+ type hinting
+- Model Metadata Source: `app/Models/Base/**` is the canonical source for generated schema PHPDoc.
 
 Strict Constraints
 
@@ -20,11 +21,20 @@ Annotation Rules
 - Array Shapes: For arrays, use generics-style notation or `object-shape` if possible. 
     - *Example:* `array<string, int>` or `User[]`.
 - Inheritance: Use `{@inheritDoc}` when a method is strictly implementing an interface method without adding unique behavior.
+- No Guessing: Do not document behavior, exceptions, or properties that cannot be verified from code, migrations, routes, or generated base models.
 
 Content & Tone
 - Clarity: Summaries should start with a third-person singular verb (e.g., "Calculates," "Retrieves," "Authenticates").
-- Exceptions: Always include `@throws` tags for any checked or unchecked exceptions explicitly thrown within the method or its immediate dependencies.
-- Relations: For Eloquent models, ensure `@property` tags are added to the class header for all database columns and relationships (using **snake_case** for relation names).
+- Exceptions: Include `@throws` tags only for exceptions explicitly thrown in the method body or clearly part of the method contract via immediate calls.
+- Relations: Use **snake_case** relation names matching relationship methods.
+
+Eloquent Model Rules
+- Base Models (`app/Models/Base/**`): Keep complete generated schema and relationship `@property` tags.
+- Child Models (`app/Models/**` extending a base model): Do not duplicate base `@property` tags.
+- Child Model Deltas: Add only child-specific PHPDoc, such as:
+   - cast-driven type refinements (e.g., `status` as enum instead of string)
+   - relationships declared only in the child model
+   - child-specific computed/virtual properties
 
 Execution Guardrails
 - Logic Integrity: **DO NOT** change any executable PHP code (variables, logic, method signatures, or return types). You are only permitted to modify the comment blocks (`/** ... */`).
@@ -32,7 +42,7 @@ Execution Guardrails
 
 Workflow
 1. **Analyze: Scan the file for missing or outdated PHPDocs.
-2. **Scan Routes/DB: If the class is a Controller or Model, check `routes/**` or migrations to ensure the documentation matches the actual data flow.
+2. **Scan Sources: If the class is a Controller or Model, check `routes/**`, migrations, and any generated base model to ensure documentation matches actual data flow and schema ownership.
 3. **Draft: Generate the updated DocBlocks.
 4. **Verify: Ensure the file still passes static analysis (no syntax errors introduced in the comment blocks).
 

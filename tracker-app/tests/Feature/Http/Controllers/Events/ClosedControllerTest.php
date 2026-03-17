@@ -14,7 +14,7 @@ class ClosedControllerTest extends TestCase
 
     public function test_invoke_displays_closed_events_page(): void
     {
-        $trooper = Trooper::factory()->asActive()->create();
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
 
         $response = $this->actingAs($trooper)->get(route('events.closed'));
 

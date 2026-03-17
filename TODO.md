@@ -79,3 +79,8 @@ stan/pint - WIP
   - controller takes the UUID as the slug
   - set expiration to event_end + 24 hours
   - add UI to admin pages to expire link
+
+
+## EMAIL
+- change email workflow? - for now lock it down
+- password change workflow? forgot password workflow?

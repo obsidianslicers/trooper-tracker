@@ -15,6 +15,7 @@ use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
+use App\Models\TrooperCostume;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Validator;
@@ -224,5 +225,75 @@ class SignupUpdateHtmxRequestTest extends TestCase
 
         // May fail based on other business logic, but should pass basic validation
         $this->assertIsArray($validator->errors()->toArray());
+    }
+
+    public function test_rules_uses_event_trooper_id_instead_of_authenticated_user_id_for_costume_validation(): void
+    {
+        $assigned_trooper = Trooper::factory()->asMember()->create();
+        $authenticated_trooper = Trooper::factory()->asModerator()->create();
+        $assigned_costume = Costume::factory()->create();
+        $authenticated_costume = Costume::factory()->create();
+
+        TrooperAssignment::factory()
+            ->forTrooper($assigned_trooper)
+            ->forOrganization($this->organization)
+            ->asMember()
+            ->create();
+
+        TrooperAssignment::factory()
+            ->forTrooper($authenticated_trooper)
+            ->forOrganization($this->organization)
+            ->asModerator()
+            ->create();
+
+        $assigned_organization_costume = OrganizationCostume::factory()
+            ->forOrganization($this->organization)
+            ->forCostume($assigned_costume)
+            ->create();
+
+        $authenticated_organization_costume = OrganizationCostume::factory()
+            ->forOrganization($this->organization)
+            ->forCostume($authenticated_costume)
+            ->create();
+
+        TrooperCostume::factory()
+            ->forTrooper($assigned_trooper)
+            ->forOrganizationCostume($assigned_organization_costume)
+            ->create();
+
+        TrooperCostume::factory()
+            ->forTrooper($authenticated_trooper)
+            ->forOrganizationCostume($authenticated_organization_costume)
+            ->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($this->event_shift)
+            ->forTrooper($assigned_trooper)
+            ->create();
+
+        $subject = new SignupUpdateHtmxRequest;
+        $subject->setUserResolver(fn() => $authenticated_trooper);
+        $this->setupMockedRoute($subject, $event_trooper);
+
+        $assigned_costume_validator = Validator::make(
+            [
+                EventTrooper::COSTUME_ID => $assigned_costume->id,
+            ],
+            $subject->rules()
+        );
+
+        $authenticated_costume_validator = Validator::make(
+            [
+                EventTrooper::COSTUME_ID => $authenticated_costume->id,
+            ],
+            $subject->rules()
+        );
+
+        $this->assertFalse($assigned_costume_validator->fails());
+        $this->assertTrue($authenticated_costume_validator->fails());
+        $this->assertArrayHasKey(
+            EventTrooper::COSTUME_ID,
+            $authenticated_costume_validator->errors()->toArray()
+        );
     }
 }

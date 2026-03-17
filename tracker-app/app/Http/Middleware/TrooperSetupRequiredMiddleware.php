@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
  * Middleware to ensure authenticated troopers have completed initial setup.
  *
  * This middleware redirects troopers who haven't completed their account setup
- * to the setup page, except for whitelisted routes (setup, logout, pickers).
+ * to the setup page, except for whitelisted routes (setup, logout, pickers, verification).
  * Allows access to all routes once setup is completed.
  */
 class TrooperSetupRequiredMiddleware
@@ -37,7 +37,7 @@ class TrooperSetupRequiredMiddleware
 
             if ($user->setup_completed_at === null)
             {
-                if ($request->routeIs('account.setup', 'account.setup-submit', 'auth.logout', 'pickers.*'))
+                if ($request->routeIs('account.setup', 'account.setup-submit', 'auth.*', 'pickers.*', 'verification.*'))
                 {
                     return $next($request);
                 }

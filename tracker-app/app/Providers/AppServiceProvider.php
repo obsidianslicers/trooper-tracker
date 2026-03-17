@@ -6,8 +6,10 @@ namespace App\Providers;
 
 use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
+use App\Mail\Auth\VerifyTrooperEmail;
 use App\Services\BreadCrumbService;
 use App\Services\Socialite\XenforoProvider;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Database\Migrations\DatabaseMigrationRepository;
 use Illuminate\Database\Migrations\MigrationRepositoryInterface;
 use Illuminate\Database\Schema\Blueprint;
@@ -48,6 +50,11 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Paginator::useBootstrapFive();
+
+        VerifyEmail::toMailUsing(function (object $notifiable, string $url) {
+            return (new VerifyTrooperEmail($url))
+                ->to($notifiable->email);
+        });
 
         //
         //  HTMX REQUEST MACRO

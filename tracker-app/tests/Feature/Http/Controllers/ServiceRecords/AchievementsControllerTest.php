@@ -26,7 +26,7 @@ class AchievementsControllerTest extends TestCase
 
     public function test_invoke_renders_achievements_with_default_days(): void
     {
-        $trooper = Trooper::factory()->asMember()->create();
+        $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
 
         $achievement_trooper = Trooper::factory()->asMember()->create();
 
@@ -61,7 +61,7 @@ class AchievementsControllerTest extends TestCase
 
     public function test_invoke_renders_achievements_with_requested_days(): void
     {
-        $trooper = Trooper::factory()->asMember()->create();
+        $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
 
         $this->mock(MagicBus::class, function (MockInterface $mock): void
         {

@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Route;
 //  SERVICE RECORD
 Route::prefix('service-records')
     ->name('service-records.')
-    ->middleware('auth')
+    ->middleware(['auth', 'verified', 'check.active'])
     ->group(function ()
     {
         Route::get('/trooper/{trooper}', TrooperController::class)->name('trooper');

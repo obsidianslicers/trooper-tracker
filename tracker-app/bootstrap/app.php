@@ -4,6 +4,8 @@ use App\Jobs\SendExceptionNotificationJob;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Exceptions\InvalidSignatureException;
 use Illuminate\Support\Facades\Cache;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -13,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
             __DIR__ . '/../routes/web/shares.php',
             __DIR__ . '/../routes/web/events.php',
             __DIR__ . '/../routes/web/auth.php',
+            __DIR__ . '/../routes/web/verification.php',
             __DIR__ . '/../routes/web/widgets.php',
             __DIR__ . '/../routes/web/pickers.php',
             __DIR__ . '/../routes/web/account.php',
@@ -66,5 +69,10 @@ return Application::configure(basePath: dirname(__DIR__))
                     dispatch(new SendExceptionNotificationJob($e, $context));
                 }
             }
+        });
+
+        $exceptions->render(function (InvalidSignatureException $e, Request $request)
+        {
+            return redirect()->route('verification.notice')->with('status', 'invalid');
         });
     })->create();

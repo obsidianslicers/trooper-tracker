@@ -21,6 +21,7 @@ class SetupSubmitControllerTest extends TestCase
         $response = $this->actingAs($trooper)->post(route('account.setup-submit'), [
             'email' => $trooper->email,
             'legal_name' => $trooper->legal_name,
+            'theme' => $trooper->theme->value,
             'notification_frequency' => $trooper->notification_frequency->value,
             'organizations' => [
                 $organization->id => [

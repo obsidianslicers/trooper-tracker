@@ -9,7 +9,6 @@ use App\Http\Controllers\MagicBusController;
 use App\Models\Event;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
-use Spatie\CalendarLinks\Link;
 
 /**
  * Displays the event sign-up page with all shifts and current trooper assignments.
@@ -57,34 +56,7 @@ class EventDisplayController extends MagicBusController
             $bg = 'bg-secondary';
         }
 
-        // Calendar links
-        $googleCalendarUrl = null;
-
-        $start = $event->event_start;
-        $end = $event->event_end ?? ($start?->copy()->addHours(2));
-
-        if ($start !== null && $end !== null)
-        {
-            $locationParts = array_filter([
-                $event->venue,
-                $event->venue_address,
-                $event->venue_city,
-                $event->venue_state,
-                $event->venue_zip,
-                $event->venue_country,
-            ]);
-
-            $location = implode(', ', $locationParts);
-            $description = $event->comments ? strip_tags((string) $event->comments) : '';
-
-            $calendarLink = Link::create($event->name, $start, $end)
-                ->description($description)
-                ->address($location);
-
-            $googleCalendarUrl = $calendarLink->google();
-        }
-
-        $data = compact('event', 'can_moderate', 'bg', 'googleCalendarUrl');
+        $data = compact('event', 'can_moderate', 'bg');
 
         return view('pages.events.event-display', $data);
     }

@@ -25,7 +25,7 @@ class LeaderboardControllerTest extends TestCase
 
     public function test_invoke_renders_leaderboard_with_requested_days(): void
     {
-        $trooper = Trooper::factory()->asMember()->create();
+        $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
 
         $leaderboard = collect([
             'dominance' => collect(),

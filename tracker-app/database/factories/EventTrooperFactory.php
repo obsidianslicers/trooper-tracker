@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Factories;
 
 use App\Enums\EventTrooperStatus;
+use App\Models\Costume;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
@@ -36,6 +37,40 @@ class EventTrooperFactory extends BaseEventTrooperFactory
         return $this->state(fn(array $attributes): array => [
             EventTrooper::TROOPER_ID => $trooper->{Trooper::ID},
             EventTrooper::ADDED_BY_TROOPER_ID => $trooper->{Trooper::ID},
+        ]);
+    }
+
+    public function withCostume(Costume $costume): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            EventTrooper::COSTUME_ID => $costume->{Costume::ID},
+        ]);
+    }
+
+    public function withBackupCostume(Costume $costume): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            EventTrooper::BACKUP_COSTUME_ID => $costume->{Costume::ID},
+        ]);
+    }
+
+    /**
+     * @param array<int, int> $organization_ids
+     */
+    public function withCostumeOrganizationIds(array $organization_ids): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            EventTrooper::COSTUME_ORGANIZATION_IDS => $organization_ids,
+        ]);
+    }
+
+    /**
+     * @param array<int, int> $organization_ids
+     */
+    public function withBackupCostumeOrganizationIds(array $organization_ids): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            EventTrooper::BACKUP_COSTUME_ORGANIZATION_IDS => $organization_ids,
         ]);
     }
 

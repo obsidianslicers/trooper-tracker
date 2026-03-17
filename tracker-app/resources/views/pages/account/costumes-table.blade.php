@@ -31,8 +31,8 @@
                 <x-table-empty :colspan="3">
                     No Attached Costumes ... Yet!
                     <p class="text-muted">
-                        To add a favorite costume, select your organization/club, then
-                        simply select a costume to add to your profile.
+                        To attach a costume to your armory, find your costume, then
+                        select your organization/club, and click "Add to Armory".
                     </p>
                 </x-table-empty>
             @endforelse

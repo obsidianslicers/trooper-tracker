@@ -30,7 +30,7 @@ class TrooperControllerTest extends TestCase
 
     public function test_invoke_renders_service_record_and_filters_staff_costumes(): void
     {
-        $auth_trooper = Trooper::factory()->asMember()->create();
+        $auth_trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
         $target_trooper = Trooper::factory()->asMember()->create();
 
         $data = $this->makeServiceRecordData($target_trooper);
@@ -73,7 +73,7 @@ class TrooperControllerTest extends TestCase
 
     public function test_invoke_adds_profile_breadcrumb_for_authenticated_trooper(): void
     {
-        $trooper = Trooper::factory()->asMember()->create();
+        $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
 
         $this->mock(BreadCrumbService::class, function (MockInterface $mock): void
         {

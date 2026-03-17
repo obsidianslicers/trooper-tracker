@@ -7,6 +7,15 @@
         @foreach($event_shift->event_troopers as $event_trooper)
             @include('pages.events.inc.trooper', compact('event_trooper'))
         @endforeach
+        @if($event->guests_allowed === null || $event->guests_allowed > 0)
+            @if($event_shift->event_guests->count() > 0)
+                <hr />
+                <h5 class="mb-3">Guests</h5>
+                @foreach($event_shift->event_guests as $event_guest)
+                    @include('pages.events.inc.guest', compact('event_guest'))
+                @endforeach
+            @endif
+        @endif
         <div class="row my-3">
             <div class="col-12 text-end">
                 @include('pages.events.inc.shift-add-trooper', compact('event_shift', 'event'))

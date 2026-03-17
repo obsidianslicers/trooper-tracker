@@ -44,7 +44,6 @@ trait HtmxValidation
     protected function failedValidation(ValidatorInterface $validator): void
     {
         //  avoids failing in HTMX - which causes a redirect in laravel normal form requests
-
         if ($this->headers->has('HX-Request'))
         {
             return;

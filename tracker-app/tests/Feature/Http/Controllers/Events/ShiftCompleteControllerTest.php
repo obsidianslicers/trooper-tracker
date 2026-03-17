@@ -21,7 +21,7 @@ class ShiftCompleteControllerTest extends TestCase
 
     public function test_invoke_returns_not_found_for_invalid_status_token(): void
     {
-        $trooper = Trooper::factory()->asActive()->create();
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
         $organization = Organization::factory()->create();
         $event = Event::factory()->withOrganization($organization)->create();
         $event_shift = EventShift::factory()->forEvent($event)->create();
@@ -37,7 +37,7 @@ class ShiftCompleteControllerTest extends TestCase
 
     public function test_invoke_updates_status_with_valid_token(): void
     {
-        $trooper = Trooper::factory()->asActive()->create();
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
         $organization = Organization::factory()->create();
 
         TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();

@@ -44,6 +44,18 @@
 
                 <x-input-container>
                     <x-label>
+                        Theme:
+                    </x-label>
+                    <x-input-select :property="'theme'"
+                                    :options="\App\Enums\TrooperTheme::toArray()"
+                                    :value="$trooper->theme->value" />
+                    <x-input-help>
+                        Choose your preferred theme for the application interface.
+                    </x-input-help>
+                </x-input-container>
+
+                <x-input-container>
+                    <x-label>
                         Notification Frequency:
                     </x-label>
                     <x-input-select :property="'notification_frequency'"
