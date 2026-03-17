@@ -6,7 +6,6 @@ namespace App\Features\Events\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Models\Event;
-use App\Models\EventOrganization;
 
 /**
  * Handler for retrieving events for display.
