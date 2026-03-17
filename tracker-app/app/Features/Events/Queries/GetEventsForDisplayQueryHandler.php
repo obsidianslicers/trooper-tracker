@@ -33,11 +33,9 @@ readonly class GetEventsForDisplayQueryHandler implements QueryHandlerInterface
      */
     public function __invoke(object $message): mixed
     {
-        $with = ['organization', 'organizations' => function ($query) {
-            $query->wherePivot(EventOrganization::CAN_ATTEND, true);
-        }];
+        $relations = ['organization', 'organizations'];
 
-        return Event::with($with)
+        return Event::with($relations)
             ->withShifts()
             ->upcoming()
             ->get();
