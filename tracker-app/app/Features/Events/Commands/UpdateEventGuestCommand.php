@@ -25,6 +25,5 @@ readonly class UpdateEventGuestCommand
     public function __construct(
         public EventGuest $event_guest,
         public array $valid_data,
-    ) {
-    }
+    ) {}
 }

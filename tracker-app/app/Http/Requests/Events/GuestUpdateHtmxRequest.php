@@ -71,7 +71,7 @@ class GuestUpdateHtmxRequest extends FormRequest
                 'nullable',
                 'string',
                 'max:16',
-                'in:' . EventGuestStatus::toValidator(),
+                'in:'.EventGuestStatus::toValidator(),
             ],
         ];
     }

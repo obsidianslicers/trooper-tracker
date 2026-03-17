@@ -6,7 +6,6 @@ namespace App\Http\Controllers\Events;
 
 use App\Enums\EventGuestStatus;
 use App\Http\Controllers\MagicBusController;
-use App\Http\Requests\Events\GuestUpdateHtmxRequest;
 use App\Models\EventGuest;
 use App\Models\EventShift;
 use Illuminate\Http\Request;
