@@ -63,7 +63,6 @@ stan/pint - WIP
 
 ## INTEGRATIONS
 - Get Xenforo donators, show donations on profile page / Give special badge
-- Xenforo e-mail hook to accounts
 - todo:   club/organization identifiers
   - auto verify club identifiers on registration
 - Update forum post every so often
