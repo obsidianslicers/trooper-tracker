@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
+use App\Facades\TroopTrackerFacade;
 use App\Features\Events\Queries\GetEventDisplayQuery;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Event;
-use App\Facades\TroopTrackerFacade;
 use App\Services\Forums\XenforoService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Spatie\CalendarLinks\Link;
 
 /**

@@ -2,8 +2,8 @@
 
 namespace App\Helpers;
 
-use App\Models\Event;
 use App\Enums\EventTrooperStatus;
+use App\Models\Event;
 
 class ForumBBCodeHelper
 {
@@ -99,8 +99,7 @@ class ForumBBCodeHelper
         }
 
         // Sort globally by signup time to approximate the legacy signuptime ordering.
-        $troopers = $troopers->sortBy(function ($event_trooper)
-        {
+        $troopers = $troopers->sortBy(function ($event_trooper) {
             return $event_trooper->signed_up_at;
         })->values();
 
@@ -119,7 +118,8 @@ class ForumBBCodeHelper
                 ? $event_trooper->status
                 : EventTrooperStatus::from((string) $event_trooper->status);
 
-            $status_label = match ($status) {
+            $status_label = match ($status)
+            {
                 EventTrooperStatus::GOING => 'Going',
                 EventTrooperStatus::STAND_BY => 'Stand-By',
                 EventTrooperStatus::TENTATIVE => 'Tentative',
@@ -145,7 +145,7 @@ class ForumBBCodeHelper
                 $costume_label = 'No Costume Selected';
             }
 
-            $bb .= "\n-[i]".$status_label."[/i]: ".$name." (".$costume_label.")";
+            $bb .= "\n-[i]".$status_label.'[/i]: '.$name.' ('.$costume_label.')';
         }
 
         return $bb;

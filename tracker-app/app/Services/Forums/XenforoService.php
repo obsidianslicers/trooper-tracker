@@ -27,6 +27,27 @@ class XenforoService
         $this->api_user = config('services.xenforo.api_user', config('xenforo.api_user', env('XENFORO_API_USER')));
     }
 
+    private function buildApiHeaders(?int $user_id = null): array
+    {
+        if (empty($this->api_key))
+        {
+            return [];
+        }
+
+        $headers = [
+            'XF-Api-Key' => (string) $this->api_key,
+        ];
+
+        $effectiveUser = $user_id ?? $this->api_user;
+
+        if (! empty($effectiveUser))
+        {
+            $headers['XF-Api-User'] = (string) $effectiveUser;
+        }
+
+        return $headers;
+    }
+
     /**
      * Fetch recent posts for a XenForo thread.
      *
@@ -227,10 +248,7 @@ class XenforoService
         {
             $payload = array_merge($payload, $extra_fields);
         }
-        $headers = [
-            'XF-Api-Key' => (string) $this->api_key,
-            'XF-Api-User' => (string) ($user_id ?? $this->api_user ?? ''),
-        ];
+        $headers = $this->buildApiHeaders($user_id);
         $response = Http::withHeaders($headers)->asForm()->post($url, $payload);
 
         return [
@@ -277,12 +295,41 @@ class XenforoService
             'api_bypass_permissions' => 1,
         ];
 
-        $headers = [
-            'XF-Api-Key' => (string) $this->api_key,
-            'XF-Api-User' => (string) ($user_id ?? $this->api_user ?? ''),
-        ];
+        $headers = $this->buildApiHeaders($user_id);
 
         $response = Http::withHeaders($headers)->asForm()->post($url, $payload);
+
+        return [
+            'status' => $response->status(),
+            'body' => $response->json(),
+        ];
+    }
+
+    /**
+     * Fetch a XenForo user by ID.
+     *
+     * @return array{status:int,body:mixed}
+     */
+    public function get_user(int $user_id): array
+    {
+        if (empty($this->base_url) || empty($this->api_key) || $user_id <= 0)
+        {
+            return [
+                'status' => 0,
+                'body' => null,
+            ];
+        }
+
+        $url = $this->base_url.'/api/users/'.$user_id;
+
+        // Use the configured API user as the context, not the
+        // target XenForo user. The user ID in the URL identifies
+        // which account to update.
+        $headers = $this->buildApiHeaders();
+
+        $response = Http::withHeaders($headers)
+            ->acceptJson()
+            ->get($url);
 
         return [
             'status' => $response->status(),
@@ -311,5 +358,39 @@ class XenforoService
         }
 
         return (int) $oauth->provider_id;
+    }
+
+    /**
+     * Update XenForo user custom fields and/or groups.
+     *
+     * @param  array<string,mixed>  $payload
+     * @return array{status:int,body:mixed}
+     */
+    public function update_user(int $user_id, array $payload): array
+    {
+        if (empty($this->base_url) || empty($this->api_key) || $user_id <= 0)
+        {
+            return [
+                'status' => 0,
+                'body' => null,
+            ];
+        }
+
+        $url = $this->base_url.'/api/users/'.$user_id;
+
+        $payload['api_bypass_permissions'] = 1;
+
+        // Use the configured API user as the acting user; the
+        // user being modified is identified by the URL.
+        $headers = $this->buildApiHeaders();
+
+        $response = Http::withHeaders($headers)
+            ->asForm()
+            ->post($url, $payload);
+
+        return [
+            'status' => $response->status(),
+            'body' => $response->json(),
+        ];
     }
 }

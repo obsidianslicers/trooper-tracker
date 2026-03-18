@@ -22,7 +22,7 @@ final class ForumBBCodeRenderer
         $bbcode = preg_replace_callback(
             '~\[code\](.*?)\[/code\]~si',
             static function (array $matches) use (&$codeBlocks): string {
-                $token = '@@CODE_BLOCK_' . count($codeBlocks) . '@@';
+                $token = '@@CODE_BLOCK_'.count($codeBlocks).'@@';
 
                 $codeBlocks[$token] = '<pre class="mb-0"><code>'.e($matches[1]).'</code></pre>';
 
@@ -52,7 +52,8 @@ final class ForumBBCodeRenderer
                 $label = $matches[2];
 
                 $href = self::sanitizeUrl($urlRaw);
-                if ($href === null) {
+                if ($href === null)
+                {
                     return $label;
                 }
 
@@ -66,12 +67,14 @@ final class ForumBBCodeRenderer
             static function (array $matches): string {
                 $urlRaw = html_entity_decode($matches[1], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
                 $href = self::sanitizeUrl($urlRaw);
-                if ($href === null) {
+                if ($href === null)
+                {
                     // Leave as-is (escaped) if not a safe URL.
                     return $matches[1];
                 }
 
                 $label = e($href);
+
                 return '<a href="'.e($href).'" target="_blank" rel="noopener noreferrer">'.$label.'</a>';
             },
             $html
@@ -81,7 +84,8 @@ final class ForumBBCodeRenderer
         $html = nl2br($html, false);
 
         // Restore code blocks.
-        if (! empty($codeBlocks)) {
+        if (! empty($codeBlocks))
+        {
             $html = strtr($html, $codeBlocks);
         }
 
@@ -94,14 +98,16 @@ final class ForumBBCodeRenderer
     private static function replacePairedTag(string $html, string $bbTag, string $htmlTag): string
     {
         // Apply a few times to handle simple nesting.
-        for ($i = 0; $i < 5; $i++) {
+        for ($i = 0; $i < 5; $i++)
+        {
             $next = preg_replace(
                 '~\['.preg_quote($bbTag, '~').'\](.*?)\[/'.preg_quote($bbTag, '~').'\]~si',
                 '<'.$htmlTag.'>$1</'.$htmlTag.'>',
                 $html
             );
 
-            if ($next === null || $next === $html) {
+            if ($next === null || $next === $html)
+            {
                 break;
             }
 
@@ -114,12 +120,14 @@ final class ForumBBCodeRenderer
     private static function sanitizeUrl(string $url): ?string
     {
         $url = trim($url);
-        if ($url === '') {
+        if ($url === '')
+        {
             return null;
         }
 
         // XenForo often uses absolute URLs; only allow http(s).
-        if (! Str::startsWith(Str::lower($url), ['http://', 'https://'])) {
+        if (! Str::startsWith(Str::lower($url), ['http://', 'https://']))
+        {
             return null;
         }
 
