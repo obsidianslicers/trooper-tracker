@@ -36,8 +36,11 @@ readonly class GetTrooperCostumesQueryHandler implements QueryHandlerInterface
             ->orderBy(Costume::NAME)
             ->get();
 
+        // Ensure related data is available without N+1 queries
+        $costumes->loadMissing(['organization_costumes.organization', 'organization_costumes.trooper_costumes']);
+
         // Transform for the final output
-        $results = $costumes->each(function ($costume) {
+        $results = $costumes->each(function ($costume) use ($message) {
             $names = $costume->organization_costumes
                 ->map(fn ($oc) => $oc->organization->name)
                 ->sort()
@@ -47,6 +50,25 @@ readonly class GetTrooperCostumesQueryHandler implements QueryHandlerInterface
             $name_list = $names->isEmpty() ? '(unattached)' : $names->implode(', ');
 
             $costume->costume_organizations = "{$prefix}{$name_list}";
+
+            // Attach all costume image URLs for this trooper when available
+            $trooperCostumes = $costume->organization_costumes
+                ->flatMap(fn ($oc) => $oc->trooper_costumes)
+                ->where('trooper_id', $message->trooper->id);
+
+            $imageUrls = $trooperCostumes
+                ->flatMap(function ($tc) {
+                    return [
+                        $tc->image_url_sm,
+                        $tc->image_url_lg,
+                        $tc->image_url_bucket_off,
+                    ];
+                })
+                ->filter()
+                ->unique()
+                ->values();
+
+            $costume->image_urls = $imageUrls;
         });
 
         return $results;
