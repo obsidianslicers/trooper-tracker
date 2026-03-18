@@ -37,6 +37,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withSchedule(function (Schedule $schedule): void
     {
         $schedule->job(new UpdateEventForumThreadJob)->everyMinute();
+
+        $schedule->command('tracker:synchronize-xenforo-users')->hourly();
     })
     ->withMiddleware(function (Middleware $middleware): void
     {
