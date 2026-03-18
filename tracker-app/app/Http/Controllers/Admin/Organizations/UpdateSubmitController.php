@@ -40,14 +40,29 @@ class UpdateSubmitController extends MagicBusController
             $organization->discord_mention = $request->validated('discord_mention');
         }
 
-        if ($request->has('related_forum'))
+        if ($request->has(Organization::RELATED_FORUM))
         {
-            $organization->related_forum = $request->validated('related_forum');
+            $organization->related_forum = $request->validated(Organization::RELATED_FORUM);
         }
 
-        if ($request->has('related_forum_archive'))
+        if ($request->has(Organization::RELATED_FORUM_ARCHIVE))
         {
-            $organization->related_forum_archive = $request->validated('related_forum_archive');
+            $organization->related_forum_archive = $request->validated(Organization::RELATED_FORUM_ARCHIVE);
+        }
+
+        if ($request->has(Organization::XENFORO_GROUP_ACTIVE_ID))
+        {
+            $organization->xenforo_group_active_id = $request->validated(Organization::XENFORO_GROUP_ACTIVE_ID);
+        }
+
+        if ($request->has(Organization::XENFORO_GROUP_RESERVE_ID))
+        {
+            $organization->xenforo_group_reserve_id = $request->validated(Organization::XENFORO_GROUP_RESERVE_ID);
+        }
+
+        if ($request->has(Organization::XENFORO_GROUP_RETIRED_ID))
+        {
+            $organization->xenforo_group_retired_id = $request->validated(Organization::XENFORO_GROUP_RETIRED_ID);
         }
 
         $organization->save();
