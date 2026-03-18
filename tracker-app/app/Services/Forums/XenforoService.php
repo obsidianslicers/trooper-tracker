@@ -258,6 +258,42 @@ class XenforoService
     }
 
     /**
+     * Move an existing XenForo thread to a different node (forum).
+     *
+     * @return array{status:int,body:mixed}
+     */
+    public function move_thread(int $thread_id, int $target_node_id): array
+    {
+        if (empty($this->base_url) || empty($this->api_key) || $thread_id <= 0 || $target_node_id <= 0)
+        {
+            return [
+                'status' => 0,
+                'body' => null,
+            ];
+        }
+
+        $url = $this->base_url.'/api/threads/'.$thread_id.'/move';
+
+        $payload = [
+            'target_node_id' => $target_node_id,
+            'api_bypass_permissions' => 1,
+        ];
+
+        // Use the configured API user as the acting user; the thread
+        // being moved is identified by the URL.
+        $headers = $this->buildApiHeaders();
+
+        $response = Http::withHeaders($headers)
+            ->asForm()
+            ->post($url, $payload);
+
+        return [
+            'status' => $response->status(),
+            'body' => $response->json(),
+        ];
+    }
+
+    /**
      * Update an existing XenForo post's message body.
      *
      * @return array{status:int,body:mixed}
