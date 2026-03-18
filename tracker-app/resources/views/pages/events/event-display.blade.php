@@ -71,7 +71,7 @@
                                     <i class="fa fa-fw fa-calendar"></i>
                                 </a>
                             </div>
-                            @if(TroopTracker::isXenforoIntegrationConfigured() && !empty($event->thread_id) && !empty($event->post_id))
+                            @if(App\Facades\TroopTrackerFacade::isXenforoIntegrationConfigured() && !empty($event->thread_id) && !empty($event->post_id))
                                 <a href="{{ config('services.xenforo.base_url') . '/posts/' . $event->post_id . '/' }}"
                                    class="btn btn-outline-secondary"
                                    target="_blank"

@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Events;
 use App\Features\Events\Queries\GetEventDisplayQuery;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Event;
+use App\Facades\TroopTrackerFacade;
 use App\Services\Forums\XenforoService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -91,8 +92,7 @@ class EventDisplayController extends MagicBusController
 
         // XenForo thread posts (optional)
         $xenforoThreadPosts = [];
-        $xenforoApiKey = config('services.xenforo.api_key', env('XENFORO_API_KEY'));
-        if (! empty($xenforoBaseUrl) && ! empty($xenforoApiKey) && ! empty($event->thread_id) && ! empty($event->post_id))
+        if (TroopTrackerFacade::isXenforoIntegrationConfigured() && !empty($event->thread_id) && !empty($event->post_id))
         {
             $threadId = (int) $event->thread_id;
             $excludePostId = (int) $event->post_id;

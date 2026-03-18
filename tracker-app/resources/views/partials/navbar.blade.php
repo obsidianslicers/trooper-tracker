@@ -12,7 +12,7 @@
             <ul class="navbar-nav ms-auto">
                 @include('partials.inc.navbar-events')
                 @include('partials.inc.navbar-service-records')
-                @if(TroopTracker::isXenforoIntegrationConfigured())
+                @if(App\Facades\TroopTrackerFacade::isXenforoIntegrationConfigured())
                     <x-nav-link :url="config('services.xenforo.base_url')">
                         Forum
                     </x-nav-link>
