@@ -96,11 +96,7 @@ class EventDisplayController extends MagicBusController
         {
             $threadId = (int) $event->thread_id;
             $excludePostId = (int) $event->post_id;
-            $xenforoThreadPosts = Cache::remember(
-                'xenforo.thread.'.$threadId.'.posts.exclude.'.$excludePostId,
-                now()->addMinutes(5),
-                fn () => $xenforo->get_thread_posts($threadId, exclude_post_id: $excludePostId, per_page: 50, max_pages: 20)
-            );
+            $xenforoThreadPosts = $xenforo->get_thread_posts($threadId, exclude_post_id: $excludePostId, per_page: 50, max_pages: 20);
         }
 
         $data = compact(
