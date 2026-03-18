@@ -25,7 +25,7 @@ export default function eventSelector() {
             const hostingOrganizationId = eventEl.dataset.eventHostingOrganizationId ?? '';
 
             // Collect costume org IDs from <li data-costume-org="X">
-            const costumeOrganizations = Array.from(eventEl.querySelectorAll('[data-event-costume-organization-id]')).map(el => el.dataset.eventCostumeOrganizationId);
+            const costumeOrganizations = Array.from(eventEl.querySelectorAll('[data-event-status="1"][data-event-costume-organization-id]')).map(el => el.dataset.eventCostumeOrganizationId);
 
             if (this.form.search_term.length > 0 && !name.includes(this.form.search_term.toLowerCase())) {
                 return false;

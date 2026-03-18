@@ -10,6 +10,7 @@ use App\Features\Troopers\Queries\GetTroopersByRoleQuery;
 use App\Mail\Admin\Troopers\TrooperAwaitingApproval;
 use App\Models\Trooper;
 use App\Policies\TrooperPolicy;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Mail;
@@ -46,6 +47,10 @@ class SendTrooperRegisteredNotificationsJob implements ShouldQueue
      */
     public function handle(MagicBus $bus): void
     {
+        // This line is what triggers the verify your email, email to be sent after
+        // registration.
+        event(new Registered($this->trooper));
+
         $admins_query = new GetTroopersByRoleQuery(MembershipRole::ADMINISTRATOR);
 
         $admins = $bus->send($admins_query);

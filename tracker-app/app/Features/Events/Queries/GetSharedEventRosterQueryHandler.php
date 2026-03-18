@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Features\Events\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
+use App\Enums\EventGuestStatus;
 use App\Enums\EventTrooperStatus;
 use App\Models\Costume;
 use App\Models\Event;
+use App\Models\EventGuest;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Organization;
@@ -92,6 +94,10 @@ readonly class GetSharedEventRosterQueryHandler implements QueryHandlerInterface
             'event_shifts.event_troopers' => function ($query) {
                 $query->where(EventTrooper::STATUS, EventTrooperStatus::GOING)
                     ->orderBy(EventTrooper::SIGNED_UP_AT, 'asc');
+            },
+            'event_shifts.event_guests' => function ($query) {
+                $query->where(EventGuest::STATUS, EventGuestStatus::GOING)
+                    ->orderBy(EventGuest::SIGNED_UP_AT, 'asc');
             },
         ];
     }

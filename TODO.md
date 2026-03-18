@@ -62,14 +62,16 @@ stan/pint - WIP
 - Update/Delete Costumes from UI
 
 ## INTEGRATIONS
+- Xenforo tie in modules (When posting a event, cross post to Xenforo, use the comments on forum for tracker, ability to see forum link on event)
+  -Save Xenforo ID to trooper. Use this ID when posting events to whoever is posting,\.
+  -Xenforo Discussions on events
 - Get Xenforo donators, show donations on profile page / Give special badge
+- Xenforo e-mail hook to accounts
 - todo:   club/organization identifiers
   - auto verify club identifiers on registration
-- Update forum post every so often
-- Sync TT data to Xenforo (Name, Organization Data, etc)
-- Move finished troops forum posts to archive forum
 
 ## MISC
+- Placeholder (Ability to sign up troopers that do not have a tracker account)
 - Command Staff notifications (ie Bob or Jane's nth Troop), OR add to system notification for all, OR post to FB??
 - Public Roster
   - @if CS (send link to email input)
@@ -77,3 +79,8 @@ stan/pint - WIP
   - controller takes the UUID as the slug
   - set expiration to event_end + 24 hours
   - add UI to admin pages to expire link
+
+
+## EMAIL
+- change email workflow? - for now lock it down
+- password change workflow? forgot password workflow?

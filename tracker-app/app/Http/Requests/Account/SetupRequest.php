@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Account;
 
 use App\Enums\NotificationFrequency;
+use App\Enums\TrooperTheme;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Rules\Admin\Troopers\OrganizationLeafNodeRule;
@@ -56,6 +57,12 @@ class SetupRequest extends FormRequest
                 'max:256',
                 Rule::unique(Trooper::class, Trooper::EMAIL)
                     ->ignore($this->user()->id, Trooper::ID),
+            ],
+            Trooper::THEME => [
+                'required',
+                'string',
+                'max:16',
+                'in:'.TrooperTheme::toValidator(),
             ],
             Trooper::NOTIFICATION_FREQUENCY => [
                 'required',

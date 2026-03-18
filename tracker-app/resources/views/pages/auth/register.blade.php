@@ -9,8 +9,8 @@
         <x-card>
 
             <x-message>
-                <b>New to the 501st and/or {{ config('app.name') }}?</b> Or are you solely a member of another organization?
-                Use this form below to start signing up for troops.
+                <b>New to the 501st and/or {{ config('app.name') }}?</b> Or are you solely
+                a member of another organization? Use this form below to start signing up for troops.
                 <p class="mt-3 mb-0">
                     <i>Command Staff will need to approve your account prior to use.</i>
                 </p>
@@ -62,7 +62,7 @@
                                   x-mask="(999) 999-9999" />
                 </x-input-container>
 
-                @if($registration_method == 'email')
+                @if($registration_method == 'email' && TroopTracker::isEmailPasswordAuthEnabled())
                     <x-input-container>
                         <x-label>
                             Password:

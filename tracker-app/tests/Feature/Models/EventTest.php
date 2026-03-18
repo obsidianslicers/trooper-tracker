@@ -15,6 +15,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Spatie\CalendarLinks\Link;
 use Tests\TestCase;
 
 class EventTest extends TestCase
@@ -349,5 +350,16 @@ class EventTest extends TestCase
 
         $this->assertInstanceOf(EventStatus::class, $subject->{Event::STATUS});
         $this->assertSame(EventStatus::OPEN, $subject->{Event::STATUS});
+    }
+
+    public function test_create_calendar_link_returns_link_object(): void
+    {
+        $start = Carbon::parse('2026-10-03 14:00:00');
+        $end = Carbon::parse('2026-10-03 16:00:00');
+        $subject = Event::factory()->state([Event::NAME => 'Test Event'])->create();
+
+        $result = $subject->createCalendarLink();
+
+        $this->assertInstanceOf(Link::class, $result);
     }
 }

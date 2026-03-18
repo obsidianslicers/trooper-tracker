@@ -14,7 +14,11 @@
                         data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <x-loading />
+                @if(isset($slot) && trim($slot) !== '')
+                    {{ $slot }}
+                @else
+                    <x-loading />
+                @endif
             </div>
         </div>
     </div>

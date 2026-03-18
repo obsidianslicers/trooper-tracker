@@ -18,7 +18,7 @@ class SignUpHtmxControllerTest extends TestCase
 
     public function test_invoke_signs_up_trooper_and_returns_shift_partial(): void
     {
-        $trooper = Trooper::factory()->asActive()->create();
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
         $organization = Organization::factory()->create();
 
         TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();

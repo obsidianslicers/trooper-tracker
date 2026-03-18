@@ -15,7 +15,7 @@ class EventDisplayControllerTest extends TestCase
 
     public function test_invoke_displays_event_details_page(): void
     {
-        $trooper = Trooper::factory()->asActive()->create();
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
         $event = Event::factory()->create();
 
         $response = $this->actingAs($trooper)->get(route('events.display', ['event' => $event->id]));

@@ -15,6 +15,15 @@
 
                 <x-input-container>
                     <x-label>
+                        Email:
+                    </x-label>
+                    <x-input-text :property="'email'"
+                                  :value="$trooper->email"
+                                  :disabled="true" />
+                </x-input-container>
+
+                <x-input-container>
+                    <x-label>
                         Legal Name:
                     </x-label>
                     <x-input-text :property="'legal_name'"
@@ -35,14 +44,6 @@
                     <x-input-help>
                         This is the name that will be shown publicly on your profile and on the dashboard.
                     </x-input-help>
-                </x-input-container>
-
-                <x-input-container>
-                    <x-label>
-                        Email:
-                    </x-label>
-                    <x-input-text :property="'email'"
-                                  :value="$trooper->email" />
                 </x-input-container>
 
                 <x-input-container x-data>

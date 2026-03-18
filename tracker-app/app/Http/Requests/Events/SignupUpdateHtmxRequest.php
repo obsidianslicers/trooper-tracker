@@ -69,7 +69,7 @@ class SignupUpdateHtmxRequest extends FormRequest
 
         $organization_ids = $event->event_organizations()->pluckCanAttend($event_shift);
 
-        $valid_costume_ids = Costume::forTrooper($this->user()->id, $organization_ids)
+        $valid_costume_ids = Costume::forTrooper($event_trooper->trooper_id, $organization_ids)
             ->pluck('id')
             ->toArray();
 

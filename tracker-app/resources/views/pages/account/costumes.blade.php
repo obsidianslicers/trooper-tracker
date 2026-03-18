@@ -18,10 +18,10 @@
                      class="mb-4">
                     <div class="mb-4 position-relative">
                         <x-label>
-                            1. Find Your Costume
+                            Find Your Costume
                         </x-label>
                         <x-input-text property="'costume_id'"
-                                      placeholder="Search ... (e.g. Shdadow Scout)"
+                                      placeholder="Search ... (i.e. Shdadow Scout)"
                                       x-model="search"
                                       x-on:focus="showResults = true"
                                       x-on:click.away="showResults = false" />
@@ -43,7 +43,7 @@
                          x-transition
                          class="mb-4">
                         <x-label>
-                            2. Select Approved Organizations
+                            Select Approved Organizations
                         </x-label>
 
                         <div class="list-group">

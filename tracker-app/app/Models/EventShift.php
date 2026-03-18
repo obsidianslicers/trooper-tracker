@@ -242,7 +242,7 @@ class EventShift extends BaseEventShift
      * @param Trooper $trooper The trooper attempting to sign up a friend
      * @return bool True if the trooper can sign up a friend
      */
-    public function canSignUpFriend(Trooper $trooper): bool
+    public function canSignUpTrooper(Trooper $trooper): bool
     {
         if ($this->is_open)
         {
@@ -260,6 +260,41 @@ class EventShift extends BaseEventShift
                     ->count();
 
                 if ($friends < $friends_allowed)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if a trooper can sign up a friend for this shift.
+     *
+     * A trooper can sign up a guest if the shift is open and they are already signed up.
+     *
+     * @param Trooper $trooper The trooper attempting to sign up a guest
+     * @return bool True if the trooper can sign up a guest
+     */
+    public function canSignUpGuest(Trooper $trooper): bool
+    {
+        if ($this->is_open)
+        {
+            if ($this->isGoing($trooper))
+            {
+                $guests_allowed = $this->event->guests_allowed;
+
+                if ($guests_allowed === null)
+                {
+                    return true;
+                }
+
+                $guests = $this->event_guests()
+                    ->where(EventGuest::ADDED_BY_TROOPER_ID, $trooper->id)
+                    ->count();
+
+                if ($guests < $guests_allowed)
                 {
                     return true;
                 }

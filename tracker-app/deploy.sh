@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 1. Set Path for Node.js (Ensures npm/node work in this session)
-#export PATH=/opt/alt/alt-nodejs24/root/usr/bin:$PATH
+export PATH=/opt/alt/alt-nodejs24/root/usr/bin:$PATH
 
 echo "🚀 Starting Deployment..."
 

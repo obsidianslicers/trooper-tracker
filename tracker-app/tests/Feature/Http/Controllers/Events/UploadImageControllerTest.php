@@ -19,7 +19,7 @@ class UploadImageControllerTest extends TestCase
     {
         Storage::fake('public');
 
-        $trooper = Trooper::factory()->asActive()->create();
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
         $event = Event::factory()->create();
 
         $file = UploadedFile::fake()->image('troop.png');
