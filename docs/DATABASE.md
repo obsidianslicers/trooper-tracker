@@ -127,7 +127,13 @@ Hierarchical structure for clubs, garrisons, and squads (Organizations → Regio
 | `image_path_sm` | varchar(128) | nullable | Small logo image path |
 | `service_class` | varchar(128) | nullable | Integration service class name |
 | `sync_sheet_id` | varchar(128) | nullable | Google Sheet ID for sync |
-| `synchronized_at` | datetime | nullable | Last synchronization timestamp |
+| `discord_mention` | varchar(128) | nullable | Discord mention identifier for this org |
+| `related_forum` | bigint unsigned | nullable | XenForo forum node ID for event threads |
+| `related_forum_archive` | bigint unsigned | nullable | XenForo forum node ID for archived threads |
+| `xenforo_group_active_id` | bigint unsigned | nullable | XenForo user group ID for active members |
+| `xenforo_group_reserve_id` | bigint unsigned | nullable | XenForo user group ID for reserve members |
+| `xenforo_group_retired_id` | bigint unsigned | nullable | XenForo user group ID for retired members |
+| `synchronized_at` | datetime | nullable | Last synchronization timestamp with external systems |
 | `description` | varchar(512) | nullable | Organization description |
 | `created_at` | timestamp | nullable | Record creation time |
 | `updated_at` | timestamp | nullable | Record update time |
@@ -759,10 +765,10 @@ OAuth provider linkages for troopers (Google, XenForo).
 |--------|------|-------------|-------------|
 | `id` | bigint unsigned | PK, auto-increment | Primary key |
 | `trooper_id` | bigint unsigned | FK to tt_troopers, NOT NULL | Trooper account |
-| `provider` | varchar(255) | NOT NULL | Provider name (google, xenforo) |
-| `provider_id` | varchar(255) | NOT NULL | Unique ID from provider |
-| `token` | varchar(255) | nullable | OAuth access token |
-| `refresh_token` | varchar(255) | nullable | OAuth refresh token |
+| `provider` | varchar(64) | NOT NULL | Provider key (e.g., google, xenforo) |
+| `provider_id` | varchar(128) | NOT NULL | Unique ID from provider |
+| `token` | text | nullable | OAuth access token (may be encrypted) |
+| `refresh_token` | text | nullable | OAuth refresh token (may be encrypted) |
 | `expires_at` | timestamp | nullable | Token expiration |
 | `created_at` | timestamp | nullable | Record creation time |
 | `updated_at` | timestamp | nullable | Record update time |
