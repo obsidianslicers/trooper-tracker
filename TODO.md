@@ -65,9 +65,6 @@ stan/pint - WIP
 - Get Xenforo donators, show donations on profile page / Give special badge
 - todo:   club/organization identifiers
   - auto verify club identifiers on registration
-- Update forum post every so often
-- Sync TT data to Xenforo (Name, Organization Data, etc)
-- Move finished troops forum posts to archive forum
 
 ## MISC
 - Placeholder (Ability to sign up troopers that do not have a tracker account)
