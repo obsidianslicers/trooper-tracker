@@ -480,9 +480,9 @@ class XenforoService
         $data = $response->json();
 
         Log::info('XenForo upgrade stats response', [
-    'url' => $url,
-    'data' => $data,
-]);
+            'url' => $url,
+            'data' => $data,
+        ]);
 
         return is_array($data) ? $data : null;
     }

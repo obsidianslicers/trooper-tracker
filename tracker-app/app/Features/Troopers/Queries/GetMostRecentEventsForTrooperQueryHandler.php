@@ -10,6 +10,7 @@ use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Organization;
+use Illuminate\Support\Collection;
 
 /**
  * Handler for retrieving the most recent attended events for a trooper.
@@ -37,7 +38,7 @@ readonly class GetMostRecentEventsForTrooperQueryHandler implements QueryHandler
      * 4. Return collection of organizations with event_shift data
      *
      * @param  GetMostRecentEventsForTrooperQuery  $message  The query containing the trooper
-     * @return \Illuminate\Support\Collection<int, Organization> Organizations with event_shift property
+     * @return Collection<int, Organization> Organizations with event_shift property
      */
     public function __invoke(object $message): mixed
     {

@@ -13,6 +13,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 /**
  * Handles validation for the user registration form.
@@ -27,7 +28,7 @@ use Illuminate\Validation\Rule;
  *
  * @see App\Models\Organization::fullyLoaded()
  *
- * @property \Illuminate\Support\Collection|null $organizations Cached organizations used when generating rules
+ * @property Collection|null $organizations Cached organizations used when generating rules
  */
 class RegisterRequest extends FormRequest
 {
@@ -195,7 +196,7 @@ class RegisterRequest extends FormRequest
      * This method is used to add custom, user-friendly error messages for the
      * dynamically generated organization identifier rules.
      *
-     * @param  \Illuminate\Validation\Validator  $validator
+     * @param  Validator  $validator
      */
     public function withValidator($validator): void
     {

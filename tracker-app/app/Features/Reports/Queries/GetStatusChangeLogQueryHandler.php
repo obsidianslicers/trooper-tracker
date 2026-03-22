@@ -7,6 +7,7 @@ namespace App\Features\Reports\Queries;
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Enums\EventTrooperStatus;
 use App\Models\EventTrooper;
+use Illuminate\Support\Collection;
 
 /**
  * Handler for retrieving event trooper status change log.
@@ -28,7 +29,7 @@ readonly class GetStatusChangeLogQueryHandler implements QueryHandlerInterface
      * - For troopers moderated by the specified moderator
      *
      * @param  GetStatusChangeLogQuery  $message  The query containing moderator and lookback criteria.
-     * @return \Illuminate\Support\Collection<int, EventTrooper> Collection of status changes.
+     * @return Collection<int, EventTrooper> Collection of status changes.
      */
     public function __invoke(object $message): mixed
     {

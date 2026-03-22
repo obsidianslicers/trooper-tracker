@@ -6,6 +6,7 @@ namespace App\Features\Troopers\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Models\Trooper;
+use Illuminate\Support\Collection;
 
 /**
  * Handler for retrieving trooper organization assignments.
@@ -31,7 +32,7 @@ readonly class GetTroopersByRoleQueryHandler implements QueryHandlerInterface
      * 4. Return collection of Trooper models
      *
      * @param  GetTroopersByRoleQuery  $message  The query (no parameters)
-     * @return \Illuminate\Support\Collection<int, Trooper> Collection of administrator troopers
+     * @return Collection<int, Trooper> Collection of administrator troopers
      */
     public function __invoke(object $message): mixed
     {

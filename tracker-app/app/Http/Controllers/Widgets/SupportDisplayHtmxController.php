@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Widgets;
 
 use App\Http\Controllers\MagicBusController;
-use App\Models\TrooperDonation;
 use App\Services\Support\SupportStatusService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;

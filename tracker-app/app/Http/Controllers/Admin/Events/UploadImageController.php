@@ -9,6 +9,7 @@ use App\Models\Event;
 use App\Models\EventUpload;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\ImageManager;
@@ -31,7 +32,7 @@ class UploadImageController extends MagicBusController
      *
      * @param  Request  $request  The incoming HTTP request with 'images' file array
      * @param  Event  $event  The event to attach uploads to
-     * @return \Illuminate\Http\Response Response with uploads page view and flash message header
+     * @return Response Response with uploads page view and flash message header
      */
     public function __invoke(Request $request, Event $event)
     {

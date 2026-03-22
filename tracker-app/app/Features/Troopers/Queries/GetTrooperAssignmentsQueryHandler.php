@@ -7,6 +7,7 @@ namespace App\Features\Troopers\Queries;
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Models\Organization;
 use App\Models\TrooperAssignment;
+use Illuminate\Support\Collection;
 
 /**
  * Handler for retrieving trooper organization assignments.
@@ -32,7 +33,7 @@ readonly class GetTrooperAssignmentsQueryHandler implements QueryHandlerInterfac
      * 4. Set 'assignment' property to the assigned organization object
      *
      * @param  GetTrooperAssignmentsQuery  $message  The query containing the trooper
-     * @return \Illuminate\Support\Collection<int, Organization> Organizations with assignment data
+     * @return Collection<int, Organization> Organizations with assignment data
      */
     public function __invoke(object $message): mixed
     {

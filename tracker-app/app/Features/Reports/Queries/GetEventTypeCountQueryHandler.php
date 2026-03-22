@@ -8,6 +8,7 @@ use App\Bus\Contracts\QueryHandlerInterface;
 use App\Enums\EventStatus;
 use App\Enums\EventType;
 use App\Models\Event;
+use Illuminate\Support\Collection;
 
 /**
  * Handler for retrieving event statistics grouped by type.
@@ -28,7 +29,7 @@ readonly class GetEventTypeCountQueryHandler implements QueryHandlerInterface
      * - unique_trooper_count: Unique troopers across all events
      *
      * @param  GetEventTypeCountQuery  $message  The query containing moderator and lookback criteria.
-     * @return \Illuminate\Support\Collection<int, object> Collection of event type statistics.
+     * @return Collection<int, object> Collection of event type statistics.
      */
     public function __invoke(object $message): mixed
     {

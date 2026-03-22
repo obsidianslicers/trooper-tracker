@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Bus\Contracts;
 
+use App\Bus\MagicBus;
+
 /**
  * Interface for Query handlers.
  *
@@ -38,7 +40,7 @@ namespace App\Bus\Contracts;
  *
  * @extends HandlerInterface<TMessage>
  *
- * @see \App\Bus\MagicBus
- * @see \App\Bus\Contracts\HandlerInterface
+ * @see MagicBus
+ * @see HandlerInterface
  */
 interface QueryHandlerInterface extends HandlerInterface {}

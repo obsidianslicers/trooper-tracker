@@ -12,6 +12,7 @@ use App\Models\Event;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
 use App\Models\TrooperAchievement;
+use Illuminate\Support\Collection;
 
 /**
  * Handler for recalculating a trooper's rank based on their event attendance.
@@ -71,7 +72,7 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
      * - Direct and indirect funds achievements
      * - Troop threshold milestone achievements
      *
-     * @param  \Illuminate\Support\Collection  $troopers  Chunk of troopers to process
+     * @param  Collection  $troopers  Chunk of troopers to process
      */
     private function processChunk($troopers, bool $process_rank): void
     {

@@ -6,6 +6,7 @@ namespace App\Features\Organizations\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Models\Organization;
+use Illuminate\Support\Collection;
 
 /**
  * Handler for retrieving all organizations of type 'organization'.
@@ -21,7 +22,7 @@ readonly class GetOrganizationsQueryHandler implements QueryHandlerInterface
      * Execute the query to retrieve all organizations.
      *
      * @param  GetOrganizationsQuery  $message  The query (no parameters)
-     * @return \Illuminate\Support\Collection<int, Organization> Collection of organizations
+     * @return Collection<int, Organization> Collection of organizations
      */
     public function __invoke(object $message): mixed
     {

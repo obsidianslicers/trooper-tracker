@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Bus\Contracts;
 
+use App\Bus\Concerns\ShouldRunAfterResponse;
+use App\Bus\MagicBus;
+
 /**
  * Interface for Command handlers.
  *
@@ -39,8 +42,8 @@ namespace App\Bus\Contracts;
  *
  * @extends HandlerInterface<TMessage>
  *
- * @see \App\Bus\MagicBus
- * @see \App\Bus\Contracts\HandlerInterface
- * @see \App\Bus\Concerns\ShouldRunAfterResponse
+ * @see MagicBus
+ * @see HandlerInterface
+ * @see ShouldRunAfterResponse
  */
 interface CommandHandlerInterface extends HandlerInterface {}

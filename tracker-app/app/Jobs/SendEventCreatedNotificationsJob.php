@@ -7,6 +7,7 @@ namespace App\Jobs;
 use App\Bus\MagicBus;
 use App\Features\Events\Commands\SendEventCreatedNotificationCommand;
 use App\Features\Events\Queries\GetTroopersForEventCreatedQuery;
+use App\Helpers\ForumBBCodeHelper;
 use App\Models\Event;
 use App\Services\Forums\XenforoService;
 use App\Services\Notifications\DiscordNotifier;
@@ -79,8 +80,8 @@ class SendEventCreatedNotificationsJob implements ShouldQueue
             $node_id = (int) $organization->related_forum;
             $title = $this->event->name;
 
-            $roster = \App\Helpers\ForumBBCodeHelper::rosterSummary($this->event);
-            $message = \App\Helpers\ForumBBCodeHelper::threadTemplate($this->event, $roster);
+            $roster = ForumBBCodeHelper::rosterSummary($this->event);
+            $message = ForumBBCodeHelper::threadTemplate($this->event, $roster);
 
             // Let XenforoService resolve the XenForo user ID (via OAuth) for the event creator
             $xenforo_user_id = $xenforo->resolve_user_id_for_trooper($this->event->created_id);

@@ -9,6 +9,7 @@ use App\Enums\EventTrooperStatus;
 use App\Enums\MembershipStatus;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
+use Illuminate\Support\Collection;
 
 /**
  * Handler for retrieving troopers without recent event activity.
@@ -28,7 +29,7 @@ readonly class GetTroopersWithoutActivityQueryHandler implements QueryHandlerInt
      * - Are currently in ACTIVE membership status
      *
      * @param  GetTroopersWithoutActivityQuery  $message  The query containing moderator and lookback criteria.
-     * @return \Illuminate\Support\Collection<int, Trooper> Collection of inactive troopers.
+     * @return Collection<int, Trooper> Collection of inactive troopers.
      */
     public function __invoke(object $message): mixed
     {

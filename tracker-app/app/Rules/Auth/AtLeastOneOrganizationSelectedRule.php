@@ -6,6 +6,7 @@ namespace App\Rules\Auth;
 
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Translation\PotentiallyTranslatedString;
 
 /**
  * Validation rule to ensure that at least one organization is selected from an array of organizations.
@@ -22,7 +23,7 @@ class AtLeastOneOrganizationSelectedRule implements ValidationRule
      * Checks if the given value is an array and if at least one element
      * within it has a truthy 'selected' property.
      *
-     * @param  \Closure(string): \Illuminate\Translation\PotentiallyTranslatedString  $fail  The closure to call on validation failure.
+     * @param  Closure(string): PotentiallyTranslatedString  $fail  The closure to call on validation failure.
      * @return void This rule never returns a value; it only triggers $fail().
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void

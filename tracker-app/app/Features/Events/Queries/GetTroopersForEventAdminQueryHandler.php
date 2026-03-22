@@ -10,6 +10,7 @@ use App\Models\EventShift;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\TrooperCostume;
+use Illuminate\Support\Collection;
 
 /**
  * Handler for enriching event shifts with trooper and costume data.
@@ -39,7 +40,7 @@ readonly class GetTroopersForEventAdminQueryHandler implements QueryHandlerInter
      * 4. Return enriched collection of EventShift models
      *
      * @param  GetTroopersForEventAdminQuery  $message  The query containing the event.
-     * @return \Illuminate\Support\Collection<int, EventShift> Event shifts with enriched trooper data.
+     * @return Collection<int, EventShift> Event shifts with enriched trooper data.
      */
     public function __invoke(object $message): mixed
     {

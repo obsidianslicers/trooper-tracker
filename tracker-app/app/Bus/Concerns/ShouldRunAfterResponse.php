@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Bus\Concerns;
 
+use App\Bus\Contracts\CommandInterface;
+use App\Bus\MagicBus;
+
 /**
  * Marker trait indicating that a handler should be executed after the HTTP response is sent.
  *
@@ -31,7 +34,7 @@ namespace App\Bus\Concerns;
  * }
  * ```
  *
- * @see \App\Bus\MagicBus::send()
- * @see \App\Bus\Contracts\CommandInterface
+ * @see MagicBus::send()
+ * @see CommandInterface
  */
 trait ShouldRunAfterResponse {}

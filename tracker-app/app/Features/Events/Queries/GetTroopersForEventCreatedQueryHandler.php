@@ -8,6 +8,7 @@ use App\Bus\Contracts\QueryHandlerInterface;
 use App\Enums\NotificationFrequency;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
+use Illuminate\Support\Collection;
 
 /**
  * Handler for retrieving troopers eligible for event creation notifications.
@@ -31,7 +32,7 @@ readonly class GetTroopersForEventCreatedQueryHandler implements QueryHandlerInt
      * 5. Return collection of Trooper models
      *
      * @param  GetTroopersForEventCreatedQuery  $message  The query containing the new event
-     * @return \Illuminate\Support\Collection<int, Trooper> Active troopers eligible for notifications
+     * @return Collection<int, Trooper> Active troopers eligible for notifications
      */
     public function __invoke(object $message): mixed
     {

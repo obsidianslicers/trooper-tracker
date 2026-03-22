@@ -10,6 +10,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use InvalidArgumentException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use ValueError;
 
 /**
@@ -34,7 +35,7 @@ class CheckActorRoleMiddleware
      * @return Response The response from the next middleware if authorized
      *
      * @throws InvalidArgumentException If an invalid role string is provided
-     * @throws \Symfony\Component\HttpKernel\Exception\HttpException If not authenticated (401) or unauthorized (403)
+     * @throws HttpException If not authenticated (401) or unauthorized (403)
      */
     public function handle(Request $request, Closure $next, ...$roles)
     {
