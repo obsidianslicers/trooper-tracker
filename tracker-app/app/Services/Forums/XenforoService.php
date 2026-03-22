@@ -486,4 +486,54 @@ class XenforoService
 
         return is_array($data) ? $data : null;
     }
+
+    /**
+     * Fetch user-group banner data from the XenForo user-groups add-on.
+     *
+     * @return array<string,mixed>|null
+     */
+    public function get_user_groups(int $user_id): ?array
+    {
+        if (empty($this->base_url) || empty($this->api_key) || $user_id <= 0)
+        {
+            return null;
+        }
+
+        $url = $this->base_url.'/index.php?api/user-groups&user_id='.$user_id;
+
+        try
+        {
+            $headers = $this->buildApiHeaders();
+
+            $response = Http::withHeaders($headers)
+                ->acceptJson()
+                ->timeout(5)
+                ->get($url);
+        }
+        catch (\Throwable $e)
+        {
+            Log::warning('Failed to fetch XenForo user groups', [
+                'url' => $url,
+                'user_id' => $user_id,
+                'message' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+
+        if (! $response->successful())
+        {
+            Log::warning('Non-success response from XenForo user groups', [
+                'url' => $url,
+                'user_id' => $user_id,
+                'status' => $response->status(),
+            ]);
+
+            return null;
+        }
+
+        $data = $response->json();
+
+        return is_array($data) ? $data : null;
+    }
 }

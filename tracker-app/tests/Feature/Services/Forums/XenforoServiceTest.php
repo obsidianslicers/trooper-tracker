@@ -102,4 +102,36 @@ class XenforoServiceTest extends TestCase
                 && ($request['custom'] ?? null) === 'value';
         });
     }
+
+    public function test_get_user_groups_returns_payload_for_configured_user(): void
+    {
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'key-3',
+            'services.xenforo.api_user' => '42',
+        ]);
+
+        Http::fake([
+            '*' => Http::response([
+                'userId' => 15802,
+                'userGroups' => [
+                    [
+                        'groupID' => 1,
+                        'title' => 'Primary',
+                        'bannerText' => '<span>Primary</span>',
+                        'order' => 10,
+                        'isPrimary' => true,
+                    ],
+                ],
+            ], 200),
+        ]);
+
+        $subject = new XenforoService;
+
+        $result = $subject->get_user_groups(15802);
+
+        $this->assertIsArray($result);
+        $this->assertSame(15802, $result['userId']);
+        $this->assertCount(1, $result['userGroups']);
+    }
 }
