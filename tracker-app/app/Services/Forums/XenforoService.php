@@ -429,4 +429,61 @@ class XenforoService
             'body' => $response->json(),
         ];
     }
+
+    /**
+     * Fetch upgrade statistics from the XenForo UpgradeStats add-on.
+     *
+     * This endpoint is only called when XenForo API credentials are
+     * configured. If the request fails or returns a non-array payload,
+     * null is returned and callers should fall back to local data.
+     *
+     * @return array<string,mixed>|null
+     */
+    public function get_upgrade_stats(): ?array
+    {
+        if (empty($this->base_url) || empty($this->api_key))
+        {
+            return null;
+        }
+
+        $url = $this->base_url.'/index.php?api/upgrade-stats';
+
+        try
+        {
+            $headers = $this->buildApiHeaders();
+
+            $response = Http::withHeaders($headers)
+                ->acceptJson()
+                ->timeout(5)
+                ->get($url);
+        }
+        catch (\Throwable $e)
+        {
+            Log::warning('Failed to fetch XenForo upgrade stats', [
+                'url' => $url,
+                'message' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+
+        if (! $response->successful())
+        {
+            Log::warning('Non-success response from XenForo upgrade stats', [
+                'url' => $url,
+                'status' => $response->status(),
+            ]);
+
+            return null;
+        }
+
+        $data = $response->json();
+
+        Log::info('XenForo upgrade stats response', [
+    'url' => $url,
+    'data' => $data,
+]);
+
+        return is_array($data) ? $data : null;
+    }
 }

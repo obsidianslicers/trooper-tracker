@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Widgets;
 
 use App\Http\Controllers\MagicBusController;
 use App\Models\TrooperDonation;
+use App\Services\Support\SupportStatusService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -20,22 +21,14 @@ class SupportDisplayHtmxController extends MagicBusController
      * @param  Request  $request  The incoming HTTP request
      * @return View The rendered support widget view
      */
-    public function __invoke(Request $request): View
+    public function __invoke(Request $request, SupportStatusService $support_status_service): View
     {
-        $donations = TrooperDonation::forMonth()->sum(TrooperDonation::AMOUNT);
-
-        $goal = config('tracker.support.goal', 0);
-
-        $progress = 0;
-
-        if ($goal > 0)
-        {
-            $progress = $donations / $goal;
-        }
+        $status = $support_status_service->calculate();
 
         $data = [
-            'goal' => $goal,
-            'progress' => number_format($progress * 100, 0),
+            'goal' => $status['goal'],
+            'current' => $status['current'],
+            'progress' => number_format($status['progress'], 0),
             'message' => $this->getMessage(),
         ];
 
