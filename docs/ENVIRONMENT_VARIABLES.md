@@ -283,7 +283,7 @@ Configuration reference for all `.env` variables in Troop Tracker.
 
 #### XENFORO_BASE_URL
 - **Purpose**: Base URL of XenForo forum installation
-- **Required**: For forum-based login
+- **Required**: For forum-based login and API integration
 - **Format**: `https://forum.example.com` (no trailing slash)
 - **Example**: `https://www.fl501st.com/boards`
 
@@ -291,6 +291,55 @@ Configuration reference for all `.env` variables in Troop Tracker.
 - **Purpose**: Forum name displayed during OAuth flow
 - **Required**: No
 - **Default**: Uses APP_NAME if not set
+
+#### XENFORO_API_KEY
+- **Purpose**: XenForo API key used for forum automation and custom add-on endpoints
+- **Required**: Yes for full XenForo integration
+- **Used for**:
+   - creating threads
+   - updating posts
+   - moving threads to archive forums
+   - reading XenForo users
+   - synchronizing XenForo user fields and groups
+   - reading upgrade stats via the Upgrade Stats add-on
+   - reading user-group banner data via the User Groups add-on
+- **Security**: Never commit to version control
+- **See**: [XENFORO_OAUTH.md](XENFORO_OAUTH.md)
+
+#### XENFORO_API_USER
+- **Purpose**: Numeric XenForo user ID used as the acting API user
+- **Required**: Yes for full XenForo integration
+- **Common Value**: `1`
+- **When to change**: Set this to the XenForo user account that should act as the API context for thread, post, and user operations
+
+#### XENFORO_AUTHORIZE_PATH
+- **Purpose**: Override XenForo OAuth authorize endpoint path
+- **Required**: No
+- **Default**: `/index.php?oauth2/authorize`
+- **When to change**: Only if your XenForo OAuth endpoint differs from the default
+
+#### XENFORO_TOKEN_PATH
+- **Purpose**: Override XenForo OAuth token endpoint path
+- **Required**: No
+- **Default**: `/index.php?api/oauth2/token`
+- **When to change**: Only if your XenForo OAuth endpoint differs from the default
+
+#### XENFORO_ME_PATH
+- **Purpose**: Override XenForo OAuth user-info endpoint path
+- **Required**: No
+- **Default**: `/api/me`
+- **When to change**: Only if your XenForo OAuth endpoint differs from the default
+
+#### TRACKER_REQUIRE_XENFORO
+- **Purpose**: Force Troop Tracker to require XenForo-linked accounts
+- **Required**: No
+- **Default**: `false`
+- **When enabled**:
+   - email/password login is disabled
+   - non-XenForo OAuth providers are blocked
+   - users without a linked XenForo account are redirected to complete XenForo linking
+- **Recommended**: `true` when XenForo is your primary identity and community system
+- **See**: [AUTHENTICATION.md](AUTHENTICATION.md) and [XENFORO_OAUTH.md](XENFORO_OAUTH.md)
 
 ---
 
@@ -392,6 +441,9 @@ XENFORO_CLIENT_ID=YOUR_XENFORO_CLIENT_ID
 XENFORO_CLIENT_SECRET=YOUR_XENFORO_CLIENT_SECRET
 XENFORO_REDIRECT_URI=https://trooptracker.example.com/oauth/xenforo/callback
 XENFORO_BASE_URL=https://forum.example.com
+XENFORO_API_KEY=YOUR_XENFORO_API_KEY
+XENFORO_API_USER=1
+TRACKER_REQUIRE_XENFORO=true
 
 # Logging
 LOG_CHANNEL=daily
