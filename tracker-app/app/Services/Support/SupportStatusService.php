@@ -43,7 +43,7 @@ class SupportStatusService
 
         if (is_array($stats))
         {
-            $current = $this->calculate_from_xenforo($stats);
+            $current = $this->calculateFromXenforo($stats);
 
             if ($current > 0.0)
             {
@@ -77,7 +77,7 @@ class SupportStatusService
     /**
      * @param  array<string,mixed>  $stats
      */
-    private function calculate_from_xenforo(array $stats): float
+    private function calculateFromXenforo(array $stats): float
     {
         $activeRecords = $stats['userUpgradeActive'] ?? null;
         $upgrades = $stats['userUpgrades'] ?? null;
@@ -103,7 +103,7 @@ class SupportStatusService
                 continue;
             }
 
-            $amount = $this->extract_cost_amount($upgrade);
+            $amount = $this->extractCostAmount($upgrade);
 
             if ($amount <= 0.0)
             {
@@ -150,7 +150,7 @@ class SupportStatusService
                 continue;
             }
 
-            $amount = $this->extract_cost_amount($record);
+            $amount = $this->extractCostAmount($record);
 
             if ($amount <= 0.0 && isset($record['extra']) && is_string($record['extra']))
             {
@@ -158,7 +158,7 @@ class SupportStatusService
 
                 if (is_array($extra))
                 {
-                    $amount = $this->extract_cost_amount($extra);
+                    $amount = $this->extractCostAmount($extra);
                 }
             }
 
@@ -176,7 +176,7 @@ class SupportStatusService
     /**
      * @param  array<string,mixed>  $record
      */
-    private function extract_cost_amount(array $record): float
+    private function extractCostAmount(array $record): float
     {
         return isset($record['cost_amount']) && is_numeric($record['cost_amount'])
             ? (float) $record['cost_amount']

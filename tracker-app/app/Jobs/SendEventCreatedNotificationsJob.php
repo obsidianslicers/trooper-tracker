@@ -7,8 +7,8 @@ namespace App\Jobs;
 use App\Bus\MagicBus;
 use App\Features\Events\Commands\SendEventCreatedNotificationCommand;
 use App\Features\Events\Queries\GetTroopersForEventCreatedQuery;
-use App\Helpers\ForumBBCodeHelper;
 use App\Models\Event;
+use App\Services\Forums\ForumThreadMessageService;
 use App\Services\Forums\XenforoService;
 use App\Services\Notifications\DiscordNotifier;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -47,7 +47,12 @@ class SendEventCreatedNotificationsJob implements ShouldQueue
      * @param  MagicBus  $bus  The message bus for sending queries and commands.
      * @param  DiscordNotifier  $notifier  The Discord notification service.
      */
-    public function handle(MagicBus $bus, DiscordNotifier $notifier, XenforoService $xenforo): void
+    public function handle(
+        MagicBus $bus,
+        DiscordNotifier $notifier,
+        ForumThreadMessageService $forumThreadMessageService,
+        XenforoService $xenforo
+    ): void
     {
         // Trooper notifications: only send if not already sent
         if ($this->event->create_notifications_sent_at === null)
@@ -80,8 +85,7 @@ class SendEventCreatedNotificationsJob implements ShouldQueue
             $node_id = (int) $organization->related_forum;
             $title = $this->event->name;
 
-            $roster = ForumBBCodeHelper::rosterSummary($this->event);
-            $message = ForumBBCodeHelper::threadTemplate($this->event, $roster);
+            $message = $forumThreadMessageService->buildThreadMessage($this->event);
 
             // Let XenforoService resolve the XenForo user ID (via OAuth) for the event creator
             $xenforo_user_id = $xenforo->resolve_user_id_for_trooper($this->event->created_id);

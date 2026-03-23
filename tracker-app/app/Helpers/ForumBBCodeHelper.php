@@ -118,17 +118,7 @@ class ForumBBCodeHelper
                 ? $event_trooper->status
                 : EventTrooperStatus::from((string) $event_trooper->status);
 
-            $status_label = match ($status)
-            {
-                EventTrooperStatus::GOING => 'Going',
-                EventTrooperStatus::STAND_BY => 'Stand-By',
-                EventTrooperStatus::TENTATIVE => 'Tentative',
-                EventTrooperStatus::ATTENDED => 'Attended',
-                EventTrooperStatus::CANCELLED => 'Cancelled',
-                EventTrooperStatus::PENDING => 'Pending',
-                EventTrooperStatus::NOT_PICKED => 'Not Picked',
-                default => 'None',
-            };
+            $status_label = to_title($status->name)->toString();
 
             $name = $event_trooper->trooper?->display_name ?? 'Unknown Trooper';
 
