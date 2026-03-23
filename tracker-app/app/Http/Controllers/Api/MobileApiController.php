@@ -19,6 +19,8 @@ use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperApiCode;
 use App\Models\TrooperOrganization;
+use App\Services\Mobile\MobileForumLoginException;
+use App\Services\Mobile\MobileForumLoginService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -30,6 +32,10 @@ use Illuminate\Support\Str;
  */
 class MobileApiController
 {
+    public function __construct(private readonly MobileForumLoginService $mobile_forum_login_service)
+    {
+    }
+
     /**
      * The active statuses representing a trooper who intends to attend
      * (not yet confirmed as attended, not cancelled).
@@ -62,7 +68,7 @@ class MobileApiController
                 $action === 'troops' && $request->has('user_id')
                     => $this->getTroops($request),
 
-                $action === 'login_with_forum' && $request->has('login') && $request->has('password')
+                $action === 'login_with_forum' && $request->has('login')
                     => $this->loginWithForum($request),
 
                 $action === 'is_closed'
@@ -193,22 +199,35 @@ class MobileApiController
     /**
      * action=login_with_forum
      * Authenticate via Xenforo OAuth and return an API key.
-     *
-     * NOTE: Direct forum credential login is no longer supported. The mobile
-     * app should use the OAuth flow and pass the resulting provider_id here.
-     * This endpoint accepts the Xenforo user_id as 'login' and validates the
-     * trooper exists and is active.
      */
     private function loginWithForum(Request $request): JsonResponse
     {
-        // TODO: Integrate with the existing Xenforo OAuth service to validate
-        // credentials and retrieve the user object. The old loginWithForum()
-        // called the forum API directly; the new system uses OAuth tokens.
-        // For now this returns an error directing callers to the OAuth flow.
-        return response()->json([
-            'success' => false,
-            'error'   => 'Direct forum login is no longer supported. Use the OAuth login flow.',
-        ], 501);
+        try {
+            $forum_user_id = (string) $request->input('login', '');
+            $access_token = (string) $request->input('access_token', '');
+
+            $authenticated = $this->mobile_forum_login_service
+                ->authenticate($forum_user_id, $access_token);
+
+            $trooper = $authenticated['trooper'];
+            $forum_user = $authenticated['forum_user'];
+            $trooper->touch(Trooper::LAST_ACTIVE_AT);
+
+            return response()->json([
+                'success' => true,
+                'apiKey' => $this->generateApiKey($trooper->id),
+                'user' => [
+                    'user_id' => (string) ($forum_user['user_id'] ?? $forum_user_id),
+                    'username' => (string) ($forum_user['username'] ?? $trooper->display_name),
+                    'avatar_urls' => $forum_user['avatar_urls'] ?? [],
+                ],
+            ]);
+        } catch (MobileForumLoginException $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+            ], $e->statusCode());
+        }
     }
 
     /**
@@ -891,6 +910,6 @@ class MobileApiController
             EventTrooperStatus::NO_SHOW          => 'No Show',
             EventTrooperStatus::UNABLE_TO_ATTEND => 'Unable to Attend',
             default                              => 'Unknown',
-        ];
+        };
     }
 }
