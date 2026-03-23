@@ -36,6 +36,11 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void
     {
+        $middleware->validateCsrfTokens(except: [
+            'mobile-api',
+            '/mobile-api',
+        ]);
+
         $middleware->web(append: [
             \App\Http\Middleware\FlashMessageMiddleware::class,
             \App\Http\Middleware\HtmxDispatchHeaderMiddleware::class,

@@ -13,20 +13,17 @@ class MobileForumLoginService
     /**
      * @return array{trooper: Trooper, forum_user: array<string, mixed>}
      */
-    public function authenticate(string $forum_user_id, string $access_token): array
+    public function authenticate(string $access_token): array
     {
-        if ($forum_user_id === '' || $access_token === '') {
-            throw new MobileForumLoginException('Forum login and access token are required.', 400);
+        if ($access_token === '') {
+            throw new MobileForumLoginException('Forum access token is required.', 400);
         }
 
         $forum_user = $this->fetchForumUser($access_token);
         $resolved_user_id = (string) ($forum_user['user_id'] ?? '');
 
-        if ($resolved_user_id === '' || $resolved_user_id !== $forum_user_id) {
-            throw new MobileForumLoginException(
-                'Forum login does not match the authenticated forum account.',
-                403,
-            );
+        if ($resolved_user_id === '') {
+            throw new MobileForumLoginException('Forum user profile is missing a user ID.', 502);
         }
 
         $oauth_login = OauthLogin::where(OauthLogin::PROVIDER, 'xenforo')
@@ -63,7 +60,24 @@ class MobileForumLoginService
             ->get($this->forumMeUrl());
 
         if (!$response->successful()) {
-            throw new MobileForumLoginException('Unable to authenticate with the forum.', 401);
+            $response_body = $response->json();
+            $detail = null;
+
+            if (is_array($response_body)) {
+                $detail = $response_body['error_description']
+                    ?? $response_body['error']
+                    ?? $response_body['message']
+                    ?? null;
+            }
+
+            if (! is_string($detail) || $detail === '') {
+                $detail = 'status '.$response->status();
+            }
+
+            throw new MobileForumLoginException(
+                'Unable to authenticate with the forum: '.$detail,
+                401,
+            );
         }
 
         $forum_user = $response->json('me');

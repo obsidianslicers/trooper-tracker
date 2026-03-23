@@ -68,7 +68,7 @@ class MobileApiController
                 $action === 'troops' && $request->has('user_id')
                     => $this->getTroops($request),
 
-                $action === 'login_with_forum' && $request->has('login')
+                $action === 'login_with_forum' && $request->has('access_token')
                     => $this->loginWithForum($request),
 
                 $action === 'is_closed'
@@ -203,11 +203,10 @@ class MobileApiController
     private function loginWithForum(Request $request): JsonResponse
     {
         try {
-            $forum_user_id = (string) $request->input('login', '');
             $access_token = (string) $request->input('access_token', '');
 
             $authenticated = $this->mobile_forum_login_service
-                ->authenticate($forum_user_id, $access_token);
+                ->authenticate($access_token);
 
             $trooper = $authenticated['trooper'];
             $forum_user = $authenticated['forum_user'];
@@ -217,7 +216,7 @@ class MobileApiController
                 'success' => true,
                 'apiKey' => $this->generateApiKey($trooper->id),
                 'user' => [
-                    'user_id' => (string) ($forum_user['user_id'] ?? $forum_user_id),
+                    'user_id' => (string) ($forum_user['user_id'] ?? ''),
                     'username' => (string) ($forum_user['username'] ?? $trooper->display_name),
                     'avatar_urls' => $forum_user['avatar_urls'] ?? [],
                 ],
@@ -330,6 +329,13 @@ class MobileApiController
         $troopersAllowed = $event->troopers_allowed ?? 500;
         $handlersAllowed = $event->handlers_allowed ?? 500;
         $isLimited       = $troopersAllowed < 500 || $handlersAllowed < 500;
+        $location = collect([
+            $event->venue_address,
+            $event->venue_city,
+            $event->venue_state,
+            $event->venue_zip,
+            $event->venue_country,
+        ])->filter()->implode(', ');
 
         $limitClubs = '';
         if ($isLimited) {
@@ -347,13 +353,28 @@ class MobileApiController
             [
                 'id'             => $event->id,
                 'name'           => $event->name,
-                'dateStart'      => $event->event_start,
-                'dateEnd'        => $event->event_end,
-                'location'       => $event->venue,
+                'dateStart'      => $event->event_start?->format('Y-m-d H:i:s'),
+                'dateEnd'        => $event->event_end?->format('Y-m-d H:i:s'),
+                'venue'          => $event->venue,
+                'location'       => $location !== '' ? $location : $event->venue,
+                'website'        => $event->event_website,
+                'comments'       => $event->comments,
                 'thread_id'      => $event->thread_id,
                 'post_id'        => $event->post_id,
                 'squad'          => $event->organization_id,
                 'closed'         => $event->status->value,
+                'numberOfAttend' => $event->expected_attendees,
+                'requestedNumber' => $event->requested_number_characters,
+                'requestedCharacter' => $event->requested_character_types,
+                'secureChanging' => (int) $event->secure_staging_area,
+                'blasters'       => (int) $event->allow_blasters,
+                'lightsabers'    => (int) $event->allow_props,
+                'parking'        => (int) $event->parking_available,
+                'mobility'       => (int) $event->accessible,
+                'amenities'      => $event->amenities,
+                'referred'       => $event->referred_by,
+                'limitedEvent'   => (int) $isLimited,
+                'allowTentative' => (int) $event->tentative_signups_allowed,
                 'limitTotalTroopers' => $troopersAllowed,
                 'limitHandlers'  => $handlersAllowed,
             ],
@@ -376,12 +397,13 @@ class MobileApiController
         $eventId = (int) $request->input('troopid');
 
         $eventTroopers = EventTrooper::whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $eventId))
-            ->with(['trooper.trooper_organizations', 'costume', 'backup_costume', 'event_shift'])
+            ->with(['trooper.organizations', 'costume', 'backup_costume', 'event_shift'])
             ->get();
 
         $roster = $eventTroopers->map(function ($et) {
-            $trooper    = $et->trooper;
-            $trooperOrg = $trooper?->trooper_organizations->first();
+            $trooper = $et->trooper;
+            $organization = $trooper?->organizations->first();
+            $identifier = $organization?->pivot?->identifier;
 
             return [
                 'id'                  => $et->id,
@@ -395,9 +417,10 @@ class MobileApiController
                 'backup_costume_name' => $et->backup_costume?->name,
                 'is_handler'          => $et->is_handler,
                 'trooper_name'        => $trooper?->display_name,
-                'tkid'                => $trooperOrg?->identifier,
-                'tkid_formatted'      => $trooperOrg?->identifier,
-                'squad'               => $trooperOrg?->organization_id,
+                'tkid'                => $identifier,
+                'tkid_formatted'      => $identifier,
+                'squad'               => $organization?->id,
+                'signuptime'          => $et->signed_up_at?->format('Y-m-d H:i:s'),
             ];
         });
 
@@ -416,19 +439,20 @@ class MobileApiController
             ->pluck(EventTrooper::TROOPER_ID);
 
         $troopers = Trooper::whereNotIn(Trooper::ID, $signedUpTrooperIds)
-            ->with('trooper_organizations')
+            ->with('organizations')
             ->orderBy(Trooper::DISPLAY_NAME)
             ->get();
 
         $data = $troopers->map(function ($trooper) {
-            $trooperOrg = $trooper->trooper_organizations->first();
+            $organization = $trooper->organizations->first();
+            $identifier = $organization?->pivot?->identifier;
 
             return [
                 'id'             => $trooper->id,
                 'display_name'   => $trooper->display_name,
-                'tkid'           => $trooperOrg?->identifier,
-                'tkid_formatted' => $trooperOrg?->identifier,
-                'squad'          => $trooperOrg?->organization_id,
+                'tkid'           => $identifier,
+                'tkid_formatted' => $identifier,
+                'squad'          => $organization?->id,
             ];
         });
 
