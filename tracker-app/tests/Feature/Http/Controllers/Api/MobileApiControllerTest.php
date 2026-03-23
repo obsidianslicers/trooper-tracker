@@ -11,8 +11,10 @@ use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\OauthLogin;
 use App\Models\Organization;
+use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\TrooperApiCode;
+use App\Models\TrooperCostume;
 use App\Models\TrooperOrganization;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -256,5 +258,56 @@ class MobileApiControllerTest extends TestCase
         $response->assertJsonPath('isLimited', true);
         $response->assertJsonPath('limitTotalTroopers', 10);
         $response->assertJsonPath('limitHandlers', 2);
+    }
+
+    public function test_get_costumes_for_trooper_accepts_forum_user_id_and_returns_approved_costumes(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $organization = Organization::factory()->create();
+        $costume = Costume::factory()->create([
+            Costume::NAME => 'Stormtrooper',
+        ]);
+
+        OauthLogin::factory()->forTrooper($trooper)->create([
+            OauthLogin::PROVIDER => 'xenforo',
+            OauthLogin::PROVIDER_ID => '15802',
+        ]);
+
+        $apiCode = TrooperApiCode::create([
+            TrooperApiCode::TROOPER_ID => $trooper->id,
+            TrooperApiCode::API_CODE => str_repeat('a', 64),
+        ]);
+
+        TrooperOrganization::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($organization)
+            ->withIdentifier('TK-15502')
+            ->create();
+
+        $organizationCostume = OrganizationCostume::factory()
+            ->forOrganization($organization)
+            ->forCostume($costume)
+            ->withPrefix('TK')
+            ->create();
+
+        TrooperCostume::factory()
+            ->forTrooper($trooper)
+            ->forOrganizationCostume($organizationCostume)
+            ->create();
+
+        $response = $this->withHeaders([
+            'API-Key' => $apiCode->api_code,
+        ])->get(route('api.mobile', [
+            'action' => 'get_costumes_for_trooper',
+            'trooperid' => 15802,
+            'friendid' => 0,
+        ]));
+
+        $response->assertOk();
+        $response->assertJsonCount(1);
+        $response->assertJsonPath('0.id', $costume->id);
+        $response->assertJsonPath('0.name', 'Stormtrooper');
+        $response->assertJsonPath('0.abbreviation', 'TK ');
+        $response->assertJsonPath('0.club', $organization->name);
     }
 }

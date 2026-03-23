@@ -21,6 +21,7 @@ use App\Models\TrooperApiCode;
 use App\Models\TrooperOrganization;
 use App\Services\Mobile\MobileForumLoginException;
 use App\Services\Mobile\MobileForumLoginService;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -121,6 +122,14 @@ class MobileApiController
 
                 default => response()->json(['error' => 'Invalid request parameters.'], 400),
             };
+        } catch (HttpResponseException $e) {
+            $response = $e->getResponse();
+
+            if ($response instanceof JsonResponse) {
+                return $response;
+            }
+
+            return response()->json(['error' => $response->getContent()], $response->getStatusCode());
         } catch (\Throwable $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
@@ -174,7 +183,21 @@ class MobileApiController
 
         $associatedId = $this->validateApiKey($request);
 
-        if ($associatedId !== null && $associatedId !== $trooperId) {
+        if ($associatedId === null) {
+            return;
+        }
+
+        if ($associatedId === $trooperId) {
+            return;
+        }
+
+        $resolvedTrooperId = $this->trooperFromUserId($trooperId)?->id;
+
+        if ($resolvedTrooperId !== null && $associatedId === $resolvedTrooperId) {
+            return;
+        }
+
+        if ($associatedId !== $trooperId) {
             abort(response()->json(['error' => 'You are not authorized to modify this trooper ID.'], 403));
         }
     }
@@ -542,24 +565,25 @@ class MobileApiController
             return response()->json([]);
         }
 
-        // Get organization IDs the trooper belongs to
         $organizationIds = TrooperOrganization::where(TrooperOrganization::TROOPER_ID, $trooper->id)
             ->pluck(TrooperOrganization::ORGANIZATION_ID)
             ->toArray();
 
-        // TODO: The old query used complex club-based costume restriction logic
-        // (mainCostumes, mainCostumesQuery, costume_restrict_query). Replace
-        // with Costume::forTrooper() once organization_ids are properly resolved.
-        $costumes = Costume::whereHas('organizations', fn ($q) => $q->whereIn('tt_organizations.id', $organizationIds))
+        $costumes = Costume::forTrooper($trooper->id, $organizationIds)
             ->orderBy(Costume::NAME)
             ->get();
 
-        $data = $costumes->map(fn ($costume) => [
-            'id'           => $costume->id,
-            'name'         => $costume->name,
-            'abbreviation' => null, // TODO: resolve from OrganizationCostume::PREFIX if needed
-            'club'         => null, // TODO: resolve organization name if needed
-        ]);
+        $data = $costumes->map(function ($costume) {
+            $organizationCostume = $costume->organization_costumes->first();
+            $prefix = trim((string) ($organizationCostume?->prefix ?? ''));
+
+            return [
+                'id'           => $costume->id,
+                'name'         => $costume->name,
+                'abbreviation' => $prefix === '' ? '' : $prefix . ' ',
+                'club'         => $organizationCostume?->organization?->name,
+            ];
+        });
 
         return response()->json($data);
     }
