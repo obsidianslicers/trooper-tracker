@@ -52,8 +52,7 @@ class SendEventCreatedNotificationsJob implements ShouldQueue
         DiscordNotifier $notifier,
         ForumThreadMessageService $forumThreadMessageService,
         XenforoService $xenforo
-    ): void
-    {
+    ): void {
         // Trooper notifications: only send if not already sent
         if ($this->event->create_notifications_sent_at === null)
         {
