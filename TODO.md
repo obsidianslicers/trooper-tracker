@@ -62,7 +62,8 @@ stan/pint - WIP
 - Update/Delete Costumes from UI
 
 ## INTEGRATIONS
-- Get Xenforo donators, show donations on profile page / Give special badge
+- Give special badge for donators
+- Reply on event (Xenforo integration)
 - todo:   club/organization identifiers
   - auto verify club identifiers on registration
 
