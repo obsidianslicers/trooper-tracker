@@ -310,4 +310,80 @@ class MobileApiControllerTest extends TestCase
         $response->assertJsonPath('0.abbreviation', 'TK ');
         $response->assertJsonPath('0.club', $organization->name);
     }
+
+    public function test_sign_up_accepts_string_status_and_creates_signup(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $event = Event::factory()->create();
+        $shift = EventShift::factory()->forEvent($event)->create();
+        $costume = Costume::factory()->create();
+
+        OauthLogin::factory()->forTrooper($trooper)->create([
+            OauthLogin::PROVIDER => 'xenforo',
+            OauthLogin::PROVIDER_ID => '15802',
+        ]);
+
+        $apiCode = TrooperApiCode::create([
+            TrooperApiCode::TROOPER_ID => $trooper->id,
+            TrooperApiCode::API_CODE => str_repeat('b', 64),
+        ]);
+
+        $response = $this->withHeaders([
+            'API-Key' => $apiCode->api_code,
+        ])->get(route('api.mobile', [
+            'action' => 'sign_up',
+            'trooperid' => 15802,
+            'addedby' => 0,
+            'troopid' => $event->id,
+            'status' => EventTrooperStatus::GOING->value,
+            'costume' => $costume->id,
+            'backupcostume' => 0,
+        ]));
+
+        $response->assertOk();
+        $response->assertJsonPath('success', 'success');
+        $response->assertJsonPath('success_message', 'Success!');
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::EVENT_SHIFT_ID => $shift->id,
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::COSTUME_ID => $costume->id,
+            EventTrooper::STATUS => EventTrooperStatus::GOING->value,
+        ]);
+    }
+
+    public function test_sign_up_rejects_legacy_numeric_status_code(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $event = Event::factory()->create();
+        $costume = Costume::factory()->create();
+
+        OauthLogin::factory()->forTrooper($trooper)->create([
+            OauthLogin::PROVIDER => 'xenforo',
+            OauthLogin::PROVIDER_ID => '15802',
+        ]);
+
+        $apiCode = TrooperApiCode::create([
+            TrooperApiCode::TROOPER_ID => $trooper->id,
+            TrooperApiCode::API_CODE => str_repeat('c', 64),
+        ]);
+
+        $response = $this->withHeaders([
+            'API-Key' => $apiCode->api_code,
+        ])->get(route('api.mobile', [
+            'action' => 'sign_up',
+            'trooperid' => 15802,
+            'addedby' => 0,
+            'troopid' => $event->id,
+            'status' => 0,
+            'costume' => $costume->id,
+            'backupcostume' => 0,
+        ]));
+
+        $response->assertStatus(400);
+        $response->assertJsonPath(
+            'error',
+            '"0" is not a valid backing value for enum App\\Enums\\EventTrooperStatus',
+        );
+    }
 }

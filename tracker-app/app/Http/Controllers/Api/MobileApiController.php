@@ -122,6 +122,8 @@ class MobileApiController
 
                 default => response()->json(['error' => 'Invalid request parameters.'], 400),
             };
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
         } catch (HttpResponseException $e) {
             $response = $e->getResponse();
 
@@ -600,7 +602,7 @@ class MobileApiController
         $userId    = (int) $request->input('trooperid');
         $trooper   = $this->trooperFromUserId($userId);
         $eventId   = (int) $request->input('troopid');
-        $newStatus = EventTrooperStatus::from($request->input('status'));
+        $newStatus = $this->resolveEventTrooperStatus($request->input('status'));
         $costumeId = (int) $request->input('costume', 0);
 
         if (!$trooper) {
@@ -722,7 +724,7 @@ class MobileApiController
         $addedById      = (int) $request->input('addedby', 0);
         $costumeId      = (int) $request->input('costume', 0);
         $backupCostumeId= (int) $request->input('backupcostume', 0);
-        $requestedStatus= EventTrooperStatus::from($request->input('status'));
+        $requestedStatus= $this->resolveEventTrooperStatus($request->input('status'));
 
         // Resolve trooper: if addedby > 0 it's an admin signing someone up
         if ($addedById > 0) {
@@ -958,6 +960,35 @@ class MobileApiController
             EventTrooperStatus::NO_SHOW          => 'No Show',
             EventTrooperStatus::UNABLE_TO_ATTEND => 'Unable to Attend',
             default                              => 'Unknown',
+        };
+    }
+
+    /**
+     * Resolve a request status string to an EventTrooperStatus.
+     */
+    private function resolveEventTrooperStatus(mixed $rawStatus): EventTrooperStatus
+    {
+        if ($rawStatus instanceof EventTrooperStatus) {
+            return $rawStatus;
+        }
+
+        $status = strtolower(trim((string) $rawStatus));
+
+        return match ($status) {
+            EventTrooperStatus::GOING->value => EventTrooperStatus::GOING,
+            EventTrooperStatus::STAND_BY->value, 'standby', 'stand_by' => EventTrooperStatus::STAND_BY,
+            EventTrooperStatus::TENTATIVE->value => EventTrooperStatus::TENTATIVE,
+            EventTrooperStatus::ATTENDED->value => EventTrooperStatus::ATTENDED,
+            EventTrooperStatus::NO_SHOW->value, 'no_show' => EventTrooperStatus::NO_SHOW,
+            EventTrooperStatus::PENDING->value => EventTrooperStatus::PENDING,
+            EventTrooperStatus::CANCELLED->value => EventTrooperStatus::CANCELLED,
+            EventTrooperStatus::NOT_PICKED->value, 'not_picked' => EventTrooperStatus::NOT_PICKED,
+            EventTrooperStatus::UNABLE_TO_ATTEND->value, 'unable_to_attend' => EventTrooperStatus::UNABLE_TO_ATTEND,
+            default => throw new \InvalidArgumentException(sprintf(
+                '"%s" is not a valid backing value for enum %s',
+                (string) $rawStatus,
+                EventTrooperStatus::class,
+            )),
         };
     }
 }
