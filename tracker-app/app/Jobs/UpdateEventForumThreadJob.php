@@ -18,9 +18,11 @@ class UpdateEventForumThreadJob implements ShouldQueue, ShouldBeUnique
 
     public int $uniqueFor = 300;
 
-    public function __construct(private readonly ?int $event_id = null)
+    private ?int $event_id;
+
+    public function __construct(?int $event_id = null)
     {
-        //
+        $this->event_id = $event_id;
     }
 
     public function handle(XenforoService $xenforo, ForumThreadMessageService $forumThreadMessageService): void
@@ -79,6 +81,7 @@ class UpdateEventForumThreadJob implements ShouldQueue, ShouldBeUnique
 
         $userId = $xenforo->resolve_user_id_for_trooper($event->created_id);
 
+        $xenforo->update_thread((int) $event->thread_id, (string) $event->name, $userId);
         $xenforo->update_post((int) $event->post_id, $message, $userId);
     }
 }

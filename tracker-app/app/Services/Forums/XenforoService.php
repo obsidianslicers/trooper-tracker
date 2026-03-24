@@ -294,6 +294,54 @@ class XenforoService
     }
 
     /**
+     * Update an existing XenForo thread title.
+     *
+     * @return array{status:int,body:mixed}
+     */
+    public function update_thread(
+        int $thread_id,
+        string $title,
+        ?int $user_id = null
+    ): array {
+        if (empty($this->base_url) || empty($this->api_key))
+        {
+            return [
+                'status' => 0,
+                'body' => null,
+            ];
+        }
+
+        if ($thread_id <= 0)
+        {
+            return [
+                'status' => 0,
+                'body' => null,
+            ];
+        }
+
+        if ($user_id === null)
+        {
+            $user_id = $this->resolve_user_id_for_trooper(Auth::id());
+        }
+
+        $url = $this->base_url.'/api/threads/'.$thread_id;
+
+        $payload = [
+            'title' => $title,
+            'api_bypass_permissions' => 1,
+        ];
+
+        $headers = $this->buildApiHeaders($user_id);
+
+        $response = Http::withHeaders($headers)->asForm()->post($url, $payload);
+
+        return [
+            'status' => $response->status(),
+            'body' => $response->json(),
+        ];
+    }
+
+    /**
      * Update an existing XenForo post's message body.
      *
      * @return array{status:int,body:mixed}

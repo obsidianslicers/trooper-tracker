@@ -18,6 +18,15 @@ class UpdateEventForumThreadJobTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_serialization_preserves_target_event_id(): void
+    {
+        $subject = new UpdateEventForumThreadJob(11698);
+
+        $restored = unserialize(serialize($subject));
+
+        $this->assertSame('forum-thread-sync:event:11698', $restored->uniqueId());
+    }
+
     public function test_handle_updates_only_the_targeted_event_for_single_event_sync(): void
     {
         $organization = Organization::factory()->create();
@@ -53,6 +62,9 @@ class UpdateEventForumThreadJobTest extends TestCase
             ->once()
             ->with($creator->id)
             ->andReturn(42);
+        $xenforo->shouldReceive('update_thread')
+            ->once()
+            ->with(123, (string) $target_event->name, 42);
         $xenforo->shouldReceive('update_post')
             ->once()
             ->with(456, 'updated forum message', 42);
