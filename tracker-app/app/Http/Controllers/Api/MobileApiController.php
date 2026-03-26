@@ -798,6 +798,7 @@ class MobileApiController
     private function signUp(Request $request): JsonResponse
     {
         $eventId        = (int) $request->input('troopid');
+        $shiftId        = (int) $request->input('shiftid', 0);
         $addedById      = (int) $request->input('addedby', 0);
         $costumeId      = (int) $request->input('costume', 0);
         $backupCostumeId= (int) $request->input('backupcostume', 0);
@@ -892,8 +893,6 @@ class MobileApiController
         }
 
         // Find the requested shift, or fall back to the first available shift
-        $shiftId = (int) $request->input('shiftid', 0);
-
         if ($shiftId > 0) {
             $shift = EventShift::where(EventShift::EVENT_ID, $eventId)->find($shiftId);
             if (!$shift) {
