@@ -115,6 +115,9 @@ class MobileApiController
                 $action === 'cancel_shift' && $request->has('trooperid', 'shiftid')
                     => $this->cancelShift($request),
 
+                $action === 'get_friends_for_event' && $request->has('trooperid', 'troopid')
+                    => $this->getFriendsForEvent($request),
+
                 $action === 'sign_up' && $request->has('trooperid', 'troopid', 'addedby', 'status', 'costume', 'backupcostume')
                     => $this->signUp($request),
 
@@ -736,14 +739,17 @@ class MobileApiController
     /**
      * action=cancel_shift
      * Cancel a trooper's sign-up for a specific shift.
+     * When friendtrooperid is provided, cancels that trooper's shift instead
+     * (the requester must have been the one who added them).
      */
     private function cancelShift(Request $request): JsonResponse
     {
-        $userId  = (int) $request->input('trooperid');
-        $trooper = $this->trooperFromUserId($userId);
-        $shiftId = (int) $request->input('shiftid');
+        $userId          = (int) $request->input('trooperid');
+        $requester       = $this->trooperFromUserId($userId);
+        $shiftId         = (int) $request->input('shiftid');
+        $friendTrooperId = (int) $request->input('friendtrooperid', 0);
 
-        if (!$trooper) {
+        if (!$requester) {
             return response()->json(['error' => 'Trooper not found.'], 404);
         }
 
@@ -752,16 +758,65 @@ class MobileApiController
             return response()->json(['error' => 'Shift not found.'], 404);
         }
 
-        EventTrooper::where(EventTrooper::TROOPER_ID, $trooper->id)
-            ->where(EventTrooper::EVENT_SHIFT_ID, $shiftId)
-            ->update([EventTrooper::STATUS => EventTrooperStatus::CANCELLED->value]);
+        if ($friendTrooperId > 0) {
+            // Cancelling a friend — verify the requester added them
+            $record = EventTrooper::where(EventTrooper::TROOPER_ID, $friendTrooperId)
+                ->where(EventTrooper::EVENT_SHIFT_ID, $shiftId)
+                ->where(EventTrooper::ADDED_BY_TROOPER_ID, $requester->id)
+                ->first();
+
+            if (!$record) {
+                return response()->json(['error' => 'Record not found or not authorized.'], 403);
+            }
+
+            $record->update([EventTrooper::STATUS => EventTrooperStatus::CANCELLED->value]);
+            $cancelledTrooperId = $friendTrooperId;
+        } else {
+            EventTrooper::where(EventTrooper::TROOPER_ID, $requester->id)
+                ->where(EventTrooper::EVENT_SHIFT_ID, $shiftId)
+                ->update([EventTrooper::STATUS => EventTrooperStatus::CANCELLED->value]);
+            $cancelledTrooperId = $requester->id;
+        }
 
         EventNotification::firstOrCreate([
             EventNotification::EVENT_ID   => $shift->event_id,
-            EventNotification::TROOPER_ID => $trooper->id,
+            EventNotification::TROOPER_ID => $cancelledTrooperId,
         ]);
 
         return response()->json(['success' => true]);
+    }
+
+    /**
+     * action=get_friends_for_event
+     * Return troopers that the current user added to this event (still active).
+     */
+    private function getFriendsForEvent(Request $request): JsonResponse
+    {
+        $userId  = (int) $request->input('trooperid');
+        $trooper = $this->trooperFromUserId($userId);
+        $eventId = (int) $request->input('troopid');
+
+        if (!$trooper) {
+            return response()->json([]);
+        }
+
+        $signups = EventTrooper::where(EventTrooper::ADDED_BY_TROOPER_ID, $trooper->id)
+            ->where(EventTrooper::TROOPER_ID, '!=', $trooper->id)
+            ->where(EventTrooper::STATUS, '!=', EventTrooperStatus::CANCELLED->value)
+            ->whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $eventId))
+            ->with(['trooper', 'event_shift'])
+            ->get();
+
+        $friends = $signups->map(fn ($et) => [
+            'trooper_id'       => $et->trooper_id,
+            'trooper_name'     => $et->trooper?->display_name,
+            'shift_id'         => $et->event_shift_id,
+            'shift_display'    => $et->event_shift->time_display,
+            'status'           => $et->status->value,
+            'status_formatted' => $this->formatStatus($et->status),
+        ])->values();
+
+        return response()->json($friends);
     }
 
     /**
@@ -910,13 +965,14 @@ class MobileApiController
         }
 
         EventTrooper::create([
-            EventTrooper::EVENT_SHIFT_ID     => $shift->id,
-            EventTrooper::TROOPER_ID         => $trooper->id,
-            EventTrooper::COSTUME_ID         => $costumeId ?: null,
-            EventTrooper::BACKUP_COSTUME_ID  => $backupCostumeId ?: null,
-            EventTrooper::STATUS             => $status->value,
-            EventTrooper::IS_HANDLER         => $isHandler,
-            EventTrooper::SIGNED_UP_AT       => now(),
+            EventTrooper::EVENT_SHIFT_ID      => $shift->id,
+            EventTrooper::TROOPER_ID          => $trooper->id,
+            EventTrooper::ADDED_BY_TROOPER_ID => $addedBy?->id,
+            EventTrooper::COSTUME_ID          => $costumeId ?: null,
+            EventTrooper::BACKUP_COSTUME_ID   => $backupCostumeId ?: null,
+            EventTrooper::STATUS              => $status->value,
+            EventTrooper::IS_HANDLER          => $isHandler,
+            EventTrooper::SIGNED_UP_AT        => now(),
         ]);
 
         EventNotification::firstOrCreate([
