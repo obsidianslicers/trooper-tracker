@@ -409,6 +409,15 @@ class MobileApiController
                 'limitClubs'   => $limitClubs,
                 'trooper_count'=> $trooperCount,
                 'num_of_handlers' => $handlerCount,
+                'shifts'       => $event->event_shifts
+                    ->sortBy(EventShift::SHIFT_STARTS_AT)
+                    ->map(fn ($shift) => [
+                        'id'         => $shift->id,
+                        'starts_at'  => $shift->shift_starts_at?->format('Y-m-d H:i:s'),
+                        'ends_at'    => $shift->shift_ends_at?->format('Y-m-d H:i:s'),
+                        'display'    => $shift->time_display,
+                    ])
+                    ->values(),
             ]
         ));
     }
@@ -434,6 +443,8 @@ class MobileApiController
                 'id'                  => $et->id,
                 'trooperid'           => $et->trooper_id,
                 'troopid'             => $et->event_shift->event_id,
+                'shift_id'            => $et->event_shift_id,
+                'shift_display'       => $et->event_shift->time_display,
                 'status'              => $et->status->value,
                 'status_formatted'    => $this->formatStatus($et->status),
                 'costume'             => $et->costume_id,
@@ -808,11 +819,19 @@ class MobileApiController
             }
         }
 
-        // Find the first available shift for this event
-        $shift = EventShift::where(EventShift::EVENT_ID, $eventId)->first();
+        // Find the requested shift, or fall back to the first available shift
+        $shiftId = (int) $request->input('shiftid', 0);
 
-        if (!$shift) {
-            return response()->json(['success' => 'fail', 'success_message' => 'No shifts available for this event.']);
+        if ($shiftId > 0) {
+            $shift = EventShift::where(EventShift::EVENT_ID, $eventId)->find($shiftId);
+            if (!$shift) {
+                return response()->json(['success' => 'fail', 'success_message' => 'Shift not found for this event.']);
+            }
+        } else {
+            $shift = EventShift::where(EventShift::EVENT_ID, $eventId)->orderBy(EventShift::SHIFT_STARTS_AT)->first();
+            if (!$shift) {
+                return response()->json(['success' => 'fail', 'success_message' => 'No shifts available for this event.']);
+            }
         }
 
         EventTrooper::create([
