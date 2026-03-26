@@ -487,9 +487,17 @@ class MobileApiController
     private function getAvailableTroopersForEvent(Request $request): JsonResponse
     {
         $eventId = (int) $request->input('troopid');
+        $shiftId = (int) $request->input('shiftid', 0);
 
-        $signedUpTrooperIds = EventTrooper::whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $eventId))
-            ->pluck(EventTrooper::TROOPER_ID);
+        if ($shiftId > 0) {
+            // Exclude only troopers already signed up for this specific shift
+            $signedUpTrooperIds = EventTrooper::where(EventTrooper::EVENT_SHIFT_ID, $shiftId)
+                ->where(EventTrooper::STATUS, '!=', EventTrooperStatus::CANCELLED->value)
+                ->pluck(EventTrooper::TROOPER_ID);
+        } else {
+            $signedUpTrooperIds = EventTrooper::whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $eventId))
+                ->pluck(EventTrooper::TROOPER_ID);
+        }
 
         $troopers = Trooper::whereNotIn(Trooper::ID, $signedUpTrooperIds)
             ->with('organizations')
@@ -825,10 +833,16 @@ class MobileApiController
             return response()->json(['success' => 'fail', 'success_message' => 'This event was LOCKED by Command Staff.']);
         }
 
-        // Check for existing sign-up and update it
-        $existing = EventTrooper::where(EventTrooper::TROOPER_ID, $trooper->id)
-            ->whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $eventId))
-            ->first();
+        // Check for existing sign-up on this specific shift (or event-wide if no shift specified)
+        if ($shiftId > 0) {
+            $existing = EventTrooper::where(EventTrooper::TROOPER_ID, $trooper->id)
+                ->where(EventTrooper::EVENT_SHIFT_ID, $shiftId)
+                ->first();
+        } else {
+            $existing = EventTrooper::where(EventTrooper::TROOPER_ID, $trooper->id)
+                ->whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $eventId))
+                ->first();
+        }
 
         if ($existing) {
             $existing->update([
