@@ -12,7 +12,7 @@ use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
-class UpdateEventForumThreadJob implements ShouldQueue, ShouldBeUnique
+class UpdateEventForumThreadJob implements ShouldBeUnique, ShouldQueue
 {
     use Queueable;
 
