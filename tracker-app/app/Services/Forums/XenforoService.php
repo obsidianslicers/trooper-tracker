@@ -300,8 +300,7 @@ class XenforoService
      */
     public function update_thread(
         int $thread_id,
-        string $title,
-        ?int $user_id = null
+        string $title
     ): array {
         if (empty($this->base_url) || empty($this->api_key))
         {
@@ -319,11 +318,6 @@ class XenforoService
             ];
         }
 
-        if ($user_id === null)
-        {
-            $user_id = $this->resolve_user_id_for_trooper(Auth::id());
-        }
-
         $url = $this->base_url.'/api/threads/'.$thread_id;
 
         $payload = [
@@ -331,7 +325,7 @@ class XenforoService
             'api_bypass_permissions' => 1,
         ];
 
-        $headers = $this->buildApiHeaders($user_id);
+        $headers = $this->buildApiHeaders();
 
         $response = Http::withHeaders($headers)->asForm()->post($url, $payload);
 

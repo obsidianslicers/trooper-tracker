@@ -149,7 +149,7 @@ class XenforoServiceTest extends TestCase
 
         $subject = new XenforoService;
 
-        $result = $subject->update_thread(123, 'Updated Event Name', 555);
+        $result = $subject->update_thread(123, 'Updated Event Name');
 
         $this->assertSame(200, $result['status']);
         $this->assertSame(['ok' => true], $result['body']);
@@ -158,7 +158,7 @@ class XenforoServiceTest extends TestCase
         {
             return $request->url() === 'https://xf.test/api/threads/123'
                 && $request->header('XF-Api-Key')[0] === 'key-4'
-                && $request->header('XF-Api-User')[0] === '555'
+                && $request->header('XF-Api-User')[0] === '42'
                 && ($request['title'] ?? null) === 'Updated Event Name';
         });
     }

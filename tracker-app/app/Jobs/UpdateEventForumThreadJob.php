@@ -81,7 +81,7 @@ class UpdateEventForumThreadJob implements ShouldQueue, ShouldBeUnique
 
         $userId = $xenforo->resolve_user_id_for_trooper($event->created_id);
 
-        $xenforo->update_thread((int) $event->thread_id, (string) $event->name, $userId);
+        $xenforo->update_thread((int) $event->thread_id, (string) $event->name);
         $xenforo->update_post((int) $event->post_id, $message, $userId);
     }
 }

@@ -64,7 +64,7 @@ class UpdateEventForumThreadJobTest extends TestCase
             ->andReturn(42);
         $xenforo->shouldReceive('update_thread')
             ->once()
-            ->with(123, (string) $target_event->name, 42);
+            ->with(123, (string) $target_event->name);
         $xenforo->shouldReceive('update_post')
             ->once()
             ->with(456, 'updated forum message', 42);
