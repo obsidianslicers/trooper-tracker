@@ -46,7 +46,12 @@ return [
     */
 
     'image' => [
-        'driver' => env('TRACKER_IMAGE_DRIVER', Intervention\Image\Drivers\Imagick\Driver::class),
+        'driver' => env(
+            'TRACKER_IMAGE_DRIVER',
+            extension_loaded('imagick')
+                ? Intervention\Image\Drivers\Imagick\Driver::class
+                : Intervention\Image\Drivers\Gd\Driver::class
+        ),
     ],
 
     /*

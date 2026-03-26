@@ -7,6 +7,7 @@ namespace App\Features\Reports\Queries;
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Enums\EventTrooperStatus;
 use App\Models\Event;
+use Illuminate\Support\Collection;
 
 /**
  * Handler for retrieving event summary statistics.
@@ -27,7 +28,7 @@ readonly class GetEventSummaryQueryHandler implements QueryHandlerInterface
      * - unique_trooper_count: Unique troopers across all shifts
      *
      * @param  GetEventSummaryQuery  $message  The query containing moderator and lookback criteria.
-     * @return \Illuminate\Support\Collection<int, Event> Collection of events with summary data.
+     * @return Collection<int, Event> Collection of events with summary data.
      */
     public function __invoke(object $message): mixed
     {

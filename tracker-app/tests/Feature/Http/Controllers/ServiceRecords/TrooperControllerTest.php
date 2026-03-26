@@ -10,6 +10,7 @@ use App\Features\Troopers\Queries\GetTrooperServiceRecordQuery;
 use App\Models\Costume;
 use App\Models\Trooper;
 use App\Services\BreadCrumbService;
+use App\Services\Forums\XenforoService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
 use Mockery\MockInterface;
@@ -107,6 +108,85 @@ class TrooperControllerTest extends TestCase
             ->get(route('service-records.trooper', ['trooper' => $trooper]));
 
         $response->assertOk();
+    }
+
+    public function test_invoke_passes_xenforo_group_banners_when_integration_is_configured(): void
+    {
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'key-1',
+        ]);
+
+        $auth_trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
+        $target_trooper = Trooper::factory()->asMember()->create();
+
+        $this->mock(MagicBus::class, function (MockInterface $mock) use ($target_trooper): void
+        {
+            $mock->shouldReceive('send')
+                ->once()
+                ->withArgs(function (GetTrooperServiceRecordQuery $query) use ($target_trooper): bool
+                {
+                    return $query->trooper_id === $target_trooper->id;
+                })
+                ->andReturn($this->makeServiceRecordData($target_trooper));
+
+            $mock->shouldReceive('send')
+                ->once()
+                ->withArgs(function (GetTrooperCostumesQuery $query) use ($target_trooper): bool
+                {
+                    return $query->trooper->id === $target_trooper->id;
+                })
+                ->andReturn(collect());
+        });
+
+        $this->mock(XenforoService::class, function (MockInterface $mock) use ($target_trooper): void
+        {
+            $mock->shouldReceive('resolve_user_id_for_trooper')
+                ->once()
+                ->with($target_trooper->id)
+                ->andReturn(15802);
+
+            $mock->shouldReceive('get_user_groups')
+                ->once()
+                ->with(15802)
+                ->andReturn([
+                    'userGroups' => [
+                        [
+                            'groupID' => 2,
+                            'title' => 'Reserve',
+                            'bannerText' => '<span class="userBanner userBanner--reserve">Reserve</span>',
+                            'order' => 20,
+                            'isPrimary' => false,
+                        ],
+                        [
+                            'groupID' => 1,
+                            'title' => 'Primary',
+                            'bannerText' => '<span class="userBanner userBanner--primary">Primary</span>',
+                            'order' => 10,
+                            'isPrimary' => true,
+                        ],
+                        [
+                            'groupID' => 3,
+                            'title' => 'Empty',
+                            'bannerText' => '',
+                            'order' => 30,
+                            'isPrimary' => false,
+                        ],
+                    ],
+                ]);
+        });
+
+        $response = $this->actingAs($auth_trooper)
+            ->get(route('service-records.trooper', ['trooper' => $target_trooper]));
+
+        $response->assertOk();
+        $response->assertViewHas('xenforo_group_banners', function (Collection $banners): bool
+        {
+            return $banners->pluck('banner_text')->all() === [
+                '<span class="userBanner userBanner--primary">Primary</span>',
+                '<span class="userBanner userBanner--reserve">Reserve</span>',
+            ];
+        });
     }
 
     /**

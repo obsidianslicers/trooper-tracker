@@ -15,7 +15,7 @@
                       x-model="form.referred_by" />
     </x-input-container>
 
-    @if(TroopTracker::isXenforoIntegrationConfigured())
+    @if(App\Facades\TroopTrackerFacade::isXenforoIntegrationConfigured())
         <x-input-container>
             <x-label>Create XenForo Thread for this Event:</x-label>
             <x-input-yesno :property="'create_forum_thread'"

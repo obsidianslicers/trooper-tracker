@@ -10,6 +10,7 @@ use App\Enums\EventTrooperStatus;
 use App\Models\Event;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
+use Illuminate\Support\Collection;
 
 /**
  * Handler for retrieving trooper event participation summary.
@@ -30,7 +31,7 @@ readonly class GetTrooperEventSummaryQueryHandler implements QueryHandlerInterfa
      * - attended_event_ids: List of unique event IDs
      *
      * @param  GetTrooperEventSummaryQuery  $message  The query containing moderator and lookback criteria.
-     * @return \Illuminate\Support\Collection<int, Trooper> Collection of troopers with summary data.
+     * @return Collection<int, Trooper> Collection of troopers with summary data.
      */
     public function __invoke(object $message): mixed
     {

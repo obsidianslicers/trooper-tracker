@@ -7,6 +7,7 @@ namespace App\Rules\Admin\Organizations;
 use App\Models\Organization;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Translation\PotentiallyTranslatedString;
 
 /**
  * Validation rule to ensure an organization's name is unique among its siblings.
@@ -34,7 +35,7 @@ class UniqueNameRule implements ValidationRule
      *
      * @param  string  $attribute  The name of the attribute being validated.
      * @param  mixed  $value  The value of the attribute being validated.
-     * @param  \Closure(string): \Illuminate\Translation\PotentiallyTranslatedString  $fail  The closure to call on validation failure.
+     * @param  Closure(string): PotentiallyTranslatedString  $fail  The closure to call on validation failure.
      * @return void This rule never returns a value; it only triggers $fail().
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void

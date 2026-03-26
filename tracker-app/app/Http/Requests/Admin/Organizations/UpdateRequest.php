@@ -77,6 +77,18 @@ class UpdateRequest extends FormRequest
                 'nullable',
                 'integer',
             ],
+            Organization::XENFORO_GROUP_ACTIVE_ID => [
+                'nullable',
+                'integer',
+            ],
+            Organization::XENFORO_GROUP_RESERVE_ID => [
+                'nullable',
+                'integer',
+            ],
+            Organization::XENFORO_GROUP_RETIRED_ID => [
+                'nullable',
+                'integer',
+            ],
         ];
 
         return $rules;

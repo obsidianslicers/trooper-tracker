@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
+use App\Facades\TroopTrackerFacade;
 use App\Features\Events\Queries\GetEventDisplayQuery;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Event;
+use App\Services\Forums\XenforoService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Spatie\CalendarLinks\Link;
 
 /**
  * Displays the event sign-up page with all shifts and current trooper assignments.
@@ -39,7 +42,7 @@ class EventDisplayController extends MagicBusController
      * @param  Event  $event  The event to display for sign-up
      * @return View The rendered event sign-up page
      */
-    public function __invoke(Request $request, Event $event): View
+    public function __invoke(Request $request, Event $event, XenforoService $xenforo): View
     {
         $trooper = $request->user();
 
@@ -56,7 +59,53 @@ class EventDisplayController extends MagicBusController
             $bg = 'bg-secondary';
         }
 
-        $data = compact('event', 'can_moderate', 'bg');
+        // Calendar links
+        $googleCalendarUrl = null;
+
+        $start = $event->event_start;
+        $end = $event->event_end ?? ($start?->copy()->addHours(2));
+
+        if ($start !== null && $end !== null)
+        {
+            $locationParts = array_filter([
+                $event->venue,
+                $event->venue_address,
+                $event->venue_city,
+                $event->venue_state,
+                $event->venue_zip,
+                $event->venue_country,
+            ]);
+
+            $location = implode(', ', $locationParts);
+            $description = $event->comments ? strip_tags((string) $event->comments) : '';
+
+            $calendarLink = Link::create($event->name, $start, $end)
+                ->description($description)
+                ->address($location);
+
+            $googleCalendarUrl = $calendarLink->google();
+        }
+
+        // XenForo base URL, if configured
+        $xenforoBaseUrl = rtrim(config('services.xenforo.base_url', env('XENFORO_BASE_URL', '')), '/');
+
+        // XenForo thread posts (optional)
+        $xenforoThreadPosts = [];
+        if (TroopTrackerFacade::isXenforoIntegrationConfigured() && !empty($event->thread_id) && !empty($event->post_id))
+        {
+            $threadId = (int) $event->thread_id;
+            $excludePostId = (int) $event->post_id;
+            $xenforoThreadPosts = $xenforo->get_thread_posts($threadId, exclude_post_id: $excludePostId, per_page: 50, max_pages: 20);
+        }
+
+        $data = compact(
+            'event',
+            'can_moderate',
+            'bg',
+            'googleCalendarUrl',
+            'xenforoBaseUrl',
+            'xenforoThreadPosts'
+        );
 
         return view('pages.events.event-display', $data);
     }

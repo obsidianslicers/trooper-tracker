@@ -7,6 +7,7 @@ namespace App\Features\Troopers\Queries;
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Models\Organization;
 use App\Models\TrooperAssignment;
+use Illuminate\Support\Collection;
 
 /**
  * Handler for retrieving trooper notification preferences.
@@ -31,7 +32,7 @@ readonly class GetTrooperNotificationsQueryHandler implements QueryHandlerInterf
      * 3. Mark each organization/region/unit as 'selected' if assignment exists
      *
      * @param  GetTrooperNotificationsQuery  $message  The query containing the trooper
-     * @return \Illuminate\Support\Collection<int, Organization> Organizations with selected flags
+     * @return Collection<int, Organization> Organizations with selected flags
      */
     public function __invoke(object $message): mixed
     {

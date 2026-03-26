@@ -37,6 +37,22 @@ Troop Tracker separates identity verification from registration:
 ### ✅ XenForo OAuth
 Same flow as Google OAuth.
 
+When you enable the full XenForo integration, XenForo is more than an auth provider.
+It also becomes the source for forum identity, event thread automation, support upgrade reporting, and profile banner display.
+
+If you are using XenForo as a required provider, also see:
+
+- [XENFORO_OAUTH.md](XENFORO_OAUTH.md)
+
+That guide documents:
+
+- required XenForo add-ons
+- API key scopes
+- forum automation features
+- user synchronization
+- support totals from XenForo upgrades
+- profile banners from XenForo user groups
+
 ---
 
 ## Registration Completion Form
@@ -68,6 +84,24 @@ Once approved, users may log in using:
 - XenForo OAuth
 
 **OAuth Configuration:** See [ENVIRONMENT_VARIABLES.md](ENVIRONMENT_VARIABLES.md) for OAuth client ID/secret setup.  
+
+## XenForo-Required Mode
+
+Troop Tracker can be configured to require XenForo-linked accounts.
+
+When `TRACKER_REQUIRE_XENFORO=true`:
+
+- email/password login is disabled
+- non-XenForo OAuth providers are blocked
+- authenticated users without a linked XenForo account are redirected to complete XenForo linking
+
+This mode is recommended when Troop Tracker relies on XenForo for:
+
+- user identity
+- forum thread creation and updates
+- support totals from XenForo upgrades
+- profile banners from XenForo user groups
+- XenForo user synchronization
 
 ---
 

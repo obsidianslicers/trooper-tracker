@@ -6,6 +6,7 @@ namespace App\Features\Organizations\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Models\Organization;
+use Illuminate\Support\Collection;
 
 /**
  * Handler for retrieving the organization hierarchy.
@@ -35,7 +36,7 @@ readonly class GetOrganizationHierarchyQueryHandler implements QueryHandlerInter
      * ```
      *
      * @param  int|null  $organization_id  Optional organization ID to filter to a single organization.
-     * @return \Illuminate\Support\Collection<int, array{id: int, name: string, regions: \Illuminate\Support\Collection<int, array{id: int, name: string, units: \Illuminate\Support\Collection<int, array{id: int, name: string}>}>}> Collection of organizations with nested hierarchy.
+     * @return Collection<int, array{id: int, name: string, regions: Collection<int, array{id: int, name: string, units: Collection<int, array{id: int, name: string}>}>}> Collection of organizations with nested hierarchy.
      */
     public function __invoke(object $message): mixed
     {

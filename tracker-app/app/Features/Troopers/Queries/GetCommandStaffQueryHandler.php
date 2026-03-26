@@ -7,6 +7,7 @@ namespace App\Features\Troopers\Queries;
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Enums\MembershipRole;
 use App\Models\Trooper;
+use Illuminate\Support\Collection;
 
 /**
  * Retrieves active command staff troopers.
@@ -18,7 +19,7 @@ readonly class GetCommandStaffQueryHandler implements QueryHandlerInterface
     /**
      * Returns active administrators and moderators ordered by display name.
      *
-     * @return \Illuminate\Support\Collection<int, Trooper>
+     * @return Collection<int, Trooper>
      */
     public function __invoke(object $message): mixed
     {

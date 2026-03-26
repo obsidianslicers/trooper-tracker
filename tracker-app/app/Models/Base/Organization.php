@@ -80,6 +80,9 @@ class Organization extends Model
     const DISCORD_MENTION = 'discord_mention';
     const RELATED_FORUM = 'related_forum';
     const RELATED_FORUM_ARCHIVE = 'related_forum_archive';
+    const XENFORO_GROUP_ACTIVE_ID = 'xenforo_group_active_id';
+    const XENFORO_GROUP_RESERVE_ID = 'xenforo_group_reserve_id';
+    const XENFORO_GROUP_RETIRED_ID = 'xenforo_group_retired_id';
     const SYNCHRONIZED_AT = 'synchronized_at';
     const DESCRIPTION = 'description';
     const CREATED_AT = 'created_at';
@@ -97,6 +100,9 @@ class Organization extends Model
         self::SEQUENCE => 'int',
         self::RELATED_FORUM => 'int',
         self::RELATED_FORUM_ARCHIVE => 'int',
+        self::XENFORO_GROUP_ACTIVE_ID => 'int',
+        self::XENFORO_GROUP_RESERVE_ID => 'int',
+        self::XENFORO_GROUP_RETIRED_ID => 'int',
         self::SYNCHRONIZED_AT => 'datetime',
         self::CREATED_AT => 'datetime',
         self::UPDATED_AT => 'datetime',
@@ -121,6 +127,9 @@ class Organization extends Model
         self::DISCORD_MENTION,
         self::RELATED_FORUM,
         self::RELATED_FORUM_ARCHIVE,
+        self::XENFORO_GROUP_ACTIVE_ID,
+        self::XENFORO_GROUP_RESERVE_ID,
+        self::XENFORO_GROUP_RETIRED_ID,
         self::SYNCHRONIZED_AT,
         self::DESCRIPTION
     ];

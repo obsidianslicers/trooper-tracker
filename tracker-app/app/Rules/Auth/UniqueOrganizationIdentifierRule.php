@@ -9,6 +9,7 @@ use App\Models\Trooper;
 use App\Models\TrooperOrganization;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Translation\PotentiallyTranslatedString;
 
 /**
  * Validation rule to ensure an organization-specific identifier is unique among troopers of that organization.
@@ -33,7 +34,7 @@ class UniqueOrganizationIdentifierRule implements ValidationRule
      *
      * @param  string  $attribute  The name of the attribute being validated.
      * @param  mixed  $value  The value of the attribute being validated.
-     * @param  \Closure(string): \Illuminate\Translation\PotentiallyTranslatedString  $fail  The closure to call on validation failure.
+     * @param  Closure(string): PotentiallyTranslatedString  $fail  The closure to call on validation failure.
      * @return void This rule never returns a value; it only triggers $fail().
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void

@@ -8,6 +8,7 @@ use App\Bus\Contracts\QueryHandlerInterface;
 use App\Enums\AchievementType;
 use App\Models\Trooper;
 use App\Models\TrooperAchievement;
+use Illuminate\Support\Collection;
 
 /**
  * Retrieves milestone achievements within a lookback window.
@@ -19,7 +20,7 @@ readonly class GetTrooperAchievementsQueryHandler implements QueryHandlerInterfa
     /**
      * Loads milestone achievements with related trooper data.
      *
-     * @return \Illuminate\Support\Collection<int, TrooperAchievement>
+     * @return Collection<int, TrooperAchievement>
      */
     public function __invoke(object $message): mixed
     {

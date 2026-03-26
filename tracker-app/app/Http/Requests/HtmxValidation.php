@@ -62,7 +62,7 @@ trait HtmxValidation
      *
      * @return array<string, mixed> The validated data that passed all validation rules
      *
-     * @throws \Illuminate\Validation\ValidationException When validation fails
+     * @throws ValidationException When validation fails
      */
     public function validateInputs(): array
     {

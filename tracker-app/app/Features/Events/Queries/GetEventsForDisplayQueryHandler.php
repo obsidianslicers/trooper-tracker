@@ -6,6 +6,7 @@ namespace App\Features\Events\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Models\Event;
+use Illuminate\Support\Collection;
 
 /**
  * Handler for retrieving events for display.
@@ -28,7 +29,7 @@ readonly class GetEventsForDisplayQueryHandler implements QueryHandlerInterface
      * 5. Return collection of Event models
      *
      * @param  GetEventsForDisplayQuery  $message  The query (no parameters)
-     * @return \Illuminate\Support\Collection<int, Event> Collection of upcoming open events
+     * @return Collection<int, Event> Collection of upcoming open events
      */
     public function __invoke(object $message): mixed
     {

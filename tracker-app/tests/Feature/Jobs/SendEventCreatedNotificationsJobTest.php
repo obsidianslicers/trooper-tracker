@@ -11,6 +11,7 @@ use App\Jobs\SendEventCreatedNotificationsJob;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Models\Trooper;
+use App\Services\Forums\ForumThreadMessageService;
 use App\Services\Forums\XenforoService;
 use App\Services\Notifications\DiscordNotifier;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -55,12 +56,15 @@ class SendEventCreatedNotificationsJobTest extends TestCase
         config(['discord.webhooks.default' => null, 'discord.webhook_url' => null]);
         $notifier = new DiscordNotifier;
 
+        $forumThreadMessageService = Mockery::mock(ForumThreadMessageService::class);
+        $forumThreadMessageService->shouldNotReceive('buildThreadMessage');
+
         $xenforo = Mockery::mock(XenforoService::class);
         $xenforo->shouldNotReceive('resolve_user_id_for_trooper');
         $xenforo->shouldNotReceive('create_thread');
 
         $subject = new SendEventCreatedNotificationsJob($event);
-        $subject->handle($bus, $notifier, $xenforo);
+        $subject->handle($bus, $notifier, $forumThreadMessageService, $xenforo);
 
         $this->assertNotNull($event->fresh()->create_notifications_sent_at);
     }
@@ -80,12 +84,15 @@ class SendEventCreatedNotificationsJobTest extends TestCase
         config(['discord.webhooks.default' => null, 'discord.webhook_url' => null]);
         $notifier = new DiscordNotifier;
 
+        $forumThreadMessageService = Mockery::mock(ForumThreadMessageService::class);
+        $forumThreadMessageService->shouldNotReceive('buildThreadMessage');
+
         $xenforo = Mockery::mock(XenforoService::class);
         $xenforo->shouldNotReceive('resolve_user_id_for_trooper');
         $xenforo->shouldNotReceive('create_thread');
 
         $subject = new SendEventCreatedNotificationsJob($event);
-        $subject->handle($bus, $notifier, $xenforo);
+        $subject->handle($bus, $notifier, $forumThreadMessageService, $xenforo);
 
         $this->assertNotNull($event->fresh()->create_notifications_sent_at);
     }
@@ -108,6 +115,12 @@ class SendEventCreatedNotificationsJobTest extends TestCase
         config(['discord.webhooks.default' => null, 'discord.webhook_url' => null]);
         $notifier = new DiscordNotifier;
 
+        $forumThreadMessageService = Mockery::mock(ForumThreadMessageService::class);
+        $forumThreadMessageService->shouldReceive('buildThreadMessage')
+            ->once()
+            ->withArgs(fn(Event $actualEvent): bool => $actualEvent->id === $event->id)
+            ->andReturn('[b]Rendered thread message[/b]');
+
         $xenforo = Mockery::mock(XenforoService::class);
         $xenforo->shouldReceive('resolve_user_id_for_trooper')
             ->once()
@@ -116,7 +129,7 @@ class SendEventCreatedNotificationsJobTest extends TestCase
 
         $xenforo->shouldReceive('create_thread')
             ->once()
-            ->with(42, $event->name, Mockery::type('string'), 9876)
+            ->with(42, $event->name, '[b]Rendered thread message[/b]', 9876)
             ->andReturn([
                 'status' => 201,
                 'body' => [
@@ -128,7 +141,7 @@ class SendEventCreatedNotificationsJobTest extends TestCase
             ]);
 
         $subject = new SendEventCreatedNotificationsJob($event);
-        $subject->handle($bus, $notifier, $xenforo);
+        $subject->handle($bus, $notifier, $forumThreadMessageService, $xenforo);
 
         $event = $event->fresh();
 

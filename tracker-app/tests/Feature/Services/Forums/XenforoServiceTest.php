@@ -102,4 +102,64 @@ class XenforoServiceTest extends TestCase
                 && ($request['custom'] ?? null) === 'value';
         });
     }
+
+    public function test_get_user_groups_returns_payload_for_configured_user(): void
+    {
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'key-3',
+            'services.xenforo.api_user' => '42',
+        ]);
+
+        Http::fake([
+            '*' => Http::response([
+                'userId' => 15802,
+                'userGroups' => [
+                    [
+                        'groupID' => 1,
+                        'title' => 'Primary',
+                        'bannerText' => '<span>Primary</span>',
+                        'order' => 10,
+                        'isPrimary' => true,
+                    ],
+                ],
+            ], 200),
+        ]);
+
+        $subject = new XenforoService;
+
+        $result = $subject->get_user_groups(15802);
+
+        $this->assertIsArray($result);
+        $this->assertSame(15802, $result['userId']);
+        $this->assertCount(1, $result['userGroups']);
+    }
+
+    public function test_update_thread_updates_title_for_configured_thread(): void
+    {
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'key-4',
+            'services.xenforo.api_user' => '42',
+        ]);
+
+        Http::fake([
+            'https://xf.test/api/threads/123' => Http::response(['ok' => true], 200),
+        ]);
+
+        $subject = new XenforoService;
+
+        $result = $subject->update_thread(123, 'Updated Event Name');
+
+        $this->assertSame(200, $result['status']);
+        $this->assertSame(['ok' => true], $result['body']);
+
+        Http::assertSent(function ($request)
+        {
+            return $request->url() === 'https://xf.test/api/threads/123'
+                && $request->header('XF-Api-Key')[0] === 'key-4'
+                && $request->header('XF-Api-User')[0] === '42'
+                && ($request['title'] ?? null) === 'Updated Event Name';
+        });
+    }
 }

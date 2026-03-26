@@ -35,6 +35,9 @@ return new class extends Migration
             $table->string('discord_mention', 128)->nullable();
             $table->unsignedBigInteger('related_forum')->nullable();
             $table->unsignedBigInteger('related_forum_archive')->nullable();
+            $table->unsignedBigInteger('xenforo_group_active_id')->nullable();
+            $table->unsignedBigInteger('xenforo_group_reserve_id')->nullable();
+            $table->unsignedBigInteger('xenforo_group_retired_id')->nullable();
             $table->dateTime('synchronized_at')->nullable();
 
             $table->string('description', 512)->nullable();

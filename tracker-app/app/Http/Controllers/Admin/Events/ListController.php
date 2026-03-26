@@ -10,6 +10,7 @@ use App\Http\Controllers\MagicBusController;
 use App\Models\Filters\EventFilter;
 use App\Models\Organization;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 
 /**
@@ -82,7 +83,7 @@ class ListController extends MagicBusController
      * @param  Request  $request  The incoming HTTP request.
      * @return Organization|null The found Organization or null if no ID is provided.
      *
-     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException if an `organization_id` is provided but not found.
+     * @throws ModelNotFoundException if an `organization_id` is provided but not found.
      */
     private function getOrganization(Request $request): ?Organization
     {

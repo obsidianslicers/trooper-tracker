@@ -7,6 +7,7 @@ namespace App\Features\Events\Queries;
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Models\Event;
 use App\Models\TrooperAssignment;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 /**
  * Handler for retrieving events based on moderator permissions.
@@ -35,7 +36,7 @@ readonly class GetEventsForModeratorQueryHandler implements QueryHandlerInterfac
      * 6. Return paginated results with query string preserved
      *
      * @param  GetEventsForModeratorQuery  $message  The query containing filter, moderator, and page_size.
-     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator Paginated collection of Event models.
+     * @return LengthAwarePaginator Paginated collection of Event models.
      */
     public function __invoke(object $message): mixed
     {
