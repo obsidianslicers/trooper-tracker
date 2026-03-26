@@ -64,6 +64,8 @@ stan/pint - WIP
 ## INTEGRATIONS
 - Give special badge for donators
 - Reply on event (Xenforo integration)
+- Acheivement/award for donations?
+- FLG Xenforo supporter badge management
 - todo:   club/organization identifiers
   - auto verify club identifiers on registration
 
