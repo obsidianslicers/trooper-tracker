@@ -33,6 +33,11 @@ class EventObserverTest extends TestCase
     {
         Queue::fake();
 
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'test-key',
+        ]);
+
         $organization = Organization::factory()->create();
         $event = Event::factory()
             ->withOrganization($organization)
