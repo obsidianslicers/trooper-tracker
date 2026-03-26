@@ -69,6 +69,11 @@ class UpdateEventForumThreadJobTest extends TestCase
             ->once()
             ->with(456, 'updated forum message', 42);
 
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'test-key',
+        ]);
+
         $subject = new UpdateEventForumThreadJob($target_event->id);
 
         $subject->handle($xenforo, $forumThreadMessageService);
