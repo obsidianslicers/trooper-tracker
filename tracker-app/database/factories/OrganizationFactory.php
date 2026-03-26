@@ -18,7 +18,8 @@ class OrganizationFactory extends BaseOrganizationFactory
     public function definition(): array
     {
         return array_merge(parent::definition(), [
-            Organization::TYPE => OrganizationType::ORGANIZATION
+            Organization::TYPE => OrganizationType::ORGANIZATION,
+            Organization::CAN_ATTEND_DEFAULT => true,
         ]);
     }
 
