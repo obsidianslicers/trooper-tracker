@@ -317,9 +317,23 @@ class MobileApiController
             ->get();
 
         $troops = $eventTroopers
-            ->sortBy(fn ($et) => $et->event_shift->event->event_start)
-            ->map(fn ($et) => $this->buildTroopObject($et->event_shift->event))
-            ->unique('troopid')
+            ->groupBy(fn ($et) => $et->event_shift->event_id)
+            ->map(function ($ets) {
+                $event = $ets->first()->event_shift->event;
+                $myShifts = $ets
+                    ->sortBy(fn ($et) => $et->event_shift->shift_starts_at)
+                    ->map(fn ($et) => [
+                        'shift_id' => $et->event_shift_id,
+                        'display'  => $et->event_shift->time_display,
+                        'status'   => $this->formatStatus($et->status),
+                    ])
+                    ->values();
+
+                return array_merge($this->buildTroopObject($event), [
+                    'my_shifts' => $myShifts,
+                ]);
+            })
+            ->sortBy('dateStart')
             ->values();
 
         return response()->json(['troops' => $troops]);
