@@ -60,8 +60,12 @@ class MobileApiController
     {
         try {
             $trooperId = (int) $request->input('trooperid', 0);
+            $addedById = (int) $request->input('addedby', 0);
 
-            $this->ensureTrooperIdMatch($request, $trooperId);
+            // When signing someone else up (addedby present), skip the trooperid
+            // ownership check — the API key alone is sufficient auth, and the
+            // sign_up handler validates the addedby trooper internally.
+            $this->ensureTrooperIdMatch($request, $addedById > 0 ? 0 : $trooperId);
 
             $action = $request->input('action');
 
