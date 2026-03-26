@@ -72,6 +72,11 @@ class EventTrooperObserverTest extends TestCase
     {
         Queue::fake();
 
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'test-key',
+        ]);
+
         $trooper = Trooper::factory()->create();
         $organization = Organization::factory()->create();
         $event = Event::factory()
@@ -96,6 +101,11 @@ class EventTrooperObserverTest extends TestCase
     public function test_updated_queues_forum_thread_sync_when_status_changes(): void
     {
         Queue::fake();
+
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'test-key',
+        ]);
 
         $trooper = Trooper::factory()->create();
         $organization = Organization::factory()->create();
