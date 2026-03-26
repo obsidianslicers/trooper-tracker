@@ -49,9 +49,9 @@ class OrganizationSeeder extends Seeder
                 'name' => 'Rebel Legion',
                 'description' => 'Rebel-aligned Star Wars costuming group.',
                 'identifier_display' => 'Forum Username',
-                'sync_sheet_id' => '1I3FuS_uPg2nuC80PEA6tKYaVBd1Qh1allTOdVz3M6x0',
                 'identifier_validation' => 'string|max:64',
-                'service_class' => RebelLegionService::class
+                'service_class' => RebelLegionService::class,
+                'sync_sheet_id' => '1I3FuS_uPg2nuC80PEA6tKYaVBd1Qh1allTOdVz3M6x0',
             ],
             [
                 'name' => 'Mandalorian Mercs',
@@ -84,6 +84,14 @@ class OrganizationSeeder extends Seeder
                 'identifier_validation' => 'integer',
                 'service_class' => SaberGuildServices::class,
                 'sync_sheet_id' => '1PcveycMujakkKeG2m4y8iFunrFbo2KVpQJ00GyPI3b8',
+            ],
+            [
+                'name' => 'Galactic Academy',
+                'description' => 'Star Wars costuming group for children and families.',
+                'identifier_display' => 'GA ID',
+                'identifier_validation' => 'string|max:128',
+                'service_class' => null,
+                'sync_sheet_id' => null,
             ],
         ];
 
