@@ -84,6 +84,12 @@ class EventObserver
      */
     private function storeGeocode(Event $event): void
     {
+        if (config('app.env') === 'testing')
+        {
+            //  don't attempt geocoding during tests to avoid external API calls and potential rate limits
+            return;
+        }
+
         try
         {
             $address = $this->buildGeocodeAddress($event);
@@ -162,7 +168,7 @@ class EventObserver
 
     private function shouldQueueForumThreadSync(Event $event): bool
     {
-        if (! TroopTrackerFacade::isXenforoIntegrationConfigured())
+        if (!TroopTrackerFacade::isXenforoIntegrationConfigured())
         {
             return false;
         }
