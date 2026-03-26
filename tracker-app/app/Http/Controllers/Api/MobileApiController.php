@@ -108,6 +108,9 @@ class MobileApiController
                 $action === 'cancel_troop' && $request->has('trooperid', 'troopid')
                     => $this->cancelTroop($request),
 
+                $action === 'cancel_shift' && $request->has('trooperid', 'shiftid')
+                    => $this->cancelShift($request),
+
                 $action === 'sign_up' && $request->has('trooperid', 'troopid', 'addedby', 'status', 'costume', 'backupcostume')
                     => $this->signUp($request),
 
@@ -697,15 +700,56 @@ class MobileApiController
         $eventId = (int) $request->input('troopid');
 
         if (!$trooper) {
-            return response()->json(['inEvent' => false]);
+            return response()->json(['inEvent' => false, 'my_shifts' => []]);
         }
 
-        $inEvent = EventTrooper::where(EventTrooper::TROOPER_ID, $trooper->id)
+        $signups = EventTrooper::where(EventTrooper::TROOPER_ID, $trooper->id)
             ->where(EventTrooper::STATUS, '!=', EventTrooperStatus::CANCELLED->value)
             ->whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $eventId))
-            ->exists();
+            ->with('event_shift')
+            ->get();
 
-        return response()->json(['inEvent' => $inEvent]);
+        $myShifts = $signups->map(fn ($et) => [
+            'shift_id'         => $et->event_shift_id,
+            'status'           => $et->status->value,
+            'status_formatted' => $this->formatStatus($et->status),
+        ])->values();
+
+        return response()->json([
+            'inEvent'   => $signups->isNotEmpty(),
+            'my_shifts' => $myShifts,
+        ]);
+    }
+
+    /**
+     * action=cancel_shift
+     * Cancel a trooper's sign-up for a specific shift.
+     */
+    private function cancelShift(Request $request): JsonResponse
+    {
+        $userId  = (int) $request->input('trooperid');
+        $trooper = $this->trooperFromUserId($userId);
+        $shiftId = (int) $request->input('shiftid');
+
+        if (!$trooper) {
+            return response()->json(['error' => 'Trooper not found.'], 404);
+        }
+
+        $shift = EventShift::find($shiftId);
+        if (!$shift) {
+            return response()->json(['error' => 'Shift not found.'], 404);
+        }
+
+        EventTrooper::where(EventTrooper::TROOPER_ID, $trooper->id)
+            ->where(EventTrooper::EVENT_SHIFT_ID, $shiftId)
+            ->update([EventTrooper::STATUS => EventTrooperStatus::CANCELLED->value]);
+
+        EventNotification::firstOrCreate([
+            EventNotification::EVENT_ID   => $shift->event_id,
+            EventNotification::TROOPER_ID => $trooper->id,
+        ]);
+
+        return response()->json(['success' => true]);
     }
 
     /**
