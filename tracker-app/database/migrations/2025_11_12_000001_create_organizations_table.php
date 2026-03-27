@@ -23,10 +23,11 @@ return new class extends Migration
 
             $table->string('name', 64);
             $table->string('type', 16);
-            $table->boolean('can_attend_default')->default(true);
             $table->integer('depth')->default(0);
             $table->integer('sequence')->default(0);
             $table->string('node_path', 128)->default('');
+            $table->boolean('can_attend_default')->default(true);
+            $table->boolean('requires_guardian')->default(false);
             $table->string('identifier_display', 64)->nullable();
             $table->string('identifier_validation', 64)->nullable();
             $table->string('image_path_lg', 128)->nullable();
