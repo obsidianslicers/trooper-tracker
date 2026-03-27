@@ -49,6 +49,11 @@ readonly class MobileForumLoginService
             throw new MobileForumLoginException('Trooper account is inactive.', 403);
         }
 
+        if (!empty($forum_user['is_banned']))
+        {
+            throw new MobileForumLoginException('You are currently banned. Please refer to command staff for additional information.', 403);
+        }
+
         $oauth_login->update([OauthLogin::TOKEN => $access_token]);
 
         return [
