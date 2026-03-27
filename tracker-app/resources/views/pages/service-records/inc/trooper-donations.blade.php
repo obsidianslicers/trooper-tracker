@@ -1,3 +1,46 @@
+@if(!empty($xenforo_donations))
+    <h6 class="text-muted text-uppercase small fw-bold mb-2 mt-3">Xenforo Donation History</h6>
+    <x-table>
+        <thead>
+            <tr>
+                <th>Upgrade</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($xenforo_donations as $upgrade)
+                <tr>
+                    <td>{{ $upgrade['upgrade_title'] }}</td>
+                    <td>
+                        @if($upgrade['start_date'])
+                            {{ \Carbon\Carbon::createFromTimestamp($upgrade['start_date'])->format('M j, Y') }}
+                        @else
+                            —
+                        @endif
+                    </td>
+                    <td>
+                        @if($upgrade['end_date'])
+                            {{ \Carbon\Carbon::createFromTimestamp($upgrade['end_date'])->format('M j, Y') }}
+                        @else
+                            Lifetime
+                        @endif
+                    </td>
+                    <td>
+                        @if($upgrade['is_active'])
+                            <span class="badge bg-success">Active</span>
+                        @else
+                            <span class="badge bg-secondary">Expired</span>
+                        @endif
+                    </td>
+                </tr>
+            @endforeach
+        </tbody>
+    </x-table>
+@endif
+
+<h6 class="text-muted text-uppercase small fw-bold mb-2 mt-3">Donation Records</h6>
 <x-table>
     <thead>
         <tr>

@@ -531,15 +531,22 @@ class XenforoService
     }
 
     /**
-     * Fetch active upgrade purchases for a specific XenForo user.
+     * Fetch the full upgrade history for a specific XenForo user.
      *
-     * Uses the upgrade-stats add-on endpoint and filters the returned
-     * `userUpgradeActive` list down to records belonging to the given user_id.
+     * Calls the upgrade-stats add-on endpoint and combines `userUpgradeActive`
+     * and `userUpgradeExpired`, filtered to the given user_id. Each record is
+     * normalised to:
+     *   - user_upgrade_record_id (int)
+     *   - upgrade_title (string)  — matched from the upgrade definitions
+     *   - start_date (int)        — Unix timestamp
+     *   - end_date (int)          — Unix timestamp; 0 = lifetime/no expiry
+     *   - is_active (bool)
+     *
      * Returns null when credentials are missing or the request fails.
      *
-     * @return array<int,array<string,mixed>>|null
+     * @return array<int,array{user_upgrade_record_id:int,upgrade_title:string,start_date:int,end_date:int,is_active:bool}>|null
      */
-    public function get_user_purchases(int $user_id): ?array
+    public function get_user_upgrade_history(int $user_id): ?array
     {
         if (empty($this->base_url) || empty($this->api_key) || $user_id <= 0)
         {
@@ -559,7 +566,7 @@ class XenforoService
         }
         catch (\Throwable $e)
         {
-            Log::warning('Failed to fetch XenForo upgrade stats for user purchases', [
+            Log::warning('Failed to fetch XenForo upgrade stats for user history', [
                 'url' => $url,
                 'user_id' => $user_id,
                 'message' => $e->getMessage(),
@@ -570,7 +577,7 @@ class XenforoService
 
         if (!$response->successful())
         {
-            Log::warning('Non-success response from XenForo upgrade stats for user purchases', [
+            Log::warning('Non-success response from XenForo upgrade stats for user history', [
                 'url' => $url,
                 'user_id' => $user_id,
                 'status' => $response->status(),
@@ -581,16 +588,73 @@ class XenforoService
 
         $data = $response->json();
 
-        $active = $data['userUpgradeActive'] ?? [];
+        // Build a title lookup from upgrade definitions.
+        $upgrade_titles = [];
+        foreach ($data['userUpgrades'] ?? [] as $upgrade)
+        {
+            if (is_array($upgrade) && isset($upgrade['user_upgrade_id'], $upgrade['title']))
+            {
+                $upgrade_titles[(int) $upgrade['user_upgrade_id']] = (string) $upgrade['title'];
+            }
+        }
 
-        if (!is_array($active))
+        $records = [];
+
+        $sources = [
+            ['rows' => $data['userUpgradeActive'] ?? [], 'is_active' => true],
+            ['rows' => $data['userUpgradeExpired'] ?? [], 'is_active' => false],
+        ];
+
+        foreach ($sources as $source)
+        {
+            if (!is_array($source['rows']))
+            {
+                continue;
+            }
+
+            foreach ($source['rows'] as $row)
+            {
+                if (!is_array($row) || (int) ($row['user_id'] ?? 0) !== $user_id)
+                {
+                    continue;
+                }
+
+                $upgrade_id = (int) ($row['user_upgrade_id'] ?? 0);
+
+                $records[] = [
+                    'user_upgrade_record_id' => (int) ($row['user_upgrade_record_id'] ?? 0),
+                    'upgrade_title' => $upgrade_titles[$upgrade_id] ?? 'Upgrade #'.$upgrade_id,
+                    'start_date' => (int) ($row['start_date'] ?? 0),
+                    'end_date' => (int) ($row['end_date'] ?? 0),
+                    'is_active' => $source['is_active'],
+                ];
+            }
+        }
+
+        // Most recent first.
+        usort($records, static fn (array $a, array $b): int => $b['start_date'] <=> $a['start_date']);
+
+        return $records;
+    }
+
+    /**
+     * Determine whether the given user has at least one currently active upgrade.
+     *
+     * Thin wrapper around get_user_upgrade_history() used where only the
+     * active/inactive boolean is needed.
+     */
+    public function get_user_purchases(int $user_id): ?array
+    {
+        $history = $this->get_user_upgrade_history($user_id);
+
+        if ($history === null)
         {
             return null;
         }
 
         return array_values(array_filter(
-            $active,
-            static fn (mixed $row): bool => is_array($row) && (int) ($row['user_id'] ?? 0) === $user_id
+            $history,
+            static fn (array $row): bool => $row['is_active']
         ));
     }
 
