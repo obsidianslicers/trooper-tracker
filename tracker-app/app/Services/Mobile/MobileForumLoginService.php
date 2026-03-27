@@ -22,7 +22,7 @@ readonly class MobileForumLoginService
             throw new MobileForumLoginException('Forum access token is required.', 400);
         }
 
-        $forum_user       = $this->fetchForumUser($access_token);
+        $forum_user = $this->fetchForumUser($access_token);
         $resolved_user_id = (string) ($forum_user['user_id'] ?? '');
 
         if ($resolved_user_id === '')
@@ -51,7 +51,7 @@ readonly class MobileForumLoginService
         $oauth_login->update([OauthLogin::TOKEN => $access_token]);
 
         return [
-            'trooper'    => $oauth_login->trooper,
+            'trooper' => $oauth_login->trooper,
             'forum_user' => $forum_user,
         ];
     }
@@ -68,7 +68,7 @@ readonly class MobileForumLoginService
         if (!$response->successful())
         {
             throw new MobileForumLoginException(
-                'Unable to authenticate with the forum: ' . $this->resolveForumErrorDetail($response->json(), $response->status()),
+                'Unable to authenticate with the forum: '.$this->resolveForumErrorDetail($response->json(), $response->status()),
                 401,
             );
         }
@@ -98,14 +98,14 @@ readonly class MobileForumLoginService
             }
         }
 
-        return 'status ' . $status;
+        return 'status '.$status;
     }
 
     private function forumMeUrl(): string
     {
         $base_url = rtrim((string) config('services.xenforo.base_url'), '/');
-        $me_path  = '/' . ltrim((string) config('services.xenforo.me_path', '/api/me'), '/');
+        $me_path = '/'.ltrim((string) config('services.xenforo.me_path', '/api/me'), '/');
 
-        return $base_url . $me_path;
+        return $base_url.$me_path;
     }
 }
