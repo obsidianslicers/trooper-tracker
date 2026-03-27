@@ -38,6 +38,7 @@ class OrganizationSeeder extends Seeder
             ['parent' => 'Dark Empire', 'name' => 'Dark Empire Florida'],
             ['parent' => 'Saber Guild', 'name' => 'Saber Guild - Talon Temple'],
             ['parent' => 'Droid Builders', 'name' => 'Florida Droid Builders'],
+            ['parent' => 'Galactic Academy', 'name' => 'North America Coruscant Campus'],
         ];
 
         foreach ($regions as $data)
@@ -75,6 +76,7 @@ class OrganizationSeeder extends Seeder
             ['region' => 'Saber Guild - Talon Temple', 'name' => 'Performance Team'],
             ['region' => 'Florida Droid Builders', 'name' => 'R2 Builders Tampa'],
             ['region' => 'Florida Droid Builders', 'name' => 'R2 Builders Orlando'],
+            ['region' => 'North America Coruscant Campus', 'name' => 'Florida Dagobah School'],
         ];
 
         foreach ($units as $data)

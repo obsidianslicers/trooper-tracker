@@ -23,6 +23,7 @@ return new class extends Migration
 
             $table->string('name', 64);
             $table->string('type', 16);
+            $table->boolean('can_attend_default')->default(true);
             $table->integer('depth')->default(0);
             $table->integer('sequence')->default(0);
             $table->string('node_path', 128)->default('');

@@ -44,14 +44,16 @@ class OrganizationSeeder extends Seeder
                 'identifier_validation' => 'integer|between:1000,99999',
                 'service_class' => TheLegionService::class,
                 'sync_sheet_id' => null,
+                'can_attend_default' => true,
             ],
             [
                 'name' => 'Rebel Legion',
                 'description' => 'Rebel-aligned Star Wars costuming group.',
                 'identifier_display' => 'Forum Username',
-                'sync_sheet_id' => '1I3FuS_uPg2nuC80PEA6tKYaVBd1Qh1allTOdVz3M6x0',
                 'identifier_validation' => 'string|max:64',
-                'service_class' => RebelLegionService::class
+                'service_class' => RebelLegionService::class,
+                'sync_sheet_id' => '1I3FuS_uPg2nuC80PEA6tKYaVBd1Qh1allTOdVz3M6x0',
+                'can_attend_default' => true,
             ],
             [
                 'name' => 'Mandalorian Mercs',
@@ -60,6 +62,7 @@ class OrganizationSeeder extends Seeder
                 'identifier_validation' => 'integer',
                 'service_class' => MandalorianMercsService::class,
                 'sync_sheet_id' => null,
+                'can_attend_default' => true,
             ],
             [
                 'name' => 'Dark Empire',
@@ -68,6 +71,7 @@ class OrganizationSeeder extends Seeder
                 'identifier_validation' => 'integer',
                 'service_class' => DarkEmpireServices::class,
                 'sync_sheet_id' => null,
+                'can_attend_default' => true,
             ],
             [
                 'name' => 'Droid Builders',
@@ -76,6 +80,7 @@ class OrganizationSeeder extends Seeder
                 'identifier_validation' => 'integer',
                 'service_class' => DroidBuildersService::class,
                 'sync_sheet_id' => '195NT1crFYL_ECVyzoaD2F1QXGW5WxlnBDfDaLVtM87Y',
+                'can_attend_default' => true,
             ],
             [
                 'name' => 'Saber Guild',
@@ -84,7 +89,17 @@ class OrganizationSeeder extends Seeder
                 'identifier_validation' => 'integer',
                 'service_class' => SaberGuildServices::class,
                 'sync_sheet_id' => '1PcveycMujakkKeG2m4y8iFunrFbo2KVpQJ00GyPI3b8',
+                'can_attend_default' => true,
             ],
+            // [
+            //     'name' => 'Galactic Academy',
+            //     'description' => 'Star Wars costuming group for children and families.',
+            //     'identifier_display' => 'GA ID',
+            //     'identifier_validation' => 'string|max:128',
+            //     'service_class' => null,
+            //     'sync_sheet_id' => null,
+            //     'can_attend_default' => false,
+            // ],
         ];
 
         foreach ($organizations as $data)
@@ -92,6 +107,7 @@ class OrganizationSeeder extends Seeder
             $org = Organization::where('name', $data['name'])->first() ?? new Organization();
 
             $org->name = $data['name'];
+            $org->can_attend_default = $data['can_attend_default'];
             $org->service_class = $data['service_class'];
             $org->description = $data['description'];
             $org->identifier_display = $data['identifier_display'] ?? '';

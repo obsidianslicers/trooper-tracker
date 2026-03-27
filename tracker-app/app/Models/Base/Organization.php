@@ -29,6 +29,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $parent_id
  * @property string $name
  * @property string $type
+ * @property bool $can_attend_default
  * @property int $depth
  * @property int $sequence
  * @property string $node_path
@@ -41,6 +42,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $discord_mention
  * @property int|null $related_forum
  * @property int|null $related_forum_archive
+ * @property int|null $xenforo_group_active_id
+ * @property int|null $xenforo_group_reserve_id
+ * @property int|null $xenforo_group_retired_id
  * @property Carbon|null $synchronized_at
  * @property string|null $description
  * @property Carbon|null $created_at
@@ -68,6 +72,7 @@ class Organization extends Model
     const PARENT_ID = 'parent_id';
     const NAME = 'name';
     const TYPE = 'type';
+    const CAN_ATTEND_DEFAULT = 'can_attend_default';
     const DEPTH = 'depth';
     const SEQUENCE = 'sequence';
     const NODE_PATH = 'node_path';
@@ -96,6 +101,7 @@ class Organization extends Model
     protected $casts = [
         self::ID => 'int',
         self::PARENT_ID => 'int',
+        self::CAN_ATTEND_DEFAULT => 'bool',
         self::DEPTH => 'int',
         self::SEQUENCE => 'int',
         self::RELATED_FORUM => 'int',
@@ -115,6 +121,7 @@ class Organization extends Model
         self::PARENT_ID,
         self::NAME,
         self::TYPE,
+        self::CAN_ATTEND_DEFAULT,
         self::DEPTH,
         self::SEQUENCE,
         self::NODE_PATH,

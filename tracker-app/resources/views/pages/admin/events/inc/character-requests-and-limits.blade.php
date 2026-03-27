@@ -94,7 +94,7 @@
         </thead>
         @foreach ($organizations as $organization)
             <tr
-                x-data="Admin.Events.eventOrganizationAttendance({ canAttend: {{ $organization->can_attend ?? 'false' }}, troopers: {{ $organization->troopers_allowed ?? 'null' }}, handlers: {{ $organization->handlers_allowed ?? 'null' }} })">
+                x-data="Admin.Events.eventOrganizationAttendance({ canAttend: {{ ($organization->pivot->can_attend ?? false) ? 'true' : 'false' }}, troopers: {{ $organization->pivot->troopers_allowed ?? 'null' }}, handlers: {{ $organization->pivot->handlers_allowed ?? 'null' }} })">
                 <td>
                     <x-logo :storage_path="$organization->image_path_sm"
                             :default_path="'img/icons/organization-32x32.png'"
@@ -109,12 +109,12 @@
                 <td class="text-center">
                     <x-input-checkbox :property="'organizations.' . $organization->id . '.can_attend'"
                                       :value="1"
-                                      :checked="$organization->can_attend ?? false"
+                                      :checked="$organization->pivot->can_attend ?? false"
                                       x-model="canAttend" />
                 </td>
                 <td class="text-center">
                     <x-input-text :property="'organizations.' . $organization->id . '.troopers_allowed'"
-                                  :value="$organization->troopers_allowed ?? null"
+                                  :value="$organization->pivot->troopers_allowed ?? null"
                                   class="form-control-sm"
                                   placeholder="unlimited"
                                   x-model="troopers"
@@ -122,7 +122,7 @@
                 </td>
                 <td class="text-center">
                     <x-input-text :property="'organizations.' . $organization->id . '.handlers_allowed'"
-                                  :value="$organization->handlers_allowed ?? null"
+                                  :value="$organization->pivot->handlers_allowed ?? null"
                                   class="form-control-sm"
                                   placeholder="unlimited"
                                   x-model="handlers"

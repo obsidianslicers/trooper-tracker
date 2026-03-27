@@ -9,6 +9,7 @@ use App\Enums\EventType;
 use App\Features\Organizations\Queries\GetOrganizationHierarchyQuery;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Event;
+use App\Models\EventOrganization;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Contracts\View\View;
@@ -83,9 +84,13 @@ class CreateController extends MagicBusController
 
         foreach ($organizations as $organization)
         {
-            $organization->can_attend = old("organizations.{$organization->id}.can_attend", 'true');
-            $organization->troopers_allowed = old("organizations.{$organization->id}.troopers_allowed");
-            $organization->handlers_allowed = old("organizations.{$organization->id}.handlers_allowed");
+            $default = $organization->can_attend_default ? 'true' : 'false';
+
+            $organization->pivot = new EventOrganization;
+
+            $organization->pivot->can_attend = filter_var(old("organizations.{$organization->id}.can_attend", $default), FILTER_VALIDATE_BOOLEAN);
+            $organization->pivot->troopers_allowed = old("organizations.{$organization->id}.troopers_allowed");
+            $organization->pivot->handlers_allowed = old("organizations.{$organization->id}.handlers_allowed");
         }
 
         return $organizations;

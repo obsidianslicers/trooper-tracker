@@ -123,6 +123,7 @@ class EventSeeder extends Seeder
             'limitDroid' => 'Droid Builders',
             'limitSG' => 'Saber Guild',
             'limitDE' => 'Dark Empire',
+            //  ignoring Galactic Academy on seeding
         ];
 
         foreach ($columns as $column => $name)
@@ -138,11 +139,8 @@ class EventSeeder extends Seeder
                 EventOrganization::CAN_ATTEND => $column === 'limit501st',
             ];
 
-            if ($legacy->$column > 0)
-            {
-                $set[EventOrganization::CAN_ATTEND] = true;
-                $set[EventOrganization::TROOPERS_ALLOWED] = $legacy->$column == 500 ? null : $legacy->$column;
-            }
+            $set[EventOrganization::CAN_ATTEND] = $legacy->$column > 0;
+            $set[EventOrganization::TROOPERS_ALLOWED] = $legacy->$column >= 500 ? null : $legacy->$column;
 
             EventOrganization::updateOrCreate($where, $set);
         }

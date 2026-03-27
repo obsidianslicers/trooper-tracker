@@ -19,6 +19,7 @@ class OrganizationFactory extends Factory
             Organization::PARENT_ID => null,
             Organization::NAME => $this->faker->name(),
             Organization::TYPE => $this->faker->word(),
+            Organization::CAN_ATTEND_DEFAULT => $this->faker->randomNumber(1),
             Organization::DEPTH => $this->faker->randomNumber(),
             Organization::SEQUENCE => $this->faker->randomNumber(),
             Organization::NODE_PATH => $this->faker->word(),
