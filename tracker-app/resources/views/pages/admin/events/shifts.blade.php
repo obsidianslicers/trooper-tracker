@@ -102,7 +102,7 @@
                     @if($event->is_active)
                         <tfoot>
                             <tr>
-                                <td colspan="4"
+                                <td colspan="5"
                                     class="text-end">
                                     <button type="button"
                                             class="btn btn-sm btn-outline-success"
