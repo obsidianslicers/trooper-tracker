@@ -20,7 +20,9 @@
                                 :value="$event_guest->status->value"
                                 hx-post="{{ route('events.guest-update-htmx', compact('event_guest')) }}"
                                 hx-indicator="#transmission-bar-shift-{{ $event_guest->event_shift->id }}"
-                                hx-swap="none"
+                                hx-select="#shift-container-{{ $event_guest->event_shift->id }}"
+                                hx-target="#shift-container-{{ $event_guest->event_shift->id }}"
+                                hx-swap="outerHTML"
                                 class="form-select-sm" />
             @else
                 <span class="{{ $event_guest->status->color() }}">

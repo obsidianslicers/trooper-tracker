@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
+use App\Enums\EventStatus;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Events\UpdateShiftsRequest;
 use App\Models\Event;
@@ -49,6 +50,11 @@ class UpdateShiftsSubmitController extends MagicBusController
 
             $shift->shift_starts_at = Carbon::parse($input['date'].' '.$input['starts_at']);
             $shift->shift_ends_at = Carbon::parse($input['date'].' '.$input['ends_at']);
+
+            if (isset($input['status']))
+            {
+                $shift->status = EventStatus::from($input['status']);
+            }
 
             $shift->save();
         }

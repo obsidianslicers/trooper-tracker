@@ -46,7 +46,30 @@ class EventGuest extends BaseEventGuest
      */
     public function canUpdateStatus(EventShift $event_shift, Trooper $trooper): bool
     {
-        return $event_shift->is_open && $this->hasOwnership($trooper);
+        if (!($event_shift->is_open && $this->hasOwnership($trooper)))
+        {
+            return false;
+        }
+
+        if ($this->status === EventGuestStatus::CANCELLED && $this->added_by_trooper_id !== null)
+        {
+            $guests_allowed = $event_shift->event->guests_allowed;
+
+            if ($guests_allowed !== null)
+            {
+                $active_guests = $event_shift->event_guests()
+                    ->where(self::ADDED_BY_TROOPER_ID, $this->added_by_trooper_id)
+                    ->where(self::STATUS, '!=', EventGuestStatus::CANCELLED)
+                    ->count();
+
+                if ($active_guests >= $guests_allowed)
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     /**
