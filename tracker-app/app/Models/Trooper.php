@@ -22,6 +22,7 @@ use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Notifications\Notifiable;
 
@@ -83,6 +84,16 @@ class Trooper extends BaseTrooper implements
             self::EMAIL => LowerCast::class,
             self::THEME => TrooperTheme::class,
         ]);
+    }
+
+    /**
+     * Alias for trooper
+     * 
+     * @return BelongsTo
+     */
+    public function guardian(): BelongsTo
+    {
+        return $this->trooper();
     }
 
     /**

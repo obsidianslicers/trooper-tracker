@@ -11,6 +11,14 @@
             <dd class="col-8">{{ $trooper->display_name }}</dd>
             <dt class="col-4">Email:</dt>
             <dd class="col-8">{{ $trooper->email }}</dd>
+            @if($trooper->is_minor)
+                <dt class="col-4 text-danger fw-bold">Parent/Guardian:</dt>
+                <dd class="col-8">{{ $trooper->guardian->email }}</dd>
+                <dt class="col-4 text-danger fw-bold">Legal Name:</dt>
+                <dd class="col-8">{{ $trooper->guardian->legal_name }}</dd>
+                <dt class="col-4 text-danger fw-bold">Display Name:</dt>
+                <dd class="col-8">{{ $trooper->guardian->display_name }}</dd>
+            @endif
             <dt class="col-4">Phone:</dt>
             <dd class="col-8">{{ $trooper->phone ?? 'n/a' }}</dd>
             <dt class="col-4">Role:</dt>
