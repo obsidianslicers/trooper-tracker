@@ -32,7 +32,7 @@ class SetupController extends MagicBusController
 
         //  just hard code out 'GA' for folks migrating from TT1.x
         $organization_memberships = $this->bus->send(message: $assignments_query)
-            ->reject(fn($org) => $org->name === 'Galactic Academy');
+            ->reject(fn ($org) => $org->name === 'Galactic Academy');
 
         $data = compact('trooper', 'organization_memberships');
 

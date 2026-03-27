@@ -49,15 +49,15 @@ readonly class GetOrganizationHierarchyQueryHandler implements QueryHandlerInter
 
         $organizations = $q->get();
 
-        return $organizations->map(fn($org) => [
+        return $organizations->map(fn ($org) => [
             'id' => $org->id,
             'name' => $org->name,
             'identifier_display' => $org->identifier_display,
             'requires_guardian' => $org->requires_guardian,
-            'regions' => $org->organizations->map(fn($region) => [
+            'regions' => $org->organizations->map(fn ($region) => [
                 'id' => $region->id,
                 'name' => $region->name,
-                'units' => $region->organizations->map(fn($unit) => [
+                'units' => $region->organizations->map(fn ($unit) => [
                     'id' => $unit->id,
                     'name' => $unit->name,
                 ]),

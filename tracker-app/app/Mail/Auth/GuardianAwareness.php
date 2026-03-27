@@ -42,7 +42,7 @@ class GuardianAwareness extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix') . ' Parent/Guardian of Cadet Registration',
+            subject: config('mail.prefix').' Parent/Guardian of Cadet Registration',
         );
     }
 

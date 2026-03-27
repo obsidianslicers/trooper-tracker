@@ -11,18 +11,18 @@
             <dd class="col-8">{{ $trooper->display_name }}</dd>
             <dt class="col-4">Email:</dt>
             <dd class="col-8">{{ $trooper->email }}</dd>
-            @if($trooper->is_minor)
-                <dt class="col-4 text-danger fw-bold">Parent/Guardian:</dt>
-                <dd class="col-8">{{ $trooper->guardian->email }}</dd>
-                <dt class="col-4 text-danger fw-bold">Legal Name:</dt>
-                <dd class="col-8">{{ $trooper->guardian->legal_name }}</dd>
-                <dt class="col-4 text-danger fw-bold">Display Name:</dt>
-                <dd class="col-8">{{ $trooper->guardian->display_name }}</dd>
-            @endif
             <dt class="col-4">Phone:</dt>
             <dd class="col-8">{{ $trooper->phone ?? 'n/a' }}</dd>
             <dt class="col-4">Role:</dt>
             <dd class="col-8">{{ to_title($trooper->membership_role->name) }}</dd>
+            @if($trooper->is_minor)
+                <dt class="col-4 text-warning fw-bold">Parent/Guardian:</dt>
+                <dd class="col-8 text-warning">{{ $trooper->guardian->email }}</dd>
+                <dt class="col-4 text-warning fw-bold">Legal Name:</dt>
+                <dd class="col-8 text-warning">{{ $trooper->guardian->legal_name }}</dd>
+                <dt class="col-4 text-warning fw-bold">Display Name:</dt>
+                <dd class="col-8 text-warning">{{ $trooper->guardian->display_name }}</dd>
+            @endif
         </dl>
         <hr />
         {{-- ONLY HANDLERS CAN GET OUT OF PICKING A UNIT --}}
@@ -44,6 +44,9 @@
                     <tr>
                         <td>
                             <i class="fa fa-fw"></i>
+                            @if($organization->requires_guardian)
+                                <i class="fa-solid fa-shield-halved text-warning my-1 me-1"></i>
+                            @endif
                             {{ $organization->name }}
                         </td>
                         <td>
