@@ -901,6 +901,16 @@ class MobileApiController
 
         if ($existing)
         {
+            // Re-activating a cancelled friend signup still counts against the limit.
+            if ($added_by && $existing->status === EventTrooperStatus::CANCELLED)
+            {
+                $shift_for_check = EventShift::find($existing->event_shift_id);
+                if ($shift_for_check && !$shift_for_check->canSignUpTrooper($added_by))
+                {
+                    return response()->json(['success' => false, 'success_message' => 'You cannot add a friend to this shift.']);
+                }
+            }
+
             $existing->update([
                 EventTrooper::STATUS => $requested_status->value,
                 EventTrooper::COSTUME_ID => $costume_id ?: null,
@@ -923,6 +933,11 @@ class MobileApiController
             $message = $shift_id > 0 ? 'Shift not found for this event.' : 'No shifts available for this event.';
 
             return response()->json(['success' => false, 'success_message' => $message]);
+        }
+
+        if ($added_by && !$shift->canSignUpTrooper($added_by))
+        {
+            return response()->json(['success' => false, 'success_message' => 'You cannot add a friend to this shift.']);
         }
 
         EventTrooper::create([
