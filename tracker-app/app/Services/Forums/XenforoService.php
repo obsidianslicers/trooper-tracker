@@ -531,10 +531,11 @@ class XenforoService
     }
 
     /**
-     * Fetch active user upgrade purchases (subscriptions/donations) for a XenForo user.
+     * Fetch active upgrade purchases for a specific XenForo user.
      *
-     * Returns an array of active upgrade purchase records, or null if the
-     * request fails or credentials are not configured.
+     * Uses the upgrade-stats add-on endpoint and filters the returned
+     * `userUpgradeActive` list down to records belonging to the given user_id.
+     * Returns null when credentials are missing or the request fails.
      *
      * @return array<int,array<string,mixed>>|null
      */
@@ -545,7 +546,7 @@ class XenforoService
             return null;
         }
 
-        $url = $this->base_url.'/api/user-upgrades/purchases/';
+        $url = $this->base_url.'/index.php?api/upgrade-stats';
 
         try
         {
@@ -554,11 +555,11 @@ class XenforoService
             $response = Http::withHeaders($headers)
                 ->acceptJson()
                 ->timeout(5)
-                ->get($url, ['user_id' => $user_id]);
+                ->get($url);
         }
         catch (\Throwable $e)
         {
-            Log::warning('Failed to fetch XenForo user purchases', [
+            Log::warning('Failed to fetch XenForo upgrade stats for user purchases', [
                 'url' => $url,
                 'user_id' => $user_id,
                 'message' => $e->getMessage(),
@@ -569,7 +570,7 @@ class XenforoService
 
         if (!$response->successful())
         {
-            Log::warning('Non-success response from XenForo user purchases', [
+            Log::warning('Non-success response from XenForo upgrade stats for user purchases', [
                 'url' => $url,
                 'user_id' => $user_id,
                 'status' => $response->status(),
@@ -580,9 +581,17 @@ class XenforoService
 
         $data = $response->json();
 
-        $purchases = $data['purchases'] ?? $data;
+        $active = $data['userUpgradeActive'] ?? [];
 
-        return is_array($purchases) ? array_values($purchases) : null;
+        if (!is_array($active))
+        {
+            return null;
+        }
+
+        return array_values(array_filter(
+            $active,
+            static fn (mixed $row): bool => is_array($row) && (int) ($row['user_id'] ?? 0) === $user_id
+        ));
     }
 
     /**
