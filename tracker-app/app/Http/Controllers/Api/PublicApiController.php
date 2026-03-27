@@ -32,10 +32,6 @@ class PublicApiController
             return $this->photos($request);
         }
 
-        if ($request->has('events')) {
-            return $this->upcomingEvents();
-        }
-
         return response()->json([]);
     }
 
@@ -115,28 +111,6 @@ class PublicApiController
         }
 
         return response()->json([$uploadArray]);
-    }
-
-    private function upcomingEvents(): JsonResponse
-    {
-        $events = Event::whereIn(Event::STATUS, [EventStatus::OPEN->value, EventStatus::SIGN_UP_LOCKED->value])
-            ->whereNotNull(Event::LATITUDE)
-            ->whereNotNull(Event::LONGITUDE)
-            ->where(Event::EVENT_START, '>=', now()->startOfDay())
-            ->orderBy(Event::EVENT_START)
-            ->get();
-
-        $data = $events->map(fn ($event) => [
-            'troopid'   => $event->id,
-            'name'      => $event->name,
-            'dateStart' => $event->event_start,
-            'dateEnd'   => $event->event_end,
-            'location'  => $event->venue,
-            'latitude'  => $event->latitude,
-            'longitude' => $event->longitude,
-        ])->toArray();
-
-        return response()->json($data);
     }
 
     private function slideshowResponse(array $uploads): Response
