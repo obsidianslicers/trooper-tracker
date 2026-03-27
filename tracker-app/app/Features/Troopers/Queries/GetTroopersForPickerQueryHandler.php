@@ -13,6 +13,7 @@ use Illuminate\Support\Collection;
  *
  * Processes GetTroopersForPickerQuery to return troopers based on:
  * - Organization filtering: Returns only troopers belonging to a specific organization
+ * - Guardian/minor rule: Minors can only be returned for their assigned guardian
  * - Filter criteria: Applies search term and role filtering via TrooperFilter
  *
  * All results are ordered by trooper name for consistent UI display.
@@ -26,10 +27,12 @@ readonly class GetTroopersForPickerQueryHandler implements QueryHandlerInterface
      *
      * Query behavior:
      * 1. Start with active troopers who have completed setup, ordered by name
-     * 2. If organization_id is set: Filter to troopers belonging to that organization
-     * 3. If moderated_only is set: Filter to troopers moderated by the requesting trooper
-     * 4. If filter has criteria: Apply search term and role filtering and return results
-     * 5. If no filter criteria: Return empty collection
+     * 2. Apply guardian/minor visibility: include non-minors and minors only when the
+     *    requesting trooper is their guardian
+     * 3. If organization_id is set: Filter to troopers belonging to that organization
+     * 4. If moderated_only is set: Filter to troopers moderated by the requesting trooper
+     * 5. If filter has criteria: Apply search term and role filtering and return results
+     * 6. If no filter criteria: Return empty collection
      *
      * @param  GetTroopersForPickerQuery  $message  The query containing filter and scope criteria
      * @return Collection<int, Trooper> Collection of filtered troopers, or empty if no filter applied
@@ -38,11 +41,17 @@ readonly class GetTroopersForPickerQueryHandler implements QueryHandlerInterface
     {
         $query = Trooper::active()
             ->whereNotNull(Trooper::SETUP_COMPLETED_AT)
+            ->where(function ($q) use ($message)
+            {
+                $q->whereNull(Trooper::GUARDIAN_ID)
+                    ->orWhere(Trooper::GUARDIAN_ID, $message->trooper->id);
+            })
             ->orderBy(Trooper::DISPLAY_NAME);
 
         if ($message->organization_id)
         {
-            $query = $query->whereHas('organizations', function ($q) use ($message) {
+            $query = $query->whereHas('organizations', function ($q) use ($message)
+            {
                 $q->where('tt_organizations.id', $message->organization_id);
             });
         }
