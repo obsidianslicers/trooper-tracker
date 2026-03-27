@@ -1079,7 +1079,7 @@ class MobileApiController
             return response()->json(['success' => false, 'message' => 'You cannot add a guest to this shift.']);
         }
 
-        EventGuest::firstOrCreate(
+        EventGuest::updateOrCreate(
             [EventGuest::EVENT_SHIFT_ID => $shift->id, EventGuest::NAME => $name],
             [
                 EventGuest::ADDED_BY_TROOPER_ID => $trooper->id,
