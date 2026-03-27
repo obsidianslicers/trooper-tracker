@@ -407,6 +407,8 @@ class MobileApiController
                 'allowTentative' => (int) $event->tentative_signups_allowed,
                 'limitTotalTroopers' => $troopers_allowed,
                 'limitHandlers' => $handlers_allowed,
+                'guests_allowed'   => $event->guests_allowed,
+                'friends_allowed'  => $event->friends_allowed,
             ],
             [
                 'isLimited' => $is_limited,
