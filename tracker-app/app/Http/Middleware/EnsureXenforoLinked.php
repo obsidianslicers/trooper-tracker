@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Enums\OauthProvider;
 use App\Models\OauthLogin;
 use Closure;
 use Illuminate\Http\Request;
@@ -25,14 +26,14 @@ class EnsureXenforoLinked
     public function handle(Request $request, Closure $next): Response
     {
         // Allow this behaviour to be toggled via configuration / .env.
-        if (! config('tracker.auth.require_xenforo', false))
+        if (!config('tracker.auth.require_xenforo', false))
         {
             return $next($request);
         }
 
         $user = Auth::user();
 
-        if (! $user)
+        if (!$user)
         {
             return $next($request);
         }
@@ -49,10 +50,10 @@ class EnsureXenforoLinked
         }
 
         $has_xenforo = OauthLogin::where(OauthLogin::TROOPER_ID, $user->id)
-            ->where(OauthLogin::PROVIDER, 'xenforo')
+            ->where(OauthLogin::PROVIDER, OauthProvider::XENFORO)
             ->exists();
 
-        if (! $has_xenforo)
+        if (!$has_xenforo)
         {
             return redirect()->route('account.xenforo.required');
         }

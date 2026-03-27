@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Enums\OauthProvider;
 use App\Facades\TroopTracker;
 use Closure;
 use Illuminate\Http\RedirectResponse;
@@ -52,7 +53,7 @@ class RegistrationMiddleware
 
         $troop_tracker = app(TroopTracker::class);
 
-        if ($troop_tracker->isXenforoOAuthRequired() && ($registration_auth['method'] ?? null) !== 'xenforo')
+        if ($troop_tracker->isXenforoOAuthRequired() && ($registration_auth['method'] ?? null) !== OauthProvider::XENFORO->value)
         {
             Session::forget('registration_auth');
 

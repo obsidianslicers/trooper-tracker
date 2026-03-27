@@ -2,6 +2,7 @@
 
 namespace App\Services\Forums;
 
+use App\Enums\OauthProvider;
 use App\Helpers\ForumBBCodeRenderer;
 use App\Models\OauthLogin;
 use Illuminate\Support\Facades\Auth;
@@ -40,7 +41,7 @@ class XenforoService
 
         $effectiveUser = $user_id ?? $this->api_user;
 
-        if (! empty($effectiveUser))
+        if (!empty($effectiveUser))
         {
             $headers['XF-Api-User'] = (string) $effectiveUser;
         }
@@ -70,7 +71,7 @@ class XenforoService
             'XF-Api-Key' => (string) $this->api_key,
         ];
 
-        if (! empty($this->api_user))
+        if (!empty($this->api_user))
         {
             $headers['XF-Api-User'] = (string) $this->api_user;
         }
@@ -104,21 +105,21 @@ class XenforoService
                 break;
             }
 
-            if (! $response->successful())
+            if (!$response->successful())
             {
                 break;
             }
 
             $data = $response->json();
             $posts = $data['posts'] ?? [];
-            if (! is_array($posts))
+            if (!is_array($posts))
             {
                 break;
             }
 
             foreach ($posts as $post)
             {
-                if (! is_array($post) || empty($post['post_id']))
+                if (!is_array($post) || empty($post['post_id']))
                 {
                     continue;
                 }
@@ -149,7 +150,7 @@ class XenforoService
                         ?? null;
                 }
 
-                if (is_string($avatar_url) && $avatar_url !== '' && ! Str::startsWith($avatar_url, ['http://', 'https://']))
+                if (is_string($avatar_url) && $avatar_url !== '' && !Str::startsWith($avatar_url, ['http://', 'https://']))
                 {
                     $avatar_url = $this->base_url.'/'.ltrim($avatar_url, '/');
                 }
@@ -162,7 +163,7 @@ class XenforoService
                 $message_html = ForumBBCodeRenderer::toHtml($message_bbcode);
 
                 $post_id = (int) $post['post_id'];
-                $post_url = ! empty($this->base_url) ? $this->base_url.'/posts/'.$post_id.'/' : null;
+                $post_url = !empty($this->base_url) ? $this->base_url.'/posts/'.$post_id.'/' : null;
 
                 $normalized[] = [
                     'post_id' => $post_id,
@@ -427,7 +428,7 @@ class XenforoService
         }
 
         $oauth = OauthLogin::where(OauthLogin::TROOPER_ID, $trooper_id)
-            ->where(OauthLogin::PROVIDER, 'xenforo')
+            ->where(OauthLogin::PROVIDER, OauthProvider::XENFORO)
             ->first();
 
         if ($oauth === null || empty($oauth->provider_id))
@@ -509,7 +510,7 @@ class XenforoService
             return null;
         }
 
-        if (! $response->successful())
+        if (!$response->successful())
         {
             Log::warning('Non-success response from XenForo upgrade stats', [
                 'url' => $url,
@@ -563,7 +564,7 @@ class XenforoService
             return null;
         }
 
-        if (! $response->successful())
+        if (!$response->successful())
         {
             Log::warning('Non-success response from XenForo user groups', [
                 'url' => $url,
