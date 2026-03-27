@@ -61,8 +61,32 @@ class RegisterRequest extends FormRequest
                 'max:256',
                 Rule::unique(Trooper::class, Trooper::EMAIL),
             ],
-            'phone' => ['nullable', 'string', 'max:16'],
-            'account_type' => ['required', 'in:member,handler'],
+            'phone' => [
+                'nullable',
+                'string',
+                'max:16'
+            ],
+            'account_type' => [
+                'required',
+                'in:member,handler'
+            ],
+            'date_of_birth' => [
+                Rule::requiredIf(fn(): bool => $this->requiresGuardianForSelectedOrganizations()),
+                'date',
+                // Must be younger than 18 (Born AFTER 18 years ago)
+                'after:' . now()->subYears(18)->toDateString(),
+                // Must be older than 13 (Born BEFORE 13 years ago)
+                'before:' . now()->subYears(13)->toDateString(),
+            ],
+            'guardian_email' => [
+                Rule::requiredIf(fn(): bool => $this->requiresGuardianForSelectedOrganizations()),
+                'nullable',
+                'string',
+                'email',
+                'max:256',
+                Rule::exists(Trooper::class, Trooper::EMAIL)
+                    ->whereNotNull(Trooper::GUARDIAN_ID),
+            ],
         ];
 
         $registration_auth = Session::get('registration_auth');
@@ -140,7 +164,7 @@ class RegisterRequest extends FormRequest
                 // For handlers: all identifier rules are skipped (optional and unvalidated).
                 $organization_rules = [
                     Rule::when(
-                        fn () => $this->account_type === 'member' && $this->input("organizations.{$organization->id}.selected") === '1',
+                        fn() => $this->account_type === 'member' && $this->input("organizations.{$organization->id}.selected") === '1',
                         array_merge(
                             ['required'],
                             $base_rules,
@@ -158,9 +182,9 @@ class RegisterRequest extends FormRequest
             {
                 // Require region when organization is selected
                 $rules["organizations.{$organization->id}.region_id"] = [
-                    Rule::requiredIf(fn () => $this->input("organizations.{$organization->id}.selected") === '1'),
+                    Rule::requiredIf(fn() => $this->input("organizations.{$organization->id}.selected") === '1'),
                     Rule::when(
-                        fn () => $this->input("organizations.{$organization->id}.selected") === '1',
+                        fn() => $this->input("organizations.{$organization->id}.selected") === '1',
                         Rule::exists(Organization::class, Organization::ID)
                             ->whereIn('id', $regions->pluck('id'))
                     ),
@@ -175,9 +199,9 @@ class RegisterRequest extends FormRequest
                     {
                         // Require unit when this specific region is selected
                         $rules["organizations.{$organization->id}.unit_id"] = [
-                            Rule::requiredIf(fn () => $this->input("organizations.{$organization->id}.region_id") == $region->id),
+                            Rule::requiredIf(fn() => $this->input("organizations.{$organization->id}.region_id") == $region->id),
                             Rule::when(
-                                fn () => $this->input("organizations.{$organization->id}.selected") === '1' && !empty($this->input("organizations.{$organization->id}.unit_id")),
+                                fn() => $this->input("organizations.{$organization->id}.selected") === '1' && !empty($this->input("organizations.{$organization->id}.unit_id")),
                                 Rule::exists(Organization::class, Organization::ID)
                                     ->whereIn('id', $units->pluck('id'))
                             ),
@@ -258,12 +282,37 @@ class RegisterRequest extends FormRequest
 
     private function getOrganizations(): Collection
     {
-        $getter = function (): Collection {
+        $getter = function (): Collection
+        {
             return Organization::fullyLoaded()->get();
         };
 
         $organizations = once($getter);
 
         return $organizations;
+    }
+
+    private function requiresGuardianForSelectedOrganizations(): bool
+    {
+        $selected_organization_ids = collect($this->input('organizations', []))
+            ->filter(fn(mixed $organization_data): bool =>
+                is_array($organization_data) && filter_var(
+                    $organization_data['selected'] ?? false,
+                    FILTER_VALIDATE_BOOLEAN
+                )
+            )
+            ->keys()
+            ->map(fn(string|int $organization_id): int => (int) $organization_id);
+
+        if ($selected_organization_ids->isEmpty())
+        {
+            return false;
+        }
+
+        return $this->getOrganizations()
+            ->whereIn(Organization::ID, $selected_organization_ids)
+            ->contains(
+                fn(Organization $organization): bool => $organization->requires_guardian
+            );
     }
 }

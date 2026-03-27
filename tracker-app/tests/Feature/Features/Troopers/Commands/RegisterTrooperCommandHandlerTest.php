@@ -136,4 +136,70 @@ class RegisterTrooperCommandHandlerTest extends TestCase
 
         $this->assertEquals(MembershipRole::HANDLER, $result->membership_role);
     }
+
+    public function test_invoke_sets_guardian_and_date_of_birth_when_guardian_email_is_provided(): void
+    {
+        $guardian = Trooper::factory()->asMember()->create([
+            Trooper::EMAIL => 'guardian@example.com',
+        ]);
+
+        $valid_data = [
+            'legal_name' => 'Minor Trooper',
+            'display_name' => 'Minor',
+            'email' => 'minor@example.com',
+            'password' => 'password',
+            'account_type' => 'member',
+            'guardian_email' => $guardian->email,
+            'date_of_birth' => now()->subYears(16)->format('Y-m-d'),
+        ];
+
+        $command = new RegisterTrooperCommand(valid_data: $valid_data);
+        $handler = app(RegisterTrooperCommandHandler::class);
+
+        $result = $handler($command);
+
+        $this->assertEquals($guardian->id, $result->guardian_id);
+        $this->assertEquals($valid_data['date_of_birth'], $result->date_of_birth?->format('Y-m-d'));
+    }
+
+    public function test_invoke_does_not_set_date_of_birth_when_guardian_email_is_missing(): void
+    {
+        $valid_data = [
+            'legal_name' => 'No Guardian Trooper',
+            'display_name' => 'No Guardian',
+            'email' => 'noguardian@example.com',
+            'password' => 'password',
+            'account_type' => 'member',
+            'date_of_birth' => now()->subYears(16)->format('Y-m-d'),
+        ];
+
+        $command = new RegisterTrooperCommand(valid_data: $valid_data);
+        $handler = app(RegisterTrooperCommandHandler::class);
+
+        $result = $handler($command);
+
+        $this->assertNull($result->guardian_id);
+        $this->assertNull($result->date_of_birth);
+    }
+
+    public function test_invoke_sets_date_of_birth_when_guardian_email_does_not_match_a_trooper(): void
+    {
+        $valid_data = [
+            'legal_name' => 'Unknown Guardian Trooper',
+            'display_name' => 'Unknown Guardian',
+            'email' => 'unknown-guardian@example.com',
+            'password' => 'password',
+            'account_type' => 'member',
+            'guardian_email' => 'missing-guardian@example.com',
+            'date_of_birth' => now()->subYears(15)->format('Y-m-d'),
+        ];
+
+        $command = new RegisterTrooperCommand(valid_data: $valid_data);
+        $handler = app(RegisterTrooperCommandHandler::class);
+
+        $result = $handler($command);
+
+        $this->assertNull($result->guardian_id);
+        $this->assertEquals($valid_data['date_of_birth'], $result->date_of_birth?->format('Y-m-d'));
+    }
 }

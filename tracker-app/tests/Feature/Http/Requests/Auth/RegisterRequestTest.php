@@ -209,4 +209,193 @@ class RegisterRequestTest extends TestCase
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('email', $validator->errors()->toArray());
     }
+
+    public function test_rules_requires_guardian_email_when_selected_organization_requires_guardian(): void
+    {
+        $organization = Organization::factory()->create([
+            Organization::REQUIRES_GUARDIAN => true,
+        ]);
+
+        $subject = new RegisterRequest;
+        $data = [
+            'legal_name' => 'Test Trooper',
+            'display_name' => 'Tester',
+            'email' => 'test@example.com',
+            'account_type' => 'member',
+            'date_of_birth' => now()->subYears(16)->format('Y-m-d'),
+            'organizations' => [
+                (string) $organization->id => ['selected' => '1'],
+            ],
+        ];
+
+        $subject->merge($data);
+
+        $validator = Validator::make(
+            $data,
+            $subject->rules()
+        );
+
+        $this->assertTrue($validator->fails());
+        $this->assertArrayHasKey('guardian_email', $validator->errors()->toArray());
+    }
+
+    public function test_rules_does_not_require_guardian_email_when_selected_org_does_not_require_guardian(): void
+    {
+        $organization = Organization::factory()->create([
+            Organization::REQUIRES_GUARDIAN => false,
+        ]);
+
+        $subject = new RegisterRequest;
+        $data = [
+            'legal_name' => 'Test Trooper',
+            'display_name' => 'Tester',
+            'email' => 'test@example.com',
+            'account_type' => 'member',
+            'date_of_birth' => now()->subYears(17)->format('Y-m-d'),
+            'organizations' => [
+                (string) $organization->id => ['selected' => '1'],
+            ],
+        ];
+
+        $subject->merge($data);
+
+        $validator = Validator::make(
+            $data,
+            $subject->rules()
+        );
+
+        $this->assertFalse($validator->errors()->has('guardian_email'));
+    }
+
+    public function test_rules_requires_date_of_birth_when_selected_org_requires_guardian(): void
+    {
+        $organization = Organization::factory()->create([
+            Organization::REQUIRES_GUARDIAN => true,
+        ]);
+
+        $subject = new RegisterRequest;
+        $data = [
+            'legal_name' => 'Test Trooper',
+            'display_name' => 'Tester',
+            'email' => 'test@example.com',
+            'account_type' => 'member',
+            'organizations' => [
+                (string) $organization->id => ['selected' => '1'],
+            ],
+        ];
+
+        $subject->merge($data);
+
+        $validator = Validator::make($data, $subject->rules());
+
+        $this->assertTrue($validator->fails());
+        $this->assertArrayHasKey('date_of_birth', $validator->errors()->toArray());
+    }
+
+    public function test_rules_does_not_require_date_of_birth_when_selected_org_does_not_require_guardian(): void
+    {
+        $organization = Organization::factory()->create([
+            Organization::REQUIRES_GUARDIAN => false,
+        ]);
+
+        $subject = new RegisterRequest;
+        $data = [
+            'legal_name' => 'Test Trooper',
+            'display_name' => 'Tester',
+            'email' => 'test@example.com',
+            'account_type' => 'member',
+            'organizations' => [
+                (string) $organization->id => ['selected' => '1'],
+            ],
+        ];
+
+        $subject->merge($data);
+
+        $validator = Validator::make($data, $subject->rules());
+
+        $this->assertFalse($validator->errors()->has('date_of_birth'));
+    }
+
+    public function test_rules_rejects_date_of_birth_when_18_years_old_for_guardian_required_org(): void
+    {
+        $organization = Organization::factory()->create([
+            Organization::REQUIRES_GUARDIAN => true,
+        ]);
+
+        $subject = new RegisterRequest;
+        $data = [
+            'legal_name' => 'Test Trooper',
+            'display_name' => 'Tester',
+            'email' => 'test@example.com',
+            'account_type' => 'member',
+            'date_of_birth' => now()->subYears(18)->format('Y-m-d'),
+            'organizations' => [
+                (string) $organization->id => ['selected' => '1'],
+            ],
+        ];
+
+        $subject->merge($data);
+
+        $validator = Validator::make($data, $subject->rules());
+
+        $this->assertTrue($validator->fails());
+        $this->assertArrayHasKey('date_of_birth', $validator->errors()->toArray());
+    }
+
+    public function test_rules_rejects_date_of_birth_when_13_years_old_for_guardian_required_org(): void
+    {
+        $organization = Organization::factory()->create([
+            Organization::REQUIRES_GUARDIAN => true,
+        ]);
+
+        $subject = new RegisterRequest;
+        $data = [
+            'legal_name' => 'Test Trooper',
+            'display_name' => 'Tester',
+            'email' => 'test@example.com',
+            'account_type' => 'member',
+            'date_of_birth' => now()->subYears(13)->format('Y-m-d'),
+            'organizations' => [
+                (string) $organization->id => ['selected' => '1'],
+            ],
+        ];
+
+        $subject->merge($data);
+
+        $validator = Validator::make($data, $subject->rules());
+
+        $this->assertTrue($validator->fails());
+        $this->assertArrayHasKey('date_of_birth', $validator->errors()->toArray());
+    }
+
+    public function test_rules_allows_date_of_birth_between_13_and_18_for_guardian_required_org(): void
+    {
+        $guardian = Trooper::factory()->asMember()->create();
+        $minor_trooper = Trooper::factory()
+            ->asMember()
+            ->state([Trooper::GUARDIAN_ID => $guardian->id])
+            ->create();
+        $organization = Organization::factory()->create([
+            Organization::REQUIRES_GUARDIAN => true,
+        ]);
+
+        $subject = new RegisterRequest;
+        $data = [
+            'legal_name' => 'Test Trooper',
+            'display_name' => 'Tester',
+            'email' => 'test@example.com',
+            'account_type' => 'member',
+            'date_of_birth' => now()->subYears(16)->format('Y-m-d'),
+            'guardian_email' => $minor_trooper->email,
+            'organizations' => [
+                (string) $organization->id => ['selected' => '1'],
+            ],
+        ];
+
+        $subject->merge($data);
+
+        $validator = Validator::make($data, $subject->rules());
+
+        $this->assertFalse($validator->errors()->has('date_of_birth'));
+    }
 }

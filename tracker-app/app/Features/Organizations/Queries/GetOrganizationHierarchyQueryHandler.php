@@ -36,7 +36,7 @@ readonly class GetOrganizationHierarchyQueryHandler implements QueryHandlerInter
      * ```
      *
      * @param  int|null  $organization_id  Optional organization ID to filter to a single organization.
-     * @return Collection<int, array{id: int, name: string, regions: Collection<int, array{id: int, name: string, units: Collection<int, array{id: int, name: string}>}>}> Collection of organizations with nested hierarchy.
+     * @return Collection<int, array{id: int, name: string, identifier_display: string, requires_guardian: bool, regions: Collection<int, array{id: int, name: string, units: Collection<int, array{id: int, name: string}>}>}> Collection of organizations with nested hierarchy.
      */
     public function __invoke(object $message): mixed
     {
@@ -49,14 +49,15 @@ readonly class GetOrganizationHierarchyQueryHandler implements QueryHandlerInter
 
         $organizations = $q->get();
 
-        return $organizations->map(fn ($org) => [
+        return $organizations->map(fn($org) => [
             'id' => $org->id,
             'name' => $org->name,
             'identifier_display' => $org->identifier_display,
-            'regions' => $org->organizations->map(fn ($region) => [
+            'requires_guardian' => $org->requires_guardian,
+            'regions' => $org->organizations->map(fn($region) => [
                 'id' => $region->id,
                 'name' => $region->name,
-                'units' => $region->organizations->map(fn ($unit) => [
+                'units' => $region->organizations->map(fn($unit) => [
                     'id' => $unit->id,
                     'name' => $unit->name,
                 ]),
