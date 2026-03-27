@@ -6,10 +6,12 @@ namespace App\Services\Mobile;
 
 use App\Models\OauthLogin;
 use App\Models\Trooper;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Http\Client\Factory as HttpFactory;
 
-class MobileForumLoginService
+readonly class MobileForumLoginService
 {
+    public function __construct(private HttpFactory $http) {}
+
     /**
      * @return array{trooper: Trooper, forum_user: array<string, mixed>}
      */
@@ -20,7 +22,7 @@ class MobileForumLoginService
             throw new MobileForumLoginException('Forum access token is required.', 400);
         }
 
-        $forum_user = $this->fetchForumUser($access_token);
+        $forum_user       = $this->fetchForumUser($access_token);
         $resolved_user_id = (string) ($forum_user['user_id'] ?? '');
 
         if ($resolved_user_id === '')
@@ -28,7 +30,7 @@ class MobileForumLoginService
             throw new MobileForumLoginException('Forum user profile is missing a user ID.', 502);
         }
 
-        $oauth_login = OauthLogin::where(OauthLogin::PROVIDER, 'xenforo')
+        $oauth_login = OauthLogin::where(OauthLogin::PROVIDER, OauthLogin::PROVIDER_XENFORO)
             ->where(OauthLogin::PROVIDER_ID, $resolved_user_id)
             ->with('trooper')
             ->first();
@@ -49,7 +51,7 @@ class MobileForumLoginService
         $oauth_login->update([OauthLogin::TOKEN => $access_token]);
 
         return [
-            'trooper' => $oauth_login->trooper,
+            'trooper'    => $oauth_login->trooper,
             'forum_user' => $forum_user,
         ];
     }
@@ -59,30 +61,14 @@ class MobileForumLoginService
      */
     private function fetchForumUser(string $access_token): array
     {
-        $response = Http::acceptJson()
+        $response = $this->http->acceptJson()
             ->withToken($access_token)
             ->get($this->forumMeUrl());
 
         if (!$response->successful())
         {
-            $response_body = $response->json();
-            $detail = null;
-
-            if (is_array($response_body))
-            {
-                $detail = $response_body['error_description']
-                    ?? $response_body['error']
-                    ?? $response_body['message']
-                    ?? null;
-            }
-
-            if (! is_string($detail) || $detail === '')
-            {
-                $detail = 'status '.$response->status();
-            }
-
             throw new MobileForumLoginException(
-                'Unable to authenticate with the forum: '.$detail,
+                'Unable to authenticate with the forum: ' . $this->resolveForumErrorDetail($response->json(), $response->status()),
                 401,
             );
         }
@@ -97,11 +83,29 @@ class MobileForumLoginService
         return $forum_user;
     }
 
+    /**
+     * Extract a human-readable error detail from a failed forum API response body.
+     */
+    private function resolveForumErrorDetail(mixed $body, int $status): string
+    {
+        if (is_array($body))
+        {
+            $detail = $body['error_description'] ?? $body['error'] ?? $body['message'] ?? null;
+
+            if (is_string($detail) && $detail !== '')
+            {
+                return $detail;
+            }
+        }
+
+        return 'status ' . $status;
+    }
+
     private function forumMeUrl(): string
     {
         $base_url = rtrim((string) config('services.xenforo.base_url'), '/');
-        $me_path = '/'.ltrim((string) config('services.xenforo.me_path', '/api/me'), '/');
+        $me_path  = '/' . ltrim((string) config('services.xenforo.me_path', '/api/me'), '/');
 
-        return $base_url.$me_path;
+        return $base_url . $me_path;
     }
 }

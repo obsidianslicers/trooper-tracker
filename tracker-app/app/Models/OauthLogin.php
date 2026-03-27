@@ -18,5 +18,9 @@ class OauthLogin extends BaseOauthLogin
 {
     use HasFactory;
 
-
+    /**
+     * The Xenforo forum OAuth provider identifier.
+     * Used when querying by provider to avoid raw string literals.
+     */
+    const PROVIDER_XENFORO = 'xenforo';
 }

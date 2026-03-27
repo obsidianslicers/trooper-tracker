@@ -212,10 +212,7 @@ class MobileApiController
             return;
         }
 
-        if ($associated_id !== $trooper_id)
-        {
-            abort(response()->json(['error' => 'You are not authorized to modify this trooper ID.'], 403));
-        }
+        abort(response()->json(['error' => 'You are not authorized to modify this trooper ID.'], 403));
     }
 
     /**
@@ -223,7 +220,7 @@ class MobileApiController
      */
     private function trooperFromUserId(int $user_id): ?Trooper
     {
-        $oauth = OauthLogin::where(OauthLogin::PROVIDER, 'xenforo')
+        $oauth = OauthLogin::where(OauthLogin::PROVIDER, OauthLogin::PROVIDER_XENFORO)
             ->where(OauthLogin::PROVIDER_ID, (string) $user_id)
             ->with('trooper')
             ->first();
@@ -496,6 +493,7 @@ class MobileApiController
         else
         {
             $signed_up_trooper_ids = EventTrooper::whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $event_id))
+                ->where(EventTrooper::STATUS, '!=', EventTrooperStatus::CANCELLED->value)
                 ->pluck(EventTrooper::TROOPER_ID);
         }
 
@@ -650,19 +648,16 @@ class MobileApiController
             return response()->json(['error' => 'Trooper not found.'], 404);
         }
 
-        $event_troopers = EventTrooper::where(EventTrooper::TROOPER_ID, $trooper->id)
-            ->whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $event_id))
-            ->get();
+        $update_data = [EventTrooper::STATUS => $new_status->value];
 
-        foreach ($event_troopers as $et)
+        if ($costume_id > 0)
         {
-            $et->status = $new_status;
-            if ($costume_id > 0)
-            {
-                $et->costume_id = $costume_id;
-            }
-            $et->save();
+            $update_data[EventTrooper::COSTUME_ID] = $costume_id;
         }
+
+        EventTrooper::where(EventTrooper::TROOPER_ID, $trooper->id)
+            ->whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $event_id))
+            ->update($update_data);
 
         return response()->json(['success' => true]);
     }
