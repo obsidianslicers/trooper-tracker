@@ -364,7 +364,8 @@ class MobileApiController
      */
     private function getEvent(Request $request): JsonResponse
     {
-        $event = Event::with(['event_shifts.event_troopers'])->find((int) $request->input('troopid'));
+        $event = Event::with(['event_shifts.event_troopers', 'event_shifts.event_guests'])
+            ->find((int) $request->input('troopid'));
 
         if (!$event)
         {
@@ -372,6 +373,9 @@ class MobileApiController
         }
 
         [$trooper_count, $handler_count] = $this->countActiveAttendees($event);
+
+        $user_id = (int) $request->input('trooperid', 0);
+        $trooper = $user_id > 0 ? $this->trooperFromUserId($user_id) : null;
 
         $troopers_allowed = $event->troopers_allowed ?? 500;
         $handlers_allowed = $event->handlers_allowed ?? 500;
@@ -419,10 +423,12 @@ class MobileApiController
                 'shifts' => $event->event_shifts
                     ->sortBy(EventShift::SHIFT_STARTS_AT)
                     ->map(fn ($shift) => [
-                        'id' => $shift->id,
-                        'starts_at' => $shift->shift_starts_at?->format('Y-m-d H:i:s'),
-                        'ends_at' => $shift->shift_ends_at?->format('Y-m-d H:i:s'),
-                        'display' => $shift->time_display,
+                        'id'             => $shift->id,
+                        'starts_at'      => $shift->shift_starts_at?->format('Y-m-d H:i:s'),
+                        'ends_at'        => $shift->shift_ends_at?->format('Y-m-d H:i:s'),
+                        'display'        => $shift->time_display,
+                        'can_add_friend' => $trooper ? $this->shiftAllowsFriendAdd($event, $shift, $trooper) : null,
+                        'can_add_guest'  => $trooper ? $this->shiftAllowsGuestAdd($event, $shift, $trooper) : null,
                     ])
                     ->values(),
             ]
@@ -1115,6 +1121,27 @@ class MobileApiController
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
+
+    /**
+     * Check whether a trooper can still add a friend to the given shift.
+     * Uses the already-loaded event_troopers collection — no extra queries.
+     */
+    private function shiftAllowsFriendAdd(Event $event, EventShift $shift, Trooper $trooper): bool
+    {
+        $shift->setRelation('event', $event);
+
+        return $shift->canSignUpTrooper($trooper);
+    }
+
+    /**
+     * Check whether a trooper can still add a guest to the given shift.
+     */
+    private function shiftAllowsGuestAdd(Event $event, EventShift $shift, Trooper $trooper): bool
+    {
+        $shift->setRelation('event', $event);
+
+        return $shift->canSignUpGuest($trooper);
+    }
 
     /**
      * Build a standard troop/event object for list responses.
