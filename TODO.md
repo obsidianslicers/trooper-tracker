@@ -51,9 +51,6 @@ stan/pint - WIP
   - volunteer hours
   - direct and indirect donations
 
-### MOBILE API
-- Begin converting old API to new API
-
 ### QOL
 - Make many names of events, troopers clickable and bring to the profile of the trooper
 - Allow using Enter on forms
