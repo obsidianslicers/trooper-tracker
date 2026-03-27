@@ -67,17 +67,19 @@ class OauthCallbackController extends MagicBusController
         {
             $raw = $provider_user->getRaw();
             $xenforo_user_data = $raw['me'] ?? $raw;
-            $is_banned_from_me = !empty($xenforo_user_data['is_banned']);
-
             // Fall back to the admin API if the /me endpoint didn't include the field.
-            if (!$is_banned_from_me && isset($provider_user->id))
+            if (array_key_exists('is_banned', $xenforo_user_data))
+            {
+                $is_banned = !empty($xenforo_user_data['is_banned']);
+            }
+            else
             {
                 $api_result = $this->xenforo->get_user((int) $provider_user->getId());
-                $is_banned_from_me = $api_result['status'] === 200
+                $is_banned = $api_result['status'] === 200
                     && !empty($api_result['body']['user']['is_banned']);
             }
 
-            if ($is_banned_from_me)
+            if ($is_banned)
             {
                 $this->flash->error('You are currently banned. Please refer to command staff for additional information.');
 
