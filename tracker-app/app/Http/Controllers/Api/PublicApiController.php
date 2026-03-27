@@ -24,11 +24,13 @@ class PublicApiController
 {
     public function __invoke(Request $request): JsonResponse|Response
     {
-        if ($request->has('trooperid') || $request->has('tkid')) {
+        if ($request->has('trooperid') || $request->has('tkid'))
+        {
             return $this->trooperHistory($request);
         }
 
-        if ($request->has('photos') && $request->has('amount')) {
+        if ($request->has('photos') && $request->has('amount'))
+        {
             return $this->photos($request);
         }
 
@@ -39,9 +41,12 @@ class PublicApiController
     {
         $trooper = null;
 
-        if ($request->has('trooperid')) {
+        if ($request->has('trooperid'))
+        {
             $trooper = Trooper::find($request->integer('trooperid'));
-        } elseif ($request->has('tkid') && $request->has('squad')) {
+        }
+        elseif ($request->has('tkid') && $request->has('squad'))
+        {
             $trooper_org = TrooperOrganization::where(TrooperOrganization::IDENTIFIER, $request->input('tkid'))
                 ->where(TrooperOrganization::ORGANIZATION_ID, $request->integer('squad'))
                 ->with('trooper')
@@ -50,7 +55,8 @@ class PublicApiController
             $trooper = $trooper_org?->trooper;
         }
 
-        if (!$trooper) {
+        if (!$trooper)
+        {
             return response()->json([]);
         }
 
@@ -65,10 +71,10 @@ class PublicApiController
 
         $event_array = $event_troopers
             ->map(fn ($et) => [
-                'eventID'   => $et->event_shift->event->id,
+                'eventID' => $et->event_shift->event->id,
                 'eventName' => $et->event_shift->event->name,
                 'dateStart' => $et->event_shift->event->event_start,
-                'dateEnd'   => $et->event_shift->event->event_end,
+                'dateEnd' => $et->event_shift->event->event_end,
             ])
             ->sortByDesc('dateEnd')
             ->values()
@@ -76,11 +82,11 @@ class PublicApiController
 
         $data = [[
             'trooperName' => $trooper->display_name,
-            'tkid'        => $identifier,
-            '501forum'    => null,
-            'rebelforum'  => null,
-            'events'      => $event_array,
-            'troopCount'  => count($event_array),
+            'tkid' => $identifier,
+            '501forum' => null,
+            'rebelforum' => null,
+            'events' => $event_array,
+            'troopCount' => count($event_array),
         ]];
 
         return response()->json($data);
@@ -96,12 +102,13 @@ class PublicApiController
             ->get();
 
         $upload_array = $uploads->map(fn ($upload) => [
-            'fileName'  => $upload->image_path_sm,
-            'troopID'   => $upload->event_id,
+            'fileName' => $upload->image_path_sm,
+            'troopID' => $upload->event_id,
             'trooperID' => $upload->trooper_id,
         ])->toArray();
 
-        if ($request->has('slideshow')) {
+        if ($request->has('slideshow'))
+        {
             return $this->slideshowResponse($upload_array);
         }
 
@@ -113,9 +120,10 @@ class PublicApiController
     {
         $html = '<script src="https://www.w3schools.com/lib/w3.js"></script>';
 
-        foreach ($uploads as $item) {
+        foreach ($uploads as $item)
+        {
             $filename = pathinfo($item['fileName'], PATHINFO_FILENAME);
-            $html .= '<img class="slideshow" src="' . e(url('images/uploads/resize/' . $filename . '.jpg')) . '" width="100%" height="100%">';
+            $html .= '<img class="slideshow" src="'.e(url('images/uploads/resize/'.$filename.'.jpg')).'" width="100%" height="100%">';
         }
 
         $html .= '<script>w3.slideshow(".slideshow", 3000);</script>';
