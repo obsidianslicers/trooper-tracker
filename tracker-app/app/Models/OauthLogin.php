@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\OauthProvider;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\Base\OauthLogin as BaseOauthLogin;
 
@@ -18,5 +19,15 @@ class OauthLogin extends BaseOauthLogin
 {
     use HasFactory;
 
-
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts()
+    {
+        return array_merge($this->casts, [
+            self::PROVIDER => OauthProvider::class,
+        ]);
+    }
 }

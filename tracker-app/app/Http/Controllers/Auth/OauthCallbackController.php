@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\OauthProvider;
 use App\Facades\TroopTracker;
 use App\Http\Controllers\MagicBusController;
 use App\Models\OauthLogin;
@@ -48,7 +49,7 @@ class OauthCallbackController extends MagicBusController
      */
     public function __invoke(Request $request, string $provider): RedirectResponse
     {
-        if ($this->troop_tracker->isXenforoOAuthRequired() && $provider !== 'xenforo')
+        if ($this->troop_tracker->isXenforoOAuthRequired() && $provider !== OauthProvider::XENFORO->value)
         {
             $this->flash->warning('Troop Tracker is configured to use XenForo for login.');
 
@@ -66,7 +67,7 @@ class OauthCallbackController extends MagicBusController
         {
             $trooper = $account->trooper;
 
-            if (! $trooper->is_active)
+            if (!$trooper->is_active)
             {
                 return redirect()->route('auth.inactive');
             }
@@ -124,7 +125,7 @@ class OauthCallbackController extends MagicBusController
             return redirect()->route('auth.register');
         }
 
-        if (! $trooper->is_active)
+        if (!$trooper->is_active)
         {
             return redirect()->route('auth.inactive');
         }
@@ -154,14 +155,14 @@ class OauthCallbackController extends MagicBusController
      */
     private function syncTrooperFromProvider(Trooper $trooper, string $provider, $provider_user): void
     {
-        if ($provider !== 'xenforo')
+        if ($provider !== OauthProvider::XENFORO->value)
         {
             return;
         }
 
         $email = $provider_user->getEmail();
 
-        if (! empty($email) && $trooper->email !== $email)
+        if (!empty($email) && $trooper->email !== $email)
         {
             $trooper->email = $email;
         }
