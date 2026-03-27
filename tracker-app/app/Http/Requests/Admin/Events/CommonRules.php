@@ -44,6 +44,7 @@ trait CommonRules
             Event::TROOPERS_ALLOWED => ['nullable', 'integer', 'between:1,99999'],
             Event::HANDLERS_ALLOWED => ['nullable', 'integer', 'between:0,99999'],
             Event::FRIENDS_ALLOWED => ['nullable', 'integer', 'between:0,99999'],
+            Event::GUESTS_ALLOWED => ['nullable', 'integer', 'between:0,99999'],
             Event::TENTATIVE_SIGNUPS_ALLOWED => ['boolean'],
             Event::CONTACT_NAME => ['nullable', 'string', 'max:128'],
             Event::CONTACT_PHONE => ['nullable', 'string', 'max:128'],
