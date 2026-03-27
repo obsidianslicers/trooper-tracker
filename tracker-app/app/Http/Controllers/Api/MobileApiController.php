@@ -456,6 +456,7 @@ class MobileApiController
 
         $eventTroopers = EventTrooper::whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $eventId))
             ->with(['trooper.organizations', 'costume', 'backup_costume', 'event_shift'])
+            ->orderBy(EventTrooper::SIGNED_UP_AT)
             ->get();
 
         $roster = $eventTroopers->map(function ($et) {
