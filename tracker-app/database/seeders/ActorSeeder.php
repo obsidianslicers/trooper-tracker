@@ -19,6 +19,7 @@ class ActorSeeder extends Seeder
     public function run()
     {
         $this->admin();
+        $this->requiresGuardian();
         $this->makaze();    //moderator
     }
 
@@ -54,13 +55,47 @@ class ActorSeeder extends Seeder
         }
     }
 
+    private function requiresGuardian()
+    {
+        $actor = new Trooper();
+
+        $actor->display_name = 'Sith Lord Jr';
+        $actor->legal_name = 'Sith Lord Jr';
+        $actor->email = 'sith-jr@sw.com';
+        $actor->password = Hash::make('password');
+        $actor->membership_status = MembershipStatus::ACTIVE;
+        $actor->membership_role = MembershipRole::MEMBER;
+        $actor->email_verified_at = now();
+        $actor->setup_completed_at = now();
+        $actor->date_of_birth = now()->subYears(14);
+        $actor->guardian_id = Trooper::firstWhere(Trooper::EMAIL, 'sith@sw.com')->id;
+
+        $actor->save();
+
+        if ($actor->organizations->count() == 0)
+        {
+            $organization = Organization::firstWhere(Organization::NAME, 'Galactic Academy');
+
+            $actor->organizations()->attach($organization->id, [
+                'identifier' => '99_999-1',
+            ]);
+
+            $unit = Organization::firstWhere(Organization::NAME, 'Florida Dagobah School');
+
+            $actor->trooper_assignments()->create([
+                'organization_id' => $unit->id,
+                'is_member' => true,
+            ]);
+        }
+    }
+
     private function makaze()
     {
         $actor = new Trooper();
 
-        $actor->display_name = 'Sith Lord Junior';
-        $actor->legal_name = 'Sith Lord Junior';
-        $actor->email = 'sithjr@sw.com';
+        $actor->display_name = 'Sith Moderator';
+        $actor->legal_name = 'Sith Moderator';
+        $actor->email = 'sith-moderator@sw.com';
         $actor->password = Hash::make('password');
         $actor->membership_status = MembershipStatus::ACTIVE;
         $actor->membership_role = MembershipRole::MODERATOR;

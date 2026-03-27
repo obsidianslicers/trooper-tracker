@@ -61,7 +61,7 @@
                         <x-label>
                             Date of Birth:
                         </x-label>
-                        <x-input-text :property="'date_of_birth'" />
+                        <x-input-date :property="'date_of_birth'" />
                         <x-input-help>
                             You must be at least 13 years old to register for a Galactic Academy account. This
                             information will not be displayed publicly on your profile or on the dashboard.
