@@ -19,6 +19,7 @@ use App\Models\EventUpload;
 use App\Models\MobileDevice;
 use App\Models\OauthLogin;
 use App\Models\Organization;
+use App\Models\SiteSetting;
 use App\Models\Trooper;
 use App\Models\TrooperApiCode;
 use App\Models\TrooperOrganization;
@@ -275,12 +276,9 @@ class MobileApiController
      */
     private function isClosed(): JsonResponse
     {
-        // TODO: The old system stored site_closed/sitemessage in a settings
-        // table that does not exist in the new schema. Replace with the
-        // appropriate config or database lookup once that mechanism is defined.
         return response()->json([
-            'isWebsiteClosed' => false,
-            'siteMessage' => '',
+            'isWebsiteClosed' => (bool) SiteSetting::get('site_closed', false) ? 1 : 0,
+            'siteMessage' => (string) SiteSetting::get('site_message', ''),
         ]);
     }
 

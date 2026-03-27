@@ -32,6 +32,16 @@
     @include('partials.navbar')
     @include('partials.bread-crumbs')
 
+    @php($site_closed = (bool) \App\Models\SiteSetting::get('site_closed', false))
+    @if($site_closed)
+        <div class="alert alert-danger rounded-0 text-center mb-0 py-2" style="border-radius: 0 !important;">
+            <i class="fa fa-fw fa-lock"></i>
+            <strong>Troop Tracker is currently closed.</strong>
+            Troopers cannot access the site. Only moderators and administrators can sign in.
+            <a href="{{ route('admin.settings') }}" class="alert-link ms-2">Manage Settings</a>
+        </div>
+    @endif
+
     <div>
         <h1 class="text-center py-3 site-title">
             @hasSection('page-title')

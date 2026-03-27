@@ -64,6 +64,13 @@
                 View Reports &amp; Statistics
             </p>
         </x-dashboard-card>
+        <x-dashboard-card :label="'Site Settings'"
+                          :icon="'fa-sliders'"
+                          :url="route('admin.settings')">
+            <p>
+                Open or close Troop Tracker to troopers
+            </p>
+        </x-dashboard-card>
     </x-dashboard-cards>
 
 @endsection
