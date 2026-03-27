@@ -24,6 +24,7 @@ use App\Services\Mobile\MobileForumLoginService;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
@@ -59,13 +60,13 @@ class MobileApiController
     public function __invoke(Request $request): JsonResponse
     {
         try {
-            $trooperId = (int) $request->input('trooperid', 0);
-            $addedById = (int) $request->input('addedby', 0);
+            $trooper_id  = (int) $request->input('trooperid', 0);
+            $added_by_id = (int) $request->input('addedby', 0);
 
             // When signing someone else up (addedby present), skip the trooperid
             // ownership check — the API key alone is sufficient auth, and the
             // sign_up handler validates the addedby trooper internally.
-            $this->ensureTrooperIdMatch($request, $addedById > 0 ? 0 : $trooperId);
+            $this->ensureTrooperIdMatch($request, $added_by_id > 0 ? 0 : $trooper_id);
 
             $action = $request->input('action');
 
@@ -154,18 +155,18 @@ class MobileApiController
     /**
      * Generate a unique 64-character API key for a trooper and store it.
      */
-    private function generateApiKey(int $trooperId): string
+    private function generateApiKey(int $trooper_id): string
     {
         do {
-            $apiKey = bin2hex(random_bytes(32));
-        } while (TrooperApiCode::where(TrooperApiCode::API_CODE, $apiKey)->exists());
+            $api_key = bin2hex(random_bytes(32));
+        } while (TrooperApiCode::where(TrooperApiCode::API_CODE, $api_key)->exists());
 
         TrooperApiCode::create([
-            TrooperApiCode::TROOPER_ID => $trooperId,
-            TrooperApiCode::API_CODE   => $apiKey,
+            TrooperApiCode::TROOPER_ID => $trooper_id,
+            TrooperApiCode::API_CODE   => $api_key,
         ]);
 
-        return $apiKey;
+        return $api_key;
     }
 
     /**
@@ -173,43 +174,43 @@ class MobileApiController
      */
     private function validateApiKey(Request $request): ?int
     {
-        $apiKey = $request->header('API-Key');
+        $api_key = $request->header('API-Key');
 
-        if (empty($apiKey)) {
+        if (empty($api_key)) {
             return null;
         }
 
-        return TrooperApiCode::where(TrooperApiCode::API_CODE, $apiKey)
+        return TrooperApiCode::where(TrooperApiCode::API_CODE, $api_key)
             ->value(TrooperApiCode::TROOPER_ID);
     }
 
     /**
      * Abort with 403 if the API key is valid but belongs to a different trooper.
-     * Skipped when trooperId is 0.
+     * Skipped when trooper_id is 0.
      */
-    private function ensureTrooperIdMatch(Request $request, int $trooperId): void
+    private function ensureTrooperIdMatch(Request $request, int $trooper_id): void
     {
-        if ($trooperId === 0) {
+        if ($trooper_id === 0) {
             return;
         }
 
-        $associatedId = $this->validateApiKey($request);
+        $associated_id = $this->validateApiKey($request);
 
-        if ($associatedId === null) {
+        if ($associated_id === null) {
             return;
         }
 
-        if ($associatedId === $trooperId) {
+        if ($associated_id === $trooper_id) {
             return;
         }
 
-        $resolvedTrooperId = $this->trooperFromUserId($trooperId)?->id;
+        $resolved_trooper_id = $this->trooperFromUserId($trooper_id)?->id;
 
-        if ($resolvedTrooperId !== null && $associatedId === $resolvedTrooperId) {
+        if ($resolved_trooper_id !== null && $associated_id === $resolved_trooper_id) {
             return;
         }
 
-        if ($associatedId !== $trooperId) {
+        if ($associated_id !== $trooper_id) {
             abort(response()->json(['error' => 'You are not authorized to modify this trooper ID.'], 403));
         }
     }
@@ -217,10 +218,10 @@ class MobileApiController
     /**
      * Resolve a trooper by their Xenforo OAuth provider_id (forum user_id).
      */
-    private function trooperFromUserId(int $userId): ?Trooper
+    private function trooperFromUserId(int $user_id): ?Trooper
     {
         $oauth = OauthLogin::where(OauthLogin::PROVIDER, 'xenforo')
-            ->where(OauthLogin::PROVIDER_ID, (string) $userId)
+            ->where(OauthLogin::PROVIDER_ID, (string) $user_id)
             ->with('trooper')
             ->first();
 
@@ -243,7 +244,7 @@ class MobileApiController
             $authenticated = $this->mobile_forum_login_service
                 ->authenticate($access_token);
 
-            $trooper = $authenticated['trooper'];
+            $trooper    = $authenticated['trooper'];
             $forum_user = $authenticated['forum_user'];
             $trooper->touch(Trooper::LAST_ACTIVE_AT);
 
@@ -285,8 +286,8 @@ class MobileApiController
      */
     private function getUserStatus(Request $request): JsonResponse
     {
-        $userId   = (int) $request->input('trooperid');
-        $trooper  = $this->trooperFromUserId($userId);
+        $user_id = (int) $request->input('trooperid');
+        $trooper = $this->trooperFromUserId($user_id);
 
         if (!$trooper) {
             return response()->json(['error' => 'Trooper not found.'], 404);
@@ -307,30 +308,30 @@ class MobileApiController
      */
     private function getTroops(Request $request): JsonResponse
     {
-        $userId  = (int) $request->input('user_id');
-        $trooper = $this->trooperFromUserId($userId);
+        $user_id = (int) $request->input('user_id');
+        $trooper = $this->trooperFromUserId($user_id);
 
         if (!$trooper) {
             return response()->json(['troops' => []]);
         }
 
-        $activeStatusValues = array_map(fn ($s) => $s->value, self::ACTIVE_STATUSES);
-        $openStatusValues   = array_map(fn ($s) => $s->value, self::OPEN_EVENT_STATUSES);
+        $active_status_values = array_map(fn ($s) => $s->value, self::ACTIVE_STATUSES);
+        $open_status_values   = array_map(fn ($s) => $s->value, self::OPEN_EVENT_STATUSES);
 
-        $eventTroopers = EventTrooper::where(EventTrooper::TROOPER_ID, $trooper->id)
-            ->whereIn(EventTrooper::STATUS, $activeStatusValues)
+        $event_troopers = EventTrooper::where(EventTrooper::TROOPER_ID, $trooper->id)
+            ->whereIn(EventTrooper::STATUS, $active_status_values)
             ->with(['event_shift.event'])
             ->whereHas('event_shift.event', fn ($q) => $q
-                ->whereIn(Event::STATUS, $openStatusValues)
+                ->whereIn(Event::STATUS, $open_status_values)
                 ->where(Event::EVENT_END, '>', now()->subDay())
             )
             ->get();
 
-        $troops = $eventTroopers
+        $troops = $event_troopers
             ->groupBy(fn ($et) => $et->event_shift->event_id)
             ->map(function ($ets) {
-                $event = $ets->first()->event_shift->event;
-                $myShifts = $ets
+                $event     = $ets->first()->event_shift->event;
+                $my_shifts = $ets
                     ->sortBy(fn ($et) => $et->event_shift->shift_starts_at)
                     ->map(fn ($et) => [
                         'shift_id' => $et->event_shift_id,
@@ -340,7 +341,7 @@ class MobileApiController
                     ->values();
 
                 return array_merge($this->buildTroopObject($event), [
-                    'my_shifts' => $myShifts,
+                    'my_shifts' => $my_shifts,
                 ]);
             })
             ->sortBy('dateStart')
@@ -361,42 +362,13 @@ class MobileApiController
             return response()->json(['error' => 'Event not found.'], 404);
         }
 
-        $trooperCount = $event->event_shifts->flatMap->event_troopers
-            ->whereIn('status', array_map(fn ($s) => $s->value, [
-                EventTrooperStatus::GOING,
-                EventTrooperStatus::STAND_BY,
-                EventTrooperStatus::TENTATIVE,
-            ]))->count();
+        [$trooper_count, $handler_count] = $this->countActiveAttendees($event);
 
-        $handlerCount = $event->event_shifts->flatMap->event_troopers
-            ->whereIn('status', array_map(fn ($s) => $s->value, [
-                EventTrooperStatus::GOING,
-                EventTrooperStatus::STAND_BY,
-                EventTrooperStatus::TENTATIVE,
-            ]))->where('is_handler', true)->count();
-
-        $troopersAllowed = $event->troopers_allowed ?? 500;
-        $handlersAllowed = $event->handlers_allowed ?? 500;
-        $isLimited       = $troopersAllowed < 500 || $handlersAllowed < 500;
-        $location = collect([
-            $event->venue_address,
-            $event->venue_city,
-            $event->venue_state,
-            $event->venue_zip,
-            $event->venue_country,
-        ])->filter()->implode(', ');
-
-        $limitClubs = '';
-        if ($isLimited) {
-            if ($troopersAllowed < 500) {
-                $remaining   = max(0, $troopersAllowed - $trooperCount);
-                $limitClubs .= "This event is limited to {$troopersAllowed} troopers. {$remaining} troopers remaining.\n";
-            }
-            if ($handlersAllowed < 500) {
-                $remaining   = max(0, $handlersAllowed - $handlerCount);
-                $limitClubs .= "This event is limited to {$handlersAllowed} handlers. {$remaining} handlers remaining.\n";
-            }
-        }
+        $troopers_allowed = $event->troopers_allowed ?? 500;
+        $handlers_allowed = $event->handlers_allowed ?? 500;
+        $is_limited       = $troopers_allowed < 500 || $handlers_allowed < 500;
+        $location         = $this->buildEventLocation($event);
+        $limit_clubs      = $this->buildCapacityMessage($troopers_allowed, $handlers_allowed, $trooper_count, $handler_count);
 
         return response()->json(array_merge(
             [
@@ -422,24 +394,24 @@ class MobileApiController
                 'mobility'       => (int) $event->accessible,
                 'amenities'      => $event->amenities,
                 'referred'       => $event->referred_by,
-                'limitedEvent'   => (int) $isLimited,
+                'limitedEvent'   => (int) $is_limited,
                 'allowTentative' => (int) $event->tentative_signups_allowed,
-                'limitTotalTroopers' => $troopersAllowed,
-                'limitHandlers'  => $handlersAllowed,
+                'limitTotalTroopers' => $troopers_allowed,
+                'limitHandlers'  => $handlers_allowed,
             ],
             [
-                'isLimited'    => $isLimited,
-                'limitTotal'   => $troopersAllowed,
-                'limitClubs'   => $limitClubs,
-                'trooper_count'=> $trooperCount,
-                'num_of_handlers' => $handlerCount,
-                'shifts'       => $event->event_shifts
+                'isLimited'       => $is_limited,
+                'limitTotal'      => $troopers_allowed,
+                'limitClubs'      => $limit_clubs,
+                'trooper_count'   => $trooper_count,
+                'num_of_handlers' => $handler_count,
+                'shifts'          => $event->event_shifts
                     ->sortBy(EventShift::SHIFT_STARTS_AT)
                     ->map(fn ($shift) => [
-                        'id'         => $shift->id,
-                        'starts_at'  => $shift->shift_starts_at?->format('Y-m-d H:i:s'),
-                        'ends_at'    => $shift->shift_ends_at?->format('Y-m-d H:i:s'),
-                        'display'    => $shift->time_display,
+                        'id'        => $shift->id,
+                        'starts_at' => $shift->shift_starts_at?->format('Y-m-d H:i:s'),
+                        'ends_at'   => $shift->shift_ends_at?->format('Y-m-d H:i:s'),
+                        'display'   => $shift->time_display,
                     ])
                     ->values(),
             ]
@@ -452,17 +424,17 @@ class MobileApiController
      */
     private function getRosterForEvent(Request $request): JsonResponse
     {
-        $eventId = (int) $request->input('troopid');
+        $event_id = (int) $request->input('troopid');
 
-        $eventTroopers = EventTrooper::whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $eventId))
+        $event_troopers = EventTrooper::whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $event_id))
             ->with(['trooper.organizations', 'costume', 'backup_costume', 'event_shift'])
             ->orderBy(EventTrooper::SIGNED_UP_AT)
             ->get();
 
-        $roster = $eventTroopers->map(function ($et) {
-            $trooper = $et->trooper;
+        $roster = $event_troopers->map(function ($et) {
+            $trooper      = $et->trooper;
             $organization = $trooper?->organizations->first();
-            $identifier = $organization?->pivot?->identifier;
+            $identifier   = $organization?->pivot?->identifier;
 
             return [
                 'id'                  => $et->id,
@@ -494,27 +466,27 @@ class MobileApiController
      */
     private function getAvailableTroopersForEvent(Request $request): JsonResponse
     {
-        $eventId = (int) $request->input('troopid');
-        $shiftId = (int) $request->input('shiftid', 0);
+        $event_id = (int) $request->input('troopid');
+        $shift_id = (int) $request->input('shiftid', 0);
 
-        if ($shiftId > 0) {
+        if ($shift_id > 0) {
             // Exclude only troopers already signed up for this specific shift
-            $signedUpTrooperIds = EventTrooper::where(EventTrooper::EVENT_SHIFT_ID, $shiftId)
+            $signed_up_trooper_ids = EventTrooper::where(EventTrooper::EVENT_SHIFT_ID, $shift_id)
                 ->where(EventTrooper::STATUS, '!=', EventTrooperStatus::CANCELLED->value)
                 ->pluck(EventTrooper::TROOPER_ID);
         } else {
-            $signedUpTrooperIds = EventTrooper::whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $eventId))
+            $signed_up_trooper_ids = EventTrooper::whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $event_id))
                 ->pluck(EventTrooper::TROOPER_ID);
         }
 
-        $troopers = Trooper::whereNotIn(Trooper::ID, $signedUpTrooperIds)
+        $troopers = Trooper::whereNotIn(Trooper::ID, $signed_up_trooper_ids)
             ->with('organizations')
             ->orderBy(Trooper::DISPLAY_NAME)
             ->get();
 
         $data = $troopers->map(function ($trooper) {
             $organization = $trooper->organizations->first();
-            $identifier = $organization?->pivot?->identifier;
+            $identifier   = $organization?->pivot?->identifier;
 
             return [
                 'id'             => $trooper->id,
@@ -536,36 +508,35 @@ class MobileApiController
     {
         // TODO: implement isWebsiteClosed() check once that mechanism is defined.
 
-        $squadId          = (int) $request->input('squad');
-        $openStatusValues = array_map(fn ($s) => $s->value, self::OPEN_EVENT_STATUSES);
+        $squad_id           = (int) $request->input('squad');
+        $open_status_values = array_map(fn ($s) => $s->value, self::OPEN_EVENT_STATUSES);
 
-        $events = Event::whereIn(Event::STATUS, $openStatusValues)
+        $events = Event::whereIn(Event::STATUS, $open_status_values)
             ->where(Event::EVENT_START, '>=', now()->startOfDay())
-            ->when($squadId !== 0, fn ($q) => $q->where(Event::ORGANIZATION_ID, $squadId))
+            ->when($squad_id !== 0, fn ($q) => $q->where(Event::ORGANIZATION_ID, $squad_id))
             ->with(['event_shifts.event_troopers'])
             ->orderBy(Event::EVENT_START)
             ->get();
 
         $troops = $events->map(function ($event) {
-            $allTroopers = $event->event_shifts->flatMap->event_troopers
+            $all_troopers = $event->event_shifts->flatMap->event_troopers
                 ->whereIn('status', array_map(fn ($s) => $s->value, [
                     EventTrooperStatus::GOING,
                     EventTrooperStatus::STAND_BY,
                     EventTrooperStatus::TENTATIVE,
                 ]));
 
-            $trooperCount = $allTroopers->where('is_handler', false)->count();
-            $handlerCount = $allTroopers->where('is_handler', true)->count();
+            $trooper_count    = $all_troopers->where('is_handler', false)->count();
+            $handler_count    = $all_troopers->where('is_handler', true)->count();
+            $troopers_allowed = $event->troopers_allowed ?? 500;
+            $handlers_allowed = $event->handlers_allowed ?? 500;
 
-            $troopersAllowed = $event->troopers_allowed ?? 500;
-            $handlersAllowed = $event->handlers_allowed ?? 500;
-
-            $notice = $this->buildNotice($event, $trooperCount, $handlerCount, $troopersAllowed, $handlersAllowed);
+            $notice = $this->buildNotice($event, $trooper_count, $handler_count, $troopers_allowed, $handlers_allowed);
 
             return array_merge($this->buildTroopObject($event), [
-                'trooper_count'  => $trooperCount,
-                'num_of_handlers'=> $handlerCount,
-                'notice'         => $notice,
+                'trooper_count'   => $trooper_count,
+                'num_of_handlers' => $handler_count,
+                'notice'          => $notice,
             ]);
         });
 
@@ -578,15 +549,14 @@ class MobileApiController
      */
     private function getSquadClubName(Request $request): JsonResponse
     {
-        $squadId      = (int) $request->input('squad');
-        $organization = Organization::find($squadId);
-
-        $allOrganizations = Organization::orderBy(Organization::NAME)->get();
+        $squad_id          = (int) $request->input('squad');
+        $organization      = Organization::find($squad_id);
+        $all_organizations = Organization::orderBy(Organization::NAME)->get();
 
         return response()->json([
             'squadName'  => $organization?->name ?? '',
-            'squadNames' => $allOrganizations->pluck(Organization::NAME)->values(),
-            'clubNames'  => $allOrganizations->pluck(Organization::NAME)->values(),
+            'squadNames' => $all_organizations->pluck(Organization::NAME)->values(),
+            'clubNames'  => $all_organizations->pluck(Organization::NAME)->values(),
         ]);
     }
 
@@ -596,13 +566,13 @@ class MobileApiController
      */
     private function getCostumesForTrooper(Request $request): JsonResponse
     {
-        $userId   = (int) $request->input('trooperid');
-        $friendId = (int) $request->input('friendid', 0);
+        $user_id   = (int) $request->input('trooperid');
+        $friend_id = (int) $request->input('friendid', 0);
 
-        if ($userId > 0) {
-            $trooper = $this->trooperFromUserId($userId);
-        } elseif ($friendId > 0) {
-            $trooper = Trooper::find($friendId);
+        if ($user_id > 0) {
+            $trooper = $this->trooperFromUserId($user_id);
+        } elseif ($friend_id > 0) {
+            $trooper = Trooper::find($friend_id);
         } else {
             $trooper = null;
         }
@@ -611,23 +581,23 @@ class MobileApiController
             return response()->json([]);
         }
 
-        $organizationIds = TrooperOrganization::where(TrooperOrganization::TROOPER_ID, $trooper->id)
+        $organization_ids = TrooperOrganization::where(TrooperOrganization::TROOPER_ID, $trooper->id)
             ->pluck(TrooperOrganization::ORGANIZATION_ID)
             ->toArray();
 
-        $costumes = Costume::forTrooper($trooper->id, $organizationIds)
+        $costumes = Costume::forTrooper($trooper->id, $organization_ids)
             ->orderBy(Costume::NAME)
             ->get();
 
         $data = $costumes->map(function ($costume) {
-            $organizationCostume = $costume->organization_costumes->first();
-            $prefix = trim((string) ($organizationCostume?->prefix ?? ''));
+            $organization_costume = $costume->organization_costumes->first();
+            $prefix               = trim((string) ($organization_costume?->prefix ?? ''));
 
             return [
                 'id'           => $costume->id,
                 'name'         => $costume->name,
                 'abbreviation' => $prefix === '' ? '' : $prefix . ' ',
-                'club'         => $organizationCostume?->organization?->name,
+                'club'         => $organization_costume?->organization?->name,
             ];
         });
 
@@ -643,24 +613,24 @@ class MobileApiController
      */
     private function setStatusCostume(Request $request): JsonResponse
     {
-        $userId    = (int) $request->input('trooperid');
-        $trooper   = $this->trooperFromUserId($userId);
-        $eventId   = (int) $request->input('troopid');
-        $newStatus = $this->resolveEventTrooperStatus($request->input('status'));
-        $costumeId = (int) $request->input('costume', 0);
+        $user_id    = (int) $request->input('trooperid');
+        $trooper    = $this->trooperFromUserId($user_id);
+        $event_id   = (int) $request->input('troopid');
+        $new_status = $this->resolveEventTrooperStatus($request->input('status'));
+        $costume_id = (int) $request->input('costume', 0);
 
         if (!$trooper) {
             return response()->json(['error' => 'Trooper not found.'], 404);
         }
 
-        $eventTroopers = EventTrooper::where(EventTrooper::TROOPER_ID, $trooper->id)
-            ->whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $eventId))
+        $event_troopers = EventTrooper::where(EventTrooper::TROOPER_ID, $trooper->id)
+            ->whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $event_id))
             ->get();
 
-        foreach ($eventTroopers as $et) {
-            $et->status = $newStatus;
-            if ($costumeId > 0) {
-                $et->costume_id = $costumeId;
+        foreach ($event_troopers as $et) {
+            $et->status = $new_status;
+            if ($costume_id > 0) {
+                $et->costume_id = $costume_id;
             }
             $et->save();
         }
@@ -674,21 +644,21 @@ class MobileApiController
      */
     private function getConfirmEventsTrooper(Request $request): JsonResponse
     {
-        $userId  = (int) $request->input('trooperid');
-        $trooper = $this->trooperFromUserId($userId);
+        $user_id = (int) $request->input('trooperid');
+        $trooper = $this->trooperFromUserId($user_id);
 
         if (!$trooper) {
             return response()->json(['troops' => []]);
         }
 
-        $activeStatusValues = array_map(fn ($s) => $s->value, [
+        $active_status_values = array_map(fn ($s) => $s->value, [
             EventTrooperStatus::GOING,
             EventTrooperStatus::STAND_BY,
             EventTrooperStatus::TENTATIVE,
         ]);
 
-        $eventTroopers = EventTrooper::where(EventTrooper::TROOPER_ID, $trooper->id)
-            ->whereIn(EventTrooper::STATUS, $activeStatusValues)
+        $event_troopers = EventTrooper::where(EventTrooper::TROOPER_ID, $trooper->id)
+            ->whereIn(EventTrooper::STATUS, $active_status_values)
             ->with(['event_shift.event'])
             ->whereHas('event_shift.event', fn ($q) => $q
                 ->where(Event::STATUS, EventStatus::CLOSED->value)
@@ -696,7 +666,7 @@ class MobileApiController
             )
             ->get();
 
-        $troops = $eventTroopers
+        $troops = $event_troopers
             ->sortByDesc(fn ($et) => $et->event_shift->event->event_end)
             ->map(fn ($et) => $this->buildTroopObject($et->event_shift->event))
             ->unique('troopid')
@@ -711,9 +681,9 @@ class MobileApiController
      */
     private function trooperInEvent(Request $request): JsonResponse
     {
-        $userId  = (int) $request->input('trooperid');
-        $trooper = $this->trooperFromUserId($userId);
-        $eventId = (int) $request->input('troopid');
+        $user_id  = (int) $request->input('trooperid');
+        $trooper  = $this->trooperFromUserId($user_id);
+        $event_id = (int) $request->input('troopid');
 
         if (!$trooper) {
             return response()->json(['inEvent' => false, 'my_shifts' => []]);
@@ -721,11 +691,11 @@ class MobileApiController
 
         $signups = EventTrooper::where(EventTrooper::TROOPER_ID, $trooper->id)
             ->where(EventTrooper::STATUS, '!=', EventTrooperStatus::CANCELLED->value)
-            ->whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $eventId))
+            ->whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $event_id))
             ->with('event_shift')
             ->get();
 
-        $myShifts = $signups->map(fn ($et) => [
+        $my_shifts = $signups->map(fn ($et) => [
             'shift_id'         => $et->event_shift_id,
             'status'           => $et->status->value,
             'status_formatted' => $this->formatStatus($et->status),
@@ -733,7 +703,7 @@ class MobileApiController
 
         return response()->json([
             'inEvent'   => $signups->isNotEmpty(),
-            'my_shifts' => $myShifts,
+            'my_shifts' => $my_shifts,
         ]);
     }
 
@@ -745,24 +715,24 @@ class MobileApiController
      */
     private function cancelShift(Request $request): JsonResponse
     {
-        $userId          = (int) $request->input('trooperid');
-        $requester       = $this->trooperFromUserId($userId);
-        $shiftId         = (int) $request->input('shiftid');
-        $friendTrooperId = (int) $request->input('friendtrooperid', 0);
+        $user_id           = (int) $request->input('trooperid');
+        $requester         = $this->trooperFromUserId($user_id);
+        $shift_id          = (int) $request->input('shiftid');
+        $friend_trooper_id = (int) $request->input('friendtrooperid', 0);
 
         if (!$requester) {
             return response()->json(['error' => 'Trooper not found.'], 404);
         }
 
-        $shift = EventShift::find($shiftId);
+        $shift = EventShift::find($shift_id);
         if (!$shift) {
             return response()->json(['error' => 'Shift not found.'], 404);
         }
 
-        if ($friendTrooperId > 0) {
+        if ($friend_trooper_id > 0) {
             // Cancelling a friend — verify the requester added them
-            $record = EventTrooper::where(EventTrooper::TROOPER_ID, $friendTrooperId)
-                ->where(EventTrooper::EVENT_SHIFT_ID, $shiftId)
+            $record = EventTrooper::where(EventTrooper::TROOPER_ID, $friend_trooper_id)
+                ->where(EventTrooper::EVENT_SHIFT_ID, $shift_id)
                 ->where(EventTrooper::ADDED_BY_TROOPER_ID, $requester->id)
                 ->first();
 
@@ -771,17 +741,17 @@ class MobileApiController
             }
 
             $record->update([EventTrooper::STATUS => EventTrooperStatus::CANCELLED->value]);
-            $cancelledTrooperId = $friendTrooperId;
+            $cancelled_trooper_id = $friend_trooper_id;
         } else {
             EventTrooper::where(EventTrooper::TROOPER_ID, $requester->id)
-                ->where(EventTrooper::EVENT_SHIFT_ID, $shiftId)
+                ->where(EventTrooper::EVENT_SHIFT_ID, $shift_id)
                 ->update([EventTrooper::STATUS => EventTrooperStatus::CANCELLED->value]);
-            $cancelledTrooperId = $requester->id;
+            $cancelled_trooper_id = $requester->id;
         }
 
         EventNotification::firstOrCreate([
             EventNotification::EVENT_ID   => $shift->event_id,
-            EventNotification::TROOPER_ID => $cancelledTrooperId,
+            EventNotification::TROOPER_ID => $cancelled_trooper_id,
         ]);
 
         return response()->json(['success' => true]);
@@ -793,9 +763,9 @@ class MobileApiController
      */
     private function getFriendsForEvent(Request $request): JsonResponse
     {
-        $userId  = (int) $request->input('trooperid');
-        $trooper = $this->trooperFromUserId($userId);
-        $eventId = (int) $request->input('troopid');
+        $user_id  = (int) $request->input('trooperid');
+        $trooper  = $this->trooperFromUserId($user_id);
+        $event_id = (int) $request->input('troopid');
 
         if (!$trooper) {
             return response()->json([]);
@@ -804,7 +774,7 @@ class MobileApiController
         $signups = EventTrooper::where(EventTrooper::ADDED_BY_TROOPER_ID, $trooper->id)
             ->where(EventTrooper::TROOPER_ID, '!=', $trooper->id)
             ->where(EventTrooper::STATUS, '!=', EventTrooperStatus::CANCELLED->value)
-            ->whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $eventId))
+            ->whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $event_id))
             ->with(['trooper', 'event_shift'])
             ->get();
 
@@ -826,21 +796,21 @@ class MobileApiController
      */
     private function cancelTroop(Request $request): JsonResponse
     {
-        $userId  = (int) $request->input('trooperid');
-        $trooper = $this->trooperFromUserId($userId);
-        $eventId = (int) $request->input('troopid');
+        $user_id  = (int) $request->input('trooperid');
+        $trooper  = $this->trooperFromUserId($user_id);
+        $event_id = (int) $request->input('troopid');
 
         if (!$trooper) {
             return response()->json(['error' => 'Trooper not found.'], 404);
         }
 
         EventTrooper::where(EventTrooper::TROOPER_ID, $trooper->id)
-            ->whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $eventId))
+            ->whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $event_id))
             ->update([EventTrooper::STATUS => EventTrooperStatus::CANCELLED->value]);
 
         // Queue notification for sign-up change
         EventNotification::firstOrCreate([
-            EventNotification::EVENT_ID   => $eventId,
+            EventNotification::EVENT_ID   => $event_id,
             EventNotification::TROOPER_ID => $trooper->id,
         ]);
 
@@ -857,131 +827,74 @@ class MobileApiController
      */
     private function signUp(Request $request): JsonResponse
     {
-        $eventId        = (int) $request->input('troopid');
-        $shiftId        = (int) $request->input('shiftid', 0);
-        $addedById      = (int) $request->input('addedby', 0);
-        $costumeId      = (int) $request->input('costume', 0);
-        $backupCostumeId= (int) $request->input('backupcostume', 0);
-        $requestedStatus= $this->resolveEventTrooperStatus($request->input('status'));
+        $event_id          = (int) $request->input('troopid');
+        $shift_id          = (int) $request->input('shiftid', 0);
+        $costume_id        = (int) $request->input('costume', 0);
+        $backup_costume_id = (int) $request->input('backupcostume', 0);
+        $requested_status  = $this->resolveEventTrooperStatus($request->input('status'));
 
-        // Resolve trooper: if addedby > 0 it's an admin signing someone up
-        if ($addedById > 0) {
-            $trooperId = (int) $request->input('trooperid');
-            $trooper   = Trooper::find($trooperId);
-            $addedBy   = $this->trooperFromUserId($addedById);
-        } else {
-            $userId  = (int) $request->input('trooperid');
-            $trooper = $this->trooperFromUserId($userId);
-            $addedBy = null;
-        }
+        [$trooper, $added_by] = $this->resolveTrooperForSignUp($request);
 
         if (!$trooper) {
-            return response()->json(['success' => 'fail', 'success_message' => 'Trooper not found.']);
+            return response()->json(['success' => false, 'success_message' => 'Trooper not found.']);
         }
 
         // TODO: implement isWebsiteClosed() check once that mechanism is defined.
 
-        $event = Event::find($eventId);
+        $event = Event::find($event_id);
         if (!$event) {
-            return response()->json(['success' => 'fail', 'success_message' => 'Event not found.']);
+            return response()->json(['success' => false, 'success_message' => 'Event not found.']);
         }
 
         if ($event->status === EventStatus::CANCELLED) {
-            return response()->json(['success' => 'fail', 'success_message' => 'This event was CANCELED by Command Staff.']);
+            return response()->json(['success' => false, 'success_message' => 'This event was CANCELED by Command Staff.']);
         }
 
         if ($event->status === EventStatus::SIGN_UP_LOCKED) {
-            return response()->json(['success' => 'fail', 'success_message' => 'This event was LOCKED by Command Staff.']);
+            return response()->json(['success' => false, 'success_message' => 'This event was LOCKED by Command Staff.']);
         }
 
-        // Check for existing sign-up on this specific shift (or event-wide if no shift specified)
-        if ($shiftId > 0) {
-            $existing = EventTrooper::where(EventTrooper::TROOPER_ID, $trooper->id)
-                ->where(EventTrooper::EVENT_SHIFT_ID, $shiftId)
-                ->first();
-        } else {
-            $existing = EventTrooper::where(EventTrooper::TROOPER_ID, $trooper->id)
-                ->whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $eventId))
-                ->first();
-        }
+        $existing = $this->findExistingSignUp($trooper->id, $event_id, $shift_id);
 
         if ($existing) {
             $existing->update([
-                EventTrooper::STATUS           => $requestedStatus->value,
-                EventTrooper::COSTUME_ID       => $costumeId ?: null,
-                EventTrooper::BACKUP_COSTUME_ID=> $backupCostumeId ?: null,
+                EventTrooper::STATUS            => $requested_status->value,
+                EventTrooper::COSTUME_ID        => $costume_id ?: null,
+                EventTrooper::BACKUP_COSTUME_ID => $backup_costume_id ?: null,
             ]);
-
             EventNotification::firstOrCreate([
-                EventNotification::EVENT_ID   => $eventId,
+                EventNotification::EVENT_ID   => $event_id,
                 EventNotification::TROOPER_ID => $trooper->id,
             ]);
-
-            return response()->json(['success' => 'success', 'success_message' => 'Success!']);
+            return response()->json(['success' => true, 'success_message' => 'Success!']);
         }
 
-        // Capacity check
-        $status = $requestedStatus;
+        $is_handler = $this->isHandlerCostume($costume_id);
+        $status     = $this->resolveCapacityStatus($event, $event_id, $is_handler, $requested_status);
+        $shift      = $this->resolveShiftForSignUp($event_id, $shift_id);
 
-        if ($costumeId) {
-            $costume    = Costume::find($costumeId);
-            $isHandler  = $costume && Str::contains(strtolower($costume->name), 'handler');
-        } else {
-            $isHandler = false;
-        }
-
-        if ($isHandler) {
-            $handlersAllowed = $event->handlers_allowed ?? 500;
-            $handlerCount    = EventTrooper::whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $eventId))
-                ->where(EventTrooper::IS_HANDLER, true)
-                ->whereIn(EventTrooper::STATUS, array_map(fn ($s) => $s->value, [EventTrooperStatus::GOING, EventTrooperStatus::STAND_BY, EventTrooperStatus::TENTATIVE]))
-                ->count();
-
-            if ($handlersAllowed < 500 && $handlerCount >= $handlersAllowed && $status !== EventTrooperStatus::CANCELLED) {
-                $status = EventTrooperStatus::STAND_BY;
-            }
-        } else {
-            $troopersAllowed = $event->troopers_allowed ?? 500;
-            $trooperCount    = EventTrooper::whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $eventId))
-                ->where(EventTrooper::IS_HANDLER, false)
-                ->whereIn(EventTrooper::STATUS, array_map(fn ($s) => $s->value, [EventTrooperStatus::GOING, EventTrooperStatus::STAND_BY, EventTrooperStatus::TENTATIVE]))
-                ->count();
-
-            if ($troopersAllowed < 500 && $trooperCount >= $troopersAllowed && $status !== EventTrooperStatus::CANCELLED) {
-                $status = EventTrooperStatus::STAND_BY;
-            }
-        }
-
-        // Find the requested shift, or fall back to the first available shift
-        if ($shiftId > 0) {
-            $shift = EventShift::where(EventShift::EVENT_ID, $eventId)->find($shiftId);
-            if (!$shift) {
-                return response()->json(['success' => 'fail', 'success_message' => 'Shift not found for this event.']);
-            }
-        } else {
-            $shift = EventShift::where(EventShift::EVENT_ID, $eventId)->orderBy(EventShift::SHIFT_STARTS_AT)->first();
-            if (!$shift) {
-                return response()->json(['success' => 'fail', 'success_message' => 'No shifts available for this event.']);
-            }
+        if (!$shift) {
+            $message = $shift_id > 0 ? 'Shift not found for this event.' : 'No shifts available for this event.';
+            return response()->json(['success' => false, 'success_message' => $message]);
         }
 
         EventTrooper::create([
             EventTrooper::EVENT_SHIFT_ID      => $shift->id,
             EventTrooper::TROOPER_ID          => $trooper->id,
-            EventTrooper::ADDED_BY_TROOPER_ID => $addedBy?->id,
-            EventTrooper::COSTUME_ID          => $costumeId ?: null,
-            EventTrooper::BACKUP_COSTUME_ID   => $backupCostumeId ?: null,
+            EventTrooper::ADDED_BY_TROOPER_ID => $added_by?->id,
+            EventTrooper::COSTUME_ID          => $costume_id ?: null,
+            EventTrooper::BACKUP_COSTUME_ID   => $backup_costume_id ?: null,
             EventTrooper::STATUS              => $status->value,
-            EventTrooper::IS_HANDLER          => $isHandler,
+            EventTrooper::IS_HANDLER          => $is_handler,
             EventTrooper::SIGNED_UP_AT        => now(),
         ]);
 
         EventNotification::firstOrCreate([
-            EventNotification::EVENT_ID   => $eventId,
+            EventNotification::EVENT_ID   => $event_id,
             EventNotification::TROOPER_ID => $trooper->id,
         ]);
 
-        return response()->json(['success' => 'success', 'success_message' => 'Success!']);
+        return response()->json(['success' => true, 'success_message' => 'Success!']);
     }
 
     /**
@@ -990,9 +903,9 @@ class MobileApiController
      */
     private function getPhotosByEvent(Request $request): JsonResponse
     {
-        $eventId = (int) $request->input('troopid');
+        $event_id = (int) $request->input('troopid');
 
-        $uploads = EventUpload::where(EventUpload::EVENT_ID, $eventId)
+        $uploads = EventUpload::where(EventUpload::EVENT_ID, $event_id)
             ->with('trooper')
             ->orderByDesc(EventUpload::IS_ADMINISTRATIVE)
             ->orderByDesc(EventUpload::CREATED_AT)
@@ -1016,16 +929,16 @@ class MobileApiController
      */
     private function saveFcm(Request $request): JsonResponse
     {
-        $userId   = (int) $request->input('userid');
-        $fcmToken = $request->input('fcm');
-        $trooper  = $this->trooperFromUserId($userId);
+        $user_id   = (int) $request->input('userid');
+        $fcm_token = $request->input('fcm');
+        $trooper   = $this->trooperFromUserId($user_id);
 
-        $exists = MobileDevice::where(MobileDevice::FCM_TOKEN, $fcmToken)->exists();
+        $exists = MobileDevice::where(MobileDevice::FCM_TOKEN, $fcm_token)->exists();
 
         if (!$exists) {
             MobileDevice::create([
                 MobileDevice::TROOPER_ID => $trooper?->id,
-                MobileDevice::FCM_TOKEN  => $fcmToken,
+                MobileDevice::FCM_TOKEN  => $fcm_token,
             ]);
 
             return response()->json(['success' => 'Record created!']);
@@ -1040,12 +953,12 @@ class MobileApiController
      */
     private function logoutFcm(Request $request): JsonResponse
     {
-        $fcmToken = $request->input('fcm');
-        $apiKey   = $request->input('apiKey');
+        $fcm_token = $request->input('fcm');
+        $api_key   = $request->input('apiKey');
 
-        \DB::transaction(function () use ($fcmToken, $apiKey) {
-            MobileDevice::where(MobileDevice::FCM_TOKEN, $fcmToken)->delete();
-            TrooperApiCode::where(TrooperApiCode::API_CODE, $apiKey)->delete();
+        DB::transaction(function () use ($fcm_token, $api_key) {
+            MobileDevice::where(MobileDevice::FCM_TOKEN, $fcm_token)->delete();
+            TrooperApiCode::where(TrooperApiCode::API_CODE, $api_key)->delete();
         });
 
         return response()->json(['success' => 'Records deleted!']);
@@ -1075,20 +988,20 @@ class MobileApiController
     /**
      * Build a notice string for an event based on capacity.
      */
-    private function buildNotice(Event $event, int $trooperCount, int $handlerCount, int $troopersAllowed, int $handlersAllowed): string
+    private function buildNotice(Event $event, int $trooper_count, int $handler_count, int $troopers_allowed, int $handlers_allowed): string
     {
         if ($event->status === EventStatus::SIGN_UP_LOCKED) {
             return 'THIS TROOP IS FULL!';
         }
 
-        if ($trooperCount <= 1) {
+        if ($trooper_count <= 1) {
             return 'NOT ENOUGH TROOPERS FOR THIS EVENT!';
         }
 
-        $troopersFull = $troopersAllowed < 500 && $trooperCount >= $troopersAllowed;
-        $handlersFull = $handlersAllowed < 500 && $handlerCount >= $handlersAllowed;
+        $troopers_full = $troopers_allowed < 500 && $trooper_count >= $troopers_allowed;
+        $handlers_full = $handlers_allowed < 500 && $handler_count >= $handlers_allowed;
 
-        if ($troopersFull && ($handlersAllowed >= 500 || $handlersFull)) {
+        if ($troopers_full && ($handlers_allowed >= 500 || $handlers_full)) {
             return 'THIS TROOP IS FULL!';
         }
 
@@ -1117,13 +1030,13 @@ class MobileApiController
     /**
      * Resolve a request status string to an EventTrooperStatus.
      */
-    private function resolveEventTrooperStatus(mixed $rawStatus): EventTrooperStatus
+    private function resolveEventTrooperStatus(mixed $raw_status): EventTrooperStatus
     {
-        if ($rawStatus instanceof EventTrooperStatus) {
-            return $rawStatus;
+        if ($raw_status instanceof EventTrooperStatus) {
+            return $raw_status;
         }
 
-        $status = strtolower(trim((string) $rawStatus));
+        $status = strtolower(trim((string) $raw_status));
 
         return match ($status) {
             EventTrooperStatus::GOING->value => EventTrooperStatus::GOING,
@@ -1137,9 +1050,171 @@ class MobileApiController
             EventTrooperStatus::UNABLE_TO_ATTEND->value, 'unable_to_attend' => EventTrooperStatus::UNABLE_TO_ATTEND,
             default => throw new \InvalidArgumentException(sprintf(
                 '"%s" is not a valid backing value for enum %s',
-                (string) $rawStatus,
+                (string) $raw_status,
                 EventTrooperStatus::class,
             )),
         };
+    }
+
+    /**
+     * Resolve the trooper and added_by for a sign-up request.
+     *
+     * @return array{0: ?Trooper, 1: ?Trooper}
+     */
+    private function resolveTrooperForSignUp(Request $request): array
+    {
+        $added_by_id = (int) $request->input('addedby', 0);
+
+        if ($added_by_id > 0) {
+            $trooper  = Trooper::find((int) $request->input('trooperid'));
+            $added_by = $this->trooperFromUserId($added_by_id);
+        } else {
+            $trooper  = $this->trooperFromUserId((int) $request->input('trooperid'));
+            $added_by = null;
+        }
+
+        return [$trooper, $added_by];
+    }
+
+    /**
+     * Find an existing sign-up record for a trooper on an event/shift.
+     */
+    private function findExistingSignUp(int $trooper_id, int $event_id, int $shift_id): ?EventTrooper
+    {
+        if ($shift_id > 0) {
+            return EventTrooper::where(EventTrooper::TROOPER_ID, $trooper_id)
+                ->where(EventTrooper::EVENT_SHIFT_ID, $shift_id)
+                ->first();
+        }
+
+        return EventTrooper::where(EventTrooper::TROOPER_ID, $trooper_id)
+            ->whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $event_id))
+            ->first();
+    }
+
+    /**
+     * Determine whether a costume is a handler costume by name.
+     */
+    private function isHandlerCostume(int $costume_id): bool
+    {
+        if (!$costume_id) {
+            return false;
+        }
+
+        $costume = Costume::find($costume_id);
+
+        return $costume !== null && Str::contains(strtolower($costume->name), 'handler');
+    }
+
+    /**
+     * Resolve the effective sign-up status, downgrading to stand-by if the event is at capacity.
+     */
+    private function resolveCapacityStatus(Event $event, int $event_id, bool $is_handler, EventTrooperStatus $requested_status): EventTrooperStatus
+    {
+        if ($requested_status === EventTrooperStatus::CANCELLED) {
+            return $requested_status;
+        }
+
+        $active_values = array_map(fn ($s) => $s->value, [
+            EventTrooperStatus::GOING,
+            EventTrooperStatus::STAND_BY,
+            EventTrooperStatus::TENTATIVE,
+        ]);
+
+        if ($is_handler) {
+            $handlers_allowed = $event->handlers_allowed ?? 500;
+            $handler_count    = EventTrooper::whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $event_id))
+                ->where(EventTrooper::IS_HANDLER, true)
+                ->whereIn(EventTrooper::STATUS, $active_values)
+                ->count();
+
+            if ($handlers_allowed < 500 && $handler_count >= $handlers_allowed) {
+                return EventTrooperStatus::STAND_BY;
+            }
+        } else {
+            $troopers_allowed = $event->troopers_allowed ?? 500;
+            $trooper_count    = EventTrooper::whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $event_id))
+                ->where(EventTrooper::IS_HANDLER, false)
+                ->whereIn(EventTrooper::STATUS, $active_values)
+                ->count();
+
+            if ($troopers_allowed < 500 && $trooper_count >= $troopers_allowed) {
+                return EventTrooperStatus::STAND_BY;
+            }
+        }
+
+        return $requested_status;
+    }
+
+    /**
+     * Find the requested shift, or fall back to the first available shift on the event.
+     */
+    private function resolveShiftForSignUp(int $event_id, int $shift_id): ?EventShift
+    {
+        if ($shift_id > 0) {
+            return EventShift::where(EventShift::EVENT_ID, $event_id)->find($shift_id);
+        }
+
+        return EventShift::where(EventShift::EVENT_ID, $event_id)
+            ->orderBy(EventShift::SHIFT_STARTS_AT)
+            ->first();
+    }
+
+    /**
+     * Count active (going/stand-by/tentative) attendees for an event.
+     *
+     * @return array{0: int, 1: int} [$trooper_count, $handler_count]
+     */
+    private function countActiveAttendees(Event $event): array
+    {
+        $active_troopers = $event->event_shifts->flatMap->event_troopers
+            ->whereIn('status', array_map(fn ($s) => $s->value, [
+                EventTrooperStatus::GOING,
+                EventTrooperStatus::STAND_BY,
+                EventTrooperStatus::TENTATIVE,
+            ]));
+
+        return [
+            $active_troopers->count(),
+            $active_troopers->where('is_handler', true)->count(),
+        ];
+    }
+
+    /**
+     * Build a formatted venue location string from event address fields.
+     */
+    private function buildEventLocation(Event $event): string
+    {
+        return collect([
+            $event->venue_address,
+            $event->venue_city,
+            $event->venue_state,
+            $event->venue_zip,
+            $event->venue_country,
+        ])->filter()->implode(', ');
+    }
+
+    /**
+     * Build the capacity message string for the event detail response.
+     */
+    private function buildCapacityMessage(int $troopers_allowed, int $handlers_allowed, int $trooper_count, int $handler_count): string
+    {
+        if ($troopers_allowed >= 500 && $handlers_allowed >= 500) {
+            return '';
+        }
+
+        $message = '';
+
+        if ($troopers_allowed < 500) {
+            $remaining = max(0, $troopers_allowed - $trooper_count);
+            $message  .= "This event is limited to {$troopers_allowed} troopers. {$remaining} troopers remaining.\n";
+        }
+
+        if ($handlers_allowed < 500) {
+            $remaining = max(0, $handlers_allowed - $handler_count);
+            $message  .= "This event is limited to {$handlers_allowed} handlers. {$remaining} handlers remaining.\n";
+        }
+
+        return $message;
     }
 }

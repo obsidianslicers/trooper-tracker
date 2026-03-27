@@ -42,12 +42,12 @@ class PublicApiController
         if ($request->has('trooperid')) {
             $trooper = Trooper::find($request->integer('trooperid'));
         } elseif ($request->has('tkid') && $request->has('squad')) {
-            $trooperOrg = TrooperOrganization::where(TrooperOrganization::IDENTIFIER, $request->input('tkid'))
+            $trooper_org = TrooperOrganization::where(TrooperOrganization::IDENTIFIER, $request->input('tkid'))
                 ->where(TrooperOrganization::ORGANIZATION_ID, $request->integer('squad'))
                 ->with('trooper')
                 ->first();
 
-            $trooper = $trooperOrg?->trooper;
+            $trooper = $trooper_org?->trooper;
         }
 
         if (!$trooper) {
@@ -57,35 +57,30 @@ class PublicApiController
         $identifier = TrooperOrganization::where(TrooperOrganization::TROOPER_ID, $trooper->id)
             ->value(TrooperOrganization::IDENTIFIER);
 
-        $eventTroopers = EventTrooper::where(EventTrooper::TROOPER_ID, $trooper->id)
+        $event_troopers = EventTrooper::where(EventTrooper::TROOPER_ID, $trooper->id)
             ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED->value)
+            ->whereHas('event_shift.event', fn ($q) => $q->where(Event::STATUS, EventStatus::CLOSED->value))
             ->with(['event_shift.event'])
             ->get();
 
-        $eventArray = [];
-
-        foreach ($eventTroopers as $eventTrooper) {
-            $event = $eventTrooper->event_shift->event;
-
-            if ($event->status === EventStatus::CLOSED) {
-                $eventArray[] = [
-                    'eventID'   => $event->id,
-                    'eventName' => $event->name,
-                    'dateStart' => $event->event_start,
-                    'dateEnd'   => $event->event_end,
-                ];
-            }
-        }
-
-        usort($eventArray, fn ($a, $b) => $b['dateEnd'] <=> $a['dateEnd']);
+        $event_array = $event_troopers
+            ->map(fn ($et) => [
+                'eventID'   => $et->event_shift->event->id,
+                'eventName' => $et->event_shift->event->name,
+                'dateStart' => $et->event_shift->event->event_start,
+                'dateEnd'   => $et->event_shift->event->event_end,
+            ])
+            ->sortByDesc('dateEnd')
+            ->values()
+            ->all();
 
         $data = [[
             'trooperName' => $trooper->display_name,
             'tkid'        => $identifier,
             '501forum'    => null,
             'rebelforum'  => null,
-            'events'      => $eventArray,
-            'troopCount'  => count($eventArray),
+            'events'      => $event_array,
+            'troopCount'  => count($event_array),
         ]];
 
         return response()->json($data);
@@ -100,17 +95,18 @@ class PublicApiController
             ->limit($amount)
             ->get();
 
-        $uploadArray = $uploads->map(fn ($upload) => [
+        $upload_array = $uploads->map(fn ($upload) => [
             'fileName'  => $upload->image_path_sm,
             'troopID'   => $upload->event_id,
             'trooperID' => $upload->trooper_id,
         ])->toArray();
 
         if ($request->has('slideshow')) {
-            return $this->slideshowResponse($uploadArray);
+            return $this->slideshowResponse($upload_array);
         }
 
-        return response()->json([$uploadArray]);
+        // Double-wrapped intentionally: legacy API contract expects [[...items...]]
+        return response()->json([$upload_array]);
     }
 
     private function slideshowResponse(array $uploads): Response
@@ -119,7 +115,7 @@ class PublicApiController
 
         foreach ($uploads as $item) {
             $filename = pathinfo($item['fileName'], PATHINFO_FILENAME);
-            $html .= '<img class="slideshow" src="' . url('images/uploads/resize/' . $filename . '.jpg') . '" width="100%" height="100%">';
+            $html .= '<img class="slideshow" src="' . e(url('images/uploads/resize/' . $filename . '.jpg')) . '" width="100%" height="100%">';
         }
 
         $html .= '<script>w3.slideshow(".slideshow", 3000);</script>';
