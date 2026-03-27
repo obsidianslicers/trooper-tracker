@@ -15,7 +15,7 @@
     </button>
 @endif
 @if($event_shift->is_open)
-    @if($event->friends_allowed !== 0 && ($event_shift->canSignUpTrooper(Auth::user()) || $can_moderate))
+    @if($event->friends_allowed !== 0 && $event_shift->hasRemainingFriendSlots(Auth::user()) && ($event_shift->canSignUpTrooper(Auth::user()) || $can_moderate))
         {{-- if they are a normal user and already signed up - they can sign up a friend --}}
         {{-- or they are a moderator - they can sign up a friend --}}
         <button class="btn btn-sm btn-outline-info"
@@ -37,7 +37,7 @@
              hx-swap="outerHTML"
              hx-indicator="#transmission-bar-shift-{{ $event_shift->id }}"></div>
     @endif
-    @if($event->guests_allowed !== 0 && ($event_shift->canSignUpGuest(Auth::user()) || $can_moderate))
+    @if($event->guests_allowed !== 0 && $event_shift->hasRemainingGuestSlots(Auth::user()) && ($event_shift->canSignUpGuest(Auth::user()) || $can_moderate))
         {{-- if they are a normal user and already signed up - they can sign up a guest --}}
         {{-- or they are a moderator - they can sign up a guest --}}
         <button class="btn btn-sm btn-outline-info"

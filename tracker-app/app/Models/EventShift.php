@@ -270,6 +270,58 @@ class EventShift extends BaseEventShift
     }
 
     /**
+     * Check if there are remaining friend slots for a trooper on this shift.
+     *
+     * Returns true if friends_allowed is null (unlimited) or if the trooper
+     * has added fewer friends than the limit. Does not check if the trooper
+     * is going — use this alongside canSignUpTrooper or $can_moderate.
+     *
+     * @param Trooper $trooper The trooper to check remaining slots for
+     * @return bool True if the trooper has remaining friend slots
+     */
+    public function hasRemainingFriendSlots(Trooper $trooper): bool
+    {
+        $friends_allowed = $this->event->friends_allowed;
+
+        if ($friends_allowed === null)
+        {
+            return true;
+        }
+
+        $friends = $this->event_troopers()
+            ->where(EventTrooper::ADDED_BY_TROOPER_ID, $trooper->id)
+            ->count();
+
+        return $friends < $friends_allowed;
+    }
+
+    /**
+     * Check if there are remaining guest slots for a trooper on this shift.
+     *
+     * Returns true if guests_allowed is null (unlimited) or if the trooper
+     * has added fewer guests than the limit. Does not check if the trooper
+     * is going — use this alongside canSignUpGuest or $can_moderate.
+     *
+     * @param Trooper $trooper The trooper to check remaining slots for
+     * @return bool True if the trooper has remaining guest slots
+     */
+    public function hasRemainingGuestSlots(Trooper $trooper): bool
+    {
+        $guests_allowed = $this->event->guests_allowed;
+
+        if ($guests_allowed === null)
+        {
+            return true;
+        }
+
+        $guests = $this->event_guests()
+            ->where(EventGuest::ADDED_BY_TROOPER_ID, $trooper->id)
+            ->count();
+
+        return $guests < $guests_allowed;
+    }
+
+    /**
      * Check if a trooper can sign up a friend for this shift.
      *
      * A trooper can sign up a guest if the shift is open and they are already signed up.
