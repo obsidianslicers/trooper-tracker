@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Events;
 
 use App\Features\Events\Commands\UpdateEventGuestCommand;
+use App\Features\Events\Queries\GetEventShiftDisplayQuery;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Events\GuestUpdateHtmxRequest;
 use App\Models\EventGuest;
@@ -31,7 +32,9 @@ class GuestUpdateHtmxController extends MagicBusController
 
         if ($request->has('status'))
         {
-            if (!$event_guest->canUpdateStatus($event_guest->event_shift, Auth::user()))
+            $event_shift = $event_guest->event_shift;
+
+            if (!$event_guest->canUpdateStatus($event_shift, Auth::user()))
             {
                 return response('Forbidden', 403);
             }
@@ -41,6 +44,24 @@ class GuestUpdateHtmxController extends MagicBusController
             $event_guest_cmd = new UpdateEventGuestCommand($event_guest, $valid_data);
 
             $this->bus->send($event_guest_cmd);
+
+            $trooper = Auth::user();
+
+            $event_shift_query = new GetEventShiftDisplayQuery($event_shift, $trooper);
+
+            $event_shift = $this->bus->send($event_shift_query);
+
+            $event = $event_shift->event;
+
+            $can_moderate = $trooper->isModeratorForOrganization($event->organization);
+
+            $count_of_shifts = $event->event_shifts()->count();
+
+            $data = compact('event', 'event_shift', 'can_moderate', 'count_of_shifts');
+
+            $data['open'] = true;
+
+            return response()->view('pages.events.inc.shift-container', $data);
         }
         elseif ($request->has('name'))
         {

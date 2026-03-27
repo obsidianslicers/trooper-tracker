@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Events;
 use App\Enums\EventTrooperStatus;
 use App\Features\Events\Commands\PromoteNextInLineEventTrooperCommand;
 use App\Features\Events\Commands\UpdateEventTrooperCommand;
+use App\Features\Events\Queries\GetEventShiftDisplayQuery;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Events\SignupUpdateHtmxRequest;
 use App\Models\EventTrooper;
@@ -40,14 +41,16 @@ class SignUpUpdateHtmxController extends MagicBusController
 
         if ($request->has('status'))
         {
-            if (!$event_trooper->canUpdateStatus($event_trooper->event_shift, Auth::user()))
+            $event_shift = $event_trooper->event_shift;
+
+            if (!$event_trooper->canUpdateStatus($event_shift, Auth::user()))
             {
                 return response('Forbidden', 403);
             }
 
             $is_full = $event_trooper->is_handler
-                ? $event_trooper->event_shift->handlersMaxed()
-                : $event_trooper->event_shift->troopersMaxed();
+                ? $event_shift->handlersMaxed()
+                : $event_shift->troopersMaxed();
 
             $valid_data = ['status' => $request->validated('status')];
 
@@ -62,6 +65,24 @@ class SignUpUpdateHtmxController extends MagicBusController
 
                 $this->bus->send($next_in_line_cmd);
             }
+
+            $trooper = Auth::user();
+
+            $event_shift_query = new GetEventShiftDisplayQuery($event_shift, $trooper);
+
+            $event_shift = $this->bus->send($event_shift_query);
+
+            $event = $event_shift->event;
+
+            $can_moderate = $trooper->isModeratorForOrganization($event->organization);
+
+            $count_of_shifts = $event->event_shifts()->count();
+
+            $data = compact('event', 'event_shift', 'can_moderate', 'count_of_shifts');
+
+            $data['open'] = true;
+
+            return response()->view('pages.events.inc.shift-container', $data);
         }
         elseif ($request->has('costume_id'))
         {
