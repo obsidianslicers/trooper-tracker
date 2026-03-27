@@ -7,9 +7,11 @@ namespace Tests\Feature\Models;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Models\Event;
+use App\Models\EventOrganization;
 use App\Models\EventGuest;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
+use App\Models\Organization;
 use App\Models\Trooper;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -374,6 +376,81 @@ class EventShiftTest extends TestCase
         $result = $shift_three->canSignUp($trooper);
 
         $this->assertFalse($result);
+    }
+
+    public function test_can_sign_up_returns_false_for_minor_when_event_disallows_minors(): void
+    {
+        $minor_trooper = Trooper::factory()->create([
+            Trooper::DATE_OF_BIRTH => now()->subYears(16),
+        ]);
+        $event = Event::factory()->state([Event::STATUS => EventStatus::OPEN])->create();
+        $subject = EventShift::factory()
+            ->forEvent($event)
+            ->state([EventShift::STATUS => EventStatus::OPEN])
+            ->create();
+
+        $result = $subject->canSignUp($minor_trooper);
+
+        $this->assertFalse($result);
+    }
+
+    public function test_can_sign_up_returns_false_for_minor_when_guardian_not_attending(): void
+    {
+        $guardian = Trooper::factory()->create();
+        $minor_trooper = Trooper::factory()->create([
+            Trooper::GUARDIAN_ID => $guardian->id,
+            Trooper::DATE_OF_BIRTH => now()->subYears(16),
+        ]);
+        $organization = Organization::factory()->create([
+            Organization::REQUIRES_GUARDIAN => true,
+        ]);
+        $event = Event::factory()->state([Event::STATUS => EventStatus::OPEN])->create();
+        EventOrganization::factory()
+            ->forEvent($event)
+            ->forOrganization($organization)
+            ->canAttend()
+            ->create();
+
+        $subject = EventShift::factory()
+            ->forEvent($event)
+            ->state([EventShift::STATUS => EventStatus::OPEN])
+            ->create();
+
+        $result = $subject->canSignUp($minor_trooper);
+
+        $this->assertFalse($result);
+    }
+
+    public function test_can_sign_up_returns_true_for_minor_when_guardian_attending_and_event_allows_minors(): void
+    {
+        $guardian = Trooper::factory()->create();
+        $minor_trooper = Trooper::factory()->create([
+            Trooper::GUARDIAN_ID => $guardian->id,
+            Trooper::DATE_OF_BIRTH => now()->subYears(16),
+        ]);
+        $organization = Organization::factory()->create([
+            Organization::REQUIRES_GUARDIAN => true,
+        ]);
+        $event = Event::factory()->state([Event::STATUS => EventStatus::OPEN])->create();
+        EventOrganization::factory()
+            ->forEvent($event)
+            ->forOrganization($organization)
+            ->canAttend()
+            ->create();
+
+        $subject = EventShift::factory()
+            ->forEvent($event)
+            ->state([EventShift::STATUS => EventStatus::OPEN])
+            ->create();
+        EventTrooper::factory()
+            ->forEventShift($subject)
+            ->forTrooper($guardian)
+            ->asGoing()
+            ->create();
+
+        $result = $subject->canSignUp($minor_trooper);
+
+        $this->assertTrue($result);
     }
 
     public function test_can_sign_up_trooper_returns_true_when_going_and_within_limit(): void

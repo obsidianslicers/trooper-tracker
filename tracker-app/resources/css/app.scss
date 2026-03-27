@@ -8,6 +8,14 @@
     cursor: pointer;
 }
 
+.btn.htmx-disable.htmx-request {
+    /* Prevents double-clicks */
+    pointer-events: none;
+    /* Visual feedback */
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 a,
 a:hover {
     text-decoration: none;
@@ -28,7 +36,7 @@ a:hover {
     text-decoration: line-through;
 }
 
-.guest-status-cancelled > div:first-child {
+.guest-status-cancelled>div:first-child {
     text-decoration: line-through;
 
     .text-muted {

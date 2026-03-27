@@ -7,8 +7,10 @@ namespace Tests\Feature\Models;
 use App\Enums\EventStatus;
 use App\Enums\EventType;
 use App\Models\Event;
+use App\Models\EventOrganization;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
+use App\Models\Organization;
 use App\Models\Trooper;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -330,6 +332,54 @@ class EventTest extends TestCase
         $result = $subject->getShiftCountFor($trooper);
 
         $this->assertSame(0, $result);
+    }
+
+    public function test_minor_allowed_to_attend_returns_true_when_any_organization_requires_guardian(): void
+    {
+        $subject = Event::factory()->create();
+        $organization_without_guardian = Organization::factory()->create([
+            Organization::REQUIRES_GUARDIAN => false,
+        ]);
+        $organization_with_guardian = Organization::factory()->create([
+            Organization::REQUIRES_GUARDIAN => true,
+        ]);
+
+        EventOrganization::factory()
+            ->forEvent($subject)
+            ->forOrganization($organization_without_guardian)
+            ->canAttend()
+            ->create();
+        EventOrganization::factory()
+            ->forEvent($subject)
+            ->forOrganization($organization_with_guardian)
+            ->canAttend()
+            ->create();
+
+        $this->assertTrue($subject->minorAllowedToAttend());
+    }
+
+    public function test_minor_allowed_to_attend_returns_false_when_no_organizations_require_guardian(): void
+    {
+        $subject = Event::factory()->create();
+        $organization_one = Organization::factory()->create([
+            Organization::REQUIRES_GUARDIAN => false,
+        ]);
+        $organization_two = Organization::factory()->create([
+            Organization::REQUIRES_GUARDIAN => false,
+        ]);
+
+        EventOrganization::factory()
+            ->forEvent($subject)
+            ->forOrganization($organization_one)
+            ->canAttend()
+            ->create();
+        EventOrganization::factory()
+            ->forEvent($subject)
+            ->forOrganization($organization_two)
+            ->canAttend()
+            ->create();
+
+        $this->assertFalse($subject->minorAllowedToAttend());
     }
 
     public function test_type_cast_works(): void

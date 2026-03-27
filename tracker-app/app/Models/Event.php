@@ -259,17 +259,33 @@ class Event extends BaseEvent
     }
 
     /**
-     * Check if any of the event's organizations require a guardian for attendance.
-     *
-     * This method checks the event_organizations relationship to determine if any
-     * associated organization has the requires_guardian flag set to true, which would
-     * indicate that attendees must have a parent/guardian present to participate in the event.
-     *
-     * @return bool True if at least one organization requires a guardian, false otherwise
+     * Determine if a minor trooper can attend this event based on associated organizations.
+     * 
+     * A minor trooper can attend if at least one of the event's associated organizations has
+     * the requires_guardian flag set to true. If no organizations require a guardian, then a
+     * minor trooper cannot attend this event.
+     * 
+     * @return bool True if a minor trooper can attend, false otherwise
      */
-    public function hasOrganizationWithRequiresGuardian(): bool
+    public function minorAllowedToAttend(): bool
     {
-        return $this->event_organizations->contains(fn($org) => $org->requires_guardian);
+        $this->loadMissing('organizations');
+
+        return $this->organizations->contains(fn($org) => $org->requires_guardian);
+    }
+
+    /**
+     * Determine if a minor trooper cannot attend this event based on associated organizations.
+     * 
+     * A minor trooper cannot attend if none of the event's associated organizations have
+     * the requires_guardian flag set to true. If at least one organization requires a guardian,
+     * then a minor trooper can attend this event.
+     * 
+     * @return bool True if a minor trooper cannot attend, false otherwise
+     */
+    public function minorCannotAttend(): bool
+    {
+        return $this->minorAllowedToAttend() === false;
     }
 
     // /**

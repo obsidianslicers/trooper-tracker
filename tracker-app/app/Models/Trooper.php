@@ -147,9 +147,9 @@ class Trooper extends BaseTrooper implements
     }
 
     /**
-     * Check if the trooper's membership role is admin.
+     * Check if trooper is a minor.
      *
-     * @return bool True if the trooper is admin, false otherwise.
+     * @return bool True if the trooper is a minor, false otherwise.
      */
     public function getIsMinorAttribute(): bool
     {
@@ -161,6 +161,16 @@ class Trooper extends BaseTrooper implements
         }
 
         return false;
+    }
+
+    /**
+     * Check if trooper is an adult
+     *
+     * @return bool True if the trooper is an adult, false otherwise.
+     */
+    public function getIsAdultAttribute(): bool
+    {
+        return !$this->is_minor;
     }
 
     /**
