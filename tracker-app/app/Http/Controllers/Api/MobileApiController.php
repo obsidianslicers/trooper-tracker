@@ -411,8 +411,8 @@ class MobileApiController
                 'allowTentative' => (int) $event->tentative_signups_allowed,
                 'limitTotalTroopers' => $troopers_allowed,
                 'limitHandlers' => $handlers_allowed,
-                'guests_allowed'   => $event->guests_allowed,
-                'friends_allowed'  => $event->friends_allowed,
+                'guests_allowed' => $event->guests_allowed,
+                'friends_allowed' => $event->friends_allowed,
             ],
             [
                 'isLimited' => $is_limited,
@@ -423,12 +423,12 @@ class MobileApiController
                 'shifts' => $event->event_shifts
                     ->sortBy(EventShift::SHIFT_STARTS_AT)
                     ->map(fn ($shift) => [
-                        'id'             => $shift->id,
-                        'starts_at'      => $shift->shift_starts_at?->format('Y-m-d H:i:s'),
-                        'ends_at'        => $shift->shift_ends_at?->format('Y-m-d H:i:s'),
-                        'display'        => $shift->time_display,
+                        'id' => $shift->id,
+                        'starts_at' => $shift->shift_starts_at?->format('Y-m-d H:i:s'),
+                        'ends_at' => $shift->shift_ends_at?->format('Y-m-d H:i:s'),
+                        'display' => $shift->time_display,
                         'can_add_friend' => $trooper ? $this->shiftAllowsFriendAdd($event, $shift, $trooper) : null,
-                        'can_add_guest'  => $trooper ? $this->shiftAllowsGuestAdd($event, $shift, $trooper) : null,
+                        'can_add_guest' => $trooper ? $this->shiftAllowsGuestAdd($event, $shift, $trooper) : null,
                     ])
                     ->values(),
             ]
@@ -1033,11 +1033,12 @@ class MobileApiController
      */
     private function getGuestsForEvent(Request $request): JsonResponse
     {
-        $user_id  = (int) $request->input('trooperid');
-        $trooper  = $this->trooperFromUserId($user_id);
+        $user_id = (int) $request->input('trooperid');
+        $trooper = $this->trooperFromUserId($user_id);
         $event_id = (int) $request->input('troopid');
 
-        if (!$trooper) {
+        if (!$trooper)
+        {
             return response()->json([]);
         }
 
@@ -1048,11 +1049,11 @@ class MobileApiController
             ->get();
 
         return response()->json($guests->map(fn ($g) => [
-            'id'               => $g->id,
-            'name'             => $g->name,
-            'shift_id'         => $g->event_shift_id,
-            'shift_display'    => $g->event_shift->time_display,
-            'status'           => $g->status->value,
+            'id' => $g->id,
+            'name' => $g->name,
+            'shift_id' => $g->event_shift_id,
+            'shift_display' => $g->event_shift->time_display,
+            'status' => $g->status->value,
             'status_formatted' => ucfirst($g->status->value),
         ])->values());
     }
@@ -1063,17 +1064,19 @@ class MobileApiController
      */
     private function addGuest(Request $request): JsonResponse
     {
-        $user_id  = (int) $request->input('trooperid');
-        $trooper  = $this->trooperFromUserId($user_id);
+        $user_id = (int) $request->input('trooperid');
+        $trooper = $this->trooperFromUserId($user_id);
         $event_id = (int) $request->input('troopid');
         $shift_id = (int) $request->input('shiftid', 0);
-        $name     = trim((string) $request->input('name', ''));
+        $name = trim((string) $request->input('name', ''));
 
-        if (!$trooper) {
+        if (!$trooper)
+        {
             return response()->json(['success' => false, 'message' => 'Trooper not found.']);
         }
 
-        if ($name === '') {
+        if ($name === '')
+        {
             return response()->json(['success' => false, 'message' => 'Guest name is required.']);
         }
 
@@ -1086,11 +1089,13 @@ class MobileApiController
                 ->orderBy(EventShift::SHIFT_STARTS_AT)
                 ->first();
 
-        if (!$shift) {
+        if (!$shift)
+        {
             return response()->json(['success' => false, 'message' => 'Shift not found.']);
         }
 
-        if (!$shift->canSignUpGuest($trooper)) {
+        if (!$shift->canSignUpGuest($trooper))
+        {
             return response()->json(['success' => false, 'message' => 'You cannot add a guest to this shift.']);
         }
 
@@ -1098,8 +1103,8 @@ class MobileApiController
             [EventGuest::EVENT_SHIFT_ID => $shift->id, EventGuest::NAME => $name],
             [
                 EventGuest::ADDED_BY_TROOPER_ID => $trooper->id,
-                EventGuest::STATUS              => EventGuestStatus::GOING->value,
-                EventGuest::SIGNED_UP_AT        => now(),
+                EventGuest::STATUS => EventGuestStatus::GOING->value,
+                EventGuest::SIGNED_UP_AT => now(),
             ]
         );
 
@@ -1112,11 +1117,12 @@ class MobileApiController
      */
     private function cancelGuest(Request $request): JsonResponse
     {
-        $user_id  = (int) $request->input('trooperid');
-        $trooper  = $this->trooperFromUserId($user_id);
+        $user_id = (int) $request->input('trooperid');
+        $trooper = $this->trooperFromUserId($user_id);
         $guest_id = (int) $request->input('guestid');
 
-        if (!$trooper) {
+        if (!$trooper)
+        {
             return response()->json(['success' => false, 'message' => 'Trooper not found.']);
         }
 
@@ -1124,7 +1130,8 @@ class MobileApiController
             ->where(EventGuest::ADDED_BY_TROOPER_ID, $trooper->id)
             ->first();
 
-        if (!$guest) {
+        if (!$guest)
+        {
             return response()->json(['success' => false, 'message' => 'Guest not found or not authorized.']);
         }
 
