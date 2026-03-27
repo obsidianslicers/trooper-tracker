@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\EventGuestStatus;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Enums\MembershipStatus;
 use App\Models\Costume;
 use App\Models\Event;
+use App\Models\EventGuest;
 use App\Models\EventNotification;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
@@ -102,6 +104,12 @@ class MobileApiController
                 $action === 'cancel_shift' && $request->has('trooperid', 'shiftid') => $this->cancelShift($request),
 
                 $action === 'get_friends_for_event' && $request->has('trooperid', 'troopid') => $this->getFriendsForEvent($request),
+
+                $action === 'get_guests_for_event' && $request->has('trooperid', 'troopid') => $this->getGuestsForEvent($request),
+
+                $action === 'add_guest' && $request->has('trooperid', 'troopid', 'name') => $this->addGuest($request),
+
+                $action === 'cancel_guest' && $request->has('trooperid', 'guestid') => $this->cancelGuest($request),
 
                 $action === 'sign_up' && $request->has('trooperid', 'troopid', 'addedby', 'status', 'costume', 'backupcostume') => $this->signUp($request),
 
@@ -994,6 +1002,112 @@ class MobileApiController
         });
 
         return response()->json(['success' => 'Records deleted!']);
+    }
+
+    /**
+     * action=get_guests_for_event
+     * Return guests that the current user added to this event (non-cancelled).
+     */
+    private function getGuestsForEvent(Request $request): JsonResponse
+    {
+        $user_id  = (int) $request->input('trooperid');
+        $trooper  = $this->trooperFromUserId($user_id);
+        $event_id = (int) $request->input('troopid');
+
+        if (!$trooper) {
+            return response()->json([]);
+        }
+
+        $guests = EventGuest::where(EventGuest::ADDED_BY_TROOPER_ID, $trooper->id)
+            ->where(EventGuest::STATUS, '!=', EventGuestStatus::CANCELLED->value)
+            ->whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $event_id))
+            ->with('event_shift')
+            ->get();
+
+        return response()->json($guests->map(fn ($g) => [
+            'id'               => $g->id,
+            'name'             => $g->name,
+            'shift_id'         => $g->event_shift_id,
+            'shift_display'    => $g->event_shift->time_display,
+            'status'           => $g->status->value,
+            'status_formatted' => ucfirst($g->status->value),
+        ])->values());
+    }
+
+    /**
+     * action=add_guest
+     * Add a named guest to an event shift on behalf of a trooper.
+     */
+    private function addGuest(Request $request): JsonResponse
+    {
+        $user_id  = (int) $request->input('trooperid');
+        $trooper  = $this->trooperFromUserId($user_id);
+        $event_id = (int) $request->input('troopid');
+        $shift_id = (int) $request->input('shiftid', 0);
+        $name     = trim((string) $request->input('name', ''));
+
+        if (!$trooper) {
+            return response()->json(['success' => false, 'message' => 'Trooper not found.']);
+        }
+
+        if ($name === '') {
+            return response()->json(['success' => false, 'message' => 'Guest name is required.']);
+        }
+
+        $shift = $shift_id > 0
+            ? EventShift::with(['event', 'event_troopers', 'event_guests'])
+                ->where(EventShift::EVENT_ID, $event_id)
+                ->find($shift_id)
+            : EventShift::with(['event', 'event_troopers', 'event_guests'])
+                ->where(EventShift::EVENT_ID, $event_id)
+                ->orderBy(EventShift::SHIFT_STARTS_AT)
+                ->first();
+
+        if (!$shift) {
+            return response()->json(['success' => false, 'message' => 'Shift not found.']);
+        }
+
+        if (!$shift->canSignUpGuest($trooper)) {
+            return response()->json(['success' => false, 'message' => 'You cannot add a guest to this shift.']);
+        }
+
+        EventGuest::firstOrCreate(
+            [EventGuest::EVENT_SHIFT_ID => $shift->id, EventGuest::NAME => $name],
+            [
+                EventGuest::ADDED_BY_TROOPER_ID => $trooper->id,
+                EventGuest::STATUS              => EventGuestStatus::GOING->value,
+                EventGuest::SIGNED_UP_AT        => now(),
+            ]
+        );
+
+        return response()->json(['success' => true, 'message' => 'Guest added!']);
+    }
+
+    /**
+     * action=cancel_guest
+     * Cancel a guest signup (must be added by the requesting trooper).
+     */
+    private function cancelGuest(Request $request): JsonResponse
+    {
+        $user_id  = (int) $request->input('trooperid');
+        $trooper  = $this->trooperFromUserId($user_id);
+        $guest_id = (int) $request->input('guestid');
+
+        if (!$trooper) {
+            return response()->json(['success' => false, 'message' => 'Trooper not found.']);
+        }
+
+        $guest = EventGuest::where(EventGuest::ID, $guest_id)
+            ->where(EventGuest::ADDED_BY_TROOPER_ID, $trooper->id)
+            ->first();
+
+        if (!$guest) {
+            return response()->json(['success' => false, 'message' => 'Guest not found or not authorized.']);
+        }
+
+        $guest->update([EventGuest::STATUS => EventGuestStatus::CANCELLED->value]);
+
+        return response()->json(['success' => true]);
     }
 
     // -------------------------------------------------------------------------
