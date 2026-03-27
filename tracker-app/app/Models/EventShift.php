@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\EventGuestStatus;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Models\Base\EventShift as BaseEventShift;
@@ -257,6 +258,7 @@ class EventShift extends BaseEventShift
 
                 $friends = $this->event_troopers()
                     ->where(EventTrooper::ADDED_BY_TROOPER_ID, $trooper->id)
+                    ->where(EventTrooper::STATUS, '!=', EventTrooperStatus::CANCELLED)
                     ->count();
 
                 if ($friends < $friends_allowed)
@@ -290,6 +292,7 @@ class EventShift extends BaseEventShift
 
         $friends = $this->event_troopers()
             ->where(EventTrooper::ADDED_BY_TROOPER_ID, $trooper->id)
+            ->where(EventTrooper::STATUS, '!=', EventTrooperStatus::CANCELLED)
             ->count();
 
         return $friends < $friends_allowed;
@@ -316,6 +319,7 @@ class EventShift extends BaseEventShift
 
         $guests = $this->event_guests()
             ->where(EventGuest::ADDED_BY_TROOPER_ID, $trooper->id)
+            ->where(EventGuest::STATUS, '!=', EventGuestStatus::CANCELLED)
             ->count();
 
         return $guests < $guests_allowed;
@@ -344,6 +348,7 @@ class EventShift extends BaseEventShift
 
                 $guests = $this->event_guests()
                     ->where(EventGuest::ADDED_BY_TROOPER_ID, $trooper->id)
+                    ->where(EventGuest::STATUS, '!=', EventGuestStatus::CANCELLED)
                     ->count();
 
                 if ($guests < $guests_allowed)
