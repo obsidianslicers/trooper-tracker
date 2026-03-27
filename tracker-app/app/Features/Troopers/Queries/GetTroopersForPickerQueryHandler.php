@@ -6,6 +6,7 @@ namespace App\Features\Troopers\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Models\Trooper;
+use Illuminate\Support\Collection;
 
 /**
  * Handler for retrieving troopers for picker/dropdown components.
@@ -31,7 +32,7 @@ readonly class GetTroopersForPickerQueryHandler implements QueryHandlerInterface
      * 5. If no filter criteria: Return empty collection
      *
      * @param  GetTroopersForPickerQuery  $message  The query containing filter and scope criteria
-     * @return \Illuminate\Support\Collection<int, Trooper> Collection of filtered troopers, or empty if no filter applied
+     * @return Collection<int, Trooper> Collection of filtered troopers, or empty if no filter applied
      */
     public function __invoke(object $message): mixed
     {

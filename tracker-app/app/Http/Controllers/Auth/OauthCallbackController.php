@@ -64,12 +64,17 @@ class OauthCallbackController extends MagicBusController
 
         if ($account)
         {
-            if (!$account->trooper->is_active)
+            $trooper = $account->trooper;
+
+            if (! $trooper->is_active)
             {
                 return redirect()->route('auth.inactive');
             }
 
-            Auth::login($account->trooper);
+            // Keep trooper email and verification in sync with XenForo account.
+            $this->syncTrooperFromProvider($trooper, $provider, $provider_user);
+
+            Auth::login($trooper);
 
             return redirect()->intended('/');
         }
@@ -119,10 +124,13 @@ class OauthCallbackController extends MagicBusController
             return redirect()->route('auth.register');
         }
 
-        if (!$trooper->is_active)
+        if (! $trooper->is_active)
         {
             return redirect()->route('auth.inactive');
         }
+
+        // Keep trooper email and verification in sync with XenForo account.
+        $this->syncTrooperFromProvider($trooper, $provider, $provider_user);
 
         // Link provider to existing trooper account
         OauthLogin::create([
@@ -136,5 +144,36 @@ class OauthCallbackController extends MagicBusController
         Auth::login($trooper);
 
         return redirect()->intended('/');
+    }
+
+    /**
+     * Synchronize trooper data from the OAuth provider when appropriate.
+     *
+     * Currently used to align trooper email and email verification status with
+     * the XenForo account when logging in via the `xenforo` provider.
+     */
+    private function syncTrooperFromProvider(Trooper $trooper, string $provider, $provider_user): void
+    {
+        if ($provider !== 'xenforo')
+        {
+            return;
+        }
+
+        $email = $provider_user->getEmail();
+
+        if (! empty($email) && $trooper->email !== $email)
+        {
+            $trooper->email = $email;
+        }
+
+        if ($trooper->email_verified_at === null)
+        {
+            $trooper->email_verified_at = now();
+        }
+
+        if ($trooper->isDirty(['email', 'email_verified_at']))
+        {
+            $trooper->save();
+        }
     }
 }

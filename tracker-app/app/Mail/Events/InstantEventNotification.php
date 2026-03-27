@@ -8,9 +8,11 @@ use App\Models\EventNotification;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Symfony\Component\Mime\Email;
 
 /**
  * Mailable for instant event notification.
@@ -65,7 +67,7 @@ class InstantEventNotification extends Mailable implements ShouldQueue
     /**
      * Get the attachments for the message.
      *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
+     * @return array<int, Attachment>
      */
     public function attachments(): array
     {
@@ -78,7 +80,7 @@ class InstantEventNotification extends Mailable implements ShouldQueue
      * Updates the event notification's sent_at timestamp to track when
      * the notification was delivered to the recipient.
      *
-     * @param  \Symfony\Component\Mime\Email  $message  The sent email message instance
+     * @param  Email  $message  The sent email message instance
      */
     public function sent($message): void
     {

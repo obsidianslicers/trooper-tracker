@@ -48,8 +48,8 @@ use RuntimeException;
  * $user = $bus->send(new CreateUserCommand('test@example.com', 'Test'));
  * ```
  *
- * @see \App\Bus\Contracts\HandlerInterface
- * @see \App\Bus\Concerns\ShouldRunAfterResponse
+ * @see HandlerInterface
+ * @see ShouldRunAfterResponse
  */
 class MagicBus
 {
@@ -70,9 +70,9 @@ class MagicBus
      * @param  object  $message  The Command or Query object to dispatch
      * @return mixed The result returned by the handler's __invoke method, or null for deferred commands
      *
-     * @throws \RuntimeException If the handler class does not exist
-     * @throws \RuntimeException If the handler does not implement HandlerInterface
-     * @throws \RuntimeException If handler uses ShouldRunAfterResponse but is not a CommandHandlerInterface
+     * @throws RuntimeException If the handler class does not exist
+     * @throws RuntimeException If the handler does not implement HandlerInterface
+     * @throws RuntimeException If handler uses ShouldRunAfterResponse but is not a CommandHandlerInterface
      */
     public function send(object $message): mixed
     {
@@ -122,7 +122,7 @@ class MagicBus
      * @param  string  $trait  The fully qualified trait name to check for
      * @return bool True if the handler uses the trait, false otherwise
      *
-     * @throws \RuntimeException If trait requires CommandHandlerInterface but handler doesn't implement it
+     * @throws RuntimeException If trait requires CommandHandlerInterface but handler doesn't implement it
      */
     private function usesTrait(string $handler_class, string $trait): bool
     {
@@ -147,7 +147,7 @@ class MagicBus
      * @param  string  $handler_class  The fully qualified handler class name
      * @param  string  $trait  The trait name being checked (for error messages)
      *
-     * @throws \RuntimeException If the handler doesn't implement CommandHandlerInterface
+     * @throws RuntimeException If the handler doesn't implement CommandHandlerInterface
      */
     private function checkForCommandInterface(string $handler_class, string $trait): void
     {

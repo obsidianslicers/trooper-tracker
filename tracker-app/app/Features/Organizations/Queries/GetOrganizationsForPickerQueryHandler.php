@@ -6,6 +6,7 @@ namespace App\Features\Organizations\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Models\Organization;
+use Illuminate\Support\Collection;
 
 /**
  * Handler for retrieving organizations for picker/dropdown components.
@@ -31,7 +32,7 @@ readonly class GetOrganizationsForPickerQueryHandler implements QueryHandlerInte
      * 3. Otherwise: Returns all organizations
      *
      * @param  GetOrganizationsForPickerQuery  $message  The query containing filter criteria
-     * @return \Illuminate\Support\Collection<int, Organization> Collection of organizations
+     * @return Collection<int, Organization> Collection of organizations
      */
     public function __invoke(object $message): mixed
     {

@@ -6,6 +6,7 @@ namespace App\Features\Troopers\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Models\Trooper;
+use Illuminate\Support\Collection;
 
 /**
  * Handler for retrieving pending trooper approval requests.
@@ -24,7 +25,7 @@ readonly class GetTrooperApprovalsQueryHandler implements QueryHandlerInterface
      * scopes to return only those the moderator has permission to approve.
      *
      * @param  GetTrooperApprovalsQuery  $message  The query containing the moderator
-     * @return \Illuminate\Support\Collection<int, Trooper> Collection of pending troopers
+     * @return Collection<int, Trooper> Collection of pending troopers
      */
     public function __invoke(object $message): mixed
     {

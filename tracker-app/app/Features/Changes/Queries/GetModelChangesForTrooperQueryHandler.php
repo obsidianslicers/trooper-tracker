@@ -9,6 +9,7 @@ use App\Models\EventTrooper;
 use App\Models\ModelChange;
 use App\Models\Trooper;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 
 /**
  * Handler for retrieving model change history for a trooper.
@@ -31,7 +32,7 @@ readonly class GetModelChangesForTrooperQueryHandler implements QueryHandlerInte
      * Returns all changes since the lookback date.
      *
      * @param  GetModelChangesForTrooperQuery  $message  The query containing trooper and lookback criteria.
-     * @return \Illuminate\Support\Collection<int, ModelChange> Collection of model changes.
+     * @return Collection<int, ModelChange> Collection of model changes.
      */
     public function __invoke(object $message): mixed
     {

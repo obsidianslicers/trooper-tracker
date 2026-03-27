@@ -7,6 +7,7 @@ namespace App\Features\Troopers\Queries;
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Models\Base\Organization;
 use App\Models\Costume;
+use Illuminate\Support\Collection;
 
 /**
  * Handler for retrieving a trooper's costume collection.
@@ -27,7 +28,7 @@ readonly class GetTrooperCostumesQueryHandler implements QueryHandlerInterface
      * - organization_costume.organization: The owning organization
      *
      * @param  GetTrooperCostumesQuery  $message  The query containing the trooper
-     * @return \Illuminate\Support\Collection<int, \App\Models\Costume> Trooper's costumes
+     * @return Collection<int, Costume> Trooper's costumes
      */
     public function __invoke(object $message): mixed
     {

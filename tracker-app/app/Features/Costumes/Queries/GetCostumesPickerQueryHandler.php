@@ -8,6 +8,7 @@ use App\Bus\Contracts\QueryHandlerInterface;
 use App\Models\Costume;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
+use Illuminate\Support\Collection;
 
 /**
  * Handler for retrieving the organization hierarchy for costumes.
@@ -20,7 +21,7 @@ readonly class GetCostumesPickerQueryHandler implements QueryHandlerInterface
      * Handle the query to retrieve costumes with their associated organization hierarchy.
      *
      * @param  GetCostumesPickerQuery  $message  The query containing trooper and filter criteria
-     * @return \Illuminate\Support\Collection<int, Costume> Collection of organizations with nested hierarchy.
+     * @return Collection<int, Costume> Collection of organizations with nested hierarchy.
      */
     public function __invoke(object $message): mixed
     {

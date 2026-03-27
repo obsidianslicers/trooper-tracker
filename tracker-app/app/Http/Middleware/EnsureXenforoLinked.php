@@ -37,9 +37,10 @@ class EnsureXenforoLinked
             return $next($request);
         }
 
-        // Allow access to the linking routes, OAuth routes, and logout so we
-        // don't create redirect loops or block signing out.
+        // Allow access to the setup routes, linking routes, OAuth routes, and
+        // logout so we don't create redirect loops or block signing out.
         if (
+            $request->routeIs('account.setup', 'account.setup-submit') ||
             $request->routeIs('account.xenforo.*') ||
             $request->routeIs('auth.oauth-*') ||
             $request->routeIs('auth.logout')

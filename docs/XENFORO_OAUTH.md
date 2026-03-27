@@ -1,216 +1,485 @@
-# XenForo OAuth2 Integration
+# XenForo Integration
 
-Custom Socialite provider for XenForo 2.3+ forum authentication.
+Troop Tracker supports a full XenForo-backed workflow, not just login.
 
-**Capabilities:**
-- OAuth2 authentication with XenForo forums
-- PKCE support for enhanced security
-- User profile and avatar retrieval
-- Configurable scopes
+When XenForo integration is fully configured, Troop Tracker can:
 
-## Configuration
+- authenticate users with XenForo OAuth
+- require XenForo-linked accounts for access
+- create event forum threads automatically
+- update event forum posts as roster details change
+- move event threads to an archive forum when events close
+- read forum replies and display them on event pages
+- synchronize Troop Tracker data back to XenForo user profiles and groups
+- calculate support totals from XenForo user upgrades
+- display XenForo user-group banner HTML on trooper service-record pages
 
-### 1. XenForo Setup
+This guide covers what the integration does, why the required add-ons exist, and how to set everything up.
 
-On your XenForo forum, create an OAuth2 client:
+## Overview
 
-1. Navigate to **Admin CP > Setup > OAuth2 clients**
-2. Click **Add OAuth2 client**
-3. Fill in the following:
-   - **Title**: Your Application Name
-   - **Description**: Brief description of your app
-   - **Homepage URL**: Your application's homepage
-   - **Client Type**: 
-     - `Confidential` - For server-side apps (default, recommended for Laravel)
-     - `Public` - For JavaScript/mobile apps (uses PKCE)
-   - **Redirect URIs**: Add your callback URL(s)
-     - Example: `https://yourdomain.com/auth/xenforo/callback`
+Troop Tracker uses XenForo in two separate ways:
 
-4. After creation, note your **Client ID** and **Client Secret**
+### 1. XenForo OAuth
 
-### 2. Laravel Configuration
+This is used for login and account linking.
 
-**Environment Variables:** See [ENVIRONMENT_VARIABLES.md](ENVIRONMENT_VARIABLES.md) for complete reference.
+- user signs in with XenForo
+- Troop Tracker stores the XenForo `user_id` in `tt_oauth_logins.provider_id`
+- that linked XenForo ID is reused for API-driven features like event posting, banner lookups, and user synchronization
 
-Add to your `.env` file:
+### 2. XenForo API Integration
+
+This is used for forum automation and profile data.
+
+- create threads
+- update posts
+- read users
+- update users
+- read thread replies
+- read custom add-on endpoints for support totals and user-group banners
+
+Troop Tracker treats these as related but distinct pieces. OAuth can be configured without the broader API integration, but the full XenForo feature set requires both.
+
+## Required Add-ons
+
+Two custom XenForo add-ons are now required when you want the full XenForo integration enabled.
+
+### Troop Tracker - Upgrade Stats API
+
+Repository:
+
+- https://github.com/MattDrennan/Troop-Tracker---Upgrade-Stats
+
+What it does:
+
+- adds a XenForo API endpoint for upgrade and payment-related data
+- exposes:
+    - `userUpgradeActive`
+    - `userUpgradeExpired`
+    - `userUpgrades`
+    - `combinedResults`
+    - `paymentLog`
+
+Endpoint:
+
+- `GET /index.php?api/upgrade-stats`
+
+Custom API scope:
+
+- `upgrades:read`
+
+Why Troop Tracker needs it:
+
+- Troop Tracker uses this endpoint to calculate support totals from XenForo upgrades instead of relying only on local donation records.
+- This allows the support widget to reflect recurring supporter revenue already managed by XenForo.
+
+Benefit:
+
+- one source of truth for supporter upgrades
+- less manual duplication of support data
+- support totals match the forum’s active upgrade state
+
+### Troop Tracker User Groups
+
+Repository:
+
+- https://github.com/MattDrennan/TroopTrackerUserGroups
+
+What it does:
+
+- adds a XenForo API endpoint that returns a user’s primary and secondary groups
+- includes each group’s:
+    - `groupID`
+    - `title`
+    - `bannerText`
+    - `order`
+    - `isPrimary`
+
+Endpoint:
+
+- `GET /index.php?api/user-groups&user_id={xenforoUserId}`
+
+Custom API scope:
+
+- `usergroups:read`
+
+Why Troop Tracker needs it:
+
+- Troop Tracker uses this endpoint to display XenForo banner HTML on the trooper service-record page.
+- This keeps rank and status presentation aligned with the forum rather than reimplementing banner logic inside Troop Tracker.
+
+Benefit:
+
+- forum rank and banner styling stays authoritative in XenForo
+- Troop Tracker profile pages automatically reflect XenForo group presentation
+- no duplicate banner rules inside Troop Tracker
+
+## XenForo Features in Troop Tracker
+
+### XenForo OAuth Login
+
+Troop Tracker includes a custom Socialite provider for XenForo.
+
+What it provides:
+
+- XenForo OAuth login
+- account linking to a Troop Tracker user
+- XenForo avatar retrieval
+- persistent mapping from Troop Tracker user to XenForo `user_id`
+
+Relevant config:
+
+- `XENFORO_CLIENT_ID`
+- `XENFORO_CLIENT_SECRET`
+- `XENFORO_REDIRECT_URI`
+- `XENFORO_BASE_URL`
+- optional endpoint path overrides in `config/services.php`
+
+### XenForo-Required Accounts
+
+If `TRACKER_REQUIRE_XENFORO=true`, Troop Tracker can enforce XenForo-based access.
+
+What happens when enabled:
+
+- email/password login is disabled
+- non-XenForo OAuth providers are blocked
+- authenticated users without a linked XenForo account are redirected to the XenForo linking flow
+
+Benefit:
+
+- every active Troop Tracker user is tied to a forum identity
+- all downstream XenForo features can safely resolve a XenForo `user_id`
+
+### Event Thread Creation
+
+When an event is created and the organization has a related XenForo forum configured, Troop Tracker can create a XenForo thread automatically.
+
+What gets posted:
+
+- event title
+- event details rendered as BBCode
+- roster summary
+
+Benefit:
+
+- event announcements appear in the forum automatically
+- moderators do not need to duplicate event posts manually
+
+### Event Thread Updates
+
+Troop Tracker can update the first post of the XenForo thread as event data changes.
+
+What is updated:
+
+- roster summary
+- thread body generated from the current event state
+
+Benefit:
+
+- forum thread stays current without manual edits
+
+### Event Thread Archiving
+
+When events close, Troop Tracker can move the XenForo thread into an archive forum.
+
+Benefit:
+
+- active forums stay cleaner
+- historical event threads remain organized automatically
+
+### Forum Reply Display
+
+Troop Tracker can read recent XenForo thread replies and display them on event pages.
+
+Benefit:
+
+- event discussion remains visible from inside Troop Tracker
+- users do not need to switch back and forth as often
+
+### XenForo User Synchronization
+
+Troop Tracker can push user metadata and secondary-group memberships back to XenForo.
+
+What is synchronized:
+
+- `custom_fields[trackerid]`
+- `custom_fields[fullname]`
+- `custom_fields[organizations]`
+- `secondary_group_ids`
+
+How group sync works:
+
+- Troop Tracker resolves the linked XenForo `user_id`
+- Troop Tracker reads the current XenForo user
+- it preserves non-Troop-Tracker-managed secondary groups
+- it adds or removes organization-related XenForo groups based on Troop Tracker memberships
+
+Benefit:
+
+- forum permissions and profile metadata can reflect Troop Tracker membership data
+- organization status can be maintained centrally in Troop Tracker
+
+Commands:
+
+- `php artisan tracker:synchronize-xenforo-user {trooper}`
+- `php artisan tracker:synchronize-xenforo-users`
+
+### Support Total Integration
+
+Troop Tracker can calculate support totals using the XenForo upgrade stats endpoint.
+
+Benefit:
+
+- supporter totals match the forum upgrade system
+- local UI reflects live XenForo subscription state
+
+### XenForo User-Group Banners on Profiles
+
+Troop Tracker can display XenForo `bannerText` on trooper service-record pages.
+
+How it works:
+
+- Troop Tracker resolves the trooper’s linked XenForo ID from `tt_oauth_logins`
+- it calls the user-groups add-on endpoint
+- it filters out empty banners
+- it renders the returned HTML below the trooper name and title
+
+Benefit:
+
+- forum badge presentation carries over to Troop Tracker
+- no duplicate rank/banner system is needed in the app
+
+## Benefits of the XenForo Integration
+
+- one identity across the forum and Troop Tracker
+- less duplicate data entry for moderators and users
+- automatic event thread publishing and maintenance
+- unified support reporting from XenForo upgrades
+- synchronized organization-driven XenForo permissions
+- richer profile presentation using XenForo banners
+
+In practice, XenForo becomes the identity and community layer, while Troop Tracker becomes the operations and events layer.
+
+## Setup Checklist
+
+Complete all steps below to enable the full integration.
+
+### 1. Install the XenForo add-ons
+
+Install both of these add-ons in XenForo:
+
+- `Troop Tracker - Upgrade Stats API`
+- `Troop Tracker User Groups`
+
+Source repositories:
+
+- https://github.com/MattDrennan/Troop-Tracker---Upgrade-Stats
+- https://github.com/MattDrennan/TroopTrackerUserGroups
+
+At a minimum, ensure the add-on code is present in XenForo and the add-ons are installed through XenForo Admin CP.
+
+### 2. Create a XenForo OAuth client
+
+In XenForo Admin CP:
+
+1. Go to `Setup > OAuth2 clients`
+2. Create a new OAuth client
+3. Set the redirect URI to your Troop Tracker callback URL
+
+Example:
+
+- `https://your-troop-tracker.example.com/oauth/xenforo/callback`
+
+Record these values:
+
+- client ID
+- client secret
+
+### 3. Create or update a XenForo API key
+
+Create an API key that Troop Tracker can use for forum automation and the custom add-on endpoints.
+
+The key must be able to access:
+
+- XenForo users endpoints
+- XenForo threads endpoints
+- XenForo posts endpoints
+- custom scope `upgrades:read`
+- custom scope `usergroups:read`
+
+If your XenForo setup limits API scopes aggressively, confirm the API key can read users and create/update threads and posts in addition to the two custom scopes.
+
+### 4. Configure Troop Tracker environment variables
+
+Set these in `.env`:
 
 ```env
-XENFORO_CLIENT_ID=your-client-id-here
-XENFORO_CLIENT_SECRET=your-client-secret-here
-XENFORO_REDIRECT_URI=https://yourdomain.com/auth/xenforo/callback
-XENFORO_BASE_URL=https://forum.example.com
+XENFORO_CLIENT_ID=your-xenforo-oauth-client-id
+XENFORO_CLIENT_SECRET=your-xenforo-oauth-client-secret
+XENFORO_REDIRECT_URI=https://your-troop-tracker.example.com/oauth/xenforo/callback
+XENFORO_BASE_URL=https://your-forum.example.com/boards
+XENFORO_NAME="Your Forum Name"
+
+XENFORO_API_KEY=your-xenforo-api-key
+XENFORO_API_USER=1
+
+TRACKER_REQUIRE_XENFORO=true
 ```
 
-### 3. Service Provider Configuration
+Notes:
 
-The provider configuration is in `config/services.php`:
+- `XENFORO_BASE_URL` should be the forum base URL without a trailing slash
+- `XENFORO_API_USER` is the acting XenForo API user ID, often `1` in small installs
+- `TRACKER_REQUIRE_XENFORO=true` is recommended if XenForo is your required identity provider
 
-```php
-'xenforo' => [
-    'client_id' => env('XENFORO_CLIENT_ID'),
-    'client_secret' => env('XENFORO_CLIENT_SECRET'),
-    'redirect' => env('XENFORO_REDIRECT_URI'),
-    'base_url' => env('XENFORO_BASE_URL'),
-],
-```
+### 5. Optional: confirm endpoint path overrides
 
-## Usage
+Defaults in `config/services.php` assume XenForo 2.3 style endpoints:
 
-### Basic Authentication Flow
+- `XENFORO_AUTHORIZE_PATH=/index.php?oauth2/authorize`
+- `XENFORO_TOKEN_PATH=/index.php?api/oauth2/token`
+- `XENFORO_ME_PATH=/api/me`
 
-#### Redirect to XenForo
+If your XenForo install differs, override those values in `.env`.
 
-```php
-use Laravel\Socialite\Facades\Socialite;
+### 6. Clear Laravel config cache
 
-Route::get('/auth/xenforo', function () {
-    return Socialite::driver('xenforo')->redirect();
-});
-```
-
-#### Handle Callback
-
-```php
-Route::get('/auth/xenforo/callback', function () {
-    $user = Socialite::driver('xenforo')->user();
-    
-    // User data available:
-    $user->getId();        // XenForo user_id
-    $user->getNickname();  // Username
-    $user->getName();      // Username (same as nickname)
-    $user->getEmail();     // Email address
-    $user->getAvatar();    // Avatar URL (original size if available)
-    
-    // Access token for API calls
-    $token = $user->token;
-    $refreshToken = $user->refreshToken;
-    $expiresIn = $user->expiresIn;
-    
-    // Find or create user in your database
-    // ...
-    
-    return redirect('/dashboard');
-});
-```
-
-### Custom Scopes
-
-You can request additional scopes:
-
-```php
-return Socialite::driver('xenforo')
-    ->scopes(['read', 'profile', 'post'])
-    ->redirect();
-```
-
-**Available XenForo Scopes**:
-- `read` - Read user data
-- `profile` - Access profile information
-- `post` - Create posts/threads (if enabled)
-
-### Stateless Authentication
-
-For API-based authentication:
-
-```php
-$user = Socialite::driver('xenforo')->stateless()->user();
-```
-
-## XenForo API Endpoints
-
-The provider uses the following XenForo endpoints:
-
-- **Authorization**: `{base_url}/oauth/authorize`
-- **Token**: `{base_url}/oauth/token`
-- **User Info**: `{base_url}/api/me`
-- **Revocation**: `{base_url}/oauth/revoke` (for revoking tokens)
-
-## User Data Mapping
-
-The provider maps XenForo user data as follows:
-
-| Socialite Field | XenForo Field | Description |
-|----------------|---------------|-------------|
-| `id` | `user_id` | Unique user identifier |
-| `nickname` | `username` | Username |
-| `name` | `username` | Display name (same as username) |
-| `email` | `email` | Email address |
-| `avatar` | `avatar_urls.*` | Avatar URL (prefers original > large > medium) |
-
-## Avatar Sizes
-
-The provider attempts to retrieve avatars in the following order:
-1. Original (`o`) - Full resolution
-2. Large (`l`) - Large size
-3. Medium (`m`) - Medium size
-
-If no avatar is available, `null` is returned.
-
-## Error Handling
-
-```php
-use Laravel\Socialite\Facades\Socialite;
-use Laravel\Socialite\Two\InvalidStateException;
-
-try {
-    $user = Socialite::driver('xenforo')->user();
-} catch (InvalidStateException $e) {
-    // Invalid state, possible CSRF attempt
-    return redirect('/login')->withError('Authentication failed. Please try again.');
-} catch (\Exception $e) {
-    // Other authentication errors
-    return redirect('/login')->withError('Unable to authenticate with XenForo.');
-}
-```
-
-## Testing
-
-Run the unit tests:
+After changing `.env` values:
 
 ```bash
-php artisan test --filter=XenforoProviderTest
+php artisan config:clear
+php artisan cache:clear
 ```
 
-## Security Considerations
+If you cache config in production, rebuild it afterward.
 
-1. **Always use HTTPS** in production for both your app and XenForo installation
-2. **Validate redirect URIs** - Only add trusted redirect URIs in XenForo
-3. **Keep secrets secure** - Never commit credentials to version control
-4. **Use state parameter** - Socialite automatically includes CSRF protection
-5. **Token storage** - Store access tokens securely and encrypt sensitive data
-6. **Token refresh** - Implement token refresh for long-lived sessions
+### 7. Link users through XenForo OAuth
 
-## PKCE Support
+Troop Tracker features such as banner display, event posting as a user, and user synchronization depend on a linked XenForo account.
 
-For public clients (JavaScript/mobile apps), XenForo 2.3 supports PKCE. While this provider is configured for confidential clients by default, PKCE can be enabled:
+Troop Tracker resolves the XenForo user by reading:
 
-```php
-// This would require extending the provider to add PKCE support
-// PKCE is recommended for all client types as an additional security layer
+- `tt_oauth_logins.provider = xenforo`
+- `tt_oauth_logins.provider_id = XenForo user_id`
+
+If a trooper is not linked, Troop Tracker cannot resolve the XenForo `user_id` for that person.
+
+### 8. Configure organization forum mappings
+
+For event thread automation, configure organization-level forum IDs in Troop Tracker.
+
+You will need:
+
+- active event forum node ID
+- archive forum node ID
+
+These are used to:
+
+- create event threads in the correct forum
+- move threads to the archive when events close
+
+### 9. Configure organization XenForo group mappings
+
+If you want organization-based group synchronization, populate the XenForo group ID fields on organizations.
+
+Troop Tracker supports mapping:
+
+- active group ID
+- reserve group ID
+- retired group ID
+
+These mappings are used by the XenForo user sync service.
+
+### 10. Run synchronization if needed
+
+To push Troop Tracker data to XenForo after setup:
+
+```bash
+php artisan tracker:synchronize-xenforo-users
 ```
+
+For a single user:
+
+```bash
+php artisan tracker:synchronize-xenforo-user 644
+```
+
+## Validation Steps
+
+After setup, verify each layer:
+
+### OAuth
+
+- log in through XenForo
+- confirm an `oauth_logins` record is created with provider `xenforo`
+
+### API integration
+
+- verify Troop Tracker can read a XenForo user
+- verify event thread creation works for an organization with a related forum
+
+### Upgrade stats add-on
+
+- confirm `GET /index.php?api/upgrade-stats` returns JSON
+- confirm support totals in Troop Tracker match XenForo upgrade data
+
+### User-groups add-on
+
+- confirm `GET /index.php?api/user-groups&user_id={id}` returns JSON
+- confirm service-record pages show XenForo banners for linked users
+
+### User synchronization
+
+- run the sync command
+- confirm XenForo custom fields and secondary groups update as expected
 
 ## Troubleshooting
 
-### "Invalid redirect URI"
-- Ensure the redirect URI in your `.env` matches exactly what's configured in XenForo
-- Check for trailing slashes and protocol (http vs https)
+### Login works but banners or forum features do not
 
-### "Invalid client credentials"
-- Verify `XENFORO_CLIENT_ID` and `XENFORO_CLIENT_SECRET` are correct
-- Ensure there are no extra spaces in your `.env` file
+Possible causes:
 
-### "User data not returned"
-- Check that `XENFORO_BASE_URL` is set correctly without trailing slash
-- Verify the XenForo API is accessible
-- Ensure the access token has the correct scopes
+- `XENFORO_API_KEY` is missing or invalid
+- add-ons are not installed in XenForo
+- linked user does not have a XenForo OAuth mapping in `tt_oauth_logins`
 
-### "SSL certificate problem"
-- In development, you may need to configure Guzzle to accept self-signed certificates
-- **Never disable SSL verification in production**
+### Banners do not appear on the service-record page
 
-## Reference
+Check:
 
-- [XenForo OAuth2 Documentation](https://xenforo.com/community/threads/have-you-seen-single-sign-on-and-more-with-oauth2-in-xenforo-2-3.218304/)
-- [Laravel Socialite Documentation](https://laravel.com/docs/12.x/socialite)
-- [OAuth 2.0 Specification](https://oauth.net/2/)
-- [PKCE Extension](https://oauth.net/2/pkce/)
+- XenForo integration is configured
+- the trooper has `provider = xenforo` in `tt_oauth_logins`
+- `provider_id` contains the correct XenForo `user_id`
+- the user-groups endpoint returns non-empty `bannerText`
+
+### Support total does not use XenForo data
+
+Check:
+
+- the upgrade-stats add-on is installed
+- the API key includes `upgrades:read`
+- the endpoint returns upgrade data for the current month
+
+### Event threads are not created or updated
+
+Check:
+
+- organization forum IDs are configured
+- API key can access thread and post endpoints
+- the event creator has a linked XenForo account if thread creation should be performed as that user
+
+### User sync does not apply expected groups
+
+Check:
+
+- organization XenForo group IDs are populated
+- trooper memberships are correct in Troop Tracker
+- the linked XenForo account exists
+
+## References
+
+- [Authentication Guide](AUTHENTICATION.md)
+- [Environment Variables](ENVIRONMENT_VARIABLES.md)
+- https://github.com/MattDrennan/Troop-Tracker---Upgrade-Stats
+- https://github.com/MattDrennan/TroopTrackerUserGroups

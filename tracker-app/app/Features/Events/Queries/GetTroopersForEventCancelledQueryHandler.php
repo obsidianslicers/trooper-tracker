@@ -9,6 +9,7 @@ use App\Enums\EventTrooperStatus;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
+use Illuminate\Support\Collection;
 
 /**
  * Handler for retrieving troopers who signed up for a cancelled event.
@@ -31,7 +32,7 @@ readonly class GetTroopersForEventCancelledQueryHandler implements QueryHandlerI
      * 4. Return collection of Trooper models
      *
      * @param  GetTroopersForEventCancelledQuery  $message  The query containing the cancelled event
-     * @return \Illuminate\Support\Collection<int, Trooper> Active troopers who signed up for the event
+     * @return Collection<int, Trooper> Active troopers who signed up for the event
      */
     public function __invoke(object $message): mixed
     {

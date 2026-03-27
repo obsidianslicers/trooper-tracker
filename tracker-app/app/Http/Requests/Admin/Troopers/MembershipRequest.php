@@ -24,7 +24,7 @@ use Illuminate\Validation\Rule;
  *
  * Only administrators can modify trooper membership settings.
  *
- * @property \Illuminate\Database\Eloquent\Collection|null $organizations_cache Cached organizations for validation
+ * @property Collection|null $organizations_cache Cached organizations for validation
  */
 class MembershipRequest extends FormRequest
 {
@@ -140,7 +140,7 @@ class MembershipRequest extends FormRequest
      * Fetches all active organizations and caches them to avoid multiple
      * database queries during validation rule generation.
      *
-     * @return \Illuminate\Database\Eloquent\Collection The collection of active organizations
+     * @return Collection The collection of active organizations
      */
     private function getOrganizations(): Collection
     {

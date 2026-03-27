@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models\Observers;
 
+use App\Facades\TroopTrackerFacade;
+use App\Jobs\UpdateEventForumThreadJob;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Services\GeocodingService;
@@ -60,9 +62,14 @@ class EventObserver
     {
         $attributes = ['venue_address', 'venue_city', 'venue_state', 'venue_zip', 'venue_country'];
 
-        if ($event->isDirty($attributes))
+        if ($event->wasChanged($attributes))
         {
             $this->storeGeocode($event);
+        }
+
+        if ($this->shouldQueueForumThreadSync($event))
+        {
+            dispatch(new UpdateEventForumThreadJob($event->getKey()));
         }
     }
 
@@ -77,6 +84,12 @@ class EventObserver
      */
     private function storeGeocode(Event $event): void
     {
+        if (config('app.env') === 'testing')
+        {
+            //  don't attempt geocoding during tests to avoid external API calls and potential rate limits
+            return;
+        }
+
         try
         {
             $address = $this->buildGeocodeAddress($event);
@@ -151,5 +164,38 @@ class EventObserver
 
         // Join with commas for Nominatim
         return implode(', ', array_filter($parts));
+    }
+
+    private function shouldQueueForumThreadSync(Event $event): bool
+    {
+        if (!TroopTrackerFacade::isXenforoIntegrationConfigured())
+        {
+            return false;
+        }
+
+        if (empty($event->thread_id) || empty($event->post_id) || $event->create_forum_thread === false)
+        {
+            return false;
+        }
+
+        return $event->wasChanged([
+            Event::NAME,
+            Event::VENUE,
+            Event::VENUE_ADDRESS,
+            Event::EVENT_START,
+            Event::EVENT_END,
+            Event::EVENT_WEBSITE,
+            Event::EXPECTED_ATTENDEES,
+            Event::REQUESTED_NUMBER_CHARACTERS,
+            Event::REQUESTED_CHARACTER_TYPES,
+            Event::SECURE_STAGING_AREA,
+            Event::ALLOW_BLASTERS,
+            Event::ALLOW_PROPS,
+            Event::PARKING_AVAILABLE,
+            Event::ACCESSIBLE,
+            Event::AMENITIES,
+            Event::COMMENTS,
+            Event::REFERRED_BY,
+        ]);
     }
 }

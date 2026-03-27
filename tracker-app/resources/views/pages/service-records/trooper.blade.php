@@ -12,6 +12,13 @@
                     // {{ $service_summary['rank_title'] }}
                 </span>
             </h2>
+            @if($xenforo_group_banners->isNotEmpty())
+                <div class="mt-2 service-record-banners">
+                    @foreach($xenforo_group_banners as $banner)
+                        {!! $banner['banner_text'] !!}
+                    @endforeach
+                </div>
+            @endif
         </div>
     </div>
 
@@ -128,3 +135,27 @@
     </div>
 
 @endsection
+
+<style>
+    .service-record-banners {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem 0.75rem;
+        max-width: 100%;
+    }
+
+    .service-record-banners img {
+        display: block;
+        max-width: min(100%, 320px);
+        max-height: 64px;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+    }
+
+    .service-record-banners > * {
+        flex: 0 1 auto;
+        max-width: 100%;
+    }
+</style>

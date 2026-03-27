@@ -6,6 +6,7 @@ namespace App\Features\Notices\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Models\Notice;
+use Illuminate\Support\Collection;
 
 /**
  * Handler for retrieving all notices visible to a trooper.
@@ -33,7 +34,7 @@ readonly class GetTrooperNoticesQueryHandler implements QueryHandlerInterface
      * Results are ordered by starts_at timestamp (ascending).
      *
      * @param  GetTrooperNoticesQuery  $message  The query containing the trooper
-     * @return \Illuminate\Support\Collection<int, Notice> Collection of visible notices
+     * @return Collection<int, Notice> Collection of visible notices
      */
     public function __invoke(object $message): mixed
     {

@@ -25,7 +25,7 @@ use Illuminate\Validation\Rule;
  * - `withValidator()` attaches custom, user-facing error messages for organization rules.
  * - `getOrganizations()` caches organizations for efficient repeated access.
  *
- * @property \Illuminate\Support\Collection|null $organizations Cached organizations for rule generation
+ * @property Collection|null $organizations Cached organizations for rule generation
  */
 class SetupRequest extends FormRequest
 {

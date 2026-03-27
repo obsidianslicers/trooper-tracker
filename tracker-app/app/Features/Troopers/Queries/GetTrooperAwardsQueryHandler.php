@@ -9,6 +9,7 @@ use App\Models\Award;
 use App\Models\AwardTrooper;
 use App\Models\Organization;
 use App\Models\Trooper;
+use Illuminate\Support\Collection;
 
 /**
  * Retrieves awarded trooper records within a lookback window.
@@ -20,7 +21,7 @@ readonly class GetTrooperAwardsQueryHandler implements QueryHandlerInterface
     /**
      * Loads award records with related award, organization, and trooper data.
      *
-     * @return \Illuminate\Support\Collection<int, AwardTrooper>
+     * @return Collection<int, AwardTrooper>
      */
     public function __invoke(object $message): mixed
     {
