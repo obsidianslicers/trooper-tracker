@@ -11,6 +11,7 @@ use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Events\SignupUpdateHtmxRequest;
 use App\Models\EventTrooper;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Handles HTMX-driven updates to event trooper sign-up details.
@@ -39,6 +40,11 @@ class SignUpUpdateHtmxController extends MagicBusController
 
         if ($request->has('status'))
         {
+            if (!$event_trooper->canUpdateStatus($event_trooper->event_shift, Auth::user()))
+            {
+                return response('Forbidden', 403);
+            }
+
             $is_full = $event_trooper->is_handler
                 ? $event_trooper->event_shift->handlersMaxed()
                 : $event_trooper->event_shift->troopersMaxed();

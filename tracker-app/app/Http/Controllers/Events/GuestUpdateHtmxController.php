@@ -9,6 +9,7 @@ use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Events\GuestUpdateHtmxRequest;
 use App\Models\EventGuest;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Handles HTMX-driven updates to event guest details.
@@ -30,6 +31,11 @@ class GuestUpdateHtmxController extends MagicBusController
 
         if ($request->has('status'))
         {
+            if (!$event_guest->canUpdateStatus($event_guest->event_shift, Auth::user()))
+            {
+                return response('Forbidden', 403);
+            }
+
             $valid_data = ['status' => $request->validated('status')];
 
             $event_guest_cmd = new UpdateEventGuestCommand($event_guest, $valid_data);
