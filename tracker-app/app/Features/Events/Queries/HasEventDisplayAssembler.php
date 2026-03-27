@@ -31,6 +31,8 @@ trait HasEventDisplayAssembler
     /**
      * Keyed collection of organization names.
      * Maps organization ID to organization name for display assembly.
+     *
+     * @var Collection<int, string>
      */
     private readonly Collection $organizations;
 
@@ -43,6 +45,49 @@ trait HasEventDisplayAssembler
     private function bootHasEventDisplayAssembler(): void
     {
         $this->organizations = Organization::ofTypeOrganizations()->pluck('name', 'id');
+    }
+
+    /**
+     * Ensures each event has a complete organization list for display.
+     *
+     * Any organization not currently attached to an event is appended with a
+     * synthetic pivot object where can_attend is false.
+     *
+     * @param Collection<int, Event> $events Events to enrich in place
+     */
+    private function assembleEventOrganizations(Collection $events): void
+    {
+        foreach ($events as $event)
+        {
+            $this->assembleEventOrganization($event);
+        }
+    }
+
+    /**
+     * Appends missing organizations to a single event for display parity.
+     *
+     * This guarantees all known organizations are present in the event's
+     * organizations collection, with unavailable entries flagged via pivot.
+     *
+     * @param Event $event Event to enrich
+     */
+    private function assembleEventOrganization(Event $event): void
+    {
+        $event_org_ids = $event->organizations->pluck(Organization::ID)->all();
+        $missing_orgs = $this->organizations->except($event_org_ids);
+
+        foreach ($missing_orgs as $id => $name)
+        {
+            //  copilot create an organization object with only the name and id, and a pivot with can_attend = false, then push it to the event's organizations collection
+            $org_clone = new Organization([
+                Organization::ID => $id,
+                Organization::NAME => $name,
+            ]);
+            $org_clone->pivot = (object) ['can_attend' => false];
+            $event->organizations->push($org_clone);
+        }
+
+        $event->organizations = $event->organizations->sortBy(Organization::NAME)->values();
     }
 
     /**
@@ -104,7 +149,7 @@ trait HasEventDisplayAssembler
      */
     private function transformEventShift(EventShift $event_shift): void
     {
-        $event_shift->event_troopers->transform(fn ($et) => $this->transformEventTrooper($et));
+        $event_shift->event_troopers->transform(fn($et) => $this->transformEventTrooper($et));
     }
 
     /**
@@ -149,7 +194,7 @@ trait HasEventDisplayAssembler
      * - Otherwise: comma-separated, sorted organization names
      *
      * @param  EventTrooper  $event_trooper  The trooper assignment (provides access to costume_id and approved costumes)
-     * @param  Collection  $potential_orgs  Organization IDs that were potentially selected for this costume
+     * @param  Collection<int, int|string>  $potential_orgs  Organization IDs that were potentially selected for this costume
      * @param  int|null  $costume_id  The costume ID to use for filtering approved organizations
      * @return string Display string ready for view rendering
      */
@@ -157,13 +202,13 @@ trait HasEventDisplayAssembler
     {
         // Filter actual approvals by reaching through to the organization_costume
         $approved_orgs = $event_trooper->trooper->trooper_costumes
-            ->filter(fn ($tc) => optional($tc->organization_costume)->costume_id == $costume_id)
+            ->filter(fn($tc) => optional($tc->organization_costume)->costume_id == $costume_id)
             ->pluck('organization_costume.organization_id')
             ->unique();
 
         $final_orgs = $potential_orgs->intersect($approved_orgs);
 
-        $names = $final_orgs->map(fn ($id) => $this->organizations[$id] ?? '??')->sort();
+        $names = $final_orgs->map(fn($id) => $this->organizations[$id] ?? '??')->sort();
 
         $prefix = $names->count() > 1 ? '(*) ' : '';
         $name_list = $names->isEmpty() ? '(unattached)' : $names->implode(', ');

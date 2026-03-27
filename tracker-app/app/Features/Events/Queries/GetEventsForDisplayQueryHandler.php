@@ -6,6 +6,7 @@ namespace App\Features\Events\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Models\Event;
+use App\Models\Organization;
 use Illuminate\Support\Collection;
 
 /**
@@ -18,6 +19,13 @@ use Illuminate\Support\Collection;
  */
 readonly class GetEventsForDisplayQueryHandler implements QueryHandlerInterface
 {
+    use HasEventDisplayAssembler;
+
+    public function __construct()
+    {
+        $this->bootHasEventDisplayAssembler();
+    }
+
     /**
      * Execute the query to retrieve upcoming events for display.
      *
@@ -33,11 +41,21 @@ readonly class GetEventsForDisplayQueryHandler implements QueryHandlerInterface
      */
     public function __invoke(object $message): mixed
     {
-        $relations = ['organization', 'organizations'];
+        $relations = [
+            'organization',
+            'organizations' => function ($query)
+            {
+                $query->orderBy(Organization::NAME);
+            },
+        ];
 
-        return Event::with($relations)
+        $events = Event::with($relations)
             ->withShifts()
             ->upcoming()
             ->get();
+
+        $this->assembleEventOrganizations($events);
+
+        return $events;
     }
 }
