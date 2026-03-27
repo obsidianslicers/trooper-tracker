@@ -259,26 +259,52 @@ class Event extends BaseEvent
     }
 
     /**
-     * Check if a trooper can sign up for this event.
+     * Check if any of the event's organizations require a guardian for attendance.
      *
-     * A trooper can sign up if the event is open and they are not already signed up.
-     * If shifts_allowed is set on the event, also checks that the trooper hasn't
-     * exceeded the maximum number of shifts they can attend for this event.
+     * This method checks the event_organizations relationship to determine if any
+     * associated organization has the requires_guardian flag set to true, which would
+     * indicate that attendees must have a parent/guardian present to participate in the event.
      *
-     * @param Trooper $trooper The trooper attempting to sign up
-     * @return bool True if the trooper can sign up
+     * @return bool True if at least one organization requires a guardian, false otherwise
      */
-    public function canSignUp(Trooper $trooper): bool
+    public function hasOrganizationWithRequiresGuardian(): bool
     {
-        if ($this->is_open)
-        {
-            $count = $this->getShiftCountFor($trooper);
-
-            return $count == 0;
-        }
-
-        return false;
+        return $this->event_organizations->contains(fn($org) => $org->requires_guardian);
     }
+
+    // /**
+    //  * Check if a trooper can sign up for this event.
+    //  *
+    //  * A trooper can sign up if the event is open and they are not already signed up.
+    //  * If shifts_allowed is set on the event, also checks that the trooper hasn't
+    //  * exceeded the maximum number of shifts they can attend for this event.
+    //  *
+    //  * @param Trooper $trooper The trooper attempting to sign up
+    //  * @return bool True if the trooper can sign up
+    //  */
+    // public function canSignUp(Trooper $trooper): bool
+    // {
+    //     if ($this->is_open)
+    //     {
+    //         if ($trooper->is_minor && !$this->hasOrganizationWithRequiresGuardian())
+    //         {
+    //             // For minor troopers, if ZERO organizations require a guardian, then
+    //             // a minor cannot sign up (ie Galactic Academy can_attend=false)
+    //             return false;
+    //         }
+
+    //         $count = $this->getShiftCountFor($trooper);
+
+    //         if ($this->shifts_allowed !== null)
+    //         {
+    //             return $count < $this->shifts_allowed;
+    //         }
+
+    //         return $count == 0;
+    //     }
+
+    //     return false;
+    // }
 
     /**
      * Create a calendar link for this shift.
