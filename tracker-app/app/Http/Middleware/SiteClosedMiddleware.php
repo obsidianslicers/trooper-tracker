@@ -30,7 +30,7 @@ class SiteClosedMiddleware
             return $next($request);
         }
 
-        if (!(bool) SiteSetting::get('site_closed', false))
+        if (!(bool) SiteSetting::getValue('site_closed', false))
         {
             return $next($request);
         }
@@ -47,7 +47,7 @@ class SiteClosedMiddleware
             return $next($request);
         }
 
-        $message = (string) SiteSetting::get('site_message', 'Troop Tracker is currently unavailable. Please check back later.');
+        $message = (string) SiteSetting::getValue('site_message', 'Troop Tracker is currently unavailable. Please check back later.');
 
         return response()->view('pages.closed', compact('message'), 503);
     }

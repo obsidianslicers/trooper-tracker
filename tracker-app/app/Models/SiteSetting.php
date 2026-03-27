@@ -10,22 +10,16 @@ class SiteSetting extends Model
 {
     protected $table = 'tt_site_settings';
 
-    protected $primaryKey = 'key';
-
-    protected $keyType = 'string';
-
-    public $incrementing = false;
-
     protected $fillable = ['key', 'value'];
 
-    public static function get(string $key, mixed $default = null): mixed
+    public static function getValue(string $key, mixed $default = null): mixed
     {
-        $setting = static::find($key);
+        $setting = static::where('key', $key)->first();
 
         return $setting ? $setting->value : $default;
     }
 
-    public static function set(string $key, mixed $value): void
+    public static function setValue(string $key, mixed $value): void
     {
         static::updateOrCreate(['key' => $key], ['value' => $value]);
     }

@@ -277,8 +277,8 @@ class MobileApiController
     private function isClosed(): JsonResponse
     {
         return response()->json([
-            'isWebsiteClosed' => (bool) SiteSetting::get('site_closed', false) ? 1 : 0,
-            'siteMessage' => (string) SiteSetting::get('site_message', ''),
+            'isWebsiteClosed' => (bool) SiteSetting::getValue('site_closed', false) ? 1 : 0,
+            'siteMessage' => (string) SiteSetting::getValue('site_message', ''),
         ]);
     }
 

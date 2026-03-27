@@ -32,7 +32,7 @@
     @include('partials.navbar')
     @include('partials.bread-crumbs')
 
-    @php($site_closed = (bool) \App\Models\SiteSetting::get('site_closed', false))
+    @php($site_closed = (bool) \App\Models\SiteSetting::getValue('site_closed', false))
     @if($site_closed)
         <div class="alert alert-danger rounded-0 text-center mb-0 py-2" style="border-radius: 0 !important;">
             <i class="fa fa-fw fa-lock"></i>

@@ -11,7 +11,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tt_site_settings', function (Blueprint $table): void {
-            $table->string('key')->primary();
+            $table->id();
+            $table->string('key')->unique();
             $table->text('value')->nullable();
             $table->timestamps();
         });
