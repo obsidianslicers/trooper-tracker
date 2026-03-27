@@ -136,6 +136,23 @@ class Trooper extends BaseTrooper implements
     }
 
     /**
+     * Check if the trooper's membership role is admin.
+     *
+     * @return bool True if the trooper is admin, false otherwise.
+     */
+    public function getIsMinorAttribute(): bool
+    {
+        if ($this->date_of_birth)
+        {
+            $age = $this->date_of_birth->age;
+
+            return $age < 18;
+        }
+
+        return false;
+    }
+
+    /**
      * Check if the trooper has an active status in any of their assigned organizations.
      *
      * @return bool True if at least one active assignment exists, false otherwise.

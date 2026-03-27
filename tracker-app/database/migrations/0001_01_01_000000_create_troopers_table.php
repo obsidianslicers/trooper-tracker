@@ -37,8 +37,8 @@ return new class extends Migration
             // for troopers who are minors and their guardians.
             $table->foreignId('guardian_id')
                 ->nullable()
-                ->constrained('tt_organizations')
-                ->cascadeOnDelete();
+                ->constrained('tt_troopers')
+                ->nullOnDelete();
             $table->date('date_of_birth')->nullable();
 
             $table->rememberToken();

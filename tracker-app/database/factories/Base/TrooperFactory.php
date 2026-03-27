@@ -24,6 +24,7 @@ class TrooperFactory extends Factory
             Trooper::MEMBERSHIP_STATUS => $this->faker->word(),
             Trooper::MEMBERSHIP_ROLE => $this->faker->word(),
             Trooper::NOTIFICATION_FREQUENCY => $this->faker->word(),
+            Trooper::GUARDIAN_ID => null,
         ];
     }
 }
