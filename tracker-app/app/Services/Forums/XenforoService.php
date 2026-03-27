@@ -531,6 +531,61 @@ class XenforoService
     }
 
     /**
+     * Fetch active user upgrade purchases (subscriptions/donations) for a XenForo user.
+     *
+     * Returns an array of active upgrade purchase records, or null if the
+     * request fails or credentials are not configured.
+     *
+     * @return array<int,array<string,mixed>>|null
+     */
+    public function get_user_purchases(int $user_id): ?array
+    {
+        if (empty($this->base_url) || empty($this->api_key) || $user_id <= 0)
+        {
+            return null;
+        }
+
+        $url = $this->base_url.'/api/user-upgrades/purchases/';
+
+        try
+        {
+            $headers = $this->buildApiHeaders();
+
+            $response = Http::withHeaders($headers)
+                ->acceptJson()
+                ->timeout(5)
+                ->get($url, ['user_id' => $user_id]);
+        }
+        catch (\Throwable $e)
+        {
+            Log::warning('Failed to fetch XenForo user purchases', [
+                'url' => $url,
+                'user_id' => $user_id,
+                'message' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+
+        if (!$response->successful())
+        {
+            Log::warning('Non-success response from XenForo user purchases', [
+                'url' => $url,
+                'user_id' => $user_id,
+                'status' => $response->status(),
+            ]);
+
+            return null;
+        }
+
+        $data = $response->json();
+
+        $purchases = $data['purchases'] ?? $data;
+
+        return is_array($purchases) ? array_values($purchases) : null;
+    }
+
+    /**
      * Fetch user-group banner data from the XenForo user-groups add-on.
      *
      * @return array<string,mixed>|null

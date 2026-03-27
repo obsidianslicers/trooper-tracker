@@ -12,6 +12,7 @@ use App\Models\Event;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
 use App\Models\TrooperAchievement;
+use App\Models\TrooperDonation;
 use Illuminate\Support\Collection;
 
 /**
@@ -91,6 +92,10 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
             $this->updateAchievement($trooper, AchievementType::DIRECT_FUNDS, $metrics['total_direct']);
             $this->updateAchievement($trooper, AchievementType::INDIRECT_FUNDS, $metrics['total_indirect']);
 
+            $donation_metrics = $this->computeDonationMetrics($trooper);
+            $this->updateAchievement($trooper, AchievementType::DONATION_MONTHS, $donation_metrics['donation_months']);
+            $this->storeDonationMilestoneAchievements($trooper, $donation_metrics);
+
             $this->storeTroopThresholdAchievements($trooper, $trooper->event_count);
 
             $this->rank++;
@@ -164,6 +169,89 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
             'total_indirect' => $total_indirect,
             'total_hours' => $total_hours,
         ];
+    }
+
+    /**
+     * Compute donation metrics for a trooper.
+     *
+     * Counts the distinct calendar months in which the trooper has made at
+     * least one donation, and sums the total amount donated across all records.
+     *
+     * @param  Trooper  $trooper  The trooper to compute donation metrics for
+     * @return array{donation_months: int, total_donated: float}
+     */
+    private function computeDonationMetrics(Trooper $trooper): array
+    {
+        $donations = TrooperDonation::where(TrooperDonation::TROOPER_ID, $trooper->id)
+            ->whereNull('deleted_at')
+            ->get([TrooperDonation::AMOUNT, TrooperDonation::CREATED_AT]);
+
+        $total_donated = 0.0;
+        $month_keys = [];
+
+        foreach ($donations as $donation)
+        {
+            $total_donated += (float) $donation->amount;
+
+            if ($donation->created_at !== null)
+            {
+                $month_keys[$donation->created_at->format('Y-m')] = true;
+            }
+        }
+
+        return [
+            'donation_months' => count($month_keys),
+            'total_donated' => $total_donated,
+        ];
+    }
+
+    /**
+     * Store milestone achievements for donation length and cumulative amount.
+     *
+     * @param  Trooper  $trooper  The trooper to check milestones for
+     * @param  array{donation_months: int, total_donated: float}  $metrics
+     */
+    private function storeDonationMilestoneAchievements(Trooper $trooper, array $metrics): void
+    {
+        $month_thresholds = [
+            AchievementType::SUPPORTER_12_MONTHS => 12,
+            AchievementType::SUPPORTER_24_MONTHS => 24,
+            AchievementType::SUPPORTER_36_MONTHS => 36,
+            AchievementType::SUPPORTER_60_MONTHS => 60,
+        ];
+
+        foreach ($month_thresholds as $type => $threshold)
+        {
+            if ($metrics['donation_months'] < $threshold)
+            {
+                continue;
+            }
+
+            TrooperAchievement::firstOrCreate(
+                [TrooperAchievement::TROOPER_ID => $trooper->id, TrooperAchievement::TYPE => $type],
+                [TrooperAchievement::VALUE => true, TrooperAchievement::ACHIEVEMENT_DATE => now()]
+            );
+        }
+
+        $amount_thresholds = [
+            AchievementType::DONATED_100  => 100,
+            AchievementType::DONATED_250  => 250,
+            AchievementType::DONATED_500  => 500,
+            AchievementType::DONATED_1000 => 1000,
+        ];
+
+        foreach ($amount_thresholds as $type => $threshold)
+        {
+            if ($metrics['total_donated'] < $threshold)
+            {
+                continue;
+            }
+
+            TrooperAchievement::firstOrCreate(
+                [TrooperAchievement::TROOPER_ID => $trooper->id, TrooperAchievement::TYPE => $type],
+                [TrooperAchievement::VALUE => true, TrooperAchievement::ACHIEVEMENT_DATE => now()]
+            );
+        }
     }
 
     /**

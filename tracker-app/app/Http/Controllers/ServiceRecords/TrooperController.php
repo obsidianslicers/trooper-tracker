@@ -47,6 +47,7 @@ class TrooperController extends MagicBusController
 
         $data['trooper_costumes'] = $trooper_costumes;
         $data['xenforo_group_banners'] = collect();
+        $data['is_active_donor'] = false;
 
         if (TroopTrackerFacade::isXenforoIntegrationConfigured())
         {
@@ -56,10 +57,48 @@ class TrooperController extends MagicBusController
             {
                 $group_data = $xenforo->get_user_groups($xenforo_user_id);
                 $data['xenforo_group_banners'] = $this->extractXenforoGroupBanners($group_data);
+
+                $purchases = $xenforo->get_user_purchases($xenforo_user_id);
+                $data['is_active_donor'] = $this->hasActivePurchase($purchases);
             }
         }
 
         return view('pages.service-records.trooper', $data);
+    }
+
+    /**
+     * Determine if any of the given XenForo user upgrade purchases is currently active.
+     *
+     * A purchase is active when it has no end_date (lifetime) or the end_date
+     * is in the future.
+     *
+     * @param  array<int,array<string,mixed>>|null  $purchases
+     */
+    private function hasActivePurchase(?array $purchases): bool
+    {
+        if (empty($purchases))
+        {
+            return false;
+        }
+
+        $now = time();
+
+        foreach ($purchases as $purchase)
+        {
+            if (!is_array($purchase))
+            {
+                continue;
+            }
+
+            $end_date = $purchase['end_date'] ?? $purchase['endDate'] ?? null;
+
+            if ($end_date === null || (int) $end_date === 0 || (int) $end_date > $now)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
