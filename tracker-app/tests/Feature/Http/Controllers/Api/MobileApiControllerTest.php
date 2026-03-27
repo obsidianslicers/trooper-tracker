@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\Api;
 
 use App\Enums\EventTrooperStatus;
+use App\Enums\OauthProvider;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventShift;
@@ -35,7 +36,7 @@ class MobileApiControllerTest extends TestCase
         $trooper = Trooper::factory()->asActive()->create();
 
         OauthLogin::factory()->forTrooper($trooper)->create([
-            OauthLogin::PROVIDER => 'xenforo',
+            OauthLogin::PROVIDER => OauthProvider::XENFORO,
             OauthLogin::PROVIDER_ID => '12345',
         ]);
 
@@ -71,7 +72,7 @@ class MobileApiControllerTest extends TestCase
 
         $this->assertDatabaseHas('tt_oauth_logins', [
             OauthLogin::TROOPER_ID => $trooper->id,
-            OauthLogin::PROVIDER => 'xenforo',
+            OauthLogin::PROVIDER => OauthProvider::XENFORO,
             OauthLogin::PROVIDER_ID => '12345',
             OauthLogin::TOKEN => 'forum-access-token',
         ]);
@@ -137,7 +138,7 @@ class MobileApiControllerTest extends TestCase
         $trooper = Trooper::factory()->asRetired()->create();
 
         OauthLogin::factory()->forTrooper($trooper)->create([
-            OauthLogin::PROVIDER => 'xenforo',
+            OauthLogin::PROVIDER => OauthProvider::XENFORO,
             OauthLogin::PROVIDER_ID => '12345',
         ]);
 
@@ -269,7 +270,7 @@ class MobileApiControllerTest extends TestCase
         ]);
 
         OauthLogin::factory()->forTrooper($trooper)->create([
-            OauthLogin::PROVIDER => 'xenforo',
+            OauthLogin::PROVIDER => OauthProvider::XENFORO,
             OauthLogin::PROVIDER_ID => '15802',
         ]);
 
@@ -298,10 +299,10 @@ class MobileApiControllerTest extends TestCase
         $response = $this->withHeaders([
             'API-Key' => $apiCode->api_code,
         ])->get(route('api.mobile', [
-            'action' => 'get_costumes_for_trooper',
-            'trooperid' => 15802,
-            'friendid' => 0,
-        ]));
+                        'action' => 'get_costumes_for_trooper',
+                        'trooperid' => 15802,
+                        'friendid' => 0,
+                    ]));
 
         $response->assertOk();
         $response->assertJsonCount(1);
@@ -319,7 +320,7 @@ class MobileApiControllerTest extends TestCase
         $costume = Costume::factory()->create();
 
         OauthLogin::factory()->forTrooper($trooper)->create([
-            OauthLogin::PROVIDER => 'xenforo',
+            OauthLogin::PROVIDER => OauthProvider::XENFORO,
             OauthLogin::PROVIDER_ID => '15802',
         ]);
 
@@ -331,14 +332,14 @@ class MobileApiControllerTest extends TestCase
         $response = $this->withHeaders([
             'API-Key' => $apiCode->api_code,
         ])->get(route('api.mobile', [
-            'action' => 'sign_up',
-            'trooperid' => 15802,
-            'addedby' => 0,
-            'troopid' => $event->id,
-            'status' => EventTrooperStatus::GOING->value,
-            'costume' => $costume->id,
-            'backupcostume' => 0,
-        ]));
+                        'action' => 'sign_up',
+                        'trooperid' => 15802,
+                        'addedby' => 0,
+                        'troopid' => $event->id,
+                        'status' => EventTrooperStatus::GOING->value,
+                        'costume' => $costume->id,
+                        'backupcostume' => 0,
+                    ]));
 
         $response->assertOk();
         $response->assertJsonPath('success', true);
@@ -359,7 +360,7 @@ class MobileApiControllerTest extends TestCase
         $costume = Costume::factory()->create();
 
         OauthLogin::factory()->forTrooper($trooper)->create([
-            OauthLogin::PROVIDER => 'xenforo',
+            OauthLogin::PROVIDER => OauthProvider::XENFORO,
             OauthLogin::PROVIDER_ID => '15802',
         ]);
 
@@ -371,14 +372,14 @@ class MobileApiControllerTest extends TestCase
         $response = $this->withHeaders([
             'API-Key' => $apiCode->api_code,
         ])->get(route('api.mobile', [
-            'action' => 'sign_up',
-            'trooperid' => 15802,
-            'addedby' => 0,
-            'troopid' => $event->id,
-            'status' => 0,
-            'costume' => $costume->id,
-            'backupcostume' => 0,
-        ]));
+                        'action' => 'sign_up',
+                        'trooperid' => 15802,
+                        'addedby' => 0,
+                        'troopid' => $event->id,
+                        'status' => 0,
+                        'costume' => $costume->id,
+                        'backupcostume' => 0,
+                    ]));
 
         $response->assertStatus(400);
         $response->assertJsonPath(

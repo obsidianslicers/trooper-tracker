@@ -6,6 +6,7 @@ namespace App\Providers;
 
 use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
+use App\Enums\OauthProvider;
 use App\Mail\Auth\VerifyTrooperEmail;
 use App\Services\BreadCrumbService;
 use App\Services\Socialite\XenforoProvider;
@@ -66,7 +67,7 @@ class AppServiceProvider extends ServiceProvider
         //
         //  SOCIALITE CUSTOM PROVIDERS
         //
-        Socialite::extend('xenforo', function ($app) {
+        Socialite::extend(OauthProvider::XENFORO->value, function ($app) {
             $config = $app['config']['services.xenforo'];
 
             return Socialite::buildProvider(XenforoProvider::class, $config);

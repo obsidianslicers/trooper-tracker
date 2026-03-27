@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Mobile;
 
+use App\Enums\OauthProvider;
 use App\Models\OauthLogin;
 use App\Models\Trooper;
 use Illuminate\Http\Client\Factory as HttpFactory;
@@ -30,7 +31,7 @@ readonly class MobileForumLoginService
             throw new MobileForumLoginException('Forum user profile is missing a user ID.', 502);
         }
 
-        $oauth_login = OauthLogin::where(OauthLogin::PROVIDER, OauthLogin::PROVIDER_XENFORO)
+        $oauth_login = OauthLogin::where(OauthLogin::PROVIDER, OauthProvider::XENFORO)
             ->where(OauthLogin::PROVIDER_ID, $resolved_user_id)
             ->with('trooper')
             ->first();

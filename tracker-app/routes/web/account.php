@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\OauthProvider;
 use App\Http\Controllers\Account\CostumesController;
 use App\Http\Controllers\Account\CostumesDeleteHtmxController;
 use App\Http\Controllers\Account\CostumesSubmitHtmxController;
@@ -38,7 +39,8 @@ Route::prefix('account')
         Route::post('/setup', SetupSubmitController::class)->name('setup-submit');
 
         // XenForo linking required page
-        Route::get('/xenforo/required', function () {
+        Route::get('/xenforo/required', function ()
+        {
             $user = Auth::user();
 
             return view('pages.account.xenforo-required', [
@@ -47,11 +49,12 @@ Route::prefix('account')
         })->name('xenforo.required');
 
         // Optional: show current XenForo link status
-        Route::get('/xenforo', function () {
+        Route::get('/xenforo', function ()
+        {
             $user = Auth::user();
 
             $xenforo_login = OauthLogin::where(OauthLogin::TROOPER_ID, $user->id)
-                ->where(OauthLogin::PROVIDER, 'xenforo')
+                ->where(OauthLogin::PROVIDER, OauthProvider::XENFORO)
                 ->first();
 
             return view('pages.account.xenforo', [

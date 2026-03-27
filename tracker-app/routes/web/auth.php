@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\OauthProvider;
 use App\Http\Controllers\Auth\InactiveController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LoginSubmitController;
@@ -19,7 +20,7 @@ use Illuminate\Support\Facades\Route;
 Route::name('auth.')
     ->group(function ()
     {
-        $providers = ['google', 'xenforo'];
+        $providers = [OauthProvider::GOOGLE->value, OauthProvider::XENFORO->value];
 
         //  LOGIN / LOGOUT
         Route::get('/login', LoginController::class)->name('login');

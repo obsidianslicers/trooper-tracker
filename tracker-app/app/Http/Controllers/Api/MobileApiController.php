@@ -8,6 +8,7 @@ use App\Enums\EventGuestStatus;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Enums\MembershipStatus;
+use App\Enums\OauthProvider;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventGuest;
@@ -220,7 +221,7 @@ class MobileApiController
      */
     private function trooperFromUserId(int $user_id): ?Trooper
     {
-        $oauth = OauthLogin::where(OauthLogin::PROVIDER, OauthLogin::PROVIDER_XENFORO)
+        $oauth = OauthLogin::where(OauthLogin::PROVIDER, OauthProvider::XENFORO)
             ->where(OauthLogin::PROVIDER_ID, (string) $user_id)
             ->with('trooper')
             ->first();
