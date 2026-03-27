@@ -341,7 +341,7 @@ class MobileApiControllerTest extends TestCase
         ]));
 
         $response->assertOk();
-        $response->assertJsonPath('success', 'success');
+        $response->assertJsonPath('success', true);
         $response->assertJsonPath('success_message', 'Success!');
 
         $this->assertDatabaseHas('tt_event_troopers', [
