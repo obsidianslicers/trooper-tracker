@@ -52,8 +52,8 @@ class UpdateController extends MagicBusController
         foreach ($organizations as $organization)
         {
             $event_organization = $event->organizations
-                ->filter(fn($eo) => $eo->id == $organization->id)
-                ->filter(fn($eo) => $eo->pivot->can_attend)
+                ->filter(fn ($eo) => $eo->id == $organization->id)
+                ->filter(fn ($eo) => $eo->pivot->can_attend)
                 ->first();
 
             $organization->pivot = $event_organization->pivot ?? null;
