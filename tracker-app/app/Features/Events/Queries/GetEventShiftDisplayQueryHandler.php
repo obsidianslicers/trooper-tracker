@@ -57,15 +57,13 @@ readonly class GetEventShiftDisplayQueryHandler implements QueryHandlerInterface
 
         return [
             'event',
-            'event_troopers.trooper:' . implode(',', $trooper_columns),
-            'event_troopers.added_by_trooper:' . implode(',', $trooper_columns),
-            'event_troopers' => function ($query)
-            {
+            'event_troopers.trooper:'.implode(',', $trooper_columns),
+            'event_troopers.added_by_trooper:'.implode(',', $trooper_columns),
+            'event_troopers' => function ($query) {
                 $query->orderBy(EventTrooper::SIGNED_UP_AT, 'asc');
             },
-            'event_guests.added_by_trooper:' . implode(',', $trooper_columns),
-            'event_guests' => function ($query)
-            {
+            'event_guests.added_by_trooper:'.implode(',', $trooper_columns),
+            'event_guests' => function ($query) {
                 $query->orderBy(EventGuest::NAME, 'asc');
             },
         ];
