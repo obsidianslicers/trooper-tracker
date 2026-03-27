@@ -28,7 +28,10 @@ stan/pint - WIP
 ## TROOPERS
 
 ### WORK IN PROGRESS
-- Profile page to show off acheivements, donations made, costumes (501st api)
+- Add better controls for adding/removing troopers on backend CS panel for events
+- Manual selection event, similar to TT 1.0
+- Download event roster to CSV (used my CS at troopers to help manage an event in person with physical paper)
+- 
 
 ## REPORTS
 - Reports
@@ -80,3 +83,7 @@ stan/pint - WIP
 ## EMAIL
 - change email workflow? - for now lock it down
 - password change workflow? forgot password workflow?
+
+## Legacy Mobile App
+- Refactor, add tests
+- Does it respect event status to add guest, trooper? (Closed, draft, locked etc?) (double check)
