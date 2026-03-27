@@ -163,6 +163,25 @@ class EventTrooper extends BaseEventTrooper
             //  and it's full they can't set to something else
             if ($this->status != EventTrooperStatus::GOING)
             {
+                //  if re-activating a cancelled friend, check the adder's friend limit
+                if ($this->status === EventTrooperStatus::CANCELLED && $this->added_by_trooper_id !== null)
+                {
+                    $friends_allowed = $event_shift->event->friends_allowed;
+
+                    if ($friends_allowed !== null)
+                    {
+                        $active_friends = $event_shift->event_troopers()
+                            ->where(self::ADDED_BY_TROOPER_ID, $this->added_by_trooper_id)
+                            ->where(self::STATUS, '!=', EventTrooperStatus::CANCELLED)
+                            ->count();
+
+                        if ($active_friends >= $friends_allowed)
+                        {
+                            return false;
+                        }
+                    }
+                }
+
                 if ($this->is_handler)
                 {
                     return !$event_shift->handlersMaxed();

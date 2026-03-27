@@ -63,7 +63,9 @@
                                 :value="$event_trooper->status->value"
                                 hx-post="{{ route('events.signup-update-htmx', compact('event_trooper')) }}"
                                 hx-indicator="#transmission-bar-shift-{{ $event_trooper->event_shift->id }}"
-                                hx-swap="none"
+                                hx-select="#shift-container-{{ $event_trooper->event_shift->id }}"
+                                hx-target="#shift-container-{{ $event_trooper->event_shift->id }}"
+                                hx-swap="outerHTML"
                                 class="form-select-sm" />
             @else
                 <span class="{{ $event_trooper->status->color() }}">

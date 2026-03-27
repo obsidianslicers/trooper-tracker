@@ -24,6 +24,18 @@ a:hover {
     }
 }
 
+.trooper-status-cancelled a {
+    text-decoration: line-through;
+}
+
+.guest-status-cancelled > div:first-child {
+    text-decoration: line-through;
+
+    .text-muted {
+        text-decoration: none;
+    }
+}
+
 .event-image-share-wrapper {
     position: relative;
 }

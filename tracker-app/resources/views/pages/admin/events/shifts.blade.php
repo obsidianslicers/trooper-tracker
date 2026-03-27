@@ -40,6 +40,7 @@
                             <th>Date</th>
                             <th>Starts At</th>
                             <th>Ends At</th>
+                            <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -65,6 +66,13 @@
                                                   :value="$shift->shift_ends_at->format('H:i')"
                                                   :disabled="!$event->is_active"
                                                   class="form-control-sm" />
+                                </td>
+                                <td>
+                                    <x-input-select :property="'shifts.' . $shift->id . '.status'"
+                                                    :options="\App\Enums\EventStatus::toArray()"
+                                                    :value="$shift->status->value"
+                                                    :disabled="!$event->is_active"
+                                                    class="form-select-sm" />
                                 </td>
                             </tr>
                         @endforeach
@@ -94,7 +102,7 @@
                     @if($event->is_active)
                         <tfoot>
                             <tr>
-                                <td colspan="4"
+                                <td colspan="5"
                                     class="text-end">
                                     <button type="button"
                                             class="btn btn-sm btn-outline-success"
