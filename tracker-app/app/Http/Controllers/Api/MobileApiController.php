@@ -374,9 +374,9 @@ class MobileApiController
         $user_id = (int) $request->input('trooperid', 0);
         $trooper = $user_id > 0 ? $this->trooperFromUserId($user_id) : null;
 
-        $troopers_allowed = $event->troopers_allowed ?? 500;
-        $handlers_allowed = $event->handlers_allowed ?? 500;
-        $is_limited = $troopers_allowed < 500 || $handlers_allowed < 500;
+        $troopers_allowed = $event->troopers_allowed;
+        $handlers_allowed = $event->handlers_allowed;
+        $is_limited = $troopers_allowed !== null || $handlers_allowed !== null;
         $location = $this->buildEventLocation($event);
         $limit_clubs = $this->buildCapacityMessage($troopers_allowed, $handlers_allowed, $trooper_count, $handler_count);
 
@@ -546,8 +546,8 @@ class MobileApiController
 
             $trooper_count = $all_troopers->where('is_handler', false)->count();
             $handler_count = $all_troopers->where('is_handler', true)->count();
-            $troopers_allowed = $event->troopers_allowed ?? 500;
-            $handlers_allowed = $event->handlers_allowed ?? 500;
+            $troopers_allowed = $event->troopers_allowed;
+            $handlers_allowed = $event->handlers_allowed;
 
             $notice = $this->buildNotice($event, $trooper_count, $handler_count, $troopers_allowed, $handlers_allowed);
 
@@ -1180,7 +1180,7 @@ class MobileApiController
     /**
      * Build a notice string for an event based on capacity.
      */
-    private function buildNotice(Event $event, int $trooper_count, int $handler_count, int $troopers_allowed, int $handlers_allowed): string
+    private function buildNotice(Event $event, int $trooper_count, int $handler_count, ?int $troopers_allowed, ?int $handlers_allowed): string
     {
         if ($event->status === EventStatus::SIGN_UP_LOCKED)
         {
@@ -1192,10 +1192,10 @@ class MobileApiController
             return 'NOT ENOUGH TROOPERS FOR THIS EVENT!';
         }
 
-        $troopers_full = $troopers_allowed < 500 && $trooper_count >= $troopers_allowed;
-        $handlers_full = $handlers_allowed < 500 && $handler_count >= $handlers_allowed;
+        $troopers_full = $troopers_allowed !== null && $trooper_count >= $troopers_allowed;
+        $handlers_full = $handlers_allowed !== null && $handler_count >= $handlers_allowed;
 
-        if ($troopers_full && ($handlers_allowed >= 500 || $handlers_full))
+        if ($troopers_full && ($handlers_allowed === null || $handlers_full))
         {
             return 'THIS TROOP IS FULL!';
         }
@@ -1327,28 +1327,36 @@ class MobileApiController
 
         if ($is_handler)
         {
-            $handlers_allowed = $event->handlers_allowed ?? 500;
-            $handler_count = EventTrooper::whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $event_id))
-                ->where(EventTrooper::IS_HANDLER, true)
-                ->whereIn(EventTrooper::STATUS, $active_values)
-                ->count();
+            $handlers_allowed = $event->handlers_allowed;
 
-            if ($handlers_allowed < 500 && $handler_count >= $handlers_allowed)
+            if ($handlers_allowed !== null)
             {
-                return EventTrooperStatus::STAND_BY;
+                $handler_count = EventTrooper::whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $event_id))
+                    ->where(EventTrooper::IS_HANDLER, true)
+                    ->whereIn(EventTrooper::STATUS, $active_values)
+                    ->count();
+
+                if ($handler_count >= $handlers_allowed)
+                {
+                    return EventTrooperStatus::STAND_BY;
+                }
             }
         }
         else
         {
-            $troopers_allowed = $event->troopers_allowed ?? 500;
-            $trooper_count = EventTrooper::whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $event_id))
-                ->where(EventTrooper::IS_HANDLER, false)
-                ->whereIn(EventTrooper::STATUS, $active_values)
-                ->count();
+            $troopers_allowed = $event->troopers_allowed;
 
-            if ($troopers_allowed < 500 && $trooper_count >= $troopers_allowed)
+            if ($troopers_allowed !== null)
             {
-                return EventTrooperStatus::STAND_BY;
+                $trooper_count = EventTrooper::whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $event_id))
+                    ->where(EventTrooper::IS_HANDLER, false)
+                    ->whereIn(EventTrooper::STATUS, $active_values)
+                    ->count();
+
+                if ($trooper_count >= $troopers_allowed)
+                {
+                    return EventTrooperStatus::STAND_BY;
+                }
             }
         }
 
@@ -1407,22 +1415,22 @@ class MobileApiController
     /**
      * Build the capacity message string for the event detail response.
      */
-    private function buildCapacityMessage(int $troopers_allowed, int $handlers_allowed, int $trooper_count, int $handler_count): string
+    private function buildCapacityMessage(?int $troopers_allowed, ?int $handlers_allowed, int $trooper_count, int $handler_count): string
     {
-        if ($troopers_allowed >= 500 && $handlers_allowed >= 500)
+        if ($troopers_allowed === null && $handlers_allowed === null)
         {
             return '';
         }
 
         $message = '';
 
-        if ($troopers_allowed < 500)
+        if ($troopers_allowed !== null)
         {
             $remaining = max(0, $troopers_allowed - $trooper_count);
             $message .= "This event is limited to {$troopers_allowed} troopers. {$remaining} troopers remaining.\n";
         }
 
-        if ($handlers_allowed < 500)
+        if ($handlers_allowed !== null)
         {
             $remaining = max(0, $handlers_allowed - $handler_count);
             $message .= "This event is limited to {$handlers_allowed} handlers. {$remaining} handlers remaining.\n";
