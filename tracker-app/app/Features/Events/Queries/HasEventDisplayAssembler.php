@@ -78,7 +78,6 @@ trait HasEventDisplayAssembler
 
         foreach ($missing_orgs as $id => $name)
         {
-            //  copilot create an organization object with only the name and id, and a pivot with can_attend = false, then push it to the event's organizations collection
             $org_clone = new Organization([
                 Organization::ID => $id,
                 Organization::NAME => $name,
