@@ -226,6 +226,11 @@ class EventTrooper extends BaseEventTrooper
      */
     private function hasOwnership(Trooper $trooper): bool
     {
-        return $this->trooper_id == $trooper->id || $this->added_by_trooper_id == $trooper->id;
+        if ($this->trooper_id == $trooper->id || $this->added_by_trooper_id == $trooper->id)
+        {
+            return true;
+        }
+
+        return $this->trooper->guardian_id === $trooper->id;
     }
 }

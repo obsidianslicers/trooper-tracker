@@ -4,9 +4,9 @@ namespace Database\Factories\Base;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
-use App\Models\TrooperApiCode;
+use App\Models\MobileDevice;
 
-class TrooperApiCodeFactory extends Factory
+class MobileDeviceFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -16,8 +16,8 @@ class TrooperApiCodeFactory extends Factory
     public function definition(): array
     {
         return [
-            TrooperApiCode::TROOPER_ID => \App\Models\Trooper::factory(),
-            TrooperApiCode::API_CODE => $this->faker->unique()->word(),
+            MobileDevice::TROOPER_ID => \App\Models\Trooper::factory(),
+            MobileDevice::FCM_TOKEN => $this->faker->unique()->sha1(),
         ];
     }
 }

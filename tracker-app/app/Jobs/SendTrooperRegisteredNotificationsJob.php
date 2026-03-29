@@ -47,7 +47,7 @@ class SendTrooperRegisteredNotificationsJob implements ShouldQueue
      */
     public function handle(MagicBus $bus): void
     {
-        // This line is what triggers the verify your email, email to be sent after
+        // This line is what triggers the verify your email, to be sent after
         // registration.
         event(new Registered($this->trooper));
 

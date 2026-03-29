@@ -12,26 +12,26 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * Class MobileDevice
+ * Class TrooperApiCode
  * 
  * @property int $id
- * @property int|null $trooper_id
- * @property string $fcm_token
+ * @property int $trooper_id
+ * @property string $api_code
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * 
- * @property Trooper|null $trooper
+ * @property Trooper $trooper
  *
  * @package App\Models\Base
  */
-class MobileDevice extends Model
+class TrooperApiCode extends Model
 {
     const ID = 'id';
     const TROOPER_ID = 'trooper_id';
-    const FCM_TOKEN = 'fcm_token';
+    const API_CODE = 'api_code';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
-    protected $table = 'tt_mobile_devices';
+    protected $table = 'tt_trooper_api_codes';
 
     protected $casts = [
         self::ID => 'int',
@@ -40,13 +40,9 @@ class MobileDevice extends Model
         self::UPDATED_AT => 'datetime'
     ];
 
-    protected $hidden = [
-        self::FCM_TOKEN
-    ];
-
     protected $fillable = [
         self::TROOPER_ID,
-        self::FCM_TOKEN
+        self::API_CODE
     ];
 
     public function trooper(): BelongsTo

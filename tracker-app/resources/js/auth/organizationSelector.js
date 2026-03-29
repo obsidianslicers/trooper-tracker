@@ -24,6 +24,9 @@ export default function ({ organizationId }) {
                     this.unitId = org.unit_id ?? ''
                 })
             }
+
+            // Report initial state to parent
+            this.$dispatch('organization-toggled', { id: organizationId, active: this.active });
         },
 
         toggle() {
@@ -42,6 +45,9 @@ export default function ({ organizationId }) {
                 this.regions = []
                 this.units = []
             }
+
+            // Notify the parent
+            this.$dispatch('organization-toggled', { id: organizationId, active: this.active });
         },
 
         updateUnits() {

@@ -259,26 +259,68 @@ class Event extends BaseEvent
     }
 
     /**
-     * Check if a trooper can sign up for this event.
-     *
-     * A trooper can sign up if the event is open and they are not already signed up.
-     * If shifts_allowed is set on the event, also checks that the trooper hasn't
-     * exceeded the maximum number of shifts they can attend for this event.
-     *
-     * @param Trooper $trooper The trooper attempting to sign up
-     * @return bool True if the trooper can sign up
+     * Determine if a minor trooper can attend this event based on associated organizations.
+     * 
+     * A minor trooper can attend if at least one of the event's associated organizations has
+     * the requires_guardian flag set to true. If no organizations require a guardian, then a
+     * minor trooper cannot attend this event.
+     * 
+     * @return bool True if a minor trooper can attend, false otherwise
      */
-    public function canSignUp(Trooper $trooper): bool
+    public function minorAllowedToAttend(): bool
     {
-        if ($this->is_open)
-        {
-            $count = $this->getShiftCountFor($trooper);
+        $this->loadMissing('organizations');
 
-            return $count == 0;
-        }
-
-        return false;
+        return $this->organizations->contains(fn($org) => $org->requires_guardian);
     }
+
+    /**
+     * Determine if a minor trooper cannot attend this event based on associated organizations.
+     * 
+     * A minor trooper cannot attend if none of the event's associated organizations have
+     * the requires_guardian flag set to true. If at least one organization requires a guardian,
+     * then a minor trooper can attend this event.
+     * 
+     * @return bool True if a minor trooper cannot attend, false otherwise
+     */
+    public function minorCannotAttend(): bool
+    {
+        return $this->minorAllowedToAttend() === false;
+    }
+
+    // /**
+    //  * Check if a trooper can sign up for this event.
+    //  *
+    //  * A trooper can sign up if the event is open and they are not already signed up.
+    //  * If shifts_allowed is set on the event, also checks that the trooper hasn't
+    //  * exceeded the maximum number of shifts they can attend for this event.
+    //  *
+    //  * @param Trooper $trooper The trooper attempting to sign up
+    //  * @return bool True if the trooper can sign up
+    //  */
+    // public function canSignUp(Trooper $trooper): bool
+    // {
+    //     if ($this->is_open)
+    //     {
+    //         if ($trooper->is_minor && !$this->hasOrganizationWithRequiresGuardian())
+    //         {
+    //             // For minor troopers, if ZERO organizations require a guardian, then
+    //             // a minor cannot sign up (ie Galactic Academy can_attend=false)
+    //             return false;
+    //         }
+
+    //         $count = $this->getShiftCountFor($trooper);
+
+    //         if ($this->shifts_allowed !== null)
+    //         {
+    //             return $count < $this->shifts_allowed;
+    //         }
+
+    //         return $count == 0;
+    //     }
+
+    //     return false;
+    // }
 
     /**
      * Create a calendar link for this shift.

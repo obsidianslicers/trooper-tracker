@@ -183,7 +183,12 @@ class EventShift extends BaseEventShift
      */
     public function isSignedUp(Trooper $trooper): bool
     {
-        return $this->event_troopers->where(EventTrooper::TROOPER_ID, $trooper->id)->isNotEmpty();
+        return $this->hasTrooperSignedUp($trooper->id);
+    }
+
+    private function hasTrooperSignedUp(int $trooper_id): bool
+    {
+        return $this->event_troopers->where(EventTrooper::TROOPER_ID, $trooper_id)->isNotEmpty();
     }
 
     /**
@@ -215,6 +220,27 @@ class EventShift extends BaseEventShift
     {
         if ($this->is_open)
         {
+            // For minor troopers, also check if the guardian is attending if
+            // the event does not allow minors without guardians
+            // default to true for non-minors and minors with no guardian
+            // requirement, so it doesn't block sign-up in those cases
+            $guardian_attending = true;
+
+            if ($trooper->is_minor)
+            {
+                if ($this->event->minorCannotAttend())
+                {
+                    return false;
+                }
+
+                $guardian_attending = $this->isGuardianAttending($trooper);
+
+                if (!$guardian_attending)
+                {
+                    return false;
+                }
+            }
+
             $already_signed_up = $this->isSignedUp($trooper);
 
             if ($already_signed_up)
@@ -224,12 +250,28 @@ class EventShift extends BaseEventShift
 
             if ($this->event->shifts_allowed === null)
             {
-                return true;
+                return $guardian_attending;
             }
 
             $count = $this->event->getShiftCountFor($trooper);
 
-            return $count < $this->event->shifts_allowed;
+            return $guardian_attending && $count < $this->event->shifts_allowed;
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if a guardian is attending this shift for a minor trooper.
+     *
+     * @param Trooper $trooper The minor trooper to check
+     * @return bool True if the guardian is attending
+     */
+    private function isGuardianAttending(Trooper $trooper): bool
+    {
+        if ($trooper->is_minor)
+        {
+            return $this->hasTrooperSignedUp($trooper->guardian_id);
         }
 
         return false;

@@ -118,6 +118,24 @@ class TrooperTest extends TestCase
         $this->assertFalse($subject->is_denied);
     }
 
+    public function test_get_is_minor_attribute_returns_true_when_trooper_is_under_eighteen(): void
+    {
+        $subject = Trooper::factory()
+            ->state([Trooper::DATE_OF_BIRTH => now()->subYears(17)])
+            ->create();
+
+        $this->assertTrue($subject->is_minor);
+    }
+
+    public function test_get_is_minor_attribute_returns_false_when_date_of_birth_is_missing(): void
+    {
+        $subject = Trooper::factory()
+            ->state([Trooper::DATE_OF_BIRTH => null])
+            ->create();
+
+        $this->assertFalse($subject->is_minor);
+    }
+
     public function test_get_audit_label_returns_formatted_string(): void
     {
         $subject = Trooper::factory()

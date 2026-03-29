@@ -44,6 +44,20 @@ readonly class RegisterTrooperCommandHandler implements CommandHandlerInterface
             : MembershipRole::HANDLER;
         $trooper->setup_completed_at = now();
 
+        $guardian_email = $message->valid_data['guardian_email'] ?? null;
+
+        if ($guardian_email)
+        {
+            $trooper->date_of_birth = $message->valid_data['date_of_birth'] ?? null;
+
+            $guardian = Trooper::where(Trooper::EMAIL, $guardian_email)->first();
+
+            if ($guardian)
+            {
+                $trooper->guardian_id = $guardian->id;
+            }
+        }
+
         $trooper->save();
 
         return $trooper;

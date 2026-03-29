@@ -13,12 +13,14 @@ use App\Models\EventNotification;
 use App\Models\EventShare;
 use App\Models\EventTrooper;
 use App\Models\EventUpload;
+use App\Models\MobileDevice;
 use App\Models\ModelChange;
 use App\Models\Notice;
 use App\Models\NoticeTrooper;
 use App\Models\OauthLogin;
 use App\Models\Organization;
 use App\Models\TrooperAchievement;
+use App\Models\TrooperApiCode;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperCostume;
 use App\Models\TrooperDonation;
@@ -26,6 +28,7 @@ use App\Models\TrooperOrganization;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -47,25 +50,31 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $notification_frequency
  * @property Carbon|null $achievements_updated_at
  * @property Carbon|null $last_active_at
+ * @property int|null $guardian_id
+ * @property Carbon|null $date_of_birth
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property string|null $deleted_at
  * 
+ * @property \App\Models\Trooper|null $trooper
  * @property Collection|Award[] $awards
  * @property Collection|EventGuest[] $event_guests
  * @property Collection|EventNotification[] $event_notifications
  * @property Collection|EventShare[] $event_shares
  * @property Collection|EventTrooper[] $event_troopers
  * @property Collection|EventUpload[] $event_uploads
+ * @property Collection|MobileDevice[] $mobile_devices
  * @property Collection|ModelChange[] $model_changes
  * @property Collection|Notice[] $notices
  * @property Collection|OauthLogin[] $oauth_logins
  * @property Collection|TrooperAchievement[] $trooper_achievements
+ * @property Collection|TrooperApiCode[] $trooper_api_codes
  * @property Collection|TrooperAssignment[] $trooper_assignments
  * @property Collection|TrooperCostume[] $trooper_costumes
  * @property Collection|TrooperDonation[] $trooper_donations
  * @property Collection|Organization[] $organizations
+ * @property Collection|\App\Models\Trooper[] $troopers
  *
  * @package App\Models\Base
  */
@@ -86,6 +95,8 @@ class Trooper extends Model
     const NOTIFICATION_FREQUENCY = 'notification_frequency';
     const ACHIEVEMENTS_UPDATED_AT = 'achievements_updated_at';
     const LAST_ACTIVE_AT = 'last_active_at';
+    const GUARDIAN_ID = 'guardian_id';
+    const DATE_OF_BIRTH = 'date_of_birth';
     const REMEMBER_TOKEN = 'remember_token';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
@@ -98,6 +109,8 @@ class Trooper extends Model
         self::SETUP_COMPLETED_AT => 'datetime',
         self::ACHIEVEMENTS_UPDATED_AT => 'datetime',
         self::LAST_ACTIVE_AT => 'datetime',
+        self::GUARDIAN_ID => 'int',
+        self::DATE_OF_BIRTH => 'datetime',
         self::CREATED_AT => 'datetime',
         self::UPDATED_AT => 'datetime'
     ];
@@ -121,8 +134,15 @@ class Trooper extends Model
         self::NOTIFICATION_FREQUENCY,
         self::ACHIEVEMENTS_UPDATED_AT,
         self::LAST_ACTIVE_AT,
+        self::GUARDIAN_ID,
+        self::DATE_OF_BIRTH,
         self::REMEMBER_TOKEN
     ];
+
+    public function trooper(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Trooper::class, \App\Models\Trooper::GUARDIAN_ID);
+    }
 
     public function awards(): BelongsToMany
     {
@@ -156,6 +176,11 @@ class Trooper extends Model
         return $this->hasMany(EventUpload::class);
     }
 
+    public function mobile_devices(): HasMany
+    {
+        return $this->hasMany(MobileDevice::class);
+    }
+
     public function model_changes(): HasMany
     {
         return $this->hasMany(ModelChange::class);
@@ -178,6 +203,11 @@ class Trooper extends Model
         return $this->hasMany(TrooperAchievement::class);
     }
 
+    public function trooper_api_codes(): HasMany
+    {
+        return $this->hasMany(TrooperApiCode::class);
+    }
+
     public function trooper_assignments(): HasMany
     {
         return $this->hasMany(TrooperAssignment::class);
@@ -198,5 +228,10 @@ class Trooper extends Model
         return $this->belongsToMany(Organization::class, 'tt_trooper_organizations')
                     ->withPivot(TrooperOrganization::ID, TrooperOrganization::IDENTIFIER, TrooperOrganization::MEMBERSHIP_STATUS, TrooperOrganization::JOIN_DATE, TrooperOrganization::SYNCHRONIZED_AT, TrooperOrganization::DELETED_AT, TrooperOrganization::CREATED_ID, TrooperOrganization::UPDATED_ID, TrooperOrganization::DELETED_ID)
                     ->withTimestamps();
+    }
+
+    public function troopers(): HasMany
+    {
+        return $this->hasMany(\App\Models\Trooper::class, \App\Models\Trooper::GUARDIAN_ID);
     }
 }

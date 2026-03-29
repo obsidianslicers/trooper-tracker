@@ -34,7 +34,11 @@
             @if($event_trooper->is_handler)
                 Handler
             @else
-                @if($event_trooper->costume != null)
+                @if($event_trooper->costume === null)
+                    <i class="small text-muted">
+                        No costume selected
+                    </i>
+                @else
                     <b>
                         {{ $event_trooper->costume->name }}
                     </b>
