@@ -11,6 +11,7 @@ use App\Http\Controllers\MagicBusController;
 use App\Models\Costume;
 use App\Models\Trooper;
 use App\Services\Forums\XenforoService;
+use App\Support\XenforoUpgradeHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -65,6 +66,20 @@ class TrooperController extends MagicBusController
                     ->contains('is_active', true);
             }
         }
+
+        // Compute live donation totals from both sources so the profile always
+        // reflects current data regardless of when the batch command last ran.
+        $local_total    = (float) $data['all_donations']->sum('amount');
+        $xenforo_total  = (float) collect($data['xenforo_donations'])->sum('total_amount');
+
+        $local_months   = $data['all_donations']
+            ->filter(fn ($d) => $d->created_at !== null)
+            ->mapWithKeys(fn ($d) => [$d->created_at->format('Y-m') => true])
+            ->all();
+        $xenforo_months = XenforoUpgradeHelper::monthKeysFromUpgrades($data['xenforo_donations'], []);
+
+        $data['service_summary']['total_donated']   = $xenforo_total + $local_total;
+        $data['service_summary']['donation_months'] = count(array_merge($local_months, $xenforo_months));
 
         return view('pages.service-records.trooper', $data);
     }
