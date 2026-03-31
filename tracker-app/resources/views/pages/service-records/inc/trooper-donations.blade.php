@@ -7,6 +7,7 @@
                 <th>Start Date</th>
                 <th>End Date</th>
                 <th>Status</th>
+                <th class="text-end">Total</th>
             </tr>
         </thead>
         <tbody>
@@ -34,9 +35,24 @@
                             <span class="badge bg-secondary">Expired</span>
                         @endif
                     </td>
+                    <td class="text-end">
+                        <x-number-format :value="$upgrade['total_amount'] ?? 0"
+                                         :prefix="'$'"
+                                         :decimals="2" />
+                    </td>
                 </tr>
             @endforeach
         </tbody>
+        <tfoot>
+            <tr class="fw-bold">
+                <td colspan="4">Total</td>
+                <td class="text-end">
+                    <x-number-format :value="collect($xenforo_donations)->sum('total_amount')"
+                                     :prefix="'$'"
+                                     :decimals="2" />
+                </td>
+            </tr>
+        </tfoot>
     </x-table>
 @endif
 

@@ -45,7 +45,7 @@
                 </tr>
                 @if(($service_summary['total_donated'] ?? 0) > 0)
                     <tr class="small">
-                        <td class="text-muted border-0">Total Donated</td>
+                        <td class="text-muted border-0">Total Donated (personal)</td>
                         <td class="text-end fw-bold border-0">
                             <x-number-format :value="$service_summary['total_donated']"
                                              :prefix="'$'"
@@ -55,7 +55,7 @@
                 @endif
                 @if(($service_summary['donation_months'] ?? 0) > 0)
                     <tr class="small">
-                        <td class="text-muted border-0">Donation Months</td>
+                        <td class="text-muted border-0">Donation Months (personal)</td>
                         <td class="text-end fw-bold border-0">
                             {{ $service_summary['donation_months'] }}
                         </td>

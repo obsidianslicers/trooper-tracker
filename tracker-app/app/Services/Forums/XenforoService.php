@@ -588,13 +588,18 @@ class XenforoService
 
         $data = $response->json();
 
-        // Build a title lookup from upgrade definitions.
+        // Build title and cost lookups from upgrade definitions.
         $upgrade_titles = [];
+        $upgrade_costs  = [];
         foreach ($data['userUpgrades'] ?? [] as $upgrade)
         {
             if (is_array($upgrade) && isset($upgrade['user_upgrade_id'], $upgrade['title']))
             {
-                $upgrade_titles[(int) $upgrade['user_upgrade_id']] = (string) $upgrade['title'];
+                $id = (int) $upgrade['user_upgrade_id'];
+                $upgrade_titles[$id] = (string) $upgrade['title'];
+                $upgrade_costs[$id]  = isset($upgrade['cost_amount']) && is_numeric($upgrade['cost_amount'])
+                    ? (float) $upgrade['cost_amount']
+                    : 0.0;
             }
         }
 
@@ -619,14 +624,48 @@ class XenforoService
                     continue;
                 }
 
-                $upgrade_id = (int) ($row['user_upgrade_id'] ?? 0);
+                $upgrade_id  = (int) ($row['user_upgrade_id'] ?? 0);
+                $start_date  = (int) ($row['start_date'] ?? 0);
+                $end_date    = (int) ($row['end_date'] ?? 0);
+
+                // Resolve per-period cost: prefer extra JSON, fall back to definition.
+                $cost_amount = 0.0;
+                if (isset($row['extra']) && is_string($row['extra']))
+                {
+                    $extra = json_decode($row['extra'], true);
+                    if (is_array($extra) && isset($extra['cost_amount']) && is_numeric($extra['cost_amount']))
+                    {
+                        $cost_amount = (float) $extra['cost_amount'];
+                    }
+                }
+                if ($cost_amount <= 0.0)
+                {
+                    $cost_amount = $upgrade_costs[$upgrade_id] ?? 0.0;
+                }
+
+                // Compute total paid: count months covered × per-period cost.
+                $now         = time();
+                $end_capped  = ($end_date === 0 || $end_date > $now) ? $now : $end_date;
+                $months_paid = 0;
+                if ($start_date > 0)
+                {
+                    $cur = \Carbon\Carbon::createFromTimestamp($start_date)->startOfMonth();
+                    $end = \Carbon\Carbon::createFromTimestamp($end_capped)->startOfMonth();
+                    while ($cur->lte($end))
+                    {
+                        $months_paid++;
+                        $cur->addMonth();
+                    }
+                }
 
                 $records[] = [
                     'user_upgrade_record_id' => (int) ($row['user_upgrade_record_id'] ?? 0),
-                    'upgrade_title' => $upgrade_titles[$upgrade_id] ?? 'Upgrade #'.$upgrade_id,
-                    'start_date' => (int) ($row['start_date'] ?? 0),
-                    'end_date' => (int) ($row['end_date'] ?? 0),
-                    'is_active' => $source['is_active'],
+                    'upgrade_title'  => $upgrade_titles[$upgrade_id] ?? 'Upgrade #'.$upgrade_id,
+                    'start_date'     => $start_date,
+                    'end_date'       => $end_date,
+                    'is_active'      => $source['is_active'],
+                    'cost_amount'    => $cost_amount,
+                    'total_amount'   => round($months_paid * $cost_amount, 2),
                 ];
             }
         }
