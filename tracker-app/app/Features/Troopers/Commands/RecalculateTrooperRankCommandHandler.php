@@ -197,11 +197,6 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
      */
     private function prefetchXenforoUpgrades(): array
     {
-        if (empty(config('services.xenforo.api_key')))
-        {
-            return [];
-        }
-
         $stats = app(\App\Services\Forums\XenforoService::class)->get_upgrade_stats();
 
         if ($stats === null)
@@ -267,12 +262,8 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
 
             $donation_months = $this->computeMonthsFromUpgrades($active, $expired);
 
-            $total_donated = 0.0;
-
-            foreach (array_merge($active, $expired) as $row)
-            {
-                $total_donated += (float) ($row['cost_amount'] ?? 0);
-            }
+            // cost_amount is the per-period price — multiply by months covered per record.
+            $total_donated = $this->computeTotalFromUpgrades($active, $expired);
 
             return [
                 'donation_months' => $donation_months,
@@ -343,6 +334,52 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
     }
 
     /**
+     * Sum the total amount donated across all upgrade records.
+     *
+     * cost_amount is the per-period price, so we multiply by the number of
+     * distinct calendar months each record covers.
+     *
+     * @param  array<mixed>  $active
+     * @param  array<mixed>  $expired
+     */
+    private function computeTotalFromUpgrades(array $active, array $expired): float
+    {
+        $total = 0.0;
+        $now   = time();
+
+        foreach (array_merge($active, $expired) as $row)
+        {
+            $cost  = (float) ($row['cost_amount'] ?? 0);
+            $start = (int) ($row['start_date'] ?? 0);
+            $end   = (int) ($row['end_date'] ?? 0);
+
+            if ($start <= 0 || $cost <= 0)
+            {
+                continue;
+            }
+
+            if ($end === 0 || $end > $now)
+            {
+                $end = $now;
+            }
+
+            $current   = Carbon::createFromTimestamp($start)->startOfMonth();
+            $end_month = Carbon::createFromTimestamp($end)->startOfMonth();
+            $months    = 0;
+
+            while ($current->lte($end_month))
+            {
+                $months++;
+                $current->addMonth();
+            }
+
+            $total += $months * $cost;
+        }
+
+        return $total;
+    }
+
+    /**
      * Store milestone achievements for donation length and cumulative amount.
      *
      * @param  Trooper  $trooper  The trooper to check milestones for
@@ -351,18 +388,20 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
     private function storeDonationMilestoneAchievements(Trooper $trooper, array $metrics): void
     {
         $month_thresholds = [
-            AchievementType::SUPPORTER_12_MONTHS => 12,
-            AchievementType::SUPPORTER_24_MONTHS => 24,
-            AchievementType::SUPPORTER_36_MONTHS => 36,
-            AchievementType::SUPPORTER_60_MONTHS => 60,
+            AchievementType::SUPPORTER_12_MONTHS->value => 12,
+            AchievementType::SUPPORTER_24_MONTHS->value => 24,
+            AchievementType::SUPPORTER_36_MONTHS->value => 36,
+            AchievementType::SUPPORTER_60_MONTHS->value => 60,
         ];
 
-        foreach ($month_thresholds as $type => $threshold)
+        foreach ($month_thresholds as $type_value => $threshold)
         {
             if ($metrics['donation_months'] < $threshold)
             {
                 continue;
             }
+
+            $type = AchievementType::from($type_value);
 
             TrooperAchievement::firstOrCreate(
                 [TrooperAchievement::TROOPER_ID => $trooper->id, TrooperAchievement::TYPE => $type],
@@ -371,18 +410,20 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
         }
 
         $amount_thresholds = [
-            AchievementType::DONATED_100  => 100,
-            AchievementType::DONATED_250  => 250,
-            AchievementType::DONATED_500  => 500,
-            AchievementType::DONATED_1000 => 1000,
+            AchievementType::DONATED_100->value  => 100,
+            AchievementType::DONATED_250->value  => 250,
+            AchievementType::DONATED_500->value  => 500,
+            AchievementType::DONATED_1000->value => 1000,
         ];
 
-        foreach ($amount_thresholds as $type => $threshold)
+        foreach ($amount_thresholds as $type_value => $threshold)
         {
             if ($metrics['total_donated'] < $threshold)
             {
                 continue;
             }
+
+            $type = AchievementType::from($type_value);
 
             TrooperAchievement::firstOrCreate(
                 [TrooperAchievement::TROOPER_ID => $trooper->id, TrooperAchievement::TYPE => $type],
