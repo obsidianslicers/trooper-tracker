@@ -139,7 +139,7 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
             'indirect_funds' => $trooper->getAchievementValue(AchievementType::INDIRECT_FUNDS),
             'milestones' => $milestones,
             'donation_months' => $trooper->getAchievementValue(AchievementType::DONATION_MONTHS),
-            'total_donated' => $this->computeTotalDonated($trooper),
+            'total_donated' => $trooper->getAchievementValue(AchievementType::TOTAL_DONATED) ?? $this->computeTotalDonated($trooper),
         ];
     }
 

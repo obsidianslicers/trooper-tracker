@@ -113,6 +113,11 @@ enum AchievementType: string
     case DONATION_MONTHS = 'donation_months';
 
     /**
+     * Cumulative amount donated (in dollars)
+     */
+    case TOTAL_DONATED = 'total_donated';
+
+    /**
      * Milestone for 12+ months of donations (1 year)
      */
     case SUPPORTER_12_MONTHS = 'supporter_12_months';
@@ -172,7 +177,8 @@ enum AchievementType: string
             self::VOLUNTEER_HOURS,
             self::DIRECT_FUNDS,
             self::INDIRECT_FUNDS,
-            self::DONATION_MONTHS => 'number',
+            self::DONATION_MONTHS,
+            self::TOTAL_DONATED => 'number',
 
             default => 'bool',
         };
