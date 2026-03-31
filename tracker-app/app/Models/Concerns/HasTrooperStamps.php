@@ -49,10 +49,13 @@ trait HasTrooperStamps
             }
         });
 
-        static::restoring(function ($model)
+        if (static::usingSoftDeletes())
         {
-            $model->deleted_id = null;
-        });
+            static::restoring(function ($model)
+            {
+                $model->deleted_id = null;
+            });
+        }
 
         static::deleting(function ($model)
         {

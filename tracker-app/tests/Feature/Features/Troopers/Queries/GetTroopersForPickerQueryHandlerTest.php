@@ -103,6 +103,48 @@ class GetTroopersForPickerQueryHandlerTest extends TestCase
         $this->assertSame('Complete Setup', $result->first()->display_name);
     }
 
+    public function test_invoke_includes_minor_when_requesting_trooper_is_guardian(): void
+    {
+        $guardian = Trooper::factory()->asMember()->create();
+
+        Trooper::factory()
+            ->asMember()
+            ->withSetupCompleted()
+            ->withDisplayName('Guardian Minor')
+            ->state([Trooper::GUARDIAN_ID => $guardian->id])
+            ->create();
+
+        $filter = new TrooperFilter(new Request(['search_term' => 'Guardian Minor']));
+
+        $subject = new GetTroopersForPickerQueryHandler();
+
+        $result = $subject(new GetTroopersForPickerQuery($guardian, $filter, []));
+
+        $this->assertCount(1, $result);
+        $this->assertSame('Guardian Minor', $result->first()->display_name);
+    }
+
+    public function test_invoke_excludes_minor_when_requesting_trooper_is_not_guardian(): void
+    {
+        $guardian = Trooper::factory()->asMember()->create();
+        $requesting_trooper = Trooper::factory()->asMember()->create();
+
+        Trooper::factory()
+            ->asMember()
+            ->withSetupCompleted()
+            ->withDisplayName('Hidden Minor')
+            ->state([Trooper::GUARDIAN_ID => $guardian->id])
+            ->create();
+
+        $filter = new TrooperFilter(new Request(['search_term' => 'Hidden Minor']));
+
+        $subject = new GetTroopersForPickerQueryHandler();
+
+        $result = $subject(new GetTroopersForPickerQuery($requesting_trooper, $filter, []));
+
+        $this->assertCount(0, $result);
+    }
+
     public function test_invoke_filters_by_moderated_only(): void
     {
         $moderator = Trooper::factory()->asModerator()->create();

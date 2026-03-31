@@ -29,10 +29,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $parent_id
  * @property string $name
  * @property string $type
- * @property bool $can_attend_default
  * @property int $depth
  * @property int $sequence
  * @property string $node_path
+ * @property bool $can_attend_default
+ * @property bool $requires_guardian
  * @property string|null $identifier_display
  * @property string|null $identifier_validation
  * @property string|null $image_path_lg
@@ -72,10 +73,11 @@ class Organization extends Model
     const PARENT_ID = 'parent_id';
     const NAME = 'name';
     const TYPE = 'type';
-    const CAN_ATTEND_DEFAULT = 'can_attend_default';
     const DEPTH = 'depth';
     const SEQUENCE = 'sequence';
     const NODE_PATH = 'node_path';
+    const CAN_ATTEND_DEFAULT = 'can_attend_default';
+    const REQUIRES_GUARDIAN = 'requires_guardian';
     const IDENTIFIER_DISPLAY = 'identifier_display';
     const IDENTIFIER_VALIDATION = 'identifier_validation';
     const IMAGE_PATH_LG = 'image_path_lg';
@@ -101,9 +103,10 @@ class Organization extends Model
     protected $casts = [
         self::ID => 'int',
         self::PARENT_ID => 'int',
-        self::CAN_ATTEND_DEFAULT => 'bool',
         self::DEPTH => 'int',
         self::SEQUENCE => 'int',
+        self::CAN_ATTEND_DEFAULT => 'bool',
+        self::REQUIRES_GUARDIAN => 'bool',
         self::RELATED_FORUM => 'int',
         self::RELATED_FORUM_ARCHIVE => 'int',
         self::XENFORO_GROUP_ACTIVE_ID => 'int',
@@ -121,10 +124,11 @@ class Organization extends Model
         self::PARENT_ID,
         self::NAME,
         self::TYPE,
-        self::CAN_ATTEND_DEFAULT,
         self::DEPTH,
         self::SEQUENCE,
         self::NODE_PATH,
+        self::CAN_ATTEND_DEFAULT,
+        self::REQUIRES_GUARDIAN,
         self::IDENTIFIER_DISPLAY,
         self::IDENTIFIER_VALIDATION,
         self::IMAGE_PATH_LG,

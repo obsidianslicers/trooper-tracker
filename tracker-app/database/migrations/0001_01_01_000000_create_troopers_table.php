@@ -28,11 +28,18 @@ return new class extends Migration
             $table->string('theme', 16)->default('stormtrooper');
             $table->string('membership_status', 16)->default(MembershipStatus::PENDING->value);
             $table->string('membership_role', 16)->default(MembershipRole::MEMBER->value);
-
             $table->string('notification_frequency', 16)->default(NotificationFrequency::NEVER->value);
 
             $table->dateTime('achievements_updated_at')->nullable();
             $table->dateTime('last_active_at')->nullable();
+
+            // To auto-expire "minor" status at 18 years old. This allows us to easily query
+            // for troopers who are minors and their guardians.
+            $table->foreignId('guardian_id')
+                ->nullable()
+                ->constrained('tt_troopers')
+                ->nullOnDelete();
+            $table->date('date_of_birth')->nullable();
 
             $table->rememberToken();
             $table->timestamps();

@@ -300,6 +300,56 @@ class EventTrooperTest extends TestCase
         $this->assertFalse($result);
     }
 
+    public function test_can_update_costume_returns_true_when_requesting_trooper_added_assignment(): void
+    {
+        $requesting_trooper = Trooper::factory()->create();
+        $assigned_trooper = Trooper::factory()->create();
+        $event = Event::factory()->state([Event::STATUS => EventStatus::OPEN])->create();
+        $shift = EventShift::factory()
+            ->state([
+                EventShift::EVENT_ID => $event->{Event::ID},
+                EventShift::STATUS => EventStatus::OPEN,
+            ])
+            ->create();
+        $subject = EventTrooper::factory()
+            ->forEventShift($shift)
+            ->forTrooper($assigned_trooper)
+            ->state([
+                EventTrooper::IS_HANDLER => false,
+                EventTrooper::ADDED_BY_TROOPER_ID => $requesting_trooper->{Trooper::ID},
+            ])
+            ->create();
+
+        $result = $subject->canUpdateCostume($shift, $requesting_trooper);
+
+        $this->assertTrue($result);
+    }
+
+    public function test_can_update_costume_returns_true_when_requesting_trooper_is_guardian(): void
+    {
+        $guardian_trooper = Trooper::factory()->create();
+        $minor_trooper = Trooper::factory()->create([
+            Trooper::GUARDIAN_ID => $guardian_trooper->{Trooper::ID},
+            Trooper::DATE_OF_BIRTH => now()->subYears(16),
+        ]);
+        $event = Event::factory()->state([Event::STATUS => EventStatus::OPEN])->create();
+        $shift = EventShift::factory()
+            ->state([
+                EventShift::EVENT_ID => $event->{Event::ID},
+                EventShift::STATUS => EventStatus::OPEN,
+            ])
+            ->create();
+        $subject = EventTrooper::factory()
+            ->forEventShift($shift)
+            ->forTrooper($minor_trooper)
+            ->state([EventTrooper::IS_HANDLER => false])
+            ->create();
+
+        $result = $subject->canUpdateCostume($shift, $guardian_trooper);
+
+        $this->assertTrue($result);
+    }
+
     public function test_status_cast_works(): void
     {
         $subject = EventTrooper::factory()->asGoing()->create();

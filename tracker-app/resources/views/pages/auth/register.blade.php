@@ -18,7 +18,9 @@
 
             <form action="{{ route('auth.register') }}"
                   method="POST"
-                  novalidate="novalidate">
+                  novalidate="novalidate"
+                  x-data="Auth.Register.registration()"
+                  x-on:organization-toggled="handleOrgToggled($event.detail.id, $event.detail.active)">
                 @csrf
 
                 <x-input-container>
@@ -53,6 +55,30 @@
                                   :value="$email"
                                   x-bind:disabled="$registration_method != 'email'" />
                 </x-input-container>
+
+                <div x-show="requiresGuardian">
+                    <x-input-container>
+                        <x-label>
+                            Date of Birth:
+                        </x-label>
+                        <x-input-date :property="'date_of_birth'" />
+                        <x-input-help>
+                            You must be at least 13 years old to register for a Galactic Academy account. This
+                            information will not be displayed publicly on your profile or on the dashboard.
+                        </x-input-help>
+                    </x-input-container>
+                    <x-input-container>
+                        <x-label>
+                            Guardian Email:
+                        </x-label>
+                        <x-input-text :property="'guardian_email'" />
+                        <x-input-help>
+                            The guardian email must be associated with an existing account registered with
+                            {{ config('app.name') }} to use this email address. Your guardian will receive
+                            an email notification when you register.
+                        </x-input-help>
+                    </x-input-container>
+                </div>
 
                 <x-input-container x-data>
                     <x-label>

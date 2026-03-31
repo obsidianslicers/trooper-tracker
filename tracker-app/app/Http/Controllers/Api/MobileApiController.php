@@ -22,6 +22,7 @@ use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperApiCode;
 use App\Models\TrooperOrganization;
+use App\Services\Forums\XenforoService;
 use App\Services\Mobile\MobileForumLoginException;
 use App\Services\Mobile\MobileForumLoginService;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -37,7 +38,10 @@ use Illuminate\Support\Str;
  */
 class MobileApiController
 {
-    public function __construct(private readonly MobileForumLoginService $mobile_forum_login_service) {}
+    public function __construct(
+        private readonly MobileForumLoginService $mobile_forum_login_service,
+        private readonly XenforoService $xenforo,
+    ) {}
 
     /**
      * The active statuses representing a trooper who intends to attend
@@ -300,10 +304,24 @@ class MobileApiController
 
         $trooper->touch(Trooper::LAST_ACTIVE_AT);
 
+        $isBanned = false;
+
+        $xenforo_user_id = $this->xenforo->resolve_user_id_for_trooper($trooper->id);
+
+        if ($xenforo_user_id !== null)
+        {
+            $result = $this->xenforo->get_user($xenforo_user_id);
+
+            if ($result['status'] === 200 && isset($result['body']['user']))
+            {
+                $isBanned = !empty($result['body']['user']['is_banned']);
+            }
+        }
+
         return response()->json([
-            'forum_id' => null, // forum_id no longer stored directly on trooper
+            'forum_id' => null,
             'canAccess' => $trooper->membership_status === MembershipStatus::ACTIVE,
-            'isBanned' => false, // TODO: retrieve ban status from Xenforo OAuth provider if needed
+            'isBanned' => $isBanned,
         ]);
     }
 

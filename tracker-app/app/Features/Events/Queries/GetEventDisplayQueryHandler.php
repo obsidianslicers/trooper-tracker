@@ -49,6 +49,8 @@ readonly class GetEventDisplayQueryHandler implements QueryHandlerInterface
 
         $this->assembleEvent($event, $message->trooper);
 
+        $this->assembleEventOrganization($event);
+
         $event->event_shifts->each(fn ($shift) => $this->transformEventShift($shift));
 
         return $event;
@@ -64,6 +66,7 @@ readonly class GetEventDisplayQueryHandler implements QueryHandlerInterface
         $trooper_columns = [
             Trooper::ID,
             Trooper::DISPLAY_NAME,
+            Trooper::GUARDIAN_ID,
         ];
 
         $costume_columns = [

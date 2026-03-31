@@ -20,6 +20,7 @@ class OrganizationFactory extends BaseOrganizationFactory
         return array_merge(parent::definition(), [
             Organization::TYPE => OrganizationType::ORGANIZATION,
             Organization::CAN_ATTEND_DEFAULT => true,
+            Organization::REQUIRES_GUARDIAN => false,
         ]);
     }
 

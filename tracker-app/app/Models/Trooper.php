@@ -22,6 +22,7 @@ use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Notifications\Notifiable;
 
@@ -86,6 +87,16 @@ class Trooper extends BaseTrooper implements
     }
 
     /**
+     * Alias for trooper
+     * 
+     * @return BelongsTo
+     */
+    public function guardian(): BelongsTo
+    {
+        return $this->trooper();
+    }
+
+    /**
      * Check if the trooper's membership role is admin.
      *
      * @return bool True if the trooper is admin, false otherwise.
@@ -133,6 +144,33 @@ class Trooper extends BaseTrooper implements
     public function getIsDeniedAttribute(): bool
     {
         return $this->membership_status == MembershipStatus::DENIED;
+    }
+
+    /**
+     * Check if trooper is a minor.
+     *
+     * @return bool True if the trooper is a minor, false otherwise.
+     */
+    public function getIsMinorAttribute(): bool
+    {
+        if ($this->date_of_birth)
+        {
+            $age = $this->date_of_birth->age;
+
+            return $age < 18;
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if trooper is an adult
+     *
+     * @return bool True if the trooper is an adult, false otherwise.
+     */
+    public function getIsAdultAttribute(): bool
+    {
+        return !$this->is_minor;
     }
 
     /**

@@ -63,6 +63,11 @@ class RegisterSubmitController extends MagicBusController
 
         Mail::to($trooper->email)->queue(new TrooperRegistered);
 
+        if ($trooper->is_minor)
+        {
+            Mail::to($trooper->guardian_email)->queue(new GuardianAwareness);
+        }
+
         dispatch(new SendTrooperRegisteredNotificationsJob($trooper));
 
         $this->flash->success('Request submitted successfully! You will receive an e-mail when your request is approved or denied.');

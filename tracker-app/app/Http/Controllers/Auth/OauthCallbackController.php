@@ -9,6 +9,7 @@ use App\Facades\TroopTracker;
 use App\Http\Controllers\MagicBusController;
 use App\Models\OauthLogin;
 use App\Models\Trooper;
+use App\Services\Forums\XenforoService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -29,9 +30,12 @@ class OauthCallbackController extends MagicBusController
 {
     private TroopTracker $troop_tracker;
 
+    private XenforoService $xenforo;
+
     protected function initialized(): void
     {
         $this->troop_tracker = app(TroopTracker::class);
+        $this->xenforo = app(XenforoService::class);
     }
 
     /**
@@ -57,6 +61,31 @@ class OauthCallbackController extends MagicBusController
         }
 
         $provider_user = Socialite::driver($provider)->user();
+
+        // Check XenForo ban status at login.
+        if ($provider === OauthProvider::XENFORO->value)
+        {
+            $raw = $provider_user->getRaw();
+            $xenforo_user_data = $raw['me'] ?? $raw;
+            // Fall back to the admin API if the /me endpoint didn't include the field.
+            if (array_key_exists('is_banned', $xenforo_user_data))
+            {
+                $is_banned = !empty($xenforo_user_data['is_banned']);
+            }
+            else
+            {
+                $api_result = $this->xenforo->get_user((int) $provider_user->getId());
+                $is_banned = $api_result['status'] === 200
+                    && !empty($api_result['body']['user']['is_banned']);
+            }
+
+            if ($is_banned)
+            {
+                $this->flash->error('You are currently banned. Please refer to command staff for additional information.');
+
+                return redirect()->route('auth.login');
+            }
+        }
 
         // Find existing social account
         $account = OauthLogin::where(OauthLogin::PROVIDER, $provider)

@@ -114,6 +114,7 @@ class OauthCallbackControllerTest extends TestCase
         $socialite_user = Mockery::mock(SocialiteUser::class);
         $socialite_user->shouldReceive('getId')->andReturn('xenforo-456');
         $socialite_user->shouldReceive('getEmail')->andReturn(null);
+        $socialite_user->shouldReceive('getRaw')->andReturn([]);
 
         Socialite::shouldReceive('driver')
             ->with('xenforo')
