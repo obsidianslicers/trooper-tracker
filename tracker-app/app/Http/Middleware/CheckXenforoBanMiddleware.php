@@ -16,7 +16,7 @@ use Symfony\Component\HttpFoundation\Response;
  * Check whether the authenticated trooper's XenForo account is banned.
  *
  * The result is cached per-user so the XenForo API is only called once
- * every 15 minutes rather than on every page request.
+ * every x minutes rather than on every page request.
  */
 class CheckXenforoBanMiddleware
 {
@@ -90,7 +90,7 @@ class CheckXenforoBanMiddleware
                 ->withErrors(['banned' => 'You are currently banned. Please refer to command staff for additional information.']);
         }
 
-        // Cache the clean result — no API call needed for the next 15 minutes.
+        // Cache the clean result — no API call needed for the next x minutes.
         Cache::put($cache_key, 'clear', now()->addMinutes(self::CHECK_TTL_MINUTES));
 
         return $next($request);
