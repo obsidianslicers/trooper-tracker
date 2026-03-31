@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Support;
 
+use App\Facades\TroopTrackerFacade;
 use App\Models\TrooperDonation;
 use App\Services\Forums\XenforoService;
 use App\Support\XenforoUpgradeHelper;
@@ -11,13 +12,6 @@ use Illuminate\Support\Facades\Config;
 
 class SupportStatusService
 {
-    private XenforoService $xenforo_service;
-
-    public function __construct(XenforoService $xenforo_service)
-    {
-        $this->xenforo_service = $xenforo_service;
-    }
-
     /**
      * Calculate the current support status for the tracker.
      *
@@ -40,7 +34,9 @@ class SupportStatusService
             ];
         }
 
-        $stats = $this->xenforo_service->get_upgrade_stats();
+        $stats = TroopTrackerFacade::isXenforoIntegrationConfigured()
+            ? app(XenforoService::class)->get_upgrade_stats()
+            : null;
 
         if (is_array($stats))
         {

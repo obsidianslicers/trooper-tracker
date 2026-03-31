@@ -29,7 +29,7 @@ class TrooperController extends MagicBusController
      *
      * @throws \RuntimeException
      */
-    public function __invoke(Request $request, Trooper $trooper, XenforoService $xenforo): View
+    public function __invoke(Request $request, Trooper $trooper): View
     {
         if ($trooper->id == Auth::user()->id)
         {
@@ -53,6 +53,7 @@ class TrooperController extends MagicBusController
 
         if (TroopTrackerFacade::isXenforoIntegrationConfigured())
         {
+            $xenforo = app(XenforoService::class);
             $xenforo_user_id = $xenforo->resolve_user_id_for_trooper($trooper->id);
 
             if ($xenforo_user_id !== null)

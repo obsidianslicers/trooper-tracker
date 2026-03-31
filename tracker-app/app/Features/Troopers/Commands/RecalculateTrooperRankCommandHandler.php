@@ -9,12 +9,14 @@ use App\Enums\AchievementType;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Enums\OauthProvider;
+use App\Facades\TroopTrackerFacade;
 use App\Models\Event;
 use App\Models\EventTrooper;
 use App\Models\OauthLogin;
 use App\Models\Trooper;
 use App\Models\TrooperAchievement;
 use App\Models\TrooperDonation;
+use App\Services\Forums\XenforoService;
 use App\Support\XenforoUpgradeHelper;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -202,7 +204,12 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
      */
     private function prefetchXenforoUpgrades(): array
     {
-        $stats = app(\App\Services\Forums\XenforoService::class)->get_upgrade_stats();
+        if (!TroopTrackerFacade::isXenforoIntegrationConfigured())
+        {
+            return [];
+        }
+
+        $stats = app(XenforoService::class)->get_upgrade_stats();
 
         if ($stats === null)
         {
