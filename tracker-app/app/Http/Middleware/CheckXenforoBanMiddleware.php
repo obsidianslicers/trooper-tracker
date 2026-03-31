@@ -8,15 +8,23 @@ use App\Services\Forums\XenforoService;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Check whether the authenticated trooper's XenForo account is banned
- * on every request. If it is, log them out immediately.
+ * Check whether the authenticated trooper's XenForo account is banned.
+ *
+ * The result is cached per-user so the XenForo API is only called once
+ * every x minutes rather than on every page request.
  */
 class CheckXenforoBanMiddleware
 {
+    /**
+     * How long (in minutes) a clean (not-banned) check is cached.
+     */
+    private const CHECK_TTL_MINUTES = 5;
+
     public function __construct(private readonly XenforoService $xenforo) {}
 
     /**
@@ -24,7 +32,6 @@ class CheckXenforoBanMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Only enforce when XenForo OAuth is required site-wide.
         if (!config('tracker.auth.require_xenforo', false))
         {
             return $next($request);
@@ -43,6 +50,14 @@ class CheckXenforoBanMiddleware
             return $next($request);
         }
 
+        // Skip the API call if a recent clean check is cached.
+        $cache_key = "tracker:xenforo:ban-check:{$user->id}";
+
+        if (Cache::get($cache_key) === 'clear')
+        {
+            return $next($request);
+        }
+
         $xenforo_user_id = $this->xenforo->resolve_user_id_for_trooper($user->id);
 
         if ($xenforo_user_id === null)
@@ -54,7 +69,7 @@ class CheckXenforoBanMiddleware
 
         if ($result['status'] !== 200 || !isset($result['body']['user']))
         {
-            // If the API is unreachable, don't block the user — fail open.
+            // API unreachable — fail open, don't cache so we retry next request.
             return $next($request);
         }
 
@@ -74,6 +89,9 @@ class CheckXenforoBanMiddleware
             return redirect()->route('auth.login')
                 ->withErrors(['banned' => 'You are currently banned. Please refer to command staff for additional information.']);
         }
+
+        // Cache the clean result — no API call needed for the next x minutes.
+        Cache::put($cache_key, 'clear', now()->addMinutes(self::CHECK_TTL_MINUTES));
 
         return $next($request);
     }
