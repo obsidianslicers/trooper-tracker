@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\ServiceRecords;
 
-use App\Enums\AchievementType;
 use App\Facades\TroopTrackerFacade;
 use App\Features\Troopers\Queries\GetTrooperCostumesQuery;
 use App\Features\Troopers\Queries\GetTrooperServiceRecordQuery;
@@ -12,7 +11,6 @@ use App\Http\Controllers\MagicBusController;
 use App\Models\Costume;
 use App\Models\Trooper;
 use App\Services\Forums\XenforoService;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -65,102 +63,10 @@ class TrooperController extends MagicBusController
                 $data['xenforo_donations'] = $upgrade_history ?? [];
                 $data['is_active_donor'] = collect($data['xenforo_donations'])
                     ->contains('is_active', true);
-
-                if (!empty($data['xenforo_donations']))
-                {
-                    $xenforo_months = $this->computeDonationMonths($data['xenforo_donations']);
-                    $data['service_summary']['donation_months'] = $xenforo_months;
-                    $data['service_summary']['milestones'] = $this->recomputeSupporterMilestones(
-                        $data['service_summary']['milestones'],
-                        $xenforo_months
-                    );
-                }
             }
         }
 
         return view('pages.service-records.trooper', $data);
-    }
-
-    /**
-     * Count the distinct calendar months covered by any upgrade record.
-     *
-     * Iterates month-by-month between start_date and end_date for every
-     * upgrade entry so that both monthly and annual subscriptions are counted
-     * correctly (e.g. one annual record contributes 12 months).
-     *
-     * @param  array<int,array<string,mixed>>  $upgrades
-     */
-    private function computeDonationMonths(array $upgrades): int
-    {
-        $months = [];
-        $now = time();
-
-        foreach ($upgrades as $upgrade)
-        {
-            $start = (int) ($upgrade['start_date'] ?? 0);
-            $end   = (int) ($upgrade['end_date'] ?? 0);
-
-            if ($start <= 0)
-            {
-                continue;
-            }
-
-            if ($end === 0 || $end > $now)
-            {
-                $end = $now;
-            }
-
-            $current   = Carbon::createFromTimestamp($start)->startOfMonth();
-            $end_month = Carbon::createFromTimestamp($end)->startOfMonth();
-
-            while ($current->lte($end_month))
-            {
-                $months[$current->format('Y-m')] = true;
-                $current->addMonth();
-            }
-        }
-
-        return count($months);
-    }
-
-    /**
-     * Replace the supporter-month milestones in the milestones array with
-     * values derived from XenForo's upgrade history.
-     *
-     * @param  array<int,array<string,mixed>>  $milestones
-     * @return array<int,array<string,mixed>>
-     */
-    private function recomputeSupporterMilestones(array $milestones, int $xenforo_months): array
-    {
-        $supporter_types = [
-            AchievementType::SUPPORTER_12_MONTHS->value => 12,
-            AchievementType::SUPPORTER_24_MONTHS->value => 24,
-            AchievementType::SUPPORTER_36_MONTHS->value => 36,
-            AchievementType::SUPPORTER_60_MONTHS->value => 60,
-        ];
-
-        // Remove any existing supporter milestones so we can replace them.
-        $milestones = array_values(array_filter(
-            $milestones,
-            static fn (array $m): bool => !isset($supporter_types[$m['type']->value])
-        ));
-
-        foreach ($supporter_types as $type_value => $threshold)
-        {
-            if ($xenforo_months >= $threshold)
-            {
-                $type = AchievementType::from($type_value);
-
-                $milestones[] = [
-                    'type'      => $type,
-                    'title'     => $type->toTitle(),
-                    'icon'      => $type->toIcon(),
-                    'is_earned' => true,
-                ];
-            }
-        }
-
-        return $milestones;
     }
 
     /**

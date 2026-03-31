@@ -8,11 +8,15 @@ use App\Bus\Contracts\CommandHandlerInterface;
 use App\Enums\AchievementType;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
+use App\Enums\OauthProvider;
 use App\Models\Event;
 use App\Models\EventTrooper;
+use App\Models\OauthLogin;
 use App\Models\Trooper;
 use App\Models\TrooperAchievement;
 use App\Models\TrooperDonation;
+use App\Services\Forums\XenforoService;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
 /**
@@ -26,6 +30,8 @@ use Illuminate\Support\Collection;
 class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
 {
     private int $rank = 1;
+
+    public function __construct(private readonly XenforoService $xenforo) {}
 
     /**
      * Execute the command to recalculate a trooper's rank.
@@ -51,13 +57,16 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
             $q->where(Trooper::ID, $message->trooper_id);
         }
 
-        $q->chunk(200, function ($troopers) use ($message) {
+        // One API call for the entire run — all users' upgrade records.
+        $xenforo_upgrades = $this->prefetchXenforoUpgrades();
+
+        $q->chunk(200, function ($troopers) use ($message, $xenforo_upgrades) {
             //  only process rank if we're processing all troopers, otherwise
             //  the rank won't be accurate since we're not reordering all the
             //  troopers by attendance
             $process_rank = $message->trooper_id === null;
 
-            $this->processChunk($troopers, $process_rank);
+            $this->processChunk($troopers, $process_rank, $xenforo_upgrades);
         });
 
         return null;
@@ -75,8 +84,17 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
      *
      * @param  Collection  $troopers  Chunk of troopers to process
      */
-    private function processChunk($troopers, bool $process_rank): void
+    private function processChunk($troopers, bool $process_rank, array $xenforo_upgrades): void
     {
+        // One query per chunk to map trooper_id → xenforo_user_id.
+        $trooper_ids = $troopers->pluck('id')->all();
+
+        $xenforo_id_map = OauthLogin::where(OauthLogin::PROVIDER, OauthProvider::XENFORO)
+            ->whereIn(OauthLogin::TROOPER_ID, $trooper_ids)
+            ->pluck(OauthLogin::PROVIDER_ID, OauthLogin::TROOPER_ID)
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
         foreach ($troopers as $trooper)
         {
             $metrics = $this->computeMetrics($trooper);
@@ -92,7 +110,8 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
             $this->updateAchievement($trooper, AchievementType::DIRECT_FUNDS, $metrics['total_direct']);
             $this->updateAchievement($trooper, AchievementType::INDIRECT_FUNDS, $metrics['total_indirect']);
 
-            $donation_metrics = $this->computeDonationMetrics($trooper);
+            $xenforo_user_id = $xenforo_id_map[$trooper->id] ?? null;
+            $donation_metrics = $this->computeDonationMetrics($trooper, $xenforo_user_id, $xenforo_upgrades);
             $this->updateAchievement($trooper, AchievementType::DONATION_MONTHS, $donation_metrics['donation_months']);
             $this->storeDonationMilestoneAchievements($trooper, $donation_metrics);
 
@@ -172,37 +191,131 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
     }
 
     /**
+     * Fetch all upgrade records from XenForo once and return a lookup keyed
+     * by xenforo user_id: ['active' => [...], 'expired' => [...]].
+     *
+     * Returns an empty array when XenForo is not configured or the call fails.
+     *
+     * @return array<int,array{active:array<mixed>,expired:array<mixed>}>
+     */
+    private function prefetchXenforoUpgrades(): array
+    {
+        $stats = $this->xenforo->get_upgrade_stats();
+
+        if ($stats === null)
+        {
+            return [];
+        }
+
+        $lookup = [];
+
+        foreach ($stats['userUpgradeActive'] ?? [] as $row)
+        {
+            if (is_array($row) && isset($row['user_id']))
+            {
+                $lookup[(int) $row['user_id']]['active'][] = $row;
+            }
+        }
+
+        foreach ($stats['userUpgradeExpired'] ?? [] as $row)
+        {
+            if (is_array($row) && isset($row['user_id']))
+            {
+                $lookup[(int) $row['user_id']]['expired'][] = $row;
+            }
+        }
+
+        return $lookup;
+    }
+
+    /**
      * Compute donation metrics for a trooper.
      *
-     * Counts the distinct calendar months in which the trooper has made at
-     * least one donation, and sums the total amount donated across all records.
+     * Donation months use XenForo upgrade history when available — this handles
+     * both monthly (one record ≈ one month) and annual subscriptions correctly.
+     * Falls back to distinct calendar months from local donation records when
+     * the trooper has no XenForo link or XenForo data is unavailable.
      *
-     * @param  Trooper  $trooper  The trooper to compute donation metrics for
+     * Total donated always comes from local records; XenForo upgrade records
+     * do not carry payment amounts.
+     *
+     * @param  array<int,array{active:array<mixed>,expired:array<mixed>}>  $xenforo_upgrades
      * @return array{donation_months: int, total_donated: float}
      */
-    private function computeDonationMetrics(Trooper $trooper): array
+    private function computeDonationMetrics(Trooper $trooper, ?int $xenforo_user_id, array $xenforo_upgrades): array
     {
         $donations = TrooperDonation::where(TrooperDonation::TROOPER_ID, $trooper->id)
             ->whereNull('deleted_at')
             ->get([TrooperDonation::AMOUNT, TrooperDonation::CREATED_AT]);
 
-        $total_donated = 0.0;
-        $month_keys = [];
+        $total_donated = (float) $donations->sum(fn ($d) => (float) $d->amount);
 
-        foreach ($donations as $donation)
+        if ($xenforo_user_id !== null && isset($xenforo_upgrades[$xenforo_user_id]))
         {
-            $total_donated += (float) $donation->amount;
+            $user_upgrades = $xenforo_upgrades[$xenforo_user_id];
+            $donation_months = $this->computeMonthsFromUpgrades(
+                $user_upgrades['active'] ?? [],
+                $user_upgrades['expired'] ?? []
+            );
+        }
+        else
+        {
+            $month_keys = [];
 
-            if ($donation->created_at !== null)
+            foreach ($donations as $donation)
             {
-                $month_keys[$donation->created_at->format('Y-m')] = true;
+                if ($donation->created_at !== null)
+                {
+                    $month_keys[$donation->created_at->format('Y-m')] = true;
+                }
             }
+
+            $donation_months = count($month_keys);
         }
 
         return [
-            'donation_months' => count($month_keys),
-            'total_donated' => $total_donated,
+            'donation_months' => $donation_months,
+            'total_donated'   => $total_donated,
         ];
+    }
+
+    /**
+     * Count distinct calendar months covered by a set of upgrade records.
+     *
+     * @param  array<mixed>  $active
+     * @param  array<mixed>  $expired
+     */
+    private function computeMonthsFromUpgrades(array $active, array $expired): int
+    {
+        $months = [];
+        $now    = time();
+
+        foreach (array_merge($active, $expired) as $row)
+        {
+            $start = (int) ($row['start_date'] ?? 0);
+            $end   = (int) ($row['end_date'] ?? 0);
+
+            if ($start <= 0)
+            {
+                continue;
+            }
+
+            if ($end === 0 || $end > $now)
+            {
+                $end = $now;
+            }
+
+            $current   = Carbon::createFromTimestamp($start)->startOfMonth();
+            $end_month = Carbon::createFromTimestamp($end)->startOfMonth();
+
+            while ($current->lte($end_month))
+            {
+                $months[$current->format('Y-m')] = true;
+                $current->addMonth();
+            }
+        }
+
+        return count($months);
     }
 
     /**
