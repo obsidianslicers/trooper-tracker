@@ -534,18 +534,19 @@ class XenforoService
     /**
      * Fetch the full upgrade history for a specific XenForo user.
      *
-     * Calls the upgrade-stats add-on endpoint and combines `userUpgradeActive`
-     * and `userUpgradeExpired`, filtered to the given user_id. Each record is
-     * normalised to:
+     * Calls the per-user upgrade-stats endpoint and normalises each donation
+     * record to:
      *   - user_upgrade_record_id (int)
-     *   - upgrade_title (string)  — matched from the upgrade definitions
-     *   - start_date (int)        — Unix timestamp
-     *   - end_date (int)          — Unix timestamp; 0 = lifetime/no expiry
+     *   - upgrade_title (string)
+     *   - start_date (int)   — Unix timestamp
+     *   - end_date (int)     — Unix timestamp; 0 = lifetime/no expiry
      *   - is_active (bool)
+     *   - cost_amount (float) — per-period subscription price
+     *   - total_amount (float) — months covered × per-period price
      *
      * Returns null when credentials are missing or the request fails.
      *
-     * @return array<int,array{user_upgrade_record_id:int,upgrade_title:string,start_date:int,end_date:int,is_active:bool}>|null
+     * @return array<int,array{user_upgrade_record_id:int,upgrade_title:string,start_date:int,end_date:int,is_active:bool,cost_amount:float,total_amount:float}>|null
      */
     public function get_user_upgrade_history(int $user_id): ?array
     {
@@ -554,21 +555,67 @@ class XenforoService
             return null;
         }
 
-        $url = $this->base_url.'/index.php?api/upgrade-stats';
+        $data = $this->get_user_upgrade_stats($user_id);
+
+        if ($data === null)
+        {
+            return null;
+        }
+
+        $records = [];
+
+        foreach ($data['donations'] ?? [] as $row)
+        {
+            if (!is_array($row))
+            {
+                continue;
+            }
+
+            $upgrade_id  = (int) ($row['user_upgrade_id'] ?? 0);
+            $start_date  = (int) ($row['start_date'] ?? 0);
+            $end_date    = (int) ($row['end_date'] ?? 0);
+            $cost_amount = (float) ($row['cost_amount'] ?? 0.0);
+            $months_paid = XenforoUpgradeHelper::countMonthsForRecord($start_date, $end_date);
+
+            $records[] = [
+                'user_upgrade_record_id' => (int) ($row['user_upgrade_record_id'] ?? 0),
+                'upgrade_title'          => (string) ($row['title'] ?? 'Upgrade #'.$upgrade_id),
+                'start_date'             => $start_date,
+                'end_date'               => $end_date,
+                'is_active'              => ($row['status'] ?? '') === 'active',
+                'cost_amount'            => $cost_amount,
+                'total_amount'           => round($months_paid * $cost_amount, 2),
+            ];
+        }
+
+        // Most recent first.
+        usort($records, static fn (array $a, array $b): int => $b['start_date'] <=> $a['start_date']);
+
+        return $records;
+    }
+
+    /**
+     * Fetch raw upgrade stats for a single XenForo user from the per-user endpoint.
+     *
+     * Returns the decoded JSON payload or null on failure.
+     *
+     * @return array<string,mixed>|null
+     */
+    private function get_user_upgrade_stats(int $user_id): ?array
+    {
+        $url = $this->base_url.'/index.php?api/upgrade-stats/user&user_id='.$user_id;
 
         try
         {
-            $headers = $this->buildApiHeaders();
-
-            $response = Http::withHeaders($headers)
+            $response = Http::withHeaders($this->buildApiHeaders())
                 ->acceptJson()
                 ->timeout(5)
                 ->get($url);
         }
         catch (\Throwable $e)
         {
-            Log::warning('Failed to fetch XenForo upgrade stats for user history', [
-                'url' => $url,
+            Log::warning('Failed to fetch XenForo upgrade stats for user', [
+                'url'     => $url,
                 'user_id' => $user_id,
                 'message' => $e->getMessage(),
             ]);
@@ -578,10 +625,10 @@ class XenforoService
 
         if (!$response->successful())
         {
-            Log::warning('Non-success response from XenForo upgrade stats for user history', [
-                'url' => $url,
+            Log::warning('Non-success response from XenForo upgrade stats for user', [
+                'url'     => $url,
                 'user_id' => $user_id,
-                'status' => $response->status(),
+                'status'  => $response->status(),
             ]);
 
             return null;
@@ -589,65 +636,7 @@ class XenforoService
 
         $data = $response->json();
 
-        // Build title and cost lookups from upgrade definitions.
-        $upgrade_titles = [];
-        $upgrade_costs  = [];
-        foreach ($data['userUpgrades'] ?? [] as $upgrade)
-        {
-            if (is_array($upgrade) && isset($upgrade['user_upgrade_id'], $upgrade['title']))
-            {
-                $id = (int) $upgrade['user_upgrade_id'];
-                $upgrade_titles[$id] = (string) $upgrade['title'];
-                $upgrade_costs[$id]  = isset($upgrade['cost_amount']) && is_numeric($upgrade['cost_amount'])
-                    ? (float) $upgrade['cost_amount']
-                    : 0.0;
-            }
-        }
-
-        $records = [];
-
-        $sources = [
-            ['rows' => $data['userUpgradeActive'] ?? [], 'is_active' => true],
-            ['rows' => $data['userUpgradeExpired'] ?? [], 'is_active' => false],
-        ];
-
-        foreach ($sources as $source)
-        {
-            if (!is_array($source['rows']))
-            {
-                continue;
-            }
-
-            foreach ($source['rows'] as $row)
-            {
-                if (!is_array($row) || (int) ($row['user_id'] ?? 0) !== $user_id)
-                {
-                    continue;
-                }
-
-                $upgrade_id  = (int) ($row['user_upgrade_id'] ?? 0);
-                $start_date  = (int) ($row['start_date'] ?? 0);
-                $end_date    = (int) ($row['end_date'] ?? 0);
-
-                $cost_amount = XenforoUpgradeHelper::resolveRecordCost($row, $upgrade_costs);
-                $months_paid = XenforoUpgradeHelper::countMonthsForRecord($start_date, $end_date);
-
-                $records[] = [
-                    'user_upgrade_record_id' => (int) ($row['user_upgrade_record_id'] ?? 0),
-                    'upgrade_title'  => $upgrade_titles[$upgrade_id] ?? 'Upgrade #'.$upgrade_id,
-                    'start_date'     => $start_date,
-                    'end_date'       => $end_date,
-                    'is_active'      => $source['is_active'],
-                    'cost_amount'    => $cost_amount,
-                    'total_amount'   => round($months_paid * $cost_amount, 2),
-                ];
-            }
-        }
-
-        // Most recent first.
-        usort($records, static fn (array $a, array $b): int => $b['start_date'] <=> $a['start_date']);
-
-        return $records;
+        return is_array($data) ? $data : null;
     }
 
     /**
