@@ -15,6 +15,7 @@ use App\Models\OauthLogin;
 use App\Models\Trooper;
 use App\Models\TrooperAchievement;
 use App\Models\TrooperDonation;
+use App\Support\XenforoUpgradeHelper;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
@@ -77,11 +78,12 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
      * - Shift count achievement
      * - Volunteer hours achievement
      * - Direct and indirect funds achievements
+     * - Donation metrics and milestone achievements
      * - Troop threshold milestone achievements
      *
      * @param  Collection  $troopers  Chunk of troopers to process
      */
-    private function processChunk($troopers, bool $process_rank, array $xenforo_upgrades): void
+    private function processChunk(Collection $troopers, bool $process_rank, array $xenforo_upgrades): void
     {
         // One query per chunk to map trooper_id → xenforo_user_id.
         $trooper_ids = $troopers->pluck('id')->all();
@@ -192,41 +194,12 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
      * Fetch all upgrade records from XenForo once and return a lookup keyed
      * by xenforo user_id: ['active' => [...], 'expired' => [...]].
      *
-     * Returns an empty array when XenForo is not configured or the call fails.
+     * Embeds the resolved per-period cost_amount into each record so callers
+     * do not need to re-derive it. Returns an empty array when XenForo is
+     * unavailable or the API call fails.
      *
      * @return array<int,array{active:array<mixed>,expired:array<mixed>}>
      */
-    /**
-     * Resolve the per-period cost for a single upgrade record.
-     *
-     * Priority: record's own extra JSON → upgrade definition fallback.
-     * Mirrors the logic in SupportStatusService::calculateFromXenforo().
-     *
-     * @param  array<string,mixed>  $row
-     * @param  array<int,float>  $cost_map  user_upgrade_id → cost_amount from definitions
-     */
-    private function resolveRecordCost(array $row, array $cost_map): float
-    {
-        // 1. Try the record's extra JSON (actual cost at subscription time).
-        if (isset($row['extra']) && is_string($row['extra']))
-        {
-            $extra = json_decode($row['extra'], true);
-
-            if (is_array($extra) && isset($extra['cost_amount']) && is_numeric($extra['cost_amount']))
-            {
-                $amount = (float) $extra['cost_amount'];
-
-                if ($amount > 0.0)
-                {
-                    return $amount;
-                }
-            }
-        }
-
-        // 2. Fall back to the upgrade definition price.
-        return $cost_map[(int) ($row['user_upgrade_id'] ?? 0)] ?? 0.0;
-    }
-
     private function prefetchXenforoUpgrades(): array
     {
         $stats = app(\App\Services\Forums\XenforoService::class)->get_upgrade_stats();
@@ -253,7 +226,7 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
         {
             if (is_array($row) && isset($row['user_id']))
             {
-                $row['cost_amount'] = $this->resolveRecordCost($row, $cost_map);
+                $row['cost_amount'] = XenforoUpgradeHelper::resolveRecordCost($row, $cost_map);
                 $lookup[(int) $row['user_id']]['active'][] = $row;
             }
         }
@@ -262,7 +235,7 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
         {
             if (is_array($row) && isset($row['user_id']))
             {
-                $row['cost_amount'] = $this->resolveRecordCost($row, $cost_map);
+                $row['cost_amount'] = XenforoUpgradeHelper::resolveRecordCost($row, $cost_map);
                 $lookup[(int) $row['user_id']]['expired'][] = $row;
             }
         }
@@ -278,22 +251,58 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
      * Falls back to distinct calendar months from local donation records when
      * the trooper has no XenForo link or XenForo data is unavailable.
      *
-     * Total donated uses XenForo upgrade subscription costs when available (embedded
-     * via cost_amount during prefetch), falling back to local TrooperDonation records.
+     * Total donated combines XenForo subscription costs (months × per-period price)
+     * with local TrooperDonation records so neither source is excluded.
      *
      * @param  array<int,array{active:array<mixed>,expired:array<mixed>}>  $xenforo_upgrades
      * @return array{donation_months: int, total_donated: float}
      */
     private function computeDonationMetrics(Trooper $trooper, ?int $xenforo_user_id, array $xenforo_upgrades): array
     {
-        // Always load local donation records.
-        $donations = TrooperDonation::where(TrooperDonation::TROOPER_ID, $trooper->id)
+        $donations   = $this->loadLocalDonations($trooper);
+        $local_total = (float) $donations->sum(fn ($d) => (float) $d->amount);
+        $local_keys  = $this->buildLocalMonthKeys($donations);
+
+        if ($xenforo_user_id !== null && isset($xenforo_upgrades[$xenforo_user_id]))
+        {
+            $active  = $xenforo_upgrades[$xenforo_user_id]['active']  ?? [];
+            $expired = $xenforo_upgrades[$xenforo_user_id]['expired'] ?? [];
+
+            $merged_months = count(array_merge($local_keys, XenforoUpgradeHelper::monthKeysFromUpgrades($active, $expired)));
+            $xenforo_total = $this->computeTotalFromUpgrades($active, $expired);
+
+            return [
+                'donation_months' => $merged_months,
+                'total_donated'   => $xenforo_total + $local_total,
+            ];
+        }
+
+        return [
+            'donation_months' => count($local_keys),
+            'total_donated'   => $local_total,
+        ];
+    }
+
+    /**
+     * Load a trooper's non-deleted local donation records.
+     *
+     * @return Collection<int, TrooperDonation>
+     */
+    private function loadLocalDonations(Trooper $trooper): Collection
+    {
+        return TrooperDonation::where(TrooperDonation::TROOPER_ID, $trooper->id)
             ->whereNull('deleted_at')
             ->get([TrooperDonation::AMOUNT, TrooperDonation::CREATED_AT]);
+    }
 
-        $local_total = (float) $donations->sum(fn ($d) => (float) $d->amount);
-
-        // Collect distinct months from local donation records.
+    /**
+     * Build a distinct Y-m => true map from local donation records.
+     *
+     * @param  Collection<int, TrooperDonation>  $donations
+     * @return array<string, true>
+     */
+    private function buildLocalMonthKeys(Collection $donations): array
+    {
         $month_keys = [];
 
         foreach ($donations as $donation)
@@ -304,86 +313,13 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
             }
         }
 
-        if ($xenforo_user_id !== null && isset($xenforo_upgrades[$xenforo_user_id]))
-        {
-            $user_upgrades  = $xenforo_upgrades[$xenforo_user_id];
-            $active         = $user_upgrades['active'] ?? [];
-            $expired        = $user_upgrades['expired'] ?? [];
-
-            $xenforo_month_keys = $this->getMonthKeysFromUpgrades($active, $expired);
-            $merged_months      = count(array_merge($month_keys, $xenforo_month_keys));
-
-            // cost_amount is the per-period price — multiply by months covered per record.
-            $xenforo_total = $this->computeTotalFromUpgrades($active, $expired);
-
-            return [
-                'donation_months' => $merged_months,
-                'total_donated'   => $xenforo_total + $local_total,
-            ];
-        }
-
-        return [
-            'donation_months' => count($month_keys),
-            'total_donated'   => $local_total,
-        ];
-    }
-
-    /**
-     * Return distinct calendar month keys covered by a set of upgrade records.
-     *
-     * @param  array<mixed>  $active
-     * @param  array<mixed>  $expired
-     * @return array<string,true>  e.g. ['2024-09' => true, ...]
-     */
-    private function getMonthKeysFromUpgrades(array $active, array $expired): array
-    {
-        $months = [];
-        $now    = time();
-
-        foreach (array_merge($active, $expired) as $row)
-        {
-            $start = (int) ($row['start_date'] ?? 0);
-            $end   = (int) ($row['end_date'] ?? 0);
-
-            if ($start <= 0)
-            {
-                continue;
-            }
-
-            if ($end === 0 || $end > $now)
-            {
-                $end = $now;
-            }
-
-            $current   = Carbon::createFromTimestamp($start)->startOfMonth();
-            $end_month = Carbon::createFromTimestamp($end)->startOfMonth();
-
-            while ($current->lte($end_month))
-            {
-                $months[$current->format('Y-m')] = true;
-                $current->addMonth();
-            }
-        }
-
-        return $months;
-    }
-
-    /**
-     * Count distinct calendar months covered by a set of upgrade records.
-     *
-     * @param  array<mixed>  $active
-     * @param  array<mixed>  $expired
-     */
-    private function computeMonthsFromUpgrades(array $active, array $expired): int
-    {
-        return count($this->getMonthKeysFromUpgrades($active, $expired));
+        return $month_keys;
     }
 
     /**
      * Sum the total amount donated across all upgrade records.
      *
-     * cost_amount is the per-period price, so we multiply by the number of
-     * distinct calendar months each record covers.
+     * cost_amount is the per-period price — multiply by months covered per record.
      *
      * @param  array<mixed>  $active
      * @param  array<mixed>  $expired
@@ -391,7 +327,6 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
     private function computeTotalFromUpgrades(array $active, array $expired): float
     {
         $total = 0.0;
-        $now   = time();
 
         foreach (array_merge($active, $expired) as $row)
         {
@@ -399,27 +334,12 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
             $start = (int) ($row['start_date'] ?? 0);
             $end   = (int) ($row['end_date'] ?? 0);
 
-            if ($start <= 0 || $cost <= 0)
+            if ($start <= 0 || $cost <= 0.0)
             {
                 continue;
             }
 
-            if ($end === 0 || $end > $now)
-            {
-                $end = $now;
-            }
-
-            $current   = Carbon::createFromTimestamp($start)->startOfMonth();
-            $end_month = Carbon::createFromTimestamp($end)->startOfMonth();
-            $months    = 0;
-
-            while ($current->lte($end_month))
-            {
-                $months++;
-                $current->addMonth();
-            }
-
-            $total += $months * $cost;
+            $total += XenforoUpgradeHelper::countMonthsForRecord($start, $end) * $cost;
         }
 
         return $total;

@@ -178,6 +178,11 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
             ->get();
     }
 
+    /**
+     * Fallback for troopers whose TOTAL_DONATED achievement has not yet been
+     * computed by the rank command. Can be removed once all troopers have been
+     * processed by `tracker:calculate-trooper-achievements`.
+     */
     private function computeTotalDonated(Trooper $trooper): float
     {
         return (float) TrooperDonation::byTrooper($trooper->id)->sum(TrooperDonation::AMOUNT);

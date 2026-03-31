@@ -5,6 +5,7 @@ namespace App\Services\Forums;
 use App\Enums\OauthProvider;
 use App\Helpers\ForumBBCodeRenderer;
 use App\Models\OauthLogin;
+use App\Support\XenforoUpgradeHelper;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -628,35 +629,8 @@ class XenforoService
                 $start_date  = (int) ($row['start_date'] ?? 0);
                 $end_date    = (int) ($row['end_date'] ?? 0);
 
-                // Resolve per-period cost: prefer extra JSON, fall back to definition.
-                $cost_amount = 0.0;
-                if (isset($row['extra']) && is_string($row['extra']))
-                {
-                    $extra = json_decode($row['extra'], true);
-                    if (is_array($extra) && isset($extra['cost_amount']) && is_numeric($extra['cost_amount']))
-                    {
-                        $cost_amount = (float) $extra['cost_amount'];
-                    }
-                }
-                if ($cost_amount <= 0.0)
-                {
-                    $cost_amount = $upgrade_costs[$upgrade_id] ?? 0.0;
-                }
-
-                // Compute total paid: count months covered × per-period cost.
-                $now         = time();
-                $end_capped  = ($end_date === 0 || $end_date > $now) ? $now : $end_date;
-                $months_paid = 0;
-                if ($start_date > 0)
-                {
-                    $cur = \Carbon\Carbon::createFromTimestamp($start_date)->startOfMonth();
-                    $end = \Carbon\Carbon::createFromTimestamp($end_capped)->startOfMonth();
-                    while ($cur->lte($end))
-                    {
-                        $months_paid++;
-                        $cur->addMonth();
-                    }
-                }
+                $cost_amount = XenforoUpgradeHelper::resolveRecordCost($row, $upgrade_costs);
+                $months_paid = XenforoUpgradeHelper::countMonthsForRecord($start_date, $end_date);
 
                 $records[] = [
                     'user_upgrade_record_id' => (int) ($row['user_upgrade_record_id'] ?? 0),
