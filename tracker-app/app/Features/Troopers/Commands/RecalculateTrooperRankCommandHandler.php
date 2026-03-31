@@ -209,12 +209,24 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
             return [];
         }
 
+        // Build cost_amount lookup keyed by user_upgrade_id.
+        $cost_map = [];
+
+        foreach ($stats['userUpgrades'] ?? [] as $upgrade)
+        {
+            if (is_array($upgrade) && isset($upgrade['user_upgrade_id']))
+            {
+                $cost_map[(int) $upgrade['user_upgrade_id']] = (float) ($upgrade['cost_amount'] ?? 0);
+            }
+        }
+
         $lookup = [];
 
         foreach ($stats['userUpgradeActive'] ?? [] as $row)
         {
             if (is_array($row) && isset($row['user_id']))
             {
+                $row['cost_amount'] = $cost_map[(int) ($row['user_upgrade_id'] ?? 0)] ?? 0.0;
                 $lookup[(int) $row['user_id']]['active'][] = $row;
             }
         }
@@ -223,6 +235,7 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
         {
             if (is_array($row) && isset($row['user_id']))
             {
+                $row['cost_amount'] = $cost_map[(int) ($row['user_upgrade_id'] ?? 0)] ?? 0.0;
                 $lookup[(int) $row['user_id']]['expired'][] = $row;
             }
         }
@@ -238,45 +251,54 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
      * Falls back to distinct calendar months from local donation records when
      * the trooper has no XenForo link or XenForo data is unavailable.
      *
-     * Total donated always comes from local records; XenForo upgrade records
-     * do not carry payment amounts.
+     * Total donated uses XenForo upgrade subscription costs when available (embedded
+     * via cost_amount during prefetch), falling back to local TrooperDonation records.
      *
      * @param  array<int,array{active:array<mixed>,expired:array<mixed>}>  $xenforo_upgrades
      * @return array{donation_months: int, total_donated: float}
      */
     private function computeDonationMetrics(Trooper $trooper, ?int $xenforo_user_id, array $xenforo_upgrades): array
     {
+        if ($xenforo_user_id !== null && isset($xenforo_upgrades[$xenforo_user_id]))
+        {
+            $user_upgrades  = $xenforo_upgrades[$xenforo_user_id];
+            $active         = $user_upgrades['active'] ?? [];
+            $expired        = $user_upgrades['expired'] ?? [];
+
+            $donation_months = $this->computeMonthsFromUpgrades($active, $expired);
+
+            $total_donated = 0.0;
+
+            foreach (array_merge($active, $expired) as $row)
+            {
+                $total_donated += (float) ($row['cost_amount'] ?? 0);
+            }
+
+            return [
+                'donation_months' => $donation_months,
+                'total_donated'   => $total_donated,
+            ];
+        }
+
+        // Fallback: no XenForo link — use local donation records.
         $donations = TrooperDonation::where(TrooperDonation::TROOPER_ID, $trooper->id)
             ->whereNull('deleted_at')
             ->get([TrooperDonation::AMOUNT, TrooperDonation::CREATED_AT]);
 
         $total_donated = (float) $donations->sum(fn ($d) => (float) $d->amount);
 
-        if ($xenforo_user_id !== null && isset($xenforo_upgrades[$xenforo_user_id]))
-        {
-            $user_upgrades = $xenforo_upgrades[$xenforo_user_id];
-            $donation_months = $this->computeMonthsFromUpgrades(
-                $user_upgrades['active'] ?? [],
-                $user_upgrades['expired'] ?? []
-            );
-        }
-        else
-        {
-            $month_keys = [];
+        $month_keys = [];
 
-            foreach ($donations as $donation)
+        foreach ($donations as $donation)
+        {
+            if ($donation->created_at !== null)
             {
-                if ($donation->created_at !== null)
-                {
-                    $month_keys[$donation->created_at->format('Y-m')] = true;
-                }
+                $month_keys[$donation->created_at->format('Y-m')] = true;
             }
-
-            $donation_months = count($month_keys);
         }
 
         return [
-            'donation_months' => $donation_months,
+            'donation_months' => count($month_keys),
             'total_donated'   => $total_donated,
         ];
     }
