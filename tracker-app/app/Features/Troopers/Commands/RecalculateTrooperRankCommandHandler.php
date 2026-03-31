@@ -15,7 +15,6 @@ use App\Models\OauthLogin;
 use App\Models\Trooper;
 use App\Models\TrooperAchievement;
 use App\Models\TrooperDonation;
-use App\Services\Forums\XenforoService;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
@@ -30,8 +29,6 @@ use Illuminate\Support\Collection;
 class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
 {
     private int $rank = 1;
-
-    public function __construct(private readonly XenforoService $xenforo) {}
 
     /**
      * Execute the command to recalculate a trooper's rank.
@@ -200,7 +197,12 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
      */
     private function prefetchXenforoUpgrades(): array
     {
-        $stats = $this->xenforo->get_upgrade_stats();
+        if (empty(config('services.xenforo.api_key')))
+        {
+            return [];
+        }
+
+        $stats = app(\App\Services\Forums\XenforoService::class)->get_upgrade_stats();
 
         if ($stats === null)
         {
