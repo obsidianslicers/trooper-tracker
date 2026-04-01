@@ -61,7 +61,6 @@ stan/pint - WIP
 - Update/Delete Costumes from UI
 
 ## INTEGRATIONS
-- Reply on event (Xenforo integration)
 - todo:   club/organization identifiers
   - auto verify club identifiers on registration
 
