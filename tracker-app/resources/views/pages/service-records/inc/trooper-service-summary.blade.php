@@ -87,7 +87,7 @@
             <a href="https://www.fl501st.com/boards/account/upgrades"
                target="_blank"
                rel="noopener noreferrer">
-                <img src="https://www.fl501st.com/troop-tracker/images/flgdonate.png"
+                <img src="{{ config('tracker.donor.image_url') }}"
                      alt="Active Donor"
                      class="img-fluid"
                      style="max-height: 200px;" />
