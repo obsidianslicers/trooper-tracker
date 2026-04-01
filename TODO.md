@@ -1,16 +1,5 @@
 ### CI/CD
 
-stan/pint - WIP
-- app/helpers.php
-- app/Bus
-- # app/Http/Controllers
-- # app/Http/Middleware
-- # app/Http/Requests
-- app/Jobs
-- app/Mail
-- app/Policies
-- app/Rules
-
 ### REFACTOR CONVENTION
 - template includes
   - path.inc.{page-name}-purpose.blade.php
@@ -67,10 +56,6 @@ stan/pint - WIP
 - Reply on event (Xenforo integration)
 - todo:   club/organization identifiers
   - auto verify club identifiers on registration
-
-## MISC
-- Command Staff notifications (ie Bob or Jane's nth Troop), OR add to system notification for all, OR post to FB??
-
 
 ## EMAIL
 - change email workflow? - for now lock it down
