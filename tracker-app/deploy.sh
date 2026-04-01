@@ -16,7 +16,7 @@ echo "NPM: $NPM"
 echo "🚀 Starting Deployment..."
 
 echo "📦 Installing Composer dependencies..."
-$COMPOSER install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+$PHP $COMPOSER install --no-interaction --prefer-dist --optimize-autoloader --no-dev
 
 echo "📦 Building Laravel Assets..."
 $NPM install
@@ -25,7 +25,7 @@ $NPM run build
 echo "🚧 Taking application offline..."
 $PHP artisan down --refresh=15 || true
 
-echo "🧹 Clearing and re-caching..."
+echo "🧹 Clearing caches..."
 $PHP artisan cache:clear
 $PHP artisan route:clear
 $PHP artisan config:clear
@@ -34,7 +34,7 @@ $PHP artisan view:clear
 echo "🗄️ Running database migrations..."
 $PHP artisan migrate --force
 
-echo "⚡ Re-optimizing caches..."
+echo "⚡ Optimizing..."
 $PHP artisan config:cache
 $PHP artisan route:cache
 $PHP artisan view:cache
