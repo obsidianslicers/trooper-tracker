@@ -77,6 +77,8 @@ trait CommonRules
             Event::PARKING_AVAILABLE => ['boolean'],
             Event::ACCESSIBLE => ['boolean'],
             Event::CREATE_FORUM_THREAD => ['boolean'],
+            Event::THREAD_ID => ['nullable', 'integer', 'min:1'],
+            Event::POST_ID => ['nullable', 'integer', 'min:1'],
 
             Event::AMENITIES => ['nullable', 'string'],
             Event::COMMENTS => ['nullable', 'string'],
