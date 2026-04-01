@@ -1,5 +1,5 @@
 @if($event_shift->canSignUp(Auth::user()))
-    <button class="btn btn-sm btn-outline-success htmx-disable"
+    <button class="btn btn-sm btn-outline-success text-start text-md-center htmx-disable"
             hx-post="{{ route('events.signup-htmx', compact('event_shift')) }}"
             hx-select="#shift-container-{{ $event_shift->id }}"
             hx-target="#shift-container-{{ $event_shift->id }}"
@@ -19,7 +19,7 @@
     @if($event->friends_allowed !== 0 && $event_shift->hasRemainingFriendSlots(Auth::user()) && ($event_shift->canSignUpTrooper(Auth::user()) || $can_moderate))
         {{-- if they are a normal user and already signed up - they can sign up a friend --}}
         {{-- or they are a moderator - they can sign up a friend --}}
-        <button class="btn btn-sm btn-outline-info"
+        <button class="btn btn-sm btn-outline-info text-start text-md-center"
                 hx-get="{{ route('pickers.trooper', ['property' => 'add-shift-trooper-' . $event_shift->id, 'event' => 'trooper:selected']) }}"
                 hx-target="#modal-trooper .modal-body"
                 hx-trigger="click"
@@ -41,7 +41,7 @@
     @if($event->guests_allowed !== 0 && $event_shift->hasRemainingGuestSlots(Auth::user()) && ($event_shift->canSignUpGuest(Auth::user()) || $can_moderate))
         {{-- if they are a normal user and already signed up - they can sign up a guest --}}
         {{-- or they are a moderator - they can sign up a guest --}}
-        <button class="btn btn-sm btn-outline-info"
+        <button class="btn btn-sm btn-outline-info text-start text-md-center"
                 data-bs-toggle="modal"
                 data-bs-target="#modal-guest-{{ $event_shift->id }}">
             <i class="fa fa-fw fa-plus-circle me-2"></i>
