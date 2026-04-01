@@ -936,6 +936,10 @@ class MobileApiController
 
         $existing = $this->findExistingSignUp($trooper->id, $event_id, $shift_id);
 
+        $effective_status = $event->status === EventStatus::MANUAL_SELECTION
+            ? EventTrooperStatus::STAND_BY
+            : $requested_status;
+
         if ($existing)
         {
             // Re-activating a cancelled friend signup still counts against the limit.
@@ -949,7 +953,7 @@ class MobileApiController
             }
 
             $existing->update([
-                EventTrooper::STATUS => $requested_status->value,
+                EventTrooper::STATUS => $effective_status->value,
                 EventTrooper::COSTUME_ID => $costume_id ?: null,
                 EventTrooper::BACKUP_COSTUME_ID => $backup_costume_id ?: null,
             ]);
@@ -962,7 +966,7 @@ class MobileApiController
         }
 
         $is_handler = $this->isHandlerCostume($costume_id);
-        $status = $this->resolveCapacityStatus($event, $event_id, $is_handler, $requested_status);
+        $status = $this->resolveCapacityStatus($event, $event_id, $is_handler, $effective_status);
         $shift = $this->resolveShiftForSignUp($event_id, $shift_id);
 
         if (!$shift)
@@ -1140,9 +1144,7 @@ class MobileApiController
             [EventGuest::EVENT_SHIFT_ID => $shift->id, EventGuest::NAME => $name],
             [
                 EventGuest::ADDED_BY_TROOPER_ID => $trooper->id,
-                EventGuest::STATUS => $shift->event->status === EventStatus::MANUAL_SELECTION
-                    ? EventGuestStatus::STAND_BY->value
-                    : EventGuestStatus::GOING->value,
+                EventGuest::STATUS => EventGuestStatus::STAND_BY->value,
                 EventGuest::SIGNED_UP_AT => now(),
             ]
         );
