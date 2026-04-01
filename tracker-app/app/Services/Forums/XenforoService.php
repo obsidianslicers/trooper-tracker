@@ -571,20 +571,20 @@ class XenforoService
                 continue;
             }
 
-            $upgrade_id  = (int) ($row['user_upgrade_id'] ?? 0);
-            $start_date  = (int) ($row['start_date'] ?? 0);
-            $end_date    = (int) ($row['end_date'] ?? 0);
+            $upgrade_id = (int) ($row['user_upgrade_id'] ?? 0);
+            $start_date = (int) ($row['start_date'] ?? 0);
+            $end_date = (int) ($row['end_date'] ?? 0);
             $cost_amount = (float) ($row['cost_amount'] ?? 0.0);
             $months_paid = XenforoUpgradeHelper::countMonthsForRecord($start_date, $end_date);
 
             $records[] = [
                 'user_upgrade_record_id' => (int) ($row['user_upgrade_record_id'] ?? 0),
-                'upgrade_title'          => (string) ($row['title'] ?? 'Upgrade #'.$upgrade_id),
-                'start_date'             => $start_date,
-                'end_date'               => $end_date,
-                'is_active'              => ($row['status'] ?? '') === 'active',
-                'cost_amount'            => $cost_amount,
-                'total_amount'           => round($months_paid * $cost_amount, 2),
+                'upgrade_title' => (string) ($row['title'] ?? 'Upgrade #'.$upgrade_id),
+                'start_date' => $start_date,
+                'end_date' => $end_date,
+                'is_active' => ($row['status'] ?? '') === 'active',
+                'cost_amount' => $cost_amount,
+                'total_amount' => round($months_paid * $cost_amount, 2),
             ];
         }
 
@@ -615,7 +615,7 @@ class XenforoService
         catch (\Throwable $e)
         {
             Log::warning('Failed to fetch XenForo upgrade stats for user', [
-                'url'     => $url,
+                'url' => $url,
                 'user_id' => $user_id,
                 'message' => $e->getMessage(),
             ]);
@@ -626,9 +626,9 @@ class XenforoService
         if (!$response->successful())
         {
             Log::warning('Non-success response from XenForo upgrade stats for user', [
-                'url'     => $url,
+                'url' => $url,
                 'user_id' => $user_id,
-                'status'  => $response->status(),
+                'status' => $response->status(),
             ]);
 
             return null;

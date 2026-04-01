@@ -219,9 +219,9 @@ enum AchievementType: string
             self::SUPPORTER_36_MONTHS => 'fa-calendar',          // 3 Years of Support
             self::SUPPORTER_60_MONTHS => 'fa-star-of-life',      // 5 Years of Support
 
-            self::DONATED_100  => 'fa-coins',
-            self::DONATED_250  => 'fa-sack-dollar',
-            self::DONATED_500  => 'fa-vault',
+            self::DONATED_100 => 'fa-coins',
+            self::DONATED_250 => 'fa-sack-dollar',
+            self::DONATED_500 => 'fa-vault',
             self::DONATED_1000 => 'fa-gem',
 
             default => 'fa-circle-question',
@@ -257,15 +257,15 @@ enum AchievementType: string
             self::TROOPED_500 => 'Honor of the Galactic Empire',
             self::TROOPED_501 => 'Vader\'s Fist - Legion of Honor',
 
-            self::DONATION_MONTHS   => 'Total Donation Months',
+            self::DONATION_MONTHS => 'Total Donation Months',
             self::SUPPORTER_12_MONTHS => '1 Year Supporter',
             self::SUPPORTER_24_MONTHS => '2 Year Supporter',
             self::SUPPORTER_36_MONTHS => '3 Year Supporter',
             self::SUPPORTER_60_MONTHS => '5 Year Supporter',
 
-            self::DONATED_100  => 'Quartermaster\'s Commendation',
-            self::DONATED_250  => 'Supply Corps Citation',
-            self::DONATED_500  => 'Imperial Benefactor Medal',
+            self::DONATED_100 => 'Quartermaster\'s Commendation',
+            self::DONATED_250 => 'Supply Corps Citation',
+            self::DONATED_500 => 'Imperial Benefactor Medal',
             self::DONATED_1000 => 'Grand Patron of the Empire',
 
             default => to_title($this->name)->toString(),
@@ -301,15 +301,15 @@ enum AchievementType: string
             self::TROOPED_500 => '500 Troops - Honor of the Galactic Empire',
             self::TROOPED_501 => '501 Troops - Vader\'s Fist - Legion of Honor',
 
-            self::DONATION_MONTHS   => 'Total months with an active donation',
+            self::DONATION_MONTHS => 'Total months with an active donation',
             self::SUPPORTER_12_MONTHS => '12 Months - 1 Year Supporter',
             self::SUPPORTER_24_MONTHS => '24 Months - 2 Year Supporter',
             self::SUPPORTER_36_MONTHS => '36 Months - 3 Year Supporter',
             self::SUPPORTER_60_MONTHS => '60 Months - 5 Year Supporter',
 
-            self::DONATED_100  => '$100 Donated - Quartermaster\'s Commendation',
-            self::DONATED_250  => '$250 Donated - Supply Corps Citation',
-            self::DONATED_500  => '$500 Donated - Imperial Benefactor Medal',
+            self::DONATED_100 => '$100 Donated - Quartermaster\'s Commendation',
+            self::DONATED_250 => '$250 Donated - Supply Corps Citation',
+            self::DONATED_500 => '$500 Donated - Imperial Benefactor Medal',
             self::DONATED_1000 => '$1,000 Donated - Grand Patron of the Empire',
 
             default => to_title($this->name)->toString(),

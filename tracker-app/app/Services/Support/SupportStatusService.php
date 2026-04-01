@@ -77,7 +77,7 @@ class SupportStatusService
     private function calculateFromXenforo(array $stats): float
     {
         $active_records = $stats['userUpgradeActive'] ?? null;
-        $upgrades       = $stats['userUpgrades'] ?? null;
+        $upgrades = $stats['userUpgrades'] ?? null;
 
         if (!is_array($active_records) || !is_array($upgrades))
         {
@@ -85,7 +85,7 @@ class SupportStatusService
         }
 
         $upgrade_amounts = $this->buildUpgradeCostMap($upgrades);
-        $monthly_total   = 0.0;
+        $monthly_total = 0.0;
 
         foreach ($active_records as $record)
         {
@@ -154,11 +154,11 @@ class SupportStatusService
     private function isRecordInCurrentMonth(int $start_ts, int $end_ts): bool
     {
         $current_month = (int) date('m');
-        $current_year  = (int) date('Y');
-        $start_month   = (int) date('m', $start_ts);
-        $start_year    = (int) date('Y', $start_ts);
-        $end_month     = (int) date('m', $end_ts);
-        $end_year      = (int) date('Y', $end_ts);
+        $current_year = (int) date('Y');
+        $start_month = (int) date('m', $start_ts);
+        $start_year = (int) date('Y', $start_ts);
+        $end_month = (int) date('m', $end_ts);
+        $end_year = (int) date('Y', $end_ts);
 
         return ($start_year < $current_year
                 || ($start_year === $current_year && $start_month <= $current_month))

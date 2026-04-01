@@ -17,7 +17,6 @@ use App\Models\TrooperAchievement;
 use App\Models\TrooperDonation;
 use App\Services\Forums\XenforoService;
 use App\Support\XenforoUpgradeHelper;
-use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
 /**
@@ -260,13 +259,13 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
      */
     private function computeDonationMetrics(Trooper $trooper, ?int $xenforo_user_id, array $xenforo_upgrades): array
     {
-        $donations   = $this->loadLocalDonations($trooper);
+        $donations = $this->loadLocalDonations($trooper);
         $local_total = (float) $donations->sum(fn ($d) => (float) $d->amount);
-        $local_keys  = $this->buildLocalMonthKeys($donations);
+        $local_keys = $this->buildLocalMonthKeys($donations);
 
         if ($xenforo_user_id !== null && isset($xenforo_upgrades[$xenforo_user_id]))
         {
-            $active  = $xenforo_upgrades[$xenforo_user_id]['active']  ?? [];
+            $active = $xenforo_upgrades[$xenforo_user_id]['active'] ?? [];
             $expired = $xenforo_upgrades[$xenforo_user_id]['expired'] ?? [];
 
             $merged_months = count(array_merge($local_keys, XenforoUpgradeHelper::monthKeysFromUpgrades($active, $expired)));
@@ -274,13 +273,13 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
 
             return [
                 'donation_months' => $merged_months,
-                'total_donated'   => $xenforo_total + $local_total,
+                'total_donated' => $xenforo_total + $local_total,
             ];
         }
 
         return [
             'donation_months' => count($local_keys),
-            'total_donated'   => $local_total,
+            'total_donated' => $local_total,
         ];
     }
 
@@ -331,9 +330,9 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
 
         foreach (array_merge($active, $expired) as $row)
         {
-            $cost  = (float) ($row['cost_amount'] ?? 0);
+            $cost = (float) ($row['cost_amount'] ?? 0);
             $start = (int) ($row['start_date'] ?? 0);
-            $end   = (int) ($row['end_date'] ?? 0);
+            $end = (int) ($row['end_date'] ?? 0);
 
             if ($start <= 0 || $cost <= 0.0)
             {
@@ -377,9 +376,9 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
         }
 
         $amount_thresholds = [
-            AchievementType::DONATED_100->value  => 100,
-            AchievementType::DONATED_250->value  => 250,
-            AchievementType::DONATED_500->value  => 500,
+            AchievementType::DONATED_100->value => 100,
+            AchievementType::DONATED_250->value => 250,
+            AchievementType::DONATED_500->value => 500,
             AchievementType::DONATED_1000->value => 1000,
         ];
 
