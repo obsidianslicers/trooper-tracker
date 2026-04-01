@@ -29,6 +29,7 @@ trait HasEventShiftScopes
     {
         $status_list = [
             EventStatus::OPEN,
+            EventStatus::MANUAL_SELECTION,
             EventStatus::DRAFT,
             EventStatus::SIGN_UP_LOCKED,
         ];
@@ -58,8 +59,18 @@ trait HasEventShiftScopes
             },
         ];
 
+        if ($closed)
+        {
+            return $query->with($with)
+                ->where(self::STATUS, EventStatus::CLOSED)
+                ->whereHas('event_troopers', function ($q) use ($trooper_id)
+                {
+                    $q->where(EventTrooper::TROOPER_ID, $trooper_id);
+                });
+        }
+
         return $query->with($with)
-            ->where(self::STATUS, $closed ? EventStatus::CLOSED : EventStatus::OPEN)
+            ->whereIn(self::STATUS, [EventStatus::OPEN, EventStatus::MANUAL_SELECTION])
             ->whereHas('event_troopers', function ($q) use ($trooper_id)
             {
                 $q->where(EventTrooper::TROOPER_ID, $trooper_id);

@@ -59,6 +59,7 @@ class MobileApiController
      */
     private const OPEN_EVENT_STATUSES = [
         EventStatus::OPEN,
+        EventStatus::MANUAL_SELECTION,
         EventStatus::SIGN_UP_LOCKED,
     ];
 

@@ -31,4 +31,9 @@ enum EventStatus: string
      * The event has been locked.
      */
     case SIGN_UP_LOCKED = 'locked';
+
+    /**
+     * Event sign-ups are stand-by only until manually approved by command staff.
+     */
+    case MANUAL_SELECTION = 'manualselection';
 }

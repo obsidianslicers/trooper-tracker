@@ -4,15 +4,18 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
+use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Features\Events\Commands\PromoteNextInLineEventTrooperCommand;
 use App\Features\Events\Commands\UpdateEventTrooperCommand;
 use App\Features\Events\Queries\GetEventShiftDisplayQuery;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Events\SignupUpdateHtmxRequest;
+use App\Mail\Events\TrooperManualSelectionApproved;
 use App\Models\EventTrooper;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 /**
  * Handles HTMX-driven updates to event trooper sign-up details.
@@ -42,8 +45,22 @@ class SignUpUpdateHtmxController extends MagicBusController
         if ($request->has('status'))
         {
             $event_shift = $event_trooper->event_shift;
+            $event = $event_shift->event;
+            $authTrooper = Auth::user();
+            $requestedStatus = EventTrooperStatus::from($request->validated('status'));
+            $canModerateEvent = $authTrooper->can('update', $event);
+            $isManualSelectionEvent = $event->status === EventStatus::MANUAL_SELECTION;
+            $isManualApproval = $isManualSelectionEvent
+                && $canModerateEvent
+                && $event_trooper->status === EventTrooperStatus::STAND_BY
+                && $requestedStatus === EventTrooperStatus::GOING;
 
-            if (!$event_trooper->canUpdateStatus($event_shift, Auth::user()))
+            if ($isManualSelectionEvent && $requestedStatus === EventTrooperStatus::GOING && !$canModerateEvent)
+            {
+                return response('Forbidden', 403);
+            }
+
+            if (!$event_trooper->canUpdateStatus($event_shift, $authTrooper) && !$isManualApproval)
             {
                 return response('Forbidden', 403);
             }
@@ -52,11 +69,16 @@ class SignUpUpdateHtmxController extends MagicBusController
                 ? $event_shift->handlersMaxed()
                 : $event_shift->troopersMaxed();
 
-            $valid_data = ['status' => $request->validated('status')];
+            $valid_data = ['status' => $requestedStatus];
 
             $event_trooper_cmd = new UpdateEventTrooperCommand($event_trooper, $valid_data);
 
             $this->bus->send($event_trooper_cmd);
+
+            if ($isManualApproval)
+            {
+                Mail::to($event_trooper->trooper->email)->queue(new TrooperManualSelectionApproved($event_trooper, $authTrooper));
+            }
 
             if ($is_full && $event_trooper->status == EventTrooperStatus::CANCELLED)
             {
@@ -66,7 +88,7 @@ class SignUpUpdateHtmxController extends MagicBusController
                 $this->bus->send($next_in_line_cmd);
             }
 
-            $trooper = Auth::user();
+            $trooper = $authTrooper;
 
             $event_shift_query = new GetEventShiftDisplayQuery($event_shift, $trooper);
 

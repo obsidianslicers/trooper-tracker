@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
+use App\Enums\EventStatus;
+use App\Enums\EventTrooperStatus;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Events\UpdateTroopersRequest;
+use App\Mail\Events\TrooperManualSelectionApproved;
 use App\Models\Event;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 /**
  * Processes trooper status update form submissions.
@@ -34,8 +38,22 @@ class UpdateTroopersSubmitController extends MagicBusController
         $this->authorize('update', $event);
 
         $troopers = $request->validated('troopers', []);
+        $approveTrooperIds = collect($request->input('approve_trooper_ids', []))
+            ->filter(fn ($id) => is_numeric($id))
+            ->map(fn ($id) => (int) $id)
+            ->values();
 
         $event_troopers = $event->troopers()->get();
+        $authTrooper = $request->user();
+        $isManualSelectionEvent = $event->status === EventStatus::MANUAL_SELECTION;
+
+        if ($isManualSelectionEvent)
+        {
+            foreach ($approveTrooperIds as $approveTrooperId)
+            {
+                $troopers[$approveTrooperId]['status'] = EventTrooperStatus::GOING->value;
+            }
+        }
 
         foreach ($troopers as $id => $input)
         {
@@ -46,9 +64,26 @@ class UpdateTroopersSubmitController extends MagicBusController
                 continue;
             }
 
-            $event_trooper->status = $input['status'];
+            $newStatus = $input['status'] ?? null;
+            if ($newStatus === null)
+            {
+                continue;
+            }
+
+            $oldStatus = $event_trooper->status;
+
+            $event_trooper->status = $newStatus;
 
             $event_trooper->save();
+
+            $wasManualApproval = $isManualSelectionEvent
+                && $oldStatus === EventTrooperStatus::STAND_BY
+                && $event_trooper->status === EventTrooperStatus::GOING;
+
+            if ($wasManualApproval)
+            {
+                Mail::to($event_trooper->trooper->email)->queue(new TrooperManualSelectionApproved($event_trooper, $authTrooper));
+            }
         }
 
         $this->flash->updated($event);

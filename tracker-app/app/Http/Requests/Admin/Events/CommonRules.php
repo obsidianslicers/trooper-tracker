@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Admin\Events;
 
 use App\Enums\EventStatus;
+use App\Enums\EventType;
 use App\Models\Event;
 use App\Models\EventOrganization;
 
@@ -39,6 +40,7 @@ trait CommonRules
     {
         return [
             Event::NAME => ['required', 'string', 'max:128'],
+            Event::TYPE => ['required', 'string', 'max:32', 'in:'.EventType::toValidator()],
             Event::STATUS => ['required', 'string', 'max:16', 'in:'.EventStatus::toValidator()],
             Event::SHIFTS_ALLOWED => ['nullable', 'integer', 'between:1,99999'],
             Event::TROOPERS_ALLOWED => ['nullable', 'integer', 'between:1,99999'],
