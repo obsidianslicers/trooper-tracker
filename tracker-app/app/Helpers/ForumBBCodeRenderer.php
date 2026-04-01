@@ -80,6 +80,22 @@ final class ForumBBCodeRenderer
             $html
         ) ?? $html;
 
+        // Images.
+        $html = preg_replace_callback(
+            '~\[img\](.*?)\[/img\]~si',
+            static function (array $matches): string {
+                $urlRaw = html_entity_decode($matches[1], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                $src = self::sanitizeUrl(trim($urlRaw));
+                if ($src === null)
+                {
+                    return '';
+                }
+
+                return '<img src="'.e($src).'" alt="" class="img-fluid" style="max-width:100%;" loading="lazy">';
+            },
+            $html
+        ) ?? $html;
+
         // Convert newlines after tag replacement.
         $html = nl2br($html, false);
 
