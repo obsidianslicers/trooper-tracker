@@ -1,4 +1,4 @@
-<x-section-title>Club Quotas</x-section-title>
+<x-section-title>Trooper Quotas</x-section-title>
 <ul class="list-group list-group-flush">
     <li class="list-group-item fw-bold">
         Organization
