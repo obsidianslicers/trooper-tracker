@@ -60,6 +60,9 @@ stan/pint - WIP
 ### COSTUMES
 - Update/Delete Costumes from UI
 
+## PHOTOS
+- Ensure low/high quality photos loaded. Tool to view them better
+
 ## INTEGRATIONS
 - Reply on event (Xenforo integration)
 - todo:   club/organization identifiers
