@@ -34,7 +34,7 @@ class DownloadRosterCsvController extends MagicBusController
         $eventShift = $event->event_shifts->firstWhere('id', $event_shift->id);
         abort_unless($eventShift !== null, 404);
 
-        $filename = $this->buildFilename($event, 'shift-' . $eventShift->id);
+        $filename = $this->buildFilename($event, 'shift-'.$eventShift->id);
 
         return $this->streamCsv($event, collect([$eventShift]), $filename);
     }
@@ -86,7 +86,7 @@ class DownloadRosterCsvController extends MagicBusController
             $eventTime = '';
             if ($event->event_start && $event->event_end)
             {
-                $eventTime = $event->event_start->format('g:ia') . ' - ' . $event->event_end->format('g:ia');
+                $eventTime = $event->event_start->format('g:ia').' - '.$event->event_end->format('g:ia');
             }
             elseif ($event->event_start)
             {
