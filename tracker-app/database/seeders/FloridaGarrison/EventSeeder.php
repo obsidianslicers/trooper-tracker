@@ -330,6 +330,22 @@ class EventSeeder extends Seeder
         $event->charity_name = $legacy->charityName;
         $event->charity_hours = $legacy->charityAddHours;
         $event->charity_notes = $legacy->charityNote;
+
+        // Carry legacy forum references when present; otherwise clear to null.
+        $event->thread_id = $this->toNullablePositiveInt($legacy->thread_id ?? null);
+        $event->post_id = $this->toNullablePositiveInt($legacy->post_id ?? null);
+    }
+
+    private function toNullablePositiveInt(mixed $value): ?int
+    {
+        if ($value === null || $value === '' || !is_numeric($value))
+        {
+            return null;
+        }
+
+        $normalized = (int) $value;
+
+        return $normalized > 0 ? $normalized : null;
     }
 
     private function getOrganization($id)
