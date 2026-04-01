@@ -37,7 +37,7 @@ class GuestSignUpHtmxController extends MagicBusController
 
         $guest_names = $request->input('guest_names');
 
-        foreach (explode('\\n', $guest_names) as $guest_name)
+        foreach (explode("\n", $guest_names) as $guest_name)
         {
             $guest_name = trim($guest_name);
 

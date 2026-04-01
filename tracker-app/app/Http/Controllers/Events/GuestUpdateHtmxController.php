@@ -60,7 +60,7 @@ class GuestUpdateHtmxController extends MagicBusController
                 return response('Forbidden', 403);
             }
 
-            $valid_data = ['status' => $request->validated('status')];
+            $valid_data = ['status' => $requestedStatus];
 
             $event_guest_cmd = new UpdateEventGuestCommand($event_guest, $valid_data);
 

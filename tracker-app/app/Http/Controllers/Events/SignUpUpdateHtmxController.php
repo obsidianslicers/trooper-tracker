@@ -84,7 +84,7 @@ class SignUpUpdateHtmxController extends MagicBusController
                 Mail::to($event_trooper->trooper->email)->queue(new TrooperManualSelectionApproved($event_trooper, $authTrooper));
             }
 
-            if ($is_full && $event_trooper->status == EventTrooperStatus::CANCELLED)
+            if ($is_full && $event_trooper->status === EventTrooperStatus::CANCELLED)
             {
                 // notify next in line that they can now attend
                 $next_in_line_cmd = new PromoteNextInLineEventTrooperCommand($event_trooper);
