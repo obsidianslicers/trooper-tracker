@@ -15,6 +15,10 @@ echo "NPM: $NPM"
 
 echo "🚀 Starting Deployment..."
 
+echo "📥 Syncing code with GitHub..."
+git fetch origin
+git reset --hard origin/main
+
 echo "📦 Installing Composer dependencies..."
 $PHP $COMPOSER install --no-interaction --prefer-dist --optimize-autoloader --no-dev
 
