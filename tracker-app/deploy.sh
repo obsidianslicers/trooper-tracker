@@ -23,7 +23,7 @@ $PHP artisan route:clear
 $PHP artisan config:clear
 $PHP artisan view:clear
 
-# 4. Install Composer Dependencies (IMPORTANT — you were missing this step)
+# 4. Install Composer Dependencies
 echo "📦 Installing Composer dependencies..."
 $COMPOSER install --no-interaction --prefer-dist --optimize-autoloader --no-dev
 
