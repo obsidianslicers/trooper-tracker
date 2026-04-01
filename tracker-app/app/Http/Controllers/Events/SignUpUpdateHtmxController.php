@@ -12,6 +12,7 @@ use App\Features\Events\Queries\GetEventShiftDisplayQuery;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Events\SignupUpdateHtmxRequest;
 use App\Mail\Events\TrooperManualSelectionApproved;
+use App\Mail\Events\TrooperManualSelectionStandBy;
 use App\Models\EventTrooper;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
@@ -82,6 +83,11 @@ class SignUpUpdateHtmxController extends MagicBusController
             if ($isManualApproval)
             {
                 Mail::to($event_trooper->trooper->email)->queue(new TrooperManualSelectionApproved($event_trooper, $authTrooper));
+            }
+
+            if ($isManualRejection)
+            {
+                Mail::to($event_trooper->trooper->email)->queue(new TrooperManualSelectionStandBy($event_trooper, $authTrooper));
             }
 
             if ($is_full && $event_trooper->status === EventTrooperStatus::CANCELLED)

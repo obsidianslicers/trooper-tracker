@@ -9,6 +9,7 @@ use App\Enums\EventTrooperStatus;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Events\UpdateTroopersRequest;
 use App\Mail\Events\TrooperManualSelectionApproved;
+use App\Mail\Events\TrooperManualSelectionStandBy;
 use App\Models\Event;
 use App\Models\EventGuest;
 use Illuminate\Http\RedirectResponse;
@@ -72,10 +73,18 @@ class UpdateTroopersSubmitController extends MagicBusController
             $wasManualApproval = $isManualSelectionEvent
                 && $oldStatus === EventTrooperStatus::STAND_BY
                 && $event_trooper->status === EventTrooperStatus::GOING;
+            $wasMovedToStandBy = $isManualSelectionEvent
+                && $oldStatus === EventTrooperStatus::GOING
+                && $event_trooper->status === EventTrooperStatus::STAND_BY;
 
             if ($wasManualApproval)
             {
                 Mail::to($event_trooper->trooper->email)->queue(new TrooperManualSelectionApproved($event_trooper, $authTrooper));
+            }
+
+            if ($wasMovedToStandBy)
+            {
+                Mail::to($event_trooper->trooper->email)->queue(new TrooperManualSelectionStandBy($event_trooper, $authTrooper));
             }
         }
 
