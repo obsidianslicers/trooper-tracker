@@ -1,27 +1,27 @@
 <x-section-title>Deployment Limits</x-section-title>
-<x-table>
-    <tr>
-        <td>Expected Attendees</td>
-        <td class="text-end">
+<ul class="list-group list-group-flush">
+    <li class="list-group-item bg-transparent border-bottom">
+        Expected Attendees
+        <span class="float-end">
             <x-number-format :value="$event->expected_attendees" />
-        </td>
-    </tr>
-    <tr>
-        <td>Maximum Shifts Allowed</td>
-        <td class="text-end">
+        </span>
+    </li>
+    <li class="list-group-item bg-transparent border-bottom">
+        Maximum Shifts Allowed
+        <span class="float-end">
             <x-number-format :value="$event->shifts_allowed" />
-        </td>
-    </tr>
-    <tr>
-        <td>Troopers Allowed</td>
-        <td class="text-end">
+        </span>
+    </li>
+    <li class="list-group-item bg-transparent border-bottom">
+        Troopers Allowed
+        <span class="float-end">
             <x-number-format :value="$event->troopers_allowed" />
-        </td>
-    </tr>
-    <tr>
-        <td>Handlers Allowed</td>
-        <td class="text-end">
+        </span>
+    </li>
+    <li class="list-group-item bg-transparent border-bottom">
+        Handlers Allowed
+        <span class="float-end">
             <x-number-format :value="$event->handlers_allowed" />
-        </td>
-    </tr>
-</x-table>
+        </span>
+    </li>
+</ul>
