@@ -90,7 +90,7 @@
                 <img src="https://www.fl501st.com/troop-tracker/images/flgdonate.png"
                      alt="Active Donor"
                      class="img-fluid"
-                     style="max-height: 80px;" />
+                     style="max-height: 200px;" />
             </a>
         </div>
     @endif
