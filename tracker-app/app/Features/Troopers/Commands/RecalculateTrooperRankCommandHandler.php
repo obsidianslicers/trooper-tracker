@@ -9,7 +9,6 @@ use App\Enums\AchievementType;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Enums\OauthProvider;
-use App\Facades\TroopTrackerFacade;
 use App\Models\Event;
 use App\Models\EventTrooper;
 use App\Models\OauthLogin;
@@ -204,11 +203,6 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
      */
     private function prefetchXenforoUpgrades(): array
     {
-        if (!TroopTrackerFacade::isXenforoIntegrationConfigured())
-        {
-            return [];
-        }
-
         $stats = app(XenforoService::class)->get_upgrade_stats();
 
         if ($stats === null)
