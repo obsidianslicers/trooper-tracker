@@ -54,8 +54,7 @@ class UpdateSubmitController extends MagicBusController
                     $updated_status == EventStatus::OPEN
                     || $updated_status == EventStatus::MANUAL_SELECTION
                     || $updated_status == EventStatus::SIGN_UP_LOCKED
-                )
-                {
+                ) {
                     dispatch(new SendEventCreatedNotificationsJob($event));
                 }
             }

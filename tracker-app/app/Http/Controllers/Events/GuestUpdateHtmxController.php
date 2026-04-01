@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
-use App\Enums\EventStatus;
 use App\Enums\EventGuestStatus;
+use App\Enums\EventStatus;
 use App\Features\Events\Commands\UpdateEventGuestCommand;
 use App\Features\Events\Queries\GetEventShiftDisplayQuery;
 use App\Http\Controllers\MagicBusController;
