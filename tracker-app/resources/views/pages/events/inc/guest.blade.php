@@ -77,7 +77,6 @@
                 $event->status === \App\Enums\EventStatus::MANUAL_SELECTION
                 && $event_guest->status === \App\Enums\EventGuestStatus::GOING
                 && $event_guest->updated_by !== null
-                && $event_guest->updated_id !== $event_guest->added_by_trooper_id
             )
                 <br />
                 <i class="small text-muted">

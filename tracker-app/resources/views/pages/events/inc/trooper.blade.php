@@ -124,7 +124,6 @@
                 $event->status === \App\Enums\EventStatus::MANUAL_SELECTION
                 && $event_trooper->status === \App\Enums\EventTrooperStatus::GOING
                 && $event_trooper->updated_by !== null
-                && $event_trooper->updated_id !== $event_trooper->trooper_id
             )
                 <br />
                 <i class="small text-muted">
