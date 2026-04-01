@@ -103,14 +103,14 @@
                                 </td>
                                 @if($event->status === \App\Enums\EventStatus::MANUAL_SELECTION)
                                     <td>
-                                        @if($event_trooper->status === \App\Enums\EventTrooperStatus::GOING && $event_trooper->updated_by && $event_trooper->updated_id !== $event_trooper->trooper_id)
+                                        @if($event_trooper->status === \App\Enums\EventTrooperStatus::GOING && $event_trooper->updated_by)
                                             {{ $event_trooper->updated_by->display_name }}
                                         @else
                                             <span class="text-muted">-</span>
                                         @endif
                                     </td>
                                     <td>
-                                        @if($event_trooper->status === \App\Enums\EventTrooperStatus::GOING && $event_trooper->updated_at && $event_trooper->updated_id !== $event_trooper->trooper_id)
+                                        @if($event_trooper->status === \App\Enums\EventTrooperStatus::GOING && $event_trooper->updated_at)
                                             {{ $event_trooper->updated_at->format('M j, Y g:ia') }}
                                         @else
                                             <span class="text-muted">-</span>
@@ -156,14 +156,14 @@
                                 </td>
                                 @if($event->status === \App\Enums\EventStatus::MANUAL_SELECTION)
                                     <td>
-                                        @if($event_guest->status === \App\Enums\EventGuestStatus::GOING && $event_guest->updated_by && $event_guest->updated_id !== $event_guest->added_by_trooper_id)
+                                        @if($event_guest->status === \App\Enums\EventGuestStatus::GOING && $event_guest->updated_by)
                                             {{ $event_guest->updated_by->display_name }}
                                         @else
                                             <span class="text-muted">-</span>
                                         @endif
                                     </td>
                                     <td>
-                                        @if($event_guest->status === \App\Enums\EventGuestStatus::GOING && $event_guest->updated_at && $event_guest->updated_id !== $event_guest->added_by_trooper_id)
+                                        @if($event_guest->status === \App\Enums\EventGuestStatus::GOING && $event_guest->updated_at)
                                             {{ $event_guest->updated_at->format('M j, Y g:ia') }}
                                         @else
                                             <span class="text-muted">-</span>
