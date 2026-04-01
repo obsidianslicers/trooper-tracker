@@ -4,19 +4,14 @@ declare(strict_types=1);
 
 namespace App\Services\Support;
 
+use App\Facades\TroopTrackerFacade;
 use App\Models\TrooperDonation;
 use App\Services\Forums\XenforoService;
+use App\Support\XenforoUpgradeHelper;
 use Illuminate\Support\Facades\Config;
 
 class SupportStatusService
 {
-    private XenforoService $xenforo_service;
-
-    public function __construct(XenforoService $xenforo_service)
-    {
-        $this->xenforo_service = $xenforo_service;
-    }
-
     /**
      * Calculate the current support status for the tracker.
      *
@@ -39,7 +34,9 @@ class SupportStatusService
             ];
         }
 
-        $stats = $this->xenforo_service->get_upgrade_stats();
+        $stats = TroopTrackerFacade::isXenforoIntegrationConfigured()
+            ? app(XenforoService::class)->get_upgrade_stats()
+            : null;
 
         if (is_array($stats))
         {
@@ -79,26 +76,61 @@ class SupportStatusService
      */
     private function calculateFromXenforo(array $stats): float
     {
-        $activeRecords = $stats['userUpgradeActive'] ?? null;
+        $active_records = $stats['userUpgradeActive'] ?? null;
         $upgrades = $stats['userUpgrades'] ?? null;
 
-        if (! is_array($activeRecords) || ! is_array($upgrades))
+        if (!is_array($active_records) || !is_array($upgrades))
         {
             return 0.0;
         }
 
-        $currentMonth = (int) date('m');
-        $currentYear = (int) date('Y');
-        $upgradeAmounts = [];
+        $upgrade_amounts = $this->buildUpgradeCostMap($upgrades);
+        $monthly_total = 0.0;
 
-        foreach ($upgrades as $upgrade)
+        foreach ($active_records as $record)
         {
-            if (! is_array($upgrade))
+            if (!is_array($record))
             {
                 continue;
             }
 
-            if (! isset($upgrade['user_upgrade_id']) || ! is_numeric($upgrade['user_upgrade_id']))
+            if (!isset($record['start_date'], $record['end_date'], $record['user_upgrade_id'])
+                || !is_numeric($record['start_date'])
+                || !is_numeric($record['end_date'])
+                || !is_numeric($record['user_upgrade_id']))
+            {
+                continue;
+            }
+
+            if (!$this->isRecordInCurrentMonth((int) $record['start_date'], (int) $record['end_date']))
+            {
+                continue;
+            }
+
+            $monthly_total += XenforoUpgradeHelper::resolveRecordCost($record, $upgrade_amounts);
+        }
+
+        return $monthly_total;
+    }
+
+    /**
+     * Build a lookup of user_upgrade_id → cost_amount from upgrade definitions.
+     *
+     * @param  array<mixed>  $upgrades
+     * @return array<int,float>
+     */
+    private function buildUpgradeCostMap(array $upgrades): array
+    {
+        $upgrade_amounts = [];
+
+        foreach ($upgrades as $upgrade)
+        {
+            if (!is_array($upgrade))
+            {
+                continue;
+            }
+
+            if (!isset($upgrade['user_upgrade_id']) || !is_numeric($upgrade['user_upgrade_id']))
             {
                 continue;
             }
@@ -110,67 +142,28 @@ class SupportStatusService
                 continue;
             }
 
-            $upgradeAmounts[(int) $upgrade['user_upgrade_id']] = $amount;
+            $upgrade_amounts[(int) $upgrade['user_upgrade_id']] = $amount;
         }
 
-        $monthlyTotal = 0.0;
+        return $upgrade_amounts;
+    }
 
-        foreach ($activeRecords as $record)
-        {
-            if (! is_array($record))
-            {
-                continue;
-            }
+    /**
+     * Determine whether a subscription record covers the current calendar month.
+     */
+    private function isRecordInCurrentMonth(int $start_ts, int $end_ts): bool
+    {
+        $current_month = (int) date('m');
+        $current_year = (int) date('Y');
+        $start_month = (int) date('m', $start_ts);
+        $start_year = (int) date('Y', $start_ts);
+        $end_month = (int) date('m', $end_ts);
+        $end_year = (int) date('Y', $end_ts);
 
-            if (! isset($record['start_date'], $record['end_date'], $record['user_upgrade_id'])
-                || ! is_numeric($record['start_date'])
-                || ! is_numeric($record['end_date'])
-                || ! is_numeric($record['user_upgrade_id']))
-            {
-                continue;
-            }
-
-            $startTs = (int) $record['start_date'];
-            $endTs = (int) $record['end_date'];
-
-            $startMonth = (int) date('m', $startTs);
-            $startYear = (int) date('Y', $startTs);
-            $endMonth = (int) date('m', $endTs);
-            $endYear = (int) date('Y', $endTs);
-
-            $inRange = (
-                ($startYear < $currentYear
-                    || ($startYear === $currentYear && $startMonth <= $currentMonth))
-                && ($endYear > $currentYear
-                    || ($endYear === $currentYear && $endMonth >= $currentMonth))
-            );
-
-            if (! $inRange)
-            {
-                continue;
-            }
-
-            $amount = $this->extractCostAmount($record);
-
-            if ($amount <= 0.0 && isset($record['extra']) && is_string($record['extra']))
-            {
-                $extra = json_decode($record['extra'], true);
-
-                if (is_array($extra))
-                {
-                    $amount = $this->extractCostAmount($extra);
-                }
-            }
-
-            if ($amount <= 0.0)
-            {
-                $amount = $upgradeAmounts[(int) $record['user_upgrade_id']] ?? 0.0;
-            }
-
-            $monthlyTotal += $amount;
-        }
-
-        return $monthlyTotal;
+        return ($start_year < $current_year
+                || ($start_year === $current_year && $start_month <= $current_month))
+            && ($end_year > $current_year
+                || ($end_year === $current_year && $end_month >= $current_month));
     }
 
     /**

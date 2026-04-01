@@ -36,6 +36,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Donor Badge Image
+    |--------------------------------------------------------------------------
+    |
+    | URL of the image displayed on a trooper's profile when they are an active
+    | donor. Set TRACKER_DONOR_IMAGE_URL in your .env to customise this.
+    |
+    */
+
+    'donor' => [
+        'image_url' => env('TRACKER_DONOR_IMAGE_URL'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Image Processing Settings
     |--------------------------------------------------------------------------
     |

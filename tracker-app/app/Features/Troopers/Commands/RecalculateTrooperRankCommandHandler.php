@@ -8,10 +8,15 @@ use App\Bus\Contracts\CommandHandlerInterface;
 use App\Enums\AchievementType;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
+use App\Enums\OauthProvider;
 use App\Models\Event;
 use App\Models\EventTrooper;
+use App\Models\OauthLogin;
 use App\Models\Trooper;
 use App\Models\TrooperAchievement;
+use App\Models\TrooperDonation;
+use App\Services\Forums\XenforoService;
+use App\Support\XenforoUpgradeHelper;
 use Illuminate\Support\Collection;
 
 /**
@@ -50,13 +55,16 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
             $q->where(Trooper::ID, $message->trooper_id);
         }
 
-        $q->chunk(200, function ($troopers) use ($message) {
+        // One API call for the entire run — all users' upgrade records.
+        $xenforo_upgrades = $this->prefetchXenforoUpgrades();
+
+        $q->chunk(200, function ($troopers) use ($message, $xenforo_upgrades) {
             //  only process rank if we're processing all troopers, otherwise
             //  the rank won't be accurate since we're not reordering all the
             //  troopers by attendance
             $process_rank = $message->trooper_id === null;
 
-            $this->processChunk($troopers, $process_rank);
+            $this->processChunk($troopers, $process_rank, $xenforo_upgrades);
         });
 
         return null;
@@ -70,12 +78,22 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
      * - Shift count achievement
      * - Volunteer hours achievement
      * - Direct and indirect funds achievements
+     * - Donation metrics and milestone achievements
      * - Troop threshold milestone achievements
      *
      * @param  Collection  $troopers  Chunk of troopers to process
      */
-    private function processChunk($troopers, bool $process_rank): void
+    private function processChunk(Collection $troopers, bool $process_rank, array $xenforo_upgrades): void
     {
+        // One query per chunk to map trooper_id → xenforo_user_id.
+        $trooper_ids = $troopers->pluck('id')->all();
+
+        $xenforo_id_map = OauthLogin::where(OauthLogin::PROVIDER, OauthProvider::XENFORO)
+            ->whereIn(OauthLogin::TROOPER_ID, $trooper_ids)
+            ->pluck(OauthLogin::PROVIDER_ID, OauthLogin::TROOPER_ID)
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
         foreach ($troopers as $trooper)
         {
             $metrics = $this->computeMetrics($trooper);
@@ -90,6 +108,12 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
             $this->updateAchievement($trooper, AchievementType::VOLUNTEER_HOURS, $metrics['total_hours']);
             $this->updateAchievement($trooper, AchievementType::DIRECT_FUNDS, $metrics['total_direct']);
             $this->updateAchievement($trooper, AchievementType::INDIRECT_FUNDS, $metrics['total_indirect']);
+
+            $xenforo_user_id = $xenforo_id_map[$trooper->id] ?? null;
+            $donation_metrics = $this->computeDonationMetrics($trooper, $xenforo_user_id, $xenforo_upgrades);
+            $this->updateAchievement($trooper, AchievementType::DONATION_MONTHS, $donation_metrics['donation_months']);
+            $this->updateAchievement($trooper, AchievementType::TOTAL_DONATED, $donation_metrics['total_donated']);
+            $this->storeDonationMilestoneAchievements($trooper, $donation_metrics);
 
             $this->storeTroopThresholdAchievements($trooper, $trooper->event_count);
 
@@ -164,6 +188,214 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
             'total_indirect' => $total_indirect,
             'total_hours' => $total_hours,
         ];
+    }
+
+    /**
+     * Fetch all upgrade records from XenForo once and return a lookup keyed
+     * by xenforo user_id: ['active' => [...], 'expired' => [...]].
+     *
+     * Embeds the resolved per-period cost_amount into each record so callers
+     * do not need to re-derive it. Returns an empty array when XenForo is
+     * unavailable or the API call fails.
+     *
+     * @return array<int,array{active:array<mixed>,expired:array<mixed>}>
+     */
+    private function prefetchXenforoUpgrades(): array
+    {
+        $stats = app(XenforoService::class)->get_upgrade_stats();
+
+        if ($stats === null)
+        {
+            return [];
+        }
+
+        // Build cost_amount lookup keyed by user_upgrade_id.
+        $cost_map = [];
+
+        foreach ($stats['userUpgrades'] ?? [] as $upgrade)
+        {
+            if (is_array($upgrade) && isset($upgrade['user_upgrade_id']))
+            {
+                $cost_map[(int) $upgrade['user_upgrade_id']] = (float) ($upgrade['cost_amount'] ?? 0);
+            }
+        }
+
+        $lookup = [];
+
+        foreach ($stats['userUpgradeActive'] ?? [] as $row)
+        {
+            if (is_array($row) && isset($row['user_id']))
+            {
+                $row['cost_amount'] = XenforoUpgradeHelper::resolveRecordCost($row, $cost_map);
+                $lookup[(int) $row['user_id']]['active'][] = $row;
+            }
+        }
+
+        foreach ($stats['userUpgradeExpired'] ?? [] as $row)
+        {
+            if (is_array($row) && isset($row['user_id']))
+            {
+                $row['cost_amount'] = XenforoUpgradeHelper::resolveRecordCost($row, $cost_map);
+                $lookup[(int) $row['user_id']]['expired'][] = $row;
+            }
+        }
+
+        return $lookup;
+    }
+
+    /**
+     * Compute donation metrics for a trooper.
+     *
+     * Donation months use XenForo upgrade history when available — this handles
+     * both monthly (one record ≈ one month) and annual subscriptions correctly.
+     * Falls back to distinct calendar months from local donation records when
+     * the trooper has no XenForo link or XenForo data is unavailable.
+     *
+     * Total donated combines XenForo subscription costs (months × per-period price)
+     * with local TrooperDonation records so neither source is excluded.
+     *
+     * @param  array<int,array{active:array<mixed>,expired:array<mixed>}>  $xenforo_upgrades
+     * @return array{donation_months: int, total_donated: float}
+     */
+    private function computeDonationMetrics(Trooper $trooper, ?int $xenforo_user_id, array $xenforo_upgrades): array
+    {
+        $donations = $this->loadLocalDonations($trooper);
+        $local_total = (float) $donations->sum(fn ($d) => (float) $d->amount);
+        $local_keys = $this->buildLocalMonthKeys($donations);
+
+        if ($xenforo_user_id !== null && isset($xenforo_upgrades[$xenforo_user_id]))
+        {
+            $active = $xenforo_upgrades[$xenforo_user_id]['active'] ?? [];
+            $expired = $xenforo_upgrades[$xenforo_user_id]['expired'] ?? [];
+
+            $merged_months = count(array_merge($local_keys, XenforoUpgradeHelper::monthKeysFromUpgrades($active, $expired)));
+            $xenforo_total = $this->computeTotalFromUpgrades($active, $expired);
+
+            return [
+                'donation_months' => $merged_months,
+                'total_donated' => $xenforo_total + $local_total,
+            ];
+        }
+
+        return [
+            'donation_months' => count($local_keys),
+            'total_donated' => $local_total,
+        ];
+    }
+
+    /**
+     * Load a trooper's non-deleted local donation records.
+     *
+     * @return Collection<int, TrooperDonation>
+     */
+    private function loadLocalDonations(Trooper $trooper): Collection
+    {
+        return TrooperDonation::where(TrooperDonation::TROOPER_ID, $trooper->id)
+            ->whereNull('deleted_at')
+            ->get([TrooperDonation::AMOUNT, TrooperDonation::CREATED_AT]);
+    }
+
+    /**
+     * Build a distinct Y-m => true map from local donation records.
+     *
+     * @param  Collection<int, TrooperDonation>  $donations
+     * @return array<string, true>
+     */
+    private function buildLocalMonthKeys(Collection $donations): array
+    {
+        $month_keys = [];
+
+        foreach ($donations as $donation)
+        {
+            if ($donation->created_at !== null)
+            {
+                $month_keys[$donation->created_at->format('Y-m')] = true;
+            }
+        }
+
+        return $month_keys;
+    }
+
+    /**
+     * Sum the total amount donated across all upgrade records.
+     *
+     * cost_amount is the per-period price — multiply by months covered per record.
+     *
+     * @param  array<mixed>  $active
+     * @param  array<mixed>  $expired
+     */
+    private function computeTotalFromUpgrades(array $active, array $expired): float
+    {
+        $total = 0.0;
+
+        foreach (array_merge($active, $expired) as $row)
+        {
+            $cost = (float) ($row['cost_amount'] ?? 0);
+            $start = (int) ($row['start_date'] ?? 0);
+            $end = (int) ($row['end_date'] ?? 0);
+
+            if ($start <= 0 || $cost <= 0.0)
+            {
+                continue;
+            }
+
+            $total += XenforoUpgradeHelper::countMonthsForRecord($start, $end) * $cost;
+        }
+
+        return $total;
+    }
+
+    /**
+     * Store milestone achievements for donation length and cumulative amount.
+     *
+     * @param  Trooper  $trooper  The trooper to check milestones for
+     * @param  array{donation_months: int, total_donated: float}  $metrics
+     */
+    private function storeDonationMilestoneAchievements(Trooper $trooper, array $metrics): void
+    {
+        $month_thresholds = [
+            AchievementType::SUPPORTER_12_MONTHS->value => 12,
+            AchievementType::SUPPORTER_24_MONTHS->value => 24,
+            AchievementType::SUPPORTER_36_MONTHS->value => 36,
+            AchievementType::SUPPORTER_60_MONTHS->value => 60,
+        ];
+
+        foreach ($month_thresholds as $type_value => $threshold)
+        {
+            if ($metrics['donation_months'] < $threshold)
+            {
+                continue;
+            }
+
+            $type = AchievementType::from($type_value);
+
+            TrooperAchievement::firstOrCreate(
+                [TrooperAchievement::TROOPER_ID => $trooper->id, TrooperAchievement::TYPE => $type],
+                [TrooperAchievement::VALUE => true, TrooperAchievement::ACHIEVEMENT_DATE => now()]
+            );
+        }
+
+        $amount_thresholds = [
+            AchievementType::DONATED_100->value => 100,
+            AchievementType::DONATED_250->value => 250,
+            AchievementType::DONATED_500->value => 500,
+            AchievementType::DONATED_1000->value => 1000,
+        ];
+
+        foreach ($amount_thresholds as $type_value => $threshold)
+        {
+            if ($metrics['total_donated'] < $threshold)
+            {
+                continue;
+            }
+
+            $type = AchievementType::from($type_value);
+
+            TrooperAchievement::firstOrCreate(
+                [TrooperAchievement::TROOPER_ID => $trooper->id, TrooperAchievement::TYPE => $type],
+                [TrooperAchievement::VALUE => true, TrooperAchievement::ACHIEVEMENT_DATE => now()]
+            );
+        }
     }
 
     /**
