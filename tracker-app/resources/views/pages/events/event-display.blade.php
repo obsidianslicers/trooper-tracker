@@ -22,78 +22,84 @@
             </div>
             <div class="card-body">
                 <div class="row mb-2 border-bottom">
-                    <div class="col-8 small text-muted pb-3">
+                    <div class="col-12 col-md-6 small text-muted pb-3">
                         <div class="row">
-                            <div class="col-3 d-none d-md-inline">
+                            <div class="col-4 col-md-3">
                                 Hosted By:
                             </div>
-                            <div class="col-9">
+                            <div class="col-8 col-md-9">
                                 {{ $event->organization->name }}
                             </div>
                         </div>
                         <div class="row">
-                            <div class="col-3 d-none d-md-inline">
+                            <div class="col-4 col-md-3">
                                 Status:
                             </div>
-                            <div class="col-9">
+                            <div class="col-8 col-md-9">
                                 {{ to_title($event->status->name) }}
                             </div>
                         </div>
                     </div>
-                    <div class="col-4 text-end">
-                        <div class="d-flex justify-content-end align-items-center gap-2">
-                            @php($link = $event->createCalendarLink())
-                            <div class="btn-group">
-                                <a href="{{ $link->google() }}"
-                                   class="btn btn-outline-secondary"
-                                   target="_blank"
-                                   rel="noopener noreferrer"
-                                   title="Add to Google Calendar">
-                                    <i class="fab fa-google"></i>
-                                </a>
-                                <a href="{{ $link->yahoo() }}"
-                                   class="btn btn-outline-secondary"
-                                   target="_blank"
-                                   rel="noopener noreferrer"
-                                   title="Add to Yahoo Calendar">
-                                    <i class="fab fa-yahoo"></i>
-                                </a>
-                                <a href="{{ $link->webOutlook() }}"
-                                   class="btn btn-outline-secondary"
-                                   target="_blank"
-                                   rel="noopener noreferrer"
-                                   title="Add to Outlook Calendar">
-                                    <i class="fab fa-microsoft"></i>
-                                </a>
-                                <a href="{{ $link->ics() }}"
-                                   class="btn btn-outline-secondary"
-                                   title="Add to Calendar (.ics)">
-                                    <i class="fa fa-fw fa-calendar"></i>
-                                </a>
-                            </div>
-                            @if(App\Facades\TroopTrackerFacade::isXenforoIntegrationConfigured() && !empty($event->thread_id) && !empty($event->post_id))
-                                <a href="{{ config('services.xenforo.base_url') . '/posts/' . $event->post_id . '/' }}"
-                                   class="btn btn-outline-secondary"
-                                   target="_blank"
-                                   rel="noopener noreferrer"
-                                   title="View Forum Post">
-                                    <i class="fa fa-fw fa-comments"></i>
-                                </a>
-                            @endif
-
-                            {!! Share::page(route('shares.event', compact('event')), $event->name)->facebook()->twitter() !!}
-                            @can('update', $event)
+                    <div class="col-12 col-md-6 text-end">
+                        <div class="row">
+                            <div class="col-6 mb-2 mb-md-0">
+                                @php($link = $event->createCalendarLink())
                                 <div class="btn-group">
-                                    <a href="{{ route('admin.events.update', compact('event')) }}"
-                                       class="btn btn-outline-danger">
-                                        <i class="fa fa-fw fa-edit"></i>
+                                    <a href="{{ $link->google() }}"
+                                       class="btn btn-outline-secondary"
+                                       target="_blank"
+                                       rel="noopener noreferrer"
+                                       title="Add to Google Calendar">
+                                        <i class="fab fa-google"></i>
                                     </a>
-                                    <a href="{{ route('admin.events.copy', compact('event')) }}"
-                                       class="btn btn-outline-danger">
-                                        <i class="fa fa-fw fa-copy"></i>
+                                    <a href="{{ $link->yahoo() }}"
+                                       class="btn btn-outline-secondary"
+                                       target="_blank"
+                                       rel="noopener noreferrer"
+                                       title="Add to Yahoo Calendar">
+                                        <i class="fab fa-yahoo"></i>
+                                    </a>
+                                    <a href="{{ $link->webOutlook() }}"
+                                       class="btn btn-outline-secondary"
+                                       target="_blank"
+                                       rel="noopener noreferrer"
+                                       title="Add to Outlook Calendar">
+                                        <i class="fab fa-microsoft"></i>
+                                    </a>
+                                    <a href="{{ $link->ics() }}"
+                                       class="btn btn-outline-secondary"
+                                       title="Add to Calendar (.ics)">
+                                        <i class="fa fa-fw fa-calendar"></i>
                                     </a>
                                 </div>
-                            @endcan
+                            </div>
+                            <div class="col-6 mb-2 mb-md-0">
+                                @if(App\Facades\TroopTrackerFacade::isXenforoIntegrationConfigured() && !empty($event->thread_id) && !empty($event->post_id))
+                                    <a href="{{ config('services.xenforo.base_url') . '/posts/' . $event->post_id . '/' }}"
+                                       class="btn btn-outline-secondary"
+                                       target="_blank"
+                                       rel="noopener noreferrer"
+                                       title="View Forum Post">
+                                        <i class="fa fa-fw fa-comments"></i>
+                                    </a>
+                                @endif
+
+                                {!! Share::page(route('shares.event', compact('event')), $event->name)->facebook()->twitter() !!}
+                                @can('update', $event)
+                                    <div class="btn-group">
+                                        <a href="{{ route('admin.events.update', compact('event')) }}"
+                                           class="btn btn-outline-danger">
+                                            <i class="fa fa-fw fa-edit"></i>
+                                        </a>
+                                        <a href="{{ route('admin.events.copy', compact('event')) }}"
+                                           class="btn btn-outline-danger">
+                                            <i class="fa fa-fw fa-copy"></i>
+                                        </a>
+                                    </div>
+                                @endcan
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end align-items-center gap-2">
                         </div>
                     </div>
                 </div>
