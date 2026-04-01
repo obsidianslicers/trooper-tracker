@@ -64,6 +64,7 @@ readonly class GetEventShiftDisplayQueryHandler implements QueryHandlerInterface
                 $query->orderBy(EventTrooper::SIGNED_UP_AT, 'asc');
             },
             'event_guests.added_by_trooper:'.implode(',', $trooper_columns),
+            'event_guests.updated_by:'.implode(',', $trooper_columns),
             'event_guests' => function ($query) {
                 $query->orderBy(EventGuest::NAME, 'asc');
             },

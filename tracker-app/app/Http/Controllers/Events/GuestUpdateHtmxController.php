@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
+use App\Enums\EventStatus;
+use App\Enums\EventGuestStatus;
 use App\Features\Events\Commands\UpdateEventGuestCommand;
 use App\Features\Events\Queries\GetEventShiftDisplayQuery;
 use App\Http\Controllers\MagicBusController;
@@ -30,11 +32,30 @@ class GuestUpdateHtmxController extends MagicBusController
     {
         $request->validateInputs();
 
+        $authTrooper = Auth::user();
+
         if ($request->has('status'))
         {
             $event_shift = $event_guest->event_shift;
+            $event = $event_shift->event;
+            $requestedStatus = EventGuestStatus::from($request->validated('status'));
+            $canModerateEvent = $authTrooper->can('update', $event);
+            $isManualSelectionEvent = $event->status === EventStatus::MANUAL_SELECTION;
+            $isManualApproval = $isManualSelectionEvent
+                && $canModerateEvent
+                && $event_guest->status === EventGuestStatus::STAND_BY
+                && $requestedStatus === EventGuestStatus::GOING;
+            $isManualRejection = $isManualSelectionEvent
+                && $canModerateEvent
+                && $event_guest->status === EventGuestStatus::GOING
+                && $requestedStatus === EventGuestStatus::STAND_BY;
 
-            if (!$event_guest->canUpdateStatus($event_shift, Auth::user()))
+            if ($isManualSelectionEvent && $requestedStatus === EventGuestStatus::GOING && !$canModerateEvent)
+            {
+                return response('Forbidden', 403);
+            }
+
+            if (!$event_guest->canUpdateStatus($event_shift, $authTrooper) && !$isManualApproval && !$isManualRejection)
             {
                 return response('Forbidden', 403);
             }
@@ -45,7 +66,7 @@ class GuestUpdateHtmxController extends MagicBusController
 
             $this->bus->send($event_guest_cmd);
 
-            $trooper = Auth::user();
+            $trooper = $authTrooper;
 
             $event_shift_query = new GetEventShiftDisplayQuery($event_shift, $trooper);
 

@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
+use App\Enums\EventGuestStatus;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Events\UpdateTroopersRequest;
 use App\Mail\Events\TrooperManualSelectionApproved;
 use App\Models\Event;
+use App\Models\EventGuest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -38,12 +40,29 @@ class UpdateTroopersSubmitController extends MagicBusController
         $this->authorize('update', $event);
 
         $troopers = $request->validated('troopers', []);
+        $guests = $request->validated('guests', []);
         $approveTrooperIds = collect($request->input('approve_trooper_ids', []))
+            ->filter(fn ($id) => is_numeric($id))
+            ->map(fn ($id) => (int) $id)
+            ->values();
+        $rejectTrooperIds = collect($request->input('reject_trooper_ids', []))
+            ->filter(fn ($id) => is_numeric($id))
+            ->map(fn ($id) => (int) $id)
+            ->values();
+        $approveGuestIds = collect($request->input('approve_guest_ids', []))
+            ->filter(fn ($id) => is_numeric($id))
+            ->map(fn ($id) => (int) $id)
+            ->values();
+        $rejectGuestIds = collect($request->input('reject_guest_ids', []))
             ->filter(fn ($id) => is_numeric($id))
             ->map(fn ($id) => (int) $id)
             ->values();
 
         $event_troopers = $event->troopers()->get();
+        $event_guest_shift_ids = $event->event_shifts()->pluck('id');
+        $event_guests = EventGuest::query()
+            ->whereIn(EventGuest::EVENT_SHIFT_ID, $event_guest_shift_ids)
+            ->get();
         $authTrooper = $request->user();
         $isManualSelectionEvent = $event->status === EventStatus::MANUAL_SELECTION;
 
@@ -52,6 +71,19 @@ class UpdateTroopersSubmitController extends MagicBusController
             foreach ($approveTrooperIds as $approveTrooperId)
             {
                 $troopers[$approveTrooperId]['status'] = EventTrooperStatus::GOING->value;
+            }
+            foreach ($rejectTrooperIds as $rejectTrooperId)
+            {
+                $troopers[$rejectTrooperId]['status'] = EventTrooperStatus::STAND_BY->value;
+            }
+
+            foreach ($approveGuestIds as $approveGuestId)
+            {
+                $guests[$approveGuestId]['status'] = EventGuestStatus::GOING->value;
+            }
+            foreach ($rejectGuestIds as $rejectGuestId)
+            {
+                $guests[$rejectGuestId]['status'] = EventGuestStatus::STAND_BY->value;
             }
         }
 
@@ -84,6 +116,25 @@ class UpdateTroopersSubmitController extends MagicBusController
             {
                 Mail::to($event_trooper->trooper->email)->queue(new TrooperManualSelectionApproved($event_trooper, $authTrooper));
             }
+        }
+
+        foreach ($guests as $id => $input)
+        {
+            $event_guest = $event_guests->first(fn ($eg) => $eg->id === (int) $id);
+
+            if ($event_guest === null)
+            {
+                continue;
+            }
+
+            $newStatus = $input['status'] ?? null;
+            if ($newStatus === null)
+            {
+                continue;
+            }
+
+            $event_guest->status = $newStatus;
+            $event_guest->save();
         }
 
         $this->flash->updated($event);

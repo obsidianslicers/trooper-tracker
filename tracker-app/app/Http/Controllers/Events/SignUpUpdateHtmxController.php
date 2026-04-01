@@ -54,13 +54,17 @@ class SignUpUpdateHtmxController extends MagicBusController
                 && $canModerateEvent
                 && $event_trooper->status === EventTrooperStatus::STAND_BY
                 && $requestedStatus === EventTrooperStatus::GOING;
+            $isManualRejection = $isManualSelectionEvent
+                && $canModerateEvent
+                && $event_trooper->status === EventTrooperStatus::GOING
+                && $requestedStatus === EventTrooperStatus::STAND_BY;
 
             if ($isManualSelectionEvent && $requestedStatus === EventTrooperStatus::GOING && !$canModerateEvent)
             {
                 return response('Forbidden', 403);
             }
 
-            if (!$event_trooper->canUpdateStatus($event_shift, $authTrooper) && !$isManualApproval)
+            if (!$event_trooper->canUpdateStatus($event_shift, $authTrooper) && !$isManualApproval && !$isManualRejection)
             {
                 return response('Forbidden', 403);
             }

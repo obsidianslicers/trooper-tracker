@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Events;
 
 use App\Enums\EventGuestStatus;
+use App\Enums\EventStatus;
 use App\Http\Controllers\MagicBusController;
 use App\Models\EventGuest;
 use App\Models\EventShift;
@@ -30,6 +31,9 @@ class GuestSignUpHtmxController extends MagicBusController
         $trooper = $request->user();
 
         $event = $event_shift->event;
+        $guestStatus = $event->status === EventStatus::MANUAL_SELECTION
+            ? EventGuestStatus::STAND_BY
+            : EventGuestStatus::GOING;
 
         $guest_names = $request->input('guest_names');
 
@@ -42,7 +46,7 @@ class GuestSignUpHtmxController extends MagicBusController
                 $event_shift->event_guests()->firstOrCreate([
                     EventGuest::ADDED_BY_TROOPER_ID => $trooper->id,
                     EventGuest::NAME => $guest_name,
-                    EventGuest::STATUS => EventGuestStatus::GOING,
+                    EventGuest::STATUS => $guestStatus,
                 ]);
             }
         }

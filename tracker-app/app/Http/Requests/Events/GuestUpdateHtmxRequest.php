@@ -48,6 +48,11 @@ class GuestUpdateHtmxRequest extends FormRequest
             return true;
         }
 
+        if ($this->user()->can('update', $event_guest->event_shift->event))
+        {
+            return true;
+        }
+
         return false;
     }
 

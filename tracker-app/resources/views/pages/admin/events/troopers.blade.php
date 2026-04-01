@@ -56,15 +56,12 @@
                                 <th>
                                     Approved At
                                 </th>
-                                <th>
-                                    Action
-                                </th>
                             @endif
                         </tr>
                     </thead>
                     @foreach ($event_shifts as $event_shift)
                         <tr>
-                            <td colspan="{{ $event->status === \App\Enums\EventStatus::MANUAL_SELECTION ? '6' : '3' }}">
+                            <td colspan="{{ $event->status === \App\Enums\EventStatus::MANUAL_SELECTION ? '5' : '3' }}">
                                 {{ $event_shift->time_display }}
                             </td>
                         </tr>
@@ -119,25 +116,62 @@
                                             <span class="text-muted">-</span>
                                         @endif
                                     </td>
+                                @endif
+                            </tr>
+                        @empty
+                            <x-table-empty :colspan="$event->status === \App\Enums\EventStatus::MANUAL_SELECTION ? 5 : 3">
+                                No troopers assigned to this shift.
+                            </x-table-empty>
+                        @endforelse
+
+                        @if($event_shift->event_guests->isNotEmpty())
+                            <tr>
+                                <td colspan="{{ $event->status === \App\Enums\EventStatus::MANUAL_SELECTION ? '5' : '3' }}"
+                                    class="ps-4 text-muted small">
+                                    Guests
+                                </td>
+                            </tr>
+                        @endif
+                        @foreach($event_shift->event_guests as $event_guest)
+                            <tr>
+                                <td class="ps-4">
+                                    {{ $event_guest->name }}
+                                    @if($event_guest->added_by_trooper)
+                                        <br />
+                                        <i class="small text-muted">
+                                            Added by {{ $event_guest->added_by_trooper->display_name }}
+                                        </i>
+                                    @endif
+                                </td>
+                                <td>
+                                    <i class="small text-muted">
+                                        Guest
+                                    </i>
+                                </td>
+                                <td>
+                                    <x-input-select :property="'guests.' . $event_guest->id . '.status'"
+                                                    :options="\App\Enums\EventGuestStatus::toArray()"
+                                                    :value="$event_guest->status->value"
+                                                    class="form-select-sm" />
+                                </td>
+                                @if($event->status === \App\Enums\EventStatus::MANUAL_SELECTION)
                                     <td>
-                                        @if($event_trooper->status === \App\Enums\EventTrooperStatus::STAND_BY)
-                                            <button type="submit"
-                                                    class="btn btn-sm btn-success"
-                                                    name="approve_trooper_ids[]"
-                                                    value="{{ $event_trooper->id }}">
-                                                Approve to Going
-                                            </button>
+                                        @if($event_guest->status === \App\Enums\EventGuestStatus::GOING && $event_guest->updated_by && $event_guest->updated_id !== $event_guest->added_by_trooper_id)
+                                            {{ $event_guest->updated_by->display_name }}
+                                        @else
+                                            <span class="text-muted">-</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($event_guest->status === \App\Enums\EventGuestStatus::GOING && $event_guest->updated_at && $event_guest->updated_id !== $event_guest->added_by_trooper_id)
+                                            {{ $event_guest->updated_at->format('M j, Y g:ia') }}
                                         @else
                                             <span class="text-muted">-</span>
                                         @endif
                                     </td>
                                 @endif
                             </tr>
-                        @empty
-                            <x-table-empty :colspan="$event->status === \App\Enums\EventStatus::MANUAL_SELECTION ? 6 : 3">
-                                No troopers assigned to this shift.
-                            </x-table-empty>
-                        @endforelse
+                        @endforeach
                     @endforeach
                 </x-table>
 
