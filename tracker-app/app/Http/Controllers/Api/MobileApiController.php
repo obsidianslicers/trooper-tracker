@@ -1144,7 +1144,9 @@ class MobileApiController
             [EventGuest::EVENT_SHIFT_ID => $shift->id, EventGuest::NAME => $name],
             [
                 EventGuest::ADDED_BY_TROOPER_ID => $trooper->id,
-                EventGuest::STATUS => EventGuestStatus::STAND_BY->value,
+                EventGuest::STATUS => $shift->event->status === EventStatus::MANUAL_SELECTION
+                    ? EventGuestStatus::STAND_BY->value
+                    : EventGuestStatus::GOING->value,
                 EventGuest::SIGNED_UP_AT => now(),
             ]
         );
