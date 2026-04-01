@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Api;
 
+use App\Enums\EventGuestStatus;
+use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Enums\OauthProvider;
 use App\Models\Costume;
 use App\Models\Event;
+use App\Models\EventGuest;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\OauthLogin;
@@ -386,5 +389,125 @@ class MobileApiControllerTest extends TestCase
             'error',
             '"0" is not a valid backing value for enum App\\Enums\\EventTrooperStatus',
         );
+    }
+
+    public function test_cancel_shift_is_forbidden_for_manual_selection_event(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $event = Event::factory()->create([
+            Event::STATUS => EventStatus::MANUAL_SELECTION,
+        ]);
+        $shift = EventShift::factory()->forEvent($event)->create();
+
+        EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->create([
+            EventTrooper::STATUS => EventTrooperStatus::GOING,
+        ]);
+
+        OauthLogin::factory()->forTrooper($trooper)->create([
+            OauthLogin::PROVIDER => OauthProvider::XENFORO,
+            OauthLogin::PROVIDER_ID => '15802',
+        ]);
+
+        $apiCode = TrooperApiCode::create([
+            TrooperApiCode::TROOPER_ID => $trooper->id,
+            TrooperApiCode::API_CODE => str_repeat('d', 64),
+        ]);
+
+        $response = $this->withHeaders([
+            'API-Key' => $apiCode->api_code,
+        ])->get(route('api.mobile', [
+                        'action' => 'cancel_shift',
+                        'trooperid' => 15802,
+                        'shiftid' => $shift->id,
+                    ]));
+
+        $response->assertStatus(403);
+        $response->assertJsonPath('success', false);
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::EVENT_SHIFT_ID => $shift->id,
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::GOING->value,
+        ]);
+    }
+
+    public function test_cancel_troop_is_forbidden_for_manual_selection_event(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $event = Event::factory()->create([
+            Event::STATUS => EventStatus::MANUAL_SELECTION,
+        ]);
+        $shift = EventShift::factory()->forEvent($event)->create();
+
+        EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->create([
+            EventTrooper::STATUS => EventTrooperStatus::GOING,
+        ]);
+
+        OauthLogin::factory()->forTrooper($trooper)->create([
+            OauthLogin::PROVIDER => OauthProvider::XENFORO,
+            OauthLogin::PROVIDER_ID => '15802',
+        ]);
+
+        $apiCode = TrooperApiCode::create([
+            TrooperApiCode::TROOPER_ID => $trooper->id,
+            TrooperApiCode::API_CODE => str_repeat('e', 64),
+        ]);
+
+        $response = $this->withHeaders([
+            'API-Key' => $apiCode->api_code,
+        ])->get(route('api.mobile', [
+                        'action' => 'cancel_troop',
+                        'trooperid' => 15802,
+                        'troopid' => $event->id,
+                    ]));
+
+        $response->assertStatus(403);
+        $response->assertJsonPath('success', false);
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::EVENT_SHIFT_ID => $shift->id,
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::GOING->value,
+        ]);
+    }
+
+    public function test_cancel_guest_is_forbidden_for_manual_selection_event(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $event = Event::factory()->create([
+            Event::STATUS => EventStatus::MANUAL_SELECTION,
+        ]);
+        $shift = EventShift::factory()->forEvent($event)->create();
+
+        $guest = EventGuest::factory()->forEventShift($shift)->create([
+            EventGuest::ADDED_BY_TROOPER_ID => $trooper->id,
+            EventGuest::STATUS => EventGuestStatus::GOING->value,
+        ]);
+
+        OauthLogin::factory()->forTrooper($trooper)->create([
+            OauthLogin::PROVIDER => OauthProvider::XENFORO,
+            OauthLogin::PROVIDER_ID => '15802',
+        ]);
+
+        $apiCode = TrooperApiCode::create([
+            TrooperApiCode::TROOPER_ID => $trooper->id,
+            TrooperApiCode::API_CODE => str_repeat('f', 64),
+        ]);
+
+        $response = $this->withHeaders([
+            'API-Key' => $apiCode->api_code,
+        ])->get(route('api.mobile', [
+                        'action' => 'cancel_guest',
+                        'trooperid' => 15802,
+                        'guestid' => $guest->id,
+                    ]));
+
+        $response->assertStatus(403);
+        $response->assertJsonPath('success', false);
+
+        $this->assertDatabaseHas('tt_event_guests', [
+            EventGuest::ID => $guest->id,
+            EventGuest::STATUS => EventGuestStatus::GOING->value,
+        ]);
     }
 }

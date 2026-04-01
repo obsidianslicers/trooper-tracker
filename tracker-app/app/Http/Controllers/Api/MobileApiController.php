@@ -777,6 +777,14 @@ class MobileApiController
             return response()->json(['error' => 'Shift not found.'], 404);
         }
 
+        if ($shift->event->status === EventStatus::MANUAL_SELECTION)
+        {
+            return response()->json([
+                'success' => false,
+                'message' => 'Manual Selection events do not allow cancellations from mobile.',
+            ], 403);
+        }
+
         if ($friend_trooper_id > 0)
         {
             // Cancelling a friend — verify the requester added them
@@ -856,6 +864,20 @@ class MobileApiController
         if (!$trooper)
         {
             return response()->json(['error' => 'Trooper not found.'], 404);
+        }
+
+        $event = Event::find($event_id);
+        if (!$event)
+        {
+            return response()->json(['error' => 'Event not found.'], 404);
+        }
+
+        if ($event->status === EventStatus::MANUAL_SELECTION)
+        {
+            return response()->json([
+                'success' => false,
+                'message' => 'Manual Selection events do not allow cancellations from mobile.',
+            ], 403);
         }
 
         EventTrooper::where(EventTrooper::TROOPER_ID, $trooper->id)
@@ -1145,11 +1167,20 @@ class MobileApiController
 
         $guest = EventGuest::where(EventGuest::ID, $guest_id)
             ->where(EventGuest::ADDED_BY_TROOPER_ID, $trooper->id)
+            ->with('event_shift.event')
             ->first();
 
         if (!$guest)
         {
             return response()->json(['success' => false, 'message' => 'Guest not found or not authorized.']);
+        }
+
+        if ($guest->event_shift->event->status === EventStatus::MANUAL_SELECTION)
+        {
+            return response()->json([
+                'success' => false,
+                'message' => 'Manual Selection events do not allow cancellations from mobile.',
+            ], 403);
         }
 
         $guest->update([EventGuest::STATUS => EventGuestStatus::CANCELLED->value]);
