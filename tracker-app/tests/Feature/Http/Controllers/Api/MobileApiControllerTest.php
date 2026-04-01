@@ -205,6 +205,33 @@ class MobileApiControllerTest extends TestCase
         $response->assertJsonPath('0.status', EventTrooperStatus::GOING->value);
     }
 
+    public function test_get_roster_for_event_includes_guests(): void
+    {
+        $event = Event::factory()->create();
+        $shift = EventShift::factory()->forEvent($event)->create();
+
+        EventGuest::factory()
+            ->forEventShift($shift)
+            ->create([
+                EventGuest::NAME => 'Leia Organa',
+                EventGuest::STATUS => EventGuestStatus::GOING,
+                EventGuest::SIGNED_UP_AT => Carbon::create(2026, 3, 22, 20, 0, 0),
+            ]);
+
+        $response = $this->get(route('api.mobile', [
+            'action' => 'get_roster_for_event',
+            'troopid' => $event->id,
+        ]));
+
+        $response->assertOk();
+        $response->assertJsonCount(1);
+        $response->assertJsonPath('0.trooper_name', 'Leia Organa');
+        $response->assertJsonPath('0.tkid_formatted', 'Guest');
+        $response->assertJsonPath('0.status', EventGuestStatus::GOING->value);
+        $response->assertJsonPath('0.status_formatted', 'Going');
+        $response->assertJsonPath('0.signuptime', '2026-03-22 20:00:00');
+    }
+
     public function test_get_event_returns_legacy_mobile_payload_shape(): void
     {
         $event = Event::factory()->create([

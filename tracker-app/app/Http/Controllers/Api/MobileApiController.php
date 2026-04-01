@@ -454,7 +454,7 @@ class MobileApiController
 
     /**
      * action=get_roster_for_event
-     * Return all sign-ups (event_troopers) for an event with costume and trooper info.
+     * Return all sign-ups for an event (troopers + guests) in a legacy-compatible shape.
      */
     private function getRosterForEvent(Request $request): JsonResponse
     {
@@ -491,7 +491,43 @@ class MobileApiController
             ];
         });
 
-        return response()->json($roster);
+        $event_guests = EventGuest::whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $event_id))
+            ->with('event_shift')
+            ->orderBy(EventGuest::SIGNED_UP_AT)
+            ->get();
+
+        $guest_roster = $event_guests->map(fn ($guest) => [
+            'id' => $guest->id,
+            'trooperid' => null,
+            'troopid' => $guest->event_shift->event_id,
+            'shift_id' => $guest->event_shift_id,
+            'shift_display' => $guest->event_shift->time_display,
+            'status' => $guest->status->value,
+            'status_formatted' => match ($guest->status)
+            {
+                EventGuestStatus::STAND_BY => 'Stand By',
+                EventGuestStatus::GOING => 'Going',
+                EventGuestStatus::TENTATIVE => 'Tentative',
+                EventGuestStatus::CANCELLED => 'Cancelled',
+            },
+            'costume' => null,
+            'costume_name' => null,
+            'backup_costume' => null,
+            'backup_costume_name' => null,
+            'is_handler' => false,
+            'trooper_name' => $guest->name,
+            'tkid' => null,
+            'tkid_formatted' => 'Guest',
+            'squad' => null,
+            'signuptime' => $guest->signed_up_at?->format('Y-m-d H:i:s'),
+        ]);
+
+        $combined_roster = $roster
+            ->concat($guest_roster)
+            ->sortBy('signuptime')
+            ->values();
+
+        return response()->json($combined_roster);
     }
 
     /**
