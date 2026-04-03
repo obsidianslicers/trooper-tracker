@@ -118,6 +118,7 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
                 return [
                     'type' => $type,
                     'title' => $type->toTitle(),
+                    'description' => $type->toDescription(),
                     'icon' => $type->toIcon(),
                     'is_earned' => $value !== null && $value > 0,
                     // If your system tracks the date, you'd pull it here;

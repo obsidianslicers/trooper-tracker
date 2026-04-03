@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
+use App\Enums\EventStatus;
+use App\Features\Organizations\Queries\GetOrganizationsForPickerQuery;
 use App\Features\Organizations\Queries\GetOrganizationsQuery;
 use App\Features\Reports\Queries\GetEventSummaryQuery;
 use App\Http\Controllers\MagicBusController;
@@ -31,13 +33,15 @@ class CancelledController extends MagicBusController
 
         $lookback = 30;
 
-        $events_query = new GetEventSummaryQuery($trooper, $lookback, true);
+        $events_query = new GetEventSummaryQuery($trooper, $lookback, true, EventStatus::CANCELLED);
 
         $events = $this->bus->send($events_query);
 
         $costume_organizations = $this->bus->send(new GetOrganizationsQuery);
 
-        $data = compact('events', 'lookback', 'costume_organizations');
+        $hosting_organizations = $this->bus->send(new GetOrganizationsForPickerQuery($trooper, []));
+
+        $data = compact('events', 'lookback', 'costume_organizations', 'hosting_organizations');
 
         return view('pages.events.cancelled', $data);
     }

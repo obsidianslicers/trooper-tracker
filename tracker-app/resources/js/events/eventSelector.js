@@ -1,22 +1,43 @@
+import { getCookie, setCookie } from '../custom/utils';
 export default function eventSelector() {
+    const cookieName = 'hosting_organization_id';
+
     return {
         // Alpine state
         form: {
             search_term: '',
-            organization_id: '',
+            hosting_organization_id: '',
             costume_organization_id: '',
         },
 
         init() {
-            const picker = this.$refs.organizationPicker;
+            const selectedOrganizationId = getCookie(cookieName);
+            if (selectedOrganizationId) {
+                this.form.hosting_organization_id = parseInt(selectedOrganizationId);
+            }
 
-            const hidden = picker.querySelector('#organization_id');
+            const hostingOrganizationSelect = this.$refs.hostingOrganizationPicker.querySelector('select');
 
-            const observer = new MutationObserver(() => {
-                this.form.organization_id = parseInt(hidden.value);
-            });
+            if (hostingOrganizationSelect) {
+                // Ensure the select's visual state matches the cookie
+                if (selectedOrganizationId) {
+                    hostingOrganizationSelect.value = selectedOrganizationId;
+                }
 
-            observer.observe(hidden, { attributes: true, attributeFilter: ['value'] });
+                // 3. Listen for the 'change' event instead of observing mutations
+                hostingOrganizationSelect.addEventListener('change', (e) => {
+                    const pickedValue = parseInt(e.target.value);
+                    this.form.hosting_organization_id = pickedValue;
+
+                    // 4. Update the cookie
+                    if (pickedValue) {
+                        setCookie(cookieName, pickedValue);
+                    } else {
+                        // Optional: Clear cookie if "Please Select" is chosen
+                        setCookie(cookieName, '', -1);
+                    }
+                });
+            }
         },
 
         // Core filter logic
@@ -32,7 +53,7 @@ export default function eventSelector() {
             }
 
             // Hosting organization filter
-            if (this.form.organization_id && hostingOrganizationId != this.form.organization_id) {
+            if (this.form.hosting_organization_id && hostingOrganizationId != this.form.hosting_organization_id) {
                 return false;
             }
 

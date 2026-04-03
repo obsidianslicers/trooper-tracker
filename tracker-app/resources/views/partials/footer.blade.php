@@ -105,7 +105,7 @@
                     </a>
                 </li>
                 <li class="my-2">
-                    <a href="https://www.501st.com/members/displaymemberdetails.php?userID=48435">
+                    <a href="https://gh-pages.501st.com/member/51399/">
                         Stu Ellerbusch <span class="text-muted">(IC51399)</span>
                     </a>
                 </li>

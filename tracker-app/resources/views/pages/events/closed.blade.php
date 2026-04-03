@@ -8,7 +8,6 @@
 
         @include('pages.events.inc.event-filters', compact('costume_organizations'))
 
-
         <x-table class="caption-top">
             <caption>
                 Summary of Event Details over the last {{ $lookback }} days.
@@ -110,7 +109,11 @@
                     <th colspan="2">
                         <x-number-format :value="$events->count()" />
                         <span class="text-muted">
-                            Events in Total
+                            Events Summary (over the last {{ $lookback }} days)
+                        </span>
+                        <br />
+                        <span class="small text-muted">
+                            * Totals only all include events that have been closed within the lookback period (not filtered).
                         </span>
                     </th>
                     <th class="text-end">
