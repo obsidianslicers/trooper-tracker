@@ -37,7 +37,7 @@ class CalendarController extends MagicBusController
 
         $events_query = new GetEventsForDisplayQuery;
 
-        $events = $this->bus->send($events_query)->groupBy(fn($event) => $event->event_start->toDateString());
+        $events = $this->bus->send($events_query)->groupBy(fn ($event) => $event->event_start->toDateString());
 
         $costume_organizations = $this->bus->send(new GetOrganizationsQuery);
 
