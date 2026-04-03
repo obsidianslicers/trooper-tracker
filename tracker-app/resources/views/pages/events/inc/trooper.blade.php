@@ -61,7 +61,49 @@
     </div>
     <div class="col-5 col-md-3 order-2 order-md-3 text-end">
         <div class="ps-3 ps-md-0">
-            @if($event_shift->is_open && $event_trooper->canUpdateStatus($event_shift, Auth::user()))
+            @if(
+                $can_moderate
+                && $event->status === \App\Enums\EventStatus::MANUAL_SELECTION
+                && $event_shift->is_open
+                && in_array($event_trooper->status, [\App\Enums\EventTrooperStatus::STAND_BY, \App\Enums\EventTrooperStatus::GOING], true)
+            )
+                <div class="d-flex gap-1 justify-content-end">
+                    @if($event_trooper->status === \App\Enums\EventTrooperStatus::STAND_BY)
+                        <form hx-post="{{ route('events.signup-update-htmx', compact('event_trooper')) }}"
+                              hx-indicator="#transmission-bar-shift-{{ $event_trooper->event_shift->id }}"
+                              hx-select="#shift-container-{{ $event_trooper->event_shift->id }}"
+                              hx-target="#shift-container-{{ $event_trooper->event_shift->id }}"
+                              hx-swap="outerHTML">
+                            @csrf
+                            <input type="hidden"
+                                   name="status"
+                                   value="{{ \App\Enums\EventTrooperStatus::GOING->value }}" />
+                            <button type="submit"
+                                    class="btn btn-sm btn-success">
+                                <i class="fa fa-fw fa-check me-1"></i>
+                                Approve
+                            </button>
+                        </form>
+                    @endif
+                    @if($event_trooper->status === \App\Enums\EventTrooperStatus::GOING)
+                        <form hx-post="{{ route('events.signup-update-htmx', compact('event_trooper')) }}"
+                              hx-indicator="#transmission-bar-shift-{{ $event_trooper->event_shift->id }}"
+                              hx-select="#shift-container-{{ $event_trooper->event_shift->id }}"
+                              hx-target="#shift-container-{{ $event_trooper->event_shift->id }}"
+                              hx-swap="outerHTML">
+                            @csrf
+                            <input type="hidden"
+                                   name="status"
+                                   value="{{ \App\Enums\EventTrooperStatus::STAND_BY->value }}" />
+                            <button type="submit"
+                                    class="btn btn-sm btn-outline-danger">
+                                <i class="fa fa-fw fa-ban me-1"></i>
+                                Reject
+                            </button>
+                        </form>
+                    @endif
+                </div>
+            @elseif($event_shift->is_open && $event_trooper->canUpdateStatus($event_shift, Auth::user()))
                 <x-input-select :property="'status'"
                                 :options="\App\Enums\EventTrooperStatus::toSignUpArray($event->tentative_signups_allowed)"
                                 :value="$event_trooper->status->value"
@@ -76,6 +118,20 @@
                     {{ to_title($event_trooper->status->name) }}
                     {!! $event_trooper->status->iconTag() !!}
                 </span>
+            @endif
+
+            @if(
+                $event->status === \App\Enums\EventStatus::MANUAL_SELECTION
+                && $event_trooper->status === \App\Enums\EventTrooperStatus::GOING
+                && $event_trooper->updated_by !== null
+            )
+                <br />
+                <i class="small text-muted">
+                    Approved by {{ $event_trooper->updated_by->display_name }}
+                    @if($event_trooper->updated_at)
+                        on {{ $event_trooper->updated_at->format('M j, Y g:ia') }}
+                    @endif
+                </i>
             @endif
         </div>
     </div>

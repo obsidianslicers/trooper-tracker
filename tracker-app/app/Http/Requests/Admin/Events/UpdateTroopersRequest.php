@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin\Events;
 
+use App\Enums\EventGuestStatus;
 use App\Enums\EventTrooperStatus;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Http\FormRequest;
@@ -41,6 +42,7 @@ class UpdateTroopersRequest extends FormRequest
     {
         $rules = [
             'troopers.*.status' => ['nullable', 'in:'.EventTrooperStatus::toValidator()],
+            'guests.*.status' => ['nullable', 'in:'.EventGuestStatus::toValidator()],
         ];
 
         return $rules;

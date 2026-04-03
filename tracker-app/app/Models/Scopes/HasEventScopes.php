@@ -29,6 +29,7 @@ trait HasEventScopes
     {
         $status_list = [
             EventStatus::OPEN,
+            EventStatus::MANUAL_SELECTION,
             EventStatus::DRAFT,
             EventStatus::SIGN_UP_LOCKED,
         ];
@@ -49,6 +50,7 @@ trait HasEventScopes
     {
         $status_list = [
             EventStatus::OPEN,
+            EventStatus::MANUAL_SELECTION,
             EventStatus::SIGN_UP_LOCKED,
         ];
 

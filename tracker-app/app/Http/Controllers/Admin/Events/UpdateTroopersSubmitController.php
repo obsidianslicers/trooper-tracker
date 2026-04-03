@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
+use App\Enums\EventStatus;
+use App\Enums\EventTrooperStatus;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Events\UpdateTroopersRequest;
+use App\Mail\Events\TrooperManualSelectionApproved;
+use App\Mail\Events\TrooperManualSelectionStandBy;
 use App\Models\Event;
+use App\Models\EventGuest;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 /**
  * Processes trooper status update form submissions.
@@ -34,8 +39,15 @@ class UpdateTroopersSubmitController extends MagicBusController
         $this->authorize('update', $event);
 
         $troopers = $request->validated('troopers', []);
+        $guests = $request->validated('guests', []);
 
         $event_troopers = $event->troopers()->get();
+        $event_guest_shift_ids = $event->event_shifts()->pluck('id');
+        $event_guests = EventGuest::query()
+            ->whereIn(EventGuest::EVENT_SHIFT_ID, $event_guest_shift_ids)
+            ->get();
+        $authTrooper = $request->user();
+        $isManualSelectionEvent = $event->status === EventStatus::MANUAL_SELECTION;
 
         foreach ($troopers as $id => $input)
         {
@@ -46,9 +58,53 @@ class UpdateTroopersSubmitController extends MagicBusController
                 continue;
             }
 
-            $event_trooper->status = $input['status'];
+            $newStatus = $input['status'] ?? null;
+            if ($newStatus === null)
+            {
+                continue;
+            }
+
+            $oldStatus = $event_trooper->status;
+
+            $event_trooper->status = $newStatus;
 
             $event_trooper->save();
+
+            $wasManualApproval = $isManualSelectionEvent
+                && $oldStatus === EventTrooperStatus::STAND_BY
+                && $event_trooper->status === EventTrooperStatus::GOING;
+            $wasMovedToStandBy = $isManualSelectionEvent
+                && $oldStatus === EventTrooperStatus::GOING
+                && $event_trooper->status === EventTrooperStatus::STAND_BY;
+
+            if ($wasManualApproval)
+            {
+                Mail::to($event_trooper->trooper->email)->queue(new TrooperManualSelectionApproved($event_trooper, $authTrooper));
+            }
+
+            if ($wasMovedToStandBy)
+            {
+                Mail::to($event_trooper->trooper->email)->queue(new TrooperManualSelectionStandBy($event_trooper, $authTrooper));
+            }
+        }
+
+        foreach ($guests as $id => $input)
+        {
+            $event_guest = $event_guests->first(fn ($eg) => $eg->id === (int) $id);
+
+            if ($event_guest === null)
+            {
+                continue;
+            }
+
+            $newStatus = $input['status'] ?? null;
+            if ($newStatus === null)
+            {
+                continue;
+            }
+
+            $event_guest->status = $newStatus;
+            $event_guest->save();
         }
 
         $this->flash->updated($event);

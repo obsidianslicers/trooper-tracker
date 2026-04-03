@@ -12,6 +12,11 @@ enum EventGuestStatus: string
     use HasEnumHelpers;
 
     /**
+     * Guest is on stand-by and requires approval.
+     */
+    case STAND_BY = 'standby';
+
+    /**
      * Guest is confirmed to be going.
      */
     case GOING = 'going';
@@ -33,6 +38,7 @@ enum EventGuestStatus: string
     {
         return match ($this)
         {
+            self::STAND_BY => 'fa-circle-pause',
             self::GOING => 'fa-circle-play',
             self::TENTATIVE => 'fa-circle-dot',
             self::CANCELLED => 'fa-times-circle',
@@ -48,6 +54,7 @@ enum EventGuestStatus: string
     {
         return match ($this)
         {
+            self::STAND_BY => 'text-warning',
             self::GOING => 'text-success',
             self::TENTATIVE => 'text-warning',
             self::CANCELLED => 'text-danger',

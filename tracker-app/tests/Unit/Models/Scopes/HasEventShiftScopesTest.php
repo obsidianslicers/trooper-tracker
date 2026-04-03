@@ -10,13 +10,14 @@ use Tests\TestCase;
 
 class HasEventShiftScopesTest extends TestCase
 {
-    public function test_active_scope_filters_to_open_draft_and_locked_statuses(): void
+    public function test_active_scope_filters_to_open_manual_selection_draft_and_locked_statuses(): void
     {
         $query = EventShift::query()->active();
 
-        $this->assertStringContainsString('"status" in (?, ?, ?)', $query->toBase()->toSql());
+        $this->assertStringContainsString('"status" in (?, ?, ?, ?)', $query->toBase()->toSql());
         $this->assertSame([
             EventStatus::OPEN->value,
+            EventStatus::MANUAL_SELECTION->value,
             EventStatus::DRAFT->value,
             EventStatus::SIGN_UP_LOCKED->value,
         ], $query->getBindings());
@@ -26,9 +27,10 @@ class HasEventShiftScopesTest extends TestCase
     {
         $query = EventShift::query()->byTrooper(7, false);
 
-        $this->assertStringContainsString('"status" = ?', $query->toBase()->toSql());
+        $this->assertStringContainsString('"status" in (?, ?)', $query->toBase()->toSql());
         $this->assertStringContainsString('exists', $query->toBase()->toSql());
         $this->assertContains(EventStatus::OPEN->value, $query->getBindings());
+        $this->assertContains(EventStatus::MANUAL_SELECTION->value, $query->getBindings());
         $this->assertContains(7, $query->getBindings());
     }
 }
