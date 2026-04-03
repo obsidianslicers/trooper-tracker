@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Events;
 
 use App\Features\Events\Queries\GetEventsForDisplayQuery;
+use App\Features\Organizations\Queries\GetOrganizationsForPickerQuery;
 use App\Features\Organizations\Queries\GetOrganizationsQuery;
 use App\Http\Controllers\MagicBusController;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Displays the list of upcoming events available for sign-up.
@@ -37,7 +39,11 @@ class ListController extends MagicBusController
 
         $costume_organizations = $this->bus->send(new GetOrganizationsQuery);
 
-        $data = compact('events', 'costume_organizations');
+        // $hosting_organizations = $this->bus->send(new GetOrganizationsForPickerQuery(Auth::user()), []));
+
+        $hosting_organizations = $this->bus->send(new GetOrganizationsForPickerQuery(Auth::user(), []));
+
+        $data = compact('events', 'costume_organizations', 'hosting_organizations');
 
         return view('pages.events.list', $data);
     }

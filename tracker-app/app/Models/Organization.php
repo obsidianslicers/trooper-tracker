@@ -63,8 +63,6 @@ class Organization extends BaseOrganization
         return $this->hasManyThrough(EventTrooper::class, OrganizationCostume::class);
     }
 
-
-
     /**
      * Get all event organizations associated with this organization.
      *
@@ -73,6 +71,28 @@ class Organization extends BaseOrganization
     public function event_organizations()
     {
         return $this->hasMany(EventOrganization::class);
+    }
+
+    /**
+     * Get the name of the organization with indentation based on its level in the hierarchy.
+     *
+     * Top-level organizations have no indentation, regions have one level of indentation,
+     * and units have two levels of indentation.
+     *
+     * @return string The indented name of the organization.
+     */
+    public function getIndentedNameAttribute(): string
+    {
+        $level = 0;
+        $organization = $this;
+
+        while ($organization->parent_id !== null)
+        {
+            $level++;
+            $organization = $organization->parent;
+        }
+
+        return str_repeat(' - ', $level) . $this->name;
     }
 
     /**
