@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Events;
 
 use App\Features\Events\Queries\GetEventsForDisplayQuery;
+use App\Features\Organizations\Queries\GetOrganizationsForPickerQuery;
 use App\Features\Organizations\Queries\GetOrganizationsQuery;
 use App\Http\Controllers\MagicBusController;
 use Carbon\Carbon;
@@ -32,11 +33,15 @@ class CalendarController extends MagicBusController
      */
     public function __invoke(Request $request): View
     {
+        $trooper = $request->user();
+
         $events_query = new GetEventsForDisplayQuery;
 
-        $events = $this->bus->send($events_query)->groupBy(fn ($event) => $event->event_start->toDateString());
+        $events = $this->bus->send($events_query)->groupBy(fn($event) => $event->event_start->toDateString());
 
         $costume_organizations = $this->bus->send(new GetOrganizationsQuery);
+
+        $hosting_organizations = $this->bus->send(new GetOrganizationsForPickerQuery($trooper, []));
 
         $months = [];
 
@@ -65,7 +70,7 @@ class CalendarController extends MagicBusController
             $months[] = ['date' => $month, 'weeks' => $weeks];
         }
 
-        $data = compact('events', 'months', 'costume_organizations');
+        $data = compact('events', 'months', 'costume_organizations', 'hosting_organizations');
 
         return view('pages.events.calendar', $data);
     }

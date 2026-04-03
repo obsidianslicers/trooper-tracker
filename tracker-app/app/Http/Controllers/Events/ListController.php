@@ -10,7 +10,6 @@ use App\Features\Organizations\Queries\GetOrganizationsQuery;
 use App\Http\Controllers\MagicBusController;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Displays the list of upcoming events available for sign-up.
@@ -33,15 +32,15 @@ class ListController extends MagicBusController
      */
     public function __invoke(Request $request): View
     {
+        $trooper = $request->user();
+
         $events_query = new GetEventsForDisplayQuery;
 
         $events = $this->bus->send($events_query);
 
         $costume_organizations = $this->bus->send(new GetOrganizationsQuery);
 
-        // $hosting_organizations = $this->bus->send(new GetOrganizationsForPickerQuery(Auth::user()), []));
-
-        $hosting_organizations = $this->bus->send(new GetOrganizationsForPickerQuery(Auth::user(), []));
+        $hosting_organizations = $this->bus->send(new GetOrganizationsForPickerQuery($trooper, []));
 
         $data = compact('events', 'costume_organizations', 'hosting_organizations');
 
