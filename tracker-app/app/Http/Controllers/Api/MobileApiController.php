@@ -8,6 +8,7 @@ use App\Enums\EventGuestStatus;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Enums\MembershipStatus;
+use App\Enums\OrganizationType;
 use App\Enums\OauthProvider;
 use App\Models\Costume;
 use App\Models\Event;
@@ -84,6 +85,8 @@ class MobileApiController
                 $action === 'login_with_forum' && $request->has('access_token') => $this->loginWithForum($request),
 
                 $action === 'is_closed' => $this->isClosed(),
+
+                $action === 'get_organizations' => $this->getOrganizations(),
 
                 $action === 'user_status' && $request->has('trooperid') => $this->getUserStatus($request),
 
@@ -575,19 +578,42 @@ class MobileApiController
     }
 
     /**
+     * action=get_organizations
+     * Return the squads (units) under Florida Garrison for the mobile filter UI.
+     */
+    private function getOrganizations(): JsonResponse
+    {
+        $units = Organization::where(Organization::TYPE, OrganizationType::UNIT->value)
+            ->whereHas('organization', fn ($q) => $q->where(Organization::NAME, 'Florida Garrison'))
+            ->orderBy(Organization::SEQUENCE)
+            ->get([Organization::ID, Organization::NAME]);
+
+        return response()->json([
+            'organizations' => $units->map(fn ($org) => [
+                'id'   => $org->id,
+                'name' => $org->name,
+            ])->values(),
+        ]);
+    }
+
+    /**
      * action=get_troops_by_squad
      * Return upcoming events for a given organization (squad), with sign-up counts and notices.
+     *
+     * Pass squad=0 for all events, or squad=<organization_id> to filter by a specific squad.
+     * Organization IDs are obtained from the get_organizations action.
      */
     private function getTroopsBySquad(Request $request): JsonResponse
     {
         // TODO: implement isWebsiteClosed() check once that mechanism is defined.
 
-        $squad_id = (int) $request->input('squad');
+        $organization_id = (int) $request->input('squad');
+
         $open_status_values = array_map(fn ($s) => $s->value, self::OPEN_EVENT_STATUSES);
 
         $events = Event::whereIn(Event::STATUS, $open_status_values)
             ->where(Event::EVENT_START, '>=', now()->startOfDay())
-            ->when($squad_id !== 0, fn ($q) => $q->where(Event::ORGANIZATION_ID, $squad_id))
+            ->when($organization_id !== 0, fn ($q) => $q->where(Event::ORGANIZATION_ID, $organization_id))
             ->with(['event_shifts.event_troopers'])
             ->orderBy(Event::EVENT_START)
             ->get();
