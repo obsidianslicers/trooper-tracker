@@ -1,7 +1,7 @@
 <div class="d-flex justify-content-between align-items-center mb-2">
     <x-section-title class="mb-0">Mission Roster</x-section-title>
     @if($can_moderate)
-        <a class="btn btn-sm btn-outline-secondary"
+        <a class="btn btn-sm btn-outline-secondary d-none d-md-inline"
            href="{{ route('events.download-roster-csv', compact('event')) }}">
             <i class="fa fa-fw fa-download me-1"></i>
             Download CSV (All Shifts)
