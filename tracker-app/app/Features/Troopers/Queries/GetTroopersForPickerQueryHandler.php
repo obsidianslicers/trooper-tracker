@@ -63,6 +63,8 @@ readonly class GetTroopersForPickerQueryHandler implements QueryHandlerInterface
             $query = $query->moderatedBy($message->trooper);
         }
 
+        $execute_query = false;
+
         if ($message->picker_mode == TrooperPickerMode::FRIENDS)
         {
             $q = TrooperFriend::query()
@@ -70,12 +72,19 @@ readonly class GetTroopersForPickerQueryHandler implements QueryHandlerInterface
                 ->where(TrooperFriend::TROOPER_ID, $message->trooper->id);
 
             $query = $query->whereIn(Trooper::ID, $q);
+
+            $execute_query = true;
         }
 
         if ($message->filter->hasFilter())
         {
             $query = $query->filterWith($message->filter);
 
+            $execute_query = true;
+        }
+
+        if ($execute_query)
+        {
             return $query->get();
         }
 

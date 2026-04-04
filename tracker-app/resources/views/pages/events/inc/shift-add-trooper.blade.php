@@ -20,7 +20,7 @@
         {{-- if they are a normal user and already signed up - they can sign up a friend --}}
         {{-- or they are a moderator - they can sign up a friend --}}
         <button class="btn btn-sm btn-outline-info text-start text-md-center"
-                hx-get="{{ route('pickers.trooper', ['property' => 'add-shift-trooper-' . $event_shift->id, 'event' => 'trooper:selected']) }}"
+                hx-get="{{ route('pickers.trooper', ['property' => 'add-shift-trooper-' . $event_shift->id, 'event' => 'trooper:selected', 'picker_mode' => App\Enums\TrooperPickerMode::FRIENDS->value]) }}"
                 hx-target="#modal-trooper .modal-body"
                 hx-trigger="click"
                 data-bs-toggle="modal"

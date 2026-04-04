@@ -246,4 +246,41 @@ class GetTroopersForPickerQueryHandlerTest extends TestCase
 
         $this->assertSame(['Friend Target'], $result->pluck(Trooper::DISPLAY_NAME)->all());
     }
+
+    public function test_invoke_with_friends_picker_mode_returns_results_without_filter_criteria(): void
+    {
+        $requesting_trooper = Trooper::factory()->asMember()->create();
+        $friend_alpha = Trooper::factory()->asMember()->withDisplayName('Alpha Friend')->create();
+        $friend_bravo = Trooper::factory()->asMember()->withDisplayName('Bravo Friend')->create();
+        Trooper::factory()->asMember()->withDisplayName('Non Friend')->create();
+
+        TrooperFriend::factory()->forTrooper($requesting_trooper)->forFriend($friend_alpha)->create();
+        TrooperFriend::factory()->forTrooper($requesting_trooper)->forFriend($friend_bravo)->create();
+
+        $filter = new TrooperFilter(new Request());
+
+        $subject = new GetTroopersForPickerQueryHandler();
+
+        $result = $subject(new GetTroopersForPickerQuery($requesting_trooper, $filter, [
+            'picker_mode' => TrooperPickerMode::FRIENDS->value,
+        ]));
+
+        $this->assertSame(['Alpha Friend', 'Bravo Friend'], $result->pluck(Trooper::DISPLAY_NAME)->all());
+    }
+
+    public function test_invoke_returns_empty_collection_when_friends_picker_mode_has_no_friends(): void
+    {
+        $requesting_trooper = Trooper::factory()->asMember()->create();
+        Trooper::factory()->asMember()->withDisplayName('Unrelated Trooper')->create();
+
+        $filter = new TrooperFilter(new Request());
+
+        $subject = new GetTroopersForPickerQueryHandler();
+
+        $result = $subject(new GetTroopersForPickerQuery($requesting_trooper, $filter, [
+            'picker_mode' => TrooperPickerMode::FRIENDS->value,
+        ]));
+
+        $this->assertEmpty($result);
+    }
 }
