@@ -18,9 +18,11 @@
             {{ $organization->name }}
             @if($organization->pivot->can_attend)
                 <span class="float-end">
-                    <x-number-format :value="$organization->pivot->troopers_allowed" />
+                    <x-number-format :value="$organization->pivot->troopers_allowed"
+                                     :nulldisplay="'alot'" />
                     /
-                    <x-number-format :value="$organization->pivot->handlers_allowed" />
+                    <x-number-format :value="$organization->pivot->handlers_allowed"
+                                     :nulldisplay="'alot'" />
                 </span>
             @endif
         </li>
