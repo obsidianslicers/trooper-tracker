@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Features\Troopers\Queries;
 
+use App\Enums\TrooperPickerMode;
 use App\Features\Troopers\Queries\GetTroopersForPickerQuery;
 use App\Features\Troopers\Queries\GetTroopersForPickerQueryHandler;
 use App\Models\Filters\TrooperFilter;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
+use App\Models\TrooperFriend;
 use App\Models\TrooperOrganization;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
@@ -111,7 +113,7 @@ class GetTroopersForPickerQueryHandlerTest extends TestCase
             ->asMember()
             ->withSetupCompleted()
             ->withDisplayName('Guardian Minor')
-            ->state([Trooper::GUARDIAN_ID => $guardian->id])
+            ->withGuardian($guardian)
             ->create();
 
         $filter = new TrooperFilter(new Request(['search_term' => 'Guardian Minor']));
@@ -133,7 +135,7 @@ class GetTroopersForPickerQueryHandlerTest extends TestCase
             ->asMember()
             ->withSetupCompleted()
             ->withDisplayName('Hidden Minor')
-            ->state([Trooper::GUARDIAN_ID => $guardian->id])
+            ->withGuardian($guardian)
             ->create();
 
         $filter = new TrooperFilter(new Request(['search_term' => 'Hidden Minor']));
@@ -184,5 +186,64 @@ class GetTroopersForPickerQueryHandlerTest extends TestCase
 
         $this->assertCount(1, $result);
         $this->assertSame('Moderated Trooper', $result->first()->display_name);
+    }
+
+    public function test_invoke_excludes_inactive_troopers(): void
+    {
+        Trooper::factory()->asMember()->withDisplayName('Active Trooper')->create();
+        Trooper::factory()->asMember()->asRetired()->withDisplayName('Retired Trooper')->create();
+
+        $trooper = Trooper::factory()->asMember()->create();
+        $filter = new TrooperFilter(new Request(['search_term' => 'Trooper']));
+
+        $subject = new GetTroopersForPickerQueryHandler();
+
+        $result = $subject(new GetTroopersForPickerQuery($trooper, $filter, []));
+
+        $this->assertSame(['Active Trooper'], $result->pluck(Trooper::DISPLAY_NAME)->all());
+    }
+
+    public function test_invoke_returns_results_sorted_by_display_name(): void
+    {
+        Trooper::factory()->asMember()->withDisplayName('Zulu Trooper')->create();
+        Trooper::factory()->asMember()->withDisplayName('Alpha Trooper')->create();
+        Trooper::factory()->asMember()->withDisplayName('Bravo Trooper')->create();
+
+        $trooper = Trooper::factory()->asMember()->create();
+        $filter = new TrooperFilter(new Request(['search_term' => 'Trooper']));
+
+        $subject = new GetTroopersForPickerQueryHandler();
+
+        $result = $subject(new GetTroopersForPickerQuery($trooper, $filter, []));
+
+        $this->assertSame(
+            ['Alpha Trooper', 'Bravo Trooper', 'Zulu Trooper'],
+            $result->pluck(Trooper::DISPLAY_NAME)->all()
+        );
+    }
+
+    public function test_invoke_with_friends_picker_mode_filters_to_friend_ids_for_requesting_trooper(): void
+    {
+        $requesting_trooper = Trooper::factory()
+            ->asMember()
+            ->withDisplayName('Requesting Trooper')
+            ->create();
+        $friend_target = Trooper::factory()->asMember()->withDisplayName('Friend Target')->create();
+        Trooper::factory()->asMember()->withDisplayName('Friend Stranger')->create();
+
+        TrooperFriend::factory()
+            ->forTrooper($requesting_trooper)
+            ->forFriend($friend_target)
+            ->create();
+
+        $filter = new TrooperFilter(new Request(['search_term' => 'Friend']));
+
+        $subject = new GetTroopersForPickerQueryHandler();
+
+        $result = $subject(new GetTroopersForPickerQuery($requesting_trooper, $filter, [
+            'picker_mode' => TrooperPickerMode::FRIENDS->value,
+        ]));
+
+        $this->assertSame(['Friend Target'], $result->pluck(Trooper::DISPLAY_NAME)->all());
     }
 }

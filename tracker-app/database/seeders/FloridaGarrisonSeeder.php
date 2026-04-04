@@ -16,6 +16,7 @@ use Database\Seeders\FloridaGarrison\OrganizationSeeder as FloridaGarrisonOrgani
 use Database\Seeders\FloridaGarrison\TrooperAchievementSeeder;
 use Database\Seeders\FloridaGarrison\TrooperCostumeSeeder;
 use Database\Seeders\FloridaGarrison\TrooperDonationSeeder;
+use Database\Seeders\FloridaGarrison\TrooperFriendSeeder;
 use Database\Seeders\FloridaGarrison\TrooperOrganizationSeeder;
 use Database\Seeders\FloridaGarrison\TrooperSeeder;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -54,6 +55,7 @@ class FloridaGarrisonSeeder extends Seeder
             $this->call(EventSeeder::class);
             $this->call(EventUploadSeeder::class);
             $this->call(EventUploadTrooperSeeder::class);
+            $this->call(TrooperFriendSeeder::class);
 
             $this->call(TrooperAchievementSeeder::class);
         });

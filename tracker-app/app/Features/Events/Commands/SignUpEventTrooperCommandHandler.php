@@ -7,6 +7,7 @@ namespace App\Features\Events\Commands;
 use App\Bus\Contracts\CommandHandlerInterface;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
+use App\Jobs\CreateTrooperFriendshipJob;
 use App\Mail\Events\TrooperSignUp;
 use App\Models\EventTrooper;
 use Illuminate\Support\Facades\Mail;
@@ -68,6 +69,12 @@ readonly class SignUpEventTrooperCommandHandler implements CommandHandlerInterfa
 
         $event_trooper->status = $status;
         $event_trooper->save();
+
+        if ($event_trooper->added_by_trooper_id !== null)
+        {
+            //  added_by_trooper_id added friend:trooper_id
+            dispatch(new CreateTrooperFriendshipJob($event_trooper->added_by_trooper_id, $event_trooper->trooper_id));
+        }
 
         Mail::to($message->trooper->email)->queue(new TrooperSignUp($event_trooper));
 
