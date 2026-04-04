@@ -1085,8 +1085,8 @@ class MobileApiController
             'id' => $upload->id,
             'filename' => $upload->image_path_sm,
             'admin' => (int) $upload->is_administrative,
-            'thumbnail_url' => $upload->small_url,
-            'full_url' => $upload->large_url,
+            'thumbnail_url' => url($upload->small_url),
+            'full_url' => url($upload->large_url),
             'uploaded_by' => $upload->trooper?->display_name,
         ]);
 
@@ -1124,22 +1124,20 @@ class MobileApiController
             return response()->json(['success' => false, 'message' => 'No file uploaded.'], 422);
         }
 
-        $allowed_mimes = ['image/png', 'image/jpeg', 'image/webp'];
-
-        if (!in_array($file->getMimeType(), $allowed_mimes))
-        {
-            return response()->json(['success' => false, 'message' => 'Invalid file type. Use PNG, JPG, or WEBP.'], 422);
-        }
-
         if ($file->getSize() > 4 * 1024 * 1024)
         {
             return response()->json(['success' => false, 'message' => 'File too large (max 4MB).'], 422);
         }
 
-        $original_path = $file->store("uploads/events/{$event->id}/originals", 'public');
-
         try
         {
+            $original_path = $file->store("uploads/events/{$event->id}/originals", 'public');
+
+            if ($original_path === false)
+            {
+                return response()->json(['success' => false, 'message' => 'Failed to store file.'], 500);
+            }
+
             $manager = ImageManager::withDriver(config('tracker.image.driver'));
             $image = $manager->read($file->getPathname());
 
@@ -1156,10 +1154,13 @@ class MobileApiController
         }
         catch (\Exception $e)
         {
-            Storage::disk('public')->delete($original_path);
+            if (isset($original_path) && $original_path !== false)
+            {
+                Storage::disk('public')->delete($original_path);
+            }
             Log::error('Mobile image upload failed', ['error' => $e->getMessage(), 'event_id' => $event_id]);
 
-            return response()->json(['success' => false, 'message' => 'Image processing failed.'], 500);
+            return response()->json(['success' => false, 'message' => 'Image processing failed: ' . $e->getMessage()], 500);
         }
 
         $event_upload = new EventUpload;
