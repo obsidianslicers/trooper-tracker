@@ -27,6 +27,17 @@
         @endif
     </div>
 </div>
+@if($can_moderate)
+<div class="row mb-3">
+    <div class="col-12 text-end">
+        <a class="btn btn-sm btn-outline-secondary d-none d-md-inline"
+           href="{{ route('events.download-shift-roster-csv', ['event' => $event, 'event_shift' => $event_shift]) }}">
+            <i class="fa fa-fw fa-download me-1"></i>
+            Download CSV (This Shift)
+        </a>
+    </div>
+</div>
+@endif
 @if($event_shift->isSignedUp(Auth::user()))
 <div class="row mb-3">
     <div class="col-12 text-end">
