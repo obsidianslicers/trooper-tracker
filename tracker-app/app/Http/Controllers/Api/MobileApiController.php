@@ -30,7 +30,10 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Intervention\Image\ImageManager;
 
 /**
  * API for mobile app troop data.
@@ -123,6 +126,8 @@ class MobileApiController
                 $action === 'sign_up' && $request->has('trooperid', 'troopid', 'addedby', 'status', 'costume', 'backupcostume') => $this->signUp($request),
 
                 $action === 'get_photos_by_event' && $request->has('troopid') => $this->getPhotosByEvent($request),
+
+                $action === 'upload_photo' && $request->has('trooperid', 'troopid') => $this->uploadPhoto($request),
 
                 $action === 'saveFCM' && $request->has('userid', 'fcm') => $this->saveFcm($request),
 
@@ -1086,6 +1091,86 @@ class MobileApiController
         ]);
 
         return response()->json(['photos' => $photos]);
+    }
+
+    /**
+     * action=upload_photo
+     * Upload a photo for an event from the mobile app.
+     */
+    private function uploadPhoto(Request $request): JsonResponse
+    {
+        $event_id = (int) $request->input('troopid');
+        $trooper_id_input = (int) $request->input('trooperid');
+        $is_administrative = $request->input('admin') === '1';
+
+        $event = Event::find($event_id);
+
+        if (!$event)
+        {
+            return response()->json(['success' => false, 'message' => 'Event not found.'], 404);
+        }
+
+        $trooper = $this->trooperFromUserId($trooper_id_input);
+
+        if (!$trooper)
+        {
+            return response()->json(['success' => false, 'message' => 'Trooper not found.'], 404);
+        }
+
+        $file = $request->file('file');
+
+        if (!$file)
+        {
+            return response()->json(['success' => false, 'message' => 'No file uploaded.'], 422);
+        }
+
+        $allowed_mimes = ['image/png', 'image/jpeg', 'image/webp'];
+
+        if (!in_array($file->getMimeType(), $allowed_mimes))
+        {
+            return response()->json(['success' => false, 'message' => 'Invalid file type. Use PNG, JPG, or WEBP.'], 422);
+        }
+
+        if ($file->getSize() > 4 * 1024 * 1024)
+        {
+            return response()->json(['success' => false, 'message' => 'File too large (max 4MB).'], 422);
+        }
+
+        $original_path = $file->store("uploads/events/{$event->id}/originals", 'public');
+
+        try
+        {
+            $manager = ImageManager::withDriver(config('tracker.image.driver'));
+            $image = $manager->read($file->getPathname());
+
+            $size = max($image->width(), $image->height());
+            $canvas = $manager->create($size, $size)->fill('rgba(0,0,0,0)');
+            $canvas->place($image, 'center');
+
+            $thumbnail = clone $canvas;
+            $thumbnail->scaleDown(128, 128);
+
+            $thumbnail_path = "uploads/events/{$event->id}/thumbnails/" . pathinfo($file->hashName(), PATHINFO_FILENAME) . '.png';
+
+            Storage::disk('public')->put($thumbnail_path, $thumbnail->encodeByExtension('png'));
+        }
+        catch (\Exception $e)
+        {
+            Storage::disk('public')->delete($original_path);
+            Log::error('Mobile image upload failed', ['error' => $e->getMessage(), 'event_id' => $event_id]);
+
+            return response()->json(['success' => false, 'message' => 'Image processing failed.'], 500);
+        }
+
+        $event_upload = new EventUpload;
+        $event_upload->event_id = $event->id;
+        $event_upload->trooper_id = $trooper->id;
+        $event_upload->image_path_lg = $original_path;
+        $event_upload->image_path_sm = $thumbnail_path;
+        $event_upload->is_administrative = $is_administrative;
+        $event_upload->save();
+
+        return response()->json(['success' => true]);
     }
 
     /**
