@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Events;
 
 use App\Features\Events\Queries\GetEventsForDisplayQuery;
+use App\Features\Organizations\Queries\GetOrganizationsForPickerQuery;
 use App\Features\Organizations\Queries\GetOrganizationsQuery;
 use App\Http\Controllers\MagicBusController;
 use Illuminate\Contracts\View\View;
@@ -31,13 +32,17 @@ class ListController extends MagicBusController
      */
     public function __invoke(Request $request): View
     {
+        $trooper = $request->user();
+
         $events_query = new GetEventsForDisplayQuery;
 
         $events = $this->bus->send($events_query);
 
         $costume_organizations = $this->bus->send(new GetOrganizationsQuery);
 
-        $data = compact('events', 'costume_organizations');
+        $hosting_organizations = $this->bus->send(new GetOrganizationsForPickerQuery($trooper, []));
+
+        $data = compact('events', 'costume_organizations', 'hosting_organizations');
 
         return view('pages.events.list', $data);
     }

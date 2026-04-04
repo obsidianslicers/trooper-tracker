@@ -14,13 +14,14 @@ class HasEventScopesTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_active_scope_filters_to_open_draft_and_locked_statuses(): void
+    public function test_active_scope_filters_to_open_manual_selection_draft_and_locked_statuses(): void
     {
         $query = Event::query()->active();
 
-        $this->assertStringContainsString('"status" in (?, ?, ?)', $query->toBase()->toSql());
+        $this->assertStringContainsString('"status" in (?, ?, ?, ?)', $query->toBase()->toSql());
         $this->assertSame([
             EventStatus::OPEN->value,
+            EventStatus::MANUAL_SELECTION->value,
             EventStatus::DRAFT->value,
             EventStatus::SIGN_UP_LOCKED->value,
         ], $query->getBindings());

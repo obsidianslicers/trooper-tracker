@@ -35,7 +35,7 @@
                             </x-input-container>
 
                             <x-input-container>
-                                <x-label>Accessible:</x-label>
+                                <x-label>Limited Mobility Accessible:</x-label>
                                 <x-input-yesno :property="'accessible'"
                                                :value="$event->accessible"
                                                x-model="form.accessible" />

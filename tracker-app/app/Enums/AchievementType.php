@@ -108,6 +108,56 @@ enum AchievementType: string
     case TROOPED_501 = 'trooped_501';
 
     /**
+     * Total months in which the trooper has made a donation
+     */
+    case DONATION_MONTHS = 'donation_months';
+
+    /**
+     * Cumulative amount donated (in dollars)
+     */
+    case TOTAL_DONATED = 'total_donated';
+
+    /**
+     * Milestone for 12+ months of donations (1 year)
+     */
+    case SUPPORTER_12_MONTHS = 'supporter_12_months';
+
+    /**
+     * Milestone for 24+ months of donations (2 years)
+     */
+    case SUPPORTER_24_MONTHS = 'supporter_24_months';
+
+    /**
+     * Milestone for 36+ months of donations (3 years)
+     */
+    case SUPPORTER_36_MONTHS = 'supporter_36_months';
+
+    /**
+     * Milestone for 60+ months of donations (5 years)
+     */
+    case SUPPORTER_60_MONTHS = 'supporter_60_months';
+
+    /**
+     * Milestone for $100 cumulative donated
+     */
+    case DONATED_100 = 'donated_100';
+
+    /**
+     * Milestone for $250 cumulative donated
+     */
+    case DONATED_250 = 'donated_250';
+
+    /**
+     * Milestone for $500 cumulative donated
+     */
+    case DONATED_500 = 'donated_500';
+
+    /**
+     * Milestone for $1,000 cumulative donated
+     */
+    case DONATED_1000 = 'donated_1000';
+
+    /**
      * Determine the value type for this achievement.
      *
      * Returns the data type used to store the achievement value:
@@ -126,7 +176,9 @@ enum AchievementType: string
             self::TROOPER_SHIFTS,
             self::VOLUNTEER_HOURS,
             self::DIRECT_FUNDS,
-            self::INDIRECT_FUNDS => 'number',
+            self::INDIRECT_FUNDS,
+            self::DONATION_MONTHS,
+            self::TOTAL_DONATED => 'number',
 
             default => 'bool',
         };
@@ -160,6 +212,18 @@ enum AchievementType: string
             self::TROOPED_400 => 'fa-crown',            // Medal of the Emperor\'s Will
             self::TROOPED_500 => 'fa-trophy',           // Honor of the Galactic Empire
             self::TROOPED_501 => 'fa-brands fa-empire', // Vader\'s Fist
+
+            self::DONATION_MONTHS => 'fa-hand-holding-heart',
+            self::SUPPORTER_12_MONTHS => 'fa-calendar-check',    // 1 Year of Support
+            self::SUPPORTER_24_MONTHS => 'fa-calendar-days',     // 2 Years of Support
+            self::SUPPORTER_36_MONTHS => 'fa-calendar',          // 3 Years of Support
+            self::SUPPORTER_60_MONTHS => 'fa-star-of-life',      // 5 Years of Support
+
+            self::DONATED_100 => 'fa-coins',
+            self::DONATED_250 => 'fa-sack-dollar',
+            self::DONATED_500 => 'fa-vault',
+            self::DONATED_1000 => 'fa-gem',
+
             default => 'fa-circle-question',
         };
     }
@@ -193,6 +257,17 @@ enum AchievementType: string
             self::TROOPED_500 => 'Honor of the Galactic Empire',
             self::TROOPED_501 => 'Vader\'s Fist - Legion of Honor',
 
+            self::DONATION_MONTHS => 'Total Donation Months',
+            self::SUPPORTER_12_MONTHS => '1 Year Supporter',
+            self::SUPPORTER_24_MONTHS => '2 Year Supporter',
+            self::SUPPORTER_36_MONTHS => '3 Year Supporter',
+            self::SUPPORTER_60_MONTHS => '5 Year Supporter',
+
+            self::DONATED_100 => 'Quartermaster\'s Commendation',
+            self::DONATED_250 => 'Supply Corps Citation',
+            self::DONATED_500 => 'Imperial Benefactor Medal',
+            self::DONATED_1000 => 'Grand Patron of the Empire',
+
             default => to_title($this->name)->toString(),
         };
     }
@@ -225,6 +300,17 @@ enum AchievementType: string
             self::TROOPED_400 => '400 Troops - Medal of the Emperor\'s Will',
             self::TROOPED_500 => '500 Troops - Honor of the Galactic Empire',
             self::TROOPED_501 => '501 Troops - Vader\'s Fist - Legion of Honor',
+
+            self::DONATION_MONTHS => 'Total months with an active donation',
+            self::SUPPORTER_12_MONTHS => '12 Months - 1 Year Supporter',
+            self::SUPPORTER_24_MONTHS => '24 Months - 2 Year Supporter',
+            self::SUPPORTER_36_MONTHS => '36 Months - 3 Year Supporter',
+            self::SUPPORTER_60_MONTHS => '60 Months - 5 Year Supporter',
+
+            self::DONATED_100 => '$100 Donated - Quartermaster\'s Commendation',
+            self::DONATED_250 => '$250 Donated - Supply Corps Citation',
+            self::DONATED_500 => '$500 Donated - Imperial Benefactor Medal',
+            self::DONATED_1000 => '$1,000 Donated - Grand Patron of the Empire',
 
             default => to_title($this->name)->toString(),
         };
@@ -269,7 +355,15 @@ enum AchievementType: string
             self::TROOPED_300,
             self::TROOPED_400,
             self::TROOPED_500,
-            self::TROOPED_501 => true,
+            self::TROOPED_501,
+            self::SUPPORTER_12_MONTHS,
+            self::SUPPORTER_24_MONTHS,
+            self::SUPPORTER_36_MONTHS,
+            self::SUPPORTER_60_MONTHS,
+            self::DONATED_100,
+            self::DONATED_250,
+            self::DONATED_500,
+            self::DONATED_1000 => true,
 
             default => false,
         };

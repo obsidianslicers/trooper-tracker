@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Events;
 
 use App\Enums\EventGuestStatus;
+use App\Enums\EventStatus;
 use App\Http\Requests\HtmxValidation;
 use App\Models\EventGuest;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -38,12 +39,24 @@ class GuestUpdateHtmxRequest extends FormRequest
             throw new AuthorizationException('EventGuest not found or unauthorized.');
         }
 
+        $event = $event_guest->event_shift->event;
+
+        if ($event->status === EventStatus::MANUAL_SELECTION)
+        {
+            return $this->user()->can('update', $event);
+        }
+
         if ($event_guest->canUpdateName($event_guest->event_shift, $this->user()))
         {
             return true;
         }
 
         if ($event_guest->canUpdateStatus($event_guest->event_shift, $this->user()))
+        {
+            return true;
+        }
+
+        if ($this->user()->can('update', $event))
         {
             return true;
         }

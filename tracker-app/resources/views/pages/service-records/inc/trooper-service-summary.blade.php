@@ -43,6 +43,24 @@
                                          :prefix="'$'" />
                     </td>
                 </tr>
+                @if(($service_summary['total_donated'] ?? 0) > 0)
+                    <tr class="small">
+                        <td class="text-muted border-0">Total Donated (personal)</td>
+                        <td class="text-end fw-bold border-0">
+                            <x-number-format :value="$service_summary['total_donated']"
+                                             :prefix="'$'"
+                                             :decimals="2" />
+                        </td>
+                    </tr>
+                @endif
+                @if(($service_summary['donation_months'] ?? 0) > 0)
+                    <tr class="small">
+                        <td class="text-muted border-0">Donation Months (personal)</td>
+                        <td class="text-end fw-bold border-0">
+                            {{ $service_summary['donation_months'] }}
+                        </td>
+                    </tr>
+                @endif
             </tbody>
         </table>
     </div>
@@ -59,9 +77,21 @@
                 <span
                       class="badge d-inline-flex align-items-center gap-2 {{ $milestone['type'] == \App\Enums\AchievementType::TROOPED_501 ? 'text-success' : '' }}">
                     <i class="fa-solid fa-fw {{ $milestone['icon'] }}"></i>
-                    {{ $milestone['title'] }}
+                    {{ $milestone['description'] }}
                 </span>
             </li>
         @endforeach
     </ul>
+    @if($is_active_donor ?? false)
+        <div class="card-body text-center pt-3 pb-2">
+            <a href="https://www.fl501st.com/boards/account/upgrades"
+               target="_blank"
+               rel="noopener noreferrer">
+                <img src="{{ config('tracker.donor.image_url') }}"
+                     alt="Active Donor"
+                     class="img-fluid"
+                     style="max-height: 200px;" />
+            </a>
+        </div>
+    @endif
 </div>

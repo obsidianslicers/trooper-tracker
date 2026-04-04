@@ -72,7 +72,7 @@ class GetTrooperServiceRecordQueryHandlerTest extends TestCase
         $this->assertArrayHasKey('service_summary', $result);
         $this->assertArrayHasKey('upcoming_shifts', $result);
         $this->assertArrayHasKey('recent_shifts', $result);
-        $this->assertArrayHasKey('recent_donations', $result);
+        $this->assertArrayHasKey('all_donations', $result);
         $this->assertArrayHasKey('awards', $result);
         $this->assertSame($trooper->id, $result['trooper']->id);
         $this->assertCount(1, $result['trooper_organizations']);
@@ -81,7 +81,7 @@ class GetTrooperServiceRecordQueryHandlerTest extends TestCase
             $result['trooper_organizations']->first()->assignment->id,
         );
         $this->assertCount(1, $result['tagged_uploads']);
-        $this->assertCount(1, $result['recent_donations']);
+        $this->assertCount(1, $result['all_donations']);
         $this->assertCount(1, $result['awards']);
     }
 }

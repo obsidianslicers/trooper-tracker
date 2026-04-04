@@ -1,16 +1,5 @@
 ### CI/CD
 
-stan/pint - WIP
-- app/helpers.php
-- app/Bus
-- # app/Http/Controllers
-- # app/Http/Middleware
-- # app/Http/Requests
-- app/Jobs
-- app/Mail
-- app/Policies
-- app/Rules
-
 ### REFACTOR CONVENTION
 - template includes
   - path.inc.{page-name}-purpose.blade.php
@@ -29,7 +18,6 @@ stan/pint - WIP
 
 ### WORK IN PROGRESS
 - Add better controls for adding/removing troopers on backend CS panel for events
-- Manual selection event, similar to TT 1.0
 
 ## REPORTS
 - Reports
@@ -59,14 +47,13 @@ stan/pint - WIP
 ### COSTUMES
 - Update/Delete Costumes from UI
 
+## PHOTOS
+- Ensure low/high quality photos loaded. Tool to view them better
+
 ## INTEGRATIONS
 - Reply on event (Xenforo integration)
 - todo:   club/organization identifiers
   - auto verify club identifiers on registration
-
-## MISC
-- Command Staff notifications (ie Bob or Jane's nth Troop), OR add to system notification for all, OR post to FB??
-
 
 ## EMAIL
 - change email workflow? - for now lock it down

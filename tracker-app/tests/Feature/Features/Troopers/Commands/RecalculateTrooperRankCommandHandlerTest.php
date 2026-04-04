@@ -82,7 +82,7 @@ class RecalculateTrooperRankCommandHandlerTest extends TestCase
             TrooperAchievement::TYPE => AchievementType::TROOPER_SHIFTS->value,
             TrooperAchievement::VALUE => 2,
         ]);
-        $this->assertDatabaseCount('tt_trooper_achievements', 5);
+        $this->assertDatabaseCount('tt_trooper_achievements', 7);
     }
 
     public function test_invoke_only_counts_attended_events(): void

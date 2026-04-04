@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Events;
 
+use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Http\Requests\HtmxValidation;
 use App\Models\Costume;
@@ -40,12 +41,24 @@ class SignupUpdateHtmxRequest extends FormRequest
             throw new AuthorizationException('EventTrooper not found or unauthorized.');
         }
 
+        $event = $event_trooper->event_shift->event;
+
+        if ($event->status === EventStatus::MANUAL_SELECTION)
+        {
+            return $this->user()->can('update', $event);
+        }
+
         if ($event_trooper->canUpdateCostume($event_trooper->event_shift, $this->user()))
         {
             return true;
         }
 
         if ($event_trooper->canUpdateStatus($event_trooper->event_shift, $this->user()))
+        {
+            return true;
+        }
+
+        if ($this->user()->can('update', $event))
         {
             return true;
         }

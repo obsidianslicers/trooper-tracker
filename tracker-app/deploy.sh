@@ -1,39 +1,49 @@
 #!/bin/bash
+set -euo pipefail
 
-# 1. Set Path for Node.js (Ensures npm/node work in this session)
-export PATH=/opt/alt/alt-nodejs24/root/usr/bin:$PATH
+APP_DIR="/home/bitnami/trooper-tracker/tracker-app"
+PHP="/opt/bitnami/php/bin/php"
+COMPOSER="/opt/bitnami/php/bin/composer"
+NPM="/usr/bin/npm"
+
+cd "$APP_DIR"
+
+echo "Current dir: $(pwd)"
+echo "PHP: $PHP"
+echo "Composer: $COMPOSER"
+echo "NPM: $NPM"
 
 echo "🚀 Starting Deployment..."
 
-# 2. Build Assets
+echo "📥 Syncing code with GitHub..."
+git fetch origin
+git reset --hard origin/main
+
+echo "📦 Installing Composer dependencies..."
+$PHP $COMPOSER install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+
 echo "📦 Building Laravel Assets..."
-npm install
-npm run build
+$NPM install
+$NPM run build
 
-# 3. Enter Maintenance Mode
 echo "🚧 Taking application offline..."
-php artisan down --refresh=15
+$PHP artisan down --refresh=15 || true
 
-# 4. Clear and Reset Caches
-echo "🧹 Clearing and re-caching..."
-php artisan cache:clear
-php artisan route:clear
-php artisan config:clear
-php artisan view:clear
+echo "🧹 Clearing caches..."
+$PHP artisan cache:clear
+$PHP artisan route:clear
+$PHP artisan config:clear
+$PHP artisan view:clear
 
-# 5. Run Migrations
-echo "🗄️  Running database migrations..."
-# --force is required to run migrations in production mode
-php artisan migrate --force
+echo "🗄️ Running database migrations..."
+$PHP artisan migrate --force
 
-# 6. Re-cache for Performance
-echo "⚡ Re-optimizing caches..."
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+echo "⚡ Optimizing..."
+$PHP artisan config:cache
+$PHP artisan route:cache
+$PHP artisan view:cache
 
-# 7. Bring Application Online
 echo "✅ Bringing application online..."
-php artisan up
+$PHP artisan up
 
 echo "🌟 Deployment Complete!"

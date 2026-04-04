@@ -71,7 +71,7 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
             'service_summary' => $this->getServiceSummary($trooper),
             'upcoming_shifts' => $this->getUpcomingEventShifts($trooper),
             'recent_shifts' => $this->getRecentEventShifts($trooper),
-            'recent_donations' => $this->getRecentDonations($trooper),
+            'all_donations' => $this->getAllDonations($trooper),
             'awards' => $this->getAwards($trooper),
         ];
     }
@@ -118,6 +118,7 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
                 return [
                     'type' => $type,
                     'title' => $type->toTitle(),
+                    'description' => $type->toDescription(),
                     'icon' => $type->toIcon(),
                     'is_earned' => $value !== null && $value > 0,
                     // If your system tracks the date, you'd pull it here;
@@ -138,6 +139,8 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
             'direct_funds' => $trooper->getAchievementValue(AchievementType::DIRECT_FUNDS),
             'indirect_funds' => $trooper->getAchievementValue(AchievementType::INDIRECT_FUNDS),
             'milestones' => $milestones,
+            'donation_months' => $trooper->getAchievementValue(AchievementType::DONATION_MONTHS),
+            'total_donated' => $trooper->getAchievementValue(AchievementType::TOTAL_DONATED) ?? $this->computeTotalDonated($trooper),
         ];
     }
 
@@ -169,11 +172,21 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
         return $shifts;
     }
 
-    private function getRecentDonations(Trooper $trooper): Collection
+    private function getAllDonations(Trooper $trooper): Collection
     {
         return TrooperDonation::byTrooper($trooper->id)
-            ->where(TrooperDonation::CREATED_AT, '>', now()->subYear())
+            ->orderByDesc(TrooperDonation::CREATED_AT)
             ->get();
+    }
+
+    /**
+     * Fallback for troopers whose TOTAL_DONATED achievement has not yet been
+     * computed by the rank command. Can be removed once all troopers have been
+     * processed by `tracker:calculate-trooper-achievements`.
+     */
+    private function computeTotalDonated(Trooper $trooper): float
+    {
+        return (float) TrooperDonation::byTrooper($trooper->id)->sum(TrooperDonation::AMOUNT);
     }
 
     private function getAwards(Trooper $trooper): Collection

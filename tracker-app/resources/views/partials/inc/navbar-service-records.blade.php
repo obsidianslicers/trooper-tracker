@@ -8,6 +8,10 @@
         </a>
 
         <ul class="dropdown-menu">
+            <x-nav-link :url="route('service-records.trooper', ['trooper' => auth()->user()->id])"
+                        :active="request()->routeIs('service-records.trooper')">
+                My Service
+            </x-nav-link>
             <x-nav-link :url="route('service-records.leaderboard')"
                         :active="request()->routeIs('service-records.leaderboard')">
                 Leaderboard

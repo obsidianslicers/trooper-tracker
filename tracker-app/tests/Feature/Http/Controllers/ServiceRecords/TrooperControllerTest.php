@@ -174,6 +174,11 @@ class TrooperControllerTest extends TestCase
                         ],
                     ],
                 ]);
+
+            $mock->shouldReceive('get_user_upgrade_history')
+                ->once()
+                ->with(15802)
+                ->andReturn([]);
         });
 
         $response = $this->actingAs($auth_trooper)
@@ -210,7 +215,7 @@ class TrooperControllerTest extends TestCase
             ],
             'upcoming_shifts' => collect(),
             'recent_shifts' => collect(),
-            'recent_donations' => collect(),
+            'all_donations' => collect(),
             'awards' => collect(),
         ];
     }

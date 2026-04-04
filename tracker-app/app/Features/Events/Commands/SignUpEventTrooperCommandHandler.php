@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Features\Events\Commands;
 
 use App\Bus\Contracts\CommandHandlerInterface;
+use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Mail\Events\TrooperSignUp;
 use App\Models\EventTrooper;
@@ -45,14 +46,19 @@ readonly class SignUpEventTrooperCommandHandler implements CommandHandlerInterfa
         $event_trooper->added_by_trooper_id = $message->added_by_trooper->id == $message->trooper->id ? null : $message->added_by_trooper->id;
         $status = EventTrooperStatus::GOING;
 
-        if ($event_trooper->is_handler)
+        if ($message->event_shift->event->status === EventStatus::MANUAL_SELECTION)
+        {
+            $status = EventTrooperStatus::STAND_BY;
+        }
+
+        if ($status !== EventTrooperStatus::STAND_BY && $event_trooper->is_handler)
         {
             if ($message->event_shift->handlersMaxed())
             {
                 $status = EventTrooperStatus::STAND_BY;
             }
         }
-        else
+        elseif ($status !== EventTrooperStatus::STAND_BY)
         {
             if ($message->event_shift->troopersMaxed())
             {

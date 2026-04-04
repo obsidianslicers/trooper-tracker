@@ -161,7 +161,7 @@ class Event extends BaseEvent
      */
     public function getIsOpenAttribute(): bool
     {
-        return $this->status === EventStatus::OPEN;
+        return in_array($this->status, [EventStatus::OPEN, EventStatus::MANUAL_SELECTION], true);
     }
 
     /**
@@ -195,6 +195,7 @@ class Event extends BaseEvent
         {
             case EventStatus::DRAFT:
             case EventStatus::OPEN:
+            case EventStatus::MANUAL_SELECTION:
             case EventStatus::SIGN_UP_LOCKED:
                 return true;
             default:

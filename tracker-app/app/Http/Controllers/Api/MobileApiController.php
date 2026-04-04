@@ -59,6 +59,7 @@ class MobileApiController
      */
     private const OPEN_EVENT_STATUSES = [
         EventStatus::OPEN,
+        EventStatus::MANUAL_SELECTION,
         EventStatus::SIGN_UP_LOCKED,
     ];
 
@@ -453,7 +454,7 @@ class MobileApiController
 
     /**
      * action=get_roster_for_event
-     * Return all sign-ups (event_troopers) for an event with costume and trooper info.
+     * Return all sign-ups for an event (troopers + guests) in a legacy-compatible shape.
      */
     private function getRosterForEvent(Request $request): JsonResponse
     {
@@ -490,7 +491,43 @@ class MobileApiController
             ];
         });
 
-        return response()->json($roster);
+        $event_guests = EventGuest::whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $event_id))
+            ->with('event_shift')
+            ->orderBy(EventGuest::SIGNED_UP_AT)
+            ->get();
+
+        $guest_roster = $event_guests->map(fn ($guest) => [
+            'id' => $guest->id,
+            'trooperid' => null,
+            'troopid' => $guest->event_shift->event_id,
+            'shift_id' => $guest->event_shift_id,
+            'shift_display' => $guest->event_shift->time_display,
+            'status' => $guest->status->value,
+            'status_formatted' => match ($guest->status)
+            {
+                EventGuestStatus::STAND_BY => 'Stand By',
+                EventGuestStatus::GOING => 'Going',
+                EventGuestStatus::TENTATIVE => 'Tentative',
+                EventGuestStatus::CANCELLED => 'Cancelled',
+            },
+            'costume' => null,
+            'costume_name' => null,
+            'backup_costume' => null,
+            'backup_costume_name' => null,
+            'is_handler' => false,
+            'trooper_name' => $guest->name,
+            'tkid' => null,
+            'tkid_formatted' => 'Guest',
+            'squad' => null,
+            'signuptime' => $guest->signed_up_at?->format('Y-m-d H:i:s'),
+        ]);
+
+        $combined_roster = $roster
+            ->concat($guest_roster)
+            ->sortBy('signuptime')
+            ->values();
+
+        return response()->json($combined_roster);
     }
 
     /**
@@ -776,6 +813,14 @@ class MobileApiController
             return response()->json(['error' => 'Shift not found.'], 404);
         }
 
+        if ($shift->event->status === EventStatus::MANUAL_SELECTION)
+        {
+            return response()->json([
+                'success' => false,
+                'message' => 'Manual Selection events do not allow cancellations from mobile.',
+            ], 403);
+        }
+
         if ($friend_trooper_id > 0)
         {
             // Cancelling a friend — verify the requester added them
@@ -857,6 +902,20 @@ class MobileApiController
             return response()->json(['error' => 'Trooper not found.'], 404);
         }
 
+        $event = Event::find($event_id);
+        if (!$event)
+        {
+            return response()->json(['error' => 'Event not found.'], 404);
+        }
+
+        if ($event->status === EventStatus::MANUAL_SELECTION)
+        {
+            return response()->json([
+                'success' => false,
+                'message' => 'Manual Selection events do not allow cancellations from mobile.',
+            ], 403);
+        }
+
         EventTrooper::where(EventTrooper::TROOPER_ID, $trooper->id)
             ->whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $event_id))
             ->update([EventTrooper::STATUS => EventTrooperStatus::CANCELLED->value]);
@@ -913,6 +972,10 @@ class MobileApiController
 
         $existing = $this->findExistingSignUp($trooper->id, $event_id, $shift_id);
 
+        $effective_status = $event->status === EventStatus::MANUAL_SELECTION
+            ? EventTrooperStatus::STAND_BY
+            : $requested_status;
+
         if ($existing)
         {
             // Re-activating a cancelled friend signup still counts against the limit.
@@ -926,7 +989,7 @@ class MobileApiController
             }
 
             $existing->update([
-                EventTrooper::STATUS => $requested_status->value,
+                EventTrooper::STATUS => $effective_status->value,
                 EventTrooper::COSTUME_ID => $costume_id ?: null,
                 EventTrooper::BACKUP_COSTUME_ID => $backup_costume_id ?: null,
             ]);
@@ -939,7 +1002,7 @@ class MobileApiController
         }
 
         $is_handler = $this->isHandlerCostume($costume_id);
-        $status = $this->resolveCapacityStatus($event, $event_id, $is_handler, $requested_status);
+        $status = $this->resolveCapacityStatus($event, $event_id, $is_handler, $effective_status);
         $shift = $this->resolveShiftForSignUp($event_id, $shift_id);
 
         if (!$shift)
@@ -1117,7 +1180,9 @@ class MobileApiController
             [EventGuest::EVENT_SHIFT_ID => $shift->id, EventGuest::NAME => $name],
             [
                 EventGuest::ADDED_BY_TROOPER_ID => $trooper->id,
-                EventGuest::STATUS => EventGuestStatus::GOING->value,
+                EventGuest::STATUS => $shift->event->status === EventStatus::MANUAL_SELECTION
+                    ? EventGuestStatus::STAND_BY->value
+                    : EventGuestStatus::GOING->value,
                 EventGuest::SIGNED_UP_AT => now(),
             ]
         );
@@ -1142,11 +1207,20 @@ class MobileApiController
 
         $guest = EventGuest::where(EventGuest::ID, $guest_id)
             ->where(EventGuest::ADDED_BY_TROOPER_ID, $trooper->id)
+            ->with('event_shift.event')
             ->first();
 
         if (!$guest)
         {
             return response()->json(['success' => false, 'message' => 'Guest not found or not authorized.']);
+        }
+
+        if ($guest->event_shift->event->status === EventStatus::MANUAL_SELECTION)
+        {
+            return response()->json([
+                'success' => false,
+                'message' => 'Manual Selection events do not allow cancellations from mobile.',
+            ], 403);
         }
 
         $guest->update([EventGuest::STATUS => EventGuestStatus::CANCELLED->value]);

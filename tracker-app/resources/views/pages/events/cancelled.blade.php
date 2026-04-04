@@ -86,25 +86,31 @@
                     </x-table-empty>
                 @endforelse
             </tbody>
-            <tfoot>
-                <tr>
-                    <th colspan="2">
-                        <x-number-format :value="$events->count()" />
-                        <span class="text-muted">
-                            Events in Total
-                        </span>
-                    </th>
-                    <th class="text-end">
-                        <x-number-format :value="$events->sum('event_shifts_count')" />
-                    </th>
-                    <th class="text-end">
-                        <x-number-format :value="$events->sum('charity_direct_funds')" />
-                    </th>
-                    <th class="text-end">
-                        <x-number-format :value="$events->sum('charity_indirect_funds')" />
-                    </th>
-                </tr>
-            </tfoot>
+            @if($events->isNotEmpty())
+                <tfoot>
+                    <tr>
+                        <th colspan="2">
+                            <x-number-format :value="$events->count()" />
+                            <span class="text-muted">
+                                Events in Total
+                            </span>
+                            <br />
+                            <span class="small text-muted">
+                                * Totals only all include events that have been closed within the lookback period (not filtered).
+                            </span>
+                        </th>
+                        <th class="text-end">
+                            <x-number-format :value="$events->sum('event_shifts_count')" />
+                        </th>
+                        <th class="text-end">
+                            <x-number-format :value="$events->sum('charity_direct_funds')" />
+                        </th>
+                        <th class="text-end">
+                            <x-number-format :value="$events->sum('charity_indirect_funds')" />
+                        </th>
+                    </tr>
+                </tfoot>
+            @endif
 
         </x-table>
 
