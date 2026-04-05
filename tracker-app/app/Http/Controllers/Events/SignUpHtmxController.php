@@ -63,7 +63,7 @@ class SignUpHtmxController extends MagicBusController
 
         $event = $event_shift->event;
 
-        $can_moderate = $trooper->isModeratorForOrganization($event->organization);
+        $can_moderate = $auth_trooper->isModeratorForOrganization($event->organization);
 
         $count_of_shifts = $event->event_shifts()->count();
 
