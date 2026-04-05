@@ -55,6 +55,5 @@ readonly class GetTroopersForPickerQuery
         $this->moderated_only = filter_var($data['moderated_only'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $this->organization_id = empty($data['organization_id']) ? null : intval($data['organization_id']);
         $this->picker_mode = isset($data['picker_mode']) ? TrooperPickerMode::from($data['picker_mode']) : null;
-
     }
 }

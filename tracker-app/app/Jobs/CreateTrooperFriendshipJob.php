@@ -13,9 +13,7 @@ class CreateTrooperFriendshipJob implements ShouldBeUnique, ShouldQueue
 {
     use Queueable;
 
-    public function __construct(public readonly int $trooper_id, public readonly int $friend_id)
-    {
-    }
+    public function __construct(public readonly int $trooper_id, public readonly int $friend_id) {}
 
     public function handle(): void
     {
