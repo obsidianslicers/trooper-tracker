@@ -126,6 +126,13 @@ class TrooperFactory extends BaseTrooperFactory
         ]);
     }
 
+    public function withGuardian(Trooper $guardian): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Trooper::GUARDIAN_ID => $guardian->{Trooper::ID},
+        ]);
+    }
+
     public function asActive(): static
     {
         return $this->state(fn(array $attributes): array => [

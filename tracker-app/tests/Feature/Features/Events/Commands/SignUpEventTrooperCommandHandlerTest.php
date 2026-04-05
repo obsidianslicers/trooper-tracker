@@ -7,11 +7,13 @@ namespace Tests\Feature\Features\Events\Commands;
 use App\Enums\EventTrooperStatus;
 use App\Features\Events\Commands\SignUpEventTrooperCommand;
 use App\Features\Events\Commands\SignUpEventTrooperCommandHandler;
+use App\Jobs\CreateTrooperFriendshipJob;
 use App\Mail\Events\TrooperSignUp;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
@@ -48,6 +50,7 @@ class SignUpEventTrooperCommandHandlerTest extends TestCase
 
     public function test_invoke_sets_added_by_trooper_id_when_different_from_trooper(): void
     {
+        Bus::fake();
         Mail::fake();
 
         $event_shift = EventShift::factory()->create();
@@ -67,10 +70,17 @@ class SignUpEventTrooperCommandHandlerTest extends TestCase
             EventTrooper::TROOPER_ID => $trooper->id,
             EventTrooper::ADDED_BY_TROOPER_ID => $added_by->id,
         ]);
+
+        Bus::assertDispatched(CreateTrooperFriendshipJob::class, function (CreateTrooperFriendshipJob $job) use ($trooper, $added_by): bool
+        {
+            return $job->trooper_id === $added_by->{Trooper::ID}
+                && $job->friend_id === $trooper->{Trooper::ID};
+        });
     }
 
     public function test_invoke_sets_added_by_trooper_id_null_when_same_as_trooper(): void
     {
+        Bus::fake();
         Mail::fake();
 
         $event_shift = EventShift::factory()->create();
@@ -89,6 +99,8 @@ class SignUpEventTrooperCommandHandlerTest extends TestCase
             EventTrooper::TROOPER_ID => $trooper->id,
             EventTrooper::ADDED_BY_TROOPER_ID => null,
         ]);
+
+        Bus::assertNotDispatched(CreateTrooperFriendshipJob::class);
     }
 
     public function test_invoke_queues_sign_up_email(): void
