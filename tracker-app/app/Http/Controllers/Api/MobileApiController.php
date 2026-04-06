@@ -1001,6 +1001,16 @@ class MobileApiController
             return response()->json(['success' => false, 'success_message' => 'This event was LOCKED by Command Staff.']);
         }
 
+        if ($event->status === EventStatus::DRAFT)
+        {
+            return response()->json(['success' => false, 'success_message' => 'This event is not yet open for sign-ups.']);
+        }
+
+        if ($event->status === EventStatus::CLOSED)
+        {
+            return response()->json(['success' => false, 'success_message' => 'This event is closed.']);
+        }
+
         $existing = $this->findExistingSignUp($trooper->id, $event_id, $shift_id);
 
         $effective_status = $event->status === EventStatus::MANUAL_SELECTION
