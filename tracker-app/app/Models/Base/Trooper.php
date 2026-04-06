@@ -24,6 +24,7 @@ use App\Models\TrooperApiCode;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperCostume;
 use App\Models\TrooperDonation;
+use App\Models\TrooperFriend;
 use App\Models\TrooperOrganization;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
@@ -73,6 +74,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Collection|TrooperAssignment[] $trooper_assignments
  * @property Collection|TrooperCostume[] $trooper_costumes
  * @property Collection|TrooperDonation[] $trooper_donations
+ * @property Collection|TrooperFriend[] $trooper_friends
  * @property Collection|Organization[] $organizations
  * @property Collection|\App\Models\Trooper[] $troopers
  *
@@ -221,6 +223,11 @@ class Trooper extends Model
     public function trooper_donations(): HasMany
     {
         return $this->hasMany(TrooperDonation::class);
+    }
+
+    public function trooper_friends(): HasMany
+    {
+        return $this->hasMany(TrooperFriend::class);
     }
 
     public function organizations(): BelongsToMany

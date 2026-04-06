@@ -38,6 +38,9 @@ $PHP artisan view:clear
 echo "🗄️ Running database migrations..."
 $PHP artisan migrate --force
 
+echo "💰 Recalculating trooper achievements and donation totals..."
+$PHP artisan tracker:calculate-trooper-achievements
+
 echo "⚡ Optimizing..."
 $PHP artisan config:cache
 $PHP artisan route:cache

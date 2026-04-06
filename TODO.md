@@ -18,7 +18,6 @@
 
 ### WORK IN PROGRESS
 - Add better controls for adding/removing troopers on backend CS panel for events
-- Download event roster to CSV (used my CS at troopers to help manage an event in person with physical paper)
 
 ## REPORTS
 - Reports

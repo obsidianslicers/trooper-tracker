@@ -87,7 +87,7 @@ class EventDisplayController extends MagicBusController
         }
 
         // XenForo base URL, if configured
-        $xenforoBaseUrl = rtrim(config('services.xenforo.base_url', env('XENFORO_BASE_URL', '')), '/');
+        $xenforoBaseUrl = rtrim((string) config('services.xenforo.base_url', ''), '/');
 
         // XenForo thread posts (optional)
         $xenforoThreadPosts = [];

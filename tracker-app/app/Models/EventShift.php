@@ -291,22 +291,7 @@ class EventShift extends BaseEventShift
         {
             if ($this->isGoing($trooper))
             {
-                $friends_allowed = $this->event->friends_allowed;
-
-                if ($friends_allowed === null)
-                {
-                    return true;
-                }
-
-                $friends = $this->event_troopers()
-                    ->where(EventTrooper::ADDED_BY_TROOPER_ID, $trooper->id)
-                    ->where(EventTrooper::STATUS, '!=', EventTrooperStatus::CANCELLED)
-                    ->count();
-
-                if ($friends < $friends_allowed)
-                {
-                    return true;
-                }
+                return $this->hasRemainingFriendSlots($trooper);
             }
         }
 
@@ -330,6 +315,11 @@ class EventShift extends BaseEventShift
         if ($friends_allowed === null)
         {
             return true;
+        }
+
+        if ($friends_allowed === 0)
+        {
+            return false;
         }
 
         $friends = $this->event_troopers()
@@ -359,6 +349,11 @@ class EventShift extends BaseEventShift
             return true;
         }
 
+        if ($guests_allowed === 0)
+        {
+            return false;
+        }
+
         $guests = $this->event_guests()
             ->where(EventGuest::ADDED_BY_TROOPER_ID, $trooper->id)
             ->where(EventGuest::STATUS, '!=', EventGuestStatus::CANCELLED)
@@ -381,22 +376,7 @@ class EventShift extends BaseEventShift
         {
             if ($this->isGoing($trooper))
             {
-                $guests_allowed = $this->event->guests_allowed;
-
-                if ($guests_allowed === null)
-                {
-                    return true;
-                }
-
-                $guests = $this->event_guests()
-                    ->where(EventGuest::ADDED_BY_TROOPER_ID, $trooper->id)
-                    ->where(EventGuest::STATUS, '!=', EventGuestStatus::CANCELLED)
-                    ->count();
-
-                if ($guests < $guests_allowed)
-                {
-                    return true;
-                }
+                return $this->hasRemainingGuestSlots($trooper);
             }
         }
 

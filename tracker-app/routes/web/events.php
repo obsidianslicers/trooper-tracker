@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Events\CalendarController;
 use App\Http\Controllers\Events\CancelledController;
 use App\Http\Controllers\Events\ClosedController;
+use App\Http\Controllers\Events\DownloadRosterCsvController;
 use App\Http\Controllers\Events\EventDisplayController;
 use App\Http\Controllers\Events\GuestSignUpHtmxController;
 use App\Http\Controllers\Events\ListController;
@@ -29,6 +30,8 @@ Route::prefix('events')
         Route::get('/closed', ClosedController::class)->name('closed');
         Route::get('/cancelled', CancelledController::class)->name('cancelled');
         Route::get('/details/{event}', EventDisplayController::class)->name('display');
+        Route::get('/details/{event}/roster-csv', [DownloadRosterCsvController::class, 'allShifts'])->name('download-roster-csv');
+        Route::get('/details/{event}/shifts/{event_shift}/roster-csv', [DownloadRosterCsvController::class, 'singleShift'])->name('download-shift-roster-csv');
         Route::post('/upload/{event}', UploadImageController::class)->name('upload-image');
         Route::post('/share-roster/{event}', ShareRosterHtmxController::class)->name('share-roster-htmx');
         Route::post('/signup/{event_shift}/trooper', SignUpHtmxController::class)->name('signup-htmx');

@@ -21,12 +21,9 @@ class XenforoService
 
     public function __construct()
     {
-        $this->base_url = rtrim(
-            (string) config('services.xenforo.base_url', config('xenforo.base_url', env('XENFORO_BASE_URL', ''))),
-            '/'
-        );
-        $this->api_key = config('services.xenforo.api_key', config('xenforo.api_key', env('XENFORO_API_KEY')));
-        $this->api_user = config('services.xenforo.api_user', config('xenforo.api_user', env('XENFORO_API_USER')));
+        $this->base_url = rtrim((string) config('services.xenforo.base_url', ''), '/');
+        $this->api_key = config('services.xenforo.api_key');
+        $this->api_user = config('services.xenforo.api_user');
     }
 
     private function buildApiHeaders(?int $user_id = null): array

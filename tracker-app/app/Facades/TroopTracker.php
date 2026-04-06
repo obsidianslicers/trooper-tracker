@@ -54,8 +54,8 @@ class TroopTracker
      */
     public function isXenforoIntegrationConfigured(): bool
     {
-        $base_url = (string) config('services.xenforo.base_url', config('xenforo.base_url', env('XENFORO_BASE_URL', '')));
-        $api_key = config('services.xenforo.api_key', config('xenforo.api_key', env('XENFORO_API_KEY')));
+        $base_url = (string) config('services.xenforo.base_url', '');
+        $api_key = config('services.xenforo.api_key');
 
         return ! empty($base_url) && ! empty($api_key);
     }

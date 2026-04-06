@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Features\Troopers\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
+use App\Enums\TrooperPickerMode;
 use App\Models\Trooper;
+use App\Models\TrooperFriend;
 use Illuminate\Support\Collection;
 
 /**
@@ -59,10 +61,28 @@ readonly class GetTroopersForPickerQueryHandler implements QueryHandlerInterface
             $query = $query->moderatedBy($message->trooper);
         }
 
+        $execute_query = false;
+
+        if ($message->picker_mode == TrooperPickerMode::FRIENDS)
+        {
+            $q = TrooperFriend::query()
+                ->select(TrooperFriend::FRIEND_ID)
+                ->where(TrooperFriend::TROOPER_ID, $message->trooper->id);
+
+            $query = $query->whereIn(Trooper::ID, $q);
+
+            $execute_query = true;
+        }
+
         if ($message->filter->hasFilter())
         {
             $query = $query->filterWith($message->filter);
 
+            $execute_query = true;
+        }
+
+        if ($execute_query)
+        {
             return $query->get();
         }
 
