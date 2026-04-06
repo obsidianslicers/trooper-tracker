@@ -8,8 +8,8 @@ use App\Enums\EventGuestStatus;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Enums\MembershipStatus;
-use App\Enums\OrganizationType;
 use App\Enums\OauthProvider;
+use App\Enums\OrganizationType;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventGuest;
@@ -595,7 +595,7 @@ class MobileApiController
 
         return response()->json([
             'organizations' => $units->map(fn ($org) => [
-                'id'   => $org->id,
+                'id' => $org->id,
                 'name' => $org->name,
             ])->values(),
         ]);
@@ -1158,7 +1158,7 @@ class MobileApiController
             $thumbnail = clone $canvas;
             $thumbnail->scaleDown(128, 128);
 
-            $thumbnail_path = "uploads/events/{$event->id}/thumbnails/" . pathinfo($file->hashName(), PATHINFO_FILENAME) . '.png';
+            $thumbnail_path = "uploads/events/{$event->id}/thumbnails/".pathinfo($file->hashName(), PATHINFO_FILENAME).'.png';
 
             Storage::disk('public')->put($thumbnail_path, $thumbnail->encodeByExtension('png'));
         }
@@ -1170,7 +1170,7 @@ class MobileApiController
             }
             Log::error('Mobile image upload failed', ['error' => $e->getMessage(), 'event_id' => $event_id]);
 
-            return response()->json(['success' => false, 'message' => 'Image processing failed: ' . $e->getMessage()], 500);
+            return response()->json(['success' => false, 'message' => 'Image processing failed: '.$e->getMessage()], 500);
         }
 
         $event_upload = new EventUpload;

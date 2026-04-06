@@ -37,6 +37,7 @@ class GuestSignUpHtmxController extends MagicBusController
             $count_of_shifts = $event->event_shifts()->count();
             $data = compact('event', 'event_shift', 'can_moderate', 'count_of_shifts');
             $data['open'] = true;
+
             return response()->view('pages.events.inc.shift-container', $data);
         }
 
