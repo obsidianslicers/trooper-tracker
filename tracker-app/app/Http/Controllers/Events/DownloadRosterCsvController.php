@@ -48,14 +48,14 @@ class DownloadRosterCsvController extends MagicBusController
             'event_shifts.event_troopers' => function ($query) {
                 $query->orderBy('signed_up_at', 'asc');
             },
-            'event_shifts.event_troopers.trooper:id,display_name',
-            'event_shifts.event_troopers.added_by_trooper:id,display_name',
+            'event_shifts.event_troopers.trooper:id,display_name,legal_name',
+            'event_shifts.event_troopers.added_by_trooper:id,display_name,legal_name',
             'event_shifts.event_troopers.costume:id,name',
             'event_shifts.event_troopers.backup_costume:id,name',
             'event_shifts.event_guests' => function ($query) {
                 $query->orderBy('name', 'asc');
             },
-            'event_shifts.event_guests.added_by_trooper:id,display_name',
+            'event_shifts.event_guests.added_by_trooper:id,display_name,legal_name',
         ];
     }
 
@@ -101,12 +101,12 @@ class DownloadRosterCsvController extends MagicBusController
                         $eventDate,
                         $eventTime,
                         $eventShift->short_time_display,
-                        $eventTrooper->trooper?->display_name ?? '',
+                        $eventTrooper->trooper?->legal_name ?? '',
                         '',
                         $eventTrooper->costume?->name ?? '',
                         $eventTrooper->backup_costume?->name ?? '',
                         to_title($eventTrooper->status->name),
-                        $eventTrooper->added_by_trooper?->display_name ?? '',
+                        $eventTrooper->added_by_trooper?->legal_name ?? '',
                     ]);
                 }
 
@@ -121,7 +121,7 @@ class DownloadRosterCsvController extends MagicBusController
                         '',
                         '',
                         to_title($eventGuest->status->name),
-                        $eventGuest->added_by_trooper?->display_name ?? '',
+                        $eventGuest->added_by_trooper?->legal_name ?? '',
                     ]);
                 }
             }

@@ -19,6 +19,20 @@
                         {{ $event->name }}
                     </h4>
                 </span>
+                @can('update', $event)
+                    <div class="btn-group mb-2 ms-auto">
+                        <a href="{{ route('admin.events.update', compact('event')) }}"
+                           class="btn border-white">
+                            <i class="fa fa-fw fa-edit"></i>
+                            Edit
+                        </a>
+                        <a href="{{ route('admin.events.copy', compact('event')) }}"
+                           class="btn border-white">
+                            <i class="fa fa-fw fa-copy"></i>
+                            Copy
+                        </a>
+                    </div>
+                @endcan
             </div>
             <div class="card-body">
                 <div class="row mb-2 border-bottom">
@@ -85,21 +99,7 @@
                                 @endif
 
                                 {!! Share::page(route('shares.event', compact('event')), $event->name)->facebook()->twitter() !!}
-                                @can('update', $event)
-                                    <div class="btn-group">
-                                        <a href="{{ route('admin.events.update', compact('event')) }}"
-                                           class="btn btn-outline-danger">
-                                            <i class="fa fa-fw fa-edit"></i>
-                                        </a>
-                                        <a href="{{ route('admin.events.copy', compact('event')) }}"
-                                           class="btn btn-outline-danger">
-                                            <i class="fa fa-fw fa-copy"></i>
-                                        </a>
-                                    </div>
-                                @endcan
                             </div>
-                        </div>
-                        <div class="d-flex justify-content-end align-items-center gap-2">
                         </div>
                     </div>
                 </div>
