@@ -11,7 +11,6 @@ use App\Models\Event;
 use App\Services\Forums\XenforoService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
-use Spatie\CalendarLinks\Link;
 
 /**
  * Displays the event sign-up page with all shifts and current trooper assignments.
