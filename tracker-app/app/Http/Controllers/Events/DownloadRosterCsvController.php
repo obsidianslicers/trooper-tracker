@@ -34,7 +34,7 @@ class DownloadRosterCsvController extends MagicBusController
         $eventShift = $event->event_shifts->firstWhere('id', $event_shift->id);
         abort_unless($eventShift !== null, 404);
 
-        $filename = $this->buildFilename($event, 'shift-'.$eventShift->id);
+        $filename = $this->buildFilename($event, 'shift-' . $eventShift->id);
 
         return $this->streamCsv($event, collect([$eventShift]), $filename);
     }
@@ -42,26 +42,30 @@ class DownloadRosterCsvController extends MagicBusController
     private function relations(): array
     {
         return [
-            'event_shifts' => function ($query) {
+            'event_shifts' => function ($query)
+            {
                 $query->orderBy(EventShift::SHIFT_STARTS_AT, 'asc');
             },
-            'event_shifts.event_troopers' => function ($query) {
+            'event_shifts.event_troopers' => function ($query)
+            {
                 $query->orderBy('signed_up_at', 'asc');
             },
-            'event_shifts.event_troopers.trooper:id,display_name',
-            'event_shifts.event_troopers.added_by_trooper:id,display_name',
+            'event_shifts.event_troopers.trooper:id,display_name,legal_name',
+            'event_shifts.event_troopers.added_by_trooper:id,display_name,legal_name',
             'event_shifts.event_troopers.costume:id,name',
             'event_shifts.event_troopers.backup_costume:id,name',
-            'event_shifts.event_guests' => function ($query) {
+            'event_shifts.event_guests' => function ($query)
+            {
                 $query->orderBy('name', 'asc');
             },
-            'event_shifts.event_guests.added_by_trooper:id,display_name',
+            'event_shifts.event_guests.added_by_trooper:id,display_name,legal_name',
         ];
     }
 
     private function streamCsv(Event $event, $eventShifts, string $filename): StreamedResponse
     {
-        return response()->streamDownload(function () use ($event, $eventShifts) {
+        return response()->streamDownload(function () use ($event, $eventShifts)
+        {
             $handle = fopen('php://output', 'w');
 
             $columnCount = 9;
@@ -86,7 +90,7 @@ class DownloadRosterCsvController extends MagicBusController
             $eventTime = '';
             if ($event->event_start && $event->event_end)
             {
-                $eventTime = $event->event_start->format('g:ia').' - '.$event->event_end->format('g:ia');
+                $eventTime = $event->event_start->format('g:ia') . ' - ' . $event->event_end->format('g:ia');
             }
             elseif ($event->event_start)
             {
@@ -101,12 +105,12 @@ class DownloadRosterCsvController extends MagicBusController
                         $eventDate,
                         $eventTime,
                         $eventShift->short_time_display,
-                        $eventTrooper->trooper?->display_name ?? '',
+                        $eventTrooper->trooper?->legal_name ?? '',
                         '',
                         $eventTrooper->costume?->name ?? '',
                         $eventTrooper->backup_costume?->name ?? '',
                         to_title($eventTrooper->status->name),
-                        $eventTrooper->added_by_trooper?->display_name ?? '',
+                        $eventTrooper->added_by_trooper?->legal_name ?? '',
                     ]);
                 }
 
@@ -121,7 +125,7 @@ class DownloadRosterCsvController extends MagicBusController
                         '',
                         '',
                         to_title($eventGuest->status->name),
-                        $eventGuest->added_by_trooper?->display_name ?? '',
+                        $eventGuest->added_by_trooper?->legal_name ?? '',
                     ]);
                 }
             }

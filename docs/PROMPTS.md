@@ -148,6 +148,7 @@ Formatting & Logic
 - No Hallucinations: Do not guess column names. Only document what is explicitly defined in the migrations.
 - Markdown Excellence: Use GitHub-flavored Markdown with clear heading hierarchies and code blocks for the Mermaid diagram.
 - Integrity: **DO NOT** modify any existing migration or application files. Only create or update `docs/DATABASE.md`.
+- Bounded Contexts: Create different merdmaid diagrams using logical bounded contexts, for example: Troopers, Events, Organizations, etc.
 
 Workflow
 1. **Inventory: List all discovered tables from the migrations.
