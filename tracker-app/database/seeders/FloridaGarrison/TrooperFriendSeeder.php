@@ -26,25 +26,30 @@ class TrooperFriendSeeder extends Seeder
             // feels backwards but if 'trooper_id' was added by 'added_by_trooper_id' to an
             // event, we want to create a friend relationship where 'added_by_trooper_id' is
             // the friend of 'trooper_id'
-            $trooper_friend = new TrooperFriend();
-            $trooper_friend->trooper_id = $trooper_added->added_by_trooper_id;
-            $trooper_friend->friend_id = $trooper_added->trooper_id;
-            $trooper_friend->save();
+            $trooper_friend = TrooperFriend::query()
+                ->where('trooper_id', $trooper_added->added_by_trooper_id)
+                ->where('friend_id', $trooper_added->trooper_id)
+                ->first();
+            if ($trooper_friend == null)
+            {
+                $trooper_friend = new TrooperFriend();
+                $trooper_friend->trooper_id = $trooper_added->added_by_trooper_id;
+                $trooper_friend->friend_id = $trooper_added->trooper_id;
+                $trooper_friend->save();
+            }
 
             // also create the inverse relationship to ensure friendship is mutual
             $inverse_friend = TrooperFriend::query()
                 ->where('trooper_id', $trooper_added->trooper_id)
                 ->where('friend_id', $trooper_added->added_by_trooper_id)
                 ->first();
-            if ($inverse_friend)
+            if ($inverse_friend == null)
             {
-                // inverse relationship already exists, skip to next
-                continue;
+                $inverse_friend = new TrooperFriend();
+                $inverse_friend->trooper_id = $trooper_added->trooper_id;
+                $inverse_friend->friend_id = $trooper_added->added_by_trooper_id;
+                $inverse_friend->save();
             }
-            $inverse_friend = new TrooperFriend();
-            $inverse_friend->trooper_id = $trooper_added->trooper_id;
-            $inverse_friend->friend_id = $trooper_added->added_by_trooper_id;
-            $inverse_friend->save();
         }
     }
 }

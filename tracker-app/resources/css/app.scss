@@ -140,3 +140,83 @@ a:hover {
         }
     }
 }
+
+//  for the comments on event display page
+@keyframes terminal-glitch {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    // A sudden sharp dip and shift
+    7% {
+        opacity: 0.3;
+        transform: translateX(-1px);
+    }
+
+    8% {
+        opacity: 0.8;
+        transform: translateX(1px);
+    }
+
+    9% {
+        opacity: 0.4;
+        transform: translateX(0);
+    }
+
+    10% {
+        opacity: 1;
+    }
+
+    // A quick double-blink halfway through
+    48% {
+        opacity: 1;
+    }
+
+    49% {
+        opacity: 0.2;
+        transform: translateX(2px);
+    }
+
+    50% {
+        opacity: 0.8;
+        transform: translateX(-2px);
+    }
+
+    51% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.terminal-green {
+    color: #00ff41 !important;
+    text-shadow: 0 0 8px rgba(0, 255, 65, 0.6); // Slightly heavier glow
+    // 3 seconds is fast enough to see it often, slow enough to be atmospheric
+    animation: terminal-glitch 3s infinite step-end;
+}
+
+.scanlines-overlay {
+    position: relative;
+    background: #111; // Even darker background for better green contrast
+
+    &::after {
+        content: " ";
+        display: block;
+        position: absolute;
+        inset: 0;
+        // Sharper scanlines
+        background: linear-gradient(rgba(18, 16, 16, 0) 50%,
+                rgba(0, 0, 0, 0.25) 50%);
+        background-size: 100% 4px;
+        z-index: 2;
+        pointer-events: none;
+    }
+}
+
+.mission-brief-container {
+    transition: max-height 0.5s ease-in-out, background-color 0.3s ease;
+    padding: 15px;
+}

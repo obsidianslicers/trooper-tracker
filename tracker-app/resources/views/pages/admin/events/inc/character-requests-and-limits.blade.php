@@ -1,4 +1,4 @@
-<x-accordion-card :label="'Character Requests & Attendee Limits'">
+<x-accordion-card :label="'Character Requests & Attendee Limits (Trooper Quotas)'">
 
     <x-input-container>
         <div class="row">
