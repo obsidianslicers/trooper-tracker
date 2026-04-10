@@ -91,8 +91,8 @@
                     <div x-show="mode != 'email'">
 
                         @include('pages.admin.events.inc.header')
-                        @include('pages.admin.events.inc.location')
                         @include('pages.admin.events.inc.schedule')
+                        @include('pages.admin.events.inc.location')
                         @include('pages.admin.events.inc.contact-information')
                         @include('pages.admin.events.inc.character-requests-and-limits')
                         @include('pages.admin.events.inc.venue-permissions-and-amenities')

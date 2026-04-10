@@ -1,4 +1,4 @@
-<x-accordion-card :label="'Miscellaneous'">
+<x-accordion-card :label="'Miscellaneous (Mission Brief)'">
     <x-input-container>
         <x-label>Comments:</x-label>
         <x-input-text :property="'comments'"

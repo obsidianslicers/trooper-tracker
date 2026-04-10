@@ -73,8 +73,6 @@ class TrooperSeeder extends Seeder
             };
 
             $t->save();
-
-            $where = ['trooper_id' => $t->id];
         }
     }
 }

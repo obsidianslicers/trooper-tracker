@@ -1,4 +1,4 @@
-<x-accordion-card :label="'Location'">
+<x-accordion-card :label="'Location (Mission Coordinates)'">
     <x-input-container>
         <div class="row">
             <div class="col-12 col-md-6">
