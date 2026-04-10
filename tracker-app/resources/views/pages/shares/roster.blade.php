@@ -4,6 +4,18 @@
 
 @section('content')
     @if ($share->is_viewable)
+        <x-message :type="'info'">
+            <h6 class="fw-bold">
+                Note on Roster Flexibility:
+            </h6>
+            <p>
+                The following list of attendees and costumes for <b>{{ $event->name }}</b> is our
+                current plan, please consider it a "<i>working draft.</i>" Our members are volunteers
+                with family and professional obligations that can occasionally result in last-minute
+                changes to personnel and/or specific costume characters. We will do our best to notify
+                you of any major shifts in our attendance.
+            </p>
+        </x-message>
         @foreach($event->event_shifts as $event_shift)
             @include('pages.shares.inc.shift-header', compact('event_shift'))
             <div class="ms-5">
