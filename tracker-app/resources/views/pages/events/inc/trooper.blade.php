@@ -62,11 +62,11 @@
     <div class="col-5 col-md-3 order-2 order-md-3 text-end">
         <div class="ps-3 ps-md-0">
             @if(
-                $can_moderate
-                && $event->status === \App\Enums\EventStatus::MANUAL_SELECTION
-                && $event_shift->is_open
-                && in_array($event_trooper->status, [\App\Enums\EventTrooperStatus::STAND_BY, \App\Enums\EventTrooperStatus::GOING], true)
-            )
+                    $can_moderate
+                    && $event->status === \App\Enums\EventStatus::MANUAL_SELECTION
+                    && $event_shift->is_open
+                    && in_array($event_trooper->status, [\App\Enums\EventTrooperStatus::STAND_BY, \App\Enums\EventTrooperStatus::GOING], true)
+                )
                 <div class="d-flex gap-1 justify-content-end">
                     @if($event_trooper->status === \App\Enums\EventTrooperStatus::STAND_BY)
                         <form hx-post="{{ route('events.signup-update-htmx', compact('event_trooper')) }}"
@@ -116,15 +116,17 @@
             @else
                 <span class="{{ $event_trooper->status->color() }}">
                     {{ to_title($event_trooper->status->name) }}
-                    {!! $event_trooper->status->iconTag() !!}
+                    <span class="d-none d-md-inline">
+                        {!! $event_trooper->status->iconTag() !!}
+                    </span>
                 </span>
             @endif
 
             @if(
-                $event->status === \App\Enums\EventStatus::MANUAL_SELECTION
-                && $event_trooper->status === \App\Enums\EventTrooperStatus::GOING
-                && $event_trooper->updated_by !== null
-            )
+                    $event->status === \App\Enums\EventStatus::MANUAL_SELECTION
+                    && $event_trooper->status === \App\Enums\EventTrooperStatus::GOING
+                    && $event_trooper->updated_by !== null
+                )
                 <br />
                 <i class="small text-muted">
                     Approved by {{ $event_trooper->updated_by->display_name }}
