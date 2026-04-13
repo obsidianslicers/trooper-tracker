@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Requests\Admin\Costumes;
 
+use App\Enums\OrganizationType;
 use App\Http\Requests\Admin\Costumes\UpdateRequest;
 use App\Models\Costume;
+use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -150,6 +152,83 @@ class UpdateRequestTest extends TestCase
         $validator = Validator::make(
             [
                 'name' => 'Updated Costume Name',
+            ],
+            $subject->rules()
+        );
+
+        $this->assertFalse($validator->fails());
+    }
+
+    public function test_rules_allows_valid_selected_organizations(): void
+    {
+        $organization = Organization::factory()->create();
+        $other_organization = Organization::factory()->create();
+
+        $subject = new UpdateRequest;
+        $this->setupMockedRoute($subject, $this->costume);
+
+        $validator = Validator::make(
+            [
+                'name' => 'Updated Costume Name',
+                'organizations' => [
+                    $organization->id => ['selected' => '1'],
+                    $other_organization->id => ['selected' => '1'],
+                ],
+            ],
+            $subject->rules()
+        );
+
+        $this->assertFalse($validator->fails());
+    }
+
+    public function test_selected_organization_ids_extracts_checked_organizations(): void
+    {
+        $organization = Organization::factory()->create();
+        $other_organization = Organization::factory()->create();
+
+        $subject = new UpdateRequest;
+        $subject->merge([
+            'organizations' => [
+                $organization->id => ['selected' => '1'],
+                $other_organization->id => ['selected' => '1'],
+            ],
+        ]);
+
+        $selected_ids = $subject->selected_organization_ids();
+
+        $this->assertEqualsCanonicalizing([$organization->id, $other_organization->id], $selected_ids);
+    }
+
+    public function test_selected_organization_ids_ignores_unchecked_organizations(): void
+    {
+        $organization = Organization::factory()->create();
+        $unchecked_organization = Organization::factory()->create();
+
+        $subject = new UpdateRequest;
+        $subject->merge([
+            'organizations' => [
+                $organization->id => ['selected' => '1'],
+                $unchecked_organization->id => ['selected' => ''],
+            ],
+        ]);
+
+        $selected_ids = $subject->selected_organization_ids();
+
+        $this->assertEquals([$organization->id], $selected_ids);
+    }
+
+    public function test_rules_allows_empty_selected_values(): void
+    {
+        $subject = new UpdateRequest;
+        $this->setupMockedRoute($subject, $this->costume);
+
+        $validator = Validator::make(
+            [
+                'name' => 'Updated Costume Name',
+                'organizations' => [
+                    '1' => ['selected' => ''],
+                    '2' => ['selected' => ''],
+                ],
             ],
             $subject->rules()
         );

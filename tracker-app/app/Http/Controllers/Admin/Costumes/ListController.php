@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin\Costumes;
 
 use App\Http\Controllers\MagicBusController;
 use App\Models\Costume;
+use App\Models\Organization;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -34,7 +35,12 @@ class ListController extends MagicBusController
      */
     public function __invoke(Request $request): View
     {
-        $costumes = Costume::orderBy(Costume::NAME)->get();
+        $relations = ['organizations' => function ($query)
+        {
+            $query->orderBy(Organization::NAME);
+        }];
+
+        $costumes = Costume::with($relations)->orderBy(Costume::NAME)->get();
 
         $data = compact('costumes');
 
