@@ -35,8 +35,7 @@ class ListController extends MagicBusController
      */
     public function __invoke(Request $request): View
     {
-        $relations = ['organizations' => function ($query)
-        {
+        $relations = ['organizations' => function ($query) {
             $query->orderBy(Organization::NAME);
         }];
 

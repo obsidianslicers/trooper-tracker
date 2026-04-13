@@ -84,6 +84,7 @@ class UpdateRequest extends FormRequest
                 $selected[] = (int) $org_id;
             }
         }
+
         return $selected;
     }
 }
