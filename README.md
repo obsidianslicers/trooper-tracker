@@ -38,6 +38,8 @@ Update Feb 18th: Despite rumors to the contrary, progress has not stalled. In fa
 
 Update Mar 8th: Troop Tracker edges ever closer to UAT, with performance‑rebellious tests being rewritten, optimized, and reminded of their place in the hierarchy; work continues on the configurable XenForo integration, ensuring it can ultimately operate either as a seamless Imperial fusion or a proudly isolationist standalone deployment; and the visual command interfaces have been refreshed with updated Stormtrooper, Bounty Hunter, Rebel, Clone, and Sith themes, each calibrated for maximum intimidation, usability, or in the case of Rebels, remedial hand‑holding — overall, stability is rising, features are aligning, and the system marches toward UAT with the slow, inevitable certainty of an Imperial Star Destroyer entering orbit.
 
+Update Apr 13th: The waiting is over. Troop Tracker has officially entered UAT, and the Empire has invited brave volunteers to click every button, break every edge case, and report their findings before Lord QA starts force-choking random merge requests. Core systems are stable, workflows are operational, and most remaining issues now live in the category of "annoying but survivable." If you spot defects, file them with precision and without panic. If you do not spot defects, click harder. UAT is live, and yes, this is the part where we pretend everything was always under control.
+
 ---
 
 ## Architecture
