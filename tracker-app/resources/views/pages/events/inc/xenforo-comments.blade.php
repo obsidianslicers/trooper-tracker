@@ -1,12 +1,15 @@
 @php
     $posts = $xenforoThreadPosts ?? [];
+    $hasThread = App\Facades\TroopTrackerFacade::isXenforoIntegrationConfigured()
+        && !empty($event->thread_id);
 @endphp
 
-@if(!empty($posts))
-    <div class="mt-5">
-        <x-section-title>Forum Comments</x-section-title>
+@if(!empty($posts) || $hasThread)
+<div id="forum-comments" class="mt-5">
+    <x-section-title>Forum Comments</x-section-title>
 
-        <div class="list-group">
+    @if(!empty($posts))
+        <div class="list-group mb-3">
             @foreach($posts as $post)
                 <div class="list-group-item">
                     <div class="d-flex align-items-start gap-3">
@@ -55,16 +58,35 @@
                 </div>
             @endforeach
         </div>
+    @endif
 
-        @if(!empty($xenforoBaseUrl) && !empty($event->thread_id))
-            <div class="mt-3">
-                <a href="{{ $xenforoBaseUrl.'/threads/'.$event->thread_id.'/' }}"
-                   target="_blank"
-                   rel="noopener noreferrer"
-                   class="btn btn-outline-secondary">
-                    View full thread
-                </a>
+    @if($hasThread)
+        <form hx-post="{{ route('events.forum-reply-htmx', compact('event')) }}"
+              hx-target="#forum-comments"
+              hx-swap="outerHTML"
+              hx-on::after-request="if(event.detail.successful) this.querySelector('textarea').value = ''">
+            @csrf
+            <div class="mb-2">
+                <textarea name="message"
+                          class="form-control"
+                          rows="3"
+                          placeholder="Write a reply..."
+                          maxlength="10000"
+                          required></textarea>
             </div>
-        @endif
-    </div>
+            <button type="submit" class="btn btn-primary btn-sm">Post Reply</button>
+        </form>
+    @endif
+
+    @if(!empty($xenforoBaseUrl) && !empty($event->thread_id))
+        <div class="mt-3">
+            <a href="{{ $xenforoBaseUrl.'/threads/'.$event->thread_id.'/' }}"
+               target="_blank"
+               rel="noopener noreferrer"
+               class="btn btn-outline-secondary">
+                View full thread
+            </a>
+        </div>
+    @endif
+</div>
 @endif

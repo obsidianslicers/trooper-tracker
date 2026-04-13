@@ -217,6 +217,55 @@ class XenforoService
         return $normalized;
     }
 
+    /**
+     * Create a new reply post in an existing XenForo thread.
+     *
+     * @return array{status:int,body:mixed}
+     */
+    public function create_post(
+        int $thread_id,
+        string $message,
+        ?int $user_id = null
+    ): array {
+        if (empty($this->base_url) || empty($this->api_key))
+        {
+            return [
+                'status' => 0,
+                'body' => null,
+            ];
+        }
+
+        if ($thread_id <= 0)
+        {
+            return [
+                'status' => 0,
+                'body' => null,
+            ];
+        }
+
+        if ($user_id === null)
+        {
+            $user_id = $this->resolve_user_id_for_trooper(Auth::id());
+        }
+
+        $url = $this->base_url.'/api/posts';
+
+        $payload = [
+            'thread_id' => $thread_id,
+            'message' => $message,
+            'api_bypass_permissions' => 1,
+        ];
+
+        $headers = $this->buildApiHeaders($user_id);
+
+        $response = Http::withHeaders($headers)->asForm()->post($url, $payload);
+
+        return [
+            'status' => $response->status(),
+            'body' => $response->json(),
+        ];
+    }
+
     public function create_thread(
         int $node_id,
         string $title,
