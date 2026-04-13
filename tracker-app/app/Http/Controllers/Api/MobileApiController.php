@@ -9,6 +9,7 @@ use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Enums\MembershipStatus;
 use App\Enums\OauthProvider;
+use App\Enums\OrganizationType;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventGuest;
@@ -29,7 +30,10 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Intervention\Image\ImageManager;
 
 /**
  * API for mobile app troop data.
@@ -85,6 +89,8 @@ class MobileApiController
 
                 $action === 'is_closed' => $this->isClosed(),
 
+                $action === 'get_organizations' => $this->getOrganizations(),
+
                 $action === 'user_status' && $request->has('trooperid') => $this->getUserStatus($request),
 
                 $action === 'event' && $request->has('troopid') => $this->getEvent($request),
@@ -120,6 +126,8 @@ class MobileApiController
                 $action === 'sign_up' && $request->has('trooperid', 'troopid', 'addedby', 'status', 'costume', 'backupcostume') => $this->signUp($request),
 
                 $action === 'get_photos_by_event' && $request->has('troopid') => $this->getPhotosByEvent($request),
+
+                $action === 'upload_photo' && $request->has('trooperid', 'troopid') => $this->uploadPhoto($request),
 
                 $action === 'saveFCM' && $request->has('userid', 'fcm') => $this->saveFcm($request),
 
@@ -575,19 +583,42 @@ class MobileApiController
     }
 
     /**
+     * action=get_organizations
+     * Return the squads (units) under Florida Garrison for the mobile filter UI.
+     */
+    private function getOrganizations(): JsonResponse
+    {
+        $units = Organization::where(Organization::TYPE, OrganizationType::UNIT->value)
+            ->whereHas('organization', fn ($q) => $q->where(Organization::NAME, 'Florida Garrison'))
+            ->orderBy(Organization::SEQUENCE)
+            ->get([Organization::ID, Organization::NAME]);
+
+        return response()->json([
+            'organizations' => $units->map(fn ($org) => [
+                'id' => $org->id,
+                'name' => $org->name,
+            ])->values(),
+        ]);
+    }
+
+    /**
      * action=get_troops_by_squad
      * Return upcoming events for a given organization (squad), with sign-up counts and notices.
+     *
+     * Pass squad=0 for all events, or squad=<organization_id> to filter by a specific squad.
+     * Organization IDs are obtained from the get_organizations action.
      */
     private function getTroopsBySquad(Request $request): JsonResponse
     {
         // TODO: implement isWebsiteClosed() check once that mechanism is defined.
 
-        $squad_id = (int) $request->input('squad');
+        $organization_id = (int) $request->input('squad');
+
         $open_status_values = array_map(fn ($s) => $s->value, self::OPEN_EVENT_STATUSES);
 
         $events = Event::whereIn(Event::STATUS, $open_status_values)
             ->where(Event::EVENT_START, '>=', now()->startOfDay())
-            ->when($squad_id !== 0, fn ($q) => $q->where(Event::ORGANIZATION_ID, $squad_id))
+            ->when($organization_id !== 0, fn ($q) => $q->where(Event::ORGANIZATION_ID, $organization_id))
             ->with(['event_shifts.event_troopers'])
             ->orderBy(Event::EVENT_START)
             ->get();
@@ -970,6 +1001,16 @@ class MobileApiController
             return response()->json(['success' => false, 'success_message' => 'This event was LOCKED by Command Staff.']);
         }
 
+        if ($event->status === EventStatus::DRAFT)
+        {
+            return response()->json(['success' => false, 'success_message' => 'This event is not yet open for sign-ups.']);
+        }
+
+        if ($event->status === EventStatus::CLOSED)
+        {
+            return response()->json(['success' => false, 'success_message' => 'This event is closed.']);
+        }
+
         $existing = $this->findExistingSignUp($trooper->id, $event_id, $shift_id);
 
         $effective_status = $event->status === EventStatus::MANUAL_SELECTION
@@ -1054,12 +1095,93 @@ class MobileApiController
             'id' => $upload->id,
             'filename' => $upload->image_path_sm,
             'admin' => (int) $upload->is_administrative,
-            'thumbnail_url' => $upload->small_url,
-            'full_url' => $upload->large_url,
+            'thumbnail_url' => url($upload->small_url),
+            'full_url' => url($upload->large_url),
             'uploaded_by' => $upload->trooper?->display_name,
         ]);
 
         return response()->json(['photos' => $photos]);
+    }
+
+    /**
+     * action=upload_photo
+     * Upload a photo for an event from the mobile app.
+     */
+    private function uploadPhoto(Request $request): JsonResponse
+    {
+        $event_id = (int) $request->input('troopid');
+        $trooper_id_input = (int) $request->input('trooperid');
+        $is_administrative = $request->input('admin') === '1';
+
+        $event = Event::find($event_id);
+
+        if (!$event)
+        {
+            return response()->json(['success' => false, 'message' => 'Event not found.'], 404);
+        }
+
+        $trooper = $this->trooperFromUserId($trooper_id_input);
+
+        if (!$trooper)
+        {
+            return response()->json(['success' => false, 'message' => 'Trooper not found.'], 404);
+        }
+
+        $file = $request->file('file');
+
+        if (!$file)
+        {
+            return response()->json(['success' => false, 'message' => 'No file uploaded.'], 422);
+        }
+
+        if ($file->getSize() > 4 * 1024 * 1024)
+        {
+            return response()->json(['success' => false, 'message' => 'File too large (max 4MB).'], 422);
+        }
+
+        try
+        {
+            $original_path = $file->store("uploads/events/{$event->id}/originals", 'public');
+
+            if ($original_path === false)
+            {
+                return response()->json(['success' => false, 'message' => 'Failed to store file.'], 500);
+            }
+
+            $manager = ImageManager::withDriver(config('tracker.image.driver'));
+            $image = $manager->read($file->getPathname());
+
+            $size = max($image->width(), $image->height());
+            $canvas = $manager->create($size, $size)->fill('rgba(0,0,0,0)');
+            $canvas->place($image, 'center');
+
+            $thumbnail = clone $canvas;
+            $thumbnail->scaleDown(128, 128);
+
+            $thumbnail_path = "uploads/events/{$event->id}/thumbnails/".pathinfo($file->hashName(), PATHINFO_FILENAME).'.png';
+
+            Storage::disk('public')->put($thumbnail_path, $thumbnail->encodeByExtension('png'));
+        }
+        catch (\Exception $e)
+        {
+            if (isset($original_path) && $original_path !== false)
+            {
+                Storage::disk('public')->delete($original_path);
+            }
+            Log::error('Mobile image upload failed', ['error' => $e->getMessage(), 'event_id' => $event_id]);
+
+            return response()->json(['success' => false, 'message' => 'Image processing failed: '.$e->getMessage()], 500);
+        }
+
+        $event_upload = new EventUpload;
+        $event_upload->event_id = $event->id;
+        $event_upload->trooper_id = $trooper->id;
+        $event_upload->image_path_lg = $original_path;
+        $event_upload->image_path_sm = $thumbnail_path;
+        $event_upload->is_administrative = $is_administrative;
+        $event_upload->save();
+
+        return response()->json(['success' => true]);
     }
 
     /**

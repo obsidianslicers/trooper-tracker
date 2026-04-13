@@ -31,6 +31,16 @@ class GuestSignUpHtmxController extends MagicBusController
         $trooper = $request->user();
 
         $event = $event_shift->event;
+        if (!$event_shift->is_open)
+        {
+            $can_moderate = $trooper->isModeratorForOrganization($event->organization);
+            $count_of_shifts = $event->event_shifts()->count();
+            $data = compact('event', 'event_shift', 'can_moderate', 'count_of_shifts');
+            $data['open'] = true;
+
+            return response()->view('pages.events.inc.shift-container', $data);
+        }
+
         $guestStatus = $event->status === EventStatus::MANUAL_SELECTION
             ? EventGuestStatus::STAND_BY
             : EventGuestStatus::GOING;
