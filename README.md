@@ -13,6 +13,21 @@
 
 ---
 
+## TL;DR for Collaborators
+
+- Troop Tracker is a Laravel 12 application platform for Star Wars costuming clubs, focused on trooper profiles, event/troop coordination, organization hierarchy, notices, and approvals.
+- Architecture is ADR plus MagicBus command/query separation: controllers orchestrate, handlers in `app/Features/` contain business logic.
+- Domain-first structure: most feature work happens in `tracker-app/app/Features/`, with thin actions in `tracker-app/app/Http/Controllers/`.
+- Data model convention: never edit generated files in `tracker-app/app/Models/Base/`; extend behavior in `tracker-app/app/Models/`.
+- Frontend is server-rendered Blade enhanced with HTMX and Alpine for interactive updates without full-page reloads.
+- Authentication supports Email, Google OAuth, and XenForo OAuth; all new accounts go through pending/admin approval.
+- Local development basics: install with Composer/NPM, migrate and seed, then run `composer dev` from `tracker-app/`.
+- Contribution gates before PR: run tests (`php artisan test`), and formatting (`composer pint:format`)
+- Best docs to read first: [Architecture](docs/ARCHITECTURE.md), [Coding Conventions](docs/CODING_CONVENTIONS.md), [Project Structure](docs/PROJECT_STRUCTURE.md), and [Database](docs/DATABASE.md).
+- Collaboration workflow: open an issue first, use branch naming `<type>-<issue-number>`, and use conventional commits that include the issue number.
+
+---
+
 ## Status Report: Development Proceeds at the Empire's Pace
 
 This project remains under active development, which is to say it currently exists in a state of sanctioned chaos. Features may appear, disappear, or behave unpredictably without prior notice, as is their prerogative during this phase of imperial construction. Should you encounter bugs, inconsistencies, or architectural decisions that defy mortal comprehension, rest assured they are merely temporary artifacts of progress. Proceed with caution, submit issues with appropriate deference, and remember: stability will arrive when it is commanded to arrive, and not a moment sooner.
@@ -22,6 +37,8 @@ Progress continues at a pace deemed acceptable by the Empire. New features, refi
 Update Feb 18th: Despite rumors to the contrary, progress has not stalled. In fact, the project currently stands at an estimated 85% operational readiness, supported by a test suite now exceeding 2,000 trials of loyalty. Minor rebellions within the codebase are being suppressed with appropriate vigor. Observers may take this as a sign that stability is approaching, though only the Empire may determine when "approaching" becomes "arrived." Sensible personnel are advised to check back in roughly one month for the next sanctioned update, assuming the system has not evolved beyond the need for such courtesies.
 
 Update Mar 8th: Troop Tracker edges ever closer to UAT, with performance‑rebellious tests being rewritten, optimized, and reminded of their place in the hierarchy; work continues on the configurable XenForo integration, ensuring it can ultimately operate either as a seamless Imperial fusion or a proudly isolationist standalone deployment; and the visual command interfaces have been refreshed with updated Stormtrooper, Bounty Hunter, Rebel, Clone, and Sith themes, each calibrated for maximum intimidation, usability, or in the case of Rebels, remedial hand‑holding — overall, stability is rising, features are aligning, and the system marches toward UAT with the slow, inevitable certainty of an Imperial Star Destroyer entering orbit.
+
+Update Apr 13th: The waiting is over. Troop Tracker has officially entered UAT, and the Empire has invited brave volunteers to click every button, break every edge case, and report their findings before Lord QA starts force-choking random merge requests. Core systems are stable, workflows are operational, and most remaining issues now live in the category of "annoying but survivable." If you spot defects, file them with precision and without panic. If you do not spot defects, click harder. UAT is live, and yes, this is the part where we pretend everything was always under control.
 
 ---
 

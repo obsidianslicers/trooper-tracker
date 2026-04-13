@@ -23,6 +23,24 @@
                                   :value="$costume->name" />
                 </x-input-container>
 
+                <x-label>
+                    Assigned Organizations:
+                </x-label>
+                @foreach ($organizations as $organization)
+                    <div class="row mb-0 ps-3">
+                        <div class="col-12">
+                            <x-input-container>
+                                <x-input-checkbox :property="'organizations.' . $organization->id . '.selected'"
+                                                  :label="$organization->name"
+                                                  :value="'1'"
+                                                  :checked="$organization->assigned"
+                                                  x-on:change="toggle" />
+                            </x-input-container>
+                        </div>
+                    </div>
+
+                @endforeach
+
                 <x-submit-container>
                     <x-submit-button>
                         Update

@@ -22,6 +22,10 @@
                 <tr>
                     <td>
                         {{ $costume->name }}
+                        <br />
+                        <i class="text-muted small">
+                            {{ $costume->organizations->pluck('name')->implode(', ') }}
+                        </i>
                     </td>
                     <td>
                         <x-action-menu>

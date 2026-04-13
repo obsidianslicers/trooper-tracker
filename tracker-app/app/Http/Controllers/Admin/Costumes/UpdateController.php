@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin\Costumes;
 
 use App\Http\Controllers\MagicBusController;
 use App\Models\Costume;
+use App\Models\Organization;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -39,7 +40,18 @@ class UpdateController extends MagicBusController
     {
         $this->authorize('update', $costume);
 
-        $data = compact('costume');
+        $costume->load('organizations');
+
+        $assigned_organizations = $costume->organizations->pluck('id')->all();
+
+        $organizations = Organization::ofTypeOrganizations()->orderBy(Organization::NAME)->get();
+
+        foreach ($organizations as $organization)
+        {
+            $organization->assigned = in_array($organization->id, $assigned_organizations);
+        }
+
+        $data = compact('costume', 'organizations');
 
         return view('pages.admin.costumes.update', $data);
     }

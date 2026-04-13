@@ -43,7 +43,8 @@ class UpdateRequest extends FormRequest
      * Get the validation rules that apply to the request.
      *
      * Validates the costume name ensuring it remains unique, excluding the
-     * current costume from the uniqueness check.
+     * current costume from the uniqueness check, and validates selected organizations
+     * from the checkbox form.
      *
      * @return array<string, mixed> The validation rules for updating a costume.
      */
@@ -57,8 +58,33 @@ class UpdateRequest extends FormRequest
                 Rule::unique(Costume::class, Costume::NAME)
                     ->ignore($this->route('costume')),
             ],
+            'organizations' => ['nullable', 'array'],
+            'organizations.*.selected' => ['nullable', 'in:1'],
         ];
 
         return $rules;
+    }
+
+    /**
+     * Extract selected organization IDs from the form submission.
+     *
+     * The form submits selected organizations as organizations[id][selected]=1
+     * for each checked checkbox. This method extracts the organization IDs
+     * from the validated input.
+     *
+     * @return array<int> Array of selected organization IDs
+     */
+    public function selected_organization_ids(): array
+    {
+        $selected = [];
+        foreach ($this->input('organizations', []) as $org_id => $data)
+        {
+            if (!empty($data['selected']))
+            {
+                $selected[] = (int) $org_id;
+            }
+        }
+
+        return $selected;
     }
 }
