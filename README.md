@@ -13,6 +13,21 @@
 
 ---
 
+## TL;DR for Collaborators
+
+- Troop Tracker is a Laravel 12 application platform for Star Wars costuming clubs, focused on trooper profiles, event/troop coordination, organization hierarchy, notices, and approvals.
+- Architecture is ADR plus MagicBus command/query separation: controllers orchestrate, handlers in `app/Features/` contain business logic.
+- Domain-first structure: most feature work happens in `tracker-app/app/Features/`, with thin actions in `tracker-app/app/Http/Controllers/`.
+- Data model convention: never edit generated files in `tracker-app/app/Models/Base/`; extend behavior in `tracker-app/app/Models/`.
+- Frontend is server-rendered Blade enhanced with HTMX and Alpine for interactive updates without full-page reloads.
+- Authentication supports Email, Google OAuth, and XenForo OAuth; all new accounts go through pending/admin approval.
+- Local development basics: install with Composer/NPM, migrate and seed, then run `composer dev` from `tracker-app/`.
+- Contribution gates before PR: run tests (`php artisan test`), and formatting (`composer pint:format`)
+- Best docs to read first: [Architecture](docs/ARCHITECTURE.md), [Coding Conventions](docs/CODING_CONVENTIONS.md), [Project Structure](docs/PROJECT_STRUCTURE.md), and [Database](docs/DATABASE.md).
+- Collaboration workflow: open an issue first, use branch naming `<type>-<issue-number>`, and use conventional commits that include the issue number.
+
+---
+
 ## Status Report: Development Proceeds at the Empire's Pace
 
 This project remains under active development, which is to say it currently exists in a state of sanctioned chaos. Features may appear, disappear, or behave unpredictably without prior notice, as is their prerogative during this phase of imperial construction. Should you encounter bugs, inconsistencies, or architectural decisions that defy mortal comprehension, rest assured they are merely temporary artifacts of progress. Proceed with caution, submit issues with appropriate deference, and remember: stability will arrive when it is commanded to arrive, and not a moment sooner.
