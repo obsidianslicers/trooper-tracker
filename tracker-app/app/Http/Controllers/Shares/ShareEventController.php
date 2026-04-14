@@ -30,7 +30,7 @@ class ShareEventController extends MagicBusController
      * @param  Event  $event  The event to be shared
      * @return View The rendered sharing page view
      */
-    public function __invoke(Request $request, Event $event, EventUpload $event_upload = null): View
+    public function __invoke(Request $request, Event $event, ?EventUpload $event_upload = null): View
     {
         $image_url = route('shares.og-image', $event->organization->id);
 
