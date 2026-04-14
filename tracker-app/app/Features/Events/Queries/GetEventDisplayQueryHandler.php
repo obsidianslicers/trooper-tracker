@@ -61,6 +61,7 @@ readonly class GetEventDisplayQueryHandler implements QueryHandlerInterface
         $organization_columns = [
             Organization::ID,
             Organization::NAME,
+            Organization::IMAGE_PATH_SM,
         ];
 
         $trooper_columns = [

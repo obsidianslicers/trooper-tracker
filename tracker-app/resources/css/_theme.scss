@@ -10,7 +10,7 @@
 
     @if $index {
         // 3. Change str-slice to string.slice and str-length to string.length
-        @return string.slice($string, 1, $index - 1) + $replace + str-replace(string.slice($string, $index + string.length($search)), $search, $replace);
+        @return string.slice($string, 1, $index - 1)+$replace +str-replace(string.slice($string, $index + string.length($search)), $search, $replace);
     }
 
     @return $string;
@@ -135,6 +135,24 @@ $themes: (
             text-transform: uppercase;
             letter-spacing: 2px;
             text-shadow: 0 0 10px #{color.adjust($primary, $alpha: -0.85)};
+        }
+
+        .alert {
+
+            h1,
+            h2,
+            h3,
+            h4,
+            h5,
+            h6,
+            .alert-heading {
+                color: inherit;
+                /* Forces the heading to use the alert's text color */
+                text-shadow: none;
+                /* Usually looks better inside alerts */
+                opacity: 0.9;
+                /* Optional: gives it a slightly more integrated look */
+            }
         }
 
         // --- Buttons ---
