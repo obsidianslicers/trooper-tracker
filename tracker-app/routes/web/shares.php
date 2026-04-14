@@ -12,6 +12,7 @@ Route::prefix('shares')
     ->group(function ()
     {
         Route::get('/event/{event}', ShareEventController::class)->name(name: 'event');
+        Route::get('/event/{event}/{event_upload}', ShareEventController::class)->name(name: 'event-upload');
         Route::get('/og-image/{organization}', ShareOrganizationImageController::class)->name(name: 'og-image');
         Route::get('/roster/{share}', action: ShareEventRosterController::class)->name(name: 'roster');
     });
