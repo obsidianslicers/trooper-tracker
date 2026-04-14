@@ -34,6 +34,8 @@ class ShareEventController extends MagicBusController
     {
         $image_id = $request->query('event_upload');
 
+        $image_url = map_image_url($event->organization->image_path_lg ?? '', 'img/icons/organization-128x128.png');
+
         $event_upload = null;
 
         if ($image_id)
@@ -43,7 +45,14 @@ class ShareEventController extends MagicBusController
                 ->first();
         }
 
-        $data = compact('event', 'event_upload');
+        if ($event_upload)
+        {
+            $image_url = map_image_url($event_upload->image_path_lg, 'img/icons/organization-128x128.png');
+        }
+
+        $image_url = url($image_url);
+
+        $data = compact('event', 'event_upload', 'image_url');
 
         return view('pages.shares.event', $data);
     }

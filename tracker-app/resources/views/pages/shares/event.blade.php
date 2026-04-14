@@ -23,17 +23,10 @@
     <meta name="twitter:description"
           content="{{ $event->name }} happening {{ $event->time_display }}. View details on the Troop Tracker.">
 
-    @if($event_upload)
-        <meta name="twitter:image"
-              content="{{ map_image_url($event_upload->image_path_lg, 'img/icons/organization-128x128.png') }}">
-        <meta property="og:image"
-              content="{{ map_image_url($event_upload->image_path_lg, 'img/icons/organization-128x128.png') }}" />
-    @else
-        <meta name="twitter:image"
-              content="{{ map_image_url($event->organization->image_path_lg ?? '', 'img/icons/organization-128x128.png') }}">
-        <meta property="og:image"
-              content="{{ map_image_url($event->organization->image_path_lg ?? '', 'img/icons/organization-128x128.png') }}" />
-    @endif
+    <meta name="twitter:image"
+          content="{{ $image_url }}">
+    <meta property="og:image"
+          content="{{ $image_url }}" />
 
     @auth
         <meta http-equiv="refresh"
