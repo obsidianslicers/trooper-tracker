@@ -973,21 +973,13 @@ Relationships:
 - Morphs To: auditable (auditable_type, auditable_id)
 - Belongs To: tt_troopers (trooper_id)
 
-### tt_trooper_api_codes
-
-Purpose: API codes per Trooper.
-
-| Column | Type | Nullable | Key / Constraints |
-| --- | --- | --- | --- |
-| id | bigint unsigned | no | PK, auto increment |
-| trooper_id | bigint unsigned | no | FK -> tt_troopers.id, cascadeOnDelete |
-| api_code | varchar(64) | no | unique |
-| created_at | timestamp | yes | timestamps helper |
-| updated_at | timestamp | yes | timestamps helper |
-
-Relationships:
-
-- Belongs To: tt_troopers
+<!--
+tt_trooper_api_codes was previously used to store per-trooper API
+keys for the legacy mobile API. Authentication for the mobile API
+now relies on XenForo OAuth access tokens instead, and this table is
+no longer part of the active design. The historical details of this
+table have been removed from this document to avoid confusion.
+-->
 
 ### tt_mobile_devices
 

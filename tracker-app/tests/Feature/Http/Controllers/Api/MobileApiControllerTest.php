@@ -65,13 +65,11 @@ class MobileApiControllerTest extends TestCase
 
         $api_key = $response->json('apiKey');
 
+        // API key is now the XenForo OAuth access token; we just
+        // ensure it is returned as a non-empty string and that the
+        // OAuth login record was stored correctly.
         $this->assertIsString($api_key);
-        $this->assertSame(64, strlen($api_key));
-
-        $this->assertDatabaseHas('tt_trooper_api_codes', [
-            TrooperApiCode::TROOPER_ID => $trooper->id,
-            TrooperApiCode::API_CODE => $api_key,
-        ]);
+        $this->assertNotSame('', $api_key);
 
         $this->assertDatabaseHas('tt_oauth_logins', [
             OauthLogin::TROOPER_ID => $trooper->id,
