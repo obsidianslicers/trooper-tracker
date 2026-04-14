@@ -6,8 +6,8 @@ namespace App\Http\Controllers\Shares;
 
 use App\Http\Controllers\MagicBusController;
 use App\Models\Organization;
-use Illuminate\Http\Response;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
