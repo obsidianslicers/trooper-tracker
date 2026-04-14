@@ -34,7 +34,7 @@ class ShareEventController extends MagicBusController
     {
         $image_id = $request->query('event_upload');
 
-        $image_url = map_image_url($event->organization->image_path_lg ?? '', 'img/icons/organization-128x128.png');
+        $image_url = route('shares.og-image', $event->organization->id);
 
         $event_upload = null;
 
