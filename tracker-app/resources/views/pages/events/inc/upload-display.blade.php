@@ -8,7 +8,7 @@
                              class="card-img-top rounded"
                              alt="Image #{{ $event_upload->id }}" />
                         <div class="event-image-share-buttons">
-                            {!! Share::page(route('shares.event', compact('event', 'event_upload')), $event->name)->facebook()->twitter() !!}
+                            {!! Share::page(route('shares.event-upload', compact('event', 'event_upload')), $event->name)->facebook()->twitter() !!}
                         </div>
                     </div>
                 </div>
