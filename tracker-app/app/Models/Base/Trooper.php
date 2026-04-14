@@ -203,8 +203,7 @@ class Trooper extends Model
         return $this->hasMany(TrooperAchievement::class);
     }
 
-    // Legacy relation to mobile API keys (tt_trooper_api_codes) has been
-    // removed. Authentication now relies on XenForo OAuth tokens.
+    // Authentication now relies on XenForo OAuth tokens.
 
     public function trooper_assignments(): HasMany
     {
