@@ -261,3 +261,148 @@ Use this order when standing up the Florida Garrison instance:
 5. migrate legacy event images
 6. upload or migrate squad logos
 7. verify several events and organization pages in the browser
+
+---
+
+## 11. Laravel Queue Worker and SES SMTP on Bitnami AWS
+
+### 11.1 Set up Laravel queue worker with Supervisor
+
+1. **Find the PHP binary**
+
+   ```bash
+   which php
+   ls -l /opt/bitnami/php/bin/php
+   ```
+
+   If this exists, use `/opt/bitnami/php/bin/php`.
+
+2. **Install Supervisor if needed**
+
+   ```bash
+   sudo apt-get update
+   sudo apt-get install -y supervisor
+   ```
+
+3. **Create the Supervisor config**
+
+   ```bash
+   sudo tee /etc/supervisor/conf.d/laravel-worker.conf > /dev/null <<'EOF'
+   [program:laravel-worker]
+   process_name=%(program_name)s_%(process_num)02d
+   command=/opt/bitnami/php/bin/php /home/bitnami/trooper-tracker/tracker-app/artisan queue:work --sleep=3 --tries=3 --timeout=90
+   directory=/home/bitnami/trooper-tracker/tracker-app
+   autostart=true
+   autorestart=true
+   startsecs=5
+   startretries=3
+   user=bitnami
+   numprocs=1
+   redirect_stderr=true
+   stdout_logfile=/home/bitnami/laravel-worker.log
+   stopwaitsecs=3600
+   environment=APP_ENV="production"
+   EOF
+   ```
+
+4. **Reload Supervisor and start the worker**
+
+   ```bash
+   sudo supervisorctl reread
+   sudo supervisorctl update
+   sudo supervisorctl start laravel-worker:*
+   ```
+
+5. **Verify it is running**
+
+   ```bash
+   sudo supervisorctl status
+   ```
+
+   Expected result:
+
+   ```text
+   laravel-worker:laravel-worker_00   RUNNING
+   ```
+
+6. **Watch the worker log**
+
+   ```bash
+   tail -f /home/bitnami/laravel-worker.log
+   ```
+
+7. **Restart the worker after deploys or .env changes**
+
+   ```bash
+   cd /home/bitnami/trooper-tracker/tracker-app
+   /opt/bitnami/php/bin/php artisan queue:restart
+   ```
+
+8. **Make sure Laravel queue tables exist**
+
+   ```bash
+   cd /home/bitnami/trooper-tracker/tracker-app
+   /opt/bitnami/php/bin/php artisan queue:table
+   /opt/bitnami/php/bin/php artisan queue:failed-table
+   /opt/bitnami/php/bin/php artisan migrate --force
+   ```
+
+9. **Make sure .env uses a real queue driver**
+
+   Example:
+
+   ```env
+   QUEUE_CONNECTION=database
+   ```
+
+10. **Check queued and failed jobs**
+
+    ```bash
+    cd /home/bitnami/trooper-tracker/tracker-app
+    /opt/bitnami/php/bin/php artisan queue:failed
+    ```
+
+    Retry failed jobs:
+
+    ```bash
+    /opt/bitnami/php/bin/php artisan queue:retry all
+    ```
+
+    Flush failed jobs:
+
+    ```bash
+    /opt/bitnami/php/bin/php artisan queue:flush
+    ```
+
+### 11.2 Common mail setup note for SES SMTP
+
+Use this in `.env`:
+
+```env
+MAIL_MAILER=smtp
+MAIL_SCHEME=null
+MAIL_HOST=email-smtp.us-east-1.amazonaws.com
+MAIL_PORT=587
+MAIL_USERNAME=YOUR_SES_SMTP_USERNAME
+MAIL_PASSWORD=YOUR_SES_SMTP_PASSWORD
+MAIL_FROM_ADDRESS=gwm@fl501st.com
+MAIL_FROM_NAME="Troop Tracker"
+```
+
+Then clear config and restart the worker:
+
+```bash
+cd /home/bitnami/trooper-tracker/tracker-app
+/opt/bitnami/php/bin/php artisan config:clear
+/opt/bitnami/php/bin/php artisan cache:clear
+/opt/bitnami/php/bin/php artisan queue:restart
+```
+
+### 11.3 If Supervisor says "can't find command 'php'"
+
+That means you must use the full PHP path in the `command` line of the Supervisor program:
+
+```ini
+command=/opt/bitnami/php/bin/php ...
+```
+
