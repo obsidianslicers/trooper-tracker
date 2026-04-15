@@ -291,7 +291,6 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
     private function loadLocalDonations(Trooper $trooper): Collection
     {
         return TrooperDonation::where(TrooperDonation::TROOPER_ID, $trooper->id)
-            ->whereNull('deleted_at')
             ->get([TrooperDonation::AMOUNT, TrooperDonation::CREATED_AT]);
     }
 
