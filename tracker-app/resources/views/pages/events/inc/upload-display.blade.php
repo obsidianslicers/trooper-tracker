@@ -5,9 +5,15 @@
             @if($event_upload->is_administrative == $is_administrative)
                 <div class="col">
                     <div class="card h-100 position-relative event-image-share-wrapper">
-                        <img src="{{ $event_upload->small_url }}"
-                             class="card-img-top rounded"
-                             alt="Image #{{ $event_upload->id }}" />
+                        <a href="{{ $event_upload->large_url }}"
+                           class="d-block event-upload-photo-trigger"
+                           data-bs-toggle="modal"
+                           data-bs-target="#eventUploadPhotoModal"
+                           data-photo-url="{{ $event_upload->large_url }}">
+                            <img src="{{ $event_upload->small_url }}"
+                                 class="card-img-top rounded"
+                                 alt="Image #{{ $event_upload->id }}" />
+                        </a>
                         <div class="event-image-share-buttons">
                             {!! Share::page(route('shares.event-upload', compact('event', 'event_upload')), $event->name)->facebook()->twitter() !!}
 
