@@ -28,6 +28,7 @@ trait HasAwardTrooperScopes
     {
         return $query->with('award:id,name')
             ->where(self::TROOPER_ID, $trooper_id)
+            ->whereNull(self::DELETED_AT)
             ->orderByDesc(self::AWARD_DATE);
     }
 }

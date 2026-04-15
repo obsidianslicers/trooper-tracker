@@ -79,6 +79,7 @@ class Award extends Model
     {
         return $this->belongsToMany(Trooper::class, 'tt_award_troopers')
                     ->withPivot(AwardTrooper::ID, AwardTrooper::AWARD_DATE, AwardTrooper::DELETED_AT, AwardTrooper::CREATED_ID, AwardTrooper::UPDATED_ID, AwardTrooper::DELETED_ID)
-                    ->withTimestamps();
+                    ->withTimestamps()
+                    ->wherePivot(AwardTrooper::DELETED_AT, null);
     }
 }
