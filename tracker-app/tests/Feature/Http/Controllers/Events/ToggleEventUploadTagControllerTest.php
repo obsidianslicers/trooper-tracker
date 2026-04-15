@@ -20,7 +20,9 @@ class ToggleEventUploadTagControllerTest extends TestCase
         $event = Event::factory()->create();
 
         /** @var EventUpload $upload */
-        $upload = EventUpload::factory()->for($event)->create();
+        $upload = EventUpload::factory()->for($event)->create([
+            EventUpload::IS_ADMINISTRATIVE => false,
+        ]);
 
         // Initially, trooper is not tagged
         $this->assertFalse($upload->troopers()->where('tt_troopers.id', $trooper->id)->exists());
@@ -40,6 +42,21 @@ class ToggleEventUploadTagControllerTest extends TestCase
 
         $response->assertOk();
         $this->assertFalse($upload->fresh()->troopers()->where('tt_troopers.id', $trooper->id)->exists());
+    }
+
+    public function test_invoke_returns_403_for_administrative_upload(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $event = Event::factory()->create();
+        $upload = EventUpload::factory()->for($event)->create([
+            EventUpload::IS_ADMINISTRATIVE => true,
+        ]);
+
+        $response = $this->actingAs($trooper)->post(route('events.toggle-upload-tag', [
+            'event_upload' => $upload->id,
+        ]));
+
+        $response->assertForbidden();
     }
 
     public function test_invoke_requires_authentication(): void
