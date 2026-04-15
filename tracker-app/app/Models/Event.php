@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Support\Facades\DB;
 use Spatie\CalendarLinks\Link;
 
 /**
@@ -257,6 +258,17 @@ class Event extends BaseEvent
         return $this->event_shifts
             ->filter(fn($shift) => $shift->event_troopers->contains('trooper_id', $trooper->id))
             ->count();
+    }
+
+    /**
+     * Determine if the given trooper has acknowledged the mission brief for this event.
+     */
+    public function hasMissionBriefAcknowledgementFor(Trooper $trooper): bool
+    {
+        return DB::table('tt_event_mission_acks')
+            ->where('event_id', $this->id)
+            ->where('trooper_id', $trooper->id)
+            ->exists();
     }
 
     /**

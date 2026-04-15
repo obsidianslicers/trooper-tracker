@@ -123,6 +123,30 @@
                         </div>
                     @endif
 
+                    @if($mission_brief_required)
+                        <div class="mb-4">
+                            @if($has_mission_brief_ack)
+                                <x-message type="success">
+                                    You have acknowledged this mission brief. You may sign up for available shifts below.
+                                </x-message>
+                            @else
+                                <x-message type="warning">
+                                    You must review and acknowledge the mission brief before you can sign up for this deployment.
+                                </x-message>
+
+                                <form method="POST"
+                                      action="{{ route('events.ack-mission-brief', compact('event')) }}">
+                                    @csrf
+                                    <button type="submit"
+                                            class="btn btn-sm btn-outline-success">
+                                        <i class="fa fa-fw fa-check me-1"></i>
+                                        I have read and understand the mission brief
+                                    </button>
+                                </form>
+                            @endif
+                        </div>
+                    @endif
+
                     <div class="row">
                         <div class="col-12 col-md-6 mb-3">
                             @include('pages.events.inc.amenities', compact('event'))

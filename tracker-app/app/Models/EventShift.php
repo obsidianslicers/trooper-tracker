@@ -220,6 +220,12 @@ class EventShift extends BaseEventShift
     {
         if ($this->is_open)
         {
+            // Require mission brief acknowledgement when configured on the event
+            if ($this->event->require_mission_brief_ack && !$this->event->hasMissionBriefAcknowledgementFor($trooper))
+            {
+                return false;
+            }
+
             // For minor troopers, also check if the guardian is attending if
             // the event does not allow minors without guardians
             // default to true for non-minors and minors with no guardian

@@ -51,6 +51,11 @@ class EventDisplayController extends MagicBusController
 
         $can_moderate = $trooper->isModeratorForOrganization($event->organization);
 
+        $mission_brief_required = (bool) $event->require_mission_brief_ack;
+        $has_mission_brief_ack = $mission_brief_required
+            ? $event->hasMissionBriefAcknowledgementFor($trooper)
+            : false;
+
         // Header background color
         $bg = $event->at_risk ? 'bg-danger' : 'bg-primary';
         if ($event->is_locked)
@@ -75,7 +80,9 @@ class EventDisplayController extends MagicBusController
             'can_moderate',
             'bg',
             'xenforoBaseUrl',
-            'xenforoThreadPosts'
+            'xenforoThreadPosts',
+            'mission_brief_required',
+            'has_mission_brief_ack'
         );
 
         return view('pages.events.event-display', $data);
