@@ -120,29 +120,31 @@
                                    x-bind:class="expanded ? 'fa-terminal' : 'fa-unlock-alt'"></i>
                                 <span x-text="expanded ? 'CLOSE SECURE FEED' : 'DECRYPT MISSION BRIEF'"></span>
                             </button>
-                        </div>
-                    @endif
 
-                    @if($mission_brief_required)
-                        <div class="mb-4">
-                            @if($has_mission_brief_ack)
-                                <x-message type="success">
-                                    You have acknowledged this mission brief. You may sign up for available shifts below.
-                                </x-message>
-                            @else
-                                <x-message type="warning">
-                                    You must review and acknowledge the mission brief before you can sign up for this deployment.
-                                </x-message>
+                            @if($mission_brief_required)
+                                <div class="mt-3">
+                                    @if($has_mission_brief_ack)
+                                        <x-message type="success">
+                                            You have acknowledged this mission brief. You may sign up for available shifts below.
+                                        </x-message>
+                                    @else
+                                        <x-message type="warning">
+                                            You must review and acknowledge the mission brief before you can sign up for this deployment.
+                                        </x-message>
 
-                                <form method="POST"
-                                      action="{{ route('events.ack-mission-brief', compact('event')) }}">
-                                    @csrf
-                                    <button type="submit"
-                                            class="btn btn-sm btn-outline-success">
-                                        <i class="fa fa-fw fa-check me-1"></i>
-                                        I have read and understand the mission brief
-                                    </button>
-                                </form>
+                                        <div class="mt-2" x-show="expanded" x-cloak>
+                                            <form method="POST"
+                                                  action="{{ route('events.ack-mission-brief', compact('event')) }}">
+                                                @csrf
+                                                <button type="submit"
+                                                        class="btn btn-sm btn-outline-success">
+                                                    <i class="fa fa-fw fa-check me-1"></i>
+                                                    I have read and understand the mission brief
+                                                </button>
+                                            </form>
+                                        </div>
+                                    @endif
+                                </div>
                             @endif
                         </div>
                     @endif
