@@ -17,6 +17,7 @@ use App\Http\Controllers\Events\SignUpUpdateHtmxController;
 use App\Http\Controllers\Events\GuestUpdateHtmxController;
 use App\Http\Controllers\Events\ForumReplyController;
 use App\Http\Controllers\Events\UploadImageController;
+use App\Http\Controllers\Events\ToggleEventUploadTagController;
 use Illuminate\Support\Facades\Route;
 
 //  DASHBOARD
@@ -34,6 +35,7 @@ Route::prefix('events')
         Route::get('/details/{event}/roster-csv', [DownloadRosterCsvController::class, 'allShifts'])->name('download-roster-csv');
         Route::get('/details/{event}/shifts/{event_shift}/roster-csv', [DownloadRosterCsvController::class, 'singleShift'])->name('download-shift-roster-csv');
         Route::post('/upload/{event}', UploadImageController::class)->name('upload-image');
+        Route::post('/uploads/{event_upload}/toggle-tag', ToggleEventUploadTagController::class)->name('toggle-upload-tag');
         Route::post('/forum-reply/{event}', ForumReplyController::class)->name('forum-reply-htmx');
         Route::post('/share-roster/{event}', ShareRosterHtmxController::class)->name('share-roster-htmx');
         Route::post('/signup/{event_shift}/trooper', SignUpHtmxController::class)->name('signup-htmx');
