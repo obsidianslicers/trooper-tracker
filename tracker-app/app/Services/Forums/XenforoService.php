@@ -384,6 +384,35 @@ class XenforoService
     }
 
     /**
+     * Delete an existing XenForo thread.
+     *
+     * @return array{status:int,body:mixed}
+     */
+    public function delete_thread(int $thread_id): array
+    {
+        if (empty($this->base_url) || empty($this->api_key) || $thread_id <= 0)
+        {
+            return [
+                'status' => 0,
+                'body' => null,
+            ];
+        }
+
+        $url = $this->base_url.'/api/threads/'.$thread_id;
+
+        // Use the configured API user as the acting user; the thread
+        // being deleted is identified by the URL.
+        $headers = $this->buildApiHeaders();
+
+        $response = Http::withHeaders($headers)->delete($url);
+
+        return [
+            'status' => $response->status(),
+            'body' => $response->json(),
+        ];
+    }
+
+    /**
      * Update an existing XenForo post's message body.
      *
      * @return array{status:int,body:mixed}

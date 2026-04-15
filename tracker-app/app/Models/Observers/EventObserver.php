@@ -8,8 +8,10 @@ use App\Facades\TroopTrackerFacade;
 use App\Jobs\UpdateEventForumThreadJob;
 use App\Models\Event;
 use App\Models\Organization;
+use App\Services\Forums\XenforoService;
 use App\Services\GeocodingService;
 use App\Services\GoogleService;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
@@ -70,6 +72,47 @@ class EventObserver
         if ($this->shouldQueueForumThreadSync($event))
         {
             dispatch(new UpdateEventForumThreadJob($event->getKey()));
+        }
+    }
+
+    /**
+     * Handle the Event "deleted" event.
+     *
+     * When an event that has a linked XenForo thread is deleted, attempt to
+     * delete the corresponding thread from XenForo as well to keep the forum
+     * in sync.
+     */
+    public function deleted(Event $event): void
+    {
+        if (! TroopTrackerFacade::isXenforoIntegrationConfigured())
+        {
+            return;
+        }
+
+        if (! $event->create_forum_thread || empty($event->thread_id))
+        {
+            return;
+        }
+
+        try
+        {
+            $xenforo = app(XenforoService::class);
+
+            $result = $xenforo->delete_thread((int) $event->thread_id);
+
+            if (($result['status'] ?? 0) < 200 || ($result['status'] ?? 0) >= 300)
+            {
+                Log::warning('Failed to delete XenForo thread for deleted event', [
+                    'event' => $event->id,
+                    'thread_id' => $event->thread_id,
+                    'status' => $result['status'] ?? null,
+                    'body' => $result['body'] ?? null,
+                ]);
+            }
+        }
+        catch (Throwable $e)
+        {
+            report($e);
         }
     }
 

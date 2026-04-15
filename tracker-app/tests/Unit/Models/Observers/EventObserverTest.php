@@ -8,8 +8,10 @@ use App\Jobs\UpdateEventForumThreadJob;
 use App\Models\Event;
 use App\Models\Observers\EventObserver;
 use App\Models\Organization;
+use App\Services\Forums\XenforoService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
+use Mockery;
 use Tests\TestCase;
 
 class EventObserverTest extends TestCase
@@ -94,5 +96,37 @@ class EventObserverTest extends TestCase
         $event->save();
 
         Queue::assertNothingPushed();
+    }
+
+    public function test_deleted_deletes_forum_thread_when_xenforo_is_configured_and_thread_exists(): void
+    {
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'test-key',
+        ]);
+
+        $organization = Organization::factory()->create();
+        $event = Event::factory()
+            ->withOrganization($organization)
+            ->withForumThreadEnabled()
+            ->withForumThreadId(321)
+            ->create([
+                Event::POST_ID => 654,
+            ]);
+
+        $xenforo = Mockery::mock(XenforoService::class);
+        $xenforo->shouldReceive('delete_thread')
+            ->once()
+            ->with(321)
+            ->andReturn([
+                'status' => 204,
+                'body' => null,
+            ]);
+
+        $this->app->instance(XenforoService::class, $xenforo);
+
+        $subject = new EventObserver();
+
+        $subject->deleted($event);
     }
 }
