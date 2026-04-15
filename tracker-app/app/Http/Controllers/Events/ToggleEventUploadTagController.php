@@ -34,6 +34,11 @@ class ToggleEventUploadTagController
             abort(404);
         }
 
+        if ($event_upload->is_administrative)
+        {
+            abort(403);
+        }
+
         // Check if the trooper is already tagged on this upload.
         // Use fully-qualified column to avoid ambiguous `id` between
         // `tt_troopers` and the pivot table.
