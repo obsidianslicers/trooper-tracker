@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Awards;
 
 use App\Http\Controllers\MagicBusController;
+use App\Http\Requests\Admin\Awards\RemoveTrooperRequest;
 use App\Models\Award;
 use App\Models\AwardTrooper;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 
 /**
  * Handles removing an award from a specific trooper.
@@ -18,19 +18,14 @@ class RemoveTrooperController extends MagicBusController
     /**
      * Handle the request to remove an award from a trooper.
      */
-    public function __invoke(Request $request, Award $award): RedirectResponse
+    public function __invoke(RemoveTrooperRequest $request, Award $award): RedirectResponse
     {
         $this->authorize('update', $award);
 
-        $award_trooper_id = $request->input('remove_trooper_id')
-            ?? $request->input('award_trooper_id');
-
-        if ($award_trooper_id === null)
-        {
-            return redirect()->route('admin.awards.list-troopers', $award);
-        }
+        $award_trooper_id = $request->validated('remove_trooper_id');
 
         $award_trooper = AwardTrooper::query()
+            ->with('trooper:id,display_name')
             ->where(AwardTrooper::ID, $award_trooper_id)
             ->where(AwardTrooper::AWARD_ID, $award->id)
             ->first();

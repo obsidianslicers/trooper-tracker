@@ -72,14 +72,11 @@
                                       class="d-inline"
                                       novalidate="novalidate">
                                     @csrf
-
-                                                                        <input type="hidden"
-                                                                                     name="award_trooper_id"
-                                                                                     value="{{ $trooper->pivot->id }}" />
+                                    <input type="hidden"
+                                           name="remove_trooper_id"
+                                           value="{{ $trooper->pivot->id }}" />
 
                                     <button type="submit"
-                                            name="remove_trooper_id"
-                                            value="{{ $trooper->pivot->id }}"
                                             class="btn btn-outline-danger btn-sm"
                                             onclick="return confirm('Remove this award from {{ addslashes($trooper->display_name) }}?');">
                                         Remove
