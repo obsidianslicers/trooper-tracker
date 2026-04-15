@@ -295,6 +295,11 @@ class EventShift extends BaseEventShift
     {
         if ($this->is_open)
         {
+            if ($this->event->require_mission_brief_ack && !$this->event->hasMissionBriefAcknowledgementFor($trooper))
+            {
+                return false;
+            }
+
             if ($this->isGoing($trooper))
             {
                 return $this->hasRemainingFriendSlots($trooper);
@@ -380,6 +385,11 @@ class EventShift extends BaseEventShift
     {
         if ($this->is_open)
         {
+            if ($this->event->require_mission_brief_ack && !$this->event->hasMissionBriefAcknowledgementFor($trooper))
+            {
+                return false;
+            }
+
             if ($this->isGoing($trooper))
             {
                 return $this->hasRemainingGuestSlots($trooper);

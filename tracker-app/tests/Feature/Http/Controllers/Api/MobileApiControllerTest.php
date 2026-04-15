@@ -17,7 +17,6 @@ use App\Models\OauthLogin;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
-use App\Models\TrooperApiCode;
 use App\Models\TrooperCostume;
 use App\Models\TrooperOrganization;
 use Carbon\Carbon;
@@ -67,11 +66,6 @@ class MobileApiControllerTest extends TestCase
 
         $this->assertIsString($api_key);
         $this->assertSame(64, strlen($api_key));
-
-        $this->assertDatabaseHas('tt_trooper_api_codes', [
-            TrooperApiCode::TROOPER_ID => $trooper->id,
-            TrooperApiCode::API_CODE => $api_key,
-        ]);
 
         $this->assertDatabaseHas('tt_oauth_logins', [
             OauthLogin::TROOPER_ID => $trooper->id,
@@ -304,10 +298,7 @@ class MobileApiControllerTest extends TestCase
             OauthLogin::PROVIDER_ID => '15802',
         ]);
 
-        $apiCode = TrooperApiCode::create([
-            TrooperApiCode::TROOPER_ID => $trooper->id,
-            TrooperApiCode::API_CODE => str_repeat('a', 64),
-        ]);
+        $api_key = str_repeat('a', 64);
 
         TrooperOrganization::factory()
             ->forTrooper($trooper)
@@ -326,9 +317,7 @@ class MobileApiControllerTest extends TestCase
             ->forOrganizationCostume($organizationCostume)
             ->create();
 
-        $response = $this->withHeaders([
-            'API-Key' => $apiCode->api_code,
-        ])->get(route('api.mobile', [
+        $response = $this->get(route('api.mobile', [
                         'action' => 'get_costumes_for_trooper',
                         'trooperid' => 15802,
                         'friendid' => 0,
@@ -354,13 +343,9 @@ class MobileApiControllerTest extends TestCase
             OauthLogin::PROVIDER_ID => '15802',
         ]);
 
-        $apiCode = TrooperApiCode::create([
-            TrooperApiCode::TROOPER_ID => $trooper->id,
-            TrooperApiCode::API_CODE => str_repeat('b', 64),
-        ]);
+        $api_key = str_repeat('b', 64);
 
         $response = $this->withHeaders([
-            'API-Key' => $apiCode->api_code,
         ])->get(route('api.mobile', [
                         'action' => 'sign_up',
                         'trooperid' => 15802,
@@ -394,14 +379,7 @@ class MobileApiControllerTest extends TestCase
             OauthLogin::PROVIDER_ID => '15802',
         ]);
 
-        $apiCode = TrooperApiCode::create([
-            TrooperApiCode::TROOPER_ID => $trooper->id,
-            TrooperApiCode::API_CODE => str_repeat('c', 64),
-        ]);
-
-        $response = $this->withHeaders([
-            'API-Key' => $apiCode->api_code,
-        ])->get(route('api.mobile', [
+        $response = $this->get(route('api.mobile', [
                         'action' => 'sign_up',
                         'trooperid' => 15802,
                         'addedby' => 0,
@@ -435,13 +413,9 @@ class MobileApiControllerTest extends TestCase
             OauthLogin::PROVIDER_ID => '15802',
         ]);
 
-        $apiCode = TrooperApiCode::create([
-            TrooperApiCode::TROOPER_ID => $trooper->id,
-            TrooperApiCode::API_CODE => str_repeat('d', 64),
-        ]);
+        $api_key = str_repeat('d', 64);
 
         $response = $this->withHeaders([
-            'API-Key' => $apiCode->api_code,
         ])->get(route('api.mobile', [
                         'action' => 'cancel_shift',
                         'trooperid' => 15802,
@@ -475,14 +449,7 @@ class MobileApiControllerTest extends TestCase
             OauthLogin::PROVIDER_ID => '15802',
         ]);
 
-        $apiCode = TrooperApiCode::create([
-            TrooperApiCode::TROOPER_ID => $trooper->id,
-            TrooperApiCode::API_CODE => str_repeat('e', 64),
-        ]);
-
-        $response = $this->withHeaders([
-            'API-Key' => $apiCode->api_code,
-        ])->get(route('api.mobile', [
+        $response = $this->get(route('api.mobile', [
                         'action' => 'cancel_troop',
                         'trooperid' => 15802,
                         'troopid' => $event->id,
@@ -516,14 +483,7 @@ class MobileApiControllerTest extends TestCase
             OauthLogin::PROVIDER_ID => '15802',
         ]);
 
-        $apiCode = TrooperApiCode::create([
-            TrooperApiCode::TROOPER_ID => $trooper->id,
-            TrooperApiCode::API_CODE => str_repeat('f', 64),
-        ]);
-
-        $response = $this->withHeaders([
-            'API-Key' => $apiCode->api_code,
-        ])->get(route('api.mobile', [
+        $response = $this->get(route('api.mobile', [
                         'action' => 'cancel_guest',
                         'trooperid' => 15802,
                         'guestid' => $guest->id,
@@ -535,6 +495,155 @@ class MobileApiControllerTest extends TestCase
         $this->assertDatabaseHas('tt_event_guests', [
             EventGuest::ID => $guest->id,
             EventGuest::STATUS => EventGuestStatus::GOING->value,
+        ]);
+    }
+
+    public function test_sign_up_is_blocked_when_mission_brief_ack_required_and_missing(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $event = Event::factory()->create([
+            Event::REQUIRE_MISSION_BRIEF_ACK => true,
+        ]);
+        $shift = EventShift::factory()->forEvent($event)->create();
+        $costume = Costume::factory()->create();
+
+        OauthLogin::factory()->forTrooper($trooper)->create([
+            OauthLogin::PROVIDER => OauthProvider::XENFORO,
+            OauthLogin::PROVIDER_ID => '15802',
+        ]);
+
+        $response = $this->get(route('api.mobile', [
+                        'action' => 'sign_up',
+                        'trooperid' => 15802,
+                        'addedby' => 0,
+                        'troopid' => $event->id,
+                        'status' => EventTrooperStatus::GOING->value,
+                        'costume' => $costume->id,
+                        'backupcostume' => 0,
+                    ]));
+
+        $response->assertOk();
+        $response->assertJsonPath('success', false);
+
+        $this->assertDatabaseMissing('tt_event_troopers', [
+            EventTrooper::EVENT_SHIFT_ID => $shift->id,
+            EventTrooper::TROOPER_ID => $trooper->id,
+        ]);
+    }
+
+    public function test_sign_up_is_allowed_when_mission_brief_ack_present(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $event = Event::factory()->create([
+            Event::REQUIRE_MISSION_BRIEF_ACK => true,
+        ]);
+        $shift = EventShift::factory()->forEvent($event)->create();
+        $costume = Costume::factory()->create();
+
+        OauthLogin::factory()->forTrooper($trooper)->create([
+            OauthLogin::PROVIDER => OauthProvider::XENFORO,
+            OauthLogin::PROVIDER_ID => '15802',
+        ]);
+
+        \DB::table('tt_event_mission_acks')->insert([
+            'event_id' => $event->id,
+            'trooper_id' => $trooper->id,
+            'acknowledged_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $response = $this->get(route('api.mobile', [
+                        'action' => 'sign_up',
+                        'trooperid' => 15802,
+                        'addedby' => 0,
+                        'troopid' => $event->id,
+                        'status' => EventTrooperStatus::GOING->value,
+                        'costume' => $costume->id,
+                        'backupcostume' => 0,
+                    ]));
+
+        $response->assertOk();
+        $response->assertJsonPath('success', true);
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::EVENT_SHIFT_ID => $shift->id,
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::COSTUME_ID => $costume->id,
+            EventTrooper::STATUS => EventTrooperStatus::GOING->value,
+        ]);
+    }
+
+    public function test_add_guest_is_blocked_when_mission_brief_ack_required_and_missing(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $event = Event::factory()->create([
+            Event::REQUIRE_MISSION_BRIEF_ACK => true,
+        ]);
+        $shift = EventShift::factory()->forEvent($event)->create();
+
+        OauthLogin::factory()->forTrooper($trooper)->create([
+            OauthLogin::PROVIDER => OauthProvider::XENFORO,
+            OauthLogin::PROVIDER_ID => '15802',
+        ]);
+
+        $response = $this->get(route('api.mobile', [
+                        'action' => 'add_guest',
+                        'trooperid' => 15802,
+                        'troopid' => $event->id,
+                        'shiftid' => $shift->id,
+                        'name' => 'Test Guest',
+                    ]));
+
+        $response->assertOk();
+        $response->assertJsonPath('success', false);
+
+        $this->assertDatabaseMissing('tt_event_guests', [
+            EventGuest::EVENT_SHIFT_ID => $shift->id,
+            EventGuest::NAME => 'Test Guest',
+        ]);
+    }
+
+    public function test_add_guest_is_allowed_when_mission_brief_ack_present(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $event = Event::factory()->create([
+            Event::REQUIRE_MISSION_BRIEF_ACK => true,
+        ]);
+        $shift = EventShift::factory()->forEvent($event)->create();
+
+        OauthLogin::factory()->forTrooper($trooper)->create([
+            OauthLogin::PROVIDER => OauthProvider::XENFORO,
+            OauthLogin::PROVIDER_ID => '15802',
+        ]);
+
+        \DB::table('tt_event_mission_acks')->insert([
+            'event_id' => $event->id,
+            'trooper_id' => $trooper->id,
+            'acknowledged_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Ensure the trooper is already signed up and going on this shift
+        EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->create([
+            EventTrooper::STATUS => EventTrooperStatus::GOING,
+        ]);
+
+        $response = $this->get(route('api.mobile', [
+                        'action' => 'add_guest',
+                        'trooperid' => 15802,
+                        'troopid' => $event->id,
+                        'shiftid' => $shift->id,
+                        'name' => 'Test Guest',
+                    ]));
+
+        $response->assertOk();
+        $response->assertJsonPath('success', true);
+
+        $this->assertDatabaseHas('tt_event_guests', [
+            EventGuest::EVENT_SHIFT_ID => $shift->id,
+            EventGuest::NAME => 'Test Guest',
         ]);
     }
 }
