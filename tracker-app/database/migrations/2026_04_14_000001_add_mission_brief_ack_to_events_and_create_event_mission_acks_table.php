@@ -11,11 +11,6 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('tt_events', function (Blueprint $table)
-        {
-            $table->boolean('require_mission_brief_ack')->default(false);
-        });
-
         Schema::create('tt_event_mission_acks', function (Blueprint $table)
         {
             $table->id();
@@ -44,10 +39,5 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('tt_event_mission_acks');
-
-        Schema::table('tt_events', function (Blueprint $table)
-        {
-            $table->dropColumn('require_mission_brief_ack');
-        });
     }
 };
