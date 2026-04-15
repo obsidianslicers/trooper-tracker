@@ -20,6 +20,7 @@ erDiagram
     tt_troopers ||--o{ tt_event_upload_troopers : tagged
     tt_troopers ||--o{ tt_event_shares : shares
     tt_troopers ||--o{ tt_event_guests : adds
+    tt_troopers ||--o{ tt_event_mission_acks : acknowledges
     tt_troopers ||--o{ tt_award_troopers : receives
     tt_troopers ||--o{ tt_notice_troopers : receives
     tt_troopers ||--o{ tt_oauth_logins : has
@@ -48,9 +49,11 @@ erDiagram
     tt_events ||--o{ tt_event_organizations : has
     tt_events ||--o{ tt_event_uploads : has
     tt_events ||--o{ tt_event_shares : has
+  tt_events ||--o{ tt_event_mission_acks : has
 
     tt_event_shifts ||--o{ tt_event_troopers : has
     tt_event_shifts ||--o{ tt_event_guests : has
+    tt_event_mission_acks ||--|| tt_events : per_event_ack
 
     tt_event_uploads ||--o{ tt_event_upload_troopers : has
 
@@ -169,7 +172,7 @@ Events, Awards, and Notices. It uses:
 
 Discovered migration files: 29
 
-Discovered tables: 34
+Discovered tables: 35
 
 - tt_troopers
 - tt_password_reset_tokens
@@ -197,6 +200,7 @@ Discovered tables: 34
 - tt_event_upload_troopers
 - tt_event_shares
 - tt_event_guests
+- tt_event_mission_acks
 - tt_awards
 - tt_award_troopers
 - tt_notices
@@ -630,6 +634,7 @@ Purpose: Event master records.
 | referred_by | varchar(1024) | yes |  |
 | source | text | yes |  |
 | comments | text | yes |  |
+| require_mission_brief_ack | boolean | no | default false |
 | created_at | timestamp | yes | timestamps helper |
 | updated_at | timestamp | yes | timestamps helper |
 | deleted_at | timestamp | yes | softDeletes helper |
@@ -834,6 +839,28 @@ Relationships:
 
 - Belongs To: tt_event_shifts
 - Belongs To: tt_troopers (added_by_trooper_id)
+
+### tt_event_mission_acks
+
+Purpose: Per-trooper mission brief acknowledgements for an event.
+
+| Column | Type | Nullable | Key / Constraints |
+| --- | --- | --- | --- |
+| id | bigint unsigned | no | PK, auto increment |
+| event_id | bigint unsigned | no | FK -> tt_events.id, cascadeOnDelete, unique with trooper_id |
+| trooper_id | bigint unsigned | no | FK -> tt_troopers.id, cascadeOnDelete, unique with event_id |
+| acknowledged_at | datetime | no | default CURRENT_TIMESTAMP |
+| created_at | timestamp | yes | timestamps helper |
+| updated_at | timestamp | yes | timestamps helper |
+| deleted_at | timestamp | yes | softDeletes helper |
+| created_id | bigint unsigned | yes | trooperstamps helper |
+| updated_id | bigint unsigned | yes | trooperstamps helper |
+| deleted_id | bigint unsigned | yes | trooperstamps helper |
+
+Relationships:
+
+- Belongs To: tt_events
+- Belongs To: tt_troopers
 
 ### tt_awards
 

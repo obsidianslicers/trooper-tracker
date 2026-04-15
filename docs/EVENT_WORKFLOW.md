@@ -1,4 +1,35 @@
-# Event Notifications
+# Event Workflow
+
+This document covers how events behave in the system, including notifications and mission brief acknowledgements.
+
+## Mission Brief Acknowledgement
+
+Some events require troopers to review and acknowledge the mission brief before they can participate.
+
+### Overview
+
+- Command staff can toggle a per-event flag `require_mission_brief_ack` when creating or editing an event.
+- When enabled, troopers must decrypt/read the mission brief and explicitly acknowledge it on the event page.
+- A single acknowledgement is stored per trooper per event in `tt_event_mission_acks` and is reused across all shifts and signup channels (web and mobile).
+
+### Web App Behaviour
+
+- Until a trooper has acknowledged the mission brief for an event:
+   - Shift sign-up actions are blocked.
+   - "Add a Trooper" and "Add a Guest" options are hidden/disabled.
+- After acknowledgement:
+   - Normal sign-up rules apply (event status, capacity, manual selection, guest limits, etc.).
+   - The UI shows that the mission brief has been acknowledged.
+
+### Data Model
+
+- `tt_events.require_mission_brief_ack` (boolean, default `false`): enables the requirement for an event.
+- `tt_event_mission_acks`:
+   - Links a trooper to an event (`event_id`, `trooper_id`).
+   - Records when the mission brief was acknowledged (`acknowledged_at`).
+   - Enforced by application logic when evaluating whether a trooper can sign up or add guests.
+
+## Event Notifications
 
 Event notification system for informing troopers about new events and cancellations.
 
