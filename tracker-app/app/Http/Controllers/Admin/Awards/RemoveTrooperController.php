@@ -7,7 +7,6 @@ namespace App\Http\Controllers\Admin\Awards;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Award;
 use App\Models\AwardTrooper;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -30,13 +29,6 @@ class RemoveTrooperController extends MagicBusController
         $award_trooper_id = $request->input('remove_trooper_id')
             ?? $request->input('award_trooper_id');
 
-        Log::info('RemoveTrooperController invoked', [
-            'award_id' => $award->id,
-            'remove_trooper_id' => $award_trooper_id,
-            'user_id' => $request->user()?->id,
-            'payload' => $request->all(),
-        ]);
-
         if ($award_trooper_id === null)
         {
             return redirect()->route('admin.awards.list-troopers', $award);
@@ -53,21 +45,7 @@ class RemoveTrooperController extends MagicBusController
 
             $award_trooper->delete();
 
-            Log::info('AwardTrooper soft-deleted', [
-                'award_trooper_id' => $award_trooper->id,
-                'award_id' => $award->id,
-                'trooper_id' => $award_trooper->trooper_id,
-            ]);
-
             $this->flash->success('Removed award from '.$trooper_name);
-        }
-        else
-        {
-            Log::warning('AwardTrooper not found for removal', [
-                'award_id' => $award->id,
-                'remove_trooper_id' => $award_trooper_id,
-                'payload' => $request->all(),
-            ]);
         }
 
         return redirect()->route('admin.awards.list-troopers', $award);
