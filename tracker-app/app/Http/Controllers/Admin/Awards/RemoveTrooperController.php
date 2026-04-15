@@ -17,10 +17,6 @@ class RemoveTrooperController extends MagicBusController
 {
     /**
      * Handle the request to remove an award from a trooper.
-     *
-     * @param  Request  $request
-     * @param  Award  $award
-     * @return RedirectResponse
      */
     public function __invoke(Request $request, Award $award): RedirectResponse
     {
