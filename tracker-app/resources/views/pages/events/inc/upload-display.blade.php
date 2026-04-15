@@ -8,7 +8,7 @@
                 @endphp
 
                 <div class="col">
-                    <div class="card h-100 position-relative {{ $is_administrative ? '' : 'event-image-share-wrapper'}}">
+                    <div class="card h-100 position-relative event-image-share-wrapper">
                         <img src="{{ $event_upload->small_url }}"
                              class="card-img-top rounded"
                              alt="Image #{{ $event_upload->id }}" />
