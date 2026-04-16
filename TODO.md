@@ -47,9 +47,6 @@
 ### COSTUMES
 - Update/Delete Costumes from UI
 
-## PHOTOS
-- Ensure low/high quality photos loaded. Tool to view them better
-
 ## INTEGRATIONS
 - todo:   club/organization identifiers
   - auto verify club identifiers on registration

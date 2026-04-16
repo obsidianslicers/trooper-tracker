@@ -98,6 +98,8 @@ readonly class GetEventDisplayQueryHandler implements QueryHandlerInterface
             'event_shifts.event_troopers' => function ($query) {
                 $query->orderBy(EventTrooper::SIGNED_UP_AT, 'asc');
             },
+            'event_uploads',
+            'event_uploads.troopers',
         ];
     }
 }

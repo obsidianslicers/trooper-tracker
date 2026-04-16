@@ -159,3 +159,42 @@
         max-width: 100%;
     }
 </style>
+
+@section('page-script')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var modal = document.getElementById('serviceRecordPhotoModal');
+            if (!modal) return;
+
+            modal.addEventListener('show.bs.modal', function (event) {
+                var trigger = event.relatedTarget;
+                if (!trigger) return;
+
+                var url = trigger.getAttribute('data-photo-url');
+                var image = modal.querySelector('#serviceRecordPhotoModalImage');
+
+                if (image && url) {
+                    image.setAttribute('src', url);
+                }
+            });
+        });
+    </script>
+
+    <div class="modal fade" id="serviceRecordPhotoModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-fullscreen-sm-down">
+            <div class="modal-content bg-dark border-0">
+                <div class="modal-body p-0 position-relative">
+                    <button type="button"
+                            class="btn-close btn-close-white position-absolute top-0 end-0 m-3"
+                            data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+
+                    <img id="serviceRecordPhotoModalImage"
+                         src=""
+                         alt="Service record photo"
+                         class="img-fluid w-100" />
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection
