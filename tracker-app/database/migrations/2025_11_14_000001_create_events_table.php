@@ -92,6 +92,7 @@ return new class extends Migration
             $table->text('source')->nullable();
 
             $table->text('comments')->nullable();
+            $table->boolean('require_mission_brief_ack')->default(false);
 
             $table->timestamps();
             $table->softDeletes();

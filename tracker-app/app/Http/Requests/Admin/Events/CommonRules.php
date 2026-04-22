@@ -78,6 +78,7 @@ trait CommonRules
             Event::ALLOW_PROPS => ['boolean'],
             Event::PARKING_AVAILABLE => ['boolean'],
             Event::ACCESSIBLE => ['boolean'],
+            Event::REQUIRE_MISSION_BRIEF_ACK => ['boolean'],
             Event::CREATE_FORUM_THREAD => ['boolean'],
             Event::THREAD_ID => ['nullable', 'integer', 'min:1'],
             Event::POST_ID => ['nullable', 'integer', 'min:1'],

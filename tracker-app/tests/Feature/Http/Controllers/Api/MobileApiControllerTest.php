@@ -492,4 +492,153 @@ class MobileApiControllerTest extends TestCase
             EventGuest::STATUS => EventGuestStatus::GOING->value,
         ]);
     }
+
+    public function test_sign_up_is_blocked_when_mission_brief_ack_required_and_missing(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $event = Event::factory()->create([
+            Event::REQUIRE_MISSION_BRIEF_ACK => true,
+        ]);
+        $shift = EventShift::factory()->forEvent($event)->create();
+        $costume = Costume::factory()->create();
+
+        OauthLogin::factory()->forTrooper($trooper)->create([
+            OauthLogin::PROVIDER => OauthProvider::XENFORO,
+            OauthLogin::PROVIDER_ID => '15802',
+        ]);
+
+        $response = $this->get(route('api.mobile', [
+                        'action' => 'sign_up',
+                        'trooperid' => 15802,
+                        'addedby' => 0,
+                        'troopid' => $event->id,
+                        'status' => EventTrooperStatus::GOING->value,
+                        'costume' => $costume->id,
+                        'backupcostume' => 0,
+                    ]));
+
+        $response->assertOk();
+        $response->assertJsonPath('success', false);
+
+        $this->assertDatabaseMissing('tt_event_troopers', [
+            EventTrooper::EVENT_SHIFT_ID => $shift->id,
+            EventTrooper::TROOPER_ID => $trooper->id,
+        ]);
+    }
+
+    public function test_sign_up_is_allowed_when_mission_brief_ack_present(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $event = Event::factory()->create([
+            Event::REQUIRE_MISSION_BRIEF_ACK => true,
+        ]);
+        $shift = EventShift::factory()->forEvent($event)->create();
+        $costume = Costume::factory()->create();
+
+        OauthLogin::factory()->forTrooper($trooper)->create([
+            OauthLogin::PROVIDER => OauthProvider::XENFORO,
+            OauthLogin::PROVIDER_ID => '15802',
+        ]);
+
+        \DB::table('tt_event_mission_acks')->insert([
+            'event_id' => $event->id,
+            'trooper_id' => $trooper->id,
+            'acknowledged_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $response = $this->get(route('api.mobile', [
+                        'action' => 'sign_up',
+                        'trooperid' => 15802,
+                        'addedby' => 0,
+                        'troopid' => $event->id,
+                        'status' => EventTrooperStatus::GOING->value,
+                        'costume' => $costume->id,
+                        'backupcostume' => 0,
+                    ]));
+
+        $response->assertOk();
+        $response->assertJsonPath('success', true);
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::EVENT_SHIFT_ID => $shift->id,
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::COSTUME_ID => $costume->id,
+            EventTrooper::STATUS => EventTrooperStatus::GOING->value,
+        ]);
+    }
+
+    public function test_add_guest_is_blocked_when_mission_brief_ack_required_and_missing(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $event = Event::factory()->create([
+            Event::REQUIRE_MISSION_BRIEF_ACK => true,
+        ]);
+        $shift = EventShift::factory()->forEvent($event)->create();
+
+        OauthLogin::factory()->forTrooper($trooper)->create([
+            OauthLogin::PROVIDER => OauthProvider::XENFORO,
+            OauthLogin::PROVIDER_ID => '15802',
+        ]);
+
+        $response = $this->get(route('api.mobile', [
+                        'action' => 'add_guest',
+                        'trooperid' => 15802,
+                        'troopid' => $event->id,
+                        'shiftid' => $shift->id,
+                        'name' => 'Test Guest',
+                    ]));
+
+        $response->assertOk();
+        $response->assertJsonPath('success', false);
+
+        $this->assertDatabaseMissing('tt_event_guests', [
+            EventGuest::EVENT_SHIFT_ID => $shift->id,
+            EventGuest::NAME => 'Test Guest',
+        ]);
+    }
+
+    public function test_add_guest_is_allowed_when_mission_brief_ack_present(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $event = Event::factory()->create([
+            Event::REQUIRE_MISSION_BRIEF_ACK => true,
+        ]);
+        $shift = EventShift::factory()->forEvent($event)->create();
+
+        OauthLogin::factory()->forTrooper($trooper)->create([
+            OauthLogin::PROVIDER => OauthProvider::XENFORO,
+            OauthLogin::PROVIDER_ID => '15802',
+        ]);
+
+        \DB::table('tt_event_mission_acks')->insert([
+            'event_id' => $event->id,
+            'trooper_id' => $trooper->id,
+            'acknowledged_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Ensure the trooper is already signed up and going on this shift
+        EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->create([
+            EventTrooper::STATUS => EventTrooperStatus::GOING,
+        ]);
+
+        $response = $this->get(route('api.mobile', [
+                        'action' => 'add_guest',
+                        'trooperid' => 15802,
+                        'troopid' => $event->id,
+                        'shiftid' => $shift->id,
+                        'name' => 'Test Guest',
+                    ]));
+
+        $response->assertOk();
+        $response->assertJsonPath('success', true);
+
+        $this->assertDatabaseHas('tt_event_guests', [
+            EventGuest::EVENT_SHIFT_ID => $shift->id,
+            EventGuest::NAME => 'Test Guest',
+        ]);
+    }
 }

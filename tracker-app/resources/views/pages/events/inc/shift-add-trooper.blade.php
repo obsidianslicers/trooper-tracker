@@ -1,4 +1,9 @@
-@if($event_shift->canSignUp(Auth::user()))
+@php
+    $requires_mission_brief_ack = $event->require_mission_brief_ack;
+    $has_required_mission_brief_ack = !$requires_mission_brief_ack || $event->hasMissionBriefAcknowledgementFor(Auth::user());
+@endphp
+
+@if($event_shift->canSignUp(Auth::user()) && $has_required_mission_brief_ack)
     <button class="btn btn-sm btn-outline-success text-start text-md-center htmx-disable"
             hx-post="{{ route('events.signup-htmx', compact('event_shift')) }}"
             hx-select="#shift-container-{{ $event_shift->id }}"
@@ -13,9 +18,14 @@
             Trooper Sign Up
         @endif
     </button>
+@elseif($requires_mission_brief_ack && !$has_required_mission_brief_ack)
+    <span class="d-block small text-warning mb-2">
+        <i class="fa fa-fw fa-triangle-exclamation me-1"></i>
+        Review and acknowledge the mission brief above to enable sign-ups.
+    </span>
 @endif
-{{-- only adults can signup others --}}
-@if(Auth::user()->is_adult && $event_shift->is_open)
+{{-- only adults can signup others; requires mission brief acknowledgement when enabled --}}
+@if(Auth::user()->is_adult && $event_shift->is_open && $has_required_mission_brief_ack)
     @if($event->friends_allowed !== 0 && $event_shift->hasRemainingFriendSlots(Auth::user()))
         @if ($event_shift->isGoing(Auth::user()) || $can_moderate)
             {{-- if they are a normal user and already signed up - they can sign up a friend --}}

@@ -71,6 +71,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $referred_by
  * @property string|null $source
  * @property string|null $comments
+ * @property bool $require_mission_brief_ack
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property string|null $deleted_at
@@ -138,6 +139,7 @@ class Event extends Model
     const REFERRED_BY = 'referred_by';
     const SOURCE = 'source';
     const COMMENTS = 'comments';
+    const REQUIRE_MISSION_BRIEF_ACK = 'require_mission_brief_ack';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
     const DELETED_AT = 'deleted_at';
@@ -175,6 +177,7 @@ class Event extends Model
         self::ALLOW_PROPS => 'bool',
         self::PARKING_AVAILABLE => 'bool',
         self::ACCESSIBLE => 'bool',
+        self::REQUIRE_MISSION_BRIEF_ACK => 'bool',
         self::CREATED_AT => 'datetime',
         self::UPDATED_AT => 'datetime',
         self::CREATED_ID => 'int',
@@ -229,7 +232,8 @@ class Event extends Model
         self::AMENITIES,
         self::REFERRED_BY,
         self::SOURCE,
-        self::COMMENTS
+        self::COMMENTS,
+        self::REQUIRE_MISSION_BRIEF_ACK
     ];
 
     public function organization(): BelongsTo

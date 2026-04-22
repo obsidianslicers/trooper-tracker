@@ -10,6 +10,7 @@ use App\Http\Controllers\Events\EventDisplayController;
 use App\Http\Controllers\Events\GuestSignUpHtmxController;
 use App\Http\Controllers\Events\ListController;
 use App\Http\Controllers\Events\MapController;
+use App\Http\Controllers\Events\MissionBriefAcknowledgeController;
 use App\Http\Controllers\Events\ShareRosterHtmxController;
 use App\Http\Controllers\Events\ShiftCompleteController;
 use App\Http\Controllers\Events\SignUpHtmxController;
@@ -32,6 +33,7 @@ Route::prefix('events')
         Route::get('/closed', ClosedController::class)->name('closed');
         Route::get('/cancelled', CancelledController::class)->name('cancelled');
         Route::get('/details/{event}', EventDisplayController::class)->name('display');
+        Route::post('/details/{event}/ack-mission-brief', MissionBriefAcknowledgeController::class)->name('ack-mission-brief');
         Route::get('/details/{event}/roster-csv', [DownloadRosterCsvController::class, 'allShifts'])->name('download-roster-csv');
         Route::get('/details/{event}/shifts/{event_shift}/roster-csv', [DownloadRosterCsvController::class, 'singleShift'])->name('download-shift-roster-csv');
         Route::post('/upload/{event}', UploadImageController::class)->name('upload-image');

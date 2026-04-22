@@ -122,6 +122,8 @@ class MobileApiController
 
                 $action === 'cancel_guest' && $request->has('trooperid', 'guestid') => $this->cancelGuest($request),
 
+                $action === 'ack_mission_brief' && $request->has('trooperid', 'troopid') => $this->acknowledgeMissionBrief($request),
+
                 $action === 'sign_up' && $request->has('trooperid', 'troopid', 'addedby', 'status', 'costume', 'backupcostume') => $this->signUp($request),
 
                 $action === 'get_photos_by_event' && $request->has('troopid') => $this->getPhotosByEvent($request),
@@ -434,6 +436,8 @@ class MobileApiController
                 'limitHandlers' => $handlers_allowed,
                 'guests_allowed' => $event->guests_allowed,
                 'friends_allowed' => $event->friends_allowed,
+                'missionBriefRequired' => (bool) $event->require_mission_brief_ack,
+                'hasMissionBriefAck' => $trooper ? $event->hasMissionBriefAcknowledgementFor($trooper) : false,
             ],
             [
                 'isLimited' => $is_limited,
@@ -987,6 +991,19 @@ class MobileApiController
             return response()->json(['success' => false, 'success_message' => 'Event not found.']);
         }
 
+        if ($event->require_mission_brief_ack)
+        {
+            $ack_trooper = $added_by ?? $trooper;
+
+            if ($ack_trooper === null || !$event->hasMissionBriefAcknowledgementFor($ack_trooper))
+            {
+                return response()->json([
+                    'success' => false,
+                    'success_message' => 'You must review and acknowledge the mission brief on the mission briefing page before signing up.',
+                ]);
+            }
+        }
+
         if ($event->status === EventStatus::CANCELLED)
         {
             return response()->json(['success' => false, 'success_message' => 'This event was CANCELED by Command Staff.']);
@@ -1286,6 +1303,16 @@ class MobileApiController
             return response()->json(['success' => false, 'message' => 'Shift not found.']);
         }
 
+        $event = $shift->event;
+
+        if ($event->require_mission_brief_ack && !$event->hasMissionBriefAcknowledgementFor($trooper))
+        {
+            return response()->json([
+                'success' => false,
+                'message' => 'You must review and acknowledge the mission brief on the mission briefing page before adding a guest.',
+            ]);
+        }
+
         if (!$shift->canSignUpGuest($trooper))
         {
             return response()->json(['success' => false, 'message' => 'You cannot add a guest to this shift.']);
@@ -1341,6 +1368,46 @@ class MobileApiController
         $guest->update([EventGuest::STATUS => EventGuestStatus::CANCELLED->value]);
 
         return response()->json(['success' => true]);
+    }
+
+    /**
+     * action=ack_mission_brief
+     * Record that a trooper has acknowledged the mission brief for an event.
+     */
+    private function acknowledgeMissionBrief(Request $request): JsonResponse
+    {
+        $user_id = (int) $request->input('trooperid');
+        $trooper = $this->trooperFromUserId($user_id);
+        $event_id = (int) $request->input('troopid');
+
+        if (!$trooper)
+        {
+            return response()->json(['success' => false, 'message' => 'Trooper not found.'], 404);
+        }
+
+        $event = Event::find($event_id);
+
+        if (!$event)
+        {
+            return response()->json(['success' => false, 'message' => 'Event not found.'], 404);
+        }
+
+        DB::table('tt_event_mission_acks')->updateOrInsert(
+            [
+                'event_id' => $event->id,
+                'trooper_id' => $trooper->id,
+            ],
+            [
+                'acknowledged_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
+
+        return response()->json([
+            'success' => true,
+            'missionBriefRequired' => (bool) $event->require_mission_brief_ack,
+            'hasMissionBriefAck' => true,
+        ]);
     }
 
     // -------------------------------------------------------------------------
