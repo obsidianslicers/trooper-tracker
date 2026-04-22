@@ -110,6 +110,15 @@ Troop Tracker follows **Action-Domain-Responder (ADR)** with **Command/Query Sep
 - **Testing**: PHPUnit with Feature/Unit test separation
 - **Models**: Auto-generated via Reliese Laravel
 
+### Required XenForo add-ons
+
+When integrating Troop Tracker with XenForo for authentication, chat, and forum features, install these add-ons into your XenForo instance:
+
+- [TroopTrackerViewAttachment](https://github.com/MattDrennan/TroopTrackerViewAttachment)
+- [TroopTrackerIgnoreUsers](https://github.com/MattDrennan/TroopTrackerIgnoreUsers)
+- [TroopTrackerUserGroups](https://github.com/MattDrennan/TroopTrackerUserGroups)
+- [Troop Tracker - Upgrade Stats](https://github.com/MattDrennan/Troop-Tracker---Upgrade-Stats)
+
 ---
 
 ## Contributor Quickstart

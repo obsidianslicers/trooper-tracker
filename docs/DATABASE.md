@@ -24,7 +24,6 @@ erDiagram
     tt_troopers ||--o{ tt_notice_troopers : receives
     tt_troopers ||--o{ tt_oauth_logins : has
     tt_troopers ||--o{ tt_model_changes : changed_by
-    tt_troopers ||--o{ tt_trooper_api_codes : has
     tt_troopers ||--o{ tt_mobile_devices : has
 
     tt_organizations ||--o{ tt_organizations : parent_of
@@ -70,7 +69,6 @@ erDiagram
     tt_troopers ||--o{ tt_trooper_costumes : has
     tt_troopers ||--o{ tt_trooper_achievements : has
     tt_troopers ||--o{ tt_trooper_friends : has
-    tt_troopers ||--o{ tt_trooper_api_codes : has
     tt_troopers ||--o{ tt_mobile_devices : has
 
     tt_organizations ||--o{ tt_trooper_assignments : has
@@ -141,7 +139,6 @@ erDiagram
   ```mermaid
   erDiagram
     tt_troopers ||--o{ tt_oauth_logins : authenticates_with
-    tt_troopers ||--o{ tt_trooper_api_codes : owns
     tt_troopers ||--o{ tt_mobile_devices : registers
 
     tt_cache ||--|| tt_cache : key_value_store
@@ -203,7 +200,6 @@ Discovered tables: 34
 - tt_notice_troopers
 - tt_oauth_logins
 - tt_model_changes
-- tt_trooper_api_codes
 - tt_mobile_devices
 
 ## Table Dictionary
@@ -242,7 +238,7 @@ Relationships:
   tt_trooper_costumes, tt_trooper_achievements, tt_trooper_friends, tt_event_notifications,
   tt_event_troopers, tt_event_uploads, tt_event_upload_troopers, tt_event_shares,
   tt_event_guests, tt_award_troopers, tt_notice_troopers, tt_oauth_logins, tt_model_changes,
-  tt_trooper_api_codes, tt_mobile_devices
+  tt_mobile_devices
 
 ### tt_password_reset_tokens
 
@@ -972,22 +968,6 @@ Relationships:
 
 - Morphs To: auditable (auditable_type, auditable_id)
 - Belongs To: tt_troopers (trooper_id)
-
-### tt_trooper_api_codes
-
-Purpose: API codes per Trooper.
-
-| Column | Type | Nullable | Key / Constraints |
-| --- | --- | --- | --- |
-| id | bigint unsigned | no | PK, auto increment |
-| trooper_id | bigint unsigned | no | FK -> tt_troopers.id, cascadeOnDelete |
-| api_code | varchar(64) | no | unique |
-| created_at | timestamp | yes | timestamps helper |
-| updated_at | timestamp | yes | timestamps helper |
-
-Relationships:
-
-- Belongs To: tt_troopers
 
 ### tt_mobile_devices
 

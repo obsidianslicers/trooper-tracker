@@ -325,7 +325,6 @@ return [
             'title_troopers',
             'titles',
             'troopers',
-            'trooper_api_codes',
             'uploads',
         ],
 
