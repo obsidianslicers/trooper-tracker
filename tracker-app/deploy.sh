@@ -46,6 +46,9 @@ $PHP artisan view:cache
 echo "✅ Bringing application online..."
 $PHP artisan up
 
+echo "✅ Restarting queues..."
+$PHP artisan queue:restart
+
 echo "💰 Recalculating trooper achievements and donation totals..."
 $PHP artisan tracker:calculate-trooper-achievements
 

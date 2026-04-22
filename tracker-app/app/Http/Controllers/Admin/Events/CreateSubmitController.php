@@ -10,9 +10,9 @@ use App\Features\Events\Commands\UpdateEventOrganizationsCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Events\CreateRequest;
 use App\Jobs\SendEventCreatedNotificationsJob;
-use App\Models\Base\EventShift;
 use App\Models\Event;
 use App\Models\EventOrganization;
+use App\Models\EventShift;
 use App\Models\Organization;
 use Illuminate\Http\RedirectResponse;
 
@@ -70,6 +70,7 @@ class CreateSubmitController extends MagicBusController
         $event_shift->event_id = $event->id;
         $event_shift->shift_starts_at = $event->event_start;
         $event_shift->shift_ends_at = $event->event_end;
+        $event_shift->status = $event->status;
         $event_shift->save();
 
         $this->bus->send(new UpdateEventOrganizationsCommand($event, $request->validated('organizations') ?? []));

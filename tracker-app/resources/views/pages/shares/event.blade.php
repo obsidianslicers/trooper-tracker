@@ -4,14 +4,25 @@
 
 @section('page-meta')
 
-    <meta property="og:title"
-          content="{{ $event->name }}" />
-    <meta property="og:description"
-          content="{{ $event->name }} happening {{ $event->time_display }}. View details on the Troop Tracker." />
     <meta property="og:url"
-          content="{{ route('shares.event', compact('event')) }}" />
-    <meta property="og:type"
-          content="event" />
+          content="{{ url()->current() }}" />
+
+    @if($sharing_image)
+        <meta property="og:title"
+              content="Photo from {{ $event->name }}" />
+        <meta property="og:description"
+              content="Photo from {{ $event->name }}" />
+        <meta property="og:type"
+              content="website" />
+    @else
+        <meta property="og:title"
+              content="{{ $event->name }}" />
+        <meta property="og:description"
+              content="{{ $event->name }} happening {{ $event->time_display }}. View details on the Troop Tracker." />
+        <meta property="og:type"
+              content="event" />
+    @endif
+
     <meta property="article:published_time"
           content="{{ $event->created_at->toIso8601String() }}" />
     <meta property="article:modified_time"

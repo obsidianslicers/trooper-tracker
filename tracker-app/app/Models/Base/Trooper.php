@@ -20,7 +20,6 @@ use App\Models\NoticeTrooper;
 use App\Models\OauthLogin;
 use App\Models\Organization;
 use App\Models\TrooperAchievement;
-use App\Models\TrooperApiCode;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperCostume;
 use App\Models\TrooperDonation;
@@ -70,7 +69,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Collection|Notice[] $notices
  * @property Collection|OauthLogin[] $oauth_logins
  * @property Collection|TrooperAchievement[] $trooper_achievements
- * @property Collection|TrooperApiCode[] $trooper_api_codes
  * @property Collection|TrooperAssignment[] $trooper_assignments
  * @property Collection|TrooperCostume[] $trooper_costumes
  * @property Collection|TrooperDonation[] $trooper_donations
@@ -205,10 +203,7 @@ class Trooper extends Model
         return $this->hasMany(TrooperAchievement::class);
     }
 
-    public function trooper_api_codes(): HasMany
-    {
-        return $this->hasMany(TrooperApiCode::class);
-    }
+    // Authentication now relies on XenForo OAuth tokens.
 
     public function trooper_assignments(): HasMany
     {

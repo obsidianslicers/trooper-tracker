@@ -21,7 +21,6 @@ use App\Models\MobileDevice;
 use App\Models\OauthLogin;
 use App\Models\Organization;
 use App\Models\Trooper;
-use App\Models\TrooperApiCode;
 use App\Models\TrooperOrganization;
 use App\Services\Forums\XenforoService;
 use App\Services\Mobile\MobileForumLoginException;
@@ -164,38 +163,29 @@ class MobileApiController
     // -------------------------------------------------------------------------
 
     /**
-     * Generate a unique 64-character API key for a trooper and store it.
-     */
-    private function generateApiKey(int $trooper_id): string
-    {
-        do
-        {
-            $api_key = bin2hex(random_bytes(32));
-        }
-        while (TrooperApiCode::where(TrooperApiCode::API_CODE, $api_key)->exists());
-
-        TrooperApiCode::create([
-            TrooperApiCode::TROOPER_ID => $trooper_id,
-            TrooperApiCode::API_CODE => $api_key,
-        ]);
-
-        return $api_key;
-    }
-
-    /**
-     * Validate the API-Key header and return the associated trooper ID, or null.
+     * Validate the API-Key header (now a XenForo OAuth access token) and
+     * return the associated trooper ID, or null if the token is missing or
+     * invalid.
      */
     private function validateApiKey(Request $request): ?int
     {
         $api_key = $request->header('API-Key');
 
-        if (empty($api_key))
+        if ($api_key === null || $api_key === '')
         {
             return null;
         }
 
-        return TrooperApiCode::where(TrooperApiCode::API_CODE, $api_key)
-            ->value(TrooperApiCode::TROOPER_ID);
+        try
+        {
+            $authenticated = $this->mobile_forum_login_service->authenticate($api_key);
+
+            return $authenticated['trooper']->id;
+        }
+        catch (MobileForumLoginException)
+        {
+            return null;
+        }
     }
 
     /**
@@ -250,7 +240,8 @@ class MobileApiController
 
     /**
      * action=login_with_forum
-     * Authenticate via Xenforo OAuth and return an API key.
+     * Authenticate via Xenforo OAuth and return a token that the
+     * mobile app can reuse as its API key for subsequent requests.
      */
     private function loginWithForum(Request $request): JsonResponse
     {
@@ -267,7 +258,12 @@ class MobileApiController
 
             return response()->json([
                 'success' => true,
-                'apiKey' => $this->generateApiKey($trooper->id),
+                // The mobile client stores this as its "API key" and
+                // sends it back in the API-Key header on future
+                // requests. The value is the XenForo OAuth access
+                // token, validated on each request via
+                // MobileForumLoginService.
+                'apiKey' => $access_token,
                 'user' => [
                     'user_id' => (string) ($forum_user['user_id'] ?? ''),
                     'username' => (string) ($forum_user['username'] ?? $trooper->display_name),
@@ -1233,11 +1229,8 @@ class MobileApiController
     private function logoutFcm(Request $request): JsonResponse
     {
         $fcm_token = $request->input('fcm');
-        $api_key = $request->input('apiKey');
-
-        DB::transaction(function () use ($fcm_token, $api_key) {
+        DB::transaction(function () use ($fcm_token) {
             MobileDevice::where(MobileDevice::FCM_TOKEN, $fcm_token)->delete();
-            TrooperApiCode::where(TrooperApiCode::API_CODE, $api_key)->delete();
         });
 
         return response()->json(['success' => 'Records deleted!']);

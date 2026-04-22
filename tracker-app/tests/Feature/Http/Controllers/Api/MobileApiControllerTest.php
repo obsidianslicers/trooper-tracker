@@ -64,8 +64,11 @@ class MobileApiControllerTest extends TestCase
 
         $api_key = $response->json('apiKey');
 
+        // API key is now the XenForo OAuth access token; we just
+        // ensure it is returned as a non-empty string and that the
+        // OAuth login record was stored correctly.
         $this->assertIsString($api_key);
-        $this->assertSame(64, strlen($api_key));
+        $this->assertNotSame('', $api_key);
 
         $this->assertDatabaseHas('tt_oauth_logins', [
             OauthLogin::TROOPER_ID => $trooper->id,
@@ -298,8 +301,6 @@ class MobileApiControllerTest extends TestCase
             OauthLogin::PROVIDER_ID => '15802',
         ]);
 
-        $api_key = str_repeat('a', 64);
-
         TrooperOrganization::factory()
             ->forTrooper($trooper)
             ->forOrganization($organization)
@@ -342,11 +343,8 @@ class MobileApiControllerTest extends TestCase
             OauthLogin::PROVIDER => OauthProvider::XENFORO,
             OauthLogin::PROVIDER_ID => '15802',
         ]);
-
-        $api_key = str_repeat('b', 64);
-
-        $response = $this->withHeaders([
-        ])->get(route('api.mobile', [
+        
+        $response = $this->get(route('api.mobile', [
                         'action' => 'sign_up',
                         'trooperid' => 15802,
                         'addedby' => 0,
@@ -378,7 +376,7 @@ class MobileApiControllerTest extends TestCase
             OauthLogin::PROVIDER => OauthProvider::XENFORO,
             OauthLogin::PROVIDER_ID => '15802',
         ]);
-
+        
         $response = $this->get(route('api.mobile', [
                         'action' => 'sign_up',
                         'trooperid' => 15802,
@@ -412,11 +410,8 @@ class MobileApiControllerTest extends TestCase
             OauthLogin::PROVIDER => OauthProvider::XENFORO,
             OauthLogin::PROVIDER_ID => '15802',
         ]);
-
-        $api_key = str_repeat('d', 64);
-
-        $response = $this->withHeaders([
-        ])->get(route('api.mobile', [
+        
+        $response = $this->get(route('api.mobile', [
                         'action' => 'cancel_shift',
                         'trooperid' => 15802,
                         'shiftid' => $shift->id,
@@ -448,7 +443,7 @@ class MobileApiControllerTest extends TestCase
             OauthLogin::PROVIDER => OauthProvider::XENFORO,
             OauthLogin::PROVIDER_ID => '15802',
         ]);
-
+        
         $response = $this->get(route('api.mobile', [
                         'action' => 'cancel_troop',
                         'trooperid' => 15802,
@@ -482,7 +477,7 @@ class MobileApiControllerTest extends TestCase
             OauthLogin::PROVIDER => OauthProvider::XENFORO,
             OauthLogin::PROVIDER_ID => '15802',
         ]);
-
+        
         $response = $this->get(route('api.mobile', [
                         'action' => 'cancel_guest',
                         'trooperid' => 15802,

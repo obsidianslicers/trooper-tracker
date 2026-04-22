@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\Awards\ListController;
 use App\Http\Controllers\Admin\Awards\ListTroopersController;
 use App\Http\Controllers\Admin\Awards\UpdateController;
 use App\Http\Controllers\Admin\Awards\UpdateSubmitController;
+use App\Http\Controllers\Admin\Awards\RemoveTrooperController;
 use Illuminate\Support\Facades\Route;
 
 //  ADMIN/NOTICES
@@ -24,6 +25,7 @@ Route::prefix('admin/awards')
         Route::get('/{award}/update', UpdateController::class)->name('update');
         Route::post('/{award}/update', UpdateSubmitController::class);
         Route::get('/{award}/troopers', ListTroopersController::class)->name('list-troopers');
+        Route::post('/{award}/troopers', RemoveTrooperController::class)->name('remove-trooper');
         Route::get('/{award}/assign-trooper', AssignTrooperController::class)->name('assign-trooper');
         Route::post('/{award}/assign-trooper', AssignTrooperSubmitController::class);
     });

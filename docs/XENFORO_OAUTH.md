@@ -115,6 +115,30 @@ Benefit:
 - Troop Tracker profile pages automatically reflect XenForo group presentation
 - no duplicate banner rules inside Troop Tracker
 
+### Additional add-ons used by the mobile app
+
+The Troop Tracker mobile app and chat features also rely on two additional XenForo add-ons. These are not strictly required for the core web app, but are recommended when you deploy the full ecosystem (web + mobile):
+
+#### Troop Tracker View Attachment
+
+Repository:
+
+- https://github.com/MattDrennan/TroopTrackerViewAttachment
+
+What it does:
+
+- provides a XenForo API endpoint that allows the mobile app to safely render attachments in troop chat and event-related contexts
+
+#### Troop Tracker Ignore Users
+
+Repository:
+
+- https://github.com/MattDrennan/TroopTrackerIgnoreUsers
+
+What it does:
+
+- exposes API endpoints for blocking/unblocking and reporting users/posts from the Troop Tracker mobile app, backed by XenForo's ignore and report systems
+
 ## XenForo Features in Troop Tracker
 
 ### XenForo OAuth Login

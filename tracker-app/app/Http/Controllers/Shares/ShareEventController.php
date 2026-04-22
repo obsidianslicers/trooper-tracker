@@ -32,6 +32,8 @@ class ShareEventController extends MagicBusController
      */
     public function __invoke(Request $request, Event $event, ?EventUpload $event_upload = null): View
     {
+        $sharing_image = false;
+
         $image_url = route('shares.og-image', $event->organization->id);
 
         if ($event_upload)
@@ -43,10 +45,12 @@ class ShareEventController extends MagicBusController
             if ($event_upload && $event_upload->large_url)
             {
                 $image_url = $event_upload->large_url;
+
+                $sharing_image = true;
             }
         }
 
-        $data = compact('event', 'event_upload', 'image_url');
+        $data = compact('event', 'event_upload', 'image_url', 'sharing_image');
 
         return view('pages.shares.event', $data);
     }

@@ -13,7 +13,6 @@ use App\Http\Requests\Admin\Events\UpdateRequest;
 use App\Jobs\SendEventCancelledNotificationsJob;
 use App\Jobs\SendEventCreatedNotificationsJob;
 use App\Models\Event;
-use App\Models\EventOrganization;
 use Illuminate\Http\RedirectResponse;
 
 /**
@@ -55,12 +54,21 @@ class UpdateSubmitController extends MagicBusController
                     || $updated_status == EventStatus::MANUAL_SELECTION
                     || $updated_status == EventStatus::SIGN_UP_LOCKED
                 ) {
+                    $update_shift_status = function () use ($event, $updated_status) {
+                        foreach ($event->event_shifts as $shift)
+                        {
+                            $shift->status = $updated_status;
+                            $shift->save();
+                        }
+                    };
+
+                    dispatch($update_shift_status)->afterResponse();
                     dispatch(new SendEventCreatedNotificationsJob($event));
                 }
             }
             elseif ($updated_status == EventStatus::CANCELLED)
             {
-                $mark_event_cancelled = function () use ($event) {
+                $update_shift_status = function () use ($event) {
                     foreach ($event->event_shifts as $shift)
                     {
                         $shift->status = EventStatus::CANCELLED;
@@ -79,8 +87,7 @@ class UpdateSubmitController extends MagicBusController
                     }
                 };
 
-                dispatch($mark_event_cancelled)->afterResponse();
-
+                dispatch($update_shift_status)->afterResponse();
                 dispatch(new SendEventCancelledNotificationsJob($event));
             }
         }
