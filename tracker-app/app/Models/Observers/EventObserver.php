@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace App\Models\Observers;
 
 use App\Facades\TroopTrackerFacade;
+use App\Jobs\DeleteEventForumThreadJob;
 use App\Jobs\UpdateEventForumThreadJob;
 use App\Models\Event;
 use App\Models\Organization;
-use App\Services\Forums\XenforoService;
 use App\Services\GeocodingService;
 use App\Services\GoogleService;
-use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
@@ -94,26 +93,7 @@ class EventObserver
             return;
         }
 
-        try
-        {
-            $xenforo = app(XenforoService::class);
-
-            $result = $xenforo->delete_thread((int) $event->thread_id);
-
-            if (($result['status'] ?? 0) < 200 || ($result['status'] ?? 0) >= 300)
-            {
-                Log::warning('Failed to delete XenForo thread for deleted event', [
-                    'event' => $event->id,
-                    'thread_id' => $event->thread_id,
-                    'status' => $result['status'] ?? null,
-                    'body' => $result['body'] ?? null,
-                ]);
-            }
-        }
-        catch (Throwable $e)
-        {
-            report($e);
-        }
+        dispatch(new DeleteEventForumThreadJob((int) $event->id, (int) $event->thread_id))->afterCommit();
     }
 
     /**
