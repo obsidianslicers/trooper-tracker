@@ -27,15 +27,15 @@
             @forelse ($trooper_events as $trooper_event)
                 <tr>
                     <td>
-                        <a href="{{ route('admin.troopers.profile', compact('trooper_event')) }}">
-                            {{ $trooper_event->name }}
+                        <a href="{{ route('admin.troopers.profile', ['trooper' => $trooper_event]) }}">
+                            {{ $trooper_event->display_name }}
                         </a>
                     </td>
                     <td class="text-end">
-                        <x-number-format :value="$trooper_event->unique_event_count" />
+                        <x-number-format :value="$trooper_event->events_count" />
                     </td>
                     <td class="text-end">
-                        <x-number-format :value="$trooper_event->total_event_attendance" />
+                        <x-number-format :value="$trooper_event->event_shifts_count" />
                     </td>
                 </tr>
             @empty
@@ -48,10 +48,10 @@
             <tr>
                 <th scope="row">Total</th>
                 <th class="text-end">
-                    <x-number-format :value="$trooper_events->sum('unique_event_count')" />
+                    <x-number-format :value="$trooper_events->sum('events_count')" />
                 </th>
                 <th class="text-end">
-                    <x-number-format :value="$trooper_events->sum('total_event_attendance')" />
+                    <x-number-format :value="$trooper_events->sum('event_shifts_count')" />
                 </th>
             </tr>
         </tfoot>
