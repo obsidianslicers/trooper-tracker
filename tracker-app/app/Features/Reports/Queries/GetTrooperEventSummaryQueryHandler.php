@@ -33,7 +33,10 @@ readonly class GetTrooperEventSummaryQueryHandler implements QueryHandlerInterfa
             ->where('tt_events.status', EventStatus::CLOSED->value)
             ->when($message->date_start, fn ($q) => $q->where('tt_events.event_start', '>=', $message->date_start))
             ->when($message->date_end, fn ($q) => $q->where('tt_events.event_start', '<=', $message->date_end))
-            ->when($message->organization, fn ($q) => $q->whereExists($this->costumeOrgExists($message->organization->node_path)));
+            ->when($message->organization, fn ($q) => $q->whereRaw(
+                'JSON_CONTAINS(tt_event_troopers.costume_organization_ids, ?)',
+                [json_encode($message->organization->id)]
+            ));
 
         $eventCountSub = DB::table('tt_event_troopers')
             ->selectRaw('COUNT(DISTINCT tt_event_shifts.event_id)')
@@ -44,7 +47,10 @@ readonly class GetTrooperEventSummaryQueryHandler implements QueryHandlerInterfa
             ->where('tt_events.status', EventStatus::CLOSED->value)
             ->when($message->date_start, fn ($q) => $q->where('tt_events.event_start', '>=', $message->date_start))
             ->when($message->date_end, fn ($q) => $q->where('tt_events.event_start', '<=', $message->date_end))
-            ->when($message->organization, fn ($q) => $q->whereExists($this->costumeOrgExists($message->organization->node_path)));
+            ->when($message->organization, fn ($q) => $q->whereRaw(
+                'JSON_CONTAINS(tt_event_troopers.costume_organization_ids, ?)',
+                [json_encode($message->organization->id)]
+            ));
 
         $query = Trooper::query()
             ->select('tt_troopers.*')
@@ -64,7 +70,10 @@ readonly class GetTrooperEventSummaryQueryHandler implements QueryHandlerInterfa
                     });
 
                 if ($message->organization) {
-                    $q->whereExists($this->costumeOrgExists($message->organization->node_path));
+                    $q->whereRaw(
+                        'JSON_CONTAINS(tt_event_troopers.costume_organization_ids, ?)',
+                        [json_encode($message->organization->id)]
+                    );
                 }
             });
 
@@ -77,19 +86,5 @@ readonly class GetTrooperEventSummaryQueryHandler implements QueryHandlerInterfa
         $dir = $message->dir === 'asc' ? 'asc' : 'desc';
 
         return $query->orderBy($sort, $dir)->paginate($message->page_size)->withQueryString();
-    }
-
-    /**
-     * Returns a subquery that checks whether the event_trooper's primary
-     * costume is approved for any organization within the given node_path hierarchy.
-     */
-    private function costumeOrgExists(string $node_path): \Closure
-    {
-        return function ($sub) use ($node_path) {
-            $sub->select(DB::raw(1))
-                ->from('tt_organizations')
-                ->whereRaw("node_path LIKE CONCAT(?, '%')", [$node_path])
-                ->whereRaw('JSON_CONTAINS(tt_event_troopers.costume_organization_ids, CAST(id AS JSON))');
-        };
     }
 }
