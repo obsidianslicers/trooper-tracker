@@ -15,6 +15,13 @@ abstract class TestCase extends BaseTestCase
         $this->withoutVite();
     }
 
+    protected function skipIfSqlite(): void
+    {
+        if (config('database.default') === 'sqlite') {
+            $this->markTestSkipped('Requires MySQL JSON functions (JSON_CONTAINS / JSON_OVERLAPS).');
+        }
+    }
+
     protected function tearDown(): void
     {
         parent::tearDown();
