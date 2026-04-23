@@ -194,4 +194,15 @@ class EventFactory extends BaseEventFactory
             Event::EVENT_END => $date,
         ]);
     }
+
+    public function withoutCharityData(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Event::CHARITY_DIRECT_FUNDS  => 0,
+            Event::CHARITY_INDIRECT_FUNDS => 0,
+            Event::CHARITY_NAME          => null,
+            Event::CHARITY_HOURS         => null,
+            Event::CHARITY_NOTES         => null,
+        ]);
+    }
 }
