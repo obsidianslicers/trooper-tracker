@@ -61,16 +61,32 @@
             @endif
             @if($active_only) &mdash; Active Members Only @endif
         </caption>
+        @php
+            $sortLink = fn(string $col) => request()->fullUrlWithQuery([
+                'sort' => $col,
+                'dir'  => ($sort === $col && $dir === 'asc') ? 'desc' : 'asc',
+                'page' => 1,
+            ]);
+            $sortIcon = fn(string $col) => $sort === $col
+                ? ($dir === 'asc' ? ' ↑' : ' ↓')
+                : '';
+        @endphp
         <thead>
             <tr>
-                <th>Trooper</th>
-                <th scope="col"
-                    class="text-end">
-                    Unique Events
+                <th>
+                    <a href="{{ $sortLink('display_name') }}" class="text-reset text-decoration-none">
+                        Trooper{!! $sortIcon('display_name') !!}
+                    </a>
                 </th>
-                <th scope="col"
-                    class="text-end">
-                    Total Shifts
+                <th scope="col" class="text-end">
+                    <a href="{{ $sortLink('events_count') }}" class="text-reset text-decoration-none">
+                        Unique Events{!! $sortIcon('events_count') !!}
+                    </a>
+                </th>
+                <th scope="col" class="text-end">
+                    <a href="{{ $sortLink('event_shifts_count') }}" class="text-reset text-decoration-none">
+                        Total Shifts{!! $sortIcon('event_shifts_count') !!}
+                    </a>
                 </th>
             </tr>
         </thead>

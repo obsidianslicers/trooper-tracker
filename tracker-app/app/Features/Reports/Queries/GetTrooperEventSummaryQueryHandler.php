@@ -72,7 +72,11 @@ readonly class GetTrooperEventSummaryQueryHandler implements QueryHandlerInterfa
             $query->active();
         }
 
-        return $query->orderBy(Trooper::DISPLAY_NAME)->paginate($message->page_size)->withQueryString();
+        $allowed = ['display_name', 'events_count', 'event_shifts_count'];
+        $sort = in_array($message->sort, $allowed) ? $message->sort : 'event_shifts_count';
+        $dir = $message->dir === 'asc' ? 'asc' : 'desc';
+
+        return $query->orderBy($sort, $dir)->paginate($message->page_size)->withQueryString();
     }
 
     /**

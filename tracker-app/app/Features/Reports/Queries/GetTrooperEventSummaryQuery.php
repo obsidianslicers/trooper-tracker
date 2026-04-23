@@ -17,5 +17,7 @@ readonly class GetTrooperEventSummaryQuery
         public readonly bool $active_only = false,
         public readonly int $page_size = 50,
         public readonly ?Organization $organization = null,
+        public readonly string $sort = 'event_shifts_count',
+        public readonly string $dir = 'desc',
     ) {}
 }
