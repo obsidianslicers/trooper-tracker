@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Reports;
 
 use App\Features\Reports\Queries\GetTrooperEventSummaryQuery;
+use App\Models\Organization;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
@@ -27,26 +28,38 @@ class TrooperEventSummaryController extends BaseReportsController
 
         $active_only = (bool) $request->input('active_only', false);
 
+        $organizations = Organization::moderatedBy($trooper)
+            ->orderBy(Organization::NAME)
+            ->get(['id', 'name', 'node_path']);
+
+        $organization_id = $request->integer('organization_id') ?: null;
+        $organization = $organization_id
+            ? $organizations->firstWhere('id', $organization_id)
+            : null;
+
         if ($request->input('format') === 'csv') {
-            $all = $this->bus->send(new GetTrooperEventSummaryQuery($trooper, $date_start, $date_end, $active_only, PHP_INT_MAX));
-            return $this->streamCsv($all, $date_start, $date_end, $active_only);
+            $all = $this->bus->send(new GetTrooperEventSummaryQuery($trooper, $date_start, $date_end, $active_only, PHP_INT_MAX, $organization));
+            return $this->streamCsv($all, $date_start, $date_end, $active_only, $organization?->name);
         }
 
-        $trooper_events = $this->bus->send(new GetTrooperEventSummaryQuery($trooper, $date_start, $date_end, $active_only));
+        $trooper_events = $this->bus->send(new GetTrooperEventSummaryQuery($trooper, $date_start, $date_end, $active_only, 50, $organization));
 
-        $data = compact('trooper_events', 'date_start', 'date_end', 'active_only');
+        $data = compact('trooper_events', 'date_start', 'date_end', 'active_only', 'organizations', 'organization_id');
 
         return view('pages.admin.reports.trooper-event-summary', $data);
     }
 
-    private function streamCsv(LengthAwarePaginator $trooper_events, ?Carbon $date_start, ?Carbon $date_end, bool $active_only): StreamedResponse
+    private function streamCsv(LengthAwarePaginator $trooper_events, ?Carbon $date_start, ?Carbon $date_end, bool $active_only, ?string $organization_name): StreamedResponse
     {
         $filename = 'trooper-event-summary-' . now()->format('Y-m-d') . '.csv';
 
-        return response()->streamDownload(function () use ($trooper_events, $date_start, $date_end, $active_only) {
+        return response()->streamDownload(function () use ($trooper_events, $date_start, $date_end, $active_only, $organization_name) {
             $handle = fopen('php://output', 'w');
 
             $meta = [];
+            if ($organization_name) {
+                $meta[] = 'Club: ' . $organization_name;
+            }
             if ($date_start) {
                 $meta[] = 'From: ' . $date_start->format('Y-m-d');
             }

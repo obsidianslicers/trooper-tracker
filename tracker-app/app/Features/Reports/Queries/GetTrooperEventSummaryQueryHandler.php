@@ -8,6 +8,7 @@ use App\Bus\Contracts\QueryHandlerInterface;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Models\Event;
+use App\Models\EventTrooper;
 use App\Models\Trooper;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -31,7 +32,8 @@ readonly class GetTrooperEventSummaryQueryHandler implements QueryHandlerInterfa
             ->where('tt_event_troopers.status', EventTrooperStatus::ATTENDED->value)
             ->where('tt_events.status', EventStatus::CLOSED->value)
             ->when($message->date_start, fn ($q) => $q->where('tt_events.event_start', '>=', $message->date_start))
-            ->when($message->date_end, fn ($q) => $q->where('tt_events.event_start', '<=', $message->date_end));
+            ->when($message->date_end, fn ($q) => $q->where('tt_events.event_start', '<=', $message->date_end))
+            ->when($message->organization, fn ($q) => $q->whereExists($this->costumeOrgExists($message->organization->node_path)));
 
         $eventCountSub = DB::table('tt_event_troopers')
             ->selectRaw('COUNT(DISTINCT tt_event_shifts.event_id)')
@@ -41,19 +43,28 @@ readonly class GetTrooperEventSummaryQueryHandler implements QueryHandlerInterfa
             ->where('tt_event_troopers.status', EventTrooperStatus::ATTENDED->value)
             ->where('tt_events.status', EventStatus::CLOSED->value)
             ->when($message->date_start, fn ($q) => $q->where('tt_events.event_start', '>=', $message->date_start))
-            ->when($message->date_end, fn ($q) => $q->where('tt_events.event_start', '<=', $message->date_end));
+            ->when($message->date_end, fn ($q) => $q->where('tt_events.event_start', '<=', $message->date_end))
+            ->when($message->organization, fn ($q) => $q->whereExists($this->costumeOrgExists($message->organization->node_path)));
 
         $query = Trooper::query()
             ->select('tt_troopers.*')
             ->selectSub($shiftCountSub, 'event_shifts_count')
             ->selectSub($eventCountSub, 'events_count')
-            ->whereHas('event_troopers.event_shift.event', function ($q) use ($message) {
-                $q->where(Event::STATUS, EventStatus::CLOSED);
-                if ($message->date_start) {
-                    $q->where(Event::EVENT_START, '>=', $message->date_start);
-                }
-                if ($message->date_end) {
-                    $q->where(Event::EVENT_START, '<=', $message->date_end);
+            ->moderatedBy($message->moderator)
+            ->whereHas('event_troopers', function ($q) use ($message) {
+                $q->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED)
+                    ->whereHas('event_shift.event', function ($q) use ($message) {
+                        $q->where(Event::STATUS, EventStatus::CLOSED);
+                        if ($message->date_start) {
+                            $q->where(Event::EVENT_START, '>=', $message->date_start);
+                        }
+                        if ($message->date_end) {
+                            $q->where(Event::EVENT_START, '<=', $message->date_end);
+                        }
+                    });
+
+                if ($message->organization) {
+                    $q->whereExists($this->costumeOrgExists($message->organization->node_path));
                 }
             });
 
@@ -62,5 +73,19 @@ readonly class GetTrooperEventSummaryQueryHandler implements QueryHandlerInterfa
         }
 
         return $query->orderBy(Trooper::DISPLAY_NAME)->paginate($message->page_size)->withQueryString();
+    }
+
+    /**
+     * Returns a subquery that checks whether the event_trooper's primary
+     * costume is approved for any organization within the given node_path hierarchy.
+     */
+    private function costumeOrgExists(string $node_path): \Closure
+    {
+        return function ($sub) use ($node_path) {
+            $sub->select(DB::raw(1))
+                ->from('tt_organizations')
+                ->whereRaw("node_path LIKE CONCAT(?, '%')", [$node_path])
+                ->whereRaw('JSON_CONTAINS(tt_event_troopers.costume_organization_ids, CAST(id AS JSON))');
+        };
     }
 }

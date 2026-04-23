@@ -11,6 +11,13 @@
 
             <div class="row g-3 align-items-end">
                 <div class="col-sm-4">
+                    <x-label value="Club" />
+                    <x-input-select :property="'organization_id'"
+                                    :placeholder="'All Clubs'"
+                                    :value="$organization_id"
+                                    :options="$organizations->pluck('name', 'id')->toArray()" />
+                </div>
+                <div class="col-sm-4">
                     <x-label value="Date Start" />
                     <x-input-date :property="'date_start'"
                                   :value="$date_start?->format('Y-m-d') ?? ''" />
@@ -40,12 +47,17 @@
 
     <x-table class="caption-top">
         <caption>
+            @if($organization_id)
+                {{ $organizations->firstWhere('id', $organization_id)?->name }}
+            @else
+                All Clubs
+            @endif
+            &mdash;
             @if($date_start || $date_end)
-                Trooper Event Counts
                 @if($date_start) from {{ $date_start->format('M d, Y') }} @endif
                 @if($date_end) to {{ $date_end->format('M d, Y') }} @endif
             @else
-                Trooper Event Counts (all time)
+                all time
             @endif
             @if($active_only) &mdash; Active Members Only @endif
         </caption>
