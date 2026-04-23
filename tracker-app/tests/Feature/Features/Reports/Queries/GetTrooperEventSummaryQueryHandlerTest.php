@@ -36,7 +36,7 @@ class GetTrooperEventSummaryQueryHandlerTest extends TestCase
 
         $subject = new GetTrooperEventSummaryQueryHandler();
 
-        $result = $subject(new GetTrooperEventSummaryQuery($moderator, 30));
+        $result = $subject(new GetTrooperEventSummaryQuery($moderator));
 
         $this->assertCount(1, $result);
         $this->assertSame($trooper_with_attendance->id, $result->first()->id);
@@ -57,7 +57,7 @@ class GetTrooperEventSummaryQueryHandlerTest extends TestCase
 
         $subject = new GetTrooperEventSummaryQueryHandler();
 
-        $result = $subject(new GetTrooperEventSummaryQuery($moderator, 30));
+        $result = $subject(new GetTrooperEventSummaryQuery($moderator));
 
         $this->assertTrue(isset($result->first()->event_shifts_count));
         $this->assertSame(2, $result->first()->event_shifts_count);
@@ -80,32 +80,13 @@ class GetTrooperEventSummaryQueryHandlerTest extends TestCase
 
         $subject = new GetTrooperEventSummaryQueryHandler();
 
-        $result = $subject(new GetTrooperEventSummaryQuery($moderator, 30));
+        $result = $subject(new GetTrooperEventSummaryQuery($moderator));
 
         $this->assertTrue(isset($result->first()->events_count));
         $this->assertSame(2, $result->first()->events_count);
     }
 
-    public function test_invoke_adds_attended_event_ids_property(): void
-    {
-        $moderator = Trooper::factory()->asModerator()->create();
-
-        $trooper = Trooper::factory()->asMember()->create();
-
-        $event = Event::factory()->asClosed()->withEventStart(now()->subDays(10))->create();
-        $shift = EventShift::factory()->forEvent($event)->create();
-
-        EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asAttended()->create();
-
-        $subject = new GetTrooperEventSummaryQueryHandler();
-
-        $result = $subject(new GetTrooperEventSummaryQuery($moderator, 30));
-
-        $this->assertTrue(isset($result->first()->attended_event_ids));
-        $this->assertContains($event->id, $result->first()->attended_event_ids->toArray());
-    }
-
-    public function test_invoke_respects_lookback_period(): void
+    public function test_invoke_respects_date_start(): void
     {
         $moderator = Trooper::factory()->asModerator()->create();
 
@@ -122,8 +103,52 @@ class GetTrooperEventSummaryQueryHandlerTest extends TestCase
 
         $subject = new GetTrooperEventSummaryQueryHandler();
 
-        $result = $subject(new GetTrooperEventSummaryQuery($moderator, Carbon::parse('2026-02-01')));
+        $result = $subject(new GetTrooperEventSummaryQuery($moderator, date_start: Carbon::parse('2026-02-01')));
 
         $this->assertSame(1, $result->first()->events_count);
+    }
+
+    public function test_invoke_respects_date_end(): void
+    {
+        $moderator = Trooper::factory()->asModerator()->create();
+
+        $trooper = Trooper::factory()->asMember()->create();
+
+        $event1 = Event::factory()->asClosed()->withEventStart(Carbon::parse('2026-01-15'))->create();
+        $event2 = Event::factory()->asClosed()->withEventStart(Carbon::parse('2026-03-15'))->create();
+
+        $shift1 = EventShift::factory()->forEvent($event1)->create();
+        $shift2 = EventShift::factory()->forEvent($event2)->create();
+
+        EventTrooper::factory()->forEventShift($shift1)->forTrooper($trooper)->asAttended()->create();
+        EventTrooper::factory()->forEventShift($shift2)->forTrooper($trooper)->asAttended()->create();
+
+        $subject = new GetTrooperEventSummaryQueryHandler();
+
+        $result = $subject(new GetTrooperEventSummaryQuery($moderator, date_end: Carbon::parse('2026-02-01')));
+
+        $this->assertSame(1, $result->first()->events_count);
+    }
+
+    public function test_invoke_filters_active_members_only(): void
+    {
+        $moderator = Trooper::factory()->asModerator()->create();
+
+        $active_trooper = Trooper::factory()->asMember()->create();
+        $inactive_trooper = Trooper::factory()->asRetired()->create();
+
+        $event = Event::factory()->asClosed()->withEventStart(now()->subDays(5))->create();
+        $shift1 = EventShift::factory()->forEvent($event)->create();
+        $shift2 = EventShift::factory()->forEvent($event)->create();
+
+        EventTrooper::factory()->forEventShift($shift1)->forTrooper($active_trooper)->asAttended()->create();
+        EventTrooper::factory()->forEventShift($shift2)->forTrooper($inactive_trooper)->asAttended()->create();
+
+        $subject = new GetTrooperEventSummaryQueryHandler();
+
+        $result = $subject(new GetTrooperEventSummaryQuery($moderator, active_only: true));
+
+        $this->assertCount(1, $result);
+        $this->assertSame($active_trooper->id, $result->first()->id);
     }
 }

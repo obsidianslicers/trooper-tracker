@@ -11,22 +11,39 @@ use Tests\TestCase;
 
 class GetTrooperEventSummaryQueryTest extends TestCase
 {
-    public function test_construct_stores_moderator_and_lookback(): void
+    public function test_construct_stores_moderator(): void
     {
         $trooper = new Trooper();
 
-        $subject = new GetTrooperEventSummaryQuery($trooper, 30);
+        $subject = new GetTrooperEventSummaryQuery($trooper);
 
         $this->assertSame($trooper, $subject->moderator);
-        $this->assertSame(30, $subject->lookback);
     }
 
-    public function test_parse_lookback_converts_int_to_carbon(): void
+    public function test_construct_stores_date_range(): void
     {
-        $subject = new GetTrooperEventSummaryQuery(new Trooper(), 7);
+        $start = Carbon::parse('2026-01-01');
+        $end = Carbon::parse('2026-03-31');
 
-        $result = $subject->parseLookback();
+        $subject = new GetTrooperEventSummaryQuery(new Trooper(), $start, $end);
 
-        $this->assertInstanceOf(Carbon::class, $result);
+        $this->assertSame($start, $subject->date_start);
+        $this->assertSame($end, $subject->date_end);
+    }
+
+    public function test_construct_defaults_to_null_dates_and_false_active_only(): void
+    {
+        $subject = new GetTrooperEventSummaryQuery(new Trooper());
+
+        $this->assertNull($subject->date_start);
+        $this->assertNull($subject->date_end);
+        $this->assertFalse($subject->active_only);
+    }
+
+    public function test_construct_stores_active_only_flag(): void
+    {
+        $subject = new GetTrooperEventSummaryQuery(new Trooper(), active_only: true);
+
+        $this->assertTrue($subject->active_only);
     }
 }

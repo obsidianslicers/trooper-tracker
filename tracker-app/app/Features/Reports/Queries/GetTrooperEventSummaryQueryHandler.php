@@ -8,67 +8,59 @@ use App\Bus\Contracts\QueryHandlerInterface;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Models\Event;
-use App\Models\EventTrooper;
 use App\Models\Trooper;
-use Illuminate\Support\Collection;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 
 /**
- * Handler for retrieving trooper event participation summary.
- *
- * Returns all troopers who attended events within the lookback period,
- * with calculated statistics for shift and event attendance.
- *
  * @implements QueryHandlerInterface<GetTrooperEventSummaryQuery>
  */
 readonly class GetTrooperEventSummaryQueryHandler implements QueryHandlerInterface
 {
     /**
-     * Execute the query to retrieve trooper event summaries.
-     *
-     * Retrieves troopers with attended events and calculates:
-     * - event_shifts_count: Total shifts attended
-     * - events_count: Unique events attended
-     * - attended_event_ids: List of unique event IDs
-     *
-     * @param  GetTrooperEventSummaryQuery  $message  The query containing moderator and lookback criteria.
-     * @return Collection<int, Trooper> Collection of troopers with summary data.
+     * @param  GetTrooperEventSummaryQuery  $message
+     * @return LengthAwarePaginator
      */
     public function __invoke(object $message): mixed
     {
-        $lookback = $message->parseLookback();
+        $shiftCountSub = DB::table('tt_event_troopers')
+            ->selectRaw('COUNT(*)')
+            ->join('tt_event_shifts', 'tt_event_troopers.event_shift_id', '=', 'tt_event_shifts.id')
+            ->join('tt_events', 'tt_event_shifts.event_id', '=', 'tt_events.id')
+            ->whereColumn('tt_event_troopers.trooper_id', 'tt_troopers.id')
+            ->where('tt_event_troopers.status', EventTrooperStatus::ATTENDED->value)
+            ->where('tt_events.status', EventStatus::CLOSED->value)
+            ->when($message->date_start, fn ($q) => $q->where('tt_events.event_start', '>=', $message->date_start))
+            ->when($message->date_end, fn ($q) => $q->where('tt_events.event_start', '<=', $message->date_end));
 
-        $with = [
-            'event_troopers' => function ($q) use ($lookback) {
-                $columns = [
-                    EventTrooper::ID,
-                    EventTrooper::EVENT_SHIFT_ID,
-                    EventTrooper::TROOPER_ID,
-                    EventTrooper::STATUS,
-                ];
+        $eventCountSub = DB::table('tt_event_troopers')
+            ->selectRaw('COUNT(DISTINCT tt_event_shifts.event_id)')
+            ->join('tt_event_shifts', 'tt_event_troopers.event_shift_id', '=', 'tt_event_shifts.id')
+            ->join('tt_events', 'tt_event_shifts.event_id', '=', 'tt_events.id')
+            ->whereColumn('tt_event_troopers.trooper_id', 'tt_troopers.id')
+            ->where('tt_event_troopers.status', EventTrooperStatus::ATTENDED->value)
+            ->where('tt_events.status', EventStatus::CLOSED->value)
+            ->when($message->date_start, fn ($q) => $q->where('tt_events.event_start', '>=', $message->date_start))
+            ->when($message->date_end, fn ($q) => $q->where('tt_events.event_start', '<=', $message->date_end));
 
-                $q->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED)
-                    ->whereHas('event_shift.event', function ($q) use ($lookback) {
-                        $q->where(Event::STATUS, EventStatus::CLOSED)
-                            ->where(Event::EVENT_START, '>=', $lookback);
-                    })->select($columns);
-            },
-            'event_troopers.event_shift:id,event_id',
-            'event_troopers.event_shift.event:id,event_start,event_end,status',
-        ];
-
-        return Trooper::with($with)
-            ->whereHas('event_troopers.event_shift.event', function ($q) use ($lookback) {
-                $q->where(Event::STATUS, EventStatus::CLOSED)
-                    ->where(Event::EVENT_START, '>=', $lookback);
-            })
-            ->orderBy(Trooper::DISPLAY_NAME)
-            ->get()->each(function (Trooper $trooper) {
-                // Total attended shifts
-                $trooper->event_shifts_count = $trooper->event_troopers->count();
-                // Unique events attended
-                $trooper->events_count = $trooper->event_troopers->map(fn ($et) => $et->event_shift->event_id)->unique()->count();
-                // Optional: list of event IDs
-                $trooper->attended_event_ids = $trooper->event_troopers->map(fn ($et) => $et->event_shift->event_id)->unique()->values();
+        $query = Trooper::query()
+            ->select('tt_troopers.*')
+            ->selectSub($shiftCountSub, 'event_shifts_count')
+            ->selectSub($eventCountSub, 'events_count')
+            ->whereHas('event_troopers.event_shift.event', function ($q) use ($message) {
+                $q->where(Event::STATUS, EventStatus::CLOSED);
+                if ($message->date_start) {
+                    $q->where(Event::EVENT_START, '>=', $message->date_start);
+                }
+                if ($message->date_end) {
+                    $q->where(Event::EVENT_START, '<=', $message->date_end);
+                }
             });
+
+        if ($message->active_only) {
+            $query->active();
+        }
+
+        return $query->orderBy(Trooper::DISPLAY_NAME)->paginate($message->page_size)->withQueryString();
     }
 }
