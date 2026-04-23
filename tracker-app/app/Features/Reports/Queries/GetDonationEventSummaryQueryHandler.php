@@ -42,7 +42,7 @@ readonly class GetDonationEventSummaryQueryHandler implements QueryHandlerInterf
                     ->orWhereNotNull(Event::CHARITY_NAME);
             }));
 
-        $allowed = ['name', 'event_start', 'charity_direct_funds', 'charity_indirect_funds', 'attendees_count'];
+        $allowed = ['name', 'event_start', 'charity_name', 'charity_direct_funds', 'charity_indirect_funds', 'attendees_count'];
         $sort = in_array($message->sort, $allowed) ? $message->sort : 'event_start';
         $dir  = $message->dir === 'asc' ? 'asc' : 'desc';
 

@@ -60,9 +60,9 @@
         @endphp
         <thead>
             <tr>
-                <th colspan="3"></th>
+                <th colspan="4"></th>
                 <th scope="col" class="text-center" colspan="3">— Donations —</th>
-                <th></th>
+                <th colspan="2"></th>
             </tr>
             <tr>
                 <th>
@@ -75,7 +75,12 @@
                         Date{!! $sortIcon('event_start') !!}
                     </a>
                 </th>
-                <th>Charity</th>
+                <th>
+                    <a href="{{ $sortLink('charity_name') }}" class="text-reset text-decoration-none">
+                        Charity{!! $sortIcon('charity_name') !!}
+                    </a>
+                </th>
+                <th>Notes</th>
                 <th scope="col" class="text-end">
                     <a href="{{ $sortLink('charity_direct_funds') }}" class="text-reset text-decoration-none">
                         Direct{!! $sortIcon('charity_direct_funds') !!}
@@ -109,6 +114,7 @@
                         {{ $event->event_start?->format('M d, Y') }}
                     </td>
                     <td>{{ $event->charity_name }}</td>
+                    <td><small>{{ $event->charity_notes }}</small></td>
                     <td class="text-end">
                         <x-number-format :value="$event->charity_direct_funds" />
                     </td>
@@ -123,7 +129,7 @@
                     </td>
                 </tr>
             @empty
-                <x-table-empty :colspan="7">
+                <x-table-empty :colspan="8">
                     No closed events found for the selected filters.
                 </x-table-empty>
             @endforelse
@@ -131,7 +137,7 @@
         <tfoot>
             @if($events->count())
             <tr>
-                <th colspan="3">Total</th>
+                <th colspan="4">Total</th>
                 <th class="text-end">
                     <x-number-format :value="$events->sum('charity_direct_funds')" />
                 </th>
@@ -147,7 +153,7 @@
             </tr>
             @endif
             <tr>
-                <td colspan="7">
+                <td colspan="8">
                     {{ $events->links() }}
                 </td>
             </tr>
