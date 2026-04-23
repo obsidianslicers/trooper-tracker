@@ -19,5 +19,6 @@ readonly class GetTrooperEventSummaryQuery
         public readonly ?Organization $organization = null,
         public readonly string $sort = 'event_shifts_count',
         public readonly string $dir = 'desc',
+        public readonly array $accessible_org_ids = [],
     ) {}
 }

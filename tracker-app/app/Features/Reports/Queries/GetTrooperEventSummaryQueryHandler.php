@@ -33,10 +33,12 @@ readonly class GetTrooperEventSummaryQueryHandler implements QueryHandlerInterfa
             ->where('tt_events.status', EventStatus::CLOSED->value)
             ->when($message->date_start, fn ($q) => $q->where('tt_events.event_start', '>=', $message->date_start))
             ->when($message->date_end, fn ($q) => $q->where('tt_events.event_start', '<=', $message->date_end))
-            ->when($message->organization, fn ($q) => $q->whereRaw(
-                'JSON_CONTAINS(tt_event_troopers.costume_organization_ids, ?)',
-                [json_encode($message->organization->id)]
-            ));
+            ->when($message->organization,
+                fn ($q) => $q->whereRaw('JSON_CONTAINS(tt_event_troopers.costume_organization_ids, ?)', [json_encode($message->organization->id)]),
+                fn ($q) => !empty($message->accessible_org_ids)
+                    ? $q->whereRaw('JSON_OVERLAPS(tt_event_troopers.costume_organization_ids, ?)', [json_encode($message->accessible_org_ids)])
+                    : $q
+            );
 
         $eventCountSub = DB::table('tt_event_troopers')
             ->selectRaw('COUNT(DISTINCT tt_event_shifts.event_id)')
@@ -47,10 +49,12 @@ readonly class GetTrooperEventSummaryQueryHandler implements QueryHandlerInterfa
             ->where('tt_events.status', EventStatus::CLOSED->value)
             ->when($message->date_start, fn ($q) => $q->where('tt_events.event_start', '>=', $message->date_start))
             ->when($message->date_end, fn ($q) => $q->where('tt_events.event_start', '<=', $message->date_end))
-            ->when($message->organization, fn ($q) => $q->whereRaw(
-                'JSON_CONTAINS(tt_event_troopers.costume_organization_ids, ?)',
-                [json_encode($message->organization->id)]
-            ));
+            ->when($message->organization,
+                fn ($q) => $q->whereRaw('JSON_CONTAINS(tt_event_troopers.costume_organization_ids, ?)', [json_encode($message->organization->id)]),
+                fn ($q) => !empty($message->accessible_org_ids)
+                    ? $q->whereRaw('JSON_OVERLAPS(tt_event_troopers.costume_organization_ids, ?)', [json_encode($message->accessible_org_ids)])
+                    : $q
+            );
 
         $query = Trooper::query()
             ->select('tt_troopers.*')
@@ -70,10 +74,9 @@ readonly class GetTrooperEventSummaryQueryHandler implements QueryHandlerInterfa
                     });
 
                 if ($message->organization) {
-                    $q->whereRaw(
-                        'JSON_CONTAINS(tt_event_troopers.costume_organization_ids, ?)',
-                        [json_encode($message->organization->id)]
-                    );
+                    $q->whereRaw('JSON_CONTAINS(tt_event_troopers.costume_organization_ids, ?)', [json_encode($message->organization->id)]);
+                } elseif (!empty($message->accessible_org_ids)) {
+                    $q->whereRaw('JSON_OVERLAPS(tt_event_troopers.costume_organization_ids, ?)', [json_encode($message->accessible_org_ids)]);
                 }
             });
 

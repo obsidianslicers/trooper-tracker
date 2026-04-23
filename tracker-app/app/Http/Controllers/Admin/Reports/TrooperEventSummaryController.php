@@ -37,15 +37,21 @@ class TrooperEventSummaryController extends BaseReportsController
             ? $organizations->firstWhere('id', $organization_id)
             : null;
 
+        $accessible_org_ids = $organizations
+            ->map(fn ($org) => (int) explode(':', $org->node_path)[0])
+            ->unique()
+            ->values()
+            ->all();
+
         $sort = $request->input('sort', 'event_shifts_count');
         $dir = $request->input('dir', 'desc');
 
         if ($request->input('format') === 'csv') {
-            $all = $this->bus->send(new GetTrooperEventSummaryQuery($trooper, $date_start, $date_end, $active_only, PHP_INT_MAX, $organization, $sort, $dir));
+            $all = $this->bus->send(new GetTrooperEventSummaryQuery($trooper, $date_start, $date_end, $active_only, PHP_INT_MAX, $organization, $sort, $dir, $accessible_org_ids));
             return $this->streamCsv($all, $date_start, $date_end, $active_only, $organization?->name);
         }
 
-        $trooper_events = $this->bus->send(new GetTrooperEventSummaryQuery($trooper, $date_start, $date_end, $active_only, 50, $organization, $sort, $dir));
+        $trooper_events = $this->bus->send(new GetTrooperEventSummaryQuery($trooper, $date_start, $date_end, $active_only, 50, $organization, $sort, $dir, $accessible_org_ids));
 
         $data = compact('trooper_events', 'date_start', 'date_end', 'active_only', 'organizations', 'organization_id', 'sort', 'dir');
 
