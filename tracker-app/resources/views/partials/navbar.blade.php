@@ -9,6 +9,27 @@
         </button>
         <div class="collapse navbar-collapse"
              id="navbarNav">
+            @auth
+                @if(Auth::user()->membership_status?->value === 'active')
+                    <form method="GET"
+                          action="{{ route('search') }}"
+                          class="d-flex ms-2 me-auto my-1 my-md-0"
+                          role="search">
+                        <div class="input-group input-group-sm">
+                            <input type="search"
+                                   name="q"
+                                   value="{{ request()->query('q') }}"
+                                   placeholder="Search troopers, events, IDs..."
+                                   class="form-control form-control-sm"
+                                   style="min-width: 180px;"
+                                   aria-label="Search" />
+                            <button type="submit" class="btn btn-outline-secondary btn-sm">
+                                <i class="fa fa-fw fa-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                @endif
+            @endauth
             <ul class="navbar-nav ms-auto">
                 @include('partials.inc.navbar-events')
                 @include('partials.inc.navbar-service-records')

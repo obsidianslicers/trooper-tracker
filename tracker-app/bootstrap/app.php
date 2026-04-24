@@ -28,6 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
             __DIR__ . '/../routes/web/admin-troopers.php',
             __DIR__ . '/../routes/web/admin-reports.php',
             __DIR__ . '/../routes/web/service-records.php',
+            __DIR__ . '/../routes/web/search.php',
             __DIR__ . '/../routes/web/api.php',
             __DIR__ . '/../routes/web/mobile-api.php',
         ],
