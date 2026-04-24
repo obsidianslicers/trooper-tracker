@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Admin\Reports\DonationEventSummaryController;
+use App\Http\Controllers\Admin\Reports\CostumeEventSummaryController;
 use App\Http\Controllers\Admin\Reports\EventSummaryController;
 use App\Http\Controllers\Admin\Reports\EventTypeCountController;
 use App\Http\Controllers\Admin\Reports\ReportDisplayController;
@@ -25,4 +26,5 @@ Route::prefix('admin/reports')
         Route::get('/event-summary', EventSummaryController::class)->name('event-summary');
         Route::get('/trooper-event-summary', TrooperEventSummaryController::class)->name('trooper-event-summary');
         Route::get('/donation-event-summary', DonationEventSummaryController::class)->name('donation-event-summary');
+        Route::get('/costume-event-summary', CostumeEventSummaryController::class)->name('costume-event-summary');
     });

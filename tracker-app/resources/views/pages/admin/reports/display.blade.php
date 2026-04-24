@@ -56,9 +56,9 @@
         </x-dashboard-card>
         <x-dashboard-card :label="'Costume Used Most at Events'"
                           :icon="'fa-chart-line'"
-                          :url="'#'">
+                          :url="route('admin.reports.costume-event-summary')">
             <p>
-                <b class="text-danger">TODO:</b> Costume used most at Events
+                Costume used most at Events
                 (Report to see which costume was used the most at events between certain dates)
             </p>
         </x-dashboard-card>
