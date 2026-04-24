@@ -29,8 +29,6 @@ readonly class GlobalSearchQueryHandler implements QueryHandlerInterface
 
         if (in_array($message->type, ['all', 'troopers'])) {
             $troopers = Trooper::query()
-                ->where(Trooper::MEMBERSHIP_STATUS, MembershipStatus::ACTIVE)
-                ->whereNotNull(Trooper::SETUP_COMPLETED_AT)
                 ->where(function ($q) use ($like, $term) {
                     $q->where(Trooper::DISPLAY_NAME, 'like', $like)
                         ->orWhere(Trooper::EMAIL, 'like', $like)
