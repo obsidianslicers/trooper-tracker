@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', 'Search')
+@section('page-title', $search_title)
 
 @section('content')
 
