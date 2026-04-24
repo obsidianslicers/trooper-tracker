@@ -44,7 +44,8 @@ class CostumeEventSummaryController extends BaseReportsController
         $sort = $request->input('sort', 'uses_count');
         $dir = $request->input('dir', 'desc');
 
-        if ($request->input('format') === 'csv') {
+        if ($request->input('format') === 'csv')
+        {
             $all = $this->bus->send(new GetCostumeEventSummaryQuery($trooper, $date_start, $date_end, PHP_INT_MAX, $organization, $sort, $dir, $accessible_org_ids));
 
             return $this->streamCsv($all, $date_start, $date_end, $organization?->name);
@@ -59,28 +60,33 @@ class CostumeEventSummaryController extends BaseReportsController
 
     private function streamCsv(LengthAwarePaginator $costume_events, ?Carbon $date_start, ?Carbon $date_end, ?string $organization_name): StreamedResponse
     {
-        $filename = 'costume-event-summary-' . now()->format('Y-m-d') . '.csv';
+        $filename = 'costume-event-summary-'.now()->format('Y-m-d').'.csv';
 
         return response()->streamDownload(function () use ($costume_events, $date_start, $date_end, $organization_name) {
             $handle = fopen('php://output', 'w');
 
             $meta = [];
-            if ($organization_name) {
-                $meta[] = 'Club: ' . $organization_name;
+            if ($organization_name)
+            {
+                $meta[] = 'Club: '.$organization_name;
             }
-            if ($date_start) {
-                $meta[] = 'From: ' . $date_start->format('Y-m-d');
+            if ($date_start)
+            {
+                $meta[] = 'From: '.$date_start->format('Y-m-d');
             }
-            if ($date_end) {
-                $meta[] = 'To: ' . $date_end->format('Y-m-d');
+            if ($date_end)
+            {
+                $meta[] = 'To: '.$date_end->format('Y-m-d');
             }
-            if (!empty($meta)) {
+            if (!empty($meta))
+            {
                 fputcsv($handle, $meta);
             }
 
             fputcsv($handle, ['Costume', 'Unique Events', 'Total Uses']);
 
-            foreach ($costume_events as $costume_event) {
+            foreach ($costume_events as $costume_event)
+            {
                 fputcsv($handle, [
                     $costume_event->name,
                     $costume_event->events_count,

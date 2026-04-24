@@ -67,18 +67,23 @@ readonly class GetCostumeEventSummaryQueryHandler implements QueryHandlerInterfa
                     ->whereHas('event_shift.event', function ($q) use ($message) {
                         $q->where(Event::STATUS, EventStatus::CLOSED);
 
-                        if ($message->date_start) {
+                        if ($message->date_start)
+                        {
                             $q->where(Event::EVENT_START, '>=', $message->date_start);
                         }
 
-                        if ($message->date_end) {
+                        if ($message->date_end)
+                        {
                             $q->where(Event::EVENT_START, '<=', $message->date_end);
                         }
                     });
 
-                if ($message->organization) {
+                if ($message->organization)
+                {
                     $q->whereRaw('JSON_CONTAINS(tt_event_troopers.costume_organization_ids, ?)', [json_encode($message->organization->id)]);
-                } elseif (!empty($message->accessible_org_ids)) {
+                }
+                elseif (!empty($message->accessible_org_ids))
+                {
                     $q->whereRaw('JSON_OVERLAPS(tt_event_troopers.costume_organization_ids, ?)', [json_encode($message->accessible_org_ids)]);
                 }
             });

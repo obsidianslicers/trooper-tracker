@@ -44,7 +44,7 @@ readonly class GetDonationEventSummaryQueryHandler implements QueryHandlerInterf
 
         $allowed = ['name', 'event_start', 'charity_name', 'charity_direct_funds', 'charity_indirect_funds', 'attendees_count'];
         $sort = in_array($message->sort, $allowed) ? $message->sort : 'event_start';
-        $dir  = $message->dir === 'asc' ? 'asc' : 'desc';
+        $dir = $message->dir === 'asc' ? 'asc' : 'desc';
 
         return $query->orderBy($sort, $dir)->paginate($message->page_size)->withQueryString();
     }

@@ -18,7 +18,8 @@ class SearchController extends MagicBusController
 
         $results = null;
 
-        if (strlen(trim($term)) >= 2) {
+        if (strlen(trim($term)) >= 2)
+        {
             $results = $this->bus->send(new GlobalSearchQuery($term, $type));
         }
 

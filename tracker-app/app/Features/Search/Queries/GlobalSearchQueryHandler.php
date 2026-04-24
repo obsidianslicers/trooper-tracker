@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Features\Search\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
-use App\Enums\MembershipStatus;
 use App\Models\Event;
 use App\Models\Trooper;
 use Illuminate\Support\Facades\DB;
@@ -18,18 +17,20 @@ readonly class GlobalSearchQueryHandler implements QueryHandlerInterface
     public function __invoke(object $message): mixed
     {
         $term = trim($message->term);
-        $like = '%' . $term . '%';
+        $like = '%'.$term.'%';
 
         $troopers = collect();
-        $events    = collect();
+        $events = collect();
 
-        if (strlen($term) < 2) {
+        if (strlen($term) < 2)
+        {
             return compact('troopers', 'events');
         }
 
-        if (in_array($message->type, ['all', 'troopers'])) {
+        if (in_array($message->type, ['all', 'troopers']))
+        {
             $troopers = Trooper::query()
-                ->where(function ($q) use ($like, $term) {
+                ->where(function ($q) use ($like) {
                     $q->where(Trooper::DISPLAY_NAME, 'like', $like)
                         ->orWhere(Trooper::EMAIL, 'like', $like)
                         ->orWhereExists(function ($q) use ($like) {
@@ -46,7 +47,8 @@ readonly class GlobalSearchQueryHandler implements QueryHandlerInterface
                 ->get();
         }
 
-        if (in_array($message->type, ['all', 'events'])) {
+        if (in_array($message->type, ['all', 'events']))
+        {
             $events = Event::query()
                 ->with('organization:id,name')
                 ->where(Event::NAME, 'like', $like)

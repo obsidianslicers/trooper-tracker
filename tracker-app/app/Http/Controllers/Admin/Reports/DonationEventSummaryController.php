@@ -28,10 +28,12 @@ class DonationEventSummaryController extends BaseReportsController
         $charity_only = (bool) $request->input('charity_only', false);
 
         $sort = $request->input('sort', 'event_start');
-        $dir  = $request->input('dir', 'desc');
+        $dir = $request->input('dir', 'desc');
 
-        if ($request->input('format') === 'csv') {
+        if ($request->input('format') === 'csv')
+        {
             $all = $this->bus->send(new GetDonationEventSummaryQuery($trooper, $date_start, $date_end, $charity_only, PHP_INT_MAX, $sort, $dir));
+
             return $this->streamCsv($all, $date_start, $date_end, $charity_only);
         }
 
@@ -44,28 +46,33 @@ class DonationEventSummaryController extends BaseReportsController
 
     private function streamCsv(LengthAwarePaginator $events, ?Carbon $date_start, ?Carbon $date_end, bool $charity_only): StreamedResponse
     {
-        $filename = 'donation-event-summary-' . now()->format('Y-m-d') . '.csv';
+        $filename = 'donation-event-summary-'.now()->format('Y-m-d').'.csv';
 
         return response()->streamDownload(function () use ($events, $date_start, $date_end, $charity_only) {
             $handle = fopen('php://output', 'w');
 
             $meta = [];
-            if ($date_start) {
-                $meta[] = 'From: ' . $date_start->format('Y-m-d');
+            if ($date_start)
+            {
+                $meta[] = 'From: '.$date_start->format('Y-m-d');
             }
-            if ($date_end) {
-                $meta[] = 'To: ' . $date_end->format('Y-m-d');
+            if ($date_end)
+            {
+                $meta[] = 'To: '.$date_end->format('Y-m-d');
             }
-            if ($charity_only) {
+            if ($charity_only)
+            {
                 $meta[] = 'Charity Data Only';
             }
-            if (!empty($meta)) {
+            if (!empty($meta))
+            {
                 fputcsv($handle, $meta);
             }
 
             fputcsv($handle, ['Event', 'Date', 'Club', 'Charity', 'Direct Funds', 'Indirect Funds', 'Total Funds', 'Attendees', 'Notes']);
 
-            foreach ($events as $event) {
+            foreach ($events as $event)
+            {
                 fputcsv($handle, [
                     $event->name,
                     $event->event_start?->format('Y-m-d'),

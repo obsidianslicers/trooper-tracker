@@ -46,8 +46,10 @@ class TrooperEventSummaryController extends BaseReportsController
         $sort = $request->input('sort', 'event_shifts_count');
         $dir = $request->input('dir', 'desc');
 
-        if ($request->input('format') === 'csv') {
+        if ($request->input('format') === 'csv')
+        {
             $all = $this->bus->send(new GetTrooperEventSummaryQuery($trooper, $date_start, $date_end, $active_only, PHP_INT_MAX, $organization, $sort, $dir, $accessible_org_ids));
+
             return $this->streamCsv($all, $date_start, $date_end, $active_only, $organization?->name);
         }
 
@@ -60,31 +62,37 @@ class TrooperEventSummaryController extends BaseReportsController
 
     private function streamCsv(LengthAwarePaginator $trooper_events, ?Carbon $date_start, ?Carbon $date_end, bool $active_only, ?string $organization_name): StreamedResponse
     {
-        $filename = 'trooper-event-summary-' . now()->format('Y-m-d') . '.csv';
+        $filename = 'trooper-event-summary-'.now()->format('Y-m-d').'.csv';
 
         return response()->streamDownload(function () use ($trooper_events, $date_start, $date_end, $active_only, $organization_name) {
             $handle = fopen('php://output', 'w');
 
             $meta = [];
-            if ($organization_name) {
-                $meta[] = 'Club: ' . $organization_name;
+            if ($organization_name)
+            {
+                $meta[] = 'Club: '.$organization_name;
             }
-            if ($date_start) {
-                $meta[] = 'From: ' . $date_start->format('Y-m-d');
+            if ($date_start)
+            {
+                $meta[] = 'From: '.$date_start->format('Y-m-d');
             }
-            if ($date_end) {
-                $meta[] = 'To: ' . $date_end->format('Y-m-d');
+            if ($date_end)
+            {
+                $meta[] = 'To: '.$date_end->format('Y-m-d');
             }
-            if ($active_only) {
+            if ($active_only)
+            {
                 $meta[] = 'Active Members Only';
             }
-            if (!empty($meta)) {
+            if (!empty($meta))
+            {
                 fputcsv($handle, $meta);
             }
 
             fputcsv($handle, ['Trooper', 'Unique Events', 'Total Shifts']);
 
-            foreach ($trooper_events as $trooper_event) {
+            foreach ($trooper_events as $trooper_event)
+            {
                 fputcsv($handle, [
                     $trooper_event->display_name,
                     $trooper_event->events_count,
