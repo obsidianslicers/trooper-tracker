@@ -77,9 +77,27 @@ class SupportStatusService
     private function calculateFromXenforo(array $stats): float
     {
         $active_records = $stats['userUpgradeActive'] ?? null;
+        $expired_records = $stats['userUpgradeExpired'] ?? null;
         $upgrades = $stats['userUpgrades'] ?? null;
 
-        if (!is_array($active_records) || !is_array($upgrades))
+        if (!is_array($upgrades))
+        {
+            return 0.0;
+        }
+
+        $records = [];
+
+        if (is_array($active_records))
+        {
+            $records = array_merge($records, $active_records);
+        }
+
+        if (is_array($expired_records))
+        {
+            $records = array_merge($records, $expired_records);
+        }
+
+        if (empty($records))
         {
             return 0.0;
         }
@@ -87,7 +105,7 @@ class SupportStatusService
         $upgrade_amounts = $this->buildUpgradeCostMap($upgrades);
         $monthly_total = 0.0;
 
-        foreach ($active_records as $record)
+        foreach ($records as $record)
         {
             if (!is_array($record))
             {
