@@ -15,7 +15,7 @@
                           action="{{ route('search') }}"
                           class="d-flex ms-2 me-auto my-1 my-md-0"
                           role="search">
-                        <div class="input-group input-group-sm">
+                        <div class="input-group input-group-sm flex-nowrap">
                             <input type="search"
                                    name="q"
                                    value="{{ request()->query('q') }}"
