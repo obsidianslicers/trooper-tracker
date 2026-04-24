@@ -123,7 +123,7 @@
                                         <td class="text-muted small">{{ $event->organization->name ?? '—' }}</td>
                                         <td class="text-nowrap small">
                                             @if ($event->event_start)
-                                                <x-date-format :date="$event->event_start" />
+                                                <x-date-format :value="$event->event_start" />
                                             @else
                                                 —
                                             @endif
