@@ -14,9 +14,9 @@
                        class="form-control"
                        autofocus />
                 <select name="type" class="form-select" style="max-width: 160px;">
-                    <option value="all" @selected($type === 'all')>All</option>
-                    <option value="troopers" @selected($type === 'troopers')>Troopers</option>
-                    <option value="events" @selected($type === 'events')>Events</option>
+                    @foreach ($search_types as $value => $label)
+                        <option value="{{ $value }}" @selected($type === $value)>{{ $label }}</option>
+                    @endforeach
                 </select>
                 <button type="submit" class="btn btn-primary text-nowrap">
                     <i class="fa fa-fw fa-search"></i> Search
@@ -38,7 +38,7 @@
     @else
 
         {{-- Troopers --}}
-        @if (in_array($type, ['all', 'troopers']))
+        @if ($show_troopers)
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-header bg-dark text-white text-uppercase small fw-bold">
                     <i class="fa-solid fa-user-astronaut me-2"></i>
@@ -89,7 +89,7 @@
         @endif
 
         {{-- Events --}}
-        @if (in_array($type, ['all', 'events']))
+        @if ($show_events)
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-header bg-dark text-white text-uppercase small fw-bold">
                     <i class="fa-solid fa-calendar-days me-2"></i>
