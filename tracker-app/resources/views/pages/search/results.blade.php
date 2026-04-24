@@ -63,8 +63,6 @@
                                             <a href="{{ route('service-records.trooper', $trooper) }}" class="fw-bold text-decoration-none">
                                                 {{ $trooper->display_name }}
                                             </a>
-                                            <br />
-                                            <span class="text-muted small">{{ $trooper->email }}</span>
                                         </td>
                                         <td>
                                             @foreach ($trooper->organizations as $org)
