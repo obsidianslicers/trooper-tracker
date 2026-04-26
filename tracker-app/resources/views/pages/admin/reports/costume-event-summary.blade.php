@@ -1,12 +1,12 @@
 @extends('layouts.base')
 
-@section('page-title', 'Trooper Event Counts')
+@section('page-title', 'Costume Event Summary')
 
 @section('content')
 
     <x-card label="Filters">
         <form method="GET"
-              action="{{ route('admin.reports.trooper-event-summary') }}"
+              action="{{ route('admin.reports.costume-event-summary') }}"
               novalidate="novalidate">
 
             <div class="row g-3 align-items-end">
@@ -26,11 +26,6 @@
                     <x-label value="Date End" />
                     <x-input-date :property="'date_end'"
                                   :value="$date_end?->format('Y-m-d') ?? ''" />
-                </div>
-                <div class="col-sm-4 d-flex align-items-end pb-1">
-                    <x-input-checkbox :property="'active_only'"
-                                      :label="'Active Members Only'"
-                                      :checked="$active_only" />
                 </div>
             </div>
 
@@ -59,7 +54,6 @@
             @else
                 all time
             @endif
-            @if($active_only) &mdash; Active Members Only @endif
         </caption>
         @php
             $sortLink = fn(string $col) => request()->fullUrlWithQuery([
@@ -74,8 +68,8 @@
         <thead>
             <tr>
                 <th>
-                    <a href="{{ $sortLink('display_name') }}" class="text-reset text-decoration-none">
-                        Trooper{!! $sortIcon('display_name') !!}
+                    <a href="{{ $sortLink('name') }}" class="text-reset text-decoration-none">
+                        Costume{!! $sortIcon('name') !!}
                     </a>
                 </th>
                 <th scope="col" class="text-end">
@@ -84,37 +78,44 @@
                     </a>
                 </th>
                 <th scope="col" class="text-end">
-                    <a href="{{ $sortLink('event_shifts_count') }}" class="text-reset text-decoration-none">
-                        Total Shifts{!! $sortIcon('event_shifts_count') !!}
+                    <a href="{{ $sortLink('uses_count') }}" class="text-reset text-decoration-none">
+                        Total Uses{!! $sortIcon('uses_count') !!}
                     </a>
                 </th>
             </tr>
         </thead>
         <tbody>
-            @forelse ($trooper_events as $trooper_event)
+            @forelse ($costume_events as $costume_event)
                 <tr>
-                    <td>
-                        <a href="{{ route('admin.troopers.profile', $trooper_event) }}">
-                            {{ $trooper_event->display_name }}
-                        </a>
+                    <td>{{ $costume_event->name }}</td>
+                    <td class="text-end">
+                        <x-number-format :value="$costume_event->events_count" />
                     </td>
                     <td class="text-end">
-                        <x-number-format :value="$trooper_event->events_count" />
-                    </td>
-                    <td class="text-end">
-                        <x-number-format :value="$trooper_event->event_shifts_count" />
+                        <x-number-format :value="$costume_event->uses_count" />
                     </td>
                 </tr>
             @empty
                 <x-table-empty :colspan="3">
-                    No troopers found with attended events in the selected date range.
+                    No costumes found with attended events in the selected date range.
                 </x-table-empty>
             @endforelse
         </tbody>
         <tfoot>
+            @if($costume_events->count())
+                <tr>
+                    <th>Total</th>
+                    <th class="text-end">
+                        <x-number-format :value="$costume_events->sum('events_count')" />
+                    </th>
+                    <th class="text-end">
+                        <x-number-format :value="$costume_events->sum('uses_count')" />
+                    </th>
+                </tr>
+            @endif
             <tr>
                 <td colspan="3">
-                    {{ $trooper_events->links() }}
+                    {{ $costume_events->links() }}
                 </td>
             </tr>
         </tfoot>

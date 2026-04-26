@@ -46,11 +46,19 @@
                 an event where their status was updated by someone other than the trooper in action.
             </p>
         </x-dashboard-card>
+        <x-dashboard-card :label="'Donation Event Summary'"
+                          :icon="'fa-file-lines'"
+                          :url="route('admin.reports.donation-event-summary')">
+            <p>
+                Donation Event Summary
+                (Report showing charity direct/indirect funds raised per event with date range filtering)
+            </p>
+        </x-dashboard-card>
         <x-dashboard-card :label="'Costume Used Most at Events'"
                           :icon="'fa-chart-line'"
-                          :url="'#'">
+                          :url="route('admin.reports.costume-event-summary')">
             <p>
-                <b class="text-danger">TODO:</b> Costume used most at Events
+                Costume used most at Events
                 (Report to see which costume was used the most at events between certain dates)
             </p>
         </x-dashboard-card>

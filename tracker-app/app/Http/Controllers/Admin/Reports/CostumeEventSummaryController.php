@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Reports;
 
-use App\Features\Reports\Queries\GetTrooperEventSummaryQuery;
+use App\Features\Reports\Queries\GetCostumeEventSummaryQuery;
 use App\Models\Organization;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -12,7 +12,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-class TrooperEventSummaryController extends BaseReportsController
+class CostumeEventSummaryController extends BaseReportsController
 {
     public function __invoke(Request $request): View|StreamedResponse
     {
@@ -25,8 +25,6 @@ class TrooperEventSummaryController extends BaseReportsController
         $date_end = $request->filled('date_end')
             ? Carbon::parse($request->input('date_end'))->endOfDay()
             : null;
-
-        $active_only = (bool) $request->input('active_only', false);
 
         $organizations = Organization::moderatedBy($trooper)
             ->orderBy(Organization::NAME)
@@ -43,28 +41,28 @@ class TrooperEventSummaryController extends BaseReportsController
             ->values()
             ->all();
 
-        $sort = $request->input('sort', 'event_shifts_count');
+        $sort = $request->input('sort', 'uses_count');
         $dir = $request->input('dir', 'desc');
 
         if ($request->input('format') === 'csv')
         {
-            $all = $this->bus->send(new GetTrooperEventSummaryQuery($trooper, $date_start, $date_end, $active_only, PHP_INT_MAX, $organization, $sort, $dir, $accessible_org_ids));
+            $all = $this->bus->send(new GetCostumeEventSummaryQuery($trooper, $date_start, $date_end, PHP_INT_MAX, $organization, $sort, $dir, $accessible_org_ids));
 
-            return $this->streamCsv($all, $date_start, $date_end, $active_only, $organization?->name);
+            return $this->streamCsv($all, $date_start, $date_end, $organization?->name);
         }
 
-        $trooper_events = $this->bus->send(new GetTrooperEventSummaryQuery($trooper, $date_start, $date_end, $active_only, 50, $organization, $sort, $dir, $accessible_org_ids));
+        $costume_events = $this->bus->send(new GetCostumeEventSummaryQuery($trooper, $date_start, $date_end, 50, $organization, $sort, $dir, $accessible_org_ids));
 
-        $data = compact('trooper_events', 'date_start', 'date_end', 'active_only', 'organizations', 'organization_id', 'sort', 'dir');
+        $data = compact('costume_events', 'date_start', 'date_end', 'organizations', 'organization_id', 'sort', 'dir');
 
-        return view('pages.admin.reports.trooper-event-summary', $data);
+        return view('pages.admin.reports.costume-event-summary', $data);
     }
 
-    private function streamCsv(LengthAwarePaginator $trooper_events, ?Carbon $date_start, ?Carbon $date_end, bool $active_only, ?string $organization_name): StreamedResponse
+    private function streamCsv(LengthAwarePaginator $costume_events, ?Carbon $date_start, ?Carbon $date_end, ?string $organization_name): StreamedResponse
     {
-        $filename = 'trooper-event-summary-'.now()->format('Y-m-d').'.csv';
+        $filename = 'costume-event-summary-'.now()->format('Y-m-d').'.csv';
 
-        return response()->streamDownload(function () use ($trooper_events, $date_start, $date_end, $active_only, $organization_name) {
+        return response()->streamDownload(function () use ($costume_events, $date_start, $date_end, $organization_name) {
             $handle = fopen('php://output', 'w');
 
             $meta = [];
@@ -80,31 +78,27 @@ class TrooperEventSummaryController extends BaseReportsController
             {
                 $meta[] = 'To: '.$date_end->format('Y-m-d');
             }
-            if ($active_only)
-            {
-                $meta[] = 'Active Members Only';
-            }
             if (!empty($meta))
             {
                 fputcsv($handle, $meta);
             }
 
-            fputcsv($handle, ['Trooper', 'Unique Events', 'Total Shifts']);
+            fputcsv($handle, ['Costume', 'Unique Events', 'Total Uses']);
 
-            foreach ($trooper_events as $trooper_event)
+            foreach ($costume_events as $costume_event)
             {
                 fputcsv($handle, [
-                    $trooper_event->display_name,
-                    $trooper_event->events_count,
-                    $trooper_event->event_shifts_count,
+                    $costume_event->name,
+                    $costume_event->events_count,
+                    $costume_event->uses_count,
                 ]);
             }
 
             fputcsv($handle, []);
             fputcsv($handle, [
                 'Total',
-                $trooper_events->sum('events_count'),
-                $trooper_events->sum('event_shifts_count'),
+                $costume_events->sum('events_count'),
+                $costume_events->sum('uses_count'),
             ]);
 
             fclose($handle);
