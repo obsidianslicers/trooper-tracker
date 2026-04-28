@@ -102,7 +102,6 @@
                                  x-bind:class="expanded ? '' : 'scanlines-overlay border border-success border-opacity-25'"
                                  x-bind:style="expanded ? 'max-height: ' + fullHeight : 'max-height: 120px'">
                                 <div x-ref="content"
-                                     class="transition-all"
                                      x-bind:class="expanded ? '' : 'terminal-green'">
                                     {!! Str::markdown($event->comments) !!}
                                 </div>
@@ -132,7 +131,9 @@
                                             You must review and acknowledge the mission brief before you can sign up for this deployment.
                                         </x-message>
 
-                                        <div class="mt-2" x-show="expanded" x-cloak>
+                                        <div class="mt-2"
+                                             x-show="expanded"
+                                             x-cloak>
                                             <form method="POST"
                                                   action="{{ route('events.ack-mission-brief', compact('event')) }}">
                                                 @csrf
@@ -244,7 +245,10 @@
         });
     </script>
 
-    <div class="modal fade" id="eventUploadPhotoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal fade"
+         id="eventUploadPhotoModal"
+         tabindex="-1"
+         aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg modal-fullscreen-sm-down">
             <div class="modal-content bg-dark border-0">
                 <div class="modal-body p-0 position-relative">

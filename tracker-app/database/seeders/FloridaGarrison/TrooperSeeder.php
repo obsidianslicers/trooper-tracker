@@ -25,7 +25,7 @@ class TrooperSeeder extends Seeder
             $t = Trooper::find($trooper->id) ?? new Trooper(['id' => $trooper->id]);
 
             $t->legal_name = trim($trooper->legal_name ?? $trooper->name);
-            $t->display_name = trim($trooper->name);
+            $t->display_name = $this->getDisplayName($trooper);
             $t->phone = $trooper->phone;
             $t->email = $trooper->email ?? '^' . uniqid();
             $t->password = $trooper->password ?? '^' . uniqid();
@@ -74,5 +74,17 @@ class TrooperSeeder extends Seeder
 
             $t->save();
         }
+    }
+
+    private function getDisplayName($trooper): string
+    {
+        $display_name = trim($trooper->forum_id);
+
+        if (!empty($display_name))
+        {
+            return $display_name;
+        }
+
+        return $trooper->name;
     }
 }

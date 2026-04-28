@@ -195,7 +195,7 @@ a:hover {
     color: #00ff41 !important;
     text-shadow: 0 0 8px rgba(0, 255, 65, 0.6); // Slightly heavier glow
     // 3 seconds is fast enough to see it often, slow enough to be atmospheric
-    animation: terminal-glitch 3s infinite step-end;
+    /*animation: terminal-glitch 3s infinite step-end;*/
 }
 
 .scanlines-overlay {
