@@ -37,7 +37,7 @@ class OrganizationSeeder extends Seeder
             ['parent' => 'Mandalorian Mercs', 'name' => 'House Buurenaar Verda'],
             ['parent' => 'Dark Empire', 'name' => 'Dark Empire Florida'],
             ['parent' => 'Saber Guild', 'name' => 'Saber Guild - Talon Temple'],
-            ['parent' => 'Droid Builders', 'name' => 'Florida Droid Builders'],
+            ['parent' => 'Droid Builders', 'name' => 'Southern R2 Builders'],
             ['parent' => 'Galactic Academy', 'name' => 'North America Coruscant Campus'],
         ];
 
@@ -73,9 +73,14 @@ class OrganizationSeeder extends Seeder
             ['region' => 'House Buurenaar Verda', 'name' => 'Drexl Clan'],
             ['region' => 'House Buurenaar Verda', 'name' => 'Scarif Clan'],
             ['region' => 'Dark Empire Florida', 'name' => 'Shadow Cell'],
-            ['region' => 'Saber Guild - Talon Temple', 'name' => 'Performance Team'],
-            ['region' => 'Florida Droid Builders', 'name' => 'R2 Builders Tampa'],
-            ['region' => 'Florida Droid Builders', 'name' => 'R2 Builders Orlando'],
+            ['region' => 'House Buurenaar Verda', 'name' => 'Protectors of Lothal'],
+            ['region' => 'Saber Guild - Talon Temple', 'name' => 'Dagobah Performance Group'],
+            ['region' => 'Saber Guild - Talon Temple', 'name' => 'Takodana Performance Group'],
+            ['region' => 'Ra Kura Base', 'name' => 'NWFL'],
+            ['region' => 'Ra Kura Base', 'name' => 'NEFL'],
+            ['region' => 'Ra Kura Base', 'name' => 'WFL'],
+            ['region' => 'Ra Kura Base', 'name' => 'CFL'],
+            ['region' => 'Ra Kura Base', 'name' => 'SFL'],
             ['region' => 'North America Coruscant Campus', 'name' => 'Florida Dagobah School'],
         ];
 
