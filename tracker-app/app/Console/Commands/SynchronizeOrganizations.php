@@ -6,6 +6,7 @@ namespace App\Console\Commands;
 
 use App\Models\Organization;
 use Carbon\CarbonInterval;
+use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Benchmark;
 
@@ -37,7 +38,8 @@ class SynchronizeOrganizations extends Command
      */
     public function handle(): void
     {
-        $ms = Benchmark::measure(function () {
+        $ms = Benchmark::measure(function ()
+        {
             $organizations = Organization::ofTypeOrganizations()
                 ->whereNotNull(Organization::SERVICE_CLASS)
                 ->orderByDesc(Organization::NAME)
@@ -47,15 +49,23 @@ class SynchronizeOrganizations extends Command
             {
                 $this->info("Synchronize Started: {$organization->name}");
 
-                $service_class = $organization->service_class;
+                try
+                {
+                    $service_class = $organization->service_class;
 
-                $service_class = app($service_class, compact('organization'));
+                    $service_class = app($service_class, compact('organization'));
 
-                $time = Benchmark::measure(fn () => $service_class->run());
+                    $time = Benchmark::measure(fn() => $service_class->run());
 
-                $readable = CarbonInterval::millisecond($time)->cascade()->forHumans();
+                    $readable = CarbonInterval::millisecond($time)->cascade()->forHumans();
 
-                $this->info("Synchronize Ended:   {$readable}");
+                    $this->info("Synchronize Ended:   {$readable}");
+                }
+                catch (Exception $e)
+                {
+                    $this->error("Error synchronizing {$organization->name}: {$e->getMessage()}");
+                    $this->info("Synchronize Ended:   ERR");
+                }
             }
         });
 

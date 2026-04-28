@@ -355,9 +355,12 @@ class Event extends BaseEvent
         $description = 'Troop Tracker Event';
 
         // Create link
-        $link = Link::create($name, $from, $to)
-            ->description($description)
-            ->address($location);
+        $link = Link::create($name, $from, $to)->description($description);
+
+        if ($location)
+        {
+            $link = $link->address($location);
+        }
 
         return $link;
     }
