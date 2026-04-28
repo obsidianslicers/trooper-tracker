@@ -38,8 +38,7 @@ class SynchronizeOrganizations extends Command
      */
     public function handle(): void
     {
-        $ms = Benchmark::measure(function ()
-        {
+        $ms = Benchmark::measure(function () {
             $organizations = Organization::ofTypeOrganizations()
                 ->whereNotNull(Organization::SERVICE_CLASS)
                 ->orderByDesc(Organization::NAME)
@@ -55,7 +54,7 @@ class SynchronizeOrganizations extends Command
 
                     $service_class = app($service_class, compact('organization'));
 
-                    $time = Benchmark::measure(fn() => $service_class->run());
+                    $time = Benchmark::measure(fn () => $service_class->run());
 
                     $readable = CarbonInterval::millisecond($time)->cascade()->forHumans();
 
@@ -64,7 +63,7 @@ class SynchronizeOrganizations extends Command
                 catch (Exception $e)
                 {
                     $this->error("Error synchronizing {$organization->name}: {$e->getMessage()}");
-                    $this->info("Synchronize Ended:   ERR");
+                    $this->info('Synchronize Ended:   ERR');
                 }
             }
         });
