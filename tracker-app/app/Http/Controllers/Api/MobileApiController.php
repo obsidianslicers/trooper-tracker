@@ -13,6 +13,7 @@ use App\Enums\OrganizationType;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventGuest;
+use App\Models\EventOrganization;
 use App\Models\EventNotification;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
@@ -387,7 +388,7 @@ class MobileApiController
      */
     private function getEvent(Request $request): JsonResponse
     {
-        $event = Event::with(['event_shifts.event_troopers', 'event_shifts.event_guests'])
+        $event = Event::with(['event_shifts.event_troopers', 'event_shifts.event_guests', 'organizations'])
             ->find((int) $request->input('troopid'));
 
         if (!$event)
@@ -405,6 +406,12 @@ class MobileApiController
         $is_limited = $troopers_allowed !== null || $handlers_allowed !== null;
         $location = $this->buildEventLocation($event);
         $limit_clubs = $this->buildCapacityMessage($troopers_allowed, $handlers_allowed, $trooper_count, $handler_count);
+
+        $trooper_org_ids = $trooper
+            ? TrooperOrganization::where(TrooperOrganization::TROOPER_ID, $trooper->id)
+                ->pluck(TrooperOrganization::ORGANIZATION_ID)
+                ->toArray()
+            : [];
 
         return response()->json(array_merge(
             [
@@ -445,6 +452,10 @@ class MobileApiController
                 'limitClubs' => $limit_clubs,
                 'trooper_count' => $trooper_count,
                 'num_of_handlers' => $handler_count,
+                'event_organizations' => $event->organizations
+                    ->filter(fn ($org) => $org->pivot->can_attend && ($trooper === null || in_array($org->id, $trooper_org_ids)))
+                    ->map(fn ($org) => ['id' => $org->id, 'name' => $org->name])
+                    ->values(),
                 'shifts' => $event->event_shifts
                     ->sortBy(EventShift::SHIFT_STARTS_AT)
                     ->map(fn ($shift) => [
@@ -695,6 +706,12 @@ class MobileApiController
         $organization_ids = TrooperOrganization::where(TrooperOrganization::TROOPER_ID, $trooper->id)
             ->pluck(TrooperOrganization::ORGANIZATION_ID)
             ->toArray();
+
+        $filter_org_id = (int) $request->input('organization_id', 0);
+        if ($filter_org_id > 0 && in_array($filter_org_id, $organization_ids))
+        {
+            $organization_ids = [$filter_org_id];
+        }
 
         $costumes = Costume::forTrooper($trooper->id, $organization_ids)
             ->orderBy(Costume::NAME)
@@ -974,6 +991,7 @@ class MobileApiController
         $shift_id = (int) $request->input('shiftid', 0);
         $costume_id = (int) $request->input('costume', 0);
         $backup_costume_id = (int) $request->input('backupcostume', 0);
+        $organization_id = ($raw_org = (int) $request->input('organization_id', 0)) > 0 ? $raw_org : null;
         $requested_status = $this->resolveEventTrooperStatus($request->input('status'));
 
         [$trooper, $added_by] = $this->resolveTrooperForSignUp($request);
@@ -1046,6 +1064,7 @@ class MobileApiController
                 EventTrooper::STATUS => $effective_status->value,
                 EventTrooper::COSTUME_ID => $costume_id ?: null,
                 EventTrooper::BACKUP_COSTUME_ID => $backup_costume_id ?: null,
+                EventTrooper::ORGANIZATION_ID => $organization_id,
             ]);
             EventNotification::firstOrCreate([
                 EventNotification::EVENT_ID => $event_id,
@@ -1056,7 +1075,7 @@ class MobileApiController
         }
 
         $is_handler = $this->isHandlerCostume($costume_id);
-        $status = $this->resolveCapacityStatus($event, $event_id, $is_handler, $effective_status);
+        $status = $this->resolveCapacityStatus($event, $event_id, $is_handler, $effective_status, $organization_id);
         $shift = $this->resolveShiftForSignUp($event_id, $shift_id);
 
         if (!$shift)
@@ -1079,6 +1098,7 @@ class MobileApiController
             EventTrooper::BACKUP_COSTUME_ID => $backup_costume_id ?: null,
             EventTrooper::STATUS => $status->value,
             EventTrooper::IS_HANDLER => $is_handler,
+            EventTrooper::ORGANIZATION_ID => $organization_id,
             EventTrooper::SIGNED_UP_AT => now(),
         ]);
 
@@ -1586,8 +1606,9 @@ class MobileApiController
 
     /**
      * Resolve the effective sign-up status, downgrading to stand-by if the event is at capacity.
+     * Checks global capacity first, then per-organization capacity when organization_id is provided.
      */
-    private function resolveCapacityStatus(Event $event, int $event_id, bool $is_handler, EventTrooperStatus $requested_status): EventTrooperStatus
+    private function resolveCapacityStatus(Event $event, int $event_id, bool $is_handler, EventTrooperStatus $requested_status, ?int $organization_id = null): EventTrooperStatus
     {
         if ($requested_status === EventTrooperStatus::CANCELLED)
         {
@@ -1631,6 +1652,32 @@ class MobileApiController
                 if ($trooper_count >= $troopers_allowed)
                 {
                     return EventTrooperStatus::STAND_BY;
+                }
+            }
+        }
+
+        if ($organization_id !== null)
+        {
+            $event_org = $event->event_organizations()
+                ->where(EventOrganization::ORGANIZATION_ID, $organization_id)
+                ->first();
+
+            if ($event_org !== null)
+            {
+                $org_limit = $is_handler ? $event_org->handlers_allowed : $event_org->troopers_allowed;
+
+                if ($org_limit !== null)
+                {
+                    $org_count = EventTrooper::whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $event_id))
+                        ->where(EventTrooper::ORGANIZATION_ID, $organization_id)
+                        ->where(EventTrooper::IS_HANDLER, $is_handler)
+                        ->whereIn(EventTrooper::STATUS, $active_values)
+                        ->count();
+
+                    if ($org_count >= $org_limit)
+                    {
+                        return EventTrooperStatus::STAND_BY;
+                    }
                 }
             }
         }
