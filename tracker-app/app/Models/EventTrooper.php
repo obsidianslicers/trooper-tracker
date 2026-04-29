@@ -126,7 +126,9 @@ class EventTrooper extends BaseEventTrooper
     {
         $event_shift = $this->event_shift;
 
-        $organization_ids = $this->event_shift->event->event_organizations()->pluckCanAttend($event_shift);
+        $organization_ids = $this->organization_id !== null
+            ? collect([$this->organization_id])
+            : $this->event_shift->event->event_organizations()->pluckCanAttend($event_shift);
 
         return Costume::forTrooper($this->trooper->id, $organization_ids)
             ->pluck('name', 'id')
