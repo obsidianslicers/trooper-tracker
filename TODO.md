@@ -13,6 +13,7 @@
 - lock down main
 
 ## TROOPERS
+-On Service Record, break down troop credit for each organization they are apart of
 
 ### WORK IN PROGRESS
 
