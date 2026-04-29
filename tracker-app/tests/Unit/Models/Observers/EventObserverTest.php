@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Models\Observers;
 
+use App\Jobs\DeleteEventForumThreadJob;
 use App\Jobs\UpdateEventForumThreadJob;
 use App\Models\Event;
 use App\Models\Observers\EventObserver;
@@ -94,5 +95,30 @@ class EventObserverTest extends TestCase
         $event->save();
 
         Queue::assertNothingPushed();
+    }
+
+    public function test_deleted_deletes_forum_thread_when_xenforo_is_configured_and_thread_exists(): void
+    {
+        Queue::fake();
+
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'test-key',
+        ]);
+
+        $organization = Organization::factory()->create();
+        $event = Event::factory()
+            ->withOrganization($organization)
+            ->withForumThreadEnabled()
+            ->withForumThreadId(321)
+            ->create([
+                Event::POST_ID => 654,
+            ]);
+
+        $subject = new EventObserver();
+
+        $subject->deleted($event);
+
+        Queue::assertPushed(DeleteEventForumThreadJob::class);
     }
 }

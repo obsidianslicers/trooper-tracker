@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models\Observers;
 
 use App\Facades\TroopTrackerFacade;
+use App\Jobs\DeleteEventForumThreadJob;
 use App\Jobs\UpdateEventForumThreadJob;
 use App\Models\Event;
 use App\Models\Organization;
@@ -71,6 +72,28 @@ class EventObserver
         {
             dispatch(new UpdateEventForumThreadJob($event->getKey()));
         }
+    }
+
+    /**
+     * Handle the Event "deleted" event.
+     *
+     * When an event that has a linked XenForo thread is deleted, attempt to
+     * delete the corresponding thread from XenForo as well to keep the forum
+     * in sync.
+     */
+    public function deleted(Event $event): void
+    {
+        if (! TroopTrackerFacade::isXenforoIntegrationConfigured())
+        {
+            return;
+        }
+
+        if (! $event->create_forum_thread || empty($event->thread_id))
+        {
+            return;
+        }
+
+        dispatch(new DeleteEventForumThreadJob((int) $event->id, (int) $event->thread_id))->afterCommit();
     }
 
     /**
