@@ -14,6 +14,19 @@
     </div>
     <div class="col-12 col-md-5 order-3 order-md-2">
         @if($event_trooper->canUpdateCostume($event_shift, Auth::user()))
+            @php($eligible_orgs_for_change = $event_trooper->trooper->eligibleOrgsForEvent($event))
+            @if($eligible_orgs_for_change->count() > 1)
+                <x-input-select :property="'organization_id'"
+                                :options="$eligible_orgs_for_change->pluck('name', 'id')->toArray()"
+                                :value="$event_trooper->organization_id"
+                                :placeholder="'-- Select Organization --'"
+                                hx-post="{{ route('events.signup-update-htmx', compact('event_trooper')) }}"
+                                hx-indicator="#transmission-bar-shift-{{ $event_trooper->event_shift->id }}"
+                                hx-select="#shift-container-{{ $event_trooper->event_shift->id }}"
+                                hx-target="#shift-container-{{ $event_trooper->event_shift->id }}"
+                                hx-swap="outerHTML"
+                                class="form-select-sm mt-2 mt-md-0" />
+            @endif
             <x-input-select :property="'costume_id'"
                             :options="$event_trooper->costumes"
                             :value="$event_trooper->costume_id"

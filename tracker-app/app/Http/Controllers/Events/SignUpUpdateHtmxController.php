@@ -116,6 +116,61 @@ class SignUpUpdateHtmxController extends MagicBusController
 
             return response()->view('pages.events.inc.shift-container', $data);
         }
+        elseif ($request->has('organization_id'))
+        {
+            $event_shift = $event_trooper->event_shift;
+            $auth_trooper = Auth::user();
+
+            if (!$event_trooper->canUpdateCostume($event_shift, $auth_trooper))
+            {
+                return response('Forbidden', 403);
+            }
+
+            $new_org_id = $request->validated('organization_id') ? (int) $request->validated('organization_id') : null;
+
+            if (
+                $new_org_id !== null
+                && $event_trooper->status === EventTrooperStatus::GOING
+                && $event_shift->orgTroopersMaxed($new_org_id, $event_trooper->is_handler)
+            ) {
+                $message = json_encode([
+                    'message' => 'That organization is already at capacity.',
+                    'type' => 'danger',
+                    'focus' => true,
+                    'fadeOut' => 5000,
+                ]);
+
+                $event_shift_query = new GetEventShiftDisplayQuery($event_shift, $auth_trooper);
+                $event_shift = $this->bus->send($event_shift_query);
+                $event = $event_shift->event;
+                $can_moderate = $auth_trooper->isModeratorForOrganization($event->organization);
+                $count_of_shifts = $event->event_shifts()->count();
+                $data = compact('event', 'event_shift', 'can_moderate', 'count_of_shifts');
+                $data['open'] = true;
+
+                return response()->view('pages.events.inc.shift-container', $data)
+                    ->header('X-Flash-Message', $message);
+            }
+
+            $valid_data = [
+                EventTrooper::ORGANIZATION_ID => $new_org_id,
+                EventTrooper::COSTUME_ID => null,
+                EventTrooper::BACKUP_COSTUME_ID => null,
+            ];
+
+            $event_trooper_cmd = new UpdateEventTrooperCommand($event_trooper, $valid_data);
+            $this->bus->send($event_trooper_cmd);
+
+            $event_shift_query = new GetEventShiftDisplayQuery($event_shift, $auth_trooper);
+            $event_shift = $this->bus->send($event_shift_query);
+            $event = $event_shift->event;
+            $can_moderate = $auth_trooper->isModeratorForOrganization($event->organization);
+            $count_of_shifts = $event->event_shifts()->count();
+            $data = compact('event', 'event_shift', 'can_moderate', 'count_of_shifts');
+            $data['open'] = true;
+
+            return response()->view('pages.events.inc.shift-container', $data);
+        }
         elseif ($request->has('costume_id'))
         {
             //  costume organization ids handled via observer, so we
