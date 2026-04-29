@@ -637,6 +637,147 @@ class EventShiftTest extends TestCase
         $this->assertInstanceOf(Link::class, $result);
     }
 
+    public function test_org_troopers_maxed_returns_false_when_org_not_in_event_organizations(): void
+    {
+        $event = Event::factory()->create();
+        $organization = Organization::factory()->create();
+        $subject = EventShift::factory()->forEvent($event)->create();
+
+        $result = $subject->orgTroopersMaxed($organization->id, false);
+
+        $this->assertFalse($result);
+    }
+
+    public function test_org_troopers_maxed_returns_false_when_limit_is_null(): void
+    {
+        $event = Event::factory()->create();
+        $organization = Organization::factory()->create();
+        EventOrganization::factory()
+            ->state([
+                EventOrganization::EVENT_ID => $event->id,
+                EventOrganization::ORGANIZATION_ID => $organization->id,
+                EventOrganization::CAN_ATTEND => true,
+                EventOrganization::TROOPERS_ALLOWED => null,
+            ])
+            ->create();
+        $subject = EventShift::factory()->forEvent($event)->create();
+
+        $result = $subject->orgTroopersMaxed($organization->id, false);
+
+        $this->assertFalse($result);
+    }
+
+    public function test_org_troopers_maxed_returns_false_when_below_limit(): void
+    {
+        $event = Event::factory()->state([Event::TROOPERS_ALLOWED => null])->create();
+        $organization = Organization::factory()->create();
+        EventOrganization::factory()
+            ->state([
+                EventOrganization::EVENT_ID => $event->id,
+                EventOrganization::ORGANIZATION_ID => $organization->id,
+                EventOrganization::CAN_ATTEND => true,
+                EventOrganization::TROOPERS_ALLOWED => 3,
+            ])
+            ->create();
+        $subject = EventShift::factory()->forEvent($event)->create();
+        EventTrooper::factory()
+            ->forEventShift($subject)
+            ->asGoing()
+            ->state([
+                EventTrooper::IS_HANDLER => false,
+                EventTrooper::ORGANIZATION_ID => $organization->id,
+            ])
+            ->count(2)
+            ->create();
+
+        $result = $subject->orgTroopersMaxed($organization->id, false);
+
+        $this->assertFalse($result);
+    }
+
+    public function test_org_troopers_maxed_returns_true_when_at_limit(): void
+    {
+        $event = Event::factory()->state([Event::TROOPERS_ALLOWED => null])->create();
+        $organization = Organization::factory()->create();
+        EventOrganization::factory()
+            ->state([
+                EventOrganization::EVENT_ID => $event->id,
+                EventOrganization::ORGANIZATION_ID => $organization->id,
+                EventOrganization::CAN_ATTEND => true,
+                EventOrganization::TROOPERS_ALLOWED => 2,
+            ])
+            ->create();
+        $subject = EventShift::factory()->forEvent($event)->create();
+        EventTrooper::factory()
+            ->forEventShift($subject)
+            ->asGoing()
+            ->state([
+                EventTrooper::IS_HANDLER => false,
+                EventTrooper::ORGANIZATION_ID => $organization->id,
+            ])
+            ->count(2)
+            ->create();
+
+        $result = $subject->orgTroopersMaxed($organization->id, false);
+
+        $this->assertTrue($result);
+    }
+
+    public function test_org_troopers_maxed_does_not_count_stand_by_troopers(): void
+    {
+        $event = Event::factory()->state([Event::TROOPERS_ALLOWED => null])->create();
+        $organization = Organization::factory()->create();
+        EventOrganization::factory()
+            ->state([
+                EventOrganization::EVENT_ID => $event->id,
+                EventOrganization::ORGANIZATION_ID => $organization->id,
+                EventOrganization::CAN_ATTEND => true,
+                EventOrganization::TROOPERS_ALLOWED => 1,
+            ])
+            ->create();
+        $subject = EventShift::factory()->forEvent($event)->create();
+        EventTrooper::factory()
+            ->forEventShift($subject)
+            ->state([
+                EventTrooper::STATUS => \App\Enums\EventTrooperStatus::STAND_BY,
+                EventTrooper::IS_HANDLER => false,
+                EventTrooper::ORGANIZATION_ID => $organization->id,
+            ])
+            ->create();
+
+        $result = $subject->orgTroopersMaxed($organization->id, false);
+
+        $this->assertFalse($result);
+    }
+
+    public function test_org_troopers_maxed_does_not_count_other_orgs(): void
+    {
+        $event = Event::factory()->state([Event::TROOPERS_ALLOWED => null])->create();
+        $org_a = Organization::factory()->create();
+        $org_b = Organization::factory()->create();
+        EventOrganization::factory()
+            ->state([
+                EventOrganization::EVENT_ID => $event->id,
+                EventOrganization::ORGANIZATION_ID => $org_a->id,
+                EventOrganization::CAN_ATTEND => true,
+                EventOrganization::TROOPERS_ALLOWED => 1,
+            ])
+            ->create();
+        $subject = EventShift::factory()->forEvent($event)->create();
+        EventTrooper::factory()
+            ->forEventShift($subject)
+            ->asGoing()
+            ->state([
+                EventTrooper::IS_HANDLER => false,
+                EventTrooper::ORGANIZATION_ID => $org_b->id,
+            ])
+            ->create();
+
+        $result = $subject->orgTroopersMaxed($org_a->id, false);
+
+        $this->assertFalse($result);
+    }
+
     public function test_status_cast_works(): void
     {
         $subject = EventShift::factory()

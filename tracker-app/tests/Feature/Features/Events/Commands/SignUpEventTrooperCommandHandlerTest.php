@@ -9,8 +9,11 @@ use App\Features\Events\Commands\SignUpEventTrooperCommand;
 use App\Features\Events\Commands\SignUpEventTrooperCommandHandler;
 use App\Jobs\CreateTrooperFriendshipJob;
 use App\Mail\Events\TrooperSignUp;
+use App\Models\Event;
+use App\Models\EventOrganization;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
+use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
@@ -142,5 +145,148 @@ class SignUpEventTrooperCommandHandlerTest extends TestCase
         $result = $handler($command);
 
         $this->assertNull($result);
+    }
+
+    public function test_invoke_saves_organization_id_when_provided(): void
+    {
+        Mail::fake();
+
+        $organization = Organization::factory()->create();
+        $event = Event::factory()->state([Event::TROOPERS_ALLOWED => null])->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $trooper = Trooper::factory()->create();
+
+        $command = new SignUpEventTrooperCommand(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+            organization_id: $organization->id
+        );
+        $handler = app(SignUpEventTrooperCommandHandler::class);
+
+        $handler($command);
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::ORGANIZATION_ID => $organization->id,
+        ]);
+    }
+
+    public function test_invoke_assigns_stand_by_when_org_limit_reached(): void
+    {
+        Mail::fake();
+
+        $organization = Organization::factory()->create();
+        $event = Event::factory()->state([Event::TROOPERS_ALLOWED => null])->create();
+        EventOrganization::factory()
+            ->state([
+                EventOrganization::EVENT_ID => $event->id,
+                EventOrganization::ORGANIZATION_ID => $organization->id,
+                EventOrganization::CAN_ATTEND => true,
+                EventOrganization::TROOPERS_ALLOWED => 1,
+            ])
+            ->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        // Fill the org slot
+        EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->asGoing()
+            ->state([EventTrooper::IS_HANDLER => false, EventTrooper::ORGANIZATION_ID => $organization->id])
+            ->create();
+
+        $trooper = Trooper::factory()->create();
+        $command = new SignUpEventTrooperCommand(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+            organization_id: $organization->id
+        );
+        $handler = app(SignUpEventTrooperCommandHandler::class);
+
+        $handler($command);
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::STAND_BY->value,
+        ]);
+    }
+
+    public function test_invoke_assigns_going_when_org_limit_not_reached(): void
+    {
+        Mail::fake();
+
+        $organization = Organization::factory()->create();
+        $event = Event::factory()->state([Event::TROOPERS_ALLOWED => null])->create();
+        EventOrganization::factory()
+            ->state([
+                EventOrganization::EVENT_ID => $event->id,
+                EventOrganization::ORGANIZATION_ID => $organization->id,
+                EventOrganization::CAN_ATTEND => true,
+                EventOrganization::TROOPERS_ALLOWED => 2,
+            ])
+            ->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->asGoing()
+            ->state([EventTrooper::IS_HANDLER => false, EventTrooper::ORGANIZATION_ID => $organization->id])
+            ->create();
+
+        $trooper = Trooper::factory()->create();
+        $command = new SignUpEventTrooperCommand(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+            organization_id: $organization->id
+        );
+        $handler = app(SignUpEventTrooperCommandHandler::class);
+
+        $handler($command);
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::GOING->value,
+        ]);
+    }
+
+    public function test_invoke_ignores_org_limit_when_no_organization_id(): void
+    {
+        Mail::fake();
+
+        $organization = Organization::factory()->create();
+        $event = Event::factory()->state([Event::TROOPERS_ALLOWED => null])->create();
+        EventOrganization::factory()
+            ->state([
+                EventOrganization::EVENT_ID => $event->id,
+                EventOrganization::ORGANIZATION_ID => $organization->id,
+                EventOrganization::CAN_ATTEND => true,
+                EventOrganization::TROOPERS_ALLOWED => 1,
+            ])
+            ->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->asGoing()
+            ->state([EventTrooper::IS_HANDLER => false, EventTrooper::ORGANIZATION_ID => $organization->id])
+            ->create();
+
+        $trooper = Trooper::factory()->create();
+        $command = new SignUpEventTrooperCommand(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+            organization_id: null
+        );
+        $handler = app(SignUpEventTrooperCommandHandler::class);
+
+        $handler($command);
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::GOING->value,
+        ]);
     }
 }
