@@ -2,27 +2,36 @@
     $requires_mission_brief_ack = $event->require_mission_brief_ack;
     $has_required_mission_brief_ack = !$requires_mission_brief_ack || $event->hasMissionBriefAcknowledgementFor(Auth::user());
     $eligible_orgs = Auth::user()->eligibleOrgsForEvent($event);
+    $limited_org_ids = $event->event_organizations()
+        ->where(function ($q) {
+            $q->whereNotNull('troopers_allowed')->orWhereNotNull('handlers_allowed');
+        })
+        ->pluck('organization_id')
+        ->toArray();
+    $event_has_org_limits = $eligible_orgs->whereIn('id', $limited_org_ids)->isNotEmpty();
 @endphp
 
 @if($event_shift->canSignUp(Auth::user()) && $has_required_mission_brief_ack)
-    @if($eligible_orgs->count() > 1)
-        <select id="org-picker-{{ $event_shift->id }}"
-                name="organization_id"
-                class="form-select form-select-sm mb-2">
-            <option value="">-- Select Organization --</option>
-            @foreach($eligible_orgs as $org)
-                <option value="{{ $org->id }}">{{ $org->name }}</option>
-            @endforeach
-        </select>
-    @elseif($eligible_orgs->count() === 1)
-        <input type="hidden"
-               id="org-picker-{{ $event_shift->id }}"
-               name="organization_id"
-               value="{{ $eligible_orgs->first()->id }}" />
-        <div class="small text-muted mb-1">
-            <i class="fa fa-fw fa-building me-1"></i>
-            Trooping as {{ $eligible_orgs->first()->name }}
-        </div>
+    @if($event_has_org_limits)
+        @if($eligible_orgs->count() > 1)
+            <select id="org-picker-{{ $event_shift->id }}"
+                    name="organization_id"
+                    class="form-select form-select-sm mb-2">
+                <option value="">-- Select Organization --</option>
+                @foreach($eligible_orgs as $org)
+                    <option value="{{ $org->id }}">{{ $org->name }}</option>
+                @endforeach
+            </select>
+        @elseif($eligible_orgs->count() === 1)
+            <input type="hidden"
+                   id="org-picker-{{ $event_shift->id }}"
+                   name="organization_id"
+                   value="{{ $eligible_orgs->first()->id }}" />
+            <div class="small text-muted mb-1">
+                <i class="fa fa-fw fa-building me-1"></i>
+                Trooping as {{ $eligible_orgs->first()->name }}
+            </div>
+        @endif
     @endif
     <button class="btn btn-sm btn-outline-success text-start text-md-center htmx-disable"
             hx-post="{{ route('events.signup-htmx', compact('event_shift')) }}"

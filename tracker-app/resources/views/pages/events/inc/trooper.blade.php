@@ -14,8 +14,15 @@
     </div>
     <div class="col-12 col-md-5 order-3 order-md-2">
         @if($event_trooper->canUpdateCostume($event_shift, Auth::user()))
-            @php($eligible_orgs_for_change = $event_trooper->trooper->eligibleOrgsForEvent($event))
-            @if($eligible_orgs_for_change->count() > 1)
+            @php
+                $eligible_orgs_for_change = $event_trooper->trooper->eligibleOrgsForEvent($event);
+                $limited_org_ids_for_change = $event->event_organizations
+                    ->filter(fn ($o) => $o->troopers_allowed !== null || $o->handlers_allowed !== null)
+                    ->pluck('organization_id')
+                    ->toArray();
+                $show_org_picker = $eligible_orgs_for_change->whereIn('id', $limited_org_ids_for_change)->isNotEmpty();
+            @endphp
+            @if($show_org_picker && $eligible_orgs_for_change->count() > 1)
                 <x-input-select :property="'organization_id'"
                                 :options="$eligible_orgs_for_change->pluck('name', 'id')->toArray()"
                                 :value="$event_trooper->organization_id"

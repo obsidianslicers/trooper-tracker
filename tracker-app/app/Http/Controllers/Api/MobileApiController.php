@@ -452,10 +452,7 @@ class MobileApiController
                 'limitClubs' => $limit_clubs,
                 'trooper_count' => $trooper_count,
                 'num_of_handlers' => $handler_count,
-                'event_organizations' => $event->organizations
-                    ->filter(fn ($org) => $org->pivot->can_attend && ($trooper === null || in_array($org->id, $trooper_org_ids)))
-                    ->map(fn ($org) => ['id' => $org->id, 'name' => $org->name])
-                    ->values(),
+                'event_organizations' => $this->eligibleLimitedOrgsForTrooper($event, $trooper_org_ids),
                 'shifts' => $event->event_shifts
                     ->sortBy(EventShift::SHIFT_STARTS_AT)
                     ->map(fn ($shift) => [
@@ -1587,6 +1584,35 @@ class MobileApiController
         return EventTrooper::where(EventTrooper::TROOPER_ID, $trooper_id)
             ->whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $event_id))
             ->first();
+    }
+
+    /**
+     * Return the trooper's eligible event organizations, but only when at least one
+     * of their orgs has a per-org trooper/handler limit for this event.
+     * Returns an empty array when no limit applies to the trooper's orgs.
+     *
+     * @param  array<int>  $trooper_org_ids
+     */
+    private function eligibleLimitedOrgsForTrooper(Event $event, array $trooper_org_ids): array
+    {
+        $limited_org_ids = $event->event_organizations()
+            ->where(function ($q) {
+                $q->whereNotNull(EventOrganization::TROOPERS_ALLOWED)
+                  ->orWhereNotNull(EventOrganization::HANDLERS_ALLOWED);
+            })
+            ->pluck(EventOrganization::ORGANIZATION_ID)
+            ->toArray();
+
+        if (empty(array_intersect($trooper_org_ids, $limited_org_ids)))
+        {
+            return [];
+        }
+
+        return $event->organizations
+            ->filter(fn ($org) => $org->pivot->can_attend && in_array($org->id, $trooper_org_ids))
+            ->map(fn ($org) => ['id' => $org->id, 'name' => $org->name])
+            ->values()
+            ->all();
     }
 
     /**
