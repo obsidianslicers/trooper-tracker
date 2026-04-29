@@ -184,10 +184,30 @@ class EventTrooper extends BaseEventTrooper
 
                 if ($this->is_handler)
                 {
-                    return !$event_shift->handlersMaxed();
+                    if ($event_shift->handlersMaxed())
+                    {
+                        return false;
+                    }
+
+                    if ($this->organization_id !== null && $event_shift->orgTroopersMaxed($this->organization_id, true))
+                    {
+                        return false;
+                    }
+
+                    return true;
                 }
 
-                return !$event_shift->troopersMaxed();
+                if ($event_shift->troopersMaxed())
+                {
+                    return false;
+                }
+
+                if ($this->organization_id !== null && $event_shift->orgTroopersMaxed($this->organization_id, false))
+                {
+                    return false;
+                }
+
+                return true;
             }
 
             return true;

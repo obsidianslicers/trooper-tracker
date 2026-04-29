@@ -25,6 +25,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Collection;
 
 /**
  * Represents a member (trooper) of a costuming organization.
@@ -213,6 +214,39 @@ class Trooper extends BaseTrooper implements
         }
 
         return false;
+    }
+
+    /**
+     * Get the top-level organizations this trooper is eligible to troop for at a given event.
+     *
+     * Returns organizations that:
+     * - The trooper has an is_member assignment for (or a parent of such an assignment)
+     * - Are listed as can_attend on the event
+     *
+     * Returns an empty collection when the event has no can_attend restrictions.
+     *
+     * @param  Event  $event
+     * @return Collection<int, Organization>
+     */
+    public function eligibleOrgsForEvent(Event $event): Collection
+    {
+        $can_attend_ids = $event->event_organizations
+            ->where(EventOrganization::CAN_ATTEND, true)
+            ->pluck(EventOrganization::ORGANIZATION_ID);
+
+        if ($can_attend_ids->isEmpty())
+        {
+            return collect();
+        }
+
+        return $this->trooper_assignments()
+            ->where(TrooperAssignment::IS_MEMBER, true)
+            ->with('organization.parent.parent')
+            ->get()
+            ->map(fn($assignment) => $assignment->organization->getPrimaryClub())
+            ->filter(fn(Organization $org) => $can_attend_ids->contains($org->id))
+            ->unique('id')
+            ->values();
     }
 
     /**

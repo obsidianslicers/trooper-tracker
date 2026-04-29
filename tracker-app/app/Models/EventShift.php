@@ -157,6 +157,39 @@ class EventShift extends BaseEventShift
     }
 
     /**
+     * Check if the per-organization trooper or handler capacity for this shift is full.
+     *
+     * @param int $organization_id The top-level organization ID to check
+     * @param bool $is_handler Whether to check handler slots instead of trooper slots
+     * @return bool True if the org's count meets or exceeds its allowed limit
+     */
+    public function orgTroopersMaxed(int $organization_id, bool $is_handler = false): bool
+    {
+        $event_org = $this->event->event_organizations
+            ->firstWhere(EventOrganization::ORGANIZATION_ID, $organization_id);
+
+        if ($event_org === null)
+        {
+            return false;
+        }
+
+        $limit = $is_handler ? $event_org->handlers_allowed : $event_org->troopers_allowed;
+
+        if ($limit === null)
+        {
+            return false;
+        }
+
+        $count = $this->event_troopers()
+            ->where(EventTrooper::ORGANIZATION_ID, $organization_id)
+            ->where(EventTrooper::IS_HANDLER, $is_handler)
+            ->where(EventTrooper::STATUS, EventTrooperStatus::GOING)
+            ->count();
+
+        return $count >= $limit;
+    }
+
+    /**
      * Check if the handler capacity for this shift is full.
      *
      * @return bool True if the number of signed up handlers meets or exceeds the allowed limit
