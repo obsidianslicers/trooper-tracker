@@ -98,7 +98,8 @@
 
                             <x-section-title>Mission Brief</x-section-title>
 
-                            <div class="mission-brief-container position-relative overflow-hidden rounded"
+                            <div class="mission-brief-container position-relative overflow-hidden rounded pointer"
+                                 x-on:click="expanded = !expanded"
                                  x-bind:class="expanded ? '' : 'scanlines-overlay border border-success border-opacity-25'"
                                  x-bind:style="expanded ? 'max-height: ' + fullHeight : 'max-height: 120px'">
                                 <div x-ref="content"
