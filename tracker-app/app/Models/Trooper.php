@@ -239,14 +239,9 @@ class Trooper extends BaseTrooper implements
             return collect();
         }
 
-        return $this->trooper_assignments()
-            ->where(TrooperAssignment::IS_MEMBER, true)
-            ->with('organization.parent.parent')
-            ->get()
-            ->map(fn($assignment) => $assignment->organization->getPrimaryClub())
-            ->filter(fn(Organization $org) => $can_attend_ids->contains($org->id))
-            ->unique('id')
-            ->values();
+        return $this->organizations()
+            ->whereIn('tt_organizations.id', $can_attend_ids)
+            ->get();
     }
 
     /**
