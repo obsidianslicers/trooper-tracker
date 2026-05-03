@@ -41,9 +41,11 @@ readonly class GetTroopersForPickerQueryHandler implements QueryHandlerInterface
      */
     public function __invoke(object $message): mixed
     {
-        $query = Trooper::active()
-            ->whereNotNull(Trooper::SETUP_COMPLETED_AT)
-            ->where(function ($q) use ($message) {
+        $query = app()->isLocal()
+            ? Trooper::query()
+            : Trooper::active()->whereNotNull(Trooper::SETUP_COMPLETED_AT);
+
+        $query = $query->where(function ($q) use ($message) {
                 $q->whereNull(Trooper::GUARDIAN_ID)
                     ->orWhere(Trooper::GUARDIAN_ID, $message->trooper->id);
             })

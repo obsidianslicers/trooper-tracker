@@ -9,6 +9,9 @@
         ->pluck('organization_id')
         ->toArray();
     $event_has_org_limits = $eligible_orgs->whereIn('id', $limited_org_ids)->isNotEmpty();
+    $limited_orgs_for_add = $event->organizations
+        ->filter(fn ($o) => $o->pivot->can_attend && ($o->pivot->troopers_allowed !== null || $o->pivot->handlers_allowed !== null))
+        ->values();
 @endphp
 
 @if($event_shift->canSignUp(Auth::user()) && $has_required_mission_brief_ack)
@@ -69,15 +72,28 @@
                 <i class="fa fa-fw fa-plus-circle me-2"></i>
                 Add a Trooper
             </button>
-            {{-- TO CATCH THE MODAL TROOPER PICKER PICK --}}
-            <div class="d-none"
-                 hx-post="{{ route('events.signup-htmx', compact('event_shift')) }}"
-                 hx-vals="js:{trooper_id: event.detail.id}"
-                 hx-trigger="trooper:selected[event.detail.property == 'add-shift-trooper-{{ $event_shift->id }}'] from:document"
-                 hx-select="#shift-container-{{ $event_shift->id }}"
-                 hx-target="#shift-container-{{ $event_shift->id }}"
-                 hx-swap="outerHTML"
-                 hx-indicator="#transmission-bar-shift-{{ $event_shift->id }}"></div>
+            @if($limited_orgs_for_add->isNotEmpty())
+                {{-- Step 2: org confirmation form appears here after trooper is selected --}}
+                <div id="add-trooper-step2-{{ $event_shift->id }}"></div>
+                {{-- Fetch the selected trooper's eligible orgs instead of signing up directly --}}
+                <div class="d-none"
+                     hx-get="{{ route('events.add-trooper-org-picker', compact('event_shift')) }}"
+                     hx-vals="js:{trooper_id: event.detail.id}"
+                     hx-trigger="trooper:selected[event.detail.property == 'add-shift-trooper-{{ $event_shift->id }}'] from:document"
+                     hx-target="#add-trooper-step2-{{ $event_shift->id }}"
+                     hx-swap="innerHTML"
+                     hx-indicator="#transmission-bar-shift-{{ $event_shift->id }}"></div>
+            @else
+                {{-- No org limits — sign up directly --}}
+                <div class="d-none"
+                     hx-post="{{ route('events.signup-htmx', compact('event_shift')) }}"
+                     hx-vals="js:{trooper_id: event.detail.id}"
+                     hx-trigger="trooper:selected[event.detail.property == 'add-shift-trooper-{{ $event_shift->id }}'] from:document"
+                     hx-select="#shift-container-{{ $event_shift->id }}"
+                     hx-target="#shift-container-{{ $event_shift->id }}"
+                     hx-swap="outerHTML"
+                     hx-indicator="#transmission-bar-shift-{{ $event_shift->id }}"></div>
+            @endif
         @endif
     @endif
     @if($event->guests_allowed !== 0 && $event_shift->hasRemainingGuestSlots(Auth::user()))
