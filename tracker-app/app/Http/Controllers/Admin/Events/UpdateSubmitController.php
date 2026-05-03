@@ -10,10 +10,12 @@ use App\Features\Events\Commands\UpdateEventCommand;
 use App\Features\Events\Commands\UpdateEventOrganizationsCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Events\UpdateRequest;
+use App\Jobs\ReconcileEventRosterJob;
 use App\Jobs\SendEventCancelledNotificationsJob;
 use App\Jobs\SendEventCreatedNotificationsJob;
 use App\Models\Event;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Processes event update form submissions.
@@ -44,6 +46,7 @@ class UpdateSubmitController extends MagicBusController
 
         $this->bus->send(new UpdateEventCommand($event, $request->validated()));
         $this->bus->send(new UpdateEventOrganizationsCommand($event, $request->validated('organizations') ?? []));
+        dispatch(new ReconcileEventRosterJob($event, Auth::user()));
 
         if ($current_status != $updated_status)
         {
