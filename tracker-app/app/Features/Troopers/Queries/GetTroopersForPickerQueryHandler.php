@@ -65,7 +65,7 @@ readonly class GetTroopersForPickerQueryHandler implements QueryHandlerInterface
 
         $execute_query = false;
 
-        if ($message->picker_mode == TrooperPickerMode::FRIENDS)
+        if ($message->picker_mode == TrooperPickerMode::FRIENDS && !app()->isLocal())
         {
             $q = TrooperFriend::query()
                 ->select(TrooperFriend::FRIEND_ID)
