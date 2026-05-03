@@ -61,15 +61,14 @@ enum EventTrooperStatus: string
      * @param  bool  $tentative_signups_allowed  Whether tentative status is available
      * @return array<string, string> Array with status values as keys and formatted names as values
      */
-    public static function toSignUpArray(bool $tentative_signups_allowed): array
+    public static function toSignUpArray(bool $tentative_signups_allowed, bool $is_limited = false): array
     {
         $options = [
-            self::GOING->value => to_title(self::GOING->name),
-            self::STAND_BY->value => to_title(self::STAND_BY->name),
-            self::CANCELLED->value => to_title(self::CANCELLED->name),
+            self::GOING->value      => to_title(self::GOING->name),
+            self::CANCELLED->value  => to_title(self::CANCELLED->name),
         ];
 
-        if ($tentative_signups_allowed)
+        if ($tentative_signups_allowed && !$is_limited)
         {
             $options[self::TENTATIVE->value] = to_title(self::TENTATIVE->name);
         }

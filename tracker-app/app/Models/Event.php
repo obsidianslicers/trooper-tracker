@@ -104,6 +104,25 @@ class Event extends BaseEvent
     }
 
     /**
+     * Whether this event has any capacity limits (global or per-org).
+     */
+    public function hasLimits(): bool
+    {
+        if ($this->troopers_allowed !== null || $this->handlers_allowed !== null)
+        {
+            return true;
+        }
+
+        $orgs = $this->relationLoaded('event_organizations')
+            ? $this->event_organizations
+            : $this->event_organizations();
+
+        return $orgs->contains(
+            fn ($o) => $o->troopers_allowed !== null || $o->handlers_allowed !== null
+        );
+    }
+
+    /**
      * Get a formatted time display string for the event.
      *
      * Format: "Sat - Oct 03, 2026 - 2:00pm - 4:00pm"

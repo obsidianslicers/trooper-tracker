@@ -125,7 +125,7 @@
                 </div>
             @elseif($event_shift->is_open && $event_trooper->canUpdateStatus($event_shift, Auth::user()))
                 <x-input-select :property="'status'"
-                                :options="\App\Enums\EventTrooperStatus::toSignUpArray($event->tentative_signups_allowed)"
+                                :options="\App\Enums\EventTrooperStatus::toSignUpArray($event->tentative_signups_allowed, $event->hasLimits())"
                                 :value="$event_trooper->status->value"
                                 hx-post="{{ route('events.signup-update-htmx', compact('event_trooper')) }}"
                                 hx-indicator="#transmission-bar-shift-{{ $event_trooper->event_shift->id }}"
