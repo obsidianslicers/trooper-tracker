@@ -1,19 +1,3 @@
-@php
-    $requires_mission_brief_ack = $event->require_mission_brief_ack;
-    $has_required_mission_brief_ack = !$requires_mission_brief_ack || $event->hasMissionBriefAcknowledgementFor(Auth::user());
-    $eligible_orgs = Auth::user()->eligibleOrgsForEvent($event);
-    $limited_org_ids = $event->event_organizations()
-        ->where(function ($q) {
-            $q->whereNotNull('troopers_allowed')->orWhereNotNull('handlers_allowed');
-        })
-        ->pluck('organization_id')
-        ->toArray();
-    $event_has_org_limits = $eligible_orgs->whereIn('id', $limited_org_ids)->isNotEmpty();
-    $limited_orgs_for_add = $event->organizations
-        ->filter(fn ($o) => $o->pivot->can_attend && ($o->pivot->troopers_allowed !== null || $o->pivot->handlers_allowed !== null))
-        ->values();
-@endphp
-
 @if($event_shift->canSignUp(Auth::user()) && $has_required_mission_brief_ack)
     @if($event_has_org_limits)
         @if($eligible_orgs->count() > 1)
