@@ -70,9 +70,14 @@ class SignUpUpdateHtmxController extends MagicBusController
                 return response('Forbidden', 403);
             }
 
-            $is_full = $event_trooper->is_handler
+            $previous_status = $event_trooper->status;
+
+            $is_global_full = $event_trooper->is_handler
                 ? $event_shift->handlersMaxed()
                 : $event_shift->troopersMaxed();
+
+            $org_was_full = $event_trooper->organization_id !== null
+                && $event_shift->orgTroopersMaxed($event_trooper->organization_id, $event_trooper->is_handler);
 
             $valid_data = ['status' => $requestedStatus];
 
@@ -90,12 +95,13 @@ class SignUpUpdateHtmxController extends MagicBusController
                 Mail::to($event_trooper->trooper->email)->queue(new TrooperManualSelectionStandBy($event_trooper, $authTrooper));
             }
 
-            if ($is_full && $event_trooper->status === EventTrooperStatus::CANCELLED)
-            {
-                // notify next in line that they can now attend
-                $next_in_line_cmd = new PromoteNextInLineEventTrooperCommand($event_trooper);
+            $going_to_not_going = $previous_status === EventTrooperStatus::GOING
+                && $requestedStatus !== EventTrooperStatus::GOING
+                && !$isManualSelectionEvent;
 
-                $this->bus->send($next_in_line_cmd);
+            if ($going_to_not_going && ($is_global_full || $org_was_full))
+            {
+                $this->bus->send(new PromoteNextInLineEventTrooperCommand($event_trooper, $is_global_full));
             }
 
             $trooper = $authTrooper;

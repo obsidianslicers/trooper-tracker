@@ -35,12 +35,34 @@ readonly class PromoteNextInLineEventTrooperCommandHandler implements CommandHan
      */
     public function __invoke(object $message): mixed
     {
-        $next_in_line = $message->event_trooper->event_shift
-            ->event_troopers()
-            ->where(EventTrooper::STATUS, EventTrooperStatus::STAND_BY)
-            ->where(EventTrooper::IS_HANDLER, $message->event_trooper->is_handler)
-            ->orderBy(EventTrooper::SIGNED_UP_AT)
-            ->first();
+        $event_trooper = $message->event_trooper;
+        $event_shift   = $event_trooper->event_shift;
+        $org_id        = $event_trooper->organization_id;
+
+        $next_in_line = null;
+
+        // Prefer the next STAND_BY trooper from the same organization when the
+        // departing trooper held an org-limited slot.
+        if ($org_id !== null)
+        {
+            $next_in_line = $event_shift->event_troopers()
+                ->where(EventTrooper::STATUS, EventTrooperStatus::STAND_BY)
+                ->where(EventTrooper::ORGANIZATION_ID, $org_id)
+                ->where(EventTrooper::IS_HANDLER, $event_trooper->is_handler)
+                ->orderBy(EventTrooper::SIGNED_UP_AT)
+                ->first();
+        }
+
+        // Fall back to any STAND_BY with the same role only when the global
+        // event capacity was also full (not just the per-org slot).
+        if ($next_in_line === null && $message->global_was_full)
+        {
+            $next_in_line = $event_shift->event_troopers()
+                ->where(EventTrooper::STATUS, EventTrooperStatus::STAND_BY)
+                ->where(EventTrooper::IS_HANDLER, $event_trooper->is_handler)
+                ->orderBy(EventTrooper::SIGNED_UP_AT)
+                ->first();
+        }
 
         if ($next_in_line !== null)
         {
