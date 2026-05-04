@@ -31,6 +31,7 @@ Recommended `.env` values for Florida Garrison:
 - `TRACKER_CALENDAR_TIMEZONE=America/New_York`
 - `APP_URL` set to the real deployment URL
 - `APP_DEBUG=false` in production
+- `GOOGLE_MAPS_API_KEY` set to your Google Maps API key (required for the map feature — see section 3)
 
 If this is a production or shared environment, make sure the database, queue, mail, and OAuth settings are configured before launch.
 
@@ -65,7 +66,59 @@ Use that only when you are intentionally rebuilding the database.
 
 ---
 
-## 3. Create the Public Image Link
+## 3. Configure Google Maps API Key
+
+The map feature on event pages uses the Google Maps JavaScript API. Without a valid API key the map will not render.
+
+### 3.1 Create or reuse a Google Cloud project
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/).
+2. Select an existing project or create a new one (e.g. `troop-tracker`).
+
+### 3.2 Enable the required APIs
+
+In the Google Cloud Console for your project, enable **all** of the following APIs:
+
+- **Maps JavaScript API** — renders the interactive map on event pages
+- **Geocoding API** — converts a street address to latitude/longitude coordinates
+
+To enable each API:
+
+1. Open **APIs & Services > Library**.
+2. Search for the API name.
+3. Click **Enable**.
+
+### 3.3 Create an API key
+
+1. Open **APIs & Services > Credentials**.
+2. Click **+ Create Credentials > API key**.
+3. Copy the generated key.
+
+### 3.4 Restrict the API key (recommended for production)
+
+In the API key settings:
+
+- Under **Application restrictions**, select **HTTP referrers (websites)**.
+- Add your domain, for example: `https://trooptracker.fl501st.com/*`
+- Under **API restrictions**, select **Restrict key** and choose only the APIs enabled above.
+
+### 3.5 Add the key to `.env`
+
+```env
+GOOGLE_MAPS_API_KEY=your_api_key_here
+```
+
+After saving `.env`, clear the config cache if you are in production:
+
+```bash
+php artisan config:clear
+```
+
+The map will now render on event detail pages for events that have a valid address.
+
+---
+
+## 4. Create the Public Image Link
 
 Troop Tracker stores new uploads on Laravel's `public` storage disk. The app needs the standard Laravel storage symlink so browsers can load uploaded files.
 
@@ -83,7 +136,7 @@ Without this step, new organization logos and new event uploads will save, but t
 
 ---
 
-## 4. Understand the Two Image Paths
+## 5. Understand the Two Image Paths
 
 There are two different image-handling patterns in this project.
 
@@ -108,7 +161,7 @@ Organization images do not have the same fallback behavior. Squad photos and log
 
 ---
 
-## 5. Transfer Old Uploaded Event Images
+## 6. Transfer Old Uploaded Event Images
 
 If you are migrating uploaded event photos from the old tracker, preserve the original filenames.
 
@@ -145,7 +198,7 @@ That seeder's event upload migration reads from the old `uploads` table and stor
 
 ---
 
-## 6. Upload New Event Photos in the New Tracker
+## 7. Upload New Event Photos in the New Tracker
 
 Administrative event uploads are managed in the web UI.
 
@@ -171,7 +224,7 @@ Trooper uploads and admin uploads use the same storage pattern.
 
 ---
 
-## 7. Upload Squad Photos and Organization Logos
+## 8. Upload Squad Photos and Organization Logos
 
 In this codebase, squad photos are handled as organization images or logos.
 
@@ -208,7 +261,7 @@ For squad photos, prefer re-uploading each logo through the admin UI. That guara
 
 ---
 
-## 8. Bulk Migration Option for Squad Photos
+## 9. Bulk Migration Option for Squad Photos
 
 If you must migrate squad logos in bulk instead of re-uploading them manually, match the storage pattern used by the organization image upload controller.
 
@@ -233,7 +286,7 @@ If the source images are inconsistent, transparent, non-square, or low quality, 
 
 ---
 
-## 9. Verification Checklist
+## 10. Verification Checklist
 
 After setup or migration, verify all of the following:
 
@@ -250,23 +303,24 @@ If legacy event images are broken but new uploads work, the most likely issue is
 
 ---
 
-## 10. Suggested Order for Florida Garrison Launch
+## 11. Suggested Order for Florida Garrison Launch
 
 Use this order when standing up the Florida Garrison instance:
 
 1. configure `.env`
 2. run migrations
 3. seed with `FloridaGarrisonSeeder`
-4. run `php artisan storage:link`
-5. migrate legacy event images
-6. upload or migrate squad logos
-7. verify several events and organization pages in the browser
+4. add `GOOGLE_MAPS_API_KEY` to `.env` and run `php artisan config:clear`
+5. run `php artisan storage:link`
+6. migrate legacy event images
+7. upload or migrate squad logos
+8. verify several events and organization pages in the browser
 
 ---
 
-## 11. Laravel Queue Worker and SES SMTP on Bitnami AWS
+## 12. Laravel Queue Worker and SES SMTP on Bitnami AWS
 
-### 11.1 Set up Laravel queue worker with Supervisor
+### 12.1 Set up Laravel queue worker with Supervisor
 
 1. **Find the PHP binary**
 
@@ -374,7 +428,7 @@ Use this order when standing up the Florida Garrison instance:
     /opt/bitnami/php/bin/php artisan queue:flush
     ```
 
-### 11.2 Common mail setup note for SES SMTP
+### 12.2 Common mail setup note for SES SMTP
 
 Use this in `.env`:
 
@@ -398,7 +452,7 @@ cd /home/bitnami/trooper-tracker/tracker-app
 /opt/bitnami/php/bin/php artisan queue:restart
 ```
 
-### 11.3 If Supervisor says "can't find command 'php'"
+### 12.3 If Supervisor says "can't find command 'php'"
 
 That means you must use the full PHP path in the `command` line of the Supervisor program:
 
