@@ -76,8 +76,11 @@ class SignUpUpdateHtmxController extends MagicBusController
                 ? $event_shift->handlersMaxed()
                 : $event_shift->troopersMaxed();
 
-            $org_was_full = $event_trooper->organization_id !== null
-                && $event_shift->orgTroopersMaxed($event_trooper->organization_id, $event_trooper->is_handler);
+            $effective_org_id = $event_trooper->organization_id
+                ?? $event_trooper->effectiveOrgId($event_shift->event);
+
+            $org_was_full = $effective_org_id !== null
+                && $event_shift->orgTroopersMaxed($effective_org_id, $event_trooper->is_handler);
 
             $valid_data = ['status' => $requestedStatus];
 
@@ -101,7 +104,7 @@ class SignUpUpdateHtmxController extends MagicBusController
 
             if ($going_to_not_going && ($is_global_full || $org_was_full))
             {
-                $this->bus->send(new PromoteNextInLineEventTrooperCommand($event_trooper, $is_global_full));
+                $this->bus->send(new PromoteNextInLineEventTrooperCommand($event_trooper, $is_global_full, $effective_org_id));
             }
 
             $trooper = $authTrooper;

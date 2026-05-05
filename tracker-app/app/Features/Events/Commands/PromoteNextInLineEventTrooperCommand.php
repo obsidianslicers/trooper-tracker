@@ -25,5 +25,6 @@ readonly class PromoteNextInLineEventTrooperCommand
     public function __construct(
         public readonly EventTrooper $event_trooper,
         public readonly bool $global_was_full = false,
+        public readonly ?int $effective_org_id = null,
     ) {}
 }

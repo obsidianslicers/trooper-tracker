@@ -53,40 +53,18 @@ class ReconcileEventRosterJob implements ShouldQueue
         $limit_field  = $is_handler ? 'handlers_allowed' : 'troopers_allowed';
         $global_limit = $event->{$limit_field};
 
-        $limited_org_ids = $event->event_organizations
-            ->filter(fn ($eo) => $eo->{$limit_field} !== null)
-            ->pluck(EventOrganization::ORGANIZATION_ID)
-            ->all();
-
         $active = $shift->event_troopers
             ->filter(fn ($et) => $et->is_handler === $is_handler
                 && in_array($et->status, [EventTrooperStatus::GOING, EventTrooperStatus::STAND_BY]))
             ->sortBy(EventTrooper::SIGNED_UP_AT)
             ->values();
 
-        // For troopers with no org recorded, infer from costume_organization_ids
-        // intersected with the limited orgs. If exactly one match, use that org.
-        $inferred_org = [];
-        if (!empty($limited_org_ids))
-        {
-            foreach ($active->filter(fn ($et) => $et->organization_id === null) as $et)
-            {
-                $costume_org_ids = $et->costume_organization_ids ?? [];
-                $matches = array_intersect($costume_org_ids, $limited_org_ids);
-
-                if (count($matches) === 1)
-                {
-                    $inferred_org[$et->trooper_id] = reset($matches);
-                }
-            }
-        }
-
         $global_going = 0;
         $org_going    = [];
 
         foreach ($active as $et)
         {
-            $org_id = $et->organization_id ?? $inferred_org[$et->trooper_id] ?? null;
+            $org_id = $et->effectiveOrgId($event);
             $org_limit = null;
 
             if ($org_id !== null)
