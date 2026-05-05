@@ -181,9 +181,15 @@ class EventShift extends BaseEventShift
         }
 
         $count = $this->event_troopers()
-            ->where(EventTrooper::ORGANIZATION_ID, $organization_id)
             ->where(EventTrooper::IS_HANDLER, $is_handler)
             ->where(EventTrooper::STATUS, EventTrooperStatus::GOING)
+            ->where(function ($q) use ($organization_id) {
+                $q->where(EventTrooper::ORGANIZATION_ID, $organization_id)
+                  ->orWhere(function ($q2) use ($organization_id) {
+                      $q2->whereNull(EventTrooper::ORGANIZATION_ID)
+                         ->whereJsonContains(EventTrooper::COSTUME_ORGANIZATION_IDS, $organization_id);
+                  });
+            })
             ->count();
 
         return $count >= $limit;

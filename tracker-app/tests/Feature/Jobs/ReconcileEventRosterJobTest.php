@@ -167,6 +167,24 @@ class ReconcileEventRosterJobTest extends TestCase
         $this->assertSame(EventTrooperStatus::GOING, $t_no_org->fresh()->status);
     }
 
+    public function test_org_troopers_maxed_counts_costume_org_troopers(): void
+    {
+        $this->skipIfSqlite();
+
+        // Two GOING troopers with null org_id but costume_org=[this->org->id]
+        $t1 = $this->makeTrooper(EventTrooperStatus::GOING, now()->subMinutes(2), null);
+        $t2 = $this->makeTrooper(EventTrooperStatus::GOING, now()->subMinute(), null);
+
+        foreach ([$t1, $t2] as $et) {
+            \Illuminate\Support\Facades\DB::table($et->getTable())
+                ->where('id', $et->id)
+                ->update(['costume_organization_ids' => json_encode([$this->org->id])]);
+        }
+
+        // org limit is 2 — shift should be considered maxed
+        $this->assertTrue($this->shift->orgTroopersMaxed($this->org->id, false));
+    }
+
     public function test_infers_org_from_costume_organization_ids(): void
     {
         $this->skipIfSqlite();
