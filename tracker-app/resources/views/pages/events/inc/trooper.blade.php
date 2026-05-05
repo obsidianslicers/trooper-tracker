@@ -134,6 +134,12 @@
                                 hx-swap="outerHTML"
                                 class="form-select-sm" />
             @elseif($event_trooper->status === \App\Enums\EventTrooperStatus::STAND_BY && $event_trooper->canCancel($event_shift, Auth::user()))
+                <span class="{{ $event_trooper->status->color() }} d-block mb-1">
+                    {{ to_title($event_trooper->status->name) }}
+                    <span class="d-none d-md-inline">
+                        {!! $event_trooper->status->iconTag() !!}
+                    </span>
+                </span>
                 <form hx-post="{{ route('events.signup-update-htmx', compact('event_trooper')) }}"
                       hx-indicator="#transmission-bar-shift-{{ $event_trooper->event_shift->id }}"
                       hx-select="#shift-container-{{ $event_trooper->event_shift->id }}"
