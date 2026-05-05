@@ -58,6 +58,16 @@ class SignupUpdateHtmxRequest extends FormRequest
             return true;
         }
 
+        if ($event_trooper->canCancel($event_trooper->event_shift, $this->user()))
+        {
+            return true;
+        }
+
+        if ($event_trooper->canReSignUp($event_trooper->event_shift, $this->user()))
+        {
+            return true;
+        }
+
         if ($this->user()->can('update', $event))
         {
             return true;
@@ -115,6 +125,7 @@ class SignupUpdateHtmxRequest extends FormRequest
                 'int',
                 Rule::in($valid_costume_ids),
             ],
+            'resign_up' => ['nullable', 'boolean'],
         ];
     }
 }

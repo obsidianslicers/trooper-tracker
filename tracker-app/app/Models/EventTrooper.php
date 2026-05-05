@@ -240,6 +240,20 @@ class EventTrooper extends BaseEventTrooper
         return false;
     }
 
+    // Cancelling never requires a free slot, so no capacity check here.
+    public function canCancel(EventShift $event_shift, Trooper $trooper): bool
+    {
+        return $event_shift->is_open && $this->hasOwnership($trooper);
+    }
+
+    // Capacity determines GOING vs STAND_BY at re-signup time, not whether re-signup is allowed.
+    public function canReSignUp(EventShift $event_shift, Trooper $trooper): bool
+    {
+        return $this->status === EventTrooperStatus::CANCELLED
+            && $event_shift->is_open
+            && $this->hasOwnership($trooper);
+    }
+
     /**
      * Check if a trooper has ownership of this event trooper assignment.
      *

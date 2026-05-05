@@ -65,7 +65,10 @@ class SignUpUpdateHtmxController extends MagicBusController
                 return response('Forbidden', 403);
             }
 
-            if (!$event_trooper->canUpdateStatus($event_shift, $authTrooper) && !$isManualApproval && !$isManualRejection)
+            $isCancelFromStandBy = $requestedStatus === EventTrooperStatus::CANCELLED
+                && $event_trooper->canCancel($event_shift, $authTrooper);
+
+            if (!$event_trooper->canUpdateStatus($event_shift, $authTrooper) && !$isManualApproval && !$isManualRejection && !$isCancelFromStandBy)
             {
                 return response('Forbidden', 403);
             }
@@ -174,6 +177,46 @@ class SignUpUpdateHtmxController extends MagicBusController
             $event_shift = $this->bus->send($event_shift_query);
             $event = $event_shift->event;
             $can_moderate = $auth_trooper->isModeratorForOrganization($event->organization);
+            $count_of_shifts = $event->event_shifts()->count();
+            $data = compact('event', 'event_shift', 'can_moderate', 'count_of_shifts');
+            $data['open'] = true;
+
+            return response()->view('pages.events.inc.shift-container', $data);
+        }
+        elseif ($request->has('resign_up'))
+        {
+            $event_shift = $event_trooper->event_shift;
+            $event = $event_shift->event;
+            $authTrooper = Auth::user();
+
+            if (!$event_trooper->canReSignUp($event_shift, $authTrooper))
+            {
+                return response('Forbidden', 403);
+            }
+
+            $is_handler = $event_trooper->is_handler;
+            $effective_org_id = $event_trooper->organization_id
+                ?? $event_trooper->effectiveOrgId($event);
+
+            $global_maxed = $is_handler ? $event_shift->handlersMaxed() : $event_shift->troopersMaxed();
+            $org_maxed = $effective_org_id !== null && $event_shift->orgTroopersMaxed($effective_org_id, $is_handler);
+
+            $new_status = ($global_maxed || $org_maxed)
+                ? EventTrooperStatus::STAND_BY
+                : EventTrooperStatus::GOING;
+
+            $valid_data = [
+                EventTrooper::STATUS       => $new_status,
+                EventTrooper::SIGNED_UP_AT => now(),
+            ];
+
+            $this->bus->send(new UpdateEventTrooperCommand($event_trooper, $valid_data));
+
+            $trooper = $authTrooper;
+            $event_shift_query = new GetEventShiftDisplayQuery($event_shift, $trooper);
+            $event_shift = $this->bus->send($event_shift_query);
+            $event = $event_shift->event;
+            $can_moderate = $trooper->isModeratorForOrganization($event->organization);
             $count_of_shifts = $event->event_shifts()->count();
             $data = compact('event', 'event_shift', 'can_moderate', 'count_of_shifts');
             $data['open'] = true;

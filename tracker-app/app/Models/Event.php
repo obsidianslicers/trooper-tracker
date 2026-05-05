@@ -113,11 +113,9 @@ class Event extends BaseEvent
             return true;
         }
 
-        $orgs = $this->relationLoaded('event_organizations')
-            ? $this->event_organizations
-            : $this->event_organizations();
+        $this->loadMissing('event_organizations');
 
-        return $orgs->contains(
+        return $this->event_organizations->contains(
             fn ($o) => $o->troopers_allowed !== null || $o->handlers_allowed !== null
         );
     }

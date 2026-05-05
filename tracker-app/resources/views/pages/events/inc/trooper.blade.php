@@ -133,6 +133,32 @@
                                 hx-target="#shift-container-{{ $event_trooper->event_shift->id }}"
                                 hx-swap="outerHTML"
                                 class="form-select-sm" />
+            @elseif($event_trooper->status === \App\Enums\EventTrooperStatus::STAND_BY && $event_trooper->canCancel($event_shift, Auth::user()))
+                <form hx-post="{{ route('events.signup-update-htmx', compact('event_trooper')) }}"
+                      hx-indicator="#transmission-bar-shift-{{ $event_trooper->event_shift->id }}"
+                      hx-select="#shift-container-{{ $event_trooper->event_shift->id }}"
+                      hx-target="#shift-container-{{ $event_trooper->event_shift->id }}"
+                      hx-swap="outerHTML">
+                    @csrf
+                    <input type="hidden" name="status" value="{{ \App\Enums\EventTrooperStatus::CANCELLED->value }}" />
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                        <i class="fa fa-fw fa-times me-1"></i>
+                        Cancel
+                    </button>
+                </form>
+            @elseif($event->hasLimits() && $event_trooper->canReSignUp($event_shift, Auth::user()))
+                <form hx-post="{{ route('events.signup-update-htmx', compact('event_trooper')) }}"
+                      hx-indicator="#transmission-bar-shift-{{ $event_trooper->event_shift->id }}"
+                      hx-select="#shift-container-{{ $event_trooper->event_shift->id }}"
+                      hx-target="#shift-container-{{ $event_trooper->event_shift->id }}"
+                      hx-swap="outerHTML">
+                    @csrf
+                    <input type="hidden" name="resign_up" value="1" />
+                    <button type="submit" class="btn btn-sm btn-success">
+                        <i class="fa fa-fw fa-redo me-1"></i>
+                        Re-Sign Up
+                    </button>
+                </form>
             @else
                 <span class="{{ $event_trooper->status->color() }}">
                     {{ to_title($event_trooper->status->name) }}
