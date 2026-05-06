@@ -14,6 +14,7 @@ erDiagram
     tt_troopers ||--o{ tt_trooper_achievements : has
     tt_troopers ||--o{ tt_trooper_friends : has
     tt_troopers ||--o{ tt_event_notifications : receives
+    tt_troopers ||--o{ tt_push_notifications : receives
     tt_troopers ||--o{ tt_event_troopers : signs_up
     tt_troopers ||--o{ tt_event_troopers : added_by
     tt_troopers ||--o{ tt_event_uploads : uploads
@@ -167,9 +168,9 @@ Events, Awards, and Notices. It uses:
 
 ## Inventory
 
-Discovered migration files: 29
+Discovered migration files: 30
 
-Discovered tables: 35
+Discovered tables: 36
 
 - tt_troopers
 - tt_password_reset_tokens
@@ -205,6 +206,7 @@ Discovered tables: 35
 - tt_oauth_logins
 - tt_model_changes
 - tt_mobile_devices
+- tt_push_notifications
 
 ## Table Dictionary
 
@@ -240,9 +242,9 @@ Relationships:
 - Belongs To: tt_troopers (guardian_id)
 - Has Many: tt_trooper_assignments, tt_trooper_organizations, tt_trooper_donations,
   tt_trooper_costumes, tt_trooper_achievements, tt_trooper_friends, tt_event_notifications,
-  tt_event_troopers, tt_event_uploads, tt_event_upload_troopers, tt_event_shares,
-  tt_event_guests, tt_award_troopers, tt_notice_troopers, tt_oauth_logins, tt_model_changes,
-  tt_mobile_devices
+  tt_push_notifications, tt_event_troopers, tt_event_uploads, tt_event_upload_troopers,
+  tt_event_shares, tt_event_guests, tt_award_troopers, tt_notice_troopers, tt_oauth_logins,
+  tt_model_changes, tt_mobile_devices
 
 ### tt_password_reset_tokens
 
@@ -1005,6 +1007,25 @@ Purpose: Mobile push device tokens per Trooper.
 | id | bigint unsigned | no | PK, auto increment |
 | trooper_id | bigint unsigned | yes | FK -> tt_troopers.id, nullOnDelete |
 | fcm_token | varchar(255) | no | unique |
+| created_at | timestamp | yes | timestamps helper |
+| updated_at | timestamp | yes | timestamps helper |
+
+Relationships:
+
+- Belongs To: tt_troopers
+
+### tt_push_notifications
+
+Purpose: In-app push notification records per Trooper.
+
+| Column | Type | Nullable | Key / Constraints |
+| --- | --- | --- | --- |
+| id | bigint unsigned | no | PK, auto increment |
+| trooper_id | bigint unsigned | no | FK -> tt_troopers.id, cascadeOnDelete |
+| title | varchar(255) | no |  |
+| body | varchar(255) | no |  |
+| url | varchar(255) | no | default '/events' |
+| read_at | timestamp | yes |  |
 | created_at | timestamp | yes | timestamps helper |
 | updated_at | timestamp | yes | timestamps helper |
 
