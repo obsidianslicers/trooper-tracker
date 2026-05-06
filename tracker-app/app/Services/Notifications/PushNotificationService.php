@@ -32,9 +32,16 @@ final class PushNotificationService
             return;
         }
 
+        $unreadCount = PushNotification::where(PushNotification::TROOPER_ID, $trooper->id)
+            ->whereNull(PushNotification::READ_AT)
+            ->count();
+
         $message = CloudMessage::new()
             ->withNotification(Notification::create($title, $body))
-            ->withData(['url' => $url]);
+            ->withData(['url' => $url])
+            ->withApnsConfig([
+                'payload' => ['aps' => ['badge' => $unreadCount]],
+            ]);
         $report = $this->messaging->sendMulticast($message, $tokens);
 
         foreach ($report->failures()->getItems() as $failure) {
