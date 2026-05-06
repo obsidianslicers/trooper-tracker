@@ -41,6 +41,7 @@ readonly class SendEventCancelledNotificationCommandHandler implements CommandHa
             $message->trooper,
             'Event Cancelled: ' . $message->event->name,
             'This event has been cancelled.',
+            '/events/cancelled',
         );
 
         if ($message->trooper->emailAppearsValid())

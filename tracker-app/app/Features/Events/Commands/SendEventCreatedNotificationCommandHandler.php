@@ -49,6 +49,7 @@ readonly class SendEventCreatedNotificationCommandHandler implements CommandHand
                 $message->trooper,
                 'New Event: ' . $message->event->name,
                 $message->event->venue ?? 'See Troop Tracker for details',
+                '/events/details/' . $message->event->id,
             );
         }
 

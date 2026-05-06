@@ -14,7 +14,7 @@ final class PushNotificationService
 {
     public function __construct(private readonly Messaging $messaging) {}
 
-    public function sendToTrooper(Trooper $trooper, string $title, string $body): void
+    public function sendToTrooper(Trooper $trooper, string $title, string $body, string $url = '/events'): void
     {
         $tokens = MobileDevice::where(MobileDevice::TROOPER_ID, $trooper->id)
             ->pluck(MobileDevice::FCM_TOKEN)
@@ -24,7 +24,9 @@ final class PushNotificationService
             return;
         }
 
-        $message = CloudMessage::new()->withNotification(Notification::create($title, $body));
+        $message = CloudMessage::new()
+            ->withNotification(Notification::create($title, $body))
+            ->withData(['url' => $url]);
         $report = $this->messaging->sendMulticast($message, $tokens);
 
         foreach ($report->failures()->getItems() as $failure) {
