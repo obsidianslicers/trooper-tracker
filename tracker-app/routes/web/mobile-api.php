@@ -13,12 +13,9 @@ use Illuminate\Support\Facades\Route;
 Route::match(['get', 'post'], '/mobile-api', MobileApiController::class)->name('api.mobile');
 
 Route::post('/fcm/register', function (Request $request) {
-    $token = $request->input('token');
-    if (!$token || !Auth::check()) {
-        return response()->json(['ok' => false]);
-    }
+    $validated = $request->validate(['token' => 'required|string']);
     MobileDevice::updateOrCreate(
-        [MobileDevice::FCM_TOKEN => $token],
+        [MobileDevice::FCM_TOKEN  => $validated['token']],
         [MobileDevice::TROOPER_ID => Auth::id()],
     );
     return response()->json(['ok' => true]);
