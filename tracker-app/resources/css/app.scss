@@ -220,3 +220,18 @@ a:hover {
     transition: max-height 0.5s ease-in-out, background-color 0.3s ease;
     padding: 15px;
 }
+
+// List groups
+.list-group {
+    --bs-list-group-bg: var(--bs-card-bg);
+    --bs-list-group-border-color: var(--bs-border-color);
+    --bs-list-group-color: var(--bs-body-color);
+    --bs-list-group-action-hover-bg: var(--bs-tertiary-bg);
+    --bs-list-group-action-hover-color: var(--bs-body-color);
+    --bs-list-group-action-active-bg: var(--bs-tertiary-bg);
+    --bs-list-group-action-active-color: var(--bs-body-color);
+}
+
+.notification-unread {
+    box-shadow: inset 3px 0 0 var(--bs-primary);
+}

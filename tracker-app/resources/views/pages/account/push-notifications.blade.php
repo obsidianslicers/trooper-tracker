@@ -6,9 +6,12 @@
 
     <x-slim-container>
 
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4 class="mb-0">Notifications</h4>
-            @if($notifications->isNotEmpty())
+        @if($notifications->isEmpty())
+            <x-card>
+                <p class="text-muted mb-0">No notifications yet.</p>
+            </x-card>
+        @else
+            <div class="d-flex justify-content-end mb-2">
                 <form method="POST" action="{{ route('account.push-notifications.clear') }}">
                     @csrf
                     @method('DELETE')
@@ -16,14 +19,8 @@
                         Clear all
                     </button>
                 </form>
-            @endif
-        </div>
+            </div>
 
-        @if($notifications->isEmpty())
-            <x-card>
-                <p class="text-muted mb-0">No notifications yet.</p>
-            </x-card>
-        @else
             <div class="list-group">
                 @foreach($notifications as $notification)
                     <form method="POST"
@@ -31,7 +28,7 @@
                         @csrf
                         <button type="submit"
                                 class="list-group-item list-group-item-action d-flex justify-content-between align-items-start gap-3 text-start
-                                       {{ $notification->isUnread() ? 'list-group-item-light fw-semibold' : '' }}">
+                                       {{ $notification->isUnread() ? 'notification-unread fw-semibold' : '' }}">
                             <div>
                                 <div class="d-flex align-items-center gap-2">
                                     @if($notification->isUnread())
