@@ -50,7 +50,7 @@ class ReconcileEventRosterJob implements ShouldQueue
 
     private function reconcileGroup($event, $shift, bool $is_handler): void
     {
-        $limit_field  = $is_handler ? 'handlers_allowed' : 'troopers_allowed';
+        $limit_field = $is_handler ? 'handlers_allowed' : 'troopers_allowed';
         $global_limit = $event->{$limit_field};
 
         $active = $shift->event_troopers
@@ -60,7 +60,7 @@ class ReconcileEventRosterJob implements ShouldQueue
             ->values();
 
         $global_going = 0;
-        $org_going    = [];
+        $org_going = [];
 
         foreach ($active as $et)
         {
@@ -76,7 +76,7 @@ class ReconcileEventRosterJob implements ShouldQueue
             }
 
             $fits_global = $global_limit === null || $global_going < $global_limit;
-            $fits_org    = $org_id === null || $org_limit === null || ($org_going[$org_id] ?? 0) < $org_limit;
+            $fits_org = $org_id === null || $org_limit === null || ($org_going[$org_id] ?? 0) < $org_limit;
 
             $new_status = ($fits_global && $fits_org)
                 ? EventTrooperStatus::GOING

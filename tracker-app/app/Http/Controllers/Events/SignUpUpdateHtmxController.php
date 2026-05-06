@@ -206,7 +206,7 @@ class SignUpUpdateHtmxController extends MagicBusController
                 : EventTrooperStatus::GOING;
 
             $valid_data = [
-                EventTrooper::STATUS       => $new_status,
+                EventTrooper::STATUS => $new_status,
                 EventTrooper::SIGNED_UP_AT => now(),
             ];
 

@@ -36,7 +36,7 @@ readonly class PromoteNextInLineEventTrooperCommandHandler implements CommandHan
     public function __invoke(object $message): mixed
     {
         $event_trooper = $message->event_trooper;
-        $event_shift   = $event_trooper->event_shift;
+        $event_shift = $event_trooper->event_shift;
 
         // Use the explicit org if set, otherwise use the effective org inferred
         // from the costume (passed by the caller or resolved here).
@@ -56,7 +56,7 @@ readonly class PromoteNextInLineEventTrooperCommandHandler implements CommandHan
                 ->where(EventTrooper::IS_HANDLER, $event_trooper->is_handler)
                 ->where(function ($q) use ($org_id) {
                     $q->where(EventTrooper::ORGANIZATION_ID, $org_id)
-                      ->orWhereJsonContains(EventTrooper::COSTUME_ORGANIZATION_IDS, $org_id);
+                        ->orWhereJsonContains(EventTrooper::COSTUME_ORGANIZATION_IDS, $org_id);
                 })
                 ->orderBy(EventTrooper::SIGNED_UP_AT)
                 ->first();
