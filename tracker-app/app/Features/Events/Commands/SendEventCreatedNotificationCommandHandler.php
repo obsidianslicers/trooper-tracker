@@ -10,6 +10,7 @@ use App\Mail\Events\InstantEventNotification;
 use App\Models\Event;
 use App\Models\EventNotification;
 use App\Models\Trooper;
+use App\Services\Notifications\PushNotificationService;
 use Illuminate\Support\Facades\Mail;
 
 /**
@@ -24,6 +25,8 @@ use Illuminate\Support\Facades\Mail;
  */
 readonly class SendEventCreatedNotificationCommandHandler implements CommandHandlerInterface
 {
+    public function __construct(private PushNotificationService $push) {}
+
     /**
      * Create notification record and send instant email if applicable.
      *
@@ -41,6 +44,14 @@ readonly class SendEventCreatedNotificationCommandHandler implements CommandHand
      */
     public function __invoke(object $message): mixed
     {
+        if ($message->trooper->notification_frequency !== NotificationFrequency::NEVER) {
+            $this->push->sendToTrooper(
+                $message->trooper,
+                'New Event: ' . $message->event->name,
+                $message->event->venue ?? 'See Troop Tracker for details',
+            );
+        }
+
         if (!$message->trooper->emailAppearsValid())
         {
             return null;

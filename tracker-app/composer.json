@@ -12,6 +12,7 @@
         "php": "^8.2",
         "google/apiclient": "^2.18",
         "intervention/image": "^3.11",
+        "kreait/laravel-firebase": "^7.1",
         "laravel/framework": "^12.0",
         "laravel/socialite": "^5.24",
         "laravel/tinker": "^2.10.1",

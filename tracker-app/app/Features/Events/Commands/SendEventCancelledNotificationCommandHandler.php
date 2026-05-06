@@ -9,6 +9,7 @@ use App\Mail\Events\CancelledEventNotification;
 use App\Models\Event;
 use App\Models\EventNotification;
 use App\Models\Trooper;
+use App\Services\Notifications\PushNotificationService;
 use Illuminate\Support\Facades\Mail;
 
 /**
@@ -22,6 +23,8 @@ use Illuminate\Support\Facades\Mail;
  */
 readonly class SendEventCancelledNotificationCommandHandler implements CommandHandlerInterface
 {
+    public function __construct(private PushNotificationService $push) {}
+
     /**
      * Send cancellation notification email to a trooper.
      *
@@ -34,6 +37,12 @@ readonly class SendEventCancelledNotificationCommandHandler implements CommandHa
      */
     public function __invoke(object $message): mixed
     {
+        $this->push->sendToTrooper(
+            $message->trooper,
+            'Event Cancelled: ' . $message->event->name,
+            'This event has been cancelled.',
+        );
+
         if ($message->trooper->emailAppearsValid())
         {
             Mail::to($message->trooper->email)->queue(new CancelledEventNotification($message->event));

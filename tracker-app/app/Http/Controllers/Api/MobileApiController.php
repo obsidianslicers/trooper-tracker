@@ -1207,19 +1207,12 @@ class MobileApiController
         $fcm_token = $request->input('fcm');
         $trooper = $this->trooperFromUserId($user_id);
 
-        $exists = MobileDevice::where(MobileDevice::FCM_TOKEN, $fcm_token)->exists();
+        MobileDevice::updateOrCreate(
+            [MobileDevice::FCM_TOKEN => $fcm_token],
+            [MobileDevice::TROOPER_ID => $trooper?->id],
+        );
 
-        if (!$exists)
-        {
-            MobileDevice::create([
-                MobileDevice::TROOPER_ID => $trooper?->id,
-                MobileDevice::FCM_TOKEN => $fcm_token,
-            ]);
-
-            return response()->json(['success' => 'Record created!']);
-        }
-
-        return response()->json(['success' => 'Record exists!']);
+        return response()->json(['success' => 'ok']);
     }
 
     /**

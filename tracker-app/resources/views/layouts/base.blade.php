@@ -57,6 +57,26 @@
     @yield('page-script')
     @stack('scripts')
 
+    @auth
+    <script>
+    (function () {
+        var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        function registerToken(token) {
+            var key = 'fcm_sent_' + token.slice(0, 20);
+            if (sessionStorage.getItem(key)) return;
+            fetch('/fcm/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                body: JSON.stringify({ token: token }),
+                credentials: 'same-origin',
+            }).then(function (r) { if (r.ok) sessionStorage.setItem(key, '1'); });
+        }
+        if (window.__fcmToken) { registerToken(window.__fcmToken); }
+        else { window.__onFcmTokenReady = registerToken; }
+    })();
+    </script>
+    @endauth
+
 </body>
 
 </html>
