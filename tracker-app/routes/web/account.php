@@ -11,6 +11,9 @@ use App\Http\Controllers\Account\NoticesSubmitHtmxController;
 use App\Http\Controllers\Account\NotificationsController;
 use App\Http\Controllers\Account\NotificationsSubmitController;
 use App\Http\Controllers\Account\ProfileController;
+use App\Http\Controllers\Account\PushNotificationClearController;
+use App\Http\Controllers\Account\PushNotificationInboxController;
+use App\Http\Controllers\Account\PushNotificationReadController;
 use App\Http\Controllers\Account\ProfileSubmitController;
 use App\Http\Controllers\Account\SetupController;
 use App\Http\Controllers\Account\SetupSubmitController;
@@ -35,6 +38,10 @@ Route::prefix('account')
         Route::delete('/costumes-htmx', CostumesDeleteHtmxController::class);
 
         //  needed a post name to get the middleware to work properly
+        Route::get('/push-notifications', PushNotificationInboxController::class)->name('push-notifications');
+        Route::post('/push-notifications/{push_notification}/read', PushNotificationReadController::class)->name('push-notifications.read');
+        Route::delete('/push-notifications', PushNotificationClearController::class)->name('push-notifications.clear');
+
         Route::get('/setup', SetupController::class)->name('setup');
         Route::post('/setup', SetupSubmitController::class)->name('setup-submit');
 

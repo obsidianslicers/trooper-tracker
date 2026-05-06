@@ -45,6 +45,7 @@
                 </x-nav-link>
                 @endrole
 
+                @include('partials.inc.navbar-notifications')
                 @include('partials.inc.navbar-auth')
 
             </ul>

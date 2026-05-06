@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Notifications;
 
 use App\Models\MobileDevice;
+use App\Models\PushNotification;
 use App\Models\Trooper;
 use Kreait\Firebase\Contract\Messaging;
 use Kreait\Firebase\Messaging\CloudMessage;
@@ -19,6 +20,13 @@ final class PushNotificationService
         $tokens = MobileDevice::where(MobileDevice::TROOPER_ID, $trooper->id)
             ->pluck(MobileDevice::FCM_TOKEN)
             ->toArray();
+
+        PushNotification::create([
+            PushNotification::TROOPER_ID => $trooper->id,
+            PushNotification::TITLE      => $title,
+            PushNotification::BODY       => $body,
+            PushNotification::URL        => $url,
+        ]);
 
         if (empty($tokens)) {
             return;
