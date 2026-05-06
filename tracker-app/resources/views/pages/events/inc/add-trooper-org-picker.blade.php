@@ -22,7 +22,7 @@
     <div class="d-flex gap-2">
         <button class="btn btn-sm btn-success"
                 hx-post="{{ route('events.signup-htmx', compact('event_shift')) }}"
-                hx-vals="js:{trooper_id: '{{ $trooper->id }}', organization_id: (document.getElementById('add-org-confirm-{{ $event_shift->id }}')?.value || '')}"
+                hx-vals="js:{trooper_id: '{{ $trooper->id }}', organization_id: (document.getElementById('add-org-confirm-{{ $event_shift->id }}')?.value || ''), is_handler: {{ $is_handler ? 1 : 0 }}}"
                 hx-select="#shift-container-{{ $event_shift->id }}"
                 hx-target="#shift-container-{{ $event_shift->id }}"
                 hx-swap="outerHTML"

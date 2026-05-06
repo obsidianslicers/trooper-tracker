@@ -30,6 +30,7 @@ class ShiftAddTrooperComposer
             'limited_orgs_for_add'           => $event->organizations
                 ->filter(fn ($o) => $o->pivot->can_attend && ($o->pivot->troopers_allowed !== null || $o->pivot->handlers_allowed !== null))
                 ->values(),
+            'event_allows_handlers'          => $event->handlers_allowed !== 0,
         ]);
     }
 }

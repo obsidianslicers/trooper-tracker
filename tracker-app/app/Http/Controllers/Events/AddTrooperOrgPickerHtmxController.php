@@ -21,9 +21,10 @@ class AddTrooperOrgPickerHtmxController
         $eligible_orgs = $trooper->eligibleOrgsForEvent($event);
 
         return response()->view('pages.events.inc.add-trooper-org-picker', [
-            'event_shift' => $event_shift,
-            'trooper'     => $trooper,
+            'event_shift'  => $event_shift,
+            'trooper'      => $trooper,
             'eligible_orgs' => $eligible_orgs,
+            'is_handler'   => (bool) $request->input('is_handler', false),
         ]);
     }
 }

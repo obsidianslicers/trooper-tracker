@@ -31,5 +31,6 @@ readonly class SignUpEventTrooperCommand
         public readonly Trooper $trooper,
         public readonly Trooper $added_by_trooper,
         public readonly ?int $organization_id = null,
+        public readonly bool $is_handler = false,
     ) {}
 }

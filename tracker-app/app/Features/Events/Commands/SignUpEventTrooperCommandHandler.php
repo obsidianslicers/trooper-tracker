@@ -43,7 +43,7 @@ readonly class SignUpEventTrooperCommandHandler implements CommandHandlerInterfa
         $event_trooper->event_shift_id = $message->event_shift->id;
         $event_trooper->trooper_id = $message->trooper->id;
         $event_trooper->organization_id = $message->organization_id;
-        $event_trooper->is_handler = $message->trooper->is_handler;
+        $event_trooper->is_handler = $message->is_handler;
         $event_trooper->signed_up_at = now();
         $event_trooper->added_by_trooper_id = $message->added_by_trooper->id == $message->trooper->id ? null : $message->added_by_trooper->id;
         $status = EventTrooperStatus::GOING;
