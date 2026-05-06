@@ -369,6 +369,25 @@ Configuration reference for all `.env` variables in Troop Tracker.
 
 ---
 
+## Firebase (Push Notifications)
+
+Firebase is **optional**. When not configured, in-app notifications (the bell icon) still record and display, but mobile push delivery via FCM is silently skipped.
+
+### FIREBASE_CREDENTIALS
+- **Purpose**: Path to the Firebase Admin SDK service account JSON key file
+- **Required**: No — omit to disable mobile push notifications
+- **Default**: None
+- **Example**: `FIREBASE_CREDENTIALS=your-firebase-adminsdk-key.json`
+- **Setup**:
+  1. Go to [Firebase Console](https://console.firebase.google.com/) and open your project
+  2. Navigate to **Project Settings > Service Accounts**
+  3. Click **Generate new private key** and download the JSON file
+  4. Place the file inside `tracker-app/` (same level as `.env`)
+  5. Set `FIREBASE_CREDENTIALS` to the filename
+- **Security**: Never commit the JSON key to version control
+
+---
+
 ## Other Settings
 
 ### BROADCAST_CONNECTION

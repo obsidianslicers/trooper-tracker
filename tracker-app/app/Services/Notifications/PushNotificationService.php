@@ -13,7 +13,7 @@ use Kreait\Firebase\Messaging\Notification;
 
 final class PushNotificationService
 {
-    public function __construct(private readonly Messaging $messaging) {}
+    public function __construct(private readonly ?Messaging $messaging = null) {}
 
     public function sendToTrooper(Trooper $trooper, string $title, string $body, string $url = '/events'): void
     {
@@ -28,7 +28,7 @@ final class PushNotificationService
             PushNotification::URL        => $url,
         ]);
 
-        if (empty($tokens)) {
+        if ($this->messaging === null || empty($tokens)) {
             return;
         }
 

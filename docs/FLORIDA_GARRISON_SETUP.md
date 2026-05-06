@@ -286,7 +286,63 @@ If the source images are inconsistent, transparent, non-square, or low quality, 
 
 ---
 
-## 10. Verification Checklist
+## 10. Firebase Push Notifications (Optional)
+
+Mobile push notifications are delivered via Firebase Cloud Messaging (FCM). This step is optional — the app functions without it, and in-app notifications (the bell icon) continue to work regardless.
+
+### 10.1 Create a Firebase project
+
+1. Go to [Firebase Console](https://console.firebase.google.com/).
+2. Click **Add project** and follow the prompts (or select an existing project).
+3. You do not need to enable Google Analytics.
+
+### 10.2 Generate a service account key
+
+1. In the Firebase Console, open **Project Settings > Service Accounts**.
+2. Click **Generate new private key**.
+3. Download the JSON file — treat it like a password.
+
+### 10.3 Add the key to the server
+
+Place the JSON file inside `tracker-app/` (same directory as `.env`):
+
+```bash
+scp your-firebase-adminsdk-key.json bitnami@your-server:/home/bitnami/trooper-tracker/tracker-app/
+```
+
+### 10.4 Set the env variable
+
+Add to `.env`:
+
+```env
+FIREBASE_CREDENTIALS=your-firebase-adminsdk-key.json
+```
+
+Then clear config:
+
+```bash
+php artisan config:clear
+```
+
+### 10.5 Test
+
+Send a test push notification to a trooper (by their numeric ID):
+
+```bash
+php artisan tracker:send-test-push {trooper_id}
+```
+
+If the trooper has the mobile app installed and has granted notification permission, a push should arrive within a few seconds.
+
+### 10.6 What happens without Firebase
+
+- In-app notification records are still created and visible in the bell icon.
+- FCM delivery is silently skipped — no errors, no crashes.
+- The `saveFCM` / `logoutFCM` API endpoints still work and store tokens; they just have no effect until a key is configured.
+
+---
+
+## 11. Verification Checklist
 
 After setup or migration, verify all of the following:
 
@@ -303,7 +359,7 @@ If legacy event images are broken but new uploads work, the most likely issue is
 
 ---
 
-## 11. Suggested Order for Florida Garrison Launch
+## 12. Suggested Order for Florida Garrison Launch
 
 Use this order when standing up the Florida Garrison instance:
 
@@ -314,13 +370,14 @@ Use this order when standing up the Florida Garrison instance:
 5. run `php artisan storage:link`
 6. migrate legacy event images
 7. upload or migrate squad logos
-8. verify several events and organization pages in the browser
+8. (optional) add `FIREBASE_CREDENTIALS` to `.env` for mobile push notifications — see section 10
+9. verify several events and organization pages in the browser
 
 ---
 
-## 12. Laravel Queue Worker and SES SMTP on Bitnami AWS
+## 13. Laravel Queue Worker and SES SMTP on Bitnami AWS
 
-### 12.1 Set up Laravel queue worker with Supervisor
+### 13.1 Set up Laravel queue worker with Supervisor
 
 1. **Find the PHP binary**
 
@@ -428,7 +485,7 @@ Use this order when standing up the Florida Garrison instance:
     /opt/bitnami/php/bin/php artisan queue:flush
     ```
 
-### 12.2 Common mail setup note for SES SMTP
+### 13.2 Common mail setup note for SES SMTP
 
 Use this in `.env`:
 
@@ -452,7 +509,7 @@ cd /home/bitnami/trooper-tracker/tracker-app
 /opt/bitnami/php/bin/php artisan queue:restart
 ```
 
-### 12.3 If Supervisor says "can't find command 'php'"
+### 13.3 If Supervisor says "can't find command 'php'"
 
 That means you must use the full PHP path in the `command` line of the Supervisor program:
 

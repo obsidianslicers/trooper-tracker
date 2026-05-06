@@ -9,6 +9,8 @@ use App\Enums\MembershipStatus;
 use App\Enums\OauthProvider;
 use App\Mail\Auth\VerifyTrooperEmail;
 use App\Services\BreadCrumbService;
+use App\Services\Notifications\PushNotificationService;
+use Kreait\Firebase\Contract\Messaging;
 use App\Services\Socialite\XenforoProvider;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Database\Migrations\DatabaseMigrationRepository;
@@ -34,6 +36,16 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->scoped(BreadCrumbService::class, function () {
             return new BreadCrumbService;
+        });
+
+        $this->app->bind(PushNotificationService::class, function ($app) {
+            try {
+                $messaging = $app->make(Messaging::class);
+            } catch (\Throwable) {
+                $messaging = null;
+            }
+
+            return new PushNotificationService($messaging);
         });
     }
 
