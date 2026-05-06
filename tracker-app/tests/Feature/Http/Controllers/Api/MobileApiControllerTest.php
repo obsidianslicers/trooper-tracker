@@ -13,6 +13,7 @@ use App\Models\Event;
 use App\Models\EventGuest;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
+use App\Models\MobileDevice;
 use App\Models\OauthLogin;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
@@ -597,6 +598,88 @@ class MobileApiControllerTest extends TestCase
             EventGuest::EVENT_SHIFT_ID => $shift->id,
             EventGuest::NAME => 'Test Guest',
         ]);
+    }
+
+    public function test_save_fcm_creates_device_record_for_trooper(): void
+    {
+        $trooper = Trooper::factory()->create();
+
+        OauthLogin::factory()->forTrooper($trooper)->create([
+            OauthLogin::PROVIDER    => OauthProvider::XENFORO,
+            OauthLogin::PROVIDER_ID => '55001',
+        ]);
+
+        $response = $this->post(route('api.mobile'), [
+            'action' => 'saveFCM',
+            'userid' => 55001,
+            'fcm'    => 'test-fcm-token-abc123',
+        ]);
+
+        $response->assertOk();
+        $response->assertJsonPath('success', 'ok');
+
+        $this->assertDatabaseHas('tt_mobile_devices', [
+            MobileDevice::FCM_TOKEN  => 'test-fcm-token-abc123',
+            MobileDevice::TROOPER_ID => $trooper->id,
+        ]);
+    }
+
+    public function test_save_fcm_updates_trooper_when_token_already_exists(): void
+    {
+        $trooperA = Trooper::factory()->create();
+        $trooperB = Trooper::factory()->create();
+
+        OauthLogin::factory()->forTrooper($trooperB)->create([
+            OauthLogin::PROVIDER    => OauthProvider::XENFORO,
+            OauthLogin::PROVIDER_ID => '55002',
+        ]);
+
+        MobileDevice::create([
+            MobileDevice::FCM_TOKEN  => 'shared-token-xyz',
+            MobileDevice::TROOPER_ID => $trooperA->id,
+        ]);
+
+        $this->post(route('api.mobile'), [
+            'action' => 'saveFCM',
+            'userid' => 55002,
+            'fcm'    => 'shared-token-xyz',
+        ])->assertOk();
+
+        $this->assertDatabaseHas('tt_mobile_devices', [
+            MobileDevice::FCM_TOKEN  => 'shared-token-xyz',
+            MobileDevice::TROOPER_ID => $trooperB->id,
+        ]);
+        $this->assertDatabaseCount('tt_mobile_devices', 1);
+    }
+
+    public function test_logout_fcm_deletes_device_record(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $device  = MobileDevice::factory()->create([MobileDevice::TROOPER_ID => $trooper->id]);
+        $token   = $device->fcm_token;
+
+        $response = $this->post(route('api.mobile'), [
+            'action' => 'logoutFCM',
+            'fcm'    => $token,
+            'apiKey' => 'any-value',
+        ]);
+
+        $response->assertOk();
+        $response->assertJsonPath('success', 'Records deleted!');
+
+        $this->assertDatabaseMissing('tt_mobile_devices', [MobileDevice::ID => $device->id]);
+    }
+
+    public function test_logout_fcm_succeeds_when_token_not_registered(): void
+    {
+        $response = $this->post(route('api.mobile'), [
+            'action' => 'logoutFCM',
+            'fcm'    => 'nonexistent-token',
+            'apiKey' => 'any-value',
+        ]);
+
+        $response->assertOk();
+        $response->assertJsonPath('success', 'Records deleted!');
     }
 
     public function test_add_guest_is_allowed_when_mission_brief_ack_present(): void
