@@ -64,13 +64,18 @@
         function registerToken(token) {
             var key = 'fcm_sent_' + token.slice(0, 20);
             if (sessionStorage.getItem(key)) return;
+            console.log('[FCM] registering token:', token.slice(0, 20));
             fetch('/fcm/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
                 body: JSON.stringify({ token: token }),
                 credentials: 'same-origin',
-            }).then(function (r) { if (r.ok) sessionStorage.setItem(key, '1'); });
+            }).then(function (r) {
+                console.log('[FCM] register response:', r.status, r.ok);
+                if (r.ok) sessionStorage.setItem(key, '1');
+            }).catch(function (e) { console.error('[FCM] register error:', e); });
         }
+        console.log('[FCM] script loaded, __fcmToken:', window.__fcmToken);
         if (window.__fcmToken) { registerToken(window.__fcmToken); }
         else { window.__onFcmTokenReady = registerToken; }
     })();

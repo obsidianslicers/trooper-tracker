@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Models\Base\MobileDevice as BaseMobileDevice;
-use App\Models\Concerns\HasTrooperStamps;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
@@ -17,5 +16,4 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class MobileDevice extends BaseMobileDevice
 {
     use HasFactory;
-    use HasTrooperStamps;
 }
