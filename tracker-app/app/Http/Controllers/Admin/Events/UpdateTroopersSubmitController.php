@@ -21,10 +21,6 @@ use Illuminate\Http\RedirectResponse;
  */
 class UpdateTroopersSubmitController extends MagicBusController
 {
-    /**
-     * @param  UpdateTroopersRequest  $request
-     * @param  Event  $event
-     */
     public function __invoke(UpdateTroopersRequest $request, Event $event): RedirectResponse
     {
         $this->authorize('update', $event);

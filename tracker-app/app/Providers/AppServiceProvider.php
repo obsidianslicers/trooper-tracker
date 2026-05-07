@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Channels\FcmChannel;
 use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
 use App\Enums\OauthProvider;
 use App\Mail\Auth\VerifyTrooperEmail;
-use App\Channels\FcmChannel;
 use App\Services\BreadCrumbService;
 use App\Services\Socialite\XenforoProvider;
 use Illuminate\Auth\Notifications\VerifyEmail;

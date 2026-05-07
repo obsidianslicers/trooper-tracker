@@ -69,8 +69,8 @@ class NotificationRequest extends FormRequest
         );
 
         $this->merge([
-            'organizations'                       => $organizations,
-            Trooper::PUSH_NOTIFICATIONS_ENABLED   => $this->boolean(Trooper::PUSH_NOTIFICATIONS_ENABLED),
+            'organizations' => $organizations,
+            Trooper::PUSH_NOTIFICATIONS_ENABLED => $this->boolean(Trooper::PUSH_NOTIFICATIONS_ENABLED),
         ]);
     }
 }

@@ -28,7 +28,7 @@ readonly class ApproveTrooperCommandHandler implements CommandHandlerInterface
 
         if ($message->is_approved)
         {
-            $message->trooper->notify(new MembershipApprovedNotification());
+            $message->trooper->notify(new MembershipApprovedNotification);
         }
 
         return null;

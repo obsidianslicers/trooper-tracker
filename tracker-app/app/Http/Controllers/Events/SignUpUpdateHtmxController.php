@@ -22,10 +22,6 @@ use Illuminate\Support\Facades\Auth;
  */
 class SignUpUpdateHtmxController extends MagicBusController
 {
-    /**
-     * @param  SignupUpdateHtmxRequest  $request
-     * @param  EventTrooper  $event_trooper
-     */
     public function __invoke(SignupUpdateHtmxRequest $request, EventTrooper $event_trooper): Response
     {
         $request->validateInputs();
