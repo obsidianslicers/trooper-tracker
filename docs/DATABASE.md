@@ -14,7 +14,7 @@ erDiagram
     tt_troopers ||--o{ tt_trooper_achievements : has
     tt_troopers ||--o{ tt_trooper_friends : has
     tt_troopers ||--o{ tt_event_notifications : receives
-    tt_troopers ||--o{ tt_push_notifications : receives
+    tt_troopers ||--o{ tt_notifications : receives
     tt_troopers ||--o{ tt_event_troopers : signs_up
     tt_troopers ||--o{ tt_event_troopers : added_by
     tt_troopers ||--o{ tt_event_uploads : uploads
@@ -145,6 +145,8 @@ erDiagram
     tt_troopers ||--o{ tt_oauth_logins : authenticates_with
     tt_troopers ||--o{ tt_mobile_devices : registers
 
+    tt_troopers ||--o{ tt_notifications : receives
+
     tt_cache ||--|| tt_cache : key_value_store
     tt_cache_locks ||--|| tt_cache_locks : lock_store
     tt_jobs ||--|| tt_jobs : queued_jobs
@@ -168,7 +170,7 @@ Events, Awards, and Notices. It uses:
 
 ## Inventory
 
-Discovered migration files: 30
+Discovered migration files: 32
 
 Discovered tables: 36
 
@@ -206,7 +208,7 @@ Discovered tables: 36
 - tt_oauth_logins
 - tt_model_changes
 - tt_mobile_devices
-- tt_push_notifications
+- tt_notifications
 
 ## Table Dictionary
 
@@ -228,6 +230,7 @@ Purpose: Authenticated Trooper accounts and profile state.
 | membership_status | varchar(16) | no | default MembershipStatus::PENDING->value |
 | membership_role | varchar(16) | no | default MembershipRole::MEMBER->value |
 | notification_frequency | varchar(16) | no | default NotificationFrequency::NEVER->value |
+| push_notifications_enabled | boolean | no | default true |
 | achievements_updated_at | datetime | yes |  |
 | last_active_at | datetime | yes |  |
 | guardian_id | bigint unsigned | yes | FK -> tt_troopers.id, nullOnDelete |
@@ -242,7 +245,7 @@ Relationships:
 - Belongs To: tt_troopers (guardian_id)
 - Has Many: tt_trooper_assignments, tt_trooper_organizations, tt_trooper_donations,
   tt_trooper_costumes, tt_trooper_achievements, tt_trooper_friends, tt_event_notifications,
-  tt_push_notifications, tt_event_troopers, tt_event_uploads, tt_event_upload_troopers,
+  tt_notifications, tt_event_troopers, tt_event_uploads, tt_event_upload_troopers,
   tt_event_shares, tt_event_guests, tt_award_troopers, tt_notice_troopers, tt_oauth_logins,
   tt_model_changes, tt_mobile_devices
 
@@ -1014,24 +1017,24 @@ Relationships:
 
 - Belongs To: tt_troopers
 
-### tt_push_notifications
+### tt_notifications
 
-Purpose: In-app push notification records per Trooper.
+Purpose: Laravel polymorphic notification inbox. Stores all trooper-facing notifications (event created, event cancelled, sign-up confirmed, etc.) for the web and mobile bell icon. Written by the `database` notification channel.
 
 | Column | Type | Nullable | Key / Constraints |
 | --- | --- | --- | --- |
-| id | bigint unsigned | no | PK, auto increment |
-| trooper_id | bigint unsigned | no | FK -> tt_troopers.id, cascadeOnDelete |
-| title | varchar(255) | no |  |
-| body | varchar(255) | no |  |
-| url | varchar(255) | no | default '/events' |
-| read_at | timestamp | yes |  |
+| id | char(36) | no | PK, UUID |
+| type | varchar(255) | no | fully-qualified notification class name |
+| notifiable_type | varchar(255) | no | morphs helper (always `App\Models\Trooper`) |
+| notifiable_id | bigint unsigned | no | morphs helper — FK to tt_troopers.id |
+| data | text | no | JSON: `{title, body, url}` |
+| read_at | timestamp | yes | null = unread |
 | created_at | timestamp | yes | timestamps helper |
 | updated_at | timestamp | yes | timestamps helper |
 
 Relationships:
 
-- Belongs To: tt_troopers
+- Morphs To: notifiable (notifiable_type / notifiable_id → tt_troopers)
 
 ## Notes on Laravel Helper Expansions
 
