@@ -34,6 +34,7 @@ erDiagram
     tt_organizations ||--o{ tt_events : hosts
     tt_organizations ||--o{ tt_events : primary_for
     tt_organizations ||--o{ tt_event_organizations : invited_to
+    tt_organizations ||--o{ tt_event_troopers : signed_up_as
     tt_organizations ||--o{ tt_awards : has
     tt_organizations ||--o{ tt_notices : has
 
@@ -122,6 +123,7 @@ erDiagram
 
     tt_costumes ||--o{ tt_event_troopers : selected_primary
     tt_costumes ||--o{ tt_event_troopers : selected_backup
+    tt_organizations ||--o{ tt_event_troopers : signed_up_as
   ```
 
   ### Awards, Notices, and Audit Context
@@ -421,7 +423,7 @@ Relationships:
 - Belongs To: tt_organizations (parent_id)
 - Has Many: tt_organizations (children)
 - Has Many: tt_organization_costumes, tt_trooper_assignments, tt_trooper_organizations,
-  tt_events, tt_event_organizations, tt_awards, tt_notices
+  tt_events, tt_event_organizations, tt_event_troopers, tt_awards, tt_notices
 
 ### tt_organization_costumes
 
@@ -722,6 +724,7 @@ Purpose: Trooper signups per event shift.
 | id | bigint unsigned | no | PK, auto increment |
 | event_shift_id | bigint unsigned | no | FK -> tt_event_shifts.id, cascadeOnDelete |
 | trooper_id | bigint unsigned | no | FK -> tt_troopers.id, cascadeOnDelete |
+| organization_id | bigint unsigned | yes | FK -> tt_organizations.id, nullOnDelete |
 | costume_id | bigint unsigned | yes | FK -> tt_costumes.id, cascadeOnDelete |
 | costume_organization_ids | json | yes |  |
 | backup_costume_id | bigint unsigned | yes | FK -> tt_costumes.id, cascadeOnDelete |
@@ -740,6 +743,7 @@ Purpose: Trooper signups per event shift.
 Relationships:
 
 - Belongs To: tt_event_shifts, tt_troopers
+- Belongs To: tt_organizations (organization_id)
 - Belongs To: tt_costumes (costume_id, backup_costume_id)
 - Belongs To: tt_troopers (added_by_trooper_id)
 
