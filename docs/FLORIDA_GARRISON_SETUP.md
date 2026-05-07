@@ -338,7 +338,6 @@ If the trooper has the mobile app installed and has granted notification permiss
 
 - In-app notification records are still created and visible in the bell icon.
 - FCM delivery is silently skipped — no errors, no crashes.
-- The `saveFCM` / `logoutFCM` API endpoints still work and store tokens; they just have no effect until a key is configured.
 
 ---
 

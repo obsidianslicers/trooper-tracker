@@ -38,8 +38,6 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void
     {
         $middleware->validateCsrfTokens(except: [
-            'mobile-api',
-            '/mobile-api',
             'api/push-notifications',
             'api/push-notifications/*',
         ]);

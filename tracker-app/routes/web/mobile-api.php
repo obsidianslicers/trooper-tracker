@@ -2,15 +2,12 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Api\MobileApiController;
 use App\Models\MobileDevice;
 use App\Models\PushNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-
-Route::match(['get', 'post'], '/mobile-api', MobileApiController::class)->name('api.mobile');
 
 Route::post('/fcm/register', function (Request $request) {
     $validated = $request->validate(['token' => 'required|string']);
@@ -21,7 +18,7 @@ Route::post('/fcm/register', function (Request $request) {
     return response()->json(['ok' => true]);
 })->middleware('auth')->name('fcm.register');
 
-// FCM-token-authenticated endpoints for the native Flutter notifications screen.
+// FCM-token-authenticated endpoints for the Flutter notifications screen.
 $fcmTrooper = function (Request $request): ?int {
     $token = $request->header('FCM-Token');
     if (!$token) return null;
