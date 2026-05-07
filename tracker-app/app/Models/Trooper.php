@@ -23,6 +23,7 @@ use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Notifications\Notifiable;
 
@@ -86,9 +87,19 @@ class Trooper extends BaseTrooper implements
         ]);
     }
 
+    public function notifications(): MorphMany
+    {
+        return $this->morphMany(TrooperNotification::class, 'notifiable')->latest();
+    }
+
+    public function unreadNotifications(): MorphMany
+    {
+        return $this->morphMany(TrooperNotification::class, 'notifiable')->whereNull('read_at');
+    }
+
     /**
      * Alias for trooper
-     * 
+     *
      * @return BelongsTo
      */
     public function guardian(): BelongsTo

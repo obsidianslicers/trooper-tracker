@@ -8,8 +8,8 @@ use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
 use App\Enums\OauthProvider;
 use App\Mail\Auth\VerifyTrooperEmail;
+use App\Channels\FcmChannel;
 use App\Services\BreadCrumbService;
-use App\Services\Notifications\PushNotificationService;
 use App\Services\Socialite\XenforoProvider;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Database\Migrations\DatabaseMigrationRepository;
@@ -38,7 +38,7 @@ class AppServiceProvider extends ServiceProvider
             return new BreadCrumbService;
         });
 
-        $this->app->bind(PushNotificationService::class, function ($app) {
+        $this->app->bind(FcmChannel::class, function ($app) {
             try
             {
                 $messaging = $app->make(Messaging::class);
@@ -48,7 +48,7 @@ class AppServiceProvider extends ServiceProvider
                 $messaging = null;
             }
 
-            return new PushNotificationService($messaging);
+            return new FcmChannel($messaging);
         });
     }
 

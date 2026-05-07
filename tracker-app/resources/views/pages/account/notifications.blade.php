@@ -14,6 +14,18 @@
                   novalidate="novalidate">
                 @csrf
 
+                <h3>Notification Channels</h3>
+
+                <x-input-container>
+                    <x-input-checkbox :property="'push_notifications_enabled'"
+                                      :label="'Mobile Push Notifications'"
+                                      :value="1"
+                                      :checked="$push_notifications_enabled" />
+                    <x-input-help>
+                        Receive push alerts on your registered mobile device. This does not affect email notifications.
+                    </x-input-help>
+                </x-input-container>
+
                 <x-input-container>
                     <x-label>
                         Notification Frequency:

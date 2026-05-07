@@ -6,11 +6,11 @@ namespace Tests\Feature\Features\Events\Commands;
 
 use App\Features\Events\Commands\SendEventCancelledNotificationCommand;
 use App\Features\Events\Commands\SendEventCancelledNotificationCommandHandler;
-use App\Mail\Events\CancelledEventNotification;
 use App\Models\Event;
 use App\Models\Trooper;
+use App\Notifications\Events\EventCancelledNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 /**
@@ -20,9 +20,9 @@ class SendEventCancelledNotificationCommandHandlerTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_invoke_queues_cancellation_email(): void
+    public function test_invoke_sends_cancellation_notification(): void
     {
-        Mail::fake();
+        Notification::fake();
 
         $event = Event::factory()->create();
         $trooper = Trooper::factory()->create();
@@ -35,15 +35,12 @@ class SendEventCancelledNotificationCommandHandlerTest extends TestCase
 
         $handler($command);
 
-        Mail::assertQueued(CancelledEventNotification::class, function ($mail) use ($trooper)
-        {
-            return $mail->hasTo($trooper->{Trooper::EMAIL});
-        });
+        Notification::assertSentTo($trooper, EventCancelledNotification::class);
     }
 
-    public function test_invoke_does_not_queue_email_when_email_invalid(): void
+    public function test_invoke_sends_notification_even_when_email_invalid(): void
     {
-        Mail::fake();
+        Notification::fake();
 
         $event = Event::factory()->create();
         $trooper = Trooper::factory()->create([
@@ -58,12 +55,12 @@ class SendEventCancelledNotificationCommandHandlerTest extends TestCase
 
         $handler($command);
 
-        Mail::assertNothingQueued();
+        Notification::assertSentTo($trooper, EventCancelledNotification::class);
     }
 
     public function test_invoke_returns_null(): void
     {
-        Mail::fake();
+        Notification::fake();
 
         $event = Event::factory()->create();
         $trooper = Trooper::factory()->create();

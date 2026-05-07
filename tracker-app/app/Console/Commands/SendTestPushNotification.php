@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Models\Trooper;
-use App\Services\Notifications\PushNotificationService;
+use App\Notifications\Tests\TestPushNotification;
 use Illuminate\Console\Command;
 
 class SendTestPushNotification extends Command
@@ -23,7 +23,7 @@ class SendTestPushNotification extends Command
         ['title' => 'Reminder: Suit up for Galaxy\'s Edge', 'body' => 'Event starts tomorrow at 10:00 AM'],
     ];
 
-    public function handle(PushNotificationService $push): int
+    public function handle(): int
     {
         $trooper = Trooper::find($this->argument('trooper_id'));
 
@@ -37,7 +37,7 @@ class SendTestPushNotification extends Command
         $notification = self::NOTIFICATIONS[array_rand(self::NOTIFICATIONS)];
         $url = $this->option('url') ?? '/events';
 
-        $push->sendToTrooper($trooper, $notification['title'], $notification['body'], $url);
+        $trooper->notify(new TestPushNotification($notification['title'], $notification['body'], $url));
 
         $this->info("Sent to {$trooper->display_name}: {$notification['title']} → {$url}");
 

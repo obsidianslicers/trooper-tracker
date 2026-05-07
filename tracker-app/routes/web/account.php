@@ -39,7 +39,7 @@ Route::prefix('account')
 
         //  needed a post name to get the middleware to work properly
         Route::get('/push-notifications', PushNotificationInboxController::class)->name('push-notifications');
-        Route::post('/push-notifications/{push_notification}/read', PushNotificationReadController::class)->name('push-notifications.read');
+        Route::post('/push-notifications/{notification}/read', PushNotificationReadController::class)->name('push-notifications.read');
         Route::delete('/push-notifications', PushNotificationClearController::class)->name('push-notifications.clear');
 
         Route::get('/setup', SetupController::class)->name('setup');

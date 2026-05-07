@@ -48,6 +48,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $membership_status
  * @property string $membership_role
  * @property string $notification_frequency
+ * @property bool $push_notifications_enabled
  * @property Carbon|null $achievements_updated_at
  * @property Carbon|null $last_active_at
  * @property int|null $guardian_id
@@ -93,6 +94,7 @@ class Trooper extends Model
     const MEMBERSHIP_STATUS = 'membership_status';
     const MEMBERSHIP_ROLE = 'membership_role';
     const NOTIFICATION_FREQUENCY = 'notification_frequency';
+    const PUSH_NOTIFICATIONS_ENABLED = 'push_notifications_enabled';
     const ACHIEVEMENTS_UPDATED_AT = 'achievements_updated_at';
     const LAST_ACTIVE_AT = 'last_active_at';
     const GUARDIAN_ID = 'guardian_id';
@@ -105,6 +107,7 @@ class Trooper extends Model
 
     protected $casts = [
         self::ID => 'int',
+        self::PUSH_NOTIFICATIONS_ENABLED => 'boolean',
         self::EMAIL_VERIFIED_AT => 'datetime',
         self::SETUP_COMPLETED_AT => 'datetime',
         self::ACHIEVEMENTS_UPDATED_AT => 'datetime',
@@ -132,6 +135,7 @@ class Trooper extends Model
         self::MEMBERSHIP_STATUS,
         self::MEMBERSHIP_ROLE,
         self::NOTIFICATION_FREQUENCY,
+        self::PUSH_NOTIFICATIONS_ENABLED,
         self::ACHIEVEMENTS_UPDATED_AT,
         self::LAST_ACTIVE_AT,
         self::GUARDIAN_ID,

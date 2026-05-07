@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Middleware;
 
 use App\Http\Middleware\PushNotificationCountMiddleware;
-use App\Models\PushNotification;
 use App\Models\Trooper;
+use App\Models\TrooperNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -34,17 +34,21 @@ class PushNotificationCountMiddlewareTest extends TestCase
         $trooper = Trooper::factory()->create();
         $this->actingAs($trooper);
 
-        PushNotification::create([
-            PushNotification::TROOPER_ID => $trooper->id,
-            PushNotification::TITLE      => 'Event 1',
-            PushNotification::BODY       => 'body',
-            PushNotification::URL        => '/events',
+        TrooperNotification::create([
+            'id'              => \Illuminate\Support\Str::uuid(),
+            'type'            => 'TestNotification',
+            'notifiable_type' => Trooper::class,
+            'notifiable_id'   => $trooper->id,
+            'data'            => json_encode(['title' => 'Event 1', 'body' => 'body', 'url' => '/events']),
+            'read_at'         => null,
         ]);
-        PushNotification::create([
-            PushNotification::TROOPER_ID => $trooper->id,
-            PushNotification::TITLE      => 'Event 2',
-            PushNotification::BODY       => 'body',
-            PushNotification::URL        => '/events',
+        TrooperNotification::create([
+            'id'              => \Illuminate\Support\Str::uuid(),
+            'type'            => 'TestNotification',
+            'notifiable_type' => Trooper::class,
+            'notifiable_id'   => $trooper->id,
+            'data'            => json_encode(['title' => 'Event 2', 'body' => 'body', 'url' => '/events']),
+            'read_at'         => null,
         ]);
 
         $this->runMiddleware(Request::create('/'));
@@ -57,12 +61,13 @@ class PushNotificationCountMiddlewareTest extends TestCase
         $trooper = Trooper::factory()->create();
         $this->actingAs($trooper);
 
-        PushNotification::create([
-            PushNotification::TROOPER_ID => $trooper->id,
-            PushNotification::TITLE      => 'Old Event',
-            PushNotification::BODY       => 'body',
-            PushNotification::URL        => '/events',
-            PushNotification::READ_AT    => now(),
+        TrooperNotification::create([
+            'id'              => \Illuminate\Support\Str::uuid(),
+            'type'            => 'TestNotification',
+            'notifiable_type' => Trooper::class,
+            'notifiable_id'   => $trooper->id,
+            'data'            => json_encode(['title' => 'Old Event', 'body' => 'body', 'url' => '/events']),
+            'read_at'         => now(),
         ]);
 
         $this->runMiddleware(Request::create('/'));
@@ -76,17 +81,21 @@ class PushNotificationCountMiddlewareTest extends TestCase
         $other   = Trooper::factory()->create();
         $this->actingAs($trooper);
 
-        PushNotification::create([
-            PushNotification::TROOPER_ID => $other->id,
-            PushNotification::TITLE      => 'Other trooper notification',
-            PushNotification::BODY       => 'body',
-            PushNotification::URL        => '/events',
+        TrooperNotification::create([
+            'id'              => \Illuminate\Support\Str::uuid(),
+            'type'            => 'TestNotification',
+            'notifiable_type' => Trooper::class,
+            'notifiable_id'   => $other->id,
+            'data'            => json_encode(['title' => 'Other', 'body' => 'body', 'url' => '/events']),
+            'read_at'         => null,
         ]);
-        PushNotification::create([
-            PushNotification::TROOPER_ID => $trooper->id,
-            PushNotification::TITLE      => 'My notification',
-            PushNotification::BODY       => 'body',
-            PushNotification::URL        => '/events',
+        TrooperNotification::create([
+            'id'              => \Illuminate\Support\Str::uuid(),
+            'type'            => 'TestNotification',
+            'notifiable_type' => Trooper::class,
+            'notifiable_id'   => $trooper->id,
+            'data'            => json_encode(['title' => 'Mine', 'body' => 'body', 'url' => '/events']),
+            'read_at'         => null,
         ]);
 
         $this->runMiddleware(Request::create('/'));

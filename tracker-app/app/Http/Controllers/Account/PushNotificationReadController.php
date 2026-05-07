@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Account;
 
-use App\Models\PushNotification;
+use App\Models\TrooperNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class PushNotificationReadController
 {
-    public function __invoke(Request $request, PushNotification $push_notification): RedirectResponse
+    public function __invoke(Request $request, TrooperNotification $notification): RedirectResponse
     {
-        abort_unless($push_notification->trooper_id === $request->user()->id, 403);
+        abort_unless($notification->notifiable_id === (string) $request->user()->id, 403);
 
-        $push_notification->markRead();
+        $notification->markAsRead();
 
-        return redirect($push_notification->url);
+        return redirect($notification->url);
     }
 }

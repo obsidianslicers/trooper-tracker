@@ -3,7 +3,8 @@
 declare(strict_types=1);
 
 use App\Models\MobileDevice;
-use App\Models\PushNotification;
+use App\Models\Trooper;
+use App\Models\TrooperNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -30,9 +31,10 @@ Route::get('/api/push-notifications', function (Request $request) use ($fcmTroop
     $trooperId = $fcmTrooper($request);
     if (!$trooperId) return response()->json([], 401);
 
-    $notifications = PushNotification::where(PushNotification::TROOPER_ID, $trooperId)
-        ->latest()
-        ->get()
+    $trooper = Trooper::find($trooperId);
+    if (!$trooper) return response()->json([], 401);
+
+    $notifications = $trooper->notifications()->latest()->get()
         ->map(fn($n) => [
             'id'         => $n->id,
             'title'      => $n->title,
@@ -45,14 +47,16 @@ Route::get('/api/push-notifications', function (Request $request) use ($fcmTroop
     return response()->json($notifications);
 })->name('api.push-notifications.index');
 
-Route::post('/api/push-notifications/{id}/read', function (Request $request, int $id) use ($fcmTrooper): JsonResponse {
+Route::post('/api/push-notifications/{id}/read', function (Request $request, string $id) use ($fcmTrooper): JsonResponse {
     $trooperId = $fcmTrooper($request);
     if (!$trooperId) return response()->json([], 401);
 
-    PushNotification::where(PushNotification::ID, $id)
-        ->where(PushNotification::TROOPER_ID, $trooperId)
-        ->whereNull(PushNotification::READ_AT)
-        ->update([PushNotification::READ_AT => now()]);
+    $notification = TrooperNotification::find($id);
+    if (!$notification || (int) $notification->notifiable_id !== $trooperId) {
+        return response()->json([], 404);
+    }
+
+    $notification->markAsRead();
 
     return response()->json(['ok' => true]);
 })->name('api.push-notifications.read');
@@ -61,7 +65,10 @@ Route::delete('/api/push-notifications', function (Request $request) use ($fcmTr
     $trooperId = $fcmTrooper($request);
     if (!$trooperId) return response()->json([], 401);
 
-    PushNotification::where(PushNotification::TROOPER_ID, $trooperId)->delete();
+    $trooper = Trooper::find($trooperId);
+    if (!$trooper) return response()->json([], 401);
+
+    $trooper->notifications()->delete();
 
     return response()->json(['ok' => true]);
 })->name('api.push-notifications.clear');

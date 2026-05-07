@@ -8,31 +8,22 @@ use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Events\UpdateTroopersRequest;
-use App\Mail\Events\TrooperManualSelectionApproved;
-use App\Mail\Events\TrooperManualSelectionStandBy;
 use App\Models\Event;
 use App\Models\EventGuest;
+use App\Notifications\Events\ManualSelectionApprovedNotification;
+use App\Notifications\Events\ManualSelectionStandByNotification;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Mail;
 
 /**
  * Processes trooper status update form submissions.
  *
  * Handles updating the status of event trooper registrations (approved, standby, etc.).
- * Iterates through submitted trooper IDs and updates their EventTrooper status.
  */
 class UpdateTroopersSubmitController extends MagicBusController
 {
     /**
-     * Updates event trooper statuses from the validated form submission
-     *
-     * Processes the validated request to update status values for troopers
-     * registered to the event. Only updates troopers that exist in the event.
-     * Redirects back to the trooper management page with a success message.
-     *
-     * @param  UpdateTroopersRequest  $request  The validated trooper status update request
-     * @param  Event  $event  The event whose troopers are being updated (route model binding)
-     * @return RedirectResponse Redirect to the event's trooper management page
+     * @param  UpdateTroopersRequest  $request
+     * @param  Event  $event
      */
     public function __invoke(UpdateTroopersRequest $request, Event $event): RedirectResponse
     {
@@ -67,7 +58,6 @@ class UpdateTroopersSubmitController extends MagicBusController
             $oldStatus = $event_trooper->status;
 
             $event_trooper->status = $newStatus;
-
             $event_trooper->save();
 
             $wasManualApproval = $isManualSelectionEvent
@@ -79,12 +69,12 @@ class UpdateTroopersSubmitController extends MagicBusController
 
             if ($wasManualApproval)
             {
-                Mail::to($event_trooper->trooper->email)->queue(new TrooperManualSelectionApproved($event_trooper, $authTrooper));
+                $event_trooper->trooper->notify(new ManualSelectionApprovedNotification($event_trooper, $authTrooper));
             }
 
             if ($wasMovedToStandBy)
             {
-                Mail::to($event_trooper->trooper->email)->queue(new TrooperManualSelectionStandBy($event_trooper, $authTrooper));
+                $event_trooper->trooper->notify(new ManualSelectionStandByNotification($event_trooper, $authTrooper));
             }
         }
 
