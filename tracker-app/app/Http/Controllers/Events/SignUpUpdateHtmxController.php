@@ -7,16 +7,14 @@ namespace App\Http\Controllers\Events;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Features\Events\Commands\PromoteNextInLineEventTrooperCommand;
+use App\Features\Events\Commands\SendManualSelectionNotificationCommand;
 use App\Features\Events\Commands\UpdateEventTrooperCommand;
 use App\Features\Events\Queries\GetEventShiftDisplayQuery;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Events\SignupUpdateHtmxRequest;
-use App\Mail\Events\TrooperManualSelectionApproved;
-use App\Mail\Events\TrooperManualSelectionStandBy;
 use App\Models\EventTrooper;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;
 
 /**
  * Handles HTMX-driven updates to event trooper sign-up details.
@@ -91,14 +89,9 @@ class SignUpUpdateHtmxController extends MagicBusController
 
             $this->bus->send($event_trooper_cmd);
 
-            if ($isManualApproval)
+            if ($isManualApproval || $isManualRejection)
             {
-                Mail::to($event_trooper->trooper->email)->queue(new TrooperManualSelectionApproved($event_trooper, $authTrooper));
-            }
-
-            if ($isManualRejection)
-            {
-                Mail::to($event_trooper->trooper->email)->queue(new TrooperManualSelectionStandBy($event_trooper, $authTrooper));
+                $this->bus->send(new SendManualSelectionNotificationCommand($event_trooper, $authTrooper, $isManualApproval));
             }
 
             $going_to_not_going = $previous_status === EventTrooperStatus::GOING

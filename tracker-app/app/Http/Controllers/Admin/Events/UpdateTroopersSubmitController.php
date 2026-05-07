@@ -6,14 +6,12 @@ namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
+use App\Features\Events\Commands\SendManualSelectionNotificationCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Events\UpdateTroopersRequest;
-use App\Mail\Events\TrooperManualSelectionApproved;
-use App\Mail\Events\TrooperManualSelectionStandBy;
 use App\Models\Event;
 use App\Models\EventGuest;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Mail;
 
 /**
  * Processes trooper status update form submissions.
@@ -77,14 +75,9 @@ class UpdateTroopersSubmitController extends MagicBusController
                 && $oldStatus === EventTrooperStatus::GOING
                 && $event_trooper->status === EventTrooperStatus::STAND_BY;
 
-            if ($wasManualApproval)
+            if ($wasManualApproval || $wasMovedToStandBy)
             {
-                Mail::to($event_trooper->trooper->email)->queue(new TrooperManualSelectionApproved($event_trooper, $authTrooper));
-            }
-
-            if ($wasMovedToStandBy)
-            {
-                Mail::to($event_trooper->trooper->email)->queue(new TrooperManualSelectionStandBy($event_trooper, $authTrooper));
+                $this->bus->send(new SendManualSelectionNotificationCommand($event_trooper, $authTrooper, $wasManualApproval));
             }
         }
 
