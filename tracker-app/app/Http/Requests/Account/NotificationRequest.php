@@ -48,6 +48,7 @@ class NotificationRequest extends FormRequest
                 'required',
                 'in:'.NotificationFrequency::toValidator(),
             ],
+            Trooper::PUSH_NOTIFICATIONS_ENABLED => ['boolean'],
             'organizations.*.'.TrooperAssignment::SHOULD_NOTIFY => ['boolean'],
         ];
 
@@ -67,6 +68,9 @@ class NotificationRequest extends FormRequest
             [TrooperAssignment::SHOULD_NOTIFY]
         );
 
-        $this->merge(['organizations' => $organizations]);
+        $this->merge([
+            'organizations' => $organizations,
+            Trooper::PUSH_NOTIFICATIONS_ENABLED => $this->boolean(Trooper::PUSH_NOTIFICATIONS_ENABLED),
+        ]);
     }
 }

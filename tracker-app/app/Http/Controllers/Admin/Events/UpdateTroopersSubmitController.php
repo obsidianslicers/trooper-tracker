@@ -6,32 +6,21 @@ namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
-use App\Features\Events\Commands\SendManualSelectionNotificationCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Events\UpdateTroopersRequest;
 use App\Models\Event;
 use App\Models\EventGuest;
+use App\Notifications\Events\ManualSelectionApprovedNotification;
+use App\Notifications\Events\ManualSelectionStandByNotification;
 use Illuminate\Http\RedirectResponse;
 
 /**
  * Processes trooper status update form submissions.
  *
  * Handles updating the status of event trooper registrations (approved, standby, etc.).
- * Iterates through submitted trooper IDs and updates their EventTrooper status.
  */
 class UpdateTroopersSubmitController extends MagicBusController
 {
-    /**
-     * Updates event trooper statuses from the validated form submission
-     *
-     * Processes the validated request to update status values for troopers
-     * registered to the event. Only updates troopers that exist in the event.
-     * Redirects back to the trooper management page with a success message.
-     *
-     * @param  UpdateTroopersRequest  $request  The validated trooper status update request
-     * @param  Event  $event  The event whose troopers are being updated (route model binding)
-     * @return RedirectResponse Redirect to the event's trooper management page
-     */
     public function __invoke(UpdateTroopersRequest $request, Event $event): RedirectResponse
     {
         $this->authorize('update', $event);
@@ -65,7 +54,6 @@ class UpdateTroopersSubmitController extends MagicBusController
             $oldStatus = $event_trooper->status;
 
             $event_trooper->status = $newStatus;
-
             $event_trooper->save();
 
             $wasManualApproval = $isManualSelectionEvent
@@ -75,9 +63,14 @@ class UpdateTroopersSubmitController extends MagicBusController
                 && $oldStatus === EventTrooperStatus::GOING
                 && $event_trooper->status === EventTrooperStatus::STAND_BY;
 
-            if ($wasManualApproval || $wasMovedToStandBy)
+            if ($wasManualApproval)
             {
-                $this->bus->send(new SendManualSelectionNotificationCommand($event_trooper, $authTrooper, $wasManualApproval));
+                $event_trooper->trooper->notify(new ManualSelectionApprovedNotification($event_trooper, $authTrooper));
+            }
+
+            if ($wasMovedToStandBy)
+            {
+                $event_trooper->trooper->notify(new ManualSelectionStandByNotification($event_trooper, $authTrooper));
             }
         }
 

@@ -118,8 +118,8 @@ $themes: (
 
         // --- Typography ---
         --bs-headings-font-family: "#{map.get($map, headings-font)}",
-        sans-serif;
-        --bs-navbar-font-family: "Rajdhani", sans-serif;
+        sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji";
+        --bs-navbar-font-family: "Rajdhani", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji";
         --bs-heading-color: #{map.get($map, headings-color)};
 
         h1,

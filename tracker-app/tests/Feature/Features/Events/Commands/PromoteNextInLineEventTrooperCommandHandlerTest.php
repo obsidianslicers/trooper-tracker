@@ -7,12 +7,12 @@ namespace Tests\Feature\Features\Events\Commands;
 use App\Enums\EventTrooperStatus;
 use App\Features\Events\Commands\PromoteNextInLineEventTrooperCommand;
 use App\Features\Events\Commands\PromoteNextInLineEventTrooperCommandHandler;
-use App\Mail\Events\TrooperNextInLine;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
+use App\Notifications\Events\TrooperPromotedToGoingNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 /**
@@ -24,7 +24,7 @@ class PromoteNextInLineEventTrooperCommandHandlerTest extends TestCase
 
     public function test_invoke_promotes_next_standby_trooper_to_going(): void
     {
-        Mail::fake();
+        Notification::fake();
 
         $event_shift = EventShift::factory()->create();
         $cancelled_trooper = EventTrooper::factory()
@@ -54,7 +54,7 @@ class PromoteNextInLineEventTrooperCommandHandlerTest extends TestCase
 
     public function test_invoke_matches_handler_role(): void
     {
-        Mail::fake();
+        Notification::fake();
 
         $event_shift = EventShift::factory()->create();
         $cancelled_handler = EventTrooper::factory()
@@ -95,7 +95,7 @@ class PromoteNextInLineEventTrooperCommandHandlerTest extends TestCase
 
     public function test_invoke_queues_next_in_line_email(): void
     {
-        Mail::fake();
+        Notification::fake();
 
         $event_shift = EventShift::factory()->create();
         $cancelled_trooper = EventTrooper::factory()
@@ -116,15 +116,12 @@ class PromoteNextInLineEventTrooperCommandHandlerTest extends TestCase
 
         $handler($command);
 
-        Mail::assertQueued(TrooperNextInLine::class, function ($mail) use ($standby_trooper_model)
-        {
-            return $mail->hasTo($standby_trooper_model->{Trooper::EMAIL});
-        });
+        Notification::assertSentTo($standby_trooper_model, TrooperPromotedToGoingNotification::class);
     }
 
     public function test_invoke_returns_null_when_no_standby_trooper_available(): void
     {
-        Mail::fake();
+        Notification::fake();
 
         $event_shift = EventShift::factory()->create();
         $cancelled_trooper = EventTrooper::factory()
@@ -137,6 +134,6 @@ class PromoteNextInLineEventTrooperCommandHandlerTest extends TestCase
         $result = $handler($command);
 
         $this->assertNull($result);
-        Mail::assertNothingQueued();
+        Notification::assertNothingSent();
     }
 }

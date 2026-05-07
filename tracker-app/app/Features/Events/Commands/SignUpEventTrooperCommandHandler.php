@@ -8,33 +8,21 @@ use App\Bus\Contracts\CommandHandlerInterface;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Jobs\CreateTrooperFriendshipJob;
-use App\Mail\Events\TrooperSignUp;
 use App\Models\EventTrooper;
-use Illuminate\Support\Facades\Mail;
+use App\Notifications\Events\TrooperSignedUpNotification;
 
 /**
  * Handler for signing up a trooper for an event shift.
  *
- * Creates an EventTrooper record with GOING status, linking the trooper
- * to the specified event shift and tracking who added the sign-up.
+ * Creates an EventTrooper record with GOING or STAND_BY status depending on
+ * event type and capacity, then dispatches a notification.
  *
  * @implements CommandHandlerInterface<SignUpEventTrooperCommand>
  */
 readonly class SignUpEventTrooperCommandHandler implements CommandHandlerInterface
 {
     /**
-     * Execute the command to sign up a trooper for an event shift.
-     *
-     * Creates a new EventTrooper record with:
-     * - GOING status if capacity allows, STAND_BY if handlers/troopers maxed out
-     * - Link to event shift
-     * - Link to trooper
-     * - Tracking of who added the sign-up
-     *
-     * Saves the EventTrooper record and queues a TrooperSignUp email notification.
-     *
-     * @param  SignUpEventTrooperCommand  $message  The command containing shift, trooper, and added_by info.
-     * @return null
+     * @param  SignUpEventTrooperCommand  $message
      */
     public function __invoke(object $message): mixed
     {
@@ -81,11 +69,10 @@ readonly class SignUpEventTrooperCommandHandler implements CommandHandlerInterfa
 
         if ($event_trooper->added_by_trooper_id !== null)
         {
-            //  added_by_trooper_id added friend:trooper_id
             dispatch(new CreateTrooperFriendshipJob($event_trooper->added_by_trooper_id, $event_trooper->trooper_id));
         }
 
-        Mail::to($message->trooper->email)->queue(new TrooperSignUp($event_trooper));
+        $message->trooper->notify(new TrooperSignedUpNotification($event_trooper));
 
         return null;
     }

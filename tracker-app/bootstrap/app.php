@@ -38,12 +38,13 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void
     {
         $middleware->validateCsrfTokens(except: [
-            'mobile-api',
-            '/mobile-api',
+            'api/push-notifications',
+            'api/push-notifications/*',
         ]);
 
         $middleware->web(append: [
             \App\Http\Middleware\FlashMessageMiddleware::class,
+            \App\Http\Middleware\PushNotificationCountMiddleware::class,
             \App\Http\Middleware\HtmxDispatchHeaderMiddleware::class,
             \App\Http\Middleware\UpdateLastActiveMiddleware::class,
             \App\Http\Middleware\TrooperSetupRequiredMiddleware::class,

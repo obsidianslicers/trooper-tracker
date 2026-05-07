@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Channels\FcmChannel;
 use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
 use App\Enums\OauthProvider;
@@ -22,6 +23,7 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use InvalidArgumentException;
+use Kreait\Firebase\Contract\Messaging;
 use Laravel\Socialite\Facades\Socialite;
 use ValueError;
 
@@ -36,6 +38,19 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->scoped(BreadCrumbService::class, function () {
             return new BreadCrumbService;
+        });
+
+        $this->app->bind(FcmChannel::class, function ($app) {
+            try
+            {
+                $messaging = $app->make(Messaging::class);
+            }
+            catch (\Throwable)
+            {
+                $messaging = null;
+            }
+
+            return new FcmChannel($messaging);
         });
     }
 

@@ -1,6 +1,6 @@
 @auth
     <x-nav-link :url="route('account.profile')"
-                :active="request()->routeIs('account.*')">
+                :active="request()->routeIs('account.*') && !request()->routeIs('account.push-notifications')">
         Account
     </x-nav-link>
     <x-nav-link :url="route('auth.logout')">

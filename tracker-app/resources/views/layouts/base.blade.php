@@ -10,6 +10,7 @@
           content="ie=edge" />
     <meta name="csrf-token"
           content="{{ csrf_token() }}">
+    <script>window.__authState = {{ auth()->check() ? 'true' : 'false' }};</script>
     @yield('page-meta')
 
     <title>{{ config('app.name') }} - Troop Tracker</title>
@@ -56,6 +57,10 @@
     @vite(['resources/js/app.js'])
     @yield('page-script')
     @stack('scripts')
+
+    @auth
+        @vite('resources/js/fcm-register.js')
+    @endauth
 
 </body>
 

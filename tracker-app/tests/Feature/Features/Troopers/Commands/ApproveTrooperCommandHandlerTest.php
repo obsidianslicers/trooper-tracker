@@ -7,10 +7,10 @@ namespace Tests\Feature\Features\Troopers\Commands;
 use App\Features\Troopers\Commands\ApproveTrooperCommand;
 use App\Features\Troopers\Commands\ApproveTrooperCommandHandler;
 use App\Enums\MembershipStatus;
-use App\Mail\Admin\Troopers\TrooperApproved;
 use App\Models\Trooper;
+use App\Notifications\Troopers\MembershipApprovedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 /**
@@ -22,7 +22,7 @@ class ApproveTrooperCommandHandlerTest extends TestCase
 
     public function test_invoke_approves_trooper_and_queues_email(): void
     {
-        Mail::fake();
+        Notification::fake();
         $trooper = Trooper::factory()->asPending()->create();
 
         $this->assertEquals(MembershipStatus::PENDING, $trooper->membership_status);
@@ -37,15 +37,12 @@ class ApproveTrooperCommandHandlerTest extends TestCase
 
         $trooper->refresh();
         $this->assertEquals(MembershipStatus::ACTIVE, $trooper->membership_status);
-        Mail::assertQueued(TrooperApproved::class, function ($mail) use ($trooper)
-        {
-            return $mail->hasTo($trooper->email);
-        });
+        Notification::assertSentTo($trooper, MembershipApprovedNotification::class);
     }
 
-    public function test_invoke_denies_trooper_and_queues_email(): void
+    public function test_invoke_denies_trooper_and_sends_no_notification(): void
     {
-        Mail::fake();
+        Notification::fake();
         $trooper = Trooper::factory()->asPending()->create();
 
         $this->assertEquals(MembershipStatus::PENDING, $trooper->membership_status);
@@ -60,9 +57,6 @@ class ApproveTrooperCommandHandlerTest extends TestCase
 
         $trooper->refresh();
         $this->assertEquals(MembershipStatus::DENIED, $trooper->membership_status);
-        Mail::assertQueued(TrooperApproved::class, function ($mail) use ($trooper)
-        {
-            return $mail->hasTo($trooper->email);
-        });
+        Notification::assertNothingSent();
     }
 }

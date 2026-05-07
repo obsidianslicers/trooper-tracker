@@ -35,9 +35,15 @@ Event notification system for informing troopers about new events and cancellati
 
 ## Notification Types
 
-- **Instant**: Email sent immediately on event creation
-- **Daily**: Digest email with all events since last notification
-- **Never**: No notifications sent
+`notification_frequency` controls **email delivery only**. Push and web inbox notifications are independent.
+
+| Channel | Gate | Notes |
+|---|---|---|
+| Web inbox (`tt_notifications`) | Always | Cannot be disabled |
+| Mobile push (FCM) | `push_notifications_enabled = true` | Trooper opt-out in account settings |
+| Email — instant | `notification_frequency = INSTANT` | Sent immediately on event creation |
+| Email — daily digest | `notification_frequency = DAILY` | Batched via daily artisan command |
+| Email — disabled | `notification_frequency = NEVER` | No event creation emails sent |
 
 ## Event Created Notifications
 
@@ -48,52 +54,49 @@ flowchart TD
     A[Admin Creates/Updates Event] --> B{Event Status Changed to Open?}
     B -->|Yes| C[SendEventCreatedNotificationsJob Dispatched]
     B -->|No| D[No Notification Sent]
-    
+
     C --> E[Load All Active Troopers]
     E --> F{For Each Trooper}
-    
-    F --> G{Has Valid Email?}
-    G -->|No| F
-    G -->|Yes| H{Notification Frequency?}
-    
-    H -->|NEVER| F
-    H -->|INSTANT| I[Create EventNotification Record]
-    H -->|DAILY| J[Create EventNotification Record]
-    
-    I --> K[Mark as Processed]
-    I --> L[Queue InstantEventNotification Email]
-    
-    J --> M[Leave Unprocessed]
-    M --> N[Will Be Sent by Daily Command]
-    
-    L --> O[Email Sent]
-    O --> P[Update sent_at Timestamp]
+
+    F --> G[trooper.notify EventCreatedNotification]
+
+    G --> H[database channel — always]
+    H --> I[Write tt_notifications record]
+
+    G --> J{push_notifications_enabled?}
+    J -->|Yes| K[FcmChannel — send to FCM tokens]
+    J -->|No| L[Skip push]
+
+    G --> M{notification_frequency?}
+    M -->|INSTANT + valid email| N[mail channel]
+    N --> O[Create EventNotification — processed]
+    N --> P[Queue InstantEventNotification email]
+    M -->|DAILY| Q[DailyDigestChannel]
+    Q --> R[Create EventNotification — unprocessed]
+    R --> S[Picked up by daily command]
+    M -->|NEVER| T[No email sent]
 ```
 
 ### SendEventCreatedNotificationsJob
 
 **Triggered When:** An event's status changes to "open" (published)
 
-**Purpose:** Orchestrates the creation of notification records for all active troopers.
+**Purpose:** Orchestrates notification delivery to all active troopers.
 
-**Implementation:** This job dispatches the `SendEventCreatedNotificationCommand` for each eligible trooper through the MagicBus. The command handler:
+**Implementation:** This job dispatches `SendEventCreatedNotificationCommand` for each eligible trooper through the MagicBus. The command handler calls `$trooper->notify(new EventCreatedNotification($event))`. The notification's `via()` method selects channels based on trooper preferences:
 
-1. Validates trooper's email address
-2. Creates an `EventNotification` record
-3. **If notification_frequency is INSTANT:**
-   - Marks notification as processed immediately
-   - Queues instant email via `InstantEventNotification` mailable
-4. **If notification_frequency is DAILY:**
-   - Leaves notification unprocessed
-   - Will be picked up by the daily notification command
+- `database` — always included; writes a record to `tt_notifications` for the web/mobile inbox
+- `FcmChannel` — included when `push_notifications_enabled = true`; sends FCM push to registered devices
+- `mail` — included when `notification_frequency = INSTANT` and email is valid; queues `InstantEventNotification`; also creates a processed `EventNotification` record via `toMail()`
+- `DailyDigestChannel` — included when `notification_frequency = DAILY`; creates an unprocessed `EventNotification` record for the daily digest command
 
 **Key Components:**
 - `SendEventCreatedNotificationsJob` - Queue job that orchestrates the process
-- `SendEventCreatedNotificationCommand` - Command dispatched for each trooper
-- `SendEventCreatedNotificationCommandHandler` - Handles notification creation logic
-- `Event` - The event being notified about
-- `EventNotification` - Tracks which troopers have been notified
-- `Trooper` - Active troopers with valid email addresses
+- `SendEventCreatedNotificationCommand` / `SendEventCreatedNotificationCommandHandler` - Dispatches notification per trooper
+- `EventCreatedNotification` - Laravel Notification class; owns channel selection logic
+- `FcmChannel` - Custom channel; sends FCM via `kreait/laravel-firebase`
+- `DailyDigestChannel` - Custom channel; creates `EventNotification` record for digest
+- `EventNotification` - Tracks email delivery state (processed_at, sent_at)
 
 ## Daily Event Notification Command
 
@@ -175,23 +178,22 @@ flowchart TD
 
 **Purpose:** Notifies all troopers who signed up for the cancelled event.
 
-**Implementation:** This job dispatches the `SendEventCancelledNotificationCommand` through the MagicBus. The command handler:
+**Implementation:** This job dispatches `SendEventCancelledNotificationCommand` through the MagicBus. The command handler calls `$trooper->notify(new EventCancelledNotification($event))`. The notification's `via()` method always includes:
 
-1. Checks if cancellation notifications have already been sent (via `create_notifications_sent_at`)
-2. Queries all active troopers with `GOING` status for any shift in the event
-3. For each trooper:
-   - Validates their email address
-   - Queues cancellation email via `CancelledEventNotification` mailable
-4. Updates event's `create_notifications_sent_at` timestamp to prevent duplicate sends
+- `database` — writes to `tt_notifications` inbox
+- `FcmChannel` — when `push_notifications_enabled = true`
+- `mail` — when email is valid, regardless of `notification_frequency`
+
+Updates event's `cancel_notifications_sent_at` timestamp to prevent duplicate sends.
 
 **Key Components:**
 - `SendEventCancelledNotificationsJob` - Queue job (orchestrator)
-- `SendEventCancelledNotificationCommand` - Command for the cancelled event
-- `SendEventCancelledNotificationCommandHandler` - Handles notification logic
+- `SendEventCancelledNotificationCommand` / `SendEventCancelledNotificationCommandHandler` - Dispatches notification per trooper
+- `EventCancelledNotification` - Laravel Notification class
 
 **Important Notes:**
-- Cancellation notifications are sent **regardless of notification frequency**
-- This ensures troopers who committed to an event are always notified of cancellations
+- Email is always sent regardless of `notification_frequency` — troopers who committed are always notified
+- Push is sent regardless of `notification_frequency` but still respects `push_notifications_enabled`
 - The notification is sent only once per event
 
 ## Event Shift Completion Notifications
@@ -282,36 +284,50 @@ See [docs/DATABASE.md](docs/DATABASE.md) for table details and column references
 
 ### Architecture
 
-The notification system follows the **Command/Query** pattern:
+The notification system follows the **Command/Query** pattern with **Laravel Notifications** as the dispatch mechanism:
 
 - **Jobs** (SendEventCreatedNotificationsJob, SendEventCancelledNotificationsJob) orchestrate workflow
 - **Commands** (SendEventCreatedNotificationCommand, SendEventDailyNotificationCommand, SendEventCancelledNotificationCommand) represent write operations
-- **Command Handlers** contain the actual business logic for creating notifications and queueing emails
+- **Command Handlers** call `$trooper->notify(new SomeNotification(...))` — no direct mail or push logic
+- **Laravel Notification classes** own channel selection in their `via()` method
+- **Custom channels** (`FcmChannel`, `DailyDigestChannel`) handle FCM and digest record creation
 - **Queries** (GetTroopersForDailyEventNotificationsQuery) retrieve eligible troopers
 - **MagicBus** dispatches commands and queries to their handlers
 
 This separation ensures business logic is testable and reusable across different entry points.
 
+### Channel Selection Rules
+
+Each `Notification::via()` selects channels at dispatch time based on trooper preferences:
+
+| Channel | When included |
+|---|---|
+| `'database'` | Always — no user control |
+| `FcmChannel::class` | `push_notifications_enabled = true` |
+| `'mail'` (instant) | `notification_frequency = INSTANT` and email valid |
+| `DailyDigestChannel::class` | `notification_frequency = DAILY` |
+| `'mail'` (transactional) | Email valid — ignores `notification_frequency` |
+
+Transactional notifications (sign-up confirmed, promoted from waitlist, membership approved, manual selection changes, cancellations) always send email when email is valid, regardless of `notification_frequency`.
+
 ### Email Validation
 
-All notification command handlers validate trooper email addresses using:
+All notifications check trooper email addresses before including the `mail` channel:
 
 ```php
-$trooper->emailAppearsValid()
+$notifiable->emailAppearsValid()
 ```
 
-This method checks that:
-- The email field is not empty
-- The email passes PHP's `filter_var($email, FILTER_VALIDATE_EMAIL)` validation
+This checks that the email field is non-empty and passes `filter_var($email, FILTER_VALIDATE_EMAIL)`.
 
 ### Preventing Duplicate Notifications
 
 **For Event Created:**
-- Checks existing `EventNotification` records before creating new ones
-- Prevents re-notifying troopers who already have a notification for the event
+- `EventCreatedNotification::toMail()` uses `firstOrCreate` on `EventNotification` records
+- Prevents duplicate `EventNotification` records if notification fires more than once
 
 **For Event Cancelled:**
-- Uses event's `create_notifications_sent_at` timestamp
+- Uses event's `cancel_notifications_sent_at` timestamp
 - Job returns early if timestamp is already set
 
 ### Queue System
@@ -323,15 +339,16 @@ All notification emails implement `ShouldQueue` and are processed asynchronously
 
 ## Best Practices
 
-1. **Always validate email addresses** before sending notifications
+1. **Always validate email addresses** before including the `mail` channel in `via()`
 2. **Use queued jobs** for all email sending to prevent timeouts
 3. **Track notification state** to prevent duplicate sends
-4. **Respect trooper preferences** - never override `NEVER` setting except for cancellations
-5. **Log notification failures** for debugging and trooper support
+4. **Channel selection belongs in `via()`** — command handlers and controllers call `$trooper->notify()` and nothing else
+5. **`notification_frequency = NEVER` only suppresses email** — push and web inbox still fire
+6. **Transactional notifications always send email** (sign-up, promotion, approval, cancellation) regardless of frequency
 
 ## Troubleshooting
 
-### Troopers Not Receiving Notifications
+### Troopers Not Receiving Email Notifications
 
 1. Check trooper's `notification_frequency` setting
 2. Verify trooper's `membership_status` is `ACTIVE`
@@ -339,15 +356,28 @@ All notification emails implement `ShouldQueue` and are processed asynchronously
 4. Check queue worker is processing jobs
 5. Review mail server logs for delivery issues
 
+### Troopers Not Receiving Push Notifications
+
+1. Check `push_notifications_enabled` on the trooper's account settings
+2. Verify a device is registered in `tt_mobile_devices` for the trooper
+3. Check `FcmChannel` — if messaging is null (Firebase not configured), push is silently skipped
+4. Invalid tokens are auto-deleted on FCM failure — trooper may need to re-register the device
+
 ### Duplicate Notifications
 
 1. Verify `EventNotification` records aren't being created multiple times
 2. Check event's `create_notifications_sent_at` for cancellation notifications
 3. Ensure jobs aren't being dispatched multiple times on event updates
 
-### Daily Notifications Not Sending
+### Daily Email Digest Not Sending
 
 1. Verify scheduled task is configured and running
 2. Check for troopers with `notification_frequency = DAILY`
-3. Confirm unprocessed `EventNotification` records exist
+3. Confirm unprocessed `EventNotification` records exist (`processed_at IS NULL`)
 4. Review command output and logs
+
+### Web Inbox Not Showing Notifications
+
+1. Confirm `tt_notifications` table exists and migrations have run
+2. Check that `Trooper` model uses the `Notifiable` trait
+3. Verify `TrooperNotification` model points to `tt_notifications` table

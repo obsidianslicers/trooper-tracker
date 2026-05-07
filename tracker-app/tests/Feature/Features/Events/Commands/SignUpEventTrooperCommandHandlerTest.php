@@ -15,9 +15,11 @@ use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\Trooper;
+use App\Notifications\Events\TrooperSignedUpNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 /**
@@ -29,7 +31,7 @@ class SignUpEventTrooperCommandHandlerTest extends TestCase
 
     public function test_invoke_creates_event_trooper_with_going_status(): void
     {
-        Mail::fake();
+        Notification::fake();
 
         $event_shift = EventShift::factory()->create();
         $trooper = Trooper::factory()->create();
@@ -54,7 +56,7 @@ class SignUpEventTrooperCommandHandlerTest extends TestCase
     public function test_invoke_sets_added_by_trooper_id_when_different_from_trooper(): void
     {
         Bus::fake();
-        Mail::fake();
+        Notification::fake();
 
         $event_shift = EventShift::factory()->create();
         $trooper = Trooper::factory()->create();
@@ -84,7 +86,7 @@ class SignUpEventTrooperCommandHandlerTest extends TestCase
     public function test_invoke_sets_added_by_trooper_id_null_when_same_as_trooper(): void
     {
         Bus::fake();
-        Mail::fake();
+        Notification::fake();
 
         $event_shift = EventShift::factory()->create();
         $trooper = Trooper::factory()->create();
@@ -108,7 +110,7 @@ class SignUpEventTrooperCommandHandlerTest extends TestCase
 
     public function test_invoke_queues_sign_up_email(): void
     {
-        Mail::fake();
+        Notification::fake();
 
         $event_shift = EventShift::factory()->create();
         $trooper = Trooper::factory()->create();
@@ -122,15 +124,12 @@ class SignUpEventTrooperCommandHandlerTest extends TestCase
 
         $handler($command);
 
-        Mail::assertQueued(TrooperSignUp::class, function ($mail) use ($trooper)
-        {
-            return $mail->hasTo($trooper->{Trooper::EMAIL});
-        });
+        Notification::assertSentTo($trooper, TrooperSignedUpNotification::class);
     }
 
     public function test_invoke_returns_null(): void
     {
-        Mail::fake();
+        Notification::fake();
 
         $event_shift = EventShift::factory()->create();
         $trooper = Trooper::factory()->create();
