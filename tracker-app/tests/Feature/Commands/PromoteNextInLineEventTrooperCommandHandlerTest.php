@@ -7,16 +7,16 @@ namespace Tests\Feature\Commands;
 use App\Enums\EventTrooperStatus;
 use App\Features\Events\Commands\PromoteNextInLineEventTrooperCommand;
 use App\Features\Events\Commands\PromoteNextInLineEventTrooperCommandHandler;
-use App\Mail\Events\TrooperNextInLine;
 use App\Models\Event;
 use App\Models\EventOrganization;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\Trooper;
+use App\Notifications\Events\TrooperPromotedToGoingNotification;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class PromoteNextInLineEventTrooperCommandHandlerTest extends TestCase
@@ -32,7 +32,7 @@ class PromoteNextInLineEventTrooperCommandHandlerTest extends TestCase
     {
         parent::setUp();
 
-        Mail::fake();
+        Notification::fake();
 
         $this->org = Organization::factory()->create();
 
@@ -82,7 +82,7 @@ class PromoteNextInLineEventTrooperCommandHandlerTest extends TestCase
         $this->assertSame(EventTrooperStatus::GOING, $going->fresh()->status);
         $this->assertSame(EventTrooperStatus::GOING, $standby->fresh()->status);
 
-        Mail::assertQueued(TrooperNextInLine::class, 1);
+        Notification::assertSentTo($standby->trooper, TrooperPromotedToGoingNotification::class);
     }
 
     public function test_picks_earliest_standby_when_multiple_exist(): void
@@ -96,7 +96,7 @@ class PromoteNextInLineEventTrooperCommandHandlerTest extends TestCase
         $this->assertSame(EventTrooperStatus::GOING,    $standby1->fresh()->status);
         $this->assertSame(EventTrooperStatus::STAND_BY, $standby2->fresh()->status);
 
-        Mail::assertQueued(TrooperNextInLine::class, 1);
+        Notification::assertSentTo($standby1->trooper, TrooperPromotedToGoingNotification::class);
     }
 
     public function test_does_not_promote_different_org_when_only_org_was_full(): void
@@ -111,7 +111,7 @@ class PromoteNextInLineEventTrooperCommandHandlerTest extends TestCase
 
         $this->assertSame(EventTrooperStatus::STAND_BY, $other_standby->fresh()->status);
 
-        Mail::assertNothingQueued();
+        Notification::assertNothingSent();
     }
 
     public function test_falls_back_to_any_standby_when_global_was_full(): void
@@ -126,7 +126,7 @@ class PromoteNextInLineEventTrooperCommandHandlerTest extends TestCase
 
         $this->assertSame(EventTrooperStatus::GOING, $other_standby->fresh()->status);
 
-        Mail::assertQueued(TrooperNextInLine::class, 1);
+        Notification::assertSentTo($other_standby->trooper, TrooperPromotedToGoingNotification::class);
     }
 
     public function test_does_nothing_when_no_standby_exists(): void
@@ -135,7 +135,7 @@ class PromoteNextInLineEventTrooperCommandHandlerTest extends TestCase
 
         ($this->handler)(new PromoteNextInLineEventTrooperCommand($going, false, $this->org->id));
 
-        Mail::assertNothingQueued();
+        Notification::assertNothingSent();
     }
 
     public function test_promotes_via_costume_org_ids_when_organization_id_is_null(): void
@@ -154,6 +154,6 @@ class PromoteNextInLineEventTrooperCommandHandlerTest extends TestCase
 
         $this->assertSame(EventTrooperStatus::GOING, $standby->fresh()->status);
 
-        Mail::assertQueued(TrooperNextInLine::class, 1);
+        Notification::assertSentTo($standby->trooper, TrooperPromotedToGoingNotification::class);
     }
 }
