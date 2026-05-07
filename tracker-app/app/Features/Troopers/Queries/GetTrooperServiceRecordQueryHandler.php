@@ -140,8 +140,14 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
                     ->toArray();
 
                 if (empty($costume_node_paths)) {
-                    $event_org = $shift->event->organization;
-                    $costume_node_paths = $event_org ? [$event_org->node_path] : [];
+                    // No costume orgs — credit all orgs the trooper was a member of at the time
+                    foreach ($organizations as $org)
+                    {
+                        if ($this->wasMemberAt($org, $shift->shift_starts_at)) {
+                            $troop_counts[$org->id] = ($troop_counts[$org->id] ?? 0) + 1;
+                        }
+                    }
+                    continue;
                 }
 
                 foreach ($organizations as $org)
