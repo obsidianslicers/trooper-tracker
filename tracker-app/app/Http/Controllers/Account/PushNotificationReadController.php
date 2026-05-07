@@ -12,7 +12,7 @@ class PushNotificationReadController
 {
     public function __invoke(Request $request, TrooperNotification $notification): RedirectResponse
     {
-        abort_unless($notification->notifiable_id === (string) $request->user()->id, 403);
+        abort_unless((int) $notification->notifiable_id === $request->user()->id, 403);
 
         $notification->markAsRead();
 
