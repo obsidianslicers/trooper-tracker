@@ -350,6 +350,147 @@ class EventTrooperTest extends TestCase
         $this->assertTrue($result);
     }
 
+    public function test_organization_relationship_returns_belongs_to(): void
+    {
+        $subject = EventTrooper::factory()->create();
+
+        $this->assertInstanceOf(BelongsTo::class, $subject->organization());
+    }
+
+    public function test_can_update_status_returns_false_when_org_limit_maxed_for_non_going_trooper(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $organization = Organization::factory()->create();
+        $event = Event::factory()
+            ->state([Event::STATUS => EventStatus::OPEN, Event::TROOPERS_ALLOWED => null])
+            ->create();
+        $shift = EventShift::factory()
+            ->state([EventShift::EVENT_ID => $event->id, EventShift::STATUS => EventStatus::OPEN])
+            ->create();
+
+        EventOrganization::factory()
+            ->state([
+                EventOrganization::EVENT_ID => $event->id,
+                EventOrganization::ORGANIZATION_ID => $organization->id,
+                EventOrganization::CAN_ATTEND => true,
+                EventOrganization::TROOPERS_ALLOWED => 1,
+            ])
+            ->create();
+
+        // Fill the org slot with another GOING trooper
+        EventTrooper::factory()
+            ->forEventShift($shift)
+            ->asGoing()
+            ->state([EventTrooper::IS_HANDLER => false, EventTrooper::ORGANIZATION_ID => $organization->id])
+            ->create();
+
+        $subject = EventTrooper::factory()
+            ->forEventShift($shift)
+            ->forTrooper($trooper)
+            ->state([
+                EventTrooper::STATUS => EventTrooperStatus::CANCELLED,
+                EventTrooper::IS_HANDLER => false,
+                EventTrooper::ORGANIZATION_ID => $organization->id,
+            ])
+            ->create();
+
+        $result = $subject->canUpdateStatus($shift, $trooper);
+
+        $this->assertFalse($result);
+    }
+
+    public function test_get_costumes_filters_to_selected_organization_when_organization_id_set(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $org_a = Organization::factory()->create();
+        $org_b = Organization::factory()->create();
+        $event = Event::factory()->withOrganization($org_a)->create();
+        $shift = EventShift::factory()
+            ->state([EventShift::EVENT_ID => $event->id])
+            ->create();
+
+        foreach ([$org_a, $org_b] as $org) {
+            EventOrganization::factory()
+                ->state([
+                    EventOrganization::EVENT_ID => $event->id,
+                    EventOrganization::ORGANIZATION_ID => $org->id,
+                    EventOrganization::CAN_ATTEND => true,
+                ])
+                ->create();
+        }
+
+        $costume_a = Costume::factory()->create();
+        $oc_a = OrganizationCostume::factory()
+            ->state([
+                OrganizationCostume::ORGANIZATION_ID => $org_a->id,
+                OrganizationCostume::COSTUME_ID => $costume_a->id,
+            ])
+            ->create();
+        TrooperCostume::factory()
+            ->state([TrooperCostume::TROOPER_ID => $trooper->id, TrooperCostume::ORGANIZATION_COSTUME_ID => $oc_a->id])
+            ->create();
+
+        $costume_b = Costume::factory()->create();
+        $oc_b = OrganizationCostume::factory()
+            ->state([
+                OrganizationCostume::ORGANIZATION_ID => $org_b->id,
+                OrganizationCostume::COSTUME_ID => $costume_b->id,
+            ])
+            ->create();
+        TrooperCostume::factory()
+            ->state([TrooperCostume::TROOPER_ID => $trooper->id, TrooperCostume::ORGANIZATION_COSTUME_ID => $oc_b->id])
+            ->create();
+
+        $subject = EventTrooper::factory()
+            ->forEventShift($shift)
+            ->forTrooper($trooper)
+            ->state([EventTrooper::ORGANIZATION_ID => $org_a->id])
+            ->create();
+
+        $result = $subject->getCostumes();
+
+        $this->assertArrayHasKey($costume_a->id, $result);
+        $this->assertArrayNotHasKey($costume_b->id, $result);
+    }
+
+    public function test_get_costumes_uses_can_attend_orgs_when_no_organization_id_set(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $organization = Organization::factory()->create();
+        $event = Event::factory()->withOrganization($organization)->create();
+        $shift = EventShift::factory()
+            ->state([EventShift::EVENT_ID => $event->id])
+            ->create();
+        EventOrganization::factory()
+            ->state([
+                EventOrganization::EVENT_ID => $event->id,
+                EventOrganization::ORGANIZATION_ID => $organization->id,
+                EventOrganization::CAN_ATTEND => true,
+            ])
+            ->create();
+
+        $costume = Costume::factory()->create();
+        $oc = OrganizationCostume::factory()
+            ->state([
+                OrganizationCostume::ORGANIZATION_ID => $organization->id,
+                OrganizationCostume::COSTUME_ID => $costume->id,
+            ])
+            ->create();
+        TrooperCostume::factory()
+            ->state([TrooperCostume::TROOPER_ID => $trooper->id, TrooperCostume::ORGANIZATION_COSTUME_ID => $oc->id])
+            ->create();
+
+        $subject = EventTrooper::factory()
+            ->forEventShift($shift)
+            ->forTrooper($trooper)
+            ->state([EventTrooper::ORGANIZATION_ID => null])
+            ->create();
+
+        $result = $subject->getCostumes();
+
+        $this->assertArrayHasKey($costume->id, $result);
+    }
+
     public function test_status_cast_works(): void
     {
         $subject = EventTrooper::factory()->asGoing()->create();

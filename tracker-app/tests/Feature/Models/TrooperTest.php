@@ -9,6 +9,8 @@ use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
 use App\Enums\NotificationFrequency;
 use App\Enums\TrooperTheme;
+use App\Models\Event;
+use App\Models\EventOrganization;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAchievement;
@@ -482,6 +484,101 @@ class TrooperTest extends TestCase
 
         $this->assertInstanceOf(MembershipRole::class, $subject->{Trooper::MEMBERSHIP_ROLE});
         $this->assertSame(MembershipRole::ADMINISTRATOR, $subject->{Trooper::MEMBERSHIP_ROLE});
+    }
+
+    public function test_eligible_orgs_for_event_returns_empty_when_event_has_no_can_attend_orgs(): void
+    {
+        $subject = Trooper::factory()->create();
+        $organization = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($subject)->forOrganization($organization)->asMember()->create();
+        $event = Event::factory()->withOrganization($organization)->create();
+
+        $result = $subject->eligibleOrgsForEvent($event);
+
+        $this->assertCount(0, $result);
+    }
+
+    public function test_eligible_orgs_for_event_returns_primary_org_when_member_matches_can_attend(): void
+    {
+        $subject = Trooper::factory()->create();
+        $organization = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($subject)->forOrganization($organization)->asMember()->create();
+        $event = Event::factory()->withOrganization($organization)->create();
+        EventOrganization::factory()
+            ->state([
+                EventOrganization::EVENT_ID => $event->id,
+                EventOrganization::ORGANIZATION_ID => $organization->id,
+                EventOrganization::CAN_ATTEND => true,
+            ])
+            ->create();
+
+        $result = $subject->eligibleOrgsForEvent($event);
+
+        $this->assertCount(1, $result);
+        $this->assertSame($organization->id, $result->first()->id);
+    }
+
+    public function test_eligible_orgs_for_event_uses_primary_club_from_child_org(): void
+    {
+        $subject = Trooper::factory()->create();
+        $parent_org = Organization::factory()->create();
+        $child_org = Organization::factory()->withParent($parent_org)->create();
+        TrooperAssignment::factory()->forTrooper($subject)->forOrganization($child_org)->asMember()->create();
+        $event = Event::factory()->withOrganization($parent_org)->create();
+        EventOrganization::factory()
+            ->state([
+                EventOrganization::EVENT_ID => $event->id,
+                EventOrganization::ORGANIZATION_ID => $parent_org->id,
+                EventOrganization::CAN_ATTEND => true,
+            ])
+            ->create();
+
+        $result = $subject->eligibleOrgsForEvent($event);
+
+        $this->assertCount(1, $result);
+        $this->assertSame($parent_org->id, $result->first()->id);
+    }
+
+    public function test_eligible_orgs_for_event_deduplicates_multiple_assignments_under_same_primary(): void
+    {
+        $subject = Trooper::factory()->create();
+        $parent_org = Organization::factory()->create();
+        $unit_a = Organization::factory()->withParent($parent_org)->create();
+        $unit_b = Organization::factory()->withParent($parent_org)->create();
+        TrooperAssignment::factory()->forTrooper($subject)->forOrganization($unit_a)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($subject)->forOrganization($unit_b)->asMember()->create();
+        $event = Event::factory()->withOrganization($parent_org)->create();
+        EventOrganization::factory()
+            ->state([
+                EventOrganization::EVENT_ID => $event->id,
+                EventOrganization::ORGANIZATION_ID => $parent_org->id,
+                EventOrganization::CAN_ATTEND => true,
+            ])
+            ->create();
+
+        $result = $subject->eligibleOrgsForEvent($event);
+
+        $this->assertCount(1, $result);
+    }
+
+    public function test_eligible_orgs_for_event_excludes_orgs_trooper_is_not_member_of(): void
+    {
+        $subject = Trooper::factory()->create();
+        $org_a = Organization::factory()->create();
+        $org_b = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($subject)->forOrganization($org_a)->asMember()->create();
+        $event = Event::factory()->withOrganization($org_b)->create();
+        EventOrganization::factory()
+            ->state([
+                EventOrganization::EVENT_ID => $event->id,
+                EventOrganization::ORGANIZATION_ID => $org_b->id,
+                EventOrganization::CAN_ATTEND => true,
+            ])
+            ->create();
+
+        $result = $subject->eligibleOrgsForEvent($event);
+
+        $this->assertCount(0, $result);
     }
 
     public function test_theme_cast_works(): void

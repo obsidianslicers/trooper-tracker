@@ -19,6 +19,7 @@ use App\Http\Controllers\Events\GuestUpdateHtmxController;
 use App\Http\Controllers\Events\ForumReplyController;
 use App\Http\Controllers\Events\UploadImageController;
 use App\Http\Controllers\Events\ToggleEventUploadTagController;
+use App\Http\Controllers\Events\AddTrooperOrgPickerHtmxController;
 use Illuminate\Support\Facades\Route;
 
 //  DASHBOARD
@@ -40,6 +41,7 @@ Route::prefix('events')
         Route::post('/uploads/{event_upload}/toggle-tag', ToggleEventUploadTagController::class)->name('toggle-upload-tag');
         Route::post('/forum-reply/{event}', ForumReplyController::class)->name('forum-reply-htmx');
         Route::post('/share-roster/{event}', ShareRosterHtmxController::class)->name('share-roster-htmx');
+        Route::get('/signup/{event_shift}/add-trooper-org-picker', AddTrooperOrgPickerHtmxController::class)->name('add-trooper-org-picker');
         Route::post('/signup/{event_shift}/trooper', SignUpHtmxController::class)->name('signup-htmx');
         Route::post('/signup/{event_shift}/guest', GuestSignUpHtmxController::class)->name('guest-signup-htmx');
         Route::post('/update/{event_trooper}/trooper', SignUpUpdateHtmxController::class)->name('signup-update-htmx');

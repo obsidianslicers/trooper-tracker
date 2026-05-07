@@ -8,6 +8,7 @@ namespace App\Models\Base;
 
 use App\Models\Costume;
 use App\Models\EventShift;
+use App\Models\Organization;
 use App\Models\Trooper;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
@@ -16,10 +17,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Class EventTrooper
- * 
+ *
  * @property int $id
  * @property int $event_shift_id
  * @property int $trooper_id
+ * @property int|null $organization_id
  * @property int|null $costume_id
  * @property array|null $costume_organization_ids
  * @property int|null $backup_costume_id
@@ -36,6 +38,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $deleted_id
  * 
  * @property Trooper $trooper
+ * @property Organization|null $organization
  * @property Costume|null $costume
  * @property EventShift $event_shift
  *
@@ -47,6 +50,7 @@ class EventTrooper extends Model
     const ID = 'id';
     const EVENT_SHIFT_ID = 'event_shift_id';
     const TROOPER_ID = 'trooper_id';
+    const ORGANIZATION_ID = 'organization_id';
     const COSTUME_ID = 'costume_id';
     const COSTUME_ORGANIZATION_IDS = 'costume_organization_ids';
     const BACKUP_COSTUME_ID = 'backup_costume_id';
@@ -67,6 +71,7 @@ class EventTrooper extends Model
         self::ID => 'int',
         self::EVENT_SHIFT_ID => 'int',
         self::TROOPER_ID => 'int',
+        self::ORGANIZATION_ID => 'int',
         self::COSTUME_ID => 'int',
         self::COSTUME_ORGANIZATION_IDS => 'json',
         self::BACKUP_COSTUME_ID => 'int',
@@ -84,6 +89,7 @@ class EventTrooper extends Model
     protected $fillable = [
         self::EVENT_SHIFT_ID,
         self::TROOPER_ID,
+        self::ORGANIZATION_ID,
         self::COSTUME_ID,
         self::COSTUME_ORGANIZATION_IDS,
         self::BACKUP_COSTUME_ID,
@@ -97,6 +103,11 @@ class EventTrooper extends Model
     public function trooper(): BelongsTo
     {
         return $this->belongsTo(Trooper::class);
+    }
+
+    public function organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class);
     }
 
     public function costume(): BelongsTo

@@ -22,5 +22,9 @@ readonly class PromoteNextInLineEventTrooperCommand
      *
      * @param  EventTrooper  $event_trooper  The event trooper who cancelled (used to find their shift).
      */
-    public function __construct(public readonly EventTrooper $event_trooper) {}
+    public function __construct(
+        public readonly EventTrooper $event_trooper,
+        public readonly bool $global_was_full = false,
+        public readonly ?int $effective_org_id = null,
+    ) {}
 }

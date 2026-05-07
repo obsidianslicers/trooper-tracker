@@ -76,6 +76,7 @@ class Organization extends Model
     const DEPTH = 'depth';
     const SEQUENCE = 'sequence';
     const NODE_PATH = 'node_path';
+    const NODE_PATH_SEP = ':';
     const CAN_ATTEND_DEFAULT = 'can_attend_default';
     const REQUIRES_GUARDIAN = 'requires_guardian';
     const IDENTIFIER_DISPLAY = 'identifier_display';

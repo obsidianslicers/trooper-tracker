@@ -58,6 +58,16 @@ class SignupUpdateHtmxRequest extends FormRequest
             return true;
         }
 
+        if ($event_trooper->canCancel($event_trooper->event_shift, $this->user()))
+        {
+            return true;
+        }
+
+        if ($event_trooper->canReSignUp($event_trooper->event_shift, $this->user()))
+        {
+            return true;
+        }
+
         if ($this->user()->can('update', $event))
         {
             return true;
@@ -80,13 +90,25 @@ class SignupUpdateHtmxRequest extends FormRequest
         $event_shift = $event_trooper->event_shift;
         $event = $event_shift->event;
 
-        $organization_ids = $event->event_organizations()->pluckCanAttend($event_shift);
+        $new_org_id = $this->input('organization_id') ? (int) $this->input('organization_id') : null;
+        $effective_org_id = $new_org_id ?? $event_trooper->organization_id;
+
+        $organization_ids = $effective_org_id !== null
+            ? collect([$effective_org_id])
+            : $event->event_organizations()->pluckCanAttend($event_shift);
 
         $valid_costume_ids = Costume::forTrooper($event_trooper->trooper_id, $organization_ids)
             ->pluck('id')
             ->toArray();
 
+        $eligible_org_ids = $event_trooper->trooper->eligibleOrgsForEvent($event)->pluck('id')->toArray();
+
         return [
+            EventTrooper::ORGANIZATION_ID => [
+                'nullable',
+                'int',
+                Rule::in($eligible_org_ids),
+            ],
             EventTrooper::STATUS => [
                 'nullable',
                 'string',
@@ -103,6 +125,7 @@ class SignupUpdateHtmxRequest extends FormRequest
                 'int',
                 Rule::in($valid_costume_ids),
             ],
+            'resign_up' => ['nullable', 'boolean'],
         ];
     }
 }
