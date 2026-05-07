@@ -62,9 +62,9 @@ readonly class PromoteNextInLineEventTrooperCommandHandler implements CommandHan
                 ->first();
         }
 
-        // Fall back to any STAND_BY with the same role only when the global
-        // event capacity was also full (not just the per-org slot).
-        if ($next_in_line === null && $message->global_was_full)
+        // Fall back to any STAND_BY with the same role when the global event
+        // capacity was also full, or when there was no org context at all.
+        if ($next_in_line === null && ($message->global_was_full || $org_id === null))
         {
             $next_in_line = $event_shift->event_troopers()
                 ->where(EventTrooper::STATUS, EventTrooperStatus::STAND_BY)

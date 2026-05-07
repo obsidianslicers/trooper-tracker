@@ -26,6 +26,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 /**
  * Represents a member (trooper) of a costuming organization.
@@ -239,9 +240,24 @@ class Trooper extends BaseTrooper implements
             return collect();
         }
 
-        return $this->organizations()
-            ->whereIn('tt_organizations.id', $can_attend_ids)
-            ->get();
+        $assignment_org_ids = $this->trooper_assignments()
+            ->where(TrooperAssignment::IS_MEMBER, true)
+            ->pluck(TrooperAssignment::ORGANIZATION_ID);
+
+        if ($assignment_org_ids->isEmpty())
+        {
+            return collect();
+        }
+
+        // Extract the root org ID from each assigned org's node_path (format: "rootId:childId:…:")
+        $root_org_ids = Organization::whereIn('id', $assignment_org_ids)
+            ->pluck(Organization::NODE_PATH)
+            ->map(fn($path) => (int) Str::before($path, Organization::NODE_PATH_SEP))
+            ->filter()
+            ->unique()
+            ->filter(fn($id) => $can_attend_ids->contains($id));
+
+        return Organization::whereIn('id', $root_org_ids)->get();
     }
 
     /**
