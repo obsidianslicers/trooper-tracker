@@ -19,6 +19,7 @@ use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperCostume;
 use App\Models\TrooperDonation;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
 /**
@@ -92,12 +93,14 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
 
         // Batch-load org node_paths for any org IDs referenced in event_trooper records
         $candidate_org_ids = $recent_shifts->flatMap(function ($shift) {
-            if (!$shift->event_trooper) {
+            if (!$shift->event_trooper)
+            {
                 return [];
             }
             $ids = array_filter([
                 $shift->event_trooper->organization_id,
             ]);
+
             return array_merge($ids, $shift->event_trooper->costume_organization_ids ?? []);
         })->unique()->values()->toArray();
 
@@ -110,16 +113,19 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
         $troop_counts = [];
         foreach ($recent_shifts as $shift)
         {
-            if ($shift->event_trooper?->status !== EventTrooperStatus::ATTENDED) {
+            if ($shift->event_trooper?->status !== EventTrooperStatus::ATTENDED)
+            {
                 continue;
             }
 
             $et = $shift->event_trooper;
 
-            if ($et->organization_id !== null) {
+            if ($et->organization_id !== null)
+            {
                 // Explicit org chosen — credit only that one matching org
                 $match_org = $candidate_orgs->get($et->organization_id);
-                if (!$match_org) {
+                if (!$match_org)
+                {
                     continue;
                 }
                 foreach ($organizations as $org)
@@ -131,7 +137,9 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
                         break;
                     }
                 }
-            } else {
+            }
+            else
+            {
                 // No explicit org — credit all orgs whose hierarchy the costume belongs to
                 $costume_node_paths = collect($et->costume_organization_ids ?? [])
                     ->map(fn ($id) => $candidate_orgs->get($id)?->node_path)
@@ -139,20 +147,24 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
                     ->values()
                     ->toArray();
 
-                if (empty($costume_node_paths)) {
+                if (empty($costume_node_paths))
+                {
                     // No costume orgs — credit all orgs the trooper was a member of at the time
                     foreach ($organizations as $org)
                     {
-                        if ($this->wasMemberAt($org, $shift->shift_starts_at)) {
+                        if ($this->wasMemberAt($org, $shift->shift_starts_at))
+                        {
                             $troop_counts[$org->id] = ($troop_counts[$org->id] ?? 0) + 1;
                         }
                     }
+
                     continue;
                 }
 
                 foreach ($organizations as $org)
                 {
-                    if (!$this->wasMemberAt($org, $shift->shift_starts_at)) {
+                    if (!$this->wasMemberAt($org, $shift->shift_starts_at))
+                    {
                         continue;
                     }
                     foreach ($costume_node_paths as $node_path)
@@ -275,9 +287,10 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
         return AwardTrooper::byTrooper($trooper->id)->get();
     }
 
-    private function wasMemberAt(Organization $org, \Carbon\Carbon $shift_date): bool
+    private function wasMemberAt(Organization $org, Carbon $shift_date): bool
     {
         $join_date = $org->pivot->join_date ?? null;
+
         return $join_date === null || $join_date <= $shift_date;
     }
 
