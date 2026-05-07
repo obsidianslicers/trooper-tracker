@@ -1,3 +1,7 @@
 .DS_Store
 /tracker-app/.agent
-tracker-app/troop-tracker-dfd22-firebase-adminsdk-tfh9o-df53e41972.json
+
+# Firebase / Google service account keys
+*-firebase-adminsdk-*.json
+firebase-service-account.json
+service-account.json
