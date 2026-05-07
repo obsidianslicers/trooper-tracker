@@ -10,7 +10,6 @@ use App\Enums\OauthProvider;
 use App\Mail\Auth\VerifyTrooperEmail;
 use App\Services\BreadCrumbService;
 use App\Services\Notifications\PushNotificationService;
-use Kreait\Firebase\Contract\Messaging;
 use App\Services\Socialite\XenforoProvider;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Database\Migrations\DatabaseMigrationRepository;
@@ -22,6 +21,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 use InvalidArgumentException;
+use Kreait\Firebase\Contract\Messaging;
 use Laravel\Socialite\Facades\Socialite;
 use ValueError;
 
@@ -39,9 +39,12 @@ class AppServiceProvider extends ServiceProvider
         });
 
         $this->app->bind(PushNotificationService::class, function ($app) {
-            try {
+            try
+            {
                 $messaging = $app->make(Messaging::class);
-            } catch (\Throwable) {
+            }
+            catch (\Throwable)
+            {
                 $messaging = null;
             }
 

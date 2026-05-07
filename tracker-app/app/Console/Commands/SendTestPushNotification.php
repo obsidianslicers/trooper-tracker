@@ -27,8 +27,10 @@ class SendTestPushNotification extends Command
     {
         $trooper = Trooper::find($this->argument('trooper_id'));
 
-        if (!$trooper) {
+        if (!$trooper)
+        {
             $this->error("No trooper found with ID {$this->argument('trooper_id')}.");
+
             return self::FAILURE;
         }
 

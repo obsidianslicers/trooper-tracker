@@ -44,12 +44,13 @@ readonly class SendEventCreatedNotificationCommandHandler implements CommandHand
      */
     public function __invoke(object $message): mixed
     {
-        if ($message->trooper->notification_frequency !== NotificationFrequency::NEVER) {
+        if ($message->trooper->notification_frequency !== NotificationFrequency::NEVER)
+        {
             $this->push->sendToTrooper(
                 $message->trooper,
-                'New Event: ' . $message->event->name,
+                'New Event: '.$message->event->name,
                 $message->event->venue ?? 'See Troop Tracker for details',
-                '/events/details/' . $message->event->id,
+                '/events/details/'.$message->event->id,
             );
         }
 

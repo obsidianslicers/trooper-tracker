@@ -23,12 +23,13 @@ final class PushNotificationService
 
         PushNotification::create([
             PushNotification::TROOPER_ID => $trooper->id,
-            PushNotification::TITLE      => $title,
-            PushNotification::BODY       => $body,
-            PushNotification::URL        => $url,
+            PushNotification::TITLE => $title,
+            PushNotification::BODY => $body,
+            PushNotification::URL => $url,
         ]);
 
-        if ($this->messaging === null || empty($tokens)) {
+        if ($this->messaging === null || empty($tokens))
+        {
             return;
         }
 
@@ -44,8 +45,10 @@ final class PushNotificationService
             ]);
         $report = $this->messaging->sendMulticast($message, $tokens);
 
-        foreach ($report->failures()->getItems() as $failure) {
-            if ($failure->messageTargetWasInvalid()) {
+        foreach ($report->failures()->getItems() as $failure)
+        {
+            if ($failure->messageTargetWasInvalid())
+            {
                 MobileDevice::where(MobileDevice::FCM_TOKEN, $failure->target()->value())->delete();
             }
         }

@@ -39,7 +39,7 @@ readonly class SendEventCancelledNotificationCommandHandler implements CommandHa
     {
         $this->push->sendToTrooper(
             $message->trooper,
-            'Event Cancelled: ' . $message->event->name,
+            'Event Cancelled: '.$message->event->name,
             'This event has been cancelled.',
             '/events/cancelled',
         );
