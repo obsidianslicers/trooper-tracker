@@ -7,6 +7,7 @@ namespace App\Models\Observers;
 use App\Facades\TroopTrackerFacade;
 use App\Jobs\UpdateEventForumThreadJob;
 use App\Models\Base\TrooperCostume;
+use App\Models\EventOrganization;
 use App\Models\EventTrooper;
 use App\Models\OrganizationCostume;
 
@@ -52,8 +53,24 @@ class EventTrooperObserver
 
             $organization_ids = $event->event_organizations()->pluckCanAttend($event_shift)->toArray();
 
-            $event_trooper->costume_organization_ids = $this->assignOrganizations($event_trooper->trooper_id, $event_trooper->costume_id, $organization_ids);
+            $costume_org_ids = $this->assignOrganizations($event_trooper->trooper_id, $event_trooper->costume_id, $organization_ids);
+            $event_trooper->costume_organization_ids = $costume_org_ids;
             $event_trooper->backup_costume_organization_ids = $this->assignOrganizations($event_trooper->trooper_id, $event_trooper->backup_costume_id, $organization_ids);
+
+            // Auto-set organization_id when the costume resolves to exactly one
+            // per-org-limited organization and no org has been explicitly chosen.
+            if ($event_trooper->organization_id === null && count($costume_org_ids) === 1)
+            {
+                $limited_org_ids = $event->event_organizations
+                    ->filter(fn ($eo) => $eo->troopers_allowed !== null || $eo->handlers_allowed !== null)
+                    ->pluck(EventOrganization::ORGANIZATION_ID)
+                    ->all();
+
+                if (in_array($costume_org_ids[0], $limited_org_ids, true))
+                {
+                    $event_trooper->organization_id = $costume_org_ids[0];
+                }
+            }
         }
     }
 

@@ -11,6 +11,7 @@ use App\Enums\OauthProvider;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventGuest;
+use App\Models\EventOrganization;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\OauthLogin;
@@ -253,10 +254,24 @@ class MobileApiControllerTest extends TestCase
             Event::AMENITIES => 'Restrooms and water',
             Event::REFERRED_BY => 'Command Staff',
             Event::COMMENTS => 'Report to staging 30 minutes early.',
+            Event::SHIFTS_ALLOWED => 1,
             Event::TROOPERS_ALLOWED => 10,
             Event::HANDLERS_ALLOWED => 2,
+            Event::FRIENDS_ALLOWED => 3,
+            Event::GUESTS_ALLOWED => 4,
             Event::TENTATIVE_SIGNUPS_ALLOWED => true,
         ]);
+        $organization = Organization::factory()->create([
+            Organization::NAME => 'Tampa Bay Squad',
+        ]);
+        EventOrganization::factory()
+            ->forEvent($event)
+            ->forOrganization($organization)
+            ->canAttend()
+            ->create([
+                EventOrganization::TROOPERS_ALLOWED => 5,
+                EventOrganization::HANDLERS_ALLOWED => 1,
+            ]);
 
         $response = $this->get(route('api.mobile', [
             'action' => 'event',
@@ -284,8 +299,62 @@ class MobileApiControllerTest extends TestCase
         $response->assertJsonPath('limitedEvent', 1);
         $response->assertJsonPath('allowTentative', 1);
         $response->assertJsonPath('isLimited', true);
+        $response->assertJsonPath('hasLimits', true);
+        $response->assertJsonPath('limitShifts', 1);
         $response->assertJsonPath('limitTotalTroopers', 10);
         $response->assertJsonPath('limitHandlers', 2);
+        $response->assertJsonPath('limitFriends', 3);
+        $response->assertJsonPath('limitGuests', 4);
+        $response->assertJsonPath('limits.event.0.key', 'shifts');
+        $response->assertJsonPath('limits.event.0.allowed', 1);
+        $response->assertJsonPath('limits.event.1.key', 'troopers');
+        $response->assertJsonPath('limits.event.1.allowed', 10);
+        $response->assertJsonPath('limits.event.2.key', 'handlers');
+        $response->assertJsonPath('limits.event.2.allowed', 2);
+        $response->assertJsonPath('limits.event.3.key', 'friends');
+        $response->assertJsonPath('limits.event.3.allowed', 3);
+        $response->assertJsonPath('limits.event.4.key', 'guests');
+        $response->assertJsonPath('limits.event.4.allowed', 4);
+        $response->assertJsonPath('limits.organizations.0.organization_name', 'Tampa Bay Squad');
+        $response->assertJsonPath('limits.organizations.0.troopers_allowed', 5);
+        $response->assertJsonPath('limits.organizations.0.handlers_allowed', 1);
+        $this->assertStringContainsString('Maximum Shift Sign-Ups: 1', $response->json('limitsDisplay'));
+        $this->assertStringContainsString('Tampa Bay Squad: 5 troopers / 1 handler', $response->json('limitsDisplay'));
+    }
+
+    public function test_get_event_exposes_organization_only_limits_in_legacy_limit_clubs_field(): void
+    {
+        $event = Event::factory()->create([
+            Event::TROOPERS_ALLOWED => null,
+            Event::HANDLERS_ALLOWED => null,
+            Event::FRIENDS_ALLOWED => null,
+            Event::GUESTS_ALLOWED => null,
+        ]);
+        $organization = Organization::factory()->create([
+            Organization::NAME => 'Everglades Squad',
+        ]);
+
+        EventOrganization::factory()
+            ->forEvent($event)
+            ->forOrganization($organization)
+            ->canAttend()
+            ->create([
+                EventOrganization::TROOPERS_ALLOWED => 1,
+                EventOrganization::HANDLERS_ALLOWED => 1,
+            ]);
+
+        $response = $this->get(route('api.mobile', [
+            'action' => 'event',
+            'troopid' => $event->id,
+        ]));
+
+        $response->assertOk();
+        $response->assertJsonPath('limitedEvent', 1);
+        $response->assertJsonPath('isLimited', true);
+        $response->assertJsonPath('hasLimits', true);
+        $response->assertJsonPath('limits.organizations.0.organization_name', 'Everglades Squad');
+        $response->assertJsonPath('limitClubs', 'Everglades Squad: 1 trooper / 1 handler');
+        $response->assertJsonPath('limitsDisplay', 'Everglades Squad: 1 trooper / 1 handler');
     }
 
     public function test_get_costumes_for_trooper_accepts_forum_user_id_and_returns_approved_costumes(): void
@@ -319,10 +388,10 @@ class MobileApiControllerTest extends TestCase
             ->create();
 
         $response = $this->get(route('api.mobile', [
-                        'action' => 'get_costumes_for_trooper',
-                        'trooperid' => 15802,
-                        'friendid' => 0,
-                    ]));
+            'action' => 'get_costumes_for_trooper',
+            'trooperid' => 15802,
+            'friendid' => 0,
+        ]));
 
         $response->assertOk();
         $response->assertJsonCount(1);
@@ -343,16 +412,16 @@ class MobileApiControllerTest extends TestCase
             OauthLogin::PROVIDER => OauthProvider::XENFORO,
             OauthLogin::PROVIDER_ID => '15802',
         ]);
-        
+
         $response = $this->get(route('api.mobile', [
-                        'action' => 'sign_up',
-                        'trooperid' => 15802,
-                        'addedby' => 0,
-                        'troopid' => $event->id,
-                        'status' => EventTrooperStatus::GOING->value,
-                        'costume' => $costume->id,
-                        'backupcostume' => 0,
-                    ]));
+            'action' => 'sign_up',
+            'trooperid' => 15802,
+            'addedby' => 0,
+            'troopid' => $event->id,
+            'status' => EventTrooperStatus::GOING->value,
+            'costume' => $costume->id,
+            'backupcostume' => 0,
+        ]));
 
         $response->assertOk();
         $response->assertJsonPath('success', true);
@@ -376,16 +445,16 @@ class MobileApiControllerTest extends TestCase
             OauthLogin::PROVIDER => OauthProvider::XENFORO,
             OauthLogin::PROVIDER_ID => '15802',
         ]);
-        
+
         $response = $this->get(route('api.mobile', [
-                        'action' => 'sign_up',
-                        'trooperid' => 15802,
-                        'addedby' => 0,
-                        'troopid' => $event->id,
-                        'status' => 0,
-                        'costume' => $costume->id,
-                        'backupcostume' => 0,
-                    ]));
+            'action' => 'sign_up',
+            'trooperid' => 15802,
+            'addedby' => 0,
+            'troopid' => $event->id,
+            'status' => 0,
+            'costume' => $costume->id,
+            'backupcostume' => 0,
+        ]));
 
         $response->assertStatus(400);
         $response->assertJsonPath(
@@ -410,12 +479,12 @@ class MobileApiControllerTest extends TestCase
             OauthLogin::PROVIDER => OauthProvider::XENFORO,
             OauthLogin::PROVIDER_ID => '15802',
         ]);
-        
+
         $response = $this->get(route('api.mobile', [
-                        'action' => 'cancel_shift',
-                        'trooperid' => 15802,
-                        'shiftid' => $shift->id,
-                    ]));
+            'action' => 'cancel_shift',
+            'trooperid' => 15802,
+            'shiftid' => $shift->id,
+        ]));
 
         $response->assertStatus(403);
         $response->assertJsonPath('success', false);
@@ -443,12 +512,12 @@ class MobileApiControllerTest extends TestCase
             OauthLogin::PROVIDER => OauthProvider::XENFORO,
             OauthLogin::PROVIDER_ID => '15802',
         ]);
-        
+
         $response = $this->get(route('api.mobile', [
-                        'action' => 'cancel_troop',
-                        'trooperid' => 15802,
-                        'troopid' => $event->id,
-                    ]));
+            'action' => 'cancel_troop',
+            'trooperid' => 15802,
+            'troopid' => $event->id,
+        ]));
 
         $response->assertStatus(403);
         $response->assertJsonPath('success', false);
@@ -477,12 +546,12 @@ class MobileApiControllerTest extends TestCase
             OauthLogin::PROVIDER => OauthProvider::XENFORO,
             OauthLogin::PROVIDER_ID => '15802',
         ]);
-        
+
         $response = $this->get(route('api.mobile', [
-                        'action' => 'cancel_guest',
-                        'trooperid' => 15802,
-                        'guestid' => $guest->id,
-                    ]));
+            'action' => 'cancel_guest',
+            'trooperid' => 15802,
+            'guestid' => $guest->id,
+        ]));
 
         $response->assertStatus(403);
         $response->assertJsonPath('success', false);
@@ -508,14 +577,14 @@ class MobileApiControllerTest extends TestCase
         ]);
 
         $response = $this->get(route('api.mobile', [
-                        'action' => 'sign_up',
-                        'trooperid' => 15802,
-                        'addedby' => 0,
-                        'troopid' => $event->id,
-                        'status' => EventTrooperStatus::GOING->value,
-                        'costume' => $costume->id,
-                        'backupcostume' => 0,
-                    ]));
+            'action' => 'sign_up',
+            'trooperid' => 15802,
+            'addedby' => 0,
+            'troopid' => $event->id,
+            'status' => EventTrooperStatus::GOING->value,
+            'costume' => $costume->id,
+            'backupcostume' => 0,
+        ]));
 
         $response->assertOk();
         $response->assertJsonPath('success', false);
@@ -549,14 +618,14 @@ class MobileApiControllerTest extends TestCase
         ]);
 
         $response = $this->get(route('api.mobile', [
-                        'action' => 'sign_up',
-                        'trooperid' => 15802,
-                        'addedby' => 0,
-                        'troopid' => $event->id,
-                        'status' => EventTrooperStatus::GOING->value,
-                        'costume' => $costume->id,
-                        'backupcostume' => 0,
-                    ]));
+            'action' => 'sign_up',
+            'trooperid' => 15802,
+            'addedby' => 0,
+            'troopid' => $event->id,
+            'status' => EventTrooperStatus::GOING->value,
+            'costume' => $costume->id,
+            'backupcostume' => 0,
+        ]));
 
         $response->assertOk();
         $response->assertJsonPath('success', true);
@@ -583,12 +652,12 @@ class MobileApiControllerTest extends TestCase
         ]);
 
         $response = $this->get(route('api.mobile', [
-                        'action' => 'add_guest',
-                        'trooperid' => 15802,
-                        'troopid' => $event->id,
-                        'shiftid' => $shift->id,
-                        'name' => 'Test Guest',
-                    ]));
+            'action' => 'add_guest',
+            'trooperid' => 15802,
+            'troopid' => $event->id,
+            'shiftid' => $shift->id,
+            'name' => 'Test Guest',
+        ]));
 
         $response->assertOk();
         $response->assertJsonPath('success', false);
@@ -626,12 +695,12 @@ class MobileApiControllerTest extends TestCase
         ]);
 
         $response = $this->get(route('api.mobile', [
-                        'action' => 'add_guest',
-                        'trooperid' => 15802,
-                        'troopid' => $event->id,
-                        'shiftid' => $shift->id,
-                        'name' => 'Test Guest',
-                    ]));
+            'action' => 'add_guest',
+            'trooperid' => 15802,
+            'troopid' => $event->id,
+            'shiftid' => $shift->id,
+            'name' => 'Test Guest',
+        ]));
 
         $response->assertOk();
         $response->assertJsonPath('success', true);

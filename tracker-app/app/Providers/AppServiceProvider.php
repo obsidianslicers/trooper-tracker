@@ -10,6 +10,7 @@ use App\Enums\OauthProvider;
 use App\Mail\Auth\VerifyTrooperEmail;
 use App\Services\BreadCrumbService;
 use App\Services\Socialite\XenforoProvider;
+use App\View\Composers\ShiftAddTrooperComposer;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Database\Migrations\DatabaseMigrationRepository;
 use Illuminate\Database\Migrations\MigrationRepositoryInterface;
@@ -18,6 +19,7 @@ use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use InvalidArgumentException;
 use Laravel\Socialite\Facades\Socialite;
@@ -91,6 +93,11 @@ class AppServiceProvider extends ServiceProvider
             $this->unsignedBigInteger('updated_id')->nullable();
             $this->unsignedBigInteger('deleted_id')->nullable();
         });
+
+        //
+        //  VIEW COMPOSERS
+        //
+        View::composer('pages.events.inc.shift-add-trooper', ShiftAddTrooperComposer::class);
 
         //
         //  BLADE BOOTS

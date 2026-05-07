@@ -14,7 +14,7 @@ class OrganizationObserver
     /**
      * The separator used in the node path.
      */
-    const SEP = ':';
+    const SEP = Organization::NODE_PATH_SEP;
 
     /**
      * Handle the Organization "saved" event.

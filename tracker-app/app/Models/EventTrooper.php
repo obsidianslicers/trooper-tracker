@@ -12,6 +12,8 @@ use App\Models\Concerns\HasTrooperStamps;
 use App\Models\Scopes\HasEventTrooperScopes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\Event;
+use App\Models\EventOrganization;
 
 /**
  * Represents a trooper's participation in an event shift.
@@ -126,7 +128,9 @@ class EventTrooper extends BaseEventTrooper
     {
         $event_shift = $this->event_shift;
 
-        $organization_ids = $this->event_shift->event->event_organizations()->pluckCanAttend($event_shift);
+        $organization_ids = $this->organization_id !== null
+            ? collect([$this->organization_id])
+            : $this->event_shift->event->event_organizations()->pluckCanAttend($event_shift);
 
         return Costume::forTrooper($this->trooper->id, $organization_ids)
             ->pluck('name', 'id')
@@ -184,10 +188,30 @@ class EventTrooper extends BaseEventTrooper
 
                 if ($this->is_handler)
                 {
-                    return !$event_shift->handlersMaxed();
+                    if ($event_shift->handlersMaxed())
+                    {
+                        return false;
+                    }
+
+                    if ($this->organization_id !== null && $event_shift->orgTroopersMaxed($this->organization_id, true))
+                    {
+                        return false;
+                    }
+
+                    return true;
                 }
 
-                return !$event_shift->troopersMaxed();
+                if ($event_shift->troopersMaxed())
+                {
+                    return false;
+                }
+
+                if ($this->organization_id !== null && $event_shift->orgTroopersMaxed($this->organization_id, false))
+                {
+                    return false;
+                }
+
+                return true;
             }
 
             return true;
@@ -216,6 +240,20 @@ class EventTrooper extends BaseEventTrooper
         return false;
     }
 
+    // Cancelling never requires a free slot, so no capacity check here.
+    public function canCancel(EventShift $event_shift, Trooper $trooper): bool
+    {
+        return $event_shift->is_open && $this->hasOwnership($trooper);
+    }
+
+    // Capacity determines GOING vs STAND_BY at re-signup time, not whether re-signup is allowed.
+    public function canReSignUp(EventShift $event_shift, Trooper $trooper): bool
+    {
+        return $this->status === EventTrooperStatus::CANCELLED
+            && $event_shift->is_open
+            && $this->hasOwnership($trooper);
+    }
+
     /**
      * Check if a trooper has ownership of this event trooper assignment.
      *
@@ -232,5 +270,39 @@ class EventTrooper extends BaseEventTrooper
         }
 
         return $this->trooper->guardian_id === $trooper->id;
+    }
+
+    /**
+     * Resolve the effective organization for capacity-limit purposes.
+     *
+     * Returns the explicit organization_id if set. Otherwise infers it from
+     * costume_organization_ids: if the costume belongs to exactly one per-org-limited
+     * organization on this event, that org is returned. Used so that per-org limits
+     * apply even when the trooper never explicitly chose an organization.
+     */
+    public function effectiveOrgId(Event $event): ?int
+    {
+        if ($this->organization_id !== null)
+        {
+            return $this->organization_id;
+        }
+
+        $costume_org_ids = $this->costume_organization_ids ?? [];
+
+        if (empty($costume_org_ids))
+        {
+            return null;
+        }
+
+        $event->loadMissing('event_organizations');
+
+        $limited_org_ids = $event->event_organizations
+            ->filter(fn ($eo) => $eo->troopers_allowed !== null || $eo->handlers_allowed !== null)
+            ->pluck(EventOrganization::ORGANIZATION_ID)
+            ->all();
+
+        $matches = array_intersect($costume_org_ids, $limited_org_ids);
+
+        return count($matches) === 1 ? reset($matches) : null;
     }
 }

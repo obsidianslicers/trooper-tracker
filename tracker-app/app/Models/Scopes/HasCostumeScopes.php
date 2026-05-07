@@ -51,11 +51,19 @@ trait HasCostumeScopes
     public function scopeForTrooper(Builder $query, int $trooper_id, Collection|array|null $organization_ids = null): Builder
     {
         return $query
-            ->where(function ($query) use ($trooper_id)
+            ->where(function ($query) use ($trooper_id, $organization_ids)
             {
-                $query->whereHas('organization_costumes.trooper_costumes', function ($query) use ($trooper_id)
+                $query->whereHas('organization_costumes', function ($query) use ($trooper_id, $organization_ids)
                 {
-                    $query->where('trooper_id', $trooper_id);
+                    $query->whereHas('trooper_costumes', function ($q) use ($trooper_id)
+                    {
+                        $q->where('trooper_id', $trooper_id);
+                    });
+
+                    if ($organization_ids !== null)
+                    {
+                        $query->whereIn(OrganizationCostume::ORGANIZATION_ID, $organization_ids);
+                    }
                 })
                     ->orWhereIn(Costume::NAME, [Costume::COMMAND_STAFF, Costume::HANDLER]);
             })

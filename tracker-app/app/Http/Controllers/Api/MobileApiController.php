@@ -14,6 +14,7 @@ use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventGuest;
 use App\Models\EventNotification;
+use App\Models\EventOrganization;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\EventUpload;
@@ -387,7 +388,7 @@ class MobileApiController
      */
     private function getEvent(Request $request): JsonResponse
     {
-        $event = Event::with(['event_shifts.event_troopers', 'event_shifts.event_guests'])
+        $event = Event::with(['event_shifts.event_troopers', 'event_shifts.event_guests', 'organizations'])
             ->find((int) $request->input('troopid'));
 
         if (!$event)
@@ -402,9 +403,18 @@ class MobileApiController
 
         $troopers_allowed = $event->troopers_allowed;
         $handlers_allowed = $event->handlers_allowed;
-        $is_limited = $troopers_allowed !== null || $handlers_allowed !== null;
+        $limits = $this->buildEventLimits($event, $trooper_count, $handler_count);
+        $limits_display = $this->buildEventLimitsDisplay($limits);
+        $is_limited = $limits !== [];
         $location = $this->buildEventLocation($event);
         $limit_clubs = $this->buildCapacityMessage($troopers_allowed, $handlers_allowed, $trooper_count, $handler_count);
+        $limit_clubs = $limit_clubs !== '' ? trim($limit_clubs) : $limits_display;
+
+        $trooper_org_ids = $trooper
+            ? TrooperOrganization::where(TrooperOrganization::TROOPER_ID, $trooper->id)
+                ->pluck(TrooperOrganization::ORGANIZATION_ID)
+                ->toArray()
+            : [];
 
         return response()->json(array_merge(
             [
@@ -432,19 +442,26 @@ class MobileApiController
                 'referred' => $event->referred_by,
                 'limitedEvent' => (int) $is_limited,
                 'allowTentative' => (int) $event->tentative_signups_allowed,
+                'limitShifts' => $event->shifts_allowed,
                 'limitTotalTroopers' => $troopers_allowed,
                 'limitHandlers' => $handlers_allowed,
                 'guests_allowed' => $event->guests_allowed,
                 'friends_allowed' => $event->friends_allowed,
+                'limitFriends' => $event->friends_allowed,
+                'limitGuests' => $event->guests_allowed,
                 'missionBriefRequired' => (bool) $event->require_mission_brief_ack,
                 'hasMissionBriefAck' => $trooper ? $event->hasMissionBriefAcknowledgementFor($trooper) : false,
             ],
             [
                 'isLimited' => $is_limited,
+                'hasLimits' => $limits !== [],
+                'limits' => $limits,
+                'limitsDisplay' => $limits_display,
                 'limitTotal' => $troopers_allowed,
                 'limitClubs' => $limit_clubs,
                 'trooper_count' => $trooper_count,
                 'num_of_handlers' => $handler_count,
+                'event_organizations' => $this->eligibleLimitedOrgsForTrooper($event, $trooper_org_ids),
                 'shifts' => $event->event_shifts
                     ->sortBy(EventShift::SHIFT_STARTS_AT)
                     ->map(fn ($shift) => [
@@ -695,6 +712,12 @@ class MobileApiController
         $organization_ids = TrooperOrganization::where(TrooperOrganization::TROOPER_ID, $trooper->id)
             ->pluck(TrooperOrganization::ORGANIZATION_ID)
             ->toArray();
+
+        $filter_org_id = (int) $request->input('organization_id', 0);
+        if ($filter_org_id > 0 && in_array($filter_org_id, $organization_ids))
+        {
+            $organization_ids = [$filter_org_id];
+        }
 
         $costumes = Costume::forTrooper($trooper->id, $organization_ids)
             ->orderBy(Costume::NAME)
@@ -974,6 +997,7 @@ class MobileApiController
         $shift_id = (int) $request->input('shiftid', 0);
         $costume_id = (int) $request->input('costume', 0);
         $backup_costume_id = (int) $request->input('backupcostume', 0);
+        $organization_id = ($raw_org = (int) $request->input('organization_id', 0)) > 0 ? $raw_org : null;
         $requested_status = $this->resolveEventTrooperStatus($request->input('status'));
 
         [$trooper, $added_by] = $this->resolveTrooperForSignUp($request);
@@ -1046,6 +1070,7 @@ class MobileApiController
                 EventTrooper::STATUS => $effective_status->value,
                 EventTrooper::COSTUME_ID => $costume_id ?: null,
                 EventTrooper::BACKUP_COSTUME_ID => $backup_costume_id ?: null,
+                EventTrooper::ORGANIZATION_ID => $organization_id,
             ]);
             EventNotification::firstOrCreate([
                 EventNotification::EVENT_ID => $event_id,
@@ -1056,7 +1081,7 @@ class MobileApiController
         }
 
         $is_handler = $this->isHandlerCostume($costume_id);
-        $status = $this->resolveCapacityStatus($event, $event_id, $is_handler, $effective_status);
+        $status = $this->resolveCapacityStatus($event, $event_id, $is_handler, $effective_status, $organization_id);
         $shift = $this->resolveShiftForSignUp($event_id, $shift_id);
 
         if (!$shift)
@@ -1079,6 +1104,7 @@ class MobileApiController
             EventTrooper::BACKUP_COSTUME_ID => $backup_costume_id ?: null,
             EventTrooper::STATUS => $status->value,
             EventTrooper::IS_HANDLER => $is_handler,
+            EventTrooper::ORGANIZATION_ID => $organization_id,
             EventTrooper::SIGNED_UP_AT => now(),
         ]);
 
@@ -1570,6 +1596,35 @@ class MobileApiController
     }
 
     /**
+     * Return the trooper's eligible event organizations, but only when at least one
+     * of their orgs has a per-org trooper/handler limit for this event.
+     * Returns an empty array when no limit applies to the trooper's orgs.
+     *
+     * @param  array<int>  $trooper_org_ids
+     */
+    private function eligibleLimitedOrgsForTrooper(Event $event, array $trooper_org_ids): array
+    {
+        $limited_org_ids = $event->event_organizations()
+            ->where(function ($q) {
+                $q->whereNotNull(EventOrganization::TROOPERS_ALLOWED)
+                    ->orWhereNotNull(EventOrganization::HANDLERS_ALLOWED);
+            })
+            ->pluck(EventOrganization::ORGANIZATION_ID)
+            ->toArray();
+
+        if (empty(array_intersect($trooper_org_ids, $limited_org_ids)))
+        {
+            return [];
+        }
+
+        return $event->organizations
+            ->filter(fn ($org) => $org->pivot->can_attend && in_array($org->id, $trooper_org_ids))
+            ->map(fn ($org) => ['id' => $org->id, 'name' => $org->name])
+            ->values()
+            ->all();
+    }
+
+    /**
      * Determine whether a costume is a handler costume by name.
      */
     private function isHandlerCostume(int $costume_id): bool
@@ -1586,8 +1641,9 @@ class MobileApiController
 
     /**
      * Resolve the effective sign-up status, downgrading to stand-by if the event is at capacity.
+     * Checks global capacity first, then per-organization capacity when organization_id is provided.
      */
-    private function resolveCapacityStatus(Event $event, int $event_id, bool $is_handler, EventTrooperStatus $requested_status): EventTrooperStatus
+    private function resolveCapacityStatus(Event $event, int $event_id, bool $is_handler, EventTrooperStatus $requested_status, ?int $organization_id = null): EventTrooperStatus
     {
         if ($requested_status === EventTrooperStatus::CANCELLED)
         {
@@ -1631,6 +1687,32 @@ class MobileApiController
                 if ($trooper_count >= $troopers_allowed)
                 {
                     return EventTrooperStatus::STAND_BY;
+                }
+            }
+        }
+
+        if ($organization_id !== null)
+        {
+            $event_org = $event->event_organizations()
+                ->where(EventOrganization::ORGANIZATION_ID, $organization_id)
+                ->first();
+
+            if ($event_org !== null)
+            {
+                $org_limit = $is_handler ? $event_org->handlers_allowed : $event_org->troopers_allowed;
+
+                if ($org_limit !== null)
+                {
+                    $org_count = EventTrooper::whereHas('event_shift', fn ($q) => $q->where(EventShift::EVENT_ID, $event_id))
+                        ->where(EventTrooper::ORGANIZATION_ID, $organization_id)
+                        ->where(EventTrooper::IS_HANDLER, $is_handler)
+                        ->whereIn(EventTrooper::STATUS, $active_values)
+                        ->count();
+
+                    if ($org_count >= $org_limit)
+                    {
+                        return EventTrooperStatus::STAND_BY;
+                    }
                 }
             }
         }
@@ -1712,5 +1794,107 @@ class MobileApiController
         }
 
         return $message;
+    }
+
+    /**
+     * Build the full set of displayable limits for the mobile event detail view.
+     *
+     * @return array<string, mixed>
+     */
+    private function buildEventLimits(Event $event, int $trooper_count, int $handler_count): array
+    {
+        $event_limits = collect([
+            $this->buildLimitItem('shifts', 'Maximum Shift Sign-Ups', $event->shifts_allowed),
+            $this->buildLimitItem('troopers', 'Troopers', $event->troopers_allowed, $trooper_count),
+            $this->buildLimitItem('handlers', 'Handlers', $event->handlers_allowed, $handler_count),
+            $this->buildLimitItem('friends', 'Friends', $event->friends_allowed),
+            $this->buildLimitItem('guests', 'Guests', $event->guests_allowed),
+        ])->filter()->values()->all();
+
+        $organization_limits = $event->organizations
+            ->filter(fn ($organization) => $organization->pivot->can_attend
+                && ($organization->pivot->troopers_allowed !== null || $organization->pivot->handlers_allowed !== null))
+            ->map(fn ($organization) => [
+                'organization_id' => $organization->id,
+                'organization_name' => $organization->name,
+                'troopers_allowed' => $organization->pivot->troopers_allowed,
+                'handlers_allowed' => $organization->pivot->handlers_allowed,
+            ])
+            ->values()
+            ->all();
+
+        if ($event_limits === [] && $organization_limits === [])
+        {
+            return [];
+        }
+
+        return [
+            'event' => $event_limits,
+            'organizations' => $organization_limits,
+        ];
+    }
+
+    /**
+     * Build one limit entry, excluding unlimited values.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function buildLimitItem(string $key, string $label, ?int $allowed, ?int $used = null): ?array
+    {
+        if ($allowed === null)
+        {
+            return null;
+        }
+
+        return [
+            'key' => $key,
+            'label' => $label,
+            'allowed' => $allowed,
+            'used' => $used,
+            'remaining' => $used === null ? null : max(0, $allowed - $used),
+        ];
+    }
+
+    /**
+     * Build a simple newline-delimited limits summary for legacy/mobile clients
+     * that prefer rendering text over structured rows.
+     *
+     * @param  array<string, mixed>  $limits
+     */
+    private function buildEventLimitsDisplay(array $limits): string
+    {
+        if ($limits === [])
+        {
+            return '';
+        }
+
+        $lines = collect($limits['event'])
+            ->map(function (array $limit) {
+                if ($limit['used'] === null)
+                {
+                    return "{$limit['label']}: {$limit['allowed']}";
+                }
+
+                return "{$limit['label']}: {$limit['used']} / {$limit['allowed']} ({$limit['remaining']} remaining)";
+            });
+
+        collect($limits['organizations'])
+            ->each(function (array $organization) use ($lines) {
+                $parts = [];
+
+                if ($organization['troopers_allowed'] !== null)
+                {
+                    $parts[] = $organization['troopers_allowed'].' '.Str::plural('trooper', $organization['troopers_allowed']);
+                }
+
+                if ($organization['handlers_allowed'] !== null)
+                {
+                    $parts[] = $organization['handlers_allowed'].' '.Str::plural('handler', $organization['handlers_allowed']);
+                }
+
+                $lines->push($organization['organization_name'].': '.implode(' / ', $parts));
+            });
+
+        return $lines->implode("\n");
     }
 }

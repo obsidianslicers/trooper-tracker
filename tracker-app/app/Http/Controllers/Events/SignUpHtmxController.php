@@ -50,7 +50,11 @@ class SignUpHtmxController extends MagicBusController
 
         if ($event_shift->canSignUp($trooper))
         {
-            $event_trooper_cmd = new SignUpEventTrooperCommand($event_shift, $trooper, $auth_trooper);
+            $organization_id = $request->input('organization_id') ? (int) $request->input('organization_id') : null;
+
+            $is_handler = (bool) $request->input('is_handler', $trooper->is_handler ? 1 : 0);
+
+            $event_trooper_cmd = new SignUpEventTrooperCommand($event_shift, $trooper, $auth_trooper, $organization_id, $is_handler);
 
             $this->bus->send($event_trooper_cmd);
 

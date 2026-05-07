@@ -104,7 +104,7 @@ class OauthCallbackController extends MagicBusController
             // Keep trooper email and verification in sync with XenForo account.
             $this->syncTrooperFromProvider($trooper, $provider, $provider_user);
 
-            Auth::login($trooper);
+            Auth::login($trooper, true);
 
             return redirect()->intended('/');
         }

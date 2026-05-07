@@ -24,10 +24,13 @@ readonly class SignUpEventTrooperCommand
      * @param  EventShift  $event_shift  The event shift to sign up for.
      * @param  Trooper  $trooper  The trooper signing up for the event.
      * @param  Trooper  $added_by_trooper  The trooper who added this sign-up (may be same as $trooper).
+     * @param  int|null  $organization_id  The top-level organization the trooper is trooping for.
      */
     public function __construct(
         public readonly EventShift $event_shift,
         public readonly Trooper $trooper,
         public readonly Trooper $added_by_trooper,
+        public readonly ?int $organization_id = null,
+        public readonly bool $is_handler = false,
     ) {}
 }

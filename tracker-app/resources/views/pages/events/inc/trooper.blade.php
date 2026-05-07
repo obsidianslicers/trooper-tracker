@@ -14,6 +14,26 @@
     </div>
     <div class="col-12 col-md-5 order-3 order-md-2">
         @if($event_trooper->canUpdateCostume($event_shift, Auth::user()))
+            @php
+                $eligible_orgs_for_change = $event_trooper->trooper->eligibleOrgsForEvent($event);
+                $limited_org_ids_for_change = $event->event_organizations
+                    ->filter(fn ($o) => $o->troopers_allowed !== null || $o->handlers_allowed !== null)
+                    ->pluck('organization_id')
+                    ->toArray();
+                $show_org_picker = $eligible_orgs_for_change->whereIn('id', $limited_org_ids_for_change)->isNotEmpty();
+            @endphp
+            @if($show_org_picker && $eligible_orgs_for_change->count() > 1)
+                <x-input-select :property="'organization_id'"
+                                :options="$eligible_orgs_for_change->pluck('name', 'id')->toArray()"
+                                :value="$event_trooper->organization_id"
+                                :placeholder="'-- Select Organization --'"
+                                hx-post="{{ route('events.signup-update-htmx', compact('event_trooper')) }}"
+                                hx-indicator="#transmission-bar-shift-{{ $event_trooper->event_shift->id }}"
+                                hx-select="#shift-container-{{ $event_trooper->event_shift->id }}"
+                                hx-target="#shift-container-{{ $event_trooper->event_shift->id }}"
+                                hx-swap="outerHTML"
+                                class="form-select-sm mt-2 mt-md-0" />
+            @endif
             <x-input-select :property="'costume_id'"
                             :options="$event_trooper->costumes"
                             :value="$event_trooper->costume_id"
@@ -105,7 +125,7 @@
                 </div>
             @elseif($event_shift->is_open && $event_trooper->canUpdateStatus($event_shift, Auth::user()))
                 <x-input-select :property="'status'"
-                                :options="\App\Enums\EventTrooperStatus::toSignUpArray($event->tentative_signups_allowed)"
+                                :options="\App\Enums\EventTrooperStatus::toSignUpArray($event->tentative_signups_allowed, $event->hasLimits())"
                                 :value="$event_trooper->status->value"
                                 hx-post="{{ route('events.signup-update-htmx', compact('event_trooper')) }}"
                                 hx-indicator="#transmission-bar-shift-{{ $event_trooper->event_shift->id }}"
@@ -113,6 +133,38 @@
                                 hx-target="#shift-container-{{ $event_trooper->event_shift->id }}"
                                 hx-swap="outerHTML"
                                 class="form-select-sm" />
+            @elseif($event_trooper->status === \App\Enums\EventTrooperStatus::STAND_BY && $event_trooper->canCancel($event_shift, Auth::user()))
+                <span class="{{ $event_trooper->status->color() }} d-block mb-1">
+                    {{ to_title($event_trooper->status->name) }}
+                    <span class="d-none d-md-inline">
+                        {!! $event_trooper->status->iconTag() !!}
+                    </span>
+                </span>
+                <form hx-post="{{ route('events.signup-update-htmx', compact('event_trooper')) }}"
+                      hx-indicator="#transmission-bar-shift-{{ $event_trooper->event_shift->id }}"
+                      hx-select="#shift-container-{{ $event_trooper->event_shift->id }}"
+                      hx-target="#shift-container-{{ $event_trooper->event_shift->id }}"
+                      hx-swap="outerHTML">
+                    @csrf
+                    <input type="hidden" name="status" value="{{ \App\Enums\EventTrooperStatus::CANCELLED->value }}" />
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                        <i class="fa fa-fw fa-times me-1"></i>
+                        Cancel
+                    </button>
+                </form>
+            @elseif($event->hasLimits() && $event_trooper->canReSignUp($event_shift, Auth::user()))
+                <form hx-post="{{ route('events.signup-update-htmx', compact('event_trooper')) }}"
+                      hx-indicator="#transmission-bar-shift-{{ $event_trooper->event_shift->id }}"
+                      hx-select="#shift-container-{{ $event_trooper->event_shift->id }}"
+                      hx-target="#shift-container-{{ $event_trooper->event_shift->id }}"
+                      hx-swap="outerHTML">
+                    @csrf
+                    <input type="hidden" name="resign_up" value="1" />
+                    <button type="submit" class="btn btn-sm btn-success">
+                        <i class="fa fa-fw fa-redo me-1"></i>
+                        Re-Sign Up
+                    </button>
+                </form>
             @else
                 <span class="{{ $event_trooper->status->color() }}">
                     {{ to_title($event_trooper->status->name) }}

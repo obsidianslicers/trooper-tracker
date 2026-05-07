@@ -134,10 +134,8 @@
             <tr>
                 <td colspan="5"
                     class="text-muted">
-                    ** Organization limits are allowed, but attendance is managed on the honor
-                    system. Total event capacity is the main restriction, and because
-                    participants may wear dual organization costumes, attendance cannot
-                    be accurately tracked by organization.
+                    ** Troopers will be placed on stand-by when an organization limit is reached.
+                    Troopers must select their organization when signing up.
                 </td>
             </tr>
         </tfoot>
