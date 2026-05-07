@@ -22,6 +22,10 @@ return new class extends Migration
             $table->foreignId('trooper_id')
                 ->constrained('tt_troopers')
                 ->cascadeOnDelete();
+            $table->foreignId('organization_id')
+                ->nullable()
+                ->constrained('tt_organizations')
+                ->nullOnDelete();
 
             $table->foreignId('costume_id')
                 ->nullable()
