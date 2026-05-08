@@ -31,3 +31,6 @@
 ## EMAIL
 - change email workflow? - for now lock it down
 - password change workflow? forgot password workflow?
+
+## WANTS
+- Convention troops, can it be broken down into different sections, for example: sign up for booth duty, floor, etc, limited spots per
