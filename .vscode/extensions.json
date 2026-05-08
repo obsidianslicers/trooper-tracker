@@ -1,0 +1,10 @@
+{
+    "recommendations": [
+        "devsense.composer-php-vscode",
+        "devsense.intelli-php-vscode",
+        "devsense.phptools-vscode",
+        "devsense.profiler-php-vscode",
+        "mehedidracula.php-namespace-resolver",
+        "shufo.vscode-blade-formatter"
+    ]
+}

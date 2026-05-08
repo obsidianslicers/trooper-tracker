@@ -277,7 +277,7 @@ Audit all documentation files in the docs/ folder and the README with the follow
    - docs/PROJECT_STRUCTURE = directory and subsystem layout
    - docs/DATABASE = schema, relationships, ERD
    - docs/AUTHENTICATION, docs/NOTIFICATIONS, docs/XENFORO_OAUTH = subsystem-specific guides
-   - docs/CHEAT_SHEET, docs/COMPOSER, docs/NPM, docs/VSCODE_EXTENSIONS = tooling and workflow references
+   - docs/CHEAT_SHEET, docs/COMPOSER, docs/NPM, .vscode/extensions.json = tooling and workflow references
    - docs/DEPLOY = deployment instructions for building out a new server, but leave the quick deploy instructions in the cheat_sheet
 
 4. For any repeated information across files, keep the most complete version in the correct canonical document and replace the duplicates with short summaries + links.
