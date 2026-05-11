@@ -1,5 +1,35 @@
 # TT3: Troop Tracker Version 3 Architecture
 
+---
+
+## TL;DR — What Every Developer Must Know Before Touching This Code
+
+### Backend (Laravel/PHP)
+
+- **There is no `User` — only `Trooper`.** Every auth reference uses `Trooper`. Never introduce `User`.
+- **One gateway endpoint handles everything.** All requests go through a single controller that routes by message type. Do not create new controllers for features.
+- **Commands mutate; Queries read.** If it changes data, it is a Command. If it only reads, it is a Query. Keep them separate and never blur the line.
+- **Business logic belongs in Handlers/Services — never in controllers, jobs, or console commands.** Controllers are transport wiring only.
+- **Jobs and console commands orchestrate; they do not own logic.** A job should call a service or dispatch a message, not contain `if` chains and database calls.
+- **Queues are asynchronous by design.** Notification delivery (email, push) is queued and runs in the background. Never assume a job has completed immediately after dispatch — it has not.
+- **Transactions wrap Commands.** If your command touches multiple tables and one step fails, they should all roll back. This is should be enforced at with the message-handler.
+
+### Frontend (Svelte 5/TypeScript)
+
+- **Everything that talks to the backend is `async/await`.** Network calls return Promises; they do not block. If you write synchronous-looking code expecting an immediate response, it will not work. Always `await` gateway calls or handle the Promise explicitly.
+- **One shared gateway adapter, always.** Do not reach out to the API directly in a component. All requests go through the shared gateway client that attaches auth tokens and normalizes responses.
+- **Route files (`+page.ts`) are orchestration only.** They load data and dispatch actions. Domain/feature logic lives in `src/lib/domains`.
+- **Feature modules group queries and commands.** Auth calls live in an auth module, event calls in an events module, etc. Do not scatter gateway calls across page files.
+- **Svelte 5 uses `$props()` typed with a colon, not a cast.** Use `let { ... }: Props = $props();` — the cast form (`as Props`) breaks external prop inference.
+
+### The Golden Rules
+
+1. Keep controllers, components, basically "files" thin.
+2. Never block the UI thread — always `async`/`await`.
+3. Never put business logic where transport belongs, or transport logic where domain belongs.
+
+---
+
 ## 1. Purpose
 
 TT3 defines a unified architecture for Troop Tracker where:
@@ -221,6 +251,20 @@ The frontend uses one gateway adapter function conceptually equivalent to:
 - Mobile flows use deep/universal links to return from identity providers.
 - Callback parsing occurs in shared app shell logic.
 - Parsed credentials/codes are exchanged through gateway messages.
+
+### 6.5 Frontend Implementation Pattern (Recommended)
+
+- The Svelte client should use a feature-first structure, not a route-mirrored lib structure.
+- Frontend CQRS calls should flow through one shared gateway adapter.
+- The route layer should remain orchestration-only:
+  - +page.ts and +layout.ts hydrate read models via query functions.
+  - UI actions dispatch command functions and then refresh or invalidate state.
+- Domain message calls should be grouped by feature (for example: auth, events, notices) with explicit query and command modules.
+- Classic repository pattern is optional and should be thin if used:
+  - Repositories may wrap feature modules for naming consistency.
+  - Repositories should not become ORM-like abstractions or duplicate backend domain logic.
+- Shared auth/session handling (token attach, expiry behavior, envelope parsing, error normalization) must live in the gateway layer so web and mobile behave identically.
+- UI state modules manage presentation/session state only and should not perform transport calls directly.
 
 ---
 
