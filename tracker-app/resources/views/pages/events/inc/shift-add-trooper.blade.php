@@ -20,19 +20,17 @@
             </div>
         @endif
     @endif
-    <div class="d-flex gap-2 flex-wrap">
-        <button class="btn btn-sm btn-outline-success text-start text-md-center htmx-disable"
-                hx-post="{{ route('events.signup-htmx', compact('event_shift')) }}"
-                hx-select="#shift-container-{{ $event_shift->id }}"
-                hx-target="#shift-container-{{ $event_shift->id }}"
-                hx-swap="outerHTML"
-                hx-trigger="click"
-                hx-include="#org-picker-{{ $event_shift->id }}"
-                hx-indicator="#transmission-bar-shift-{{ $event_shift->id }}, closest .btn">
-            <i class="fa fa-fw fa-plus-circle me-2"></i>
-            Sign Up
-        </button>
-    </div>
+    <button class="btn btn-sm btn-outline-success text-start text-md-center htmx-disable"
+            hx-post="{{ route('events.signup-htmx', compact('event_shift')) }}"
+            hx-select="#shift-container-{{ $event_shift->id }}"
+            hx-target="#shift-container-{{ $event_shift->id }}"
+            hx-swap="outerHTML"
+            hx-trigger="click"
+            hx-include="#org-picker-{{ $event_shift->id }}"
+            hx-indicator="#transmission-bar-shift-{{ $event_shift->id }}, closest .btn">
+        <i class="fa fa-fw fa-plus-circle me-2"></i>
+        Sign Up
+    </button>
 @elseif($requires_mission_brief_ack && !$has_required_mission_brief_ack)
     <span class="d-block small text-warning mb-2">
         <i class="fa fa-fw fa-triangle-exclamation me-1"></i>
