@@ -30,6 +30,22 @@ enum EventGuestStatus: string
     case CANCELLED = 'cancelled';
 
     /**
+     * Get an array of statuses available for guest self-selection.
+     *
+     * Excludes STAND_BY, which is set only by moderators via the approval flow.
+     *
+     * @return array<string, string> Array with status values as keys and formatted names as values
+     */
+    public static function toSelectArray(): array
+    {
+        return [
+            self::GOING->value => to_title(self::GOING->name),
+            self::TENTATIVE->value => to_title(self::TENTATIVE->name),
+            self::CANCELLED->value => to_title(self::CANCELLED->name),
+        ];
+    }
+
+    /**
      * Get the Font Awesome icon class for this status.
      *
      * @return string The Font Awesome icon class (e.g., 'fa-circle-play')

@@ -3,7 +3,7 @@
         @if($eligible_orgs->count() > 1)
             <select id="org-picker-{{ $event_shift->id }}"
                     name="organization_id"
-                    class="form-select form-select-sm mb-2">
+                    class="form-select form-select-sm w-auto">
                 <option value="">-- Select Organization --</option>
                 @foreach($eligible_orgs as $org)
                     <option value="{{ $org->id }}">{{ $org->name }}</option>
@@ -14,40 +14,23 @@
                    id="org-picker-{{ $event_shift->id }}"
                    name="organization_id"
                    value="{{ $eligible_orgs->first()->id }}" />
-            <div class="small text-muted mb-1">
+            <div class="small text-muted">
                 <i class="fa fa-fw fa-building me-1"></i>
                 Trooping as {{ $eligible_orgs->first()->name }}
             </div>
         @endif
     @endif
-    <div class="d-flex gap-2 flex-wrap">
-        <button class="btn btn-sm btn-outline-success text-start text-md-center htmx-disable"
-                hx-post="{{ route('events.signup-htmx', compact('event_shift')) }}"
-                hx-select="#shift-container-{{ $event_shift->id }}"
-                hx-target="#shift-container-{{ $event_shift->id }}"
-                hx-swap="outerHTML"
-                hx-trigger="click"
-                hx-vals='{"is_handler": "0"}'
-                hx-include="#org-picker-{{ $event_shift->id }}"
-                hx-indicator="#transmission-bar-shift-{{ $event_shift->id }}, closest .btn">
-            <i class="fa fa-fw fa-plus-circle me-2"></i>
-            Trooper Sign Up
-        </button>
-        @if($event_allows_handlers)
-            <button class="btn btn-sm btn-outline-info text-start text-md-center htmx-disable"
-                    hx-post="{{ route('events.signup-htmx', compact('event_shift')) }}"
-                    hx-select="#shift-container-{{ $event_shift->id }}"
-                    hx-target="#shift-container-{{ $event_shift->id }}"
-                    hx-swap="outerHTML"
-                    hx-trigger="click"
-                    hx-vals='{"is_handler": "1"}'
-                    hx-include="#org-picker-{{ $event_shift->id }}"
-                    hx-indicator="#transmission-bar-shift-{{ $event_shift->id }}, closest .btn">
-                <i class="fa fa-fw fa-plus-circle me-2"></i>
-                Handler Sign Up
-            </button>
-        @endif
-    </div>
+    <button class="btn btn-sm btn-outline-success text-start text-md-center htmx-disable"
+            hx-post="{{ route('events.signup-htmx', compact('event_shift')) }}"
+            hx-select="#shift-container-{{ $event_shift->id }}"
+            hx-target="#shift-container-{{ $event_shift->id }}"
+            hx-swap="outerHTML"
+            hx-trigger="click"
+            hx-include="#org-picker-{{ $event_shift->id }}"
+            hx-indicator="#transmission-bar-shift-{{ $event_shift->id }}, closest .btn">
+        <i class="fa fa-fw fa-plus-circle me-2"></i>
+        Sign Up
+    </button>
 @elseif($requires_mission_brief_ack && !$has_required_mission_brief_ack)
     <span class="d-block small text-warning mb-2">
         <i class="fa fa-fw fa-triangle-exclamation me-1"></i>
@@ -61,65 +44,35 @@
             {{-- if they are a normal user and already signed up - they can sign up a friend --}}
             {{-- or they are a moderator - they can sign up a friend --}}
             <button class="btn btn-sm btn-outline-info text-start text-md-center"
-                    hx-get="{{ route('pickers.trooper', ['property' => 'add-shift-trooper-' . $event_shift->id, 'event' => 'trooper:selected', 'picker_mode' => App\Enums\TrooperPickerMode::FRIENDS->value]) }}"
+                    hx-get="{{ route('pickers.trooper', ['property' => 'add-shift-friend-' . $event_shift->id, 'event' => 'trooper:selected', 'picker_mode' => App\Enums\TrooperPickerMode::FRIENDS->value]) }}"
                     hx-target="#modal-trooper .modal-body"
                     hx-trigger="click"
                     data-bs-toggle="modal"
                     data-bs-target="#modal-trooper">
                 <i class="fa fa-fw fa-plus-circle me-2"></i>
-                Add as Trooper
+                Add a Friend
             </button>
-            @if($event_allows_handlers)
-                <button class="btn btn-sm btn-outline-info text-start text-md-center"
-                        hx-get="{{ route('pickers.trooper', ['property' => 'add-shift-handler-' . $event_shift->id, 'event' => 'trooper:selected', 'picker_mode' => App\Enums\TrooperPickerMode::FRIENDS->value]) }}"
-                        hx-target="#modal-trooper .modal-body"
-                        hx-trigger="click"
-                        data-bs-toggle="modal"
-                        data-bs-target="#modal-trooper">
-                    <i class="fa fa-fw fa-plus-circle me-2"></i>
-                    Add as Handler
-                </button>
-            @endif
             @if($limited_orgs_for_add->isNotEmpty())
                 {{-- Step 2: org confirmation form appears here after trooper is selected --}}
                 <div id="add-trooper-step2-{{ $event_shift->id }}"></div>
                 {{-- Fetch the selected trooper's eligible orgs instead of signing up directly --}}
                 <div class="d-none"
                      hx-get="{{ route('events.add-trooper-org-picker', compact('event_shift')) }}"
-                     hx-vals="js:{trooper_id: event.detail.id, is_handler: 0}"
-                     hx-trigger="trooper:selected[event.detail.property == 'add-shift-trooper-{{ $event_shift->id }}'] from:document"
+                     hx-vals="js:{trooper_id: event.detail.id}"
+                     hx-trigger="trooper:selected[event.detail.property == 'add-shift-friend-{{ $event_shift->id }}'] from:document"
                      hx-target="#add-trooper-step2-{{ $event_shift->id }}"
                      hx-swap="innerHTML"
                      hx-indicator="#transmission-bar-shift-{{ $event_shift->id }}"></div>
-                @if($event_allows_handlers)
-                    <div class="d-none"
-                         hx-get="{{ route('events.add-trooper-org-picker', compact('event_shift')) }}"
-                         hx-vals="js:{trooper_id: event.detail.id, is_handler: 1}"
-                         hx-trigger="trooper:selected[event.detail.property == 'add-shift-handler-{{ $event_shift->id }}'] from:document"
-                         hx-target="#add-trooper-step2-{{ $event_shift->id }}"
-                         hx-swap="innerHTML"
-                         hx-indicator="#transmission-bar-shift-{{ $event_shift->id }}"></div>
-                @endif
             @else
                 {{-- No org limits — sign up directly --}}
                 <div class="d-none"
                      hx-post="{{ route('events.signup-htmx', compact('event_shift')) }}"
-                     hx-vals="js:{trooper_id: event.detail.id, is_handler: 0}"
-                     hx-trigger="trooper:selected[event.detail.property == 'add-shift-trooper-{{ $event_shift->id }}'] from:document"
+                     hx-vals="js:{trooper_id: event.detail.id}"
+                     hx-trigger="trooper:selected[event.detail.property == 'add-shift-friend-{{ $event_shift->id }}'] from:document"
                      hx-select="#shift-container-{{ $event_shift->id }}"
                      hx-target="#shift-container-{{ $event_shift->id }}"
                      hx-swap="outerHTML"
                      hx-indicator="#transmission-bar-shift-{{ $event_shift->id }}"></div>
-                @if($event_allows_handlers)
-                    <div class="d-none"
-                         hx-post="{{ route('events.signup-htmx', compact('event_shift')) }}"
-                         hx-vals="js:{trooper_id: event.detail.id, is_handler: 1}"
-                         hx-trigger="trooper:selected[event.detail.property == 'add-shift-handler-{{ $event_shift->id }}'] from:document"
-                         hx-select="#shift-container-{{ $event_shift->id }}"
-                         hx-target="#shift-container-{{ $event_shift->id }}"
-                         hx-swap="outerHTML"
-                         hx-indicator="#transmission-bar-shift-{{ $event_shift->id }}"></div>
-                @endif
             @endif
         @endif
     @endif

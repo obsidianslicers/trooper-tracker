@@ -136,4 +136,54 @@ class PromoteNextInLineEventTrooperCommandHandlerTest extends TestCase
         $this->assertNull($result);
         Notification::assertNothingSent();
     }
+
+    public function test_invoke_uses_override_is_handler_to_promote_from_old_pool(): void
+    {
+        Notification::fake();
+
+        $event_shift = EventShift::factory()->create();
+
+        // Trooper who switched — is_handler is now false on the model (already saved)
+        $switched_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->create([
+                EventTrooper::STATUS => EventTrooperStatus::GOING,
+                EventTrooper::IS_HANDLER => false,
+            ]);
+
+        // Should be promoted — was waiting in the handler pool
+        $standby_handler = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->create([
+                EventTrooper::STATUS => EventTrooperStatus::STAND_BY,
+                EventTrooper::IS_HANDLER => true,
+            ]);
+
+        // Should NOT be promoted — wrong pool
+        $standby_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->create([
+                EventTrooper::STATUS => EventTrooperStatus::STAND_BY,
+                EventTrooper::IS_HANDLER => false,
+            ]);
+
+        $command = new PromoteNextInLineEventTrooperCommand(
+            event_trooper: $switched_trooper,
+            global_was_full: true,
+            effective_org_id: null,
+            override_is_handler: true,
+        );
+
+        $handler = app(PromoteNextInLineEventTrooperCommandHandler::class);
+        $handler($command);
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::ID => $standby_handler->id,
+            EventTrooper::STATUS => EventTrooperStatus::GOING->value,
+        ]);
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::ID => $standby_trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::STAND_BY->value,
+        ]);
+    }
 }

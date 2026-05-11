@@ -199,4 +199,169 @@ class SignUpUpdateHtmxControllerTest extends TestCase
 
         $response->assertForbidden();
     }
+
+    public function test_invoke_costume_update_sets_is_handler_true_for_handler_costume(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $organization = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();
+
+        $event = Event::factory()->withOrganization($organization)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $handler_costume = Costume::factory()->state(['name' => Costume::HANDLER])->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->asGoing()
+            ->state([EventTrooper::IS_HANDLER => false])
+            ->create();
+
+        $response = $this->actingAs($trooper)->post(
+            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            ['costume_id' => $handler_costume->id]
+        );
+
+        $response->assertOk();
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::ID => $event_trooper->id,
+            EventTrooper::IS_HANDLER => true,
+            EventTrooper::COSTUME_ID => $handler_costume->id,
+        ]);
+    }
+
+    public function test_invoke_costume_update_sets_is_handler_false_for_regular_costume(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $organization = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();
+
+        $event = Event::factory()->withOrganization($organization)->create();
+        EventOrganization::factory()
+            ->state([
+                EventOrganization::EVENT_ID => $event->id,
+                EventOrganization::ORGANIZATION_ID => $organization->id,
+                EventOrganization::CAN_ATTEND => true,
+                EventOrganization::TROOPERS_ALLOWED => null,
+            ])
+            ->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        $regular_costume = Costume::factory()->state(['name' => 'Stormtrooper'])->create();
+        $oc = OrganizationCostume::factory()
+            ->state([OrganizationCostume::ORGANIZATION_ID => $organization->id, OrganizationCostume::COSTUME_ID => $regular_costume->id])
+            ->create();
+        TrooperCostume::factory()
+            ->state([TrooperCostume::TROOPER_ID => $trooper->id, TrooperCostume::ORGANIZATION_COSTUME_ID => $oc->id])
+            ->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->asGoing()
+            ->state([EventTrooper::IS_HANDLER => true])
+            ->create();
+
+        $response = $this->actingAs($trooper)->post(
+            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            ['costume_id' => $regular_costume->id]
+        );
+
+        $response->assertOk();
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::ID => $event_trooper->id,
+            EventTrooper::IS_HANDLER => false,
+            EventTrooper::COSTUME_ID => $regular_costume->id,
+        ]);
+    }
+
+    public function test_invoke_costume_update_demotes_to_stand_by_when_handler_pool_full(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $organization = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();
+
+        $event = Event::factory()
+            ->withOrganization($organization)
+            ->state([Event::HANDLERS_ALLOWED => 1])
+            ->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        // Fill the handler pool (1/1)
+        EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->asGoing()
+            ->state([EventTrooper::IS_HANDLER => true])
+            ->create();
+
+        $handler_costume = Costume::factory()->state(['name' => Costume::HANDLER])->create();
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->asGoing()
+            ->state([EventTrooper::IS_HANDLER => false])
+            ->create();
+
+        $response = $this->actingAs($trooper)->post(
+            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            ['costume_id' => $handler_costume->id]
+        );
+
+        $response->assertOk();
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::ID => $event_trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::STAND_BY->value,
+            EventTrooper::IS_HANDLER => true,
+        ]);
+    }
+
+    public function test_invoke_costume_update_promotes_standby_handler_when_handler_switches_to_regular(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $organization = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();
+
+        $event = Event::factory()->withOrganization($organization)->create();
+        EventOrganization::factory()
+            ->state([
+                EventOrganization::EVENT_ID => $event->id,
+                EventOrganization::ORGANIZATION_ID => $organization->id,
+                EventOrganization::CAN_ATTEND => true,
+                EventOrganization::TROOPERS_ALLOWED => null,
+            ])
+            ->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        $standby_handler = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->state([EventTrooper::IS_HANDLER => true, EventTrooper::STATUS => EventTrooperStatus::STAND_BY])
+            ->create();
+
+        $handler_costume = Costume::factory()->state(['name' => Costume::HANDLER])->create();
+        $regular_costume = Costume::factory()->state(['name' => 'Stormtrooper'])->create();
+        $oc = OrganizationCostume::factory()
+            ->state([OrganizationCostume::ORGANIZATION_ID => $organization->id, OrganizationCostume::COSTUME_ID => $regular_costume->id])
+            ->create();
+        TrooperCostume::factory()
+            ->state([TrooperCostume::TROOPER_ID => $trooper->id, TrooperCostume::ORGANIZATION_COSTUME_ID => $oc->id])
+            ->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->asGoing()
+            ->state([EventTrooper::IS_HANDLER => true, EventTrooper::COSTUME_ID => $handler_costume->id])
+            ->create();
+
+        $response = $this->actingAs($trooper)->post(
+            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            ['costume_id' => $regular_costume->id]
+        );
+
+        $response->assertOk();
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::ID => $standby_handler->id,
+            EventTrooper::STATUS => EventTrooperStatus::GOING->value,
+        ]);
+    }
 }

@@ -58,7 +58,7 @@
                 </div>
             @elseif($event_shift->is_open && $event_guest->canUpdateStatus($event_shift, Auth::user()))
                 <x-input-select :property="'status'"
-                                :options="\App\Enums\EventGuestStatus::toArray()"
+                                :options="\App\Enums\EventGuestStatus::toSelectArray()"
                                 :value="$event_guest->status->value"
                                 hx-post="{{ route('events.guest-update-htmx', compact('event_guest')) }}"
                                 hx-indicator="#transmission-bar-shift-{{ $event_guest->event_shift->id }}"
