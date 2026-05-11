@@ -6,6 +6,7 @@ namespace Tests\Feature\Models;
 
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
+use App\Enums\MembershipRole;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventOrganization;
@@ -497,5 +498,19 @@ class EventTrooperTest extends TestCase
 
         $this->assertInstanceOf(EventTrooperStatus::class, $subject->{EventTrooper::STATUS});
         $this->assertSame(EventTrooperStatus::GOING, $subject->{EventTrooper::STATUS});
+    }
+
+    public function test_get_costumes_returns_only_handler_costume_for_handler_membership_role(): void
+    {
+        $handler_costume = Costume::factory()->state(['name' => Costume::HANDLER])->create();
+        Costume::factory()->state(['name' => 'Stormtrooper'])->create();
+
+        $trooper = Trooper::factory()->state([Trooper::MEMBERSHIP_ROLE => MembershipRole::HANDLER])->create();
+        $subject = EventTrooper::factory()->forTrooper($trooper)->create();
+
+        $result = $subject->getCostumes();
+
+        $this->assertCount(1, $result);
+        $this->assertArrayHasKey($handler_costume->id, $result);
     }
 }
