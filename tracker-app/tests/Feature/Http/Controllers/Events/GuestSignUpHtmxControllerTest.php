@@ -8,6 +8,7 @@ use App\Enums\EventGuestStatus;
 use App\Models\Event;
 use App\Models\EventGuest;
 use App\Models\EventShift;
+use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
@@ -41,6 +42,8 @@ class GuestSignUpHtmxControllerTest extends TestCase
 
     public function test_invoke_creates_guests_for_non_empty_escaped_newline_delimited_names(): void
     {
+        EventTrooper::factory()->forEventShift($this->event_shift)->forTrooper($this->trooper)->asGoing()->create();
+
         $response = $this->actingAs($this->trooper)->post(
             route('events.guest-signup-htmx', ['event_shift' => $this->event_shift->id]),
             ['guest_names' => 'Leia Organa\\n\\n Han Solo \\n']
@@ -71,6 +74,8 @@ class GuestSignUpHtmxControllerTest extends TestCase
 
     public function test_invoke_does_not_create_duplicate_guests_for_same_shift_and_trooper(): void
     {
+        EventTrooper::factory()->forEventShift($this->event_shift)->forTrooper($this->trooper)->asGoing()->create();
+
         $payload = ['guest_names' => 'Chewbacca\\nChewbacca'];
 
         $this->actingAs($this->trooper)->post(
@@ -97,5 +102,28 @@ class GuestSignUpHtmxControllerTest extends TestCase
         );
 
         $response->assertRedirect(route('auth.login'));
+    }
+
+    public function test_invoke_does_not_create_guests_when_trooper_not_going(): void
+    {
+        $this->actingAs($this->trooper)->post(
+            route('events.guest-signup-htmx', ['event_shift' => $this->event_shift->id]),
+            ['guest_names' => 'Lando Calrissian']
+        )->assertOk();
+
+        $this->assertDatabaseMissing('tt_event_guests', [
+            EventGuest::EVENT_SHIFT_ID => $this->event_shift->id,
+            EventGuest::NAME => 'Lando Calrissian',
+        ]);
+    }
+
+    public function test_invoke_does_not_emit_trigger_when_trooper_not_going(): void
+    {
+        $response = $this->actingAs($this->trooper)->post(
+            route('events.guest-signup-htmx', ['event_shift' => $this->event_shift->id]),
+            ['guest_names' => 'Lando Calrissian']
+        );
+
+        $response->assertHeaderMissing('HX-Trigger');
     }
 }

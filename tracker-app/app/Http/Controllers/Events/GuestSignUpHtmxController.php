@@ -32,9 +32,10 @@ class GuestSignUpHtmxController extends MagicBusController
 
         $event = $event_shift->event;
 
+        $can_moderate = $trooper->isModeratorForOrganization($event->organization);
+
         if ($event->require_mission_brief_ack && !$event->hasMissionBriefAcknowledgementFor($trooper))
         {
-            $can_moderate = $trooper->isModeratorForOrganization($event->organization);
             $count_of_shifts = $event->event_shifts()->count();
             $data = compact('event', 'event_shift', 'can_moderate', 'count_of_shifts');
             $data['open'] = true;
@@ -44,7 +45,15 @@ class GuestSignUpHtmxController extends MagicBusController
 
         if (!$event_shift->is_open)
         {
-            $can_moderate = $trooper->isModeratorForOrganization($event->organization);
+            $count_of_shifts = $event->event_shifts()->count();
+            $data = compact('event', 'event_shift', 'can_moderate', 'count_of_shifts');
+            $data['open'] = true;
+
+            return response()->view('pages.events.inc.shift-container', $data);
+        }
+
+        if (!$can_moderate && !$event_shift->isGoing($trooper))
+        {
             $count_of_shifts = $event->event_shifts()->count();
             $data = compact('event', 'event_shift', 'can_moderate', 'count_of_shifts');
             $data['open'] = true;
@@ -73,8 +82,6 @@ class GuestSignUpHtmxController extends MagicBusController
                 ]);
             }
         }
-
-        $can_moderate = $trooper->isModeratorForOrganization($event->organization);
 
         $count_of_shifts = $event->event_shifts()->count();
 
