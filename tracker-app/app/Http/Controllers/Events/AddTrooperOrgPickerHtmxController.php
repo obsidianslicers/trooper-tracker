@@ -24,7 +24,7 @@ class AddTrooperOrgPickerHtmxController
             'event_shift' => $event_shift,
             'trooper' => $trooper,
             'eligible_orgs' => $eligible_orgs,
-            'is_handler' => (bool) $request->input('is_handler', false),
+            'is_handler' => (bool) $request->input('is_handler', $trooper->is_handler),
         ]);
     }
 }

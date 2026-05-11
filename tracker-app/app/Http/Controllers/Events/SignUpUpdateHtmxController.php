@@ -9,6 +9,7 @@ use App\Enums\EventTrooperStatus;
 use App\Features\Events\Commands\PromoteNextInLineEventTrooperCommand;
 use App\Features\Events\Commands\UpdateEventTrooperCommand;
 use App\Features\Events\Queries\GetEventShiftDisplayQuery;
+use App\Models\Costume;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Events\SignupUpdateHtmxRequest;
 use App\Models\EventTrooper;
@@ -203,12 +204,62 @@ class SignUpUpdateHtmxController extends MagicBusController
         }
         elseif ($request->has('costume_id'))
         {
-            $valid_data = [
-                EventTrooper::COSTUME_ID => $request->validated('costume_id'),
-            ];
+            $costume_id = $request->validated('costume_id');
+            $previous_is_handler = $event_trooper->is_handler;
+            $was_going = $event_trooper->status === EventTrooperStatus::GOING;
+            $event_shift = $event_trooper->event_shift;
+            $effective_org_id = $event_trooper->organization_id
+                ?? $event_trooper->effectiveOrgId($event_shift->event);
 
-            $event_trooper_cmd = new UpdateEventTrooperCommand($event_trooper, $valid_data);
-            $this->bus->send($event_trooper_cmd);
+            $is_handler = false;
+            if ($costume_id !== null)
+            {
+                $costume = Costume::find($costume_id);
+                $is_handler = $costume && in_array($costume->name, [Costume::HANDLER, Costume::COMMAND_STAFF]);
+            }
+            $handler_changed = $previous_is_handler !== $is_handler;
+
+            // Capture new-pool capacity state BEFORE saving so this trooper isn't counted in it yet
+            $new_pool_was_maxed = $is_handler ? $event_shift->handlersMaxed() : $event_shift->troopersMaxed();
+            $new_pool_org_was_maxed = $effective_org_id !== null
+                && $event_shift->orgTroopersMaxed($effective_org_id, $is_handler);
+
+            $this->bus->send(new UpdateEventTrooperCommand($event_trooper, [
+                EventTrooper::COSTUME_ID => $costume_id,
+                EventTrooper::IS_HANDLER => $is_handler,
+            ]));
+
+            if ($handler_changed && $was_going)
+            {
+                // Trooper vacated their old capacity pool — promote the next in that pool
+                $this->bus->send(new PromoteNextInLineEventTrooperCommand(
+                    $event_trooper,
+                    true,
+                    $effective_org_id,
+                    $previous_is_handler,
+                ));
+
+                // New pool was already full before this trooper joined → demote to stand-by
+                if ($new_pool_was_maxed || $new_pool_org_was_maxed)
+                {
+                    $this->bus->send(new UpdateEventTrooperCommand($event_trooper, [
+                        EventTrooper::STATUS => EventTrooperStatus::STAND_BY,
+                    ]));
+                }
+
+                $auth_trooper = Auth::user();
+                $event_shift_query = new GetEventShiftDisplayQuery($event_shift, $auth_trooper);
+                $event_shift = $this->bus->send($event_shift_query);
+                $event = $event_shift->event;
+                $can_moderate = $auth_trooper->isModeratorForOrganization($event->organization);
+                $count_of_shifts = $event->event_shifts()->count();
+                $data = compact('event', 'event_shift', 'can_moderate', 'count_of_shifts');
+                $data['open'] = true;
+
+                return response()->view('pages.events.inc.shift-container', $data)
+                    ->header('HX-Reswap', 'outerHTML')
+                    ->header('HX-Retarget', '#shift-container-' . $event_trooper->event_shift->id);
+            }
         }
         elseif ($request->has('backup_costume_id'))
         {
