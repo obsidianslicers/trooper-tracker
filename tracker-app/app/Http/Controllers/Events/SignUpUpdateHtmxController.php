@@ -211,12 +211,8 @@ class SignUpUpdateHtmxController extends MagicBusController
             $effective_org_id = $event_trooper->organization_id
                 ?? $event_trooper->effectiveOrgId($event_shift->event);
 
-            $is_handler = false;
-            if ($costume_id !== null)
-            {
-                $costume = Costume::find($costume_id);
-                $is_handler = $costume && in_array($costume->name, [Costume::HANDLER, Costume::COMMAND_STAFF]);
-            }
+            $costume = $costume_id !== null ? Costume::find($costume_id) : null;
+            $is_handler = $costume?->countsAsHandler() ?? false;
             $handler_changed = $previous_is_handler !== $is_handler;
 
             // Capture new-pool capacity state BEFORE saving so this trooper isn't counted in it yet
