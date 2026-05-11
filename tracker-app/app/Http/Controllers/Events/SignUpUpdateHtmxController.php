@@ -246,20 +246,18 @@ class SignUpUpdateHtmxController extends MagicBusController
                         EventTrooper::STATUS => EventTrooperStatus::STAND_BY,
                     ]));
                 }
-
-                $auth_trooper = Auth::user();
-                $event_shift_query = new GetEventShiftDisplayQuery($event_shift, $auth_trooper);
-                $event_shift = $this->bus->send($event_shift_query);
-                $event = $event_shift->event;
-                $can_moderate = $auth_trooper->isModeratorForOrganization($event->organization);
-                $count_of_shifts = $event->event_shifts()->count();
-                $data = compact('event', 'event_shift', 'can_moderate', 'count_of_shifts');
-                $data['open'] = true;
-
-                return response()->view('pages.events.inc.shift-container', $data)
-                    ->header('HX-Reswap', 'outerHTML')
-                    ->header('HX-Retarget', '#shift-container-' . $event_trooper->event_shift->id);
             }
+
+            $auth_trooper = Auth::user();
+            $event_shift_query = new GetEventShiftDisplayQuery($event_shift, $auth_trooper);
+            $event_shift = $this->bus->send($event_shift_query);
+            $event = $event_shift->event;
+            $can_moderate = $auth_trooper->isModeratorForOrganization($event->organization);
+            $count_of_shifts = $event->event_shifts()->count();
+            $data = compact('event', 'event_shift', 'can_moderate', 'count_of_shifts');
+            $data['open'] = true;
+
+            return response()->view('pages.events.inc.shift-container', $data);
         }
         elseif ($request->has('backup_costume_id'))
         {
