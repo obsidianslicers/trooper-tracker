@@ -236,7 +236,7 @@ class EventTrooperTest extends TestCase
         $this->assertTrue($result);
     }
 
-    public function test_can_update_costume_returns_false_when_is_handler(): void
+    public function test_can_update_costume_returns_true_when_is_handler(): void
     {
         $trooper = Trooper::factory()->create();
         $event = Event::factory()->state([Event::STATUS => EventStatus::OPEN])->create();
@@ -254,7 +254,7 @@ class EventTrooperTest extends TestCase
 
         $result = $subject->canUpdateCostume($shift, $trooper);
 
-        $this->assertFalse($result);
+        $this->assertTrue($result);
     }
 
     public function test_can_update_costume_returns_false_when_shift_not_open(): void
