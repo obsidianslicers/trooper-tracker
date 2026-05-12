@@ -49,6 +49,9 @@
                             <th>
                                 Status
                             </th>
+                            <th>
+                                Credited Org
+                            </th>
                             @if($event->status === \App\Enums\EventStatus::MANUAL_SELECTION)
                                 <th>
                                     Approved By
@@ -61,7 +64,7 @@
                     </thead>
                     @foreach ($event_shifts as $event_shift)
                         <tr>
-                            <td colspan="{{ $event->status === \App\Enums\EventStatus::MANUAL_SELECTION ? '5' : '3' }}">
+                            <td colspan="{{ $event->status === \App\Enums\EventStatus::MANUAL_SELECTION ? '6' : '4' }}">
                                 {{ $event_shift->time_display }}
                             </td>
                         </tr>
@@ -101,6 +104,13 @@
                                                     :value="$event_trooper->status->value"
                                                     class="form-select-sm" />
                                 </td>
+                                <td>
+                                    <x-input-select :property="'troopers.' . $event_trooper->id . '.organization_id'"
+                                                    :options="$event_trooper->trooper->organizations->pluck('name', 'id')->toArray()"
+                                                    :value="$event_trooper->organization_id"
+                                                    :placeholder="'Auto'"
+                                                    class="form-select-sm" />
+                                </td>
                                 @if($event->status === \App\Enums\EventStatus::MANUAL_SELECTION)
                                     <td>
                                         @if($event_trooper->status === \App\Enums\EventTrooperStatus::GOING && $event_trooper->updated_by)
@@ -119,14 +129,14 @@
                                 @endif
                             </tr>
                         @empty
-                            <x-table-empty :colspan="$event->status === \App\Enums\EventStatus::MANUAL_SELECTION ? 5 : 3">
+                            <x-table-empty :colspan="$event->status === \App\Enums\EventStatus::MANUAL_SELECTION ? 6 : 4">
                                 No troopers assigned to this shift.
                             </x-table-empty>
                         @endforelse
 
                         @if($event_shift->event_guests->isNotEmpty())
                             <tr>
-                                <td colspan="{{ $event->status === \App\Enums\EventStatus::MANUAL_SELECTION ? '5' : '3' }}"
+                                <td colspan="{{ $event->status === \App\Enums\EventStatus::MANUAL_SELECTION ? '6' : '4' }}"
                                     class="ps-4 text-muted small">
                                     Guests
                                 </td>
@@ -154,6 +164,7 @@
                                                     :value="$event_guest->status->value"
                                                     class="form-select-sm" />
                                 </td>
+                                <td></td>
                                 @if($event->status === \App\Enums\EventStatus::MANUAL_SELECTION)
                                     <td>
                                         @if($event_guest->status === \App\Enums\EventGuestStatus::GOING && $event_guest->updated_by)

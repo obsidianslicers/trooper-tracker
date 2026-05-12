@@ -459,8 +459,11 @@ class EventShift extends BaseEventShift
 
         // Create link
         $link = Link::create($name, $from, $to)
-            ->description($description)
-            ->address($location);
+            ->description($description);
+
+        if ($location !== null) {
+            $link = $link->address($location);
+        }
 
         return $link;
     }

@@ -28,7 +28,7 @@ class UpdateTroopersSubmitController extends MagicBusController
         $troopers = $request->validated('troopers', []);
         $guests = $request->validated('guests', []);
 
-        $event_troopers = $event->troopers()->get();
+        $event_troopers = $event->troopers()->with('trooper.organizations')->get();
         $event_guest_shift_ids = $event->event_shifts()->pluck('id');
         $event_guests = EventGuest::query()
             ->whereIn(EventGuest::EVENT_SHIFT_ID, $event_guest_shift_ids)
@@ -54,6 +54,16 @@ class UpdateTroopersSubmitController extends MagicBusController
             $oldStatus = $event_trooper->status;
 
             $event_trooper->status = $newStatus;
+
+            $newOrgId = isset($input['organization_id']) && $input['organization_id'] !== ''
+                ? (int) $input['organization_id']
+                : null;
+
+            $trooperOrgIds = $event_trooper->trooper->organizations->pluck('id')->toArray();
+            $event_trooper->organization_id = ($newOrgId !== null && in_array($newOrgId, $trooperOrgIds, true))
+                ? $newOrgId
+                : null;
+
             $event_trooper->save();
 
             $wasManualApproval = $isManualSelectionEvent

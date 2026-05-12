@@ -228,6 +228,15 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
             }
         }
 
+        if (empty($credited))
+        {
+            // Costume org IDs from import didn't match — fall back to all orgs the trooper was a member of
+            return $organizations
+                ->filter(fn ($org) => $this->wasMemberAt($org, $shift_date))
+                ->pluck('id')
+                ->all();
+        }
+
         return $credited;
     }
 
