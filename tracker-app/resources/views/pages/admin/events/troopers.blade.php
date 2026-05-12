@@ -105,11 +105,22 @@
                                                     class="form-select-sm" />
                                 </td>
                                 <td>
-                                    <x-input-select :property="'troopers.' . $event_trooper->id . '.organization_id'"
-                                                    :options="$event_trooper->trooper->organizations->pluck('name', 'id')->toArray()"
-                                                    :value="$event_trooper->organization_id"
-                                                    :placeholder="'Auto'"
-                                                    class="form-select-sm" />
+                                    @forelse($event_trooper->org_options as $org)
+                                        <div class="form-check mb-0">
+                                            <input type="checkbox"
+                                                   name="troopers[{{ $event_trooper->id }}][organization_ids][]"
+                                                   value="{{ $org->id }}"
+                                                   id="org_{{ $event_trooper->id }}_{{ $org->id }}"
+                                                   class="form-check-input"
+                                                   @checked(in_array($org->id, $event_trooper->credited_checked_ids))>
+                                            <label class="form-check-label small"
+                                                   for="org_{{ $event_trooper->id }}_{{ $org->id }}">
+                                                {{ $org->name }}
+                                            </label>
+                                        </div>
+                                    @empty
+                                        <span class="text-muted small">—</span>
+                                    @endforelse
                                 </td>
                                 @if($event->status === \App\Enums\EventStatus::MANUAL_SELECTION)
                                     <td>

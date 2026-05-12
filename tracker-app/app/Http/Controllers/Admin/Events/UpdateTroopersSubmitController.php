@@ -10,6 +10,7 @@ use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Events\UpdateTroopersRequest;
 use App\Models\Event;
 use App\Models\EventGuest;
+use App\Models\TrooperAssignment;
 use App\Notifications\Events\ManualSelectionApprovedNotification;
 use App\Notifications\Events\ManualSelectionStandByNotification;
 use Illuminate\Http\RedirectResponse;
@@ -36,6 +37,13 @@ class UpdateTroopersSubmitController extends MagicBusController
         $authTrooper = $request->user();
         $isManualSelectionEvent = $event->status === EventStatus::MANUAL_SELECTION;
 
+        $allowed_org_ids = $authTrooper->is_administrator
+            ? null
+            : $authTrooper->trooper_assignments()
+                ->where(TrooperAssignment::IS_MODERATOR, true)
+                ->pluck(TrooperAssignment::ORGANIZATION_ID)
+                ->toArray();
+
         foreach ($troopers as $id => $input)
         {
             $event_trooper = $event_troopers->filter(fn ($et) => $et->id === (int) $id)->first();
@@ -55,14 +63,17 @@ class UpdateTroopersSubmitController extends MagicBusController
 
             $event_trooper->status = $newStatus;
 
-            $newOrgId = isset($input['organization_id']) && $input['organization_id'] !== ''
-                ? (int) $input['organization_id']
-                : null;
-
+            $submittedOrgIds = array_map('intval', $input['organization_ids'] ?? []);
             $trooperOrgIds = $event_trooper->trooper->organizations->pluck('id')->toArray();
-            $event_trooper->organization_id = ($newOrgId !== null && in_array($newOrgId, $trooperOrgIds, true))
-                ? $newOrgId
-                : null;
+
+            $validOrgIds = array_values(array_filter(
+                $submittedOrgIds,
+                fn ($id) => in_array($id, $trooperOrgIds, true)
+                    && ($allowed_org_ids === null || in_array($id, $allowed_org_ids, true))
+            ));
+
+            $event_trooper->costume_organization_ids = !empty($validOrgIds) ? $validOrgIds : null;
+            $event_trooper->organization_id = null;
 
             $event_trooper->save();
 
