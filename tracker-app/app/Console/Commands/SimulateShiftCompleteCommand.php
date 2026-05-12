@@ -38,12 +38,11 @@ class SimulateShiftCompleteCommand extends Command
             return self::FAILURE;
         }
 
-        $expired      = $this->option('expired');
+        $expired = $this->option('expired');
         $dual_costume = $this->option('dual-costume');
 
-        $member_orgs = Organization::whereHas('trooper_assignments', fn ($q) =>
-            $q->where(TrooperAssignment::TROOPER_ID, $trooper->id)
-              ->where(TrooperAssignment::IS_MEMBER, true)
+        $member_orgs = Organization::whereHas('trooper_assignments', fn ($q) => $q->where(TrooperAssignment::TROOPER_ID, $trooper->id)
+            ->where(TrooperAssignment::IS_MEMBER, true)
         )->get();
 
         if ($member_orgs->isEmpty())
@@ -85,7 +84,7 @@ class SimulateShiftCompleteCommand extends Command
             ->create();
 
         $event_shift = EventShift::factory()->forEvent($event)->create([
-            EventShift::STATUS        => EventStatus::CLOSED,
+            EventShift::STATUS => EventStatus::CLOSED,
             EventShift::SHIFT_ENDS_AT => $event_end,
             EventShift::SHIFT_STARTS_AT => $event_end->clone()->subHours(4),
         ]);
@@ -110,16 +109,16 @@ class SimulateShiftCompleteCommand extends Command
         }
 
         $attended_token = Crypt::encryptString(EventTrooperStatus::ATTENDED->value);
-        $unable_token   = Crypt::encryptString(EventTrooperStatus::UNABLE_TO_ATTEND->value);
+        $unable_token = Crypt::encryptString(EventTrooperStatus::UNABLE_TO_ATTEND->value);
 
         $attended_url = route('events.shift-complete', [
             'event_trooper' => $event_trooper->id,
-            'status'        => $attended_token,
+            'status' => $attended_token,
         ]);
 
         $unable_url = route('events.shift-complete', [
             'event_trooper' => $event_trooper->id,
-            'status'        => $unable_token,
+            'status' => $unable_token,
         ]);
 
         $this->newLine();
@@ -128,7 +127,7 @@ class SimulateShiftCompleteCommand extends Command
         $this->info("  Event:         {$event->name} (ID {$event->id})");
         $this->info("  Shift:         {$event_shift->time_display}");
         $this->info("  Event end:     {$event_end->format('Y-m-d H:i')} ({$this->windowLabel($expired)})");
-        $this->info("  Updates open:  " . ($event->can_update_trooper_status ? '<fg=green>yes</>' : '<fg=red>no</>'));
+        $this->info('  Updates open:  '.($event->can_update_trooper_status ? '<fg=green>yes</>' : '<fg=red>no</>'));
 
         $this->newLine();
         $eligible_orgs = $event_trooper->getEligibleCreditOrganizations();
@@ -143,7 +142,7 @@ class SimulateShiftCompleteCommand extends Command
         }
         elseif ($eligible_orgs->count() === 1)
         {
-            $this->info('  Eligible clubs: ' . $eligible_orgs->first()->name . ' (single — no selection prompt)');
+            $this->info('  Eligible clubs: '.$eligible_orgs->first()->name.' (single — no selection prompt)');
         }
         else
         {

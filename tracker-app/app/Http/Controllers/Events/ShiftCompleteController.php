@@ -93,8 +93,8 @@ class ShiftCompleteController extends MagicBusController
                 if ($parent_organizations->count() > 1)
                 {
                     return view('pages.events.shift-complete-club-select', [
-                        'event_trooper'    => $event_trooper,
-                        'organizations'    => $parent_organizations,
+                        'event_trooper' => $event_trooper,
+                        'organizations' => $parent_organizations,
                         'encrypted_status' => $status,
                     ]);
                 }

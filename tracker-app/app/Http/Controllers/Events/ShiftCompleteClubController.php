@@ -57,7 +57,7 @@ class ShiftCompleteClubController extends MagicBusController
         $child_org_ids = $event_trooper->childOrgIdsForSelectedParents($submitted_ids);
 
         $valid_data = [
-            EventTrooper::STATUS                   => EventTrooperStatus::ATTENDED,
+            EventTrooper::STATUS => EventTrooperStatus::ATTENDED,
             EventTrooper::COSTUME_ORGANIZATION_IDS => $child_org_ids,
             // organization_id is intentionally not set — multi-club credit flows via costume_organization_ids
         ];
