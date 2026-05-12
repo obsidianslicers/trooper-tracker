@@ -8,8 +8,11 @@ use App\Enums\EventTrooperStatus;
 use App\Features\Events\Commands\UpdateEventTrooperCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Models\EventTrooper;
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
+use ValueError;
 
 /**
  * Handles club selection when confirming attendance for a multi-club costume.
@@ -28,6 +31,20 @@ class ShiftCompleteClubController extends MagicBusController
 
     public function __invoke(Request $request, EventTrooper $event_trooper): View
     {
+        try
+        {
+            $status = EventTrooperStatus::from(Crypt::decryptString($request->input('encrypted_status', '')));
+        }
+        catch (DecryptException|ValueError $e)
+        {
+            abort(404);
+        }
+
+        if ($status !== EventTrooperStatus::ATTENDED)
+        {
+            abort(404);
+        }
+
         $submitted_ids = array_map('intval', (array) $request->input('organization_ids', []));
 
         if (empty($submitted_ids))
