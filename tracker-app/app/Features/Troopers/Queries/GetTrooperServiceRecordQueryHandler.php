@@ -204,11 +204,7 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
 
         if (empty($costume_node_paths))
         {
-            // No costume orgs — credit all orgs the trooper was a member of at the time
-            return $organizations
-                ->filter(fn ($org) => $this->wasMemberAt($org, $shift_date))
-                ->pluck('id')
-                ->all();
+            return []; // Nothing checked — unattached
         }
 
         $credited = [];
@@ -228,16 +224,7 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
             }
         }
 
-        if (empty($credited))
-        {
-            // Costume org IDs from import didn't match — fall back to all orgs the trooper was a member of
-            return $organizations
-                ->filter(fn ($org) => $this->wasMemberAt($org, $shift_date))
-                ->pluck('id')
-                ->all();
-        }
-
-        return $credited;
+        return $credited; // Empty means unattached (checked org not in trooper's memberships)
     }
 
     private function annotateShiftsWithCreditedOrgNames(
@@ -266,6 +253,7 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
                 continue;
             }
 
+            // Always initialize so the view can safely check this property on any shift
             $credited_ids = $credited_ids_by_shift[$shift->id] ?? [];
             $et->credited_org_names = collect($credited_ids)
                 ->map(fn ($id) => $organizations->find($id)?->node_path)

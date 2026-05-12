@@ -119,7 +119,7 @@
                                             </label>
                                         </div>
                                     @empty
-                                        <span class="text-muted small">—</span>
+                                        <span class="text-muted small">(Unattached)</span>
                                     @endforelse
                                 </td>
                                 @if($event->status === \App\Enums\EventStatus::MANUAL_SELECTION)

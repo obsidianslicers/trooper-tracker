@@ -88,7 +88,7 @@ readonly class GetTrooperEventSummaryQueryHandler implements QueryHandlerInterfa
      *
      * Rule 1: explicit organization_id set on event_trooper → credit only that org
      * Rule 2: no explicit org, costume_organization_ids contains the org → credit it
-     * Rule 3: no explicit org, no costume orgs → credit all orgs trooper was a member of at the time
+     * Unattached troops (no explicit org, no costume orgs) are not counted toward any org.
      *
      * @param  bool  $check_join_date  Whether to gate on tt_trooper_organizations.join_date (requires tt_events to be joined)
      */
@@ -105,14 +105,6 @@ readonly class GetTrooperEventSummaryQueryHandler implements QueryHandlerInterfa
                     ->orWhere(function ($q) use ($org_id) {
                         $q->whereNull('tt_event_troopers.organization_id')
                             ->whereRaw('JSON_CONTAINS(tt_event_troopers.costume_organization_ids, ?)', [json_encode($org_id)]);
-                    })
-                  // Rule 3: no explicit org, no costume orgs — membership verified below
-                    ->orWhere(function ($q) {
-                        $q->whereNull('tt_event_troopers.organization_id')
-                            ->where(function ($q) {
-                                $q->whereNull('tt_event_troopers.costume_organization_ids')
-                                    ->orWhereRaw('JSON_LENGTH(tt_event_troopers.costume_organization_ids) = 0');
-                            });
                     });
             });
 
@@ -148,15 +140,7 @@ readonly class GetTrooperEventSummaryQueryHandler implements QueryHandlerInterfa
                         );
                 })
                   // Rule 2: costume org overlaps accessible root orgs
-                    ->orWhereRaw('JSON_OVERLAPS(tt_event_troopers.costume_organization_ids, ?)', [$encoded])
-                  // Rule 3: no explicit org, no costume orgs — moderatedBy scope ensures trooper is in accessible orgs
-                    ->orWhere(function ($q) {
-                        $q->whereNull('tt_event_troopers.organization_id')
-                            ->where(function ($q) {
-                                $q->whereNull('tt_event_troopers.costume_organization_ids')
-                                    ->orWhereRaw('JSON_LENGTH(tt_event_troopers.costume_organization_ids) = 0');
-                            });
-                    });
+                    ->orWhereRaw('JSON_OVERLAPS(tt_event_troopers.costume_organization_ids, ?)', [$encoded]);
             });
         }
     }
