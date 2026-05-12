@@ -18,6 +18,7 @@ use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperCostume;
+use App\Models\EventTrooper;
 use App\Models\TrooperDonation;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -91,97 +92,9 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
             ->where(TrooperAssignment::IS_MEMBER, true)
             ->get();
 
-        // Batch-load org node_paths for any org IDs referenced in event_trooper records
-        $candidate_org_ids = $recent_shifts->flatMap(function ($shift) {
-            if (!$shift->event_trooper)
-            {
-                return [];
-            }
-            $ids = array_filter([
-                $shift->event_trooper->organization_id,
-            ]);
-
-            return array_merge($ids, $shift->event_trooper->costume_organization_ids ?? []);
-        })->unique()->values()->toArray();
-
-        $candidate_orgs = $candidate_org_ids
-            ? Organization::whereIn(Organization::ID, $candidate_org_ids)
-                ->get([Organization::ID, Organization::NODE_PATH])
-                ->keyBy(Organization::ID)
-            : collect();
-
-        $troop_counts = [];
-        $credited_org_ids_by_shift = [];
-        foreach ($recent_shifts as $shift)
-        {
-            if ($shift->event_trooper?->status !== EventTrooperStatus::ATTENDED)
-            {
-                continue;
-            }
-
-            $et = $shift->event_trooper;
-
-            if ($et->organization_id !== null)
-            {
-                // Explicit org chosen — credit only that one matching org
-                $match_org = $candidate_orgs->get($et->organization_id);
-                if (!$match_org)
-                {
-                    continue;
-                }
-                foreach ($organizations as $org)
-                {
-                    if (str_starts_with($match_org->node_path, $org->node_path)
-                        && $this->wasMemberAt($org, $shift->shift_starts_at))
-                    {
-                        $troop_counts[$org->id] = ($troop_counts[$org->id] ?? 0) + 1;
-                        $credited_org_ids_by_shift[$shift->id][] = $org->id;
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                // No explicit org — credit all orgs whose hierarchy the costume belongs to
-                $costume_node_paths = collect($et->costume_organization_ids ?? [])
-                    ->map(fn ($id) => $candidate_orgs->get($id)?->node_path)
-                    ->filter()
-                    ->values()
-                    ->toArray();
-
-                if (empty($costume_node_paths))
-                {
-                    // No costume orgs — credit all orgs the trooper was a member of at the time
-                    foreach ($organizations as $org)
-                    {
-                        if ($this->wasMemberAt($org, $shift->shift_starts_at))
-                        {
-                            $troop_counts[$org->id] = ($troop_counts[$org->id] ?? 0) + 1;
-                            $credited_org_ids_by_shift[$shift->id][] = $org->id;
-                        }
-                    }
-
-                    continue;
-                }
-
-                foreach ($organizations as $org)
-                {
-                    if (!$this->wasMemberAt($org, $shift->shift_starts_at))
-                    {
-                        continue;
-                    }
-                    foreach ($costume_node_paths as $node_path)
-                    {
-                        if (str_starts_with($node_path, $org->node_path))
-                        {
-                            $troop_counts[$org->id] = ($troop_counts[$org->id] ?? 0) + 1;
-                            $credited_org_ids_by_shift[$shift->id][] = $org->id;
-                            break; // don't double-count same org from multiple costume orgs
-                        }
-                    }
-                }
-            }
-        }
+        $candidate_orgs = $this->loadCandidateOrgs($recent_shifts);
+        ['troop_counts' => $troop_counts, 'credited_ids_by_shift' => $credited_ids_by_shift]
+            = $this->computeTroopCounts($recent_shifts, $organizations, $candidate_orgs);
 
         foreach ($organizations as $organization)
         {
@@ -196,8 +109,134 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
             }
         }
 
-        // Resolve primary club names for each shift's credited orgs
-        $all_credited_ids = array_unique(array_merge(...(array_values($credited_org_ids_by_shift) ?: [[]])));
+        $this->annotateShiftsWithCreditedOrgNames($recent_shifts, $organizations, $credited_ids_by_shift);
+
+        return $organizations;
+    }
+
+    private function loadCandidateOrgs(Collection $recent_shifts): Collection
+    {
+        $candidate_org_ids = $recent_shifts->flatMap(function ($shift) {
+            if (!$shift->event_trooper)
+            {
+                return [];
+            }
+
+            return array_merge(
+                array_filter([$shift->event_trooper->organization_id]),
+                $shift->event_trooper->costume_organization_ids ?? []
+            );
+        })->unique()->values()->toArray();
+
+        return $candidate_org_ids
+            ? Organization::whereIn(Organization::ID, $candidate_org_ids)
+                ->get([Organization::ID, Organization::NODE_PATH])
+                ->keyBy(Organization::ID)
+            : collect();
+    }
+
+    private function computeTroopCounts(
+        Collection $recent_shifts,
+        Collection $organizations,
+        Collection $candidate_orgs
+    ): array {
+        $troop_counts = [];
+        $credited_ids_by_shift = [];
+
+        foreach ($recent_shifts as $shift)
+        {
+            if ($shift->event_trooper?->status !== EventTrooperStatus::ATTENDED)
+            {
+                continue;
+            }
+
+            $et = $shift->event_trooper;
+            $credited_ids = $et->organization_id !== null
+                ? $this->creditByExplicitOrg($et, $shift->shift_starts_at, $organizations, $candidate_orgs)
+                : $this->creditByCostumeOrgs($et, $shift->shift_starts_at, $organizations, $candidate_orgs);
+
+            foreach ($credited_ids as $org_id)
+            {
+                $troop_counts[$org_id] = ($troop_counts[$org_id] ?? 0) + 1;
+            }
+            $credited_ids_by_shift[$shift->id] = $credited_ids;
+        }
+
+        return ['troop_counts' => $troop_counts, 'credited_ids_by_shift' => $credited_ids_by_shift];
+    }
+
+    private function creditByExplicitOrg(
+        EventTrooper $et,
+        Carbon $shift_date,
+        Collection $organizations,
+        Collection $candidate_orgs
+    ): array {
+        // Explicit org chosen — credit only the one trooper-org that contains it
+        $match_org = $candidate_orgs->get($et->organization_id);
+        if (!$match_org)
+        {
+            return [];
+        }
+
+        foreach ($organizations as $org)
+        {
+            if (str_starts_with($match_org->node_path, $org->node_path)
+                && $this->wasMemberAt($org, $shift_date))
+            {
+                return [$org->id];
+            }
+        }
+
+        return [];
+    }
+
+    private function creditByCostumeOrgs(
+        EventTrooper $et,
+        Carbon $shift_date,
+        Collection $organizations,
+        Collection $candidate_orgs
+    ): array {
+        $costume_node_paths = collect($et->costume_organization_ids ?? [])
+            ->map(fn ($id) => $candidate_orgs->get($id)?->node_path)
+            ->filter()
+            ->values()
+            ->toArray();
+
+        if (empty($costume_node_paths))
+        {
+            // No costume orgs — credit all orgs the trooper was a member of at the time
+            return $organizations
+                ->filter(fn ($org) => $this->wasMemberAt($org, $shift_date))
+                ->pluck('id')
+                ->all();
+        }
+
+        $credited = [];
+        foreach ($organizations as $org)
+        {
+            if (!$this->wasMemberAt($org, $shift_date))
+            {
+                continue;
+            }
+            foreach ($costume_node_paths as $node_path)
+            {
+                if (str_starts_with($node_path, $org->node_path))
+                {
+                    $credited[] = $org->id;
+                    break; // don't double-count same org from multiple costume orgs
+                }
+            }
+        }
+
+        return $credited;
+    }
+
+    private function annotateShiftsWithCreditedOrgNames(
+        Collection $recent_shifts,
+        Collection $organizations,
+        array $credited_ids_by_shift
+    ): void {
+        $all_credited_ids = array_unique(array_merge(...(array_values($credited_ids_by_shift) ?: [[]])));
         $root_org_ids = collect($all_credited_ids)
             ->map(fn ($id) => $organizations->find($id)?->node_path)
             ->filter()
@@ -218,7 +257,7 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
                 continue;
             }
 
-            $credited_ids = $credited_org_ids_by_shift[$shift->id] ?? [];
+            $credited_ids = $credited_ids_by_shift[$shift->id] ?? [];
             $et->credited_org_names = collect($credited_ids)
                 ->map(fn ($id) => $organizations->find($id)?->node_path)
                 ->filter()
@@ -229,8 +268,6 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
                 ->values()
                 ->all();
         }
-
-        return $organizations;
     }
 
     private function getTaggedUploads(Trooper $trooper): Collection

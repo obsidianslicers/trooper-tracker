@@ -21,9 +21,6 @@ class ShiftCompleteClubControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    // Both org1 and org2 are top-level orgs (no parent_id), so they are their own primary clubs.
-    // Submitting both confirms all credit flows through costume_organization_ids unchanged.
-
     public function test_selecting_all_clubs_confirms_attendance_and_credits_all(): void
     {
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();

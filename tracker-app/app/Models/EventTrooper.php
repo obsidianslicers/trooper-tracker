@@ -274,15 +274,7 @@ class EventTrooper extends BaseEventTrooper
         return $this->trooper->guardian_id === $trooper->id;
     }
 
-    /**
-     * Returns the clubs eligible to receive credit for this troop.
-     *
-     * When the costume has specific org associations (costume_organization_ids),
-     * intersects those with the trooper's active memberships. When the costume
-     * has no org associations (e.g. Handler costumes or costumes not linked to
-     * any OrganizationCostume), falls back to all active memberships so the
-     * club-select can still appear and credit can still be snapshotted.
-     */
+    /** Returns orgs eligible to receive troop credit for this shift. */
     public function getEligibleCreditOrganizations(): Collection
     {
         $costume_org_ids = $this->costume_organization_ids ?? [];
@@ -303,12 +295,7 @@ class EventTrooper extends BaseEventTrooper
         )->get();
     }
 
-    /**
-     * Returns the unique top-level parent orgs for all eligible credit orgs.
-     *
-     * Used to build the club-selection form — troopers think in terms of
-     * "501st Legion" or "Rebel Legion", not individual garrisons or units.
-     */
+    /** Returns unique top-level parent orgs for the eligible credit orgs. */
     public function getEligibleCreditParentOrganizations(): Collection
     {
         return $this->getEligibleCreditOrganizations()
@@ -317,10 +304,7 @@ class EventTrooper extends BaseEventTrooper
             ->values();
     }
 
-    /**
-     * Maps a list of selected top-level parent org IDs back to the child org IDs
-     * that live in costume_organization_ids, so credit is stored at the correct level.
-     */
+    /** Maps selected parent org IDs back to child org IDs stored in costume_organization_ids. */
     public function childOrgIdsForSelectedParents(array $parent_org_ids): array
     {
         return $this->getEligibleCreditOrganizations()
