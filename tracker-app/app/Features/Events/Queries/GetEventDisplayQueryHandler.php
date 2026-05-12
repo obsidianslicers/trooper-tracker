@@ -66,6 +66,7 @@ readonly class GetEventDisplayQueryHandler implements QueryHandlerInterface
 
         $trooper_columns = [
             Trooper::ID,
+            Trooper::LEGAL_NAME,
             Trooper::DISPLAY_NAME,
             Trooper::GUARDIAN_ID,
         ];

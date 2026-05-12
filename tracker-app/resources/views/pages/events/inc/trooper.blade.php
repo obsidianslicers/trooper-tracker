@@ -4,6 +4,8 @@
         <a href="{{ route('service-records.trooper', ['trooper' => $event_trooper->trooper->id]) }}">
             {{ $event_trooper->trooper->display_name }}
         </a>
+        <br/>
+        <span class="text-muted small">{{ $event_trooper->trooper->legal_name }}</span>
         @if($event_trooper->added_by_trooper_id > 0)
             <br />
             <i class="small text-muted">
