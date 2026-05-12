@@ -61,6 +61,17 @@
                         Droid Builders
                     </a>
                 </li>
+                <li class="my-2">
+                    <a href="https://www.saberguild.org"
+                       target="_blank"
+                       rel="noopener">
+                        <img class="me-2 rounded-circle overflow-hidden"
+                             src="{{ url('img/icons/saber-128x128.png') }}"
+                             height="32px"
+                             width="32px" />
+                        Saber Guild
+                    </a>
+                </li>
             </ul>
         </div>
 
