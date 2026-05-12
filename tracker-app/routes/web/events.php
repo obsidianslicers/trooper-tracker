@@ -13,6 +13,7 @@ use App\Http\Controllers\Events\MapController;
 use App\Http\Controllers\Events\MissionBriefAcknowledgeController;
 use App\Http\Controllers\Events\ShareRosterHtmxController;
 use App\Http\Controllers\Events\ShiftCompleteController;
+use App\Http\Controllers\Events\ShiftCompleteClubController;
 use App\Http\Controllers\Events\SignUpHtmxController;
 use App\Http\Controllers\Events\SignUpUpdateHtmxController;
 use App\Http\Controllers\Events\GuestUpdateHtmxController;
@@ -47,4 +48,5 @@ Route::prefix('events')
         Route::post('/update/{event_trooper}/trooper', SignUpUpdateHtmxController::class)->name('signup-update-htmx');
         Route::post('/update/{event_guest}/guest', GuestUpdateHtmxController::class)->name('guest-update-htmx');
         Route::get('/complete/{event_trooper}/{status}', ShiftCompleteController::class)->name('shift-complete');
+        Route::post('/complete/{event_trooper}/club-select', ShiftCompleteClubController::class)->name('shift-complete-club-select');
     });

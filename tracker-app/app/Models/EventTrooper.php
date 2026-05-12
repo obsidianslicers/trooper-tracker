@@ -12,8 +12,10 @@ use App\Models\Concerns\HasTrooperStamps;
 use App\Models\Scopes\HasEventTrooperScopes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Collection;
 use App\Models\Event;
 use App\Models\EventOrganization;
+use App\Models\TrooperAssignment;
 
 /**
  * Represents a trooper's participation in an event shift.
@@ -270,6 +272,57 @@ class EventTrooper extends BaseEventTrooper
         }
 
         return $this->trooper->guardian_id === $trooper->id;
+    }
+
+    /**
+     * Returns the clubs eligible to receive credit for this troop.
+     *
+     * Cross-references the costume's approved organizations with the clubs the
+     * trooper is an active member of. Used to decide whether to prompt the trooper
+     * to select a club when confirming attendance.
+     */
+    public function getEligibleCreditOrganizations(): Collection
+    {
+        $costume_org_ids = $this->costume_organization_ids ?? [];
+
+        if (empty($costume_org_ids))
+        {
+            return collect();
+        }
+
+        return Organization::whereIn('id', $costume_org_ids)
+            ->whereHas('trooper_assignments', fn ($q) =>
+                $q->where(TrooperAssignment::TROOPER_ID, $this->trooper_id)
+                  ->where(TrooperAssignment::IS_MEMBER, true)
+            )
+            ->get();
+    }
+
+    /**
+     * Returns the unique top-level parent orgs for all eligible credit orgs.
+     *
+     * Used to build the club-selection form — troopers think in terms of
+     * "501st Legion" or "Rebel Legion", not individual garrisons or units.
+     */
+    public function getEligibleCreditParentOrganizations(): Collection
+    {
+        return $this->getEligibleCreditOrganizations()
+            ->map(fn ($org) => $org->getPrimaryClub())
+            ->unique('id')
+            ->values();
+    }
+
+    /**
+     * Maps a list of selected top-level parent org IDs back to the child org IDs
+     * that live in costume_organization_ids, so credit is stored at the correct level.
+     */
+    public function childOrgIdsForSelectedParents(array $parent_org_ids): array
+    {
+        return $this->getEligibleCreditOrganizations()
+            ->filter(fn ($org) => in_array($org->getPrimaryClub()->id, $parent_org_ids, true))
+            ->pluck('id')
+            ->values()
+            ->all();
     }
 
     /**
