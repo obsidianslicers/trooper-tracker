@@ -15,8 +15,8 @@
             @forelse($upcoming_shifts as $shift)
                 <div class="col-12 col-md-6 col-lg-4">
                     <div class="card h-100">
-                        <div class="card-body">
-                            <div class="d-flex gap-2 mb-3 align-items-start">
+                        <div class="card-header card-shift-header">
+                            <div class="d-flex gap-2 align-items-start">
                                 <x-logo :storage_path="$shift->event->organization->image_path_sm ?? ''"
                                         :default_path="'img/icons/organization-32x32.png'"
                                         :width="32"
@@ -27,13 +27,15 @@
                                     </a>
                                 </h6>
                             </div>
-
+                        </div>
+                        <div class="card-body">
                             <div class="mb-3">
                                 <small class="text-muted d-block">Date & Time</small>
                                 <p class="mb-0">{{ $shift->full_date_display }}</p>
                                 <p class="text-muted small mb-0">{{ $shift->compact_time_display }}</p>
                             </div>
-
+                        </div>
+                        <div class="card-footer">
                             <div>
                                 <small class="text-muted d-block">Planned Costume</small>
                                 @if($shift->event_trooper->is_handler)
