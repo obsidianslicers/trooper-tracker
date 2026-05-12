@@ -277,25 +277,30 @@ class EventTrooper extends BaseEventTrooper
     /**
      * Returns the clubs eligible to receive credit for this troop.
      *
-     * Cross-references the costume's approved organizations with the clubs the
-     * trooper is an active member of. Used to decide whether to prompt the trooper
-     * to select a club when confirming attendance.
+     * When the costume has specific org associations (costume_organization_ids),
+     * intersects those with the trooper's active memberships. When the costume
+     * has no org associations (e.g. Handler costumes or costumes not linked to
+     * any OrganizationCostume), falls back to all active memberships so the
+     * club-select can still appear and credit can still be snapshotted.
      */
     public function getEligibleCreditOrganizations(): Collection
     {
         $costume_org_ids = $this->costume_organization_ids ?? [];
 
-        if (empty($costume_org_ids))
+        if (!empty($costume_org_ids))
         {
-            return collect();
+            return Organization::whereIn('id', $costume_org_ids)
+                ->whereHas('trooper_assignments', fn ($q) =>
+                    $q->where(TrooperAssignment::TROOPER_ID, $this->trooper_id)
+                      ->where(TrooperAssignment::IS_MEMBER, true)
+                )
+                ->get();
         }
 
-        return Organization::whereIn('id', $costume_org_ids)
-            ->whereHas('trooper_assignments', fn ($q) =>
-                $q->where(TrooperAssignment::TROOPER_ID, $this->trooper_id)
-                  ->where(TrooperAssignment::IS_MEMBER, true)
-            )
-            ->get();
+        return Organization::whereHas('trooper_assignments', fn ($q) =>
+            $q->where(TrooperAssignment::TROOPER_ID, $this->trooper_id)
+              ->where(TrooperAssignment::IS_MEMBER, true)
+        )->get();
     }
 
     /**

@@ -84,6 +84,10 @@ class ShiftCompleteController extends MagicBusController
 
         if ($event_trooper->event_shift->event->can_update_trooper_status)
         {
+            $valid_data = [
+                EventTrooper::STATUS => $trooper_status,
+            ];
+
             if (
                 $trooper_status === EventTrooperStatus::ATTENDED
                 && $event_trooper->organization_id === null
@@ -98,11 +102,16 @@ class ShiftCompleteController extends MagicBusController
                         'encrypted_status' => $status,
                     ]);
                 }
-            }
 
-            $valid_data = [
-                EventTrooper::STATUS => $trooper_status,
-            ];
+                if (empty($event_trooper->costume_organization_ids))
+                {
+                    $eligible_orgs = $event_trooper->getEligibleCreditOrganizations();
+                    if ($eligible_orgs->isNotEmpty())
+                    {
+                        $valid_data[EventTrooper::COSTUME_ORGANIZATION_IDS] = $eligible_orgs->pluck('id')->values()->all();
+                    }
+                }
+            }
 
             $event_trooper_cmd = new UpdateEventTrooperCommand($event_trooper, $valid_data);
 

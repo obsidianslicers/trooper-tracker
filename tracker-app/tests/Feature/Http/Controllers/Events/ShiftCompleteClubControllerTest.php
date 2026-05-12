@@ -211,6 +211,48 @@ class ShiftCompleteClubControllerTest extends TestCase
         $this->assertSame(EventTrooperStatus::GOING, $event_trooper->fresh()->status);
     }
 
+    public function test_empty_costume_orgs_club_select_credits_selected_clubs(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $org1 = Organization::factory()->create();
+        $org2 = Organization::factory()->create();
+
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org1)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org2)->asMember()->create();
+
+        $event = Event::factory()->withOrganization($org1)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->asGoing()
+            ->create(['is_handler' => true]);
+
+        // No costume_organization_ids — eligible orgs come from memberships
+        DB::table('tt_event_troopers')
+            ->where('id', $event_trooper->id)
+            ->update(['costume_organization_ids' => null]);
+        $event_trooper->refresh();
+
+        $encrypted_status = Crypt::encryptString(EventTrooperStatus::ATTENDED->value);
+
+        // Select only org1 — org2 should not receive credit
+        $response = $this->actingAs($trooper)->post(route('events.shift-complete-club-select', [
+            'event_trooper' => $event_trooper->id,
+        ]), [
+            'encrypted_status' => $encrypted_status,
+            'organization_ids' => [$org1->id],
+        ]);
+
+        $response->assertOk();
+        $response->assertViewIs('pages.events.shift-complete');
+
+        $fresh = $event_trooper->fresh();
+        $this->assertSame(EventTrooperStatus::ATTENDED, $fresh->status);
+        $this->assertNull($fresh->organization_id);
+        $this->assertSame([$org1->id], $fresh->costume_organization_ids);
+    }
+
     public function test_invalid_encrypted_status_returns_404(): void
     {
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();

@@ -42,7 +42,17 @@
                                     <p class="mb-0">Handler</p>
                                 @elseif($shift->event_trooper->costume)
                                     <p class="mb-0"><strong>{{ $shift->event_trooper->costume->name }}</strong></p>
-                                    <p class="small text-muted mb-0">{{ $shift->event_trooper->costume_organizations }}</p>
+                                    @if(empty($shift->event_trooper->credited_org_names))
+                                        <p class="small text-muted mb-0">{{ $shift->event_trooper->costume_organizations }}</p>
+                                    @endif
+                                @endif
+                                @if(!empty($shift->event_trooper->credited_org_names))
+                                    <div class="mt-1">
+                                        <small class="text-muted d-block">Credited To</small>
+                                        @foreach($shift->event_trooper->credited_org_names as $org_name)
+                                            <span class="badge bg-secondary me-1">{{ $org_name }}</span>
+                                        @endforeach
+                                    </div>
                                 @endif
                             </div>
                         </div>
@@ -95,14 +105,19 @@
                                 Handler
                             @else
                                 @if($shift->event_trooper->costume != null)
-                                    <b>
-                                        {{ $shift->event_trooper->costume->name }}
-                                    </b>
-                                    <br />
-                                    <i class="small text-muted">
-                                        {{ $shift->event_trooper->costume_organizations }}
-                                    </i>
+                                    <b>{{ $shift->event_trooper->costume->name }}</b>
+                                    @if(empty($shift->event_trooper->credited_org_names))
+                                        <br /><i class="small text-muted">{{ $shift->event_trooper->costume_organizations }}</i>
+                                    @endif
                                 @endif
+                            @endif
+                            @if(!empty($shift->event_trooper->credited_org_names))
+                                <div style="white-space: normal;" class="mt-1">
+                                    <small class="text-muted d-block">Credited To</small>
+                                    @foreach($shift->event_trooper->credited_org_names as $org_name)
+                                        <span class="badge bg-secondary me-1">{{ $org_name }}</span>
+                                    @endforeach
+                                </div>
                             @endif
                         </td>
                     </tr>

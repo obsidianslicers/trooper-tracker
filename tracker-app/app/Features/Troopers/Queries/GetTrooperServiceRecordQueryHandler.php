@@ -111,6 +111,7 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
             : collect();
 
         $troop_counts = [];
+        $credited_org_ids_by_shift = [];
         foreach ($recent_shifts as $shift)
         {
             if ($shift->event_trooper?->status !== EventTrooperStatus::ATTENDED)
@@ -134,6 +135,7 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
                         && $this->wasMemberAt($org, $shift->shift_starts_at))
                     {
                         $troop_counts[$org->id] = ($troop_counts[$org->id] ?? 0) + 1;
+                        $credited_org_ids_by_shift[$shift->id][] = $org->id;
                         break;
                     }
                 }
@@ -155,6 +157,7 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
                         if ($this->wasMemberAt($org, $shift->shift_starts_at))
                         {
                             $troop_counts[$org->id] = ($troop_counts[$org->id] ?? 0) + 1;
+                            $credited_org_ids_by_shift[$shift->id][] = $org->id;
                         }
                     }
 
@@ -172,6 +175,7 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
                         if (str_starts_with($node_path, $org->node_path))
                         {
                             $troop_counts[$org->id] = ($troop_counts[$org->id] ?? 0) + 1;
+                            $credited_org_ids_by_shift[$shift->id][] = $org->id;
                             break; // don't double-count same org from multiple costume orgs
                         }
                     }
@@ -190,6 +194,40 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
                     $organization->assignment = $assignment;
                 }
             }
+        }
+
+        // Resolve primary club names for each shift's credited orgs
+        $all_credited_ids = array_unique(array_merge(...(array_values($credited_org_ids_by_shift) ?: [[]])));
+        $root_org_ids = collect($all_credited_ids)
+            ->map(fn ($id) => $organizations->find($id)?->node_path)
+            ->filter()
+            ->map(fn ($np) => (int) explode(':', $np)[0])
+            ->unique()
+            ->all();
+
+        $root_org_names = $root_org_ids
+            ? Organization::whereIn(Organization::ID, $root_org_ids)
+                ->pluck(Organization::NAME, Organization::ID)
+            : collect();
+
+        foreach ($recent_shifts as $shift)
+        {
+            $et = $shift->event_trooper;
+            if (!$et)
+            {
+                continue;
+            }
+
+            $credited_ids = $credited_org_ids_by_shift[$shift->id] ?? [];
+            $et->credited_org_names = collect($credited_ids)
+                ->map(fn ($id) => $organizations->find($id)?->node_path)
+                ->filter()
+                ->map(fn ($np) => $root_org_names[(int) explode(':', $np)[0]] ?? null)
+                ->filter()
+                ->unique()
+                ->sort()
+                ->values()
+                ->all();
         }
 
         return $organizations;
