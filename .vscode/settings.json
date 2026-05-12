@@ -44,5 +44,56 @@
     "bladeFormatter.format.wrapAttributes": "force-aligned",
     "bladeFormatter.format.wrapLineLength": 150,
     "bladeFormatter.format.indentSize": 2,
-    "bladeFormatter.format.useTabs": false
+    "bladeFormatter.format.useTabs": false,
+    "[svelte]": {
+        "editor.defaultFormatter": "svelte.svelte-vscode",
+        "editor.codeActionsOnSave": {
+            "source.fixAll.eslint": "explicit",
+            "source.organizeImports": "explicit"
+        },
+        "editor.tabSize": 4,
+        "editor.insertSpaces": true,
+        "editor.formatOnSave": true,
+        "editor.wrappingIndent": "indent",
+        "editor.wrappingStrategy": "simple",
+        "editor.wordWrap": "wordWrapColumn",
+        "editor.wordWrapColumn": 120,
+        "editor.rulers": [
+            120
+        ]
+    },
+    "[typescript]": {
+        "editor.defaultFormatter": "vscode.typescript-language-features",
+        "editor.codeActionsOnSave": {
+            "source.fixAll.eslint": "explicit",
+            "source.organizeImports": "explicit"
+        },
+        "editor.tabSize": 4,
+        "editor.insertSpaces": true,
+        "editor.formatOnSave": true,
+        "editor.wrappingIndent": "indent",
+        "editor.wrappingStrategy": "simple",
+        "editor.wordWrap": "wordWrapColumn",
+        "editor.wordWrapColumn": 120,
+        "editor.rulers": [
+            120
+        ]
+    },
+    "[markdown]": {
+        "editor.tabSize": 4,
+        "editor.insertSpaces": true,
+        "editor.formatOnSave": true,
+        "editor.wordWrap": "wordWrapColumn",
+        "editor.wordWrapColumn": 80,
+        "editor.rulers": [
+            80
+        ],
+        "editor.quickSuggestions": {
+            "comments": "off",
+            "strings": "off",
+            "other": "off"
+        },
+        "editor.unicodeHighlight.ambiguousCharacters": false,
+        "editor.renderWhitespace": "none"
+    }
 }
