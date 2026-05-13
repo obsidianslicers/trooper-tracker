@@ -38,6 +38,7 @@ class Costume extends Model
     use SoftDeletes;
     const ID = 'id';
     const NAME = 'name';
+    const SEQUENCE = 'sequence';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
     const DELETED_AT = 'deleted_at';
@@ -48,6 +49,7 @@ class Costume extends Model
 
     protected $casts = [
         self::ID => 'int',
+        self::SEQUENCE => 'int',
         self::CREATED_AT => 'datetime',
         self::UPDATED_AT => 'datetime',
         self::CREATED_ID => 'int',
@@ -56,7 +58,8 @@ class Costume extends Model
     ];
 
     protected $fillable = [
-        self::NAME
+        self::NAME,
+        self::SEQUENCE,
     ];
 
     public function event_troopers(): HasMany

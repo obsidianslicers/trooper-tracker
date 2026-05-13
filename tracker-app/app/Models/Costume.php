@@ -30,4 +30,18 @@ class Costume extends BaseCostume
     {
         return $this->hasMany(OrganizationCostume::class);
     }
+
+    public static function resequenceAll(): void
+    {
+        $costumes = self::orderBy(self::NAME)->get();
+
+        $seq = 0;
+
+        foreach ($costumes as $costume)
+        {
+            $seq += 100;
+
+            $costume->updateQuietly([self::SEQUENCE => $seq]);
+        }
+    }
 }
