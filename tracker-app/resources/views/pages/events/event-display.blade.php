@@ -79,7 +79,14 @@
 
                     <div class="row pb-3 mb-3 border-bottom">
                         <div class="col-12">
-                            {{ $event->time_display }}
+                            @if($event->event_shifts->count() == 1)
+                                {{ $event->time_display }}
+                            @else
+                                {{ $event->full_date_display }}
+                                <span class="text-muted ps-3">
+                                    ** {{ $event->event_shifts->count() }} shifts available **
+                                </span>
+                            @endif
                         </div>
                     </div>
 

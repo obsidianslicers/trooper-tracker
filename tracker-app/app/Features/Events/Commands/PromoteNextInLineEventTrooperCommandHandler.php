@@ -24,6 +24,10 @@ readonly class PromoteNextInLineEventTrooperCommandHandler implements CommandHan
         $event_trooper = $message->event_trooper;
         $event_shift = $event_trooper->event_shift;
 
+        // When is_handler was just changed on the model, use the override to search
+        // the correct (old) pool rather than the newly-set value.
+        $is_handler = $message->override_is_handler ?? $event_trooper->is_handler;
+
         // Use the explicit org if set, otherwise use the effective org inferred
         // from the costume (passed by the caller or resolved here).
         $org_id = $message->effective_org_id
@@ -39,7 +43,7 @@ readonly class PromoteNextInLineEventTrooperCommandHandler implements CommandHan
         {
             $next_in_line = $event_shift->event_troopers()
                 ->where(EventTrooper::STATUS, EventTrooperStatus::STAND_BY)
-                ->where(EventTrooper::IS_HANDLER, $event_trooper->is_handler)
+                ->where(EventTrooper::IS_HANDLER, $is_handler)
                 ->where(function ($q) use ($org_id) {
                     $q->where(EventTrooper::ORGANIZATION_ID, $org_id)
                         ->orWhereJsonContains(EventTrooper::COSTUME_ORGANIZATION_IDS, $org_id);
@@ -54,7 +58,7 @@ readonly class PromoteNextInLineEventTrooperCommandHandler implements CommandHan
         {
             $next_in_line = $event_shift->event_troopers()
                 ->where(EventTrooper::STATUS, EventTrooperStatus::STAND_BY)
-                ->where(EventTrooper::IS_HANDLER, $event_trooper->is_handler)
+                ->where(EventTrooper::IS_HANDLER, $is_handler)
                 ->orderBy(EventTrooper::SIGNED_UP_AT)
                 ->first();
         }

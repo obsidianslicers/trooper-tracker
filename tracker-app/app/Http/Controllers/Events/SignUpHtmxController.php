@@ -48,7 +48,11 @@ class SignUpHtmxController extends MagicBusController
 
         $signed_up = false;
 
-        if ($event_shift->canSignUp($trooper))
+        $can_add_friend = !$request->has('trooper_id')
+            || $auth_trooper->can('update', $event_shift->event)
+            || $event_shift->canSignUpTrooper($auth_trooper);
+
+        if ($can_add_friend && $event_shift->canSignUp($trooper))
         {
             $organization_id = $request->input('organization_id') ? (int) $request->input('organization_id') : null;
 

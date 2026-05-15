@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\EventTrooperStatus;
+use App\Enums\MembershipRole;
 use App\Models\Base\EventTrooper as BaseEventTrooper;
 use App\Models\Concerns\HasAuditTrail;
 use App\Models\Concerns\HasObserver;
@@ -128,6 +129,11 @@ class EventTrooper extends BaseEventTrooper
      */
     public function getCostumes(): array
     {
+        if ($this->trooper->membership_role === MembershipRole::HANDLER)
+        {
+            return Costume::where('name', Costume::HANDLER)->pluck('name', 'id')->toArray();
+        }
+
         $event_shift = $this->event_shift;
 
         $organization_ids = $this->organization_id !== null
@@ -234,7 +240,7 @@ class EventTrooper extends BaseEventTrooper
      */
     public function canUpdateCostume(EventShift $event_shift, Trooper $trooper): bool
     {
-        if (!$this->is_handler && $event_shift->is_open)
+        if ($event_shift->is_open)
         {
             return $this->hasOwnership($trooper);
         }

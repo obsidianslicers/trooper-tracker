@@ -4,6 +4,8 @@
         <a href="{{ route('service-records.trooper', ['trooper' => $event_trooper->trooper->id]) }}">
             {{ $event_trooper->trooper->display_name }}
         </a>
+        <br/>
+        <span class="text-muted small">{{ $event_trooper->trooper->legal_name }}</span>
         @if($event_trooper->added_by_trooper_id > 0)
             <br />
             <i class="small text-muted">
@@ -40,7 +42,9 @@
                             :placeholder="'-- Select Costume --'"
                             hx-post="{{ route('events.signup-update-htmx', compact('event_trooper')) }}"
                             hx-indicator="#transmission-bar-shift-{{ $event_trooper->event_shift->id }}"
-                            hx-swap="none"
+                            hx-select="#shift-container-{{ $event_trooper->event_shift->id }}"
+                            hx-target="#shift-container-{{ $event_trooper->event_shift->id }}"
+                            hx-swap="outerHTML"
                             class="form-select-sm mt-2 mt-md-0" />
             <x-input-select :property="'backup_costume_id'"
                             :options="$event_trooper->costumes"

@@ -26,6 +26,11 @@ class Costume extends BaseCostume
      *
      * @return HasMany<OrganizationCostume>
      */
+    public function countsAsHandler(): bool
+    {
+        return in_array($this->name, [self::HANDLER, self::COMMAND_STAFF]);
+    }
+
     public function organization_costumes(): HasMany
     {
         return $this->hasMany(OrganizationCostume::class);

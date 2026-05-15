@@ -17,7 +17,7 @@
             @endif
         @endif
         <div class="row my-3">
-            <div class="col-12 d-grid d-md-block text-md-end gap-2">
+            <div class="col-12 d-flex flex-column flex-md-row justify-content-md-end align-items-md-center gap-2">
                 @include('pages.events.inc.shift-add-trooper', compact('event_shift', 'event'))
             </div>
         </div>

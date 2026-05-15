@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Events;
 
+use App\Enums\EventTrooperStatus;
 use App\Models\Event;
 use App\Models\EventOrganization;
 use App\Models\EventShift;
@@ -73,5 +74,28 @@ class SignUpHtmxControllerTest extends TestCase
         $response = $this->post(route('events.signup-htmx', ['event_shift' => $event_shift->id]));
 
         $response->assertRedirect(route('auth.login'));
+    }
+
+    public function test_invoke_does_not_sign_up_friend_when_auth_trooper_not_going(): void
+    {
+        $auth_trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $friend = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $organization = Organization::factory()->create();
+
+        TrooperAssignment::factory()->forTrooper($auth_trooper)->forOrganization($organization)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($friend)->forOrganization($organization)->asMember()->create();
+
+        $event = Event::factory()->withOrganization($organization)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        $this->actingAs($auth_trooper)->post(
+            route('events.signup-htmx', ['event_shift' => $event_shift->id]),
+            ['trooper_id' => $friend->id]
+        )->assertOk();
+
+        $this->assertDatabaseMissing('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $friend->id,
+            EventTrooper::EVENT_SHIFT_ID => $event_shift->id,
+        ]);
     }
 }

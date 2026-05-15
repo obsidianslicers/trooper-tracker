@@ -17,7 +17,7 @@
         <div class="col-xl-4 col-md-6">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-header bg-dark text-white text-uppercase small fw-bold">
-                    <i class="fa-solid fa-chart-pie me-2"></i> Organization Dominance
+                    <i class="fa-solid fa-chart-pie me-2"></i> Organization Activity
                 </div>
                 <div class="card-body">
                     @foreach($leaderboard['dominance'] as $organization)
