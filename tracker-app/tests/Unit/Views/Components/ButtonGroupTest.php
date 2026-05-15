@@ -13,7 +13,7 @@ class ButtonGroupTest extends TestCase
     {
         $subject = Blade::render('<x-button-group>Buttons</x-button-group>');
 
-        $this->assertStringContainsString('btn-group', $subject);
+        $this->assertStringContainsString('d-flex', $subject);
         $this->assertStringContainsString('mb-3', $subject);
         $this->assertStringContainsString('Buttons', $subject);
     }
