@@ -23,7 +23,8 @@
                                    class="form-control form-control-sm"
                                    style="min-width: 180px;"
                                    aria-label="Search" />
-                            <button type="submit" class="btn btn-outline-secondary btn-sm">
+                            <button type="submit"
+                                    class="btn btn-outline-secondary btn-sm">
                                 <i class="fa fa-fw fa-search"></i>
                             </button>
                         </div>
@@ -38,15 +39,20 @@
                         Forum
                     </x-nav-link>
                 @endif
-                @role(['administrator', 'moderator'])
-                <x-nav-link :url="route('admin.display')"
-                            :active="request()->routeIs('admin.*')">
-                    Command Staff
-                </x-nav-link>
-                @endrole
 
-                @include('partials.inc.navbar-notifications')
+                @auth
+                @include('partials.inc.navbar-account')
+                @role(['administrator', 'moderator'])
+                    <x-nav-link :url="route('admin.display')"
+                                :active="request()->routeIs('admin.*')">
+                        <span class="text-warning">
+                            Command Staff
+                        </span>
+                    </x-nav-link>
+                    @endrole
+                @else
                 @include('partials.inc.navbar-auth')
+                @endauth
 
             </ul>
         </div>
