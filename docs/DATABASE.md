@@ -375,6 +375,7 @@ Purpose: Costume catalog.
 | --- | --- | --- | --- |
 | id | bigint unsigned | no | PK, auto increment |
 | name | varchar(128) | no | unique |
+| sequence | integer | no | default 0 |
 | created_at | timestamp | yes | timestamps helper |
 | updated_at | timestamp | yes | timestamps helper |
 | deleted_at | timestamp | yes | softDeletes helper |
@@ -447,6 +448,8 @@ Purpose: Organization-specific costume approvals.
 | created_id | bigint unsigned | yes | trooperstamps helper |
 | updated_id | bigint unsigned | yes | trooperstamps helper |
 | deleted_id | bigint unsigned | yes | trooperstamps helper |
+
+Unique: (organization_id, costume_id)
 
 Relationships:
 
@@ -541,6 +544,8 @@ Purpose: Trooper-owned organization-approved costumes.
 | created_id | bigint unsigned | yes | trooperstamps helper |
 | updated_id | bigint unsigned | yes | trooperstamps helper |
 | deleted_id | bigint unsigned | yes | trooperstamps helper |
+
+Unique: (trooper_id, organization_costume_id)
 
 Relationships:
 
@@ -744,6 +749,8 @@ Purpose: Trooper signups per event shift.
 | created_id | bigint unsigned | yes | trooperstamps helper |
 | updated_id | bigint unsigned | yes | trooperstamps helper |
 | deleted_id | bigint unsigned | yes | trooperstamps helper |
+
+Unique: (event_shift_id, trooper_id)
 
 Relationships:
 
