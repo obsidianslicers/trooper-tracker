@@ -91,8 +91,7 @@ class ShiftCompleteController extends MagicBusController
             if (
                 $trooper_status === EventTrooperStatus::ATTENDED
                 && $event_trooper->organization_id === null
-            )
-            {
+            ) {
                 $parent_organizations = $event_trooper->getEligibleCreditParentOrganizations();
 
                 if ($parent_organizations->count() > 1)
