@@ -12,8 +12,9 @@ use Illuminate\Http\RedirectResponse;
 /**
  * Handles submission of the form for creating a new costume.
  *
- * An invokable controller that validates the request, creates a new costume,
- * and redirects to the update page with a success message.
+ * An invokable controller that validates the request via CreateRequest,
+ * persists the new costume, and redirects to the update page with a success
+ * flash message.
  */
 class CreateSubmitController extends MagicBusController
 {

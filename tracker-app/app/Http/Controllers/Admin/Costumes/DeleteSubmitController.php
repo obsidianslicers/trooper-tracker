@@ -16,12 +16,22 @@ use Illuminate\Support\Facades\DB;
 /**
  * Handles deletion of a costume from the admin interface.
  *
- * Nulls out references on EventTrooper rows (preserving costume_organization_ids
- * so historical troop credit is retained), soft-deletes OrganizationCostume and
- * TrooperCostume child records, then soft-deletes the Costume itself.
+ * Authorizes deletion, nulls out primary and backup costume references on
+ * EventTrooper rows (preserving costume_organization_ids for historical
+ * troop credit), soft-deletes related OrganizationCostume and TrooperCostume
+ * records in a database transaction, then soft-deletes the Costume itself.
+ * Redirects to the costumes list with a success message.
  */
 class DeleteSubmitController extends MagicBusController
 {
+    /**
+     * Executes costume deletion with referential cleanup.
+     *
+     * Within a database transaction, this method nulls out costume references
+     * on event troopers (preserving historical organization data), soft-deletes
+     * all related organization and trooper costume records, and soft-deletes
+     * the costume.
+     */
     public function __invoke(Request $request, Costume $costume): RedirectResponse
     {
         $this->authorize('delete', $costume);
@@ -30,7 +40,8 @@ class DeleteSubmitController extends MagicBusController
 
         $costume_name = $costume->name;
 
-        DB::transaction(function () use ($costume) {
+        DB::transaction(function () use ($costume)
+        {
             $org_costume_ids = OrganizationCostume::query()
                 ->where(OrganizationCostume::COSTUME_ID, $costume->id)
                 ->pluck(OrganizationCostume::ID);

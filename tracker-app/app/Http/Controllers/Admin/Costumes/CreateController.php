@@ -27,12 +27,10 @@ class CreateController extends MagicBusController
     }
 
     /**
-     * Handle the request to display the costume creation page.
+     * Displays the costume creation form.
      *
-     * Authorizes the user, initializes a new Costume instance, and renders
-     * the costume creation form.
-     *
-     * @return View The rendered costume creation view.
+     * Authorizes the authenticated trooper, initializes a new Costume instance,
+     * and renders the creation form.
      */
     public function __invoke(Request $request): View
     {

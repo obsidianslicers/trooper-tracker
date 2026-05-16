@@ -14,7 +14,7 @@ use Illuminate\Http\Request;
  * Displays the form for updating an existing costume.
  *
  * An invokable controller that authorizes the user, retrieves the costume,
- * and renders the costume update form with appropriate breadcrumbs.
+ * and renders the costume update form with available organization assignments.
  */
 class UpdateController extends MagicBusController
 {
@@ -28,13 +28,11 @@ class UpdateController extends MagicBusController
     }
 
     /**
-     * Handle the request to display the costume update page.
+     * Displays the costume update form.
      *
-     * Authorizes the user, retrieves the costume, and renders the costume
-     * update form.
-     *
-     * @param  Costume  $costume  The costume to be updated (route model binding).
-     * @return View The rendered costume update view.
+     * Authorizes the user, loads the costume with its current organizations,
+     * retrieves all available organizations (augmented with assignment status),
+     * and renders the update form.
      */
     public function __invoke(Request $request, Costume $costume): View
     {

@@ -13,20 +13,18 @@ use Illuminate\Http\RedirectResponse;
 /**
  * Handles submission of the form for updating an existing costume.
  *
- * An invokable controller that validates the request, updates the costume's
- * name, and redirects to the costume list page.
+ * An invokable controller that validates the request, updates the costume
+ * and its organization assignments, then redirects to the costumes list.
  */
 class UpdateSubmitController extends MagicBusController
 {
     /**
-     * Handle the incoming request to update a costume.
+     * Processes the costume update submission.
      *
-     * Validates the request, updates the costume's name, saves it,
-     * and redirects to the costume list with a success message.
-     *
-     * @param  UpdateRequest  $request  The validated request containing the updated data.
-     * @param  Costume  $costume  The costume to be updated (route model binding).
-     * @return RedirectResponse A redirect response to the costume list.
+     * Validates the request via UpdateRequest, updates the costume's name,
+     * synchronizes organization assignments (removing unselected organizations,
+     * restoring or creating newly selected ones), and redirects to the list
+     * with a success flash message.
      */
     public function __invoke(UpdateRequest $request, Costume $costume): RedirectResponse
     {

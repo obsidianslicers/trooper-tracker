@@ -14,6 +14,9 @@ use Illuminate\Http\Request;
 
 /**
  * Displays the confirmation page for deleting a costume.
+ *
+ * Verifies deletion is permitted and calculates referential counts before
+ * displaying the deletion confirmation form.
  */
 class DeleteController extends MagicBusController
 {
@@ -23,6 +26,13 @@ class DeleteController extends MagicBusController
         $this->crumbs->addRoute('Costumes', 'admin.costumes.list');
     }
 
+    /**
+     * Displays the costume deletion confirmation.
+     *
+     * Authorizes deletion, verifies the costume is not used as a handler,
+     * counts referential records (event troopers and trooper costumes),
+     * and renders the confirmation view.
+     */
     public function __invoke(Request $request, Costume $costume): View
     {
         $this->authorize('delete', $costume);
