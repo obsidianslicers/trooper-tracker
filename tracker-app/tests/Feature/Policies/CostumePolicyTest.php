@@ -34,10 +34,12 @@ class CostumePolicyTest extends TestCase
         $policy = new CostumePolicy;
 
         $administrator = Trooper::factory()->asAdministrator()->create();
+        $moderator = Trooper::factory()->asModerator()->create();
         $member = Trooper::factory()->asMember()->create();
         $costume = Costume::factory()->create();
 
         $this->assertTrue($policy->delete($administrator, $costume));
+        $this->assertFalse($policy->delete($moderator, $costume));
         $this->assertFalse($policy->delete($member, $costume));
     }
 
