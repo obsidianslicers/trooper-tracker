@@ -28,6 +28,10 @@
                         :active="request()->routeIs('service-records.command-staff')">
                 Command Staff
             </x-nav-link>
+            <x-nav-link :url="route('service-records.photo-gallery')"
+                        :active="request()->routeIs('service-records.photo-gallery')">
+                Photo Gallery
+            </x-nav-link>
         </ul>
     </li>
 @endauth
