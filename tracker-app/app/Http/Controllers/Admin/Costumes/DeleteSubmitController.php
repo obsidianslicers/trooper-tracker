@@ -61,8 +61,6 @@ class DeleteSubmitController extends MagicBusController
             $costume->delete();
         });
 
-        Costume::resequenceAll();
-
         $this->flash->success("Deleted costume '{$costume_name}'");
 
         return redirect()->route('admin.costumes.list');
