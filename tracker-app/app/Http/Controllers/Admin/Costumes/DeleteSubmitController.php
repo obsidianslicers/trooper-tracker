@@ -40,8 +40,7 @@ class DeleteSubmitController extends MagicBusController
 
         $costume_name = $costume->name;
 
-        DB::transaction(function () use ($costume)
-        {
+        DB::transaction(function () use ($costume) {
             $org_costume_ids = OrganizationCostume::query()
                 ->where(OrganizationCostume::COSTUME_ID, $costume->id)
                 ->pluck(OrganizationCostume::ID);
