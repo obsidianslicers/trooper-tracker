@@ -24,6 +24,10 @@
                         :active="request()->routeIs('service-records.achievements')">
                 Achievements
             </x-nav-link>
+            <x-nav-link :url="route('service-records.photo-gallery')"
+                        :active="request()->routeIs('service-records.photo-gallery')">
+                Photo Gallery
+            </x-nav-link>
             <x-nav-link :url="route('service-records.command-staff')"
                         :active="request()->routeIs('service-records.command-staff')">
                 Command Staff
