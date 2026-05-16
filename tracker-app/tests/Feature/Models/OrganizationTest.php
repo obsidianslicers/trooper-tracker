@@ -9,7 +9,6 @@ use App\Models\Organization;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Tests\TestCase;
 
 class OrganizationTest extends TestCase
@@ -33,11 +32,11 @@ class OrganizationTest extends TestCase
         $this->assertInstanceOf(BelongsTo::class, $subject->parent());
     }
 
-    public function test_event_troopers_relationship_returns_has_many_through(): void
+    public function test_event_troopers_relationship_returns_has_many(): void
     {
         $subject = Organization::factory()->create();
 
-        $this->assertInstanceOf(HasManyThrough::class, $subject->event_troopers());
+        $this->assertInstanceOf(HasMany::class, $subject->event_troopers());
     }
 
     public function test_event_organizations_relationship_returns_has_many(): void
