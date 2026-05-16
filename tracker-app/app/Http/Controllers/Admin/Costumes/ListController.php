@@ -11,11 +11,10 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 /**
- * Class ListController
- *
  * Handles the display of the main costumes list in the admin section.
- * This controller fetches and displays a list of costumes with their assignment
- * status for the authenticated user.
+ *
+ * Retrieves and displays all costumes with their organization assignments,
+ * ordered alphabetically.
  */
 class ListController extends MagicBusController
 {
@@ -25,13 +24,10 @@ class ListController extends MagicBusController
     }
 
     /**
-     * Handle the request to display the costumes list page
+     * Displays the costumes list.
      *
-     * Sets up breadcrumbs, retrieves costumes with assignment data for the
-     * authenticated user, and returns the list view.
-     *
-     * @param  Request  $request  The incoming HTTP request object
-     * @return View The rendered costumes list view
+     * Retrieves all costumes with their assigned organizations (ordered by name)
+     * and renders the costumes list view.
      */
     public function __invoke(Request $request): View
     {

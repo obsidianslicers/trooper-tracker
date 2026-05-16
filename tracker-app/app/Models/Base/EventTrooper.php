@@ -17,7 +17,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Class EventTrooper
- *
+ * 
  * @property int $id
  * @property int $event_shift_id
  * @property int $trooper_id
@@ -38,9 +38,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $deleted_id
  * 
  * @property Trooper $trooper
- * @property Organization|null $organization
  * @property Costume|null $costume
  * @property EventShift $event_shift
+ * @property Organization|null $organization
  *
  * @package App\Models\Base
  */
@@ -105,11 +105,6 @@ class EventTrooper extends Model
         return $this->belongsTo(Trooper::class);
     }
 
-    public function organization(): BelongsTo
-    {
-        return $this->belongsTo(Organization::class);
-    }
-
     public function costume(): BelongsTo
     {
         return $this->belongsTo(Costume::class);
@@ -118,5 +113,10 @@ class EventTrooper extends Model
     public function event_shift(): BelongsTo
     {
         return $this->belongsTo(EventShift::class);
+    }
+
+    public function organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class);
     }
 }

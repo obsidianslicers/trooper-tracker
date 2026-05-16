@@ -8,6 +8,7 @@ use App\Enums\AwardFrequency;
 use App\Models\Base\Award as BaseAward;
 use App\Models\Concerns\HasFilter;
 use App\Models\Concerns\HasTrooperStamps;
+use App\Models\AwardTrooper;
 use App\Models\Pivots\AwardTrooperPivot;
 use App\Models\Scopes\HasAwardScopes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -46,6 +47,8 @@ class Award extends BaseAward
      */
     public function troopers(): BelongsToMany
     {
-        return parent::troopers()->using(AwardTrooperPivot::class);
+        return parent::troopers()
+            ->using(AwardTrooperPivot::class)
+            ->wherePivotNull(AwardTrooper::DELETED_AT);
     }
 }

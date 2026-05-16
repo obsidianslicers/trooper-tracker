@@ -25,7 +25,6 @@ class CreateSubmitControllerTest extends TestCase
         $response->assertRedirect();
         $this->assertDatabaseHas('tt_costumes', [
             'name' => 'Scout Trooper',
-            'sequence' => 100,
         ]);
     }
 

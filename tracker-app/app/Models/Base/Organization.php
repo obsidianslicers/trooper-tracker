@@ -9,6 +9,7 @@ namespace App\Models\Base;
 use App\Models\Award;
 use App\Models\Costume;
 use App\Models\Event;
+use App\Models\EventTrooper;
 use App\Models\Notice;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
@@ -58,6 +59,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property \App\Models\Organization|null $organization
  * @property Collection|Award[] $awards
  * @property Collection|Event[] $events
+ * @property Collection|EventTrooper[] $event_troopers
  * @property Collection|Notice[] $notices
  * @property Collection|Costume[] $costumes
  * @property Collection|\App\Models\Organization[] $organizations
@@ -76,7 +78,6 @@ class Organization extends Model
     const DEPTH = 'depth';
     const SEQUENCE = 'sequence';
     const NODE_PATH = 'node_path';
-    const NODE_PATH_SEP = ':';
     const CAN_ATTEND_DEFAULT = 'can_attend_default';
     const REQUIRES_GUARDIAN = 'requires_guardian';
     const IDENTIFIER_DISPLAY = 'identifier_display';
@@ -159,6 +160,11 @@ class Organization extends Model
     public function events(): HasMany
     {
         return $this->hasMany(Event::class, Event::PRIMARY_ORGANIZATION_ID);
+    }
+
+    public function event_troopers(): HasMany
+    {
+        return $this->hasMany(EventTrooper::class);
     }
 
     public function notices(): HasMany
