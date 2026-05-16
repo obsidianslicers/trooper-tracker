@@ -84,4 +84,79 @@ class GetTrooperServiceRecordQueryHandlerTest extends TestCase
         $this->assertCount(1, $result['all_donations']);
         $this->assertCount(1, $result['awards']);
     }
+
+    // -------------------------------------------------------------------------
+    // troop_count attribution
+    // -------------------------------------------------------------------------
+
+    public function test_invoke_troop_count_rule1_credits_org_from_explicit_organization_id(): void
+    {
+        $trooper = Trooper::factory()->asMember()->create();
+        $org     = Organization::factory()->asOrganization()->withNodePath('100')->create();
+        TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($org)->create();
+
+        $event = Event::factory()->asClosed()->create();
+        $shift = EventShift::factory()->forEvent($event)->asClosed()->withShiftStartsAt(now()->subDays(5))->create();
+        EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asAttended()
+            ->state(fn () => [EventTrooper::ORGANIZATION_ID => $org->id])->create();
+
+        $subject = new GetTrooperServiceRecordQueryHandler();
+        $result  = $subject(new GetTrooperServiceRecordQuery($trooper->id));
+
+        $this->assertSame(1, $result['trooper_organizations']->first()->troop_count);
+    }
+
+    public function test_invoke_troop_count_rule2_credits_org_from_costume_organization_ids(): void
+    {
+        $trooper = Trooper::factory()->asMember()->create();
+        $org     = Organization::factory()->asOrganization()->withNodePath('100')->create();
+        TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($org)->create();
+
+        $event = Event::factory()->asClosed()->create();
+        $shift = EventShift::factory()->forEvent($event)->asClosed()->withShiftStartsAt(now()->subDays(5))->create();
+        EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asAttended()->create()
+            ->updateQuietly([EventTrooper::COSTUME_ORGANIZATION_IDS => [$org->id]]);
+
+        $subject = new GetTrooperServiceRecordQueryHandler();
+        $result  = $subject(new GetTrooperServiceRecordQuery($trooper->id));
+
+        $this->assertSame(1, $result['trooper_organizations']->first()->troop_count);
+    }
+
+    public function test_invoke_troop_count_unattached_shift_gives_no_org_credit(): void
+    {
+        $trooper = Trooper::factory()->asMember()->create();
+        $org     = Organization::factory()->asOrganization()->withNodePath('100')->create();
+        TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($org)->create();
+
+        $event = Event::factory()->asClosed()->create();
+        $shift = EventShift::factory()->forEvent($event)->asClosed()->withShiftStartsAt(now()->subDays(5))->create();
+        EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asAttended()->create();
+
+        $subject = new GetTrooperServiceRecordQueryHandler();
+        $result  = $subject(new GetTrooperServiceRecordQuery($trooper->id));
+
+        $this->assertSame(0, $result['trooper_organizations']->first()->troop_count);
+    }
+
+    public function test_invoke_troop_count_join_date_after_shift_does_not_exclude_credit(): void
+    {
+        $trooper = Trooper::factory()->asMember()->create();
+        $org     = Organization::factory()->asOrganization()->withNodePath('100')->create();
+
+        TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($org)
+            ->state(fn () => [TrooperOrganization::JOIN_DATE => Carbon::parse('2026-06-01')])
+            ->create();
+
+        $event = Event::factory()->asClosed()->create();
+        $shift = EventShift::factory()->forEvent($event)->asClosed()
+            ->withShiftStartsAt(Carbon::parse('2026-01-01'))->create();
+        EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asAttended()->create()
+            ->updateQuietly([EventTrooper::COSTUME_ORGANIZATION_IDS => [$org->id]]);
+
+        $subject = new GetTrooperServiceRecordQueryHandler();
+        $result  = $subject(new GetTrooperServiceRecordQuery($trooper->id));
+
+        $this->assertSame(1, $result['trooper_organizations']->first()->troop_count);
+    }
 }
