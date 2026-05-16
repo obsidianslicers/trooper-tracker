@@ -52,6 +52,8 @@
                                             <span class="badge bg-secondary me-1">(Unattached)</span>
                                         @endif
                                     </div>
+                                @else
+                                    <p class="mb-0 text-muted">N/A</p>
                                 @endif
                             </div>
                         </div>
@@ -114,6 +116,8 @@
                                         <span class="badge bg-secondary me-1">(Unattached)</span>
                                     @endif
                                 </div>
+                            @else
+                                <span class="text-muted">N/A</span>
                             @endif
                         </td>
                     </tr>
