@@ -12,25 +12,29 @@ class CreateSubmitControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_invoke_creates_costume_before_resequence_error(): void
+    public function test_invoke_creates_costume_and_redirects(): void
     {
         $trooper = Trooper::factory()->asAdministrator()->create();
 
-        $response = $this->actingAs($trooper)->post('/admin/costumes/create', [
-            'name' => 'Scout Trooper',
-        ]);
+        $response = $this->actingAs($trooper)
+            ->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class)
+            ->post('/admin/costumes/create', [
+                'name' => 'Scout Trooper',
+            ]);
 
-        $response->assertStatus(500);
+        $response->assertRedirect();
         $this->assertDatabaseHas('tt_costumes', [
             'name' => 'Scout Trooper',
+            'sequence' => 100,
         ]);
     }
 
     public function test_invoke_requires_authentication(): void
     {
-        $response = $this->post('/admin/costumes/create', [
-            'name' => 'Scout Trooper',
-        ]);
+        $response = $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class)
+            ->post('/admin/costumes/create', [
+                'name' => 'Scout Trooper',
+            ]);
 
         $response->assertRedirect(route('auth.login'));
     }

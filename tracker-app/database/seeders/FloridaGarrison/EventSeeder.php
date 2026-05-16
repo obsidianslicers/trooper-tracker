@@ -30,6 +30,7 @@ class EventSeeder extends Seeder
 
     private $costume_maps;
     private $costume_club_maps;
+    private $costume_specific_club_map;
     private $squad_maps;
     private $trooper_status_map;
     // private $sign_ups;
@@ -93,6 +94,12 @@ class EventSeeder extends Seeder
                 $this->costume_maps[$legacy_id] = $legacy_costume;
             }
         }
+
+        $this->costume_specific_club_map = DB::table('costumes')
+            ->whereNotNull('club')
+            ->where('club', '!=', 4)
+            ->pluck('club', 'id')
+            ->toArray();
     }
 
     private function overlayOrganization($legacy, $event)
@@ -250,35 +257,38 @@ class EventSeeder extends Seeder
         {
             return null;
         }
-        if ($legacy_costume['id'] == 737)
-        {
-            dd($legacy_id, $this->costume_maps[$legacy_id] ?? null);
-        }
 
         return $legacy_costume['id'];
     }
 
     private function getMappedCostumeOrganizationIds($legacy_id): ?array
     {
-        $legacy_costume = $this->costume_maps[$legacy_id] ?? null;
+        if (!isset($this->costume_maps[$legacy_id]))
+        {
+            return null;
+        }
 
-        if ($legacy_costume === null)
+        $specific_club = $this->costume_specific_club_map[$legacy_id] ?? null;
+
+        if ($specific_club === null)
         {
             return null;
         }
 
         $organization_ids = [];
-
-        $clubs = $this->expandDualClubIds($legacy_costume['clubs']);
+        $clubs = $this->expandDualClubIds([$specific_club]);
 
         foreach ($clubs as $club_id)
         {
             $club = $this->costume_club_maps[$club_id] ?? null;
 
-            $organization_ids[] = $club['id'];
+            if ($club !== null)
+            {
+                $organization_ids[] = $club['id'];
+            }
         }
 
-        return $organization_ids;
+        return $organization_ids ?: null;
     }
 
     private function overlayEvent($legacy, $event)

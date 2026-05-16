@@ -7,10 +7,11 @@ namespace App\Features\Reports\Queries;
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
+use App\Features\Events\Queries\HasOrgAttributionQuery;
 use App\Models\Event;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -18,43 +19,12 @@ use Illuminate\Support\Facades\DB;
  */
 readonly class GetTrooperEventSummaryQueryHandler implements QueryHandlerInterface
 {
-    /**
-     * @param  GetTrooperEventSummaryQuery  $message
-     * @return LengthAwarePaginator
-     */
+    use HasOrgAttributionQuery;
+
     public function __invoke(object $message): mixed
     {
-        $shiftCountSub = DB::table('tt_event_troopers')
-            ->selectRaw('COUNT(*)')
-            ->join('tt_event_shifts', 'tt_event_troopers.event_shift_id', '=', 'tt_event_shifts.id')
-            ->join('tt_events', 'tt_event_shifts.event_id', '=', 'tt_events.id')
-            ->whereColumn('tt_event_troopers.trooper_id', 'tt_troopers.id')
-            ->where('tt_event_troopers.status', EventTrooperStatus::ATTENDED->value)
-            ->where('tt_events.status', EventStatus::CLOSED->value)
-            ->when($message->date_start, fn ($q) => $q->where('tt_events.event_start', '>=', $message->date_start))
-            ->when($message->date_end, fn ($q) => $q->where('tt_events.event_start', '<=', $message->date_end))
-            ->when($message->organization,
-                fn ($q) => $q->whereRaw('JSON_CONTAINS(tt_event_troopers.costume_organization_ids, ?)', [json_encode($message->organization->id)]),
-                fn ($q) => !empty($message->accessible_org_ids)
-                    ? $q->whereRaw('JSON_OVERLAPS(tt_event_troopers.costume_organization_ids, ?)', [json_encode($message->accessible_org_ids)])
-                    : $q
-            );
-
-        $eventCountSub = DB::table('tt_event_troopers')
-            ->selectRaw('COUNT(DISTINCT tt_event_shifts.event_id)')
-            ->join('tt_event_shifts', 'tt_event_troopers.event_shift_id', '=', 'tt_event_shifts.id')
-            ->join('tt_events', 'tt_event_shifts.event_id', '=', 'tt_events.id')
-            ->whereColumn('tt_event_troopers.trooper_id', 'tt_troopers.id')
-            ->where('tt_event_troopers.status', EventTrooperStatus::ATTENDED->value)
-            ->where('tt_events.status', EventStatus::CLOSED->value)
-            ->when($message->date_start, fn ($q) => $q->where('tt_events.event_start', '>=', $message->date_start))
-            ->when($message->date_end, fn ($q) => $q->where('tt_events.event_start', '<=', $message->date_end))
-            ->when($message->organization,
-                fn ($q) => $q->whereRaw('JSON_CONTAINS(tt_event_troopers.costume_organization_ids, ?)', [json_encode($message->organization->id)]),
-                fn ($q) => !empty($message->accessible_org_ids)
-                    ? $q->whereRaw('JSON_OVERLAPS(tt_event_troopers.costume_organization_ids, ?)', [json_encode($message->accessible_org_ids)])
-                    : $q
-            );
+        $shiftCountSub = $this->buildShiftCountSubquery($message);
+        $eventCountSub = $this->buildEventCountSubquery($message);
 
         $query = Trooper::query()
             ->select('tt_troopers.*')
@@ -75,14 +45,7 @@ readonly class GetTrooperEventSummaryQueryHandler implements QueryHandlerInterfa
                         }
                     });
 
-                if ($message->organization)
-                {
-                    $q->whereRaw('JSON_CONTAINS(tt_event_troopers.costume_organization_ids, ?)', [json_encode($message->organization->id)]);
-                }
-                elseif (!empty($message->accessible_org_ids))
-                {
-                    $q->whereRaw('JSON_OVERLAPS(tt_event_troopers.costume_organization_ids, ?)', [json_encode($message->accessible_org_ids)]);
-                }
+                $this->applyOrgAttribution($q, $message->organization, $message->accessible_org_ids);
             });
 
         if ($message->active_only)
@@ -95,5 +58,39 @@ readonly class GetTrooperEventSummaryQueryHandler implements QueryHandlerInterfa
         $dir = $message->dir === 'asc' ? 'asc' : 'desc';
 
         return $query->orderBy($sort, $dir)->paginate($message->page_size)->withQueryString();
+    }
+
+    private function buildShiftCountSubquery(GetTrooperEventSummaryQuery $message): Builder
+    {
+        $sub = DB::table('tt_event_troopers')
+            ->selectRaw('COUNT(*)')
+            ->join('tt_event_shifts', 'tt_event_troopers.event_shift_id', '=', 'tt_event_shifts.id')
+            ->join('tt_events', 'tt_event_shifts.event_id', '=', 'tt_events.id')
+            ->whereColumn('tt_event_troopers.trooper_id', 'tt_troopers.id')
+            ->where('tt_event_troopers.status', EventTrooperStatus::ATTENDED->value)
+            ->where('tt_events.status', EventStatus::CLOSED->value)
+            ->when($message->date_start, fn ($q) => $q->where('tt_events.event_start', '>=', $message->date_start))
+            ->when($message->date_end, fn ($q) => $q->where('tt_events.event_start', '<=', $message->date_end));
+
+        $this->applyOrgAttribution($sub, $message->organization, $message->accessible_org_ids);
+
+        return $sub;
+    }
+
+    private function buildEventCountSubquery(GetTrooperEventSummaryQuery $message): Builder
+    {
+        $sub = DB::table('tt_event_troopers')
+            ->selectRaw('COUNT(DISTINCT tt_event_shifts.event_id)')
+            ->join('tt_event_shifts', 'tt_event_troopers.event_shift_id', '=', 'tt_event_shifts.id')
+            ->join('tt_events', 'tt_event_shifts.event_id', '=', 'tt_events.id')
+            ->whereColumn('tt_event_troopers.trooper_id', 'tt_troopers.id')
+            ->where('tt_event_troopers.status', EventTrooperStatus::ATTENDED->value)
+            ->where('tt_events.status', EventStatus::CLOSED->value)
+            ->when($message->date_start, fn ($q) => $q->where('tt_events.event_start', '>=', $message->date_start))
+            ->when($message->date_end, fn ($q) => $q->where('tt_events.event_start', '<=', $message->date_end));
+
+        $this->applyOrgAttribution($sub, $message->organization, $message->accessible_org_ids);
+
+        return $sub;
     }
 }

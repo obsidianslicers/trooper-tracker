@@ -13,8 +13,10 @@ use App\Models\Concerns\HasTrooperStamps;
 use App\Models\Scopes\HasEventTrooperScopes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Collection;
 use App\Models\Event;
 use App\Models\EventOrganization;
+use App\Models\TrooperAssignment;
 
 /**
  * Represents a trooper's participation in an event shift.
@@ -276,6 +278,46 @@ class EventTrooper extends BaseEventTrooper
         }
 
         return $this->trooper->guardian_id === $trooper->id;
+    }
+
+    /** Returns orgs eligible to receive troop credit for this shift. */
+    public function getEligibleCreditOrganizations(): Collection
+    {
+        $costume_org_ids = $this->costume_organization_ids ?? [];
+
+        if (!empty($costume_org_ids))
+        {
+            return Organization::whereIn('id', $costume_org_ids)
+                ->whereHas('trooper_assignments', fn ($q) =>
+                    $q->where(TrooperAssignment::TROOPER_ID, $this->trooper_id)
+                      ->where(TrooperAssignment::IS_MEMBER, true)
+                )
+                ->get();
+        }
+
+        return Organization::whereHas('trooper_assignments', fn ($q) =>
+            $q->where(TrooperAssignment::TROOPER_ID, $this->trooper_id)
+              ->where(TrooperAssignment::IS_MEMBER, true)
+        )->get();
+    }
+
+    /** Returns unique top-level parent orgs for the eligible credit orgs. */
+    public function getEligibleCreditParentOrganizations(): Collection
+    {
+        return $this->getEligibleCreditOrganizations()
+            ->map(fn ($org) => $org->getPrimaryClub())
+            ->unique('id')
+            ->values();
+    }
+
+    /** Maps selected parent org IDs back to child org IDs stored in costume_organization_ids. */
+    public function childOrgIdsForSelectedParents(array $parent_org_ids): array
+    {
+        return $this->getEligibleCreditOrganizations()
+            ->filter(fn ($org) => in_array($org->getPrimaryClub()->id, $parent_org_ids, true))
+            ->pluck('id')
+            ->values()
+            ->all();
     }
 
     /**

@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin\Events;
 use App\Features\Events\Queries\GetTroopersForEventAdminQuery;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Event;
+use App\Models\TrooperAssignment;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -43,6 +44,27 @@ class UpdateTroopersController extends MagicBusController
         $query = new GetTroopersForEventAdminQuery($event);
 
         $event_shifts = $this->bus->send($query);
+
+        $authTrooper = $request->user();
+        $allowed_org_ids = $authTrooper->is_administrator
+            ? null
+            : $authTrooper->trooper_assignments()
+                ->where(TrooperAssignment::IS_MODERATOR, true)
+                ->pluck(TrooperAssignment::ORGANIZATION_ID)
+                ->toArray();
+
+        foreach ($event_shifts as $shift)
+        {
+            foreach ($shift->event_troopers as $event_trooper)
+            {
+                $event_trooper->org_options = $event_trooper->trooper->organizations
+                    ->when($allowed_org_ids !== null, fn ($c) => $c->whereIn('id', $allowed_org_ids));
+
+                $event_trooper->credited_checked_ids = $event_trooper->organization_id !== null
+                    ? [$event_trooper->organization_id]
+                    : ($event_trooper->costume_organization_ids ?? []);
+            }
+        }
 
         $data = compact('event', 'event_shifts');
 

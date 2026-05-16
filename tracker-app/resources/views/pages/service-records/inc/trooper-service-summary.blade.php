@@ -21,6 +21,22 @@
                 </div>
             </div>
         </div>
+        @if($trooper_organizations->isNotEmpty())
+            <table class="table table-sm mt-3 mb-0">
+                <tbody>
+                    @foreach($trooper_organizations->filter(fn ($org) => ($org->troop_count ?? 0) > 0) as $org)
+                        <tr class="small">
+                            <td class="text-muted border-0">{{ $org->name }}</td>
+                            <td class="text-end fw-bold border-0">
+                                <x-number-format :value="$org->troop_count" />
+                                <span class="text-muted fw-normal">troops</span>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+            <hr class="my-2">
+        @endif
         <table class="table table-sm mt-3 mb-0">
             <tbody>
                 <tr class="small">

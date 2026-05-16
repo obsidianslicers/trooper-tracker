@@ -81,6 +81,7 @@ readonly class GetTroopersForEventAdminQueryHandler implements QueryHandlerInter
         $with = [
             'event_troopers.trooper:'.implode(',', $trooper_columns),
             'event_troopers.updated_by:'.implode(',', $trooper_columns),
+            'event_troopers.trooper.organizations',
             'event_troopers.trooper.trooper_costumes:'.implode(',', $trooper_costume_columns),
             'event_troopers.trooper.trooper_costumes.organization_costume:'.implode(',', $organization_costume_columns),
             'event_troopers.costume:'.implode(',', $costume_columns),

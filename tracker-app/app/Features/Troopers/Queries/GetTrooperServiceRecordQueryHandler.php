@@ -20,63 +20,35 @@ use App\Models\TrooperCostume;
 use App\Models\TrooperDonation;
 use Illuminate\Support\Collection;
 
-/**
- * Handler for retrieving a trooper's complete service record.
- *
- * Processes GetTrooperServiceRecordQuery to return comprehensive trooper data including:
- * - Organizations the trooper belongs to
- * - Approved costumes with organization associations
- * - Service summary (shifts, hours, rank, funds, milestones)
- * - Upcoming and recent event shifts
- * - Recent donations
- * - Awards received
- *
- * All data is formatted for display in the trooper's service record page.
- *
- * @implements QueryHandlerInterface<GetTrooperServiceRecordQuery>
- */
 readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterface
 {
     use HasEventDisplayAssembler;
+    use HasOrgCreditAnnotation;
 
     public function __construct()
     {
         $this->bootHasEventDisplayAssembler();
     }
 
-    /**
-     * Handle the query to retrieve a trooper's complete service record.
-     *
-     * Loads the trooper with achievements and returns an array containing:
-     * - trooper: The Trooper model with trooper_achievements loaded
-     * - trooper_organizations: Collection of organizations ordered by name
-     * - trooper_costumes: Collection of approved costumes with organization display strings
-     * - service_summary: Array with shifts, hours, rank, funds, and milestone data
-     * - upcoming_shifts: EventShifts starting after 1 year ago, ordered by start time
-     * - recent_shifts: EventShifts attended in past year, ordered by start time descending
-     * - recent_donations: TrooperDonations from the past year
-     * - awards: AwardTrooper records for the trooper
-     *
-     * @param  GetTrooperServiceRecordQuery  $message  The query containing the trooper_id
-     * @return array Associative array with trooper service record data
-     */
     public function __invoke(object $message): mixed
     {
         $trooper = Trooper::with('trooper_achievements')->findOrFail($message->trooper_id);
 
+        $recent_shifts = $this->getRecentEventShifts($trooper);
+
         return [
             'trooper' => $trooper,
-            'trooper_organizations' => $this->getOrganizations($trooper),
+            'trooper_organizations' => $this->getOrganizations($trooper, $recent_shifts),
             'tagged_uploads' => $this->getTaggedUploads($trooper),
             'service_summary' => $this->getServiceSummary($trooper),
             'upcoming_shifts' => $this->getUpcomingEventShifts($trooper),
-            'recent_shifts' => $this->getRecentEventShifts($trooper),
+            'recent_shifts' => $recent_shifts,
             'all_donations' => $this->getAllDonations($trooper),
             'awards' => $this->getAwards($trooper),
         ];
     }
 
-    private function getOrganizations(Trooper $trooper): Collection
+    private function getOrganizations(Trooper $trooper, Collection $recent_shifts): Collection
     {
         $organizations = $trooper->organizations()
             ->orderBy(Organization::NAME)
@@ -87,8 +59,14 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
             ->where(TrooperAssignment::IS_MEMBER, true)
             ->get();
 
+        $candidate_orgs = $this->loadCandidateOrgs($recent_shifts);
+        ['troop_counts' => $troop_counts, 'credited_ids_by_shift' => $credited_ids_by_shift]
+            = $this->computeTroopCounts($recent_shifts, $organizations, $candidate_orgs);
+
         foreach ($organizations as $organization)
         {
+            $organization->troop_count = $troop_counts[$organization->id] ?? 0;
+
             foreach ($assignments as $assignment)
             {
                 if (str_starts_with($assignment->organization->node_path, $organization->node_path))
@@ -97,6 +75,8 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
                 }
             }
         }
+
+        $this->annotateShiftsWithCreditedOrgNames($recent_shifts, $organizations, $credited_ids_by_shift);
 
         return $organizations;
     }
@@ -108,28 +88,6 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
 
     private function getServiceSummary(Trooper $trooper): array
     {
-        // Map over all AchievementTypes to find Milestones
-        $milestones = collect(AchievementType::cases())
-            ->filter(fn (AchievementType $type) => $type->isMilestone())
-            ->map(function (AchievementType $type) use ($trooper) {
-                // Get value from your existing trooper method
-                $value = $trooper->getAchievementValue($type);
-
-                return [
-                    'type' => $type,
-                    'title' => $type->toTitle(),
-                    'description' => $type->toDescription(),
-                    'icon' => $type->toIcon(),
-                    'is_earned' => $value !== null && $value > 0,
-                    // If your system tracks the date, you'd pull it here;
-                    // otherwise, we'll assume 'Active' status
-                ];
-            })
-            ->filter(fn ($milestone) => $milestone['is_earned'])
-            ->reverse()
-            ->values()
-            ->toArray();
-
         return [
             'total_shifts' => $trooper->getAchievementValue(AchievementType::TROOPER_SHIFTS),
             'total_hours' => $trooper->getAchievementValue(AchievementType::VOLUNTEER_HOURS),
@@ -138,10 +96,27 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
             'rank_theme' => $trooper->getRankTheme(),
             'direct_funds' => $trooper->getAchievementValue(AchievementType::DIRECT_FUNDS),
             'indirect_funds' => $trooper->getAchievementValue(AchievementType::INDIRECT_FUNDS),
-            'milestones' => $milestones,
+            'milestones' => $this->buildEarnedMilestones($trooper),
             'donation_months' => $trooper->getAchievementValue(AchievementType::DONATION_MONTHS),
             'total_donated' => $trooper->getAchievementValue(AchievementType::TOTAL_DONATED) ?? $this->computeTotalDonated($trooper),
         ];
+    }
+
+    private function buildEarnedMilestones(Trooper $trooper): array
+    {
+        return collect(AchievementType::cases())
+            ->filter(fn (AchievementType $type) => $type->isMilestone())
+            ->map(fn (AchievementType $type) => [
+                'type' => $type,
+                'title' => $type->toTitle(),
+                'description' => $type->toDescription(),
+                'icon' => $type->toIcon(),
+                'is_earned' => ($trooper->getAchievementValue($type) ?? 0) > 0,
+            ])
+            ->filter(fn ($milestone) => $milestone['is_earned'])
+            ->reverse()
+            ->values()
+            ->toArray();
     }
 
     private function getUpcomingEventShifts(Trooper $trooper): Collection
@@ -178,11 +153,7 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
             ->get();
     }
 
-    /**
-     * Fallback for troopers whose TOTAL_DONATED achievement has not yet been
-     * computed by the rank command. Can be removed once all troopers have been
-     * processed by `tracker:calculate-trooper-achievements`.
-     */
+    // Fallback for troopers whose TOTAL_DONATED achievement has not yet been calculated.
     private function computeTotalDonated(Trooper $trooper): float
     {
         return (float) TrooperDonation::byTrooper($trooper->id)->sum(TrooperDonation::AMOUNT);
@@ -195,44 +166,24 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
 
     private function buildEventShiftRelations(): array
     {
-        $trooper_columns = [
-            Trooper::ID,
-            Trooper::DISPLAY_NAME,
-        ];
-
-        $trooper_costume_columns = [
-            TrooperCostume::ID,
-            TrooperCostume::TROOPER_ID,
-            TrooperCostume::ORGANIZATION_COSTUME_ID,
-        ];
-
-        $organization_costume_columns = [
-            OrganizationCostume::ID,
-            OrganizationCostume::COSTUME_ID,
-            OrganizationCostume::ORGANIZATION_ID,
-        ];
-
-        $costume_columns = [
-            Costume::ID,
-            Costume::NAME,
-        ];
-
-        $event_columns = [
-            Event::ID,
-            Event::NAME,
-            Event::ORGANIZATION_ID,
-        ];
-
-        $with = [
+        return array_merge([
             'event.organization',
-            'event:'.implode(',', $event_columns),
-            'event_troopers.trooper:'.implode(',', $trooper_columns),
-            'event_troopers.trooper.trooper_costumes:'.implode(',', $trooper_costume_columns),
-            'event_troopers.trooper.trooper_costumes.organization_costume:'.implode(',', $organization_costume_columns),
-            'event_troopers.costume:'.implode(',', $costume_columns),
-            'event_troopers.backup_costume:'.implode(',', $costume_columns),
-        ];
+            'event:'.implode(',', [Event::ID, Event::NAME, Event::ORGANIZATION_ID]),
+        ], $this->buildTrooperCostumeRelations());
+    }
 
-        return $with;
+    private function buildTrooperCostumeRelations(): array
+    {
+        return [
+            'event_troopers.trooper:'.implode(',', [Trooper::ID, Trooper::DISPLAY_NAME]),
+            'event_troopers.trooper.trooper_costumes:'.implode(',', [
+                TrooperCostume::ID, TrooperCostume::TROOPER_ID, TrooperCostume::ORGANIZATION_COSTUME_ID,
+            ]),
+            'event_troopers.trooper.trooper_costumes.organization_costume:'.implode(',', [
+                OrganizationCostume::ID, OrganizationCostume::COSTUME_ID, OrganizationCostume::ORGANIZATION_ID,
+            ]),
+            'event_troopers.costume:'.implode(',', [Costume::ID, Costume::NAME]),
+            'event_troopers.backup_costume:'.implode(',', [Costume::ID, Costume::NAME]),
+        ];
     }
 }

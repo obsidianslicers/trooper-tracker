@@ -136,30 +136,6 @@
 
 @endsection
 
-<style>
-    .service-record-banners {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 0.5rem 0.75rem;
-        max-width: 100%;
-    }
-
-    .service-record-banners img {
-        display: block;
-        max-width: min(100%, 320px);
-        max-height: 64px;
-        width: auto;
-        height: auto;
-        object-fit: contain;
-    }
-
-    .service-record-banners > * {
-        flex: 0 1 auto;
-        max-width: 100%;
-    }
-</style>
-
 @section('page-script')
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -180,7 +156,10 @@
         });
     </script>
 
-    <div class="modal fade" id="serviceRecordPhotoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal fade"
+         id="serviceRecordPhotoModal"
+         tabindex="-1"
+         aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg modal-fullscreen-sm-down">
             <div class="modal-content bg-dark border-0">
                 <div class="modal-body p-0 position-relative">

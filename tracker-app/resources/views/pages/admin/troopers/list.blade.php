@@ -4,7 +4,7 @@
 
 @section('content')
 
-    <div class="row mb-3">
+    <div class="row mb-3 gy-2">
         <div class="col-sm-12 col-md-6">
 
             <form method="GET"

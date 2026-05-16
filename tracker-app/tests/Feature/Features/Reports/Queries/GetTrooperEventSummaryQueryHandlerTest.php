@@ -12,6 +12,7 @@ use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
+use App\Models\TrooperOrganization;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -536,6 +537,78 @@ class GetTrooperEventSummaryQueryHandlerTest extends TestCase
         $result  = $subject(new GetTrooperEventSummaryQuery($moderator, sort: 'event_shifts_count', dir: 'DROP TABLE'));
 
         $this->assertSame($many->id, $result->first()->id);
+    }
+
+    // -------------------------------------------------------------------------
+    // Pagination
+    // -------------------------------------------------------------------------
+
+    // -------------------------------------------------------------------------
+    // Org attribution rules
+    // -------------------------------------------------------------------------
+
+    public function test_invoke_organization_filter_rule1_counts_explicit_organization_id(): void
+    {
+        $this->skipIfSqlite();
+        $moderator = Trooper::factory()->asAdministrator()->create();
+        $trooper   = Trooper::factory()->asMember()->create();
+        $org       = Organization::factory()->create();
+
+        $event = Event::factory()->asClosed()->withEventStart(now()->subDays(5))->create();
+        $shift = EventShift::factory()->forEvent($event)->create();
+
+        EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asAttended()
+            ->state(fn () => [EventTrooper::ORGANIZATION_ID => $org->id])->create();
+
+        $subject = new GetTrooperEventSummaryQueryHandler();
+        $result  = $subject(new GetTrooperEventSummaryQuery($moderator, organization: $org));
+
+        $this->assertCount(1, $result);
+        $this->assertSame(1, $result->first()->event_shifts_count);
+    }
+
+    public function test_invoke_organization_filter_rule1_excludes_trooper_with_different_explicit_org(): void
+    {
+        $this->skipIfSqlite();
+        $moderator   = Trooper::factory()->asAdministrator()->create();
+        $trooper     = Trooper::factory()->asMember()->create();
+        $target_org  = Organization::factory()->create();
+        $other_org   = Organization::factory()->create();
+
+        $event = Event::factory()->asClosed()->withEventStart(now()->subDays(5))->create();
+        $shift = EventShift::factory()->forEvent($event)->create();
+
+        EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asAttended()
+            ->state(fn () => [EventTrooper::ORGANIZATION_ID => $other_org->id])->create();
+
+        $subject = new GetTrooperEventSummaryQueryHandler();
+        $result  = $subject(new GetTrooperEventSummaryQuery($moderator, organization: $target_org));
+
+        $this->assertCount(0, $result);
+    }
+
+    public function test_invoke_join_date_after_event_start_is_still_counted(): void
+    {
+        $this->skipIfSqlite();
+        $moderator = Trooper::factory()->asAdministrator()->create();
+        $trooper   = Trooper::factory()->asMember()->create();
+        $org       = Organization::factory()->withNodePath('501:')->create();
+
+        TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($org)
+            ->state(fn () => [TrooperOrganization::JOIN_DATE => Carbon::parse('2026-06-01')])
+            ->create();
+
+        $event = Event::factory()->asClosed()->withEventStart(Carbon::parse('2026-01-01'))->create();
+        $shift = EventShift::factory()->forEvent($event)->create();
+
+        EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asAttended()
+            ->withCostumeOrganizationIds([$org->id])->create();
+
+        $subject = new GetTrooperEventSummaryQueryHandler();
+        $result  = $subject(new GetTrooperEventSummaryQuery($moderator, organization: $org));
+
+        $this->assertCount(1, $result);
+        $this->assertSame(1, $result->first()->event_shifts_count);
     }
 
     // -------------------------------------------------------------------------

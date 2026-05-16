@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models\Scopes;
 
 use App\Enums\EventStatus;
+use App\Enums\EventTrooperStatus;
 use App\Models\EventTrooper;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -51,10 +52,13 @@ trait HasEventShiftScopes
      */
     public function scopeByTrooper(Builder $query, int $trooper_id, bool $closed): Builder
     {
+        $excluded_statuses = [EventTrooperStatus::CANCELLED, EventTrooperStatus::NOT_PICKED];
+
         $with = [
-            'event_troopers' => function ($q) use ($trooper_id)
+            'event_troopers' => function ($q) use ($trooper_id, $excluded_statuses)
             {
                 $q->where(EventTrooper::TROOPER_ID, $trooper_id)
+                    ->whereNotIn(EventTrooper::STATUS, $excluded_statuses)
                     ->with('costume');
             },
         ];
@@ -63,17 +67,19 @@ trait HasEventShiftScopes
         {
             return $query->with($with)
                 ->where(self::STATUS, EventStatus::CLOSED)
-                ->whereHas('event_troopers', function ($q) use ($trooper_id)
+                ->whereHas('event_troopers', function ($q) use ($trooper_id, $excluded_statuses)
                 {
-                    $q->where(EventTrooper::TROOPER_ID, $trooper_id);
+                    $q->where(EventTrooper::TROOPER_ID, $trooper_id)
+                        ->whereNotIn(EventTrooper::STATUS, $excluded_statuses);
                 });
         }
 
         return $query->with($with)
             ->whereIn(self::STATUS, [EventStatus::OPEN, EventStatus::MANUAL_SELECTION])
-            ->whereHas('event_troopers', function ($q) use ($trooper_id)
+            ->whereHas('event_troopers', function ($q) use ($trooper_id, $excluded_statuses)
             {
-                $q->where(EventTrooper::TROOPER_ID, $trooper_id);
+                $q->where(EventTrooper::TROOPER_ID, $trooper_id)
+                    ->whereNotIn(EventTrooper::STATUS, $excluded_statuses);
             });
     }
 }

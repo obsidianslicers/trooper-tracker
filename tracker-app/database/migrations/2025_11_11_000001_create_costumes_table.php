@@ -16,6 +16,7 @@ return new class extends Migration
             $table->id();
 
             $table->string('name', length: 128);
+            $table->integer('sequence')->default(0);
 
             $table->timestamps();
             $table->softDeletes();

@@ -88,6 +88,31 @@ class ShiftCompleteController extends MagicBusController
                 EventTrooper::STATUS => $trooper_status,
             ];
 
+            if (
+                $trooper_status === EventTrooperStatus::ATTENDED
+                && $event_trooper->organization_id === null
+            ) {
+                $parent_organizations = $event_trooper->getEligibleCreditParentOrganizations();
+
+                if ($parent_organizations->count() > 1)
+                {
+                    return view('pages.events.shift-complete-club-select', [
+                        'event_trooper' => $event_trooper,
+                        'organizations' => $parent_organizations,
+                        'encrypted_status' => $status,
+                    ]);
+                }
+
+                if (empty($event_trooper->costume_organization_ids))
+                {
+                    $eligible_orgs = $event_trooper->getEligibleCreditOrganizations();
+                    if ($eligible_orgs->isNotEmpty())
+                    {
+                        $valid_data[EventTrooper::COSTUME_ORGANIZATION_IDS] = $eligible_orgs->pluck('id')->values()->all();
+                    }
+                }
+            }
+
             $event_trooper_cmd = new UpdateEventTrooperCommand($event_trooper, $valid_data);
 
             $this->bus->send($event_trooper_cmd);

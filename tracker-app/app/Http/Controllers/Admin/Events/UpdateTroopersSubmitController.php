@@ -10,6 +10,7 @@ use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Events\UpdateTroopersRequest;
 use App\Models\Event;
 use App\Models\EventGuest;
+use App\Models\TrooperAssignment;
 use App\Notifications\Events\ManualSelectionApprovedNotification;
 use App\Notifications\Events\ManualSelectionStandByNotification;
 use Illuminate\Http\RedirectResponse;
@@ -28,13 +29,20 @@ class UpdateTroopersSubmitController extends MagicBusController
         $troopers = $request->validated('troopers', []);
         $guests = $request->validated('guests', []);
 
-        $event_troopers = $event->troopers()->get();
+        $event_troopers = $event->troopers()->with('trooper.organizations')->get();
         $event_guest_shift_ids = $event->event_shifts()->pluck('id');
         $event_guests = EventGuest::query()
             ->whereIn(EventGuest::EVENT_SHIFT_ID, $event_guest_shift_ids)
             ->get();
         $authTrooper = $request->user();
         $isManualSelectionEvent = $event->status === EventStatus::MANUAL_SELECTION;
+
+        $allowed_org_ids = $authTrooper->is_administrator
+            ? null
+            : $authTrooper->trooper_assignments()
+                ->where(TrooperAssignment::IS_MODERATOR, true)
+                ->pluck(TrooperAssignment::ORGANIZATION_ID)
+                ->toArray();
 
         foreach ($troopers as $id => $input)
         {
@@ -54,6 +62,19 @@ class UpdateTroopersSubmitController extends MagicBusController
             $oldStatus = $event_trooper->status;
 
             $event_trooper->status = $newStatus;
+
+            $submittedOrgIds = array_map('intval', $input['organization_ids'] ?? []);
+            $trooperOrgIds = $event_trooper->trooper->organizations->pluck('id')->toArray();
+
+            $validOrgIds = array_values(array_filter(
+                $submittedOrgIds,
+                fn ($id) => in_array($id, $trooperOrgIds, true)
+                    && ($allowed_org_ids === null || in_array($id, $allowed_org_ids, true))
+            ));
+
+            $event_trooper->costume_organization_ids = !empty($validOrgIds) ? $validOrgIds : null;
+            $event_trooper->organization_id = null;
+
             $event_trooper->save();
 
             $wasManualApproval = $isManualSelectionEvent
