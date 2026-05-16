@@ -11,7 +11,6 @@ use App\Models\Concerns\HasTrooperStamps;
 use App\Models\Scopes\HasOrganizationScopes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 /**
  * Represents an organization within the trooping community hierarchy.
@@ -53,16 +52,6 @@ class Organization extends BaseOrganization
     public function parent(): BelongsTo
     {
         return $this->belongsTo(self::class, self::PARENT_ID);
-    }
-
-    /**
-     * Get all event troopers associated with this organization through organization costumes.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
-     */
-    public function event_troopers(): HasManyThrough
-    {
-        return $this->hasManyThrough(EventTrooper::class, OrganizationCostume::class);
     }
 
     /**
