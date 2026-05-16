@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Admin\Costumes\CreateController;
 use App\Http\Controllers\Admin\Costumes\CreateSubmitController;
+use App\Http\Controllers\Admin\Costumes\DeleteController;
+use App\Http\Controllers\Admin\Costumes\DeleteSubmitController;
 use App\Http\Controllers\Admin\Costumes\ListController;
 use App\Http\Controllers\Admin\Costumes\UpdateController;
 use App\Http\Controllers\Admin\Costumes\UpdateSubmitController;
@@ -20,4 +22,6 @@ Route::prefix('admin/costumes')
         Route::post('/create', CreateSubmitController::class);
         Route::get('/{costume}/update', UpdateController::class)->name('update');
         Route::post('/{costume}/update', UpdateSubmitController::class);
+        Route::get('/{costume}/delete', DeleteController::class)->name('delete');
+        Route::post('/{costume}/delete', DeleteSubmitController::class);
     });

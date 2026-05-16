@@ -51,7 +51,7 @@ class CostumePolicy
      */
     public function delete(Trooper $trooper, Costume $subject): bool
     {
-        return false;
+        return $trooper->is_administrator;
     }
 
     /**

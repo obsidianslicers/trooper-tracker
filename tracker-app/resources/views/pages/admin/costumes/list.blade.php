@@ -30,6 +30,9 @@
                     <td>
                         <x-action-menu>
                             <x-action-link-update :url="route('admin.costumes.update', compact('costume'))" />
+                            @unless($costume->countsAsHandler())
+                                <x-action-link-delete :url="route('admin.costumes.delete', compact('costume'))" />
+                            @endunless
                         </x-action-menu>
                     </td>
                 </tr>
