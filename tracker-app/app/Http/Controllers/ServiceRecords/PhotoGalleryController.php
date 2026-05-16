@@ -16,7 +16,7 @@ class PhotoGalleryController extends MagicBusController
 {
     public function __invoke(Request $request): View
     {
-        $uploads = $this->bus->send(new GetPhotoGalleryQuery());
+        $uploads = $this->bus->send(new GetPhotoGalleryQuery);
 
         return view('pages.service-records.photo-gallery', compact('uploads'));
     }

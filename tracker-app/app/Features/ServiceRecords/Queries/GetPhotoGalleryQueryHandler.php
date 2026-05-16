@@ -20,7 +20,6 @@ readonly class GetPhotoGalleryQueryHandler implements QueryHandlerInterface
 {
     /**
      * @param  GetPhotoGalleryQuery  $message
-     * @return LengthAwarePaginator
      */
     public function __invoke(object $message): LengthAwarePaginator
     {
