@@ -6,6 +6,7 @@
 
 namespace App\Models\Base;
 
+use App\Models\EventMissionAck;
 use App\Models\EventNotification;
 use App\Models\EventOrganization;
 use App\Models\EventShare;
@@ -80,6 +81,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $deleted_id
  * 
  * @property Organization $organization
+ * @property Collection|EventMissionAck[] $event_mission_acks
  * @property Collection|EventNotification[] $event_notifications
  * @property Collection|Organization[] $organizations
  * @property Collection|EventShare[] $event_shares
@@ -239,6 +241,11 @@ class Event extends Model
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class, \App\Models\Event::PRIMARY_ORGANIZATION_ID);
+    }
+
+    public function event_mission_acks(): HasMany
+    {
+        return $this->hasMany(EventMissionAck::class);
     }
 
     public function event_notifications(): HasMany

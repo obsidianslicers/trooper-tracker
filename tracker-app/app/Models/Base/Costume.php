@@ -56,7 +56,7 @@ class Costume extends Model
     ];
 
     protected $fillable = [
-        self::NAME,
+        self::NAME
     ];
 
     public function event_troopers(): HasMany

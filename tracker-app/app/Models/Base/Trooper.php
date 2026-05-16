@@ -9,6 +9,7 @@ namespace App\Models\Base;
 use App\Models\Award;
 use App\Models\AwardTrooper;
 use App\Models\EventGuest;
+use App\Models\EventMissionAck;
 use App\Models\EventNotification;
 use App\Models\EventShare;
 use App\Models\EventTrooper;
@@ -61,6 +62,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property \App\Models\Trooper|null $trooper
  * @property Collection|Award[] $awards
  * @property Collection|EventGuest[] $event_guests
+ * @property Collection|EventMissionAck[] $event_mission_acks
  * @property Collection|EventNotification[] $event_notifications
  * @property Collection|EventShare[] $event_shares
  * @property Collection|EventTrooper[] $event_troopers
@@ -107,9 +109,9 @@ class Trooper extends Model
 
     protected $casts = [
         self::ID => 'int',
-        self::PUSH_NOTIFICATIONS_ENABLED => 'boolean',
         self::EMAIL_VERIFIED_AT => 'datetime',
         self::SETUP_COMPLETED_AT => 'datetime',
+        self::PUSH_NOTIFICATIONS_ENABLED => 'bool',
         self::ACHIEVEMENTS_UPDATED_AT => 'datetime',
         self::LAST_ACTIVE_AT => 'datetime',
         self::GUARDIAN_ID => 'int',
@@ -160,6 +162,11 @@ class Trooper extends Model
         return $this->hasMany(EventGuest::class, EventGuest::ADDED_BY_TROOPER_ID);
     }
 
+    public function event_mission_acks(): HasMany
+    {
+        return $this->hasMany(EventMissionAck::class);
+    }
+
     public function event_notifications(): HasMany
     {
         return $this->hasMany(EventNotification::class);
@@ -206,8 +213,6 @@ class Trooper extends Model
     {
         return $this->hasMany(TrooperAchievement::class);
     }
-
-    // Authentication now relies on XenForo OAuth tokens.
 
     public function trooper_assignments(): HasMany
     {

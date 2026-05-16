@@ -36,7 +36,7 @@ class CostumeEventSummaryController extends BaseReportsController
             : null;
 
         $accessible_org_ids = $organizations
-            ->map(fn ($org) => (int) explode(':', $org->node_path)[0])
+            ->map(fn ($org) => (int) explode(Organization::NODE_PATH_SEP, $org->node_path)[0])
             ->unique()
             ->values()
             ->all();

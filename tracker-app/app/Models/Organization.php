@@ -31,6 +31,8 @@ class Organization extends BaseOrganization
     use HasFactory;
     use HasTrooperStamps;
 
+    const NODE_PATH_SEP = ':';
+
     /**
      * Get the attributes that should be cast.
      *
