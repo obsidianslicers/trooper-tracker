@@ -29,14 +29,25 @@ class CostumePolicyTest extends TestCase
         $this->assertFalse($policy->update($member, $costume));
     }
 
-    public function test_delete_restore_and_force_delete_are_denied(): void
+    public function test_delete_requires_administrator(): void
+    {
+        $policy = new CostumePolicy;
+
+        $administrator = Trooper::factory()->asAdministrator()->create();
+        $member = Trooper::factory()->asMember()->create();
+        $costume = Costume::factory()->create();
+
+        $this->assertTrue($policy->delete($administrator, $costume));
+        $this->assertFalse($policy->delete($member, $costume));
+    }
+
+    public function test_restore_and_force_delete_are_denied(): void
     {
         $policy = new CostumePolicy;
 
         $administrator = Trooper::factory()->asAdministrator()->create();
         $costume = Costume::factory()->create();
 
-        $this->assertFalse($policy->delete($administrator, $costume));
         $this->assertFalse($policy->restore($administrator, $costume));
         $this->assertFalse($policy->forceDelete($administrator, $costume));
     }
