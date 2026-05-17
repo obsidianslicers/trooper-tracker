@@ -48,6 +48,13 @@ trait HasCostumeScopes
      *                                                        from these organizations.
      * @return Builder The modified query builder for method chaining
      */
+    public function scopeSearchFor(Builder $query, string $search_term): Builder
+    {
+        $term = '%' . trim($search_term, '%') . '%';
+
+        return $query->where(self::NAME, 'like', $term);
+    }
+
     public function scopeForTrooper(Builder $query, int $trooper_id, Collection|array|null $organization_ids = null): Builder
     {
         return $query
