@@ -21,4 +21,3 @@
         </ul>
     </li>
 @endauth
-@include('partials.inc.navbar-notifications')
