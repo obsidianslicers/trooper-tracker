@@ -24,10 +24,10 @@ use Illuminate\Http\Request;
 class ListController extends MagicBusController
 {
     private const SORT_COLS = [
-        Trooper::DISPLAY_NAME      => 'Name / Email',
-        Trooper::MEMBERSHIP_ROLE   => 'Role',
+        Trooper::DISPLAY_NAME => 'Name / Email',
+        Trooper::MEMBERSHIP_ROLE => 'Role',
         Trooper::MEMBERSHIP_STATUS => 'Status',
-        Trooper::LAST_ACTIVE_AT    => 'Last Seen',
+        Trooper::LAST_ACTIVE_AT => 'Last Seen',
     ];
 
     protected function initialized(): void
@@ -54,17 +54,17 @@ class ListController extends MagicBusController
             ? $request->query('sort_dir')
             : 'asc';
 
-        $organizations       = Organization::moderatedBy($trooper)->orderBy(Organization::SEQUENCE)->get();
-        $organization_id     = $request->query('organization_id');
+        $organizations = Organization::moderatedBy($trooper)->orderBy(Organization::SEQUENCE)->get();
+        $organization_id = $request->query('organization_id');
         $selected_organization = $organization_id ? $organizations->find($organization_id) : null;
 
         $data = [
-            'troopers'              => $this->getTroopers($request, $filter, $sort_col, $sort_dir),
-            'membership_role'       => $request->query('membership_role'),
-            'search_term'           => $request->query('search_term'),
-            'sort_headers'          => $this->buildSortHeaders($sort_col, $sort_dir),
-            'organizations'         => $organizations,
-            'organization_id'       => $organization_id,
+            'troopers' => $this->getTroopers($request, $filter, $sort_col, $sort_dir),
+            'membership_role' => $request->query('membership_role'),
+            'search_term' => $request->query('search_term'),
+            'sort_headers' => $this->buildSortHeaders($sort_col, $sort_dir),
+            'organizations' => $organizations,
+            'organization_id' => $organization_id,
             'selected_organization' => $selected_organization,
         ];
 
@@ -109,13 +109,13 @@ class ListController extends MagicBusController
 
         foreach (self::SORT_COLS as $col => $label)
         {
-            $active   = $sort_col === $col;
+            $active = $sort_col === $col;
             $next_dir = ($active && $sort_dir === 'asc') ? 'desc' : 'asc';
 
             $headers[$col] = [
                 'label' => $label,
-                'icon'  => $active ? ($sort_dir === 'asc' ? 'fa-sort-up' : 'fa-sort-down') : 'fa-sort',
-                'url'   => route('admin.troopers.list', qs(['sort_col' => $col, 'sort_dir' => $next_dir, 'page' => 1])),
+                'icon' => $active ? ($sort_dir === 'asc' ? 'fa-sort-up' : 'fa-sort-down') : 'fa-sort',
+                'url' => route('admin.troopers.list', qs(['sort_col' => $col, 'sort_dir' => $next_dir, 'page' => 1])),
             ];
         }
 
