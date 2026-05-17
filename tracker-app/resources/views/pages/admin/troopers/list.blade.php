@@ -26,6 +26,32 @@
                 </button>
             </form>
 
+            <form method="GET"
+                  action="{{ route('admin.troopers.list') }}"
+                  class="mt-2">
+                @foreach(request()->except(['organization_id', 'page']) as $key => $value)
+                    <x-input-hidden :property="$key"
+                                    :value="$value" />
+                @endforeach
+                <select name="organization_id"
+                        class="form-select"
+                        onchange="this.form.submit()">
+                    <option value="">All Groups</option>
+                    @foreach($organizations as $org)
+                        <option value="{{ $org->id }}"
+                                {{ $organization_id == $org->id ? 'selected' : '' }}>
+                            {{ $org->indented_name }}
+                        </option>
+                    @endforeach
+                </select>
+            </form>
+
+            @if($selected_organization)
+                <div class="mt-2">
+                    <x-filter-chip :label="$selected_organization->name"
+                                   :url="route('admin.troopers.list', qs(['organization_id' => null]))" />
+                </div>
+            @endif
 
         </div>
         <div class="col-sm-12 col-md-6 text-end">
@@ -49,12 +75,13 @@
     <x-table id="trooper-search-results">
         <thead>
             <tr>
-                <th>
-                    Name / Email
-                </th>
-                <th>Role</th>
-                <th>Status</th>
-                <th>Last Seen</th>
+                @foreach($sort_headers as $header)
+                    <th>
+                        <a href="{{ $header['url'] }}">
+                            {{ $header['label'] }} <i class="fa fa-fw {{ $header['icon'] }}"></i>
+                        </a>
+                    </th>
+                @endforeach
                 <th></th>
             </tr>
         </thead>

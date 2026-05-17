@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin\Troopers;
 
 use App\Http\Controllers\MagicBusController;
 use App\Models\Filters\TrooperFilter;
+use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
@@ -22,16 +23,20 @@ use Illuminate\Http\Request;
  */
 class ListController extends MagicBusController
 {
+    private const SORT_COLS = [
+        Trooper::DISPLAY_NAME      => 'Name / Email',
+        Trooper::MEMBERSHIP_ROLE   => 'Role',
+        Trooper::MEMBERSHIP_STATUS => 'Status',
+        Trooper::LAST_ACTIVE_AT    => 'Last Seen',
+    ];
+
     protected function initialized(): void
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
     }
 
     /**
-     * Handle the incoming request to display the troopers list page
-     *
-     * Sets up breadcrumbs, retrieves the appropriate list of troopers based on the
-     * user's role, and returns the main troopers display view.
+     * Handle the incoming request to display the troopers list page.
      *
      * @param  Request  $request  The incoming HTTP request
      * @param  TrooperFilter  $filter  The filter service for applying query constraints
@@ -39,12 +44,28 @@ class ListController extends MagicBusController
      */
     public function __invoke(Request $request, TrooperFilter $filter): View|RedirectResponse
     {
-        $troopers = $this->getTroopers($request, $filter);
+        $trooper = $request->user();
+
+        $sort_col = array_key_exists($request->query('sort_col'), self::SORT_COLS)
+            ? $request->query('sort_col')
+            : Trooper::DISPLAY_NAME;
+
+        $sort_dir = in_array($request->query('sort_dir'), ['asc', 'desc'])
+            ? $request->query('sort_dir')
+            : 'asc';
+
+        $organizations       = Organization::moderatedBy($trooper)->orderBy(Organization::SEQUENCE)->get();
+        $organization_id     = $request->query('organization_id');
+        $selected_organization = $organization_id ? $organizations->find($organization_id) : null;
 
         $data = [
-            'troopers' => $troopers,
-            'membership_role' => $request->query('membership_role'),
-            'search_term' => $request->query('search_term'),
+            'troopers'              => $this->getTroopers($request, $filter, $sort_col, $sort_dir),
+            'membership_role'       => $request->query('membership_role'),
+            'search_term'           => $request->query('search_term'),
+            'sort_headers'          => $this->buildSortHeaders($sort_col, $sort_dir),
+            'organizations'         => $organizations,
+            'organization_id'       => $organization_id,
+            'selected_organization' => $selected_organization,
         ];
 
         return view('pages.admin.troopers.list', $data);
@@ -53,22 +74,51 @@ class ListController extends MagicBusController
     /**
      * Get the collection of troopers to be displayed.
      *
-     * This method filters troopers based on the request's query parameters, such as
-     * 'membership_role' and 'search_term'. If the authenticated user is not an
-     * Administrator, the results are further constrained to only troopers moderated
-     * by the current user.
-     *
      * @param  Request  $request  The incoming HTTP request, containing potential filters.
+     * @param  TrooperFilter  $filter  The filter service for applying query constraints.
+     * @param  string  $sort_col  The column to sort by.
+     * @param  string  $sort_dir  The sort direction ('asc' or 'desc').
      * @return LengthAwarePaginator A paginated list of troopers.
      */
-    private function getTroopers(Request $request, TrooperFilter $filter): LengthAwarePaginator
-    {
+    private function getTroopers(
+        Request $request,
+        TrooperFilter $filter,
+        string $sort_col,
+        string $sort_dir
+    ): LengthAwarePaginator {
         $trooper = $request->user();
 
-        $q = Trooper::moderatedBy($trooper)->orderBy(Trooper::DISPLAY_NAME);
+        $q = Trooper::moderatedBy($trooper)->orderBy($sort_col, $sort_dir);
 
-        $q = $q->filterWith($filter);
+        return $q->filterWith($filter)->paginate(15)->withQueryString();
+    }
 
-        return $q->paginate(15)->withQueryString();
+    /**
+     * Build pre-computed sort header data for each sortable column.
+     *
+     * Each entry contains the label, icon class, and toggle URL for that column.
+     * Clicking the active column toggles direction; clicking another column sorts it ASC.
+     *
+     * @param  string  $sort_col  The currently active sort column.
+     * @param  string  $sort_dir  The currently active sort direction.
+     * @return array<string, array{label: string, icon: string, url: string}>
+     */
+    private function buildSortHeaders(string $sort_col, string $sort_dir): array
+    {
+        $headers = [];
+
+        foreach (self::SORT_COLS as $col => $label)
+        {
+            $active   = $sort_col === $col;
+            $next_dir = ($active && $sort_dir === 'asc') ? 'desc' : 'asc';
+
+            $headers[$col] = [
+                'label' => $label,
+                'icon'  => $active ? ($sort_dir === 'asc' ? 'fa-sort-up' : 'fa-sort-down') : 'fa-sort',
+                'url'   => route('admin.troopers.list', qs(['sort_col' => $col, 'sort_dir' => $next_dir, 'page' => 1])),
+            ];
+        }
+
+        return $headers;
     }
 }
