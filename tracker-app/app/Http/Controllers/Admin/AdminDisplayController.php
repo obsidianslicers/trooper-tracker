@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\MagicBusController;
 use App\Models\Trooper;
+use App\Models\TrooperJoinRequest;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -32,6 +33,8 @@ class AdminDisplayController extends MagicBusController
 
         $not_approved = Trooper::pendingApprovals()->moderatedBy($trooper)->count();
 
+        $pending_join_requests = TrooperJoinRequest::pending()->forModerator($trooper)->count();
+
         if ($not_approved == 1)
         {
             $msg = "There is {$not_approved} trooper ready for action!";
@@ -46,7 +49,7 @@ class AdminDisplayController extends MagicBusController
             $this->flash->warning($msg);
         }
 
-        $data = compact('not_approved');
+        $data = compact('not_approved', 'pending_join_requests');
 
         return view('pages.admin.display', $data);
     }

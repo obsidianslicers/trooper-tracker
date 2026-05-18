@@ -10,4 +10,7 @@
                :target="route('account.costumes')"
                :active="request()->routeIs('account.costumes')" />
     @endif
+    <x-tab :label="'Club Memberships'"
+           :target="route('account.club-memberships')"
+           :active="request()->routeIs('account.club-memberships')" />
 </x-tabs>

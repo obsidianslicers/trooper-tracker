@@ -10,11 +10,15 @@ use App\Http\Controllers\Admin\Troopers\ChangesController;
 use App\Http\Controllers\Admin\Troopers\CostumesController;
 use App\Http\Controllers\Admin\Troopers\DenialSubmitHtmxController;
 use App\Http\Controllers\Admin\Troopers\EventsController;
+use App\Http\Controllers\Admin\Troopers\JoinRequestApproveHtmxController;
+use App\Http\Controllers\Admin\Troopers\JoinRequestDenyHtmxController;
 use App\Http\Controllers\Admin\Troopers\ListController;
 use App\Http\Controllers\Admin\Troopers\MembershipController;
 use App\Http\Controllers\Admin\Troopers\MembershipSubmitController;
 use App\Http\Controllers\Admin\Troopers\ProfileController;
 use App\Http\Controllers\Admin\Troopers\ProfileSubmitController;
+use App\Http\Controllers\Admin\Troopers\RecruitController;
+use App\Http\Controllers\Admin\Troopers\RecruitSubmitController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -28,6 +32,12 @@ Route::prefix('admin/troopers')
         Route::get('/approvals', ApprovalListController::class)->name('approvals');
         Route::post('/approvals/{trooper}/approve', ApprovalSubmitHtmxController::class)->name('approve-htmx');
         Route::post('/approvals/{trooper}/deny', DenialSubmitHtmxController::class)->name('deny-htmx');
+
+        Route::get('/recruit', RecruitController::class)->name('recruit');
+        Route::post('/recruit', RecruitSubmitController::class);
+
+        Route::post('/join-requests/{join_request}/approve', JoinRequestApproveHtmxController::class)->name('join-requests.approve-htmx');
+        Route::post('/join-requests/{join_request}/deny', JoinRequestDenyHtmxController::class)->name('join-requests.deny-htmx');
 
         Route::get('/{trooper}', ProfileController::class)->name('profile');
         Route::post('/{trooper}', ProfileSubmitController::class);

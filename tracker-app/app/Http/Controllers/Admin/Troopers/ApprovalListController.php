@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Troopers;
 
+use App\Features\Troopers\Queries\GetPendingJoinRequestsQuery;
 use App\Features\Troopers\Queries\GetTrooperApprovalsQuery;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Trooper;
@@ -40,7 +41,11 @@ class ApprovalListController extends MagicBusController
 
         $troopers = $this->bus->send($approval_query);
 
-        $data = compact('troopers');
+        $join_requests_query = new GetPendingJoinRequestsQuery($trooper);
+
+        $join_requests = $this->bus->send($join_requests_query);
+
+        $data = compact('troopers', 'join_requests');
 
         return view('pages.admin.troopers.approvals', $data);
     }

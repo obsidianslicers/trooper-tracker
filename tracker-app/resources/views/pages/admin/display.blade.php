@@ -15,6 +15,15 @@
                 </p>
             </x-dashboard-card>
         @endif
+        @if($pending_join_requests)
+            <x-dashboard-card :label="'Club Join Requests'"
+                              :icon="'fa-user-plus'"
+                              :url="route('admin.troopers.approvals')">
+                <p class="text-warning">
+                    {{ $pending_join_requests }} {{ $pending_join_requests === 1 ? 'request' : 'requests' }} pending
+                </p>
+            </x-dashboard-card>
+        @endif
         <x-dashboard-card :label="'Troopers'"
                           :icon="'fa-users-gear'"
                           :url="route('admin.troopers.list')">
