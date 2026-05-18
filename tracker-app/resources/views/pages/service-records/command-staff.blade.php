@@ -20,6 +20,7 @@
             <tr>
                 <th>Trooper</th>
                 <th>Role</th>
+                <th>CS Organizations</th>
             </tr>
         </thead>
         @forelse($troopers as $trooper)
@@ -30,10 +31,17 @@
                     </a>
                 </td>
                 <td>{{ to_title($trooper->membership_role->name) }}</td>
+                <td>
+                    @if($trooper->cs_organizations?->isNotEmpty())
+                        {{ $trooper->cs_organizations->pluck('name')->implode(', ') }}
+                    @else
+                        <span class="text-muted">—</span>
+                    @endif
+                </td>
             </tr>
         @empty
             <tr>
-                <td colspan="2"
+                <td colspan="3"
                     class="text-center">
                     No command staff found.
                 </td>
