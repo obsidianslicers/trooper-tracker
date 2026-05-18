@@ -5,29 +5,21 @@ declare(strict_types=1);
 namespace App\Features\Troopers\Commands;
 
 use App\Bus\Contracts\CommandHandlerInterface;
-use App\Models\TrooperAssignment;
+use App\Enums\MembershipStatus;
+use App\Models\TrooperOrganization;
 
 /**
  * Handler for updating trooper organization memberships.
  *
- * Creates or updates TrooperAssignment records based on the provided
- * assignment data. Each entry in valid_data may contain an 'assignment'
- * key specifying the organization ID where the trooper is a member.
- *
- * Only processes entries that have a valid assignment ID.
+ * Creates a PENDING TrooperOrganization record for each selected organization.
+ * Membership is not granted until an admin approves the request via the approvals page.
  *
  * @implements CommandHandlerInterface<UpdateTrooperMembershipsCommand>
  */
 readonly class UpdateTrooperMembershipsCommandHandler implements CommandHandlerInterface
 {
     /**
-     * Execute the command to update trooper organization memberships.
-     *
-     * Syncs TrooperAssignment records (is_member flags) for each organization
-     * based on the valid_data array. Creates, updates, or deletes assignments
-     * as needed to match the submitted form data.
-     *
-     * @param  UpdateTrooperMembershipsCommand  $message  The command with trooper and membership assignment data
+     * @param  UpdateTrooperMembershipsCommand  $message
      * @return null
      */
     public function __invoke(object $message): mixed
@@ -41,18 +33,15 @@ readonly class UpdateTrooperMembershipsCommandHandler implements CommandHandlerI
                 continue;
             }
 
-            $trooper_assignment = $message->trooper->trooper_assignments
-                ->firstWhere('organization_id', $assignment_id);
-
-            if (!$trooper_assignment)
-            {
-                $trooper_assignment = new TrooperAssignment;
-                $trooper_assignment->trooper_id = $message->trooper->id;
-                $trooper_assignment->organization_id = $assignment_id;
-            }
-
-            $trooper_assignment->is_member = true;
-            $trooper_assignment->save();
+            TrooperOrganization::firstOrCreate(
+                [
+                    TrooperOrganization::TROOPER_ID      => $message->trooper->id,
+                    TrooperOrganization::ORGANIZATION_ID => $assignment_id,
+                ],
+                [
+                    TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::PENDING,
+                ]
+            );
         }
 
         return null;
