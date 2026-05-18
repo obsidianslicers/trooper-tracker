@@ -121,9 +121,6 @@ Feature-organized validation rules in `app/Rules/`:
 - `UniqueCostumeNameRule` - Ensures costume names unique within organization
 - `UniqueNameRule` - Ensures organization names unique among siblings
 
-**Admin/Troopers Rules:**
-- `OrganizationLeafNodeRule` - Validates selected organization is a leaf node
-
 ### Middleware
 
 - Standard Laravel authentication middleware

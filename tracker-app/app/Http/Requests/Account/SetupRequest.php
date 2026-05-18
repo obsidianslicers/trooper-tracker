@@ -8,7 +8,6 @@ use App\Enums\NotificationFrequency;
 use App\Enums\TrooperTheme;
 use App\Models\Organization;
 use App\Models\Trooper;
-use App\Rules\Admin\Troopers\OrganizationLeafNodeRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
@@ -82,7 +81,6 @@ class SetupRequest extends FormRequest
      *
      * Validates that selected organizations:
      * - Exist in the database
-     * - Are leaf nodes (have no child organizations)
      * - Have valid identifiers according to organization-specific rules
      *
      * @return array<string, mixed> Validation rules for organization memberships
@@ -98,11 +96,10 @@ class SetupRequest extends FormRequest
 
         foreach ($organizations as $organization)
         {
-            // Validate assignment - required when identifier is provided, must be a leaf node and descendant
+            // Validate assignment when provided.
             $rules["organizations.{$organization->id}.assignment"] = [
                 'nullable',
                 Rule::exists(Organization::class, Organization::ID),
-                new OrganizationLeafNodeRule($organization),
             ];
         }
 
