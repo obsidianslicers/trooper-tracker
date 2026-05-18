@@ -29,8 +29,7 @@ class ClubMembershipsController extends MagicBusController
 
         $available_clubs = $this->bus->send(new GetAvailableClubsQuery($trooper));
 
-        $current_clubs = Organization::whereDoesntHave('organizations')
-            ->whereHas('trooper_assignments', fn ($q) => $q
+        $current_clubs = Organization::whereHas('trooper_assignments', fn ($q) => $q
                 ->where(TrooperAssignment::TROOPER_ID, $trooper->id)
                 ->where(TrooperAssignment::IS_MEMBER, true)
             )
