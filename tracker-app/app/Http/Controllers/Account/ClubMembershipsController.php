@@ -46,11 +46,12 @@ class ClubMembershipsController extends MagicBusController
             ->keyBy(Organization::ID);
 
         $available_clubs_data = $available_clubs->map(fn ($org) => [
-            'id'                 => $org->id,
-            'name'               => $org->name,
-            'parent_id'          => $org->parent_id,
-            'depth'              => $org->depth,
-            'identifier_display' => $org->identifier_display,
+            'id'                    => $org->id,
+            'name'                  => $org->name,
+            'parent_id'             => $org->parent_id,
+            'depth'                 => $org->depth,
+            'identifier_display'    => $org->identifier_display,
+            'identifier_validation' => $org->identifier_validation,
         ]);
 
         $data = compact('available_clubs', 'available_clubs_data', 'current_clubs', 'ancestors');

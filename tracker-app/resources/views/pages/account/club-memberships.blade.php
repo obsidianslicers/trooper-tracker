@@ -47,6 +47,10 @@
                     get selectedOrg() {
                         const id = parseInt(this.selectedId);
                         return this.orgs.find(o => o.id === id) ?? null;
+                    },
+                    get isIdentifierRequired() {
+                        if (!this.selectedOrg?.identifier_validation) return false;
+                        return this.selectedOrg.identifier_validation.split('|').includes('required');
                     }
                 }">
                     <p class="text-muted mb-3">
@@ -74,12 +78,13 @@
 
                     <div x-show="selectedId" x-cloak>
                         <x-input-container>
-                            <x-label>Member ID <span class="text-muted">(optional)</span>:</x-label>
+                            <x-label><span x-text="selectedOrg?.identifier_display ?? 'Member ID'">Member ID</span><span class="text-muted" x-show="!isIdentifierRequired"> (optional)</span>:</x-label>
                             <input type="text"
                                    name="identifier"
                                    id="identifier"
                                    class="form-control @error('identifier') is-invalid @enderror"
                                    :placeholder="selectedOrg?.identifier_display ?? 'Member ID'"
+                                   :required="isIdentifierRequired"
                                    maxlength="64" />
                             <x-input-help>
                                 Enter your member ID for this organization if you have one. Leave blank if unknown.

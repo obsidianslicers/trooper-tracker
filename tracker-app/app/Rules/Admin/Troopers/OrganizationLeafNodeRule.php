@@ -60,7 +60,8 @@ class OrganizationLeafNodeRule implements ValidationRule
         }
 
         // Check if picked organization has no children (is a leaf node)
-        if ($picked_organization->organizations()->count() > 0)
+        // Allow the root organization itself even if it has children
+        if ($picked_organization->id !== $this->organization->id && $picked_organization->organizations()->count() > 0)
         {
             $fail('Please select a more specific unit.');
         }
