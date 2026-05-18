@@ -4,6 +4,8 @@
 @import "easymde/dist/easymde.min.css";
 
 // Static Styles
+[x-cloak] { display: none !important; }
+
 .pointer {
     cursor: pointer;
 }

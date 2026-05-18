@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace App\Features\Troopers\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
-use App\Enums\JoinRequestStatus;
 use App\Models\Organization;
 use App\Models\TrooperAssignment;
-use App\Models\TrooperJoinRequest;
 use Illuminate\Support\Collection;
 
 /**
@@ -26,19 +24,39 @@ readonly class GetAvailableClubsQueryHandler implements QueryHandlerInterface
     {
         $trooper_id = $message->trooper->id;
 
-        return Organization::whereDoesntHave('organizations')
-            ->with('parent')
-            ->whereDoesntHave('trooper_assignments', function ($q) use ($trooper_id)
-            {
-                $q->where(TrooperAssignment::TROOPER_ID, $trooper_id)
-                  ->where(TrooperAssignment::IS_MEMBER, true);
-            })
-            ->whereDoesntHave('trooper_join_requests', function ($q) use ($trooper_id)
-            {
-                $q->where(TrooperJoinRequest::TROOPER_ID, $trooper_id)
-                  ->where(TrooperJoinRequest::STATUS, JoinRequestStatus::PENDING);
-            })
-            ->orderBy(Organization::SEQUENCE)
-            ->get();
+        // Exclude families where the trooper already has an active membership.
+        // Pending requests are still shown — submitting a new one in the same family replaces it.
+        $active_org_ids = TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $trooper_id)
+            ->where(TrooperAssignment::IS_MEMBER, true)
+            ->pluck(TrooperAssignment::ORGANIZATION_ID);
+
+        $excluded_roots = collect();
+
+        if ($active_org_ids->isNotEmpty())
+        {
+            Organization::whereIn(Organization::ID, $active_org_ids)
+                ->get([Organization::NODE_PATH])
+                ->each(function ($org) use (&$excluded_roots)
+                {
+                    $root_id = explode(Organization::NODE_PATH_SEP, $org->node_path)[0];
+
+                    if ($root_id !== '')
+                    {
+                        $excluded_roots->push($root_id);
+                    }
+                });
+
+            $excluded_roots = $excluded_roots->unique()->values();
+        }
+
+        $query = Organization::query();
+
+        foreach ($excluded_roots as $root_id)
+        {
+            // LIKE '1:%' matches "1:", "1:5:", "1:5:12:" — the entire family
+            $query->where(Organization::NODE_PATH, 'NOT LIKE', $root_id . Organization::NODE_PATH_SEP . '%');
+        }
+
+        return $query->orderBy(Organization::SEQUENCE)->get();
     }
 }

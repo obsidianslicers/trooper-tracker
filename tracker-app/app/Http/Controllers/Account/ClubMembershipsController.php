@@ -33,11 +33,27 @@ class ClubMembershipsController extends MagicBusController
                 ->where(TrooperAssignment::TROOPER_ID, $trooper->id)
                 ->where(TrooperAssignment::IS_MEMBER, true)
             )
-            ->with('parent')
             ->orderBy(Organization::SEQUENCE)
             ->get();
 
-        $data = compact('available_clubs', 'current_clubs');
+        // Load all ancestors in one query for unlimited-depth path display
+        $ancestor_ids = $current_clubs->flatMap(
+            fn ($c) => array_filter(explode(Organization::NODE_PATH_SEP, trim($c->node_path, Organization::NODE_PATH_SEP)))
+        )->unique()->values()->toArray();
+
+        $ancestors = Organization::whereIn(Organization::ID, $ancestor_ids)
+            ->get([Organization::ID, Organization::NAME])
+            ->keyBy(Organization::ID);
+
+        $available_clubs_data = $available_clubs->map(fn ($org) => [
+            'id'                 => $org->id,
+            'name'               => $org->name,
+            'parent_id'          => $org->parent_id,
+            'depth'              => $org->depth,
+            'identifier_display' => $org->identifier_display,
+        ]);
+
+        $data = compact('available_clubs', 'available_clubs_data', 'current_clubs', 'ancestors');
 
         return view('pages.account.club-memberships', $data);
     }

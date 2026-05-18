@@ -15,14 +15,13 @@
                 <h6 class="mb-3">Current Club Memberships</h6>
                 <ul class="list-group list-group-flush">
                     @foreach($current_clubs as $club)
+                        @php
+                            $path_ids   = array_filter(explode(':', trim($club->node_path, ':')));
+                            $path_names = collect($path_ids)->map(fn($id) => $ancestors[$id]?->name ?? '?');
+                        @endphp
                         <li class="list-group-item d-flex align-items-center gap-2 px-0">
                             <i class="fa fa-fw fa-circle-check text-success"></i>
-                            <span>
-                                @if($club->parent)
-                                    <span class="text-muted">{{ $club->parent->name }} —</span>
-                                @endif
-                                {{ $club->name }}
-                            </span>
+                            <span>{{ $path_names->implode(' — ') }}</span>
                         </li>
                     @endforeach
                 </ul>
@@ -35,27 +34,37 @@
                     You are already a member of all available clubs, or no clubs are available to join at this time.
                 </x-message>
             @else
-                <x-card>
+                @php
+                    $grouped    = $available_clubs->groupBy(fn($org) => explode(\App\Models\Organization::NODE_PATH_SEP, $org->node_path)[0]);
+                    $root_ids   = $grouped->keys()->map(fn($id) => (int) $id)->toArray();
+                    $root_names = \App\Models\Organization::whereIn(\App\Models\Organization::ID, $root_ids)
+                        ->pluck(\App\Models\Organization::NAME, \App\Models\Organization::ID);
+                @endphp
+
+                <x-card x-data="{
+                    orgs: {{ Js::from($available_clubs_data) }},
+                    selectedId: '',
+                    get selectedOrg() {
+                        const id = parseInt(this.selectedId);
+                        return this.orgs.find(o => o.id === id) ?? null;
+                    }
+                }">
                     <p class="text-muted mb-3">
                         Select a club below and submit a request. A moderator will review and approve your membership.
+                        You may join at any level — organization, region, or unit. Only one membership per organization is allowed.
                     </p>
 
-                    @php
-                        $grouped = $available_clubs->groupBy(fn($o) => $o->parent?->name ?? 'Other');
-                    @endphp
-
                     <x-input-container>
-                        <x-label>
-                            Club / Unit:
-                        </x-label>
+                        <x-label>Club / Organization:</x-label>
                         <select name="organization_id"
                                 id="organization_id"
+                                x-model="selectedId"
                                 class="form-select @error('organization_id') is-invalid @enderror">
-                            <option value="">— Select a club —</option>
-                            @foreach($grouped as $parent_name => $clubs)
-                                <optgroup label="{{ $parent_name }}">
-                                    @foreach($clubs as $club)
-                                        <option value="{{ $club->id }}">{{ $club->name }}</option>
+                            <option value="">— Select an organization —</option>
+                            @foreach($grouped as $root_id => $orgs)
+                                <optgroup label="{{ $root_names[$root_id] ?? 'Other' }}">
+                                    @foreach($orgs as $org)
+                                        <option value="{{ $org->id }}">{{ str_repeat('— ', $org->depth) }}{{ $org->name }}</option>
                                     @endforeach
                                 </optgroup>
                             @endforeach
@@ -63,21 +72,21 @@
                         <x-input-error :property="'organization_id'" />
                     </x-input-container>
 
-                    <x-input-container>
-                        <x-label>
-                            Club ID / Identifier (optional):
-                        </x-label>
-                        <input type="text"
-                               name="identifier"
-                               id="identifier"
-                               class="form-control @error('identifier') is-invalid @enderror"
-                               placeholder="e.g. TK-0000"
-                               maxlength="64" />
-                        <x-input-help>
-                            Enter your club-specific member ID if you have one (e.g. TK number, garrison ID). Leave blank if unknown.
-                        </x-input-help>
-                        <x-input-error :property="'identifier'" />
-                    </x-input-container>
+                    <div x-show="selectedId" x-cloak>
+                        <x-input-container>
+                            <x-label>Member ID <span class="text-muted">(optional)</span>:</x-label>
+                            <input type="text"
+                                   name="identifier"
+                                   id="identifier"
+                                   class="form-control @error('identifier') is-invalid @enderror"
+                                   :placeholder="selectedOrg?.identifier_display ?? 'Member ID'"
+                                   maxlength="64" />
+                            <x-input-help>
+                                Enter your member ID for this organization if you have one. Leave blank if unknown.
+                            </x-input-help>
+                            <x-input-error :property="'identifier'" />
+                        </x-input-container>
+                    </div>
 
                     <x-submit-container>
                         <button type="button"
