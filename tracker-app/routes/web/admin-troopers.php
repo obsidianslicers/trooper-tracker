@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\Troopers\JoinRequestApproveHtmxController;
 use App\Http\Controllers\Admin\Troopers\JoinRequestDenyHtmxController;
 use App\Http\Controllers\Admin\Troopers\ListController;
 use App\Http\Controllers\Admin\Troopers\MembershipController;
+use App\Http\Controllers\Admin\Troopers\MembershipRemoveController;
 use App\Http\Controllers\Admin\Troopers\MembershipSubmitController;
 use App\Http\Controllers\Admin\Troopers\ProfileController;
 use App\Http\Controllers\Admin\Troopers\ProfileSubmitController;
@@ -45,6 +46,7 @@ Route::prefix('admin/troopers')
         Route::post('/{trooper}/authority', AuthoritySubmitController::class);
         Route::get('/{trooper}/membership', MembershipController::class)->name('membership');
         Route::post('/{trooper}/membership', MembershipSubmitController::class);
+        Route::post('/{trooper}/membership/{organization}/remove', MembershipRemoveController::class)->name('membership.remove');
         Route::get('/{trooper}/events', EventsController::class)->name('events');
         Route::get('/{trooper}/costumes', CostumesController::class)->name('costumes');
         Route::get('/{trooper}/changes', ChangesController::class)->name('changes');

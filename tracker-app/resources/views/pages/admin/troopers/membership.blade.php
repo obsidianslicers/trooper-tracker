@@ -40,6 +40,7 @@
                             <th>Organization</th>
                             <th>Identifier</th>
                             <th>Member Of</th>
+                            <th></th>
                         </tr>
                     </thead>
                     @foreach ($organization_memberships as $organization)
@@ -57,6 +58,17 @@
                                                 :params="['organization_id' => $organization->id]"
                                                 :text="$organization->assignment->name ?? 'Member Of ...'"
                                                 :value="$organization->assignment->id ?? null" />
+                            </td>
+                            <td class="text-end">
+                                @if($organization->is_member)
+                                    <button class="btn btn-outline-danger"
+                                            type="submit"
+                                            formaction="{{ route('admin.troopers.membership.remove', compact('trooper', 'organization')) }}"
+                                            formmethod="POST">
+                                        <i class="fa fw fa-times"></i>
+                                        Remove
+                                    </button>
+                                @endif
                             </td>
                         </tr>
                     @endforeach
