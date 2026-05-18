@@ -23,12 +23,12 @@ readonly class SubmitJoinRequestCommandHandler implements CommandHandlerInterfac
     public function __invoke(object $message): mixed
     {
         $organization = $message->organization;
-        $trooper      = $message->trooper;
+        $trooper = $message->trooper;
 
         // Cancel any OTHER pending request in this top-level family so only one exists at a time.
-        $root_id    = explode(Organization::NODE_PATH_SEP, $organization->node_path)[0];
-        $root_path  = $root_id . Organization::NODE_PATH_SEP;
-        $family_ids = Organization::where(Organization::NODE_PATH, 'LIKE', $root_path . '%')
+        $root_id = explode(Organization::NODE_PATH_SEP, $organization->node_path)[0];
+        $root_path = $root_id.Organization::NODE_PATH_SEP;
+        $family_ids = Organization::where(Organization::NODE_PATH, 'LIKE', $root_path.'%')
             ->pluck(Organization::ID);
 
         TrooperOrganization::where(TrooperOrganization::TROOPER_ID, $trooper->id)
@@ -39,13 +39,13 @@ readonly class SubmitJoinRequestCommandHandler implements CommandHandlerInterfac
 
         $join_request = TrooperOrganization::updateOrCreate(
             [
-                TrooperOrganization::TROOPER_ID      => $trooper->id,
+                TrooperOrganization::TROOPER_ID => $trooper->id,
                 TrooperOrganization::ORGANIZATION_ID => $organization->id,
             ],
             [
                 TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::PENDING,
-                TrooperOrganization::IDENTIFIER        => $message->identifier,
-                TrooperOrganization::UPDATED_AT        => now(),
+                TrooperOrganization::IDENTIFIER => $message->identifier,
+                TrooperOrganization::UPDATED_AT => now(),
             ]
         );
 

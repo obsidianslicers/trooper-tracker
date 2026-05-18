@@ -27,14 +27,10 @@ class RecruitSubmitController extends MagicBusController
         $this->crumbs->addRoute('Troopers', 'admin.troopers.list');
     }
 
-    /**
-     * @param  Request  $request
-     * @return RedirectResponse
-     */
     public function __invoke(Request $request): RedirectResponse
     {
         $request->validate([
-            'trooper_id'      => ['required', 'integer', Rule::exists('tt_troopers', 'id')],
+            'trooper_id' => ['required', 'integer', Rule::exists('tt_troopers', 'id')],
             'organization_id' => ['required', 'integer', Rule::exists('tt_organizations', 'id')],
         ]);
 
@@ -60,13 +56,14 @@ class RecruitSubmitController extends MagicBusController
             ->route('admin.troopers.recruit')
             ->with('flash_message', json_encode([
                 'message' => "{$subject->display_name} has been added to {$organization->name}.",
-                'type'    => 'success',
+                'type' => 'success',
             ]));
     }
 
     private function buildIdentifierRules(Organization $organization, Trooper $trooper): array
     {
-        if (empty($organization->identifier_validation)) {
+        if (empty($organization->identifier_validation))
+        {
             return ['nullable', 'string', 'max:64'];
         }
 

@@ -19,11 +19,6 @@ use Illuminate\Http\Response;
  */
 class JoinRequestApproveHtmxController extends MagicBusController
 {
-    /**
-     * @param  Request             $request
-     * @param  TrooperOrganization $join_request
-     * @return Response|View
-     */
     public function __invoke(Request $request, TrooperOrganization $join_request): Response|View
     {
         $this->authorize('moderate', $join_request);
@@ -36,7 +31,7 @@ class JoinRequestApproveHtmxController extends MagicBusController
 
         $message = json_encode([
             'message' => "{$join_request->trooper->display_name} approved for {$join_request->organization->name}!",
-            'type'    => 'success',
+            'type' => 'success',
         ]);
 
         return response()

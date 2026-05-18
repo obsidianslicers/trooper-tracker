@@ -51,7 +51,7 @@ class AdminDisplayController extends MagicBusController
 
         if ($pending_join_requests === 1)
         {
-            $this->flash->warning("1 trooper has a pending request!");
+            $this->flash->warning('1 trooper has a pending request!');
         }
         elseif ($pending_join_requests > 1)
         {

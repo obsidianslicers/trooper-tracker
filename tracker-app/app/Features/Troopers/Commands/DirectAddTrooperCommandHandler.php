@@ -28,14 +28,14 @@ readonly class DirectAddTrooperCommandHandler implements CommandHandlerInterface
         TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $message->trooper->id)
             ->where(TrooperAssignment::IS_MEMBER, true)
             ->whereHas('organization', fn ($q) => $q
-                ->whereRaw('node_path LIKE ?', [$primary_club->node_path . '%'])
+                ->whereRaw('node_path LIKE ?', [$primary_club->node_path.'%'])
                 ->where('id', '!=', $message->organization->id)
             )
             ->update([TrooperAssignment::IS_MEMBER => false]);
 
         TrooperAssignment::updateOrCreate(
             [
-                TrooperAssignment::TROOPER_ID      => $message->trooper->id,
+                TrooperAssignment::TROOPER_ID => $message->trooper->id,
                 TrooperAssignment::ORGANIZATION_ID => $message->organization->id,
             ],
             [
@@ -52,7 +52,7 @@ readonly class DirectAddTrooperCommandHandler implements CommandHandlerInterface
 
         TrooperOrganization::updateOrCreate(
             [
-                TrooperOrganization::TROOPER_ID      => $message->trooper->id,
+                TrooperOrganization::TROOPER_ID => $message->trooper->id,
                 TrooperOrganization::ORGANIZATION_ID => $primary_club->id,
             ],
             $update_data

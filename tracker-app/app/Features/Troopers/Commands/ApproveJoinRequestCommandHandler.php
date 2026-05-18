@@ -34,14 +34,14 @@ readonly class ApproveJoinRequestCommandHandler implements CommandHandlerInterfa
         TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $trooper_org->trooper_id)
             ->where(TrooperAssignment::IS_MEMBER, true)
             ->whereHas('organization', fn ($q) => $q
-                ->whereRaw('node_path LIKE ?', [$primary_club->node_path . '%'])
+                ->whereRaw('node_path LIKE ?', [$primary_club->node_path.'%'])
                 ->where('id', '!=', $trooper_org->organization_id)
             )
             ->update([TrooperAssignment::IS_MEMBER => false]);
 
         TrooperAssignment::updateOrCreate(
             [
-                TrooperAssignment::TROOPER_ID      => $trooper_org->trooper_id,
+                TrooperAssignment::TROOPER_ID => $trooper_org->trooper_id,
                 TrooperAssignment::ORGANIZATION_ID => $trooper_org->organization_id,
             ],
             [
@@ -58,7 +58,7 @@ readonly class ApproveJoinRequestCommandHandler implements CommandHandlerInterfa
 
         TrooperOrganization::updateOrCreate(
             [
-                TrooperOrganization::TROOPER_ID      => $trooper_org->trooper_id,
+                TrooperOrganization::TROOPER_ID => $trooper_org->trooper_id,
                 TrooperOrganization::ORGANIZATION_ID => $primary_club->id,
             ],
             $update_data

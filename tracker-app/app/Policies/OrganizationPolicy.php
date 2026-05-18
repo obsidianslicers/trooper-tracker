@@ -31,7 +31,7 @@ class OrganizationPolicy
     /**
      * Determine whether the moderator can directly add a trooper to an organization.
      *
-     * @param  Trooper       $trooper  The authenticated moderator
+     * @param  Trooper  $trooper  The authenticated moderator
      * @param  Organization  $subject  The organization to recruit into
      * @return bool True if the user moderates the organization
      */

@@ -52,7 +52,7 @@ class MembershipRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request
      *
-    * Generates dynamic validation rules for organization memberships.
+     * Generates dynamic validation rules for organization memberships.
      *
      * @return array<string, mixed> The validation rules for organization memberships
      */

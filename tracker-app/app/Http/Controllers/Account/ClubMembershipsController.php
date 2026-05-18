@@ -20,10 +20,6 @@ use Illuminate\Http\Request;
  */
 class ClubMembershipsController extends MagicBusController
 {
-    /**
-     * @param  Request  $request
-     * @return View
-     */
     public function __invoke(Request $request): View
     {
         $trooper = $request->user();
@@ -31,9 +27,9 @@ class ClubMembershipsController extends MagicBusController
         $available_clubs = $this->bus->send(new GetAvailableClubsQuery($trooper));
 
         $current_clubs = Organization::whereHas('trooper_assignments', fn ($q) => $q
-                ->where(TrooperAssignment::TROOPER_ID, $trooper->id)
-                ->where(TrooperAssignment::IS_MEMBER, true)
-            )
+            ->where(TrooperAssignment::TROOPER_ID, $trooper->id)
+            ->where(TrooperAssignment::IS_MEMBER, true)
+        )
             ->orderBy(Organization::SEQUENCE)
             ->get();
 
@@ -72,15 +68,15 @@ class ClubMembershipsController extends MagicBusController
             ->keyBy(Organization::ID);
 
         $available_clubs_data = $available_clubs->map(function ($org) use ($root_orgs) {
-            $parts  = array_filter(explode(Organization::NODE_PATH_SEP, $org->node_path));
-            $root   = $root_orgs[(int) reset($parts)] ?? null;
+            $parts = array_filter(explode(Organization::NODE_PATH_SEP, $org->node_path));
+            $root = $root_orgs[(int) reset($parts)] ?? null;
 
             return [
-                'id'                    => $org->id,
-                'name'                  => $org->name,
-                'parent_id'             => $org->parent_id,
-                'depth'                 => $org->depth,
-                'identifier_display'    => $org->identifier_display ?? $root?->identifier_display,
+                'id' => $org->id,
+                'name' => $org->name,
+                'parent_id' => $org->parent_id,
+                'depth' => $org->depth,
+                'identifier_display' => $org->identifier_display ?? $root?->identifier_display,
                 'identifier_validation' => $org->identifier_validation ?? $root?->identifier_validation,
             ];
         });

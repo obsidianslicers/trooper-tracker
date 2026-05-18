@@ -19,11 +19,6 @@ use Illuminate\Http\Response;
  */
 class JoinRequestDenyHtmxController extends MagicBusController
 {
-    /**
-     * @param  Request             $request
-     * @param  TrooperOrganization $join_request
-     * @return Response|View
-     */
     public function __invoke(Request $request, TrooperOrganization $join_request): Response|View
     {
         $this->authorize('moderate', $join_request);
@@ -36,7 +31,7 @@ class JoinRequestDenyHtmxController extends MagicBusController
 
         $message = json_encode([
             'message' => "{$join_request->trooper->display_name}'s request for {$join_request->organization->name} denied.",
-            'type'    => 'danger',
+            'type' => 'danger',
         ]);
 
         return response()

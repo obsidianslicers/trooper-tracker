@@ -20,10 +20,6 @@ use Illuminate\Validation\Rule;
  */
 class ClubMembershipsSubmitHtmxController extends MagicBusController
 {
-    /**
-     * @param  Request  $request
-     * @return Response|View
-     */
     public function __invoke(Request $request): Response|View
     {
         $trooper = $request->user();
@@ -68,7 +64,7 @@ class ClubMembershipsSubmitHtmxController extends MagicBusController
 
         $message = json_encode([
             'message' => "Your request to join {$organization->name} has been submitted.",
-            'type'    => 'success',
+            'type' => 'success',
         ]);
 
         return response()

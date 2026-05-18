@@ -30,9 +30,6 @@ class SendJoinRequestNotificationsJob implements ShouldQueue
      */
     public function __construct(private readonly TrooperOrganization $join_request) {}
 
-    /**
-     * @param  MagicBus  $bus
-     */
     public function handle(MagicBus $bus): void
     {
         $admins = $bus->send(new GetTroopersByRoleQuery(MembershipRole::ADMINISTRATOR));

@@ -21,9 +21,8 @@ class TrooperJoinRequestPolicy
      *
      * The pending TrooperOrganization must be for an organization within the moderator's tree.
      *
-     * @param  Trooper             $trooper              The authenticated moderator
-     * @param  TrooperOrganization $trooper_organization  The pending record being acted on
-     * @return bool
+     * @param  Trooper  $trooper  The authenticated moderator
+     * @param  TrooperOrganization  $trooper_organization  The pending record being acted on
      */
     public function moderate(Trooper $trooper, TrooperOrganization $trooper_organization): bool
     {

@@ -9,7 +9,6 @@ use App\Models\Trooper;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -22,7 +21,7 @@ class DirectlyAddedToClub extends Mailable implements ShouldQueue
     use Queueable, SerializesModels;
 
     /**
-     * @param  Trooper       $trooper       The trooper who was added
+     * @param  Trooper  $trooper  The trooper who was added
      * @param  Organization  $organization  The organization they were added to
      */
     public function __construct(
@@ -42,8 +41,8 @@ class DirectlyAddedToClub extends Mailable implements ShouldQueue
         return new Content(
             view: 'emails.admin.troopers.directly-added-to-club',
             with: [
-                'trooper'       => $this->trooper,
-                'organization'  => $this->organization,
+                'trooper' => $this->trooper,
+                'organization' => $this->organization,
             ]
         );
     }

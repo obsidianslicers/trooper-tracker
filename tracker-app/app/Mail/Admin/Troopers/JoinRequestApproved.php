@@ -9,7 +9,6 @@ use App\Models\Trooper;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -22,7 +21,7 @@ class JoinRequestApproved extends Mailable implements ShouldQueue
     use Queueable, SerializesModels;
 
     /**
-     * @param  Trooper       $trooper       The trooper whose request was approved
+     * @param  Trooper  $trooper  The trooper whose request was approved
      * @param  Organization  $organization  The organization they were approved for
      */
     public function __construct(
@@ -42,7 +41,7 @@ class JoinRequestApproved extends Mailable implements ShouldQueue
         return new Content(
             view: 'emails.admin.troopers.join-request-approved',
             with: [
-                'trooper'      => $this->trooper,
+                'trooper' => $this->trooper,
                 'organization' => $this->organization,
             ]
         );

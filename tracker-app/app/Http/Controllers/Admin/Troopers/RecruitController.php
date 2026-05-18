@@ -24,10 +24,6 @@ class RecruitController extends MagicBusController
         $this->crumbs->addRoute('Troopers', 'admin.troopers.list');
     }
 
-    /**
-     * @param  Request  $request
-     * @return View
-     */
     public function __invoke(Request $request): View
     {
         $trooper = $request->user();
@@ -36,7 +32,7 @@ class RecruitController extends MagicBusController
             ->orderBy(Organization::SEQUENCE)
             ->get();
 
-        $root_org_ids = $organizations->map(fn(Organization $org) => $this->getRootOrgId($org))
+        $root_org_ids = $organizations->map(fn (Organization $org) => $this->getRootOrgId($org))
             ->unique()
             ->toArray();
 
@@ -48,15 +44,15 @@ class RecruitController extends MagicBusController
             $root = $root_orgs[$this->getRootOrgId($org)] ?? null;
 
             return [
-                'id'                    => $org->id,
-                'name'                  => $org->name,
-                'depth'                 => $org->depth,
-                'identifier_display'    => $org->identifier_display ?? $root?->identifier_display,
+                'id' => $org->id,
+                'name' => $org->name,
+                'depth' => $org->depth,
+                'identifier_display' => $org->identifier_display ?? $root?->identifier_display,
                 'identifier_validation' => $org->identifier_validation ?? $root?->identifier_validation,
             ];
         });
 
-        $grouped = $organizations->groupBy(fn(Organization $org) => $this->getRootOrgId($org));
+        $grouped = $organizations->groupBy(fn (Organization $org) => $this->getRootOrgId($org));
 
         $data = compact('organizations_data', 'grouped', 'root_orgs');
 

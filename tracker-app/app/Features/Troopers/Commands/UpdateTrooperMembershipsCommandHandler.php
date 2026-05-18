@@ -35,7 +35,7 @@ readonly class UpdateTrooperMembershipsCommandHandler implements CommandHandlerI
 
             TrooperOrganization::firstOrCreate(
                 [
-                    TrooperOrganization::TROOPER_ID      => $message->trooper->id,
+                    TrooperOrganization::TROOPER_ID => $message->trooper->id,
                     TrooperOrganization::ORGANIZATION_ID => $assignment_id,
                 ],
                 [

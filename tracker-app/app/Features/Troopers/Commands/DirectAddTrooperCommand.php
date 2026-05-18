@@ -19,9 +19,9 @@ use App\Models\Trooper;
 readonly class DirectAddTrooperCommand
 {
     /**
-     * @param  Trooper       $trooper       The trooper being added to the organization
+     * @param  Trooper  $trooper  The trooper being added to the organization
      * @param  Organization  $organization  The leaf-node organization to assign them to
-     * @param  string|null   $identifier    Optional club-specific identifier (e.g., TK number)
+     * @param  string|null  $identifier  Optional club-specific identifier (e.g., TK number)
      */
     public function __construct(
         public Trooper $trooper,

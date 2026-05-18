@@ -18,9 +18,9 @@ use App\Models\Trooper;
 readonly class SubmitJoinRequestCommand
 {
     /**
-     * @param  Trooper       $trooper       The trooper requesting membership
+     * @param  Trooper  $trooper  The trooper requesting membership
      * @param  Organization  $organization  The leaf-node organization to join
-     * @param  string|null   $identifier    Optional club-specific identifier (e.g., TK number)
+     * @param  string|null  $identifier  Optional club-specific identifier (e.g., TK number)
      */
     public function __construct(
         public Trooper $trooper,
