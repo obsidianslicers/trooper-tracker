@@ -69,7 +69,8 @@ class ClubMembershipsSubmitHtmxController extends MagicBusController
 
         $this->bus->send($command);
 
-        $data = compact('organization');
+        $org = $organization;
+        $data = compact('org');
 
         $message = json_encode([
             'message' => "Your request to join {$organization->name} has been submitted.",

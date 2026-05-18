@@ -26,7 +26,7 @@ readonly class GetAvailableClubsQueryHandler implements QueryHandlerInterface
     {
         $trooper_id = $message->trooper->id;
 
-        return Organization::ofTypeUnits()
+        return Organization::whereDoesntHave('organizations')
             ->with('parent')
             ->whereDoesntHave('trooper_assignments', function ($q) use ($trooper_id)
             {
