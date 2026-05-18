@@ -48,7 +48,7 @@ readonly class GetTrooperMembershipsQueryHandler implements QueryHandlerInterfac
 
         foreach ($organizations as $organization)
         {
-            if (isset($organization_memberships[$organization->id]) === false)
+            if (array_key_exists($organization->id, $organization_memberships) === false)
             {
                 continue;
             }

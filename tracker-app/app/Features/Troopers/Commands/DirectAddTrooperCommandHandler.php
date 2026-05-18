@@ -22,6 +22,17 @@ readonly class DirectAddTrooperCommandHandler implements CommandHandlerInterface
      */
     public function __invoke(object $message): mixed
     {
+        $primary_club = $message->organization->getPrimaryClub();
+
+        // Clear any existing club membership in the same top-level org hierarchy (replace rule).
+        TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $message->trooper->id)
+            ->where(TrooperAssignment::IS_MEMBER, true)
+            ->whereHas('organization', fn ($q) => $q
+                ->whereRaw('node_path LIKE ?', [$primary_club->node_path . '%'])
+                ->where('id', '!=', $message->organization->id)
+            )
+            ->update([TrooperAssignment::IS_MEMBER => false]);
+
         TrooperAssignment::updateOrCreate(
             [
                 TrooperAssignment::TROOPER_ID      => $message->trooper->id,
@@ -31,8 +42,6 @@ readonly class DirectAddTrooperCommandHandler implements CommandHandlerInterface
                 TrooperAssignment::IS_MEMBER => true,
             ]
         );
-
-        $primary_club = $message->organization->getPrimaryClub();
 
         $update_data = [TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE];
 

@@ -29,6 +29,17 @@ readonly class ApproveJoinRequestCommandHandler implements CommandHandlerInterfa
         $request->status = JoinRequestStatus::APPROVED;
         $request->save();
 
+        $primary_club = $request->organization->getPrimaryClub();
+
+        // Clear any existing club membership in the same top-level org hierarchy (replace rule).
+        TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $request->trooper_id)
+            ->where(TrooperAssignment::IS_MEMBER, true)
+            ->whereHas('organization', fn ($q) => $q
+                ->whereRaw('node_path LIKE ?', [$primary_club->node_path . '%'])
+                ->where('id', '!=', $request->organization_id)
+            )
+            ->update([TrooperAssignment::IS_MEMBER => false]);
+
         TrooperAssignment::updateOrCreate(
             [
                 TrooperAssignment::TROOPER_ID      => $request->trooper_id,
@@ -38,8 +49,6 @@ readonly class ApproveJoinRequestCommandHandler implements CommandHandlerInterfa
                 TrooperAssignment::IS_MEMBER => true,
             ]
         );
-
-        $primary_club = $request->organization->getPrimaryClub();
 
         $update_data = [TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE];
 
