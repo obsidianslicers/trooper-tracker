@@ -7,13 +7,11 @@ namespace App\Http\Controllers\Account;
 use App\Features\Troopers\Commands\SubmitJoinRequestCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Organization;
-use App\Models\TrooperAssignment;
 use App\Rules\Auth\UniqueOrganizationIdentifierRule;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 
 /**
  * Submits a club join request for the authenticated trooper via HTMX.
@@ -36,27 +34,6 @@ class ClubMembershipsSubmitHtmxController extends MagicBusController
 
         /** @var Organization $organization */
         $organization = Organization::findOrFail($request->integer('organization_id'));
-
-        // Block if trooper already has an active membership in this org's top-level family.
-        // Pending requests are allowed — the command handler will replace them.
-        $root_id    = explode(Organization::NODE_PATH_SEP, $organization->node_path)[0];
-        $root_path  = $root_id . Organization::NODE_PATH_SEP;
-        $family_ids = Organization::where(Organization::NODE_PATH, 'LIKE', $root_path . '%')
-            ->pluck(Organization::ID);
-
-        $already_active = TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $trooper->id)
-            ->where(TrooperAssignment::IS_MEMBER, true)
-            ->whereIn(TrooperAssignment::ORGANIZATION_ID, $family_ids)
-            ->exists();
-
-        if ($already_active)
-        {
-            $root_name = Organization::find((int) $root_id)?->name ?? 'this organization';
-
-            throw ValidationException::withMessages([
-                'organization_id' => "You already have an active membership in the {$root_name} family.",
-            ]);
-        }
 
         // Validate identifier against organization-specific rules if applicable
         $identifier_rules = ['nullable', 'string', 'max:64'];
