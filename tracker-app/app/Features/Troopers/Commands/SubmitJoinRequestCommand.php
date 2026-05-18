@@ -10,7 +10,7 @@ use App\Models\Trooper;
 /**
  * Command to submit a club join request on behalf of a trooper.
  *
- * Creates or resets a TrooperJoinRequest record with PENDING status.
+ * Creates or resets a TrooperOrganization record with PENDING membership status.
  * Moderators of the target organization are notified by the handler.
  *
  * @see SubmitJoinRequestCommandHandler

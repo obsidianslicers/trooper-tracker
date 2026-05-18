@@ -6,7 +6,7 @@ namespace App\Policies;
 
 use App\Models\Organization;
 use App\Models\Trooper;
-use App\Models\TrooperJoinRequest;
+use App\Models\TrooperOrganization;
 use App\Policies\Concerns\HasTrooperPermissionsTrait;
 
 /**
@@ -19,13 +19,13 @@ class TrooperJoinRequestPolicy
     /**
      * Determine whether the moderator can approve or deny a join request.
      *
-     * The join request must be for an organization within the moderator's tree.
+     * The pending TrooperOrganization must be for an organization within the moderator's tree.
      *
-     * @param  Trooper             $trooper       The authenticated moderator
-     * @param  TrooperJoinRequest  $join_request  The join request being acted on
+     * @param  Trooper             $trooper              The authenticated moderator
+     * @param  TrooperOrganization $trooper_organization  The pending record being acted on
      * @return bool
      */
-    public function moderate(Trooper $trooper, TrooperJoinRequest $join_request): bool
+    public function moderate(Trooper $trooper, TrooperOrganization $trooper_organization): bool
     {
         if ($this->isAdministrator($trooper))
         {
@@ -33,7 +33,7 @@ class TrooperJoinRequestPolicy
         }
 
         return Organization::moderatedBy($trooper)
-            ->where(Organization::ID, $join_request->organization_id)
+            ->where(Organization::ID, $trooper_organization->organization_id)
             ->exists();
     }
 }

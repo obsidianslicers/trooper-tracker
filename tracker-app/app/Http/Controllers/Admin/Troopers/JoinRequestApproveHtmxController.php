@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Admin\Troopers;
 
 use App\Features\Troopers\Commands\ApproveJoinRequestCommand;
 use App\Http\Controllers\MagicBusController;
-use App\Models\TrooperJoinRequest;
+use App\Models\TrooperOrganization;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -20,11 +20,11 @@ use Illuminate\Http\Response;
 class JoinRequestApproveHtmxController extends MagicBusController
 {
     /**
-     * @param  Request            $request
-     * @param  TrooperJoinRequest $join_request
+     * @param  Request             $request
+     * @param  TrooperOrganization $join_request
      * @return Response|View
      */
-    public function __invoke(Request $request, TrooperJoinRequest $join_request): Response|View
+    public function __invoke(Request $request, TrooperOrganization $join_request): Response|View
     {
         $this->authorize('moderate', $join_request);
 

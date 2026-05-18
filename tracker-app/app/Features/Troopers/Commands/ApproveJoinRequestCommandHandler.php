@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace App\Features\Troopers\Commands;
 
 use App\Bus\Contracts\CommandHandlerInterface;
-use App\Enums\JoinRequestStatus;
 use App\Enums\MembershipStatus;
 use App\Models\TrooperAssignment;
-use App\Models\TrooperJoinRequest;
 use App\Models\TrooperOrganization;
 use App\Notifications\Troopers\JoinRequestApprovedNotification;
 
@@ -24,26 +22,27 @@ readonly class ApproveJoinRequestCommandHandler implements CommandHandlerInterfa
      */
     public function __invoke(object $message): mixed
     {
-        $request = $message->join_request;
+        $trooper_org = $message->trooper_organization;
 
-        $request->status = JoinRequestStatus::APPROVED;
-        $request->save();
+        // Mark the pending record ACTIVE so the card can display the approved state.
+        $trooper_org->membership_status = MembershipStatus::ACTIVE;
+        $trooper_org->save();
 
-        $primary_club = $request->organization->getPrimaryClub();
+        $primary_club = $trooper_org->organization->getPrimaryClub();
 
         // Clear any existing club membership in the same top-level org hierarchy (replace rule).
-        TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $request->trooper_id)
+        TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $trooper_org->trooper_id)
             ->where(TrooperAssignment::IS_MEMBER, true)
             ->whereHas('organization', fn ($q) => $q
                 ->whereRaw('node_path LIKE ?', [$primary_club->node_path . '%'])
-                ->where('id', '!=', $request->organization_id)
+                ->where('id', '!=', $trooper_org->organization_id)
             )
             ->update([TrooperAssignment::IS_MEMBER => false]);
 
         TrooperAssignment::updateOrCreate(
             [
-                TrooperAssignment::TROOPER_ID      => $request->trooper_id,
-                TrooperAssignment::ORGANIZATION_ID => $request->organization_id,
+                TrooperAssignment::TROOPER_ID      => $trooper_org->trooper_id,
+                TrooperAssignment::ORGANIZATION_ID => $trooper_org->organization_id,
             ],
             [
                 TrooperAssignment::IS_MEMBER => true,
@@ -52,20 +51,20 @@ readonly class ApproveJoinRequestCommandHandler implements CommandHandlerInterfa
 
         $update_data = [TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE];
 
-        if (!empty($request->identifier))
+        if (!empty($trooper_org->identifier))
         {
-            $update_data[TrooperOrganization::IDENTIFIER] = $request->identifier;
+            $update_data[TrooperOrganization::IDENTIFIER] = $trooper_org->identifier;
         }
 
         TrooperOrganization::updateOrCreate(
             [
-                TrooperOrganization::TROOPER_ID      => $request->trooper_id,
+                TrooperOrganization::TROOPER_ID      => $trooper_org->trooper_id,
                 TrooperOrganization::ORGANIZATION_ID => $primary_club->id,
             ],
             $update_data
         );
 
-        $request->trooper->notify(new JoinRequestApprovedNotification($request->organization));
+        $trooper_org->trooper->notify(new JoinRequestApprovedNotification($trooper_org->organization));
 
         return null;
     }

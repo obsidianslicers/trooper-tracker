@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Features\Troopers\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
-use App\Models\TrooperJoinRequest;
+use App\Models\TrooperOrganization;
 use Illuminate\Support\Collection;
 
 /**
@@ -17,14 +17,14 @@ readonly class GetPendingJoinRequestsQueryHandler implements QueryHandlerInterfa
 {
     /**
      * @param  GetPendingJoinRequestsQuery  $message
-     * @return Collection<int, TrooperJoinRequest>
+     * @return Collection<int, TrooperOrganization>
      */
     public function __invoke(object $message): mixed
     {
-        return TrooperJoinRequest::with(['trooper', 'organization'])
+        return TrooperOrganization::with(['trooper', 'organization'])
             ->pending()
             ->forModerator($message->moderator)
-            ->orderBy(TrooperJoinRequest::CREATED_AT)
+            ->orderBy(TrooperOrganization::CREATED_AT)
             ->get();
     }
 }

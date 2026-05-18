@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace App\Features\Troopers\Commands;
 
-use App\Models\TrooperJoinRequest;
+use App\Models\TrooperOrganization;
 
 /**
  * Command to deny a pending club join request.
  *
- * Sets the request status to DENIED and notifies the trooper.
+ * Sets the membership status to DENIED and notifies the trooper.
  *
  * @see DenyJoinRequestCommandHandler
  */
 readonly class DenyJoinRequestCommand
 {
     /**
-     * @param  TrooperJoinRequest  $join_request  The pending join request to deny
+     * @param  TrooperOrganization  $trooper_organization  The pending TrooperOrganization to deny
      */
     public function __construct(
-        public TrooperJoinRequest $join_request,
+        public TrooperOrganization $trooper_organization,
     ) {}
 }

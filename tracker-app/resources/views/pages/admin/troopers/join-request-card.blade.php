@@ -22,7 +22,7 @@
         </dl>
     </div>
     <div class="card-footer d-flex justify-content-between">
-        @if($join_request->status === \App\Enums\JoinRequestStatus::APPROVED)
+        @if($join_request->membership_status === \App\Enums\MembershipStatus::ACTIVE)
             <div class="w-100">
                 <x-message type="success"
                            icon="fa-brands fa-empire"
@@ -30,7 +30,7 @@
                     Request Approved!
                 </x-message>
             </div>
-        @elseif($join_request->status === \App\Enums\JoinRequestStatus::DENIED)
+        @elseif($join_request->membership_status === \App\Enums\MembershipStatus::DENIED)
             <div class="w-100">
                 <x-message type="danger">
                     Request Denied

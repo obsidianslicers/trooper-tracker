@@ -8,7 +8,7 @@ use App\Features\Troopers\Queries\GetAvailableClubsQuery;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Organization;
 use App\Models\TrooperAssignment;
-use App\Models\TrooperJoinRequest;
+use App\Models\TrooperOrganization;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -42,11 +42,11 @@ class ClubMembershipsController extends MagicBusController
             fn ($c) => array_filter(explode(Organization::NODE_PATH_SEP, trim($c->node_path, Organization::NODE_PATH_SEP)))
         )->unique()->values()->toArray();
 
-        $pending_requests = TrooperJoinRequest::query()
-            ->where(TrooperJoinRequest::TROOPER_ID, $trooper->id)
+        $pending_requests = TrooperOrganization::query()
+            ->where(TrooperOrganization::TROOPER_ID, $trooper->id)
             ->pending()
             ->with('organization')
-            ->orderBy(TrooperJoinRequest::CREATED_AT, 'desc')
+            ->orderBy(TrooperOrganization::CREATED_AT, 'desc')
             ->get();
 
         // Also include ancestors for pending request organizations

@@ -14,7 +14,6 @@ use App\Models\Notice;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
-use App\Models\TrooperJoinRequest;
 use App\Models\TrooperOrganization;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
@@ -188,11 +187,6 @@ class Organization extends Model
     public function trooper_assignments(): HasMany
     {
         return $this->hasMany(TrooperAssignment::class);
-    }
-
-    public function trooper_join_requests(): HasMany
-    {
-        return $this->hasMany(TrooperJoinRequest::class);
     }
 
     public function troopers(): BelongsToMany

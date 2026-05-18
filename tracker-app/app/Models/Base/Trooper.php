@@ -22,7 +22,6 @@ use App\Models\OauthLogin;
 use App\Models\Organization;
 use App\Models\TrooperAchievement;
 use App\Models\TrooperAssignment;
-use App\Models\TrooperJoinRequest;
 use App\Models\TrooperCostume;
 use App\Models\TrooperDonation;
 use App\Models\TrooperFriend;
@@ -218,11 +217,6 @@ class Trooper extends Model
     public function trooper_assignments(): HasMany
     {
         return $this->hasMany(TrooperAssignment::class);
-    }
-
-    public function trooper_join_requests(): HasMany
-    {
-        return $this->hasMany(TrooperJoinRequest::class);
     }
 
     public function trooper_costumes(): HasMany

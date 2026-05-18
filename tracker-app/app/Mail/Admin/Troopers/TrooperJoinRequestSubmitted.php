@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Mail\Admin\Troopers;
 
-use App\Models\TrooperJoinRequest;
+use App\Models\TrooperOrganization;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -21,9 +21,9 @@ class TrooperJoinRequestSubmitted extends Mailable implements ShouldQueue
     use Queueable, SerializesModels;
 
     /**
-     * @param  TrooperJoinRequest  $join_request  The submitted join request
+     * @param  TrooperOrganization  $join_request  The pending TrooperOrganization record
      */
-    public function __construct(private readonly TrooperJoinRequest $join_request) {}
+    public function __construct(private readonly TrooperOrganization $join_request) {}
 
     public function envelope(): Envelope
     {
