@@ -35,16 +35,19 @@ class ClubMembershipsSubmitHtmxController extends MagicBusController
         /** @var Organization $organization */
         $organization = Organization::findOrFail($request->integer('organization_id'));
 
+        // Rules are always defined on the root (primary club); children inherit them
+        $primary_club = $organization->getPrimaryClub();
+
         // Validate identifier against organization-specific rules if applicable
         $identifier_rules = ['nullable', 'string', 'max:64'];
 
-        if (!empty($organization->identifier_validation))
+        if (!empty($primary_club->identifier_validation))
         {
-            $base_rules = explode('|', $organization->identifier_validation);
+            $base_rules = explode('|', $primary_club->identifier_validation);
             $identifier_rules = array_merge(
                 ['nullable'],
                 $base_rules,
-                [new UniqueOrganizationIdentifierRule($organization, $trooper)]
+                [new UniqueOrganizationIdentifierRule($primary_club, $trooper)]
             );
         }
 
