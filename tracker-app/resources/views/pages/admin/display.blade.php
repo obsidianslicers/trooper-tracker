@@ -16,6 +16,14 @@
             @else
                 <p class="text-success">All troopers approved</p>
             @endif
+
+            @if($pending_join_requests > 0)
+                <p class="text-warning mb-0">
+                    {{ $pending_join_requests }} pending request{{ $pending_join_requests === 1 ? '' : 's' }}
+                </p>
+            @else
+                <p class="text-success mb-0">No pending requests</p>
+            @endif
         </x-dashboard-card>
         <x-dashboard-card :label="'Troopers'"
                           :icon="'fa-users-gear'"
