@@ -12,6 +12,8 @@ use App\Mail\Auth\VerifyTrooperEmail;
 use App\Services\BreadCrumbService;
 use App\Services\Socialite\XenforoProvider;
 use App\View\Composers\ShiftAddTrooperComposer;
+use App\Models\TrooperOrganization;
+use App\Policies\TrooperJoinRequestPolicy;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Database\Migrations\DatabaseMigrationRepository;
 use Illuminate\Database\Migrations\MigrationRepositoryInterface;
@@ -20,6 +22,7 @@ use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use InvalidArgumentException;
@@ -67,6 +70,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Gate::policy(TrooperOrganization::class, TrooperJoinRequestPolicy::class);
+
         Paginator::useBootstrapFive();
 
         VerifyEmail::toMailUsing(function (object $notifiable, string $url) {
