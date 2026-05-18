@@ -15,6 +15,7 @@ use App\View\Composers\ShiftAddTrooperComposer;
 use App\Models\TrooperOrganization;
 use App\Policies\TrooperJoinRequestPolicy;
 use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Migrations\DatabaseMigrationRepository;
 use Illuminate\Database\Migrations\MigrationRepositoryInterface;
 use Illuminate\Database\Schema\Blueprint;
@@ -43,7 +44,7 @@ class AppServiceProvider extends ServiceProvider
             return new BreadCrumbService;
         });
 
-        $this->app->bind(FcmChannel::class, function ($app) {
+        $this->app->bind(FcmChannel::class, function (Application $app) {
             try
             {
                 $messaging = $app->make(Messaging::class);
@@ -89,7 +90,7 @@ class AppServiceProvider extends ServiceProvider
         //
         //  SOCIALITE CUSTOM PROVIDERS
         //
-        Socialite::extend(OauthProvider::XENFORO->value, function ($app) {
+        Socialite::extend(OauthProvider::XENFORO->value, function (Application $app) {
             $config = $app['config']['services.xenforo'];
 
             return Socialite::buildProvider(XenforoProvider::class, $config);
@@ -98,7 +99,7 @@ class AppServiceProvider extends ServiceProvider
         //
         //  MIGRATION
         //
-        $this->app->extend(MigrationRepositoryInterface::class, function ($repository, $app) {
+        $this->app->extend(MigrationRepositoryInterface::class, function (MigrationRepositoryInterface $repository, Application $app) {
             return new DatabaseMigrationRepository(
                 $app['db'],
                 'tt_migrations'
@@ -141,7 +142,7 @@ class AppServiceProvider extends ServiceProvider
                 $roles = array_map('trim', explode(',', $roles));
             }
 
-            $normalized = collect($roles)->map(function ($role) {
+            $normalized = collect($roles)->map(function (MembershipRole|string $role) {
                 if ($role instanceof MembershipRole)
                 {
                     return $role;

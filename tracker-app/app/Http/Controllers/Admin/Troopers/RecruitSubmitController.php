@@ -46,30 +46,15 @@ class RecruitSubmitController extends MagicBusController
         /** @var Trooper $subject */
         $subject = Trooper::findOrFail($request->integer('trooper_id'));
 
-        // Validate identifier against organization-specific rules if applicable
-        $identifier_rules = ['nullable', 'string', 'max:64'];
-
-        if (!empty($organization->identifier_validation))
-        {
-            $base_rules = explode('|', $organization->identifier_validation);
-            $identifier_rules = array_merge(
-                ['nullable'],
-                $base_rules,
-                [new UniqueOrganizationIdentifierRule($organization, $subject)]
-            );
-        }
-
         $request->validate([
-            'identifier' => $identifier_rules,
+            'identifier' => $this->buildIdentifierRules($organization, $subject),
         ]);
 
-        $command = new DirectAddTrooperCommand(
+        $this->bus->send(new DirectAddTrooperCommand(
             $subject,
             $organization,
             $request->filled('identifier') ? $request->string('identifier')->toString() : null,
-        );
-
-        $this->bus->send($command);
+        ));
 
         return redirect()
             ->route('admin.troopers.recruit')
@@ -77,5 +62,18 @@ class RecruitSubmitController extends MagicBusController
                 'message' => "{$subject->display_name} has been added to {$organization->name}.",
                 'type'    => 'success',
             ]));
+    }
+
+    private function buildIdentifierRules(Organization $organization, Trooper $trooper): array
+    {
+        if (empty($organization->identifier_validation)) {
+            return ['nullable', 'string', 'max:64'];
+        }
+
+        return array_merge(
+            ['nullable'],
+            explode('|', $organization->identifier_validation),
+            [new UniqueOrganizationIdentifierRule($organization, $trooper)],
+        );
     }
 }

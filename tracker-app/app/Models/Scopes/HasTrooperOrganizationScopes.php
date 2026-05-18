@@ -29,7 +29,7 @@ trait HasTrooperOrganizationScopes
             return $query;
         }
 
-        return $query->whereExists(function ($sub) use ($moderator)
+        return $query->whereExists(function (Builder $sub) use ($moderator)
         {
             $sub->select(DB::raw(1))
                 ->from('tt_trooper_assignments as ta_mod')

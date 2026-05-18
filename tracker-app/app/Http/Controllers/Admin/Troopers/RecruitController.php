@@ -36,19 +36,16 @@ class RecruitController extends MagicBusController
             ->orderBy(Organization::SEQUENCE)
             ->get();
 
-        $root_org_ids = $organizations->map(function ($org) {
-            $parts = array_filter(explode(Organization::NODE_PATH_SEP, $org->node_path));
-
-            return (int) reset($parts);
-        })->unique()->toArray();
+        $root_org_ids = $organizations->map(fn(Organization $org) => $this->getRootOrgId($org))
+            ->unique()
+            ->toArray();
 
         $root_orgs = Organization::whereIn(Organization::ID, $root_org_ids)
             ->get([Organization::ID, Organization::NAME, Organization::IDENTIFIER_DISPLAY, Organization::IDENTIFIER_VALIDATION])
             ->keyBy(Organization::ID);
 
-        $organizations_data = $organizations->map(function ($org) use ($root_orgs) {
-            $parts = array_filter(explode(Organization::NODE_PATH_SEP, $org->node_path));
-            $root  = $root_orgs[(int) reset($parts)] ?? null;
+        $organizations_data = $organizations->map(function (Organization $org) use ($root_orgs) {
+            $root = $root_orgs[$this->getRootOrgId($org)] ?? null;
 
             return [
                 'id'                    => $org->id,
@@ -59,14 +56,17 @@ class RecruitController extends MagicBusController
             ];
         });
 
-        $grouped = $organizations->groupBy(function ($org) {
-            $parts = array_filter(explode(Organization::NODE_PATH_SEP, $org->node_path));
-
-            return (int) reset($parts);
-        });
+        $grouped = $organizations->groupBy(fn(Organization $org) => $this->getRootOrgId($org));
 
         $data = compact('organizations_data', 'grouped', 'root_orgs');
 
         return view('pages.admin.troopers.recruit', $data);
+    }
+
+    private function getRootOrgId(Organization $org): int
+    {
+        $parts = array_filter(explode(Organization::NODE_PATH_SEP, $org->node_path));
+
+        return (int) reset($parts);
     }
 }
