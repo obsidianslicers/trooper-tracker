@@ -40,11 +40,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->scoped(BreadCrumbService::class, function () {
+        $this->app->scoped(BreadCrumbService::class, function (): BreadCrumbService {
             return new BreadCrumbService;
         });
 
-        $this->app->bind(FcmChannel::class, function (Application $app) {
+        $this->app->bind(FcmChannel::class, function (Application $app): FcmChannel {
             try
             {
                 $messaging = $app->make(Messaging::class);
@@ -75,7 +75,7 @@ class AppServiceProvider extends ServiceProvider
 
         Paginator::useBootstrapFive();
 
-        VerifyEmail::toMailUsing(function (object $notifiable, string $url) {
+        VerifyEmail::toMailUsing(function (object $notifiable, string $url): VerifyTrooperEmail {
             return (new VerifyTrooperEmail($url))
                 ->to($notifiable->email);
         });
@@ -83,14 +83,14 @@ class AppServiceProvider extends ServiceProvider
         //
         //  HTMX REQUEST MACRO
         //
-        Request::macro('isHtmx', function () {
+        Request::macro('isHtmx', function (): bool {
             return $this->headers->has('HX-Request');
         });
 
         //
         //  SOCIALITE CUSTOM PROVIDERS
         //
-        Socialite::extend(OauthProvider::XENFORO->value, function (Application $app) {
+        Socialite::extend(OauthProvider::XENFORO->value, function (Application $app): XenforoProvider {
             $config = $app['config']['services.xenforo'];
 
             return Socialite::buildProvider(XenforoProvider::class, $config);
@@ -99,7 +99,7 @@ class AppServiceProvider extends ServiceProvider
         //
         //  MIGRATION
         //
-        $this->app->extend(MigrationRepositoryInterface::class, function (MigrationRepositoryInterface $repository, Application $app) {
+        $this->app->extend(MigrationRepositoryInterface::class, function (MigrationRepositoryInterface $repository, Application $app): MigrationRepositoryInterface {
             return new DatabaseMigrationRepository(
                 $app['db'],
                 'tt_migrations'
@@ -109,7 +109,7 @@ class AppServiceProvider extends ServiceProvider
         //
         //  DATABASE MIGRATION MACRO
         //
-        Blueprint::macro('trooperstamps', function () {
+        Blueprint::macro('trooperstamps', function (): void {
             $this->unsignedBigInteger('created_id')->nullable();
             $this->unsignedBigInteger('updated_id')->nullable();
             $this->unsignedBigInteger('deleted_id')->nullable();
@@ -142,7 +142,7 @@ class AppServiceProvider extends ServiceProvider
                 $roles = array_map('trim', explode(',', $roles));
             }
 
-            $normalized = collect($roles)->map(function (MembershipRole|string $role) {
+            $normalized = collect($roles)->map(function (MembershipRole|string $role): MembershipRole {
                 if ($role instanceof MembershipRole)
                 {
                     return $role;

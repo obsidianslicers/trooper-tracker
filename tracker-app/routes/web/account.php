@@ -19,6 +19,7 @@ use App\Http\Controllers\Account\PushNotificationReadController;
 use App\Http\Controllers\Account\ProfileSubmitController;
 use App\Http\Controllers\Account\SetupController;
 use App\Http\Controllers\Account\SetupSubmitController;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Models\OauthLogin;
@@ -51,7 +52,7 @@ Route::prefix('account')
         Route::post('/setup', SetupSubmitController::class)->name('setup-submit');
 
         // XenForo linking required page
-        Route::get('/xenforo/required', function ()
+        Route::get('/xenforo/required', function (): View
         {
             $user = Auth::user();
 
@@ -61,7 +62,7 @@ Route::prefix('account')
         })->name('xenforo.required');
 
         // Optional: show current XenForo link status
-        Route::get('/xenforo', function ()
+        Route::get('/xenforo', function (): View
         {
             $user = Auth::user();
 
