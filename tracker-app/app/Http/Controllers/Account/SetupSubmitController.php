@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Account;
 
 use App\Features\Troopers\Commands\UpdateTrooperCommand;
-use App\Features\Troopers\Commands\UpdateTrooperMembershipsCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Account\SetupRequest;
 use Illuminate\Http\RedirectResponse;
@@ -29,13 +28,7 @@ class SetupSubmitController extends MagicBusController
     {
         $trooper = $request->user();
 
-        $trooper_cmd = new UpdateTrooperCommand($trooper, $request->validated(), true);
-
-        $this->bus->send($trooper_cmd);
-
-        $memberships_cmd = new UpdateTrooperMembershipsCommand($trooper, $request->validated('organizations', []));
-
-        $this->bus->send($memberships_cmd);
+        $this->bus->send(new UpdateTrooperCommand($trooper, $request->validated(), true));
 
         return redirect()->route('account.costumes');
     }

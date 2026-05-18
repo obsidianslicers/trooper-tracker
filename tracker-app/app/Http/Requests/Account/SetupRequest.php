@@ -6,25 +6,12 @@ namespace App\Http\Requests\Account;
 
 use App\Enums\NotificationFrequency;
 use App\Enums\TrooperTheme;
-use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 
 /**
- * Validates profile setup organization selection and hierarchical assignments.
- *
- * Generates dynamic validation rules for each organization, ensuring regions and units
- * are properly selected when an organization is chosen. Fetches active organizations
- * via `Organization::fullyLoaded()` and constructs rules for region and unit fields.
- *
- * Key behaviors:
- * - `prepareForValidation()` sanitizes phone numbers by removing non-digit characters.
- * - `withValidator()` attaches custom, user-facing error messages for organization rules.
- * - `getOrganizations()` caches organizations for efficient repeated access.
- *
- * @property Collection|null $organizations Cached organizations for rule generation
+ * Validates trooper profile setup fields (email, legal name, theme, notification frequency).
  */
 class SetupRequest extends FormRequest
 {
@@ -39,15 +26,11 @@ class SetupRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request
-     *
-     * Combines base email rules with dynamically generated organization hierarchy rules.
-     *
-     * @return array<string, mixed> The combined validation rules for the setup form
+     * @return array<string, mixed>
      */
     public function rules(): array
     {
-        $rules = [
+        return [
             Trooper::LEGAL_NAME => ['required', 'string', 'max:256'],
             Trooper::EMAIL => [
                 'required',
@@ -70,58 +53,5 @@ class SetupRequest extends FormRequest
                 'in:'.NotificationFrequency::toValidator(),
             ],
         ];
-
-        $rules = array_merge($rules, $this->getOrganizationValidationRules());
-
-        return $rules;
-    }
-
-    /**
-     * Generate dynamic validation rules for organization memberships
-     *
-     * Validates that selected organizations:
-     * - Exist in the database
-     * - Have valid identifiers according to organization-specific rules
-     *
-     * @return array<string, mixed> Validation rules for organization memberships
-     */
-    private function getOrganizationValidationRules(): array
-    {
-        $rules = [
-            'organizations' => ['array'],
-        ];
-
-        // Add identifier and assignment validation for each organization
-        $organizations = $this->getOrganizations();
-
-        foreach ($organizations as $organization)
-        {
-            // Validate assignment when provided.
-            $rules["organizations.{$organization->id}.assignment"] = [
-                'nullable',
-                Rule::exists(Organization::class, Organization::ID),
-            ];
-        }
-
-        return $rules;
-    }
-
-    /**
-     * Get or cache the fully loaded organization hierarchy for validation
-     *
-     * Retrieves organizations with regions and units preloaded, caching the result
-     * to avoid multiple database queries during validation rule generation.
-     *
-     * @return Collection The collection of active organizations with hierarchy
-     */
-    private function getOrganizations(): Collection
-    {
-        $getter = function (): Collection {
-            return Organization::fullyLoaded()->get();
-        };
-
-        $organizations = once($getter);
-
-        return $organizations;
     }
 }

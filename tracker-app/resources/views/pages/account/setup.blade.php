@@ -66,34 +66,21 @@
                     </x-input-help>
                 </x-input-container>
 
-                <x-transmission-bar :id="'organizations'" />
+                @if($organization_memberships->whereNotNull('assignment')->isNotEmpty())
+                    <x-transmission-bar :id="'organizations'" />
 
-                <p class="text-warning">
-                    Are your assigned organizations correct, whether you're a member or a handler?
-                </p>
+                    <p class="text-warning">
+                        Your current organization memberships:
+                    </p>
 
-                <x-table>
-                    <thead>
-                        <tr>
-                            <th>Organization</th>
-                            <th>Member Of</th>
-                        </tr>
-                    </thead>
-                    @foreach ($organization_memberships as $organization)
-                        <tr>
-                            <td>
-                                {{ $organization->name }}
-                            </td>
-                            <td>
-                                <x-input-picker :property="'organizations.' . $organization->id . '.assignment'"
-                                                :route="'pickers.organization'"
-                                                :params="['organization_id' => $organization->id]"
-                                                :text="$organization->assignment->name ?? '-- Not a Member --'"
-                                                :value="$organization->assignment->id ?? null" />
-                            </td>
-                        </tr>
-                    @endforeach
-                </x-table>
+                    <ul class="list-group mb-3">
+                        @foreach($organization_memberships->whereNotNull('assignment') as $organization)
+                            <li class="list-group-item">
+                                <strong>{{ $organization->name }}</strong> — {{ $organization->assignment->name }}
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
 
                 <x-submit-container>
                     <x-submit-button>
@@ -106,6 +93,5 @@
 
     </x-slim-container>
     
-    <x-modal-picker :label="'Select an Organization for Membership'" />
 
 @endsection
