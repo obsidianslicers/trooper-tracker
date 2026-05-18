@@ -9,6 +9,26 @@
     <x-transmission-bar :id="'club-memberships'" />
 
     <x-slim-container>
+
+        @if($current_clubs->isNotEmpty())
+            <x-card>
+                <h6 class="mb-3">Current Club Memberships</h6>
+                <ul class="list-group list-group-flush">
+                    @foreach($current_clubs as $club)
+                        <li class="list-group-item d-flex align-items-center gap-2 px-0">
+                            <i class="fa fa-fw fa-circle-check text-success"></i>
+                            <span>
+                                @if($club->parent)
+                                    <span class="text-muted">{{ $club->parent->name }} —</span>
+                                @endif
+                                {{ $club->name }}
+                            </span>
+                        </li>
+                    @endforeach
+                </ul>
+            </x-card>
+        @endif
+
         <div id="club-membership-form">
             @if($available_clubs->isEmpty())
                 <x-message type="info" icon="fa-solid fa-circle-info">

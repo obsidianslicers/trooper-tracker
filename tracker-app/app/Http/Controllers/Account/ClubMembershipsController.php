@@ -6,6 +6,8 @@ namespace App\Http\Controllers\Account;
 
 use App\Features\Troopers\Queries\GetAvailableClubsQuery;
 use App\Http\Controllers\MagicBusController;
+use App\Models\Organization;
+use App\Models\TrooperAssignment;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -27,7 +29,16 @@ class ClubMembershipsController extends MagicBusController
 
         $available_clubs = $this->bus->send(new GetAvailableClubsQuery($trooper));
 
-        $data = compact('available_clubs');
+        $current_clubs = Organization::whereDoesntHave('organizations')
+            ->whereHas('trooper_assignments', fn ($q) => $q
+                ->where(TrooperAssignment::TROOPER_ID, $trooper->id)
+                ->where(TrooperAssignment::IS_MEMBER, true)
+            )
+            ->with('parent')
+            ->orderBy(Organization::SEQUENCE)
+            ->get();
+
+        $data = compact('available_clubs', 'current_clubs');
 
         return view('pages.account.club-memberships', $data);
     }

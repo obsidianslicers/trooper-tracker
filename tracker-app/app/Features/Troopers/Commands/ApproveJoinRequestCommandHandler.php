@@ -39,19 +39,22 @@ readonly class ApproveJoinRequestCommandHandler implements CommandHandlerInterfa
             ]
         );
 
+        $primary_club = $request->organization->getPrimaryClub();
+
+        $update_data = [TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE];
+
         if (!empty($request->identifier))
         {
-            TrooperOrganization::updateOrCreate(
-                [
-                    TrooperOrganization::TROOPER_ID      => $request->trooper_id,
-                    TrooperOrganization::ORGANIZATION_ID => $request->organization_id,
-                ],
-                [
-                    TrooperOrganization::IDENTIFIER        => $request->identifier,
-                    TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
-                ]
-            );
+            $update_data[TrooperOrganization::IDENTIFIER] = $request->identifier;
         }
+
+        TrooperOrganization::updateOrCreate(
+            [
+                TrooperOrganization::TROOPER_ID      => $request->trooper_id,
+                TrooperOrganization::ORGANIZATION_ID => $primary_club->id,
+            ],
+            $update_data
+        );
 
         $request->trooper->notify(new JoinRequestApprovedNotification($request->organization));
 

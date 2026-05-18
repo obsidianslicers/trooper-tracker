@@ -32,19 +32,22 @@ readonly class DirectAddTrooperCommandHandler implements CommandHandlerInterface
             ]
         );
 
+        $primary_club = $message->organization->getPrimaryClub();
+
+        $update_data = [TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE];
+
         if (!empty($message->identifier))
         {
-            TrooperOrganization::updateOrCreate(
-                [
-                    TrooperOrganization::TROOPER_ID      => $message->trooper->id,
-                    TrooperOrganization::ORGANIZATION_ID => $message->organization->id,
-                ],
-                [
-                    TrooperOrganization::IDENTIFIER        => $message->identifier,
-                    TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
-                ]
-            );
+            $update_data[TrooperOrganization::IDENTIFIER] = $message->identifier;
         }
+
+        TrooperOrganization::updateOrCreate(
+            [
+                TrooperOrganization::TROOPER_ID      => $message->trooper->id,
+                TrooperOrganization::ORGANIZATION_ID => $primary_club->id,
+            ],
+            $update_data
+        );
 
         $message->trooper->notify(new DirectlyAddedToClubNotification($message->organization));
 
