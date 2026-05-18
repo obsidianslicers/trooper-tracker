@@ -41,69 +41,78 @@
                         ->pluck(\App\Models\Organization::NAME, \App\Models\Organization::ID);
                 @endphp
 
-                <x-card x-data="{
-                    orgs: {{ Js::from($available_clubs_data) }},
-                    selectedId: '',
-                    get selectedOrg() {
-                        const id = parseInt(this.selectedId);
-                        return this.orgs.find(o => o.id === id) ?? null;
-                    },
-                    get isIdentifierRequired() {
-                        if (!this.selectedOrg?.identifier_validation) return false;
-                        return this.selectedOrg.identifier_validation.split('|').includes('required');
-                    }
-                }">
-                    <p class="text-muted mb-3">
-                        Select a club below and submit a request. A moderator will review and approve your membership.
-                        You may join at any level — organization, region, or unit. Only one membership per organization is allowed.
-                    </p>
+                <x-card>
+                    <div x-data="{
+                        orgs: {{ Js::from($available_clubs_data) }},
+                        selectedId: '',
+                        get selectedOrg() {
+                            const id = parseInt(this.selectedId);
+                            return this.orgs.find(o => o.id === id) ?? null;
+                        },
+                        get isIdentifierRequired() {
+                            if (!this.selectedOrg?.identifier_validation) return false;
+                            return this.selectedOrg.identifier_validation.split('|').includes('required');
+                        }
+                    }">
+                        <p class="text-muted mb-3">
+                            Select a club below and submit a request. A moderator will review and approve your membership.
+                            You may join at any level — organization, region, or unit. Only one membership per organization is allowed.
+                        </p>
 
-                    <x-input-container>
-                        <x-label>Club / Organization:</x-label>
-                        <select name="organization_id"
-                                id="organization_id"
-                                x-model="selectedId"
-                                class="form-select @error('organization_id') is-invalid @enderror">
-                            <option value="">— Select an organization —</option>
-                            @foreach($grouped as $root_id => $orgs)
-                                <optgroup label="{{ $root_names[$root_id] ?? 'Other' }}">
-                                    @foreach($orgs as $org)
-                                        <option value="{{ $org->id }}">{{ str_repeat('— ', $org->depth) }}{{ $org->name }}</option>
-                                    @endforeach
-                                </optgroup>
-                            @endforeach
-                        </select>
-                        <x-input-error :property="'organization_id'" />
-                    </x-input-container>
-
-                    <div x-show="selectedId" x-cloak>
                         <x-input-container>
-                            <x-label><span x-text="selectedOrg?.identifier_display ?? 'Member ID'">Member ID</span><span class="text-muted" x-show="!isIdentifierRequired"> (optional)</span>:</x-label>
-                            <input type="text"
-                                   name="identifier"
-                                   id="identifier"
-                                   class="form-control @error('identifier') is-invalid @enderror"
-                                   :placeholder="selectedOrg?.identifier_display ?? 'Member ID'"
-                                   :required="isIdentifierRequired"
-                                   maxlength="64" />
-                            <x-input-help>
-                                Enter your member ID for this organization if you have one. Leave blank if unknown.
-                            </x-input-help>
-                            <x-input-error :property="'identifier'" />
+                            <x-label>Club / Organization:</x-label>
+                            <select name="organization_id"
+                                    id="organization_id"
+                                    x-model="selectedId"
+                                    class="form-select @error('organization_id') is-invalid @enderror">
+                                <option value="">— Select an organization —</option>
+                                @foreach($grouped as $root_id => $orgs)
+                                    @php($root_org = $orgs->firstWhere('depth', 0))
+                                    @php($child_orgs = $orgs->where('depth', '>', 0)->values())
+                                    @if($root_org)
+                                        <option value="{{ $root_org->id }}">{{ $root_org->name }}</option>
+                                    @endif
+                                    @if($child_orgs->isNotEmpty())
+                                        <optgroup label="{{ $root_names[$root_id] ?? 'Other' }}">
+                                            @foreach($child_orgs as $org)
+                                                <option value="{{ $org->id }}">{{ str_repeat('— ', $org->depth) }}{{ $org->name }}</option>
+                                            @endforeach
+                                        </optgroup>
+                                    @endif
+                                @endforeach
+                            </select>
+                            <x-input-error :property="'organization_id'" />
                         </x-input-container>
-                    </div>
 
-                    <x-submit-container>
-                        <button type="button"
-                                class="btn btn-primary"
-                                hx-post="{{ route('account.club-memberships-htmx') }}"
-                                hx-include="#organization_id, #identifier"
-                                hx-target="#club-membership-form"
-                                hx-swap="innerHTML"
-                                hx-indicator="#transmission-bar-club-memberships">
-                            <i class="fa fa-fw fa-paper-plane"></i> Request to Join
-                        </button>
-                    </x-submit-container>
+                        <div x-show="selectedId" x-cloak>
+                            <x-input-container>
+                                <x-label><span x-text="selectedOrg?.identifier_display ?? 'Member ID'">Member ID</span><span class="text-muted" x-show="!isIdentifierRequired"> (optional)</span>:</x-label>
+                                <input type="text"
+                                       name="identifier"
+                                       id="identifier"
+                                       class="form-control @error('identifier') is-invalid @enderror"
+                                       :placeholder="selectedOrg?.identifier_display ?? 'Member ID'"
+                                       :required="isIdentifierRequired"
+                                       maxlength="64" />
+                                <x-input-help>
+                                    Enter your member ID for this organization if you have one. Leave blank if unknown.
+                                </x-input-help>
+                                <x-input-error :property="'identifier'" />
+                            </x-input-container>
+                        </div>
+
+                        <x-submit-container>
+                            <button type="button"
+                                    class="btn btn-primary"
+                                    hx-post="{{ route('account.club-memberships-htmx') }}"
+                                    hx-include="#organization_id, #identifier"
+                                    hx-target="#club-membership-form"
+                                    hx-swap="innerHTML"
+                                    hx-indicator="#transmission-bar-club-memberships">
+                                <i class="fa fa-fw fa-paper-plane"></i> Request to Join
+                            </button>
+                        </x-submit-container>
+                    </div>
                 </x-card>
             @endif
         </div>
