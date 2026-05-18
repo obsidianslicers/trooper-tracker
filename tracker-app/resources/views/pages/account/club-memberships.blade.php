@@ -10,6 +10,32 @@
 
     <x-slim-container>
 
+        @if($pending_requests->isNotEmpty())
+            <x-card>
+                <h6 class="mb-3">
+                    <i class="fa fa-fw fa-hourglass-end text-warning"></i> Pending Membership Requests
+                </h6>
+                <ul class="list-group list-group-flush">
+                    @foreach($pending_requests as $request)
+                        @php
+                            $org = $request->organization;
+                            $path_ids = array_filter(explode(':', trim($org->node_path, ':')));
+                            $path_names = collect($path_ids)->map(fn($id) => $ancestors[$id]?->name ?? '?');
+                        @endphp
+                        <li class="list-group-item d-flex align-items-center justify-content-between gap-2 px-0">
+                            <span>
+                                <i class="fa fa-fw fa-clock text-warning"></i>
+                                {{ $path_names->implode(' — ') }}
+                            </span>
+                            <small class="text-muted">
+                                {{ $request->created_at->diffForHumans() }}
+                            </small>
+                        </li>
+                    @endforeach
+                </ul>
+            </x-card>
+        @endif
+
         @if($current_clubs->isNotEmpty())
             <x-card>
                 <h6 class="mb-3">Current Club Memberships</h6>

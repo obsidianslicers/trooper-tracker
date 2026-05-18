@@ -8,6 +8,7 @@ use App\Features\Troopers\Queries\GetAvailableClubsQuery;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Organization;
 use App\Models\TrooperAssignment;
+use App\Models\TrooperJoinRequest;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -41,6 +42,20 @@ class ClubMembershipsController extends MagicBusController
             fn ($c) => array_filter(explode(Organization::NODE_PATH_SEP, trim($c->node_path, Organization::NODE_PATH_SEP)))
         )->unique()->values()->toArray();
 
+        $pending_requests = TrooperJoinRequest::query()
+            ->where(TrooperJoinRequest::TROOPER_ID, $trooper->id)
+            ->pending()
+            ->with('organization')
+            ->orderBy(TrooperJoinRequest::CREATED_AT, 'desc')
+            ->get();
+
+        // Also include ancestors for pending request organizations
+        $pending_ancestor_ids = $pending_requests->flatMap(
+            fn ($r) => array_filter(explode(Organization::NODE_PATH_SEP, trim($r->organization->node_path, Organization::NODE_PATH_SEP)))
+        )->toArray();
+
+        $ancestor_ids = array_unique(array_merge($ancestor_ids, $pending_ancestor_ids));
+
         $ancestors = Organization::whereIn(Organization::ID, $ancestor_ids)
             ->get([Organization::ID, Organization::NAME])
             ->keyBy(Organization::ID);
@@ -70,7 +85,7 @@ class ClubMembershipsController extends MagicBusController
             ];
         });
 
-        $data = compact('available_clubs', 'available_clubs_data', 'current_clubs', 'ancestors');
+        $data = compact('available_clubs', 'available_clubs_data', 'current_clubs', 'ancestors', 'pending_requests');
 
         return view('pages.account.club-memberships', $data);
     }
