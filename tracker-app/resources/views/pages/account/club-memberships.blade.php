@@ -28,7 +28,7 @@
                                 {{ $path_names->implode(' — ') }}
                             </span>
                             <small class="text-muted">
-                                {{ $request->created_at->diffForHumans() }}
+                                {{ $request->updated_at->diffForHumans() }}
                             </small>
                         </li>
                     @endforeach

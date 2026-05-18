@@ -45,6 +45,7 @@ readonly class SubmitJoinRequestCommandHandler implements CommandHandlerInterfac
             [
                 TrooperJoinRequest::STATUS     => JoinRequestStatus::PENDING,
                 TrooperJoinRequest::IDENTIFIER => $message->identifier,
+                TrooperJoinRequest::UPDATED_AT => now(),
             ]
         );
 
