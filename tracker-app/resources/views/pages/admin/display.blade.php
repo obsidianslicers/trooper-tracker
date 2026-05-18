@@ -6,24 +6,17 @@
 
     <x-dashboard-cards x-data="Admin.cardNavigator()"
                        x-on:click="navigate">
-        @if($not_approved)
-            <x-dashboard-card :label="'Trooper Approvals'"
-                              :icon="'fa-user-check'"
-                              :url="route('admin.troopers.approvals')">
+        <x-dashboard-card :label="'Trooper Approvals'"
+                          :icon="'fa-user-check'"
+                          :url="route('admin.troopers.approvals')">
+            @if($not_approved > 0)
                 <p class="text-warning">
                     {{ $not_approved }} awaiting approval
                 </p>
-            </x-dashboard-card>
-        @endif
-        @if($pending_join_requests)
-            <x-dashboard-card :label="'Club Join Requests'"
-                              :icon="'fa-user-plus'"
-                              :url="route('admin.troopers.approvals')">
-                <p class="text-warning">
-                    {{ $pending_join_requests }} {{ $pending_join_requests === 1 ? 'request' : 'requests' }} pending
-                </p>
-            </x-dashboard-card>
-        @endif
+            @else
+                <p class="text-success">All troopers approved</p>
+            @endif
+        </x-dashboard-card>
         <x-dashboard-card :label="'Troopers'"
                           :icon="'fa-users-gear'"
                           :url="route('admin.troopers.list')">
