@@ -33,7 +33,6 @@ class RecruitController extends MagicBusController
         $trooper = $request->user();
 
         $organizations = Organization::moderatedBy($trooper)
-            ->whereDoesntHave('organizations')
             ->orderBy(Organization::SEQUENCE)
             ->get();
 
