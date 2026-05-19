@@ -44,8 +44,7 @@ readonly class ApproveTrooperCommandHandler implements CommandHandlerInterface
                 ->pending()
                 ->with('organization')
                 ->get()
-                ->each(fn (TrooperOrganization $org) =>
-                    $this->bus->send(new ApproveJoinRequestCommand($org, suppress_notification: true))
+                ->each(fn (TrooperOrganization $org) => $this->bus->send(new ApproveJoinRequestCommand($org, suppress_notification: true))
                 );
         }
 

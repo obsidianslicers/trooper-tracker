@@ -8,7 +8,6 @@ use App\Models\Trooper;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -27,7 +26,7 @@ class VisitorAccessExpired extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix') . ' Your Visitor Access Has Expired'
+            subject: config('mail.prefix').' Your Visitor Access Has Expired'
         );
     }
 

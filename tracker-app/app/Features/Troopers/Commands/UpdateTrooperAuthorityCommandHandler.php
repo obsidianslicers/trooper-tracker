@@ -31,10 +31,13 @@ readonly class UpdateTrooperAuthorityCommandHandler implements CommandHandlerInt
     {
         $message->trooper->membership_role = $message->membership_role;
 
-        if ($message->membership_role === MembershipRole::VISITOR) {
+        if ($message->membership_role === MembershipRole::VISITOR)
+        {
             $message->trooper->visitor_expires_at = now()->addMonths(6);
             $message->trooper->visitor_notified_at = null;
-        } else {
+        }
+        else
+        {
             $message->trooper->visitor_expires_at = null;
             $message->trooper->visitor_notified_at = null;
         }
