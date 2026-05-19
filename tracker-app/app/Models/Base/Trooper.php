@@ -102,6 +102,9 @@ class Trooper extends Model
     const GUARDIAN_ID = 'guardian_id';
     const DATE_OF_BIRTH = 'date_of_birth';
     const REMEMBER_TOKEN = 'remember_token';
+    const IS_VISITOR = 'is_visitor';
+    const VISITOR_EXPIRES_AT = 'visitor_expires_at';
+    const VISITOR_NOTIFIED_AT = 'visitor_notified_at';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
     const DELETED_AT = 'deleted_at';
@@ -112,8 +115,11 @@ class Trooper extends Model
         self::EMAIL_VERIFIED_AT => 'datetime',
         self::SETUP_COMPLETED_AT => 'datetime',
         self::PUSH_NOTIFICATIONS_ENABLED => 'bool',
+        self::IS_VISITOR => 'bool',
         self::ACHIEVEMENTS_UPDATED_AT => 'datetime',
         self::LAST_ACTIVE_AT => 'datetime',
+        self::VISITOR_EXPIRES_AT => 'datetime',
+        self::VISITOR_NOTIFIED_AT => 'datetime',
         self::GUARDIAN_ID => 'int',
         self::DATE_OF_BIRTH => 'datetime',
         self::CREATED_AT => 'datetime',
@@ -138,6 +144,9 @@ class Trooper extends Model
         self::MEMBERSHIP_ROLE,
         self::NOTIFICATION_FREQUENCY,
         self::PUSH_NOTIFICATIONS_ENABLED,
+        self::IS_VISITOR,
+        self::VISITOR_EXPIRES_AT,
+        self::VISITOR_NOTIFIED_AT,
         self::ACHIEVEMENTS_UPDATED_AT,
         self::LAST_ACTIVE_AT,
         self::GUARDIAN_ID,

@@ -48,6 +48,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\HtmxDispatchHeaderMiddleware::class,
             \App\Http\Middleware\UpdateLastActiveMiddleware::class,
             \App\Http\Middleware\TrooperSetupRequiredMiddleware::class,
+            \App\Http\Middleware\CheckVisitorAccessMiddleware::class,
             \App\Http\Middleware\EnsureXenforoLinked::class,
             \App\Http\Middleware\CheckXenforoBanMiddleware::class,
         ]);

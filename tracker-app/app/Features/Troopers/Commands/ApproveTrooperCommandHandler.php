@@ -24,6 +24,12 @@ readonly class ApproveTrooperCommandHandler implements CommandHandlerInterface
             ? MembershipStatus::ACTIVE
             : MembershipStatus::DENIED;
 
+        if ($message->is_approved && $message->trooper->is_visitor)
+        {
+            $message->trooper->visitor_expires_at = now()->addMonths(6);
+            $message->trooper->visitor_notified_at = null;
+        }
+
         $message->trooper->save();
 
         if ($message->is_approved)

@@ -1,9 +1,19 @@
 <div id="trooper-approval-{{ $trooper->id }}"
      class="card h-100 shadow-sm">
-    <div class="card-header text-uppercase">
+    <div class="card-header text-uppercase d-flex justify-content-between align-items-center">
         {{ $trooper->display_name }}
+        @if($trooper->is_visitor)
+            <span class="badge bg-info ms-2">Visitor</span>
+        @endif
     </div>
     <div class="card-body">
+        @if($trooper->is_visitor && $trooper->visitor_expires_at !== null)
+            <x-message type="warning"
+                       icon="fa-solid fa-clock-rotate-left"
+                       class="mb-3">
+                Access renewal &mdash; previous access expired on {{ $trooper->visitor_expires_at->format('M j, Y') }}.
+            </x-message>
+        @endif
         <dl class="row mb-0">
             <dt class="col-4">Legal Name:</dt>
             <dd class="col-8">{{ $trooper->legal_name }}</dd>

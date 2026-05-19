@@ -60,6 +60,7 @@ class Trooper extends BaseTrooper implements
         return [
             self::MEMBERSHIP_ROLE,
             self::MEMBERSHIP_STATUS,
+            self::IS_VISITOR,
         ];
     }
 
@@ -157,6 +158,20 @@ class Trooper extends BaseTrooper implements
     public function getIsDeniedAttribute(): bool
     {
         return $this->membership_status == MembershipStatus::DENIED;
+    }
+
+    /**
+     * Check if this visitor's access window has elapsed.
+     *
+     * Always false for non-visitors.
+     *
+     * @return bool
+     */
+    public function getVisitorAccessExpiredAttribute(): bool
+    {
+        return $this->is_visitor
+            && $this->visitor_expires_at !== null
+            && $this->visitor_expires_at->isPast();
     }
 
     /**

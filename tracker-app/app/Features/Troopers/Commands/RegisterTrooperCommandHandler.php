@@ -39,9 +39,13 @@ readonly class RegisterTrooperCommandHandler implements CommandHandlerInterface
         $trooper->email = $message->valid_data['email'];
         $trooper->phone = $message->valid_data['phone'] ?? null;
         $trooper->password = Hash::make($message->valid_data['password'] ?? uniqid());
-        $trooper->membership_role = $message->valid_data['account_type'] === 'member'
-            ? MembershipRole::MEMBER
-            : MembershipRole::HANDLER;
+        $account_type = $message->valid_data['account_type'];
+
+        $trooper->membership_role = $account_type === 'handler'
+            ? MembershipRole::HANDLER
+            : MembershipRole::MEMBER;
+
+        $trooper->is_visitor = $account_type === 'visitor';
         $trooper->setup_completed_at = now();
 
         $guardian_email = $message->valid_data['guardian_email'] ?? null;
