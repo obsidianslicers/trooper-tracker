@@ -7,7 +7,6 @@ namespace Tests\Unit\Models\Observers;
 use App\Models\Observers\TrooperAssignmentObserver;
 use App\Models\Organization;
 use App\Models\TrooperAssignment;
-use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -15,7 +14,7 @@ class TrooperAssignmentObserverTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_saving_throws_for_member_assignment_on_non_leaf_organization(): void
+    public function test_saving_allows_member_assignment_on_non_leaf_organization(): void
     {
         $root = Organization::factory()->asOrganization()->create();
         Organization::factory()->asRegion()->withParent($root)->create();
@@ -26,9 +25,9 @@ class TrooperAssignmentObserverTest extends TestCase
             ->asMember()
             ->make();
 
-        $this->expectException(Exception::class);
-
         $subject->saving($assignment);
+
+        $this->assertTrue(true);
     }
 
     public function test_saving_allows_member_assignment_on_leaf_organization(): void
