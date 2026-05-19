@@ -80,6 +80,7 @@ class OrganizationSeeder extends Seeder
             ['region' => 'Ra Kura Base', 'name' => 'WFL'],
             ['region' => 'Ra Kura Base', 'name' => 'CFL'],
             ['region' => 'Ra Kura Base', 'name' => 'SFL'],
+            ['region' => 'North America Coruscant Campus', 'name' => 'Florida Dagobah School'],
         ];
 
         foreach ($units as $data)
