@@ -1,7 +1,6 @@
 export default function () {
     return {
         activeOrganizationIds: [],
-        account_type: window.$account_type || 'member',
 
         // Computed property to check if any active org requires a guardian
         get requiresGuardian() {

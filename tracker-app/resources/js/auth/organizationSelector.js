@@ -5,6 +5,7 @@ export default function ({ organizationId }) {
         unitId: '',
         regions: [],
         units: [],
+        isVisitor: window.$account_type === 'visitor',
 
         init() {
             const org = window.$organization_hierarchy.find(o => o.id === organizationId)
@@ -16,7 +17,7 @@ export default function ({ organizationId }) {
                 this.active = true
                 this.regions = org.regions
 
-                // Use $nextTick to ensure x-for renders region 
+                // Use $nextTick to ensure x-for renders region
                 // options before x-model binds
                 this.$nextTick(() => {
                     this.regionId = org.region_id ?? ''
@@ -27,6 +28,11 @@ export default function ({ organizationId }) {
 
             // Report initial state to parent
             this.$dispatch('organization-toggled', { id: organizationId, active: this.active });
+
+            // Keep isVisitor in sync when account type changes
+            window.addEventListener('account-type-changed', (e) => {
+                this.isVisitor = e.detail === 'visitor';
+            });
         },
 
         toggle() {
