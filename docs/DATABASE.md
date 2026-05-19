@@ -233,6 +233,8 @@ Purpose: Authenticated Trooper accounts and profile state.
 | membership_role | varchar(16) | no | default MembershipRole::MEMBER->value |
 | notification_frequency | varchar(16) | no | default NotificationFrequency::NEVER->value |
 | push_notifications_enabled | boolean | no | default true |
+| visitor_expires_at | datetime | yes |  |
+| visitor_notified_at | datetime | yes |  |
 | achievements_updated_at | datetime | yes |  |
 | last_active_at | datetime | yes |  |
 | guardian_id | bigint unsigned | yes | FK -> tt_troopers.id, nullOnDelete |
