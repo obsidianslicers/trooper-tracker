@@ -30,6 +30,8 @@ return new class extends Migration
             $table->string('membership_role', 16)->default(MembershipRole::MEMBER->value);
             $table->string('notification_frequency', 16)->default(NotificationFrequency::NEVER->value);
             $table->boolean('push_notifications_enabled')->default(true);
+            $table->datetime('visitor_expires_at')->nullable();
+            $table->datetime('visitor_notified_at')->nullable();
 
             $table->dateTime('achievements_updated_at')->nullable();
             $table->dateTime('last_active_at')->nullable();
