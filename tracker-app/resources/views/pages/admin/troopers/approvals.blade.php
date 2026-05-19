@@ -11,8 +11,9 @@
                 @include('pages.admin.troopers.approval-card', compact('trooper'))
             </div>
         @empty
-            <div class="col">
-                <p class="text-success mb-0">No pending trooper approvals</p>
+            <div class="col-12 text-center py-5">
+                <i class="fa-solid fa-circle-check fa-3x text-success mb-3"></i>
+                <p class="text-muted mb-0">No pending trooper approvals</p>
             </div>
         @endforelse
     </div>
