@@ -7,7 +7,7 @@
         @endif
     </div>
     <div class="card-body">
-        @if($trooper->is_visitor && $trooper->visitor_expires_at !== null)
+        @if($trooper->is_visitor && $trooper->visitor_expires_at !== null && $trooper->visitor_expires_at->isPast())
             <x-message type="warning"
                        icon="fa-solid fa-clock-rotate-left"
                        class="mb-3">
