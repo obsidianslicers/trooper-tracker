@@ -134,13 +134,12 @@
                             x-transition
                             x-show="active">
                             @if($account_type !== 'handler')
-                                <x-input-container x-show="!isVisitor">
+                                <x-input-container>
                                     <div class="input-group pointer">
                                         <span class="input-group-text">
                                             {{ $organization->identifier_display }}:
                                         </span>
-                                        <x-input-text :property="'organizations.' . $organization->id . '.identifier'"
-                                                      x-bind:disabled="isVisitor" />
+                                        <x-input-text :property="'organizations.' . $organization->id . '.identifier'" />
                                     </div>
                                 </x-input-container>
                             @endif

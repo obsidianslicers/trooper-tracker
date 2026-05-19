@@ -46,7 +46,7 @@ class RegisterSubmitController extends MagicBusController
 
         $organizations = $request->validated('organizations', []);
 
-        $memberships = $this->getMemberships($organizations);
+        $memberships = $this->getMemberships($organizations, $request->validated('account_type'));
         $notifications = $this->getNotifications($organizations);
 
         $identifier_command = new UpdateTrooperIdentifiersCommand($trooper, $organizations);
@@ -120,7 +120,7 @@ class RegisterSubmitController extends MagicBusController
      * @param  array  $organizations  The organizations data from the registration form
      * @return array Array keyed by organization ID with is_member flags
      */
-    private function getMemberships(array $organizations): array
+    private function getMemberships(array $organizations, string $account_type): array
     {
         $memberships = [];
 
@@ -146,6 +146,10 @@ class RegisterSubmitController extends MagicBusController
                         {
                             $memberships[$organization_id]['assignment'] = $data['unit_id'];
                         }
+                    }
+                    elseif ($account_type === 'visitor')
+                    {
+                        $memberships[$organization_id]['assignment'] = $organization_id;
                     }
                 }
             }

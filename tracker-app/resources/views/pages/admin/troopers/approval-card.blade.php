@@ -35,7 +35,7 @@
             @endif
         </dl>
         <hr />
-        {{-- ONLY HANDLERS CAN GET OUT OF PICKING A UNIT --}}
+        {{-- Handlers and Visitors are not required to select a unit --}}
         @if($trooper->membership_role == \App\Enums\MembershipRole::HANDLER && $trooper->trooper_assignments->isEmpty())
             <x-message type="warning"
                        icon="fa-solid fa-triangle-exclamation"
@@ -67,11 +67,20 @@
                         </td>
                     </tr>
                 @endforeach
-                <thead>
+                @if($trooper->is_visitor)
                     <tr>
                         <th colspan="2">Selected Unit</th>
                     </tr>
-                </thead>
+                    <tr>
+                        <td colspan="2" class="text-muted fst-italic">
+                            <i class="fa fa-fw fa-circle-info"></i>
+                            Visitor &mdash; no unit required.
+                        </td>
+                    </tr>
+                @else
+                <tr>
+                    <th colspan="2">Selected Unit</th>
+                </tr>
                 @foreach($trooper->trooper_assignments as $assignment)
                     <tr>
                         <td colspan="2">
@@ -101,6 +110,7 @@
                         @endforeach
                     @endforeach
                 @endforeach
+                @endif
             </x-table>
         @endif
 

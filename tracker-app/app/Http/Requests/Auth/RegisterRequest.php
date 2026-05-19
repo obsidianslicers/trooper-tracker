@@ -161,13 +161,22 @@ class RegisterRequest extends FormRequest
                 // Parse the base validation rules (e.g., 'integer|between:1000,99999')
                 $base_rules = explode('|', $organization->identifier_validation);
 
-                // For members: require identifier when selected, validate format, and check uniqueness.
-                // For handlers: all identifier rules are skipped (optional and unvalidated).
+                // For members: required + format + uniqueness when selected.
+                // For visitors: format + uniqueness only when a value is provided (optional).
+                // For handlers: all identifier rules are skipped.
                 $organization_rules = [
+                    'nullable',
                     Rule::when(
                         fn () => $this->account_type === 'member' && $this->input("organizations.{$organization->id}.selected") === '1',
                         array_merge(
                             ['required'],
+                            $base_rules,
+                            [new UniqueOrganizationIdentifierRule($organization)]
+                        )
+                    ),
+                    Rule::when(
+                        fn () => $this->account_type === 'visitor' && !empty($this->input("organizations.{$organization->id}.identifier")),
+                        array_merge(
                             $base_rules,
                             [new UniqueOrganizationIdentifierRule($organization)]
                         )
