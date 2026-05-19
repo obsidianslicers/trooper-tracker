@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasFilter;
 use App\Models\Scopes\HasCostumeScopes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\Base\Costume as BaseCostume;
@@ -16,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Costume extends BaseCostume
 {
     use HasFactory;
+    use HasFilter;
     use HasCostumeScopes;
 
     public const string COMMAND_STAFF = 'Command Staff';

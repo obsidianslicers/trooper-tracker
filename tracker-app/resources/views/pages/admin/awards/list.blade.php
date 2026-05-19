@@ -5,7 +5,26 @@
 @section('content')
 @php($organization_id = $organization->id ?? null)
 
-<div class="row mb-3">
+<div class="row mb-3 gy-2">
+    <div class="col-sm-12 col-md-6">
+        <form method="GET"
+              class="input-group allow-enter-keypress"
+              action="{{ route('admin.awards.list') }}">
+            @foreach (qs(['page' => 1]) as $key => $value)
+                <x-input-hidden :property="$key"
+                                :value="$value" />
+            @endforeach
+            <input type="text"
+                   name="search_term"
+                   placeholder="Search Title (at least 3 chars)"
+                   class="form-control rounded-start"
+                   value="{{ $search_term }}" />
+            <button type="submit"
+                    class="btn btn-outline-secondary">
+                <i class="fa fa-fw fa-search"></i>
+            </button>
+        </form>
+    </div>
     <div class="col-sm-12 col-md-6">
         @if($organization != null)
             <x-filter-chip :label="$organization->name"
