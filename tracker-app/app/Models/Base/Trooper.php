@@ -50,6 +50,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $membership_role
  * @property string $notification_frequency
  * @property bool $push_notifications_enabled
+ * @property Carbon|null $visitor_expires_at
+ * @property Carbon|null $visitor_notified_at
  * @property Carbon|null $achievements_updated_at
  * @property Carbon|null $last_active_at
  * @property int|null $guardian_id
@@ -97,13 +99,13 @@ class Trooper extends Model
     const MEMBERSHIP_ROLE = 'membership_role';
     const NOTIFICATION_FREQUENCY = 'notification_frequency';
     const PUSH_NOTIFICATIONS_ENABLED = 'push_notifications_enabled';
+    const VISITOR_EXPIRES_AT = 'visitor_expires_at';
+    const VISITOR_NOTIFIED_AT = 'visitor_notified_at';
     const ACHIEVEMENTS_UPDATED_AT = 'achievements_updated_at';
     const LAST_ACTIVE_AT = 'last_active_at';
     const GUARDIAN_ID = 'guardian_id';
     const DATE_OF_BIRTH = 'date_of_birth';
     const REMEMBER_TOKEN = 'remember_token';
-    const VISITOR_EXPIRES_AT = 'visitor_expires_at';
-    const VISITOR_NOTIFIED_AT = 'visitor_notified_at';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
     const DELETED_AT = 'deleted_at';
@@ -114,10 +116,10 @@ class Trooper extends Model
         self::EMAIL_VERIFIED_AT => 'datetime',
         self::SETUP_COMPLETED_AT => 'datetime',
         self::PUSH_NOTIFICATIONS_ENABLED => 'bool',
-        self::ACHIEVEMENTS_UPDATED_AT => 'datetime',
-        self::LAST_ACTIVE_AT => 'datetime',
         self::VISITOR_EXPIRES_AT => 'datetime',
         self::VISITOR_NOTIFIED_AT => 'datetime',
+        self::ACHIEVEMENTS_UPDATED_AT => 'datetime',
+        self::LAST_ACTIVE_AT => 'datetime',
         self::GUARDIAN_ID => 'int',
         self::DATE_OF_BIRTH => 'datetime',
         self::CREATED_AT => 'datetime',
