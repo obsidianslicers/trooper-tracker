@@ -72,6 +72,7 @@ class RegisterRequest extends FormRequest
             ],
             'date_of_birth' => [
                 Rule::requiredIf(fn (): bool => $this->requiresGuardianForSelectedOrganizations()),
+                'nullable',
                 'date',
                 // Must be younger than 18 (Born AFTER 18 years ago)
                 'after:'.now()->subYears(18)->toDateString(),
