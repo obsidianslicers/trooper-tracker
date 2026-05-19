@@ -6,11 +6,15 @@
     <x-transmission-bar :id="'approvals'" />
 
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-2 g-4">
-        @foreach ($troopers as $trooper)
+        @forelse ($troopers as $trooper)
             <div class="col">
                 @include('pages.admin.troopers.approval-card', compact('trooper'))
             </div>
-        @endforeach
+        @empty
+            <div class="col">
+                <p class="text-success mb-0">No pending trooper approvals</p>
+            </div>
+        @endforelse
     </div>
 
     @if($join_requests->isNotEmpty())
