@@ -24,6 +24,11 @@ enum MembershipRole: string
     case HANDLER = 'handler';
 
     /**
+     * A visitor with temporary, time-limited access to the top-level organization.
+     */
+    case VISITOR = 'visitor';
+
+    /**
      * A member with moderation privileges to manage events and members.
      */
     case MODERATOR = 'moderator';

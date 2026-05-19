@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Features\Troopers\Commands;
 
 use App\Bus\Contracts\CommandHandlerInterface;
+use App\Enums\MembershipRole;
 use App\Models\TrooperAssignment;
 
 /**
@@ -29,6 +30,14 @@ readonly class UpdateTrooperAuthorityCommandHandler implements CommandHandlerInt
     public function __invoke(object $message): mixed
     {
         $message->trooper->membership_role = $message->membership_role;
+
+        if ($message->membership_role === MembershipRole::VISITOR) {
+            $message->trooper->visitor_expires_at = now()->addMonths(6);
+            $message->trooper->visitor_notified_at = null;
+        } else {
+            $message->trooper->visitor_expires_at = null;
+            $message->trooper->visitor_notified_at = null;
+        }
 
         $message->trooper->save();
 

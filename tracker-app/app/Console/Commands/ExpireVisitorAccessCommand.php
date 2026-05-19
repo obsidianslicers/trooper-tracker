@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
 use App\Models\Trooper;
 use App\Notifications\Troopers\VisitorAccessExpiredNotification;
@@ -23,7 +24,7 @@ class ExpireVisitorAccessCommand extends Command
 
     public function handle(): void
     {
-        $expired = Trooper::where(Trooper::IS_VISITOR, true)
+        $expired = Trooper::where(Trooper::MEMBERSHIP_ROLE, MembershipRole::VISITOR)
             ->where(Trooper::MEMBERSHIP_STATUS, MembershipStatus::ACTIVE)
             ->where(Trooper::VISITOR_EXPIRES_AT, '<', now())
             ->whereNull(Trooper::VISITOR_NOTIFIED_AT)
