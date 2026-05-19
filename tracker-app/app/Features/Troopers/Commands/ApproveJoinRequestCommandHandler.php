@@ -64,7 +64,10 @@ readonly class ApproveJoinRequestCommandHandler implements CommandHandlerInterfa
             $update_data
         );
 
-        $trooper_org->trooper->notify(new JoinRequestApprovedNotification($trooper_org->organization));
+        if (!$message->suppress_notification)
+        {
+            $trooper_org->trooper->notify(new JoinRequestApprovedNotification($trooper_org->organization));
+        }
 
         return null;
     }

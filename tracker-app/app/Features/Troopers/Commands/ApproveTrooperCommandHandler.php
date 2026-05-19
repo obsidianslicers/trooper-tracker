@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Features\Troopers\Commands;
 
 use App\Bus\Contracts\CommandHandlerInterface;
+use App\Bus\MagicBus;
 use App\Enums\MembershipStatus;
+use App\Models\TrooperOrganization;
 use App\Notifications\Troopers\MembershipApprovedNotification;
 
 /**
@@ -15,6 +17,8 @@ use App\Notifications\Troopers\MembershipApprovedNotification;
  */
 readonly class ApproveTrooperCommandHandler implements CommandHandlerInterface
 {
+    public function __construct(private MagicBus $bus) {}
+
     /**
      * @param  ApproveTrooperCommand  $message
      */
@@ -35,6 +39,14 @@ readonly class ApproveTrooperCommandHandler implements CommandHandlerInterface
         if ($message->is_approved)
         {
             $message->trooper->notify(new MembershipApprovedNotification);
+
+            TrooperOrganization::where(TrooperOrganization::TROOPER_ID, $message->trooper->id)
+                ->pending()
+                ->with('organization')
+                ->get()
+                ->each(fn (TrooperOrganization $org) =>
+                    $this->bus->send(new ApproveJoinRequestCommand($org, suppress_notification: true))
+                );
         }
 
         return null;
