@@ -30,7 +30,7 @@ readonly class RegisterTrooperCommandHandler implements CommandHandlerInterface
      * @param  RegisterTrooperCommand  $message  The command with trooper registration data
      * @return Trooper
      */
-    public function __invoke(object $message): mixed
+    public function __invoke(object $message): Trooper
     {
         $trooper = new Trooper;
 

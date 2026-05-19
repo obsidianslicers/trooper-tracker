@@ -34,7 +34,7 @@ readonly class GetOrganizationsForPickerQueryHandler implements QueryHandlerInte
      * @param  GetOrganizationsForPickerQuery  $message  The query containing filter criteria
      * @return Collection<int, Organization> Collection of organizations
      */
-    public function __invoke(object $message): mixed
+    public function __invoke(object $message): Collection
     {
         $organizations = collect([]);
 

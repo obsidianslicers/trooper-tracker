@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Enums\MembershipRole;
-use App\Enums\MembershipStatus;
-use App\Models\Trooper;
-use App\Notifications\Troopers\VisitorAccessExpiredNotification;
+use App\Bus\MagicBus;
+use App\Features\Troopers\Commands\NotifyExpiredVisitorCommand;
+use App\Features\Troopers\Queries\GetExpiredVisitorsQuery;
 use Illuminate\Console\Command;
 
 /**
@@ -22,22 +21,17 @@ class ExpireVisitorAccessCommand extends Command
 
     protected $description = 'Notify visitor troopers when their 6-month access window has elapsed';
 
-    public function handle(): void
+    public function handle(MagicBus $bus): int
     {
-        $expired = Trooper::where(Trooper::MEMBERSHIP_ROLE, MembershipRole::VISITOR)
-            ->where(Trooper::MEMBERSHIP_STATUS, MembershipStatus::ACTIVE)
-            ->where(Trooper::VISITOR_EXPIRES_AT, '<', now())
-            ->whereNull(Trooper::VISITOR_NOTIFIED_AT)
-            ->get();
+        $expired = $bus->send(new GetExpiredVisitorsQuery());
 
         foreach ($expired as $trooper)
         {
-            $trooper->visitor_notified_at = now();
-            $trooper->save();
-
-            $trooper->notify(new VisitorAccessExpiredNotification);
+            $bus->send(new NotifyExpiredVisitorCommand($trooper));
         }
 
         $this->info("Notified {$expired->count()} visitor(s) of expired access.");
+
+        return Command::SUCCESS;
     }
 }

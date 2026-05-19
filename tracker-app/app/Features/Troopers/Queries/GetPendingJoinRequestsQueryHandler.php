@@ -21,7 +21,7 @@ readonly class GetPendingJoinRequestsQueryHandler implements QueryHandlerInterfa
      * @param  GetPendingJoinRequestsQuery  $message
      * @return Collection<int, TrooperOrganization>
      */
-    public function __invoke(object $message): mixed
+    public function __invoke(object $message): Collection
     {
         return TrooperOrganization::with(['trooper', 'organization'])
             ->pending()

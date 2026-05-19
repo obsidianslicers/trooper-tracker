@@ -36,7 +36,7 @@ readonly class GetTrooperMembershipsQueryHandler implements QueryHandlerInterfac
      * @param  GetTrooperMembershipsQuery  $message  The query containing the trooper
      * @return Collection<int, Organization> Organizations with identifier and assignment data
      */
-    public function __invoke(object $message): mixed
+    public function __invoke(object $message): Collection
     {
         $organizations = Organization::ofTypeOrganizations()->orderBy(Organization::NAME)->get();
 

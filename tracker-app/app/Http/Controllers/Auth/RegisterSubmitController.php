@@ -11,6 +11,7 @@ use App\Features\Troopers\Commands\UpdateTrooperNotificationsCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Jobs\SendTrooperRegisteredNotificationsJob;
+use App\Mail\Auth\GuardianAwareness;
 use App\Mail\Auth\TrooperRegistered;
 use App\Models\Organization;
 use Illuminate\Http\RedirectResponse;
@@ -126,35 +127,50 @@ class RegisterSubmitController extends MagicBusController
 
         foreach ($organizations as $organization_id => $data)
         {
-            if (!empty($data['selected']))
+            if (empty($data['selected']))
             {
-                $organization = Organization::find($organization_id);
+                continue;
+            }
 
-                if ($organization)
-                {
-                    if (isset($data['region_id']))
-                    {
-                        $region = $organization->organizations()
-                            ->ofTypeRegions()
-                            ->firstWhere(Organization::ID, $data['region_id']);
+            $organization = Organization::find($organization_id);
 
-                        if ($region->organizations()->count() == 0)
-                        {
-                            $memberships[$organization_id]['assignment'] = $data['region_id'];
-                        }
-                        elseif (isset($data['unit_id']))
-                        {
-                            $memberships[$organization_id]['assignment'] = $data['unit_id'];
-                        }
-                    }
-                    elseif ($account_type === 'visitor')
-                    {
-                        $memberships[$organization_id]['assignment'] = $organization_id;
-                    }
-                }
+            if (!$organization)
+            {
+                continue;
+            }
+
+            $assignment = $this->resolveAssignment($data, $organization, $account_type, (int) $organization_id);
+
+            if ($assignment !== null)
+            {
+                $memberships[$organization_id]['assignment'] = $assignment;
             }
         }
 
         return $memberships;
+    }
+
+    private function resolveAssignment(array $data, Organization $organization, string $account_type, int $organization_id): ?int
+    {
+        if (isset($data['region_id']))
+        {
+            $region = $organization->organizations()
+                ->ofTypeRegions()
+                ->firstWhere(Organization::ID, $data['region_id']);
+
+            if ($region->organizations()->count() == 0)
+            {
+                return (int) $data['region_id'];
+            }
+
+            return isset($data['unit_id']) ? (int) $data['unit_id'] : null;
+        }
+
+        if ($account_type === 'visitor')
+        {
+            return $organization_id;
+        }
+
+        return null;
     }
 }

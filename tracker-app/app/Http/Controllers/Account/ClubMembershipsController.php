@@ -33,11 +33,6 @@ class ClubMembershipsController extends MagicBusController
             ->orderBy(Organization::SEQUENCE)
             ->get();
 
-        // Load all ancestors in one query for unlimited-depth path display
-        $ancestor_ids = $current_clubs->flatMap(
-            fn ($c) => array_filter(explode(Organization::NODE_PATH_SEP, trim($c->node_path, Organization::NODE_PATH_SEP)))
-        )->unique()->values()->toArray();
-
         $pending_requests = TrooperOrganization::query()
             ->where(TrooperOrganization::TROOPER_ID, $trooper->id)
             ->pending()
@@ -45,18 +40,31 @@ class ClubMembershipsController extends MagicBusController
             ->orderBy(TrooperOrganization::CREATED_AT, 'desc')
             ->get();
 
-        // Also include ancestors for pending request organizations
-        $pending_ancestor_ids = $pending_requests->flatMap(
-            fn ($r) => array_filter(explode(Organization::NODE_PATH_SEP, trim($r->organization->node_path, Organization::NODE_PATH_SEP)))
-        )->toArray();
+        $ancestors = $this->loadAncestors($current_clubs, $pending_requests);
+        $available_clubs_data = $this->buildAvailableClubsData($available_clubs);
 
-        $ancestor_ids = array_unique(array_merge($ancestor_ids, $pending_ancestor_ids));
+        $data = compact('available_clubs', 'available_clubs_data', 'current_clubs', 'ancestors', 'pending_requests', 'trooper');
 
-        $ancestors = Organization::whereIn(Organization::ID, $ancestor_ids)
+        return view('pages.account.club-memberships', $data);
+    }
+
+    private function loadAncestors(\Illuminate\Support\Collection $current_clubs, \Illuminate\Support\Collection $pending_requests): \Illuminate\Support\Collection
+    {
+        $parse = fn ($path) => array_filter(explode(Organization::NODE_PATH_SEP, trim($path, Organization::NODE_PATH_SEP)));
+
+        $ancestor_ids = $current_clubs->flatMap(fn ($c) => $parse($c->node_path))->unique()->values()->toArray();
+
+        $pending_ancestor_ids = $pending_requests->flatMap(fn ($r) => $parse($r->organization->node_path))->toArray();
+
+        $all_ids = array_unique(array_merge($ancestor_ids, $pending_ancestor_ids));
+
+        return Organization::whereIn(Organization::ID, $all_ids)
             ->get([Organization::ID, Organization::NAME])
             ->keyBy(Organization::ID);
+    }
 
-        // Fetch root org identifier rules in one query so children can inherit them
+    private function buildAvailableClubsData(\Illuminate\Support\Collection $available_clubs): \Illuminate\Support\Collection
+    {
         $root_org_ids = $available_clubs->map(function ($org) {
             $parts = array_filter(explode(Organization::NODE_PATH_SEP, $org->node_path));
 
@@ -67,7 +75,7 @@ class ClubMembershipsController extends MagicBusController
             ->get([Organization::ID, Organization::IDENTIFIER_DISPLAY, Organization::IDENTIFIER_VALIDATION])
             ->keyBy(Organization::ID);
 
-        $available_clubs_data = $available_clubs->map(function ($org) use ($root_orgs) {
+        return $available_clubs->map(function ($org) use ($root_orgs) {
             $parts = array_filter(explode(Organization::NODE_PATH_SEP, $org->node_path));
             $root = $root_orgs[(int) reset($parts)] ?? null;
 
@@ -80,9 +88,5 @@ class ClubMembershipsController extends MagicBusController
                 'identifier_validation' => $org->identifier_validation ?? $root?->identifier_validation,
             ];
         });
-
-        $data = compact('available_clubs', 'available_clubs_data', 'current_clubs', 'ancestors', 'pending_requests', 'trooper');
-
-        return view('pages.account.club-memberships', $data);
     }
 }

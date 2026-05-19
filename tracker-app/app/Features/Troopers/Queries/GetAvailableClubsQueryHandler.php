@@ -20,7 +20,7 @@ readonly class GetAvailableClubsQueryHandler implements QueryHandlerInterface
      * @param  GetAvailableClubsQuery  $message
      * @return Collection<int, Organization>
      */
-    public function __invoke(object $message): mixed
+    public function __invoke(object $message): Collection
     {
         $trooper_id = $message->trooper->id;
 

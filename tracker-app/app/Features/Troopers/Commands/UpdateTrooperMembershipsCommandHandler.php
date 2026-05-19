@@ -22,7 +22,7 @@ readonly class UpdateTrooperMembershipsCommandHandler implements CommandHandlerI
      * @param  UpdateTrooperMembershipsCommand  $message
      * @return null
      */
-    public function __invoke(object $message): mixed
+    public function __invoke(object $message): void
     {
         foreach ($message->valid_data as $organization_id => $data)
         {
@@ -43,7 +43,5 @@ readonly class UpdateTrooperMembershipsCommandHandler implements CommandHandlerI
                 ]
             );
         }
-
-        return null;
     }
 }
