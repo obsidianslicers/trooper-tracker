@@ -37,4 +37,32 @@ class GetTrooperMembershipsQueryHandlerTest extends TestCase
         $this->assertSame('TK-12345', $matched->identifier);
         $this->assertSame($region->id, $matched->assignment->id);
     }
+
+    public function test_invoke_sets_is_member_true_for_organizations_with_active_assignment(): void
+    {
+        $trooper = Trooper::factory()->asMember()->create();
+
+        $organization = Organization::factory()->asOrganization()->withNodePath('100.')->create();
+
+        TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($organization)->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();
+
+        $subject = new GetTrooperMembershipsQueryHandler();
+        $result = $subject(new GetTrooperMembershipsQuery($trooper));
+
+        $matched = $result->firstWhere('id', $organization->id);
+        $this->assertTrue($matched->is_member);
+    }
+
+    public function test_invoke_sets_is_member_false_when_no_matching_membership(): void
+    {
+        $trooper = Trooper::factory()->asMember()->create();
+        $organization = Organization::factory()->asOrganization()->withNodePath('100.')->create();
+
+        $subject = new GetTrooperMembershipsQueryHandler();
+        $result = $subject(new GetTrooperMembershipsQuery($trooper));
+
+        $matched = $result->firstWhere('id', $organization->id);
+        $this->assertFalse($matched->is_member);
+    }
 }

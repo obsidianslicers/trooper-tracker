@@ -37,16 +37,22 @@ readonly class SubmitJoinRequestCommandHandler implements CommandHandlerInterfac
             ->where(TrooperOrganization::ORGANIZATION_ID, '!=', $organization->id)
             ->delete();
 
+        $update_data = [
+            TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::PENDING,
+            TrooperOrganization::UPDATED_AT => now(),
+        ];
+
+        if (!empty($message->identifier))
+        {
+            $update_data[TrooperOrganization::IDENTIFIER] = $message->identifier;
+        }
+
         $join_request = TrooperOrganization::updateOrCreate(
             [
                 TrooperOrganization::TROOPER_ID => $trooper->id,
                 TrooperOrganization::ORGANIZATION_ID => $organization->id,
             ],
-            [
-                TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::PENDING,
-                TrooperOrganization::IDENTIFIER => $message->identifier,
-                TrooperOrganization::UPDATED_AT => now(),
-            ]
+            $update_data
         );
 
         SendJoinRequestNotificationsJob::dispatch($join_request);

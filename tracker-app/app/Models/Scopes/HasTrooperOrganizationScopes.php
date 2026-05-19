@@ -7,6 +7,7 @@ namespace App\Models\Scopes;
 use App\Enums\MembershipStatus;
 use App\Models\Trooper;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -29,7 +30,7 @@ trait HasTrooperOrganizationScopes
             return $query;
         }
 
-        return $query->whereExists(function (Builder $sub) use ($moderator)
+        return $query->whereExists(function (QueryBuilder $sub) use ($moderator)
         {
             $sub->select(DB::raw(1))
                 ->from('tt_trooper_assignments as ta_mod')
