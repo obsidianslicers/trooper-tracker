@@ -11,7 +11,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Translation\PotentiallyTranslatedString;
 
 /**
- * Validates that visitors can only be assigned to top-level organizations (depth=0).
+ * Validates that visitors can only be assigned to top-level organizations (depth=1).
  *
  * Passes without checking when the trooper is not a visitor.
  */
@@ -31,7 +31,7 @@ class VisitorOrganizationRule implements ValidationRule
 
         $org = Organization::find($value);
 
-        if ($org && $org->depth !== 0)
+        if ($org && $org->depth > 1)
         {
             $fail('Visitors can only join top-level organizations.');
         }

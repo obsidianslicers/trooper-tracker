@@ -27,7 +27,7 @@ readonly class UpdateTrooperAuthorityCommandHandler implements CommandHandlerInt
      * @param  UpdateTrooperAuthorityCommand  $message  The command with trooper and membership_role
      * @return null
      */
-    public function __invoke(object $message): void
+    public function __invoke(object $message): mixed
     {
         $message->trooper->membership_role = $message->membership_role;
 
@@ -50,7 +50,7 @@ readonly class UpdateTrooperAuthorityCommandHandler implements CommandHandlerInt
 
         if (!$message->trooper->is_moderator)
         {
-            return;
+            return null;
         }
 
         foreach ($message->valid_data as $organization_id => $data)
@@ -69,6 +69,6 @@ readonly class UpdateTrooperAuthorityCommandHandler implements CommandHandlerInt
             $message->trooper->trooper_assignments()->updateOrCreate($where, $set);
         }
 
-        return;
+        return null;
     }
 }

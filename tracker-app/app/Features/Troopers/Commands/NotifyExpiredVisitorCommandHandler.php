@@ -12,11 +12,13 @@ use App\Notifications\Troopers\VisitorAccessExpiredNotification;
  */
 readonly class NotifyExpiredVisitorCommandHandler implements CommandHandlerInterface
 {
-    public function __invoke(object $message): void
+    public function __invoke(object $message): mixed
     {
         $message->trooper->visitor_notified_at = now();
         $message->trooper->save();
 
         $message->trooper->notify(new VisitorAccessExpiredNotification);
+
+        return null;
     }
 }

@@ -28,7 +28,6 @@ readonly class RegisterTrooperCommandHandler implements CommandHandlerInterface
      * setup_completed_at to mark registration as complete.
      *
      * @param  RegisterTrooperCommand  $message  The command with trooper registration data
-     * @return Trooper
      */
     public function __invoke(object $message): Trooper
     {

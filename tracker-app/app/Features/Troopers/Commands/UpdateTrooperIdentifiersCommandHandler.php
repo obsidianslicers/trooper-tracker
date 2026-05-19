@@ -23,7 +23,7 @@ readonly class UpdateTrooperIdentifiersCommandHandler implements CommandHandlerI
      * @param  UpdateTrooperIdentifiersCommand  $message  The command with trooper and membership data
      * @return null
      */
-    public function __invoke(object $message): void
+    public function __invoke(object $message): mixed
     {
         foreach ($message->valid_data as $organization_id => $data)
         {
@@ -61,5 +61,7 @@ readonly class UpdateTrooperIdentifiersCommandHandler implements CommandHandlerI
             $trooper_organization->identifier = $identifier;
             $trooper_organization->save();
         }
+
+        return null;
     }
 }

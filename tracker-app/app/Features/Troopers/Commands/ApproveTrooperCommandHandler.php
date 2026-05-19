@@ -22,7 +22,7 @@ readonly class ApproveTrooperCommandHandler implements CommandHandlerInterface
     /**
      * @param  ApproveTrooperCommand  $message
      */
-    public function __invoke(object $message): void
+    public function __invoke(object $message): mixed
     {
         $message->trooper->membership_status = $message->is_approved
             ? MembershipStatus::ACTIVE
@@ -47,5 +47,7 @@ readonly class ApproveTrooperCommandHandler implements CommandHandlerInterface
                 ->each(fn (TrooperOrganization $org) => $this->bus->send(new ApproveJoinRequestCommand($org, suppress_notification: true))
                 );
         }
+
+        return null;
     }
 }

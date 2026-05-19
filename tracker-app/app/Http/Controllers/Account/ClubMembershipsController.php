@@ -11,6 +11,7 @@ use App\Models\TrooperAssignment;
 use App\Models\TrooperOrganization;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 /**
  * Displays the club memberships page for the authenticated trooper.
@@ -48,7 +49,7 @@ class ClubMembershipsController extends MagicBusController
         return view('pages.account.club-memberships', $data);
     }
 
-    private function loadAncestors(\Illuminate\Support\Collection $current_clubs, \Illuminate\Support\Collection $pending_requests): \Illuminate\Support\Collection
+    private function loadAncestors(Collection $current_clubs, Collection $pending_requests): Collection
     {
         $parse = fn ($path) => array_filter(explode(Organization::NODE_PATH_SEP, trim($path, Organization::NODE_PATH_SEP)));
 
@@ -63,7 +64,7 @@ class ClubMembershipsController extends MagicBusController
             ->keyBy(Organization::ID);
     }
 
-    private function buildAvailableClubsData(\Illuminate\Support\Collection $available_clubs): \Illuminate\Support\Collection
+    private function buildAvailableClubsData(Collection $available_clubs): Collection
     {
         $root_org_ids = $available_clubs->map(function ($org) {
             $parts = array_filter(explode(Organization::NODE_PATH_SEP, $org->node_path));

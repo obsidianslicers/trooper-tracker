@@ -23,7 +23,7 @@ class ExpireVisitorAccessCommand extends Command
 
     public function handle(MagicBus $bus): int
     {
-        $expired = $bus->send(new GetExpiredVisitorsQuery());
+        $expired = $bus->send(new GetExpiredVisitorsQuery);
 
         foreach ($expired as $trooper)
         {
