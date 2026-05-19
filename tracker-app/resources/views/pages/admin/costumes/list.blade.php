@@ -4,6 +4,28 @@
 
 @section('content')
 
+    <div class="row mb-3">
+        <div class="col-sm-12 col-md-6">
+            <form method="GET"
+                  class="input-group allow-enter-keypress"
+                  action="{{ route('admin.costumes.list') }}">
+                @foreach (qs(['page' => 1]) as $key => $value)
+                    <x-input-hidden :property="$key"
+                                    :value="$value" />
+                @endforeach
+                <input type="text"
+                       name="search_term"
+                       placeholder="Search Name (at least 3 chars)"
+                       class="form-control rounded-start"
+                       value="{{ $search_term }}" />
+                <button type="submit"
+                        class="btn btn-outline-secondary">
+                    <i class="fa fa-fw fa-search"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
     <x-table>
         <thead>
             <tr>
@@ -38,6 +60,13 @@
                 </tr>
             @endforeach
         </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="2">
+                    {{ $costumes->links() }}
+                </td>
+            </tr>
+        </tfoot>
     </x-table>
 
 @endsection

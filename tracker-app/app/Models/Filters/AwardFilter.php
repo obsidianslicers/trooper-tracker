@@ -19,6 +19,7 @@ class AwardFilter extends QueryFilter
     {
         return [
             'organization_id' => 'organization',
+            'search_term' => 'searchTerm',
         ];
     }
 
@@ -32,6 +33,16 @@ class AwardFilter extends QueryFilter
     protected function organization(Builder $query, $value): Builder
     {
         return $query->where(Award::ORGANIZATION_ID, $value);
+    }
+
+    protected function searchTerm(Builder $query, $value): Builder
+    {
+        if (strlen($value) >= 3)
+        {
+            return $query->searchFor($value);
+        }
+
+        return $query;
     }
 
     protected function defaults(): array

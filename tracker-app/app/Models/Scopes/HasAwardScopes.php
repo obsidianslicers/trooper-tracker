@@ -23,6 +23,13 @@ trait HasAwardScopes
      * @param Trooper $trooper The trooper whose visibility is being checked.
      * @return Builder<self>
      */
+    public function scopeSearchFor(Builder $query, string $search_term): Builder
+    {
+        $term = '%' . trim($search_term, '%') . '%';
+
+        return $query->where(self::NAME, 'like', $term);
+    }
+
     public function scopeVisibleTo(Builder $query, Trooper $trooper): Builder
     {
         $query->where(function ($outer) use ($trooper)

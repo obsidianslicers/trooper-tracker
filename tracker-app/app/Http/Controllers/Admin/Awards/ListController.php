@@ -44,7 +44,11 @@ class ListController extends MagicBusController
 
         $awards = $this->getAwards($request, $filter);
 
-        $data = compact('awards', 'organization');
+        $data = [
+            'awards' => $awards,
+            'organization' => $organization,
+            'search_term' => $request->query('search_term'),
+        ];
 
         return view('pages.admin.awards.list', $data);
     }
