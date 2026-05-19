@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Models\Observers;
 
 use App\Models\TrooperAssignment;
-use Exception;
 
 /**
  * Handles lifecycle events for the TrooperAssignment model.
@@ -24,14 +23,6 @@ class TrooperAssignmentObserver
      */
     public function saving(TrooperAssignment $trooper_assignment): void
     {
-        if ($trooper_assignment->is_member)
-        {
-            $organization = $trooper_assignment->organization;
-
-            if ($organization->organizations()->count() > 0)
-            {
-                throw new Exception("Troopers can only be members at the lowest organizational level.");
-            }
-        }
+        // Membership is allowed at any organizational level (org, region, or unit).
     }
 }

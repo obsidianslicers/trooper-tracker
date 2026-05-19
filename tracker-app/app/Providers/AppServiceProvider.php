@@ -9,10 +9,13 @@ use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
 use App\Enums\OauthProvider;
 use App\Mail\Auth\VerifyTrooperEmail;
+use App\Models\TrooperOrganization;
+use App\Policies\TrooperJoinRequestPolicy;
 use App\Services\BreadCrumbService;
 use App\Services\Socialite\XenforoProvider;
 use App\View\Composers\ShiftAddTrooperComposer;
 use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Migrations\DatabaseMigrationRepository;
 use Illuminate\Database\Migrations\MigrationRepositoryInterface;
 use Illuminate\Database\Schema\Blueprint;
@@ -20,6 +23,7 @@ use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use InvalidArgumentException;
@@ -36,11 +40,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->scoped(BreadCrumbService::class, function () {
+        $this->app->scoped(BreadCrumbService::class, function (): BreadCrumbService {
             return new BreadCrumbService;
         });
 
-        $this->app->bind(FcmChannel::class, function ($app) {
+        $this->app->bind(FcmChannel::class, function (Application $app): FcmChannel {
             try
             {
                 $messaging = $app->make(Messaging::class);
@@ -67,9 +71,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Gate::policy(TrooperOrganization::class, TrooperJoinRequestPolicy::class);
+
         Paginator::useBootstrapFive();
 
-        VerifyEmail::toMailUsing(function (object $notifiable, string $url) {
+        VerifyEmail::toMailUsing(function (object $notifiable, string $url): VerifyTrooperEmail {
             return (new VerifyTrooperEmail($url))
                 ->to($notifiable->email);
         });
@@ -77,14 +83,14 @@ class AppServiceProvider extends ServiceProvider
         //
         //  HTMX REQUEST MACRO
         //
-        Request::macro('isHtmx', function () {
+        Request::macro('isHtmx', function (): bool {
             return $this->headers->has('HX-Request');
         });
 
         //
         //  SOCIALITE CUSTOM PROVIDERS
         //
-        Socialite::extend(OauthProvider::XENFORO->value, function ($app) {
+        Socialite::extend(OauthProvider::XENFORO->value, function (Application $app): XenforoProvider {
             $config = $app['config']['services.xenforo'];
 
             return Socialite::buildProvider(XenforoProvider::class, $config);
@@ -93,7 +99,7 @@ class AppServiceProvider extends ServiceProvider
         //
         //  MIGRATION
         //
-        $this->app->extend(MigrationRepositoryInterface::class, function ($repository, $app) {
+        $this->app->extend(MigrationRepositoryInterface::class, function (MigrationRepositoryInterface $repository, Application $app): MigrationRepositoryInterface {
             return new DatabaseMigrationRepository(
                 $app['db'],
                 'tt_migrations'
@@ -103,7 +109,7 @@ class AppServiceProvider extends ServiceProvider
         //
         //  DATABASE MIGRATION MACRO
         //
-        Blueprint::macro('trooperstamps', function () {
+        Blueprint::macro('trooperstamps', function (): void {
             $this->unsignedBigInteger('created_id')->nullable();
             $this->unsignedBigInteger('updated_id')->nullable();
             $this->unsignedBigInteger('deleted_id')->nullable();
@@ -136,7 +142,7 @@ class AppServiceProvider extends ServiceProvider
                 $roles = array_map('trim', explode(',', $roles));
             }
 
-            $normalized = collect($roles)->map(function ($role) {
+            $normalized = collect($roles)->map(function (MembershipRole|string $role): MembershipRole {
                 if ($role instanceof MembershipRole)
                 {
                     return $role;

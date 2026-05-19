@@ -282,8 +282,6 @@ app/Rules/
 │   ├── Organizations/
 │   │   ├── UniqueCostumeNameRule.php
 │   │   └── UniqueNameRule.php
-│   └── Troopers/
-│       └── OrganizationLeafNodeRule.php
 └── Auth/
     ├── AtLeastOneOrganizationSelectedRule.php
     └── UniqueOrganizationIdentifierRule.php

@@ -507,9 +507,6 @@ Custom validation rules provide reusable validation logic organized by feature a
 - **UniqueCostumeNameRule:** Ensures costume names are unique within an organization
 - **UniqueNameRule:** Ensures organization names are unique among siblings
 
-**Admin/Troopers Rules:**
-- **OrganizationLeafNodeRule:** Validates selected organization is a leaf node (no children)
-
 **Usage in Requests:**
 ```php
 public function rules(): array

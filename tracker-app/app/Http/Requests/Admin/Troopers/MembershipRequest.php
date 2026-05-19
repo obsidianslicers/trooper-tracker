@@ -6,7 +6,6 @@ namespace App\Http\Requests\Admin\Troopers;
 
 use App\Enums\MembershipRole;
 use App\Models\Organization;
-use App\Rules\Admin\Troopers\OrganizationLeafNodeRule;
 use App\Rules\Auth\UniqueOrganizationIdentifierRule;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Collection;
@@ -19,7 +18,7 @@ use Illuminate\Validation\Rule;
  * This class defines validation rules for managing a trooper's organization memberships
  * using a popup picker to select specific organizations. The validation ensures:
  * - Organization IDs are required when an identifier is provided
- * - Selected organizations must exist and be leaf nodes (no children)
+ * - Selected organizations must exist and be descendants of the selected organization tree
  * - Identifiers follow organization-specific validation rules when provided
  *
  * Only administrators can modify trooper membership settings.
@@ -54,7 +53,6 @@ class MembershipRequest extends FormRequest
      * Get the validation rules that apply to the request
      *
      * Generates dynamic validation rules for organization memberships.
-     * Organizations are selected via popup picker and must be leaf nodes.
      *
      * @return array<string, mixed> The validation rules for organization memberships
      */
@@ -92,7 +90,6 @@ class MembershipRequest extends FormRequest
      * Validates that selected organizations:
      * - Are required when an identifier is provided
      * - Exist in the database
-     * - Are leaf nodes (have no child organizations)
      * - Have valid identifiers according to organization-specific rules
      *
      * @return array<string, mixed> Validation rules for organization memberships
@@ -122,12 +119,11 @@ class MembershipRequest extends FormRequest
                 );
             }
 
-            // Validate assignment - required when identifier is provided, must be a leaf node and descendant
+            // Validate assignment - required when identifier is provided and must exist
             $rules["organizations.{$organization->id}.assignment"] = [
                 Rule::requiredIf(fn () => !empty($this->input("organizations.{$organization->id}.identifier"))),
                 'nullable',
                 Rule::exists(Organization::class, Organization::ID),
-                new OrganizationLeafNodeRule($organization),
             ];
         }
 

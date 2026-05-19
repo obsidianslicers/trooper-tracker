@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use App\Enums\OauthProvider;
+use App\Http\Controllers\Account\ClubMembershipsController;
+use App\Http\Controllers\Account\ClubMembershipsSubmitHtmxController;
 use App\Http\Controllers\Account\CostumesController;
 use App\Http\Controllers\Account\CostumesDeleteHtmxController;
 use App\Http\Controllers\Account\CostumesSubmitHtmxController;
@@ -17,6 +19,7 @@ use App\Http\Controllers\Account\PushNotificationReadController;
 use App\Http\Controllers\Account\ProfileSubmitController;
 use App\Http\Controllers\Account\SetupController;
 use App\Http\Controllers\Account\SetupSubmitController;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Models\OauthLogin;
@@ -33,6 +36,9 @@ Route::prefix('account')
         Route::post('/notifications', NotificationsSubmitController::class);
         Route::get('/notices', NoticesController::class)->name('notices');
         Route::post('/notices-htmx/{notice}', NoticesSubmitHtmxController::class)->name('notices-htmx');
+        Route::get('/club-memberships', ClubMembershipsController::class)->name('club-memberships');
+        Route::post('/club-memberships-htmx', ClubMembershipsSubmitHtmxController::class)->name('club-memberships-htmx');
+
         Route::get('/costumes', CostumesController::class)->name('costumes');
         Route::post('/costumes-htmx', CostumesSubmitHtmxController::class)->name('costumes-htmx');
         Route::delete('/costumes-htmx', CostumesDeleteHtmxController::class);
@@ -46,7 +52,7 @@ Route::prefix('account')
         Route::post('/setup', SetupSubmitController::class)->name('setup-submit');
 
         // XenForo linking required page
-        Route::get('/xenforo/required', function ()
+        Route::get('/xenforo/required', function (): View
         {
             $user = Auth::user();
 
@@ -56,7 +62,7 @@ Route::prefix('account')
         })->name('xenforo.required');
 
         // Optional: show current XenForo link status
-        Route::get('/xenforo', function ()
+        Route::get('/xenforo', function (): View
         {
             $user = Auth::user();
 

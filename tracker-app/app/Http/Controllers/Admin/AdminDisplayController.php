@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\MagicBusController;
 use App\Models\Trooper;
+use App\Models\TrooperOrganization;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -32,22 +33,33 @@ class AdminDisplayController extends MagicBusController
 
         $not_approved = Trooper::pendingApprovals()->moderatedBy($trooper)->count();
 
-        if ($not_approved == 1)
+        $pending_join_requests = TrooperOrganization::pending()->forModerator($trooper)->count();
+
+        $this->buildApprovalFlashMessages($not_approved, $pending_join_requests);
+
+        $data = compact('not_approved', 'pending_join_requests');
+
+        return view('pages.admin.display', $data);
+    }
+
+    private function buildApprovalFlashMessages(int $not_approved, int $pending_join_requests): void
+    {
+        if ($not_approved === 1)
         {
-            $msg = "There is {$not_approved} trooper ready for action!";
+            $this->flash->warning("There is {$not_approved} trooper ready for action!");
         }
         elseif ($not_approved > 1)
         {
-            $msg = "There are {$not_approved} troopers ready for action!";
+            $this->flash->warning("There are {$not_approved} troopers ready for action!");
         }
 
-        if ($not_approved > 0)
+        if ($pending_join_requests === 1)
         {
-            $this->flash->warning($msg);
+            $this->flash->warning('1 trooper has a pending request!');
         }
-
-        $data = compact('not_approved');
-
-        return view('pages.admin.display', $data);
+        elseif ($pending_join_requests > 1)
+        {
+            $this->flash->warning("{$pending_join_requests} troopers have a pending request!");
+        }
     }
 }

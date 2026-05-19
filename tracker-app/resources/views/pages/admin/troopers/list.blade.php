@@ -28,7 +28,12 @@
 
 
         </div>
-        <div class="col-sm-12 col-md-6 text-end">
+        <div class="col-sm-12 col-md-6 text-end d-flex flex-wrap justify-content-end gap-2 align-items-start">
+
+            <a href="{{ route('admin.troopers.recruit') }}"
+               class="btn btn-outline-primary btn-sm">
+                <i class="fa fa-fw fa-user-plus"></i> Recruit Trooper
+            </a>
 
             <x-button-group>
                 <x-button-group-link :label="'All'"

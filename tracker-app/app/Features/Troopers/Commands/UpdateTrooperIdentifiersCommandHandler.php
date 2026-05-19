@@ -36,21 +36,30 @@ readonly class UpdateTrooperIdentifiersCommandHandler implements CommandHandlerI
 
             $identifier = trim($identifier);
 
-            $organization = $message->trooper->organizations->firstWhere('id', $organization_id);
+            $trooper_organization = TrooperOrganization::query()
+                ->withTrashed()
+                ->where(TrooperOrganization::TROOPER_ID, $message->trooper->id)
+                ->where(TrooperOrganization::ORGANIZATION_ID, $organization_id)
+                ->first();
 
-            if ($organization)
+            if ($trooper_organization)
             {
-                $organization->pivot->identifier = $identifier;
-                $organization->pivot->save();
-            }
-            else
-            {
-                $trooper_organization = new TrooperOrganization;
-                $trooper_organization->trooper_id = $message->trooper->id;
-                $trooper_organization->organization_id = $organization_id;
+                if ($trooper_organization->trashed())
+                {
+                    $trooper_organization->restore();
+                }
+
                 $trooper_organization->identifier = $identifier;
                 $trooper_organization->save();
+
+                continue;
             }
+
+            $trooper_organization = new TrooperOrganization;
+            $trooper_organization->trooper_id = $message->trooper->id;
+            $trooper_organization->organization_id = $organization_id;
+            $trooper_organization->identifier = $identifier;
+            $trooper_organization->save();
         }
 
         return null;

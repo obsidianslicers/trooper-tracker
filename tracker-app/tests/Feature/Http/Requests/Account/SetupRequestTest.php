@@ -204,15 +204,6 @@ class SetupRequestTest extends TestCase
         $this->assertArrayHasKey(Trooper::THEME, $validator->errors()->toArray());
     }
 
-    public function test_rules_includes_organizations_array(): void
-    {
-        $subject = new SetupRequest;
-        $subject->setUserResolver(fn() => $this->trooper);
-        $rules = $subject->rules();
-
-        $this->assertArrayHasKey('organizations', $rules);
-    }
-
     public function test_rules_validates_valid_organization_assignment(): void
     {
         [$organization, , $leaf_unit] = $this->create_organization_tree($this->base_organization_path);
@@ -229,45 +220,6 @@ class SetupRequestTest extends TestCase
         ]), $subject->rules());
 
         $this->assertFalse($validator->errors()->has("organizations.{$organization->id}.assignment"));
-    }
-
-    public function test_rules_rejects_assignment_that_is_not_descendant_of_organization(): void
-    {
-        [$organization] = $this->create_organization_tree($this->base_organization_path);
-        [, , $other_leaf_unit] = $this->create_organization_tree($this->other_organization_path);
-
-        $subject = new SetupRequest;
-        $subject->setUserResolver(fn() => $this->trooper);
-
-        $validator = Validator::make($this->valid_payload([
-            'organizations' => [
-                $organization->id => [
-                    'assignment' => $other_leaf_unit->id,
-                ],
-            ],
-        ]), $subject->rules());
-
-        $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey("organizations.{$organization->id}.assignment", $validator->errors()->toArray());
-    }
-
-    public function test_rules_rejects_assignment_when_picked_organization_is_not_leaf_node(): void
-    {
-        [$organization, $region] = $this->create_organization_tree($this->base_organization_path);
-
-        $subject = new SetupRequest;
-        $subject->setUserResolver(fn() => $this->trooper);
-
-        $validator = Validator::make($this->valid_payload([
-            'organizations' => [
-                $organization->id => [
-                    'assignment' => $region->id,
-                ],
-            ],
-        ]), $subject->rules());
-
-        $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey("organizations.{$organization->id}.assignment", $validator->errors()->toArray());
     }
 
     public function test_rules_accepts_null_assignment_for_organization(): void

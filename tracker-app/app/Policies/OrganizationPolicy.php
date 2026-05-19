@@ -29,6 +29,18 @@ class OrganizationPolicy
     }
 
     /**
+     * Determine whether the moderator can directly add a trooper to an organization.
+     *
+     * @param  Trooper  $trooper  The authenticated moderator
+     * @param  Organization  $subject  The organization to recruit into
+     * @return bool True if the user moderates the organization
+     */
+    public function recruit(Trooper $trooper, Organization $subject): bool
+    {
+        return $this->canModerate($trooper, $subject);
+    }
+
+    /**
      * Determine whether the user can update an organization.
      *
      * @param  Trooper  $trooper  The authenticated user performing the action.

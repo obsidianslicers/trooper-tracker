@@ -15,6 +15,9 @@
             <x-nav-link :url="route('account.costumes')">
                 Costumes
             </x-nav-link>
+            <x-nav-link :url="route('account.club-memberships')">
+                Organizations
+            </x-nav-link>
             <x-nav-link :url="route('auth.logout')">
                 Logout
             </x-nav-link>

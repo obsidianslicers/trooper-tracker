@@ -7,6 +7,7 @@ namespace App\Features\Troopers\Queries;
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Models\Organization;
 use App\Models\TrooperAssignment;
+use App\Models\TrooperOrganization;
 use Illuminate\Support\Collection;
 
 /**
@@ -39,7 +40,11 @@ readonly class GetTrooperMembershipsQueryHandler implements QueryHandlerInterfac
     {
         $organizations = Organization::ofTypeOrganizations()->orderBy(Organization::NAME)->get();
 
-        $organization_memberships = $message->trooper->organizations()->pluck('tt_trooper_organizations.identifier', 'tt_organizations.id')->toArray();
+        $organization_memberships = TrooperOrganization::query()
+            ->where(TrooperOrganization::TROOPER_ID, $message->trooper->id)
+            ->whereNull(TrooperOrganization::DELETED_AT)
+            ->pluck(TrooperOrganization::IDENTIFIER, TrooperOrganization::ORGANIZATION_ID)
+            ->toArray();
 
         $assignments = $message->trooper->trooper_assignments()
             ->with('organization')
@@ -48,7 +53,9 @@ readonly class GetTrooperMembershipsQueryHandler implements QueryHandlerInterfac
 
         foreach ($organizations as $organization)
         {
-            if (isset($organization_memberships[$organization->id]) === false)
+            $organization->is_member = array_key_exists($organization->id, $organization_memberships);
+
+            if (array_key_exists($organization->id, $organization_memberships) === false)
             {
                 continue;
             }
