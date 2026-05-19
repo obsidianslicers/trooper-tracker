@@ -8,6 +8,7 @@ use App\Features\Troopers\Commands\SubmitJoinRequestCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Organization;
 use App\Rules\Auth\UniqueOrganizationIdentifierRule;
+use App\Rules\Troopers\VisitorOrganizationRule;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -25,7 +26,7 @@ class ClubMembershipsSubmitHtmxController extends MagicBusController
         $trooper = $request->user();
 
         $request->validate([
-            'organization_id' => ['required', 'integer', Rule::exists('tt_organizations', 'id')],
+            'organization_id' => ['required', 'integer', Rule::exists('tt_organizations', 'id'), new VisitorOrganizationRule($trooper)],
         ]);
 
         /** @var Organization $organization */

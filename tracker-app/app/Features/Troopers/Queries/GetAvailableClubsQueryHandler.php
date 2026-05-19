@@ -37,6 +37,11 @@ readonly class GetAvailableClubsQueryHandler implements QueryHandlerInterface
             $query->whereNotIn(Organization::ID, $active_org_ids);
         }
 
+        if ($message->trooper->is_visitor)
+        {
+            $query->where(Organization::DEPTH, 0);
+        }
+
         return $query->orderBy(Organization::SEQUENCE)->get();
     }
 }

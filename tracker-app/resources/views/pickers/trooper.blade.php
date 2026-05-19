@@ -30,6 +30,7 @@
             data-property="{{ $property }}"
             data-id="{{ $trooper->id }}"
             data-name="{{ $trooper->display_name }}"
+            data-is-visitor="{{ $trooper->is_visitor ? '1' : '0' }}"
             data-event="{{ $event_name }}">
             {{ $trooper->display_name }}
         </li>

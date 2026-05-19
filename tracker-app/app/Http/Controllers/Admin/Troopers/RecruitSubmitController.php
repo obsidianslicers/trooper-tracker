@@ -9,6 +9,7 @@ use App\Http\Controllers\MagicBusController;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Rules\Auth\UniqueOrganizationIdentifierRule;
+use App\Rules\Troopers\VisitorOrganizationRule;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -43,6 +44,7 @@ class RecruitSubmitController extends MagicBusController
         $subject = Trooper::findOrFail($request->integer('trooper_id'));
 
         $request->validate([
+            'organization_id' => [new VisitorOrganizationRule($subject)],
             'identifier' => $this->buildIdentifierRules($organization, $subject),
         ]);
 

@@ -81,7 +81,7 @@ class ClubMembershipsController extends MagicBusController
             ];
         });
 
-        $data = compact('available_clubs', 'available_clubs_data', 'current_clubs', 'ancestors', 'pending_requests');
+        $data = compact('available_clubs', 'available_clubs_data', 'current_clubs', 'ancestors', 'pending_requests', 'trooper');
 
         return view('pages.account.club-memberships', $data);
     }

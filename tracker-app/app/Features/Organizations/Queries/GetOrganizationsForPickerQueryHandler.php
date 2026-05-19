@@ -60,6 +60,11 @@ readonly class GetOrganizationsForPickerQueryHandler implements QueryHandlerInte
             $organizations = Organization::orderBy(Organization::SEQUENCE)->get();
         }
 
+        if ($message->depth_max !== null)
+        {
+            $organizations = $organizations->filter(fn (Organization $org) => $org->depth <= $message->depth_max)->values();
+        }
+
         return $organizations;
     }
 }
