@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Models\Observers;
 
+use App\Enums\MembershipRole;
 use App\Models\Observers\TrooperAssignmentObserver;
 use App\Models\Organization;
 use App\Models\Trooper;
@@ -125,6 +126,48 @@ class TrooperAssignmentObserverTest extends TestCase
             ->make([
                 TrooperAssignment::IS_MEMBER => false,
             ]);
+
+        $subject->saving($assignment);
+
+        $this->assertTrue(true);
+    }
+
+    public function test_saving_throws_for_visitor_assigned_to_sub_organization(): void
+    {
+        $trooper = Trooper::factory()->create([
+            Trooper::MEMBERSHIP_ROLE => MembershipRole::VISITOR,
+        ]);
+
+        $root = Organization::factory()->asOrganization()->create();
+        $region = Organization::factory()->asRegion()->withParent($root)->create();
+
+        $subject = new TrooperAssignmentObserver();
+
+        $assignment = TrooperAssignment::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($region)
+            ->make();
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('Visitors can only join top-level organizations.');
+
+        $subject->saving($assignment);
+    }
+
+    public function test_saving_passes_for_visitor_assigned_to_top_level_org(): void
+    {
+        $trooper = Trooper::factory()->create([
+            Trooper::MEMBERSHIP_ROLE => MembershipRole::VISITOR,
+        ]);
+
+        $root = Organization::factory()->asOrganization()->create();
+
+        $subject = new TrooperAssignmentObserver();
+
+        $assignment = TrooperAssignment::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($root)
+            ->make();
 
         $subject->saving($assignment);
 
