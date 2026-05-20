@@ -32,7 +32,8 @@ class HasTrooperScopesTest extends TestCase
 
         $this->assertStringContainsString('"email" like ?', $query->toBase()->toSql());
         $this->assertStringContainsString('or "display_name" like ?', $query->toBase()->toSql());
-        $this->assertSame(['%vader%', '%vader%'], $query->getBindings());
+        $this->assertStringContainsString('or "legal_name" like ?', $query->toBase()->toSql());
+        $this->assertSame(['%vader%', '%vader%', '%vader%'], $query->getBindings());
     }
 
     public function test_pending_approvals_filters_and_orders(): void
