@@ -33,6 +33,7 @@ readonly class GlobalSearchQueryHandler implements QueryHandlerInterface
                 ->where(function ($q) use ($like) {
                     $q->where(Trooper::DISPLAY_NAME, 'like', $like)
                         ->orWhere(Trooper::EMAIL, 'like', $like)
+                        ->orWhere(Trooper::LEGAL_NAME, 'like', $like)
                         ->orWhereExists(function ($q) use ($like) {
                             $q->select(DB::raw(1))
                                 ->from('tt_trooper_organizations')

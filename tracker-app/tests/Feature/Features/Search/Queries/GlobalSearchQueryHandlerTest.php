@@ -51,6 +51,24 @@ class GlobalSearchQueryHandlerTest extends TestCase
         $this->assertSame(['Darth Finder'], $by_email['troopers']->pluck(Trooper::DISPLAY_NAME)->all());
     }
 
+    public function test_invoke_finds_troopers_by_legal_name(): void
+    {
+        Trooper::factory()
+            ->withDisplayName('Callsign Only')
+            ->withLegalName('Anakin Skywalker')
+            ->create();
+        Trooper::factory()
+            ->withDisplayName('Other Trooper')
+            ->withLegalName('CT-7567 Rex')
+            ->create();
+
+        $subject = new GlobalSearchQueryHandler();
+
+        $result = $subject(new GlobalSearchQuery('Skywalker', 'troopers'));
+
+        $this->assertSame(['Callsign Only'], $result['troopers']->pluck(Trooper::DISPLAY_NAME)->all());
+    }
+
     public function test_invoke_finds_troopers_by_identifier_and_ignores_soft_deleted_memberships(): void
     {
         $active_org = Organization::factory()->withName('Active Org')->create();
