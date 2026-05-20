@@ -108,6 +108,7 @@ erDiagram
     tt_events ||--o{ tt_event_organizations : has
     tt_events ||--o{ tt_event_uploads : has
     tt_events ||--o{ tt_event_shares : has
+    tt_events ||--o{ tt_event_mission_acks : has
 
     tt_event_shifts ||--o{ tt_event_troopers : has
     tt_event_shifts ||--o{ tt_event_guests : has
@@ -121,6 +122,7 @@ erDiagram
     tt_troopers ||--o{ tt_event_upload_troopers : tagged
     tt_troopers ||--o{ tt_event_shares : shares
     tt_troopers ||--o{ tt_event_guests : adds
+    tt_troopers ||--o{ tt_event_mission_acks : acknowledges
 
     tt_costumes ||--o{ tt_event_troopers : selected_primary
     tt_costumes ||--o{ tt_event_troopers : selected_backup
@@ -476,6 +478,8 @@ Purpose: Trooper-to-organization assignment flags.
 | updated_id | bigint unsigned | yes | trooperstamps helper |
 | deleted_id | bigint unsigned | yes | trooperstamps helper |
 
+Unique: (trooper_id, organization_id)
+
 Relationships:
 
 - Belongs To: tt_troopers, tt_organizations
@@ -489,7 +493,7 @@ Purpose: Trooper membership records per organization.
 | id | bigint unsigned | no | PK, auto increment |
 | trooper_id | bigint unsigned | no | FK -> tt_troopers.id, cascadeOnDelete |
 | organization_id | bigint unsigned | no | FK -> tt_organizations.id, cascadeOnDelete |
-| identifier | varchar(64) | no | unique with organization_id |
+| identifier | varchar(64) | yes | unique with organization_id |
 | membership_status | varchar(16) | no | default MembershipStatus::PENDING->value |
 | join_date | timestamp | yes |  |
 | synchronized_at | datetime | yes |  |
@@ -499,6 +503,8 @@ Purpose: Trooper membership records per organization.
 | created_id | bigint unsigned | yes | trooperstamps helper |
 | updated_id | bigint unsigned | yes | trooperstamps helper |
 | deleted_id | bigint unsigned | yes | trooperstamps helper |
+
+Unique: (trooper_id, organization_id), (organization_id, identifier)
 
 Relationships:
 
@@ -583,6 +589,8 @@ Purpose: Trooper friendship links.
 | created_at | timestamp | yes | timestamps helper |
 | updated_at | timestamp | yes | timestamps helper |
 | deleted_at | timestamp | yes | softDeletes helper |
+
+Unique: (trooper_id, friend_id)
 
 Relationships:
 
@@ -699,6 +707,8 @@ Purpose: Notification delivery state per event and Trooper.
 | updated_id | bigint unsigned | yes | trooperstamps helper |
 | deleted_id | bigint unsigned | yes | trooperstamps helper |
 
+Unique: (event_id, trooper_id)
+
 Relationships:
 
 - Belongs To: tt_events, tt_troopers
@@ -721,6 +731,8 @@ Purpose: Organization attendance rules per event.
 | created_id | bigint unsigned | yes | trooperstamps helper |
 | updated_id | bigint unsigned | yes | trooperstamps helper |
 | deleted_id | bigint unsigned | yes | trooperstamps helper |
+
+Unique: (event_id, organization_id)
 
 Relationships:
 
@@ -907,13 +919,15 @@ Purpose: Award recipients and award dates.
 | id | bigint unsigned | no | PK, auto increment |
 | award_id | bigint unsigned | no | FK -> tt_awards.id, cascadeOnDelete |
 | trooper_id | bigint unsigned | no | FK -> tt_troopers.id, cascadeOnDelete |
-| award_date | date | no | unique with award_id, trooper_id |
+| award_date | date | no |  |
 | created_at | timestamp | yes | timestamps helper |
 | updated_at | timestamp | yes | timestamps helper |
 | deleted_at | timestamp | yes | softDeletes helper |
 | created_id | bigint unsigned | yes | trooperstamps helper |
 | updated_id | bigint unsigned | yes | trooperstamps helper |
 | deleted_id | bigint unsigned | yes | trooperstamps helper |
+
+Unique: (award_id, trooper_id, award_date)
 
 Relationships:
 
