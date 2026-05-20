@@ -19,7 +19,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $id
  * @property int $trooper_id
  * @property int $organization_id
- * @property string $identifier
+ * @property string|null $identifier
  * @property string $membership_status
  * @property Carbon|null $join_date
  * @property Carbon|null $synchronized_at
