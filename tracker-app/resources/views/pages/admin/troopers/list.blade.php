@@ -16,7 +16,7 @@
                 @endforeach
                 <input type="text"
                        name="search_term"
-                       placeholder="Search Name, Username, Email (at least 3 chars)"
+                       placeholder="Search Name, Legal Name, Email (at least 3 chars)"
                        class="form-control rounded-start"
                        value="{{ $search_term }}" />
 
@@ -100,6 +100,8 @@
                             <i class="fa fa-fw fa-times text-danger pe-2"></i>
                         @endif
                         {{ $trooper->display_name }}
+                        <br />
+                        <span class="text-muted">{{ $trooper->legal_name }}</span>
                         <br />
                         @if($trooper->email[0] == '^')
                             <span class="text-muted">( missing email )</span>
