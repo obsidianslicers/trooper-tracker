@@ -63,6 +63,11 @@
                                             <a href="{{ route('service-records.trooper', $trooper) }}" class="fw-bold text-decoration-none">
                                                 {{ $trooper->display_name }}
                                             </a>
+                                            @if (!empty($trooper->legal_name))
+                                                <div class="text-muted small">
+                                                    {{ $trooper->legal_name }}
+                                                </div>
+                                            @endif
                                         </td>
                                         <td>
                                             @foreach ($trooper->organizations as $org)
