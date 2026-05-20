@@ -83,7 +83,7 @@
                                 {{ $event->time_display }}
                             @else
                                 {{ $event->full_date_display }}
-                                <span class="text-muted ps-3">
+                                <span class="text-muted d-block d-md-inline ps-0 ps-md-3 pt-1 pt-md-0">
                                     ** {{ $event->event_shifts->count() }} shifts available **
                                 </span>
                             @endif

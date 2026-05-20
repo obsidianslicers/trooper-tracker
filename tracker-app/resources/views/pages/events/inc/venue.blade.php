@@ -10,7 +10,7 @@
             <span>
                 <i class="fa fa-fw fa-location-dot me-2"></i>
             </span>
-            <span class="p-1 text-white">
+            <span class="p-1 text-white text-break d-inline-block">
                 {{ $event->venue_address }}
             </span>
         </a>
