@@ -172,9 +172,9 @@ Events, Awards, and Notices. It uses:
 
 ## Inventory
 
-Discovered migration files: 32
+Discovered migration files: 30
 
-Discovered tables: 36
+Discovered tables: 35
 
 - tt_troopers
 - tt_password_reset_tokens
@@ -377,7 +377,6 @@ Purpose: Costume catalog.
 | --- | --- | --- | --- |
 | id | bigint unsigned | no | PK, auto increment |
 | name | varchar(128) | no | unique |
-| sequence | integer | no | default 0 |
 | created_at | timestamp | yes | timestamps helper |
 | updated_at | timestamp | yes | timestamps helper |
 | deleted_at | timestamp | yes | softDeletes helper |
