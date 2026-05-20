@@ -23,7 +23,7 @@ return new class extends Migration
                 ->constrained('tt_organizations')
                 ->cascadeOnDelete();
 
-            $table->string('identifier', 64);
+            $table->string('identifier', 64)->nullable();
             $table->string('membership_status', 16)->default(MembershipStatus::PENDING->value);
             $table->timestamp('join_date')->nullable();
             $table->dateTime('synchronized_at')->nullable();
