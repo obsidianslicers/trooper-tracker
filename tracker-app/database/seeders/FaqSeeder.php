@@ -284,32 +284,56 @@ MD,
             [
                 'section_id' => $vid,
                 'title'      => 'Getting Started & Registration',
+                'video_url'  => 'https://www.youtube.com/watch?v=JPkDomoU86s',
                 'sort_order' => 1,
             ],
             [
                 'section_id' => $vid,
                 'title'      => 'Setting Up Your Profile',
+                'video_url'  => 'https://youtu.be/2Yfe1gDFs68',
                 'sort_order' => 2,
             ],
             [
                 'section_id' => $vid,
                 'title'      => 'Adding Your Costumes',
+                'video_url'  => 'https://youtu.be/dZH80acyRvg',
                 'sort_order' => 3,
             ],
             [
                 'section_id' => $vid,
                 'title'      => 'Browsing & Joining Events',
+                'video_url'  => 'https://youtu.be/HIFjIoTPnTc',
                 'sort_order' => 4,
             ],
             [
                 'section_id' => $vid,
-                'title'      => 'Adding Guests to an Event',
+                'title'      => 'Reading Your Service Record',
+                'video_url'  => 'https://youtu.be/0TnnUMDEejA',
                 'sort_order' => 5,
             ],
             [
                 'section_id' => $vid,
-                'title'      => 'Reading Your Service Record',
+                'title'      => 'Adding An Organization',
+                'video_url'  => 'https://youtu.be/dkliWoLKrq0',
                 'sort_order' => 6,
+            ],
+            [
+                'section_id' => $vid,
+                'title'      => 'Command Staff - Overview',
+                'video_url'  => 'https://youtu.be/DJcNoX0rQ5o',
+                'sort_order' => 7,
+            ],
+            [
+                'section_id' => $vid,
+                'title'      => 'Command Staff - Create & Manage Events',
+                'video_url'  => 'https://youtu.be/9221Iqdo35Q',
+                'sort_order' => 8,
+            ],
+            [
+                'section_id' => $vid,
+                'title'      => 'Command Staff - Trooper Requests',
+                'video_url'  => 'https://youtu.be/tZpetAW2ob4',
+                'sort_order' => 9,
             ],
         ];
 
