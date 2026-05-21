@@ -8,7 +8,7 @@
         <div class="col-lg-9">
 
             <p class="text-muted text-center mb-4">
-                Everything you need to know about using Troop Tracker — from signing up to signing in on event day.
+                Your mission briefing for Troop Tracker — from enlisting to suiting up on deployment day.
             </p>
 
             @auth
