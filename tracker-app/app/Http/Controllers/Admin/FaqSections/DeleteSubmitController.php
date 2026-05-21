@@ -17,7 +17,7 @@ class DeleteSubmitController extends MagicBusController
 
         if ($faq_count > 0)
         {
-            $this->flash->error("Cannot delete \"{$section->label}\" — it has {$faq_count} FAQ item(s). Move or delete them first.");
+            $this->flash->danger("Cannot delete \"{$section->label}\" — it has {$faq_count} FAQ item(s). Move or delete them first.");
 
             return redirect()->route('admin.faq.sections.list');
         }
