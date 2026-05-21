@@ -59,7 +59,10 @@
                         </h2>
 
                         @foreach($section_items as $item)
-                            <x-accordion-card :label="$item->title" :open="$loop->parent->first && $loop->first">
+                            <x-accordion-card :id="'faq-' . $item->id"
+                                          :label="$item->title"
+                                          :open="$loop->parent->first && $loop->first"
+                                          :copylink="true">
                                 @if($item->video_url)
                                     <div class="ratio ratio-16x9 mb-3">
                                         <iframe src="{{ $item->embedUrl() }}"
@@ -104,44 +107,78 @@
 @push('scripts')
 <script>
 (function () {
+
+    // ── Search ────────────────────────────────────────────────────────────
     var input = document.getElementById('faq-search');
-    if (!input) return;
+    if (input) {
+        input.addEventListener('input', function () {
+            var term = input.value.trim().toLowerCase();
+            var groups = document.querySelectorAll('.faq-section-group');
+            var any_visible = false;
 
-    input.addEventListener('input', function () {
-        var term = input.value.trim().toLowerCase();
-        var groups = document.querySelectorAll('.faq-section-group');
-        var any_visible = false;
-
-        groups.forEach(function (group) {
-            if (!term) {
-                group.style.display = '';
-                group.querySelectorAll('.card').forEach(function (card) {
-                    card.style.display = '';
-                });
-                any_visible = true;
-                return;
-            }
-
-            var visible_count = 0;
-            group.querySelectorAll('.card').forEach(function (card) {
-                var text = card.textContent.toLowerCase();
-                if (text.indexOf(term) !== -1) {
-                    card.style.display = '';
-                    visible_count++;
-                } else {
-                    card.style.display = 'none';
+            groups.forEach(function (group) {
+                if (!term) {
+                    group.style.display = '';
+                    group.querySelectorAll('.card').forEach(function (card) { card.style.display = ''; });
+                    any_visible = true;
+                    return;
                 }
+
+                var visible_count = 0;
+                group.querySelectorAll('.card').forEach(function (card) {
+                    var text = card.textContent.toLowerCase();
+                    if (text.indexOf(term) !== -1) {
+                        card.style.display = '';
+                        visible_count++;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+
+                group.style.display = visible_count > 0 ? '' : 'none';
+                if (visible_count > 0) any_visible = true;
             });
 
-            group.style.display = visible_count > 0 ? '' : 'none';
-            if (visible_count > 0) any_visible = true;
+            var no_results = document.getElementById('faq-no-results');
+            var pills      = document.getElementById('faq-pills');
+            if (no_results) no_results.style.display = (!term || any_visible) ? 'none' : '';
+            if (pills)      pills.style.display = term ? 'none' : '';
         });
+    }
 
-        var no_results = document.getElementById('faq-no-results');
-        var pills = document.getElementById('faq-pills');
-        if (no_results) no_results.style.display = (!term || any_visible) ? 'none' : '';
-        if (pills) pills.style.display = term ? 'none' : '';
+    // ── Copy link ─────────────────────────────────────────────────────────
+    document.querySelectorAll('.faq-copy-link').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var url  = location.origin + location.pathname + '#' + btn.dataset.copyId;
+            var icon = btn.querySelector('i');
+            navigator.clipboard.writeText(url).then(function () {
+                icon.className = 'fa fa-fw fa-check text-success';
+                setTimeout(function () { icon.className = 'fa fa-fw fa-link'; }, 1500);
+            });
+        });
     });
+
+    // ── Hash deep-link: open accordion on load ────────────────────────────
+    function openHash(hash) {
+        if (!hash || !hash.startsWith('#faq-')) return;
+        var collapse = document.querySelector(hash);
+        if (!collapse) return;
+        collapse.addEventListener('shown.bs.collapse', function () {
+            collapse.closest('.card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, { once: true });
+        new bootstrap.Collapse(collapse, { toggle: false }).show();
+    }
+
+    openHash(location.hash);
+
+    // ── Update hash when an FAQ accordion opens ───────────────────────────
+    document.querySelectorAll('.faq-section-group .collapse').forEach(function (el) {
+        el.addEventListener('show.bs.collapse', function () {
+            history.replaceState(null, '', '#' + el.id);
+        });
+    });
+
 })();
 </script>
 @endpush
