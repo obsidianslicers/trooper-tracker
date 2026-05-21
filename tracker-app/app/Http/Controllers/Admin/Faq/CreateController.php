@@ -25,7 +25,7 @@ class CreateController extends MagicBusController
         $faq->section_id = $request->query('section_id') ? (int) $request->query('section_id') : null;
 
         return view('pages.admin.faq.create', [
-            'faq'      => $faq,
+            'faq' => $faq,
             'sections' => FaqSection::orderBy(FaqSection::SORT_ORDER)->pluck(FaqSection::LABEL, FaqSection::ID),
         ]);
     }

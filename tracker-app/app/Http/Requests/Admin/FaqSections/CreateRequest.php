@@ -16,8 +16,8 @@ class CreateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'label'      => ['required', 'string'],
-            'icon'       => ['required', 'string', 'max:64'],
+            'label' => ['required', 'string'],
+            'icon' => ['required', 'string', 'max:64'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
         ];
     }

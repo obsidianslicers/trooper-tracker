@@ -21,7 +21,7 @@ class UpdateController extends MagicBusController
     public function __invoke(Request $request, Faq $faq): View
     {
         return view('pages.admin.faq.update', [
-            'faq'      => $faq,
+            'faq' => $faq,
             'sections' => FaqSection::orderBy(FaqSection::SORT_ORDER)->pluck(FaqSection::LABEL, FaqSection::ID),
         ]);
     }

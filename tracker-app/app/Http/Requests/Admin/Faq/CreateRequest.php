@@ -18,11 +18,11 @@ class CreateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'section_id'  => ['required', 'integer', Rule::exists(FaqSection::class, FaqSection::ID)],
-            'title'       => ['required', 'string'],
+            'section_id' => ['required', 'integer', Rule::exists(FaqSection::class, FaqSection::ID)],
+            'title' => ['required', 'string'],
             'description' => ['nullable', 'string'],
-            'video_url'   => ['nullable', 'string', 'url', 'max:512'],
-            'sort_order'  => ['nullable', 'integer', 'min:0'],
+            'video_url' => ['nullable', 'string', 'url', 'max:512'],
+            'sort_order' => ['nullable', 'integer', 'min:0'],
         ];
     }
 }

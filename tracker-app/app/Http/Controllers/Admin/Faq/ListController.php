@@ -31,8 +31,8 @@ class ListController extends MagicBusController
         $items = $query->paginate(20)->withQueryString();
 
         return view('pages.admin.faq.list', [
-            'items'      => $items,
-            'sections'   => FaqSection::orderBy(FaqSection::SORT_ORDER)->get(),
+            'items' => $items,
+            'sections' => FaqSection::orderBy(FaqSection::SORT_ORDER)->get(),
             'section_id' => $section_id,
         ]);
     }

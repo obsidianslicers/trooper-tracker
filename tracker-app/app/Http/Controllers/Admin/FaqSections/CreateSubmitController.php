@@ -15,8 +15,8 @@ class CreateSubmitController extends MagicBusController
     {
         $section = new FaqSection;
 
-        $section->label      = $request->validated('label');
-        $section->icon       = $request->validated('icon');
+        $section->label = $request->validated('label');
+        $section->icon = $request->validated('icon');
         $section->sort_order = $request->validated('sort_order') ?? 0;
 
         $section->save();
