@@ -61,6 +61,8 @@ erDiagram
     tt_awards ||--o{ tt_award_troopers : has
 
     tt_notices ||--o{ tt_notice_troopers : has
+
+    tt_faq_sections ||--o{ tt_faq : has
 ```
 
   ### Troopers Context
@@ -174,9 +176,9 @@ Events, Awards, and Notices. It uses:
 
 ## Inventory
 
-Discovered migration files: 30
+Discovered migration files: 31
 
-Discovered tables: 35
+Discovered tables: 37
 
 - tt_troopers
 - tt_password_reset_tokens
@@ -213,6 +215,8 @@ Discovered tables: 35
 - tt_model_changes
 - tt_mobile_devices
 - tt_notifications
+- tt_faq_sections
+- tt_faq
 
 ## Table Dictionary
 
@@ -1061,6 +1065,50 @@ Purpose: Laravel polymorphic notification inbox. Stores all trooper-facing notif
 Relationships:
 
 - Morphs To: notifiable (notifiable_type / notifiable_id → tt_troopers)
+
+### tt_faq_sections
+
+Purpose: FAQ section groupings; ordered by sort_order on the public FAQ page.
+
+| Column | Type | Nullable | Key / Constraints |
+| --- | --- | --- | --- |
+| id | bigint unsigned | no | PK, auto increment |
+| label | text | no | |
+| icon | varchar(64) | no | FontAwesome class |
+| sort_order | unsigned integer | no | default 0 |
+| created_at | timestamp | yes | timestamps helper |
+| updated_at | timestamp | yes | timestamps helper |
+| deleted_at | timestamp | yes | softDeletes helper |
+| created_id | bigint unsigned | yes | trooperstamps helper |
+| updated_id | bigint unsigned | yes | trooperstamps helper |
+| deleted_id | bigint unsigned | yes | trooperstamps helper |
+
+Relationships:
+
+- Has Many: tt_faq
+
+### tt_faq
+
+Purpose: FAQ items (Q&A and video embeds) grouped under a section.
+
+| Column | Type | Nullable | Key / Constraints |
+| --- | --- | --- | --- |
+| id | bigint unsigned | no | PK, auto increment |
+| section_id | bigint unsigned | no | FK → tt_faq_sections.id, cascadeOnDelete |
+| title | text | no | Question text or video title |
+| description | text | yes | Markdown answer; rendered via Str::markdown() |
+| video_url | varchar(512) | yes | YouTube URL; auto-converted to embed |
+| sort_order | unsigned integer | no | default 0 |
+| created_at | timestamp | yes | timestamps helper |
+| updated_at | timestamp | yes | timestamps helper |
+| deleted_at | timestamp | yes | softDeletes helper |
+| created_id | bigint unsigned | yes | trooperstamps helper |
+| updated_id | bigint unsigned | yes | trooperstamps helper |
+| deleted_id | bigint unsigned | yes | trooperstamps helper |
+
+Relationships:
+
+- Belongs To: tt_faq_sections
 
 ## Notes on Laravel Helper Expansions
 
