@@ -32,9 +32,6 @@
                 @endif
             @endauth
             <ul class="navbar-nav ms-auto">
-                <x-nav-link :url="route('faq')" :active="request()->routeIs('faq')">
-                    Help
-                </x-nav-link>
                 @include('partials.inc.navbar-events')
                 @include('partials.inc.navbar-service-records')
                 @auth
@@ -56,7 +53,9 @@
                 @else
                 @include('partials.inc.navbar-auth')
                 @endauth
-
+                <x-nav-link :url="route('faq')" :active="request()->routeIs('faq')">
+                    Help
+                </x-nav-link>
             </ul>
         </div>
     </div>
