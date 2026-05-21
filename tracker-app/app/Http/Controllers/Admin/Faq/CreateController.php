@@ -23,6 +23,11 @@ class CreateController extends MagicBusController
         $faq = new Faq;
         $faq->sort_order = 0;
 
+        if ($section = FaqSection::tryFrom((string) $request->query('section')))
+        {
+            $faq->section = $section;
+        }
+
         return view('pages.admin.faq.create', [
             'faq'      => $faq,
             'sections' => FaqSection::toOptions(),

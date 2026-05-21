@@ -11,6 +11,19 @@
                 Everything you need to know about using Troop Tracker — from signing up to signing in on event day.
             </p>
 
+            @auth
+                @if(Auth::user()->is_administrator)
+                    <div class="d-flex gap-2 justify-content-end mb-3">
+                        <a href="{{ route('admin.faq.create') }}" class="btn btn-sm btn-outline-warning">
+                            <i class="fa fa-fw fa-plus me-1"></i> Add Item
+                        </a>
+                        <a href="{{ route('admin.faq.list') }}" class="btn btn-sm btn-outline-warning">
+                            <i class="fa fa-fw fa-gear me-1"></i> Manage FAQ
+                        </a>
+                    </div>
+                @endif
+            @endauth
+
             {{-- Quick-jump anchor pills --}}
             <div class="d-flex flex-wrap gap-2 justify-content-center mb-5">
                 @foreach($sections as $section)
@@ -30,8 +43,17 @@
 
                     @if($section === \App\Enums\FaqSection::VIDEOS)
                         {{-- ── How-To Videos ── --}}
-                        <h2 id="{{ $section->value }}" class="h5 text-uppercase fw-bold text-muted mb-3 pt-5">
-                            <i class="fa fa-fw {{ $section->icon() }} me-2"></i> {{ $section->label() }}
+                        <h2 id="{{ $section->value }}" class="h5 text-uppercase fw-bold text-muted mb-3 pt-5 d-flex align-items-center gap-2">
+                            <span><i class="fa fa-fw {{ $section->icon() }} me-2"></i> {{ $section->label() }}</span>
+                            @auth
+                                @if(Auth::user()->is_administrator)
+                                    <a href="{{ route('admin.faq.create') }}?section={{ $section->value }}"
+                                       class="btn btn-sm btn-outline-warning ms-auto"
+                                       title="Add video">
+                                        <i class="fa fa-fw fa-plus"></i>
+                                    </a>
+                                @endif
+                            @endauth
                         </h2>
 
                         @php $hasAnyVideo = $sectionItems->whereNotNull('video_url')->isNotEmpty(); @endphp
@@ -59,8 +81,17 @@
                                                 </div>
                                             </div>
                                         @endif
-                                        <div class="card-footer text-center small fw-semibold">
-                                            {{ $item->title }}
+                                        <div class="card-footer text-center small fw-semibold d-flex align-items-center justify-content-center gap-2">
+                                            <span>{{ $item->title }}</span>
+                                            @auth
+                                                @if(Auth::user()->is_administrator)
+                                                    <a href="{{ route('admin.faq.update', $item) }}"
+                                                       class="btn btn-sm btn-outline-warning py-0"
+                                                       title="Edit">
+                                                        <i class="fa fa-fw fa-edit"></i>
+                                                    </a>
+                                                @endif
+                                            @endauth
                                         </div>
                                     </div>
                                 </div>
@@ -69,8 +100,17 @@
 
                     @else
                         {{-- ── Q&A section ── --}}
-                        <h2 id="{{ $section->value }}" class="h5 text-uppercase fw-bold text-muted mb-3 pt-4">
-                            <i class="fa fa-fw {{ $section->icon() }} me-2"></i> {{ $section->label() }}
+                        <h2 id="{{ $section->value }}" class="h5 text-uppercase fw-bold text-muted mb-3 pt-4 d-flex align-items-center gap-2">
+                            <span><i class="fa fa-fw {{ $section->icon() }} me-2"></i> {{ $section->label() }}</span>
+                            @auth
+                                @if(Auth::user()->is_administrator)
+                                    <a href="{{ route('admin.faq.create') }}?section={{ $section->value }}"
+                                       class="btn btn-sm btn-outline-warning ms-auto"
+                                       title="Add item to this section">
+                                        <i class="fa fa-fw fa-plus"></i>
+                                    </a>
+                                @endif
+                            @endauth
                         </h2>
 
                         @foreach($sectionItems as $item)
@@ -89,6 +129,16 @@
                                         {!! Str::markdown($item->description) !!}
                                     </div>
                                 @endif
+                                @auth
+                                    @if(Auth::user()->is_administrator)
+                                        <div class="mt-2 pt-2 border-top border-secondary">
+                                            <a href="{{ route('admin.faq.update', $item) }}"
+                                               class="btn btn-sm btn-outline-warning">
+                                                <i class="fa fa-fw fa-edit me-1"></i> Edit
+                                            </a>
+                                        </div>
+                                    @endif
+                                @endauth
                             </x-accordion-card>
                         @endforeach
 
