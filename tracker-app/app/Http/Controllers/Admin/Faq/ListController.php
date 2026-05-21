@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Faq;
 
-use App\Enums\FaqSection;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Faq;
+use App\Models\FaqSection;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -19,21 +19,21 @@ class ListController extends MagicBusController
 
     public function __invoke(Request $request): View
     {
-        $section = $request->query('section');
+        $section_id = $request->query('section_id') ? (int) $request->query('section_id') : null;
 
-        $query = Faq::query()->orderBy(Faq::SORT_ORDER)->orderBy(Faq::ID);
+        $query = Faq::query()->with('section')->orderBy(Faq::SORT_ORDER)->orderBy(Faq::ID);
 
-        if ($section && FaqSection::tryFrom($section))
+        if ($section_id)
         {
-            $query->where(Faq::SECTION, $section);
+            $query->where(Faq::SECTION_ID, $section_id);
         }
 
         $items = $query->paginate(20)->withQueryString();
 
         return view('pages.admin.faq.list', [
-            'items'    => $items,
-            'sections' => FaqSection::cases(),
-            'section'  => $section,
+            'items'      => $items,
+            'sections'   => FaqSection::orderBy(FaqSection::SORT_ORDER)->get(),
+            'section_id' => $section_id,
         ]);
     }
 }

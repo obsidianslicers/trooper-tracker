@@ -15,7 +15,7 @@ class CreateSubmitController extends MagicBusController
     {
         $faq = new Faq;
 
-        $faq->section     = $request->validated('section');
+        $faq->section_id  = $request->validated('section_id');
         $faq->title       = $request->validated('title');
         $faq->description = $request->validated('description');
         $faq->video_url   = $request->validated('video_url');

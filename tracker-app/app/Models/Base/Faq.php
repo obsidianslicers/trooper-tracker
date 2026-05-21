@@ -8,13 +8,14 @@ namespace App\Models\Base;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Class Faq
  *
  * @property int $id
- * @property string $section
+ * @property int $section_id
  * @property string $title
  * @property string|null $description
  * @property string|null $video_url
@@ -26,6 +27,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $updated_id
  * @property int|null $deleted_id
  *
+ * @property FaqSection $section
+ *
  * @package App\Models\Base
  */
 class Faq extends Model
@@ -33,7 +36,7 @@ class Faq extends Model
     use SoftDeletes;
 
     const ID          = 'id';
-    const SECTION     = 'section';
+    const SECTION_ID  = 'section_id';
     const TITLE       = 'title';
     const DESCRIPTION = 'description';
     const VIDEO_URL   = 'video_url';
@@ -49,6 +52,7 @@ class Faq extends Model
 
     protected $casts = [
         self::ID         => 'int',
+        self::SECTION_ID => 'int',
         self::SORT_ORDER => 'int',
         self::CREATED_AT => 'datetime',
         self::UPDATED_AT => 'datetime',
@@ -58,10 +62,15 @@ class Faq extends Model
     ];
 
     protected $fillable = [
-        self::SECTION,
+        self::SECTION_ID,
         self::TITLE,
         self::DESCRIPTION,
         self::VIDEO_URL,
         self::SORT_ORDER,
     ];
+
+    public function section(): BelongsTo
+    {
+        return $this->belongsTo(FaqSection::class, self::SECTION_ID);
+    }
 }

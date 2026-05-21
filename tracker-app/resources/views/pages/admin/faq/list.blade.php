@@ -8,19 +8,23 @@
         <div class="col-sm-12 col-md-8">
             <div class="d-flex flex-wrap gap-2">
                 <a href="{{ route('admin.faq.list') }}"
-                   class="btn btn-sm {{ $section === null ? 'btn-secondary' : 'btn-outline-secondary' }}">
+                   class="btn btn-sm {{ $section_id === null ? 'btn-secondary' : 'btn-outline-secondary' }}">
                     All
                 </a>
                 @foreach($sections as $s)
-                    <a href="{{ route('admin.faq.list', ['section' => $s->value]) }}"
-                       class="btn btn-sm {{ $section === $s->value ? 'btn-secondary' : 'btn-outline-secondary' }}">
-                        <i class="fa fa-fw {{ $s->icon() }} me-1"></i>
-                        {{ $s->label() }}
+                    <a href="{{ route('admin.faq.list', ['section_id' => $s->id]) }}"
+                       class="btn btn-sm {{ $section_id === $s->id ? 'btn-secondary' : 'btn-outline-secondary' }}">
+                        <i class="fa fa-fw {{ $s->icon }} me-1"></i>
+                        {{ $s->label }}
                     </a>
                 @endforeach
             </div>
         </div>
-        <div class="col-sm-12 col-md-4 text-end mt-2 mt-md-0">
+        <div class="col-sm-12 col-md-4 text-end mt-2 mt-md-0 d-flex gap-2 justify-content-end">
+            <a href="{{ route('admin.faq.sections.list') }}" class="btn btn-sm btn-outline-secondary">
+                <i class="fa fa-fw fa-folder me-1"></i>
+                Sections
+            </a>
             <x-link-button-create :url="route('admin.faq.create')">
                 FAQ Item
             </x-link-button-create>
@@ -40,8 +44,8 @@
             @foreach($items as $item)
                 <tr>
                     <td class="text-nowrap">
-                        <i class="fa fa-fw {{ $item->section->icon() }} text-muted me-1"></i>
-                        <span class="small text-muted">{{ $item->section->label() }}</span>
+                        <i class="fa fa-fw {{ $item->section?->icon }} text-muted me-1"></i>
+                        <span class="small text-muted">{{ $item->section?->label }}</span>
                         @if($item->video_url)
                             <i class="fa fa-fw fa-circle-play text-info ms-1" title="Video"></i>
                         @endif

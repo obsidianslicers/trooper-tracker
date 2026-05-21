@@ -13,7 +13,7 @@ class UpdateSubmitController extends MagicBusController
 {
     public function __invoke(UpdateRequest $request, Faq $faq): RedirectResponse
     {
-        $faq->section     = $request->validated('section');
+        $faq->section_id  = $request->validated('section_id');
         $faq->title       = $request->validated('title');
         $faq->description = $request->validated('description');
         $faq->video_url   = $request->validated('video_url');

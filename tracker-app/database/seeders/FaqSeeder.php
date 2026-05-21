@@ -4,19 +4,31 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Enums\FaqSection;
 use App\Models\Faq;
+use App\Models\FaqSection;
 use Illuminate\Database\Seeder;
 
 class FaqSeeder extends Seeder
 {
     public function run(): void
     {
+        $s = FaqSection::pluck('id', 'label');
+
+        $reg   = $s['Getting Started & Registration'];
+        $acct  = $s['Account Types'];
+        $orgs  = $s['Organizations & Club Memberships'];
+        $cost  = $s['Costumes'];
+        $evt   = $s['Events'];
+        $sigup = $s['Signing Up for Events'];
+        $guest = $s['Guests'];
+        $frnd  = $s['Friends'];
+        $vid   = $s['How-To Videos'];
+
         $items = [
 
             // ── Registration ──────────────────────────────────────────────
             [
-                'section'     => FaqSection::REGISTRATION,
+                'section_id'  => $reg,
                 'title'       => 'How do I create an account?',
                 'description' => <<<'MD'
 1. Click **Sign Up** in the top-right corner of the navbar.
@@ -29,7 +41,7 @@ MD,
                 'sort_order'  => 1,
             ],
             [
-                'section'     => FaqSection::REGISTRATION,
+                'section_id'  => $reg,
                 'title'       => 'What information do I need to register?',
                 'description' => <<<'MD'
 - **Legal Name** — used for official records and shared with event coordinators for safety purposes; not displayed publicly.
@@ -42,13 +54,13 @@ MD,
                 'sort_order'  => 2,
             ],
             [
-                'section'     => FaqSection::REGISTRATION,
+                'section_id'  => $reg,
                 'title'       => 'How long does account approval take?',
                 'description' => 'Approval times vary by garrison and Command Staff availability. Most accounts are reviewed within a few days. You\'ll receive an email when your account is approved and active. If you haven\'t heard back after a week, reach out to your garrison\'s Command Staff directly.',
                 'sort_order'  => 3,
             ],
             [
-                'section'     => FaqSection::REGISTRATION,
+                'section_id'  => $reg,
                 'title'       => 'Can I sign up with my existing forum account?',
                 'description' => 'Yes — if your garrison has XenForo integration configured, you can use **Sign Up with XenForo** to link your existing forum account. This avoids creating a separate password and keeps your identities connected.',
                 'sort_order'  => 4,
@@ -56,7 +68,7 @@ MD,
 
             // ── Account Types ─────────────────────────────────────────────
             [
-                'section'     => FaqSection::ACCOUNT_TYPES,
+                'section_id'  => $acct,
                 'title'       => 'What are the different account types?',
                 'description' => <<<'MD'
 **Member** — Active costumed member of a Star Wars costuming organization. Can sign up for event shifts, select a costume for each shift, and track costume hours in their service record.
@@ -68,13 +80,13 @@ MD,
                 'sort_order'  => 1,
             ],
             [
-                'section'     => FaqSection::ACCOUNT_TYPES,
+                'section_id'  => $acct,
                 'title'       => 'Can I change my account type after registering?',
                 'description' => 'Account type changes require Command Staff approval. Contact your garrison\'s leadership to request a type change (for example, upgrading from Visitor to Member once you change garrisons).',
                 'sort_order'  => 2,
             ],
             [
-                'section'     => FaqSection::ACCOUNT_TYPES,
+                'section_id'  => $acct,
                 'title'       => 'My Visitor access is expiring — how do I renew it?',
                 'description' => 'Go to **Account → Setup**. If your visitor period is approaching expiration, you\'ll see a renewal option there. Renewals are granted at Command Staff discretion.',
                 'sort_order'  => 3,
@@ -82,7 +94,7 @@ MD,
 
             // ── Organizations ─────────────────────────────────────────────
             [
-                'section'     => FaqSection::ORGANIZATIONS,
+                'section_id'  => $orgs,
                 'title'       => 'How does the organization hierarchy work?',
                 'description' => <<<'MD'
 Organizations follow a three-level hierarchy:
@@ -94,7 +106,7 @@ MD,
                 'sort_order'  => 1,
             ],
             [
-                'section'     => FaqSection::ORGANIZATIONS,
+                'section_id'  => $orgs,
                 'title'       => 'How do I select my organization during registration?',
                 'description' => <<<'MD'
 1. On the registration form, check the box next to each organization you belong to.
@@ -105,13 +117,13 @@ MD,
                 'sort_order'  => 2,
             ],
             [
-                'section'     => FaqSection::ORGANIZATIONS,
+                'section_id'  => $orgs,
                 'title'       => 'Can I belong to multiple organizations?',
                 'description' => 'Yes. Many members hold dual or triple membership (e.g., 501st Legion and Rebel Legion). Check all applicable organizations on the registration form. Each membership is reviewed and approved independently by Command Staff.',
                 'sort_order'  => 3,
             ],
             [
-                'section'     => FaqSection::ORGANIZATIONS,
+                'section_id'  => $orgs,
                 'title'       => 'How do I update my club memberships after registration?',
                 'description' => 'Go to **Account → Club Memberships**. You can add new organizations or update your region/unit there. Changes require Command Staff re-approval before they become active.',
                 'sort_order'  => 4,
@@ -119,7 +131,7 @@ MD,
 
             // ── Costumes ──────────────────────────────────────────────────
             [
-                'section'     => FaqSection::COSTUMES,
+                'section_id'  => $cost,
                 'title'       => 'How do I add a costume to my profile?',
                 'description' => <<<'MD'
 1. Navigate to **Account → Costumes**.
@@ -130,19 +142,19 @@ MD,
                 'sort_order'  => 1,
             ],
             [
-                'section'     => FaqSection::COSTUMES,
+                'section_id'  => $cost,
                 'title'       => 'Can I have more than one costume?',
                 'description' => 'Absolutely. Add as many costumes as you own. When signing up for an event shift, you\'ll select which costume you\'ll be wearing for that specific shift.',
                 'sort_order'  => 2,
             ],
             [
-                'section'     => FaqSection::COSTUMES,
+                'section_id'  => $cost,
                 'title'       => 'How do I remove a costume from my profile?',
                 'description' => 'Go to **Account → Costumes**, find the costume in your list, and use the delete action to remove it.',
                 'sort_order'  => 3,
             ],
             [
-                'section'     => FaqSection::COSTUMES,
+                'section_id'  => $cost,
                 'title'       => 'My costume isn\'t in the list — what do I do?',
                 'description' => 'Costume types are managed by Command Staff. If your costume isn\'t available, contact your garrison administrator to have it added to the system.',
                 'sort_order'  => 4,
@@ -150,7 +162,7 @@ MD,
 
             // ── Events ────────────────────────────────────────────────────
             [
-                'section'     => FaqSection::EVENTS,
+                'section_id'  => $evt,
                 'title'       => 'How do I find upcoming events?',
                 'description' => <<<'MD'
 Click **Events** in the navbar. You'll find three views:
@@ -162,7 +174,7 @@ MD,
                 'sort_order'  => 1,
             ],
             [
-                'section'     => FaqSection::EVENTS,
+                'section_id'  => $evt,
                 'title'       => 'What information is shown on an event page?',
                 'description' => <<<'MD'
 - Event name, date, and location
@@ -174,13 +186,13 @@ MD,
                 'sort_order'  => 2,
             ],
             [
-                'section'     => FaqSection::EVENTS,
+                'section_id'  => $evt,
                 'title'       => 'What is a shift?',
                 'description' => 'A shift is a specific time slot within an event. Some events have a single shift covering the whole appearance; others split into multiple shifts (e.g., morning and afternoon). You sign up for the shift(s) you can attend, not the event as a whole.',
                 'sort_order'  => 3,
             ],
             [
-                'section'     => FaqSection::EVENTS,
+                'section_id'  => $evt,
                 'title'       => 'What is a standby list?',
                 'description' => 'Each shift has a maximum roster capacity. If a shift is full when you sign up, you\'ll be placed on the standby list. If a spot opens up, standby troopers may be moved to the active roster. You\'ll still appear on the event page so coordinators know you\'re available.',
                 'sort_order'  => 4,
@@ -188,7 +200,7 @@ MD,
 
             // ── Signing Up ────────────────────────────────────────────────
             [
-                'section'     => FaqSection::SIGNUP,
+                'section_id'  => $sigup,
                 'title'       => 'How do I sign up for an event shift?',
                 'description' => <<<'MD'
 1. Open the event page and locate the shift you want to attend.
@@ -201,19 +213,19 @@ MD,
                 'sort_order'  => 1,
             ],
             [
-                'section'     => FaqSection::SIGNUP,
+                'section_id'  => $sigup,
                 'title'       => 'Can I update my signup after the fact?',
                 'description' => 'Yes. Return to the event page and use the update option on your shift entry to change your costume selection or role. Updates may be restricted closer to the event date.',
                 'sort_order'  => 2,
             ],
             [
-                'section'     => FaqSection::SIGNUP,
+                'section_id'  => $sigup,
                 'title'       => 'How do I withdraw from a shift?',
                 'description' => 'Open the event page and find your entry on the shift roster. Use the remove/withdraw option. If you\'re withdrawing close to the event date, please notify your event coordinator directly so they can adjust plans.',
                 'sort_order'  => 3,
             ],
             [
-                'section'     => FaqSection::SIGNUP,
+                'section_id'  => $sigup,
                 'title'       => 'How do I mark my shift as complete?',
                 'description' => 'After the event, you may be prompted to confirm your attendance. The system or an event coordinator will mark shifts as complete, which logs the hours to your service record.',
                 'sort_order'  => 4,
@@ -221,13 +233,13 @@ MD,
 
             // ── Guests ────────────────────────────────────────────────────
             [
-                'section'     => FaqSection::GUESTS,
+                'section_id'  => $guest,
                 'title'       => 'What is a guest?',
                 'description' => 'A guest is a non-costumed attendee who accompanies a trooper to an event — for example, a family member, partner, or media contact. Guests are listed on the event roster under the trooper who added them.',
                 'sort_order'  => 1,
             ],
             [
-                'section'     => FaqSection::GUESTS,
+                'section_id'  => $guest,
                 'title'       => 'How do I add a guest to an event?',
                 'description' => <<<'MD'
 1. Sign up for the shift first (guests can only be added after you're on the roster).
@@ -238,7 +250,7 @@ MD,
                 'sort_order'  => 2,
             ],
             [
-                'section'     => FaqSection::GUESTS,
+                'section_id'  => $guest,
                 'title'       => 'Can I remove or update a guest?',
                 'description' => 'Yes. Return to the event page, find the guest entry under your shift, and use the update or remove action to make changes.',
                 'sort_order'  => 3,
@@ -246,13 +258,13 @@ MD,
 
             // ── Friends ───────────────────────────────────────────────────
             [
-                'section'     => FaqSection::FRIENDS,
+                'section_id'  => $frnd,
                 'title'       => 'What is the friends feature?',
                 'description' => 'The friends feature lets you connect with other troopers on the tracker. Friends are highlighted on event rosters, making it easy to coordinate which events you\'re attending together.',
                 'sort_order'  => 1,
             ],
             [
-                'section'     => FaqSection::FRIENDS,
+                'section_id'  => $frnd,
                 'title'       => 'How do I add a friend?',
                 'description' => <<<'MD'
 1. Search for a trooper using the global search bar in the navbar.
@@ -262,7 +274,7 @@ MD,
                 'sort_order'  => 2,
             ],
             [
-                'section'     => FaqSection::FRIENDS,
+                'section_id'  => $frnd,
                 'title'       => 'How do I manage my friends list?',
                 'description' => 'Your friends list is accessible from your account page. You can view current friends and remove connections that are no longer relevant.',
                 'sort_order'  => 3,
@@ -270,32 +282,32 @@ MD,
 
             // ── Videos ────────────────────────────────────────────────────
             [
-                'section'    => FaqSection::VIDEOS,
+                'section_id' => $vid,
                 'title'      => 'Getting Started & Registration',
                 'sort_order' => 1,
             ],
             [
-                'section'    => FaqSection::VIDEOS,
+                'section_id' => $vid,
                 'title'      => 'Setting Up Your Profile',
                 'sort_order' => 2,
             ],
             [
-                'section'    => FaqSection::VIDEOS,
+                'section_id' => $vid,
                 'title'      => 'Adding Your Costumes',
                 'sort_order' => 3,
             ],
             [
-                'section'    => FaqSection::VIDEOS,
+                'section_id' => $vid,
                 'title'      => 'Browsing & Joining Events',
                 'sort_order' => 4,
             ],
             [
-                'section'    => FaqSection::VIDEOS,
+                'section_id' => $vid,
                 'title'      => 'Adding Guests to an Event',
                 'sort_order' => 5,
             ],
             [
-                'section'    => FaqSection::VIDEOS,
+                'section_id' => $vid,
                 'title'      => 'Reading Your Service Record',
                 'sort_order' => 6,
             ],
@@ -304,7 +316,7 @@ MD,
         foreach ($items as $data)
         {
             Faq::create([
-                'section'     => $data['section']->value,
+                'section_id'  => $data['section_id'],
                 'title'       => $data['title'],
                 'description' => $data['description'] ?? null,
                 'video_url'   => $data['video_url'] ?? null,

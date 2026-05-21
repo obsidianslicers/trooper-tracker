@@ -12,8 +12,8 @@
 
             <x-input-container>
                 <x-label>Section:</x-label>
-                <x-input-select :property="'section'"
-                                :value="$faq->section?->value"
+                <x-input-select :property="'section_id'"
+                                :value="$faq->section_id"
                                 :options="$sections"
                                 :placeholder="'— Select a section —'" />
             </x-input-container>
