@@ -50,10 +50,10 @@
                     <td class="text-muted small">{{ $item->sort_order }}</td>
                     <td>
                         <x-action-menu>
-                            <x-action-link-update :url="route('admin.faq.update', compact('item'))" />
+                            <x-action-link-update :url="route('admin.faq.update', ['faq' => $item])" />
                             <li>
                                 <form method="POST"
-                                      action="{{ route('admin.faq.delete', compact('item')) }}"
+                                      action="{{ route('admin.faq.delete', ['faq' => $item]) }}"
                                       onsubmit="return confirm('Delete this FAQ item?')">
                                     @csrf
                                     <button type="submit" class="dropdown-item">
