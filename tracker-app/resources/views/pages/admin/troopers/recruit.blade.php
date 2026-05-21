@@ -28,6 +28,18 @@
                 <div x-data="{
                     orgs: {{ Js::from($organizations_data) }},
                     selectedId: '{{ old('organization_id') }}',
+                    isVisitorTrooper: false,
+                    init() {
+                        document.addEventListener('picker-selected', (e) => {
+                            if (e.detail.property === 'trooper_id') {
+                                this.isVisitorTrooper = e.detail.isVisitor;
+                                this.selectedId = '';
+                            }
+                        });
+                    },
+                    get filteredOrgs() {
+                        return this.isVisitorTrooper ? this.orgs.filter(o => o.depth === 0) : this.orgs;
+                    },
                     get selectedOrg() {
                         const id = parseInt(this.selectedId);
                         return this.orgs.find(o => o.id === id) ?? null;
@@ -45,24 +57,12 @@
                                 x-model="selectedId"
                                 class="form-select @error('organization_id') is-invalid @enderror">
                             <option value="">— Select a Unit —</option>
-                            @foreach($grouped as $root_id => $orgs)
-                                @php($root_org = $orgs->firstWhere('depth', 0))
-                                @php($child_orgs = $orgs->where('depth', '>', 0)->values())
-                                @if($root_org)
-                                    <option value="{{ $root_org->id }}" @selected(old('organization_id') == $root_org->id)>
-                                        {{ $root_org->name }}
-                                    </option>
-                                @endif
-                                @if($child_orgs->isNotEmpty())
-                                    <optgroup label="{{ $root_orgs[$root_id]?->name ?? 'Other' }}">
-                                        @foreach($child_orgs as $org)
-                                            <option value="{{ $org->id }}" @selected(old('organization_id') == $org->id)>
-                                                {{ str_repeat('— ', $org->depth) }}{{ $org->name }}
-                                            </option>
-                                        @endforeach
-                                    </optgroup>
-                                @endif
-                            @endforeach
+                            <template x-for="org in filteredOrgs" :key="org.id">
+                                <option :value="org.id"
+                                        x-text="'— '.repeat(org.depth) + org.name"
+                                        :selected="selectedId == org.id">
+                                </option>
+                            </template>
                         </select>
                         <x-input-error :property="'organization_id'" />
                     </x-input-container>

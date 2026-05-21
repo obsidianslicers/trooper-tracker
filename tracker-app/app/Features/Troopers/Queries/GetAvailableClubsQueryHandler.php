@@ -20,7 +20,7 @@ readonly class GetAvailableClubsQueryHandler implements QueryHandlerInterface
      * @param  GetAvailableClubsQuery  $message
      * @return Collection<int, Organization>
      */
-    public function __invoke(object $message): mixed
+    public function __invoke(object $message): Collection
     {
         $trooper_id = $message->trooper->id;
 
@@ -35,6 +35,11 @@ readonly class GetAvailableClubsQueryHandler implements QueryHandlerInterface
         if ($active_org_ids->isNotEmpty())
         {
             $query->whereNotIn(Organization::ID, $active_org_ids);
+        }
+
+        if ($message->trooper->is_visitor)
+        {
+            $query->where(Organization::DEPTH, 0);
         }
 
         return $query->orderBy(Organization::SEQUENCE)->get();

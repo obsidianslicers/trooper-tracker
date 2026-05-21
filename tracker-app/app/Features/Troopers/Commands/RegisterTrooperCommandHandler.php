@@ -28,9 +28,8 @@ readonly class RegisterTrooperCommandHandler implements CommandHandlerInterface
      * setup_completed_at to mark registration as complete.
      *
      * @param  RegisterTrooperCommand  $message  The command with trooper registration data
-     * @return Trooper
      */
-    public function __invoke(object $message): mixed
+    public function __invoke(object $message): Trooper
     {
         $trooper = new Trooper;
 
@@ -39,9 +38,14 @@ readonly class RegisterTrooperCommandHandler implements CommandHandlerInterface
         $trooper->email = $message->valid_data['email'];
         $trooper->phone = $message->valid_data['phone'] ?? null;
         $trooper->password = Hash::make($message->valid_data['password'] ?? uniqid());
-        $trooper->membership_role = $message->valid_data['account_type'] === 'member'
-            ? MembershipRole::MEMBER
-            : MembershipRole::HANDLER;
+        $account_type = $message->valid_data['account_type'];
+
+        $trooper->membership_role = match ($account_type)
+        {
+            'handler' => MembershipRole::HANDLER,
+            'visitor' => MembershipRole::VISITOR,
+            default => MembershipRole::MEMBER,
+        };
         $trooper->setup_completed_at = now();
 
         $guardian_email = $message->valid_data['guardian_email'] ?? null;

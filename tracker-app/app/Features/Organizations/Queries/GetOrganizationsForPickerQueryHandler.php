@@ -34,7 +34,7 @@ readonly class GetOrganizationsForPickerQueryHandler implements QueryHandlerInte
      * @param  GetOrganizationsForPickerQuery  $message  The query containing filter criteria
      * @return Collection<int, Organization> Collection of organizations
      */
-    public function __invoke(object $message): mixed
+    public function __invoke(object $message): Collection
     {
         $organizations = collect([]);
 
@@ -58,6 +58,11 @@ readonly class GetOrganizationsForPickerQueryHandler implements QueryHandlerInte
         else
         {
             $organizations = Organization::orderBy(Organization::SEQUENCE)->get();
+        }
+
+        if ($message->depth_max !== null)
+        {
+            $organizations = $organizations->filter(fn (Organization $org) => $org->depth <= $message->depth_max)->values();
         }
 
         return $organizations;

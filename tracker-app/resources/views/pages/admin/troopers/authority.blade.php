@@ -36,8 +36,9 @@
                     <x-input-help>
                         If selected as {{ \App\Enums\MembershipRole::ADMINISTRATOR->name }}, they have full control within the Command Staff.
                         If selected as {{ \App\Enums\MembershipRole::MODERATOR->name }}, they have full control over their
-                        assigned organizations as {{ \App\Enums\MembershipRole::MODERATOR->name }}. A {{ \App\Enums\MembershipRole::MEMBER->name }},
-                        can sign up for events provided they are {{ \App\Enums\MembershipStatus::ACTIVE->name }},
+                        assigned organizations as {{ \App\Enums\MembershipRole::MODERATOR->name }}. A {{ \App\Enums\MembershipRole::MEMBER->name }}
+                        can sign up for events provided they are {{ \App\Enums\MembershipStatus::ACTIVE->name }}.
+                        A {{ \App\Enums\MembershipRole::VISITOR->name }} has temporary access to the top-level organization only; access expires after 6 months.
                     </x-input-help>
                 </x-input-container>
 

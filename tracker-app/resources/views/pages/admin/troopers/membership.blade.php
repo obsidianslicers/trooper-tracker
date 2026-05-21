@@ -55,7 +55,7 @@
                             <td>
                                 <x-input-picker :property="'organizations.' . $organization->id . '.assignment'"
                                                 :route="'pickers.organization'"
-                                                :params="['organization_id' => $organization->id]"
+                                                :params="['organization_id' => $organization->id, 'depth_max' => $trooper->is_visitor ? 0 : null]"
                                                 :text="$organization->assignment->name ?? 'Member Of ...'"
                                                 :value="$organization->assignment->id ?? null" />
                             </td>

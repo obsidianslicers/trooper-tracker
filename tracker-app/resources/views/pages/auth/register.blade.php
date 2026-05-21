@@ -102,11 +102,13 @@
                         Account Type:
                     </x-label>
                     <x-input-select :property="'account_type'"
-                                    :options="['member' => 'Member', 'handler' => 'Handler']"
-                                    :placeholder="'-- Select your Account Type --'" />
+                                    :options="['member' => 'Member', 'handler' => 'Handler', 'visitor' => 'Visitor']"
+                                    :placeholder="'-- Select your Account Type --'"
+                                    x-on:change="window.dispatchEvent(new CustomEvent('account-type-changed', { detail: $event.target.value }))" />
                     <x-input-help>
-                        Are you a member of an organization selected below, or
-                        would you like to be assigned as a handler to an organization?
+                        <b>Member</b> — active costumed member of an organization.<br>
+                        <b>Handler</b> — assigned handler (no costume required).<br>
+                        <b>Visitor</b> — temporary access to the top-level organization only; expires after 6 months.
                     </x-input-help>
                 </x-input-container>
 
@@ -143,10 +145,11 @@
                             @endif
 
                             @if(count($organization->regions) > 0)
-                                <x-input-container>
+                                <x-input-container x-show="!isVisitor">
                                     <select name="organizations[{{ $organization->id }}][region_id]"
                                         x-model="regionId"
                                         x-on:change="updateUnits"
+                                        x-bind:disabled="isVisitor"
                                         class="form-select">
                                         <option value="">-- Select your Region/Garrison --</option>
                                         <template x-for="region in regions" x-bind:key="region.id">
@@ -155,10 +158,10 @@
                                     </select>
                                 </x-input-container>
 
-                                <x-input-container>
+                                <x-input-container x-show="!isVisitor">
                                     <select name="organizations[{{ $organization->id }}][unit_id]"
                                             x-model="unitId"
-                                            x-bind:disabled="!regionId"
+                                            x-bind:disabled="!regionId || isVisitor"
                                             class="form-select">
                                         <option value="">-- Select your Unit/Squad --</option>
                                         <template x-for="unit in units" x-bind:key="unit.id">
@@ -167,6 +170,13 @@
                                     </select>
                                 </x-input-container>
                             @endif
+
+                            <x-input-container x-show="isVisitor">
+                                <x-message type="info"
+                                           icon="fa-solid fa-circle-info">
+                                    Visitors are assigned to the top-level organization only. No region or unit selection is required.
+                                </x-message>
+                            </x-input-container>
                         </div>
                     </div>
   
@@ -187,5 +197,6 @@
 @section('page-script')
 <script>
     window.$organization_hierarchy = @json($organization_hierarchy);
+    window.$account_type = @json($account_type);
 </script>
 @endsection

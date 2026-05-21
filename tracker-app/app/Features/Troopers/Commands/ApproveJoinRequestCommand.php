@@ -18,8 +18,10 @@ readonly class ApproveJoinRequestCommand
 {
     /**
      * @param  TrooperOrganization  $trooper_organization  The pending TrooperOrganization to approve
+     * @param  bool  $suppress_notification  When true, skips the JoinRequestApprovedNotification (used for auto-approval during trooper registration approval)
      */
     public function __construct(
         public TrooperOrganization $trooper_organization,
+        public bool $suppress_notification = false,
     ) {}
 }

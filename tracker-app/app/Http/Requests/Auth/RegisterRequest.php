@@ -68,7 +68,7 @@ class RegisterRequest extends FormRequest
             ],
             'account_type' => [
                 'required',
-                'in:member,handler',
+                'in:member,handler,visitor',
             ],
             'date_of_birth' => [
                 Rule::requiredIf(fn (): bool => $this->requiresGuardianForSelectedOrganizations()),
@@ -161,13 +161,22 @@ class RegisterRequest extends FormRequest
                 // Parse the base validation rules (e.g., 'integer|between:1000,99999')
                 $base_rules = explode('|', $organization->identifier_validation);
 
-                // For members: require identifier when selected, validate format, and check uniqueness.
-                // For handlers: all identifier rules are skipped (optional and unvalidated).
+                // For members: required + format + uniqueness when selected.
+                // For visitors: format + uniqueness only when a value is provided (optional).
+                // For handlers: all identifier rules are skipped.
                 $organization_rules = [
+                    'nullable',
                     Rule::when(
                         fn () => $this->account_type === 'member' && $this->input("organizations.{$organization->id}.selected") === '1',
                         array_merge(
                             ['required'],
+                            $base_rules,
+                            [new UniqueOrganizationIdentifierRule($organization)]
+                        )
+                    ),
+                    Rule::when(
+                        fn () => $this->account_type === 'visitor' && !empty($this->input("organizations.{$organization->id}.identifier")),
+                        array_merge(
                             $base_rules,
                             [new UniqueOrganizationIdentifierRule($organization)]
                         )
@@ -181,11 +190,11 @@ class RegisterRequest extends FormRequest
 
             if ($regions->count() > 0)
             {
-                // Require region when organization is selected
+                // Require region when organization is selected (visitors skip region/unit)
                 $rules["organizations.{$organization->id}.region_id"] = [
-                    Rule::requiredIf(fn () => $this->input("organizations.{$organization->id}.selected") === '1'),
+                    Rule::requiredIf(fn () => $this->account_type !== 'visitor' && $this->input("organizations.{$organization->id}.selected") === '1'),
                     Rule::when(
-                        fn () => $this->input("organizations.{$organization->id}.selected") === '1',
+                        fn () => $this->account_type !== 'visitor' && $this->input("organizations.{$organization->id}.selected") === '1',
                         Rule::exists(Organization::class, Organization::ID)
                             ->whereIn('id', $regions->pluck('id'))
                     ),
@@ -198,11 +207,11 @@ class RegisterRequest extends FormRequest
 
                     if ($units->count() > 0)
                     {
-                        // Require unit when this specific region is selected
+                        // Require unit when this specific region is selected (visitors skip)
                         $rules["organizations.{$organization->id}.unit_id"] = [
-                            Rule::requiredIf(fn () => $this->input("organizations.{$organization->id}.region_id") == $region->id),
+                            Rule::requiredIf(fn () => $this->account_type !== 'visitor' && $this->input("organizations.{$organization->id}.region_id") == $region->id),
                             Rule::when(
-                                fn () => $this->input("organizations.{$organization->id}.selected") === '1' && !empty($this->input("organizations.{$organization->id}.unit_id")),
+                                fn () => $this->account_type !== 'visitor' && $this->input("organizations.{$organization->id}.selected") === '1' && !empty($this->input("organizations.{$organization->id}.unit_id")),
                                 Rule::exists(Organization::class, Organization::ID)
                                     ->whereIn('id', $units->pluck('id'))
                             ),

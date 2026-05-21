@@ -21,6 +21,10 @@ Schedule::command('tracker:calculate-trooper-achievements')
     ->dailyAt('02:00')
     ->timezone($timezone);
 
+Schedule::command('tracker:expire-visitor-access')
+    ->dailyAt('00:30')
+    ->timezone($timezone);
+
 Schedule::command('tracker:send-daily-event-notifications')
     ->dailyAt('08:00')
     ->timezone($timezone);

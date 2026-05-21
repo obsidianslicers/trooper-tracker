@@ -7,6 +7,7 @@ namespace App\Http\Requests\Admin\Troopers;
 use App\Enums\MembershipRole;
 use App\Models\Organization;
 use App\Rules\Auth\UniqueOrganizationIdentifierRule;
+use App\Rules\Troopers\VisitorOrganizationRule;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Http\FormRequest;
@@ -124,6 +125,7 @@ class MembershipRequest extends FormRequest
                 Rule::requiredIf(fn () => !empty($this->input("organizations.{$organization->id}.identifier"))),
                 'nullable',
                 Rule::exists(Organization::class, Organization::ID),
+                new VisitorOrganizationRule($trooper),
             ];
         }
 

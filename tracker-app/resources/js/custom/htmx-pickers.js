@@ -26,6 +26,11 @@ document.addEventListener('click', function (evt) {
 
         const textInput = container.querySelector(`input[type="text"][name="picker-${bracketed}"]`);
         if (textInput) textInput.value = name;
+
+        container.dispatchEvent(new CustomEvent('picker-selected', {
+            bubbles: true,
+            detail: { property, id, name, isVisitor: record.dataset.isVisitor === '1' }
+        }));
     }
 
     const modalEl = record.closest('.modal-picker');

@@ -1,9 +1,19 @@
 <div id="trooper-approval-{{ $trooper->id }}"
      class="card h-100 shadow-sm">
-    <div class="card-header text-uppercase">
+    <div class="card-header text-uppercase d-flex justify-content-between align-items-center">
         {{ $trooper->display_name }}
+        @if($trooper->is_visitor)
+            <span class="badge bg-info ms-2">Visitor</span>
+        @endif
     </div>
     <div class="card-body">
+        @if($trooper->is_visitor && $trooper->visitor_expires_at !== null && $trooper->visitor_expires_at->isPast())
+            <x-message type="warning"
+                       icon="fa-solid fa-clock-rotate-left"
+                       class="mb-3">
+                Access renewal &mdash; previous access expired on {{ $trooper->visitor_expires_at->format('M j, Y') }}.
+            </x-message>
+        @endif
         <dl class="row mb-0">
             <dt class="col-4">Legal Name:</dt>
             <dd class="col-8">{{ $trooper->legal_name }}</dd>
@@ -25,7 +35,7 @@
             @endif
         </dl>
         <hr />
-        {{-- ONLY HANDLERS CAN GET OUT OF PICKING A UNIT --}}
+        {{-- Handlers and Visitors are not required to select a unit --}}
         @if($trooper->membership_role == \App\Enums\MembershipRole::HANDLER && $trooper->trooper_assignments->isEmpty())
             <x-message type="warning"
                        icon="fa-solid fa-triangle-exclamation"
@@ -57,11 +67,20 @@
                         </td>
                     </tr>
                 @endforeach
-                <thead>
+                @if($trooper->is_visitor)
                     <tr>
                         <th colspan="2">Selected Unit</th>
                     </tr>
-                </thead>
+                    <tr>
+                        <td colspan="2" class="text-muted fst-italic">
+                            <i class="fa fa-fw fa-circle-info"></i>
+                            Visitor &mdash; no unit required.
+                        </td>
+                    </tr>
+                @else
+                <tr>
+                    <th colspan="2">Selected Unit</th>
+                </tr>
                 @foreach($trooper->trooper_assignments as $assignment)
                     <tr>
                         <td colspan="2">
@@ -91,6 +110,7 @@
                         @endforeach
                     @endforeach
                 @endforeach
+                @endif
             </x-table>
         @endif
 

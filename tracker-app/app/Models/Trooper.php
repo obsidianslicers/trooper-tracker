@@ -159,6 +159,18 @@ class Trooper extends BaseTrooper implements
         return $this->membership_status == MembershipStatus::DENIED;
     }
 
+    public function getIsVisitorAttribute(): bool
+    {
+        return $this->membership_role === MembershipRole::VISITOR;
+    }
+
+    public function getVisitorAccessExpiredAttribute(): bool
+    {
+        return $this->membership_role === MembershipRole::VISITOR
+            && $this->visitor_expires_at !== null
+            && $this->visitor_expires_at->isPast();
+    }
+
     /**
      * Check if trooper is a minor.
      *

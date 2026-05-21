@@ -19,6 +19,8 @@ use App\Http\Controllers\Account\PushNotificationReadController;
 use App\Http\Controllers\Account\ProfileSubmitController;
 use App\Http\Controllers\Account\SetupController;
 use App\Http\Controllers\Account\SetupSubmitController;
+use App\Http\Controllers\Account\VisitorRenewController;
+use App\Http\Controllers\Account\VisitorRenewSubmitController;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -50,6 +52,9 @@ Route::prefix('account')
 
         Route::get('/setup', SetupController::class)->name('setup');
         Route::post('/setup', SetupSubmitController::class)->name('setup-submit');
+
+        Route::get('/visitor-renew', VisitorRenewController::class)->name('visitor-renew');
+        Route::post('/visitor-renew', VisitorRenewSubmitController::class)->name('visitor-renew-submit');
 
         // XenForo linking required page
         Route::get('/xenforo/required', function (): View
