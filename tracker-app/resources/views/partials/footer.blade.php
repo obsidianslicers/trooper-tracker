@@ -96,6 +96,12 @@
                     </a>
                 </li>
                 <li class="my-2">
+                    <a href="{{ route('faq') }}">
+                        <i class="fa-solid fa-circle-question me-2"></i>
+                        FAQ & Help
+                    </a>
+                </li>
+                <li class="my-2">
                     <a href="https://github.com/obsidianslicers/trooper-tracker/issues"
                        target="_blank"
                        rel="noopener">
