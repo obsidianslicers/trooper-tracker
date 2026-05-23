@@ -14,7 +14,8 @@ readonly class ReorderFaqItemsCommandHandler implements CommandHandlerInterface
 
     public function __invoke(object $message): mixed
     {
-        foreach ($message->ordered_ids as $position => $id) {
+        foreach ($message->ordered_ids as $position => $id)
+        {
             Faq::where(Faq::ID, (int) $id)->update([Faq::SORT_ORDER => $position + 1]);
         }
 

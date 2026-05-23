@@ -29,7 +29,7 @@ class ListController extends MagicBusController
         }
 
         $sortable = $section_id !== null;
-        $items    = $sortable ? $query->get() : $query->paginate(20)->withQueryString();
+        $items = $sortable ? $query->get() : $query->paginate(20)->withQueryString();
 
         return view('pages.admin.faq.list', [
             'items' => $items,
