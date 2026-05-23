@@ -23,13 +23,13 @@ class CreateSubmitControllerTest extends TestCase
             Faq::SECTION_ID  => $section->id,
             Faq::TITLE       => 'How do I register?',
             Faq::DESCRIPTION => 'Visit the registration page.',
-            Faq::SORT_ORDER  => 1,
         ]);
 
         $response->assertRedirect();
         $this->assertDatabaseHas('tt_faq', [
             Faq::SECTION_ID => $section->id,
             Faq::TITLE      => 'How do I register?',
+            Faq::SORT_ORDER => 1,
         ]);
     }
 
