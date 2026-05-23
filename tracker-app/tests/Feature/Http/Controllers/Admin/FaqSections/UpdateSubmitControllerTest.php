@@ -19,9 +19,8 @@ class UpdateSubmitControllerTest extends TestCase
         $section = FaqSection::factory()->create();
 
         $response = $this->actingAs($trooper)->post("/admin/faq/sections/{$section->id}/update", [
-            FaqSection::LABEL      => 'Updated Label',
-            FaqSection::ICON       => 'fa-solid fa-star',
-            FaqSection::SORT_ORDER => 10,
+            FaqSection::LABEL => 'Updated Label',
+            FaqSection::ICON  => 'fa-solid fa-star',
         ]);
 
         $response->assertRedirect();

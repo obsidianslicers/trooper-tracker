@@ -70,6 +70,10 @@ window.flatpickr = flatpickr;
 import EasyMDE from "easymde";
 window.EasyMDE = EasyMDE;
 
+// SortableJS
+import Sortable from 'sortablejs';
+window.Sortable = Sortable;
+
 //  custom 
 import './custom/bootstrap-events.js';
 import './custom/forms.js';

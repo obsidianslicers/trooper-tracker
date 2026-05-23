@@ -23,13 +23,6 @@
                 <x-input-help>Font Awesome class, e.g. <code>fa-user-plus</code></x-input-help>
             </x-input-container>
 
-            <x-input-container>
-                <x-label>Sort Order:</x-label>
-                <x-input-text :property="'sort_order'"
-                              :value="$section->sort_order" />
-                <x-input-help>Lower numbers appear first.</x-input-help>
-            </x-input-container>
-
             <x-submit-container>
                 <x-submit-button>Update</x-submit-button>
                 <x-link-button-cancel :url="route('admin.faq.sections.list')" />

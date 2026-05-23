@@ -17,7 +17,6 @@ class UpdateSubmitController extends MagicBusController
         $faq->title = $request->validated('title');
         $faq->description = $request->validated('description');
         $faq->video_url = $request->validated('video_url');
-        $faq->sort_order = $request->validated('sort_order') ?? 0;
 
         $faq->save();
 

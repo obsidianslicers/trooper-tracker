@@ -22,7 +22,6 @@ class CreateRequest extends FormRequest
             'title' => ['required', 'string'],
             'description' => ['nullable', 'string'],
             'video_url' => ['nullable', 'string', 'url', 'max:512'],
-            'sort_order' => ['nullable', 'integer', 'min:0'],
         ];
     }
 }

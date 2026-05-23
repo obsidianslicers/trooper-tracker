@@ -31,18 +31,35 @@
         </div>
     </div>
 
+    @if($sortable)
+        <p class="text-muted small mb-2">
+            <i class="fa fa-fw fa-grip-vertical me-1"></i>
+            Drag rows to reorder.
+        </p>
+    @endif
+
     <x-table>
         <thead>
             <tr>
+                @if($sortable)
+                    <th style="width: 30px;"></th>
+                @endif
                 <th>Section</th>
                 <th>Title</th>
-                <th style="width: 60px;">Order</th>
+                @if(!$sortable)
+                    <th style="width: 60px;">Order</th>
+                @endif
                 <th style="width: 40px;"></th>
             </tr>
         </thead>
-        <tbody>
+        <tbody id="faq-sortable-tbody">
             @foreach($items as $item)
-                <tr>
+                <tr data-id="{{ $item->id }}" @if($sortable) style="cursor: grab;" @endif>
+                    @if($sortable)
+                        <td class="text-muted faq-drag-handle" style="cursor: grab;">
+                            <i class="fa fa-fw fa-grip-vertical"></i>
+                        </td>
+                    @endif
                     <td class="text-nowrap">
                         <i class="fa fa-fw {{ $item->section?->icon }} text-muted me-1"></i>
                         <span class="small text-muted">{{ $item->section?->label }}</span>
@@ -51,7 +68,9 @@
                         @endif
                     </td>
                     <td>{{ $item->title }}</td>
-                    <td class="text-muted small">{{ $item->sort_order }}</td>
+                    @if(!$sortable)
+                        <td class="text-muted small">{{ $item->sort_order }}</td>
+                    @endif
                     <td>
                         <x-action-menu>
                             <x-action-link-update :url="route('admin.faq.update', ['faq' => $item])" />
@@ -71,13 +90,44 @@
                 </tr>
             @endforeach
         </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="4">
-                    {{ $items->links() }}
-                </td>
-            </tr>
-        </tfoot>
+        @if(!$sortable)
+            <tfoot>
+                <tr>
+                    <td colspan="4">
+                        {{ $items->links() }}
+                    </td>
+                </tr>
+            </tfoot>
+        @endif
     </x-table>
 
 @endsection
+
+@if($sortable)
+@push('scripts')
+<script type="module">
+(function () {
+    var tbody = document.getElementById('faq-sortable-tbody');
+    if (!tbody || typeof Sortable === 'undefined') return;
+
+    Sortable.create(tbody, {
+        handle: '.faq-drag-handle',
+        animation: 150,
+        onEnd: function () {
+            var ordered_ids = Array.from(tbody.querySelectorAll('tr[data-id]'))
+                .map(function (row) { return row.dataset.id; });
+
+            fetch('{{ route('admin.faq.reorder') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                },
+                body: JSON.stringify({ ids: ordered_ids }),
+            });
+        },
+    });
+})();
+</script>
+@endpush
+@endif

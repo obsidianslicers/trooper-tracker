@@ -15,11 +15,14 @@ class CreateSubmitController extends MagicBusController
     {
         $faq = new Faq;
 
-        $faq->section_id = $request->validated('section_id');
+        $section_id = $request->validated('section_id');
+        $max_order = Faq::where(Faq::SECTION_ID, $section_id)->max(Faq::SORT_ORDER) ?? 0;
+
+        $faq->section_id = $section_id;
         $faq->title = $request->validated('title');
         $faq->description = $request->validated('description');
         $faq->video_url = $request->validated('video_url');
-        $faq->sort_order = $request->validated('sort_order') ?? 0;
+        $faq->sort_order = $max_order + 1;
 
         $faq->save();
 

@@ -24,7 +24,6 @@ class UpdateSubmitControllerTest extends TestCase
             Faq::SECTION_ID  => $section->id,
             Faq::TITLE       => 'Updated Title',
             Faq::DESCRIPTION => 'Updated description.',
-            Faq::SORT_ORDER  => 5,
         ]);
 
         $response->assertRedirect();

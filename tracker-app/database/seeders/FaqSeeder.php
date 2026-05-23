@@ -12,6 +12,22 @@ class FaqSeeder extends Seeder
 {
     public function run(): void
     {
+        $sections = [
+            ['label' => 'Getting Started & Registration',   'icon' => 'fa-user-plus',       'sort_order' => 1],
+            ['label' => 'Account Types',                    'icon' => 'fa-id-card',          'sort_order' => 2],
+            ['label' => 'Organizations & Club Memberships', 'icon' => 'fa-sitemap',          'sort_order' => 3],
+            ['label' => 'Costumes',                         'icon' => 'fa-shirt',            'sort_order' => 4],
+            ['label' => 'Events',                           'icon' => 'fa-calendar',         'sort_order' => 5],
+            ['label' => 'Signing Up for Events',            'icon' => 'fa-clipboard-check',  'sort_order' => 6],
+            ['label' => 'Guests',                           'icon' => 'fa-user-group',       'sort_order' => 7],
+            ['label' => 'Friends',                          'icon' => 'fa-handshake',        'sort_order' => 8],
+            ['label' => 'How-To Videos',                    'icon' => 'fa-circle-play',      'sort_order' => 9],
+        ];
+
+        foreach ($sections as $data) {
+            FaqSection::create($data);
+        }
+
         $s = FaqSection::pluck('id', 'label');
 
         $reg   = $s['Getting Started & Registration'];

@@ -18,14 +18,14 @@ class CreateSubmitControllerTest extends TestCase
         $trooper = Trooper::factory()->asAdministrator()->create();
 
         $response = $this->actingAs($trooper)->post('/admin/faq/sections/create', [
-            FaqSection::LABEL      => 'Getting Started',
-            FaqSection::ICON       => 'fa-solid fa-rocket',
-            FaqSection::SORT_ORDER => 1,
+            FaqSection::LABEL => 'Getting Started',
+            FaqSection::ICON  => 'fa-solid fa-rocket',
         ]);
 
         $response->assertRedirect();
         $this->assertDatabaseHas('tt_faq_sections', [
-            FaqSection::LABEL => 'Getting Started',
+            FaqSection::LABEL      => 'Getting Started',
+            FaqSection::SORT_ORDER => 1,
         ]);
     }
 

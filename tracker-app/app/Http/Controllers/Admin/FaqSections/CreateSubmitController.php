@@ -15,9 +15,11 @@ class CreateSubmitController extends MagicBusController
     {
         $section = new FaqSection;
 
+        $max_order = FaqSection::max(FaqSection::SORT_ORDER) ?? 0;
+
         $section->label = $request->validated('label');
         $section->icon = $request->validated('icon');
-        $section->sort_order = $request->validated('sort_order') ?? 0;
+        $section->sort_order = $max_order + 1;
 
         $section->save();
 
