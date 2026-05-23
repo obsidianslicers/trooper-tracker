@@ -53,7 +53,9 @@
                 @else
                 @include('partials.inc.navbar-auth')
                 @endauth
-
+                <x-nav-link :url="route('faq')" :active="request()->routeIs('faq')">
+                    Help
+                </x-nav-link>
             </ul>
         </div>
     </div>
