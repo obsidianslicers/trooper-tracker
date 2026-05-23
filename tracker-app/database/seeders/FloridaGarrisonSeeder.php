@@ -58,6 +58,8 @@ class FloridaGarrisonSeeder extends Seeder
             $this->call(TrooperFriendSeeder::class);
 
             $this->call(TrooperAchievementSeeder::class);
+
+            $this->call(FaqSeeder::class);
         });
 
         $readable = CarbonInterval::millisecond($ms)->cascade()->forHumans();
