@@ -18,25 +18,32 @@
         </div>
     </div>
 
+    <p class="text-muted small mb-2">
+        <i class="fa fa-fw fa-grip-vertical me-1"></i>
+        Drag rows to reorder.
+    </p>
+
     <x-table>
         <thead>
             <tr>
+                <th style="width: 30px;"></th>
                 <th style="width: 40px;"></th>
                 <th>Label</th>
                 <th style="width: 80px;">Items</th>
-                <th style="width: 60px;">Order</th>
                 <th style="width: 40px;"></th>
             </tr>
         </thead>
-        <tbody>
+        <tbody id="faq-sections-sortable-tbody">
             @foreach($sections as $section)
-                <tr>
+                <tr data-id="{{ $section->id }}" style="cursor: grab;">
+                    <td class="text-muted faq-section-drag-handle" style="cursor: grab;">
+                        <i class="fa fa-fw fa-grip-vertical"></i>
+                    </td>
                     <td class="text-center">
                         <i class="fa fa-fw {{ $section->icon }} text-muted"></i>
                     </td>
                     <td>{{ $section->label }}</td>
                     <td class="text-muted small">{{ $section->faqs_count }}</td>
-                    <td class="text-muted small">{{ $section->sort_order }}</td>
                     <td>
                         <x-action-menu>
                             <x-action-link-update :url="route('admin.faq.sections.update', ['section' => $section])" />
@@ -59,3 +66,30 @@
     </x-table>
 
 @endsection
+
+@push('scripts')
+<script type="module">
+(function () {
+    var tbody = document.getElementById('faq-sections-sortable-tbody');
+    if (!tbody || typeof Sortable === 'undefined') return;
+
+    Sortable.create(tbody, {
+        handle: '.faq-section-drag-handle',
+        animation: 150,
+        onEnd: function () {
+            var ordered_ids = Array.from(tbody.querySelectorAll('tr[data-id]'))
+                .map(function (row) { return row.dataset.id; });
+
+            fetch('{{ route('admin.faq.sections.reorder') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                },
+                body: JSON.stringify({ ids: ordered_ids }),
+            });
+        },
+    });
+})();
+</script>
+@endpush
