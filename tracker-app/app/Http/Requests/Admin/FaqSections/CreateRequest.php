@@ -18,7 +18,6 @@ class CreateRequest extends FormRequest
         return [
             'label' => ['required', 'string'],
             'icon' => ['required', 'string', 'max:64'],
-            'sort_order' => ['nullable', 'integer', 'min:0'],
         ];
     }
 }

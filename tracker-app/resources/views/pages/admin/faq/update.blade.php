@@ -40,13 +40,6 @@
                 <x-input-help>Optional YouTube URL (watch or embed format). Leave blank for Q&amp;A items.</x-input-help>
             </x-input-container>
 
-            <x-input-container>
-                <x-label>Sort Order:</x-label>
-                <x-input-text :property="'sort_order'"
-                              :value="$faq->sort_order" />
-                <x-input-help>Lower numbers appear first within a section.</x-input-help>
-            </x-input-container>
-
             <x-submit-container>
                 <x-submit-button>Update</x-submit-button>
                 <x-link-button-cancel :url="route('admin.faq.list')" />
