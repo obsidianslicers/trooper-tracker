@@ -123,7 +123,7 @@
                 </li>
                 <li class="my-2">
                     <a href="https://gh-pages.501st.com/member/51399/">
-                        Stu Ellerbusch <span class="text-muted">(IC51399)</span>
+                        Stu Ellerbusch <span class="text-muted">(BH51399)</span>
                     </a>
                 </li>
                 <li class="mt-5">
