@@ -19,7 +19,7 @@
 
 </div>
 
-<div class="row mb-3"
+<div class="row mb-3 mt-1 mt-md-0"
      x-show="hasActiveHostingFilter() || form.costume_organization_id"
      x-cloak>
     <div class="col-12 d-flex flex-wrap gap-2">
@@ -82,6 +82,20 @@
 
                 <x-input-container>
                     <x-label>
+                        Requested Character Types:
+                    </x-label>
+                    <x-input-select :property="'costume_organization_id'"
+                                    :options="$costume_organizations->pluck('name', 'id')->toArray()"
+                                    :value="null"
+                                    :placeholder="'-- Requested Characters --'"
+                                    x-ref="costumeOrganizationSelect"
+                                    data-costume-organization-labels='@json($costume_organizations->mapWithKeys(fn($organization) => [(string) $organization->id => $organization->name])->all())'
+                                    x-on:change="persistCostumeOrganization()"
+                                    x-model="form.costume_organization_id" />
+                </x-input-container>
+
+                <x-input-container>
+                    <x-label>
                         Hosting Organization:
                     </x-label>
                     <div class="d-flex gap-2 mb-2">
@@ -103,8 +117,7 @@
                     <div class="border rounded p-2"
                          x-ref="hostingOrganizationList"
                          data-hosting-organization-ids='@json($hosting_organizations->pluck("id")->map(fn($id) => (string) $id)->values()->all())'
-                         data-hosting-organization-labels='@json($hosting_organizations->mapWithKeys(fn($organization) => [(string) $organization->id => $organization->indented_name])->all())'
-                         style="max-height: 260px; overflow-y: auto;">
+                         data-hosting-organization-labels='@json($hosting_organizations->mapWithKeys(fn($organization) => [(string) $organization->id => $organization->indented_name])->all())'>
                         @foreach($hosting_organizations as $hosting_organization)
                             <div class="form-check mb-1">
                                 <input type="checkbox"
@@ -121,19 +134,6 @@
                             </div>
                         @endforeach
                     </div>
-                </x-input-container>
-
-                <x-input-container>
-                    <x-label>
-                        Requested Character Types:
-                    </x-label>
-                    <x-input-select :property="'costume_organization_id'"
-                                    :options="$costume_organizations->pluck('name', 'id')->toArray()"
-                                    :value="null"
-                                    :placeholder="'-- Requested Characters --'"
-                                    x-ref="costumeOrganizationSelect"
-                                    data-costume-organization-labels='@json($costume_organizations->mapWithKeys(fn($organization) => [(string) $organization->id => $organization->name])->all())'
-                                    x-model="form.costume_organization_id" />
                 </x-input-container>
             </div>
             <div class="modal-footer">

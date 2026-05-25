@@ -1,6 +1,7 @@
 import { getCookie, setCookie } from '../custom/utils';
 export default function eventSelector() {
-    const cookieName = 'hosting_organization_ids';
+    const hostingCookieName = 'hosting_organization_ids';
+    const costumeCookieName = 'costume_organization_id';
 
     return {
         // Alpine state
@@ -16,6 +17,9 @@ export default function eventSelector() {
         init() {
             const selectedOrganizationIds = this.parseHostingOrganizationIds();
             this.form.hosting_organization_ids = selectedOrganizationIds;
+
+            const selectedCostumeOrganizationId = this.parseCostumeOrganizationId();
+            this.form.costume_organization_id = selectedCostumeOrganizationId;
 
             const hostingOrganizationData = this.$refs.hostingOrganizationList?.dataset.hostingOrganizationIds;
             if (hostingOrganizationData) {
@@ -49,7 +53,8 @@ export default function eventSelector() {
         },
 
         parseHostingOrganizationIds() {
-            const selectedOrganizationIds = getCookie(cookieName) ?? getCookie('hosting_organization_id');
+            const selectedOrganizationIds = getCookie(hostingCookieName)
+                ?? getCookie('hosting_organization_id');
 
             if (!selectedOrganizationIds) {
                 return [];
@@ -60,6 +65,21 @@ export default function eventSelector() {
                 .map((id) => parseInt(id, 10))
                 .filter((id) => Number.isInteger(id) && id > 0)
                 .map((id) => id.toString());
+        },
+
+        parseCostumeOrganizationId() {
+            const selectedCostumeOrganizationId = getCookie(costumeCookieName);
+
+            if (!selectedCostumeOrganizationId) {
+                return '';
+            }
+
+            const parsedCostumeOrganizationId = parseInt(selectedCostumeOrganizationId, 10);
+            if (!Number.isInteger(parsedCostumeOrganizationId) || parsedCostumeOrganizationId <= 0) {
+                return '';
+            }
+
+            return parsedCostumeOrganizationId.toString();
         },
 
         hasActiveHostingFilter() {
@@ -86,11 +106,20 @@ export default function eventSelector() {
 
         persistHostingOrganizations() {
             if (this.hasActiveHostingFilter()) {
-                setCookie(cookieName, this.form.hosting_organization_ids.join(','));
+                setCookie(hostingCookieName, this.form.hosting_organization_ids.join(','));
                 return;
             }
 
-            setCookie(cookieName, '');
+            setCookie(hostingCookieName, '');
+        },
+
+        persistCostumeOrganization() {
+            if (this.form.costume_organization_id) {
+                setCookie(costumeCookieName, this.form.costume_organization_id.toString());
+                return;
+            }
+
+            setCookie(costumeCookieName, '');
         },
 
         selectAllHostingOrganizations() {
@@ -123,6 +152,7 @@ export default function eventSelector() {
 
         clearCostumeOrganization() {
             this.form.costume_organization_id = '';
+            this.persistCostumeOrganization();
         },
 
         getCostumeOrganizationLabel() {
@@ -155,6 +185,7 @@ export default function eventSelector() {
         clearAllFilters() {
             this.form.search_term = '';
             this.form.costume_organization_id = '';
+            this.persistCostumeOrganization();
             this.clearHostingOrganizations();
         },
 
