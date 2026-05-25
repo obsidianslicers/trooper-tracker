@@ -1,43 +1,192 @@
 import { getCookie, setCookie } from '../custom/utils';
 export default function eventSelector() {
-    const cookieName = 'hosting_organization_id';
+    const hostingCookieName = 'hosting_organization_ids';
+    const costumeCookieName = 'costume_organization_id';
 
     return {
         // Alpine state
         form: {
             search_term: '',
-            hosting_organization_id: '',
+            hosting_organization_ids: [],
             costume_organization_id: '',
         },
+        hosting_organization_all_ids: [],
+        hosting_organization_labels: {},
+        costume_organization_labels: {},
 
         init() {
-            const selectedOrganizationId = getCookie(cookieName);
-            if (selectedOrganizationId) {
-                this.form.hosting_organization_id = parseInt(selectedOrganizationId);
-            }
+            const selectedOrganizationIds = this.parseHostingOrganizationIds();
+            this.form.hosting_organization_ids = selectedOrganizationIds;
 
-            const hostingOrganizationSelect = this.$refs.hostingOrganizationPicker.querySelector('select');
+            const selectedCostumeOrganizationId = this.parseCostumeOrganizationId();
+            this.form.costume_organization_id = selectedCostumeOrganizationId;
 
-            if (hostingOrganizationSelect) {
-                // Ensure the select's visual state matches the cookie
-                if (selectedOrganizationId) {
-                    hostingOrganizationSelect.value = selectedOrganizationId;
+            const hostingOrganizationData = this.$refs.hostingOrganizationList?.dataset.hostingOrganizationIds;
+            if (hostingOrganizationData) {
+                try {
+                    const parsedHostingOrganizationIds = JSON.parse(hostingOrganizationData);
+                    this.hosting_organization_all_ids = parsedHostingOrganizationIds
+                        .map((id) => id.toString())
+                        .filter((id) => id.length > 0);
+                } catch (_error) {
+                    this.hosting_organization_all_ids = [];
                 }
-
-                // 3. Listen for the 'change' event instead of observing mutations
-                hostingOrganizationSelect.addEventListener('change', (e) => {
-                    const pickedValue = parseInt(e.target.value);
-                    this.form.hosting_organization_id = pickedValue;
-
-                    // 4. Update the cookie
-                    if (pickedValue) {
-                        setCookie(cookieName, pickedValue);
-                    } else {
-                        // Optional: Clear cookie if "Please Select" is chosen
-                        setCookie(cookieName, '', -1);
-                    }
-                });
             }
+
+            const hostingOrganizationLabels = this.$refs.hostingOrganizationList?.dataset.hostingOrganizationLabels;
+            if (hostingOrganizationLabels) {
+                try {
+                    this.hosting_organization_labels = JSON.parse(hostingOrganizationLabels);
+                } catch (_error) {
+                    this.hosting_organization_labels = {};
+                }
+            }
+
+            const costumeOrganizationLabels = this.$refs.costumeOrganizationSelect?.dataset.costumeOrganizationLabels;
+            if (costumeOrganizationLabels) {
+                try {
+                    this.costume_organization_labels = JSON.parse(costumeOrganizationLabels);
+                } catch (_error) {
+                    this.costume_organization_labels = {};
+                }
+            }
+        },
+
+        parseHostingOrganizationIds() {
+            const selectedOrganizationIds = getCookie(hostingCookieName)
+                ?? getCookie('hosting_organization_id');
+
+            if (!selectedOrganizationIds) {
+                return [];
+            }
+
+            return selectedOrganizationIds
+                .split(',')
+                .map((id) => parseInt(id, 10))
+                .filter((id) => Number.isInteger(id) && id > 0)
+                .map((id) => id.toString());
+        },
+
+        parseCostumeOrganizationId() {
+            const selectedCostumeOrganizationId = getCookie(costumeCookieName);
+
+            if (!selectedCostumeOrganizationId) {
+                return '';
+            }
+
+            const parsedCostumeOrganizationId = parseInt(selectedCostumeOrganizationId, 10);
+            if (!Number.isInteger(parsedCostumeOrganizationId) || parsedCostumeOrganizationId <= 0) {
+                return '';
+            }
+
+            return parsedCostumeOrganizationId.toString();
+        },
+
+        hasActiveHostingFilter() {
+            const selectedCount = this.form.hosting_organization_ids.length;
+            if (selectedCount === 0) {
+                return false;
+            }
+
+            const allCount = this.hosting_organization_all_ids.length;
+            if (allCount === 0) {
+                return true;
+            }
+
+            return selectedCount < allCount;
+        },
+
+        getActiveHostingOrganizationIds() {
+            if (!this.hasActiveHostingFilter()) {
+                return [];
+            }
+
+            return this.form.hosting_organization_ids;
+        },
+
+        persistHostingOrganizations() {
+            if (this.hasActiveHostingFilter()) {
+                setCookie(hostingCookieName, this.form.hosting_organization_ids.join(','));
+                return;
+            }
+
+            setCookie(hostingCookieName, '');
+        },
+
+        persistCostumeOrganization() {
+            if (this.form.costume_organization_id) {
+                setCookie(costumeCookieName, this.form.costume_organization_id.toString());
+                return;
+            }
+
+            setCookie(costumeCookieName, '');
+        },
+
+        selectAllHostingOrganizations() {
+            const fallbackIds = Array.from(this.$el.querySelectorAll('[data-hosting-organization-checkbox]'))
+                .map((el) => el.value)
+                .filter((value) => value !== '');
+
+            const selectedIds = this.hosting_organization_all_ids.length > 0
+                ? this.hosting_organization_all_ids
+                : fallbackIds;
+
+            this.form.hosting_organization_ids = [...new Set(selectedIds)];
+            this.persistHostingOrganizations();
+        },
+
+        clearHostingOrganizations() {
+            this.form.hosting_organization_ids = [];
+            this.persistHostingOrganizations();
+        },
+
+        removeHostingOrganization(hostingOrganizationId) {
+            this.form.hosting_organization_ids = this.form.hosting_organization_ids
+                .filter((id) => id !== hostingOrganizationId);
+            this.persistHostingOrganizations();
+        },
+
+        getHostingOrganizationLabel(hostingOrganizationId) {
+            return this.hosting_organization_labels[hostingOrganizationId] ?? `Organization ${hostingOrganizationId}`;
+        },
+
+        clearCostumeOrganization() {
+            this.form.costume_organization_id = '';
+            this.persistCostumeOrganization();
+        },
+
+        getCostumeOrganizationLabel() {
+            const selectedCostumeOrganizationId = this.form.costume_organization_id;
+
+            if (!selectedCostumeOrganizationId) {
+                return '';
+            }
+
+            const selectedCostumeOrganizationIdAsString = selectedCostumeOrganizationId.toString();
+            const labelFromMap = this.costume_organization_labels[selectedCostumeOrganizationIdAsString]
+                ?? this.costume_organization_labels[selectedCostumeOrganizationId];
+            if (labelFromMap) {
+                return labelFromMap;
+            }
+
+            const costumeSelect = this.$refs.costumeOrganizationSelect;
+            if (costumeSelect) {
+                const selectedOption = Array.from(costumeSelect.options)
+                    .find((option) => option.value === selectedCostumeOrganizationIdAsString);
+
+                if (selectedOption?.text) {
+                    return selectedOption.text.trim();
+                }
+            }
+
+            return 'Requested Character';
+        },
+
+        clearAllFilters() {
+            this.form.search_term = '';
+            this.form.costume_organization_id = '';
+            this.persistCostumeOrganization();
+            this.clearHostingOrganizations();
         },
 
         // Core filter logic
@@ -53,7 +202,9 @@ export default function eventSelector() {
             }
 
             // Hosting organization filter
-            if (this.form.hosting_organization_id && hostingOrganizationId != this.form.hosting_organization_id) {
+            const activeHostingOrganizationIds = this.getActiveHostingOrganizationIds();
+            if (activeHostingOrganizationIds.length > 0
+                && !activeHostingOrganizationIds.includes(hostingOrganizationId)) {
                 return false;
             }
 
