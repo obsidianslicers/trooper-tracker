@@ -341,7 +341,88 @@ If the trooper has the mobile app installed and has granted notification permiss
 
 ---
 
-## 11. Verification Checklist
+## 11. XenForo Forum Node IDs, Discord Mentions, and XenForo Group IDs
+
+For full XenForo setup (env vars, OAuth, add-ons, API key) see [XENFORO_OAUTH.md](XENFORO_OAUTH.md). This section lists the Florida Garrison-specific values that `FloridaGarrisonSeeder` pre-seeds so you do not need to enter them manually.
+
+### Forum Node IDs
+
+When an event is created, Troop Tracker posts a XenForo thread in the squad's `related_forum`. When the event closes, the thread is moved to `related_forum_archive`.
+
+The following values are seeded automatically:
+
+| Squad              | Active Forum (`related_forum`) | Archive Forum (`related_forum_archive`) |
+|--------------------|-------------------------------|----------------------------------------|
+| Everglades Squad   | 9                             | 107                                    |
+| Makaze Squad       | 8                             | 109                                    |
+| Parjai Squad       | 186                           | 111                                    |
+| Squad 7            | 7                             | 113                                    |
+| Tampa Bay Squad    | 73                            | 115                                    |
+
+To find a node ID on your own: browse to the forum board in XenForo — the URL contains something like `forums/name.7/` where `7` is the node ID.
+
+To update a value or set one for a non-Florida organization: `Command Staff > Organizations > [org] > edit` → **Related Forum (Node ID)** / **Related Forum Archive (Node ID)**.
+
+Test thread creation with:
+
+```bash
+php artisan tracker:xenforo-test-thread {node_id}
+```
+
+### Discord Mentions
+
+When Troop Tracker sends a Discord event notification, it includes a `discord_mention` string to ping the relevant squad role.
+
+Requires `DISCORD_WEBHOOK_URL` in `.env`. The following mention strings are seeded automatically:
+
+| Squad              | Discord Mention              |
+|--------------------|------------------------------|
+| Everglades Squad   | `<@&914344158678900766>`     |
+| Makaze Squad       | `<@&914343663474200597>`     |
+| Parjai Squad       | `<@&914344264253718568>`     |
+| Squad 7            | `<@&914344334776737822>`     |
+| Tampa Bay Squad    | `<@&914344438472527912>`     |
+
+If a role ID changes: go to Discord → Server Settings → Roles → right-click the role → Copy Role ID (Developer Mode must be on). Update the value at `Command Staff > Organizations > [squad] > edit` → **Discord Mention**. The field is optional and nullable — leave it blank to suppress role pings.
+
+### XenForo Secondary Group IDs
+
+Troop Tracker synchronizes XenForo secondary group memberships based on the group IDs stored on each organization. The following values are seeded automatically:
+
+| Organization       | Active group ID | Retired group ID |
+|--------------------|-----------------|-----------------|
+| 501st Legion       | 1415            | 1429            |
+| Florida Garrison   | 18              | —               |
+| Everglades Squad   | 44              | —               |
+| Makaze Squad       | 45              | —               |
+| Parjai Squad       | 250             | —               |
+| Squad 7            | 683             | —               |
+| Tampa Bay Squad    | 43              | —               |
+
+How these combine for a Florida Garrison squad member:
+
+- **Active squad member** receives: 501st group (1415) + their squad group (e.g. 44) + Florida Garrison group (18)
+- **Retired 501st member** receives: 501st retired group (1429)
+
+Group sync is run with:
+
+```bash
+php artisan tracker:synchronize-xenforo-users
+```
+
+For a single trooper:
+
+```bash
+php artisan tracker:synchronize-xenforo-user {trooper_id}
+```
+
+See [XENFORO_OAUTH.md](XENFORO_OAUTH.md) section 9 for full details on how group sync works.
+
+To update a group ID: `Command Staff > Organizations > [org] > edit` → **XenForo Group (Active/Reserve/Retired)**.
+
+---
+
+## 12. Verification Checklist
 
 After setup or migration, verify all of the following:
 
@@ -351,6 +432,9 @@ After setup or migration, verify all of the following:
 - legacy migrated event photos load on existing events
 - newly uploaded event photos appear in the event uploads page
 - broken image icons do not appear in the public UI
+- a XenForo forum thread is created when a new event is saved (`tt_events.thread_id` is populated)
+- a Discord notification includes the correct squad role mention
+- `tracker:synchronize-xenforo-users` applies the expected secondary group IDs to a test trooper (1415 + squad group + 18)
 
 If new uploads are broken but legacy images work, the most likely issue is that `php artisan storage:link` was not run or the symlink is missing on the server.
 
@@ -358,7 +442,7 @@ If legacy event images are broken but new uploads work, the most likely issue is
 
 ---
 
-## 12. Suggested Order for Florida Garrison Launch
+## 13. Suggested Order for Florida Garrison Launch
 
 Use this order when standing up the Florida Garrison instance:
 
@@ -370,13 +454,15 @@ Use this order when standing up the Florida Garrison instance:
 6. migrate legacy event images
 7. upload or migrate squad logos
 8. (optional) add `FIREBASE_CREDENTIALS` to `.env` for mobile push notifications — see section 10
-9. verify several events and organization pages in the browser
+9. configure XenForo env vars (`XENFORO_BASE_URL`, `XENFORO_API_KEY`, `XENFORO_API_USER`) and run `php artisan config:clear` — see [XENFORO_OAUTH.md](XENFORO_OAUTH.md) section 4; forum node IDs, Discord mentions, and XenForo group IDs are pre-seeded for Florida Garrison
+10. if Discord webhook is new, verify `DISCORD_WEBHOOK_URL` is set; confirm squad mention strings match current Discord role IDs
+11. verify several events and organization pages in the browser
 
 ---
 
-## 13. Laravel Queue Worker and SES SMTP on Bitnami AWS
+## 14. Laravel Queue Worker and SES SMTP on Bitnami AWS
 
-### 13.1 Set up Laravel queue worker with Supervisor
+### 14.1 Set up Laravel queue worker with Supervisor
 
 1. **Find the PHP binary**
 
@@ -484,7 +570,7 @@ Use this order when standing up the Florida Garrison instance:
     /opt/bitnami/php/bin/php artisan queue:flush
     ```
 
-### 13.2 Common mail setup note for SES SMTP
+### 14.2 Common mail setup note for SES SMTP
 
 Use this in `.env`:
 
@@ -508,7 +594,7 @@ cd /home/bitnami/trooper-tracker/tracker-app
 /opt/bitnami/php/bin/php artisan queue:restart
 ```
 
-### 13.3 If Supervisor says "can't find command 'php'"
+### 14.3 If Supervisor says "can't find command 'php'"
 
 That means you must use the full PHP path in the `command` line of the Supervisor program:
 
