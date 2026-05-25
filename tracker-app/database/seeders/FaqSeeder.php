@@ -81,6 +81,12 @@ MD,
                 'description' => 'Yes — if your garrison has XenForo integration configured, you can use **Sign Up with XenForo** to link your existing forum account. This avoids creating a separate password and keeps your identities connected.',
                 'sort_order'  => 4,
             ],
+            [
+                'section_id'  => $reg,
+                'title'       => 'I need information on joining the 501st Legion.',
+                'description' => '[Click here to learn how to join.](https://databank.501st.com/databank/Join_Us)',
+                'sort_order'  => 5,
+            ],
 
             // ── Account Types ─────────────────────────────────────────────
             [
@@ -175,6 +181,12 @@ MD,
                 'description' => 'Costume types are managed by Command Staff. If your costume isn\'t available, contact your garrison administrator to have it added to the system.',
                 'sort_order'  => 4,
             ],
+            [
+                'section_id'  => $cost,
+                'title'       => 'I need a costume added to the Troop Tracker.',
+                'description' => 'Please notify your unit leader, or contact an administrator.',
+                'sort_order'  => 5,
+            ],
 
             // ── Events ────────────────────────────────────────────────────
             [
@@ -245,6 +257,18 @@ MD,
                 'title'       => 'How do I mark my shift as complete?',
                 'description' => 'After the event, you may be prompted to confirm your attendance. The system or an event coordinator will mark shifts as complete, which logs the hours to your service record.',
                 'sort_order'  => 4,
+            ],
+            [
+                'section_id'  => $sigup,
+                'title'       => 'How do I know I confirmed a troop?',
+                'description' => 'The troop will be listed on your Service Record, or under your **Troops/Missions** stat. When you confirm a troop, your status will change from **Going** to **Attended**.',
+                'sort_order'  => 5,
+            ],
+            [
+                'section_id'  => $sigup,
+                'title'       => 'I am missing troop data / My troop data is incorrect.',
+                'description' => 'Please refer to your unit leader to get this corrected.',
+                'sort_order'  => 6,
             ],
 
             // ── Guests ────────────────────────────────────────────────────
