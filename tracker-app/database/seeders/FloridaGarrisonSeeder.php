@@ -52,6 +52,8 @@ class FloridaGarrisonSeeder extends Seeder
                 $this->call(ActorSeeder::class);
             }
 
+            $this->call(FaqSeeder::class);
+
             $this->call(EventSeeder::class);
             $this->call(EventUploadSeeder::class);
             $this->call(EventUploadTrooperSeeder::class);
@@ -59,7 +61,6 @@ class FloridaGarrisonSeeder extends Seeder
 
             $this->call(TrooperAchievementSeeder::class);
 
-            $this->call(FaqSeeder::class);
         });
 
         $readable = CarbonInterval::millisecond($ms)->cascade()->forHumans();
