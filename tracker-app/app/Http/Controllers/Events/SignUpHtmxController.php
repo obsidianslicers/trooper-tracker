@@ -65,7 +65,7 @@ class SignUpHtmxController extends MagicBusController
             $signed_up = true;
         }
 
-        $event_shift_query = new GetEventShiftDisplayQuery($event_shift, $trooper);
+        $event_shift_query = new GetEventShiftDisplayQuery($event_shift, $auth_trooper);
 
         $event_shift = $this->bus->send($event_shift_query);
 

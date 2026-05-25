@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Events;
 
 use App\Enums\EventGuestStatus;
 use App\Enums\EventStatus;
+use App\Features\Events\Queries\GetEventShiftDisplayQuery;
 use App\Http\Controllers\MagicBusController;
 use App\Models\EventGuest;
 use App\Models\EventShift;
@@ -36,29 +37,17 @@ class GuestSignUpHtmxController extends MagicBusController
 
         if ($event->require_mission_brief_ack && !$event->hasMissionBriefAcknowledgementFor($trooper))
         {
-            $count_of_shifts = $event->event_shifts()->count();
-            $data = compact('event', 'event_shift', 'can_moderate', 'count_of_shifts');
-            $data['open'] = true;
-
-            return response()->view('pages.events.inc.shift-container', $data);
+            return $this->shiftContainerResponse($event_shift, $trooper, $can_moderate);
         }
 
         if (!$event_shift->is_open)
         {
-            $count_of_shifts = $event->event_shifts()->count();
-            $data = compact('event', 'event_shift', 'can_moderate', 'count_of_shifts');
-            $data['open'] = true;
-
-            return response()->view('pages.events.inc.shift-container', $data);
+            return $this->shiftContainerResponse($event_shift, $trooper, $can_moderate);
         }
 
         if (!$can_moderate && !$event_shift->isGoing($trooper))
         {
-            $count_of_shifts = $event->event_shifts()->count();
-            $data = compact('event', 'event_shift', 'can_moderate', 'count_of_shifts');
-            $data['open'] = true;
-
-            return response()->view('pages.events.inc.shift-container', $data);
+            return $this->shiftContainerResponse($event_shift, $trooper, $can_moderate);
         }
 
         $guestStatus = $event->status === EventStatus::MANUAL_SELECTION
@@ -83,16 +72,21 @@ class GuestSignUpHtmxController extends MagicBusController
             }
         }
 
+        $response = $this->shiftContainerResponse($event_shift, $trooper, $can_moderate);
+
+        return $response->header('HX-Trigger', 'event-shift-guest-added');
+    }
+
+    private function shiftContainerResponse(EventShift $event_shift, $trooper, bool $can_moderate): Response
+    {
+        $event_shift_query = new GetEventShiftDisplayQuery($event_shift, $trooper);
+        $event_shift = $this->bus->send($event_shift_query);
+        $event = $event_shift->event;
         $count_of_shifts = $event->event_shifts()->count();
 
         $data = compact('event', 'event_shift', 'can_moderate', 'count_of_shifts');
-
         $data['open'] = true;
 
-        $response = response()->view('pages.events.inc.shift-container', $data);
-
-        $response = $response->header('HX-Trigger', 'event-shift-guest-added');
-
-        return $response;
+        return response()->view('pages.events.inc.shift-container', $data);
     }
 }
