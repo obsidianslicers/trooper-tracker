@@ -56,6 +56,7 @@ class OrganizationSeeder extends Seeder
                 'sync_sheet_id' => '1I3FuS_uPg2nuC80PEA6tKYaVBd1Qh1allTOdVz3M6x0',
                 'can_attend_default' => true,
                 'requires_guardian' => false,
+                'xenforo_group_active_id' => 1486,
             ],
             [
                 'name' => 'Mandalorian Mercs',
@@ -66,6 +67,7 @@ class OrganizationSeeder extends Seeder
                 'sync_sheet_id' => null,
                 'can_attend_default' => true,
                 'requires_guardian' => false,
+                'xenforo_group_active_id' => 1488,
             ],
             [
                 'name' => 'Dark Empire',
@@ -76,6 +78,7 @@ class OrganizationSeeder extends Seeder
                 'sync_sheet_id' => null,
                 'can_attend_default' => true,
                 'requires_guardian' => false,
+                'xenforo_group_active_id' => 1511,
             ],
             [
                 'name' => 'Droid Builders',
@@ -86,6 +89,7 @@ class OrganizationSeeder extends Seeder
                 'sync_sheet_id' => '195NT1crFYL_ECVyzoaD2F1QXGW5WxlnBDfDaLVtM87Y',
                 'can_attend_default' => true,
                 'requires_guardian' => false,
+                'xenforo_group_active_id' => 1487,
             ],
             [
                 'name' => 'Saber Guild',
@@ -96,6 +100,7 @@ class OrganizationSeeder extends Seeder
                 'sync_sheet_id' => '1PcveycMujakkKeG2m4y8iFunrFbo2KVpQJ00GyPI3b8',
                 'can_attend_default' => true,
                 'requires_guardian' => false,
+                'xenforo_group_active_id' => 1491,
             ],
             [
                 'name' => 'Galactic Academy',
@@ -122,6 +127,8 @@ class OrganizationSeeder extends Seeder
             $org->identifier_validation = $data['identifier_validation'] ?? '';
             $org->type = OrganizationType::ORGANIZATION;
             $org->sync_sheet_id = $data['sync_sheet_id'] ?? null;
+
+            if (isset($data['xenforo_group_active_id']))  { $org->xenforo_group_active_id  = $data['xenforo_group_active_id']; }
 
             $org->save();
         }
