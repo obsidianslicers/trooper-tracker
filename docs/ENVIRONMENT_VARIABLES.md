@@ -88,6 +88,13 @@ Configuration reference for all `.env` variables in Troop Tracker.
 - **Values**: `Intervention\Image\Drivers\Gd\Driver` or `Intervention\Image\Drivers\Imagick\Driver`
 - **When to change**: Use Imagick for better performance if available on server
 
+### CONTACT_EMAIL
+- **Purpose**: Email address shown as a contact fallback on the FAQ page
+- **Required**: No
+- **Default**: None (contact section is hidden when unset)
+- **Example**: `support@your-garrison.com`
+- **When to change**: Set to your organization's support address to let members reach out when the FAQ doesn't answer their question
+
 ---
 
 ## Database

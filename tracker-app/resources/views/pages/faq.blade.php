@@ -95,8 +95,24 @@
                 @endif
             @endforeach
 
+            @if(config('app.contact_email'))
+                <div id="faq-contact" class="text-center mt-5 pt-4 border-top border-secondary">
+                    <p class="text-muted mb-2">Still have questions?</p>
+                    <a href="mailto:{{ config('app.contact_email') }}" class="btn btn-outline-secondary">
+                        <i class="fa fa-fw fa-envelope me-1"></i> Contact
+                    </a>
+                </div>
+            @endif
+
             <div id="faq-no-results" class="text-muted text-center py-5" style="display:none;">
                 No questions match your search.
+                @if(config('app.contact_email'))
+                    <div class="mt-3">
+                        <a href="mailto:{{ config('app.contact_email') }}" class="btn btn-sm btn-outline-secondary">
+                            <i class="fa fa-fw fa-envelope me-1"></i> Contact
+                        </a>
+                    </div>
+                @endif
             </div>
 
         </div>
@@ -141,8 +157,10 @@
 
             var no_results = document.getElementById('faq-no-results');
             var pills      = document.getElementById('faq-pills');
+            var contact    = document.getElementById('faq-contact');
             if (no_results) no_results.style.display = (!term || any_visible) ? 'none' : '';
             if (pills)      pills.style.display = term ? 'none' : '';
+            if (contact)    contact.style.display = (!term || !any_visible) ? '' : 'none';
         });
     }
 
