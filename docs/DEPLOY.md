@@ -473,6 +473,173 @@ sudo systemctl restart troop-tracker-queue
 php artisan up
 ```
 
+## GitHub Actions Deployment (Bitnami Lightsail)
+
+Automated deployment from GitHub to a Bitnami AWS Lightsail Laravel server on every push to `main`.
+
+**Environment:**
+- Repo: `obsidianslicers/trooper-tracker`
+- Server OS: Bitnami Lightsail (Apache)
+- Laravel app path: `/home/bitnami/trooper-tracker/tracker-app`
+- Repo root on server: `/home/bitnami/trooper-tracker`
+- PHP binary: `/opt/bitnami/php/bin/php`
+- Composer binary: `/opt/bitnami/php/bin/composer`
+- Domain: `tracker.fl501st.com`
+
+> **Note:** Deploy keys are disabled by GitHub organization policy. The server uses HTTPS + GitHub PAT for `git pull`. GitHub Actions connects to the server via SSH only.
+
+### 1. Server Setup
+
+Verify the repo exists on the server. If not, clone it via HTTPS:
+
+```bash
+git clone https://github.com/obsidianslicers/trooper-tracker.git
+```
+
+Configure git credential storage so the PAT is remembered:
+
+```bash
+git config --global credential.helper store
+git pull
+# Enter your GitHub username and Fine-grained PAT when prompted
+```
+
+The PAT needs **repo read access** only. After the first authenticated pull, credentials are stored and future pulls run without interaction.
+
+### 2. Deploy Script
+
+The deploy script lives at `/home/bitnami/trooper-tracker/tracker-app/deploy.sh`. Make it executable:
+
+```bash
+chmod +x /home/bitnami/trooper-tracker/tracker-app/deploy.sh
+```
+
+### 3. SSH Key for GitHub Actions
+
+Generate a dedicated deploy key on the server:
+
+```bash
+ssh-keygen -t ed25519 -C "github-actions-deploy"
+# Save to e.g. ~/.ssh/github_actions_deploy (do not use a passphrase)
+```
+
+Add the public key to authorized_keys:
+
+```bash
+cat ~/.ssh/github_actions_deploy.pub >> ~/.ssh/authorized_keys
+```
+
+Set correct permissions:
+
+```bash
+chmod 700 ~/.ssh
+chmod 600 ~/.ssh/authorized_keys
+```
+
+Test SSH access from your local machine before wiring up Actions:
+
+```bash
+ssh bitnami@SERVER_IP
+```
+
+### 4. GitHub Actions Secrets
+
+Add these secrets in **GitHub → Repository → Settings → Secrets and variables → Actions**:
+
+| Secret | Value |
+|---|---|
+| `LIGHTSAIL_HOST` | Server public/static IP |
+| `LIGHTSAIL_USER` | `bitnami` |
+| `LIGHTSAIL_SSH_KEY` | Full private key content including `-----BEGIN OPENSSH PRIVATE KEY-----` and `-----END OPENSSH PRIVATE KEY-----` |
+
+### 5. GitHub Actions Workflow
+
+Create `.github/workflows/deploy.yml`:
+
+```yaml
+name: Deploy to Lightsail
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Run deploy script on Lightsail
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.LIGHTSAIL_HOST }}
+          username: ${{ secrets.LIGHTSAIL_USER }}
+          key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+          script: |
+            /home/bitnami/trooper-tracker/tracker-app/deploy.sh
+```
+
+### 6. Apache Vhost
+
+Ensure the Apache vhost exists at `/opt/bitnami/apache/conf/vhosts/test-fl501st.conf`:
+
+```apache
+<VirtualHost *:80>
+    ServerName tracker.fl501st.com
+    DocumentRoot "/home/bitnami/trooper-tracker/tracker-app/public"
+
+    <Directory "/home/bitnami/trooper-tracker/tracker-app/public">
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    ErrorLog "logs/test-fl501st-error_log"
+    CustomLog "logs/test-fl501st-access_log" common
+</VirtualHost>
+```
+
+Restart Apache:
+
+```bash
+sudo /opt/bitnami/ctlscript.sh restart apache
+```
+
+### 7. SSL
+
+Once HTTP works, run the Bitnami SSL tool:
+
+```bash
+sudo /opt/bitnami/bncert-tool
+```
+
+Use only `tracker.fl501st.com` — do **not** include `www.tracker.fl501st.com`.
+
+### 8. Verify Deployment
+
+Push a commit to `main` and confirm:
+
+- GitHub Actions workflow triggers
+- SSH connection to server succeeds
+- `deploy.sh` runs to completion
+- Laravel app reflects the latest code
+- `tracker.fl501st.com` loads correctly
+
+### 9. Troubleshooting (Bitnami)
+
+| Symptom | Fix |
+|---|---|
+| `Permission denied (publickey)` | SSH key not in `authorized_keys`, or wrong key in secret |
+| `php: command not found` | Use `/opt/bitnami/php/bin/php` — not the system `php` |
+| `composer: command not found` | Use `/opt/bitnami/php/bin/composer` |
+| Git auth fails | PAT not stored; re-run `git pull` and authenticate interactively |
+| HTTP 404 | Apache vhost path or `DocumentRoot` incorrect |
+| SSL fails | Domain DNS not pointing to server IP |
+| Composer dependency mismatch | Server PHP is 8.3; some packages may require 8.4+ — upgrade server PHP if needed |
+
 ## Database Backup
 
 ### Automated Backup Script
