@@ -53,8 +53,7 @@ class AttendanceUpdateHtmxRequestTest extends TestCase
     private function setupMockedRoute(
         AttendanceUpdateHtmxRequest $request,
         ?EventTrooper $event_trooper
-    ): void
-    {
+    ): void {
         $mock_route = \Mockery::mock();
         $mock_route->shouldReceive('parameter')
             ->with('event_trooper')
