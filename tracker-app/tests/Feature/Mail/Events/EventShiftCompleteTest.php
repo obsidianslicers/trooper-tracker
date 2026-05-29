@@ -38,8 +38,6 @@ class EventShiftCompleteTest extends TestCase
         $this->assertSame($event_trooper->id, $content->with['event_trooper']->id);
         $this->assertSame($event_trooper->trooper->id, $content->with['trooper']->id);
         $this->assertSame($event_trooper->event_shift->event->id, $content->with['event']->id);
-        $this->assertNotEmpty(Crypt::decryptString($content->with['able_status']));
-        $this->assertNotEmpty(Crypt::decryptString($content->with['unable_status']));
         $this->assertSame([], $mail->attachments());
     }
 

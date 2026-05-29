@@ -281,7 +281,7 @@ class EventTrooperTest extends TestCase
         $this->assertFalse($result);
     }
 
-    public function test_can_mark_attendance_returns_false_when_event_not_closed_and_not_within_grace_period(): void
+    public function test_can_mark_attendance_returns_false_when_shift_is_not_closed(): void
     {
         $trooper = Trooper::factory()->create();
         $event = Event::factory()->state([Event::STATUS => EventStatus::OPEN])->create();

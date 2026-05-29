@@ -170,7 +170,7 @@ class EventTrooper extends BaseEventTrooper
      */
     public function canMarkAttendance(EventShift $event_shift, Trooper $trooper): bool
     {
-        if ($event_shift->event->can_update_trooper_status && $this->hasOwnership($trooper))
+        if ($event_shift->is_closed && $event_shift->event->can_update_trooper_status && $this->hasOwnership($trooper))
         {
             if ($this->status === EventTrooperStatus::GOING)
             {
