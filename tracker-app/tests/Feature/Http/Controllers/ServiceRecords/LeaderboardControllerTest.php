@@ -98,24 +98,34 @@ class LeaderboardControllerTest extends TestCase
             'operatives' => collect(),
         ]);
 
-        $this->mock(MagicBus::class, function (MockInterface $mock) use ($leaderboard, $organization): void {
-            $mock->shouldReceive('send')
-                ->once()
-                ->withArgs(function (GetLeaderboardMetricsQuery $query) use ($organization): bool {
+        $this->mock(
+            MagicBus::class,
+            function (MockInterface $mock) use ($leaderboard, $organization): void {
+                $query_matches = function (
+                    GetLeaderboardMetricsQuery $query
+                ) use ($organization): bool {
                     return $query->lookback === null
                         && $query->organization?->id === $organization->id
                         && $query->limit === 30;
-                })
-                ->andReturn($leaderboard);
-        });
+                };
+
+                $mock->shouldReceive('send')
+                    ->once()
+                    ->withArgs($query_matches)
+                    ->andReturn($leaderboard);
+            }
+        );
 
         $response = $this->actingAs($trooper)
             ->get(route('service-records.leaderboard', ['organization_id' => $organization->id]));
 
         $response->assertOk();
         $response->assertViewHas('organization_id', $organization->id);
-        $response->assertViewHas('organizations', function (Collection $organizations) use ($organization): bool {
-            return $organizations->contains('id', $organization->id);
-        });
+        $response->assertViewHas(
+            'organizations',
+            function (Collection $organizations) use ($organization): bool {
+                return $organizations->contains('id', $organization->id);
+            }
+        );
     }
 }

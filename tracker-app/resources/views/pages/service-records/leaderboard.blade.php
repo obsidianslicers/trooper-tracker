@@ -88,7 +88,9 @@
                         <div class="mb-4">
                             <div class="d-flex justify-content-between align-items-center mb-1">
                                 <div class="d-flex align-items-center">
-                                    <a href="{{ route('service-records.trooper', ['trooper' => $op->trooper]) }}"
+                                    <a href="{{ route('service-records.trooper', [
+                                            'trooper' => $op->trooper,
+                                        ]) }}"
                                        class="fw-bold small text-uppercase text-decoration-none">
                                         {{ $op->trooper->display_name }}
                                     </a>
@@ -105,11 +107,15 @@
                                  style="height: 6px;">
                                 <div class="progress-bar bg-success"
                                      role="progressbar"
-                                     style="width: {{ ($op->troop_count / $max_troops) * 100 }}%"></div>
+                                     style="width: {{
+                                        ($op->troop_count / $max_troops) * 100
+                                     }}%"></div>
                             </div>
                         </div>
                     @empty
-                        <p class="text-muted mb-0">No troopers found for the selected leaderboard filters.</p>
+                        <p class="text-muted mb-0">
+                            No troopers found for the selected leaderboard filters.
+                        </p>
                     @endforelse
                 </div>
             </div>

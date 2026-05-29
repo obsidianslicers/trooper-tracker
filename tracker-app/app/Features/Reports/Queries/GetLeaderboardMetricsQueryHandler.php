@@ -100,7 +100,8 @@ readonly class GetLeaderboardMetricsQueryHandler implements QueryHandlerInterfac
             })
             ->whereHas('trooper', function ($q) {
                 $q->where(Trooper::MEMBERSHIP_STATUS, MembershipStatus::ACTIVE)
-                    ->where(Trooper::DISPLAY_NAME, '!=', 'Placeholder'); // Exclude placeholder accounts
+                    // Exclude placeholder accounts.
+                    ->where(Trooper::DISPLAY_NAME, '!=', 'Placeholder');
             })
             ->select(EventTrooper::TROOPER_ID, \DB::raw('count(*) as troop_count'))
             ->with(['trooper' => fn ($q) => $q->select(Trooper::ID, Trooper::DISPLAY_NAME)])

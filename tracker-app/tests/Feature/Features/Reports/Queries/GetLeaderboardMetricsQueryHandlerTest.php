@@ -74,8 +74,12 @@ class GetLeaderboardMetricsQueryHandlerTest extends TestCase
         $thirty_days = $subject(new GetLeaderboardMetricsQuery(30));
 
         $this->assertTrue($all_time['operatives']->pluck('trooper_id')->contains($old_trooper->id));
-        $this->assertFalse($thirty_days['operatives']->pluck('trooper_id')->contains($old_trooper->id));
-        $this->assertTrue($thirty_days['operatives']->pluck('trooper_id')->contains($recent_trooper->id));
+        $this->assertFalse(
+            $thirty_days['operatives']->pluck('trooper_id')->contains($old_trooper->id)
+        );
+        $this->assertTrue(
+            $thirty_days['operatives']->pluck('trooper_id')->contains($recent_trooper->id)
+        );
     }
 
     public function test_invoke_operatives_are_limited_to_30(): void
@@ -180,7 +184,9 @@ class GetLeaderboardMetricsQueryHandlerTest extends TestCase
                 ->where(EventTrooper::ID, $event_trooper->id)
                 ->update([
                     EventTrooper::ORGANIZATION_ID => null,
-                    EventTrooper::COSTUME_ORGANIZATION_IDS => json_encode($costume_organization_ids),
+                    EventTrooper::COSTUME_ORGANIZATION_IDS => json_encode(
+                        $costume_organization_ids
+                    ),
                 ]);
 
             $event_trooper->refresh();

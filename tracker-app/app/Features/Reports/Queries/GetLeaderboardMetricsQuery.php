@@ -24,7 +24,8 @@ readonly class GetLeaderboardMetricsQuery
     /**
      * Create a new query instance.
      *
-     * @param  int|string|Carbon|null  $lookback  Days to look back (int), date string, Carbon date, or null for all time.
+     * @param  int|string|Carbon|null  $lookback  Days to look back, date string,
+     *                                            Carbon date, or null for all time.
      */
     public function __construct(
         public readonly int|string|Carbon|null $lookback = null,
