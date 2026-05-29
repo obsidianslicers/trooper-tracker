@@ -4,17 +4,23 @@
     <p>
         Esteemed Moderators,
     </p>
+
     <p>
-        <strong>{{ $join_request->trooper->display_name }}</strong> has submitted a request
-        to join <strong>{{ $join_request->organization->name }}</strong>.
+        Another brave soul - <strong>{{ $join_request->trooper->display_name }}</strong> - has
+        stepped forward and requested to join the Dark Empire. Yes, another one. The recruitment
+        posters must be working.
         @if($join_request->identifier)
             Their submitted identifier is: <strong>{{ $join_request->identifier }}</strong>.
         @endif
     </p>
+
     <p>
-        When you're ready, head to the
-        <a href="{{ route('admin.troopers.approvals') }}">Approvals page</a>
-        to review and approve or deny this request.
+        When your Imperial schedules permit, proceed to the <a href="{{ route('admin.troopers.approvals') }}">Approvals page</a>
+        to render your judgment. Approve them, deny them, or simply bask in the fleeting power of bureaucratic authority.
+    </p>
+
+    <p>
+        Your vigilance continues to keep the Empire running.
     </p>
 
     @include('emails.inc.signature')

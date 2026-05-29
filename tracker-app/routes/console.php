@@ -28,7 +28,3 @@ Schedule::command('tracker:expire-visitor-access')
 Schedule::command('tracker:send-daily-event-notifications')
     ->dailyAt('08:00')
     ->timezone($timezone);
-
-// Schedule::command('tracker:synchronize-organizations')
-//     ->weeklyOn(0, '03:00')
-//     ->timezone($timezone);
