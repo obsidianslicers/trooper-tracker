@@ -6,14 +6,19 @@ namespace App\Http\Controllers\Api;
 
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
+use App\Enums\MembershipRole;
 use App\Models\Event;
 use App\Models\EventTrooper;
 use App\Models\EventUpload;
+use App\Models\Organization;
 use App\Models\Trooper;
+use App\Models\TrooperAssignment;
+use App\Models\TrooperCostume;
 use App\Models\TrooperOrganization;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Collection;
 
 /**
  * Provides a public API for use by external developers.
@@ -27,6 +32,11 @@ class PublicApiController
         if ($request->has('trooperid') || $request->has('tkid'))
         {
             return $this->trooperHistory($request);
+        }
+
+        if ($request->has('roster'))
+        {
+            return $this->roster($request);
         }
 
         if ($request->has('photos') && $request->has('amount'))
@@ -114,6 +124,98 @@ class PublicApiController
 
         // Double-wrapped intentionally: legacy API contract expects [[...items...]]
         return response()->json([$upload_array]);
+    }
+
+    private function roster(Request $request): Response
+    {
+        $org = Organization::find($request->integer('org', 0));
+
+        if (!$org)
+        {
+            return $this->rosterResponse(collect(), collect());
+        }
+
+        $org_ids = Organization::where(Organization::NODE_PATH, 'like', $org->node_path.'%')
+            ->pluck(Organization::ID);
+
+        $troopers = Trooper::active()
+            ->whereHas('trooper_assignments', fn ($q) => $q
+                ->whereIn(TrooperAssignment::ORGANIZATION_ID, $org_ids)
+                ->where(TrooperAssignment::IS_MEMBER, true)
+            )
+            ->with([
+                'trooper_costumes',
+                'organizations' => fn ($q) => $q->withPivot(TrooperOrganization::IDENTIFIER),
+            ])
+            ->orderBy(Trooper::DISPLAY_NAME)
+            ->get();
+
+        $staff_ids = TrooperAssignment::whereIn(TrooperAssignment::ORGANIZATION_ID, $org_ids)
+            ->where(TrooperAssignment::IS_MODERATOR, true)
+            ->pluck(TrooperAssignment::TROOPER_ID)
+            ->unique();
+
+        return $this->rosterResponse($troopers, $staff_ids);
+    }
+
+    private function rosterResponse(Collection $troopers, Collection $staff_ids): Response
+    {
+        $command_staff = $troopers->filter(fn ($t) => $staff_ids->contains($t->id) || $t->membership_role === MembershipRole::ADMINISTRATOR);
+        $members = $troopers->reject(fn ($t) => $staff_ids->contains($t->id) || $t->membership_role === MembershipRole::ADMINISTRATOR);
+
+        $html = '<style>
+body{margin:0;padding:10px;font-family:Arial,sans-serif;background:#fff;color:#323f4e}
+h1,h2{text-align:center;margin-bottom:16px}
+h2{font-size:1em;border-bottom:1px solid #ccc;padding-bottom:6px;margin-top:20px}
+.roster{display:flex;flex-wrap:wrap}
+.member{width:110px;text-align:center;border:1px dashed #ccc;margin:10px;padding:8px;font-size:12px;word-break:break-word}
+.member img{width:75px;height:101px;object-fit:cover;display:block;margin:0 auto 6px}
+</style>';
+
+        $html .= '<h1>Members</h1>';
+
+        if ($command_staff->isNotEmpty())
+        {
+            $html .= '<h2>Leadership, Liaisons, and Unit Staff</h2><div class="roster">';
+            foreach ($command_staff as $trooper)
+            {
+                $html .= $this->memberCard($trooper);
+            }
+            $html .= '</div>';
+        }
+
+        $html .= '<h2>Members</h2><div class="roster">';
+
+        foreach ($members as $trooper)
+        {
+            $html .= $this->memberCard($trooper);
+        }
+
+        if ($members->isEmpty() && $command_staff->isEmpty())
+        {
+            $html .= '<p style="width:100%;text-align:center">No members to display.</p>';
+        }
+
+        $html .= '</div>';
+
+        return response($html);
+    }
+
+    private function memberCard(Trooper $trooper): string
+    {
+        $name = e($trooper->display_name);
+        $identifier = e($trooper->organizations->first()?->pivot?->identifier ?? '');
+        $label = $identifier ? $name.' - '.$identifier : $name;
+
+        $photo = $trooper->trooper_costumes
+            ->firstWhere(fn ($c) => !empty($c->{TrooperCostume::IMAGE_URL_SM}))
+            ?->{TrooperCostume::IMAGE_URL_SM};
+
+        $img = $photo
+            ? '<img src="'.e($photo).'" alt="">'
+            : '<img src="'.e(url('images/tk_head.jpg')).'" alt="">';
+
+        return '<div class="member">'.$img.$label.'</div>';
     }
 
     private function slideshowResponse(array $uploads): Response
