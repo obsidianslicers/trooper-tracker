@@ -6,6 +6,7 @@ namespace Tests\Feature\Http\Controllers\ServiceRecords;
 
 use App\Bus\MagicBus;
 use App\Features\Reports\Queries\GetLeaderboardMetricsQuery;
+use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
@@ -33,13 +34,13 @@ class LeaderboardControllerTest extends TestCase
             'operatives' => collect(),
         ]);
 
-        $this->mock(MagicBus::class, function (MockInterface $mock) use ($leaderboard): void
-        {
+        $this->mock(MagicBus::class, function (MockInterface $mock) use ($leaderboard): void {
             $mock->shouldReceive('send')
                 ->once()
-                ->withArgs(function (GetLeaderboardMetricsQuery $query): bool
-                {
-                    return $query->lookback === 90;
+                ->withArgs(function (GetLeaderboardMetricsQuery $query): bool {
+                    return $query->lookback === 90
+                        && $query->organization === null
+                        && $query->limit === 30;
                 })
                 ->andReturn($leaderboard);
         });
@@ -50,11 +51,71 @@ class LeaderboardControllerTest extends TestCase
         $response->assertOk();
         $response->assertViewIs('pages.service-records.leaderboard');
         $response->assertViewHas('days', 90);
-        $response->assertViewHas('leaderboard', function (Collection $result): bool
-        {
+        $response->assertViewHas('organization_id', null);
+        $response->assertViewHas('leaderboard', function (Collection $result): bool {
             return $result->get('dominance') instanceof Collection
                 && $result->get('diversity') instanceof Collection
                 && $result->get('operatives') instanceof Collection;
+        });
+    }
+
+    public function test_invoke_defaults_to_all_time(): void
+    {
+        $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
+
+        $leaderboard = collect([
+            'dominance' => collect(),
+            'diversity' => collect(),
+            'operatives' => collect(),
+        ]);
+
+        $this->mock(MagicBus::class, function (MockInterface $mock) use ($leaderboard): void {
+            $mock->shouldReceive('send')
+                ->once()
+                ->withArgs(function (GetLeaderboardMetricsQuery $query): bool {
+                    return $query->lookback === null
+                        && $query->organization === null
+                        && $query->limit === 30;
+                })
+                ->andReturn($leaderboard);
+        });
+
+        $response = $this->actingAs($trooper)
+            ->get(route('service-records.leaderboard'));
+
+        $response->assertOk();
+        $response->assertViewHas('days', null);
+    }
+
+    public function test_invoke_resolves_selected_top_level_organization(): void
+    {
+        $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
+        $organization = Organization::factory()->asOrganization()->create();
+
+        $leaderboard = collect([
+            'dominance' => collect(),
+            'diversity' => collect(),
+            'operatives' => collect(),
+        ]);
+
+        $this->mock(MagicBus::class, function (MockInterface $mock) use ($leaderboard, $organization): void {
+            $mock->shouldReceive('send')
+                ->once()
+                ->withArgs(function (GetLeaderboardMetricsQuery $query) use ($organization): bool {
+                    return $query->lookback === null
+                        && $query->organization?->id === $organization->id
+                        && $query->limit === 30;
+                })
+                ->andReturn($leaderboard);
+        });
+
+        $response = $this->actingAs($trooper)
+            ->get(route('service-records.leaderboard', ['organization_id' => $organization->id]));
+
+        $response->assertOk();
+        $response->assertViewHas('organization_id', $organization->id);
+        $response->assertViewHas('organizations', function (Collection $organizations) use ($organization): bool {
+            return $organizations->contains('id', $organization->id);
         });
     }
 }
