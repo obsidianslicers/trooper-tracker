@@ -9,7 +9,7 @@
 
             @if(TroopTracker::isXenforoOAuthRequired())
                 <x-message type="info" icon="fa-circle-info">
-                You must use Xenforo to login.
+                You must use {{ config('services.xenforo.name') }} to login.
                 </x-message>
 
                 @if(!TroopTracker::isXenforoOAuthConfigured())
