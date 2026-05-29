@@ -7,73 +7,49 @@ namespace App\Jobs;
 use App\Bus\MagicBus;
 use App\Enums\MembershipRole;
 use App\Features\Troopers\Queries\GetTroopersByRoleQuery;
-use App\Mail\Admin\Troopers\TrooperAwaitingApproval;
 use App\Models\Trooper;
+use App\Notifications\Admin\TrooperRegisteredNotification;
 use App\Policies\TrooperPolicy;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Support\Facades\Mail;
 
 /**
  * Sends awaiting approval notifications to admins and moderators when a trooper registers.
  *
- * This job notifies all administrators and moderators with valid email addresses
- * when a new trooper completes registration. This allows admins to review and approve
- * pending trooper accounts in a timely manner.
+ * This job notifies all administrators and moderators when a new trooper completes
+ * registration. Channel routing (email, push, in-app) and preference checks are
+ * handled by TrooperRegisteredNotification::via().
  */
 class SendTrooperRegisteredNotificationsJob implements ShouldQueue
 {
     use Queueable;
 
     /**
-     * Create a new job instance.
-     *
      * @param  Trooper  $trooper  The newly registered trooper awaiting approval.
      */
-    public function __construct(private readonly Trooper $trooper)
-    {
-        //
-    }
+    public function __construct(private readonly Trooper $trooper) {}
 
-    /**
-     * Execute the job.
-     *
-     * Retrieves all administrators and moderators and sends them notification emails
-     * about the newly registered trooper awaiting approval. Only troopers with valid
-     * email addresses receive notifications.
-     *
-     * @param  MagicBus  $bus  The message bus for dispatching queries
-     */
     public function handle(MagicBus $bus): void
     {
-        // This line is what triggers the verify your email, to be sent after
-        // registration.
         event(new Registered($this->trooper));
 
-        $admins_query = new GetTroopersByRoleQuery(MembershipRole::ADMINISTRATOR);
-
-        $admins = $bus->send($admins_query);
+        $admins = $bus->send(new GetTroopersByRoleQuery(MembershipRole::ADMINISTRATOR));
 
         foreach ($admins as $admin)
         {
-            if ($admin->emailAppearsValid())
-            {
-                Mail::to($admin->email)->queue(new TrooperAwaitingApproval);
-            }
+            $admin->notify(new TrooperRegisteredNotification);
         }
 
-        $moderators_query = new GetTroopersByRoleQuery(MembershipRole::MODERATOR);
-
-        $moderators = $bus->send($moderators_query);
+        $moderators = $bus->send(new GetTroopersByRoleQuery(MembershipRole::MODERATOR));
 
         $policy = new TrooperPolicy;
 
         foreach ($moderators as $moderator)
         {
-            if ($moderator->emailAppearsValid() && $policy->moderate($moderator, $this->trooper))
+            if ($policy->moderate($moderator, $this->trooper))
             {
-                Mail::to($moderator->email)->queue(new TrooperAwaitingApproval);
+                $moderator->notify(new TrooperRegisteredNotification);
             }
         }
     }

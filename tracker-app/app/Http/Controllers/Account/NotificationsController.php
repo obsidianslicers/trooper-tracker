@@ -35,6 +35,7 @@ class NotificationsController extends MagicBusController
 
         $data['notification_frequency'] = $trooper->notification_frequency;
         $data['push_notifications_enabled'] = $trooper->push_notifications_enabled;
+        $data['notification_preferences'] = $trooper->notification_preferences ?? [];
 
         return view('pages.account.notifications', $data);
     }

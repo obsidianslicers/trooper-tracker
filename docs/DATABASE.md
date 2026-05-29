@@ -239,6 +239,7 @@ Purpose: Authenticated Trooper accounts and profile state.
 | membership_role | varchar(16) | no | default MembershipRole::MEMBER->value |
 | notification_frequency | varchar(16) | no | default NotificationFrequency::NEVER->value |
 | push_notifications_enabled | boolean | no | default true |
+| notification_preferences | json | yes |  |
 | visitor_expires_at | datetime | yes |  |
 | visitor_notified_at | datetime | yes |  |
 | achievements_updated_at | datetime | yes |  |

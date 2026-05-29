@@ -19,19 +19,27 @@ class EventCreatedNotification extends Notification
 
     public function via(Trooper $notifiable): array
     {
-        $channels = ['database'];
+        $channels = [];
 
-        if ($notifiable->push_notifications_enabled)
+        if ($notifiable->wantsNotification('event_created', 'database'))
+        {
+            $channels[] = 'database';
+        }
+
+        if ($notifiable->push_notifications_enabled
+            && $notifiable->wantsNotification('event_created', 'fcm'))
         {
             $channels[] = FcmChannel::class;
         }
 
         if ($notifiable->notification_frequency === NotificationFrequency::INSTANT
-            && $notifiable->emailAppearsValid())
+            && $notifiable->emailAppearsValid()
+            && $notifiable->wantsNotification('event_created', 'mail'))
         {
             $channels[] = 'mail';
         }
-        elseif ($notifiable->notification_frequency === NotificationFrequency::DAILY)
+        elseif ($notifiable->notification_frequency === NotificationFrequency::DAILY
+            && $notifiable->wantsNotification('event_created', 'mail'))
         {
             $channels[] = DailyDigestChannel::class;
         }

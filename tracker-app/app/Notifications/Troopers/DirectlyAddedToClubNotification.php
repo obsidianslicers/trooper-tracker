@@ -19,14 +19,21 @@ class DirectlyAddedToClubNotification extends Notification
 
     public function via(Trooper $notifiable): array
     {
-        $channels = ['database'];
+        $channels = [];
 
-        if ($notifiable->push_notifications_enabled)
+        if ($notifiable->wantsNotification('directly_added_to_club', 'database'))
+        {
+            $channels[] = 'database';
+        }
+
+        if ($notifiable->push_notifications_enabled
+            && $notifiable->wantsNotification('directly_added_to_club', 'fcm'))
         {
             $channels[] = FcmChannel::class;
         }
 
-        if ($notifiable->emailAppearsValid())
+        if ($notifiable->emailAppearsValid()
+            && $notifiable->wantsNotification('directly_added_to_club', 'mail'))
         {
             $channels[] = 'mail';
         }

@@ -99,6 +99,7 @@ class Trooper extends Model
     const MEMBERSHIP_ROLE = 'membership_role';
     const NOTIFICATION_FREQUENCY = 'notification_frequency';
     const PUSH_NOTIFICATIONS_ENABLED = 'push_notifications_enabled';
+    const NOTIFICATION_PREFERENCES = 'notification_preferences';
     const VISITOR_EXPIRES_AT = 'visitor_expires_at';
     const VISITOR_NOTIFIED_AT = 'visitor_notified_at';
     const ACHIEVEMENTS_UPDATED_AT = 'achievements_updated_at';
@@ -116,6 +117,7 @@ class Trooper extends Model
         self::EMAIL_VERIFIED_AT => 'datetime',
         self::SETUP_COMPLETED_AT => 'datetime',
         self::PUSH_NOTIFICATIONS_ENABLED => 'bool',
+        self::NOTIFICATION_PREFERENCES => 'array',
         self::VISITOR_EXPIRES_AT => 'datetime',
         self::VISITOR_NOTIFIED_AT => 'datetime',
         self::ACHIEVEMENTS_UPDATED_AT => 'datetime',
@@ -144,6 +146,7 @@ class Trooper extends Model
         self::MEMBERSHIP_ROLE,
         self::NOTIFICATION_FREQUENCY,
         self::PUSH_NOTIFICATIONS_ENABLED,
+        self::NOTIFICATION_PREFERENCES,
         self::VISITOR_EXPIRES_AT,
         self::VISITOR_NOTIFIED_AT,
         self::ACHIEVEMENTS_UPDATED_AT,

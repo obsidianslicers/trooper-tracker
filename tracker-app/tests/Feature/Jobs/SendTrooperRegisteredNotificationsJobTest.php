@@ -8,12 +8,12 @@ use App\Bus\MagicBus;
 use App\Enums\MembershipRole;
 use App\Features\Troopers\Queries\GetTroopersByRoleQuery;
 use App\Jobs\SendTrooperRegisteredNotificationsJob;
-use App\Mail\Admin\Troopers\TrooperAwaitingApproval;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
+use App\Notifications\Admin\TrooperRegisteredNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
 use Mockery;
 use Tests\TestCase;
 
@@ -21,9 +21,38 @@ class SendTrooperRegisteredNotificationsJobTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_handle_queues_notifications_for_valid_admins_and_allowed_moderators(): void
+    public function test_handle_notifies_all_admins(): void
     {
-        Mail::fake();
+        Notification::fake();
+
+        $registered_trooper = Trooper::factory()->asMember()->create();
+
+        $admin_valid = Trooper::factory()->asAdministrator()->withEmail('admin@example.com')->create();
+        $admin_invalid = Trooper::factory()->asAdministrator()->withInvalidEmail()->create();
+
+        $bus = Mockery::mock(MagicBus::class);
+        $bus->shouldReceive('send')
+            ->once()
+            ->withArgs(fn (object $query): bool => $query instanceof GetTroopersByRoleQuery
+                && $query->membership_role === MembershipRole::ADMINISTRATOR)
+            ->andReturn(collect([$admin_valid, $admin_invalid]));
+
+        $bus->shouldReceive('send')
+            ->once()
+            ->withArgs(fn (object $query): bool => $query instanceof GetTroopersByRoleQuery
+                && $query->membership_role === MembershipRole::MODERATOR)
+            ->andReturn(collect([]));
+
+        $subject = new SendTrooperRegisteredNotificationsJob($registered_trooper);
+        $subject->handle($bus);
+
+        Notification::assertSentTo($admin_valid, TrooperRegisteredNotification::class);
+        Notification::assertSentTo($admin_invalid, TrooperRegisteredNotification::class);
+    }
+
+    public function test_handle_notifies_moderators_with_authority_over_registered_trooper(): void
+    {
+        Notification::fake();
 
         $registered_trooper = Trooper::factory()->asMember()->create();
 
@@ -36,48 +65,32 @@ class SendTrooperRegisteredNotificationsJobTest extends TestCase
             ->asMember()
             ->create();
 
-        $admin_valid = Trooper::factory()->asAdministrator()->withEmail('admin@example.com')->create();
-        $admin_invalid = Trooper::factory()->asAdministrator()->withInvalidEmail()->create();
-
-        $moderator_valid = Trooper::factory()->asModerator()->withEmail('mod@example.com')->create();
+        $moderator_in_tree = Trooper::factory()->asModerator()->withEmail('mod@example.com')->create();
         TrooperAssignment::factory()
-            ->forTrooper($moderator_valid)
+            ->forTrooper($moderator_in_tree)
             ->forOrganization($root)
             ->asModerator()
             ->create();
 
-        $moderator_invalid = Trooper::factory()->asModerator()->withInvalidEmail()->create();
+        $moderator_outside_tree = Trooper::factory()->asModerator()->withEmail('other@example.com')->create();
 
         $bus = Mockery::mock(MagicBus::class);
         $bus->shouldReceive('send')
             ->once()
-            ->withArgs(function (object $query): bool
-            {
-                return $query instanceof GetTroopersByRoleQuery
-                    && $query->membership_role === MembershipRole::ADMINISTRATOR;
-            })
-            ->andReturn(collect([$admin_valid, $admin_invalid]));
+            ->withArgs(fn (object $query): bool => $query instanceof GetTroopersByRoleQuery
+                && $query->membership_role === MembershipRole::ADMINISTRATOR)
+            ->andReturn(collect([]));
 
         $bus->shouldReceive('send')
             ->once()
-            ->withArgs(function (object $query): bool
-            {
-                return $query instanceof GetTroopersByRoleQuery
-                    && $query->membership_role === MembershipRole::MODERATOR;
-            })
-            ->andReturn(collect([$moderator_valid, $moderator_invalid]));
+            ->withArgs(fn (object $query): bool => $query instanceof GetTroopersByRoleQuery
+                && $query->membership_role === MembershipRole::MODERATOR)
+            ->andReturn(collect([$moderator_in_tree, $moderator_outside_tree]));
 
         $subject = new SendTrooperRegisteredNotificationsJob($registered_trooper);
         $subject->handle($bus);
 
-        Mail::assertQueued(TrooperAwaitingApproval::class, 2);
-        Mail::assertQueued(TrooperAwaitingApproval::class, function (TrooperAwaitingApproval $mail) use ($admin_valid): bool
-        {
-            return $mail->hasTo($admin_valid->email);
-        });
-        Mail::assertQueued(TrooperAwaitingApproval::class, function (TrooperAwaitingApproval $mail) use ($moderator_valid): bool
-        {
-            return $mail->hasTo($moderator_valid->email);
-        });
+        Notification::assertSentTo($moderator_in_tree, TrooperRegisteredNotification::class);
+        Notification::assertNotSentTo($moderator_outside_tree, TrooperRegisteredNotification::class);
     }
 }

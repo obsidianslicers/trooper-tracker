@@ -2,32 +2,32 @@
 
 declare(strict_types=1);
 
-namespace App\Notifications\Troopers;
+namespace App\Notifications\Admin;
 
 use App\Channels\FcmChannel;
-use App\Mail\Admin\Troopers\VisitorAccessExpired;
+use App\Mail\Admin\Troopers\TrooperAwaitingApproval;
 use App\Models\Trooper;
 use Illuminate\Notifications\Notification;
 
-class VisitorAccessExpiredNotification extends Notification
+class TrooperRegisteredNotification extends Notification
 {
     public function via(Trooper $notifiable): array
     {
         $channels = [];
 
-        if ($notifiable->wantsNotification('visitor_access_expired', 'database'))
+        if ($notifiable->wantsNotification('trooper_registrations', 'database'))
         {
             $channels[] = 'database';
         }
 
         if ($notifiable->push_notifications_enabled
-            && $notifiable->wantsNotification('visitor_access_expired', 'fcm'))
+            && $notifiable->wantsNotification('trooper_registrations', 'fcm'))
         {
             $channels[] = FcmChannel::class;
         }
 
         if ($notifiable->emailAppearsValid()
-            && $notifiable->wantsNotification('visitor_access_expired', 'mail'))
+            && $notifiable->wantsNotification('trooper_registrations', 'mail'))
         {
             $channels[] = 'mail';
         }
@@ -35,17 +35,17 @@ class VisitorAccessExpiredNotification extends Notification
         return $channels;
     }
 
-    public function toMail(Trooper $notifiable): VisitorAccessExpired
+    public function toMail(Trooper $notifiable): TrooperAwaitingApproval
     {
-        return (new VisitorAccessExpired($notifiable))->to($notifiable->email);
+        return (new TrooperAwaitingApproval())->to($notifiable->email);
     }
 
     public function toArray(Trooper $notifiable): array
     {
         return [
-            'title' => 'Visitor Access Expired',
-            'body'  => 'Your 6-month visitor access has expired. Log in to request renewal.',
-            'url'   => '/account/visitor-renew',
+            'title' => 'New Trooper Registration',
+            'body'  => 'A new trooper is awaiting approval.',
+            'url'   => '/admin/troopers/approvals',
         ];
     }
 

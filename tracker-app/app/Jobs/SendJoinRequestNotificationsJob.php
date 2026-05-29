@@ -7,12 +7,11 @@ namespace App\Jobs;
 use App\Bus\MagicBus;
 use App\Enums\MembershipRole;
 use App\Features\Troopers\Queries\GetTroopersByRoleQuery;
-use App\Mail\Admin\Troopers\TrooperJoinRequestSubmitted;
 use App\Models\TrooperOrganization;
+use App\Notifications\Admin\JoinRequestSubmittedNotification;
 use App\Policies\TrooperJoinRequestPolicy;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Support\Facades\Mail;
 
 /**
  * Sends join request notifications to admins and relevant moderators.
@@ -36,10 +35,7 @@ class SendJoinRequestNotificationsJob implements ShouldQueue
 
         foreach ($admins as $admin)
         {
-            if ($admin->emailAppearsValid())
-            {
-                Mail::to($admin->email)->queue(new TrooperJoinRequestSubmitted($this->join_request));
-            }
+            $admin->notify(new JoinRequestSubmittedNotification($this->join_request));
         }
 
         $moderators = $bus->send(new GetTroopersByRoleQuery(MembershipRole::MODERATOR));
@@ -48,9 +44,9 @@ class SendJoinRequestNotificationsJob implements ShouldQueue
 
         foreach ($moderators as $moderator)
         {
-            if ($moderator->emailAppearsValid() && $policy->moderate($moderator, $this->join_request))
+            if ($policy->moderate($moderator, $this->join_request))
             {
-                Mail::to($moderator->email)->queue(new TrooperJoinRequestSubmitted($this->join_request));
+                $moderator->notify(new JoinRequestSubmittedNotification($this->join_request));
             }
         }
     }

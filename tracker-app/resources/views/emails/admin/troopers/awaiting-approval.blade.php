@@ -8,8 +8,8 @@
     <p>
         Another hopeful recruit has dared to submit themselves to the
         <b>merciless gears of Imperial administration</b>.
-        Against all odds, their registration has successfully landed in your queue—
-        which means it's time for you to perform your sacred duty:
+        Against all odds, their registration has successfully landed in your
+        queue - which means it's time for you to perform your sacred duty:
         <i>deciding whether this brave soul is worthy of joining our ranks</i>.
     </p>
 

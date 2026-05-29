@@ -16,15 +16,21 @@ class EventCancelledNotification extends Notification
 
     public function via(Trooper $notifiable): array
     {
-        $channels = ['database'];
+        $channels = [];
 
-        if ($notifiable->push_notifications_enabled)
+        if ($notifiable->wantsNotification('event_cancelled', 'database'))
+        {
+            $channels[] = 'database';
+        }
+
+        if ($notifiable->push_notifications_enabled
+            && $notifiable->wantsNotification('event_cancelled', 'fcm'))
         {
             $channels[] = FcmChannel::class;
         }
 
-        // Cancellations always send email regardless of notification_frequency
-        if ($notifiable->emailAppearsValid())
+        if ($notifiable->emailAppearsValid()
+            && $notifiable->wantsNotification('event_cancelled', 'mail'))
         {
             $channels[] = 'mail';
         }
