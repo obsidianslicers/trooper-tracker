@@ -7,8 +7,8 @@ namespace App\Jobs;
 use App\Bus\MagicBus;
 use App\Enums\MembershipRole;
 use App\Features\Troopers\Queries\GetTroopersByRoleQuery;
-use App\Notifications\Admin\TrooperRegisteredNotification;
 use App\Models\Trooper;
+use App\Notifications\Admin\TrooperRegisteredNotification;
 use App\Policies\TrooperPolicy;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -38,7 +38,7 @@ class SendTrooperRegisteredNotificationsJob implements ShouldQueue
 
         foreach ($admins as $admin)
         {
-            $admin->notify(new TrooperRegisteredNotification());
+            $admin->notify(new TrooperRegisteredNotification);
         }
 
         $moderators = $bus->send(new GetTroopersByRoleQuery(MembershipRole::MODERATOR));
@@ -49,7 +49,7 @@ class SendTrooperRegisteredNotificationsJob implements ShouldQueue
         {
             if ($policy->moderate($moderator, $this->trooper))
             {
-                $moderator->notify(new TrooperRegisteredNotification());
+                $moderator->notify(new TrooperRegisteredNotification);
             }
         }
     }

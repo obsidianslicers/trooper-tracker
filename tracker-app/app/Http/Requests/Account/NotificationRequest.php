@@ -50,11 +50,11 @@ class NotificationRequest extends FormRequest
             ],
             Trooper::PUSH_NOTIFICATIONS_ENABLED => ['boolean'],
             'organizations.*.'.TrooperAssignment::SHOULD_NOTIFY => ['boolean'],
-            Trooper::NOTIFICATION_PREFERENCES                   => ['nullable', 'array'],
-            Trooper::NOTIFICATION_PREFERENCES.'.*'              => ['nullable', 'array'],
-            Trooper::NOTIFICATION_PREFERENCES.'.*.mail'         => ['boolean'],
-            Trooper::NOTIFICATION_PREFERENCES.'.*.fcm'          => ['boolean'],
-            Trooper::NOTIFICATION_PREFERENCES.'.*.database'     => ['boolean'],
+            Trooper::NOTIFICATION_PREFERENCES => ['nullable', 'array'],
+            Trooper::NOTIFICATION_PREFERENCES.'.*' => ['nullable', 'array'],
+            Trooper::NOTIFICATION_PREFERENCES.'.*.mail' => ['boolean'],
+            Trooper::NOTIFICATION_PREFERENCES.'.*.fcm' => ['boolean'],
+            Trooper::NOTIFICATION_PREFERENCES.'.*.database' => ['boolean'],
         ];
 
         return $rules;
