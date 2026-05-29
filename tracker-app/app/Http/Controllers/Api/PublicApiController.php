@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
+use App\Enums\MembershipRole;
 use App\Models\Event;
 use App\Models\EventTrooper;
 use App\Models\EventUpload;
@@ -131,7 +132,7 @@ class PublicApiController
 
         if (!$org)
         {
-            return $this->rosterResponse(collect());
+            return $this->rosterResponse(collect(), collect());
         }
 
         $org_ids = Organization::where(Organization::NODE_PATH, 'like', $org->node_path . '%')
@@ -149,39 +150,48 @@ class PublicApiController
             ->orderBy(Trooper::DISPLAY_NAME)
             ->get();
 
-        return $this->rosterResponse($troopers);
+        $staff_ids = TrooperAssignment::whereIn(TrooperAssignment::ORGANIZATION_ID, $org_ids)
+            ->where(TrooperAssignment::IS_MODERATOR, true)
+            ->pluck(TrooperAssignment::TROOPER_ID)
+            ->unique();
+
+        return $this->rosterResponse($troopers, $staff_ids);
     }
 
-    private function rosterResponse(Collection $troopers): Response
+    private function rosterResponse(Collection $troopers, Collection $staff_ids): Response
     {
+        $command_staff = $troopers->filter(fn ($t) => $staff_ids->contains($t->id) || $t->membership_role === MembershipRole::ADMINISTRATOR);
+        $members = $troopers->reject(fn ($t) => $staff_ids->contains($t->id) || $t->membership_role === MembershipRole::ADMINISTRATOR);
+
         $html = '<style>
 body{margin:0;padding:10px;font-family:Arial,sans-serif;background:#fff;color:#323f4e}
-h1{text-align:center;margin-bottom:16px}
+h1,h2{text-align:center;margin-bottom:16px}
+h2{font-size:1em;border-bottom:1px solid #ccc;padding-bottom:6px;margin-top:20px}
 .roster{display:flex;flex-wrap:wrap}
 .member{width:110px;text-align:center;border:1px dashed #ccc;margin:10px;padding:8px;font-size:12px;word-break:break-word}
 .member img{width:75px;height:101px;object-fit:cover;display:block;margin:0 auto 6px}
 </style>';
 
-        $html .= '<h1>Members</h1><div class="roster">';
+        $html .= '<h1>Members</h1>';
 
-        foreach ($troopers as $trooper)
+        if ($command_staff->isNotEmpty())
         {
-            $name = e($trooper->display_name);
-            $identifier = e($trooper->organizations->first()?->pivot?->identifier ?? '');
-            $label = $identifier ? $name . ' - ' . $identifier : $name;
-
-            $photo = $trooper->trooper_costumes
-                ->firstWhere(fn ($c) => !empty($c->{TrooperCostume::IMAGE_URL_SM}))
-                ?->{TrooperCostume::IMAGE_URL_SM};
-
-            $img = $photo
-                ? '<img src="' . e($photo) . '" alt="">'
-                : '<img src="' . e(url('images/tk_head.jpg')) . '" alt="">';
-
-            $html .= '<div class="member">' . $img . $label . '</div>';
+            $html .= '<h2>Leadership, Liaisons, and Unit Staff</h2><div class="roster">';
+            foreach ($command_staff as $trooper)
+            {
+                $html .= $this->memberCard($trooper);
+            }
+            $html .= '</div>';
         }
 
-        if ($troopers->isEmpty())
+        $html .= '<h2>Members</h2><div class="roster">';
+
+        foreach ($members as $trooper)
+        {
+            $html .= $this->memberCard($trooper);
+        }
+
+        if ($members->isEmpty() && $command_staff->isEmpty())
         {
             $html .= '<p style="width:100%;text-align:center">No members to display.</p>';
         }
@@ -189,6 +199,23 @@ h1{text-align:center;margin-bottom:16px}
         $html .= '</div>';
 
         return response($html);
+    }
+
+    private function memberCard(Trooper $trooper): string
+    {
+        $name = e($trooper->display_name);
+        $identifier = e($trooper->organizations->first()?->pivot?->identifier ?? '');
+        $label = $identifier ? $name . ' - ' . $identifier : $name;
+
+        $photo = $trooper->trooper_costumes
+            ->firstWhere(fn ($c) => !empty($c->{TrooperCostume::IMAGE_URL_SM}))
+            ?->{TrooperCostume::IMAGE_URL_SM};
+
+        $img = $photo
+            ? '<img src="' . e($photo) . '" alt="">'
+            : '<img src="' . e(url('images/tk_head.jpg')) . '" alt="">';
+
+        return '<div class="member">' . $img . $label . '</div>';
     }
 
     private function slideshowResponse(array $uploads): Response
