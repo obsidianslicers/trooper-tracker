@@ -21,14 +21,15 @@ trait HasOrgAttributionQuery
                 $q->where('tt_event_troopers.organization_id', $org_id)
                     ->orWhere(function ($q) use ($org_id) {
                         $q->whereNull('tt_event_troopers.organization_id')
-                            ->whereRaw('JSON_CONTAINS(tt_event_troopers.costume_organization_ids, ?)', [json_encode($org_id)]);
+                            ->where(function ($q) use ($org_id) {
+                                $this->whereJsonArrayContainsOrganization($q, $org_id);
+                            });
                     });
             });
         }
         elseif (!empty($accessible_org_ids))
         {
-            $encoded = json_encode($accessible_org_ids);
-            $q->where(function ($q) use ($accessible_org_ids, $encoded) {
+            $q->where(function ($q) use ($accessible_org_ids) {
                 $q->whereExists(function ($q) use ($accessible_org_ids) {
                     $q->from('tt_organizations as et_org')
                         ->whereColumn('et_org.id', 'tt_event_troopers.organization_id')
@@ -37,8 +38,26 @@ trait HasOrgAttributionQuery
                             $accessible_org_ids
                         );
                 })
-                    ->orWhereRaw('JSON_OVERLAPS(tt_event_troopers.costume_organization_ids, ?)', [$encoded]);
+                    ->orWhere(function ($q) use ($accessible_org_ids) {
+                        foreach ($accessible_org_ids as $org_id)
+                        {
+                            $q->orWhere(function ($q) use ($org_id) {
+                                $this->whereJsonArrayContainsOrganization($q, (int) $org_id);
+                            });
+                        }
+                    });
             });
         }
+    }
+
+    private function whereJsonArrayContainsOrganization(mixed $q, int $org_id): void
+    {
+        $json_path = "REPLACE(tt_event_troopers.costume_organization_ids, ' ', '')";
+
+        $q->whereJsonContains('tt_event_troopers.costume_organization_ids', $org_id)
+            ->orWhereRaw($json_path.' = ?', ['['.$org_id.']'])
+            ->orWhereRaw($json_path.' LIKE ?', ['['.$org_id.',%'])
+            ->orWhereRaw($json_path.' LIKE ?', ['%,'.$org_id.',%'])
+            ->orWhereRaw($json_path.' LIKE ?', ['%,'.$org_id.']']);
     }
 }

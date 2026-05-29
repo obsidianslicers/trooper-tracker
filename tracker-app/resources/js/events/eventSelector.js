@@ -147,7 +147,11 @@ export default function eventSelector() {
         },
 
         getHostingOrganizationLabel(hostingOrganizationId) {
-            return this.hosting_organization_labels[hostingOrganizationId] ?? `Organization ${hostingOrganizationId}`;
+            let label = this.hosting_organization_labels[hostingOrganizationId] ?? `Organization ${hostingOrganizationId}`;
+
+            label = label.replace(/(\- )/gi, '').trim();
+
+            return label;
         },
 
         clearCostumeOrganization() {
