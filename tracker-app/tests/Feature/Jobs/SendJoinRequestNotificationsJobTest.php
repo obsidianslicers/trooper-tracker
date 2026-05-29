@@ -6,15 +6,16 @@ namespace Tests\Feature\Jobs;
 
 use App\Bus\MagicBus;
 use App\Enums\MembershipRole;
+use App\Enums\MembershipStatus;
 use App\Features\Troopers\Queries\GetTroopersByRoleQuery;
 use App\Jobs\SendJoinRequestNotificationsJob;
-use App\Mail\Admin\Troopers\TrooperJoinRequestSubmitted;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperOrganization;
+use App\Notifications\Admin\JoinRequestSubmittedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
 use Mockery;
 use Tests\TestCase;
 
@@ -25,9 +26,9 @@ class SendJoinRequestNotificationsJobTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_handle_queues_mail_to_admins_with_valid_emails(): void
+    public function test_handle_notifies_all_admins(): void
     {
-        Mail::fake();
+        Notification::fake();
 
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
         $trooper = Trooper::factory()->asMember()->create();
@@ -35,7 +36,7 @@ class SendJoinRequestNotificationsJobTest extends TestCase
         $join_request = TrooperOrganization::factory()
             ->forTrooper($trooper)
             ->forOrganization($organization)
-            ->create([TrooperOrganization::MEMBERSHIP_STATUS => \App\Enums\MembershipStatus::PENDING]);
+            ->create([TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::PENDING]);
 
         $admin_valid = Trooper::factory()->asAdministrator()->withEmail('admin@example.com')->create();
         $admin_invalid = Trooper::factory()->asAdministrator()->withInvalidEmail()->create();
@@ -56,13 +57,13 @@ class SendJoinRequestNotificationsJobTest extends TestCase
         $subject = new SendJoinRequestNotificationsJob($join_request);
         $subject->handle($bus);
 
-        Mail::assertQueued(TrooperJoinRequestSubmitted::class, 1);
-        Mail::assertQueued(TrooperJoinRequestSubmitted::class, fn (TrooperJoinRequestSubmitted $mail): bool => $mail->hasTo($admin_valid->email));
+        Notification::assertSentTo($admin_valid, JoinRequestSubmittedNotification::class);
+        Notification::assertSentTo($admin_invalid, JoinRequestSubmittedNotification::class);
     }
 
-    public function test_handle_queues_mail_to_moderators_with_authority_over_request(): void
+    public function test_handle_notifies_moderators_with_authority_over_request(): void
     {
-        Mail::fake();
+        Notification::fake();
 
         $root = Organization::factory()->asOrganization()->withNodePath('100:')->create();
         $child = Organization::factory()->asOrganization()->withNodePath('100:200:')->withParent($root)->create();
@@ -72,7 +73,7 @@ class SendJoinRequestNotificationsJobTest extends TestCase
         $join_request = TrooperOrganization::factory()
             ->forTrooper($trooper)
             ->forOrganization($child)
-            ->create([TrooperOrganization::MEMBERSHIP_STATUS => \App\Enums\MembershipStatus::PENDING]);
+            ->create([TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::PENDING]);
 
         $moderator_in_tree = Trooper::factory()->asModerator()->withEmail('mod@example.com')->create();
         TrooperAssignment::factory()->forTrooper($moderator_in_tree)->forOrganization($root)->asModerator()->create();
@@ -97,42 +98,7 @@ class SendJoinRequestNotificationsJobTest extends TestCase
         $subject = new SendJoinRequestNotificationsJob($join_request);
         $subject->handle($bus);
 
-        Mail::assertQueued(TrooperJoinRequestSubmitted::class, 1);
-        Mail::assertQueued(TrooperJoinRequestSubmitted::class, fn (TrooperJoinRequestSubmitted $mail): bool => $mail->hasTo($moderator_in_tree->email));
-        Mail::assertNotQueued(TrooperJoinRequestSubmitted::class, fn (TrooperJoinRequestSubmitted $mail): bool => $mail->hasTo($moderator_outside_tree->email));
-    }
-
-    public function test_handle_skips_moderators_with_invalid_emails(): void
-    {
-        Mail::fake();
-
-        $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
-        $trooper = Trooper::factory()->asMember()->create();
-
-        $join_request = TrooperOrganization::factory()
-            ->forTrooper($trooper)
-            ->forOrganization($organization)
-            ->create([TrooperOrganization::MEMBERSHIP_STATUS => \App\Enums\MembershipStatus::PENDING]);
-
-        $moderator_invalid = Trooper::factory()->asModerator()->withInvalidEmail()->create();
-        TrooperAssignment::factory()->forTrooper($moderator_invalid)->forOrganization($organization)->asModerator()->create();
-
-        $bus = Mockery::mock(MagicBus::class);
-        $bus->shouldReceive('send')
-            ->once()
-            ->withArgs(fn (object $query): bool => $query instanceof GetTroopersByRoleQuery
-                && $query->membership_role === MembershipRole::ADMINISTRATOR)
-            ->andReturn(collect([]));
-
-        $bus->shouldReceive('send')
-            ->once()
-            ->withArgs(fn (object $query): bool => $query instanceof GetTroopersByRoleQuery
-                && $query->membership_role === MembershipRole::MODERATOR)
-            ->andReturn(collect([$moderator_invalid]));
-
-        $subject = new SendJoinRequestNotificationsJob($join_request);
-        $subject->handle($bus);
-
-        Mail::assertNothingQueued();
+        Notification::assertSentTo($moderator_in_tree, JoinRequestSubmittedNotification::class);
+        Notification::assertNotSentTo($moderator_outside_tree, JoinRequestSubmittedNotification::class);
     }
 }

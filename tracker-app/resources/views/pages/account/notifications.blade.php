@@ -76,30 +76,29 @@
 
                     <h3>Administrative Notifications</h3>
                     <p>
-                        <i>Control which administrative email notifications you receive.</i>
+                        <i>Control which channels you receive administrative notifications on.</i>
                     </p>
 
-                    <x-input-container>
-                        <input type="hidden" name="notification_preferences[join_requests][mail]" value="0">
-                        <x-input-checkbox :property="'notification_preferences[join_requests][mail]'"
-                                          :label="'Club Join Request Emails'"
-                                          :value="1"
-                                          :checked="$notification_preferences['join_requests']['mail'] ?? true" />
-                        <x-input-help>
-                            Receive an email when a trooper submits a club or organization join request.
-                        </x-input-help>
-                    </x-input-container>
-
-                    <x-input-container>
-                        <input type="hidden" name="notification_preferences[trooper_registrations][mail]" value="0">
-                        <x-input-checkbox :property="'notification_preferences[trooper_registrations][mail]'"
-                                          :label="'New Trooper Registration Emails'"
-                                          :value="1"
-                                          :checked="$notification_preferences['trooper_registrations']['mail'] ?? true" />
-                        <x-input-help>
-                            Receive an email when a new trooper registers and is awaiting approval.
-                        </x-input-help>
-                    </x-input-container>
+                    @foreach ([
+                        'join_requests'         => 'Club Join Requests',
+                        'trooper_registrations' => 'New Trooper Registrations',
+                    ] as $category => $label)
+                        <div class="row align-items-center mb-3">
+                            <div class="col-12 col-md-5 mb-1 mb-md-0">{{ $label }}</div>
+                            @foreach (['mail' => 'Email', 'fcm' => 'Push', 'database' => 'Website'] as $channel => $channel_label)
+                                <div class="col-4 col-md-2 text-center">
+                                    <span class="d-inline d-md-none small text-muted me-1">{{ $channel_label }}</span>
+                                    <input type="hidden"
+                                           name="notification_preferences[{{ $category }}][{{ $channel }}]"
+                                           value="0">
+                                    <input type="checkbox"
+                                           name="notification_preferences[{{ $category }}][{{ $channel }}]"
+                                           value="1"
+                                           @checked($notification_preferences[$category][$channel] ?? true)>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endforeach
 
                 @endif
 
