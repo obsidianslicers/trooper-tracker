@@ -154,7 +154,7 @@ class LeaderboardControllerTest extends TestCase
             Organization::IMAGE_PATH_LG => 'organizations/florida-128x128.png',
             Organization::IMAGE_PATH_SM => 'organizations/florida-32x32.png',
         ]);
-        Storage::disk('public')->put($organization->image_path_lg, 'logo');
+        Storage::disk('public')->put($organization->image_path_sm, 'logo');
 
         $leaderboard = collect([
             'dominance' => collect(),
@@ -173,6 +173,6 @@ class LeaderboardControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Florida Garrison');
-        $response->assertSee('storage/organizations/florida-128x128.png');
+        $response->assertSee('storage/organizations/florida-32x32.png');
     }
 }

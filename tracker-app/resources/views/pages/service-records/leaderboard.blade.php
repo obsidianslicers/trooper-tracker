@@ -14,8 +14,8 @@
 
                 @if($organization)
                     <div class="d-flex align-items-center gap-2">
-                        <x-logo :storage_path="$organization->image_path_lg"
-                                default_path="img/icons/organization-128x128.png"
+                        <x-logo :storage_path="$organization->image_path_sm"
+                                default_path="img/icons/organization-32x32.png"
                                 :width="64"
                                 :height="64" />
                         <div class="small text-uppercase fw-bold lh-sm">
