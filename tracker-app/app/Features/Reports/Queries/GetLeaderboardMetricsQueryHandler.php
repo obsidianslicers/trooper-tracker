@@ -9,6 +9,7 @@ use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Enums\MembershipStatus;
 use App\Enums\OrganizationType;
+use App\Features\Events\Queries\HasOrgAttributionQuery;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventTrooper;
@@ -26,6 +27,8 @@ use Illuminate\Support\Collection;
  */
 readonly class GetLeaderboardMetricsQueryHandler implements QueryHandlerInterface
 {
+    use HasOrgAttributionQuery;
+
     /**
      * Build the full dashboard metrics payload for the given lookback period.
      *
@@ -39,32 +42,32 @@ readonly class GetLeaderboardMetricsQueryHandler implements QueryHandlerInterfac
         return [
             'dominance' => $this->getOrganizationDominance($lookback),
             'diversity' => $this->getCostumeDiversity($lookback),
-            'operatives' => $this->getOperatives($lookback),
+            'operatives' => $this->getOperatives($lookback, $message),
         ];
     }
 
-    private function getOrganizationDominance(Carbon $date): Collection
+    private function getOrganizationDominance(?Carbon $date): Collection
     {
         // 1. Sector Dominance (Club vs Club)
         // Aggregates total deployment volume per major club type
         return Organization::where(Organization::TYPE, OrganizationType::ORGANIZATION)
             ->whereNull(Organization::PARENT_ID) // Top level Legions/Clubs
             ->withCount(['events' => function ($q) use ($date) {
-                $q->where(Event::EVENT_START, '>=', $date)
-                    ->where(Event::STATUS, EventStatus::CLOSED);
+                $q->where(Event::STATUS, EventStatus::CLOSED)
+                    ->when($date, fn ($q) => $q->where(Event::EVENT_START, '>=', $date));
             }])
             ->get()
             ->sortByDesc('events_count')
             ->values();
     }
 
-    private function getCostumeDiversity(Carbon $date): Collection
+    private function getCostumeDiversity(?Carbon $date): Collection
     {
         // 2. Battle Readiness (Unit vs Unit)
         return EventTrooper::where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED)
             ->whereHas('event_shift.event', function ($q) use ($date) {
-                $q->where(Event::EVENT_START, '>=', $date)
-                    ->where(Event::STATUS, EventStatus::CLOSED);
+                $q->where(Event::STATUS, EventStatus::CLOSED)
+                    ->when($date, fn ($q) => $q->where(Event::EVENT_START, '>=', $date));
             })
             ->whereNotNull('costume_id')
             ->select('costume_id', \DB::raw('count(*) as occurrence_count'))
@@ -86,23 +89,29 @@ readonly class GetLeaderboardMetricsQueryHandler implements QueryHandlerInterfac
             });
     }
 
-    private function getOperatives(Carbon $date): Collection
+    private function getOperatives(?Carbon $date, GetLeaderboardMetricsQuery $message): Collection
     {
         // 3. Shadow Operatives (Individual Superlatives)
         // We look for the "Iron Suits" - Troopers with the most attended records
-        return EventTrooper::where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED)
+        $query = EventTrooper::where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED)
             ->whereHas('event_shift.event', function ($q) use ($date) {
-                $q->where(Event::EVENT_START, '>=', $date);
+                $q->where(Event::STATUS, EventStatus::CLOSED)
+                    ->when($date, fn ($q) => $q->where(Event::EVENT_START, '>=', $date));
             })
             ->whereHas('trooper', function ($q) {
                 $q->where(Trooper::MEMBERSHIP_STATUS, MembershipStatus::ACTIVE)
-                    ->where(Trooper::DISPLAY_NAME, '!=', 'Placeholder'); // Exclude placeholder accounts
+                    // Exclude placeholder accounts.
+                    ->where(Trooper::DISPLAY_NAME, '!=', 'Placeholder');
             })
             ->select(EventTrooper::TROOPER_ID, \DB::raw('count(*) as troop_count'))
             ->with(['trooper' => fn ($q) => $q->select(Trooper::ID, Trooper::DISPLAY_NAME)])
-            ->groupBy(EventTrooper::TROOPER_ID)
+            ->groupBy(EventTrooper::TROOPER_ID);
+
+        $this->applyOrgAttribution($query, $message->organization, []);
+
+        return $query
             ->orderByDesc('troop_count')
-            ->take(5)
+            ->take($message->limit)
             ->get();
     }
 }

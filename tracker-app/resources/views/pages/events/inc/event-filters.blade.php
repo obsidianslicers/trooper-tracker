@@ -19,24 +19,10 @@
 
 </div>
 
-<div class="row mb-3 mt-1 mt-md-0"
+<div class="row mb-3 mt-3 mt-md-0"
      x-show="hasActiveHostingFilter() || form.costume_organization_id"
      x-cloak>
     <div class="col-12 d-flex flex-wrap gap-2">
-        <template x-for="hostingOrganizationId in getActiveHostingOrganizationIds()"
-                  :key="`hosting-chip-${hostingOrganizationId}`">
-            <span class="badge bg-primary small px-2 py-1 d-inline-flex align-items-center">
-                <span class="text-white"
-                      x-text="getHostingOrganizationLabel(hostingOrganizationId)"></span>
-                <button type="button"
-                        class="border-0 bg-transparent text-white p-0 ms-1 lh-1"
-                        aria-label="Remove hosting organization filter"
-                        x-on:click="removeHostingOrganization(hostingOrganizationId)">
-                    <i class="fa fa-times"></i>
-                </button>
-            </span>
-        </template>
-
         <template x-if="form.costume_organization_id">
             <span class="badge bg-info small px-2 py-1 d-inline-flex align-items-center">
                 <span class="text-white"
@@ -48,6 +34,22 @@
                     <i class="fa fa-times"></i>
                 </button>
             </span>
+        </template>
+
+        <template x-if="hasActiveHostingFilter()">
+            <template x-for="hostingOrganizationId in getActiveHostingOrganizationIds()"
+                      :key="`hosting-chip-${hostingOrganizationId}`">
+                <span class="badge bg-primary small px-2 py-1 d-inline-flex align-items-center">
+                    <span class="text-white"
+                          x-text="getHostingOrganizationLabel(hostingOrganizationId)"></span>
+                    <button type="button"
+                            class="border-0 bg-transparent text-white p-0 ms-1 lh-1"
+                            aria-label="Remove hosting organization filter"
+                            x-on:click="removeHostingOrganization(hostingOrganizationId)">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </span>
+            </template>
         </template>
     </div>
 </div>
@@ -118,20 +120,58 @@
                          x-ref="hostingOrganizationList"
                          data-hosting-organization-ids='@json($hosting_organizations->pluck("id")->map(fn($id) => (string) $id)->values()->all())'
                          data-hosting-organization-labels='@json($hosting_organizations->mapWithKeys(fn($organization) => [(string) $organization->id => $organization->indented_name])->all())'>
-                        @foreach($hosting_organizations as $hosting_organization)
-                            <div class="form-check mb-1">
-                                <input type="checkbox"
-                                       class="form-check-input"
-                                       data-hosting-organization-checkbox
-                                       :id="`hosting-organization-${{ $hosting_organization->id }}`"
-                                       x-model="form.hosting_organization_ids"
-                                       value="{{ $hosting_organization->id }}"
-                                       x-on:change="persistHostingOrganizations()">
-                                <label class="form-check-label"
-                                       :for="`hosting-organization-${{ $hosting_organization->id }}`">
-                                    {{ $hosting_organization->indented_name }}
-                                </label>
-                            </div>
+
+
+
+                        @foreach ($hosting_organizations as $key => $hosting_organization)
+                            @if($hosting_organization->type === \App\Enums\OrganizationType::ORGANIZATION)
+                                @if($key > 0)
+                                    <hr class="my-2">
+                                @endif
+                                <x-input-container class="ps-4">
+                                    <input type="checkbox"
+                                           class="form-check-input"
+                                           data-hosting-organization-checkbox
+                                           x-bind:id="`hosting-organization-${{ $hosting_organization->id }}`"
+                                           x-model="form.hosting_organization_ids"
+                                           value="{{ $hosting_organization->id }}"
+                                           x-on:change="persistHostingOrganizations()">
+                                    <label class="form-check-label ms-2"
+                                           x-bind:for="`hosting-organization-${{ $hosting_organization->id }}`">
+                                        {{ $hosting_organization->name }}
+                                    </label>
+                                    @foreach ($hosting_organization->organizations as $region)
+                                        <x-input-container class="ps-4 mt-2">
+                                            <input type="checkbox"
+                                                   class="form-check-input"
+                                                   data-hosting-organization-checkbox
+                                                   x-bind:id="`hosting-organization-${{ $region->id }}`"
+                                                   x-model="form.hosting_organization_ids"
+                                                   value="{{ $region->id }}"
+                                                   x-on:change="persistHostingOrganizations()">
+                                            <label class="form-check-label ms-2"
+                                                   x-bind:for="`hosting-organization-${{ $region->id }}`">
+                                                {{ $region->name }}
+                                            </label>
+                                            @foreach ($region->organizations as $unit)
+                                                <x-input-container class="ps-4 mt-2">
+                                                    <input type="checkbox"
+                                                           class="form-check-input"
+                                                           data-hosting-organization-checkbox
+                                                           x-bind:id="`hosting-organization-${{ $unit->id }}`"
+                                                           x-model="form.hosting_organization_ids"
+                                                           value="{{ $unit->id }}"
+                                                           x-on:change="persistHostingOrganizations()">
+                                                    <label class="form-check-label ms-2"
+                                                           x-bind:for="`hosting-organization-${{ $unit->id }}`">
+                                                        {{ $unit->name }}
+                                                    </label>
+                                                </x-input-container>
+                                            @endforeach
+                                        </x-input-container>
+                                    @endforeach
+                                </x-input-container>
+                            @endif
                         @endforeach
                     </div>
                 </x-input-container>
