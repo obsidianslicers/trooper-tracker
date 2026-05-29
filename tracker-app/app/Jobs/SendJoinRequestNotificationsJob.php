@@ -36,7 +36,7 @@ class SendJoinRequestNotificationsJob implements ShouldQueue
 
         foreach ($admins as $admin)
         {
-            if ($admin->emailAppearsValid())
+            if ($admin->emailAppearsValid() && $admin->wantsNotification('join_requests'))
             {
                 Mail::to($admin->email)->queue(new TrooperJoinRequestSubmitted($this->join_request));
             }
@@ -48,7 +48,9 @@ class SendJoinRequestNotificationsJob implements ShouldQueue
 
         foreach ($moderators as $moderator)
         {
-            if ($moderator->emailAppearsValid() && $policy->moderate($moderator, $this->join_request))
+            if ($moderator->emailAppearsValid()
+                && $moderator->wantsNotification('join_requests')
+                && $policy->moderate($moderator, $this->join_request))
             {
                 Mail::to($moderator->email)->queue(new TrooperJoinRequestSubmitted($this->join_request));
             }

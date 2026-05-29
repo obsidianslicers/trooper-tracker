@@ -38,6 +38,35 @@
                     </x-input-help>
                 </x-input-container>
 
+                @if (auth()->user()->is_administrator || auth()->user()->is_moderator)
+
+                    <h3>Administrative Notifications</h3>
+                    <p>
+                        <i>Control which administrative email notifications you receive.</i>
+                    </p>
+
+                    <x-input-container>
+                        <x-input-checkbox :property="'notification_preferences[join_requests]'"
+                                          :label="'Club Join Request Emails'"
+                                          :value="1"
+                                          :checked="$notification_preferences['join_requests'] ?? true" />
+                        <x-input-help>
+                            Receive an email when a trooper submits a club or organization join request.
+                        </x-input-help>
+                    </x-input-container>
+
+                    <x-input-container>
+                        <x-input-checkbox :property="'notification_preferences[trooper_registrations]'"
+                                          :label="'New Trooper Registration Emails'"
+                                          :value="1"
+                                          :checked="$notification_preferences['trooper_registrations'] ?? true" />
+                        <x-input-help>
+                            Receive an email when a new trooper registers and is awaiting approval.
+                        </x-input-help>
+                    </x-input-container>
+
+                @endif
+
                 <h3>Squads / Clubs</h3>
                 <p>
                     <i>Note: Events are categorized by 501st region territory. To receive event notifications for a particular area,
