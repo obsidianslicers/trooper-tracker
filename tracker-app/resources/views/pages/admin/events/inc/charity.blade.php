@@ -18,15 +18,15 @@
         <div class="row">
             <div class="col-12 col-md-6">
                 <x-label>Direct Funds:</x-label>
-                <x-input-text :property="'direct_funds'"
-                              :value="$event->direct_funds"
-                              x-model="form.direct_funds" />
+                <x-input-text :property="'charity_direct_funds'"
+                              :value="$event->charity_direct_funds"
+                              x-model="form.charity_direct_funds" />
             </div>
             <div class="col-12 col-md-6">
                 <x-label>Indirect Funds:</x-label>
-                <x-input-text :property="'indirect_funds'"
-                              :value="$event->indirect_funds"
-                              x-model="form.indirect_funds" />
+                <x-input-text :property="'charity_indirect_funds'"
+                              :value="$event->charity_indirect_funds"
+                              x-model="form.charity_indirect_funds" />
             </div>
         </div>
     </x-input-container>
