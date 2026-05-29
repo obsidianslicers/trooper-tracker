@@ -37,17 +37,22 @@ readonly class UpdateTrooperNotificationsCommandHandler implements CommandHandle
         foreach ($message->valid_data as $organization_id => $data)
         {
             $assignment = $assignments->firstWhere(TrooperAssignment::ORGANIZATION_ID, $organization_id);
+            $should_notify = $data['should_notify'] ?? false;
 
             if ($assignment === null)
             {
                 $assignment = new TrooperAssignment;
                 $assignment->trooper_id = $message->trooper->id;
                 $assignment->organization_id = $organization_id;
+                $assignment->should_notify = $should_notify;
+                $assignment->save();
             }
-
-            $assignment->should_notify = $data['should_notify'] ?? false;
-
-            $assignment->save();
+            else
+            {
+                $message->trooper->trooper_assignments()
+                    ->where(TrooperAssignment::ORGANIZATION_ID, $organization_id)
+                    ->update(['should_notify' => $should_notify]);
+            }
         }
 
         return null;
