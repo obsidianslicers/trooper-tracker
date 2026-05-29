@@ -31,7 +31,86 @@
             </div>
         </div>
         
-        <div class="col-xl-4 col-md-6">
+        <div class="col-12">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-dark text-white text-uppercase small fw-bold">
+                    <i class="fa-solid fa-bolt me-2"></i> Top 30 Troopers
+                </div>
+                @if($leaderboard['operatives']->isNotEmpty())
+                    @php
+                        $max_troops = $leaderboard['operatives']->first()->troop_count ?? 1;
+                    @endphp
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead>
+                                <tr class="text-uppercase small text-muted">
+                                    <th scope="col"
+                                        class="ps-3"
+                                        style="width: 4rem;">
+                                        Rank
+                                    </th>
+                                    <th scope="col">
+                                        Trooper
+                                    </th>
+                                    <th scope="col"
+                                        class="text-end"
+                                        style="width: 8rem;">
+                                        Troops
+                                    </th>
+                                    <th scope="col"
+                                        class="pe-3"
+                                        style="width: 35%;">
+                                        Activity
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($leaderboard['operatives'] as $op)
+                                    <tr>
+                                        <td class="ps-3 text-muted fw-bold">
+                                            #{{ $loop->iteration }}
+                                        </td>
+                                        <td>
+                                            <a href="{{ route('service-records.trooper', [
+                                                    'trooper' => $op->trooper,
+                                                ]) }}"
+                                               class="fw-bold text-uppercase text-decoration-none">
+                                                {{ $op->trooper->display_name }}
+                                            </a>
+                                        </td>
+                                        <td class="text-end text-primary fw-bold">
+                                            {{ $op->troop_count }}
+                                            <small class="text-muted"
+                                                   style="font-size: 0.6rem;">
+                                                TROOPS
+                                            </small>
+                                        </td>
+                                        <td class="pe-3">
+                                            <div class="progress"
+                                                 style="height: 5px;">
+                                                <div class="progress-bar bg-success"
+                                                     role="progressbar"
+                                                     style="width: {{
+                                                        ($op->troop_count / $max_troops) * 100
+                                                     }}%"></div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @else
+                    <div class="card-body">
+                        <p class="text-muted mb-0">
+                            No troopers found for the selected leaderboard filters.
+                        </p>
+                    </div>
+                @endif
+            </div>
+        </div>
+
+        <div class="col-xl-6 col-lg-6">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-header bg-dark text-white text-uppercase small fw-bold">
                     <i class="fa-solid fa-chart-pie me-2"></i> Organization Activity
@@ -53,7 +132,7 @@
             </div>
         </div>
 
-        <div class="col-xl-4 col-md-6">
+        <div class="col-xl-6 col-lg-6">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-header bg-dark text-white text-uppercase small fw-bold">
                     <i class="fa-solid fa-uniform-martial-arts me-2"></i> Top 5 Deployed Costumes
@@ -70,52 +149,6 @@
                         </div>
                     @empty
                         <p class="text-muted mb-0">No costume deployments found.</p>
-                    @endforelse
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-4 col-md-12">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-header bg-dark text-white text-uppercase small fw-bold">
-                    <i class="fa-solid fa-bolt me-2"></i> Top 30 Troopers
-                </div>
-                <div class="card-body">
-                    @php
-                        $max_troops = $leaderboard['operatives']->first()->troop_count ?? 1;
-                    @endphp
-                    @forelse($leaderboard['operatives'] as $op)
-                        <div class="mb-4">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <div class="d-flex align-items-center">
-                                    <a href="{{ route('service-records.trooper', [
-                                            'trooper' => $op->trooper,
-                                        ]) }}"
-                                       class="fw-bold small text-uppercase text-decoration-none">
-                                        {{ $op->trooper->display_name }}
-                                    </a>
-                                </div>
-                                <span class="text-primary fw-bold">
-                                    {{ $op->troop_count }}
-                                    <small class="text-muted"
-                                           style="font-size: 0.6rem;">
-                                        TROOPS
-                                    </small>
-                                </span>
-                            </div>
-                            <div class="progress"
-                                 style="height: 6px;">
-                                <div class="progress-bar bg-success"
-                                     role="progressbar"
-                                     style="width: {{
-                                        ($op->troop_count / $max_troops) * 100
-                                     }}%"></div>
-                            </div>
-                        </div>
-                    @empty
-                        <p class="text-muted mb-0">
-                            No troopers found for the selected leaderboard filters.
-                        </p>
                     @endforelse
                 </div>
             </div>
