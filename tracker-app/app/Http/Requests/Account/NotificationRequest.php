@@ -50,8 +50,11 @@ class NotificationRequest extends FormRequest
             ],
             Trooper::PUSH_NOTIFICATIONS_ENABLED => ['boolean'],
             'organizations.*.'.TrooperAssignment::SHOULD_NOTIFY => ['boolean'],
-            Trooper::NOTIFICATION_PREFERENCES => ['nullable', 'array'],
-            Trooper::NOTIFICATION_PREFERENCES.'.*' => ['boolean'],
+            Trooper::NOTIFICATION_PREFERENCES                   => ['nullable', 'array'],
+            Trooper::NOTIFICATION_PREFERENCES.'.*'              => ['nullable', 'array'],
+            Trooper::NOTIFICATION_PREFERENCES.'.*.mail'         => ['boolean'],
+            Trooper::NOTIFICATION_PREFERENCES.'.*.fcm'          => ['boolean'],
+            Trooper::NOTIFICATION_PREFERENCES.'.*.database'     => ['boolean'],
         ];
 
         return $rules;
@@ -71,7 +74,12 @@ class NotificationRequest extends FormRequest
         );
 
         $raw_prefs = $this->input(Trooper::NOTIFICATION_PREFERENCES, []);
-        $preferences = array_map(fn ($v) => filter_var($v, FILTER_VALIDATE_BOOLEAN), $raw_prefs);
+        $preferences = array_map(
+            fn ($category) => is_array($category)
+                ? array_map(fn ($v) => filter_var($v, FILTER_VALIDATE_BOOLEAN), $category)
+                : filter_var($category, FILTER_VALIDATE_BOOLEAN),
+            $raw_prefs
+        );
 
         $this->merge([
             'organizations' => $organizations,

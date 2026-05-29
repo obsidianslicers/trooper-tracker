@@ -13,14 +13,21 @@ class VisitorAccessExpiredNotification extends Notification
 {
     public function via(Trooper $notifiable): array
     {
-        $channels = ['database'];
+        $channels = [];
 
-        if ($notifiable->push_notifications_enabled)
+        if ($notifiable->wantsNotification('visitor_access_expired', 'database'))
+        {
+            $channels[] = 'database';
+        }
+
+        if ($notifiable->push_notifications_enabled
+            && $notifiable->wantsNotification('visitor_access_expired', 'fcm'))
         {
             $channels[] = FcmChannel::class;
         }
 
-        if ($notifiable->emailAppearsValid())
+        if ($notifiable->emailAppearsValid()
+            && $notifiable->wantsNotification('visitor_access_expired', 'mail'))
         {
             $channels[] = 'mail';
         }

@@ -19,14 +19,21 @@ class ManualSelectionStandByNotification extends Notification
 
     public function via(Trooper $notifiable): array
     {
-        $channels = ['database'];
+        $channels = [];
 
-        if ($notifiable->push_notifications_enabled)
+        if ($notifiable->wantsNotification('manual_selection_stand_by', 'database'))
+        {
+            $channels[] = 'database';
+        }
+
+        if ($notifiable->push_notifications_enabled
+            && $notifiable->wantsNotification('manual_selection_stand_by', 'fcm'))
         {
             $channels[] = FcmChannel::class;
         }
 
-        if ($notifiable->emailAppearsValid())
+        if ($notifiable->emailAppearsValid()
+            && $notifiable->wantsNotification('manual_selection_stand_by', 'mail'))
         {
             $channels[] = 'mail';
         }

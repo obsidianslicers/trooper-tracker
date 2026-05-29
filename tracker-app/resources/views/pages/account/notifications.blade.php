@@ -38,6 +38,40 @@
                     </x-input-help>
                 </x-input-container>
 
+                <h3>Notification Preferences</h3>
+                <p>
+                    <i>Control which channels you receive notifications on. Website notifications appear in your notification inbox.</i>
+                </p>
+
+                <div class="row fw-bold mb-2 d-none d-md-flex">
+                    <div class="col-md-5"></div>
+                    <div class="col-4 col-md-2 text-center">Email</div>
+                    <div class="col-4 col-md-2 text-center">Push</div>
+                    <div class="col-4 col-md-2 text-center">Website</div>
+                </div>
+
+                @foreach ([
+                    'event_created'   => 'New Events',
+                    'event_cancelled' => 'Event Cancellations',
+                    'trooper_signed_up' => 'Sign-up Confirmations',
+                ] as $category => $label)
+                    <div class="row align-items-center mb-3">
+                        <div class="col-12 col-md-5 mb-1 mb-md-0">{{ $label }}</div>
+                        @foreach (['mail' => 'Email', 'fcm' => 'Push', 'database' => 'Website'] as $channel => $channel_label)
+                            <div class="col-4 col-md-2 text-center">
+                                <span class="d-inline d-md-none small text-muted me-1">{{ $channel_label }}</span>
+                                <input type="hidden"
+                                       name="notification_preferences[{{ $category }}][{{ $channel }}]"
+                                       value="0">
+                                <input type="checkbox"
+                                       name="notification_preferences[{{ $category }}][{{ $channel }}]"
+                                       value="1"
+                                       @checked($notification_preferences[$category][$channel] ?? true)>
+                            </div>
+                        @endforeach
+                    </div>
+                @endforeach
+
                 @if (auth()->user()->is_administrator || auth()->user()->is_moderator)
 
                     <h3>Administrative Notifications</h3>
@@ -46,20 +80,22 @@
                     </p>
 
                     <x-input-container>
-                        <x-input-checkbox :property="'notification_preferences[join_requests]'"
+                        <input type="hidden" name="notification_preferences[join_requests][mail]" value="0">
+                        <x-input-checkbox :property="'notification_preferences[join_requests][mail]'"
                                           :label="'Club Join Request Emails'"
                                           :value="1"
-                                          :checked="$notification_preferences['join_requests'] ?? true" />
+                                          :checked="$notification_preferences['join_requests']['mail'] ?? true" />
                         <x-input-help>
                             Receive an email when a trooper submits a club or organization join request.
                         </x-input-help>
                     </x-input-container>
 
                     <x-input-container>
-                        <x-input-checkbox :property="'notification_preferences[trooper_registrations]'"
+                        <input type="hidden" name="notification_preferences[trooper_registrations][mail]" value="0">
+                        <x-input-checkbox :property="'notification_preferences[trooper_registrations][mail]'"
                                           :label="'New Trooper Registration Emails'"
                                           :value="1"
-                                          :checked="$notification_preferences['trooper_registrations'] ?? true" />
+                                          :checked="$notification_preferences['trooper_registrations']['mail'] ?? true" />
                         <x-input-help>
                             Receive an email when a new trooper registers and is awaiting approval.
                         </x-input-help>

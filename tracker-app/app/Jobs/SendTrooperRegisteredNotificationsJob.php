@@ -57,7 +57,7 @@ class SendTrooperRegisteredNotificationsJob implements ShouldQueue
 
         foreach ($admins as $admin)
         {
-            if ($admin->emailAppearsValid() && $admin->wantsNotification('trooper_registrations'))
+            if ($admin->emailAppearsValid() && $admin->wantsNotification('trooper_registrations', 'mail'))
             {
                 Mail::to($admin->email)->queue(new TrooperAwaitingApproval);
             }
@@ -72,7 +72,7 @@ class SendTrooperRegisteredNotificationsJob implements ShouldQueue
         foreach ($moderators as $moderator)
         {
             if ($moderator->emailAppearsValid()
-                && $moderator->wantsNotification('trooper_registrations')
+                && $moderator->wantsNotification('trooper_registrations', 'mail')
                 && $policy->moderate($moderator, $this->trooper))
             {
                 Mail::to($moderator->email)->queue(new TrooperAwaitingApproval);

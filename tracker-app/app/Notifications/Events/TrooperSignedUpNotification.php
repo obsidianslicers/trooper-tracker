@@ -16,14 +16,21 @@ class TrooperSignedUpNotification extends Notification
 
     public function via(Trooper $notifiable): array
     {
-        $channels = ['database'];
+        $channels = [];
 
-        if ($notifiable->push_notifications_enabled)
+        if ($notifiable->wantsNotification('trooper_signed_up', 'database'))
+        {
+            $channels[] = 'database';
+        }
+
+        if ($notifiable->push_notifications_enabled
+            && $notifiable->wantsNotification('trooper_signed_up', 'fcm'))
         {
             $channels[] = FcmChannel::class;
         }
 
-        if ($notifiable->emailAppearsValid())
+        if ($notifiable->emailAppearsValid()
+            && $notifiable->wantsNotification('trooper_signed_up', 'mail'))
         {
             $channels[] = 'mail';
         }

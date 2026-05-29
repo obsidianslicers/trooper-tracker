@@ -290,9 +290,9 @@ class Trooper extends BaseTrooper implements
      *
      * @return bool True if the trooper has a valid email address, false otherwise.
      */
-    public function wantsNotification(string $category): bool
+    public function wantsNotification(string $category, string $channel = 'mail'): bool
     {
-        return $this->notification_preferences[$category] ?? true;
+        return $this->notification_preferences[$category][$channel] ?? true;
     }
 
     public function emailAppearsValid(): bool

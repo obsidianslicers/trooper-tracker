@@ -19,14 +19,21 @@ class JoinRequestApprovedNotification extends Notification
 
     public function via(Trooper $notifiable): array
     {
-        $channels = ['database'];
+        $channels = [];
 
-        if ($notifiable->push_notifications_enabled)
+        if ($notifiable->wantsNotification('join_request_approved', 'database'))
+        {
+            $channels[] = 'database';
+        }
+
+        if ($notifiable->push_notifications_enabled
+            && $notifiable->wantsNotification('join_request_approved', 'fcm'))
         {
             $channels[] = FcmChannel::class;
         }
 
-        if ($notifiable->emailAppearsValid())
+        if ($notifiable->emailAppearsValid()
+            && $notifiable->wantsNotification('join_request_approved', 'mail'))
         {
             $channels[] = 'mail';
         }
