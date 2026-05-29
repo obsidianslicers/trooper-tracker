@@ -135,7 +135,7 @@ class PublicApiController
             return $this->rosterResponse(collect(), collect());
         }
 
-        $org_ids = Organization::where(Organization::NODE_PATH, 'like', $org->node_path . '%')
+        $org_ids = Organization::where(Organization::NODE_PATH, 'like', $org->node_path.'%')
             ->pluck(Organization::ID);
 
         $troopers = Trooper::active()
@@ -205,17 +205,17 @@ h2{font-size:1em;border-bottom:1px solid #ccc;padding-bottom:6px;margin-top:20px
     {
         $name = e($trooper->display_name);
         $identifier = e($trooper->organizations->first()?->pivot?->identifier ?? '');
-        $label = $identifier ? $name . ' - ' . $identifier : $name;
+        $label = $identifier ? $name.' - '.$identifier : $name;
 
         $photo = $trooper->trooper_costumes
             ->firstWhere(fn ($c) => !empty($c->{TrooperCostume::IMAGE_URL_SM}))
             ?->{TrooperCostume::IMAGE_URL_SM};
 
         $img = $photo
-            ? '<img src="' . e($photo) . '" alt="">'
-            : '<img src="' . e(url('images/tk_head.jpg')) . '" alt="">';
+            ? '<img src="'.e($photo).'" alt="">'
+            : '<img src="'.e(url('images/tk_head.jpg')).'" alt="">';
 
-        return '<div class="member">' . $img . $label . '</div>';
+        return '<div class="member">'.$img.$label.'</div>';
     }
 
     private function slideshowResponse(array $uploads): Response
