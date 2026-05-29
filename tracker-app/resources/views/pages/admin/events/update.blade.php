@@ -39,9 +39,7 @@
                             <span class="fa fa-fw fa-external-link"></span>
                         </a>
                     </span>
-                    @if($event->is_active)
-                        <x-submit-button>Update</x-submit-button>
-                    @endif
+                    <x-submit-button>Update</x-submit-button>
                     <x-link-button-cancel :url="route('admin.events.update', compact('event'))" />
                 </x-submit-container>
 
