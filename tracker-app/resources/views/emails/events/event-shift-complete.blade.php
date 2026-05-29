@@ -25,7 +25,7 @@
         <tbody>
             <tr>
                 <td class="content-block">
-                    <a href="{{ route('events.shift-complete', ['event_trooper' => $event_trooper, 'status' => $able_status]) }}"
+                    <a href="{{ $event_trooper->getAttendanceUrl(\App\Enums\EventTrooperStatus::ATTENDED) }}"
                        class="btn-success">
                         I Served the Empire
                     </a>
@@ -42,7 +42,7 @@
         <tbody>
             <tr>
                 <td class="content-block">
-                    <a href="{{ route('events.shift-complete', ['event_trooper' => $event_trooper, 'status' => $unable_status]) }}"
+                    <a href="{{ $event_trooper->getAttendanceUrl(\App\Enums\EventTrooperStatus::UNABLE_TO_ATTEND) }}"
                        class="btn-success">
                         I Failed the Empire (Sorry)
                     </a>

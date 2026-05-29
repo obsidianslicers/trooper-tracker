@@ -44,7 +44,7 @@ class EventShiftComplete extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Event Shift Complete - Action Required'
+            subject: config('mail.prefix') . ' Event Shift Complete - Action Required'
         );
     }
 
@@ -65,8 +65,6 @@ class EventShiftComplete extends Mailable implements ShouldQueue
                 'trooper' => $this->event_trooper->trooper,
                 'event_shift' => $this->event_trooper->event_shift,
                 'event' => $this->event_trooper->event_shift->event,
-                'able_status' => Crypt::encryptString(EventTrooperStatus::ATTENDED->value),
-                'unable_status' => Crypt::encryptString(EventTrooperStatus::UNABLE_TO_ATTEND->value),
             ]
         );
     }

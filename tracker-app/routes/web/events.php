@@ -16,7 +16,6 @@ use App\Http\Controllers\Events\ShiftCompleteController;
 use App\Http\Controllers\Events\ShiftCompleteClubController;
 use App\Http\Controllers\Events\SignUpHtmxController;
 use App\Http\Controllers\Events\SignUpUpdateHtmxController;
-use App\Http\Controllers\Events\AttendanceUpdateHtmxController;
 use App\Http\Controllers\Events\GuestUpdateHtmxController;
 use App\Http\Controllers\Events\ForumReplyController;
 use App\Http\Controllers\Events\UploadImageController;
@@ -47,7 +46,6 @@ Route::prefix('events')
         Route::post('/signup/{event_shift}/trooper', SignUpHtmxController::class)->name('signup-htmx');
         Route::post('/signup/{event_shift}/guest', GuestSignUpHtmxController::class)->name('guest-signup-htmx');
         Route::post('/update/{event_trooper}/trooper', SignUpUpdateHtmxController::class)->name('signup-update-htmx');
-        Route::post('/update/{event_trooper}/attendance', AttendanceUpdateHtmxController::class)->name('attendance-update-htmx');
         Route::post('/update/{event_guest}/guest', GuestUpdateHtmxController::class)->name('guest-update-htmx');
         Route::get('/complete/{event_trooper}/{status}', ShiftCompleteController::class)->name('shift-complete');
         Route::post('/complete/{event_trooper}/club-select', ShiftCompleteClubController::class)->name('shift-complete-club-select');

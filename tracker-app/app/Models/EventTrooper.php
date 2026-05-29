@@ -17,6 +17,7 @@ use Illuminate\Support\Collection;
 use App\Models\Event;
 use App\Models\EventOrganization;
 use App\Models\TrooperAssignment;
+use Illuminate\Support\Facades\Crypt;
 
 /**
  * Represents a trooper's participation in an event shift.
@@ -301,6 +302,17 @@ class EventTrooper extends BaseEventTrooper
         }
 
         return $this->trooper->guardian_id === $trooper->id;
+    }
+
+    /**
+     * Build the shift-complete URL with an encrypted attendance status token.
+     *
+     * @param EventTrooperStatus $status The attendance status to submit.
+     * @return string The URL for attendance confirmation.
+     */
+    public function getAttendanceUrl(EventTrooperStatus $status): string
+    {
+        return route('events.shift-complete', ['event_trooper' => $this, 'status' => Crypt::encryptString($status->value)]);
     }
 
     /** Returns orgs eligible to receive troop credit for this shift. */

@@ -18,6 +18,8 @@ use App\Models\Trooper;
 use App\Models\TrooperCostume;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 use Tests\TestCase;
 
 class EventTrooperTest extends TestCase
@@ -107,6 +109,21 @@ class EventTrooperTest extends TestCase
         $result = $subject->getAuditLabel();
 
         $this->assertStringContainsString('Test Event', $result);
+    }
+
+    public function test_get_attendance_url_contains_event_trooper_and_encrypted_status(): void
+    {
+        $subject = EventTrooper::factory()->create();
+
+        $url = $subject->getAttendanceUrl(EventTrooperStatus::ATTENDED);
+        $route = app('router')->getRoutes()->match(Request::create($url, 'GET'));
+        $route_parameters = $route->parameters();
+
+        $this->assertSame((string) $subject->{EventTrooper::ID}, (string) $route_parameters['event_trooper']);
+        $this->assertSame(
+            EventTrooperStatus::ATTENDED->value,
+            Crypt::decryptString((string) $route_parameters['status'])
+        );
     }
 
     public function test_get_costumes_returns_available_costumes(): void

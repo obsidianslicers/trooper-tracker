@@ -138,27 +138,25 @@
                                 hx-swap="outerHTML"
                                 class="form-select-sm" />
             @elseif($event_shift->is_closed && ($can_moderate || $event_trooper->canMarkAttendance($event_shift, Auth::user())))
-                <form hx-post="{{ route('events.attendance-update-htmx', compact('event_trooper')) }}"
-                      hx-indicator="#transmission-bar-shift-{{ $event_trooper->event_shift->id }}"
-                      hx-select="#shift-container-{{ $event_trooper->event_shift->id }}"
-                      hx-target="#shift-container-{{ $event_trooper->event_shift->id }}"
-                      hx-swap="outerHTML">
-                    @csrf
+                @if($event_trooper->status === \App\Enums\EventTrooperStatus::ATTENDED || $event_trooper->status === \App\Enums\EventTrooperStatus::UNABLE_TO_ATTEND)
+                    <span class="{{ $event_trooper->status->color() }} d-block mb-1">
+                        {{ to_title($event_trooper->status->name) }}
+                        <span class="d-none d-md-inline">
+                            {!! $event_trooper->status->iconTag() !!}
+                        </span>
+                    </span>
+                @else
                     <div class="input-group input-group-sm">
-                        <button type="submit"
-                                name="status"
-                                value="{{ \App\Enums\EventTrooperStatus::ATTENDED->value }}"
-                                class="btn {{ $event_trooper->status === \App\Enums\EventTrooperStatus::ATTENDED ? 'btn-success' : 'btn-outline-success' }}">
+                        <a class="btn {{ $event_trooper->status === \App\Enums\EventTrooperStatus::ATTENDED ? 'btn-success' : 'btn-outline-success' }}"
+                           href="{{ $event_trooper->getAttendanceUrl(\App\Enums\EventTrooperStatus::ATTENDED) }}">
                             Made It
-                        </button>
-                        <button type="submit"
-                                name="status"
-                                value="{{ \App\Enums\EventTrooperStatus::UNABLE_TO_ATTEND->value }}"
-                                class="btn {{ $event_trooper->status === \App\Enums\EventTrooperStatus::UNABLE_TO_ATTEND ? 'btn-danger' : 'btn-outline-danger' }}">
+                        </a>
+                        <a class="btn {{ $event_trooper->status === \App\Enums\EventTrooperStatus::UNABLE_TO_ATTEND ? 'btn-danger' : 'btn-outline-danger' }}"
+                           href="{{ $event_trooper->getAttendanceUrl(\App\Enums\EventTrooperStatus::UNABLE_TO_ATTEND) }}">
                             Missed It
-                        </button>
-                    </div>
-                </form>
+                        </a>
+                    </div>                
+                @endif
             @elseif($event_trooper->status === \App\Enums\EventTrooperStatus::STAND_BY && $event_trooper->canCancel($event_shift, Auth::user()))
                 <span class="{{ $event_trooper->status->color() }} d-block mb-1">
                     {{ to_title($event_trooper->status->name) }}
