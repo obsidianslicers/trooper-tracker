@@ -19,24 +19,10 @@
 
 </div>
 
-<div class="row mb-3 mt-1 mt-md-0"
+<div class="row mb-3 mt-3 mt-md-0"
      x-show="hasActiveHostingFilter() || form.costume_organization_id"
      x-cloak>
     <div class="col-12 d-flex flex-wrap gap-2">
-        <template x-for="hostingOrganizationId in getActiveHostingOrganizationIds()"
-                  :key="`hosting-chip-${hostingOrganizationId}`">
-            <span class="badge bg-primary small px-2 py-1 d-inline-flex align-items-center">
-                <span class="text-white"
-                      x-text="getHostingOrganizationLabel(hostingOrganizationId)"></span>
-                <button type="button"
-                        class="border-0 bg-transparent text-white p-0 ms-1 lh-1"
-                        aria-label="Remove hosting organization filter"
-                        x-on:click="removeHostingOrganization(hostingOrganizationId)">
-                    <i class="fa fa-times"></i>
-                </button>
-            </span>
-        </template>
-
         <template x-if="form.costume_organization_id">
             <span class="badge bg-info small px-2 py-1 d-inline-flex align-items-center">
                 <span class="text-white"
@@ -48,6 +34,22 @@
                     <i class="fa fa-times"></i>
                 </button>
             </span>
+        </template>
+
+        <template x-if="hasActiveHostingFilter()">
+            <template x-for="hostingOrganizationId in getActiveHostingOrganizationIds()"
+                      :key="`hosting-chip-${hostingOrganizationId}`">
+                <span class="badge bg-primary small px-2 py-1 d-inline-flex align-items-center">
+                    <span class="text-white"
+                          x-text="getHostingOrganizationLabel(hostingOrganizationId)"></span>
+                    <button type="button"
+                            class="border-0 bg-transparent text-white p-0 ms-1 lh-1"
+                            aria-label="Remove hosting organization filter"
+                            x-on:click="removeHostingOrganization(hostingOrganizationId)">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </span>
+            </template>
         </template>
     </div>
 </div>
