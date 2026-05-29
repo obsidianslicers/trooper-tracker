@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Mail\Events;
 
-use App\Enums\EventTrooperStatus;
 use App\Models\EventTrooper;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -13,7 +12,6 @@ use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Crypt;
 
 /**
  * Mailable for event shift completion notification.
@@ -44,7 +42,7 @@ class EventShiftComplete extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix') . ' Event Shift Complete - Action Required'
+            subject: config('mail.prefix').' Event Shift Complete - Action Required'
         );
     }
 
