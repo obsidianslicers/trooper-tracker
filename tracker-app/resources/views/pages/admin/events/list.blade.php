@@ -103,10 +103,10 @@
                 </td>
                 <td>
                     <x-action-menu>
-                        @if(Auth::user()->is_administrator || $event->organization->trooper_assignments->count() > 0)
+                        @can('update', $event)
                             <x-action-link-update :url="route('admin.events.update', compact('event'))" />
                             <x-action-link-copy :url="route('admin.events.copy', compact('event'))" />
-                        @endif
+                        @endcan
                     </x-action-menu>
                 </td>
             </tr>
