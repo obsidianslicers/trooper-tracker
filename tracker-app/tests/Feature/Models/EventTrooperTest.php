@@ -219,7 +219,10 @@ class EventTrooperTest extends TestCase
     public function test_can_mark_attendance_returns_true_when_shift_closed_and_has_ownership_and_status_going(): void
     {
         $trooper = Trooper::factory()->create();
-        $event = Event::factory()->state([Event::STATUS => EventStatus::CLOSED])->create();
+        $event = Event::factory()
+            ->asClosed()
+            ->withEventEnd(now()->subDays(1))
+            ->create();
         $shift = EventShift::factory()
             ->state([
                 EventShift::EVENT_ID => $event->{Event::ID},
@@ -237,7 +240,31 @@ class EventTrooperTest extends TestCase
         $this->assertTrue($result);
     }
 
-    public function test_can_mark_attendance_returns_false_when_shift_not_closed(): void
+    public function test_can_mark_attendance_returns_false_when_event_updates_are_expired(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $event = Event::factory()
+            ->asClosed()
+            ->withEventEnd(now()->subDays(31))
+            ->create();
+        $shift = EventShift::factory()
+            ->state([
+                EventShift::EVENT_ID => $event->{Event::ID},
+                EventShift::STATUS => EventStatus::CLOSED,
+            ])
+            ->create();
+        $subject = EventTrooper::factory()
+            ->forEventShift($shift)
+            ->forTrooper($trooper)
+            ->asGoing()
+            ->create();
+
+        $result = $subject->canMarkAttendance($shift, $trooper);
+
+        $this->assertFalse($result);
+    }
+
+    public function test_can_mark_attendance_returns_false_when_event_not_closed_and_not_within_grace_period(): void
     {
         $trooper = Trooper::factory()->create();
         $event = Event::factory()->state([Event::STATUS => EventStatus::OPEN])->create();

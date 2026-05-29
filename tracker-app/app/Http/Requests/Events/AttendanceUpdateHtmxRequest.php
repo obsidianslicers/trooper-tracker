@@ -11,7 +11,6 @@ use App\Models\Costume;
 use App\Models\EventTrooper;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 /**
  * Handles the validation for updating an event trooper's attendance (status and costume).
@@ -76,7 +75,7 @@ class AttendanceUpdateHtmxRequest extends FormRequest
                 'nullable',
                 'string',
                 'max:16',
-                'in:' . implode(',', [
+                'in:'.implode(',', [
                     EventTrooperStatus::ATTENDED->value,
                     EventTrooperStatus::UNABLE_TO_ATTEND->value,
                     EventTrooperStatus::NO_SHOW->value,

@@ -4,17 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
-use App\Enums\EventStatus;
-use App\Enums\EventTrooperStatus;
-use App\Features\Events\Commands\PromoteNextInLineEventTrooperCommand;
 use App\Features\Events\Commands\UpdateEventTrooperCommand;
 use App\Features\Events\Queries\GetEventShiftDisplayQuery;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Events\AttendanceUpdateHtmxRequest;
-use App\Models\Costume;
 use App\Models\EventTrooper;
-use App\Notifications\Events\ManualSelectionApprovedNotification;
-use App\Notifications\Events\ManualSelectionStandByNotification;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 
