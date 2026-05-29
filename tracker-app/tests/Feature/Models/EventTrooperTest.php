@@ -216,6 +216,91 @@ class EventTrooperTest extends TestCase
         $this->assertFalse($result);
     }
 
+    public function test_can_mark_attendance_returns_true_when_shift_closed_and_has_ownership_and_status_going(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $event = Event::factory()->state([Event::STATUS => EventStatus::CLOSED])->create();
+        $shift = EventShift::factory()
+            ->state([
+                EventShift::EVENT_ID => $event->{Event::ID},
+                EventShift::STATUS => EventStatus::CLOSED,
+            ])
+            ->create();
+        $subject = EventTrooper::factory()
+            ->forEventShift($shift)
+            ->forTrooper($trooper)
+            ->asGoing()
+            ->create();
+
+        $result = $subject->canMarkAttendance($shift, $trooper);
+
+        $this->assertTrue($result);
+    }
+
+    public function test_can_mark_attendance_returns_false_when_shift_not_closed(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $event = Event::factory()->state([Event::STATUS => EventStatus::OPEN])->create();
+        $shift = EventShift::factory()
+            ->state([
+                EventShift::EVENT_ID => $event->{Event::ID},
+                EventShift::STATUS => EventStatus::OPEN,
+            ])
+            ->create();
+        $subject = EventTrooper::factory()
+            ->forEventShift($shift)
+            ->forTrooper($trooper)
+            ->asGoing()
+            ->create();
+
+        $result = $subject->canMarkAttendance($shift, $trooper);
+
+        $this->assertFalse($result);
+    }
+
+    public function test_can_mark_attendance_returns_false_when_no_ownership(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $other_trooper = Trooper::factory()->create();
+        $event = Event::factory()->state([Event::STATUS => EventStatus::CLOSED])->create();
+        $shift = EventShift::factory()
+            ->state([
+                EventShift::EVENT_ID => $event->{Event::ID},
+                EventShift::STATUS => EventStatus::CLOSED,
+            ])
+            ->create();
+        $subject = EventTrooper::factory()
+            ->forEventShift($shift)
+            ->forTrooper($other_trooper)
+            ->asGoing()
+            ->create();
+
+        $result = $subject->canMarkAttendance($shift, $trooper);
+
+        $this->assertFalse($result);
+    }
+
+    public function test_can_mark_attendance_returns_false_when_status_not_going(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $event = Event::factory()->state([Event::STATUS => EventStatus::CLOSED])->create();
+        $shift = EventShift::factory()
+            ->state([
+                EventShift::EVENT_ID => $event->{Event::ID},
+                EventShift::STATUS => EventStatus::CLOSED,
+            ])
+            ->create();
+        $subject = EventTrooper::factory()
+            ->forEventShift($shift)
+            ->forTrooper($trooper)
+            ->state([EventTrooper::STATUS => EventTrooperStatus::CANCELLED])
+            ->create();
+
+        $result = $subject->canMarkAttendance($shift, $trooper);
+
+        $this->assertFalse($result);
+    }
+
     public function test_can_update_costume_returns_true_when_shift_open_and_has_ownership_and_not_handler(): void
     {
         $trooper = Trooper::factory()->create();
@@ -410,7 +495,8 @@ class EventTrooperTest extends TestCase
             ->state([EventShift::EVENT_ID => $event->id])
             ->create();
 
-        foreach ([$org_a, $org_b] as $org) {
+        foreach ([$org_a, $org_b] as $org)
+        {
             EventOrganization::factory()
                 ->state([
                     EventOrganization::EVENT_ID => $event->id,
