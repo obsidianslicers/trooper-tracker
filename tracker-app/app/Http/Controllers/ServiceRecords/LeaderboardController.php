@@ -27,7 +27,12 @@ class LeaderboardController extends MagicBusController
         $organizations = Organization::ofTypeOrganizations()
             ->whereNull(Organization::PARENT_ID)
             ->orderBy(Organization::NAME)
-            ->get([Organization::ID, Organization::NAME]);
+            ->get([
+                Organization::ID,
+                Organization::NAME,
+                Organization::IMAGE_PATH_SM,
+                Organization::IMAGE_PATH_LG,
+            ]);
 
         $organization_id = $request->integer('organization_id') ?: null;
         $organization = $organization_id
@@ -41,7 +46,7 @@ class LeaderboardController extends MagicBusController
 
         $leaderboard = $this->bus->send(new GetLeaderboardMetricsQuery($days, $organization, 30));
 
-        $data = compact('leaderboard', 'days', 'organizations', 'organization_id');
+        $data = compact('leaderboard', 'days', 'organizations', 'organization_id', 'organization');
 
         return view('pages.service-records.leaderboard', $data);
     }

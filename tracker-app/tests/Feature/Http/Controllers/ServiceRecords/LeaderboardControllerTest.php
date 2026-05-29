@@ -10,6 +10,7 @@ use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
 use Mockery\MockInterface;
 use Tests\TestCase;
 
@@ -90,7 +91,10 @@ class LeaderboardControllerTest extends TestCase
     public function test_invoke_resolves_selected_top_level_organization(): void
     {
         $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
-        $organization = Organization::factory()->asOrganization()->create();
+        $organization = Organization::factory()->asOrganization()->create([
+            Organization::IMAGE_PATH_LG => 'organizations/florida-128x128.png',
+            Organization::IMAGE_PATH_SM => 'organizations/florida-32x32.png',
+        ]);
 
         $leaderboard = collect([
             'dominance' => collect(),
@@ -122,10 +126,53 @@ class LeaderboardControllerTest extends TestCase
         $response->assertOk();
         $response->assertViewHas('organization_id', $organization->id);
         $response->assertViewHas(
-            'organizations',
-            function (Collection $organizations) use ($organization): bool {
-                return $organizations->contains('id', $organization->id);
+            'organization',
+            function (?Organization $selected_organization) use ($organization): bool {
+                return $selected_organization?->id === $organization->id
+                    && $selected_organization->image_path_lg === 'organizations/florida-128x128.png'
+                    && $selected_organization->image_path_sm === 'organizations/florida-32x32.png';
             }
         );
+        $response->assertViewHas(
+            'organizations',
+            function (Collection $organizations) use ($organization): bool {
+                $selected_organization = $organizations->firstWhere('id', $organization->id);
+
+                return $selected_organization !== null
+                    && $selected_organization->image_path_lg === 'organizations/florida-128x128.png'
+                    && $selected_organization->image_path_sm === 'organizations/florida-32x32.png';
+            }
+        );
+    }
+
+    public function test_invoke_renders_selected_organization_logo_context(): void
+    {
+        Storage::fake('public');
+
+        $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
+        $organization = Organization::factory()->asOrganization()->withName('Florida Garrison')->create([
+            Organization::IMAGE_PATH_LG => 'organizations/florida-128x128.png',
+            Organization::IMAGE_PATH_SM => 'organizations/florida-32x32.png',
+        ]);
+        Storage::disk('public')->put($organization->image_path_lg, 'logo');
+
+        $leaderboard = collect([
+            'dominance' => collect(),
+            'diversity' => collect(),
+            'operatives' => collect(),
+        ]);
+
+        $this->mock(MagicBus::class, function (MockInterface $mock) use ($leaderboard): void {
+            $mock->shouldReceive('send')
+                ->once()
+                ->andReturn($leaderboard);
+        });
+
+        $response = $this->actingAs($trooper)
+            ->get(route('service-records.leaderboard', ['organization_id' => $organization->id]));
+
+        $response->assertOk();
+        $response->assertSee('Florida Garrison');
+        $response->assertSee('storage/organizations/florida-128x128.png');
     }
 }

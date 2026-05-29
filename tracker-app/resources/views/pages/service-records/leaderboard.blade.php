@@ -7,9 +7,23 @@
     <div class="row g-4">
         
         <div class="d-flex flex-wrap gap-3 justify-content-between align-items-end mb-4">
-            <h2 class="h4 mb-0 text-uppercase fw-bold">
-                <i class="fa-brands fa-empire me-2"></i>
-            </h2>
+            <div class="d-flex flex-wrap gap-3 align-items-center">
+                <h2 class="h4 mb-0 text-uppercase fw-bold">
+                    <i class="fa-brands fa-empire me-2"></i> Leaderboard
+                </h2>
+
+                @if($organization)
+                    <div class="d-flex align-items-center gap-2">
+                        <x-logo :storage_path="$organization->image_path_lg"
+                                default_path="img/icons/organization-128x128.png"
+                                :width="64"
+                                :height="64" />
+                        <div class="small text-uppercase fw-bold lh-sm">
+                            {{ $organization->name }}
+                        </div>
+                    </div>
+                @endif
+            </div>
 
             <div class="d-flex flex-wrap gap-3 align-items-end">
                 <form method="GET"
@@ -116,11 +130,11 @@
                     <i class="fa-solid fa-chart-pie me-2"></i> Organization Activity
                 </div>
                 <div class="card-body">
-                    @forelse($leaderboard['dominance'] as $organization)
+                    @forelse($leaderboard['dominance'] as $dominant_organization)
                         <div class="mb-3">
                             @include('pages.events.inc.leaderboard-item', [
-                                'label' => $organization->name,
-                                'count' => $organization->events_count,
+                                'label' => $dominant_organization->name,
+                                'count' => $dominant_organization->events_count,
                                 'count_of' => 'EVENTS',
                                 'max' => $leaderboard['dominance']->max('events_count') ?: 1,
                             ])
