@@ -144,7 +144,7 @@ class PublicApiController
                 ->where(TrooperAssignment::IS_MEMBER, true)
             )
             ->with([
-                'trooper_costumes',
+                'trooper_costumes.organization_costume',
                 'organizations' => fn ($q) => $q->withPivot(TrooperOrganization::IDENTIFIER),
             ])
             ->orderBy(Trooper::DISPLAY_NAME)
@@ -204,8 +204,26 @@ h2{font-size:1em;border-bottom:1px solid #ccc;padding-bottom:6px;margin-top:20px
     private function memberCard(Trooper $trooper): string
     {
         $name = e($trooper->display_name);
-        $identifier = e($trooper->organizations->first()?->pivot?->identifier ?? '');
-        $label = $identifier ? $name.' - '.$identifier : $name;
+        $identifier = $trooper->organizations->first()?->pivot?->identifier ?? '';
+
+        // Resolve the display prefix: honour the trooper's forum preference first,
+        // then fall back to the first costume ordered alphabetically by prefix.
+        $orgId = $trooper->organizations->first()?->id;
+
+        if ($trooper->forum_display_costume_id !== null) {
+            $prefixCostume = $trooper->trooper_costumes
+                ->firstWhere(TrooperCostume::ID, $trooper->forum_display_costume_id);
+        } else {
+            $prefixCostume = $trooper->trooper_costumes
+                ->filter(fn ($tc) => !empty($tc->organization_costume?->prefix)
+                    && $tc->organization_costume->organization_id === $orgId)
+                ->sortBy(fn ($tc) => $tc->organization_costume->prefix)
+                ->first();
+        }
+
+        $prefix = $prefixCostume?->organization_costume?->prefix ?? '';
+        $formattedId = $prefix . $identifier;
+        $label = $formattedId ? $name.' - '.e($formattedId) : $name;
 
         $photo = $trooper->trooper_costumes
             ->firstWhere(fn ($c) => !empty($c->{TrooperCostume::IMAGE_URL_SM}))
