@@ -570,7 +570,15 @@ Use this order when standing up the Florida Garrison instance:
     /opt/bitnami/php/bin/php artisan queue:flush
     ```
 
-### 14.2 Common mail setup note for SES SMTP
+### 14.2 Set up the Laravel scheduler cron
+
+Add this to the `bitnami` user's crontab:
+
+```cron
+* * * * * cd /home/bitnami/trooper-tracker/tracker-app && /opt/bitnami/php/bin/php artisan schedule:run >> /dev/null 2>&1
+```
+
+### 14.3 Common mail setup note for SES SMTP
 
 Use this in `.env`:
 
@@ -594,11 +602,10 @@ cd /home/bitnami/trooper-tracker/tracker-app
 /opt/bitnami/php/bin/php artisan queue:restart
 ```
 
-### 14.3 If Supervisor says "can't find command 'php'"
+### 14.4 If Supervisor says "can't find command 'php'"
 
 That means you must use the full PHP path in the `command` line of the Supervisor program:
 
 ```ini
 command=/opt/bitnami/php/bin/php ...
 ```
-
