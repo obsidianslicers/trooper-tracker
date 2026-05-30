@@ -47,7 +47,7 @@ class ProfileRequest extends FormRequest
                 'nullable',
                 'integer',
                 Rule::exists('tt_trooper_costumes', 'id')
-                    ->where('trooper_id', $this->user()->id)
+                    ->where('trooper_id', $this->user()?->id ?? 0)
                     ->whereNull('deleted_at'),
             ],
         ];
