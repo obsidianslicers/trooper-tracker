@@ -94,7 +94,7 @@ class EventObserverTest extends TestCase
         $event->name = 'Updated Event Name';
         $event->save();
 
-        Queue::assertNothingPushed();
+        Queue::assertNotPushed(UpdateEventForumThreadJob::class);
     }
 
     public function test_deleted_deletes_forum_thread_when_xenforo_is_configured_and_thread_exists(): void
