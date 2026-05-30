@@ -22,6 +22,7 @@ erDiagram
     tt_troopers ||--o{ tt_event_shares : shares
     tt_troopers ||--o{ tt_event_guests : adds
     tt_troopers ||--o{ tt_event_mission_acks : acknowledges
+    tt_troopers ||--o{ tt_event_watches : watches
     tt_troopers ||--o{ tt_award_troopers : receives
     tt_troopers ||--o{ tt_notice_troopers : receives
     tt_troopers ||--o{ tt_oauth_logins : has
@@ -50,7 +51,8 @@ erDiagram
     tt_events ||--o{ tt_event_organizations : has
     tt_events ||--o{ tt_event_uploads : has
     tt_events ||--o{ tt_event_shares : has
-  tt_events ||--o{ tt_event_mission_acks : has
+    tt_events ||--o{ tt_event_mission_acks : has
+    tt_events ||--o{ tt_event_watches : has
 
     tt_event_shifts ||--o{ tt_event_troopers : has
     tt_event_shifts ||--o{ tt_event_guests : has
@@ -125,6 +127,7 @@ erDiagram
     tt_troopers ||--o{ tt_event_shares : shares
     tt_troopers ||--o{ tt_event_guests : adds
     tt_troopers ||--o{ tt_event_mission_acks : acknowledges
+    tt_troopers ||--o{ tt_event_watches : watches
 
     tt_costumes ||--o{ tt_event_troopers : selected_primary
     tt_costumes ||--o{ tt_event_troopers : selected_backup
@@ -176,9 +179,9 @@ Events, Awards, and Notices. It uses:
 
 ## Inventory
 
-Discovered migration files: 31
+Discovered migration files: 32
 
-Discovered tables: 37
+Discovered tables: 38
 
 - tt_troopers
 - tt_password_reset_tokens
@@ -207,6 +210,7 @@ Discovered tables: 37
 - tt_event_shares
 - tt_event_guests
 - tt_event_mission_acks
+- tt_event_watches
 - tt_awards
 - tt_award_troopers
 - tt_notices
@@ -258,7 +262,7 @@ Relationships:
   tt_trooper_costumes, tt_trooper_achievements, tt_trooper_friends, tt_event_notifications,
   tt_notifications, tt_event_troopers, tt_event_uploads, tt_event_upload_troopers,
   tt_event_shares, tt_event_guests, tt_award_troopers, tt_notice_troopers, tt_oauth_logins,
-  tt_model_changes, tt_mobile_devices
+  tt_model_changes, tt_mobile_devices, tt_event_watches
 
 ### tt_password_reset_tokens
 
@@ -669,7 +673,7 @@ Relationships:
 - Belongs To: tt_organizations (organization_id)
 - Belongs To: tt_organizations (primary_organization_id)
 - Has Many: tt_event_shifts, tt_event_notifications, tt_event_organizations,
-  tt_event_uploads, tt_event_shares
+  tt_event_uploads, tt_event_shares, tt_event_watches
 
 ### tt_event_shifts
 
@@ -891,6 +895,24 @@ Relationships:
 
 - Belongs To: tt_events
 - Belongs To: tt_troopers
+
+### tt_event_watches
+
+Purpose: Trooper watch subscriptions for event activity notifications.
+
+| Column | Type | Nullable | Key / Constraints |
+| --- | --- | --- | --- |
+| id | bigint unsigned | no | PK, auto increment |
+| event_id | bigint unsigned | no | FK -> tt_events.id, cascadeOnDelete |
+| trooper_id | bigint unsigned | no | FK -> tt_troopers.id, cascadeOnDelete |
+| created_at | timestamp | yes | timestamps helper |
+| updated_at | timestamp | yes | timestamps helper |
+
+Unique: (event_id, trooper_id)
+
+Relationships:
+
+- Belongs To: tt_events, tt_troopers
 
 ### tt_awards
 
