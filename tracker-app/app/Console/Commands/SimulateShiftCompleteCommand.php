@@ -6,6 +6,7 @@ namespace App\Console\Commands;
 
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
+use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventOrganization;
 use App\Models\EventShift;
@@ -112,11 +113,16 @@ class SimulateShiftCompleteCommand extends Command
             EventShift::SHIFT_STARTS_AT => $event_end->clone()->subHours(4),
         ]);
 
+        $handler_costume = Costume::where(Costume::NAME, Costume::HANDLER)->first();
+
         $event_trooper = EventTrooper::factory()
             ->forEventShift($event_shift)
             ->forTrooper($trooper)
             ->asGoing()
-            ->create();
+            ->create([
+                EventTrooper::COSTUME_ID => $handler_costume?->id,
+                EventTrooper::IS_HANDLER => true,
+            ]);
 
         if ($dual_costume)
         {
