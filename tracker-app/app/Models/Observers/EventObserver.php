@@ -83,6 +83,7 @@ class EventObserver
             Event::VENUE_CITY,
             Event::VENUE_STATE,
             Event::VENUE_ZIP,
+            Event::COMMENTS,
         ];
 
         if ($event->wasChanged($watch_fields))
