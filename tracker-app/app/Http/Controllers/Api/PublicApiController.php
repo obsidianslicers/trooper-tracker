@@ -223,10 +223,10 @@ h2{font-size:1em;border-bottom:1px solid #ccc;padding-bottom:6px;margin-top:20px
 
     private function resolveDisplayPrefix(Trooper $trooper, ?int $org_id): string
     {
-        if ($trooper->forum_display_costume_id !== null)
+        if ($trooper->display_costume_id !== null)
         {
             $prefix_costume = $trooper->trooper_costumes
-                ->firstWhere(TrooperCostume::ID, $trooper->forum_display_costume_id);
+                ->firstWhere(TrooperCostume::ID, $trooper->display_costume_id);
         }
         else
         {

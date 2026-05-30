@@ -367,10 +367,10 @@ class XenforoUserSyncService
 
     private function resolveDisplayCostume(Trooper $trooper): ?TrooperCostume
     {
-        if ($trooper->forum_display_costume_id !== null)
+        if ($trooper->display_costume_id !== null)
         {
             return $trooper->trooper_costumes
-                ->firstWhere(TrooperCostume::ID, $trooper->forum_display_costume_id);
+                ->firstWhere(TrooperCostume::ID, $trooper->display_costume_id);
         }
 
         return $trooper->trooper_costumes

@@ -43,7 +43,7 @@ class ProfileRequest extends FormRequest
             Trooper::DISPLAY_NAME => ['required', 'string', 'max:256'],
             Trooper::PHONE => ['nullable', 'string', 'max:16'],
             Trooper::THEME => ['required', 'string', 'max:16', 'in:'.TrooperTheme::toValidator()],
-            Trooper::FORUM_DISPLAY_COSTUME_ID => [
+            Trooper::DISPLAY_COSTUME_ID => [
                 'nullable',
                 'integer',
                 Rule::exists('tt_trooper_costumes', 'id')

@@ -242,7 +242,7 @@ Purpose: Authenticated Trooper accounts and profile state.
 | notification_frequency | varchar(16) | no | default NotificationFrequency::NEVER->value |
 | push_notifications_enabled | boolean | no | default true |
 | notification_preferences | json | yes |  |
-| forum_display_costume_id | bigint unsigned | yes | FK -> tt_trooper_costumes.id, nullOnDelete |
+| display_costume_id | bigint unsigned | yes | FK -> tt_trooper_costumes.id, nullOnDelete |
 | visitor_expires_at | datetime | yes |  |
 | visitor_notified_at | datetime | yes |  |
 | achievements_updated_at | datetime | yes |  |
@@ -257,7 +257,7 @@ Purpose: Authenticated Trooper accounts and profile state.
 Relationships:
 
 - Belongs To: tt_troopers (guardian_id)
-- Belongs To: tt_trooper_costumes (forum_display_costume_id)
+- Belongs To: tt_trooper_costumes (display_costume_id)
 - Has Many: tt_trooper_assignments, tt_trooper_organizations, tt_trooper_donations,
   tt_trooper_costumes, tt_trooper_achievements, tt_trooper_friends, tt_event_notifications,
   tt_notifications, tt_event_troopers, tt_event_uploads, tt_event_upload_troopers,

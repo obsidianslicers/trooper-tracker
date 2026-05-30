@@ -11,11 +11,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('tt_troopers', function (Blueprint $table) {
-            $table->unsignedBigInteger('forum_display_costume_id')
+            $table->unsignedBigInteger('display_costume_id')
                 ->nullable()
                 ->after('notification_preferences');
 
-            $table->foreign('forum_display_costume_id')
+            $table->foreign('display_costume_id')
                 ->references('id')
                 ->on('tt_trooper_costumes')
                 ->nullOnDelete();
@@ -25,8 +25,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('tt_troopers', function (Blueprint $table) {
-            $table->dropForeign(['forum_display_costume_id']);
-            $table->dropColumn('forum_display_costume_id');
+            $table->dropForeign(['display_costume_id']);
+            $table->dropColumn('display_costume_id');
         });
     }
 };

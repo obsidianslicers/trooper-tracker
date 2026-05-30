@@ -69,9 +69,9 @@
                     <x-label>
                         Display ID Prefix:
                     </x-label>
-                    <x-input-select :property="'forum_display_costume_id'"
+                    <x-input-select :property="'display_costume_id'"
                                     :options="['' => '— Auto (first costume) —'] + $costume_options->toArray()"
-                                    :value="$trooper->forum_display_costume_id ?? ''" />
+                                    :value="$trooper->display_costume_id ?? ''" />
                     <x-input-help>
                         Choose which prefix and ID to display on the forum (e.g. TK52233 or SL52233).
                         Leave blank to use the first costume automatically.
