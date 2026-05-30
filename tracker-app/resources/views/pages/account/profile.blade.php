@@ -64,6 +64,21 @@
                                     :value="$trooper->theme->value" />
                 </x-input-container>
 
+                @if($costumeOptions->isNotEmpty())
+                <x-input-container>
+                    <x-label>
+                        Forum Display ID:
+                    </x-label>
+                    <x-input-select :property="'forum_display_costume_id'"
+                                    :options="['' => '— Auto (first costume) —'] + $costumeOptions->toArray()"
+                                    :value="$trooper->forum_display_costume_id ?? ''" />
+                    <x-input-help>
+                        Choose which prefix and ID to display on the forum (e.g. TK52233 or SL52233).
+                        Leave blank to use the first costume automatically.
+                    </x-input-help>
+                </x-input-container>
+                @endif
+
                 <x-submit-container>
                     <span class="float-start">
                         <a href="{{ route('service-records.trooper', compact('trooper')) }}"

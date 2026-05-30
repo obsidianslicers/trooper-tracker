@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Account;
 
 use App\Http\Controllers\MagicBusController;
+use App\Models\TrooperCostume;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -26,7 +27,23 @@ class ProfileController extends MagicBusController
     {
         $trooper = $request->user();
 
-        $data = compact('trooper');
+        $trooper->load([
+            'trooper_costumes.organization_costume.costume',
+            'trooper_costumes.organization_costume.organization',
+            'organizations',
+        ]);
+
+        $costumeOptions = $trooper->trooper_costumes->mapWithKeys(function (TrooperCostume $tc) use ($trooper) {
+            $oc         = $tc->organization_costume;
+            $org        = $trooper->organizations->firstWhere('id', $oc?->organization_id);
+            $identifier = $org?->pivot?->identifier ?? '';
+            $prefix     = $oc?->prefix ?? '';
+            $label      = $prefix . $identifier . ' — ' . ($oc?->costume?->name ?? '') . ' (' . ($oc?->organization?->name ?? '') . ')';
+
+            return [$tc->id => $label];
+        });
+
+        $data = compact('trooper', 'costumeOptions');
 
         return view('pages.account.profile', $data);
     }
