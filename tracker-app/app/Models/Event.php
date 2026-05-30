@@ -241,7 +241,17 @@ class Event extends BaseEvent
      */
     public function getCanUpdateTrooperStatusAttribute(): bool
     {
-        return $this->is_active || $this->event_end->isAfter(now()->subDays(30));
+        return $this->is_active || $this->is_within_grace_period;
+    }
+
+    /**
+     * Check if the event is within the recent grace period after it ends.
+     *
+     * @return bool
+     */
+    public function getIsWithinGracePeriodAttribute(): bool
+    {
+        return $this->event_end->isAfter(now()->subDays(30));
     }
 
     /**
@@ -259,6 +269,26 @@ class Event extends BaseEvent
             {
                 return $this->event_shifts->sum('event_troopers_count') == 0;
             }
+        }
+
+        return false;
+    }
+
+    /**
+     * Determine whether moderation actions are allowed for a closed event.
+     *
+     * Moderation is allowed only when the event is closed, still within the
+     * post-event grace period, and the caller has moderation permission.
+     *
+     * @param bool $can_moderate Whether the trooper has moderation permission.
+     *
+     * @return bool True when moderation is allowed for this closed event.
+     */
+    public function canModerateIfClosed(bool $can_moderate): bool
+    {
+        if ($this->is_closed && $this->is_within_grace_period && $can_moderate)
+        {
+            return true;
         }
 
         return false;
