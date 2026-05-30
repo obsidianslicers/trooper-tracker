@@ -67,7 +67,7 @@
                 @if($costumeOptions->isNotEmpty())
                 <x-input-container>
                     <x-label>
-                        Forum Display ID:
+                        Display ID Prefix:
                     </x-label>
                     <x-input-select :property="'forum_display_costume_id'"
                                     :options="['' => '— Auto (first costume) —'] + $costumeOptions->toArray()"
