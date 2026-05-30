@@ -84,7 +84,7 @@
                         <p class="text-muted mb-3">
                             Select a club below and submit a request. A moderator will review and approve your membership.
                             @if(!$trooper->is_visitor)
-                                You may join at any level — organization, region, or unit.
+                                You may join at any level — organization, region, or unit — but please choose the most specific unit that applies to you.
                             @endif
                             Only one membership per organization is allowed.
                         </p>
