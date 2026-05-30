@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\Events;
 
 use App\Enums\EventTrooperStatus;
+use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
@@ -254,6 +255,51 @@ class ShiftCompleteControllerTest extends TestCase
         DB::table('tt_event_troopers')
             ->where('id', $event_trooper->id)
             ->update(['costume_organization_ids' => null]);
+        $event_trooper->refresh();
+
+        $status = Crypt::encryptString(EventTrooperStatus::ATTENDED->value);
+
+        $response = $this->actingAs($trooper)->get(route('events.shift-complete', [
+            'event_trooper' => $event_trooper->id,
+            'status' => $status,
+        ]));
+
+        $response->assertOk();
+        $response->assertViewIs('pages.events.shift-complete-club-select');
+        $this->assertSame(EventTrooperStatus::GOING, $event_trooper->fresh()->status);
+    }
+
+    public function test_invoke_shows_club_select_for_handler_when_observer_limited_costume_org_ids_to_one_club(): void
+    {
+        // Regression: when a handler is in two clubs but the event's can_attend only
+        // included one, the observer sets costume_organization_ids to just that one club.
+        // getEligibleCreditOrganizations() must bypass that and return the full membership
+        // so the club-select form is shown.
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $org1 = Organization::factory()->create();
+        $org2 = Organization::factory()->create();
+
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org1)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org2)->asMember()->create();
+
+        $event = Event::factory()->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $handler_costume = Costume::factory()->state(['name' => Costume::HANDLER])->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->asGoing()
+            ->create();
+
+        // Simulate the observer having set costume_id + limited costume_organization_ids
+        // to only org1 (because only org1 had can_attend = true for this event).
+        DB::table('tt_event_troopers')
+            ->where('id', $event_trooper->id)
+            ->update([
+                'costume_id' => $handler_costume->id,
+                'costume_organization_ids' => json_encode([$org1->id]),
+            ]);
         $event_trooper->refresh();
 
         $status = Crypt::encryptString(EventTrooperStatus::ATTENDED->value);

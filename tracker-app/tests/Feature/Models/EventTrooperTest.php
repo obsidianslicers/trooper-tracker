@@ -15,6 +15,7 @@ use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
+use App\Models\TrooperAssignment;
 use App\Models\TrooperCostume;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -642,5 +643,56 @@ class EventTrooperTest extends TestCase
 
         $this->assertCount(1, $result);
         $this->assertArrayHasKey($handler_costume->id, $result);
+    }
+
+    public function test_get_eligible_credit_organizations_returns_all_member_orgs_for_handler_costume(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $org1 = Organization::factory()->create();
+        $org2 = Organization::factory()->create();
+
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org1)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org2)->asMember()->create();
+
+        $handler_costume = Costume::factory()->state(['name' => Costume::HANDLER])->create();
+        $subject = EventTrooper::factory()
+            ->forTrooper($trooper)
+            ->state([
+                EventTrooper::COSTUME_ID => $handler_costume->id,
+                // Simulate observer having filtered to only org1 via can_attend
+                EventTrooper::COSTUME_ORGANIZATION_IDS => [$org1->id],
+            ])
+            ->create();
+
+        $result = $subject->getEligibleCreditOrganizations();
+
+        $this->assertCount(2, $result);
+        $this->assertTrue($result->contains('id', $org1->id));
+        $this->assertTrue($result->contains('id', $org2->id));
+    }
+
+    public function test_get_eligible_credit_organizations_returns_all_member_orgs_for_command_staff_costume(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $org1 = Organization::factory()->create();
+        $org2 = Organization::factory()->create();
+
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org1)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org2)->asMember()->create();
+
+        $command_staff_costume = Costume::factory()->state(['name' => Costume::COMMAND_STAFF])->create();
+        $subject = EventTrooper::factory()
+            ->forTrooper($trooper)
+            ->state([
+                EventTrooper::COSTUME_ID => $command_staff_costume->id,
+                EventTrooper::COSTUME_ORGANIZATION_IDS => [$org1->id],
+            ])
+            ->create();
+
+        $result = $subject->getEligibleCreditOrganizations();
+
+        $this->assertCount(2, $result);
+        $this->assertTrue($result->contains('id', $org1->id));
+        $this->assertTrue($result->contains('id', $org2->id));
     }
 }

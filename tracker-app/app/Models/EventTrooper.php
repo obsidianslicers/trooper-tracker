@@ -318,6 +318,19 @@ class EventTrooper extends BaseEventTrooper
     /** Returns orgs eligible to receive troop credit for this shift. */
     public function getEligibleCreditOrganizations(): Collection
     {
+        // Handler/Command Staff credit derives from membership, not costume approvals.
+        // costume_organization_ids is filtered to the event's can_attend orgs for capacity
+        // tracking, but credit selection must see the full membership so multi-club handlers
+        // are offered the club-select form.
+        $this->loadMissing('costume');
+        if ($this->costume?->countsAsHandler())
+        {
+            return Organization::whereHas('trooper_assignments', fn($q) =>
+                $q->where(TrooperAssignment::TROOPER_ID, $this->trooper_id)
+                    ->where(TrooperAssignment::IS_MEMBER, true)
+            )->get();
+        }
+
         $costume_org_ids = $this->costume_organization_ids ?? [];
 
         if (!empty($costume_org_ids))
