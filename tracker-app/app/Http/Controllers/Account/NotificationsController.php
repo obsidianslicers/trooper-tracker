@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Account;
 
+use App\Enums\AdministrativeNotifications;
+use App\Enums\NotificationPreferences;
 use App\Features\Troopers\Queries\GetTrooperNotificationsQuery;
 use App\Http\Controllers\MagicBusController;
 use Illuminate\Contracts\View\View;
@@ -33,6 +35,8 @@ class NotificationsController extends MagicBusController
 
         $data = compact('organizations');
 
+        $data['notification_preferences'] = NotificationPreferences::toArray();
+        $data['administrative_notifications'] = AdministrativeNotifications::toArray();
         $data['notification_frequency'] = $trooper->notification_frequency;
         $data['push_notifications_enabled'] = $trooper->push_notifications_enabled;
         $data['notification_preferences'] = $trooper->notification_preferences ?? [];

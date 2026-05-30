@@ -50,12 +50,7 @@
                     <div class="col-4 col-md-2 text-center">Website</div>
                 </div>
 
-                @foreach ([
-                    'event_created'   => 'New Events',
-                    'event_cancelled' => 'Event Cancellations',
-                    'trooper_signed_up' => 'Sign-up Confirmations',
-                    'event_shift_completed' => 'Event Shift Completed',
-                ] as $category => $label)
+                @foreach ($notification_preferences as $category => $label)
                     <div class="row align-items-center mb-3">
                         <div class="col-12 col-md-5 mb-1 mb-md-0">{{ $label }}</div>
                         @foreach (['mail' => 'Email', 'fcm' => 'Push', 'database' => 'Website'] as $channel => $channel_label)
@@ -80,10 +75,7 @@
                         <i>Control which channels you receive administrative notifications on.</i>
                     </p>
 
-                    @foreach ([
-                        'join_requests'         => 'Club Join Requests',
-                        'trooper_registrations' => 'New Trooper Registrations',
-                    ] as $category => $label)
+                    @foreach ($administrative_notifications as $category => $label)
                         <div class="row align-items-center mb-3">
                             <div class="col-12 col-md-5 mb-1 mb-md-0">{{ $label }}</div>
                             @foreach (['mail' => 'Email', 'fcm' => 'Push', 'database' => 'Website'] as $channel => $channel_label)
