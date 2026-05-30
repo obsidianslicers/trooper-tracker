@@ -8,6 +8,7 @@ use App\Facades\TroopTrackerFacade;
 use App\Features\Events\Queries\GetEventDisplayQuery;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Event;
+use App\Models\EventWatch;
 use App\Services\Forums\XenforoService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -75,6 +76,10 @@ class EventDisplayController extends MagicBusController
             $xenforoThreadPosts = $xenforo->get_thread_posts($threadId, exclude_post_id: $excludePostId, per_page: 50, max_pages: 20);
         }
 
+        $is_watching = EventWatch::where('event_id', $event->id)
+            ->where('trooper_id', $trooper->id)
+            ->exists();
+
         $data = compact(
             'event',
             'can_moderate',
@@ -82,7 +87,8 @@ class EventDisplayController extends MagicBusController
             'xenforoBaseUrl',
             'xenforoThreadPosts',
             'mission_brief_required',
-            'has_mission_brief_ack'
+            'has_mission_brief_ack',
+            'is_watching'
         );
 
         return view('pages.events.event-display', $data);

@@ -182,6 +182,12 @@
                         </div>
                     </div>
 
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            @include('pages.events.inc.watch-toggle', compact('event', 'is_watching'))
+                        </div>
+                    </div>
+
                     <div class="row">
                         <div class="col-12 mb-3">
                             @include('pages.events.inc.shifts', compact('event'))

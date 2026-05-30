@@ -11,6 +11,7 @@ use App\Features\Events\Commands\UpdateEventTrooperCommand;
 use App\Features\Events\Queries\GetEventShiftDisplayQuery;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Events\SignupUpdateHtmxRequest;
+use App\Jobs\SendEventRosterActivityNotificationsJob;
 use App\Models\Costume;
 use App\Models\EventTrooper;
 use App\Notifications\Events\ManualSelectionApprovedNotification;
@@ -73,6 +74,11 @@ class SignUpUpdateHtmxController extends MagicBusController
 
             $event_trooper_cmd = new UpdateEventTrooperCommand($event_trooper, $valid_data);
             $this->bus->send($event_trooper_cmd);
+
+            if ($requestedStatus === EventTrooperStatus::CANCELLED && $previous_status !== EventTrooperStatus::CANCELLED)
+            {
+                dispatch(new SendEventRosterActivityNotificationsJob($event_trooper, 'cancelled'));
+            }
 
             if ($isManualApproval)
             {
@@ -190,6 +196,8 @@ class SignUpUpdateHtmxController extends MagicBusController
             ];
 
             $this->bus->send(new UpdateEventTrooperCommand($event_trooper, $valid_data));
+
+            dispatch(new SendEventRosterActivityNotificationsJob($event_trooper, 'resigned_up'));
 
             $trooper = $authTrooper;
             $event_shift_query = new GetEventShiftDisplayQuery($event_shift, $trooper);

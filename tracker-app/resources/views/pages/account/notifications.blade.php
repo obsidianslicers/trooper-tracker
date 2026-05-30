@@ -51,9 +51,11 @@
                 </div>
 
                 @foreach ([
-                    'event_created'   => 'New Events',
-                    'event_cancelled' => 'Event Cancellations',
-                    'trooper_signed_up' => 'Sign-up Confirmations',
+                    'event_created'         => 'New Events',
+                    'event_cancelled'       => 'Event Cancellations',
+                    'trooper_signed_up'     => 'Sign-up Confirmations',
+                    'event_updated'         => 'Event Details Changed',
+                    'event_roster_activity' => 'Event Roster Activity',
                 ] as $category => $label)
                     <div class="row align-items-center mb-3">
                         <div class="col-12 col-md-5 mb-1 mb-md-0">{{ $label }}</div>

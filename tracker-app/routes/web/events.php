@@ -20,6 +20,7 @@ use App\Http\Controllers\Events\GuestUpdateHtmxController;
 use App\Http\Controllers\Events\ForumReplyController;
 use App\Http\Controllers\Events\UploadImageController;
 use App\Http\Controllers\Events\ToggleEventUploadTagController;
+use App\Http\Controllers\Events\ToggleEventWatchHtmxController;
 use App\Http\Controllers\Events\AddTrooperOrgPickerHtmxController;
 use Illuminate\Support\Facades\Route;
 
@@ -35,6 +36,7 @@ Route::prefix('events')
         Route::get('/closed', ClosedController::class)->name('closed');
         Route::get('/cancelled', CancelledController::class)->name('cancelled');
         Route::get('/details/{event}', EventDisplayController::class)->name('display');
+        Route::post('/details/{event}/watch', ToggleEventWatchHtmxController::class)->name('toggle-watch-htmx');
         Route::post('/details/{event}/ack-mission-brief', MissionBriefAcknowledgeController::class)->name('ack-mission-brief');
         Route::get('/details/{event}/roster-csv', [DownloadRosterCsvController::class, 'allShifts'])->name('download-roster-csv');
         Route::get('/details/{event}/shifts/{event_shift}/roster-csv', [DownloadRosterCsvController::class, 'singleShift'])->name('download-shift-roster-csv');

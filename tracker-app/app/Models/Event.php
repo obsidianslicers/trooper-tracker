@@ -103,6 +103,11 @@ class Event extends BaseEvent
         return $this->hasMany(EventOrganization::class);
     }
 
+    public function watches(): HasMany
+    {
+        return $this->hasMany(EventWatch::class);
+    }
+
     /**
      * Whether this event has any capacity limits (global or per-org).
      */
