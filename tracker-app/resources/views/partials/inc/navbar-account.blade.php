@@ -12,11 +12,14 @@
                         :active="request()->routeIs('account.*') && !request()->routeIs('account.push-notifications')">
                 Profile
             </x-nav-link>
+            <x-nav-link :url="route('account.notifications')">
+                Notifications
+            </x-nav-link>
             <x-nav-link :url="route('account.costumes')">
                 Costumes
             </x-nav-link>
             <x-nav-link :url="route('account.club-memberships')">
-                Organizations
+                Club Memberships
             </x-nav-link>
             <x-nav-link :url="route('auth.logout')">
                 Logout

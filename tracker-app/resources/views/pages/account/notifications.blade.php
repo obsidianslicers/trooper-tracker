@@ -54,6 +54,7 @@
                     'event_created'   => 'New Events',
                     'event_cancelled' => 'Event Cancellations',
                     'trooper_signed_up' => 'Sign-up Confirmations',
+                    'event_shift_completed' => 'Event Shift Completed',
                 ] as $category => $label)
                     <div class="row align-items-center mb-3">
                         <div class="col-12 col-md-5 mb-1 mb-md-0">{{ $label }}</div>

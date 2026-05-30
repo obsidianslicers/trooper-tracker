@@ -5,6 +5,8 @@
     </div>
     <div class="card-body">
         <dl class="row mb-0">
+            <dt class="col-4">Legal Name:</dt>
+            <dd class="col-8">{{ $join_request->trooper->legal_name }}</dd>
             <dt class="col-4">Display Name:</dt>
             <dd class="col-8">{{ $join_request->trooper->display_name }}</dd>
             <dt class="col-4">Email:</dt>
