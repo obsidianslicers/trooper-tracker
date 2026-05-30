@@ -8,12 +8,11 @@ use App\Bus\MagicBus;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Features\Events\Queries\GetEventShiftsToCloseQuery;
-use App\Mail\Events\EventShiftComplete;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
+use App\Notifications\Events\EventShiftCompletedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Mail;
 use Mockery;
 use Mockery\MockInterface;
 use Tests\TestCase;
@@ -39,8 +38,6 @@ class CloseEventShiftsCommandTest extends TestCase
         $shift2 = EventShift::factory()->create([EventShift::STATUS => EventStatus::OPEN]);
         $shifts = collect([$shift1, $shift2]);
 
-        Mail::fake();
-
         // Mock MagicBus to return shifts to close
         $this->mock(MagicBus::class, function (MockInterface $mock) use ($shifts)
         {
@@ -62,28 +59,37 @@ class CloseEventShiftsCommandTest extends TestCase
     }
 
     /**
-     * Test that the command sends emails to troopers with GOING status.
+     * Test that the command sends notifications to troopers with GOING status.
      */
-    public function test_command_sends_emails_to_going_troopers(): void
+    public function test_command_sends_notifications_to_going_troopers(): void
     {
         // Arrange: Create event shift with troopers in different statuses
         $shift = EventShift::factory()->create([EventShift::STATUS => EventStatus::OPEN]);
 
-        $trooper_going = Trooper::factory()->create();
-        $event_trooper_going = EventTrooper::factory()->create([
+        $trooper_going = Mockery::mock(Trooper::class)->makePartial();
+        $trooper_going->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::type(EventShiftCompletedNotification::class));
+
+        $event_trooper_going = EventTrooper::factory()->make([
             EventTrooper::EVENT_SHIFT_ID => $shift->id,
-            EventTrooper::TROOPER_ID => $trooper_going->id,
             EventTrooper::STATUS => EventTrooperStatus::GOING,
         ]);
+        $event_trooper_going->setRelation('trooper', $trooper_going);
 
-        $trooper_cancelled = Trooper::factory()->create();
-        $event_trooper_cancelled = EventTrooper::factory()->create([
+        $trooper_cancelled = Mockery::mock(Trooper::class)->makePartial();
+        $trooper_cancelled->shouldNotReceive('notify');
+
+        $event_trooper_cancelled = EventTrooper::factory()->make([
             EventTrooper::EVENT_SHIFT_ID => $shift->id,
-            EventTrooper::TROOPER_ID => $trooper_cancelled->id,
             EventTrooper::STATUS => EventTrooperStatus::CANCELLED,
         ]);
+        $event_trooper_cancelled->setRelation('trooper', $trooper_cancelled);
 
-        Mail::fake();
+        $shift->setRelation(
+            'event_troopers',
+            collect([$event_trooper_going, $event_trooper_cancelled])
+        );
 
         // Mock MagicBus
         $this->mock(MagicBus::class, function (MockInterface $mock) use ($shift)
@@ -97,39 +103,33 @@ class CloseEventShiftsCommandTest extends TestCase
         // Act: Execute the command
         $this->artisan('tracker:close-event-shifts')
             ->assertExitCode(0);
-
-        // Assert: Only GOING trooper receives email
-        Mail::assertQueued(EventShiftComplete::class, function ($mail) use ($trooper_going)
-        {
-            return $mail->hasTo($trooper_going->email);
-        });
-
-        Mail::assertQueued(EventShiftComplete::class, 1);
     }
 
     /**
-     * Test that the command does not send emails to non-GOING troopers.
+     * Test that the command does not notify non-GOING troopers.
      */
-    public function test_command_does_not_send_emails_to_non_going_troopers(): void
+    public function test_command_does_not_notify_non_going_troopers(): void
     {
         // Arrange: Create event shift with troopers not going
         $shift = EventShift::factory()->create([EventShift::STATUS => EventStatus::OPEN]);
 
-        $trooper1 = Trooper::factory()->create();
-        EventTrooper::factory()->create([
+        $trooper1 = Mockery::mock(Trooper::class)->makePartial();
+        $trooper1->shouldNotReceive('notify');
+        $event_trooper1 = EventTrooper::factory()->make([
             EventTrooper::EVENT_SHIFT_ID => $shift->id,
-            EventTrooper::TROOPER_ID => $trooper1->id,
             EventTrooper::STATUS => EventTrooperStatus::TENTATIVE,
         ]);
+        $event_trooper1->setRelation('trooper', $trooper1);
 
-        $trooper2 = Trooper::factory()->create();
-        EventTrooper::factory()->create([
+        $trooper2 = Mockery::mock(Trooper::class)->makePartial();
+        $trooper2->shouldNotReceive('notify');
+        $event_trooper2 = EventTrooper::factory()->make([
             EventTrooper::EVENT_SHIFT_ID => $shift->id,
-            EventTrooper::TROOPER_ID => $trooper2->id,
             EventTrooper::STATUS => EventTrooperStatus::PENDING,
         ]);
+        $event_trooper2->setRelation('trooper', $trooper2);
 
-        Mail::fake();
+        $shift->setRelation('event_troopers', collect([$event_trooper1, $event_trooper2]));
 
         // Mock MagicBus
         $this->mock(MagicBus::class, function (MockInterface $mock) use ($shift)
@@ -143,9 +143,6 @@ class CloseEventShiftsCommandTest extends TestCase
         // Act: Execute the command
         $this->artisan('tracker:close-event-shifts')
             ->assertExitCode(0);
-
-        // Assert: No emails queued
-        Mail::assertNothingQueued();
     }
 
     /**
@@ -154,8 +151,6 @@ class CloseEventShiftsCommandTest extends TestCase
     public function test_command_handles_no_shifts_to_close(): void
     {
         // Arrange
-        Mail::fake();
-
         $this->mock(MagicBus::class, function (MockInterface $mock)
         {
             $mock->shouldReceive('send')
@@ -167,41 +162,53 @@ class CloseEventShiftsCommandTest extends TestCase
         // Act & Assert: Command should complete successfully
         $this->artisan('tracker:close-event-shifts')
             ->assertExitCode(0);
-
-        Mail::assertNothingQueued();
     }
 
     /**
-     * Test that the command sends emails to multiple GOING troopers in same shift.
+     * Test that the command notifies multiple GOING troopers in same shift.
      */
-    public function test_command_sends_emails_to_multiple_going_troopers(): void
+    public function test_command_sends_notifications_to_multiple_going_troopers(): void
     {
         // Arrange: Create shift with multiple GOING troopers
         $shift = EventShift::factory()->create([EventShift::STATUS => EventStatus::OPEN]);
 
-        $trooper1 = Trooper::factory()->create();
-        $trooper2 = Trooper::factory()->create();
-        $trooper3 = Trooper::factory()->create();
+        $trooper1 = Mockery::mock(Trooper::class)->makePartial();
+        $trooper1->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::type(EventShiftCompletedNotification::class));
 
-        EventTrooper::factory()->create([
+        $trooper2 = Mockery::mock(Trooper::class)->makePartial();
+        $trooper2->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::type(EventShiftCompletedNotification::class));
+
+        $trooper3 = Mockery::mock(Trooper::class)->makePartial();
+        $trooper3->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::type(EventShiftCompletedNotification::class));
+
+        $event_trooper1 = EventTrooper::factory()->make([
             EventTrooper::EVENT_SHIFT_ID => $shift->id,
-            EventTrooper::TROOPER_ID => $trooper1->id,
             EventTrooper::STATUS => EventTrooperStatus::GOING,
         ]);
+        $event_trooper1->setRelation('trooper', $trooper1);
 
-        EventTrooper::factory()->create([
+        $event_trooper2 = EventTrooper::factory()->make([
             EventTrooper::EVENT_SHIFT_ID => $shift->id,
-            EventTrooper::TROOPER_ID => $trooper2->id,
             EventTrooper::STATUS => EventTrooperStatus::GOING,
         ]);
+        $event_trooper2->setRelation('trooper', $trooper2);
 
-        EventTrooper::factory()->create([
+        $event_trooper3 = EventTrooper::factory()->make([
             EventTrooper::EVENT_SHIFT_ID => $shift->id,
-            EventTrooper::TROOPER_ID => $trooper3->id,
             EventTrooper::STATUS => EventTrooperStatus::GOING,
         ]);
+        $event_trooper3->setRelation('trooper', $trooper3);
 
-        Mail::fake();
+        $shift->setRelation(
+            'event_troopers',
+            collect([$event_trooper1, $event_trooper2, $event_trooper3])
+        );
 
         // Mock MagicBus
         $this->mock(MagicBus::class, function (MockInterface $mock) use ($shift)
@@ -215,21 +222,6 @@ class CloseEventShiftsCommandTest extends TestCase
         // Act: Execute the command
         $this->artisan('tracker:close-event-shifts')
             ->assertExitCode(0);
-
-        // Assert: All three troopers receive emails
-        Mail::assertQueued(EventShiftComplete::class, 3);
-        Mail::assertQueued(EventShiftComplete::class, function ($mail) use ($trooper1)
-        {
-            return $mail->hasTo($trooper1->email);
-        });
-        Mail::assertQueued(EventShiftComplete::class, function ($mail) use ($trooper2)
-        {
-            return $mail->hasTo($trooper2->email);
-        });
-        Mail::assertQueued(EventShiftComplete::class, function ($mail) use ($trooper3)
-        {
-            return $mail->hasTo($trooper3->email);
-        });
     }
 
     /**
@@ -241,21 +233,29 @@ class CloseEventShiftsCommandTest extends TestCase
         $shift1 = EventShift::factory()->create([EventShift::STATUS => EventStatus::OPEN]);
         $shift2 = EventShift::factory()->create([EventShift::STATUS => EventStatus::OPEN]);
 
-        $trooper1 = Trooper::factory()->create();
-        EventTrooper::factory()->create([
+        $trooper1 = Mockery::mock(Trooper::class)->makePartial();
+        $trooper1->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::type(EventShiftCompletedNotification::class));
+
+        $event_trooper1 = EventTrooper::factory()->make([
             EventTrooper::EVENT_SHIFT_ID => $shift1->id,
-            EventTrooper::TROOPER_ID => $trooper1->id,
             EventTrooper::STATUS => EventTrooperStatus::GOING,
         ]);
+        $event_trooper1->setRelation('trooper', $trooper1);
+        $shift1->setRelation('event_troopers', collect([$event_trooper1]));
 
-        $trooper2 = Trooper::factory()->create();
-        EventTrooper::factory()->create([
+        $trooper2 = Mockery::mock(Trooper::class)->makePartial();
+        $trooper2->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::type(EventShiftCompletedNotification::class));
+
+        $event_trooper2 = EventTrooper::factory()->make([
             EventTrooper::EVENT_SHIFT_ID => $shift2->id,
-            EventTrooper::TROOPER_ID => $trooper2->id,
             EventTrooper::STATUS => EventTrooperStatus::GOING,
         ]);
-
-        Mail::fake();
+        $event_trooper2->setRelation('trooper', $trooper2);
+        $shift2->setRelation('event_troopers', collect([$event_trooper2]));
 
         // Mock MagicBus
         $this->mock(MagicBus::class, function (MockInterface $mock) use ($shift1, $shift2)
@@ -275,8 +275,6 @@ class CloseEventShiftsCommandTest extends TestCase
         $shift2->refresh();
         $this->assertEquals(EventStatus::CLOSED, $shift1->status);
         $this->assertEquals(EventStatus::CLOSED, $shift2->status);
-
-        Mail::assertQueued(EventShiftComplete::class, 2);
     }
 
     /**
