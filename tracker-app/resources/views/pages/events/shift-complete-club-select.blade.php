@@ -20,6 +20,10 @@
         </p>
     </div>
 
+    @if (!empty($error))
+        <div class="alert alert-danger my-4">{{ $error }}</div>
+    @endif
+
     <form method="POST"
           action="{{ route('events.shift-complete-club-select', ['event_trooper' => $event_trooper]) }}">
         @csrf

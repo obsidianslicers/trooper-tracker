@@ -17,6 +17,7 @@ use Illuminate\Support\Collection;
 use App\Models\Event;
 use App\Models\EventOrganization;
 use App\Models\TrooperAssignment;
+use Illuminate\Support\Facades\Crypt;
 
 /**
  * Represents a trooper's participation in an event shift.
@@ -158,6 +159,29 @@ class EventTrooper extends BaseEventTrooper
     }
 
     /**
+     * Check if the status for this event trooper assignment can be marked as attended.
+     *
+     * Status can be updated if the shift is closed and the trooper has ownership.
+     * If changing from a non-going status, the shift must not be at capacity.
+     *
+     * @param EventShift $event_shift The event shift this assignment belongs to
+     * @param Trooper $trooper The trooper attempting the update
+     * @return bool True if the status can be updated
+     */
+    public function canMarkAttendance(EventShift $event_shift, Trooper $trooper): bool
+    {
+        if ($event_shift->is_closed && $event_shift->event->can_update_trooper_status && $this->hasOwnership($trooper))
+        {
+            if ($this->status === EventTrooperStatus::GOING)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Check if the status for this event trooper assignment can be updated.
      *
      * Status can be updated if the shift is open and the trooper has ownership.
@@ -280,24 +304,48 @@ class EventTrooper extends BaseEventTrooper
         return $this->trooper->guardian_id === $trooper->id;
     }
 
+    /**
+     * Build the shift-complete URL with an encrypted attendance status token.
+     *
+     * @param EventTrooperStatus $status The attendance status to submit.
+     * @return string The URL for attendance confirmation.
+     */
+    public function getAttendanceUrl(EventTrooperStatus $status): string
+    {
+        return route('events.shift-complete', ['event_trooper' => $this, 'status' => Crypt::encryptString($status->value)]);
+    }
+
     /** Returns orgs eligible to receive troop credit for this shift. */
     public function getEligibleCreditOrganizations(): Collection
     {
+        // Handler/Command Staff credit derives from membership, not costume approvals.
+        // costume_organization_ids is filtered to the event's can_attend orgs for capacity
+        // tracking, but credit selection must see the full membership so multi-club handlers
+        // are offered the club-select form.
+        $this->loadMissing('costume');
+        if ($this->costume?->countsAsHandler())
+        {
+            return Organization::whereHas('trooper_assignments', fn($q) =>
+                $q->where(TrooperAssignment::TROOPER_ID, $this->trooper_id)
+                    ->where(TrooperAssignment::IS_MEMBER, true)
+            )->get();
+        }
+
         $costume_org_ids = $this->costume_organization_ids ?? [];
 
         if (!empty($costume_org_ids))
         {
             return Organization::whereIn('id', $costume_org_ids)
-                ->whereHas('trooper_assignments', fn ($q) =>
+                ->whereHas('trooper_assignments', fn($q) =>
                     $q->where(TrooperAssignment::TROOPER_ID, $this->trooper_id)
-                      ->where(TrooperAssignment::IS_MEMBER, true)
+                        ->where(TrooperAssignment::IS_MEMBER, true)
                 )
                 ->get();
         }
 
-        return Organization::whereHas('trooper_assignments', fn ($q) =>
+        return Organization::whereHas('trooper_assignments', fn($q) =>
             $q->where(TrooperAssignment::TROOPER_ID, $this->trooper_id)
-              ->where(TrooperAssignment::IS_MEMBER, true)
+                ->where(TrooperAssignment::IS_MEMBER, true)
         )->get();
     }
 
@@ -305,7 +353,7 @@ class EventTrooper extends BaseEventTrooper
     public function getEligibleCreditParentOrganizations(): Collection
     {
         return $this->getEligibleCreditOrganizations()
-            ->map(fn ($org) => $org->getPrimaryClub())
+            ->map(fn($org) => $org->getPrimaryClub())
             ->unique('id')
             ->values();
     }
@@ -314,7 +362,7 @@ class EventTrooper extends BaseEventTrooper
     public function childOrgIdsForSelectedParents(array $parent_org_ids): array
     {
         return $this->getEligibleCreditOrganizations()
-            ->filter(fn ($org) => in_array($org->getPrimaryClub()->id, $parent_org_ids, true))
+            ->filter(fn($org) => in_array($org->getPrimaryClub()->id, $parent_org_ids, true))
             ->pluck('id')
             ->values()
             ->all();
@@ -345,7 +393,7 @@ class EventTrooper extends BaseEventTrooper
         $event->loadMissing('event_organizations');
 
         $limited_org_ids = $event->event_organizations
-            ->filter(fn ($eo) => $eo->troopers_allowed !== null || $eo->handlers_allowed !== null)
+            ->filter(fn($eo) => $eo->troopers_allowed !== null || $eo->handlers_allowed !== null)
             ->pluck(EventOrganization::ORGANIZATION_ID)
             ->all();
 

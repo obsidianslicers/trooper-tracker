@@ -116,7 +116,7 @@ class Event extends BaseEvent
         $this->loadMissing('event_organizations');
 
         return $this->event_organizations->contains(
-            fn ($o) => $o->troopers_allowed !== null || $o->handlers_allowed !== null
+            fn($o) => $o->troopers_allowed !== null || $o->handlers_allowed !== null
         );
     }
 
@@ -180,6 +180,16 @@ class Event extends BaseEvent
     public function getIsOpenAttribute(): bool
     {
         return in_array($this->status, [EventStatus::OPEN, EventStatus::MANUAL_SELECTION], true);
+    }
+
+    /**
+     * Check if the event is open for sign-ups.
+     *
+     * @return bool
+     */
+    public function getIsClosedAttribute(): bool
+    {
+        return $this->status === EventStatus::CLOSED;
     }
 
     /**

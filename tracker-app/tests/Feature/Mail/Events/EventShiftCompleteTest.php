@@ -22,25 +22,23 @@ class EventShiftCompleteTest extends TestCase
         config(['mail.prefix' => '[TEST]']);
 
         $event_trooper = $this->createEventTrooper();
-        $mail = new EventShiftComplete($event_trooper);
+        $subject = new EventShiftComplete($event_trooper);
 
-        $this->assertSame('[TEST] Event Shift Complete - Action Required', $mail->envelope()->subject);
+        $this->assertSame('[TEST] Event Shift Complete - Action Required', $subject->envelope()->subject);
     }
 
     public function test_content_contains_encrypted_statuses_and_relations(): void
     {
         $event_trooper = $this->createEventTrooper();
 
-        $mail = new EventShiftComplete($event_trooper);
-        $content = $mail->content();
+        $subject = new EventShiftComplete($event_trooper);
+        $content = $subject->content();
 
         $this->assertSame('emails.events.event-shift-complete', $content->view);
         $this->assertSame($event_trooper->id, $content->with['event_trooper']->id);
         $this->assertSame($event_trooper->trooper->id, $content->with['trooper']->id);
         $this->assertSame($event_trooper->event_shift->event->id, $content->with['event']->id);
-        $this->assertNotEmpty(Crypt::decryptString($content->with['able_status']));
-        $this->assertNotEmpty(Crypt::decryptString($content->with['unable_status']));
-        $this->assertSame([], $mail->attachments());
+        $this->assertSame([], $subject->attachments());
     }
 
     private function createEventTrooper(): EventTrooper

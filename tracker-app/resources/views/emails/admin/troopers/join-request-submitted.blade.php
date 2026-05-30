@@ -9,7 +9,7 @@
         Another brave soul - <strong>{{ $join_request->trooper->display_name }}</strong> - has
         stepped forward and requested to join the Dark Empire. Yes, another one. The recruitment
         posters must be working.
-        @if($join_request->identifier)
+        @if($join_request->identifier && $join_request->identifier != $join_request->trooper->display_name)
             Their submitted identifier is: <strong>{{ $join_request->identifier }}</strong>.
         @endif
     </p>

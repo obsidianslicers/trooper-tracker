@@ -56,6 +56,22 @@ class EventShift extends BaseEventShift
     }
 
     /**
+     * Check if the shift is open for sign-ups.
+     *
+     * A shift is open if both the parent event is open and the shift status is CLOSED.
+     *
+     * @return bool True if the shift is closed
+     */
+    public function getIsClosedAttribute(): bool
+    {
+        if ($this->event->is_closed)
+        {
+            return true;
+        }
+        return $this->status === EventStatus::CLOSED;
+    }
+
+    /**
      * Check if the shift sign-ups are locked.
      *
      * A shift is locked if either the parent event is locked or the shift status is SIGN_UP_LOCKED.
@@ -183,12 +199,14 @@ class EventShift extends BaseEventShift
         $count = $this->event_troopers()
             ->where(EventTrooper::IS_HANDLER, $is_handler)
             ->where(EventTrooper::STATUS, EventTrooperStatus::GOING)
-            ->where(function ($q) use ($organization_id) {
+            ->where(function ($q) use ($organization_id)
+            {
                 $q->where(EventTrooper::ORGANIZATION_ID, $organization_id)
-                  ->orWhere(function ($q2) use ($organization_id) {
-                      $q2->whereNull(EventTrooper::ORGANIZATION_ID)
-                         ->whereJsonContains(EventTrooper::COSTUME_ORGANIZATION_IDS, $organization_id);
-                  });
+                    ->orWhere(function ($q2) use ($organization_id)
+                    {
+                        $q2->whereNull(EventTrooper::ORGANIZATION_ID)
+                            ->whereJsonContains(EventTrooper::COSTUME_ORGANIZATION_IDS, $organization_id);
+                    });
             })
             ->count();
 
@@ -461,7 +479,8 @@ class EventShift extends BaseEventShift
         $link = Link::create($name, $from, $to)
             ->description($description);
 
-        if ($location !== null) {
+        if ($location !== null)
+        {
             $link = $link->address($location);
         }
 

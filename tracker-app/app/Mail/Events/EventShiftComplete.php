@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Mail\Events;
 
-use App\Enums\EventTrooperStatus;
 use App\Models\EventTrooper;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -13,7 +12,6 @@ use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Crypt;
 
 /**
  * Mailable for event shift completion notification.
@@ -65,8 +63,6 @@ class EventShiftComplete extends Mailable implements ShouldQueue
                 'trooper' => $this->event_trooper->trooper,
                 'event_shift' => $this->event_trooper->event_shift,
                 'event' => $this->event_trooper->event_shift->event,
-                'able_status' => Crypt::encryptString(EventTrooperStatus::ATTENDED->value),
-                'unable_status' => Crypt::encryptString(EventTrooperStatus::UNABLE_TO_ATTEND->value),
             ]
         );
     }

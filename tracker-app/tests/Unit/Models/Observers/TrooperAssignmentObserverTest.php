@@ -193,4 +193,5 @@ class TrooperAssignmentObserverTest extends TestCase
 
         $this->assertTrue(true);
     }
+
 }

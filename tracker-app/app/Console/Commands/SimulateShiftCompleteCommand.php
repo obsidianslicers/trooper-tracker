@@ -6,6 +6,7 @@ namespace App\Console\Commands;
 
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
+use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventOrganization;
 use App\Models\EventShift;
@@ -56,12 +57,35 @@ class SimulateShiftCompleteCommand extends Command
             $primary_org = $member_orgs->first();
         }
 
-        if ($dual_costume && $member_orgs->count() < 2)
-        {
-            $this->error('--dual-costume requires the trooper to be a member of at least 2 clubs.');
-            $this->error("Found {$member_orgs->count()} active membership(s). Add another TrooperAssignment first.");
+        $credit_orgs = collect();
 
-            return self::FAILURE;
+        if ($dual_costume)
+        {
+            $seen_parent_ids = [];
+
+            foreach ($member_orgs as $org)
+            {
+                $parent_id = $org->getPrimaryClub()->id;
+
+                if (!in_array($parent_id, $seen_parent_ids, true))
+                {
+                    $credit_orgs->push($org);
+                    $seen_parent_ids[] = $parent_id;
+
+                    if ($credit_orgs->count() === 2)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            if ($credit_orgs->count() < 2)
+            {
+                $this->error('--dual-costume requires the trooper to be a member of at least 2 clubs with different top-level parent organizations.');
+                $this->error("Found {$member_orgs->count()} active membership(s) but could not resolve 2 distinct parent clubs.");
+
+                return self::FAILURE;
+            }
         }
 
         // Build the event with the chosen timing scenario.
@@ -89,16 +113,19 @@ class SimulateShiftCompleteCommand extends Command
             EventShift::SHIFT_STARTS_AT => $event_end->clone()->subHours(4),
         ]);
 
+        $handler_costume = Costume::where(Costume::NAME, Costume::HANDLER)->first();
+
         $event_trooper = EventTrooper::factory()
             ->forEventShift($event_shift)
             ->forTrooper($trooper)
             ->asGoing()
-            ->create();
+            ->create([
+                EventTrooper::COSTUME_ID => $handler_costume?->id,
+                EventTrooper::IS_HANDLER => true,
+            ]);
 
         if ($dual_costume)
         {
-            $credit_orgs = $member_orgs->take(2);
-
             // Bypass the EventTrooperObserver which recomputes costume_organization_ids
             // based on OrganizationCostume/TrooperCostume records we don't need here.
             DB::table('tt_event_troopers')
@@ -130,19 +157,19 @@ class SimulateShiftCompleteCommand extends Command
         $this->info('  Updates open:  '.($event->can_update_trooper_status ? '<fg=green>yes</>' : '<fg=red>no</>'));
 
         $this->newLine();
-        $eligible_orgs = $event_trooper->getEligibleCreditOrganizations();
+        $parent_orgs = $event_trooper->getEligibleCreditParentOrganizations();
 
-        if ($eligible_orgs->count() > 1)
+        if ($parent_orgs->count() > 1)
         {
             $this->line('<fg=cyan;options=bold>── Club selection will be shown ───────────────────</>');
-            foreach ($eligible_orgs as $org)
+            foreach ($parent_orgs as $org)
             {
                 $this->info("  [{$org->id}] {$org->name}");
             }
         }
-        elseif ($eligible_orgs->count() === 1)
+        elseif ($parent_orgs->count() === 1)
         {
-            $this->info('  Eligible clubs: '.$eligible_orgs->first()->name.' (single — no selection prompt)');
+            $this->info('  Eligible clubs: '.$parent_orgs->first()->name.' (single — no selection prompt)');
         }
         else
         {

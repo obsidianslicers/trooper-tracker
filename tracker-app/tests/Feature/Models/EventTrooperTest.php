@@ -15,9 +15,12 @@ use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
+use App\Models\TrooperAssignment;
 use App\Models\TrooperCostume;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 use Tests\TestCase;
 
 class EventTrooperTest extends TestCase
@@ -107,6 +110,21 @@ class EventTrooperTest extends TestCase
         $result = $subject->getAuditLabel();
 
         $this->assertStringContainsString('Test Event', $result);
+    }
+
+    public function test_get_attendance_url_contains_event_trooper_and_encrypted_status(): void
+    {
+        $subject = EventTrooper::factory()->create();
+
+        $url = $subject->getAttendanceUrl(EventTrooperStatus::ATTENDED);
+        $route = app('router')->getRoutes()->match(Request::create($url, 'GET'));
+        $route_parameters = $route->parameters();
+
+        $this->assertSame((string) $subject->{EventTrooper::ID}, (string) $route_parameters['event_trooper']);
+        $this->assertSame(
+            EventTrooperStatus::ATTENDED->value,
+            Crypt::decryptString((string) $route_parameters['status'])
+        );
     }
 
     public function test_get_costumes_returns_available_costumes(): void
@@ -212,6 +230,118 @@ class EventTrooperTest extends TestCase
             ->create();
 
         $result = $subject->canUpdateStatus($shift, $trooper);
+
+        $this->assertFalse($result);
+    }
+
+    public function test_can_mark_attendance_returns_true_when_shift_closed_and_has_ownership_and_status_going(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $event = Event::factory()
+            ->asClosed()
+            ->withEventEnd(now()->subDays(1))
+            ->create();
+        $shift = EventShift::factory()
+            ->state([
+                EventShift::EVENT_ID => $event->{Event::ID},
+                EventShift::STATUS => EventStatus::CLOSED,
+            ])
+            ->create();
+        $subject = EventTrooper::factory()
+            ->forEventShift($shift)
+            ->forTrooper($trooper)
+            ->asGoing()
+            ->create();
+
+        $result = $subject->canMarkAttendance($shift, $trooper);
+
+        $this->assertTrue($result);
+    }
+
+    public function test_can_mark_attendance_returns_false_when_event_updates_are_expired(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $event = Event::factory()
+            ->asClosed()
+            ->withEventEnd(now()->subDays(31))
+            ->create();
+        $shift = EventShift::factory()
+            ->state([
+                EventShift::EVENT_ID => $event->{Event::ID},
+                EventShift::STATUS => EventStatus::CLOSED,
+            ])
+            ->create();
+        $subject = EventTrooper::factory()
+            ->forEventShift($shift)
+            ->forTrooper($trooper)
+            ->asGoing()
+            ->create();
+
+        $result = $subject->canMarkAttendance($shift, $trooper);
+
+        $this->assertFalse($result);
+    }
+
+    public function test_can_mark_attendance_returns_false_when_shift_is_not_closed(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $event = Event::factory()->state([Event::STATUS => EventStatus::OPEN])->create();
+        $shift = EventShift::factory()
+            ->state([
+                EventShift::EVENT_ID => $event->{Event::ID},
+                EventShift::STATUS => EventStatus::OPEN,
+            ])
+            ->create();
+        $subject = EventTrooper::factory()
+            ->forEventShift($shift)
+            ->forTrooper($trooper)
+            ->asGoing()
+            ->create();
+
+        $result = $subject->canMarkAttendance($shift, $trooper);
+
+        $this->assertFalse($result);
+    }
+
+    public function test_can_mark_attendance_returns_false_when_no_ownership(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $other_trooper = Trooper::factory()->create();
+        $event = Event::factory()->state([Event::STATUS => EventStatus::CLOSED])->create();
+        $shift = EventShift::factory()
+            ->state([
+                EventShift::EVENT_ID => $event->{Event::ID},
+                EventShift::STATUS => EventStatus::CLOSED,
+            ])
+            ->create();
+        $subject = EventTrooper::factory()
+            ->forEventShift($shift)
+            ->forTrooper($other_trooper)
+            ->asGoing()
+            ->create();
+
+        $result = $subject->canMarkAttendance($shift, $trooper);
+
+        $this->assertFalse($result);
+    }
+
+    public function test_can_mark_attendance_returns_false_when_status_not_going(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $event = Event::factory()->state([Event::STATUS => EventStatus::CLOSED])->create();
+        $shift = EventShift::factory()
+            ->state([
+                EventShift::EVENT_ID => $event->{Event::ID},
+                EventShift::STATUS => EventStatus::CLOSED,
+            ])
+            ->create();
+        $subject = EventTrooper::factory()
+            ->forEventShift($shift)
+            ->forTrooper($trooper)
+            ->state([EventTrooper::STATUS => EventTrooperStatus::CANCELLED])
+            ->create();
+
+        $result = $subject->canMarkAttendance($shift, $trooper);
 
         $this->assertFalse($result);
     }
@@ -410,7 +540,8 @@ class EventTrooperTest extends TestCase
             ->state([EventShift::EVENT_ID => $event->id])
             ->create();
 
-        foreach ([$org_a, $org_b] as $org) {
+        foreach ([$org_a, $org_b] as $org)
+        {
             EventOrganization::factory()
                 ->state([
                     EventOrganization::EVENT_ID => $event->id,
@@ -512,5 +643,56 @@ class EventTrooperTest extends TestCase
 
         $this->assertCount(1, $result);
         $this->assertArrayHasKey($handler_costume->id, $result);
+    }
+
+    public function test_get_eligible_credit_organizations_returns_all_member_orgs_for_handler_costume(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $org1 = Organization::factory()->create();
+        $org2 = Organization::factory()->create();
+
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org1)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org2)->asMember()->create();
+
+        $handler_costume = Costume::factory()->state(['name' => Costume::HANDLER])->create();
+        $subject = EventTrooper::factory()
+            ->forTrooper($trooper)
+            ->state([
+                EventTrooper::COSTUME_ID => $handler_costume->id,
+                // Simulate observer having filtered to only org1 via can_attend
+                EventTrooper::COSTUME_ORGANIZATION_IDS => [$org1->id],
+            ])
+            ->create();
+
+        $result = $subject->getEligibleCreditOrganizations();
+
+        $this->assertCount(2, $result);
+        $this->assertTrue($result->contains('id', $org1->id));
+        $this->assertTrue($result->contains('id', $org2->id));
+    }
+
+    public function test_get_eligible_credit_organizations_returns_all_member_orgs_for_command_staff_costume(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $org1 = Organization::factory()->create();
+        $org2 = Organization::factory()->create();
+
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org1)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org2)->asMember()->create();
+
+        $command_staff_costume = Costume::factory()->state(['name' => Costume::COMMAND_STAFF])->create();
+        $subject = EventTrooper::factory()
+            ->forTrooper($trooper)
+            ->state([
+                EventTrooper::COSTUME_ID => $command_staff_costume->id,
+                EventTrooper::COSTUME_ORGANIZATION_IDS => [$org1->id],
+            ])
+            ->create();
+
+        $result = $subject->getEligibleCreditOrganizations();
+
+        $this->assertCount(2, $result);
+        $this->assertTrue($result->contains('id', $org1->id));
+        $this->assertTrue($result->contains('id', $org2->id));
     }
 }
