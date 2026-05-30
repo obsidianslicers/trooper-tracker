@@ -57,12 +57,38 @@ class UpdateTroopersController extends MagicBusController
         {
             foreach ($shift->event_troopers as $event_trooper)
             {
-                $event_trooper->org_options = $event_trooper->trooper->organizations
-                    ->when($allowed_org_ids !== null, fn ($c) => $c->whereIn('id', $allowed_org_ids));
+                $trooper_orgs = $event_trooper->trooper->organizations;
 
-                $event_trooper->credited_checked_ids = $event_trooper->organization_id !== null
-                    ? [$event_trooper->organization_id]
-                    : ($event_trooper->costume_organization_ids ?? []);
+                $root_ids = $trooper_orgs
+                    ->map(fn ($org) => (int) explode(':', $org->node_path)[0])
+                    ->unique()
+                    ->values()
+                    ->toArray();
+
+                $event_trooper->org_options = $trooper_orgs
+                    ->whereIn('id', $root_ids)
+                    ->when($allowed_org_ids !== null, fn ($c) => $c->whereIn('id', $allowed_org_ids))
+                    ->values();
+
+                if ($event_trooper->organization_id !== null)
+                {
+                    $org = $trooper_orgs->find($event_trooper->organization_id);
+                    $event_trooper->credited_checked_ids = [
+                        $org ? (int) explode(':', $org->node_path)[0] : $event_trooper->organization_id,
+                    ];
+                }
+                else
+                {
+                    $event_trooper->credited_checked_ids = collect($event_trooper->costume_organization_ids ?? [])
+                        ->map(function ($id) use ($trooper_orgs)
+                        {
+                            $org = $trooper_orgs->find($id);
+                            return $org ? (int) explode(':', $org->node_path)[0] : $id;
+                        })
+                        ->unique()
+                        ->values()
+                        ->all();
+                }
             }
         }
 
