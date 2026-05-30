@@ -45,10 +45,10 @@ class UpdateTroopersController extends MagicBusController
 
         $event_shifts = $this->bus->send($query);
 
-        $authTrooper = $request->user();
-        $allowed_org_ids = $authTrooper->is_administrator
+        $auth_trooper = $request->user();
+        $allowed_org_ids = $auth_trooper->is_administrator
             ? null
-            : $authTrooper->trooper_assignments()
+            : $auth_trooper->trooper_assignments()
                 ->where(TrooperAssignment::IS_MODERATOR, true)
                 ->pluck(TrooperAssignment::ORGANIZATION_ID)
                 ->toArray();
