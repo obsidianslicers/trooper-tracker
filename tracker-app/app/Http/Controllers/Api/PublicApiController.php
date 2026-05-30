@@ -210,10 +210,13 @@ h2{font-size:1em;border-bottom:1px solid #ccc;padding-bottom:6px;margin-top:20px
         // then fall back to the first costume ordered alphabetically by prefix.
         $orgId = $trooper->organizations->first()?->id;
 
-        if ($trooper->forum_display_costume_id !== null) {
+        if ($trooper->forum_display_costume_id !== null)
+        {
             $prefixCostume = $trooper->trooper_costumes
                 ->firstWhere(TrooperCostume::ID, $trooper->forum_display_costume_id);
-        } else {
+        }
+        else
+        {
             $prefixCostume = $trooper->trooper_costumes
                 ->filter(fn ($tc) => !empty($tc->organization_costume?->prefix)
                     && $tc->organization_costume->organization_id === $orgId)
@@ -222,7 +225,7 @@ h2{font-size:1em;border-bottom:1px solid #ccc;padding-bottom:6px;margin-top:20px
         }
 
         $prefix = $prefixCostume?->organization_costume?->prefix ?? '';
-        $formattedId = $prefix . $identifier;
+        $formattedId = $prefix.$identifier;
         $label = $formattedId ? $name.' - '.e($formattedId) : $name;
 
         $photo = $trooper->trooper_costumes

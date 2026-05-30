@@ -371,7 +371,7 @@ class XenforoUserSyncService
         }
 
         $prefix = $displayCostume->organization_costume->prefix;
-        $orgId  = $displayCostume->organization_costume->organization_id;
+        $orgId = $displayCostume->organization_costume->organization_id;
 
         $org = $trooper->organizations->firstWhere('id', $orgId);
         $identifier = $org?->pivot?->identifier ?? null;
@@ -381,7 +381,7 @@ class XenforoUserSyncService
             return null;
         }
 
-        return $prefix . $identifier;
+        return $prefix.$identifier;
     }
 
     /**

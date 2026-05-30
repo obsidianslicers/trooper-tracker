@@ -34,11 +34,11 @@ class ProfileController extends MagicBusController
         ]);
 
         $costumeOptions = $trooper->trooper_costumes->mapWithKeys(function (TrooperCostume $tc) use ($trooper) {
-            $oc         = $tc->organization_costume;
-            $org        = $trooper->organizations->firstWhere('id', $oc?->organization_id);
+            $oc = $tc->organization_costume;
+            $org = $trooper->organizations->firstWhere('id', $oc?->organization_id);
             $identifier = $org?->pivot?->identifier ?? '';
-            $prefix     = $oc?->prefix ?? '';
-            $label      = $prefix . $identifier . ' — ' . ($oc?->costume?->name ?? '') . ' (' . ($oc?->organization?->name ?? '') . ')';
+            $prefix = $oc?->prefix ?? '';
+            $label = $prefix.$identifier.' — '.($oc?->costume?->name ?? '').' ('.($oc?->organization?->name ?? '').')';
 
             return [$tc->id => $label];
         });
