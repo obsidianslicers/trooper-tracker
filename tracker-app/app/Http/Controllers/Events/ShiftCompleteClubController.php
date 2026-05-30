@@ -49,7 +49,12 @@ class ShiftCompleteClubController extends MagicBusController
 
         if (empty($submitted_ids))
         {
-            abort(422);
+            return view('pages.events.shift-complete-club-select', [
+                'event_trooper' => $event_trooper,
+                'organizations' => $event_trooper->getEligibleCreditParentOrganizations(),
+                'encrypted_status' => $request->input('encrypted_status', ''),
+                'error' => 'Please select at least one club to receive credit for this troop.',
+            ]);
         }
 
         $eligible_parent_ids = $event_trooper->getEligibleCreditParentOrganizations()->pluck('id');

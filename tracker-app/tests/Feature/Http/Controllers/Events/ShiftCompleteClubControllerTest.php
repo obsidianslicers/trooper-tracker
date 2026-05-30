@@ -138,7 +138,7 @@ class ShiftCompleteClubControllerTest extends TestCase
         $this->assertSame(EventTrooperStatus::GOING, $event_trooper->fresh()->status);
     }
 
-    public function test_empty_selection_returns_422(): void
+    public function test_empty_selection_re_renders_form_with_error(): void
     {
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
         $org1 = Organization::factory()->create();
@@ -168,7 +168,9 @@ class ShiftCompleteClubControllerTest extends TestCase
             'encrypted_status' => $encrypted_status,
         ]);
 
-        $response->assertStatus(422);
+        $response->assertOk();
+        $response->assertViewIs('pages.events.shift-complete-club-select');
+        $response->assertViewHas('error');
         $this->assertSame(EventTrooperStatus::GOING, $event_trooper->fresh()->status);
     }
 
