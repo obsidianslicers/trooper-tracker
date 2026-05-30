@@ -29,7 +29,7 @@ class ToggleEventWatchHtmxController
         else
         {
             EventWatch::create([
-                'event_id'   => $event->id,
+                'event_id' => $event->id,
                 'trooper_id' => $trooper->id,
             ]);
             $is_watching = true;

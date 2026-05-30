@@ -33,7 +33,7 @@ class EventUpdatedMail extends Mailable implements ShouldQueue
         return new Content(
             view: 'emails.events.event-updated',
             with: [
-                'event'          => $this->event,
+                'event' => $this->event,
                 'changed_fields' => $this->changed_fields,
             ]
         );

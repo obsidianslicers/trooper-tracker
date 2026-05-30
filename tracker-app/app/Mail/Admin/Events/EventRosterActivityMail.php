@@ -34,9 +34,9 @@ class EventRosterActivityMail extends Mailable implements ShouldQueue
             view: 'emails.admin.events.event-roster-activity',
             with: [
                 'event_trooper' => $this->event_trooper,
-                'event'         => $this->event_trooper->event_shift->event,
-                'trooper'       => $this->event_trooper->trooper,
-                'action'        => $this->action,
+                'event' => $this->event_trooper->event_shift->event,
+                'trooper' => $this->event_trooper->trooper,
+                'action' => $this->action,
             ]
         );
     }
