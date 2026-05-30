@@ -51,7 +51,7 @@ class JoinRequestSubmittedNotification extends Notification
         return [
             'title' => 'Club Join Request',
             'body'  => "{$trooper->display_name} has requested to join {$org->name}.",
-            'url'   => '/admin/troopers/join-requests',
+            'url'   => '/admin/troopers/approvals',
         ];
     }
 
