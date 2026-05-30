@@ -124,7 +124,7 @@
                                 {{ $shift->event->name }}
                             </a>
                             @if($pending_shifts->contains('id', $shift->id))
-                                <span class="badge bg-warning text-dark ms-1">Confirm?</span>
+                                <span class="badge bg-warning text-dark ms-1">Confirm</span>
                             @endif
                         </td>
                         <td class="text-start text-nowrap">
