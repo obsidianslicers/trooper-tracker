@@ -29,8 +29,7 @@ class FixTrooperAssignmentHierarchyCommand extends Command
             {
                 $node_path = $assignment->organization->node_path;
 
-                $has_more_specific = $trooper_assignments->contains(function ($other) use ($node_path, $assignment)
-                {
+                $has_more_specific = $trooper_assignments->contains(function ($other) use ($node_path, $assignment) {
                     return $other->id !== $assignment->id
                         && str_starts_with($other->organization->node_path, $node_path)
                         && $other->organization->depth > $assignment->organization->depth;
