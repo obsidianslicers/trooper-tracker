@@ -519,7 +519,7 @@ Add immediately after:
 ```html
 <xf:if is="{$user.Profile.custom_fields.trackerid} > 0 && {$user.Profile.custom_fields.fullname} != ''">
 <div style="text-align: center; margin-top: 10px;">
-	<a href="https://fl501st.com/troop-tracker/index.php?profile={$user.Profile.custom_fields.trackerid}">{$user.Profile.custom_fields.tkid}</a>
+	<a href="https://tracker.fl501st.com/service-records/trooper/{$user.Profile.custom_fields.trackerid}">{$user.Profile.custom_fields.tkid}</a>
 	<br />
 	{$user.Profile.custom_fields.fullname}
 </div>
@@ -551,7 +551,7 @@ Add immediately after:
 		<dl class="pairs pairs--inline">
 			<dt>TKID</dt>
 			<dd dir="auto">
-				<a href="https://fl501st.com/troop-tracker/index.php?profile={$user.Profile.custom_fields.trackerid}">{$user.Profile.custom_fields.tkid}</a>
+				<a href="https://tracker.fl501st.com/service-records/trooper/{$user.Profile.custom_fields.trackerid}">{$user.Profile.custom_fields.tkid}</a>
 			</dd>
 		</dl>
 	</div>
@@ -592,7 +592,7 @@ Add immediately after:
 		<dl class="pairs pairs--inline">
 			<dt>TKID</dt>
 			<dd dir="auto">
-				<a href="https://fl501st.com/troop-tracker/index.php?profile={$user.Profile.custom_fields.trackerid}">{$user.Profile.custom_fields.tkid}</a>
+				<a href="https://tracker.fl501st.com/service-records/trooper/{$user.Profile.custom_fields.trackerid}">{$user.Profile.custom_fields.tkid}</a>
 			</dd>
 		</dl>
 	</div>
