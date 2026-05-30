@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Models\Observers;
 
+use App\Models\Costume;
 use App\Models\Organization;
+use App\Models\OrganizationCostume;
 use App\Models\TrooperAssignment;
+use App\Models\TrooperCostume;
 use Exception;
 
 /**
@@ -60,6 +63,57 @@ class TrooperAssignmentObserver
             throw new Exception(
                 'Trooper can only have one primary membership in the same organization hierarchy.'
             );
+        }
+    }
+
+    public function saved(TrooperAssignment $trooper_assignment): void
+    {
+        if ($trooper_assignment->wasChanged(TrooperAssignment::IS_MEMBER))
+        {
+            $this->syncSpecialCostumes($trooper_assignment);
+        }
+    }
+
+    public function created(TrooperAssignment $trooper_assignment): void
+    {
+        if ($trooper_assignment->is_member)
+        {
+            $this->syncSpecialCostumes($trooper_assignment);
+        }
+    }
+
+    private function syncSpecialCostumes(TrooperAssignment $trooper_assignment): void
+    {
+        $org_costumes = OrganizationCostume::query()
+            ->whereHas('costume', fn ($q) => $q->whereIn(Costume::NAME, [Costume::HANDLER, Costume::COMMAND_STAFF]))
+            ->where(OrganizationCostume::ORGANIZATION_ID, $trooper_assignment->organization_id)
+            ->get();
+
+        foreach ($org_costumes as $org_costume)
+        {
+            $trooper_costume = $trooper_assignment->trooper
+                ->trooper_costumes()
+                ->withTrashed()
+                ->where(TrooperCostume::ORGANIZATION_COSTUME_ID, $org_costume->id)
+                ->first();
+
+            if ($trooper_assignment->is_member)
+            {
+                if ($trooper_costume === null)
+                {
+                    $trooper_assignment->trooper->trooper_costumes()->create([
+                        TrooperCostume::ORGANIZATION_COSTUME_ID => $org_costume->id,
+                    ]);
+                }
+                else
+                {
+                    $trooper_costume->restore();
+                }
+            }
+            else
+            {
+                $trooper_costume?->delete();
+            }
         }
     }
 }

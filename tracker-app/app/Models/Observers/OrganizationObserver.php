@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Models\Observers;
 
+use App\Models\Costume;
 use App\Models\Organization;
+use App\Models\OrganizationCostume;
 
 /**
  * Handles lifecycle events for the Organization model to manage hierarchical node paths.
@@ -28,6 +30,16 @@ class OrganizationObserver
         $organization->depth = substr_count($organization->node_path, self::SEP);
 
         $organization->saveQuietly();
+
+        $special_costumes = Costume::whereIn(Costume::NAME, [Costume::HANDLER, Costume::COMMAND_STAFF])->get();
+
+        foreach ($special_costumes as $costume)
+        {
+            OrganizationCostume::firstOrCreate([
+                OrganizationCostume::ORGANIZATION_ID => $organization->id,
+                OrganizationCostume::COSTUME_ID      => $costume->id,
+            ]);
+        }
     }
 
     /**
