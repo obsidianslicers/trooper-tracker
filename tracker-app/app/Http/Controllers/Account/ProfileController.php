@@ -33,7 +33,7 @@ class ProfileController extends MagicBusController
             'organizations',
         ]);
 
-        $costumeOptions = $trooper->trooper_costumes->mapWithKeys(function (TrooperCostume $tc) use ($trooper) {
+        $costume_options = $trooper->trooper_costumes->mapWithKeys(function (TrooperCostume $tc) use ($trooper) {
             $oc = $tc->organization_costume;
             $org = $trooper->organizations->firstWhere('id', $oc?->organization_id);
             $identifier = $org?->pivot?->identifier ?? '';
@@ -43,7 +43,7 @@ class ProfileController extends MagicBusController
             return [$tc->id => $label];
         });
 
-        $data = compact('trooper', 'costumeOptions');
+        $data = compact('trooper', 'costume_options');
 
         return view('pages.account.profile', $data);
     }

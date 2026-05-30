@@ -331,13 +331,7 @@ class XenforoUserSyncService
             ->values();
     }
 
-    /**
-     * Resolve the formatted TKID to sync to XenForo (e.g. "TK52233").
-     *
-     * Uses the trooper's preferred display costume if set, otherwise falls back
-     * to the first trooper costume ordered by prefix. Returns null when no
-     * matching costume + identifier pair can be found.
-     */
+    /** Returns the formatted TKID to sync to XenForo (e.g. "TK52233"), or null. */
     private function resolveForumDisplayTkId(Trooper $trooper): ?string
     {
         $trooper->loadMissing([
@@ -350,30 +344,17 @@ class XenforoUserSyncService
             return null;
         }
 
-        // Use the trooper's stated preference, otherwise pick the first costume
-        // sorted alphabetically by prefix so the result is deterministic.
-        if ($trooper->forum_display_costume_id !== null)
-        {
-            $displayCostume = $trooper->trooper_costumes
-                ->firstWhere(TrooperCostume::ID, $trooper->forum_display_costume_id);
-        }
-        else
-        {
-            $displayCostume = $trooper->trooper_costumes
-                ->filter(fn (TrooperCostume $tc) => ! is_null($tc->organization_costume?->prefix))
-                ->sortBy(fn (TrooperCostume $tc) => $tc->organization_costume->prefix)
-                ->first();
-        }
+        $display_costume = $this->resolveDisplayCostume($trooper);
 
-        if ($displayCostume === null || $displayCostume->organization_costume === null)
+        if ($display_costume === null || $display_costume->organization_costume === null)
         {
             return null;
         }
 
-        $prefix = $displayCostume->organization_costume->prefix;
-        $orgId = $displayCostume->organization_costume->organization_id;
+        $prefix = $display_costume->organization_costume->prefix;
+        $org_id = $display_costume->organization_costume->organization_id;
 
-        $org = $trooper->organizations->firstWhere('id', $orgId);
+        $org = $trooper->organizations->firstWhere('id', $org_id);
         $identifier = $org?->pivot?->identifier ?? null;
 
         if ($prefix === null || $prefix === '' || $identifier === null || $identifier === '')
@@ -382,6 +363,20 @@ class XenforoUserSyncService
         }
 
         return $prefix.$identifier;
+    }
+
+    private function resolveDisplayCostume(Trooper $trooper): ?TrooperCostume
+    {
+        if ($trooper->forum_display_costume_id !== null)
+        {
+            return $trooper->trooper_costumes
+                ->firstWhere(TrooperCostume::ID, $trooper->forum_display_costume_id);
+        }
+
+        return $trooper->trooper_costumes
+            ->filter(fn (TrooperCostume $tc) => ! is_null($tc->organization_costume?->prefix))
+            ->sortBy(fn (TrooperCostume $tc) => $tc->organization_costume->prefix)
+            ->first();
     }
 
     /**

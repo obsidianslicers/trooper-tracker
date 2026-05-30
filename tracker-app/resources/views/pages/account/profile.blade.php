@@ -64,13 +64,13 @@
                                     :value="$trooper->theme->value" />
                 </x-input-container>
 
-                @if($costumeOptions->isNotEmpty())
+                @if($costume_options->isNotEmpty())
                 <x-input-container>
                     <x-label>
                         Display ID Prefix:
                     </x-label>
                     <x-input-select :property="'forum_display_costume_id'"
-                                    :options="['' => '— Auto (first costume) —'] + $costumeOptions->toArray()"
+                                    :options="['' => '— Auto (first costume) —'] + $costume_options->toArray()"
                                     :value="$trooper->forum_display_costume_id ?? ''" />
                     <x-input-help>
                         Choose which prefix and ID to display on the forum (e.g. TK52233 or SL52233).
