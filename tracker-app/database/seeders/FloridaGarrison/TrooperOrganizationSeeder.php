@@ -120,12 +120,6 @@ class TrooperOrganizationSeeder extends Seeder
             $moderator = $region_assignment->is_moderator ?? false;
 
             $this->loadTrooperAssignment($trooper->id, $unit->id, $notify || $member, $member, $moderator);
-
-            if ($member && $region_assignment !== null)
-            {
-                $region_assignment->is_member = true;
-                $region_assignment->save();
-            }
         }
     }
 
