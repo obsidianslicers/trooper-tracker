@@ -41,7 +41,7 @@ class BackfillHandlerCostumesCommand extends Command
                 {
                     $record = OrganizationCostume::firstOrCreate([
                         OrganizationCostume::ORGANIZATION_ID => $org_id,
-                        OrganizationCostume::COSTUME_ID      => $costume->id,
+                        OrganizationCostume::COSTUME_ID => $costume->id,
                     ]);
 
                     if ($record->wasRecentlyCreated)
@@ -62,8 +62,7 @@ class BackfillHandlerCostumesCommand extends Command
 
         TrooperAssignment::where(TrooperAssignment::IS_MEMBER, true)
             ->with('trooper')
-            ->chunkById(200, function ($assignments) use ($special_costume_ids, &$trooper_created, &$trooper_skipped)
-            {
+            ->chunkById(200, function ($assignments) use ($special_costume_ids, &$trooper_created, &$trooper_skipped) {
                 foreach ($assignments as $assignment)
                 {
                     $org_costumes = OrganizationCostume::whereIn(OrganizationCostume::COSTUME_ID, $special_costume_ids)
@@ -81,6 +80,7 @@ class BackfillHandlerCostumesCommand extends Command
                         if ($existing)
                         {
                             $trooper_skipped++;
+
                             continue;
                         }
 

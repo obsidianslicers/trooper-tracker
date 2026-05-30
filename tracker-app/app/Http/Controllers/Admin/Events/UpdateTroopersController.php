@@ -80,9 +80,9 @@ class UpdateTroopersController extends MagicBusController
                 else
                 {
                     $event_trooper->credited_checked_ids = collect($event_trooper->costume_organization_ids ?? [])
-                        ->map(function ($id) use ($trooper_orgs)
-                        {
+                        ->map(function ($id) use ($trooper_orgs) {
                             $org = $trooper_orgs->find($id);
+
                             return $org ? (int) explode(':', $org->node_path)[0] : $id;
                         })
                         ->unique()
