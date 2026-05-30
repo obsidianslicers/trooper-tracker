@@ -7,7 +7,7 @@ namespace App\Enums;
 /**
  * Defines notification categories for trooper preferences.
  */
-enum NotificationPreferences: string
+enum TrooperNotifications: string
 {
     use HasEnumHelpers;
 

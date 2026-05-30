@@ -50,7 +50,7 @@
                     <div class="col-4 col-md-2 text-center">Website</div>
                 </div>
 
-                @foreach ($notification_preferences as $category => $label)
+                @foreach ($trooper_notifications as $category => $label)
                     <div class="row align-items-center mb-3">
                         <div class="col-12 col-md-5 mb-1 mb-md-0">{{ $label }}</div>
                         @foreach (['mail' => 'Email', 'fcm' => 'Push', 'database' => 'Website'] as $channel => $channel_label)
