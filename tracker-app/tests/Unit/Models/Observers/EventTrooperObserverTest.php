@@ -84,15 +84,11 @@ class EventTrooperObserverTest extends TestCase
             EventOrganization::TROOPERS_ALLOWED => null,
         ]);
 
-        // Wire handler costume into the approval chain (as the backfill/observer would do)
-        $organization_costume = OrganizationCostume::factory()
-            ->forOrganization($organization)
-            ->forCostume($handler_costume)
-            ->create();
-
-        TrooperCostume::factory()
+        // No OrganizationCostume or TrooperCostume needed — handler credit flows via membership
+        \App\Models\TrooperAssignment::factory()
             ->forTrooper($trooper)
-            ->forOrganizationCostume($organization_costume)
+            ->forOrganization($organization)
+            ->asMember()
             ->create();
 
         $event_trooper = EventTrooper::factory()

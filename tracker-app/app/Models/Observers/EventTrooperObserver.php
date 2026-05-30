@@ -7,9 +7,11 @@ namespace App\Models\Observers;
 use App\Facades\TroopTrackerFacade;
 use App\Jobs\UpdateEventForumThreadJob;
 use App\Models\Base\TrooperCostume;
+use App\Models\Costume;
 use App\Models\EventOrganization;
 use App\Models\EventTrooper;
 use App\Models\OrganizationCostume;
+use App\Models\TrooperAssignment;
 
 /**
  * Handles lifecycle events for the EventTrooper model.
@@ -116,6 +118,17 @@ class EventTrooperObserver
         if ($costume_id === null)
         {
             return [];
+        }
+
+        $costume = Costume::find($costume_id);
+
+        if ($costume?->countsAsHandler())
+        {
+            return TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $trooper_id)
+                ->where(TrooperAssignment::IS_MEMBER, true)
+                ->whereIn(TrooperAssignment::ORGANIZATION_ID, $organization_ids)
+                ->pluck(TrooperAssignment::ORGANIZATION_ID)
+                ->toArray();
         }
 
         return OrganizationCostume::query()

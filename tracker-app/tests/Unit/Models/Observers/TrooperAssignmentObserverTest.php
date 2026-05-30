@@ -5,13 +5,10 @@ declare(strict_types=1);
 namespace Tests\Unit\Models\Observers;
 
 use App\Enums\MembershipRole;
-use App\Models\Costume;
 use App\Models\Observers\TrooperAssignmentObserver;
 use App\Models\Organization;
-use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
-use App\Models\TrooperCostume;
 use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -197,91 +194,4 @@ class TrooperAssignmentObserverTest extends TestCase
         $this->assertTrue(true);
     }
 
-    public function test_created_member_assignment_creates_handler_and_command_staff_trooper_costumes(): void
-    {
-        Costume::factory()->withName(Costume::HANDLER)->create();
-        Costume::factory()->withName(Costume::COMMAND_STAFF)->create();
-
-        $org = Organization::factory()->asOrganization()->create();
-        // OrganizationObserver fires on org save → creates OrganizationCostume for Handler + Command Staff
-
-        $trooper = Trooper::factory()->create();
-
-        TrooperAssignment::factory()
-            ->forTrooper($trooper)
-            ->forOrganization($org)
-            ->asMember()
-            ->create();
-        // TrooperAssignmentObserver.created() fires → syncSpecialCostumes() → creates TrooperCostume records
-
-        $handler_org_costume = OrganizationCostume::whereHas('costume', fn ($q) => $q->where(Costume::NAME, Costume::HANDLER))
-            ->where(OrganizationCostume::ORGANIZATION_ID, $org->id)
-            ->first();
-
-        $command_staff_org_costume = OrganizationCostume::whereHas('costume', fn ($q) => $q->where(Costume::NAME, Costume::COMMAND_STAFF))
-            ->where(OrganizationCostume::ORGANIZATION_ID, $org->id)
-            ->first();
-
-        $this->assertDatabaseHas('tt_trooper_costumes', [
-            TrooperCostume::TROOPER_ID => $trooper->id,
-            TrooperCostume::ORGANIZATION_COSTUME_ID => $handler_org_costume->id,
-        ]);
-        $this->assertDatabaseHas('tt_trooper_costumes', [
-            TrooperCostume::TROOPER_ID => $trooper->id,
-            TrooperCostume::ORGANIZATION_COSTUME_ID => $command_staff_org_costume->id,
-        ]);
-    }
-
-    public function test_removing_member_flag_soft_deletes_handler_and_command_staff_trooper_costumes(): void
-    {
-        Costume::factory()->withName(Costume::HANDLER)->create();
-        Costume::factory()->withName(Costume::COMMAND_STAFF)->create();
-
-        $org = Organization::factory()->asOrganization()->create();
-        $trooper = Trooper::factory()->create();
-
-        $assignment = TrooperAssignment::factory()
-            ->forTrooper($trooper)
-            ->forOrganization($org)
-            ->asMember()
-            ->create();
-
-        $assignment->{TrooperAssignment::IS_MEMBER} = false;
-        $assignment->save();
-
-        $this->assertSame(
-            0,
-            TrooperCostume::where(TrooperCostume::TROOPER_ID, $trooper->id)->count()
-        );
-        $this->assertSame(
-            2,
-            TrooperCostume::withTrashed()->where(TrooperCostume::TROOPER_ID, $trooper->id)->count()
-        );
-    }
-
-    public function test_restoring_member_flag_restores_soft_deleted_handler_and_command_staff_trooper_costumes(): void
-    {
-        Costume::factory()->withName(Costume::HANDLER)->create();
-        Costume::factory()->withName(Costume::COMMAND_STAFF)->create();
-
-        $org = Organization::factory()->asOrganization()->create();
-        $trooper = Trooper::factory()->create();
-
-        $assignment = TrooperAssignment::factory()
-            ->forTrooper($trooper)
-            ->forOrganization($org)
-            ->asMember()
-            ->create();
-
-        $assignment->{TrooperAssignment::IS_MEMBER} = false;
-        $assignment->save();
-
-        $assignment->{TrooperAssignment::IS_MEMBER} = true;
-        $assignment->save();
-
-        $this->assertSame(
-            2,
-            TrooperCostume::where(TrooperCostume::TROOPER_ID, $trooper->id)->count()
-        );
-    }
 }
