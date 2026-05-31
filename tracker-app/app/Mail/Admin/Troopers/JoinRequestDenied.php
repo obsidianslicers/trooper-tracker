@@ -38,9 +38,9 @@ class JoinRequestDenied extends Mailable implements ShouldQueue
         return new Content(
             view: 'emails.admin.troopers.join-request-denied',
             with: [
-                'trooper'        => $this->trooper,
-                'organization'   => $this->organization,
-                'denial_reason'  => $this->denial_reason,
+                'trooper' => $this->trooper,
+                'organization' => $this->organization,
+                'denial_reason' => $this->denial_reason,
             ]
         );
     }

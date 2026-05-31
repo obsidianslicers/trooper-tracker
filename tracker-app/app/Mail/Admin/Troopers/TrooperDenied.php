@@ -36,7 +36,7 @@ class TrooperDenied extends Mailable implements ShouldQueue
         return new Content(
             view: 'emails.admin.troopers.trooper-denied',
             with: [
-                'trooper'       => $this->trooper,
+                'trooper' => $this->trooper,
                 'denial_reason' => $this->denial_reason,
             ]
         );
