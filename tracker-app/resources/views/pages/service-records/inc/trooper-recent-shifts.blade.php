@@ -7,7 +7,7 @@
     });
 @endphp
 
-@if($pending_shifts->isNotEmpty())
+@if($pending_shifts->isNotEmpty() && auth()->id() === $trooper->id)
     <div class="alert alert-warning mb-3">
         <strong>{{ $pending_shifts->count() }} shift{{ $pending_shifts->count() === 1 ? '' : 's' }} need{{ $pending_shifts->count() === 1 ? 's' : '' }} confirmation</strong>
         <ul class="mb-0 mt-2 ps-3">
@@ -81,7 +81,7 @@
                                     </div>
                                 @endif
                             </div>
-                        @if($pending_shifts->contains('id', $shift->id))
+                        @if($pending_shifts->contains('id', $shift->id) && auth()->id() === $trooper->id)
                             <div class="mt-2">
                                 <span class="badge bg-warning text-dark">Confirmation needed</span>
                             </div>
@@ -123,7 +123,7 @@
                             <a href="{{ route('events.display', ['event' => $shift->event]) }}">
                                 {{ $shift->event->name }}
                             </a>
-                            @if($pending_shifts->contains('id', $shift->id))
+                            @if($pending_shifts->contains('id', $shift->id) && auth()->id() === $trooper->id)
                                 <span class="badge bg-warning text-dark ms-1">Confirm</span>
                             @endif
                         </td>
