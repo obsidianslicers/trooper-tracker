@@ -60,6 +60,7 @@
                 </div>
                 <form x-show="denying"
                       x-cloak
+                      class="pt-2"
                       hx-post="{{ route('admin.troopers.join-requests.deny-htmx', compact('join_request')) }}"
                       hx-swap="outerHTML"
                       hx-select="#join-request-{{ $join_request->id }}"

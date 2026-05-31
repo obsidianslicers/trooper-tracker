@@ -152,6 +152,7 @@
                 </div>
                 <form x-show="denying"
                       x-cloak
+                      class="pt-2"
                       hx-post="{{ route('admin.troopers.deny-htmx', compact('trooper')) }}"
                       hx-swap="outerHTML"
                       hx-select="#trooper-approval-{{ $trooper->id }}"
