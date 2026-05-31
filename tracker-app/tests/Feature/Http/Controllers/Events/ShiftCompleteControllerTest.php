@@ -94,8 +94,10 @@ class ShiftCompleteControllerTest extends TestCase
         $this->assertSame(EventTrooperStatus::GOING, $event_trooper->fresh()->status);
     }
 
-    public function test_invoke_skips_club_select_when_organization_id_is_forced(): void
+    public function test_invoke_shows_club_select_even_when_organization_id_is_forced(): void
     {
+        // organization_id is for capacity tracking only; credit selection (club-select form)
+        // must still be shown whenever the trooper has multiple eligible parent clubs.
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
         $org1 = Organization::factory()->create();
         $org2 = Organization::factory()->create();
@@ -124,8 +126,8 @@ class ShiftCompleteControllerTest extends TestCase
         ]));
 
         $response->assertOk();
-        $response->assertViewIs('pages.events.shift-complete');
-        $this->assertSame(EventTrooperStatus::ATTENDED, $event_trooper->fresh()->status);
+        $response->assertViewIs('pages.events.shift-complete-club-select');
+        $this->assertSame(EventTrooperStatus::GOING, $event_trooper->fresh()->status);
     }
 
     public function test_invoke_skips_club_select_when_only_one_eligible_club(): void
