@@ -1,5 +1,6 @@
 @php
-    $pending_shifts = $recent_shifts->filter(function (\App\Models\EventShift $shift) {
+    $pending_shifts = $recent_shifts->filter(function (\App\Models\EventShift $shift)
+    {
         return $shift->event_trooper
             && $shift->event_trooper->status === \App\Enums\EventTrooperStatus::GOING
             && $shift->status === \App\Enums\EventStatus::CLOSED
@@ -9,16 +10,17 @@
 
 @if($pending_shifts->isNotEmpty() && auth()->id() === $trooper->id)
     <div class="alert alert-warning mb-3">
-        <strong>{{ $pending_shifts->count() }} shift{{ $pending_shifts->count() === 1 ? '' : 's' }} need{{ $pending_shifts->count() === 1 ? 's' : '' }} confirmation</strong>
+        <strong>{{ $pending_shifts->count() }} shift{{ $pending_shifts->count() === 1 ? '' : 's' }} need{{ $pending_shifts->count() === 1 ? 's' : '' }}
+            confirmation</strong>
         <ul class="mb-0 mt-2 ps-3">
             @foreach($pending_shifts as $shift)
                 <li class="mb-1">
                     <span class="fw-semibold">{{ $shift->event->name }}</span>
                     <span class="text-muted small ms-1">{{ $shift->full_date_display }}</span>
                     <a href="{{ $shift->event_trooper->getAttendanceUrl(\App\Enums\EventTrooperStatus::ATTENDED) }}"
-                       class="btn btn-success btn-sm ms-2 py-0">Attended</a>
+                       class="btn btn-success btn-sm ms-2 py-0">Made It</a>
                     <a href="{{ $shift->event_trooper->getAttendanceUrl(\App\Enums\EventTrooperStatus::UNABLE_TO_ATTEND) }}"
-                       class="btn btn-outline-secondary btn-sm ms-1 py-0">Unable</a>
+                       class="btn btn-outline-secondary btn-sm ms-1 py-0">Missed It</a>
                 </li>
             @endforeach
         </ul>
@@ -81,11 +83,11 @@
                                     </div>
                                 @endif
                             </div>
-                        @if($pending_shifts->contains('id', $shift->id) && auth()->id() === $trooper->id)
-                            <div class="mt-2">
-                                <span class="badge bg-warning text-dark">Confirmation needed</span>
-                            </div>
-                        @endif
+                            @if($pending_shifts->contains('id', $shift->id) && auth()->id() === $trooper->id)
+                                <div class="mt-2">
+                                    <span class="badge bg-warning text-dark">Confirmation needed</span>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -143,7 +145,8 @@
                                 <span class="text-muted">N/A</span>
                             @endif
                             @if($shift->event_trooper->attended && !empty($shift->event_trooper->credited_org_names))
-                                <div style="white-space: normal;" class="mt-1">
+                                <div style="white-space: normal;"
+                                     class="mt-1">
                                     <small class="text-muted d-block">Credited To</small>
                                     @foreach($shift->event_trooper->credited_org_names as $org_name)
                                         <span class="badge bg-secondary me-1">{{ $org_name }}</span>

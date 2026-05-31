@@ -38,9 +38,9 @@
     </span>
 @endif
 {{-- only adults can signup others; requires mission brief acknowledgement when enabled --}}
-@if(Auth::user()->is_adult && $event_shift->is_open && $has_required_mission_brief_ack)
-    @if($event->friends_allowed !== 0 && $event_shift->hasRemainingFriendSlots(Auth::user()))
-        @if ($event_shift->isGoing(Auth::user()) || $can_moderate)
+@if($event->canModerateIfClosed($can_moderate) || (Auth::user()->is_adult && $event_shift->is_open && $has_required_mission_brief_ack))
+    @if($event->canModerateIfClosed($can_moderate) || ($event->friends_allowed !== 0 && $event_shift->hasRemainingFriendSlots(Auth::user())))
+        @if ($can_moderate || $event_shift->isGoing(Auth::user()))
             {{-- if they are a normal user and already signed up - they can sign up a friend --}}
             {{-- or they are a moderator - they can sign up a friend --}}
             <button class="btn btn-sm btn-outline-info text-start text-md-center"

@@ -269,6 +269,14 @@ class EventTrooper extends BaseEventTrooper
             return $this->hasOwnership($trooper);
         }
 
+        if ($event_shift->is_closed && $event_shift->event->is_within_grace_period)
+        {
+            if ($this->status === EventTrooperStatus::GOING && $this->hasOwnership($trooper))
+            {
+                return true;
+            }
+        }
+
         return false;
     }
 
