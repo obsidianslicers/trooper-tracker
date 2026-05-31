@@ -68,11 +68,17 @@ class EventDisplayController extends MagicBusController
 
         // XenForo thread posts (optional)
         $xenforoThreadPosts = [];
-        if (TroopTrackerFacade::isXenforoIntegrationConfigured() && !empty($event->thread_id) && !empty($event->post_id))
+        $smilies = [];
+        if (TroopTrackerFacade::isXenforoIntegrationConfigured())
         {
-            $threadId = (int) $event->thread_id;
-            $excludePostId = (int) $event->post_id;
-            $xenforoThreadPosts = $xenforo->get_thread_posts($threadId, exclude_post_id: $excludePostId, per_page: 50, max_pages: 20);
+            $smilies = $xenforo->get_smilies();
+
+            if (!empty($event->thread_id) && !empty($event->post_id))
+            {
+                $threadId = (int) $event->thread_id;
+                $excludePostId = (int) $event->post_id;
+                $xenforoThreadPosts = $xenforo->get_thread_posts($threadId, exclude_post_id: $excludePostId, per_page: 50, max_pages: 20);
+            }
         }
 
         $data = compact(
@@ -81,6 +87,7 @@ class EventDisplayController extends MagicBusController
             'bg',
             'xenforoBaseUrl',
             'xenforoThreadPosts',
+            'smilies',
             'mission_brief_required',
             'has_mission_brief_ack'
         );
