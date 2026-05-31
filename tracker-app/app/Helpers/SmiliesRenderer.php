@@ -16,8 +16,8 @@ final class SmiliesRenderer
      * Smiley codes are HTML-escaped before use as search keys because the
      * input HTML has already been escaped (e.g. ":->" appears as ":-&gt;").
      *
-     * @param string $html    Already-rendered HTML (post BBCode or Markdown)
-     * @param array  $smilies Array of smiley data returned by XenforoService::get_smilies()
+     * @param  string  $html  Already-rendered HTML (post BBCode or Markdown)
+     * @param  array  $smilies  Array of smiley data returned by XenforoService::get_smilies()
      */
     public static function render(string $html, array $smilies): string
     {
@@ -71,8 +71,7 @@ final class SmiliesRenderer
     }
 
     /**
-     * @param array $smilies
-     * @return array<string, string>  escaped_code => <img> tag
+     * @return array<string, string> escaped_code => <img> tag
      */
     private static function buildMap(array $smilies): array
     {
