@@ -106,7 +106,10 @@ class XenforoUserSyncService
 
         $secondaryGroupIds = $this->buildSecondaryGroupIds($trooper, $xenforoUserId);
 
-        if (! empty($secondaryGroupIds))
+        // null  → TT's managed groups are unchanged; skip to avoid touching external groups.
+        // []    → TT wants zero secondary groups (all managed groups removed, no external groups).
+        // [...]  → explicit desired list merging TT-managed + preserved external groups.
+        if ($secondaryGroupIds !== null)
         {
             // Let the HTTP client encode this as a form array
             // (secondary_group_ids[0]=..., etc.), which XenForo
@@ -123,22 +126,26 @@ class XenforoUserSyncService
      * organization memberships and the XenForo group IDs stored on each
      * organization (active, reserve, retired).
      *
-     * @return array<int,int>
+     * Returns null when TT's managed groups are already correct in XenForo (no-op),
+     * or when the current state cannot be safely read. Returns an array (possibly
+     * empty) only when TT needs to make an actual change.
+     *
+     * @return array<int,int>|null
      */
-    private function buildSecondaryGroupIds(Trooper $trooper, int $xenforoUserId): array
+    private function buildSecondaryGroupIds(Trooper $trooper, int $xenforoUserId): ?array
     {
         $managedGroupIds = $this->getManagedOrganizationGroupIds();
 
         if ($managedGroupIds->isEmpty())
         {
-            return [];
+            return null;
         }
 
         $user = $this->xenforo->get_user($xenforoUserId);
 
         if ($user['status'] < 200 || $user['status'] >= 300 || ! is_array($user['body']))
         {
-            return [];
+            return null;
         }
 
         $body = $user['body'];
@@ -167,19 +174,138 @@ class XenforoUserSyncService
 
         $desiredManaged = $this->getDesiredOrganizationGroupIds($trooper);
 
+        // Only write secondary_group_ids when TT's managed portion has actually changed.
+        // Returning null skips the field entirely, leaving any externally-granted groups
+        // (e.g. manually granted by a XenForo admin) untouched.
+        $currentTTManaged = $currentSecondary
+            ->filter(fn (int $id) => $managedGroupIds->contains($id))
+            ->sort()
+            ->values();
+
+        $desiredSorted = $desiredManaged->sort()->values();
+
         Log::info('XenForo group calculation', [
             'trooper_id' => $trooper->id,
             'managed_group_ids' => $managedGroupIds->all(),
             'current_secondary' => $currentSecondary->all(),
+            'current_tt_managed' => $currentTTManaged->all(),
             'current_preserved' => $currentPreserved->all(),
             'desired_managed' => $desiredManaged->all(),
+            'no_op' => $currentTTManaged->all() === $desiredSorted->all(),
         ]);
+
+        if ($currentTTManaged->all() === $desiredSorted->all())
+        {
+            return null;
+        }
 
         return $currentPreserved
             ->merge($desiredManaged)
             ->unique()
             ->values()
             ->all();
+    }
+
+    /**
+     * Return all intermediate group-sync state for a trooper without writing
+     * anything to XenForo. Useful for debugging / dry-run inspection.
+     *
+     * @return array{
+     *   xenforo_user_id: int|null,
+     *   managed_group_ids: int[],
+     *   current_secondary: int[],
+     *   current_tt_managed: int[],
+     *   current_preserved: int[],
+     *   desired_managed: int[],
+     *   computed_result: int[]|null,
+     *   would_send: bool,
+     * }
+     */
+    public function debugSync(Trooper $trooper): array
+    {
+        $xenforoUserId = $this->xenforo->resolve_user_id_for_trooper($trooper->id);
+
+        $empty = [
+            'xenforo_user_id' => $xenforoUserId,
+            'managed_group_ids' => [],
+            'current_secondary' => [],
+            'current_tt_managed' => [],
+            'current_preserved' => [],
+            'desired_managed' => [],
+            'computed_result' => null,
+            'would_send' => false,
+        ];
+
+        if ($xenforoUserId === null)
+        {
+            return $empty;
+        }
+
+        $managedGroupIds = $this->getManagedOrganizationGroupIds();
+
+        if ($managedGroupIds->isEmpty())
+        {
+            $empty['desired_managed'] = $this->getDesiredOrganizationGroupIds($trooper)->all();
+
+            return $empty;
+        }
+
+        $user = $this->xenforo->get_user($xenforoUserId);
+
+        $apiOk = $user['status'] >= 200 && $user['status'] < 300 && is_array($user['body']);
+
+        $currentSecondary = collect();
+
+        if ($apiOk)
+        {
+            $body = $user['body'];
+            $userData = is_array($body['user'] ?? null) ? $body['user'] : $body;
+
+            $rawSecondary = $userData['secondary_group_ids'] ?? [];
+
+            if (is_string($rawSecondary))
+            {
+                $rawSecondary = array_filter(
+                    array_map('trim', explode(',', $rawSecondary)),
+                    static fn ($v) => $v !== ''
+                );
+            }
+
+            $currentSecondary = collect($rawSecondary)
+                ->filter(static fn ($id) => is_numeric($id))
+                ->map(static fn ($id) => (int) $id)
+                ->unique()
+                ->values();
+        }
+
+        $currentPreserved = $currentSecondary
+            ->reject(fn (int $id) => $managedGroupIds->contains($id))
+            ->values();
+
+        $currentTTManaged = $currentSecondary
+            ->filter(fn (int $id) => $managedGroupIds->contains($id))
+            ->sort()
+            ->values();
+
+        $desiredManaged = $this->getDesiredOrganizationGroupIds($trooper);
+        $desiredSorted = $desiredManaged->sort()->values();
+
+        $noOp = ! $apiOk || ($currentTTManaged->all() === $desiredSorted->all());
+
+        $computedResult = $noOp
+            ? null
+            : $currentPreserved->merge($desiredManaged)->unique()->values()->all();
+
+        return [
+            'xenforo_user_id' => $xenforoUserId,
+            'managed_group_ids' => $managedGroupIds->all(),
+            'current_secondary' => $currentSecondary->all(),
+            'current_tt_managed' => $currentTTManaged->all(),
+            'current_preserved' => $currentPreserved->all(),
+            'desired_managed' => $desiredManaged->all(),
+            'computed_result' => $computedResult,
+            'would_send' => $computedResult !== null,
+        ];
     }
 
     /**
@@ -225,7 +351,12 @@ class XenforoUserSyncService
      */
     private function getDesiredOrganizationGroupIds(Trooper $trooper): Collection
     {
-        $trooper->loadMissing('organizations', 'trooper_assignments.organization');
+        // Two levels of parent nesting covers the full three-level hierarchy
+        // (Organization → Region → Unit) without N+1 queries.
+        $trooper->loadMissing(
+            'organizations.parent.parent',
+            'trooper_assignments.organization.parent.parent',
+        );
 
         Log::info('XenForo org membership snapshot', [
             'trooper_id' => $trooper->id,
@@ -234,17 +365,10 @@ class XenforoUserSyncService
                     'id' => $org->id,
                     'name' => $org->name,
                     'pivot_status' => $org->pivot->membership_status ?? null,
-                    'primary_club_id' => $org->getPrimaryClub()->id,
-                    'primary_club_name' => $org->getPrimaryClub()->name,
                     'org_groups' => [
                         'active' => $org->xenforo_group_active_id,
                         'reserve' => $org->xenforo_group_reserve_id,
                         'retired' => $org->xenforo_group_retired_id,
-                    ],
-                    'primary_groups' => [
-                        'active' => $org->getPrimaryClub()->xenforo_group_active_id,
-                        'reserve' => $org->getPrimaryClub()->xenforo_group_reserve_id,
-                        'retired' => $org->getPrimaryClub()->xenforo_group_retired_id,
                     ],
                 ];
             })->all(),
@@ -304,25 +428,28 @@ class XenforoUserSyncService
                     $ids[] = (int) $org->xenforo_group_retired_id;
                 }
 
-                // Additionally, if this organization is a region/unit, also
-                // apply any XenForo groups configured at its primary club
-                // (top-level parent), using the same membership status.
-                $primaryClub = $org->getPrimaryClub();
+                // Walk every ancestor (region, primary club) and collect their
+                // XenForo group IDs for the same membership status. The parent
+                // chain is already eager-loaded so this does not trigger
+                // additional queries.
+                $ancestor = $org->parent;
 
-                if ($primaryClub->id !== $org->id)
+                while ($ancestor !== null)
                 {
-                    if ($status === 'active' && ! is_null($primaryClub->xenforo_group_active_id))
+                    if ($status === 'active' && ! is_null($ancestor->xenforo_group_active_id))
                     {
-                        $ids[] = (int) $primaryClub->xenforo_group_active_id;
+                        $ids[] = (int) $ancestor->xenforo_group_active_id;
                     }
-                    elseif ($status === 'reserve' && ! is_null($primaryClub->xenforo_group_reserve_id))
+                    elseif ($status === 'reserve' && ! is_null($ancestor->xenforo_group_reserve_id))
                     {
-                        $ids[] = (int) $primaryClub->xenforo_group_reserve_id;
+                        $ids[] = (int) $ancestor->xenforo_group_reserve_id;
                     }
-                    elseif ($status === 'retired' && ! is_null($primaryClub->xenforo_group_retired_id))
+                    elseif ($status === 'retired' && ! is_null($ancestor->xenforo_group_retired_id))
                     {
-                        $ids[] = (int) $primaryClub->xenforo_group_retired_id;
+                        $ids[] = (int) $ancestor->xenforo_group_retired_id;
                     }
+
+                    $ancestor = $ancestor->parent;
                 }
 
                 return $ids;
