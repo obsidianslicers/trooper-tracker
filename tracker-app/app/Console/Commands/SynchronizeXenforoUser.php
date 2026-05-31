@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Bus\MagicBus;
+use App\Features\Forums\Commands\SyncXenforoUserCommand;
+use App\Features\Forums\Queries\GetXenforoSyncStateQuery;
 use App\Models\Trooper;
-use App\Services\Forums\XenforoUserSyncService;
 use Illuminate\Console\Command;
 
 class SynchronizeXenforoUser extends Command
@@ -16,51 +18,49 @@ class SynchronizeXenforoUser extends Command
 
     protected $description = 'Synchronize a single TroopTracker trooper to their linked XenForo user.';
 
-    public function __construct(private readonly XenforoUserSyncService $syncService)
+    public function __construct(private readonly MagicBus $bus)
     {
         parent::__construct();
     }
 
     public function handle(): void
     {
-        $trooperId = (int) $this->argument('trooper');
+        $trooper_id = (int) $this->argument('trooper');
 
-        if ($trooperId <= 0)
+        if ($trooper_id <= 0)
         {
             $this->error('Please provide a valid trooper ID.');
 
             return;
         }
 
-        $trooper = Trooper::find($trooperId);
+        $trooper = Trooper::find($trooper_id);
 
         if (! $trooper)
         {
-            $this->error("Trooper with ID {$trooperId} was not found.");
+            $this->error("Trooper with ID {$trooper_id} was not found.");
 
             return;
         }
 
         if ($this->option('dry-run'))
         {
-            $this->runDryRun($trooper);
+            $debug = $this->bus->send(new GetXenforoSyncStateQuery($trooper));
+            $this->renderDryRun($debug);
 
             return;
         }
 
         $this->info("Synchronizing trooper #{$trooper->id} ({$trooper->display_name}) to XenForo...");
-
-        $this->syncService->syncTrooper($trooper);
-
+        $this->bus->send(new SyncXenforoUserCommand($trooper));
         $this->info('Synchronization complete.');
     }
 
-    private function runDryRun(Trooper $trooper): void
+    /** @param array<string,mixed> $debug */
+    private function renderDryRun(array $debug): void
     {
-        $this->info("Dry-run for trooper #{$trooper->id} — {$trooper->display_name}");
+        $this->info("Dry-run for trooper #{$this->argument('trooper')}");
         $this->newLine();
-
-        $debug = $this->syncService->debugSync($trooper);
 
         if ($debug['xenforo_user_id'] === null)
         {
