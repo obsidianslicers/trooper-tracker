@@ -52,10 +52,9 @@ readonly class UpdateTrooperMembershipsCommandHandler implements CommandHandlerI
                 ->where(TrooperAssignment::TROOPER_ID, $message->trooper->id)
                 ->where(TrooperAssignment::IS_MEMBER, true)
                 ->where(TrooperAssignment::ORGANIZATION_ID, '!=', $assignment_id)
-                ->whereHas('organization', function ($query) use ($parent_org): void
-                {
-                    $query->where(Organization::NODE_PATH, 'like', $parent_org->node_path . '%')
-                        ->orWhereRaw('? LIKE CONCAT(' . Organization::NODE_PATH . ', "%")', [$parent_org->node_path]);
+                ->whereHas('organization', function ($query) use ($parent_org): void {
+                    $query->where(Organization::NODE_PATH, 'like', $parent_org->node_path.'%')
+                        ->orWhereRaw('? LIKE CONCAT('.Organization::NODE_PATH.', "%")', [$parent_org->node_path]);
                 })
                 ->delete();
 
