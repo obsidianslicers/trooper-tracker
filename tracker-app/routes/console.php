@@ -9,6 +9,10 @@ Schedule::command('auth:clear-resets')->everyFifteenMinutes();
 
 Schedule::command('tracker:synchronize-xenforo-users')->hourly();
 
+Schedule::command('tracker:synchronize-organizations')
+    ->weeklyOn(0, '03:00')
+    ->timezone($timezone);
+
 Schedule::command('tracker:close-event-shifts')
     ->hourly()
     ->timezone($timezone);
