@@ -23,7 +23,9 @@ class JoinRequestDenyHtmxController extends MagicBusController
     {
         $this->authorize('moderate', $join_request);
 
-        $this->bus->send(new DenyJoinRequestCommand($join_request));
+        $validated = $request->validate(['denial_reason' => 'nullable|string|max:1000']);
+
+        $this->bus->send(new DenyJoinRequestCommand($join_request, $validated['denial_reason'] ?? null));
 
         $join_request->load(['trooper', 'organization']);
 

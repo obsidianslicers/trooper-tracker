@@ -39,24 +39,50 @@
                 </x-message>
             </div>
         @else
-            <button class="btn btn-danger btn-sm"
-                    type="button"
-                    hx-post="{{ route('admin.troopers.join-requests.deny-htmx', compact('join_request')) }}"
-                    hx-swap="outerHTML"
-                    hx-select="#join-request-{{ $join_request->id }}"
-                    hx-target="#join-request-{{ $join_request->id }}"
-                    hx-indicator="#transmission-bar-join-requests">
-                Deny
-            </button>
-            <button class="btn btn-success btn-sm"
-                    type="button"
-                    hx-post="{{ route('admin.troopers.join-requests.approve-htmx', compact('join_request')) }}"
-                    hx-swap="outerHTML"
-                    hx-select="#join-request-{{ $join_request->id }}"
-                    hx-target="#join-request-{{ $join_request->id }}"
-                    hx-indicator="#transmission-bar-join-requests">
-                Approve
-            </button>
+            <div x-data="{ denying: false }"
+                 class="w-100">
+                <div x-show="!denying"
+                     class="d-flex justify-content-between">
+                    <button type="button"
+                            class="btn btn-danger btn-sm"
+                            @click="denying = true">
+                        Deny
+                    </button>
+                    <button class="btn btn-success btn-sm"
+                            type="button"
+                            hx-post="{{ route('admin.troopers.join-requests.approve-htmx', compact('join_request')) }}"
+                            hx-swap="outerHTML"
+                            hx-select="#join-request-{{ $join_request->id }}"
+                            hx-target="#join-request-{{ $join_request->id }}"
+                            hx-indicator="#transmission-bar-join-requests">
+                        Approve
+                    </button>
+                </div>
+                <form x-show="denying"
+                      x-cloak
+                      hx-post="{{ route('admin.troopers.join-requests.deny-htmx', compact('join_request')) }}"
+                      hx-swap="outerHTML"
+                      hx-select="#join-request-{{ $join_request->id }}"
+                      hx-target="#join-request-{{ $join_request->id }}"
+                      hx-indicator="#transmission-bar-join-requests">
+                    @csrf
+                    <textarea name="denial_reason"
+                              class="form-control form-control-sm mb-2"
+                              rows="2"
+                              placeholder="Reason for denial (optional)..."></textarea>
+                    <div class="d-flex justify-content-between">
+                        <button type="button"
+                                class="btn btn-secondary btn-sm"
+                                @click="denying = false">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                                class="btn btn-danger btn-sm">
+                            Confirm Deny
+                        </button>
+                    </div>
+                </form>
+            </div>
         @endif
     </div>
 </div>

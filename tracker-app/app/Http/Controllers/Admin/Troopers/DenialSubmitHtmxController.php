@@ -36,9 +36,9 @@ class DenialSubmitHtmxController extends MagicBusController
     {
         $this->authorize('approve', $trooper);
 
-        $approval_cmd = new ApproveTrooperCommand($trooper, false);
+        $validated = $request->validate(['denial_reason' => 'nullable|string|max:1000']);
 
-        $this->bus->send($approval_cmd);
+        $this->bus->send(new ApproveTrooperCommand($trooper, false, $validated['denial_reason'] ?? null));
 
         $with = [
             'trooper_assignments' => function ($q) {

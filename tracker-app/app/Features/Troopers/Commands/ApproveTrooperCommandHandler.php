@@ -9,6 +9,7 @@ use App\Bus\MagicBus;
 use App\Enums\MembershipStatus;
 use App\Models\TrooperOrganization;
 use App\Notifications\Troopers\MembershipApprovedNotification;
+use App\Notifications\Troopers\TrooperDeniedNotification;
 
 /**
  * Handler for approving a trooper's membership application.
@@ -35,6 +36,11 @@ readonly class ApproveTrooperCommandHandler implements CommandHandlerInterface
         }
 
         $message->trooper->save();
+
+        if (!$message->is_approved)
+        {
+            $message->trooper->notify(new TrooperDeniedNotification($message->denial_reason));
+        }
 
         if ($message->is_approved)
         {
