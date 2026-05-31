@@ -39,7 +39,7 @@
                         @endif
                     </td>
                     <td>
-                        @if(Auth::user()->is_administrator || $organization->trooper_assignments->count() > 0)
+                        @if(Auth::user()->is_administrator || $organization->trooper_assignments->count() > 0 || ($moderable_org_ids?->contains($organization->id)))
                             <x-action-menu>
                                 @can('create', \App\Models\Organization::class)
                                     @if($organization->type == \App\Enums\OrganizationType::ORGANIZATION)

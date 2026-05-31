@@ -87,6 +87,35 @@ php artisan tracker:generate-factories
 
 ---
 
+### `tracker:mimic-trooper-permissions`
+
+Temporarily applies one trooper's permissions to another trooper for testing/admin troubleshooting, while saving a snapshot of the target trooper's original permissions so they can be restored later.
+
+Permissions copied include:
+- `membership_role`
+- Organization assignment flags (`is_member`, `is_moderator`, `should_notify`)
+
+```bash
+php artisan tracker:mimic-trooper-permissions {target_trooper_id} {source_trooper_id} [--force]
+php artisan tracker:mimic-trooper-permissions {target_trooper_id} --revert
+```
+
+| Argument/Option | Required | Description |
+|---|---|---|
+| `target_trooper_id` | Yes | Trooper ID whose permissions are changed or reverted |
+| `source_trooper_id` | Yes (unless `--revert`) | Trooper ID to copy permissions from |
+| `--revert` | No | Restores the target trooper from their saved snapshot and removes the snapshot file |
+| `--force` | No | Overwrites an existing snapshot before applying mimic |
+
+**Examples:**
+```bash
+php artisan tracker:mimic-trooper-permissions 42 7
+php artisan tracker:mimic-trooper-permissions 42 7 --force
+php artisan tracker:mimic-trooper-permissions 42 --revert
+```
+
+---
+
 ### `tracker:send-daily-event-notifications`
 
 Sends consolidated daily email digests to troopers who have upcoming events. Queries troopers eligible for notification and dispatches `SendEventDailyNotificationCommand` for each.

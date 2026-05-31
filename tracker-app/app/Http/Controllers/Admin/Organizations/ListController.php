@@ -35,10 +35,16 @@ class ListController extends MagicBusController
      */
     public function __invoke(Request $request): View
     {
-        $organizations = Organization::withAllAssignments(Auth::user()->id)->get();
+        $user = Auth::user();
+        $organizations = Organization::withAllAssignments($user->id)->get();
+
+        $moderable_org_ids = $user->is_moderator
+            ? Organization::moderatedBy($user)->pluck(Organization::ID)
+            : null;
 
         $data = [
             'organizations' => $organizations,
+            'moderable_org_ids' => $moderable_org_ids,
         ];
 
         return view('pages.admin.organizations.list', $data);
