@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Mail\Admin\Events;
 
+use App\Enums\RosterAction;
 use App\Models\EventTrooper;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -18,7 +19,7 @@ class EventRosterActivityMail extends Mailable implements ShouldQueue
 
     public function __construct(
         private readonly EventTrooper $event_trooper,
-        private readonly string $action,
+        private readonly RosterAction $action,
     ) {}
 
     public function envelope(): Envelope

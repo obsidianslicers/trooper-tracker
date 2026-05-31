@@ -6,9 +6,9 @@
     </p>
 
     <p>
-        @if($action === 'cancelled')
+        @if($action === \App\Enums\RosterAction::CANCELLED)
             <strong>{{ $trooper->display_name }}</strong> has <strong>cancelled</strong> their attendance for the following deployment:
-        @elseif($action === 'resigned_up')
+        @elseif($action === \App\Enums\RosterAction::RESIGNED_UP)
             <strong>{{ $trooper->display_name }}</strong> has <strong>re-signed up</strong> for the following deployment:
         @else
             <strong>{{ $trooper->display_name }}</strong> has <strong>signed up</strong> for the following deployment:
@@ -20,7 +20,7 @@
     </p>
 
     <p>
-        {{ $event->time_display }}
+        {{ $event_trooper->event_shift->time_display }}
     </p>
 
     <p>

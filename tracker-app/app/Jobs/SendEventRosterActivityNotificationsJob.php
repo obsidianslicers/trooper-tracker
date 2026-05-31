@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Enums\RosterAction;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
 use App\Notifications\Admin\EventRosterActivityNotification;
@@ -16,7 +17,7 @@ class SendEventRosterActivityNotificationsJob implements ShouldQueue
 
     public function __construct(
         private readonly EventTrooper $event_trooper,
-        private readonly string $action,
+        private readonly RosterAction $action,
     ) {}
 
     public function handle(): void

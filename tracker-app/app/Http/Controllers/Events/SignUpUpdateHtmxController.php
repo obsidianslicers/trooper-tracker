@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Events;
 
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
+use App\Enums\RosterAction;
 use App\Features\Events\Commands\PromoteNextInLineEventTrooperCommand;
 use App\Features\Events\Commands\UpdateEventTrooperCommand;
 use App\Features\Events\Queries\GetEventShiftDisplayQuery;
@@ -77,7 +78,7 @@ class SignUpUpdateHtmxController extends MagicBusController
 
             if ($requestedStatus === EventTrooperStatus::CANCELLED && $previous_status !== EventTrooperStatus::CANCELLED)
             {
-                dispatch(new SendEventRosterActivityNotificationsJob($event_trooper, 'cancelled'));
+                dispatch(new SendEventRosterActivityNotificationsJob($event_trooper, RosterAction::CANCELLED));
             }
 
             if ($isManualApproval)
@@ -197,7 +198,7 @@ class SignUpUpdateHtmxController extends MagicBusController
 
             $this->bus->send(new UpdateEventTrooperCommand($event_trooper, $valid_data));
 
-            dispatch(new SendEventRosterActivityNotificationsJob($event_trooper, 'resigned_up'));
+            dispatch(new SendEventRosterActivityNotificationsJob($event_trooper, RosterAction::RESIGNED_UP));
 
             $trooper = $authTrooper;
             $event_shift_query = new GetEventShiftDisplayQuery($event_shift, $trooper);

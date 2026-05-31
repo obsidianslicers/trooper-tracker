@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Notifications\Admin;
 
 use App\Channels\FcmChannel;
+use App\Enums\RosterAction;
 use App\Mail\Admin\Events\EventRosterActivityMail;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
@@ -14,7 +15,7 @@ class EventRosterActivityNotification extends Notification
 {
     public function __construct(
         private readonly EventTrooper $event_trooper,
-        private readonly string $action,
+        private readonly RosterAction $action,
     ) {}
 
     public function via(Trooper $notifiable): array
@@ -53,9 +54,9 @@ class EventRosterActivityNotification extends Notification
         $trooper = $this->event_trooper->trooper;
 
         $verb = match ($this->action) {
-            'cancelled'  => 'cancelled from',
-            'resigned_up' => 're-signed up for',
-            default      => 'signed up for',
+            RosterAction::CANCELLED   => 'cancelled from',
+            RosterAction::RESIGNED_UP => 're-signed up for',
+            default                   => 'signed up for',
         };
 
         return [

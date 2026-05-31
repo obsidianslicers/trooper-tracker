@@ -31,15 +31,19 @@
         </div>
     </div>
     <div class="col-6 mb-2 mb-md-0">
-        @if(App\Facades\TroopTrackerFacade::isXenforoIntegrationConfigured() && !empty($event->thread_id) && !empty($event->post_id))
-            <a href="{{ config('services.xenforo.base_url') . '/posts/' . $event->post_id . '/' }}"
-               class="btn btn-outline-secondary"
-               target="_blank"
-               rel="noopener noreferrer"
-               title="View Forum Post">
-                <i class="fa fa-fw fa-comments"></i>
-            </a>
-        @endif
+        <div class="btn-group">
+            @if(App\Facades\TroopTrackerFacade::isXenforoIntegrationConfigured() && !empty($event->thread_id) && !empty($event->post_id))
+                <a href="{{ config('services.xenforo.base_url') . '/posts/' . $event->post_id . '/' }}"
+                   class="btn btn-outline-secondary"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   title="View Forum Post">
+                    <i class="fa fa-fw fa-comments"></i>
+                </a>
+            @endif
+
+            @include('pages.events.inc.watch-toggle', compact('event', 'is_watching'))
+        </div>
 
         {!! Share::page(route('shares.event', compact('event')), $event->name)->facebook()->twitter() !!}
     </div>
