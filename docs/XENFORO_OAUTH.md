@@ -41,15 +41,21 @@ This is used for forum automation and profile data.
 
 Troop Tracker treats these as related but distinct pieces. OAuth can be configured without the broader API integration, but the full XenForo feature set requires both.
 
-## Required Add-ons
+## Required Add-on
 
-Two custom XenForo add-ons are now required when you want the full XenForo integration enabled.
+One consolidated XenForo add-on is required when you want the full XenForo integration enabled.
 
-### Troop Tracker - Upgrade Stats API
+### Troop Tracker XenForo Addon
 
 Repository:
 
-- https://github.com/MattDrennan/Troop-Tracker---Upgrade-Stats
+- https://github.com/obsidianslicers/troop-tracker-xenforo-addons
+
+Addon ID: `ObsidianSlicers/TroopTracker` — requires XenForo 2.2.0+. Install the single zip through XenForo Admin CP.
+
+This add-on bundles all integration features:
+
+#### Upgrade Stats API
 
 What it does:
 
@@ -80,11 +86,7 @@ Benefit:
 - less manual duplication of support data
 - support totals match the forum’s active upgrade state
 
-### Troop Tracker User Groups
-
-Repository:
-
-- https://github.com/MattDrennan/TroopTrackerUserGroups
+#### User Groups API
 
 What it does:
 
@@ -115,29 +117,17 @@ Benefit:
 - Troop Tracker profile pages automatically reflect XenForo group presentation
 - no duplicate banner rules inside Troop Tracker
 
-### Additional add-ons used by the mobile app
-
-The Troop Tracker mobile app and chat features also rely on two additional XenForo add-ons. These are not strictly required for the core web app, but are recommended when you deploy the full ecosystem (web + mobile):
-
-#### Troop Tracker View Attachment
-
-Repository:
-
-- https://github.com/MattDrennan/TroopTrackerViewAttachment
+#### View Attachment (mobile)
 
 What it does:
 
 - provides a XenForo API endpoint that allows the mobile app to safely render attachments in troop chat and event-related contexts
 
-#### Troop Tracker Ignore Users
-
-Repository:
-
-- https://github.com/MattDrennan/TroopTrackerIgnoreUsers
+#### Ignore Users (mobile)
 
 What it does:
 
-- exposes API endpoints for blocking/unblocking and reporting users/posts from the Troop Tracker mobile app, backed by XenForo's ignore and report systems
+- exposes API endpoints for blocking/unblocking and reporting users/posts from the Troop Tracker mobile app, backed by XenForo’s ignore and report systems
 
 ## XenForo Features in Troop Tracker
 
@@ -289,19 +279,13 @@ In practice, XenForo becomes the identity and community layer, while Troop Track
 
 Complete all steps below to enable the full integration.
 
-### 1. Install the XenForo add-ons
+### 1. Install the XenForo add-on
 
-Install both of these add-ons in XenForo:
+Download and install the single zip from:
 
-- `Troop Tracker - Upgrade Stats API`
-- `Troop Tracker User Groups`
+- https://github.com/obsidianslicers/troop-tracker-xenforo-addons
 
-Source repositories:
-
-- https://github.com/MattDrennan/Troop-Tracker---Upgrade-Stats
-- https://github.com/MattDrennan/TroopTrackerUserGroups
-
-At a minimum, ensure the add-on code is present in XenForo and the add-ons are installed through XenForo Admin CP.
+Install through XenForo Admin CP. The package (Addon ID: `ObsidianSlicers/TroopTracker`) includes all required endpoints.
 
 ### 2. Create a XenForo OAuth client
 
@@ -505,5 +489,4 @@ Check:
 
 - [Authentication Guide](AUTHENTICATION.md)
 - [Environment Variables](ENVIRONMENT_VARIABLES.md)
-- https://github.com/MattDrennan/Troop-Tracker---Upgrade-Stats
-- https://github.com/MattDrennan/TroopTrackerUserGroups
+- https://github.com/obsidianslicers/troop-tracker-xenforo-addons
