@@ -24,7 +24,9 @@ class SimulateShiftCompleteCommand extends Command
     protected $signature = 'tracker:simulate-shift-complete
         {trooper_id : ID of the trooper to generate a test scenario for}
         {--expired : Shift ended more than 30 days ago (outside the update window; default is within window)}
-        {--dual-costume : Set up a dual-club costume scenario to trigger the club-selection flow}';
+        {--dual-costume : Trigger club-selection with 2 distinct top-level parent orgs}
+        {--triple-costume : Trigger club-selection with 3 distinct top-level parent orgs}
+        {--no-eligible-orgs : Produce a scenario where no organizations are eligible for credit}';
 
     protected $description = 'Create a test shift-complete scenario for a trooper and output the confirmation URLs. Dev use only.';
 
@@ -41,6 +43,22 @@ class SimulateShiftCompleteCommand extends Command
 
         $expired = $this->option('expired');
         $dual_costume = $this->option('dual-costume');
+        $triple_costume = $this->option('triple-costume');
+        $no_eligible = $this->option('no-eligible-orgs');
+
+        if ($dual_costume && $triple_costume)
+        {
+            $this->error('--dual-costume and --triple-costume are mutually exclusive.');
+
+            return self::FAILURE;
+        }
+
+        if ($no_eligible && ($dual_costume || $triple_costume))
+        {
+            $this->error('--no-eligible-orgs cannot be combined with --dual-costume or --triple-costume.');
+
+            return self::FAILURE;
+        }
 
         $member_orgs = Organization::whereHas('trooper_assignments', fn ($q) => $q->where(TrooperAssignment::TROOPER_ID, $trooper->id)
             ->where(TrooperAssignment::IS_MEMBER, true)
@@ -57,9 +75,16 @@ class SimulateShiftCompleteCommand extends Command
             $primary_org = $member_orgs->first();
         }
 
+        // Resolve credit orgs for multi-club scenarios.
         $credit_orgs = collect();
+        $multi_club_target = match (true)
+        {
+            $triple_costume => 3,
+            $dual_costume => 2,
+            default => 0,
+        };
 
-        if ($dual_costume)
+        if ($multi_club_target > 0)
         {
             $seen_parent_ids = [];
 
@@ -72,20 +97,54 @@ class SimulateShiftCompleteCommand extends Command
                     $credit_orgs->push($org);
                     $seen_parent_ids[] = $parent_id;
 
-                    if ($credit_orgs->count() === 2)
+                    if ($credit_orgs->count() === $multi_club_target)
                     {
                         break;
                     }
                 }
             }
 
-            if ($credit_orgs->count() < 2)
+            $flag_name = $triple_costume ? '--triple-costume' : '--dual-costume';
+
+            if ($credit_orgs->count() < $multi_club_target)
             {
-                $this->error('--dual-costume requires the trooper to be a member of at least 2 clubs with different top-level parent organizations.');
-                $this->error("Found {$member_orgs->count()} active membership(s) but could not resolve 2 distinct parent clubs.");
+                $this->error("{$flag_name} requires the trooper to be a member of at least {$multi_club_target} clubs with different top-level parent organizations.");
+                $this->error("Found {$member_orgs->count()} active membership(s) but could not resolve {$multi_club_target} distinct parent clubs.");
 
                 return self::FAILURE;
             }
+        }
+
+        // Select costume randomly from the trooper's approved costumes, fall back to Handler.
+        $costume = Costume::whereHas('organization_costumes.trooper_costumes', fn ($q) => $q->where('trooper_id', $trooper->id)
+        )->inRandomOrder()->first();
+
+        if ($costume === null)
+        {
+            $costume = Costume::where(Costume::NAME, Costume::HANDLER)->first();
+            $this->warn("No approved costumes found for {$trooper->display_name} — using Handler as fallback.");
+        }
+
+        if ($costume === null)
+        {
+            $this->warn('No Handler costume exists — proceeding with no costume.');
+        }
+
+        // --no-eligible-orgs requires a non-handler costume so costume_organization_ids is respected.
+        if ($no_eligible && $costume?->countsAsHandler())
+        {
+            $costume = Costume::whereNotIn(Costume::NAME, [Costume::HANDLER, Costume::COMMAND_STAFF])
+                ->inRandomOrder()
+                ->first();
+
+            if ($costume === null)
+            {
+                $this->error('--no-eligible-orgs requires a non-handler costume, but none exist in the database.');
+
+                return self::FAILURE;
+            }
+
+            $this->warn("Switched to non-handler costume \"{$costume->name}\" for --no-eligible-orgs scenario.");
         }
 
         // Build the event with the chosen timing scenario.
@@ -113,24 +172,35 @@ class SimulateShiftCompleteCommand extends Command
             EventShift::SHIFT_STARTS_AT => $event_end->clone()->subHours(4),
         ]);
 
-        $handler_costume = Costume::where(Costume::NAME, Costume::HANDLER)->first();
-
         $event_trooper = EventTrooper::factory()
             ->forEventShift($event_shift)
             ->forTrooper($trooper)
             ->asGoing()
             ->create([
-                EventTrooper::COSTUME_ID => $handler_costume?->id,
-                EventTrooper::IS_HANDLER => true,
+                EventTrooper::COSTUME_ID => $costume?->id,
+                EventTrooper::IS_HANDLER => $costume?->countsAsHandler() ?? false,
             ]);
 
-        if ($dual_costume)
+        if ($multi_club_target > 0)
         {
             // Bypass the EventTrooperObserver which recomputes costume_organization_ids
             // based on OrganizationCostume/TrooperCostume records we don't need here.
             DB::table('tt_event_troopers')
                 ->where('id', $event_trooper->id)
                 ->update(['costume_organization_ids' => json_encode($credit_orgs->pluck('id')->values()->all())]);
+
+            $event_trooper->refresh();
+        }
+
+        if ($no_eligible)
+        {
+            // Point costume_organization_ids at an org the trooper is not a member of.
+            // getEligibleCreditOrganizations() will intersect with member assignments and return empty.
+            $decoy_org = Organization::factory()->create(['name' => 'Decoy Org (no-eligible-orgs)']);
+
+            DB::table('tt_event_troopers')
+                ->where('id', $event_trooper->id)
+                ->update(['costume_organization_ids' => json_encode([$decoy_org->id])]);
 
             $event_trooper->refresh();
         }
@@ -155,6 +225,7 @@ class SimulateShiftCompleteCommand extends Command
         $this->info("  Shift:         {$event_shift->time_display}");
         $this->info("  Event end:     {$event_end->format('Y-m-d H:i')} ({$this->windowLabel($expired)})");
         $this->info('  Updates open:  '.($event->can_update_trooper_status ? '<fg=green>yes</>' : '<fg=red>no</>'));
+        $this->info('  Costume:       '.($costume ? "{$costume->name} (ID {$costume->id})" : 'none'));
 
         $this->newLine();
         $parent_orgs = $event_trooper->getEligibleCreditParentOrganizations();

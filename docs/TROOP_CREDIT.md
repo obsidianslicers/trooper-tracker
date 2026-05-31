@@ -6,17 +6,17 @@ This document explains how troop credit is attributed to organizations when a tr
 
 ## Overview
 
-When a trooper attends a shift, their attendance can credit one or more organizations. Credit flows through two fields on the `tt_event_troopers` row:
+When a trooper attends a shift, their attendance can credit one or more organizations. Two fields on `tt_event_troopers` serve distinct purposes:
 
 | Field | Purpose |
 |---|---|
-| `organization_id` | Explicit org — set when a per-org slot was claimed at signup |
-| `costume_organization_ids` | JSON array of org IDs derived from the trooper's costume approvals |
+| `organization_id` | Capacity tracking only — which per-org slot was occupied at signup |
+| `costume_organization_ids` | Credit attribution — JSON array of org IDs the trooper selected or that were auto-resolved from costume approvals |
 
-Exactly one path determines credit for a given attended shift:
+**Credit always flows through `costume_organization_ids`** for records created after the self-service flow was updated. For older records that have `organization_id` set but `costume_organization_ids` empty, the service record query falls back to `organization_id` for backward compatibility.
 
-- **Rule 1** — `organization_id IS NOT NULL`: credit goes to that specific org
-- **Rule 2** — `organization_id IS NULL`: credit goes to orgs in `costume_organization_ids`
+- **Current path** — credit goes to orgs in `costume_organization_ids`
+- **Legacy fallback** — if `costume_organization_ids` is empty and `organization_id` is set, credit goes to that org
 - **No match** — both fields are empty/null: no org receives credit
 
 ---
@@ -68,13 +68,11 @@ Credit is finalized when a trooper's status is set to `ATTENDED`. This can happe
 flowchart TD
     A[Trooper clicks attended link in email] --> B{Event still allows status updates?}
     B -->|No| X[Flash error — no change]
-    B -->|Yes| C{organization_id already set?}
-    C -->|Yes — Rule 1 already in place| D[Set status = ATTENDED, save]
-    C -->|No| E[Call getEligibleCreditParentOrganizations]
+    B -->|Yes| E[Call getEligibleCreditParentOrganizations]
     E --> F{How many top-level clubs eligible?}
     F -->|More than one| G[Redirect to club selection page]
     F -->|Zero or one| H{costume_organization_ids empty?}
-    H -->|No — Rule 2 already in place| D
+    H -->|No — credit already resolved| D[Set status = ATTENDED, save]
     H -->|Yes| I[Load getEligibleCreditOrganizations]
     I --> J{Any eligible orgs?}
     J -->|Yes| K[Populate costume_organization_ids from eligible orgs]
@@ -188,8 +186,8 @@ The multi-org path uses `SUBSTRING_INDEX(node_path, ':', 1)` to extract the root
 
 ## Important Behaviors
 
-**No join-date gate.** Credit is not conditioned on when a trooper joined an org. A shift that credits an org counts toward that org's `troop_count` regardless of the trooper's join date. Rule 1 or Rule 2 must match — if neither applies, no org receives credit.
+**No join-date gate.** Credit is not conditioned on when a trooper joined an org. A shift that credits an org counts toward that org's `troop_count` regardless of the trooper's join date. `costume_organization_ids` must be non-empty — or the legacy `organization_id` fallback must match — for any org to receive credit.
 
-**`organization_id` vs `costume_organization_ids` are mutually exclusive in practice.** The admin path always clears `organization_id` when setting `costume_organization_ids`. The self-service path only populates `costume_organization_ids` when `organization_id` is null. The observer may auto-set `organization_id` from a single resolved costume org, but only when it reduces to exactly one per-org-limited slot.
+**`organization_id` is capacity-only going forward.** The self-service flow now always offers club selection and always writes credit into `costume_organization_ids`, regardless of whether `organization_id` is set. `organization_id` and `costume_organization_ids` can coexist on the same record: one tracks which capacity slot was used, the other tracks which clubs receive credit. The admin path always clears `organization_id` when setting `costume_organization_ids`.
 
-**Multi-club credit flows through Rule 2 only.** When a trooper's costume spans multiple clubs and they confirm attendance for multiple clubs, `organization_id` is left null and all club IDs live in `costume_organization_ids`. This allows one shift to credit more than one `troop_count` entry.
+**Multi-club credit always flows through `costume_organization_ids`.** When a trooper's costume spans multiple clubs and they confirm attendance for multiple clubs, all club IDs live in `costume_organization_ids`. This allows one shift to credit more than one `troop_count` entry.

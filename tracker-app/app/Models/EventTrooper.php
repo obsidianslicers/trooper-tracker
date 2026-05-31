@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Collection;
 use App\Models\Event;
 use App\Models\EventOrganization;
+use App\Models\Organization;
 use App\Models\TrooperAssignment;
 use Illuminate\Support\Facades\Crypt;
 
@@ -372,6 +373,30 @@ class EventTrooper extends BaseEventTrooper
         return $this->getEligibleCreditOrganizations()
             ->filter(fn($org) => in_array($org->getPrimaryClub()->id, $parent_org_ids, true))
             ->pluck('id')
+            ->values()
+            ->all();
+    }
+
+    /** Returns unique top-level org names that receive credit for this attendance. */
+    public function getCreditedRootOrgNames(): array
+    {
+        $ids = $this->costume_organization_ids ?? [];
+
+        if (empty($ids) && $this->organization_id !== null)
+        {
+            $ids = [$this->organization_id];
+        }
+
+        if (empty($ids))
+        {
+            return [];
+        }
+
+        return Organization::whereIn('id', $ids)
+            ->get()
+            ->map(fn($org) => $org->getPrimaryClub()->name)
+            ->unique()
+            ->sort()
             ->values()
             ->all();
     }

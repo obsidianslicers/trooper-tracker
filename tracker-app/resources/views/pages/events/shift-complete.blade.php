@@ -24,6 +24,15 @@
                 The event has been closed for some time now, please contact your Imperial Records Officer.
             </p>
         @endif
+        @php($credited = $event_trooper->getCreditedRootOrgNames())
+        @if($event_trooper->attended && !empty($credited))
+            <div class="mt-2">
+                <small class="d-block">Credit recorded for:</small>
+                @foreach($credited as $name)
+                    <span class="badge bg-light text-dark me-1">{{ $name }}</span>
+                @endforeach
+            </div>
+        @endif
     </div>
 
 </x-slim-container>
