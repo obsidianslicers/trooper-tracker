@@ -204,6 +204,23 @@ class MimicTrooperPermissionsCommand extends Command
             ->get()
             ->keyBy(TrooperAssignment::ORGANIZATION_ID);
 
+        // Remove assignments not in the desired list first so the observer's hierarchy
+        // conflict check doesn't see them when we restore/create desired assignments.
+        $desired_org_ids = $desired_by_org_id->keys()->map(fn (int|string $id): int => (int) $id)->all();
+
+        $to_remove = TrooperAssignment::query()
+            ->where(TrooperAssignment::TROOPER_ID, $target->id)
+            ->when(! empty($desired_org_ids), fn ($query) => $query->whereNotIn(TrooperAssignment::ORGANIZATION_ID, $desired_org_ids))
+            ->when(empty($desired_org_ids), fn ($query) => $query)
+            ->get();
+
+        $removed = $to_remove->count();
+
+        foreach ($to_remove as $assignment)
+        {
+            $assignment->delete();
+        }
+
         foreach ($desired_by_org_id as $organization_id => $desired)
         {
             /** @var TrooperAssignment|null $assignment */
@@ -247,21 +264,6 @@ class MimicTrooperPermissionsCommand extends Command
             {
                 $restored++;
             }
-        }
-
-        $desired_org_ids = $desired_by_org_id->keys()->map(fn (int|string $id): int => (int) $id)->all();
-
-        $to_remove = TrooperAssignment::query()
-            ->where(TrooperAssignment::TROOPER_ID, $target->id)
-            ->when(! empty($desired_org_ids), fn ($query) => $query->whereNotIn(TrooperAssignment::ORGANIZATION_ID, $desired_org_ids))
-            ->when(empty($desired_org_ids), fn ($query) => $query)
-            ->get();
-
-        $removed = $to_remove->count();
-
-        foreach ($to_remove as $assignment)
-        {
-            $assignment->delete();
         }
 
         return [
