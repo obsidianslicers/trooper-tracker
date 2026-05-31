@@ -54,16 +54,24 @@ class MembershipRequestTest extends TestCase
         $this->assertTrue($subject->authorize());
     }
 
-    public function test_authorize_returns_false_for_non_administrator(): void
+    public function test_authorize_returns_true_for_moderator(): void
     {
         $moderator = Trooper::factory()->asModerator()->create();
         $subject = new MembershipRequest;
         $subject->setUserResolver(fn() => $moderator);
         $this->setupMockedRoute($subject, $this->target_trooper);
 
-        $result = $subject->authorize();
+        $this->assertTrue($subject->authorize());
+    }
 
-        $this->assertFalse($result);
+    public function test_authorize_returns_false_for_member(): void
+    {
+        $member = Trooper::factory()->asMember()->create();
+        $subject = new MembershipRequest;
+        $subject->setUserResolver(fn() => $member);
+        $this->setupMockedRoute($subject, $this->target_trooper);
+
+        $this->assertFalse($subject->authorize());
     }
 
     public function test_authorize_throws_exception_when_trooper_not_found(): void

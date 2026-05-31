@@ -22,7 +22,7 @@ use Illuminate\Validation\Rule;
  * - Selected organizations must exist and be descendants of the selected organization tree
  * - Identifiers follow organization-specific validation rules when provided
  *
- * Only administrators can modify trooper membership settings.
+ * Administrators and moderators can modify trooper membership settings.
  *
  * @property Collection|null $organizations_cache Cached organizations for validation
  */
@@ -32,9 +32,9 @@ class MembershipRequest extends FormRequest
      * Determine if the user is authorized to make this request
      *
      * Verifies that the trooper exists in the route and that the authenticated
-     * user is an administrator. Only administrators can modify membership settings.
+     * user is an administrator or moderator.
      *
-     * @return bool Returns true if the user is an administrator
+     * @return bool Returns true if the user is an administrator or moderator
      *
      * @throws AuthorizationException If the trooper is not found in the route
      */
@@ -47,7 +47,10 @@ class MembershipRequest extends FormRequest
             throw new AuthorizationException('Trooper not found or unauthorized.');
         }
 
-        return $this->user()->membership_role == MembershipRole::ADMINISTRATOR;
+        return in_array($this->user()->membership_role, [
+            MembershipRole::ADMINISTRATOR,
+            MembershipRole::MODERATOR,
+        ]);
     }
 
     /**

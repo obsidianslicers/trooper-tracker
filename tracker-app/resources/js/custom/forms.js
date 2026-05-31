@@ -30,11 +30,13 @@ document.body.addEventListener('htmx:configRequest', function (event) {
 document.addEventListener('DOMContentLoaded', () => {  // Attach listener to every form on the page
     document.querySelectorAll('form').forEach(form => {
         form.addEventListener('submit', () => {
-            const button = form.querySelector('button[type=submit]');
+            // Target only the primary submit button (data-action="htmx-disable"), not
+            // secondary buttons like Remove that use formaction for a different endpoint.
+            const button = form.querySelector('button[data-action="htmx-disable"]');
 
             if (!button) return;
 
-            // If the form or button has HTMX attributes, 
+            // If the form or button has HTMX attributes,
             // abort this listener and let the HTMX-specific logic handle it.
             const isHtmx = form.hasAttribute('hx-post') ||
                 form.hasAttribute('hx-put') ||
@@ -46,6 +48,19 @@ document.addEventListener('DOMContentLoaded', () => {  // Attach listener to eve
             button.dataset.originalText = button.innerHTML;
             button.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Submitting ...';
         });
+    });
+});
+
+/** RESET SUBMIT BUTTONS ON BFCACHE RESTORE **/
+window.addEventListener('pageshow', (event) => {
+    if (!event.persisted) return;
+
+    document.querySelectorAll('button').forEach(button => {
+        if (button.dataset.originalText) {
+            button.disabled = false;
+            button.innerHTML = button.dataset.originalText;
+            delete button.dataset.originalText;
+        }
     });
 });
 
