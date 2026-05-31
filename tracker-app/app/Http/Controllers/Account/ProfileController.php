@@ -33,15 +33,17 @@ class ProfileController extends MagicBusController
             'organizations',
         ]);
 
-        $costume_options = $trooper->trooper_costumes->mapWithKeys(function (TrooperCostume $tc) use ($trooper) {
-            $oc = $tc->organization_costume;
-            $org = $trooper->organizations->firstWhere('id', $oc?->organization_id);
-            $identifier = $org?->pivot?->identifier ?? '';
-            $prefix = $oc?->prefix ?? '';
-            $label = $prefix.$identifier.' — '.($oc?->costume?->name ?? '').' ('.($oc?->organization?->name ?? '').')';
+        $costume_options = $trooper->trooper_costumes
+            ->filter(fn (TrooperCostume $tc) => filled($tc->organization_costume?->prefix))
+            ->mapWithKeys(function (TrooperCostume $tc) use ($trooper) {
+                $oc = $tc->organization_costume;
+                $org = $trooper->organizations->firstWhere('id', $oc?->organization_id);
+                $identifier = $org?->pivot?->identifier ?? '';
+                $prefix = $oc?->prefix ?? '';
+                $label = $prefix.$identifier.' — '.($oc?->costume?->name ?? '').' ('.($oc?->organization?->name ?? '').')';
 
-            return [$tc->id => $label];
-        });
+                return [$tc->id => $label];
+            });
 
         $data = compact('trooper', 'costume_options');
 
