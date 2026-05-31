@@ -4,9 +4,11 @@ namespace App\Services\Forums;
 
 use App\Enums\OauthProvider;
 use App\Helpers\ForumBBCodeRenderer;
+use App\Helpers\SmiliesRenderer;
 use App\Models\OauthLogin;
 use App\Support\XenforoUpgradeHelper;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -45,6 +47,66 @@ class XenforoService
         }
 
         return $headers;
+    }
+
+    /**
+     * Fetch all smilies from XenForo and cache them for 24 hours.
+     *
+     * Returns an empty array when XenForo is not configured or the request fails,
+     * so callers can safely pass the result to SmiliesRenderer::render() without
+     * any conditional logic.
+     *
+     * @return array<int, array{smilie_id:int,title:string,smilie_text:string[],image_url:string,image_url_2x:string}>
+     */
+    public function get_smilies(): array
+    {
+        if (empty($this->base_url) || empty($this->api_key))
+        {
+            return [];
+        }
+
+        return Cache::remember('xenforo_smilies', 86400, function (): array {
+            $url = $this->base_url.'/api/smilies';
+
+            try
+            {
+                $response = Http::withHeaders(['XF-Api-Key' => (string) $this->api_key])
+                    ->acceptJson()
+                    ->timeout(5)
+                    ->get($url);
+            }
+            catch (\Throwable $e)
+            {
+                Log::warning('Failed to fetch XenForo smilies', ['message' => $e->getMessage()]);
+
+                return [];
+            }
+
+            if (!$response->successful())
+            {
+                return [];
+            }
+
+            $data = $response->json();
+            $smilies = $data['smilies'] ?? [];
+            $baseUrl = rtrim((string) ($data['base_url'] ?? ''), '/');
+
+            if (!is_array($smilies))
+            {
+                return [];
+            }
+
+            foreach ($smilies as &$smiley)
+            {
+                if (!empty($smiley['image_url']) && !Str::startsWith($smiley['image_url'], ['http://', 'https://']))
+                {
+                    $smiley['image_url'] = $baseUrl.'/'.ltrim($smiley['image_url'], '/');
+                }
+            }
+            unset($smiley);
+
+            return $smilies;
+        });
     }
 
     /**
@@ -158,7 +220,10 @@ class XenforoService
 
                 // Fallback preview for list rendering/search.
                 $message_plain = trim(preg_replace('/\s+/', ' ', preg_replace('~\[[^\]]+\]~', '', $message_bbcode) ?? '') ?? '');
-                $message_html = ForumBBCodeRenderer::toHtml($message_bbcode);
+                $message_html = SmiliesRenderer::render(
+                    ForumBBCodeRenderer::toHtml($message_bbcode),
+                    $this->get_smilies()
+                );
 
                 $post_id = (int) $post['post_id'];
                 $post_url = !empty($this->base_url) ? $this->base_url.'/posts/'.$post_id.'/' : null;

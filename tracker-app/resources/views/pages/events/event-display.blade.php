@@ -111,7 +111,7 @@
                                  x-bind:style="expanded ? 'max-height: ' + fullHeight : 'max-height: 120px'">
                                 <div x-ref="content"
                                      x-bind:class="expanded ? '' : 'terminal-green'">
-                                    {!! Str::markdown($event->comments) !!}
+                                    {!! \App\Helpers\SmiliesRenderer::render(Str::markdown($event->comments), $smilies) !!}
                                 </div>
 
                                 <div x-show="!expanded"

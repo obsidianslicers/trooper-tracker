@@ -71,6 +71,7 @@
                 <div class="row mb-2">
                     <div class="col">
                         <textarea name="message"
+                                  id="forum-reply-message"
                                   class="form-control"
                                   rows="3"
                                   placeholder="Write a reply..."
@@ -78,7 +79,9 @@
                                   required></textarea>
                     </div>
                 </div>
-                <div class="row">
+                <x-smilies-picker :smilies="$smilies ?? []" targetId="forum-reply-message" targetType="textarea" />
+
+                <div class="row mt-2">
                     <div class="col-12 d-flex flex-column flex-md-row justify-content-md-end align-items-md-center gap-2">
                         <button type="submit"
                                 class="btn btn-primary text-start text-md-center">
