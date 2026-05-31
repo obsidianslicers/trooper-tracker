@@ -122,21 +122,28 @@ php artisan tracker:send-test-push 42 --url=/events/details/99
 
 Creates a test shift-complete scenario for a trooper and outputs confirmation URLs for both "attended" and "unable to attend" responses. Used to test the post-shift update flow without waiting for a real shift to end.
 
+Costume is selected randomly from the trooper's approved costumes. Falls back to the Handler costume if the trooper has no approved costumes in the database.
+
 ```bash
-php artisan tracker:simulate-shift-complete {trooper_id} [--expired] [--dual-costume]
+php artisan tracker:simulate-shift-complete {trooper_id} [--expired] [--dual-costume] [--triple-costume] [--no-eligible-orgs]
 ```
 
 | Argument/Option | Required | Description |
 |---|---|---|
 | `trooper_id` | Yes | ID of the trooper to generate the scenario for |
 | `--expired` | No | Sets the shift as ended 45 days ago (outside the 30-day update window) |
-| `--dual-costume` | No | Sets up a dual-club costume scenario to trigger the club-selection flow |
+| `--dual-costume` | No | Triggers the club-selection flow by setting up 2 distinct top-level parent orgs as eligible for credit. Requires the trooper to have memberships in at least 2 clubs with different top-level parent organizations. |
+| `--triple-costume` | No | Same as `--dual-costume` but with 3 distinct parent orgs. Requires 3 qualifying memberships. Mutually exclusive with `--dual-costume`. |
+| `--no-eligible-orgs` | No | Produces a scenario where no organizations are eligible for credit, so neither club-selection nor auto-credit-assignment fires. Cannot be combined with `--dual-costume` or `--triple-costume`. |
 
 **Examples:**
 ```bash
 php artisan tracker:simulate-shift-complete 42
 php artisan tracker:simulate-shift-complete 42 --expired
 php artisan tracker:simulate-shift-complete 42 --dual-costume
+php artisan tracker:simulate-shift-complete 42 --triple-costume
+php artisan tracker:simulate-shift-complete 42 --no-eligible-orgs
+php artisan tracker:simulate-shift-complete 42 --expired --no-eligible-orgs
 ```
 
 ---
