@@ -4,47 +4,35 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Bus\MagicBus;
+use App\Features\Forums\Commands\SyncXenforoUserCommand;
 use App\Models\Trooper;
-use App\Services\Forums\XenforoUserSyncService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Benchmark;
 
 class SynchronizeXenforoUsers extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'tracker:synchronize-xenforo-users {--chunk=100 : Number of troopers to process per chunk}';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
     protected $description = 'Synchronize all TroopTracker troopers to their linked XenForo users.';
 
-    public function __construct(private readonly XenforoUserSyncService $syncService)
+    public function __construct(private readonly MagicBus $bus)
     {
         parent::__construct();
     }
 
-    /**
-     * Execute the console command.
-     */
     public function handle(): void
     {
-        $chunkSize = (int) $this->option('chunk');
-        $chunkSize = $chunkSize > 0 ? $chunkSize : 100;
+        $chunk_size = (int) $this->option('chunk');
+        $chunk_size = $chunk_size > 0 ? $chunk_size : 100;
 
-        $ms = Benchmark::measure(function () use ($chunkSize) {
+        $ms = Benchmark::measure(function () use ($chunk_size) {
             Trooper::query()
                 ->orderBy(Trooper::ID)
-                ->chunk($chunkSize, function ($troopers) {
+                ->chunk($chunk_size, function ($troopers) {
                     foreach ($troopers as $trooper)
                     {
-                        $this->syncService->syncTrooper($trooper);
+                        $this->bus->send(new SyncXenforoUserCommand($trooper));
                     }
                 });
         });

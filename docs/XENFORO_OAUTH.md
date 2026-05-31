@@ -219,6 +219,7 @@ What is synchronized:
 
 - `custom_fields[trackerid]`
 - `custom_fields[fullname]`
+- `custom_fields[tkid]`
 - `custom_fields[organizations]`
 - `secondary_group_ids`
 
@@ -484,6 +485,124 @@ Check:
 - organization XenForo group IDs are populated
 - trooper memberships are correct in Troop Tracker
 - the linked XenForo account exists
+
+## XenForo Template Modifications (Optional)
+
+These template modifications display a trooper's Troop Tracker ID and name directly on XenForo member cards, posts, and tooltips. They are optional but recommended when Troop Tracker user sync is enabled. They rely on the `trackerid`, `tkid`, and `fullname` custom fields that the sync writes.
+
+### message_macros
+
+In the `message_macros` template, locate:
+
+```html
+<h4 class="message-name"><xf:username user="$user" rich="true" defaultname="{$fallbackName}" itemprop="{{ $includeMicrodata ? 'name' : '' }}" /></h4>
+```
+
+Add immediately after:
+
+```html
+<xf:if is="{$user.Profile.custom_fields.trackerid} > 0 && {$user.Profile.custom_fields.fullname} != ''">
+<div style="text-align: center; margin-top: 10px;">
+	<a href="https://tracker.fl501st.com/service-records/trooper/{$user.Profile.custom_fields.trackerid}">{$user.Profile.custom_fields.tkid}</a>
+	<br />
+	{$user.Profile.custom_fields.fullname}
+</div>
+</xf:if>
+```
+
+### member_view
+
+In the `member_view` template, locate:
+
+```html
+<xf:if contentcheck="true">
+	<div class="memberHeader-blurb">
+		<dl class="pairs pairs--inline">
+			<dt>{{ phrase('last_seen') }}</dt>
+			<dd dir="auto">
+				<xf:contentcheck><xf:useractivity user="$user" class="pairs--plainLabel" /></xf:contentcheck>
+			</dd>
+		</dl>
+	</div>
+</xf:if>
+```
+
+Add immediately after:
+
+```html
+<xf:if is="{$user.Profile.custom_fields.trackerid} > 0 && {$user.Profile.custom_fields.fullname} != ''">
+	<div class="memberHeader-blurb">
+		<dl class="pairs pairs--inline">
+			<dt>TKID</dt>
+			<dd dir="auto">
+				<a href="https://tracker.fl501st.com/service-records/trooper/{$user.Profile.custom_fields.trackerid}">{$user.Profile.custom_fields.tkid}</a>
+			</dd>
+		</dl>
+	</div>
+
+	<div class="memberHeader-blurb">
+		<dl class="pairs pairs--inline">
+			<dt>Name</dt>
+			<dd dir="auto">
+				{$user.Profile.custom_fields.fullname}
+			</dd>
+		</dl>
+	</div>
+</xf:if>
+```
+
+### member_tooltip
+
+In the `member_tooltip` template, locate:
+
+```html
+<xf:if contentcheck="true">
+	<div class="memberTooltip-blurb">
+		<dl class="pairs pairs--inline">
+			<dt>{{ phrase('last_seen') }}</dt>
+			<dd dir="auto">
+				<xf:contentcheck><xf:useractivity user="$user" class="pairs--plainLabel" /></xf:contentcheck>
+			</dd>
+		</dl>
+	</div>
+</xf:if>
+```
+
+Add immediately after:
+
+```html
+<xf:if is="{$user.Profile.custom_fields.trackerid} > 0 && {$user.Profile.custom_fields.fullname} != ''">
+	<div class="memberTooltip-blurb">
+		<dl class="pairs pairs--inline">
+			<dt>TKID</dt>
+			<dd dir="auto">
+				<a href="https://tracker.fl501st.com/service-records/trooper/{$user.Profile.custom_fields.trackerid}">{$user.Profile.custom_fields.tkid}</a>
+			</dd>
+		</dl>
+	</div>
+
+	<div class="memberTooltip-blurb">
+		<dl class="pairs pairs--inline">
+			<dt>Name</dt>
+			<dd dir="auto">
+				{$user.Profile.custom_fields.fullname}
+			</dd>
+		</dl>
+	</div>
+</xf:if>
+```
+
+### Required XenForo custom fields
+
+For the template modifications above to work, three custom fields must exist on XenForo user profiles:
+
+| Field name | Type | Description |
+|------------|------|-------------|
+| `trackerid` | Text | Troop Tracker internal trooper ID |
+| `tkid` | Text | Formatted identifier with prefix, e.g. `TK52233` |
+| `fullname` | Text | Trooper's full name |
+
+These are automatically populated by the Troop Tracker user sync. See **XenForo User Synchronization** above.
 
 ## References
 

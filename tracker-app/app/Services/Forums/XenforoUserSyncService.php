@@ -7,11 +7,14 @@ namespace App\Services\Forums;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
+use App\Models\TrooperCostume;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
 class XenforoUserSyncService
 {
+    private ?Collection $managed_group_ids_cache = null;
+
     public function __construct(private readonly XenforoService $xenforo) {}
 
     /**
@@ -59,10 +62,71 @@ class XenforoUserSyncService
     }
 
     /**
+     * Return all intermediate group-sync state for a trooper without writing
+     * anything to XenForo. Useful for dry-run inspection via the CLI.
+     *
+     * @return array{
+     *   xenforo_user_id: int|null,
+     *   managed_group_ids: int[],
+     *   current_secondary: int[],
+     *   current_tt_managed: int[],
+     *   current_preserved: int[],
+     *   desired_managed: int[],
+     *   computed_result: int[]|null,
+     *   would_send: bool,
+     * }
+     */
+    public function debugSync(Trooper $trooper): array
+    {
+        $xenforoUserId = $this->xenforo->resolve_user_id_for_trooper($trooper->id);
+        $managedGroupIds = $this->getManagedOrganizationGroupIds();
+        $desiredManaged = $this->getDesiredOrganizationGroupIds($trooper);
+
+        $base = [
+            'xenforo_user_id' => $xenforoUserId,
+            'managed_group_ids' => $managedGroupIds->all(),
+            'current_secondary' => [],
+            'current_tt_managed' => [],
+            'current_preserved' => [],
+            'desired_managed' => $desiredManaged->all(),
+            'computed_result' => null,
+            'would_send' => false,
+        ];
+
+        if ($xenforoUserId === null || $managedGroupIds->isEmpty())
+        {
+            return $base;
+        }
+
+        $currentSecondary = $this->fetchCurrentSecondaryGroupIds($xenforoUserId);
+
+        if ($currentSecondary === null)
+        {
+            return $base;
+        }
+
+        $currentPreserved = $currentSecondary->reject(fn (int $id) => $managedGroupIds->contains($id))->values();
+        $currentTTManaged = $currentSecondary->filter(fn (int $id) => $managedGroupIds->contains($id))->sort()->values();
+        $desiredSorted = $desiredManaged->sort()->values();
+
+        $is_no_op = $currentTTManaged->all() === $desiredSorted->all();
+        $computed_result = $is_no_op ? null : $currentPreserved->merge($desiredManaged)->unique()->values()->all();
+
+        return array_merge($base, [
+            'current_secondary' => $currentSecondary->all(),
+            'current_tt_managed' => $currentTTManaged->all(),
+            'current_preserved' => $currentPreserved->all(),
+            'computed_result' => $computed_result,
+            'would_send' => $computed_result !== null,
+        ]);
+    }
+
+    /**
      * Build the XenForo user update payload for a trooper.
      *
      * - custom_fields[trackerid]: TroopTracker trooper ID
      * - custom_fields[fullname]:   Trooper legal name (fallback to display name)
+     * - custom_fields[tkid]:       Formatted member ID with prefix, e.g. "TK52233"
      * - custom_fields[organizations]: Comma-separated list of active org names
      * - secondary_group_ids: merged secondary groups including TT-managed org groups
      *
@@ -84,6 +148,12 @@ class XenforoUserSyncService
             $customFields['fullname'] = $fullName;
         }
 
+        $tkid = $this->resolveForumDisplayTkId($trooper);
+        if ($tkid !== null)
+        {
+            $customFields['tkid'] = $tkid;
+        }
+
         $orgNames = $this->getActiveOrganizationNames($trooper);
         if ($orgNames->isNotEmpty())
         {
@@ -98,11 +168,11 @@ class XenforoUserSyncService
 
         $secondaryGroupIds = $this->buildSecondaryGroupIds($trooper, $xenforoUserId);
 
-        if (! empty($secondaryGroupIds))
+        // null  → TT's managed groups are unchanged; skip to avoid touching external groups.
+        // []    → TT wants zero secondary groups (all managed groups removed, no external groups).
+        // [...]  → explicit desired list merging TT-managed + preserved external groups.
+        if ($secondaryGroupIds !== null)
         {
-            // Let the HTTP client encode this as a form array
-            // (secondary_group_ids[0]=..., etc.), which XenForo
-            // will treat as an array input.
             $payload['secondary_group_ids'] = $secondaryGroupIds;
         }
 
@@ -111,67 +181,86 @@ class XenforoUserSyncService
 
     /**
      * Build the desired secondary_group_ids array, preserving non–TroopTracker-managed
-     * groups and adding/removing organization groups based on the trooper's
-     * organization memberships and the XenForo group IDs stored on each
-     * organization (active, reserve, retired).
+     * groups and adding/removing organization groups based on the trooper's memberships.
      *
-     * @return array<int,int>
+     * Returns null when TT's managed groups are already correct (no-op) or when
+     * the current XenForo state cannot be safely read. Returns an array (possibly
+     * empty) only when TT needs to make an actual change.
+     *
+     * @return array<int,int>|null
      */
-    private function buildSecondaryGroupIds(Trooper $trooper, int $xenforoUserId): array
+    private function buildSecondaryGroupIds(Trooper $trooper, int $xenforoUserId): ?array
     {
         $managedGroupIds = $this->getManagedOrganizationGroupIds();
 
         if ($managedGroupIds->isEmpty())
         {
-            return [];
+            return null;
         }
 
-        $user = $this->xenforo->get_user($xenforoUserId);
+        $currentSecondary = $this->fetchCurrentSecondaryGroupIds($xenforoUserId);
 
-        if ($user['status'] < 200 || $user['status'] >= 300 || ! is_array($user['body']))
+        if ($currentSecondary === null)
         {
-            return [];
+            return null;
         }
 
-        $body = $user['body'];
-
-        // XenForo typically nests the user object under a 'user' key.
-        $userData = is_array($body['user'] ?? null) ? $body['user'] : $body;
-
-        $rawSecondary = $userData['secondary_group_ids'] ?? [];
-
-        if (is_string($rawSecondary))
-        {
-            $rawSecondary = array_filter(array_map('trim', explode(',', $rawSecondary)), static fn ($v) => $v !== '');
-        }
-
-        $currentSecondary = collect($rawSecondary)
-            ->filter(static fn ($id) => is_numeric($id))
-            ->map(static fn ($id) => (int) $id)
-            ->unique()
-            ->values();
-
-        $currentPreserved = $currentSecondary
-            ->reject(function (int $id) use ($managedGroupIds) {
-                return $managedGroupIds->contains($id);
-            })
-            ->values();
-
+        $currentPreserved = $currentSecondary->reject(fn (int $id) => $managedGroupIds->contains($id))->values();
         $desiredManaged = $this->getDesiredOrganizationGroupIds($trooper);
+
+        $currentTTManaged = $currentSecondary->filter(fn (int $id) => $managedGroupIds->contains($id))->sort()->values();
+        $desiredSorted = $desiredManaged->sort()->values();
 
         Log::info('XenForo group calculation', [
             'trooper_id' => $trooper->id,
             'managed_group_ids' => $managedGroupIds->all(),
             'current_secondary' => $currentSecondary->all(),
+            'current_tt_managed' => $currentTTManaged->all(),
             'current_preserved' => $currentPreserved->all(),
             'desired_managed' => $desiredManaged->all(),
+            'no_op' => $currentTTManaged->all() === $desiredSorted->all(),
         ]);
 
-        return $currentPreserved
-            ->merge($desiredManaged)
+        if ($currentTTManaged->all() === $desiredSorted->all())
+        {
+            return null;
+        }
+
+        return $currentPreserved->merge($desiredManaged)->unique()->values()->all();
+    }
+
+    /**
+     * Fetch and parse a XenForo user's current secondary_group_ids.
+     * Returns null when the API call fails or returns an unexpected response.
+     *
+     * @return Collection<int,int>|null
+     */
+    private function fetchCurrentSecondaryGroupIds(int $xenforo_user_id): ?Collection
+    {
+        $user = $this->xenforo->get_user($xenforo_user_id);
+
+        if ($user['status'] < 200 || $user['status'] >= 300 || ! is_array($user['body']))
+        {
+            return null;
+        }
+
+        $body = $user['body'];
+        $userData = is_array($body['user'] ?? null) ? $body['user'] : $body;
+        $rawSecondary = $userData['secondary_group_ids'] ?? [];
+
+        if (is_string($rawSecondary))
+        {
+            $rawSecondary = array_filter(
+                array_map('trim', explode(',', $rawSecondary)),
+                static fn ($v) => $v !== ''
+            );
+        }
+
+        return collect($rawSecondary)
+            ->filter(static fn ($id) => is_numeric($id))
+            ->map(static fn ($id) => (int) $id)
             ->unique()
-            ->values()
-            ->all();
+            ->values();
     }
 
     /**
@@ -180,14 +269,12 @@ class XenforoUserSyncService
      */
     private function getManagedOrganizationGroupIds(): Collection
     {
-        static $cache = null;
-
-        if ($cache !== null)
+        if ($this->managed_group_ids_cache !== null)
         {
-            return $cache;
+            return $this->managed_group_ids_cache;
         }
 
-        $ids = Organization::query()
+        $this->managed_group_ids_cache = Organization::query()
             ->select([
                 Organization::XENFORO_GROUP_ACTIVE_ID,
                 Organization::XENFORO_GROUP_RESERVE_ID,
@@ -206,19 +293,79 @@ class XenforoUserSyncService
             ->unique()
             ->values();
 
-        $cache = $ids;
-
-        return $cache;
+        return $this->managed_group_ids_cache;
     }
 
     /**
      * Desired organization-related group IDs for a specific trooper based on
-     * their membership_status in each organization.
+     * their membership_status in each organization and its full ancestor chain.
      */
     private function getDesiredOrganizationGroupIds(Trooper $trooper): Collection
     {
-        $trooper->loadMissing('organizations', 'trooper_assignments.organization');
+        // Two levels of parent nesting covers the full three-level hierarchy
+        // (Organization → Region → Unit) without N+1 queries.
+        $trooper->loadMissing(
+            'organizations.parent.parent',
+            'trooper_assignments.organization.parent.parent',
+        );
 
+        $this->logOrgMembershipSnapshot($trooper);
+
+        $assignedOrgs = $trooper->trooper_assignments
+            ->filter(static fn (TrooperAssignment $a) => $a->is_member)
+            ->map(static fn (TrooperAssignment $a) => $a->organization)
+            ->filter();
+
+        $allOrgs = $trooper->organizations->merge($assignedOrgs)->unique('id')->values();
+
+        return $allOrgs
+            ->flatMap(function (Organization $org) {
+                $status = $org->pivot->membership_status ?? null;
+                $status = strtolower(is_string($status) ? $status : 'active');
+
+                $ids = array_filter([$this->resolveGroupIdForStatus($org, $status)]);
+
+                $ancestor = $org->parent;
+                while ($ancestor !== null)
+                {
+                    $id = $this->resolveGroupIdForStatus($ancestor, $status);
+                    if ($id !== null)
+                    {
+                        $ids[] = $id;
+                    }
+                    $ancestor = $ancestor->parent;
+                }
+
+                return array_values($ids);
+            })
+            ->unique()
+            ->values();
+    }
+
+    /** Returns the XenForo group ID configured on an org for the given membership status. */
+    private function resolveGroupIdForStatus(Organization $org, string $status): ?int
+    {
+        if ($status === 'active' && $org->xenforo_group_active_id !== null)
+        {
+            return (int) $org->xenforo_group_active_id;
+        }
+
+        if ($status === 'reserve' && $org->xenforo_group_reserve_id !== null)
+        {
+            return (int) $org->xenforo_group_reserve_id;
+        }
+
+        if ($status === 'retired' && $org->xenforo_group_retired_id !== null)
+        {
+            return (int) $org->xenforo_group_retired_id;
+        }
+
+        return null;
+    }
+
+    /** Write org + assignment membership state to the application log. */
+    private function logOrgMembershipSnapshot(Trooper $trooper): void
+    {
         Log::info('XenForo org membership snapshot', [
             'trooper_id' => $trooper->id,
             'organizations' => $trooper->organizations->map(static function (Organization $org) {
@@ -226,17 +373,10 @@ class XenforoUserSyncService
                     'id' => $org->id,
                     'name' => $org->name,
                     'pivot_status' => $org->pivot->membership_status ?? null,
-                    'primary_club_id' => $org->getPrimaryClub()->id,
-                    'primary_club_name' => $org->getPrimaryClub()->name,
                     'org_groups' => [
                         'active' => $org->xenforo_group_active_id,
                         'reserve' => $org->xenforo_group_reserve_id,
                         'retired' => $org->xenforo_group_retired_id,
-                    ],
-                    'primary_groups' => [
-                        'active' => $org->getPrimaryClub()->xenforo_group_active_id,
-                        'reserve' => $org->getPrimaryClub()->xenforo_group_reserve_id,
-                        'retired' => $org->getPrimaryClub()->xenforo_group_retired_id,
                     ],
                 ];
             })->all(),
@@ -250,77 +390,54 @@ class XenforoUserSyncService
                 ];
             })->all(),
         ]);
+    }
 
-        $orgIdsFromMembership = $trooper->organizations->pluck('id')->all();
+    /** Returns the formatted TKID to sync to XenForo (e.g. "TK52233"), or null. */
+    private function resolveForumDisplayTkId(Trooper $trooper): ?string
+    {
+        $trooper->loadMissing([
+            'trooper_costumes.organization_costume',
+            'organizations',
+        ]);
 
-        // Also consider organizations from TrooperAssignment where the trooper
-        // is marked as a member. This is typically used for squad/region
-        // assignments in the new system.
-        $assignedOrgs = $trooper->trooper_assignments
-            ->filter(static fn (TrooperAssignment $a) => $a->is_member)
-            ->map(static fn (TrooperAssignment $a) => $a->organization)
-            ->filter();
+        if ($trooper->trooper_costumes->isEmpty())
+        {
+            return null;
+        }
 
-        $allOrgs = $trooper->organizations
-            ->merge($assignedOrgs)
-            ->unique('id')
-            ->values();
+        $display_costume = $this->resolveDisplayCostume($trooper);
 
-        return $allOrgs
-            ->flatMap(static function (Organization $org) {
-                $status = $org->pivot->membership_status ?? null;
+        if ($display_costume === null || $display_costume->organization_costume === null)
+        {
+            return null;
+        }
 
-                // Fall back to treating assignment membership as ACTIVE when
-                // we don't have a pivot membership_status (e.g. for
-                // TrooperAssignment-sourced organizations).
-                if (! is_string($status))
-                {
-                    $status = 'active';
-                }
+        $prefix = $display_costume->organization_costume->prefix;
+        $org_id = $display_costume->organization_costume->organization_id;
 
-                $status = strtolower($status);
+        $org = $trooper->organizations->firstWhere('id', $org_id);
+        $identifier = $org?->pivot?->identifier ?? null;
 
-                $ids = [];
+        if ($prefix === null || $prefix === '' || $identifier === null || $identifier === '')
+        {
+            return null;
+        }
 
-                // First, use group IDs defined directly on this organization
-                if ($status === 'active' && ! is_null($org->xenforo_group_active_id))
-                {
-                    $ids[] = (int) $org->xenforo_group_active_id;
-                }
-                elseif ($status === 'reserve' && ! is_null($org->xenforo_group_reserve_id))
-                {
-                    $ids[] = (int) $org->xenforo_group_reserve_id;
-                }
-                elseif ($status === 'retired' && ! is_null($org->xenforo_group_retired_id))
-                {
-                    $ids[] = (int) $org->xenforo_group_retired_id;
-                }
+        return $prefix.$identifier;
+    }
 
-                // Additionally, if this organization is a region/unit, also
-                // apply any XenForo groups configured at its primary club
-                // (top-level parent), using the same membership status.
-                $primaryClub = $org->getPrimaryClub();
+    private function resolveDisplayCostume(Trooper $trooper): ?TrooperCostume
+    {
+        if ($trooper->display_costume_id !== null)
+        {
+            return $trooper->trooper_costumes
+                ->firstWhere(TrooperCostume::ID, $trooper->display_costume_id);
+        }
 
-                if ($primaryClub->id !== $org->id)
-                {
-                    if ($status === 'active' && ! is_null($primaryClub->xenforo_group_active_id))
-                    {
-                        $ids[] = (int) $primaryClub->xenforo_group_active_id;
-                    }
-                    elseif ($status === 'reserve' && ! is_null($primaryClub->xenforo_group_reserve_id))
-                    {
-                        $ids[] = (int) $primaryClub->xenforo_group_reserve_id;
-                    }
-                    elseif ($status === 'retired' && ! is_null($primaryClub->xenforo_group_retired_id))
-                    {
-                        $ids[] = (int) $primaryClub->xenforo_group_retired_id;
-                    }
-                }
-
-                return $ids;
-            })
-            ->unique()
-            ->values();
+        return $trooper->trooper_costumes
+            ->filter(fn (TrooperCostume $tc) => ! is_null($tc->organization_costume?->prefix))
+            ->sortBy(fn (TrooperCostume $tc) => $tc->organization_costume->prefix)
+            ->first();
     }
 
     /**
@@ -334,7 +451,6 @@ class XenforoUserSyncService
     {
         $trooper->loadMissing('organizations');
 
-        // We want organizations where the pivot membership_status is ACTIVE or RESERVE.
         return $trooper->organizations
             ->filter(static function ($organization) {
                 $status = $organization->pivot->membership_status ?? null;
@@ -344,13 +460,9 @@ class XenforoUserSyncService
                     return false;
                 }
 
-                $status = strtolower($status);
-
-                return in_array($status, ['active', 'reserve'], true);
+                return in_array(strtolower($status), ['active', 'reserve'], true);
             })
-            ->map(static function ($organization) {
-                return (string) $organization->name;
-            })
+            ->map(static fn ($organization) => (string) $organization->name)
             ->values()
             ->unique()
             ->sort()

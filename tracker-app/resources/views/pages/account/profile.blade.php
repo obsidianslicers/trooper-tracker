@@ -46,6 +46,21 @@
                     </x-input-help>
                 </x-input-container>
 
+                @if($costume_options->isNotEmpty())
+                <x-input-container>
+                    <x-label>
+                        Display ID Prefix:
+                    </x-label>
+                    <x-input-select :property="'display_costume_id'"
+                                    :options="['' => '— Auto (first costume) —'] + $costume_options->toArray()"
+                                    :value="$trooper->display_costume_id ?? ''" />
+                    <x-input-help>
+                        Choose which prefix and ID to display on the forum (e.g. TK52233 or SL52233).
+                        Leave blank to use the first costume automatically.
+                    </x-input-help>
+                </x-input-container>
+                @endif
+
                 <x-input-container x-data>
                     <x-label>
                         Phone (Optional):

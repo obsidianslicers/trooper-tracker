@@ -144,7 +144,7 @@ class PublicApiController
                 ->where(TrooperAssignment::IS_MEMBER, true)
             )
             ->with([
-                'trooper_costumes',
+                'trooper_costumes.organization_costume',
                 'organizations' => fn ($q) => $q->withPivot(TrooperOrganization::IDENTIFIER),
             ])
             ->orderBy(Trooper::DISPLAY_NAME)
@@ -204,8 +204,11 @@ h2{font-size:1em;border-bottom:1px solid #ccc;padding-bottom:6px;margin-top:20px
     private function memberCard(Trooper $trooper): string
     {
         $name = e($trooper->display_name);
-        $identifier = e($trooper->organizations->first()?->pivot?->identifier ?? '');
-        $label = $identifier ? $name.' - '.$identifier : $name;
+        $identifier = $trooper->organizations->first()?->pivot?->identifier ?? '';
+        $org_id = $trooper->organizations->first()?->id;
+
+        $formatted_id = $this->resolveDisplayPrefix($trooper, $org_id).$identifier;
+        $label = $formatted_id ? $name.' - '.e($formatted_id) : $name;
 
         $photo = $trooper->trooper_costumes
             ->firstWhere(fn ($c) => !empty($c->{TrooperCostume::IMAGE_URL_SM}))
@@ -216,6 +219,25 @@ h2{font-size:1em;border-bottom:1px solid #ccc;padding-bottom:6px;margin-top:20px
             : '<img src="'.e(url('images/tk_head.jpg')).'" alt="">';
 
         return '<div class="member">'.$img.$label.'</div>';
+    }
+
+    private function resolveDisplayPrefix(Trooper $trooper, ?int $org_id): string
+    {
+        if ($trooper->display_costume_id !== null)
+        {
+            $prefix_costume = $trooper->trooper_costumes
+                ->firstWhere(TrooperCostume::ID, $trooper->display_costume_id);
+        }
+        else
+        {
+            $prefix_costume = $trooper->trooper_costumes
+                ->filter(fn ($tc) => !empty($tc->organization_costume?->prefix)
+                    && $tc->organization_costume->organization_id === $org_id)
+                ->sortBy(fn ($tc) => $tc->organization_costume->prefix)
+                ->first();
+        }
+
+        return $prefix_costume?->organization_costume?->prefix ?? '';
     }
 
     private function slideshowResponse(array $uploads): Response

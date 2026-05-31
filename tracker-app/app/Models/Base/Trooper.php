@@ -60,7 +60,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property string|null $deleted_at
- * 
+ * @property int|null $display_costume_id
+ *
  * @property \App\Models\Trooper|null $trooper
  * @property Collection|Award[] $awards
  * @property Collection|EventGuest[] $event_guests
@@ -106,6 +107,7 @@ class Trooper extends Model
     const LAST_ACTIVE_AT = 'last_active_at';
     const GUARDIAN_ID = 'guardian_id';
     const DATE_OF_BIRTH = 'date_of_birth';
+    const DISPLAY_COSTUME_ID = 'display_costume_id';
     const REMEMBER_TOKEN = 'remember_token';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
@@ -122,6 +124,7 @@ class Trooper extends Model
         self::VISITOR_NOTIFIED_AT => 'datetime',
         self::ACHIEVEMENTS_UPDATED_AT => 'datetime',
         self::LAST_ACTIVE_AT => 'datetime',
+        self::DISPLAY_COSTUME_ID => 'int',
         self::GUARDIAN_ID => 'int',
         self::DATE_OF_BIRTH => 'datetime',
         self::CREATED_AT => 'datetime',
@@ -147,6 +150,7 @@ class Trooper extends Model
         self::NOTIFICATION_FREQUENCY,
         self::PUSH_NOTIFICATIONS_ENABLED,
         self::NOTIFICATION_PREFERENCES,
+        self::DISPLAY_COSTUME_ID,
         self::VISITOR_EXPIRES_AT,
         self::VISITOR_NOTIFIED_AT,
         self::ACHIEVEMENTS_UPDATED_AT,
@@ -155,6 +159,11 @@ class Trooper extends Model
         self::DATE_OF_BIRTH,
         self::REMEMBER_TOKEN
     ];
+
+    public function display_costume(): BelongsTo
+    {
+        return $this->belongsTo(TrooperCostume::class, self::DISPLAY_COSTUME_ID);
+    }
 
     public function trooper(): BelongsTo
     {

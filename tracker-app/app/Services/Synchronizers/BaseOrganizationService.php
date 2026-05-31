@@ -97,6 +97,10 @@ abstract class BaseOrganizationService implements SynchronizerInterface
             $org_costume = new OrganizationCostume;
             $org_costume->organization_id = $this->organization->id;
             $org_costume->costume_id = $costume->id;
+        }
+
+        if ($prefix !== null)
+        {
             $org_costume->prefix = $prefix;
         }
 

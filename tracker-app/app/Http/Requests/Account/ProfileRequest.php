@@ -8,6 +8,7 @@ use App\Enums\TrooperTheme;
 use App\Http\Requests\Concerns\HasNormalizers;
 use App\Models\Trooper;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * Handles the validation for the user profile update form.
@@ -42,6 +43,13 @@ class ProfileRequest extends FormRequest
             Trooper::DISPLAY_NAME => ['required', 'string', 'max:256'],
             Trooper::PHONE => ['nullable', 'string', 'max:16'],
             Trooper::THEME => ['required', 'string', 'max:16', 'in:'.TrooperTheme::toValidator()],
+            Trooper::DISPLAY_COSTUME_ID => [
+                'nullable',
+                'integer',
+                Rule::exists('tt_trooper_costumes', 'id')
+                    ->where('trooper_id', $this->user()?->id ?? 0)
+                    ->whereNull('deleted_at'),
+            ],
         ];
 
         return $rules;
