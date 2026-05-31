@@ -12,6 +12,14 @@
     </p>
 
     <p>
+        <b>{{ $event->name }}</b>
+    </p>
+
+    <p>
+        {{ $event->time_display }}
+    </p>
+
+    <p>
         You can access it here:
         <a href="{{ route('shares.roster', $event_share) }}">link</a>
     </p>
