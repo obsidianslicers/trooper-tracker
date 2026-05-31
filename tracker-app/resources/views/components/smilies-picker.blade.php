@@ -1,7 +1,11 @@
-@props(['smilies' => [], 'targetId', 'targetType' => 'textarea'])
+@props(['smilies' => [], 'targetId', 'targetType' => 'textarea', 'toolbar' => false])
 
 @if(!empty($smilies))
-<div x-data="{ open: false }" class="mt-2">
+<div x-data="{ open: false }"
+     id="smilies-panel-{{ $targetId }}"
+     @smilies-toggle-{{ $targetId }}.window="open = !open"
+     class="mt-2">
+    @if(!$toolbar)
     <button type="button"
             class="btn btn-sm btn-outline-secondary"
             x-on:click="open = !open">
@@ -9,6 +13,7 @@
         Smilies
         <i class="fas fa-chevron-down ms-1 fa-xs" x-bind:class="open ? 'fa-rotate-180' : ''"></i>
     </button>
+    @endif
 
     <div x-show="open"
          x-cloak

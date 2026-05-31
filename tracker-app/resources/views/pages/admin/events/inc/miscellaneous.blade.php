@@ -6,7 +6,7 @@
                       :value="$event->comments"
                       x-model="form.comments"
                       class="markdown-editor" />
-        <x-smilies-picker :smilies="$smilies ?? []" targetId="comments" targetType="easymde" />
+        <x-smilies-picker :smilies="$smilies ?? []" targetId="comments" targetType="easymde" :toolbar="true" />
     </x-input-container>
 
     <x-input-container>
