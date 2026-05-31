@@ -8,6 +8,7 @@ use App\Features\Troopers\Commands\UpdateTrooperIdentifiersCommand;
 use App\Features\Troopers\Commands\UpdateTrooperMembershipsCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Troopers\MembershipRequest;
+use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Http\RedirectResponse;
 
@@ -16,6 +17,7 @@ use Illuminate\Http\RedirectResponse;
  *
  * Processes form submissions to update a trooper's organization memberships
  * and identifiers via UpdateTrooperIdentifiersCommand and UpdateTrooperMembershipsCommand.
+ * Moderators are restricted to organizations within their moderation scope.
  */
 class MembershipSubmitController extends MagicBusController
 {
@@ -34,7 +36,15 @@ class MembershipSubmitController extends MagicBusController
     {
         $this->authorize('update', $trooper);
 
+        $actor = $request->user();
         $organizations = $request->validated('organizations', []);
+
+        $allowed_org_ids = Organization::ofTypeOrganizations()
+            ->moderatedBy($actor)
+            ->pluck(Organization::ID)
+            ->toArray();
+
+        $organizations = array_intersect_key($organizations, array_flip($allowed_org_ids));
 
         $identifier_cmd = new UpdateTrooperIdentifiersCommand($trooper, $organizations);
 
