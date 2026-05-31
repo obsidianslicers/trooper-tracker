@@ -6,6 +6,7 @@ namespace App\Models\Observers;
 
 use App\Facades\TroopTrackerFacade;
 use App\Jobs\DeleteEventForumThreadJob;
+use App\Jobs\SendEventUpdatedNotificationsJob;
 use App\Jobs\UpdateEventForumThreadJob;
 use App\Models\Event;
 use App\Models\Organization;
@@ -71,6 +72,24 @@ class EventObserver
         if ($this->shouldQueueForumThreadSync($event))
         {
             dispatch(new UpdateEventForumThreadJob($event->getKey()));
+        }
+
+        $watch_fields = [
+            Event::NAME,
+            Event::EVENT_START,
+            Event::EVENT_END,
+            Event::VENUE,
+            Event::VENUE_ADDRESS,
+            Event::VENUE_CITY,
+            Event::VENUE_STATE,
+            Event::VENUE_ZIP,
+            Event::COMMENTS,
+        ];
+
+        if ($event->wasChanged($watch_fields))
+        {
+            $changed = array_values(array_intersect($watch_fields, array_keys($event->getChanges())));
+            dispatch(new SendEventUpdatedNotificationsJob($event, $changed));
         }
     }
 
