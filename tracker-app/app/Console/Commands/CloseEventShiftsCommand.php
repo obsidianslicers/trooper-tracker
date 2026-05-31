@@ -7,9 +7,8 @@ namespace App\Console\Commands;
 use App\Bus\MagicBus;
 use App\Enums\EventStatus;
 use App\Features\Events\Queries\GetEventShiftsToCloseQuery;
-use App\Mail\Events\EventShiftComplete;
+use App\Notifications\Events\EventShiftCompletedNotification;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Mail;
 
 /**
  * Artisan command to close event shifts that have ended.
@@ -59,7 +58,7 @@ class CloseEventShiftsCommand extends Command
             {
                 if ($event_trooper->is_going)
                 {
-                    Mail::to($event_trooper->trooper->email)->queue(new EventShiftComplete($event_trooper));
+                    $event_trooper->trooper->notify(new EventShiftCompletedNotification($event_trooper));
                 }
             }
         }
