@@ -109,7 +109,7 @@ class OrganizationSeeder extends Seeder
                 'identifier_validation' => 'string|max:128',
                 'service_class' => null,
                 'sync_sheet_id' => null,
-                'can_attend_default' => false,
+                'can_attend_default' => true,
                 'requires_guardian' => true,
             ],
         ];
