@@ -125,22 +125,25 @@ abstract class BaseOrganizationService implements SynchronizerInterface
     {
         Log::info(__CLASS__.":{$this->organization->name} Synchronizing Trooper Costume {$org_costume->name} for Trooper {$trooper->display_name}");
 
-        $trooper_costume = TrooperCostume::query()
-            ->where(TrooperCostume::TROOPER_ID, $trooper->id)
-            ->where(TrooperCostume::ORGANIZATION_COSTUME_ID, $org_costume->id)
-            ->first();
+        $trooper_costume = TrooperCostume::withTrashed()
+            ->firstOrNew([
+                TrooperCostume::TROOPER_ID => $trooper->id,
+                TrooperCostume::ORGANIZATION_COSTUME_ID => $org_costume->id,
+            ]);
 
-        if ($trooper_costume === null)
+        if ($trooper_costume->exists && $trooper_costume->trashed())
         {
-            $trooper_costume = new TrooperCostume;
-            $trooper_costume->trooper_id = $trooper->id;
-            $trooper_costume->organization_costume_id = $org_costume->id;
+            // Unique index on (trooper_id, organization_costume_id) requires restoring
+            // soft-deleted rows instead of creating new duplicates.
+            $trooper_costume->restore();
         }
 
         foreach ($attributes as $key => $value)
         {
             $trooper_costume->{$key} = $value;
         }
+
+        $trooper_costume->{TrooperCostume::SYNCHRONIZED_AT} = now();
 
         $trooper_costume->save();
     }
