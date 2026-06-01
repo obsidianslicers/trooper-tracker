@@ -16,6 +16,10 @@
                         :active="request()->routeIs('service-records.leaderboard')">
                 Leaderboard
             </x-nav-link>
+            <x-nav-link :url="route('service-records.costumes')"
+                        :active="request()->routeIs('service-records.costume*')">
+                Costumes
+            </x-nav-link>
             <x-nav-link :url="route('service-records.awards')"
                         :active="request()->routeIs('service-records.awards')">
                 Awards
