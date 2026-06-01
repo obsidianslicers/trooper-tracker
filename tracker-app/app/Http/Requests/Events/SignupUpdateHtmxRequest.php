@@ -113,7 +113,7 @@ class SignupUpdateHtmxRequest extends FormRequest
                 'nullable',
                 'string',
                 'max:16',
-                'in:' . EventTrooperStatus::toValidator(),
+                'in:'.EventTrooperStatus::toValidator(),
             ],
             EventTrooper::COSTUME_ID => [
                 'nullable',

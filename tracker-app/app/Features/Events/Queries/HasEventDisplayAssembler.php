@@ -148,7 +148,7 @@ trait HasEventDisplayAssembler
      */
     private function transformEventShift(EventShift $event_shift): void
     {
-        $event_shift->event_troopers->transform(fn($et) => $this->transformEventTrooper($et));
+        $event_shift->event_troopers->transform(fn ($et) => $this->transformEventTrooper($et));
     }
 
     /**
@@ -201,13 +201,13 @@ trait HasEventDisplayAssembler
     {
         // Filter actual approvals by reaching through to the organization_costume
         $approved_orgs = $event_trooper->trooper->trooper_costumes
-            ->filter(fn($tc) => optional($tc->organization_costume)->costume_id == $costume_id)
+            ->filter(fn ($tc) => optional($tc->organization_costume)->costume_id == $costume_id)
             ->pluck('organization_costume.organization_id')
             ->unique();
 
         $final_orgs = $potential_orgs->intersect($approved_orgs);
 
-        $names = $final_orgs->map(fn($id) => $this->organizations[$id] ?? '??')->sort();
+        $names = $final_orgs->map(fn ($id) => $this->organizations[$id] ?? '??')->sort();
 
         $prefix = $names->count() > 1 ? '(*) ' : '';
         $name_list = $names->isEmpty() ? '(unattached)' : $names->implode(', ');
