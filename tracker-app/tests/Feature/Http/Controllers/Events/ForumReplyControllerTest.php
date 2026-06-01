@@ -42,6 +42,10 @@ class ForumReplyControllerTest extends TestCase
                 ->once()
                 ->andReturn(['status' => 200]);
 
+            $mock->shouldReceive('get_smilies')
+                ->once()
+                ->andReturn([]);
+
             $mock->shouldReceive('get_thread_posts')
                 ->once()
                 ->andReturn([]);
@@ -97,6 +101,7 @@ class ForumReplyControllerTest extends TestCase
         $this->mock(XenforoService::class, function (MockInterface $mock): void {
             $mock->shouldReceive('resolve_user_id_for_trooper')->once()->andReturn(99);
             $mock->shouldReceive('create_post')->once()->andReturn(['status' => 500]);
+            $mock->shouldReceive('get_smilies')->once()->andReturn([]);
             $mock->shouldReceive('get_thread_posts')->once()->andReturn([]);
         });
 

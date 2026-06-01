@@ -41,6 +41,8 @@ class ForumReplyController
             SendForumPostCommandStaffNotificationsJob::dispatch($event, $request->user());
         }
 
+        $smilies = $xenforo->get_smilies();
+
         $xenforoThreadPosts = $xenforo->get_thread_posts(
             (int) $event->thread_id,
             exclude_post_id: (int) $event->post_id,
@@ -56,7 +58,7 @@ class ForumReplyController
         ]);
 
         return response()
-            ->view('pages.events.inc.xenforo-comments', compact('event', 'xenforoBaseUrl', 'xenforoThreadPosts'))
+            ->view('pages.events.inc.xenforo-comments', compact('event', 'xenforoBaseUrl', 'xenforoThreadPosts', 'smilies'))
             ->header('X-Flash-Message', $flashMessage);
     }
 }
