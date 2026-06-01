@@ -82,6 +82,21 @@
                 <x-smilies-picker :smilies="$smilies ?? []" targetId="forum-reply-message" targetType="textarea" />
 
                 <div class="row mt-2">
+                    <div class="col">
+                        <div class="form-check">
+                            <input class="form-check-input"
+                                   type="checkbox"
+                                   name="notify_command_staff"
+                                   value="1"
+                                   id="notify-command-staff">
+                            <label class="form-check-label" for="notify-command-staff">
+                                Notify command staff
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-2">
                     <div class="col-12 d-flex flex-column flex-md-row justify-content-md-end align-items-md-center gap-2">
                         <button type="submit"
                                 class="btn btn-primary text-start text-md-center">
