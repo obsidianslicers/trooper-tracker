@@ -118,6 +118,26 @@ php artisan tracker:send-test-push 42 --url=/events/details/99
 
 ---
 
+### `tracker:simulate-join-request`
+
+Creates a pending club join request for a trooper and outputs the admin review URL. Dev use only.
+
+```bash
+php artisan tracker:simulate-join-request [trooper_id]
+```
+
+| Argument | Required | Description |
+|---|---|---|
+| `trooper_id` | No | ID of the trooper to submit the request for (default: random active trooper) |
+
+**Examples:**
+```bash
+php artisan tracker:simulate-join-request
+php artisan tracker:simulate-join-request 42
+```
+
+---
+
 ### `tracker:simulate-shift-complete`
 
 Creates a test shift-complete scenario for a trooper and outputs confirmation URLs for both "attended" and "unable to attend" responses. Used to test the post-shift update flow without waiting for a real shift to end.

@@ -25,5 +25,6 @@ readonly class ApproveTrooperCommand
     public function __construct(
         public Trooper $trooper,
         public bool $is_approved,
+        public ?string $denial_reason = null,
     ) {}
 }

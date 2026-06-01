@@ -38,7 +38,7 @@
                                     @endif
                                     <span>{{ $notification->title }}</span>
                                 </div>
-                                <div class="text-muted fw-normal small mt-1 ms-3">{{ $notification->body }}</div>
+                                <div class="text-muted fw-normal small mt-1 ms-3 text-break">{{ $notification->body }}</div>
                             </div>
                             <small class="text-muted text-nowrap fw-normal">
                                 {{ $notification->created_at->diffForHumans() }}
