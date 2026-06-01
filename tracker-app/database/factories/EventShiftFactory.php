@@ -7,6 +7,7 @@ namespace Database\Factories;
 use App\Enums\EventStatus;
 use App\Models\Event;
 use App\Models\EventShift;
+use Carbon\Carbon;
 use Database\Factories\Base\EventShiftFactory as BaseEventShiftFactory;
 
 class EventShiftFactory extends BaseEventShiftFactory
@@ -50,6 +51,8 @@ class EventShiftFactory extends BaseEventShiftFactory
     {
         return $this->state(fn(array $attributes): array => [
             EventShift::STATUS => EventStatus::CLOSED,
+            EventShift::SHIFT_STARTS_AT => Carbon::now()->subDay()->setTime(10, 0),
+            EventShift::SHIFT_ENDS_AT => Carbon::now()->subDay()->setTime(14, 0),
         ]);
     }
 }

@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Requests\Admin\Events;
 
 use App\Enums\EventStatus;
+use Carbon\Carbon;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 /**
  * Handles the validation for updating the organizations associated with an Event.
@@ -47,5 +49,33 @@ class UpdateShiftsRequest extends FormRequest
         ];
 
         return $rules;
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            foreach ($this->input('shifts', []) as $key => $shift)
+            {
+                if (empty($shift['status']) || $shift['status'] !== EventStatus::CLOSED->value)
+                {
+                    continue;
+                }
+
+                if (empty($shift['date']) || empty($shift['ends_at']))
+                {
+                    continue;
+                }
+
+                $shift_ends_at = Carbon::parse($shift['date'].' '.$shift['ends_at']);
+
+                if ($shift_ends_at->isFuture())
+                {
+                    $validator->errors()->add(
+                        "shifts.{$key}.status",
+                        'Cannot close a shift that has not yet ended ('.$shift_ends_at->format('M j, Y g:i A').').',
+                    );
+                }
+            }
+        });
     }
 }

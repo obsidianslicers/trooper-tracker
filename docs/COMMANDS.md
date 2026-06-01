@@ -87,6 +87,24 @@ php artisan tracker:generate-factories
 
 ---
 
+### `tracker:reopen-future-shifts`
+
+Finds all event shifts that are marked CLOSED but have not yet occurred (`shift_ends_at` is in the future) and reopens them. Any trooper attendance records incorrectly confirmed (ATTENDED or UNABLE_TO_ATTEND) are reset back to GOING.
+
+Run with `--dry-run` first to preview what would change before applying it.
+
+```bash
+php artisan tracker:reopen-future-shifts [--dry-run]
+```
+
+| Option | Description |
+|---|---|
+| `--dry-run` | Preview changes without applying them |
+
+> **Note:** This is a one-time remediation command and is not scheduled.
+
+---
+
 ### `tracker:send-daily-event-notifications`
 
 Sends consolidated daily email digests to troopers who have upcoming events. Queries troopers eligible for notification and dispatches `SendEventDailyNotificationCommand` for each.

@@ -4,6 +4,7 @@
         return $shift->event_trooper
             && $shift->event_trooper->status === \App\Enums\EventTrooperStatus::GOING
             && $shift->status === \App\Enums\EventStatus::CLOSED
+            && $shift->shift_ends_at->isPast()
             && $shift->shift_ends_at->isAfter(now()->subDays(30));
     });
 @endphp

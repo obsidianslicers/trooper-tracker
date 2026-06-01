@@ -59,7 +59,7 @@ class EventShiftTest extends TestCase
         $event = Event::factory()->state([Event::STATUS => EventStatus::OPEN])->create();
         $subject = EventShift::factory()
             ->forEvent($event)
-            ->state([EventShift::STATUS => EventStatus::CLOSED])
+            ->state([EventShift::STATUS => EventStatus::CLOSED, EventShift::SHIFT_ENDS_AT => \Carbon\Carbon::now()->subDay()])
             ->create();
 
         $this->assertFalse($subject->is_open);
@@ -342,7 +342,7 @@ class EventShiftTest extends TestCase
         $event = Event::factory()->state([Event::STATUS => EventStatus::CLOSED])->create();
         $subject = EventShift::factory()
             ->forEvent($event)
-            ->state([EventShift::STATUS => EventStatus::CLOSED])
+            ->state([EventShift::STATUS => EventStatus::CLOSED, EventShift::SHIFT_ENDS_AT => \Carbon\Carbon::now()->subDay()])
             ->create();
 
         $result = $subject->canSignUp($trooper);
@@ -537,7 +537,7 @@ class EventShiftTest extends TestCase
         $event = Event::factory()->state([Event::STATUS => EventStatus::CLOSED])->create();
         $subject = EventShift::factory()
             ->forEvent($event)
-            ->state([EventShift::STATUS => EventStatus::CLOSED])
+            ->state([EventShift::STATUS => EventStatus::CLOSED, EventShift::SHIFT_ENDS_AT => \Carbon\Carbon::now()->subDay()])
             ->create();
 
         $result = $subject->canSignUpTrooper($trooper);
