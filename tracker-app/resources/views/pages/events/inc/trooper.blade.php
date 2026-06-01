@@ -15,7 +15,7 @@
         @endif
     </div>
     <div class="col-12 col-md-5 order-3 order-md-2">
-        @if($event_trooper->canUpdateCostume($event_shift, Auth::user()))
+        @if($event_trooper->canUpdateCostume(Auth::user()))
             @php
                 $eligible_orgs_for_change = $event_trooper->trooper->eligibleOrgsForEvent($event);
                 $limited_org_ids_for_change = $event->event_organizations
@@ -127,7 +127,7 @@
                         </form>
                     @endif
                 </div>
-            @elseif($event_shift->is_open && $event_trooper->canUpdateStatus($event_shift, Auth::user()))
+            @elseif($event_shift->is_open && $event_trooper->canUpdateStatus(Auth::user()))
                 <x-input-select :property="'status'"
                                 :options="\App\Enums\EventTrooperStatus::toSignUpArray($event->tentative_signups_allowed, $event->hasLimits())"
                                 :value="$event_trooper->status->value"
@@ -137,7 +137,7 @@
                                 hx-target="#shift-container-{{ $event_trooper->event_shift->id }}"
                                 hx-swap="outerHTML"
                                 class="form-select-sm" />
-            @elseif($event_shift->is_closed && ($can_moderate || $event_trooper->canMarkAttendance($event_shift, Auth::user())))
+            @elseif($event_shift->is_closed && ($can_moderate || $event_trooper->canMarkAttendance(Auth::user())))
                 @if($event_trooper->status === \App\Enums\EventTrooperStatus::ATTENDED || $event_trooper->status === \App\Enums\EventTrooperStatus::UNABLE_TO_ATTEND)
                     <span class="{{ $event_trooper->status->color() }} d-block mb-1">
                         {{ to_title($event_trooper->status->name) }}
@@ -157,7 +157,7 @@
                         </a>
                     </div>                
                 @endif
-            @elseif($event_trooper->status === \App\Enums\EventTrooperStatus::STAND_BY && $event_trooper->canCancel($event_shift, Auth::user()))
+            @elseif($event_trooper->status === \App\Enums\EventTrooperStatus::STAND_BY && $event_trooper->canCancel(Auth::user()))
                 <span class="{{ $event_trooper->status->color() }} d-block mb-1">
                     {{ to_title($event_trooper->status->name) }}
                     <span class="d-none d-md-inline">
@@ -176,7 +176,7 @@
                         Cancel
                     </button>
                 </form>
-            @elseif($event->hasLimits() && $event_trooper->canReSignUp($event_shift, Auth::user()))
+            @elseif($event->hasLimits() && $event_trooper->canReSignUp(Auth::user()))
                 <form hx-post="{{ route('events.signup-update-htmx', compact('event_trooper')) }}"
                       hx-indicator="#transmission-bar-shift-{{ $event_trooper->event_shift->id }}"
                       hx-select="#shift-container-{{ $event_trooper->event_shift->id }}"

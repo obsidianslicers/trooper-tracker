@@ -46,12 +46,12 @@ class GuestUpdateHtmxRequest extends FormRequest
             return $this->user()->can('update', $event);
         }
 
-        if ($event_guest->canUpdateName($event_guest->event_shift, $this->user()))
+        if ($event_guest->canUpdateName($this->user()))
         {
             return true;
         }
 
-        if ($event_guest->canUpdateStatus($event_guest->event_shift, $this->user()))
+        if ($event_guest->canUpdateStatus($this->user()))
         {
             return true;
         }
@@ -84,7 +84,7 @@ class GuestUpdateHtmxRequest extends FormRequest
                 'nullable',
                 'string',
                 'max:16',
-                'in:'.EventGuestStatus::toValidator(),
+                'in:' . EventGuestStatus::toValidator(),
             ],
         ];
     }

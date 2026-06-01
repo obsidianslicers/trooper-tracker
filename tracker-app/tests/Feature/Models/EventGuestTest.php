@@ -56,7 +56,7 @@ class EventGuestTest extends TestCase
             ->forTrooper($trooper)
             ->create();
 
-        $this->assertTrue($subject->canUpdateStatus($event_shift, $trooper));
+        $this->assertTrue($subject->canUpdateStatus($trooper));
     }
 
     public function test_can_update_status_returns_false_when_shift_not_open(): void
@@ -70,7 +70,7 @@ class EventGuestTest extends TestCase
             ->forTrooper($trooper)
             ->create();
 
-        $this->assertFalse($subject->canUpdateStatus($event_shift, $trooper));
+        $this->assertFalse($subject->canUpdateStatus($trooper));
     }
 
     public function test_can_update_name_returns_false_when_trooper_does_not_own_signup(): void
@@ -85,6 +85,6 @@ class EventGuestTest extends TestCase
             ->forTrooper($owner_trooper)
             ->create();
 
-        $this->assertFalse($subject->canUpdateName($event_shift, $other_trooper));
+        $this->assertFalse($subject->canUpdateName($other_trooper));
     }
 }

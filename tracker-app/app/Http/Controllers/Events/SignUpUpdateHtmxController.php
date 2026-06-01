@@ -52,9 +52,9 @@ class SignUpUpdateHtmxController extends MagicBusController
             }
 
             $isCancelFromStandBy = $requestedStatus === EventTrooperStatus::CANCELLED
-                && $event_trooper->canCancel($event_shift, $authTrooper);
+                && $event_trooper->canCancel($authTrooper);
 
-            if (!$event_trooper->canUpdateStatus($event_shift, $authTrooper) && !$isManualApproval && !$isManualRejection && !$isCancelFromStandBy)
+            if (!$event_trooper->canUpdateStatus($authTrooper) && !$isManualApproval && !$isManualRejection && !$isCancelFromStandBy)
             {
                 return response('Forbidden', 403);
             }
@@ -119,7 +119,7 @@ class SignUpUpdateHtmxController extends MagicBusController
             $event_shift = $event_trooper->event_shift;
             $auth_trooper = Auth::user();
 
-            if (!$event_trooper->canUpdateCostume($event_shift, $auth_trooper))
+            if (!$event_trooper->canUpdateCostume($auth_trooper))
             {
                 return response('Forbidden', 403);
             }
@@ -130,7 +130,8 @@ class SignUpUpdateHtmxController extends MagicBusController
                 $new_org_id !== null
                 && $event_trooper->status === EventTrooperStatus::GOING
                 && $event_shift->orgTroopersMaxed($new_org_id, $event_trooper->is_handler)
-            ) {
+            )
+            {
                 $message = json_encode([
                     'message' => 'That organization is already at capacity.',
                     'type' => 'danger',
@@ -175,7 +176,7 @@ class SignUpUpdateHtmxController extends MagicBusController
             $event = $event_shift->event;
             $authTrooper = Auth::user();
 
-            if (!$event_trooper->canReSignUp($event_shift, $authTrooper))
+            if (!$event_trooper->canReSignUp($authTrooper))
             {
                 return response('Forbidden', 403);
             }

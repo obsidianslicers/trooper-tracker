@@ -8,6 +8,7 @@ use App\Enums\EventStatus;
 use App\Enums\EventType;
 use App\Models\Base\Event as BaseEvent;
 use App\Models\Casts\SanitizeHtmlCast;
+use App\Models\Casts\EnforceZeroCast;
 use App\Models\Concerns\HasFilter;
 use App\Models\Concerns\HasObserver;
 use App\Models\Concerns\HasTrooperStamps;
@@ -59,6 +60,8 @@ class Event extends BaseEvent
             self::VENUE_COUNTRY => SanitizeHtmlCast::class,
             self::EVENT_WEBSITE => SanitizeHtmlCast::class,
             self::REQUESTED_CHARACTER_TYPES => SanitizeHtmlCast::class,
+            self::CHARITY_DIRECT_FUNDS => EnforceZeroCast::class,
+            self::CHARITY_INDIRECT_FUNDS => EnforceZeroCast::class,
         ]);
     }
 

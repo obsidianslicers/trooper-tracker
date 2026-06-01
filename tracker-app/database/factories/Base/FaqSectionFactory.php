@@ -2,19 +2,23 @@
 
 namespace Database\Factories\Base;
 
-use App\Models\FaqSection;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\Hash;
+use App\Models\FaqSection;
 
 class FaqSectionFactory extends Factory
 {
-    protected $model = FaqSection::class;
-
+    /**
+     * Define the model's default state.
+     *
+     * @return array<string, mixed>
+     */
     public function definition(): array
     {
         return [
-            FaqSection::LABEL      => $this->faker->unique()->words(2, true),
-            FaqSection::ICON       => 'fa-solid fa-' . $this->faker->word(),
-            FaqSection::SORT_ORDER => $this->faker->numberBetween(0, 100),
+            FaqSection::LABEL => $this->faker->text(),
+            FaqSection::ICON => $this->faker->word(),
+            FaqSection::SORT_ORDER => $this->faker->word(),
         ];
     }
 }

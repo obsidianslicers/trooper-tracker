@@ -48,22 +48,22 @@ class SignupUpdateHtmxRequest extends FormRequest
             return $this->user()->can('update', $event);
         }
 
-        if ($event_trooper->canUpdateCostume($event_trooper->event_shift, $this->user()))
+        if ($event_trooper->canUpdateCostume($this->user()))
         {
             return true;
         }
 
-        if ($event_trooper->canUpdateStatus($event_trooper->event_shift, $this->user()))
+        if ($event_trooper->canUpdateStatus($this->user()))
         {
             return true;
         }
 
-        if ($event_trooper->canCancel($event_trooper->event_shift, $this->user()))
+        if ($event_trooper->canCancel($this->user()))
         {
             return true;
         }
 
-        if ($event_trooper->canReSignUp($event_trooper->event_shift, $this->user()))
+        if ($event_trooper->canReSignUp($this->user()))
         {
             return true;
         }
@@ -113,7 +113,7 @@ class SignupUpdateHtmxRequest extends FormRequest
                 'nullable',
                 'string',
                 'max:16',
-                'in:'.EventTrooperStatus::toValidator(),
+                'in:' . EventTrooperStatus::toValidator(),
             ],
             EventTrooper::COSTUME_ID => [
                 'nullable',

@@ -12,9 +12,9 @@ use App\Models\EventOrganization;
 use App\Models\EventShare;
 use App\Models\EventShift;
 use App\Models\EventUpload;
+use App\Models\EventWatch;
 use App\Models\Organization;
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -88,6 +88,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Collection|EventShare[] $event_shares
  * @property Collection|EventShift[] $event_shifts
  * @property Collection|EventUpload[] $event_uploads
+ * @property Collection|EventWatch[] $event_watches
  *
  * @package App\Models\Base
  */
@@ -239,20 +240,6 @@ class Event extends Model
         self::REQUIRE_MISSION_BRIEF_ACK
     ];
 
-    protected function charityDirectFunds(): Attribute
-    {
-        return Attribute::make(
-            set: fn (?int $value) => $value ?? 0,
-        );
-    }
-
-    protected function charityIndirectFunds(): Attribute
-    {
-        return Attribute::make(
-            set: fn (?int $value) => $value ?? 0,
-        );
-    }
-
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class, \App\Models\Event::PRIMARY_ORGANIZATION_ID);
@@ -288,5 +275,10 @@ class Event extends Model
     public function event_uploads(): HasMany
     {
         return $this->hasMany(EventUpload::class);
+    }
+
+    public function event_watches(): HasMany
+    {
+        return $this->hasMany(EventWatch::class);
     }
 }

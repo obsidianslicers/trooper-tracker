@@ -47,6 +47,7 @@ class SignupUpdateHtmxRequestTest extends TestCase
         TrooperAssignment::factory()->create([
             TrooperAssignment::TROOPER_ID => $this->trooper->id,
             TrooperAssignment::ORGANIZATION_ID => $this->organization->id,
+            TrooperAssignment::IS_MEMBER => true,
         ]);
 
         $this->event = Event::factory()->create([
@@ -73,6 +74,7 @@ class SignupUpdateHtmxRequestTest extends TestCase
         $this->event_trooper = EventTrooper::factory()->create([
             EventTrooper::EVENT_SHIFT_ID => $this->event_shift->id,
             EventTrooper::TROOPER_ID => $this->trooper->id,
+            EventTrooper::ORGANIZATION_ID => $this->organization->id,
         ]);
 
         $this->actingAs($this->trooper);
@@ -269,6 +271,7 @@ class SignupUpdateHtmxRequestTest extends TestCase
         $event_trooper = EventTrooper::factory()
             ->forEventShift($this->event_shift)
             ->forTrooper($assigned_trooper)
+            ->state([EventTrooper::ORGANIZATION_ID => $this->organization->id])
             ->create();
 
         $subject = new SignupUpdateHtmxRequest;

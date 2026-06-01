@@ -18,7 +18,6 @@ class TrooperOrganizationFactory extends Factory
         return [
             TrooperOrganization::TROOPER_ID => \App\Models\Trooper::factory(),
             TrooperOrganization::ORGANIZATION_ID => \App\Models\Organization::factory(),
-            TrooperOrganization::IDENTIFIER => $this->faker->word(),
             TrooperOrganization::MEMBERSHIP_STATUS => $this->faker->word(),
         ];
     }

@@ -23,6 +23,9 @@ class TypeGuesser
         $this->generator = $generator;
     }
 
+    /**
+     * Infers a Faker generator expression for the provided column metadata.
+     */
     public function guess(string $name, string $type, ?string $size = null): string
     {
         $name = Str::of($name)->lower();

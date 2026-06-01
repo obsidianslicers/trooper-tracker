@@ -9,6 +9,7 @@ use App\Features\Events\Commands\PromoteNextInLineEventTrooperCommand;
 use App\Features\Events\Commands\PromoteNextInLineEventTrooperCommandHandler;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
+use App\Models\Organization;
 use App\Models\Trooper;
 use App\Notifications\Events\TrooperPromotedToGoingNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -26,12 +27,14 @@ class PromoteNextInLineEventTrooperCommandHandlerTest extends TestCase
     {
         Notification::fake();
 
+        $organization = Organization::factory()->create();
         $event_shift = EventShift::factory()->create();
         $cancelled_trooper = EventTrooper::factory()
             ->forEventShift($event_shift)
             ->create([
                 EventTrooper::STATUS => EventTrooperStatus::CANCELLED,
                 EventTrooper::IS_HANDLER => false,
+                EventTrooper::ORGANIZATION_ID => $organization->id,
             ]);
 
         $standby_trooper = EventTrooper::factory()
@@ -39,6 +42,7 @@ class PromoteNextInLineEventTrooperCommandHandlerTest extends TestCase
             ->create([
                 EventTrooper::STATUS => EventTrooperStatus::STAND_BY,
                 EventTrooper::IS_HANDLER => false,
+                EventTrooper::ORGANIZATION_ID => $organization->id,
             ]);
 
         $command = new PromoteNextInLineEventTrooperCommand(event_trooper: $cancelled_trooper);
@@ -56,12 +60,14 @@ class PromoteNextInLineEventTrooperCommandHandlerTest extends TestCase
     {
         Notification::fake();
 
+        $organization = Organization::factory()->create();
         $event_shift = EventShift::factory()->create();
         $cancelled_handler = EventTrooper::factory()
             ->forEventShift($event_shift)
             ->create([
                 EventTrooper::STATUS => EventTrooperStatus::CANCELLED,
                 EventTrooper::IS_HANDLER => true,
+                EventTrooper::ORGANIZATION_ID => $organization->id,
             ]);
 
         $standby_member = EventTrooper::factory()
@@ -69,6 +75,7 @@ class PromoteNextInLineEventTrooperCommandHandlerTest extends TestCase
             ->create([
                 EventTrooper::STATUS => EventTrooperStatus::STAND_BY,
                 EventTrooper::IS_HANDLER => false,
+                EventTrooper::ORGANIZATION_ID => $organization->id,
             ]);
 
         $standby_handler = EventTrooper::factory()
@@ -76,6 +83,7 @@ class PromoteNextInLineEventTrooperCommandHandlerTest extends TestCase
             ->create([
                 EventTrooper::STATUS => EventTrooperStatus::STAND_BY,
                 EventTrooper::IS_HANDLER => true,
+                EventTrooper::ORGANIZATION_ID => $organization->id,
             ]);
 
         $command = new PromoteNextInLineEventTrooperCommand(event_trooper: $cancelled_handler);
@@ -97,10 +105,14 @@ class PromoteNextInLineEventTrooperCommandHandlerTest extends TestCase
     {
         Notification::fake();
 
+        $organization = Organization::factory()->create();
         $event_shift = EventShift::factory()->create();
         $cancelled_trooper = EventTrooper::factory()
             ->forEventShift($event_shift)
-            ->create([EventTrooper::STATUS => EventTrooperStatus::CANCELLED]);
+            ->create([
+                EventTrooper::STATUS => EventTrooperStatus::CANCELLED,
+                EventTrooper::ORGANIZATION_ID => $organization->id,
+            ]);
 
         $standby_trooper_model = Trooper::factory()->create();
         $standby_trooper = EventTrooper::factory()
@@ -109,6 +121,7 @@ class PromoteNextInLineEventTrooperCommandHandlerTest extends TestCase
             ->create([
                 EventTrooper::STATUS => EventTrooperStatus::STAND_BY,
                 EventTrooper::IS_HANDLER => $cancelled_trooper->{EventTrooper::IS_HANDLER},
+                EventTrooper::ORGANIZATION_ID => $organization->id,
             ]);
 
         $command = new PromoteNextInLineEventTrooperCommand(event_trooper: $cancelled_trooper);
