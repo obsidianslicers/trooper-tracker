@@ -6,6 +6,14 @@
     </p>
 
     <p>
+        <b>{{ $event->name }}</b>
+    </p>
+
+    <p>
+        <b>Shift</b>: {{ $event_shift->full_date_display }} {{ $event_shift->compact_time_display }}
+    </p>
+
+    <p>
         Our sensors indicate you were present, though their accuracy drops in
         real-world conditions. Your confirmation will settle the matter.
     </p>
@@ -43,7 +51,7 @@
             <tr>
                 <td class="content-block">
                     <a href="{{ $event_trooper->getAttendanceUrl(\App\Enums\EventTrooperStatus::UNABLE_TO_ATTEND) }}"
-                       class="btn-success">
+                       class="btn-danger">
                         I Failed the Empire (Sorry)
                     </a>
                 </td>
