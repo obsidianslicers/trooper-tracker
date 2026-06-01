@@ -20,4 +20,9 @@ enum AdministrativeNotifications: string
      * Sent when a new trooper registration is submitted.
      */
     case TROOPER_REGISTRATIONS = 'trooper_registrations';
+
+    /**
+     * Sent to command staff when a trooper flags a forum post for their attention.
+     */
+    case FORUM_POST_COMMAND_STAFF = 'forum_post_command_staff';
 }

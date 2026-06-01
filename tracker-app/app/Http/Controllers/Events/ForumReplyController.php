@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Events;
 
 use App\Facades\TroopTrackerFacade;
+use App\Jobs\SendForumPostCommandStaffNotificationsJob;
 use App\Models\Event;
 use App\Services\Forums\XenforoService;
 use Illuminate\Http\Request;
@@ -21,6 +22,7 @@ class ForumReplyController
 
         $request->validate([
             'message' => ['required', 'string', 'max:10000'],
+            'notify_command_staff' => ['nullable', 'boolean'],
         ]);
 
         $user_id = $xenforo->resolve_user_id_for_trooper($request->user()->id);
@@ -33,6 +35,13 @@ class ForumReplyController
 
         $status = $result['status'] ?? 0;
         $success = $status >= 200 && $status < 300;
+
+        if ($success && $request->boolean('notify_command_staff'))
+        {
+            SendForumPostCommandStaffNotificationsJob::dispatch($event, $request->user());
+        }
+
+        $smilies = $xenforo->get_smilies();
 
         $xenforoThreadPosts = $xenforo->get_thread_posts(
             (int) $event->thread_id,
@@ -49,7 +58,7 @@ class ForumReplyController
         ]);
 
         return response()
-            ->view('pages.events.inc.xenforo-comments', compact('event', 'xenforoBaseUrl', 'xenforoThreadPosts'))
+            ->view('pages.events.inc.xenforo-comments', compact('event', 'xenforoBaseUrl', 'xenforoThreadPosts', 'smilies'))
             ->header('X-Flash-Message', $flashMessage);
     }
 }

@@ -79,15 +79,24 @@
                                   required></textarea>
                     </div>
                 </div>
-                <x-smilies-picker :smilies="$smilies ?? []" targetId="forum-reply-message" targetType="textarea" />
-
-                <div class="row mt-2">
-                    <div class="col-12 d-flex flex-column flex-md-row justify-content-md-end align-items-md-center gap-2">
-                        <button type="submit"
-                                class="btn btn-primary text-start text-md-center">
-                            Post Reply
-                        </button>
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-2">
+                    <div class="d-flex flex-wrap align-items-center gap-3">
+                        <x-smilies-picker :smilies="$smilies ?? []" targetId="forum-reply-message" targetType="textarea" class="m-0" />
+                        <div class="form-check mb-0">
+                            <input class="form-check-input"
+                                   type="checkbox"
+                                   name="notify_command_staff"
+                                   value="1"
+                                   id="notify-command-staff">
+                            <label class="form-check-label text-muted small" for="notify-command-staff">
+                                <i class="fa fa-fw fa-bell me-1"></i>Notify command staff
+                            </label>
+                        </div>
                     </div>
+                    <button type="submit"
+                            class="btn btn-primary">
+                        Post Reply
+                    </button>
                 </div>
             </form>
         @endif

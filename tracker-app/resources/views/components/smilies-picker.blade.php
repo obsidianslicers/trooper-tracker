@@ -4,7 +4,7 @@
 <div x-data="{ open: false }"
      id="smilies-panel-{{ $targetId }}"
      @smilies-toggle-{{ $targetId }}.window="open = !open"
-     class="mt-2">
+     {{ $attributes->merge(['class' => 'mt-2']) }}>
     @if(!$toolbar)
     <button type="button"
             class="btn btn-sm btn-outline-secondary"
