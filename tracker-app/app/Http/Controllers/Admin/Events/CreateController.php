@@ -54,13 +54,14 @@ class CreateController extends MagicBusController
 
         $organization_hierarchy_query = new GetOrganizationHierarchyQuery;
 
-        $organization_hierarchy = $this->bus->send($organization_hierarchy_query)->map(fn (array $org) => (object) $org);
+        $organization_hierarchy = $this->bus->send($organization_hierarchy_query)->map(fn(array $org) => (object) $org);
 
         $event = new Event;
 
         // Set defaults
         $event->type = EventType::REGULAR;
         $event->status = EventStatus::DRAFT;
+        $event->require_mission_brief_ack = false;
         $event->create_forum_thread = true;
 
         // Fill with old input if available
@@ -110,7 +111,7 @@ class CreateController extends MagicBusController
         }
         else
         {
-            $event->organization_id = old('organization_id', $event->organization_id.'');
+            $event->organization_id = old('organization_id', $event->organization_id . '');
         }
 
         if ($event->organization_id != null)
