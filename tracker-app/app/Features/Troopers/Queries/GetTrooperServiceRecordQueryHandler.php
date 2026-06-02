@@ -137,6 +137,7 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
     {
         $shifts = EventShift::with($this->buildEventShiftRelations())
             ->byTrooper($trooper->id, true)
+            ->where(EventShift::SHIFT_ENDS_AT, '<=', now())
             ->orderByDesc(EventShift::SHIFT_STARTS_AT)
             ->get();
 
