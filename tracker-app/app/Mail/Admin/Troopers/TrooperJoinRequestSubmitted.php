@@ -22,12 +22,14 @@ class TrooperJoinRequestSubmitted extends Mailable implements ShouldQueue
     /**
      * @param  TrooperOrganization  $join_request  The pending TrooperOrganization record
      */
-    public function __construct(private readonly TrooperOrganization $join_request) {}
+    public function __construct(private readonly TrooperOrganization $join_request)
+    {
+    }
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Club Join Request Submitted'
+            subject: config('mail.prefix') . ' Club Join Request Submitted'
         );
     }
 
@@ -37,6 +39,7 @@ class TrooperJoinRequestSubmitted extends Mailable implements ShouldQueue
             view: 'emails.admin.troopers.join-request-submitted',
             with: [
                 'join_request' => $this->join_request,
+                'organization' => $this->join_request->organization,
             ]
         );
     }
