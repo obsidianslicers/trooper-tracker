@@ -7,6 +7,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Exceptions\InvalidSignatureException;
 use Illuminate\Support\Facades\Cache;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -64,22 +65,39 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void
     {
-        $exceptions->reportable(function (Throwable $e)
+        $exceptions->reportable(function (Throwable $e): void
         {
-            if (app()->environment('production', 'prod', 'prd') && method_exists(Cache::getFacadeRoot(), 'throttle'))
+            if (!app()->environment('production', 'prod', 'prd'))
             {
-                if (Cache::throttle('exception-email')->allow(1)->every(60)->hit())
-                {
-                    $context = [
-                        'url' => request()->fullUrl(),
-                        'method' => request()->method(),
-                        'user_id' => optional(auth()->user())->id,
-                        'ip' => request()->ip(),
-                        'input' => request()->except(['password', 'password_confirmation', '_token',]),
-                    ];
+                return;
+            }
 
-                    dispatch(new SendExceptionNotificationJob($e, $context));
-                }
+            $status_code = $e instanceof HttpExceptionInterface
+                ? $e->getStatusCode()
+                : 500;
+
+            if ($status_code < 500)
+            {
+                return;
+            }
+
+            if (!method_exists(Cache::getFacadeRoot(), 'throttle'))
+            {
+                return;
+            }
+
+            if (Cache::throttle('exception-email')->allow(1)->every(60)->hit())
+            {
+                $context = [
+                    'status_code' => $status_code,
+                    'url' => request()->fullUrl(),
+                    'method' => request()->method(),
+                    'user_id' => optional(auth()->user())->id,
+                    'ip' => request()->ip(),
+                    'input' => request()->except(['password', 'password_confirmation', '_token']),
+                ];
+
+                dispatch(new SendExceptionNotificationJob($e, $context));
             }
         });
 
