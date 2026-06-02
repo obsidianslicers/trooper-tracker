@@ -73,7 +73,8 @@ class SignUpUpdateHtmxControllerTest extends TestCase
             ->withOrganization($org_a)
             ->state([Event::TROOPERS_ALLOWED => null])
             ->create();
-        foreach ([$org_a, $org_b] as $org) {
+        foreach ([$org_a, $org_b] as $org)
+        {
             EventOrganization::factory()
                 ->state([
                     EventOrganization::EVENT_ID => $event->id,
@@ -259,7 +260,10 @@ class SignUpUpdateHtmxControllerTest extends TestCase
             ->forEventShift($event_shift)
             ->forTrooper($trooper)
             ->asGoing()
-            ->state([EventTrooper::IS_HANDLER => true])
+            ->state([
+                EventTrooper::IS_HANDLER => true,
+                EventTrooper::ORGANIZATION_ID => $organization->id,
+            ])
             ->create();
 
         $response = $this->actingAs($trooper)->post(
@@ -350,7 +354,11 @@ class SignUpUpdateHtmxControllerTest extends TestCase
             ->forEventShift($event_shift)
             ->forTrooper($trooper)
             ->asGoing()
-            ->state([EventTrooper::IS_HANDLER => true, EventTrooper::COSTUME_ID => $handler_costume->id])
+            ->state([
+                EventTrooper::IS_HANDLER => true,
+                EventTrooper::COSTUME_ID => $handler_costume->id,
+                EventTrooper::ORGANIZATION_ID => $organization->id,
+            ])
             ->create();
 
         $response = $this->actingAs($trooper)->post(

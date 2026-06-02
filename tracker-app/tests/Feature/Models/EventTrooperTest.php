@@ -164,7 +164,9 @@ class EventTrooperTest extends TestCase
         $subject = EventTrooper::factory()
             ->forEventShift($shift)
             ->forTrooper($trooper)
-            ->create();
+            ->create([
+                EventTrooper::ORGANIZATION_ID => null,
+            ]);
 
         $result = $subject->getCostumes();
 
@@ -188,7 +190,7 @@ class EventTrooperTest extends TestCase
             ->asGoing()
             ->create();
 
-        $result = $subject->canUpdateStatus($shift, $trooper);
+        $result = $subject->canUpdateStatus($trooper);
 
         $this->assertTrue($result);
     }
@@ -209,7 +211,7 @@ class EventTrooperTest extends TestCase
             ->forTrooper($trooper)
             ->create();
 
-        $result = $subject->canUpdateStatus($shift, $trooper);
+        $result = $subject->canUpdateStatus($trooper);
 
         $this->assertFalse($result);
     }
@@ -230,7 +232,7 @@ class EventTrooperTest extends TestCase
             ->forTrooper($other_trooper)
             ->create();
 
-        $result = $subject->canUpdateStatus($shift, $trooper);
+        $result = $subject->canUpdateStatus($trooper);
 
         $this->assertFalse($result);
     }
@@ -255,7 +257,7 @@ class EventTrooperTest extends TestCase
             ->asGoing()
             ->create();
 
-        $result = $subject->canMarkAttendance($shift, $trooper);
+        $result = $subject->canMarkAttendance($trooper);
 
         $this->assertTrue($result);
     }
@@ -280,7 +282,7 @@ class EventTrooperTest extends TestCase
             ->asGoing()
             ->create();
 
-        $result = $subject->canMarkAttendance($shift, $trooper);
+        $result = $subject->canMarkAttendance($trooper);
 
         $this->assertFalse($result);
     }
@@ -301,7 +303,7 @@ class EventTrooperTest extends TestCase
             ->asGoing()
             ->create();
 
-        $result = $subject->canMarkAttendance($shift, $trooper);
+        $result = $subject->canMarkAttendance($trooper);
 
         $this->assertFalse($result);
     }
@@ -324,7 +326,7 @@ class EventTrooperTest extends TestCase
             ->asGoing()
             ->create();
 
-        $result = $subject->canMarkAttendance($shift, $trooper);
+        $result = $subject->canMarkAttendance($trooper);
 
         $this->assertFalse($result);
     }
@@ -346,7 +348,7 @@ class EventTrooperTest extends TestCase
             ->state([EventTrooper::STATUS => EventTrooperStatus::CANCELLED])
             ->create();
 
-        $result = $subject->canMarkAttendance($shift, $trooper);
+        $result = $subject->canMarkAttendance($trooper);
 
         $this->assertFalse($result);
     }
@@ -367,7 +369,7 @@ class EventTrooperTest extends TestCase
             ->state([EventTrooper::IS_HANDLER => false])
             ->create();
 
-        $result = $subject->canUpdateCostume($shift, $trooper);
+        $result = $subject->canUpdateCostume($trooper);
 
         $this->assertTrue($result);
     }
@@ -388,7 +390,7 @@ class EventTrooperTest extends TestCase
             ->state([EventTrooper::IS_HANDLER => true])
             ->create();
 
-        $result = $subject->canUpdateCostume($shift, $trooper);
+        $result = $subject->canUpdateCostume($trooper);
 
         $this->assertTrue($result);
     }
@@ -410,7 +412,7 @@ class EventTrooperTest extends TestCase
             ->state([EventTrooper::IS_HANDLER => false])
             ->create();
 
-        $result = $subject->canUpdateCostume($shift, $trooper);
+        $result = $subject->canUpdateCostume($trooper);
 
         $this->assertFalse($result);
     }
@@ -432,7 +434,7 @@ class EventTrooperTest extends TestCase
             ->state([EventTrooper::IS_HANDLER => false])
             ->create();
 
-        $result = $subject->canUpdateCostume($shift, $trooper);
+        $result = $subject->canUpdateCostume($trooper);
 
         $this->assertFalse($result);
     }
@@ -457,7 +459,7 @@ class EventTrooperTest extends TestCase
             ])
             ->create();
 
-        $result = $subject->canUpdateCostume($shift, $requesting_trooper);
+        $result = $subject->canUpdateCostume($requesting_trooper);
 
         $this->assertTrue($result);
     }
@@ -482,7 +484,7 @@ class EventTrooperTest extends TestCase
             ->state([EventTrooper::IS_HANDLER => false])
             ->create();
 
-        $result = $subject->canUpdateCostume($shift, $guardian_trooper);
+        $result = $subject->canUpdateCostume($guardian_trooper);
 
         $this->assertTrue($result);
     }
@@ -531,7 +533,7 @@ class EventTrooperTest extends TestCase
             ])
             ->create();
 
-        $result = $subject->canUpdateStatus($shift, $trooper);
+        $result = $subject->canUpdateStatus($trooper);
 
         $this->assertFalse($result);
     }
@@ -665,7 +667,7 @@ class EventTrooperTest extends TestCase
             ->forTrooper($trooper)
             ->state([
                 EventTrooper::COSTUME_ID => $handler_costume->id,
-                // Simulate observer having filtered to only org1 via can_attend
+                    // Simulate observer having filtered to only org1 via can_attend
                 EventTrooper::COSTUME_ORGANIZATION_IDS => [$org1->id],
             ])
             ->create();

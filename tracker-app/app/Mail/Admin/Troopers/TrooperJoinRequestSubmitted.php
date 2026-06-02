@@ -37,6 +37,7 @@ class TrooperJoinRequestSubmitted extends Mailable implements ShouldQueue
             view: 'emails.admin.troopers.join-request-submitted',
             with: [
                 'join_request' => $this->join_request,
+                'organization' => $this->join_request->organization,
             ]
         );
     }

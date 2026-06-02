@@ -35,6 +35,8 @@ class EventGuest extends BaseEventGuest
 
     /**
      * Retrieves the trooper who added this event guest.
+     *
+     * @return BelongsTo
      */
     public function added_by_trooper(): BelongsTo
     {
@@ -43,21 +45,24 @@ class EventGuest extends BaseEventGuest
 
     /**
      * Determines whether this guest status can be updated by the given trooper.
+     *
+     * @param Trooper $actor The trooper attempting the status update.
+     * @return bool True when update rules permit changing guest status.
      */
-    public function canUpdateStatus(EventShift $event_shift, Trooper $trooper): bool
+    public function canUpdateStatus(Trooper $actor): bool
     {
-        if (!($event_shift->is_open && $this->hasOwnership($trooper)))
+        if (!($this->event_shift->is_open && $this->hasOwnership($actor)))
         {
             return false;
         }
 
         if ($this->status === EventGuestStatus::CANCELLED && $this->added_by_trooper_id !== null)
         {
-            $guests_allowed = $event_shift->event->guests_allowed;
+            $guests_allowed = $this->event_shift->event->guests_allowed;
 
             if ($guests_allowed !== null)
             {
-                $active_guests = $event_shift->event_guests()
+                $active_guests = $this->event_shift->event_guests()
                     ->where(self::ADDED_BY_TROOPER_ID, $this->added_by_trooper_id)
                     ->where(self::STATUS, '!=', EventGuestStatus::CANCELLED)
                     ->count();
@@ -74,17 +79,23 @@ class EventGuest extends BaseEventGuest
 
     /**
      * Determines whether this guest name can be updated by the given trooper.
+     *
+     * @param Trooper $actor The trooper attempting the name update.
+     * @return bool True when the shift is open and the actor owns the signup.
      */
-    public function canUpdateName(EventShift $event_shift, Trooper $trooper): bool
+    public function canUpdateName(Trooper $actor): bool
     {
-        return $event_shift->is_open && $this->hasOwnership($trooper);
+        return $this->event_shift->is_open && $this->hasOwnership($actor);
     }
 
     /**
      * Determines whether the given trooper owns this guest signup.
+     *
+     * @param Trooper $actor The trooper to check for ownership.
+     * @return bool True when the guest was added by the given trooper.
      */
-    private function hasOwnership(Trooper $trooper): bool
+    private function hasOwnership(Trooper $actor): bool
     {
-        return $this->added_by_trooper_id == $trooper->id;
+        return $this->added_by_trooper_id == $actor->id;
     }
 }

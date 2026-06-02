@@ -14,6 +14,7 @@ use App\Models\EventNotification;
 use App\Models\EventShare;
 use App\Models\EventTrooper;
 use App\Models\EventUpload;
+use App\Models\EventWatch;
 use App\Models\MobileDevice;
 use App\Models\ModelChange;
 use App\Models\Notice;
@@ -50,6 +51,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $membership_role
  * @property string $notification_frequency
  * @property bool $push_notifications_enabled
+ * @property array|null $notification_preferences
+ * @property int|null $display_costume_id
  * @property Carbon|null $visitor_expires_at
  * @property Carbon|null $visitor_notified_at
  * @property Carbon|null $achievements_updated_at
@@ -60,8 +63,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property string|null $deleted_at
- * @property int|null $display_costume_id
- *
+ * 
+ * @property TrooperCostume|null $trooper_costume
  * @property \App\Models\Trooper|null $trooper
  * @property Collection|Award[] $awards
  * @property Collection|EventGuest[] $event_guests
@@ -70,6 +73,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Collection|EventShare[] $event_shares
  * @property Collection|EventTrooper[] $event_troopers
  * @property Collection|EventUpload[] $event_uploads
+ * @property Collection|EventWatch[] $event_watches
  * @property Collection|MobileDevice[] $mobile_devices
  * @property Collection|ModelChange[] $model_changes
  * @property Collection|Notice[] $notices
@@ -101,13 +105,13 @@ class Trooper extends Model
     const NOTIFICATION_FREQUENCY = 'notification_frequency';
     const PUSH_NOTIFICATIONS_ENABLED = 'push_notifications_enabled';
     const NOTIFICATION_PREFERENCES = 'notification_preferences';
+    const DISPLAY_COSTUME_ID = 'display_costume_id';
     const VISITOR_EXPIRES_AT = 'visitor_expires_at';
     const VISITOR_NOTIFIED_AT = 'visitor_notified_at';
     const ACHIEVEMENTS_UPDATED_AT = 'achievements_updated_at';
     const LAST_ACTIVE_AT = 'last_active_at';
     const GUARDIAN_ID = 'guardian_id';
     const DATE_OF_BIRTH = 'date_of_birth';
-    const DISPLAY_COSTUME_ID = 'display_costume_id';
     const REMEMBER_TOKEN = 'remember_token';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
@@ -119,12 +123,12 @@ class Trooper extends Model
         self::EMAIL_VERIFIED_AT => 'datetime',
         self::SETUP_COMPLETED_AT => 'datetime',
         self::PUSH_NOTIFICATIONS_ENABLED => 'bool',
-        self::NOTIFICATION_PREFERENCES => 'array',
+        self::NOTIFICATION_PREFERENCES => 'json',
+        self::DISPLAY_COSTUME_ID => 'int',
         self::VISITOR_EXPIRES_AT => 'datetime',
         self::VISITOR_NOTIFIED_AT => 'datetime',
         self::ACHIEVEMENTS_UPDATED_AT => 'datetime',
         self::LAST_ACTIVE_AT => 'datetime',
-        self::DISPLAY_COSTUME_ID => 'int',
         self::GUARDIAN_ID => 'int',
         self::DATE_OF_BIRTH => 'datetime',
         self::CREATED_AT => 'datetime',
@@ -160,9 +164,9 @@ class Trooper extends Model
         self::REMEMBER_TOKEN
     ];
 
-    public function display_costume(): BelongsTo
+    public function trooper_costume(): BelongsTo
     {
-        return $this->belongsTo(TrooperCostume::class, self::DISPLAY_COSTUME_ID);
+        return $this->belongsTo(TrooperCostume::class, \App\Models\Trooper::DISPLAY_COSTUME_ID);
     }
 
     public function trooper(): BelongsTo
@@ -205,6 +209,11 @@ class Trooper extends Model
     public function event_uploads(): HasMany
     {
         return $this->hasMany(EventUpload::class);
+    }
+
+    public function event_watches(): HasMany
+    {
+        return $this->hasMany(EventWatch::class);
     }
 
     public function mobile_devices(): HasMany

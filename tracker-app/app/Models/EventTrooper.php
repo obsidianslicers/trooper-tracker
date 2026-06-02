@@ -61,7 +61,7 @@ class EventTrooper extends BaseEventTrooper
     /**
      * Get the attributes that should be cast.
      *
-     * @return array<string, string>
+     * @return array<string, string> Map of attribute names to cast types.
      */
     protected function casts(): array
     {
@@ -73,7 +73,7 @@ class EventTrooper extends BaseEventTrooper
     /**
      * Get the backup costume for this event trooper assignment.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo Backup costume relation.
      */
     public function backup_costume(): BelongsTo
     {
@@ -83,7 +83,7 @@ class EventTrooper extends BaseEventTrooper
     /**
      * Get the trooper who added this event trooper assignment.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo Adding trooper relation.
      */
     public function added_by_trooper(): BelongsTo
     {
@@ -93,7 +93,7 @@ class EventTrooper extends BaseEventTrooper
     /**
      * Check if the trooper attended the event.
      *
-     * @return bool
+     * @return bool True when status is ATTENDED.
      */
     public function getAttendedAttribute(): bool
     {
@@ -103,7 +103,7 @@ class EventTrooper extends BaseEventTrooper
     /**
      * Check if the trooper is going to the event.
      *
-     * @return bool
+     * @return bool True when status is GOING.
      */
     public function getIsGoingAttribute(): bool
     {
@@ -113,7 +113,7 @@ class EventTrooper extends BaseEventTrooper
     /**
      * Check if the trooper is on stand-by for the event.
      *
-     * @return bool
+     * @return bool True when status is STAND_BY.
      */
     public function getIsStandByAttribute(): bool
     {
@@ -121,13 +121,12 @@ class EventTrooper extends BaseEventTrooper
     }
 
     /**
-     * Get available costume options for this event trooper assignment.
+     * Retrieves available costume options for this event trooper assignment.
      *
-     * Returns a list of organization costumes that the trooper can select for this
-     * event shift. The list is filtered based on organizations allowed to attend
-     * the event and costumes owned by or available to the trooper.
+     * Returns costumes keyed by costume ID and valued by costume name.
+     * The result is filtered by eligible organizations for the shift.
      *
-     * @return array<string, mixed> Array of costume options formatted as ['name' => string, 'id' => int]
+     * @return array<int|string, string>
      */
     public function getCostumes(): array
     {
@@ -160,18 +159,17 @@ class EventTrooper extends BaseEventTrooper
     }
 
     /**
-     * Check if the status for this event trooper assignment can be marked as attended.
+     * Determines whether attendance can be marked for this assignment.
      *
-     * Status can be updated if the shift is closed and the trooper has ownership.
-     * If changing from a non-going status, the shift must not be at capacity.
+     * Attendance can be marked only when the shift is closed, the event allows
+     * trooper status updates, the caller has ownership, and current status is GOING.
      *
-     * @param EventShift $event_shift The event shift this assignment belongs to
-     * @param Trooper $trooper The trooper attempting the update
+     * @param Trooper $actor The trooper attempting the update
      * @return bool True if the status can be updated
      */
-    public function canMarkAttendance(EventShift $event_shift, Trooper $trooper): bool
+    public function canMarkAttendance(Trooper $actor): bool
     {
-        if ($event_shift->is_closed && $event_shift->event->can_update_trooper_status && $this->hasOwnership($trooper))
+        if ($this->event_shift->is_closed && $this->event_shift->event->can_update_trooper_status && $this->hasOwnership($actor))
         {
             if ($this->status === EventTrooperStatus::GOING)
             {
@@ -188,13 +186,12 @@ class EventTrooper extends BaseEventTrooper
      * Status can be updated if the shift is open and the trooper has ownership.
      * If changing from a non-going status, the shift must not be at capacity.
      *
-     * @param EventShift $event_shift The event shift this assignment belongs to
-     * @param Trooper $trooper The trooper attempting the update
+     * @param Trooper $actor The trooper attempting the update
      * @return bool True if the status can be updated
      */
-    public function canUpdateStatus(EventShift $event_shift, Trooper $trooper): bool
+    public function canUpdateStatus(Trooper $actor): bool
     {
-        if ($event_shift->is_open && $this->hasOwnership($trooper))
+        if ($this->event_shift->is_open && $this->hasOwnership($actor))
         {
             //  if they aren't going (ie cancelled, or tenative),
             //  and it's full they can't set to something else
@@ -203,11 +200,11 @@ class EventTrooper extends BaseEventTrooper
                 //  if re-activating a cancelled friend, check the adder's friend limit
                 if ($this->status === EventTrooperStatus::CANCELLED && $this->added_by_trooper_id !== null)
                 {
-                    $friends_allowed = $event_shift->event->friends_allowed;
+                    $friends_allowed = $this->event_shift->event->friends_allowed;
 
                     if ($friends_allowed !== null)
                     {
-                        $active_friends = $event_shift->event_troopers()
+                        $active_friends = $this->event_shift->event_troopers()
                             ->where(self::ADDED_BY_TROOPER_ID, $this->added_by_trooper_id)
                             ->where(self::STATUS, '!=', EventTrooperStatus::CANCELLED)
                             ->count();
@@ -221,12 +218,12 @@ class EventTrooper extends BaseEventTrooper
 
                 if ($this->is_handler)
                 {
-                    if ($event_shift->handlersMaxed())
+                    if ($this->event_shift->handlersMaxed())
                     {
                         return false;
                     }
 
-                    if ($this->organization_id !== null && $event_shift->orgTroopersMaxed($this->organization_id, true))
+                    if ($this->organization_id !== null && $this->event_shift->orgTroopersMaxed($this->organization_id, true))
                     {
                         return false;
                     }
@@ -234,12 +231,12 @@ class EventTrooper extends BaseEventTrooper
                     return true;
                 }
 
-                if ($event_shift->troopersMaxed())
+                if ($this->event_shift->troopersMaxed())
                 {
                     return false;
                 }
 
-                if ($this->organization_id !== null && $event_shift->orgTroopersMaxed($this->organization_id, false))
+                if ($this->organization_id !== null && $this->event_shift->orgTroopersMaxed($this->organization_id, false))
                 {
                     return false;
                 }
@@ -254,25 +251,24 @@ class EventTrooper extends BaseEventTrooper
     }
 
     /**
-     * Check if the costume for this event trooper assignment can be updated.
+     * Determines whether the costume can be updated for this assignment.
      *
-     * Costume can be updated if the shift is open, the trooper has ownership,
-     * and this is not a handler assignment.
+     * Costume updates are allowed when the shift is open and the caller has ownership,
+     * or during grace period when the shift is closed and status is GOING.
      *
-     * @param EventShift $event_shift The event shift this assignment belongs to
-     * @param Trooper $trooper The trooper attempting the update
+     * @param Trooper $actor The trooper attempting the update
      * @return bool True if the costume can be updated
      */
-    public function canUpdateCostume(EventShift $event_shift, Trooper $trooper): bool
+    public function canUpdateCostume(Trooper $actor): bool
     {
-        if ($event_shift->is_open)
+        if ($this->event_shift->is_open)
         {
-            return $this->hasOwnership($trooper);
+            return $this->hasOwnership($actor);
         }
 
-        if ($event_shift->is_closed && $event_shift->event->is_within_grace_period)
+        if ($this->event_shift->is_closed && $this->event_shift->event->is_within_grace_period)
         {
-            if ($this->status === EventTrooperStatus::GOING && $this->hasOwnership($trooper))
+            if ($this->status === EventTrooperStatus::GOING && $this->hasOwnership($actor))
             {
                 return true;
             }
@@ -281,18 +277,28 @@ class EventTrooper extends BaseEventTrooper
         return false;
     }
 
-    // Cancelling never requires a free slot, so no capacity check here.
-    public function canCancel(EventShift $event_shift, Trooper $trooper): bool
+    /**
+     * Determines whether the assignment can be cancelled by the given trooper.
+     *
+     * @param Trooper $actor The trooper attempting cancellation.
+     * @return bool True when the shift is open and the actor has ownership.
+     */
+    public function canCancel(Trooper $actor): bool
     {
-        return $event_shift->is_open && $this->hasOwnership($trooper);
+        return $this->event_shift->is_open && $this->hasOwnership($actor);
     }
 
-    // Capacity determines GOING vs STAND_BY at re-signup time, not whether re-signup is allowed.
-    public function canReSignUp(EventShift $event_shift, Trooper $trooper): bool
+    /**
+     * Determines whether the assignment can be re-signed up by the given trooper.
+     *
+     * @param Trooper $actor The trooper attempting re-signup.
+     * @return bool True when status is CANCELLED, shift is open, and actor has ownership.
+     */
+    public function canReSignUp(Trooper $actor): bool
     {
         return $this->status === EventTrooperStatus::CANCELLED
-            && $event_shift->is_open
-            && $this->hasOwnership($trooper);
+            && $this->event_shift->is_open
+            && $this->hasOwnership($actor);
     }
 
     /**
@@ -300,17 +306,17 @@ class EventTrooper extends BaseEventTrooper
      *
      * A trooper has ownership if they are the assigned trooper or the one who added the assignment.
      *
-     * @param Trooper $trooper The trooper to check
+     * @param Trooper $actor The trooper to check
      * @return bool True if the trooper has ownership
      */
-    private function hasOwnership(Trooper $trooper): bool
+    private function hasOwnership(Trooper $actor): bool
     {
-        if ($this->trooper_id == $trooper->id || $this->added_by_trooper_id == $trooper->id)
+        if ($this->trooper_id == $actor->id || $this->added_by_trooper_id == $actor->id)
         {
             return true;
         }
 
-        return $this->trooper->guardian_id === $trooper->id;
+        return $this->trooper->guardian_id === $actor->id;
     }
 
     /**
@@ -324,7 +330,11 @@ class EventTrooper extends BaseEventTrooper
         return route('events.shift-complete', ['event_trooper' => $this, 'status' => Crypt::encryptString($status->value)]);
     }
 
-    /** Returns orgs eligible to receive troop credit for this shift. */
+    /**
+     * Returns organizations eligible to receive troop credit for this shift.
+     *
+     * @return Collection<int, Organization>
+     */
     public function getEligibleCreditOrganizations(): Collection
     {
         // Handler/Command Staff credit derives from membership, not costume approvals.
@@ -358,7 +368,11 @@ class EventTrooper extends BaseEventTrooper
         )->get();
     }
 
-    /** Returns unique top-level parent orgs for the eligible credit orgs. */
+    /**
+     * Returns unique top-level organizations for eligible troop credit.
+     *
+     * @return Collection<int, Organization> Unique primary-club organizations.
+     */
     public function getEligibleCreditParentOrganizations(): Collection
     {
         return $this->getEligibleCreditOrganizations()
@@ -367,7 +381,12 @@ class EventTrooper extends BaseEventTrooper
             ->values();
     }
 
-    /** Maps selected parent org IDs back to child org IDs stored in costume_organization_ids. */
+    /**
+     * Maps selected top-level organization IDs to eligible child organization IDs.
+     *
+     * @param array<int, int> $parent_org_ids Selected primary-club organization IDs.
+     * @return array<int, int> Eligible child organization IDs for those primary clubs.
+     */
     public function childOrgIdsForSelectedParents(array $parent_org_ids): array
     {
         return $this->getEligibleCreditOrganizations()
@@ -377,7 +396,11 @@ class EventTrooper extends BaseEventTrooper
             ->all();
     }
 
-    /** Returns unique top-level org names that receive credit for this attendance. */
+    /**
+     * Returns unique top-level organization names receiving troop credit.
+     *
+     * @return array<int, string> Sorted unique primary-club names.
+     */
     public function getCreditedRootOrgNames(): array
     {
         $ids = $this->costume_organization_ids ?? [];
@@ -408,6 +431,9 @@ class EventTrooper extends BaseEventTrooper
      * costume_organization_ids: if the costume belongs to exactly one per-org-limited
      * organization on this event, that org is returned. Used so that per-org limits
      * apply even when the trooper never explicitly chose an organization.
+     *
+     * @param Event $event Event context used to inspect per-organization limits.
+     * @return int|null Effective organization ID, or null when it is ambiguous.
      */
     public function effectiveOrgId(Event $event): ?int
     {

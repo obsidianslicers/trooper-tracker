@@ -4,9 +4,9 @@ namespace Database\Factories\Base;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
-use App\Models\Faq;
+use App\Models\EventMissionAck;
 
-class FaqFactory extends Factory
+class EventMissionAckFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -16,9 +16,9 @@ class FaqFactory extends Factory
     public function definition(): array
     {
         return [
-            Faq::SECTION_ID => \App\Models\FaqSection::factory(),
-            Faq::TITLE => $this->faker->title(),
-            Faq::SORT_ORDER => $this->faker->word(),
+            EventMissionAck::EVENT_ID => \App\Models\Event::factory(),
+            EventMissionAck::TROOPER_ID => \App\Models\Trooper::factory(),
+            EventMissionAck::ACKNOWLEDGED_AT => $this->faker->dateTime(),
         ];
     }
 }

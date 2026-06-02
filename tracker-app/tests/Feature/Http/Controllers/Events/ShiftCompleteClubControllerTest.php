@@ -36,7 +36,9 @@ class ShiftCompleteClubControllerTest extends TestCase
             ->forEventShift($event_shift)
             ->forTrooper($trooper)
             ->asGoing()
-            ->create();
+            ->create([
+                EventTrooper::ORGANIZATION_ID => null,
+            ]);
 
         DB::table('tt_event_troopers')
             ->where('id', $event_trooper->id)
@@ -76,7 +78,9 @@ class ShiftCompleteClubControllerTest extends TestCase
             ->forEventShift($event_shift)
             ->forTrooper($trooper)
             ->asGoing()
-            ->create();
+            ->create([
+                EventTrooper::ORGANIZATION_ID => null,
+            ]);
 
         DB::table('tt_event_troopers')
             ->where('id', $event_trooper->id)
@@ -225,7 +229,10 @@ class ShiftCompleteClubControllerTest extends TestCase
             ->forEventShift($event_shift)
             ->forTrooper($trooper)
             ->asGoing()
-            ->create(['is_handler' => true]);
+            ->create([
+                'is_handler' => true,
+                EventTrooper::ORGANIZATION_ID => null,
+            ]);
 
         // No costume_organization_ids — eligible orgs come from memberships
         DB::table('tt_event_troopers')

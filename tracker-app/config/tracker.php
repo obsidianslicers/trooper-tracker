@@ -63,8 +63,8 @@ return [
         'driver' => env(
             'TRACKER_IMAGE_DRIVER',
             extension_loaded('imagick')
-                ? Intervention\Image\Drivers\Imagick\Driver::class
-                : Intervention\Image\Drivers\Gd\Driver::class
+            ? Intervention\Image\Drivers\Imagick\Driver::class
+            : Intervention\Image\Drivers\Gd\Driver::class
         ),
     ],
 
@@ -81,6 +81,20 @@ return [
 
     'auth' => [
         'require_xenforo' => env('TRACKER_REQUIRE_XENFORO', false),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Exception Notification Settings
+    |--------------------------------------------------------------------------
+    |
+    | Controls whether admin exception notification emails are sent for
+    | unhandled server errors.
+    |
+    */
+
+    'exception_notifications' => [
+        'enabled' => env('TRACKER_EXCEPTION_EMAIL_ENABLED', false),
     ],
 
 ];

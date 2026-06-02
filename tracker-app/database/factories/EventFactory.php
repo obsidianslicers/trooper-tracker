@@ -72,6 +72,8 @@ class EventFactory extends BaseEventFactory
             Event::COMMENTS => $this->faker->paragraph(),
             Event::REFERRED_BY => $this->faker->name(),
             Event::SOURCE => $this->faker->sentence(5),
+
+            Event::REQUIRE_MISSION_BRIEF_ACK => false,
         ]);
     }
 
@@ -198,11 +200,11 @@ class EventFactory extends BaseEventFactory
     public function withoutCharityData(): static
     {
         return $this->state(fn(array $attributes): array => [
-            Event::CHARITY_DIRECT_FUNDS  => 0,
+            Event::CHARITY_DIRECT_FUNDS => 0,
             Event::CHARITY_INDIRECT_FUNDS => 0,
-            Event::CHARITY_NAME          => null,
-            Event::CHARITY_HOURS         => null,
-            Event::CHARITY_NOTES         => null,
+            Event::CHARITY_NAME => null,
+            Event::CHARITY_HOURS => null,
+            Event::CHARITY_NOTES => null,
         ]);
     }
 }

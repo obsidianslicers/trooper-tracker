@@ -9,8 +9,10 @@ namespace App\Models\Base;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -32,6 +34,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * 
  * @property OrganizationCostume $organization_costume
  * @property Trooper $trooper
+ * @property Collection|Trooper[] $troopers
  *
  * @package App\Models\Base
  */
@@ -82,5 +85,10 @@ class TrooperCostume extends Model
     public function trooper(): BelongsTo
     {
         return $this->belongsTo(Trooper::class);
+    }
+
+    public function troopers(): HasMany
+    {
+        return $this->hasMany(Trooper::class, Trooper::DISPLAY_COSTUME_ID);
     }
 }

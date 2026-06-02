@@ -12,8 +12,15 @@ use Kreait\Firebase\Messaging\Notification as FcmNotification;
 
 final class FcmChannel
 {
-    public function __construct(private readonly ?Messaging $messaging = null) {}
+    public function __construct(private readonly ?Messaging $messaging = null)
+    {
+    }
 
+    /**
+     * Sends a Firebase notification to all registered device tokens.
+     *
+     * @param object $notifiable Trooper-like notifiable entity with id and unread notifications.
+     */
     public function send(object $notifiable, Notification $notification): void
     {
         if ($this->messaging === null)

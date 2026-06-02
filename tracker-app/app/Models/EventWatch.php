@@ -4,25 +4,11 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Base\EventWatch as BaseEventWatch;
 
-class EventWatch extends Model
+class EventWatch extends BaseEventWatch
 {
-    protected $table = 'tt_event_watches';
+    use HasFactory;
 
-    protected $fillable = [
-        'event_id',
-        'trooper_id',
-    ];
-
-    public function event(): BelongsTo
-    {
-        return $this->belongsTo(Event::class);
-    }
-
-    public function trooper(): BelongsTo
-    {
-        return $this->belongsTo(Trooper::class);
-    }
 }
