@@ -25,7 +25,7 @@ final class EnforceZeroCast implements CastsAttributes
      */
     public function get(Model $model, string $key, mixed $value, array $attributes): int
     {
-        return $value ?? 0;
+        return intval($value);
     }
 
     /**
@@ -41,6 +41,6 @@ final class EnforceZeroCast implements CastsAttributes
      */
     public function set(Model $model, string $key, mixed $value, array $attributes): int
     {
-        return $value ?? 0;
+        return intval($value);
     }
 }
