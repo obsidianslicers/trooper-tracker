@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Bus\MagicBus;
+use App\Facades\TroopTrackerFacade;
 use App\Features\Events\Commands\SendEventCreatedNotificationCommand;
 use App\Features\Events\Queries\GetTroopersForEventCreatedQuery;
 use App\Models\Event;
@@ -77,7 +78,8 @@ class SendEventCreatedNotificationsJob implements ShouldQueue
         // is configured to create a forum thread, and a thread has not already
         // been created for this event.
         if (
-            ! empty($organization->related_forum) &&
+            TroopTrackerFacade::isXenforoIntegrationConfigured() &&
+            !empty($organization->related_forum) &&
             $this->event->create_forum_thread !== false &&
             empty($this->event->thread_id)
         ) {
