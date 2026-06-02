@@ -1,17 +1,21 @@
 <x-section-title>Requested Characters</x-section-title>
 <p>
     Number of Characters:
-    @if ($event->requested_number_characters && $event->requested_number_characters > 0)
+    @if (!empty($event->requested_number_characters))
         {{ $event->requested_number_characters }}
     @else
-        not specified
+        <span class="text-muted">
+            not specified
+        </span>
     @endif
 </p>
 <p>
     Character Types:
-    @if ($event->requested_character_types && Str::length($event->requested_character_types) > 0)
+    @if (!empty($event->requested_character_types))
         {{ $event->requested_character_types }}
     @else
-        not specified
+        <span class="text-muted">
+            not specified
+        </span>
     @endif
 </p>

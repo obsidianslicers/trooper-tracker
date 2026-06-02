@@ -85,8 +85,7 @@ class RegisterRequest extends FormRequest
                 'string',
                 'email',
                 'max:256',
-                Rule::exists(Trooper::class, Trooper::EMAIL)
-                    ->whereNotNull(Trooper::GUARDIAN_ID),
+                Rule::exists(Trooper::class, Trooper::EMAIL)->whereNull(Trooper::GUARDIAN_ID),
             ],
         ];
 
