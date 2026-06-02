@@ -61,7 +61,7 @@ class EventTrooper extends BaseEventTrooper
     /**
      * Get the attributes that should be cast.
      *
-     * @return array<string, string>
+     * @return array<string, string> Map of attribute names to cast types.
      */
     protected function casts(): array
     {
@@ -73,7 +73,7 @@ class EventTrooper extends BaseEventTrooper
     /**
      * Get the backup costume for this event trooper assignment.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo Backup costume relation.
      */
     public function backup_costume(): BelongsTo
     {
@@ -83,7 +83,7 @@ class EventTrooper extends BaseEventTrooper
     /**
      * Get the trooper who added this event trooper assignment.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo Adding trooper relation.
      */
     public function added_by_trooper(): BelongsTo
     {
@@ -93,7 +93,7 @@ class EventTrooper extends BaseEventTrooper
     /**
      * Check if the trooper attended the event.
      *
-     * @return bool
+     * @return bool True when status is ATTENDED.
      */
     public function getAttendedAttribute(): bool
     {
@@ -103,7 +103,7 @@ class EventTrooper extends BaseEventTrooper
     /**
      * Check if the trooper is going to the event.
      *
-     * @return bool
+     * @return bool True when status is GOING.
      */
     public function getIsGoingAttribute(): bool
     {
@@ -113,7 +113,7 @@ class EventTrooper extends BaseEventTrooper
     /**
      * Check if the trooper is on stand-by for the event.
      *
-     * @return bool
+     * @return bool True when status is STAND_BY.
      */
     public function getIsStandByAttribute(): bool
     {
@@ -371,7 +371,7 @@ class EventTrooper extends BaseEventTrooper
     /**
      * Returns unique top-level organizations for eligible troop credit.
      *
-     * @return Collection<int, Organization>
+     * @return Collection<int, Organization> Unique primary-club organizations.
      */
     public function getEligibleCreditParentOrganizations(): Collection
     {
@@ -384,8 +384,8 @@ class EventTrooper extends BaseEventTrooper
     /**
      * Maps selected top-level organization IDs to eligible child organization IDs.
      *
-     * @param array<int, int> $parent_org_ids
-     * @return array<int, int>
+     * @param array<int, int> $parent_org_ids Selected primary-club organization IDs.
+     * @return array<int, int> Eligible child organization IDs for those primary clubs.
      */
     public function childOrgIdsForSelectedParents(array $parent_org_ids): array
     {
@@ -399,7 +399,7 @@ class EventTrooper extends BaseEventTrooper
     /**
      * Returns unique top-level organization names receiving troop credit.
      *
-     * @return array<int, string>
+     * @return array<int, string> Sorted unique primary-club names.
      */
     public function getCreditedRootOrgNames(): array
     {
@@ -431,6 +431,9 @@ class EventTrooper extends BaseEventTrooper
      * costume_organization_ids: if the costume belongs to exactly one per-org-limited
      * organization on this event, that org is returned. Used so that per-org limits
      * apply even when the trooper never explicitly chose an organization.
+     *
+     * @param Event $event Event context used to inspect per-organization limits.
+     * @return int|null Effective organization ID, or null when it is ambiguous.
      */
     public function effectiveOrgId(Event $event): ?int
     {
