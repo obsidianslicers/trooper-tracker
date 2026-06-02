@@ -112,7 +112,12 @@ class SendEventCreatedNotificationsJobTest extends TestCase
         $bus = Mockery::mock(MagicBus::class);
         $bus->shouldNotReceive('send');
 
-        config(['discord.webhooks.default' => null, 'discord.webhook_url' => null]);
+        config([
+            'discord.webhooks.default' => null,
+            'discord.webhook_url' => null,
+            'services.xenforo.base_url' => 'https://forums.example.com',
+            'services.xenforo.api_key' => 'abc',
+        ]);
         $notifier = new DiscordNotifier;
 
         $forumThreadMessageService = Mockery::mock(ForumThreadMessageService::class);
