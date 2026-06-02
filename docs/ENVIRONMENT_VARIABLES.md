@@ -88,6 +88,14 @@ Configuration reference for all `.env` variables in Troop Tracker.
 - **Values**: `Intervention\Image\Drivers\Gd\Driver` or `Intervention\Image\Drivers\Imagick\Driver`
 - **When to change**: Use Imagick for better performance if available on server
 
+### TRACKER_EXCEPTION_EMAIL_ENABLED
+- **Purpose**: Enable or disable admin exception notification emails for unhandled 5xx errors
+- **Required**: No
+- **Default**: `false`
+- **Values**: `true`, `false`
+- **When to change**: Set to `true` in production when you want admins emailed on server errors
+- **Note**: This toggles sending only; throttle behavior remains unchanged
+
 ### CONTACT_EMAIL
 - **Purpose**: Email address shown as a contact fallback on the FAQ page
 - **Required**: No
@@ -470,6 +478,7 @@ XENFORO_BASE_URL=https://forum.example.com
 XENFORO_API_KEY=YOUR_XENFORO_API_KEY
 XENFORO_API_USER=1
 TRACKER_REQUIRE_XENFORO=true
+TRACKER_EXCEPTION_EMAIL_ENABLED=true
 
 # Logging
 LOG_CHANNEL=daily

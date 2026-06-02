@@ -81,6 +81,11 @@ return Application::configure(basePath: dirname(__DIR__))
                 return;
             }
 
+            if (!(bool) config('tracker.exception_notifications.enabled', true))
+            {
+                return;
+            }
+
             if (!method_exists(Cache::getFacadeRoot(), 'throttle'))
             {
                 return;
