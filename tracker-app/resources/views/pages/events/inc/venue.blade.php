@@ -25,7 +25,7 @@
                 <span>
                     <i class="fa fa-fw fa-globe me-2"></i>
                 </span>
-                <span class="p-1 text-white">
+                <span class="p-1 text-white text-break">
                     {{ $event->event_website }}
                 </span>
             </a>
