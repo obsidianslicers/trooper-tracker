@@ -259,7 +259,7 @@ class Event extends BaseEvent
      */
     public function getIsWithinGracePeriodAttribute(): bool
     {
-        return $this->event_end->isAfter(now()->subDays(30));
+        return $this->event_end->isPast() && $this->event_end->isAfter(now()->subDays(30));
     }
 
     /**

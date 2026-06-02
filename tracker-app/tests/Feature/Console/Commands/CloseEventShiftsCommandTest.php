@@ -12,6 +12,7 @@ use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
 use App\Notifications\Events\EventShiftCompletedNotification;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use Mockery\MockInterface;
@@ -34,8 +35,8 @@ class CloseEventShiftsCommandTest extends TestCase
     public function test_command_closes_event_shifts_returned_by_query(): void
     {
         // Arrange: Create test event shifts
-        $shift1 = EventShift::factory()->create([EventShift::STATUS => EventStatus::OPEN]);
-        $shift2 = EventShift::factory()->create([EventShift::STATUS => EventStatus::OPEN]);
+        $shift1 = EventShift::factory()->create([EventShift::STATUS => EventStatus::OPEN, EventShift::SHIFT_ENDS_AT => Carbon::now()->subHour()]);
+        $shift2 = EventShift::factory()->create([EventShift::STATUS => EventStatus::OPEN, EventShift::SHIFT_ENDS_AT => Carbon::now()->subHour()]);
         $shifts = collect([$shift1, $shift2]);
 
         // Mock MagicBus to return shifts to close
@@ -64,7 +65,7 @@ class CloseEventShiftsCommandTest extends TestCase
     public function test_command_sends_notifications_to_going_troopers(): void
     {
         // Arrange: Create event shift with troopers in different statuses
-        $shift = EventShift::factory()->create([EventShift::STATUS => EventStatus::OPEN]);
+        $shift = EventShift::factory()->create([EventShift::STATUS => EventStatus::OPEN, EventShift::SHIFT_ENDS_AT => Carbon::now()->subHour()]);
 
         $trooper_going = Mockery::mock(Trooper::class)->makePartial();
         $trooper_going->shouldReceive('notify')
@@ -111,7 +112,7 @@ class CloseEventShiftsCommandTest extends TestCase
     public function test_command_does_not_notify_non_going_troopers(): void
     {
         // Arrange: Create event shift with troopers not going
-        $shift = EventShift::factory()->create([EventShift::STATUS => EventStatus::OPEN]);
+        $shift = EventShift::factory()->create([EventShift::STATUS => EventStatus::OPEN, EventShift::SHIFT_ENDS_AT => Carbon::now()->subHour()]);
 
         $trooper1 = Mockery::mock(Trooper::class)->makePartial();
         $trooper1->shouldNotReceive('notify');
@@ -170,7 +171,7 @@ class CloseEventShiftsCommandTest extends TestCase
     public function test_command_sends_notifications_to_multiple_going_troopers(): void
     {
         // Arrange: Create shift with multiple GOING troopers
-        $shift = EventShift::factory()->create([EventShift::STATUS => EventStatus::OPEN]);
+        $shift = EventShift::factory()->create([EventShift::STATUS => EventStatus::OPEN, EventShift::SHIFT_ENDS_AT => Carbon::now()->subHour()]);
 
         $trooper1 = Mockery::mock(Trooper::class)->makePartial();
         $trooper1->shouldReceive('notify')
@@ -230,8 +231,8 @@ class CloseEventShiftsCommandTest extends TestCase
     public function test_command_processes_multiple_shifts(): void
     {
         // Arrange: Create multiple shifts
-        $shift1 = EventShift::factory()->create([EventShift::STATUS => EventStatus::OPEN]);
-        $shift2 = EventShift::factory()->create([EventShift::STATUS => EventStatus::OPEN]);
+        $shift1 = EventShift::factory()->create([EventShift::STATUS => EventStatus::OPEN, EventShift::SHIFT_ENDS_AT => Carbon::now()->subHour()]);
+        $shift2 = EventShift::factory()->create([EventShift::STATUS => EventStatus::OPEN, EventShift::SHIFT_ENDS_AT => Carbon::now()->subHour()]);
 
         $trooper1 = Mockery::mock(Trooper::class)->makePartial();
         $trooper1->shouldReceive('notify')

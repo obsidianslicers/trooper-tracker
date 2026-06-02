@@ -203,6 +203,7 @@ class EventTrooperTest extends TestCase
             ->state([
                 EventShift::EVENT_ID => $event->{Event::ID},
                 EventShift::STATUS => EventStatus::CLOSED,
+                EventShift::SHIFT_ENDS_AT => \Carbon\Carbon::now()->subDay(),
             ])
             ->create();
         $subject = EventTrooper::factory()
@@ -247,6 +248,7 @@ class EventTrooperTest extends TestCase
             ->state([
                 EventShift::EVENT_ID => $event->{Event::ID},
                 EventShift::STATUS => EventStatus::CLOSED,
+                EventShift::SHIFT_ENDS_AT => \Carbon\Carbon::now()->subDay(),
             ])
             ->create();
         $subject = EventTrooper::factory()
@@ -271,6 +273,7 @@ class EventTrooperTest extends TestCase
             ->state([
                 EventShift::EVENT_ID => $event->{Event::ID},
                 EventShift::STATUS => EventStatus::CLOSED,
+                EventShift::SHIFT_ENDS_AT => \Carbon\Carbon::now()->subDay(),
             ])
             ->create();
         $subject = EventTrooper::factory()
@@ -314,6 +317,7 @@ class EventTrooperTest extends TestCase
             ->state([
                 EventShift::EVENT_ID => $event->{Event::ID},
                 EventShift::STATUS => EventStatus::CLOSED,
+                EventShift::SHIFT_ENDS_AT => \Carbon\Carbon::now()->subDay(),
             ])
             ->create();
         $subject = EventTrooper::factory()
@@ -335,6 +339,7 @@ class EventTrooperTest extends TestCase
             ->state([
                 EventShift::EVENT_ID => $event->{Event::ID},
                 EventShift::STATUS => EventStatus::CLOSED,
+                EventShift::SHIFT_ENDS_AT => \Carbon\Carbon::now()->subDay(),
             ])
             ->create();
         $subject = EventTrooper::factory()
@@ -398,6 +403,7 @@ class EventTrooperTest extends TestCase
             ->state([
                 EventShift::EVENT_ID => $event->{Event::ID},
                 EventShift::STATUS => EventStatus::CLOSED,
+                EventShift::SHIFT_ENDS_AT => \Carbon\Carbon::now()->subDay(),
             ])
             ->create();
         $subject = EventTrooper::factory()
