@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Forums;
 
+use App\Enums\MembershipStatus;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
@@ -25,11 +26,6 @@ class XenforoUserSyncService
         $xenforoUserId = $this->xenforo->resolve_user_id_for_trooper($trooper->id);
 
         if ($xenforoUserId === null)
-        {
-            return;
-        }
-
-        if (! $trooper->is_active)
         {
             return;
         }
@@ -319,9 +315,8 @@ class XenforoUserSyncService
         $allOrgs = $trooper->organizations->merge($assignedOrgs)->unique('id')->values();
 
         return $allOrgs
-            ->flatMap(function (Organization $org) {
-                $status = $org->pivot->membership_status ?? null;
-                $status = strtolower(is_string($status) ? $status : 'active');
+            ->flatMap(function (Organization $org) use ($trooper) {
+                $status = $this->resolveEffectiveOrganizationStatus($trooper, $org->pivot->membership_status ?? null);
 
                 $ids = array_filter([$this->resolveGroupIdForStatus($org, $status)]);
 
@@ -361,6 +356,32 @@ class XenforoUserSyncService
         }
 
         return null;
+    }
+
+    private function resolveEffectiveOrganizationStatus(Trooper $trooper, mixed $organizationStatus): string
+    {
+        $status = $organizationStatus instanceof MembershipStatus
+            ? $organizationStatus->value
+            : strtolower(is_string($organizationStatus) ? $organizationStatus : MembershipStatus::ACTIVE->value);
+
+        $globalStatus = $trooper->membership_status instanceof MembershipStatus
+            ? $trooper->membership_status
+            : MembershipStatus::tryFrom((string) $trooper->membership_status);
+
+        if ($globalStatus === MembershipStatus::RETIRED && in_array($status, [
+            MembershipStatus::ACTIVE->value,
+            MembershipStatus::RESERVE->value,
+        ], true))
+        {
+            return MembershipStatus::RETIRED->value;
+        }
+
+        if ($globalStatus !== MembershipStatus::ACTIVE && $globalStatus !== MembershipStatus::RETIRED)
+        {
+            return MembershipStatus::NONE->value;
+        }
+
+        return $status;
     }
 
     /** Write org + assignment membership state to the application log. */
