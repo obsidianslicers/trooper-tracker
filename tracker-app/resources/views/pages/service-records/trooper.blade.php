@@ -21,7 +21,7 @@
             @endif
         </div>
         @if($xenforo_profile_url || Auth::user()->can('update', $trooper))
-            <div class="btn-group">
+            <div class="btn-group ms-auto flex-shrink-0">
                 @if($xenforo_profile_url)
                     <a href="{{ $xenforo_profile_url }}"
                        class="btn btn-outline-secondary"
