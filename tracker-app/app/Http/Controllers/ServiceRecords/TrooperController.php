@@ -50,6 +50,7 @@ class TrooperController extends MagicBusController
         $data['xenforo_group_banners'] = collect();
         $data['is_active_donor'] = false;
         $data['xenforo_donations'] = [];
+        $data['xenforo_profile_url'] = null;
 
         if (TroopTrackerFacade::isXenforoIntegrationConfigured())
         {
@@ -58,6 +59,8 @@ class TrooperController extends MagicBusController
 
             if ($xenforo_user_id !== null)
             {
+                $data['xenforo_profile_url'] = rtrim((string) config('services.xenforo.base_url'), '/').'/members/'.$xenforo_user_id.'/';
+
                 $group_data = $xenforo->get_user_groups($xenforo_user_id);
                 $data['xenforo_group_banners'] = $this->extractXenforoGroupBanners($group_data);
 

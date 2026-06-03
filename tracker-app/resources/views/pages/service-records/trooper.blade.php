@@ -4,7 +4,7 @@
 
 @section('content')
 
-    <div class="d-flex justify-content-between align-items-end mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
         <div>
             <h2 class="h1 mb-0 text-upper">
                 {{ $trooper->display_name }}
@@ -20,6 +20,26 @@
                 </div>
             @endif
         </div>
+        @if($xenforo_profile_url || Auth::user()->can('update', $trooper))
+            <div class="btn-group">
+                @if($xenforo_profile_url)
+                    <a href="{{ $xenforo_profile_url }}"
+                       class="btn btn-outline-secondary"
+                       target="_blank"
+                       rel="noopener noreferrer">
+                        <i class="fa fa-fw fa-comments"></i>
+                        Forum Profile
+                    </a>
+                @endif
+                @can('update', $trooper)
+                    <a href="{{ route('admin.troopers.profile', compact('trooper')) }}"
+                       class="btn btn-outline-warning">
+                        <i class="fa fa-fw fa-edit"></i>
+                        Edit
+                    </a>
+                @endcan
+            </div>
+        @endif
     </div>
 
     <div class="row g-4">
