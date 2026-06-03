@@ -77,6 +77,24 @@ class TrooperPolicy
     }
 
     /**
+     * Determine whether a trooper may request deletion of their own account.
+     *
+     * Blocked if a deletion request is already pending, preventing duplicate requests.
+     *
+     * @param  Trooper  $trooper  The authenticated user performing the action.
+     * @param  Trooper  $subject  The trooper whose account is being deleted.
+     */
+    public function requestDeletion(Trooper $trooper, Trooper $subject): bool
+    {
+        if ($trooper->id !== $subject->id)
+        {
+            return false;
+        }
+
+        return $trooper->deletion_requested_at === null;
+    }
+
+    /**
      * Determine whether the user can delete a trooper.
      * Deleting troopers is not permitted through this policy.
      *

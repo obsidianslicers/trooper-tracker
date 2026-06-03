@@ -63,6 +63,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property string|null $deleted_at
+ * @property Carbon|null $deletion_requested_at
  * 
  * @property TrooperCostume|null $trooper_costume
  * @property \App\Models\Trooper|null $trooper
@@ -116,6 +117,7 @@ class Trooper extends Model
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
     const DELETED_AT = 'deleted_at';
+    const DELETION_REQUESTED_AT = 'deletion_requested_at';
     protected $table = 'tt_troopers';
 
     protected $casts = [
@@ -132,7 +134,8 @@ class Trooper extends Model
         self::GUARDIAN_ID => 'int',
         self::DATE_OF_BIRTH => 'datetime',
         self::CREATED_AT => 'datetime',
-        self::UPDATED_AT => 'datetime'
+        self::UPDATED_AT => 'datetime',
+        self::DELETION_REQUESTED_AT => 'datetime'
     ];
 
     protected $hidden = [
@@ -161,7 +164,8 @@ class Trooper extends Model
         self::LAST_ACTIVE_AT,
         self::GUARDIAN_ID,
         self::DATE_OF_BIRTH,
-        self::REMEMBER_TOKEN
+        self::REMEMBER_TOKEN,
+        self::DELETION_REQUESTED_AT
     ];
 
     public function trooper_costume(): BelongsTo
