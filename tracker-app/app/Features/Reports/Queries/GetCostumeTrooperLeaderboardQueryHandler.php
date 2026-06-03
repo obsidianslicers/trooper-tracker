@@ -42,8 +42,7 @@ readonly class GetCostumeTrooperLeaderboardQueryHandler implements QueryHandlerI
                     ->when($date, fn ($q) => $q->where(Event::EVENT_START, '>=', $date));
             })
             ->whereHas('trooper', function ($q) {
-                $q->where(Trooper::MEMBERSHIP_STATUS, MembershipStatus::ACTIVE)
-                    ->where(Trooper::DISPLAY_NAME, '!=', 'Placeholder');
+                $q->where(Trooper::MEMBERSHIP_STATUS, MembershipStatus::ACTIVE);
             })
             ->select(EventTrooper::TROOPER_ID, DB::raw('COUNT(*) as troop_count'))
             ->with(['trooper' => fn ($q) => $q->select(Trooper::ID, Trooper::DISPLAY_NAME)])
