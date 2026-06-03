@@ -21,7 +21,7 @@ readonly class UpdateTrooperIdentifiersCommand
      * Create a new command instance.
      *
      * @param  Trooper  $trooper  The trooper whose identifiers to update
-     * @param  array<int, array{identifier: string|null}>  $valid_data  Organization IDs mapped to identifier data
+     * @param  array<int, array{identifier?: string|null, assignment?: int|string|null, membership_status?: string|null}>  $valid_data  Organization IDs mapped to membership data
      */
     public function __construct(
         public Trooper $trooper,

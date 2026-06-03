@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Features\Troopers\Commands;
 
+use App\Enums\MembershipStatus;
 use App\Features\Troopers\Commands\UpdateTrooperIdentifiersCommand;
 use App\Features\Troopers\Commands\UpdateTrooperIdentifiersCommandHandler;
 use App\Models\Organization;
@@ -103,6 +104,64 @@ class UpdateTrooperIdentifiersCommandHandlerTest extends TestCase
 
         $valid_data = [
             $organization->id => ['identifier' => null],
+        ];
+
+        $command = new UpdateTrooperIdentifiersCommand(
+            trooper: $trooper,
+            valid_data: $valid_data
+        );
+        $handler = app(UpdateTrooperIdentifiersCommandHandler::class);
+
+        $handler($command);
+
+        $this->assertDatabaseMissing('tt_trooper_organizations', [
+            TrooperOrganization::TROOPER_ID => $trooper->id,
+            TrooperOrganization::ORGANIZATION_ID => $organization->id,
+        ]);
+    }
+
+    public function test_invoke_updates_existing_membership_status(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $organization = Organization::factory()->create();
+        TrooperOrganization::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($organization)
+            ->create([TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE]);
+
+        $valid_data = [
+            $organization->id => [
+                'identifier' => null,
+                'membership_status' => MembershipStatus::RETIRED->value,
+            ],
+        ];
+
+        $command = new UpdateTrooperIdentifiersCommand(
+            trooper: $trooper,
+            valid_data: $valid_data
+        );
+        $handler = app(UpdateTrooperIdentifiersCommandHandler::class);
+
+        $handler($command);
+
+        $this->assertDatabaseHas('tt_trooper_organizations', [
+            TrooperOrganization::TROOPER_ID => $trooper->id,
+            TrooperOrganization::ORGANIZATION_ID => $organization->id,
+            TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::RETIRED->value,
+        ]);
+    }
+
+    public function test_invoke_does_not_create_membership_for_status_only_default_row(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $organization = Organization::factory()->create();
+
+        $valid_data = [
+            $organization->id => [
+                'identifier' => null,
+                'assignment' => null,
+                'membership_status' => MembershipStatus::ACTIVE->value,
+            ],
         ];
 
         $command = new UpdateTrooperIdentifiersCommand(

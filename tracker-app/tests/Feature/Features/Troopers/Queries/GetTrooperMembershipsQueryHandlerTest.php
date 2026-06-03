@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Features\Troopers\Queries;
 
+use App\Enums\MembershipStatus;
 use App\Features\Troopers\Queries\GetTrooperMembershipsQuery;
 use App\Features\Troopers\Queries\GetTrooperMembershipsQueryHandler;
 use App\Models\Organization;
@@ -27,7 +28,7 @@ class GetTrooperMembershipsQueryHandlerTest extends TestCase
         TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($organization)->withIdentifier('TK-12345')->create();
         TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($region)->asMember()->create();
 
-        $subject = new GetTrooperMembershipsQueryHandler();
+        $subject = new GetTrooperMembershipsQueryHandler;
 
         $result = $subject(new GetTrooperMembershipsQuery($trooper));
 
@@ -36,6 +37,26 @@ class GetTrooperMembershipsQueryHandlerTest extends TestCase
         $this->assertNotNull($matched);
         $this->assertSame('TK-12345', $matched->identifier);
         $this->assertSame($region->id, $matched->assignment->id);
+    }
+
+    public function test_invoke_sets_membership_status_for_matching_organizations(): void
+    {
+        $trooper = Trooper::factory()->asMember()->create();
+
+        $organization = Organization::factory()->asOrganization()->withNodePath('100.')->create();
+
+        TrooperOrganization::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($organization)
+            ->create([TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::RETIRED]);
+
+        $subject = new GetTrooperMembershipsQueryHandler;
+
+        $result = $subject(new GetTrooperMembershipsQuery($trooper));
+
+        $matched = $result->firstWhere('id', $organization->id);
+
+        $this->assertSame(MembershipStatus::RETIRED, $matched->membership_status);
     }
 
     public function test_invoke_sets_is_member_true_for_organizations_with_active_assignment(): void
@@ -47,7 +68,7 @@ class GetTrooperMembershipsQueryHandlerTest extends TestCase
         TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($organization)->create();
         TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();
 
-        $subject = new GetTrooperMembershipsQueryHandler();
+        $subject = new GetTrooperMembershipsQueryHandler;
         $result = $subject(new GetTrooperMembershipsQuery($trooper));
 
         $matched = $result->firstWhere('id', $organization->id);
@@ -59,7 +80,7 @@ class GetTrooperMembershipsQueryHandlerTest extends TestCase
         $trooper = Trooper::factory()->asMember()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100.')->create();
 
-        $subject = new GetTrooperMembershipsQueryHandler();
+        $subject = new GetTrooperMembershipsQueryHandler;
         $result = $subject(new GetTrooperMembershipsQuery($trooper));
 
         $matched = $result->firstWhere('id', $organization->id);

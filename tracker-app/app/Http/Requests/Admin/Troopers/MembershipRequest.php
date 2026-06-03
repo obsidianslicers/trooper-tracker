@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Admin\Troopers;
 
 use App\Enums\MembershipRole;
+use App\Enums\MembershipStatus;
 use App\Models\Organization;
 use App\Rules\Auth\UniqueOrganizationIdentifierRule;
 use App\Rules\Troopers\VisitorOrganizationRule;
@@ -83,6 +84,7 @@ class MembershipRequest extends FormRequest
         {
             $attributes["organizations.{$organization->id}.identifier"] = "{$organization->name} identifier";
             $attributes["organizations.{$organization->id}.assignment"] = "{$organization->name} assignment";
+            $attributes["organizations.{$organization->id}.membership_status"] = "{$organization->name} status";
         }
 
         return $attributes;
@@ -129,6 +131,12 @@ class MembershipRequest extends FormRequest
                 'nullable',
                 Rule::exists(Organization::class, Organization::ID),
                 new VisitorOrganizationRule($trooper),
+            ];
+
+            $rules["organizations.{$organization->id}.membership_status"] = [
+                'nullable',
+                'string',
+                'in:'.MembershipStatus::toValidator(),
             ];
         }
 

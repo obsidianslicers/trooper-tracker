@@ -39,6 +39,7 @@
                         <tr>
                             <th>Organization</th>
                             <th>Identifier</th>
+                            <th>Status</th>
                             <th>Member Of</th>
                             <th></th>
                         </tr>
@@ -51,6 +52,11 @@
                             <td>
                                 <x-input-text :property="'organizations.' . $organization->id . '.identifier'"
                                               :value="$organization->identifier ?? null" />
+                            </td>
+                            <td>
+                                <x-input-select :property="'organizations.' . $organization->id . '.membership_status'"
+                                                :options="\App\Enums\MembershipStatus::toArray()"
+                                                :value="$organization->membership_status?->value ?? \App\Enums\MembershipStatus::ACTIVE->value" />
                             </td>
                             <td>
                                 <x-input-picker :property="'organizations.' . $organization->id . '.assignment'"
