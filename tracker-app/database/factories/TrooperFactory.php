@@ -70,6 +70,14 @@ class TrooperFactory extends BaseTrooperFactory
         ]);
     }
 
+    public function asVisitor(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Trooper::MEMBERSHIP_ROLE => MembershipRole::VISITOR,
+            Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
+        ]);
+    }
+
     public function withEmail(string $email): static
     {
         return $this->state(fn(array $attributes): array => [

@@ -2,6 +2,7 @@ import { getCookie, setCookie } from '../custom/utils';
 export default function eventSelector() {
     const hostingCookieName = 'hosting_organization_ids';
     const costumeCookieName = 'costume_organization_id';
+    const displayOrgsCookieName = 'display_allowed_orgs';
 
     return {
         // Alpine state
@@ -13,6 +14,7 @@ export default function eventSelector() {
         hosting_organization_all_ids: [],
         hosting_organization_labels: {},
         costume_organization_labels: {},
+        display_allowed_orgs: true,
 
         init() {
             const selectedOrganizationIds = this.parseHostingOrganizationIds();
@@ -20,6 +22,8 @@ export default function eventSelector() {
 
             const selectedCostumeOrganizationId = this.parseCostumeOrganizationId();
             this.form.costume_organization_id = selectedCostumeOrganizationId;
+
+            this.display_allowed_orgs = this.parseAllowedOrgs();
 
             const hostingOrganizationData = this.$refs.hostingOrganizationList?.dataset.hostingOrganizationIds;
             if (hostingOrganizationData) {
@@ -50,6 +54,16 @@ export default function eventSelector() {
                     this.costume_organization_labels = {};
                 }
             }
+        },
+
+        toggleAllowedOrgs() {
+            this.display_allowed_orgs = !this.display_allowed_orgs;
+            setCookie(displayOrgsCookieName, this.display_allowed_orgs ? '1' : '0');
+        },
+
+        parseAllowedOrgs() {
+            const displayAllowedOrgsValue = getCookie(displayOrgsCookieName) ?? '1';
+            return displayAllowedOrgsValue === '1';
         },
 
         parseHostingOrganizationIds() {
