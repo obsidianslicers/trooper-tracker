@@ -67,12 +67,13 @@
                             </td>
                             <td class="text-end">
                                 @if($organization->is_member)
-                                    <button class="btn btn-outline-danger"
+                                    <button class="btn btn-sm btn-link text-danger p-1"
                                             type="submit"
                                             formaction="{{ route('admin.troopers.membership.remove', compact('trooper', 'organization')) }}"
-                                            formmethod="POST">
+                                            formmethod="POST"
+                                            title="Remove membership"
+                                            aria-label="Remove {{ $organization->name }} membership">
                                         <i class="fa fw fa-times"></i>
-                                        Remove
                                     </button>
                                 @endif
                             </td>
