@@ -6,10 +6,9 @@ namespace App\Features\Troopers\Commands;
 
 use App\Bus\Contracts\CommandHandlerInterface;
 use App\Enums\MembershipStatus;
+use App\Models\Organization;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperOrganization;
-use App\Models\Trooper;
-use App\Models\Organization;
 use App\Notifications\Troopers\JoinRequestApprovedNotification;
 
 /**
@@ -58,9 +57,8 @@ readonly class ApproveJoinRequestCommandHandler implements CommandHandlerInterfa
         // Clear any existing club membership in the same top-level org hierarchy (replace rule).
         TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $trooper_org->trooper_id)
             ->where(TrooperAssignment::IS_MEMBER, true)
-            ->whereHas('organization', function ($q) use ($primary_club)
-            {
-                return $q->where(Organization::NODE_PATH, 'like', $primary_club->node_path . '%');
+            ->whereHas('organization', function ($q) use ($primary_club) {
+                return $q->where(Organization::NODE_PATH, 'like', $primary_club->node_path.'%');
             })
             ->update([TrooperAssignment::IS_MEMBER => false]);
     }
