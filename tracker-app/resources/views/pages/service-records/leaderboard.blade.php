@@ -154,31 +154,19 @@
                 </div>
                 <div class="card-body">
                     @forelse($leaderboard['diversity'] as $kit)
-                        <div class="mb-4">
-                            @if($kit['id'])
-                                <button type="button"
-                                        class="btn btn-link p-0 text-start w-100 text-decoration-none"
-                                        hx-get="{{ route('service-records.costume', $kit['id']) }}{{ request()->getQueryString() ? '?'.request()->getQueryString() : '' }}"
-                                        hx-target="#costume-stats-panel"
-                                        hx-swap="innerHTML"
-                                        hx-indicator="#costume-stats-panel">
-                                    @include('pages.events.inc.leaderboard-item', [
-                                        'label' => $kit['name'],
-                                        'count' => $kit['count'],
-                                        'count_of' => 'DEPLOYMENTS',
-                                        'max' => $leaderboard['diversity']->first()['count'] ?? 1,
-                                    ])
-                                </button>
-                            @else
-                                <div>
-                                    @include('pages.events.inc.leaderboard-item', [
-                                        'label' => $kit['name'],
-                                        'count' => $kit['count'],
-                                        'count_of' => 'DEPLOYMENTS',
-                                        'max' => $leaderboard['diversity']->first()['count'] ?? 1,
-                                    ])
-                                </div>
-                            @endif
+                        <div class="mb-4"
+                             @if($kit['id'])
+                                 hx-get="{{ route('service-records.costume', $kit['id']) }}{{ request()->getQueryString() ? '?'.request()->getQueryString() : '' }}"
+                                 hx-target="#costume-stats-panel"
+                                 hx-swap="innerHTML"
+                                 style="cursor:pointer;"
+                             @endif>
+                            @include('pages.events.inc.leaderboard-item', [
+                                'label' => $kit['name'],
+                                'count' => $kit['count'],
+                                'count_of' => 'DEPLOYMENTS',
+                                'max' => $leaderboard['diversity']->first()['count'] ?? 1,
+                            ])
                         </div>
                     @empty
                         <p class="text-muted mb-0">No costume deployments found.</p>
@@ -222,7 +210,9 @@
         </div>
 
         {{-- Costume stats panel: populated by HTMX --}}
-        <div class="col-12" id="costume-stats-panel"></div>
+        <div class="col-12"
+             id="costume-stats-panel"
+             hx-on::after-swap="this.scrollIntoView({behavior:'smooth',block:'start'})"></div>
 
     </div>
 </div>
