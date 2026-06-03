@@ -82,11 +82,11 @@
                         }
                     }">
                         <p class="text-muted mb-3">
-                            Select a club below and submit a request. A moderator will review and approve your membership.
+                            Select a club below only if you are already a member of that organization. A moderator will review your request and approve access.
                             @if(!$trooper->is_visitor)
-                                You may join at any level — organization, region, or unit — but please choose the most specific unit that applies to you.
+                                You may request access at any level — organization, region, or unit — but please choose the most specific unit that applies to you.
                             @endif
-                            Only one membership per organization is allowed.
+                            Access is not required to view events from the organization. Only one access membership per organization is allowed.
                         </p>
 
                 <x-input-container>
@@ -143,7 +143,7 @@
                                 hx-swap="innerHTML"
                                 hx-indicator="#transmission-bar-club-memberships">
                             <i class="fa fa-fw fa-paper-plane"></i>
-                            Request to Join
+                            Request Access
                         </button>
                     </div>
                 </div>
