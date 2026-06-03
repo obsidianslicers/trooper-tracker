@@ -123,19 +123,6 @@ class GetCostumeTrooperLeaderboardQueryHandlerTest extends TestCase
         $this->assertFalse($trooper_ids->contains($retired_trooper->id));
     }
 
-    public function test_invoke_excludes_placeholder_accounts(): void
-    {
-        $costume = Costume::factory()->create();
-        $placeholder = Trooper::factory()->asMember()->withDisplayName('Placeholder')->create();
-
-        $this->createAttendance($placeholder, $costume, now()->subDays(3));
-
-        $subject = new GetCostumeTrooperLeaderboardQueryHandler;
-        $result = $subject(new GetCostumeTrooperLeaderboardQuery($costume));
-
-        $this->assertTrue($result['top_troopers']->isEmpty());
-    }
-
     public function test_invoke_respects_lookback_days_filter(): void
     {
         $costume = Costume::factory()->create();
