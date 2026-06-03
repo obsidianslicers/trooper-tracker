@@ -83,8 +83,8 @@ readonly class GetLeaderboardMetricsQueryHandler implements QueryHandlerInterfac
             ->get()
             ->map(function ($record) {
                 return [
-                    'id'    => $record->costume->id ?? null,
-                    'name'  => $record->costume->name ?? 'Unknown Kit',
+                    'id' => $record->costume->id ?? null,
+                    'name' => $record->costume->name ?? 'Unknown Kit',
                     'count' => $record->occurrence_count,
                 ];
             });
