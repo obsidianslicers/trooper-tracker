@@ -6,6 +6,7 @@ namespace App\Http\Controllers\ServiceRecords;
 
 use App\Features\Reports\Queries\GetLeaderboardMetricsQuery;
 use App\Http\Controllers\MagicBusController;
+use App\Models\Costume;
 use App\Models\Organization;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -46,7 +47,11 @@ class LeaderboardController extends MagicBusController
 
         $leaderboard = $this->bus->send(new GetLeaderboardMetricsQuery($days, $organization, 30));
 
-        $data = compact('leaderboard', 'days', 'organizations', 'organization_id', 'organization');
+        $costume_list = Costume::whereNotIn(Costume::NAME, ['N/A', 'NA', Costume::HANDLER, Costume::COMMAND_STAFF])
+            ->orderBy(Costume::NAME)
+            ->get([Costume::ID, Costume::NAME]);
+
+        $data = compact('leaderboard', 'days', 'organizations', 'organization_id', 'organization', 'costume_list');
 
         return view('pages.service-records.leaderboard', $data);
     }

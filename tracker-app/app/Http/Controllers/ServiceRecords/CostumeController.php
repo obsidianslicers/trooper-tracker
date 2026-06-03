@@ -54,6 +54,11 @@ class CostumeController extends MagicBusController
             'organization',
         );
 
+        if ($request->isHtmx())
+        {
+            return view('pages.service-records.inc.costume-stats', $data);
+        }
+
         return view('pages.service-records.costume', $data);
     }
 

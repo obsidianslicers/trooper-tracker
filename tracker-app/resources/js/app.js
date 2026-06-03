@@ -56,6 +56,9 @@ Alpine.plugin(AdminPlugin);
 import EventPlugin from './events/index.js';
 Alpine.plugin(EventPlugin);
 
+import ServiceRecordsPlugin from './service-records/index.js';
+Alpine.plugin(ServiceRecordsPlugin);
+
 window.Alpine = Alpine;
 Alpine.start();
 

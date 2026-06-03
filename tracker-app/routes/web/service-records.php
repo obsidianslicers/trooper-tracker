@@ -6,7 +6,6 @@ use App\Http\Controllers\ServiceRecords\AchievementsController;
 use App\Http\Controllers\ServiceRecords\AwardsController;
 use App\Http\Controllers\ServiceRecords\CommandStaffController;
 use App\Http\Controllers\ServiceRecords\CostumeController;
-use App\Http\Controllers\ServiceRecords\CostumesController;
 use App\Http\Controllers\ServiceRecords\LeaderboardController;
 use App\Http\Controllers\ServiceRecords\PhotoGalleryController;
 use App\Http\Controllers\ServiceRecords\TrooperController;
@@ -24,6 +23,5 @@ Route::prefix('service-records')
         Route::get('/achievements', AchievementsController::class)->name('achievements');
         Route::get('/command-staff', CommandStaffController::class)->name('command-staff');
         Route::get('/photo-gallery', PhotoGalleryController::class)->name('photo-gallery');
-        Route::get('/costumes', CostumesController::class)->name('costumes');
         Route::get('/costumes/{costume}', CostumeController::class)->name('costume');
     });
