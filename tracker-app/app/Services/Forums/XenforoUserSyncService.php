@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Forums;
 
+use App\Enums\MembershipStatus;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
@@ -314,6 +315,16 @@ class XenforoUserSyncService
             })
             ->unique()
             ->values();
+    }
+
+    private function resolveEffectiveOrganizationStatus(Trooper $trooper, ?string $orgMembershipStatus): string
+    {
+        if ($trooper->membership_status === MembershipStatus::RETIRED)
+        {
+            return 'retired';
+        }
+
+        return $orgMembershipStatus ?? 'active';
     }
 
     /** Returns the XenForo group ID configured on an org for the given membership status. */
