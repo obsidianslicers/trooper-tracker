@@ -106,7 +106,7 @@ trait HasEventDisplayAssembler
         {
             $event_trooper->event_shift = $event_shift;
 
-            if ($event_trooper->canUpdateCostume($event_shift, $trooper))
+            if ($event_trooper->canUpdateCostume($trooper))
             {
                 $event_trooper->costumes = $event_trooper->getCostumes();
             }

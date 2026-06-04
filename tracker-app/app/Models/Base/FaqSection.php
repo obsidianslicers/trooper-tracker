@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Class FaqSection
- *
+ * 
  * @property int $id
  * @property string $label
  * @property string $icon
@@ -26,7 +26,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $created_id
  * @property int|null $updated_id
  * @property int|null $deleted_id
- *
+ * 
  * @property Collection|Faq[] $faqs
  *
  * @package App\Models\Base
@@ -34,10 +34,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class FaqSection extends Model
 {
     use SoftDeletes;
-
-    const ID         = 'id';
-    const LABEL      = 'label';
-    const ICON       = 'icon';
+    const ID = 'id';
+    const LABEL = 'label';
+    const ICON = 'icon';
     const SORT_ORDER = 'sort_order';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
@@ -45,27 +44,26 @@ class FaqSection extends Model
     const CREATED_ID = 'created_id';
     const UPDATED_ID = 'updated_id';
     const DELETED_ID = 'deleted_id';
-
     protected $table = 'tt_faq_sections';
 
     protected $casts = [
-        self::ID         => 'int',
+        self::ID => 'int',
         self::SORT_ORDER => 'int',
         self::CREATED_AT => 'datetime',
         self::UPDATED_AT => 'datetime',
         self::CREATED_ID => 'int',
         self::UPDATED_ID => 'int',
-        self::DELETED_ID => 'int',
+        self::DELETED_ID => 'int'
     ];
 
     protected $fillable = [
         self::LABEL,
         self::ICON,
-        self::SORT_ORDER,
+        self::SORT_ORDER
     ];
 
     public function faqs(): HasMany
     {
-        return $this->hasMany(Faq::class, 'section_id');
+        return $this->hasMany(Faq::class, Faq::SECTION_ID);
     }
 }

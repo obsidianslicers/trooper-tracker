@@ -21,6 +21,11 @@ class FactoryGenerator
         $this->typeGuesser = $guesser;
     }
 
+    /**
+     * Generates and writes a factory for the given model class name.
+     *
+     * @param class-string<Model>|string $model
+     */
     public function generate($model): ?string
     {
         if (!$modelClass = $this->modelExists($model))
@@ -104,8 +109,8 @@ class FactoryGenerator
     /**
      * Check if factory already exists.
      *
-     * @param  string  $name
-     * @return bool|string
+     * @param  string  $path
+     * @return bool
      */
     protected function factoryExists($path): bool
     {

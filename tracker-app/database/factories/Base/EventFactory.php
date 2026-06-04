@@ -30,6 +30,7 @@ class EventFactory extends Factory
             Event::ALLOW_PROPS => $this->faker->randomNumber(1),
             Event::PARKING_AVAILABLE => $this->faker->randomNumber(1),
             Event::ACCESSIBLE => $this->faker->randomNumber(1),
+            Event::REQUIRE_MISSION_BRIEF_ACK => $this->faker->randomNumber(1),
         ];
     }
 }

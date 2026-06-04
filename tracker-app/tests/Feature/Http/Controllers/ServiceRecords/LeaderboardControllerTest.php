@@ -6,6 +6,7 @@ namespace Tests\Feature\Http\Controllers\ServiceRecords;
 
 use App\Bus\MagicBus;
 use App\Features\Reports\Queries\GetLeaderboardMetricsQuery;
+use App\Models\Costume;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -174,5 +175,31 @@ class LeaderboardControllerTest extends TestCase
         $response->assertOk();
         $response->assertSee('Florida Garrison');
         $response->assertSee('storage/organizations/florida-32x32.png');
+    }
+
+    public function test_invoke_passes_costume_list_to_view(): void
+    {
+        $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
+        $costume = Costume::factory()->withName('Shadow Scout')->create();
+
+        $leaderboard = collect([
+            'dominance' => collect(),
+            'diversity' => collect(),
+            'operatives' => collect(),
+        ]);
+
+        $this->mock(MagicBus::class, function (MockInterface $mock) use ($leaderboard): void {
+            $mock->shouldReceive('send')
+                ->once()
+                ->andReturn($leaderboard);
+        });
+
+        $response = $this->actingAs($trooper)
+            ->get(route('service-records.leaderboard'));
+
+        $response->assertOk();
+        $response->assertViewHas('costume_list', function (Collection $costume_list) use ($costume): bool {
+            return $costume_list->contains('name', $costume->name);
+        });
     }
 }

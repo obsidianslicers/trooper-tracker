@@ -15,11 +15,11 @@
     <div class="col-5 col-md-3 order-2 order-md-3 text-end">
         <div class="ps-3 ps-md-0">
             @if(
-                Auth::user()->can('update', $event)
-                && $event->status === \App\Enums\EventStatus::MANUAL_SELECTION
-                && $event_shift->is_open
-                && in_array($event_guest->status, [\App\Enums\EventGuestStatus::STAND_BY, \App\Enums\EventGuestStatus::GOING], true)
-            )
+                    Auth::user()->can('update', $event)
+                    && $event->status === \App\Enums\EventStatus::MANUAL_SELECTION
+                    && $event_shift->is_open
+                    && in_array($event_guest->status, [\App\Enums\EventGuestStatus::STAND_BY, \App\Enums\EventGuestStatus::GOING], true)
+                )
                 <div class="d-flex gap-1 justify-content-end">
                     @if($event_guest->status === \App\Enums\EventGuestStatus::STAND_BY)
                         <form hx-post="{{ route('events.guest-update-htmx', compact('event_guest')) }}"
@@ -56,7 +56,7 @@
                         </form>
                     @endif
                 </div>
-            @elseif($event_shift->is_open && $event_guest->canUpdateStatus($event_shift, Auth::user()))
+            @elseif($event_shift->is_open && $event_guest->canUpdateStatus(Auth::user()))
                 <x-input-select :property="'status'"
                                 :options="\App\Enums\EventGuestStatus::toSelectArray()"
                                 :value="$event_guest->status->value"
@@ -74,10 +74,10 @@
             @endif
 
             @if(
-                $event->status === \App\Enums\EventStatus::MANUAL_SELECTION
-                && $event_guest->status === \App\Enums\EventGuestStatus::GOING
-                && $event_guest->updated_by !== null
-            )
+                    $event->status === \App\Enums\EventStatus::MANUAL_SELECTION
+                    && $event_guest->status === \App\Enums\EventGuestStatus::GOING
+                    && $event_guest->updated_by !== null
+                )
                 <br />
                 <i class="small text-muted">
                     Approved by {{ $event_guest->updated_by->display_name }}

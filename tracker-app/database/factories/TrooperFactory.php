@@ -37,6 +37,7 @@ class TrooperFactory extends BaseTrooperFactory
             Trooper::EMAIL => $this->faker->safeEmail(),
             Trooper::DISPLAY_NAME => $name,
             Trooper::LEGAL_NAME => $name,
+            Trooper::DISPLAY_COSTUME_ID => null,
             Trooper::NOTIFICATION_FREQUENCY => NotificationFrequency::INSTANT,
             Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
             Trooper::MEMBERSHIP_ROLE => MembershipRole::MEMBER,
@@ -65,6 +66,14 @@ class TrooperFactory extends BaseTrooperFactory
     {
         return $this->state(fn(array $attributes): array => [
             Trooper::MEMBERSHIP_ROLE => MembershipRole::MEMBER,
+            Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
+        ]);
+    }
+
+    public function asVisitor(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Trooper::MEMBERSHIP_ROLE => MembershipRole::VISITOR,
             Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
         ]);
     }

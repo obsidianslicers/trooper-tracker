@@ -21,7 +21,7 @@ class ListController extends MagicBusController
     {
         $section_id = $request->query('section_id') ? (int) $request->query('section_id') : null;
 
-        $query = Faq::query()->with('section')->orderBy(Faq::SORT_ORDER)->orderBy(Faq::ID);
+        $query = Faq::query()->with('faq_section')->orderBy(Faq::SORT_ORDER)->orderBy(Faq::ID);
 
         if ($section_id)
         {

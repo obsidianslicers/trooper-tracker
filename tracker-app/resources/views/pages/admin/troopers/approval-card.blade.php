@@ -72,44 +72,45 @@
                         <th colspan="2">Selected Unit</th>
                     </tr>
                     <tr>
-                        <td colspan="2" class="text-muted fst-italic">
+                        <td colspan="2"
+                            class="text-muted fst-italic">
                             <i class="fa fa-fw fa-circle-info"></i>
                             Visitor &mdash; no unit required.
                         </td>
                     </tr>
                 @else
-                <tr>
-                    <th colspan="2">Selected Unit</th>
-                </tr>
-                @foreach($trooper->trooper_assignments as $assignment)
                     <tr>
-                        <td colspan="2">
-                            <i class="fa fa-fw"></i>
-                            {{ $assignment->organization->parent->name }}
-                            -
-                            {{ $assignment->organization->name }}
-                        </td>
+                        <th colspan="2">Selected Unit</th>
                     </tr>
-                    @foreach($trooper->trooper_assignments->filter(fn($a) => $a->organization->parent_id == $assignment->organization_id) as $reg_asg)
+                    @foreach($trooper->trooper_assignments as $assignment)
                         <tr>
-                            <td class="ps-{{ $reg_asg->organization->depth }}">
-                                <i class="fa fa-fw fa-caret-right"></i>
-                                {{ $reg_asg->organization->name }}
+                            <td colspan="2">
+                                <i class="fa fa-fw"></i>
+                                {{ $assignment->organization->parent->name }}
+                                -
+                                {{ $assignment->organization->name }}
                             </td>
-                            <td>{{ $reg_asg->membership_role }}</td>
                         </tr>
-                        @foreach($trooper->trooper_assignments->filter(fn($a) => $a->organization->parent_id == $reg_asg->organization_id) as $unit_asg)
+                        @foreach($trooper->trooper_assignments->filter(fn($a) => $a->organization->parent_id == $assignment->organization_id) as $reg_asg)
                             <tr>
-                                <td class="ps-{{ $unit_asg->organization->depth }}">
+                                <td class="ps-{{ $reg_asg->organization->depth }}">
                                     <i class="fa fa-fw fa-caret-right"></i>
-                                    <i class="fa fa-fw fa-caret-right"></i>
-                                    {{ $unit_asg->organization->name }}
+                                    {{ $reg_asg->organization->name }}
                                 </td>
-                                <td>{{ $unit_asg->membership_role }}</td>
+                                <td>{{ $reg_asg->membership_role }}</td>
                             </tr>
+                            @foreach($trooper->trooper_assignments->filter(fn($a) => $a->organization->parent_id == $reg_asg->organization_id) as $unit_asg)
+                                <tr>
+                                    <td class="ps-{{ $unit_asg->organization->depth }}">
+                                        <i class="fa fa-fw fa-caret-right"></i>
+                                        <i class="fa fa-fw fa-caret-right"></i>
+                                        {{ $unit_asg->organization->name }}
+                                    </td>
+                                    <td>{{ $unit_asg->membership_role }}</td>
+                                </tr>
+                            @endforeach
                         @endforeach
                     @endforeach
-                @endforeach
                 @endif
             </x-table>
         @endif
@@ -131,24 +132,51 @@
                 </x-message>
             </div>
         @else
-            <button class="btn btn-danger btn-sm"
-                    type="button"
-                    hx-post="{{ route('admin.troopers.deny-htmx', compact('trooper')) }}"
-                    hx-swap="outerHTML"
-                    hx-select="#trooper-approval-{{ $trooper->id }}"
-                    hx-target="#trooper-approval-{{ $trooper->id }}"
-                    hx-indicator="#transmission-bar-approvals">
-                Deny
-            </button>
-            <button class="btn btn-success btn-sm"
-                    type="button"
-                    hx-post="{{ route('admin.troopers.approve-htmx', compact('trooper')) }}"
-                    hx-swap="outerHTML"
-                    hx-select="#trooper-approval-{{ $trooper->id }}"
-                    hx-target="#trooper-approval-{{ $trooper->id }}"
-                    hx-indicator="#transmission-bar-approvals">
-                Approve
-            </button>
+            <div x-data="{ denying: false }"
+                 class="w-100">
+                <div x-show="!denying"
+                     class="d-flex justify-content-between">
+                    <button type="button"
+                            class="btn btn-danger btn-sm"
+                            x-on:click="denying = true">
+                        Deny
+                    </button>
+                    <button class="btn btn-success btn-sm"
+                            type="button"
+                            hx-post="{{ route('admin.troopers.approve-htmx', compact('trooper')) }}"
+                            hx-swap="outerHTML"
+                            hx-select="#trooper-approval-{{ $trooper->id }}"
+                            hx-target="#trooper-approval-{{ $trooper->id }}"
+                            hx-indicator="#transmission-bar-approvals">
+                        Approve
+                    </button>
+                </div>
+                <form x-show="denying"
+                      x-cloak
+                      class="pt-2"
+                      hx-post="{{ route('admin.troopers.deny-htmx', compact('trooper')) }}"
+                      hx-swap="outerHTML"
+                      hx-select="#trooper-approval-{{ $trooper->id }}"
+                      hx-target="#trooper-approval-{{ $trooper->id }}"
+                      hx-indicator="#transmission-bar-approvals">
+                    @csrf
+                    <textarea name="denial_reason"
+                              class="form-control form-control-sm mb-2"
+                              rows="2"
+                              placeholder="Reason for denial (optional)..."></textarea>
+                    <div class="d-flex justify-content-between">
+                        <button type="button"
+                                class="btn btn-secondary btn-sm"
+                                x-on:click="denying = false">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                                class="btn btn-danger btn-sm">
+                            Confirm Deny
+                        </button>
+                    </div>
+                </form>
+            </div>
         @endif
     </div>
 </div>

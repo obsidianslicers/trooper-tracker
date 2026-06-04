@@ -114,8 +114,6 @@ abstract class BaseOrganizationService implements SynchronizerInterface
 
     protected function getTrooper(string $identifier): ?Trooper
     {
-        Log::info(__CLASS__.":{$this->organization->name} Getting Trooper {$identifier}");
-
         return $this->organization->troopers()
             ->wherePivot(TrooperOrganization::IDENTIFIER, $identifier)
             ->first();
@@ -123,8 +121,6 @@ abstract class BaseOrganizationService implements SynchronizerInterface
 
     protected function syncTrooperCostume(Trooper $trooper, OrganizationCostume $org_costume, array $attributes): void
     {
-        Log::info(__CLASS__.":{$this->organization->name} Synchronizing Trooper Costume {$org_costume->name} for Trooper {$trooper->display_name}");
-
         $trooper_costume = TrooperCostume::withTrashed()
             ->firstOrNew([
                 TrooperCostume::TROOPER_ID => $trooper->id,
@@ -150,8 +146,6 @@ abstract class BaseOrganizationService implements SynchronizerInterface
 
     protected function syncTrooperStatus(Trooper $trooper, MembershipStatus $status): void
     {
-        Log::info(__CLASS__.":{$this->organization->name} Synchronizing Trooper Status {$status->name} for {$trooper->display_name}");
-
         $pivot = $trooper->pivot;
 
         $pivot->synchronized_at = now();

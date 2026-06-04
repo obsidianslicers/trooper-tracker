@@ -12,6 +12,7 @@ use App\Models\EventOrganization;
 use App\Models\EventShare;
 use App\Models\EventShift;
 use App\Models\EventUpload;
+use App\Models\EventWatch;
 use App\Models\Organization;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
@@ -87,6 +88,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Collection|EventShare[] $event_shares
  * @property Collection|EventShift[] $event_shifts
  * @property Collection|EventUpload[] $event_uploads
+ * @property Collection|EventWatch[] $event_watches
  *
  * @package App\Models\Base
  */
@@ -273,5 +275,10 @@ class Event extends Model
     public function event_uploads(): HasMany
     {
         return $this->hasMany(EventUpload::class);
+    }
+
+    public function event_watches(): HasMany
+    {
+        return $this->hasMany(EventWatch::class);
     }
 }

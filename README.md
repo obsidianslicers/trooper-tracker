@@ -34,13 +34,20 @@ This project remains under active development, which is to say it currently exis
 
 Progress continues at a pace deemed acceptable by the Empire. New features, refinements, and the occasional miracle will be deployed as they reach a state worthy of consumption. Garrison Liasons are encouraged to return in approximately one month to witness the next phase of sanctioned advancement. Until then, patience is not only advised — it is expected.
 
-Update May 20th: On 5/29, Troop Tracker officially goes live — meaning the training wheels are off, the excuses are gone, and yes, the buttons now do things on purpose. You are encouraged to click boldly, report responsibly, and pretend you didn’t see anything weird. The Empire assures you the system is “ready,” which is the closest thing to a guarantee you’re ever going to get. Welcome to production. Try not to break anything important.
-
 Update Feb 18th: Despite rumors to the contrary, progress has not stalled. In fact, the project currently stands at an estimated 85% operational readiness, supported by a test suite now exceeding 2,000 trials of loyalty. Minor rebellions within the codebase are being suppressed with appropriate vigor. Observers may take this as a sign that stability is approaching, though only the Empire may determine when "approaching" becomes "arrived." Sensible personnel are advised to check back in roughly one month for the next sanctioned update, assuming the system has not evolved beyond the need for such courtesies.
 
 Update Mar 8th: Troop Tracker edges ever closer to UAT, with performance‑rebellious tests being rewritten, optimized, and reminded of their place in the hierarchy; work continues on the configurable XenForo integration, ensuring it can ultimately operate either as a seamless Imperial fusion or a proudly isolationist standalone deployment; and the visual command interfaces have been refreshed with updated Stormtrooper, Bounty Hunter, Rebel, Clone, and Sith themes, each calibrated for maximum intimidation, usability, or in the case of Rebels, remedial hand‑holding — overall, stability is rising, features are aligning, and the system marches toward UAT with the slow, inevitable certainty of an Imperial Star Destroyer entering orbit.
 
-Update Apr 13th: The waiting is over. Troop Tracker has officially entered UAT, and the Empire has invited brave volunteers to click every button, break every edge case, and report their findings before Lord QA starts force-choking random merge requests. Core systems are stable, workflows are operational, and most remaining issues now live in the category of "annoying but survivable." If you spot defects, file them with precision and without panic. If you do not spot defects, click harder. UAT is live, and yes, this is the part where we pretend everything was always under control.
+Update Apr 13th: The waiting is over. Troop Tracker has officially entered UAT, and the Empire has invited brave volunteers to click every button, break every edge case, and report their findings before Lord QA starts force-choking random merge requests. Core systems are stable, workflows are operational, and most remaining issues now live in the category of "annoying but survivable." If you spot defects, file them with precision and without panic. If you do not spot defects, click harder. UAT is live, and yes, this is the part where we pretend everything was always under control. 
+
+**Update May29th Troop Tracker Is Live — Kneel or Be Logged** 
+
+The day has arrived. Troop Tracker has officially gone LIVE, meaning the restraining bolts have been removed, the excuses have expired, and every button you click now counts. The Empire assures you the system is "ready," which is the closest thing to a guarantee you’re ever going to get. Welcome to production. Try not to break anything important.
+
+Core systems are deployed, workflows are operational, and all known defects have been either resolved, documented, or strategically ignored for future generations to discover. From this point forward, any issues you encounter are no longer "feedback" — they are real problems, with real consequences, and real opportunities for the Obsidian Slicers to sigh loudly in your direction.
+
+Use the system boldly. Report issues responsibly. Pretend everything is stable.
+Troop Tracker is live, the Empire ascends, we will now act like this was the plan all along.
 
 ---
 
@@ -153,10 +160,8 @@ php artisan migrate
 php artisan db:seed --class=OrganizationSeeder
 php artisan db:seed --class=ActorSeeder
 
-# Start development servers (requires 3 terminals)
-php artisan serve           # Terminal 1: Laravel app (http://localhost:8000)
-npm run dev                 # Terminal 2: Vite asset compilation
-php artisan queue:work      # Terminal 3: Background job processing
+# Start development servers
+composer dev
 ```
 
 **Default Login:**

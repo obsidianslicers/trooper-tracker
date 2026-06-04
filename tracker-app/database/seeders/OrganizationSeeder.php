@@ -83,8 +83,8 @@ class OrganizationSeeder extends Seeder
             [
                 'name' => 'Droid Builders',
                 'description' => 'Star Wars droid construction and robotics enthusiast group.',
-                'identifier_display' => '#',
-                'identifier_validation' => 'integer',
+                'identifier_display' => 'Forum Username',
+                'identifier_validation' => 'string|max:64',
                 'service_class' => DroidBuildersService::class,
                 'sync_sheet_id' => '195NT1crFYL_ECVyzoaD2F1QXGW5WxlnBDfDaLVtM87Y',
                 'can_attend_default' => true,

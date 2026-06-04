@@ -9,6 +9,7 @@ use App\Features\Troopers\Commands\ApproveTrooperCommandHandler;
 use App\Enums\MembershipStatus;
 use App\Models\Trooper;
 use App\Notifications\Troopers\MembershipApprovedNotification;
+use App\Notifications\Troopers\TrooperDeniedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
@@ -40,7 +41,7 @@ class ApproveTrooperCommandHandlerTest extends TestCase
         Notification::assertSentTo($trooper, MembershipApprovedNotification::class);
     }
 
-    public function test_invoke_denies_trooper_and_sends_no_notification(): void
+    public function test_invoke_denies_trooper_and_sends_denial_notification(): void
     {
         Notification::fake();
         $trooper = Trooper::factory()->asPending()->create();
@@ -57,6 +58,6 @@ class ApproveTrooperCommandHandlerTest extends TestCase
 
         $trooper->refresh();
         $this->assertEquals(MembershipStatus::DENIED, $trooper->membership_status);
-        Notification::assertNothingSent();
+        Notification::assertSentTo($trooper, TrooperDeniedNotification::class);
     }
 }

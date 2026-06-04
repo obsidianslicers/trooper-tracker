@@ -25,7 +25,7 @@ readonly class DenyJoinRequestCommandHandler implements CommandHandlerInterface
         $request->membership_status = MembershipStatus::DENIED;
         $request->save();
 
-        $request->trooper->notify(new JoinRequestDeniedNotification($request->organization));
+        $request->trooper->notify(new JoinRequestDeniedNotification($request->organization, $message->denial_reason));
 
         return null;
     }

@@ -70,7 +70,7 @@ class RegisterRequestTest extends TestCase
         $this->assertContains('required', $rules['account_type']);
     }
 
-    public function test_rules_validates_account_type_is_member_or_handler(): void
+    public function test_rules_validates_account_type_is_member_handler_or_visitor(): void
     {
         $subject = new RegisterRequest;
 
@@ -86,6 +86,23 @@ class RegisterRequestTest extends TestCase
 
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('account_type', $validator->errors()->toArray());
+    }
+
+    public function test_rules_allows_visitor_account_type(): void
+    {
+        $subject = new RegisterRequest;
+
+        $validator = Validator::make(
+            [
+                'legal_name' => 'Test Trooper',
+                'display_name' => 'Tester',
+                'email' => 'test@example.com',
+                'account_type' => 'visitor',
+            ],
+            $subject->rules()
+        );
+
+        $this->assertFalse($validator->errors()->has('account_type'));
     }
 
     public function test_rules_allows_member_account_type(): void
@@ -237,6 +254,63 @@ class RegisterRequestTest extends TestCase
 
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('guardian_email', $validator->errors()->toArray());
+    }
+
+    public function test_rules_requires_guardian_email_when_selected_flag_is_boolean_true(): void
+    {
+        $organization = Organization::factory()->create([
+            Organization::REQUIRES_GUARDIAN => true,
+        ]);
+
+        $subject = new RegisterRequest;
+        $data = [
+            'legal_name' => 'Test Trooper',
+            'display_name' => 'Tester',
+            'email' => 'test@example.com',
+            'account_type' => 'member',
+            'date_of_birth' => now()->subYears(16)->format('Y-m-d'),
+            'organizations' => [
+                (string) $organization->id => ['selected' => true],
+            ],
+        ];
+
+        $subject->merge($data);
+
+        $validator = Validator::make(
+            $data,
+            $subject->rules()
+        );
+
+        $this->assertTrue($validator->fails());
+        $this->assertArrayHasKey('guardian_email', $validator->errors()->toArray());
+    }
+
+    public function test_rules_does_not_require_guardian_email_when_guardian_org_is_not_selected(): void
+    {
+        $organization = Organization::factory()->create([
+            Organization::REQUIRES_GUARDIAN => true,
+        ]);
+
+        $subject = new RegisterRequest;
+        $data = [
+            'legal_name' => 'Test Trooper',
+            'display_name' => 'Tester',
+            'email' => 'test@example.com',
+            'account_type' => 'member',
+            'organizations' => [
+                (string) $organization->id => ['selected' => false],
+            ],
+        ];
+
+        $subject->merge($data);
+
+        $validator = Validator::make(
+            $data,
+            $subject->rules()
+        );
+
+        $this->assertFalse($validator->errors()->has('guardian_email'));
+        $this->assertFalse($validator->errors()->has('date_of_birth'));
     }
 
     public function test_rules_does_not_require_guardian_email_when_selected_org_does_not_require_guardian(): void

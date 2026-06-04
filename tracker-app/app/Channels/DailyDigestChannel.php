@@ -14,6 +14,11 @@ use Illuminate\Notifications\Notification;
  */
 final class DailyDigestChannel
 {
+    /**
+     * Persists a pending daily-digest notification record for later processing.
+     *
+     * @param object $notifiable Trooper-like notifiable entity with an id.
+     */
     public function send(object $notifiable, Notification $notification): void
     {
         if (!method_exists($notification, 'toDailyDigest'))
@@ -25,7 +30,7 @@ final class DailyDigestChannel
 
         EventNotification::firstOrCreate(
             [
-                EventNotification::EVENT_ID   => $data['event_id'],
+                EventNotification::EVENT_ID => $data['event_id'],
                 EventNotification::TROOPER_ID => $notifiable->id,
             ],
             [EventNotification::PROCESSED_AT => null],

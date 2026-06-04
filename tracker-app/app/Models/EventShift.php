@@ -8,6 +8,7 @@ use App\Enums\EventGuestStatus;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Models\Base\EventShift as BaseEventShift;
+use App\Models\Concerns\HasObserver;
 use App\Models\Concerns\HasTrooperStamps;
 use App\Models\Scopes\HasEventShiftScopes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -25,6 +26,7 @@ class EventShift extends BaseEventShift
 {
     use HasEventShiftScopes;
     use HasFactory;
+    use HasObserver;
     use HasTrooperStamps;
 
     /**

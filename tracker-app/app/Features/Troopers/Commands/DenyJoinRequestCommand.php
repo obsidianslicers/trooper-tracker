@@ -20,5 +20,6 @@ readonly class DenyJoinRequestCommand
      */
     public function __construct(
         public TrooperOrganization $trooper_organization,
+        public ?string $denial_reason = null,
     ) {}
 }

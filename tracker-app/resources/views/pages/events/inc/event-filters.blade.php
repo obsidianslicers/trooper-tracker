@@ -1,3 +1,5 @@
+@props(['costume_organizations', 'show_allowed_orgs' => false])
+
 <div class="row mb-0">
 
     <div class="col-sm-12 col-md-8">
@@ -19,38 +21,55 @@
 
 </div>
 
-<div class="row mb-3 mt-3 mt-md-0"
-     x-show="hasActiveHostingFilter() || form.costume_organization_id"
-     x-cloak>
-    <div class="col-12 d-flex flex-wrap gap-2">
-        <template x-if="form.costume_organization_id">
-            <span class="badge bg-info small px-2 py-1 d-inline-flex align-items-center">
-                <span class="text-white"
-                      x-text="getCostumeOrganizationLabel()"></span>
-                <button type="button"
-                        class="border-0 bg-transparent text-white p-0 ms-1 lh-1"
-                        aria-label="Remove requested character type filter"
-                        x-on:click="clearCostumeOrganization()">
-                    <i class="fa fa-times"></i>
-                </button>
-            </span>
-        </template>
-
-        <template x-if="hasActiveHostingFilter()">
-            <template x-for="hostingOrganizationId in getActiveHostingOrganizationIds()"
-                      :key="`hosting-chip-${hostingOrganizationId}`">
-                <span class="badge bg-primary small px-2 py-1 d-inline-flex align-items-center">
+<div class="row mb-3">
+    <div class="col-sm-12 col-md-8 mb-sm-2 mt-3 mt-md-0 gap-2 d-flex">
+        <div x-show="hasActiveHostingFilter() || form.costume_organization_id"
+             x-cloak>
+            <template x-if="form.costume_organization_id">
+                <span class="badge bg-info small px-2 py-1 d-inline-flex align-items-center">
                     <span class="text-white"
-                          x-text="getHostingOrganizationLabel(hostingOrganizationId)"></span>
+                          x-text="getCostumeOrganizationLabel()"></span>
                     <button type="button"
                             class="border-0 bg-transparent text-white p-0 ms-1 lh-1"
-                            aria-label="Remove hosting organization filter"
-                            x-on:click="removeHostingOrganization(hostingOrganizationId)">
+                            aria-label="Remove requested character type filter"
+                            x-on:click="clearCostumeOrganization()">
                         <i class="fa fa-times"></i>
                     </button>
                 </span>
             </template>
-        </template>
+
+            <template x-if="hasActiveHostingFilter()">
+                <template x-for="hostingOrganizationId in getActiveHostingOrganizationIds()"
+                          :key="`hosting-chip-${hostingOrganizationId}`">
+                    <span class="badge bg-primary small px-2 py-1 d-inline-flex align-items-center">
+                        <span class="text-white"
+                              x-text="getHostingOrganizationLabel(hostingOrganizationId)"></span>
+                        <button type="button"
+                                class="border-0 bg-transparent text-white p-0 ms-1 lh-1"
+                                aria-label="Remove hosting organization filter"
+                                x-on:click="removeHostingOrganization(hostingOrganizationId)">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </span>
+                </template>
+            </template>
+        </div>
+    </div>
+    <div class="col-sm-12 col-md-4 mt-3 mt-md-0">
+        @if($show_allowed_orgs)
+            <button type="button"
+                    class="btn btn-sm btn-outline-secondary w-100"
+                    x-on:click="toggleAllowedOrgs()">
+                <span x-show="!display_allowed_orgs">
+                    Hide Allowed Orgs
+                    <i class="fa fa-fw fa-eye-slash ms-2"></i>
+                </span>
+                <span x-show="display_allowed_orgs">
+                    Show Allowed Orgs
+                    <i class="fa fa-fw fa-eye ms-2"></i>
+                </span>
+            </button>
+        @endif
     </div>
 </div>
 

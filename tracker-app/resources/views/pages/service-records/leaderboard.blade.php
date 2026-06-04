@@ -5,7 +5,7 @@
 @section('content')
 <div class="container-fluid py-4">
     <div class="row g-4">
-        
+
         <div class="d-flex flex-wrap gap-3 justify-content-between align-items-end mb-4">
             <div class="d-flex flex-wrap gap-3 align-items-center">
                 <h2 class="h4 mb-0 text-uppercase fw-bold">
@@ -44,7 +44,7 @@
                 <x-lookback :days="$days" :all-time="true" />
             </div>
         </div>
-        
+
         <div class="col-12">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-header bg-dark text-white text-uppercase small fw-bold">
@@ -149,11 +149,18 @@
         <div class="col-xl-6 col-lg-6">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-header bg-dark text-white text-uppercase small fw-bold">
-                    <i class="fa-solid fa-uniform-martial-arts me-2"></i> Top 5 Deployed Costumes
+                    <i class="fa-solid fa-shield-halved me-2"></i> Top 5 Deployed Costumes
+                    <span class="text-muted fw-normal ms-1" style="font-size: 0.7rem;">— click to view rankings</span>
                 </div>
                 <div class="card-body">
                     @forelse($leaderboard['diversity'] as $kit)
-                        <div class="mb-4">
+                        <div class="mb-4"
+                             @if($kit['id'])
+                                 hx-get="{{ route('service-records.costume', $kit['id']) }}{{ request()->getQueryString() ? '?'.request()->getQueryString() : '' }}"
+                                 hx-target="#costume-stats-panel"
+                                 hx-swap="innerHTML"
+                                 style="cursor:pointer;"
+                             @endif>
                             @include('pages.events.inc.leaderboard-item', [
                                 'label' => $kit['name'],
                                 'count' => $kit['count'],
@@ -168,6 +175,51 @@
             </div>
         </div>
 
+        {{-- Costume Search --}}
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-dark text-white text-uppercase small fw-bold">
+                    <i class="fa-solid fa-magnifying-glass me-2"></i> Costume Stats Lookup
+                </div>
+                <div class="card-body">
+                    <div x-data="ServiceRecords.costumeSearch()"
+                         class="position-relative"
+                         style="max-width: 480px;">
+                        <x-label value="Search Costumes" />
+                        <input type="text"
+                               class="form-control"
+                               placeholder="Type a costume name..."
+                               x-model="search"
+                               x-on:focus="showResults = true"
+                               x-on:click.away="showResults = false"
+                               autocomplete="off" />
+
+                        <div x-show="showResults && filteredCostumes.length > 0"
+                             class="list-group position-absolute w-100 mt-1 shadow-lg"
+                             style="z-index: 1050; max-height: 260px; overflow-y: auto;">
+                            <template x-for="costume in filteredCostumes" :key="costume.id">
+                                <button type="button"
+                                        class="list-group-item list-group-item-action bg-dark text-white border-secondary"
+                                        x-on:click="selectCostume(costume)"
+                                        x-text="costume.name"></button>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Costume stats panel: populated by HTMX --}}
+        <div class="col-12"
+             id="costume-stats-panel"
+             hx-on::after-swap="this.scrollIntoView({behavior:'smooth',block:'start'})"></div>
+
     </div>
 </div>
+@endsection
+
+@section('page-script')
+    <script>
+        window.$costumesList = @json($costume_list->map(fn ($c) => ['id' => $c->id, 'name' => $c->name]));
+    </script>
 @endsection

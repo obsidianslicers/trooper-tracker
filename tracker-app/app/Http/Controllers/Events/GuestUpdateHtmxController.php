@@ -55,7 +55,7 @@ class GuestUpdateHtmxController extends MagicBusController
                 return response('Forbidden', 403);
             }
 
-            if (!$event_guest->canUpdateStatus($event_shift, $authTrooper) && !$isManualApproval && !$isManualRejection)
+            if (!$event_guest->canUpdateStatus($authTrooper) && !$isManualApproval && !$isManualRejection)
             {
                 return response('Forbidden', 403);
             }

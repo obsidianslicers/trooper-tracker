@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Notifications\DatabaseNotification;
 
 /**
@@ -12,6 +13,8 @@ use Illuminate\Notifications\DatabaseNotification;
  */
 class TrooperNotification extends DatabaseNotification
 {
+    use HasFactory;
+
     protected $table = 'tt_notifications';
 
     public function getTitleAttribute(): string

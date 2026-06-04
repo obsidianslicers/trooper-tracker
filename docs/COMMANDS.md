@@ -87,32 +87,21 @@ php artisan tracker:generate-factories
 
 ---
 
-### `tracker:mimic-trooper-permissions`
+### `tracker:reopen-future-shifts`
 
-Temporarily applies one trooper's permissions to another trooper for testing/admin troubleshooting, while saving a snapshot of the target trooper's original permissions so they can be restored later.
+Finds all event shifts that are marked CLOSED but have not yet occurred (`shift_ends_at` is in the future) and reopens them. Any trooper attendance records incorrectly confirmed (ATTENDED or UNABLE_TO_ATTEND) are reset back to GOING.
 
-Permissions copied include:
-- `membership_role`
-- Organization assignment flags (`is_member`, `is_moderator`, `should_notify`)
+Run with `--dry-run` first to preview what would change before applying it.
 
 ```bash
-php artisan tracker:mimic-trooper-permissions {target_trooper_id} {source_trooper_id} [--force]
-php artisan tracker:mimic-trooper-permissions {target_trooper_id} --revert
+php artisan tracker:reopen-future-shifts [--dry-run]
 ```
 
-| Argument/Option | Required | Description |
-|---|---|---|
-| `target_trooper_id` | Yes | Trooper ID whose permissions are changed or reverted |
-| `source_trooper_id` | Yes (unless `--revert`) | Trooper ID to copy permissions from |
-| `--revert` | No | Restores the target trooper from their saved snapshot and removes the snapshot file |
-| `--force` | No | Overwrites an existing snapshot before applying mimic |
+| Option | Description |
+|---|---|
+| `--dry-run` | Preview changes without applying them |
 
-**Examples:**
-```bash
-php artisan tracker:mimic-trooper-permissions 42 7
-php artisan tracker:mimic-trooper-permissions 42 7 --force
-php artisan tracker:mimic-trooper-permissions 42 --revert
-```
+> **Note:** This is a one-time remediation command and is not scheduled.
 
 ---
 
@@ -143,6 +132,26 @@ php artisan tracker:send-test-push {trooper_id} [--url=<path>]
 ```bash
 php artisan tracker:send-test-push 42
 php artisan tracker:send-test-push 42 --url=/events/details/99
+```
+
+---
+
+### `tracker:simulate-join-request`
+
+Creates a pending club join request for a trooper and outputs the admin review URL. Dev use only.
+
+```bash
+php artisan tracker:simulate-join-request [trooper_id]
+```
+
+| Argument | Required | Description |
+|---|---|---|
+| `trooper_id` | No | ID of the trooper to submit the request for (default: random active trooper) |
+
+**Examples:**
+```bash
+php artisan tracker:simulate-join-request
+php artisan tracker:simulate-join-request 42
 ```
 
 ---
