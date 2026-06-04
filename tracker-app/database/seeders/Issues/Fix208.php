@@ -43,20 +43,19 @@ class Fix208 extends Seeder
         EventTrooper::where(EventTrooper::TROOPER_ID, $placeholder->id)
             ->each(function (EventTrooper $event_trooper) use ($administrator): void
             {
-                $exists = EventGuest::where(EventGuest::EVENT_SHIFT_ID, $event_trooper->event_shift_id)
-                    ->where(EventGuest::NAME, 'Placeholder')
-                    ->exists();
+                $count = EventGuest::where(EventGuest::EVENT_SHIFT_ID, $event_trooper->event_shift_id)
+                    ->where(EventGuest::NAME, 'like', 'Placeholder%')
+                    ->count();
 
-                if (!$exists)
-                {
-                    EventGuest::create([
-                        EventGuest::EVENT_SHIFT_ID => $event_trooper->event_shift_id,
-                        EventGuest::ADDED_BY_TROOPER_ID => $administrator->id,
-                        EventGuest::NAME => 'Placeholder',
-                        EventGuest::STATUS => $this->mapStatus($event_trooper->status),
-                        EventGuest::SIGNED_UP_AT => $event_trooper->signed_up_at,
-                    ]);
-                }
+                $name = $count === 0 ? 'Placeholder' : "Placeholder {$count}";
+
+                EventGuest::create([
+                    EventGuest::EVENT_SHIFT_ID => $event_trooper->event_shift_id,
+                    EventGuest::ADDED_BY_TROOPER_ID => $administrator->id,
+                    EventGuest::NAME => $name,
+                    EventGuest::STATUS => $this->mapStatus($event_trooper->status),
+                    EventGuest::SIGNED_UP_AT => $event_trooper->signed_up_at,
+                ]);
 
                 $event_trooper->delete();
             });
