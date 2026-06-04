@@ -27,6 +27,7 @@
         </div>
 
         <x-transmission-bar :id="'upload-images'" />
+        <div id="admin-event-upload-messages"></div>
 
         <div class="upload-zone border border-secondary rounded p-5 text-center bg-light"
              hx-post="{{ route('admin.events.upload-image', compact('event')) }}"
@@ -36,6 +37,7 @@
              hx-swap="outerHTML"
              hx-include="input[type=file]"
              hx-encoding="multipart/form-data"
+             data-flash-target="#admin-event-upload-messages"
              hx-indicator="#transmission-bar-upload-images">
             <input type="file"
                    name="images[]"

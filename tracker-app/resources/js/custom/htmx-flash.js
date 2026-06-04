@@ -1,7 +1,20 @@
 /** FLASH AFTER SWAP / ERROR **/
-function appendFlashMessage(response) {
+function resolveFlashContainer(event) {
+    const targetSelector = event.detail.elt?.dataset?.flashTarget;
+
+    if (targetSelector) {
+        const target = document.querySelector(targetSelector);
+
+        if (target) {
+            return target;
+        }
+    }
+
+    return document.getElementById('flash-messages');
+}
+
+function appendFlashMessage(response, messagesContainer) {
     if (response && response.message && response.type) {
-        const messagesContainer = document.getElementById('flash-messages');
         if (!messagesContainer) {
             console.error('Flash message container not found.');
             return;
@@ -58,7 +71,7 @@ function showHtmxFlash(event) {
             return;
         }
 
-        appendFlashMessage(JSON.parse(flashMessageJson));
+        appendFlashMessage(JSON.parse(flashMessageJson), resolveFlashContainer(event));
     } catch (e) {
         console.error("Error parsing JSON or displaying flash message:", e);
     }
@@ -74,7 +87,7 @@ function showHtmxErrorFallback(event) {
             message: 'That upload is too large for the server. Please upload JPG, PNG, or WEBP images that are 12MB or smaller.',
             type: 'danger',
             fadeOut: 5000,
-        });
+        }, resolveFlashContainer(event));
     }
 }
 
