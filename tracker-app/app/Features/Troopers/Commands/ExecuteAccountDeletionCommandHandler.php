@@ -70,7 +70,7 @@ readonly class ExecuteAccountDeletionCommandHandler implements CommandHandlerInt
         // Anonymize PII in-place so historical FK references remain valid.
         // Non-nullable columns receive placeholder values; nullable columns are cleared.
         $trooper->forceFill([
-            'display_name' => StarWarsNameGeneratorService::generate() . ' ✧',
+            'display_name' => StarWarsNameGeneratorService::generate().' ✧',
             'legal_name' => 'Deleted Member',
             'email' => "deleted+{$id}@deleted.invalid",
             'password' => Hash::make(Str::random(64)),
