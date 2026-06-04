@@ -4,24 +4,16 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\ServiceRecords;
 
-use App\Features\Reports\Queries\GetLeaderboardMetricsQuery;
+use App\Features\Reports\Queries\GetCostumeTrooperLeaderboardQuery;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Costume;
 use App\Models\Organization;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
-/**
- * Displays service record leaderboard metrics.
- */
-class LeaderboardController extends MagicBusController
+class CostumeController extends MagicBusController
 {
-    /**
-     * Retrieves leaderboard metrics for a lookback window and renders the leaderboard view.
-     *
-     * @throws \RuntimeException
-     */
-    public function __invoke(Request $request): View
+    public function __invoke(Request $request, Costume $costume): View
     {
         $days = $this->resolveDays($request);
 
@@ -45,15 +37,29 @@ class LeaderboardController extends MagicBusController
             $organization_id = null;
         }
 
-        $leaderboard = $this->bus->send(new GetLeaderboardMetricsQuery($days, $organization, 30));
+        $result = $this->bus->send(
+            new GetCostumeTrooperLeaderboardQuery($costume, $days, $organization, 30)
+        );
 
-        $costume_list = Costume::whereNotIn(Costume::NAME, ['N/A', 'NA', Costume::HANDLER, Costume::COMMAND_STAFF])
-            ->orderBy(Costume::NAME)
-            ->get([Costume::ID, Costume::NAME]);
+        $top_troopers = $result['top_troopers'];
+        $stats = $result['stats'];
 
-        $data = compact('leaderboard', 'days', 'organizations', 'organization_id', 'organization', 'costume_list');
+        $data = compact(
+            'costume',
+            'top_troopers',
+            'stats',
+            'days',
+            'organizations',
+            'organization_id',
+            'organization',
+        );
 
-        return view('pages.service-records.leaderboard', $data);
+        if ($request->isHtmx())
+        {
+            return view('pages.service-records.inc.costume-stats', $data);
+        }
+
+        return view('pages.service-records.costume', $data);
     }
 
     private function resolveDays(Request $request): ?int
@@ -65,8 +71,6 @@ class LeaderboardController extends MagicBusController
 
         $days = $request->integer('days');
 
-        return in_array($days, [30, 60, 90, 180, 360], true)
-            ? $days
-            : null;
+        return in_array($days, [30, 60, 90, 180, 360], true) ? $days : null;
     }
 }

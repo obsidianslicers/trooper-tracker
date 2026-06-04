@@ -32,13 +32,6 @@ class XenforoUserSyncService
 
         $payload = $this->buildUserPayload($trooper, $xenforoUserId);
 
-        Log::info('XenForo sync payload built', [
-            'trooper_id' => $trooper->id,
-            'xenforo_user_id' => $xenforoUserId,
-            'payload_keys' => array_keys($payload),
-            'secondary_group_ids' => $payload['secondary_group_ids'] ?? null,
-        ]);
-
         if (empty($payload))
         {
             return;
@@ -52,7 +45,6 @@ class XenforoUserSyncService
                 'trooper_id' => $trooper->id,
                 'xenforo_user_id' => $xenforoUserId,
                 'status' => $result['status'],
-                'body' => $result['body'],
             ]);
         }
     }
@@ -207,16 +199,6 @@ class XenforoUserSyncService
         $currentTTManaged = $currentSecondary->filter(fn (int $id) => $managedGroupIds->contains($id))->sort()->values();
         $desiredSorted = $desiredManaged->sort()->values();
 
-        Log::info('XenForo group calculation', [
-            'trooper_id' => $trooper->id,
-            'managed_group_ids' => $managedGroupIds->all(),
-            'current_secondary' => $currentSecondary->all(),
-            'current_tt_managed' => $currentTTManaged->all(),
-            'current_preserved' => $currentPreserved->all(),
-            'desired_managed' => $desiredManaged->all(),
-            'no_op' => $currentTTManaged->all() === $desiredSorted->all(),
-        ]);
-
         if ($currentTTManaged->all() === $desiredSorted->all())
         {
             return null;
@@ -305,8 +287,6 @@ class XenforoUserSyncService
             'trooper_assignments.organization.parent.parent',
         );
 
-        $this->logOrgMembershipSnapshot($trooper);
-
         $assignedOrgs = $trooper->trooper_assignments
             ->filter(static fn (TrooperAssignment $a) => $a->is_member)
             ->map(static fn (TrooperAssignment $a) => $a->organization)
@@ -356,61 +336,6 @@ class XenforoUserSyncService
         }
 
         return null;
-    }
-
-    private function resolveEffectiveOrganizationStatus(Trooper $trooper, mixed $organizationStatus): string
-    {
-        $status = $organizationStatus instanceof MembershipStatus
-            ? $organizationStatus->value
-            : strtolower(is_string($organizationStatus) ? $organizationStatus : MembershipStatus::ACTIVE->value);
-
-        $globalStatus = $trooper->membership_status instanceof MembershipStatus
-            ? $trooper->membership_status
-            : MembershipStatus::tryFrom((string) $trooper->membership_status);
-
-        if ($globalStatus === MembershipStatus::RETIRED && in_array($status, [
-            MembershipStatus::ACTIVE->value,
-            MembershipStatus::RESERVE->value,
-        ], true))
-        {
-            return MembershipStatus::RETIRED->value;
-        }
-
-        if ($globalStatus !== MembershipStatus::ACTIVE && $globalStatus !== MembershipStatus::RETIRED)
-        {
-            return MembershipStatus::NONE->value;
-        }
-
-        return $status;
-    }
-
-    /** Write org + assignment membership state to the application log. */
-    private function logOrgMembershipSnapshot(Trooper $trooper): void
-    {
-        Log::info('XenForo org membership snapshot', [
-            'trooper_id' => $trooper->id,
-            'organizations' => $trooper->organizations->map(static function (Organization $org) {
-                return [
-                    'id' => $org->id,
-                    'name' => $org->name,
-                    'pivot_status' => $org->pivot->membership_status ?? null,
-                    'org_groups' => [
-                        'active' => $org->xenforo_group_active_id,
-                        'reserve' => $org->xenforo_group_reserve_id,
-                        'retired' => $org->xenforo_group_retired_id,
-                    ],
-                ];
-            })->all(),
-            'assignments' => $trooper->trooper_assignments->map(static function (TrooperAssignment $assignment) {
-                return [
-                    'org_id' => $assignment->organization_id,
-                    'org_name' => optional($assignment->organization)->name,
-                    'type' => optional($assignment->organization)->type,
-                    'is_member' => $assignment->is_member,
-                    'is_moderator' => $assignment->is_moderator,
-                ];
-            })->all(),
-        ]);
     }
 
     /** Returns the formatted TKID to sync to XenForo (e.g. "TK52233"), or null. */

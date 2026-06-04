@@ -4,7 +4,9 @@
 @import "easymde/dist/easymde.min.css";
 
 // Static Styles
-[x-cloak] { display: none !important; }
+[x-cloak] {
+    display: none !important;
+}
 
 .pointer {
     cursor: pointer;
@@ -270,4 +272,27 @@ a:hover {
 img.forum-smiley {
     height: 1.2em;
     vertical-align: middle;
+}
+
+
+.w-max-content {
+    width: max-content;
+}
+
+.tabs-scroll-mobile :global(.nav-tabs) {
+    min-width: 100%;
+}
+
+.tabs-scroll-mobile :global(.nav-link) {
+    white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+    .tabs-scroll-mobile {
+        overflow-x: visible;
+    }
+
+    .w-md-auto {
+        width: auto;
+    }
 }
