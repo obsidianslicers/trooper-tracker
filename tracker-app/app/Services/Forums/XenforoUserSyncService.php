@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services\Forums;
 
-use App\Enums\MembershipStatus;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
