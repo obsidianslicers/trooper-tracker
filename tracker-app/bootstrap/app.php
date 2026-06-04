@@ -4,6 +4,7 @@ use App\Jobs\SendExceptionNotificationJob;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Exceptions\PostTooLargeException;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Exceptions\InvalidSignatureException;
 use Illuminate\Support\Facades\Cache;
@@ -109,5 +110,21 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(function (InvalidSignatureException $e, Request $request)
         {
             return redirect()->route('verification.notice')->with('status', 'invalid');
+        });
+
+        $exceptions->render(function (PostTooLargeException $e, Request $request)
+        {
+            if (! $request->isHtmx())
+            {
+                return null;
+            }
+
+            $message = json_encode([
+                'message' => 'That upload is too large for the server. Please upload JPG, PNG, or WEBP images that are 12MB or smaller.',
+                'type' => 'danger',
+                'fadeOut' => 5000,
+            ]);
+
+            return response('', 413)->header('X-Flash-Message', $message);
         });
     })->create();

@@ -4,15 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
+use App\Http\Controllers\Events\Concerns\HandlesEventImageUploadResponses;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Event;
-use App\Models\EventUpload;
-use Exception;
+use App\Services\EventImageUploadService;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
-use Intervention\Image\ImageManager;
+use Illuminate\Http\Response as HttpResponse;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Handles event image uploads from troopers.
@@ -23,10 +21,14 @@ use Intervention\Image\ImageManager;
  */
 class UploadImageController extends MagicBusController
 {
+    use HandlesEventImageUploadResponses;
+
+    public function __construct(private readonly EventImageUploadService $uploads) {}
+
     /**
      * Handle the incoming image upload request
      *
-     * Validates uploaded images (max 4MB, PNG/JPG/JPEG/WEBP), normalizes them
+     * Validates uploaded images (max 12MB, PNG/JPG/JPEG/WEBP), normalizes them
      * to square transparent canvases, generates thumbnails (128x128), and stores
      * both versions. Creates EventUpload records linked to the trooper and event.
      *
@@ -38,77 +40,36 @@ class UploadImageController extends MagicBusController
     {
         $trooper_id = $request->user()->id;
 
-        // 4MB
-        $request->validate([
-            'images.*' => ['required', 'image', 'mimes:png,jpg,jpeg,webp', 'max:4096'],
-        ]);
-
-        $manager = ImageManager::withDriver(config('tracker.image.driver'));
-
-        $fails = false;
-
-        $uploads = 0;
-
-        foreach ($request->file('images', []) as $file)
+        try
         {
-            //  original image
-            $original_path = $file->store("uploads/events/{$event->id}/originals", 'public');
-
-            try
-            {
-                $image = $manager->read($file->getPathname());
-
-                // Normalize to square transparent canvas
-                $size = max($image->width(), $image->height());
-                $canvas = $manager->create($size, $size)->fill('rgba(0,0,0,0)');
-                $canvas->place($image, 'center');
-
-                // Thumbnail (128x128)
-                $thumbnail = clone $canvas;
-                $thumbnail->scaleDown(128, 128);
-
-                $thumbnail_path = "uploads/events/{$event->id}/thumbnails/".pathinfo($file->hashName(), PATHINFO_FILENAME).'.png';
-
-                Storage::disk('public')->put(
-                    $thumbnail_path,
-                    $thumbnail->encodeByExtension('png')
-                );
-            }
-            catch (Exception $e)
-            {
-                $fails = true;
-
-                Storage::disk('public')->delete($original_path);
-
-                Log::error("Image upload failed for {$file->getClientOriginalName()}", ['error' => $e->getMessage()]);
-
-                continue;
-            }
-
-            $event_upload = new EventUpload;
-
-            $event_upload->event_id = $event->id;
-            $event_upload->trooper_id = $trooper_id;
-            $event_upload->image_path_lg = $original_path;
-            $event_upload->image_path_sm = $thumbnail_path;
-            $event_upload->is_administrative = false;
-
-            $event_upload->save();
-
-            $uploads += 1;
+            $request->validate($this->eventImageUploadRules(), $this->eventImageUploadMessages());
+        }
+        catch (ValidationException $e)
+        {
+            return $this->response($event, $this->eventImageUploadValidationMessage($e), 'danger', HttpResponse::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $message = json_encode([
-            'message' => $uploads == 1 ? 'Image Uploaded!' : "{$uploads} Images Uploaded!",
-            'type' => $fails ? 'danger' : 'success',
-        ]);
+        $result = $this->uploads->upload($event, $trooper_id, $request->file('images', []), false);
 
+        return $this->response(
+            $event,
+            $this->eventImageUploadSuccessMessage($result),
+            $result->hasFailures() ? 'warning' : 'success',
+            $result->hasUploads() ? HttpResponse::HTTP_OK : HttpResponse::HTTP_UNPROCESSABLE_ENTITY
+        );
+    }
+
+    private function response(Event $event, string $message, string $type, int $status = HttpResponse::HTTP_OK)
+    {
         $is_administrative = false;
+        $event->load(['event_uploads.troopers']);
 
         $data = compact('event', 'is_administrative');
+        $flash = json_encode($this->eventImageUploadFlash($message, $type));
 
         return response()
             ->view('pages.events.inc.upload-display', $data)
-            ->header('X-Flash-Message', $message);
+            ->setStatusCode($status)
+            ->header('X-Flash-Message', $flash);
     }
 }

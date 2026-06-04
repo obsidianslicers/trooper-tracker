@@ -201,6 +201,7 @@
                         <hr />
 
                         <x-transmission-bar :id="'upload-images'" />
+                        <div id="mission-review-upload-messages"></div>
 
                         <div class="upload-zone border border-secondary rounded p-5 text-center bg-light"
                              hx-post="{{ route('events.upload-image', compact('event')) }}"
@@ -210,15 +211,16 @@
                              hx-swap="outerHTML"
                              hx-include="input[type=file]"
                              hx-encoding="multipart/form-data"
+                             data-flash-target="#mission-review-upload-messages"
                              hx-indicator="#transmission-bar-upload-images">
                             <input type="file"
                                    name="images[]"
                                    class="image-input d-none"
                                    multiple
-                                   accept="image/*" />
+                                   accept=".jpg,.jpeg,.png,.webp" />
                             <div id="upload-label"
                                  class="text-muted">
-                                Drag & drop images here, or click to upload
+                                Drag & drop JPG, PNG, or WEBP images here, or click to upload
                             </div>
                         </div>
                     </div>
