@@ -23,11 +23,6 @@ class MissionReviewController extends MagicBusController
         $this->crumbs->addRoute('Events', 'admin.events.list');
     }
 
-    /**
-     * @param  Request  $request
-     * @param  Event    $event
-     * @return View
-     */
     public function __invoke(Request $request, Event $event): View
     {
         $this->authorize('update', $event);

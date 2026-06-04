@@ -21,12 +21,6 @@ class DeleteUploadController extends MagicBusController
 {
     protected function initialized(): void {}
 
-    /**
-     * @param  Request      $request
-     * @param  Event        $event
-     * @param  EventUpload  $event_upload
-     * @return View
-     */
     public function __invoke(Request $request, Event $event, EventUpload $event_upload): View
     {
         $this->authorize('update', $event);
