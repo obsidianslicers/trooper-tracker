@@ -46,6 +46,7 @@ class SimulateAccountDeletionCommand extends Command
 
         $trooper = Trooper::factory()
             ->asActive()
+            ->withVerifiedEmail()
             ->withPassword('password')
             ->create([
                 Trooper::DISPLAY_NAME => "Simulated Trooper ({$timestamp})",
