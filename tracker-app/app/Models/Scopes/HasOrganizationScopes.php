@@ -99,24 +99,28 @@ trait HasOrganizationScopes
      */
     public function scopeWithAllAssignments(Builder $query, Trooper $trooper): Builder
     {
-        $canModerateQuery = DB::table('tt_trooper_assignments as ta_mod')
-            ->join('tt_organizations as org_mod', 'ta_mod.organization_id', '=', 'org_mod.id')
-            ->where('ta_mod.trooper_id', $trooper->id)
-            ->where('ta_mod.is_moderator', true)
-            ->whereRaw('tt_organizations.node_path LIKE CONCAT(org_mod.node_path, "%")')
-            ->select(DB::raw('1'))
-            ->limit(1);
+        $query->orderBy(Organization::SEQUENCE)->with([
+            'parent',
+            'trooper_assignments' => function ($q) use ($trooper)
+            {
+                $q->where(TrooperAssignment::TROOPER_ID, $trooper->id);
+            }
+        ]);
 
-        return $query
-            ->addSelect(['can_moderate' => $canModerateQuery])
-            ->orderBy(Organization::SEQUENCE)
-            ->with([
-                'parent',
-                'trooper_assignments' => function ($q) use ($trooper)
-                {
-                    $q->where(TrooperAssignment::TROOPER_ID, $trooper->id);
-                }
-            ]);
+        if ($trooper->is_moderator)
+        {
+            $canModerateQuery = DB::table('tt_trooper_assignments as ta_mod')
+                ->join('tt_organizations as org_mod', 'ta_mod.organization_id', '=', 'org_mod.id')
+                ->where('ta_mod.trooper_id', $trooper->id)
+                ->where('ta_mod.is_moderator', true)
+                ->whereRaw('tt_organizations.node_path LIKE CONCAT(org_mod.node_path, "%")')
+                ->select(DB::raw('1'))
+                ->limit(1);
+
+            $query->addSelect(['can_moderate' => $canModerateQuery]);
+        }
+
+        return $query;
     }
 
     /**
