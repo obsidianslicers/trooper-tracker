@@ -83,6 +83,7 @@ readonly class GetLeaderboardMetricsQueryHandler implements QueryHandlerInterfac
             ->get()
             ->map(function ($record) {
                 return [
+                    'id' => $record->costume->id ?? null,
                     'name' => $record->costume->name ?? 'Unknown Kit',
                     'count' => $record->occurrence_count,
                 ];
@@ -99,9 +100,7 @@ readonly class GetLeaderboardMetricsQueryHandler implements QueryHandlerInterfac
                     ->when($date, fn ($q) => $q->where(Event::EVENT_START, '>=', $date));
             })
             ->whereHas('trooper', function ($q) {
-                $q->where(Trooper::MEMBERSHIP_STATUS, MembershipStatus::ACTIVE)
-                    // Exclude placeholder accounts.
-                    ->where(Trooper::DISPLAY_NAME, '!=', 'Placeholder');
+                $q->where(Trooper::MEMBERSHIP_STATUS, MembershipStatus::ACTIVE);
             })
             ->select(EventTrooper::TROOPER_ID, \DB::raw('count(*) as troop_count'))
             ->with(['trooper' => fn ($q) => $q->select(Trooper::ID, Trooper::DISPLAY_NAME)])

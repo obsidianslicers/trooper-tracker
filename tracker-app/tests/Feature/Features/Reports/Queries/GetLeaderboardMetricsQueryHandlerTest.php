@@ -6,6 +6,7 @@ namespace Tests\Feature\Features\Reports\Queries;
 
 use App\Features\Reports\Queries\GetLeaderboardMetricsQuery;
 use App\Features\Reports\Queries\GetLeaderboardMetricsQueryHandler;
+use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
@@ -126,6 +127,32 @@ class GetLeaderboardMetricsQueryHandlerTest extends TestCase
         $this->assertTrue($trooper_ids->contains($direct_trooper->id));
         $this->assertTrue($trooper_ids->contains($costume_credit_trooper->id));
         $this->assertFalse($trooper_ids->contains($other_trooper->id));
+    }
+
+    public function test_invoke_diversity_includes_id_name_and_count_keys(): void
+    {
+        $costume = Costume::factory()->create();
+        $trooper = Trooper::factory()->asMember()->create();
+        $event = Event::factory()->asClosed()->withEventStart(now()->subDays(5))->create();
+        $shift = EventShift::factory()->forEvent($event)->create();
+        EventTrooper::factory()
+            ->forEventShift($shift)
+            ->forTrooper($trooper)
+            ->withCostume($costume)
+            ->asAttended()
+            ->create();
+
+        $subject = new GetLeaderboardMetricsQueryHandler;
+        $result = $subject(new GetLeaderboardMetricsQuery);
+
+        $item = $result['diversity']->first();
+
+        $this->assertArrayHasKey('id', $item);
+        $this->assertArrayHasKey('name', $item);
+        $this->assertArrayHasKey('count', $item);
+        $this->assertSame($costume->id, $item['id']);
+        $this->assertSame($costume->name, $item['name']);
+        $this->assertSame(1, $item['count']);
     }
 
     public function test_invoke_operatives_count_only_attended_records_on_closed_events(): void
