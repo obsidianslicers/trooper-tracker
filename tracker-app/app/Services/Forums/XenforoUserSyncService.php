@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Forums;
 
+use App\Enums\MembershipStatus;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
@@ -25,11 +26,6 @@ class XenforoUserSyncService
         $xenforoUserId = $this->xenforo->resolve_user_id_for_trooper($trooper->id);
 
         if ($xenforoUserId === null)
-        {
-            return;
-        }
-
-        if (! $trooper->is_active)
         {
             return;
         }
@@ -299,9 +295,8 @@ class XenforoUserSyncService
         $allOrgs = $trooper->organizations->merge($assignedOrgs)->unique('id')->values();
 
         return $allOrgs
-            ->flatMap(function (Organization $org) {
-                $status = $org->pivot->membership_status ?? null;
-                $status = strtolower(is_string($status) ? $status : 'active');
+            ->flatMap(function (Organization $org) use ($trooper) {
+                $status = $this->resolveEffectiveOrganizationStatus($trooper, $org->pivot->membership_status ?? null);
 
                 $ids = array_filter([$this->resolveGroupIdForStatus($org, $status)]);
 
@@ -320,6 +315,16 @@ class XenforoUserSyncService
             })
             ->unique()
             ->values();
+    }
+
+    private function resolveEffectiveOrganizationStatus(Trooper $trooper, ?string $orgMembershipStatus): string
+    {
+        if ($trooper->membership_status === MembershipStatus::RETIRED)
+        {
+            return 'retired';
+        }
+
+        return $orgMembershipStatus ?? 'active';
     }
 
     /** Returns the XenForo group ID configured on an org for the given membership status. */

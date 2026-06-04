@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Requests\Admin\Troopers;
 
-use App\Enums\MembershipRole;
+use App\Enums\MembershipStatus;
 use App\Http\Requests\Admin\Troopers\MembershipRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
@@ -42,13 +42,13 @@ class MembershipRequestTest extends TestCase
         $mock_route->shouldReceive('parameter')
             ->with('trooper', \Mockery::any())
             ->andReturn($trooper);
-        $request->setRouteResolver(fn() => $mock_route);
+        $request->setRouteResolver(fn () => $mock_route);
     }
 
     public function test_authorize_returns_true_for_administrator(): void
     {
         $subject = new MembershipRequest;
-        $subject->setUserResolver(fn() => $this->admin);
+        $subject->setUserResolver(fn () => $this->admin);
         $this->setupMockedRoute($subject, $this->target_trooper);
 
         $this->assertTrue($subject->authorize());
@@ -58,7 +58,7 @@ class MembershipRequestTest extends TestCase
     {
         $moderator = Trooper::factory()->asModerator()->create();
         $subject = new MembershipRequest;
-        $subject->setUserResolver(fn() => $moderator);
+        $subject->setUserResolver(fn () => $moderator);
         $this->setupMockedRoute($subject, $this->target_trooper);
 
         $this->assertTrue($subject->authorize());
@@ -68,7 +68,7 @@ class MembershipRequestTest extends TestCase
     {
         $member = Trooper::factory()->asMember()->create();
         $subject = new MembershipRequest;
-        $subject->setUserResolver(fn() => $member);
+        $subject->setUserResolver(fn () => $member);
         $this->setupMockedRoute($subject, $this->target_trooper);
 
         $this->assertFalse($subject->authorize());
@@ -80,11 +80,11 @@ class MembershipRequestTest extends TestCase
         $this->expectExceptionMessage('Trooper not found or unauthorized.');
 
         $subject = new MembershipRequest;
-        $subject->setUserResolver(fn() => $this->admin);
+        $subject->setUserResolver(fn () => $this->admin);
         $mock_route = \Mockery::mock();
         $mock_route->shouldReceive('parameter')->with('trooper')->andReturn(null);
         $mock_route->shouldReceive('parameter')->with('trooper', \Mockery::any())->andReturn(null);
-        $subject->setRouteResolver(fn() => $mock_route);
+        $subject->setRouteResolver(fn () => $mock_route);
 
         $subject->authorize();
     }
@@ -92,7 +92,7 @@ class MembershipRequestTest extends TestCase
     public function test_rules_validates_organizations_is_array(): void
     {
         $subject = new MembershipRequest;
-        $subject->setUserResolver(fn() => $this->admin);
+        $subject->setUserResolver(fn () => $this->admin);
         $this->setupMockedRoute($subject, $this->target_trooper);
         $rules = $subject->rules();
 
@@ -104,7 +104,7 @@ class MembershipRequestTest extends TestCase
     {
         $organization = Organization::factory()->create();
         $subject = new MembershipRequest;
-        $subject->setUserResolver(fn() => $this->admin);
+        $subject->setUserResolver(fn () => $this->admin);
         $this->setupMockedRoute($subject, $this->target_trooper);
 
         $rules = $subject->rules();
@@ -117,7 +117,7 @@ class MembershipRequestTest extends TestCase
     {
         $organization = Organization::factory()->create();
         $subject = new MembershipRequest;
-        $subject->setUserResolver(fn() => $this->admin);
+        $subject->setUserResolver(fn () => $this->admin);
         $this->setupMockedRoute($subject, $this->target_trooper);
         $subject->merge([
             'organizations' => [
@@ -138,7 +138,7 @@ class MembershipRequestTest extends TestCase
     {
         $organization = Organization::factory()->create();
         $subject = new MembershipRequest;
-        $subject->setUserResolver(fn() => $this->admin);
+        $subject->setUserResolver(fn () => $this->admin);
         $this->setupMockedRoute($subject, $this->target_trooper);
 
         $validator = Validator::make(
@@ -154,5 +154,47 @@ class MembershipRequestTest extends TestCase
 
         // The validator should run without throwing exceptions
         $this->assertIsArray($validator->errors()->toArray());
+    }
+
+    public function test_rules_validates_organization_membership_status(): void
+    {
+        $organization = Organization::factory()->create();
+        $subject = new MembershipRequest;
+        $subject->setUserResolver(fn () => $this->admin);
+        $this->setupMockedRoute($subject, $this->target_trooper);
+
+        $validator = Validator::make(
+            [
+                'organizations' => [
+                    $organization->id => [
+                        'membership_status' => MembershipStatus::RETIRED->value,
+                    ],
+                ],
+            ],
+            $subject->rules()
+        );
+
+        $this->assertFalse($validator->fails());
+    }
+
+    public function test_rules_rejects_invalid_organization_membership_status(): void
+    {
+        $organization = Organization::factory()->create();
+        $subject = new MembershipRequest;
+        $subject->setUserResolver(fn () => $this->admin);
+        $this->setupMockedRoute($subject, $this->target_trooper);
+
+        $validator = Validator::make(
+            [
+                'organizations' => [
+                    $organization->id => [
+                        'membership_status' => 'invalid-status',
+                    ],
+                ],
+            ],
+            $subject->rules()
+        );
+
+        $this->assertTrue($validator->fails());
     }
 }

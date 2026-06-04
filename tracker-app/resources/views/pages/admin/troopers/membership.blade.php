@@ -39,6 +39,7 @@
                         <tr>
                             <th>Organization</th>
                             <th>Identifier</th>
+                            <th>Status</th>
                             <th>Member Of</th>
                             <th></th>
                         </tr>
@@ -53,6 +54,11 @@
                                               :value="$organization->identifier ?? null" />
                             </td>
                             <td>
+                                <x-input-select :property="'organizations.' . $organization->id . '.membership_status'"
+                                                :options="\App\Enums\MembershipStatus::toArray()"
+                                                :value="$organization->membership_status?->value ?? \App\Enums\MembershipStatus::ACTIVE->value" />
+                            </td>
+                            <td>
                                 <x-input-picker :property="'organizations.' . $organization->id . '.assignment'"
                                                 :route="'pickers.organization'"
                                                 :params="['organization_id' => $organization->id, 'depth_max' => $trooper->is_visitor ? 0 : null]"
@@ -61,12 +67,13 @@
                             </td>
                             <td class="text-end">
                                 @if($organization->is_member)
-                                    <button class="btn btn-outline-danger"
+                                    <button class="btn btn-sm btn-link text-danger p-1"
                                             type="submit"
                                             formaction="{{ route('admin.troopers.membership.remove', compact('trooper', 'organization')) }}"
-                                            formmethod="POST">
+                                            formmethod="POST"
+                                            title="Remove membership"
+                                            aria-label="Remove {{ $organization->name }} membership">
                                         <i class="fa fw fa-times"></i>
-                                        Remove
                                     </button>
                                 @endif
                             </td>
