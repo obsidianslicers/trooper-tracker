@@ -25,7 +25,9 @@ class UploadImageControllerTest extends TestCase
         $file = UploadedFile::fake()->image('admin-upload.jpg', 800, 600)->size(2048);
 
         $response = $this->actingAs($admin)
+            ->withSession(['_token' => 'test-token'])
             ->withHeader('HX-Request', 'true')
+            ->withHeader('X-CSRF-TOKEN', 'test-token')
             ->post(route('admin.events.upload-image', $event), [
                 'images' => [$file],
             ]);
@@ -48,9 +50,11 @@ class UploadImageControllerTest extends TestCase
         $event = Event::factory()->create();
         $file = UploadedFile::fake()->image('admin-upload.png');
 
-        $response = $this->post(route('admin.events.upload-image', ['event' => $event->id]), [
-            'images' => [$file],
-        ]);
+        $response = $this->withSession(['_token' => 'test-token'])
+            ->withHeader('X-CSRF-TOKEN', 'test-token')
+            ->post(route('admin.events.upload-image', ['event' => $event->id]), [
+                'images' => [$file],
+            ]);
 
         $response->assertRedirect(route('auth.login'));
     }
