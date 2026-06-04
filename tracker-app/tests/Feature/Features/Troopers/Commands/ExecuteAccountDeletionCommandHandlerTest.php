@@ -24,15 +24,16 @@ class ExecuteAccountDeletionCommandHandlerTest extends TestCase
     public function test_invoke_anonymizes_pii_fields(): void
     {
         $trooper = Trooper::factory()->asActive()->create([
+            Trooper::DISPLAY_NAME => 'Jane Trooper Display',
             Trooper::LEGAL_NAME => 'Jane Trooper',
-            Trooper::PHONE      => '555-1234',
+            Trooper::PHONE => '555-1234',
         ]);
 
         $handler = app(ExecuteAccountDeletionCommandHandler::class);
         $handler(new ExecuteAccountDeletionCommand($trooper));
 
         $fresh = Trooper::withTrashed()->find($trooper->id);
-        $this->assertEquals('Deleted Member', $fresh->display_name);
+        $this->assertNotEquals('Jane Trooper Display', $fresh->display_name);
         $this->assertEquals('Deleted Member', $fresh->legal_name);
         $this->assertNull($fresh->phone);
         $this->assertNotEquals('', $fresh->password);

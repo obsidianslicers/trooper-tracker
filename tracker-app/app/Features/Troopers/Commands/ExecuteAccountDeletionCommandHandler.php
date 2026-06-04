@@ -21,6 +21,7 @@ use App\Models\TrooperDonation;
 use App\Models\TrooperFriend;
 use App\Models\TrooperNotification;
 use App\Models\TrooperOrganization;
+use App\Services\StarWarsNameGeneratorService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -69,7 +70,7 @@ readonly class ExecuteAccountDeletionCommandHandler implements CommandHandlerInt
         // Anonymize PII in-place so historical FK references remain valid.
         // Non-nullable columns receive placeholder values; nullable columns are cleared.
         $trooper->forceFill([
-            'display_name' => 'Deleted Member',
+            'display_name' => StarWarsNameGeneratorService::generate() . ' ✧',
             'legal_name' => 'Deleted Member',
             'email' => "deleted+{$id}@deleted.invalid",
             'password' => Hash::make(Str::random(64)),
