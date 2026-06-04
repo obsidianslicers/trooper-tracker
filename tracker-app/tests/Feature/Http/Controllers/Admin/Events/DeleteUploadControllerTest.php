@@ -16,19 +16,36 @@ class DeleteUploadControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_invoke_soft_deletes_upload_and_returns_no_content(): void
+    public function test_invoke_soft_deletes_upload_and_returns_view(): void
     {
         Storage::fake('public');
 
         $admin = Trooper::factory()->asAdministrator()->create();
         $event = Event::factory()->create();
-        $upload = EventUpload::factory()->for($event)->create();
+        $upload = EventUpload::factory()->for($event)->create([EventUpload::IS_ADMINISTRATIVE => false]);
 
         $response = $this->actingAs($admin)
-            ->post(route('admin.events.uploads.delete', compact('event', 'upload') + ['event_upload' => $upload]));
+            ->post(route('admin.events.uploads.delete', ['event' => $event, 'event_upload' => $upload]));
 
-        $response->assertNoContent();
+        $response->assertOk();
+        $response->assertViewIs('pages.admin.events.mission-review');
         $this->assertSoftDeleted('tt_event_uploads', [EventUpload::ID => $upload->id]);
+    }
+
+    public function test_invoke_returns_empty_state_when_last_upload_is_deleted(): void
+    {
+        Storage::fake('public');
+
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $event = Event::factory()->create();
+        $upload = EventUpload::factory()->for($event)->create([EventUpload::IS_ADMINISTRATIVE => false]);
+
+        $response = $this->actingAs($admin)
+            ->post(route('admin.events.uploads.delete', ['event' => $event, 'event_upload' => $upload]));
+
+        $response->assertOk();
+        $uploads = $response->viewData('member_uploads');
+        $this->assertCount(0, $uploads);
     }
 
     public function test_invoke_soft_deletes_tagged_pivot_rows(): void

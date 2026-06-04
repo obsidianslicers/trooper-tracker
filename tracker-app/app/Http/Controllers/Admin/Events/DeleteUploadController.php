@@ -8,8 +8,8 @@ use App\Features\Events\Commands\DeleteEventUploadCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Event;
 use App\Models\EventUpload;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 
 /**
  * Handles deletion of an event photo upload.
@@ -25,9 +25,9 @@ class DeleteUploadController extends MagicBusController
      * @param  Request      $request
      * @param  Event        $event
      * @param  EventUpload  $event_upload
-     * @return Response
+     * @return View
      */
-    public function __invoke(Request $request, Event $event, EventUpload $event_upload): Response
+    public function __invoke(Request $request, Event $event, EventUpload $event_upload): View
     {
         $this->authorize('update', $event);
 
@@ -35,6 +35,12 @@ class DeleteUploadController extends MagicBusController
 
         $this->bus->send(new DeleteEventUploadCommand($event_upload));
 
-        return response()->noContent();
+        $member_uploads = $event->event_uploads()
+            ->where('is_administrative', false)
+            ->with('trooper', 'troopers')
+            ->latest()
+            ->get();
+
+        return view('pages.admin.events.mission-review', compact('event', 'member_uploads'));
     }
 }
