@@ -35,12 +35,11 @@ class ListController extends MagicBusController
      */
     public function __invoke(Request $request): View
     {
-        $organizations = Organization::withAllAssignments(Auth::user()->id)->get();
+        $user = Auth::user();
+        $organizations = Organization::withAllAssignments($user)->get();
 
-        $data = [
+        return view('pages.admin.organizations.list', [
             'organizations' => $organizations,
-        ];
-
-        return view('pages.admin.organizations.list', $data);
+        ]);
     }
 }
