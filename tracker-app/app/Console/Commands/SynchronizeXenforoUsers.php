@@ -37,6 +37,6 @@ class SynchronizeXenforoUsers extends Command
                 });
         });
 
-        $this->info('XenForo user synchronization completed in '.($ms->asSeconds(3)).' seconds.');
+        $this->info('XenForo user synchronization completed in '.number_format($ms / 1000, 3).' seconds.');
     }
 }
