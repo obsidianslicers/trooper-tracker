@@ -200,10 +200,11 @@ trait HasEventDisplayAssembler
     private function buildDisplayOrganizations(EventTrooper $event_trooper, Collection $potential_orgs, $costume_id): string
     {
         // Filter actual approvals by reaching through to the organization_costume
-        $approved_orgs = $event_trooper->trooper->trooper_costumes
+        $approved_orgs = $event_trooper->trooper?->trooper_costumes
             ->filter(fn ($tc) => optional($tc->organization_costume)->costume_id == $costume_id)
             ->pluck('organization_costume.organization_id')
-            ->unique();
+            ->unique()
+            ?? collect();
 
         $final_orgs = $potential_orgs->intersect($approved_orgs);
 

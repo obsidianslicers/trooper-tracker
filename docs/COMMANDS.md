@@ -20,6 +20,7 @@ These commands run automatically via the scheduler defined in `routes/console.ph
 | `tracker:calculate-trooper-achievements` | Daily at 2:00 AM |
 | `tracker:expire-visitor-access` | Daily at 12:30 AM |
 | `tracker:send-daily-event-notifications` | Daily at 8:00 AM |
+| `tracker:process-account-deletions` | Daily at 3:30 AM |
 
 ---
 
@@ -73,6 +74,18 @@ One-time maintenance command. Sets `is_member = false` on parent-level assignmen
 
 ```bash
 php artisan tracker:fix-trooper-assignment-hierarchy
+```
+
+---
+
+### `tracker:process-account-deletions`
+
+Permanently anonymizes and soft-deletes trooper accounts that have been pending deletion for 30 or more days. Picks up any account where `deletion_requested_at` is set and the 30-day grace period has elapsed.
+
+Run automatically by the scheduler. Can also be run manually to force-process any overdue accounts.
+
+```bash
+php artisan tracker:process-account-deletions
 ```
 
 ---
@@ -132,6 +145,33 @@ php artisan tracker:send-test-push {trooper_id} [--url=<path>]
 ```bash
 php artisan tracker:send-test-push 42
 php artisan tracker:send-test-push 42 --url=/events/details/99
+```
+
+---
+
+### `tracker:simulate-account-deletion`
+
+Creates a disposable dummy trooper with event sign-ups and associated records, then either requests deletion (for UI inspection) or immediately executes the full anonymization and deletion (for logic verification). **Dev use only — do not run in production.**
+
+In default mode the command prints login credentials and a login URL so you can inspect the pending-deletion banner and test the cancel flow in a real browser. In `--execute` mode it runs the full deletion immediately and prints a pass/fail verification table.
+
+> **Note:** Confirmation emails are queued, not sent immediately. Run `php artisan queue:work` to deliver them.
+
+```bash
+php artisan tracker:simulate-account-deletion [--execute]
+```
+
+| Option | Description |
+|---|---|
+| `--execute` | Skip the 30-day grace period and immediately run anonymization and deletion |
+
+**Examples:**
+```bash
+# Create account + request deletion → log in to verify the banner
+php artisan tracker:simulate-account-deletion
+
+# Create account → execute deletion → verify all checks pass
+php artisan tracker:simulate-account-deletion --execute
 ```
 
 ---

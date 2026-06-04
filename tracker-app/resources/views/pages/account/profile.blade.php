@@ -96,4 +96,89 @@
 
     </x-slim-container>
 
+    @unless($trooper->deletion_requested_at)
+    <x-slim-container>
+
+        <x-card>
+            <h5 class="text-danger mb-3">Danger Zone</h5>
+
+            <p class="text-muted mb-3">
+                Permanently delete your account and remove your personal information.
+                Event participation history is retained in anonymized form.
+                This cannot be undone after the 30-day grace period.
+            </p>
+
+            <button type="button"
+                    class="btn btn-outline-danger"
+                    data-bs-toggle="modal"
+                    data-bs-target="#delete-account-modal">
+                Delete Account
+            </button>
+        </x-card>
+
+    </x-slim-container>
+
+    <div class="modal fade"
+         id="delete-account-modal"
+         tabindex="-1"
+         aria-labelledby="delete-account-modal-label"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content"
+                 x-data="{ confirmed: false, input: '' }">
+                <div class="modal-header">
+                    <h5 class="modal-title text-danger"
+                        id="delete-account-modal-label">
+                        Delete Account
+                    </h5>
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>
+                        This will schedule your account for permanent deletion in <strong>30 days</strong>.
+                        You may cancel during this window by logging back in.
+                    </p>
+                    <ul>
+                        <li>Your name, email, phone, and login credentials will be removed.</li>
+                        <li>Event participation records are kept in anonymized form.</li>
+                        <li>This action is irreversible after 30 days.</li>
+                    </ul>
+                    <div class="mt-3">
+                        <label class="form-label"
+                               for="delete-confirm-input">
+                            Type <strong>DELETE</strong> to confirm:
+                        </label>
+                        <input id="delete-confirm-input"
+                               type="text"
+                               class="form-control"
+                               autocomplete="off"
+                               x-model="input"
+                               x-on:input="confirmed = (input === 'DELETE')" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                    <form method="POST"
+                          action="{{ route('account.delete') }}">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit"
+                                class="btn btn-danger"
+                                x-bind:disabled="!confirmed">
+                            Delete My Account
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endunless
+
 @endsection

@@ -5,6 +5,8 @@ declare(strict_types=1);
 use App\Enums\OauthProvider;
 use App\Http\Controllers\Account\ClubMembershipsController;
 use App\Http\Controllers\Account\ClubMembershipsSubmitHtmxController;
+use App\Http\Controllers\Account\DeletionCancelController;
+use App\Http\Controllers\Account\DeletionRequestController;
 use App\Http\Controllers\Account\CostumesController;
 use App\Http\Controllers\Account\CostumesDeleteHtmxController;
 use App\Http\Controllers\Account\CostumesSubmitHtmxController;
@@ -55,6 +57,9 @@ Route::prefix('account')
 
         Route::get('/visitor-renew', VisitorRenewController::class)->name('visitor-renew');
         Route::post('/visitor-renew', VisitorRenewSubmitController::class)->name('visitor-renew-submit');
+
+        Route::delete('/delete', DeletionRequestController::class)->name('delete');
+        Route::delete('/delete/cancel', DeletionCancelController::class)->name('delete.cancel');
 
         // XenForo linking required page
         Route::get('/xenforo/required', function (): View

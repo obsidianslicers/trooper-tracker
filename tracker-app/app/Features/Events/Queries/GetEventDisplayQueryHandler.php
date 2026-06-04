@@ -90,7 +90,9 @@ readonly class GetEventDisplayQueryHandler implements QueryHandlerInterface
             'event_shifts.event_guests' => function ($query) {
                 $query->orderBy(EventGuest::NAME);
             },
-            'event_shifts.event_troopers.trooper:'.implode(',', $trooper_columns),
+            'event_shifts.event_troopers.trooper' => function ($query) use ($trooper_columns) {
+                $query->withTrashed()->select($trooper_columns);
+            },
             'event_shifts.event_troopers.trooper.trooper_costumes.organization_costume',
             'event_shifts.event_troopers.added_by_trooper:'.implode(',', $trooper_columns),
             'event_shifts.event_troopers.updated_by:'.implode(',', $trooper_columns),

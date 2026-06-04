@@ -47,6 +47,8 @@
 
     <div class="container rounded-3 shadow-sm p-4 mb-5 main-content">
         @include('partials.messages')
+        @include('partials.account-delete-notice')
+
         <div class="row dashboard-row"></div>
 
         @yield('content')
