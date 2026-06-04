@@ -2,7 +2,7 @@
      x-init="init()">
     <!-- Toggle Button (Desktop Only) -->
     <div class="mb-3 d-none d-lg-block">
-        <button @click="toggleView()"
+        <button x-on:click="toggleView()"
                 class="btn btn-outline-secondary btn-sm">
             <span x-show="view === 'cards'">Switch to Table View</span>
             <span x-show="view === 'table'">Switch to Card View</span>

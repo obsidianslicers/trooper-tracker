@@ -45,7 +45,7 @@
                      class="d-flex justify-content-between">
                     <button type="button"
                             class="btn btn-danger btn-sm"
-                            @click="denying = true">
+                            x-on:click="denying = true">
                         Deny
                     </button>
                     <button class="btn btn-success btn-sm"
@@ -74,7 +74,7 @@
                     <div class="d-flex justify-content-between">
                         <button type="button"
                                 class="btn btn-secondary btn-sm"
-                                @click="denying = false">
+                                x-on:click="denying = false">
                             Cancel
                         </button>
                         <button type="submit"

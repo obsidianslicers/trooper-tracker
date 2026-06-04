@@ -22,8 +22,9 @@
     </x-card>
 
     <div x-data="Events.Search.eventSelector()">
+        @php $show_allowed_orgs = true @endphp
 
-        @include('pages.events.inc.event-filters', compact('costume_organizations'))
+        @include('pages.events.inc.event-filters', compact('costume_organizations', 'show_allowed_orgs'))
 
         <div class="row row-cols-1 row-cols-md-3 g-4 mt-1 event-cards">
 

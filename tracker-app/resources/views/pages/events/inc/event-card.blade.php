@@ -81,18 +81,20 @@
             </ul>
         </div>
 
-        <div class="card-footer bg-secondary p-0">
-            <ul class="list-group list-group-flush">
-                @foreach($event->organizations as $organization)
-                    <li class="list-group-item"
-                        data-event-status="{{ $organization->pivot->can_attend ?? false }}"
-                        data-event-costume-organization-id="{{ $organization->id }}">
-                        <x-yes-no class="me-2"
-                                  :value="$organization->pivot->can_attend ?? false" />
-                        {{ $organization->name }}
-                    </li>
-                @endforeach
-            </ul>
-        </div>
+        <template x-if="display_allowed_orgs">
+            <div class="card-footer bg-secondary p-0">
+                <ul class="list-group list-group-flush">
+                    @foreach($event->organizations as $organization)
+                        <li class="list-group-item"
+                            data-event-status="{{ $organization->pivot->can_attend ?? false }}"
+                            data-event-costume-organization-id="{{ $organization->id }}">
+                            <x-yes-no class="me-2"
+                                      :value="$organization->pivot->can_attend ?? false" />
+                            {{ $organization->name }}
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        </template>
     </div>
 </div>

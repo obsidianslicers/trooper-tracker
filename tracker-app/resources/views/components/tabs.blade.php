@@ -1,7 +1,7 @@
 @props(['id' => 'tabs'])
 
-<div class="mb-3">
-    <ul class="nav nav-tabs d-md-flex"
+<div class="overflow-auto tabs-scroll-mobile">
+    <ul class="nav nav-tabs flex-nowrap flex-md-wrap w-max-content w-md-auto"
         id="{{ $id }}"
         role="tablist">
         {{ $slot }}
