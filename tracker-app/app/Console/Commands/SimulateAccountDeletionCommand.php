@@ -115,8 +115,14 @@ class SimulateAccountDeletionCommand extends Command
         MobileDevice::factory()->create([MobileDevice::TROOPER_ID => $id]);
         MobileDevice::factory()->create([MobileDevice::TROOPER_ID => $id]);
 
-        TrooperCostume::factory()->forTrooper($trooper)->forOrganizationCostume(OrganizationCostume::factory()->create())->create();
-        TrooperCostume::factory()->forTrooper($trooper)->forOrganizationCostume(OrganizationCostume::factory()->create())->create();
+        $org_costumes = OrganizationCostume::inRandomOrder()->take(2)->get();
+
+        foreach ($org_costumes as $org_costume)
+        {
+            TrooperCostume::factory()->forTrooper($trooper)->forOrganizationCostume($org_costume)->create();
+        }
+
+        $costume_count = $org_costumes->count();
 
         TrooperAchievement::factory()->forTrooper($trooper)->withType(AchievementType::TROOPER_RANK)->create();
         TrooperAchievement::factory()->forTrooper($trooper)->withType(AchievementType::TROOPER_SHIFTS)->create();
@@ -134,7 +140,7 @@ class SimulateAccountDeletionCommand extends Command
             [
                 ['tt_oauth_logins',        2,                    'Hard-deleted'],
                 ['tt_mobile_devices',      2,                    'Hard-deleted'],
-                ['tt_trooper_costumes',    2,                    'Soft-deleted'],
+                ['tt_trooper_costumes',    $costume_count,       'Soft-deleted'],
                 ['tt_trooper_achievements', 2,                   'Soft-deleted'],
                 ['tt_trooper_donations',   1,                    'Soft-deleted'],
                 ['tt_event_troopers',      $event_trooper_count, 'Retained ← verify this'],
@@ -154,7 +160,7 @@ class SimulateAccountDeletionCommand extends Command
             ['PII anonymized',          $fresh->display_name === 'Deleted Member'],
             ['OAuth logins removed',    OauthLogin::withTrashed()->where(OauthLogin::TROOPER_ID, $id)->count() === 0],
             ['Mobile devices removed',  MobileDevice::where(MobileDevice::TROOPER_ID, $id)->count() === 0],
-            ['Costumes soft-deleted',   TrooperCostume::withTrashed()->where(TrooperCostume::TROOPER_ID, $id)->whereNotNull('deleted_at')->count() === 2],
+            ['Costumes soft-deleted',   TrooperCostume::withTrashed()->where(TrooperCostume::TROOPER_ID, $id)->whereNotNull('deleted_at')->count() === $costume_count],
             ['Event sign-ups retained', EventTrooper::where(EventTrooper::TROOPER_ID, $id)->count() === $event_trooper_count],
         ];
 
