@@ -9,6 +9,7 @@ use App\Models\Event;
 use App\Models\EventUpload;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\ImageManager;
@@ -105,8 +106,12 @@ class UploadImageController extends MagicBusController
             'type' => $fails ? 'danger' : 'success',
         ]);
 
+        $is_administrative = false;
+
+        $data = compact('event', 'is_administrative');
+
         return response()
-            ->view('pages.admin.events.inc.upload-list', compact('event'))
+            ->view('pages.admin.events.uploads', $data)
             ->header('X-Flash-Message', $message);
     }
 }
