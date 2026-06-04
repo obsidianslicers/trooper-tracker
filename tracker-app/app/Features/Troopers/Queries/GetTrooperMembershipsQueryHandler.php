@@ -43,8 +43,8 @@ readonly class GetTrooperMembershipsQueryHandler implements QueryHandlerInterfac
         $organization_memberships = TrooperOrganization::query()
             ->where(TrooperOrganization::TROOPER_ID, $message->trooper->id)
             ->whereNull(TrooperOrganization::DELETED_AT)
-            ->pluck(TrooperOrganization::IDENTIFIER, TrooperOrganization::ORGANIZATION_ID)
-            ->toArray();
+            ->get()
+            ->keyBy(TrooperOrganization::ORGANIZATION_ID);
 
         $assignments = $message->trooper->trooper_assignments()
             ->with('organization')
@@ -53,14 +53,16 @@ readonly class GetTrooperMembershipsQueryHandler implements QueryHandlerInterfac
 
         foreach ($organizations as $organization)
         {
-            $organization->is_member = array_key_exists($organization->id, $organization_memberships);
+            $trooper_organization = $organization_memberships->get($organization->id);
+            $organization->is_member = $trooper_organization !== null;
 
-            if (array_key_exists($organization->id, $organization_memberships) === false)
+            if ($trooper_organization === null)
             {
                 continue;
             }
 
-            $organization->identifier = $organization_memberships[$organization->id];
+            $organization->identifier = $trooper_organization->identifier;
+            $organization->membership_status = $trooper_organization->membership_status;
 
             foreach ($assignments as $assignment)
             {

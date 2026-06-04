@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Features\Troopers\Commands;
 
 use App\Bus\Contracts\CommandHandlerInterface;
+use App\Enums\MembershipStatus;
 use App\Models\TrooperOrganization;
 
 /**
@@ -27,20 +28,26 @@ readonly class UpdateTrooperIdentifiersCommandHandler implements CommandHandlerI
     {
         foreach ($message->valid_data as $organization_id => $data)
         {
-            $identifier = $data['identifier'] ?? null;
+            $identifier = array_key_exists('identifier', $data)
+                ? trim((string) $data['identifier'])
+                : null;
+            $identifier = $identifier === '' ? null : $identifier;
 
-            if ($identifier === null)
-            {
-                continue;
-            }
-
-            $identifier = trim($identifier);
+            $assignment_id = $data['assignment'] ?? null;
+            $assignment_id = $assignment_id === '' ? null : $assignment_id;
+            $membership_status = MembershipStatus::tryFrom((string) ($data['membership_status'] ?? ''))
+                ?? MembershipStatus::ACTIVE;
 
             $trooper_organization = TrooperOrganization::query()
                 ->withTrashed()
                 ->where(TrooperOrganization::TROOPER_ID, $message->trooper->id)
                 ->where(TrooperOrganization::ORGANIZATION_ID, $organization_id)
                 ->first();
+
+            if ($trooper_organization === null && $identifier === null && $assignment_id === null)
+            {
+                continue;
+            }
 
             if ($trooper_organization)
             {
@@ -50,6 +57,7 @@ readonly class UpdateTrooperIdentifiersCommandHandler implements CommandHandlerI
                 }
 
                 $trooper_organization->identifier = $identifier;
+                $trooper_organization->membership_status = $membership_status;
                 $trooper_organization->save();
 
                 continue;
@@ -59,6 +67,7 @@ readonly class UpdateTrooperIdentifiersCommandHandler implements CommandHandlerI
             $trooper_organization->trooper_id = $message->trooper->id;
             $trooper_organization->organization_id = $organization_id;
             $trooper_organization->identifier = $identifier;
+            $trooper_organization->membership_status = $membership_status;
             $trooper_organization->save();
         }
 
