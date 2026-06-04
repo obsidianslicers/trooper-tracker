@@ -9,10 +9,15 @@ use App\Enums\RosterAction;
 use App\Mail\Admin\Events\EventRosterActivityMail;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
+use Illuminate\Queue\SerializesModels;
 
-class EventRosterActivityNotification extends Notification
+class EventRosterActivityNotification extends Notification implements ShouldQueue
 {
+    use Queueable, SerializesModels;
+
     public function __construct(
         private readonly EventTrooper $event_trooper,
         private readonly RosterAction $action,
@@ -53,16 +58,17 @@ class EventRosterActivityNotification extends Notification
         $event = $this->event_trooper->event_shift->event;
         $trooper = $this->event_trooper->trooper;
 
-        $verb = match ($this->action) {
-            RosterAction::CANCELLED   => 'cancelled from',
+        $verb = match ($this->action)
+        {
+            RosterAction::CANCELLED => 'cancelled from',
             RosterAction::RESIGNED_UP => 're-signed up for',
-            default                   => 'signed up for',
+            default => 'signed up for',
         };
 
         return [
             'title' => 'Roster Update: '.$event->name,
-            'body'  => $trooper->display_name.' has '.$verb.' this event.',
-            'url'   => '/events/details/'.$event->id,
+            'body' => $trooper->display_name.' has '.$verb.' this event.',
+            'url' => '/events/details/'.$event->id,
         ];
     }
 
