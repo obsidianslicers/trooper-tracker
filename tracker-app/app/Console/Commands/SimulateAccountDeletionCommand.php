@@ -6,11 +6,14 @@ namespace App\Console\Commands;
 
 use App\Bus\MagicBus;
 use App\Enums\AchievementType;
+use App\Enums\EventTrooperStatus;
 use App\Features\Troopers\Commands\ExecuteAccountDeletionCommand;
 use App\Features\Troopers\Commands\RequestAccountDeletionCommand;
+use App\Models\Event;
 use App\Models\EventMissionAck;
 use App\Models\EventNotification;
 use App\Models\EventShare;
+use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\EventWatch;
 use App\Models\MobileDevice;
@@ -53,12 +56,16 @@ class SimulateAccountDeletionCommand extends Command
                 Trooper::LEGAL_NAME => "Simulated Trooper ({$timestamp})",
             ]);
 
-        // Always create event sign-ups so roster appearance can be verified
-        $event_trooper_count = 3;
+        $event_shifts = EventShift::inRandomOrder()->take(3)->get();
+        $event_trooper_count = $event_shifts->count();
 
-        for ($i = 0; $i < $event_trooper_count; $i++)
+        foreach ($event_shifts as $event_shift)
         {
-            EventTrooper::factory()->forTrooper($trooper)->asAttended()->create();
+            EventTrooper::create([
+                EventTrooper::EVENT_SHIFT_ID => $event_shift->id,
+                EventTrooper::TROOPER_ID => $trooper->id,
+                EventTrooper::STATUS => EventTrooperStatus::ATTENDED,
+            ]);
         }
 
         if (!$this->option('execute'))
@@ -107,8 +114,8 @@ class SimulateAccountDeletionCommand extends Command
     private function runExecuteMode(MagicBus $bus, Trooper $trooper, int $event_trooper_count): int
     {
         $id = $trooper->id;
+        $event = Event::inRandomOrder()->first();
 
-        // Attach a full set of associated records
         OauthLogin::factory()->forTrooper($trooper)->create();
         OauthLogin::factory()->forTrooper($trooper)->create();
 
@@ -129,10 +136,10 @@ class SimulateAccountDeletionCommand extends Command
 
         TrooperDonation::factory()->forTrooper($trooper)->create();
 
-        EventNotification::factory()->forTrooper($trooper)->create();
-        EventShare::factory()->forTrooper($trooper)->create();
-        EventMissionAckFactory::new()->create([EventMissionAck::TROOPER_ID => $id]);
-        EventWatchFactory::new()->create([EventWatch::TROOPER_ID => $id]);
+        EventNotification::factory()->forTrooper($trooper)->forEvent($event)->create();
+        EventShare::factory()->forTrooper($trooper)->forEvent($event)->create();
+        EventMissionAckFactory::new()->create([EventMissionAck::TROOPER_ID => $id, EventMissionAck::EVENT_ID => $event->id]);
+        EventWatchFactory::new()->create([EventWatch::TROOPER_ID => $id, EventWatch::EVENT_ID => $event->id]);
 
         $this->line('<fg=cyan;options=bold>── Records Created ────────────────────────────────</>');
         $this->table(
