@@ -150,7 +150,7 @@ class SimulateAccountDeletionCommand extends Command
                 ['tt_trooper_costumes',    $costume_count,       'Soft-deleted'],
                 ['tt_trooper_achievements', 2,                   'Soft-deleted'],
                 ['tt_trooper_donations',   1,                    'Soft-deleted'],
-                ['tt_event_troopers',      $event_trooper_count, 'Retained ← verify this'],
+                ['tt_event_troopers',      $event_trooper_count, 'Retained'],
                 ['tt_event_notifications', 1,                    'Soft-deleted'],
                 ['tt_event_shares',        1,                    'Soft-deleted'],
                 ['tt_event_mission_acks',  1,                    'Soft-deleted'],
