@@ -1,5 +1,5 @@
-/** FLASH AFTER SWAP **/
-document.body.addEventListener('htmx:afterSwap', function (event) {
+/** FLASH AFTER SWAP / ERROR **/
+function showHtmxFlash(event) {
     try {
         const flashMessageJson = event.detail.xhr.getResponseHeader('X-Flash-Message');
         if (!flashMessageJson) {
@@ -59,4 +59,7 @@ document.body.addEventListener('htmx:afterSwap', function (event) {
     } catch (e) {
         console.error("Error parsing JSON or displaying flash message:", e);
     }
-});
+}
+
+document.body.addEventListener('htmx:afterSwap', showHtmxFlash);
+document.body.addEventListener('htmx:responseError', showHtmxFlash);
