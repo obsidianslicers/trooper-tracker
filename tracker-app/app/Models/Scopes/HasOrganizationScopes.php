@@ -94,18 +94,29 @@ trait HasOrganizationScopes
      * Scope a query to eager load all assignments for a specific trooper.
      *
      * @param Builder<Organization> $query The Eloquent query builder.
-     * @param int $trooper_id The ID of the trooper whose assignments should be loaded.
+     * @param Trooper $trooper The trooper whose assignments should be loaded.
      * @return Builder<Organization>
      */
-    public function scopeWithAllAssignments(Builder $query, int $trooper_id): Builder
+    public function scopeWithAllAssignments(Builder $query, Trooper $trooper): Builder
     {
-        return $query->orderBy(Organization::SEQUENCE)->with([
-            'parent',
-            'trooper_assignments' => function ($q) use ($trooper_id)
-            {
-                $q->where(TrooperAssignment::TROOPER_ID, $trooper_id);
-            }
-        ]);
+        $canModerateQuery = DB::table('tt_trooper_assignments as ta_mod')
+            ->join('tt_organizations as org_mod', 'ta_mod.organization_id', '=', 'org_mod.id')
+            ->where('ta_mod.trooper_id', $trooper->id)
+            ->where('ta_mod.is_moderator', true)
+            ->whereRaw('tt_organizations.node_path LIKE CONCAT(org_mod.node_path, "%")')
+            ->select(DB::raw('1'))
+            ->limit(1);
+
+        return $query
+            ->addSelect(['can_moderate' => $canModerateQuery])
+            ->orderBy(Organization::SEQUENCE)
+            ->with([
+                'parent',
+                'trooper_assignments' => function ($q) use ($trooper)
+                {
+                    $q->where(TrooperAssignment::TROOPER_ID, $trooper->id);
+                }
+            ]);
     }
 
     /**

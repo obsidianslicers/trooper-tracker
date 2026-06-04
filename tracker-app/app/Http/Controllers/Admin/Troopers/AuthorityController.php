@@ -37,7 +37,7 @@ class AuthorityController extends MagicBusController
     {
         $this->authorize('updateAuthority', $trooper);
 
-        $organization_authorities = Organization::withAllAssignments($trooper->id)->get();
+        $organization_authorities = Organization::withAllAssignments($trooper)->get();
 
         $data = [
             'trooper' => $trooper,
