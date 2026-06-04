@@ -11,6 +11,7 @@ use App\Models\EventGuest;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class Fix208 extends Seeder
 {
@@ -33,9 +34,19 @@ class Fix208 extends Seeder
 
         $administrator = Trooper::where(Trooper::MEMBERSHIP_ROLE, MembershipRole::ADMINISTRATOR)->first();
 
-        $this->convertSignupsToGuests($placeholder, $administrator);
+        if ($administrator === null)
+        {
+            $this->command?->warn('No administrator trooper found.');
 
-        $placeholder->delete();
+            return;
+        }
+
+        DB::transaction(function () use ($placeholder, $administrator): void
+        {
+            $this->convertSignupsToGuests($placeholder, $administrator);
+
+            $placeholder->delete();
+        });
     }
 
     private function convertSignupsToGuests(Trooper $placeholder, Trooper $administrator): void
@@ -47,7 +58,7 @@ class Fix208 extends Seeder
                     ->where(EventGuest::NAME, 'like', 'Placeholder%')
                     ->count();
 
-                $name = $count === 0 ? 'Placeholder' : "Placeholder {$count}";
+                $name = $count === 0 ? 'Placeholder' : "Placeholder " . ($count + 1);
 
                 EventGuest::create([
                     EventGuest::EVENT_SHIFT_ID => $event_trooper->event_shift_id,
