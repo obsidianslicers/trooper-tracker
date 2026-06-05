@@ -100,6 +100,37 @@ php artisan tracker:generate-factories
 
 ---
 
+### `tracker:mimic-trooper-permissions`
+
+Copies the `membership_role` and all `TrooperAssignment` records from a source trooper to a target trooper. Saves a snapshot of the target's original permissions before applying the change so it can be fully reverted. Useful for testing authorization flows as a specific role without changing accounts. **Dev use only.**
+
+A snapshot is stored at `storage/app/private/permission-mimics/trooper-{id}.json`. Only one snapshot per target trooper is kept at a time — use `--force` to overwrite, or `--revert` to restore and delete it.
+
+```bash
+php artisan tracker:mimic-trooper-permissions {target_trooper_id} [source_trooper_id] [--revert] [--force]
+```
+
+| Argument/Option | Required | Description |
+|---|---|---|
+| `target_trooper_id` | Yes | ID of the trooper whose permissions will be changed |
+| `source_trooper_id` | Yes* | ID of the trooper to copy permissions from (*not required with `--revert`) |
+| `--revert` | No | Restore the target trooper to their snapshotted permissions and delete the snapshot |
+| `--force` | No | Overwrite an existing snapshot instead of aborting |
+
+**Examples:**
+```bash
+# Copy permissions from trooper 1 to trooper 42 (saves snapshot first)
+php artisan tracker:mimic-trooper-permissions 42 1
+
+# Revert trooper 42 back to their original permissions
+php artisan tracker:mimic-trooper-permissions 42 --revert
+
+# Overwrite an existing snapshot and re-mimic
+php artisan tracker:mimic-trooper-permissions 42 1 --force
+```
+
+---
+
 ### `tracker:reopen-future-shifts`
 
 Finds all event shifts that are marked CLOSED but have not yet occurred (`shift_ends_at` is in the future) and reopens them. Any trooper attendance records incorrectly confirmed (ATTENDED or UNABLE_TO_ATTEND) are reset back to GOING.

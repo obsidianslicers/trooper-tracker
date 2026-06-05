@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Troopers;
 
-use App\Enums\MembershipRole;
 use App\Features\Troopers\Commands\RemoveTrooperMembershipCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Organization;
@@ -27,7 +26,12 @@ class MembershipRemoveController extends MagicBusController
     {
         $this->authorize('update', $trooper);
 
-        abort_if($request->user()?->membership_role !== MembershipRole::ADMINISTRATOR, 403);
+        $actor = $request->user();
+
+        abort_unless(
+            Organization::moderatedBy($actor)->where(Organization::ID, $organization->id)->exists(),
+            403
+        );
 
         $this->bus->send(new RemoveTrooperMembershipCommand($trooper, $organization));
 
