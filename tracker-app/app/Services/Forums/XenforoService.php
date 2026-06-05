@@ -449,6 +449,55 @@ class XenforoService
     }
 
     /**
+     * Subscribe the given XenForo user to a thread (with email notifications).
+     *
+     * Uses the trooper-api add-on endpoint: POST /api/trooper-api/watch-thread
+     *
+     * @return array{status:int,body:mixed}
+     */
+    public function watch_thread(int $thread_id, int $user_id): array
+    {
+        if (empty($this->base_url) || empty($this->api_key) || $thread_id <= 0 || $user_id <= 0)
+        {
+            return ['status' => 0, 'body' => null];
+        }
+
+        $url = $this->base_url.'/api/trooper-api/watch-thread';
+
+        $payload = [
+            'thread_id' => $thread_id,
+            'email_subscribe' => true,
+        ];
+
+        $response = Http::withHeaders($this->buildApiHeaders($user_id))->asForm()->post($url, $payload);
+
+        return ['status' => $response->status(), 'body' => $response->json()];
+    }
+
+    /**
+     * Unsubscribe the given XenForo user from a thread.
+     *
+     * Uses the trooper-api add-on endpoint: DELETE /api/trooper-api/watch-thread
+     *
+     * @return array{status:int,body:mixed}
+     */
+    public function unwatch_thread(int $thread_id, int $user_id): array
+    {
+        if (empty($this->base_url) || empty($this->api_key) || $thread_id <= 0 || $user_id <= 0)
+        {
+            return ['status' => 0, 'body' => null];
+        }
+
+        $url = $this->base_url.'/api/trooper-api/watch-thread';
+
+        $response = Http::withHeaders($this->buildApiHeaders($user_id))->asForm()->delete($url, [
+            'thread_id' => $thread_id,
+        ]);
+
+        return ['status' => $response->status(), 'body' => $response->json()];
+    }
+
+    /**
      * Delete an existing XenForo thread.
      *
      * @return array{status:int,body:mixed}
