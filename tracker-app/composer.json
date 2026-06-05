@@ -52,6 +52,7 @@
         "pint:format": [
             "pint app/helpers.php",
             "pint app/Bus",
+            "pint app/Channels",
             "pint app/Console",
             "pint app/Contracts",
             "pint app/Enums",
@@ -61,10 +62,12 @@
             "pint app/Http",
             "pint app/Jobs",
             "pint app/Mail",
+            "pint app/Notifications",
             "pint app/Policies",
             "pint app/Providers",
             "pint app/Rules",
-            "pint app/Services"
+            "pint app/Services",
+            "pint app/Support"
         ],
         "pint:test": "@pint:format --test",
         "db:migrate-all": [

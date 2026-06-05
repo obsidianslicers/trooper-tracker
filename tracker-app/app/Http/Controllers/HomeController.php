@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -27,11 +28,18 @@ class HomeController extends MagicBusController
      * @param  Request  $request  The incoming HTTP request
      * @return InertiaResponse|RedirectResponse
      */
-    public function __invoke(Request $request): InertiaResponse|RedirectResponse
+    public function __invoke(Request $request): View|InertiaResponse|RedirectResponse
     {
         if (Auth::check())
         {
             return redirect()->route('events.list');
+        }
+
+        if (config('app.debug'))
+        {
+            $data = [];
+
+            return view('pages.home', $data);
         }
 
         return Inertia::render('Home', [
