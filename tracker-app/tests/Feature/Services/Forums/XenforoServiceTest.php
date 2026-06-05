@@ -163,4 +163,92 @@ class XenforoServiceTest extends TestCase
                 && ($request['title'] ?? null) === 'Updated Event Name';
         });
     }
+
+    public function test_watch_thread_posts_to_trooper_api_endpoint_with_thread_id_and_email_subscribe(): void
+    {
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'key-5',
+        ]);
+
+        Http::fake(['https://xf.test/api/trooper-api/watch-thread' => Http::response(['success' => true, 'watching' => true, 'email_subscribe' => true], 200)]);
+
+        $subject = new XenforoService;
+        $result = $subject->watch_thread(77, 888);
+
+        $this->assertSame(200, $result['status']);
+
+        Http::assertSent(function ($request)
+        {
+            return $request->url() === 'https://xf.test/api/trooper-api/watch-thread'
+                && $request->method() === 'POST'
+                && $request->header('XF-Api-Key')[0] === 'key-5'
+                && $request->header('XF-Api-User')[0] === '888'
+                && ($request['thread_id'] ?? null) == 77
+                && ($request['email_subscribe'] ?? null) == true;
+        });
+    }
+
+    public function test_watch_thread_returns_zero_status_when_not_configured(): void
+    {
+        config(['services.xenforo.base_url' => '', 'services.xenforo.api_key' => '']);
+
+        Http::fake();
+
+        $subject = new XenforoService;
+        $result = $subject->watch_thread(77, 888);
+
+        $this->assertSame(0, $result['status']);
+        Http::assertNothingSent();
+    }
+
+    public function test_watch_thread_returns_zero_status_for_invalid_ids(): void
+    {
+        config(['services.xenforo.base_url' => 'https://xf.test', 'services.xenforo.api_key' => 'key']);
+
+        Http::fake();
+
+        $subject = new XenforoService;
+
+        $this->assertSame(0, $subject->watch_thread(0, 888)['status']);
+        $this->assertSame(0, $subject->watch_thread(77, 0)['status']);
+        Http::assertNothingSent();
+    }
+
+    public function test_unwatch_thread_sends_delete_with_thread_id_to_trooper_api_endpoint(): void
+    {
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'key-6',
+        ]);
+
+        Http::fake(['https://xf.test/api/trooper-api/watch-thread' => Http::response(['success' => true, 'watching' => false], 200)]);
+
+        $subject = new XenforoService;
+        $result = $subject->unwatch_thread(77, 888);
+
+        $this->assertSame(200, $result['status']);
+
+        Http::assertSent(function ($request)
+        {
+            return $request->url() === 'https://xf.test/api/trooper-api/watch-thread'
+                && $request->method() === 'DELETE'
+                && $request->header('XF-Api-Key')[0] === 'key-6'
+                && $request->header('XF-Api-User')[0] === '888'
+                && ($request['thread_id'] ?? null) == 77;
+        });
+    }
+
+    public function test_unwatch_thread_returns_zero_status_when_not_configured(): void
+    {
+        config(['services.xenforo.base_url' => '', 'services.xenforo.api_key' => '']);
+
+        Http::fake();
+
+        $subject = new XenforoService;
+        $result = $subject->unwatch_thread(77, 888);
+
+        $this->assertSame(0, $result['status']);
+        Http::assertNothingSent();
+    }
 }
