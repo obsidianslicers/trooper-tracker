@@ -352,7 +352,15 @@ class Trooper extends BaseTrooper implements
 
         if ($shifts === null || $shifts < 2)
         {
-            return 'Recruit';
+            return match ($this->theme->value)
+            {
+                TrooperTheme::CLONE ->value => 'Cadet',
+                TrooperTheme::BOUNTY_HUNTER->value => 'Foundling',
+                TrooperTheme::REBEL->value => 'Outcast',
+                TrooperTheme::SITH->value => 'Initiate',
+                TrooperTheme::STORMTROOPER->value => 'Recruit',
+                default => 'Recruit',
+            };
         }
 
         $rank = (int) $this->getAchievementValue(AchievementType::TROOPER_RANK);
@@ -449,8 +457,6 @@ class Trooper extends BaseTrooper implements
                     $rank <= 2047 => 'Trooper',
                     default => 'Recruit',
                 },
-        // Stormtrooper (Default) fallback
-
         };
     }
 
