@@ -49,8 +49,8 @@ class TrooperSignedUpNotification extends Notification
 
         return [
             'title' => 'Event Sign-Up Confirmed',
-            'body'  => $event->name,
-            'url'   => '/events/details/'.$event->id,
+            'body' => $event->name,
+            'url' => '/events/details/'.$event->id,
         ];
     }
 

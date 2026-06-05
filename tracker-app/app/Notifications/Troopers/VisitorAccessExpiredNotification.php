@@ -44,8 +44,8 @@ class VisitorAccessExpiredNotification extends Notification
     {
         return [
             'title' => 'Visitor Access Expired',
-            'body'  => 'Your 6-month visitor access has expired. Log in to request renewal.',
-            'url'   => '/account/visitor-renew',
+            'body' => 'Your 6-month visitor access has expired. Log in to request renewal.',
+            'url' => '/account/visitor-renew',
         ];
     }
 

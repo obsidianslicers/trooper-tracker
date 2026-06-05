@@ -50,8 +50,8 @@ class DirectlyAddedToClubNotification extends Notification
     {
         return [
             'title' => 'Added to Club',
-            'body'  => "You have been added to {$this->organization->name}.",
-            'url'   => '/account/club-memberships',
+            'body' => "You have been added to {$this->organization->name}.",
+            'url' => '/account/club-memberships',
         ];
     }
 

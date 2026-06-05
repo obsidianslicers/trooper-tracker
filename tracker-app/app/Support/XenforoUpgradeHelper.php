@@ -70,9 +70,9 @@ final class XenforoUpgradeHelper
             $end_date = $now;
         }
 
-        $current   = Carbon::createFromTimestamp($start_date)->startOfMonth();
+        $current = Carbon::createFromTimestamp($start_date)->startOfMonth();
         $end_month = Carbon::createFromTimestamp($end_date)->startOfMonth();
-        $count     = 0;
+        $count = 0;
 
         while ($current->lte($end_month))
         {
@@ -90,17 +90,17 @@ final class XenforoUpgradeHelper
      *
      * @param  array<mixed>  $active
      * @param  array<mixed>  $expired
-     * @return array<string,true>  e.g. ['2024-09' => true, '2024-10' => true, ...]
+     * @return array<string,true> e.g. ['2024-09' => true, '2024-10' => true, ...]
      */
     public static function monthKeysFromUpgrades(array $active, array $expired): array
     {
         $months = [];
-        $now    = time();
+        $now = time();
 
         foreach (array_merge($active, $expired) as $row)
         {
             $start = (int) ($row['start_date'] ?? 0);
-            $end   = (int) ($row['end_date'] ?? 0);
+            $end = (int) ($row['end_date'] ?? 0);
 
             if ($start <= 0)
             {
@@ -112,7 +112,7 @@ final class XenforoUpgradeHelper
                 $end = $now;
             }
 
-            $current   = Carbon::createFromTimestamp($start)->startOfMonth();
+            $current = Carbon::createFromTimestamp($start)->startOfMonth();
             $end_month = Carbon::createFromTimestamp($end)->startOfMonth();
 
             while ($current->lte($end_month))

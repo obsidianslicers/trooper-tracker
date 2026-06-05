@@ -56,8 +56,8 @@ class TrooperDeniedNotification extends Notification
 
         return [
             'title' => 'Registration Not Approved',
-            'body'  => $body,
-            'url'   => '/account',
+            'body' => $body,
+            'url' => '/account',
         ];
     }
 

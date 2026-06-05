@@ -44,8 +44,8 @@ class MembershipApprovedNotification extends Notification
     {
         return [
             'title' => 'Membership Approved',
-            'body'  => 'Welcome, Trooper!',
-            'url'   => '/account/profile',
+            'body' => 'Welcome, Trooper!',
+            'url' => '/account/profile',
         ];
     }
 

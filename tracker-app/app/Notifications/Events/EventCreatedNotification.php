@@ -51,7 +51,7 @@ class EventCreatedNotification extends Notification
     {
         $notification = EventNotification::firstOrCreate(
             [
-                EventNotification::EVENT_ID   => $this->event->id,
+                EventNotification::EVENT_ID => $this->event->id,
                 EventNotification::TROOPER_ID => $notifiable->id,
             ],
             [EventNotification::PROCESSED_AT => now()],
@@ -67,8 +67,8 @@ class EventCreatedNotification extends Notification
     {
         return [
             'title' => 'New Event: '.$this->event->name,
-            'body'  => $this->event->venue ?? 'See Troop Tracker for details',
-            'url'   => '/events/details/'.$this->event->id,
+            'body' => $this->event->venue ?? 'See Troop Tracker for details',
+            'url' => '/events/details/'.$this->event->id,
         ];
     }
 

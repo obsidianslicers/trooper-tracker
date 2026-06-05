@@ -37,15 +37,15 @@ class TrooperRegisteredNotification extends Notification
 
     public function toMail(Trooper $notifiable): TrooperAwaitingApproval
     {
-        return (new TrooperAwaitingApproval())->to($notifiable->email);
+        return (new TrooperAwaitingApproval)->to($notifiable->email);
     }
 
     public function toArray(Trooper $notifiable): array
     {
         return [
             'title' => 'New Trooper Registration',
-            'body'  => 'A new trooper is awaiting approval.',
-            'url'   => '/admin/troopers/approvals',
+            'body' => 'A new trooper is awaiting approval.',
+            'url' => '/admin/troopers/approvals',
         ];
     }
 

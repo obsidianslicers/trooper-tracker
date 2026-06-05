@@ -49,8 +49,8 @@ class TrooperPromotedToGoingNotification extends Notification
 
         return [
             'title' => "You're Now Going!",
-            'body'  => $event->name,
-            'url'   => '/events/details/'.$event->id,
+            'body' => $event->name,
+            'url' => '/events/details/'.$event->id,
         ];
     }
 

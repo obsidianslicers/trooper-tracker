@@ -50,8 +50,8 @@ class JoinRequestApprovedNotification extends Notification
     {
         return [
             'title' => 'Join Request Approved',
-            'body'  => "You've been added to {$this->organization->name}!",
-            'url'   => '/account/club-memberships',
+            'body' => "You've been added to {$this->organization->name}!",
+            'url' => '/account/club-memberships',
         ];
     }
 

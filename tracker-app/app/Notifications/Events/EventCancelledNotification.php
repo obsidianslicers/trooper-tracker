@@ -47,8 +47,8 @@ class EventCancelledNotification extends Notification
     {
         return [
             'title' => 'Event Cancelled: '.$this->event->name,
-            'body'  => 'This event has been cancelled.',
-            'url'   => '/events/cancelled',
+            'body' => 'This event has been cancelled.',
+            'url' => '/events/cancelled',
         ];
     }
 

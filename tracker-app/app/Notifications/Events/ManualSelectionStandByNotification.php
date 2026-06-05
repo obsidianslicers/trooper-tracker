@@ -52,8 +52,8 @@ class ManualSelectionStandByNotification extends Notification
 
         return [
             'title' => 'Moved to Stand By',
-            'body'  => $event->name,
-            'url'   => '/events/details/'.$event->id,
+            'body' => $event->name,
+            'url' => '/events/details/'.$event->id,
         ];
     }
 

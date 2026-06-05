@@ -5,18 +5,14 @@ declare(strict_types=1);
 namespace App\Notifications\Events;
 
 use App\Channels\FcmChannel;
-use App\Mail\Events\CancelledEventNotification;
 use App\Mail\Events\EventShiftComplete;
-use App\Models\Event;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
 use Illuminate\Notifications\Notification;
 
 class EventShiftCompletedNotification extends Notification
 {
-    public function __construct(private readonly EventTrooper $event_trooper)
-    {
-    }
+    public function __construct(private readonly EventTrooper $event_trooper) {}
 
     public function via(Trooper $notifiable): array
     {
@@ -44,7 +40,6 @@ class EventShiftCompletedNotification extends Notification
 
     public function toMail(Trooper $notifiable): EventShiftComplete
     {
-
         return (new EventShiftComplete($this->event_trooper))->to($notifiable->email);
     }
 

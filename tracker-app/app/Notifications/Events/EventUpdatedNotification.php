@@ -51,8 +51,8 @@ class EventUpdatedNotification extends Notification
     {
         return [
             'title' => 'Event Updated: '.$this->event->name,
-            'body'  => 'Details for this event have changed. Please review.',
-            'url'   => '/events/details/'.$this->event->id,
+            'body' => 'Details for this event have changed. Please review.',
+            'url' => '/events/details/'.$this->event->id,
         ];
     }
 
