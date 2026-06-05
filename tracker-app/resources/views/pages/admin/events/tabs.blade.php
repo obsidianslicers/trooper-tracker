@@ -11,4 +11,7 @@
     <x-tab :label="'Administrative Uploads'"
            :target="route('admin.events.uploads', compact('event'))"
            :active="request()->routeIs('admin.events.uploads')" />
+    <x-tab :label="'Mission Review'"
+           :target="route('admin.events.mission-review', compact('event'))"
+           :active="request()->routeIs('admin.events.mission-review')" />
 </x-tabs>

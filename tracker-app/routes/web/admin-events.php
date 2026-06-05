@@ -13,6 +13,8 @@ use App\Http\Controllers\Admin\Events\UpdateShiftsSubmitController;
 use App\Http\Controllers\Admin\Events\UpdateSubmitController;
 use App\Http\Controllers\Admin\Events\UpdateTroopersController;
 use App\Http\Controllers\Admin\Events\UpdateTroopersSubmitController;
+use App\Http\Controllers\Admin\Events\DeleteUploadController;
+use App\Http\Controllers\Admin\Events\MissionReviewController;
 use App\Http\Controllers\Admin\Events\UploadImageController;
 use App\Http\Controllers\Admin\Events\UploadsController;
 use Illuminate\Support\Facades\Route;
@@ -36,4 +38,6 @@ Route::prefix('admin/events')
         Route::post('/{event}/troopers', UpdateTroopersSubmitController::class);
         Route::get('/{event}/uploads', UploadsController::class)->name('uploads');
         Route::post('/{event}/upload', UploadImageController::class)->name('upload-image');
+        Route::get('/{event}/mission-review', MissionReviewController::class)->name('mission-review');
+        Route::post('/{event}/uploads/{event_upload}/delete', DeleteUploadController::class)->name('uploads.delete');
     });
