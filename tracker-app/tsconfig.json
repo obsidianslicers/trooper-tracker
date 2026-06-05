@@ -7,7 +7,12 @@
         "strict": true,
         "types": [
             "vite/client"
-        ]
+        ],
+        "paths": {
+            "$lib/*": [
+                "./resources/svelte/lib/*"
+            ]
+        }
     },
     "include": [
         "resources/svelte/**/*.ts",

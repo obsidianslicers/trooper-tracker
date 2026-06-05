@@ -1,6 +1,6 @@
 <script lang="ts">
-    import PageTitle from "$lib/components/PageTitle.svelte";
     import { usePage } from "@inertiajs/svelte";
+    import PageTitle from "../../lib/components/PageTitle.svelte";
 
     const page = usePage();
 

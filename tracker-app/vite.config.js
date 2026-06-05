@@ -15,4 +15,9 @@ export default defineConfig({
             refresh: true,
         }),
     ],
+    resolve: {
+        alias: {
+            '$lib': path.resolve(__dirname, './resources/svelte/lib'),
+        },
+    },
 });
