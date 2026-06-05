@@ -29,16 +29,16 @@ class DeleteEventUploadCommandHandlerTest extends TestCase
         $this->subject = app(DeleteEventUploadCommandHandler::class);
     }
 
-    public function test_invoke_soft_deletes_the_upload(): void
+    public function test_invoke_deletes_the_upload(): void
     {
         $upload = EventUpload::factory()->create();
 
         ($this->subject)(new DeleteEventUploadCommand($upload));
 
-        $this->assertSoftDeleted('tt_event_uploads', [EventUpload::ID => $upload->id]);
+        $this->assertDatabaseMissing('tt_event_uploads', [EventUpload::ID => $upload->id]);
     }
 
-    public function test_invoke_soft_deletes_pivot_rows_for_tagged_troopers(): void
+    public function test_invoke_deletes_pivot_rows_for_tagged_troopers(): void
     {
         $upload = EventUpload::factory()->create();
         $trooper = Trooper::factory()->create();
@@ -46,7 +46,7 @@ class DeleteEventUploadCommandHandlerTest extends TestCase
 
         ($this->subject)(new DeleteEventUploadCommand($upload));
 
-        $this->assertSoftDeleted('tt_event_upload_troopers', [EventUploadTrooper::ID => $pivot->id]);
+        $this->assertDatabaseMissing('tt_event_upload_troopers', [EventUploadTrooper::ID => $pivot->id]);
     }
 
     public function test_invoke_deletes_files_from_storage_when_paths_contain_slash(): void
@@ -81,6 +81,6 @@ class DeleteEventUploadCommandHandlerTest extends TestCase
 
         ($this->subject)(new DeleteEventUploadCommand($upload));
 
-        $this->assertSoftDeleted('tt_event_uploads', [EventUpload::ID => $upload->id]);
+        $this->assertDatabaseMissing('tt_event_uploads', [EventUpload::ID => $upload->id]);
     }
 }

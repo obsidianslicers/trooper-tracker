@@ -31,9 +31,9 @@ readonly class DeleteEventUploadCommandHandler implements CommandHandlerInterfac
             }
         }
 
-        EventUploadTrooper::where(EventUploadTrooper::EVENT_UPLOAD_ID, $upload->id)->delete();
+        EventUploadTrooper::where(EventUploadTrooper::EVENT_UPLOAD_ID, $upload->id)->forceDelete();
 
-        $upload->delete();
+        $upload->forceDelete();
 
         return null;
     }

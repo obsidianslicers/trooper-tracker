@@ -16,7 +16,7 @@ class DeleteUploadControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_invoke_soft_deletes_upload_and_returns_view(): void
+    public function test_invoke_deletes_upload_and_returns_view(): void
     {
         Storage::fake('public');
 
@@ -29,7 +29,7 @@ class DeleteUploadControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertViewIs('pages.admin.events.mission-review');
-        $this->assertSoftDeleted('tt_event_uploads', [EventUpload::ID => $upload->id]);
+        $this->assertDatabaseMissing('tt_event_uploads', [EventUpload::ID => $upload->id]);
     }
 
     public function test_invoke_returns_empty_state_when_last_upload_is_deleted(): void
@@ -48,7 +48,7 @@ class DeleteUploadControllerTest extends TestCase
         $this->assertCount(0, $uploads);
     }
 
-    public function test_invoke_soft_deletes_tagged_pivot_rows(): void
+    public function test_invoke_deletes_tagged_pivot_rows(): void
     {
         Storage::fake('public');
 
@@ -61,7 +61,7 @@ class DeleteUploadControllerTest extends TestCase
         $this->actingAs($admin)
             ->post(route('admin.events.uploads.delete', ['event' => $event, 'event_upload' => $upload]));
 
-        $this->assertSoftDeleted('tt_event_upload_troopers', [EventUploadTrooper::ID => $pivot->id]);
+        $this->assertDatabaseMissing('tt_event_upload_troopers', [EventUploadTrooper::ID => $pivot->id]);
     }
 
     public function test_invoke_returns_403_when_upload_belongs_to_different_event(): void
