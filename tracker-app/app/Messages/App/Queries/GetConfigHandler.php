@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace App\Messages\App\Queries;
 
-use App\Enums\OauthProvider;
 use BackedEnum;
 use App\Facades\TroopTracker;
 use App\Messages\MessageHandler;
-use App\Messages\MessageResult;
 use Illuminate\Support\Facades\File;
 
 /**
@@ -20,17 +18,6 @@ use Illuminate\Support\Facades\File;
  */
 final class GetConfigHandler extends MessageHandler
 {
-    /**
-     * Constructs a GetConfig query message.
-     *
-     * @param TroopTracker $tracker Application facade for configuration querying
-     */
-    public function __construct(
-        public readonly TroopTracker $tracker)
-    {
-        //
-    }
-
     /**
      * Retrieves application configuration as a nested associative array.
      *
@@ -57,28 +44,6 @@ final class GetConfigHandler extends MessageHandler
                 'base_url' => config('app.url'),
                 'enums' => $this->getEnumConfig(),
             ],
-            'auth' => [
-                'xenforo' => [
-                    'required' => $this->tracker->isXenforoOAuthRequired(),
-                    'enabled' => $this->tracker->isXenforoOAuthConfigured(),
-                    'configured' => $this->tracker->isXenforoOAuthConfigured(),
-                    'url' => $this->tracker->isXenforoOAuthConfigured()
-                        ? route('auth.oauth-redirect', ['provider' => OauthProvider::XENFORO->value])
-                        : null,
-                ],
-                'google' => [
-                    'enabled' => $this->tracker->isGoogleOAuthEnabled(),
-                    'configured' => $this->tracker->isGoogleOAuthConfigured(),
-                    'url' => $this->tracker->isGoogleOAuthConfigured()
-                        ? route('auth.oauth-redirect', ['provider' => OauthProvider::GOOGLE->value])
-                        : null,
-                ],
-                'email_password' => [
-                    'enabled' => $this->tracker->isEmailPasswordAuthEnabled(),
-                ],
-            ],
-            'features' => [],
-            'localization' => []
         ];
 
         return $data;

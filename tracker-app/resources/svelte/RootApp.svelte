@@ -1,5 +1,7 @@
 <script lang="ts">
-    import ToastMessages from "./lib/components/ToastMessages.svelte";
+    import PageTitle from "$lib/components/PageTitle.svelte";
+    import ToastMessages from "$lib/components/ToastMessages.svelte";
+    import pageState from "$lib/states/page-state.svelte";
 
     interface RootAppProps {
         inertiaApp: any;
@@ -12,6 +14,11 @@
     let InertiaComponent = $derived(inertiaApp);
 </script>
 
+<svelte:head>
+    <title>{pageState.title ?? ""}</title>
+</svelte:head>
+
 <ToastMessages />
+<PageTitle />
 
 <InertiaComponent {...appProps} />

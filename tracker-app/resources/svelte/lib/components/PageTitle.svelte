@@ -1,16 +1,13 @@
 <script lang="ts">
-    interface Props {
-        title: string;
-    }
-    let { title }: Props = $props();
+    import pageState from "$lib/states/page-state.svelte";
 </script>
 
 <svelte:head>
-    <title>{title}</title>
+    <title>{pageState.title ?? ""}</title>
 </svelte:head>
 
 <div>
     <h1 class="text-center py-2">
-        {title}
+        {pageState.title}
     </h1>
 </div>
