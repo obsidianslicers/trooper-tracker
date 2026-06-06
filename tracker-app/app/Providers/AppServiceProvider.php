@@ -20,6 +20,7 @@ use Illuminate\Database\Migrations\DatabaseMigrationRepository;
 use Illuminate\Database\Migrations\MigrationRepositoryInterface;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
+use Illuminate\Mail\MailManager;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
@@ -80,10 +81,11 @@ class AppServiceProvider extends ServiceProvider
         //  more than 10 seconds have elapsed since the last message, preventing
         //  "451 4.4.2 Timeout" failures on idle connections in long-running workers.
         //
-        $this->app->afterResolving('mail.manager', function (\Illuminate\Mail\MailManager $manager): void {
+        $this->app->afterResolving('mail.manager', function (MailManager $manager): void {
             $mailer = $manager->mailer();
             $transport = $mailer->getSymfonyTransport();
-            if ($transport instanceof EsmtpTransport) {
+            if ($transport instanceof EsmtpTransport)
+            {
                 $transport->setPingThreshold(10);
             }
         });
