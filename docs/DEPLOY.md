@@ -332,7 +332,7 @@ User=trooper
 Group=www-data
 Restart=always
 RestartSec=5s
-ExecStart=/usr/bin/php /var/www/troop-tracker/tracker-app/artisan queue:work --sleep=3 --tries=3 --max-time=3600
+ExecStart=/usr/bin/php /var/www/troop-tracker/tracker-app/artisan queue:work --sleep=3 --tries=3 --max-time=3600 --max-jobs=100
 
 StandardOutput=append:/var/log/troop-tracker-queue.log
 StandardError=append:/var/log/troop-tracker-queue-error.log

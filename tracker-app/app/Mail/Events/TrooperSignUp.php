@@ -23,6 +23,13 @@ class TrooperSignUp extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
+    public int $tries = 3;
+
+    public function backoff(): array
+    {
+        return [30, 60];
+    }
+
     /**
      * Create a new event sign-up confirmation email instance.
      *

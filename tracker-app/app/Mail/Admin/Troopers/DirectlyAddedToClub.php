@@ -20,6 +20,13 @@ class DirectlyAddedToClub extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
+    public int $tries = 3;
+
+    public function backoff(): array
+    {
+        return [30, 60];
+    }
+
     /**
      * @param  Trooper  $trooper  The trooper who was added
      * @param  Organization  $organization  The organization they were added to

@@ -331,7 +331,7 @@ php artisan code:models
 Run queue worker as a supervised process:
 
 ```bash
-php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+php artisan queue:work --sleep=3 --tries=3 --max-time=3600 --max-jobs=100
 ```
 
 ### Scheduled Tasks

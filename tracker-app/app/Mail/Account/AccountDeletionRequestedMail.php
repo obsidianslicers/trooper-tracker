@@ -17,6 +17,13 @@ class AccountDeletionRequestedMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
+    public int $tries = 3;
+
+    public function backoff(): array
+    {
+        return [30, 60];
+    }
+
     public function __construct(public Trooper $trooper) {}
 
     public function envelope(): Envelope

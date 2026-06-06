@@ -17,6 +17,13 @@ class ForumPostCommandStaffMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
+    public int $tries = 3;
+
+    public function backoff(): array
+    {
+        return [30, 60];
+    }
+
     public function __construct(
         private readonly Event $event,
         private readonly Trooper $poster,

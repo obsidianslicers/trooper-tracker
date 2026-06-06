@@ -29,6 +29,7 @@ use Illuminate\Support\ServiceProvider;
 use InvalidArgumentException;
 use Kreait\Firebase\Contract\Messaging;
 use Laravel\Socialite\Facades\Socialite;
+use Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport;
 use ValueError;
 
 class AppServiceProvider extends ServiceProvider
@@ -72,6 +73,20 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::policy(TrooperOrganization::class, TrooperJoinRequestPolicy::class);
+
+        //
+        //  SMTP PING THRESHOLD
+        //  Force the transport to test the connection with NOOP before sending if
+        //  more than 10 seconds have elapsed since the last message, preventing
+        //  "451 4.4.2 Timeout" failures on idle connections in long-running workers.
+        //
+        $this->app->afterResolving('mail.manager', function (\Illuminate\Mail\MailManager $manager): void {
+            $mailer = $manager->mailer();
+            $transport = $mailer->getSymfonyTransport();
+            if ($transport instanceof EsmtpTransport) {
+                $transport->setPingThreshold(10);
+            }
+        });
 
         Paginator::useBootstrapFive();
 
