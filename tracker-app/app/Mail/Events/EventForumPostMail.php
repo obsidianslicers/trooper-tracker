@@ -35,9 +35,9 @@ class EventForumPostMail extends Mailable implements ShouldQueue
         return new Content(
             view: 'emails.events.event-forum-post',
             with: [
-                'event'    => $this->event,
+                'event' => $this->event,
                 'username' => $this->username,
-                'message'  => $this->message,
+                'message' => $this->message,
                 'post_url' => $this->post_url,
             ]
         );
