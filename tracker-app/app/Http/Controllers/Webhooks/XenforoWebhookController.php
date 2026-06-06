@@ -20,7 +20,14 @@ class XenforoWebhookController
         }
 
         $payload = $request->json()->all();
-        $thread_id = (int) ($payload['thread']['thread_id'] ?? 0);
+
+        if (($payload['event'] ?? '') !== 'insert')
+        {
+            return response('', 204);
+        }
+
+        $data = $payload['data'] ?? [];
+        $thread_id = (int) ($data['thread_id'] ?? 0);
 
         if ($thread_id <= 0)
         {
@@ -34,11 +41,10 @@ class XenforoWebhookController
             return response('', 204);
         }
 
-        $post = $payload['post'] ?? [];
-        $post_id = (int) ($post['post_id'] ?? 0);
-        $username = (string) ($post['User']['username'] ?? $post['username'] ?? 'Unknown');
-        $xenforo_user_id = isset($post['User']['user_id']) ? (int) $post['User']['user_id'] : null;
-        $message = (string) ($post['message'] ?? '');
+        $post_id = (int) ($data['post_id'] ?? 0);
+        $username = (string) ($data['username'] ?? 'Unknown');
+        $xenforo_user_id = isset($data['user_id']) ? (int) $data['user_id'] : null;
+        $message = (string) ($data['message'] ?? '');
 
         SendEventForumPostNotificationsJob::dispatch($event, $post_id, $username, $xenforo_user_id, $message);
 
