@@ -56,14 +56,8 @@ class XenforoWebhookController
             return false;
         }
 
-        $header = $request->header('X-XF-Signature', '');
-        if (!is_string($header) || !str_starts_with($header, 'sha256='))
-        {
-            return false;
-        }
+        $header = (string) $request->header('xf-webhook-secret', '');
 
-        $expected = 'sha256='.hash_hmac('sha256', $request->getContent(), $secret);
-
-        return hash_equals($expected, $header);
+        return hash_equals($secret, $header);
     }
 }
