@@ -5,13 +5,21 @@
     const page = usePage();
 
     const appName = $derived(
-        (page.props.appName as string | undefined) ?? "Troop Tracker",
+        (page.props.config.branding.name as string | undefined) ??
+            "Troop Tracker",
     );
+
+    const baseUrl = $derived(page.props.config.meta.base_url as string);
 </script>
 
 <PageTitle title={appName} />
 
-<section class="py-4">
-    <h4 class="mb-3">Inertia + Svelte Is Ready</h4>
-    <p class="mb-0">This page component is a starter for new Inertia routes.</p>
-</section>
+<div class="row">
+    <div class="col text-center">
+        <img
+            src="{baseUrl}/img/logo.jpg"
+            alt="Trooper Tracker Logo"
+            class="img-fluid rounded"
+        />
+    </div>
+</div>

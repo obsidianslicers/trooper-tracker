@@ -6,5 +6,5 @@ namespace App\Messages;
 
 abstract class MessageHandler
 {
-    public abstract function handle(object $message): MessageResult;
+    public abstract function handle(object $message): array;
 }

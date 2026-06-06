@@ -1,9 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http;
 
 use App\Messages\Message;
-use App\Messages\MessageBus;
 use Illuminate\Http\Request;
 use InvalidArgumentException;
 

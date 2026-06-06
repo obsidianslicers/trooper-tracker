@@ -37,13 +37,11 @@ class HomeController extends MagicBusController
 
         if (config('app.debug'))
         {
-            $data = [];
-
-            return view('pages.home', $data);
+            return Inertia::render('Home');
         }
 
-        return Inertia::render('Home', [
-            'appName' => config('app.name'),
-        ]);
+        $data = [];
+
+        return view('pages.home', $data);
     }
 }

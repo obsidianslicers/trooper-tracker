@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Http\HasMessageDispatcher;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use App\Messages\App\Queries\GetConfig;
 
 class HandleInertiaRequests extends Middleware
 {
+    use HasMessageDispatcher;
+
     /**
      * The root template loaded on the first Inertia page visit.
      */
@@ -29,8 +33,11 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $config = $this->dispatchMessage($request, GetConfig::class);
+
         return [
             ...parent::share($request),
+            'config' => $config,
         ];
     }
 }
