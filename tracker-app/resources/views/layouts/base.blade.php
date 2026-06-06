@@ -7,6 +7,7 @@
     <title>{{ config('app.name') }} - Troop Tracker</title>
     @include('layouts.inc.scripts')
     @isset($page)
+        @routes
         @inertiaHead
     @endisset
 </head>
@@ -14,9 +15,7 @@
 <body class="bg-black d-flex flex-column min-vh-100 theme-{{ Auth::user()->theme ?? 'stormtrooper' }}">
     @include('partials.navbar')
     @isset($page)
-        <div class="container">
-            @inertia
-        </div>
+        @inertia
     @else
         @include('partials.bread-crumbs')
 

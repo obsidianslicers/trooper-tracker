@@ -19,7 +19,8 @@
         "laravel/tinker": "^2.10.1",
         "spatie/calendar-links": "^2.0",
         "symfony/css-selector": "^8.0",
-        "symfony/dom-crawler": "^8.0"
+        "symfony/dom-crawler": "^8.0",
+        "tightenco/ziggy": "*"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.16",

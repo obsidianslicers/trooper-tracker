@@ -42,7 +42,6 @@ final class GetConfigHandler extends MessageHandler
             'meta' => [
                 'env' => config('app.env'),
                 'base_url' => config('app.url'),
-                'enums' => $this->getEnumConfig(),
             ],
         ];
 

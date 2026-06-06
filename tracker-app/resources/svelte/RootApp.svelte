@@ -21,4 +21,6 @@
 <ToastMessages />
 <PageTitle />
 
-<InertiaComponent {...appProps} />
+<div class="container rounded-3 shadow-sm p-4 mb-5 main-content">
+    <InertiaComponent {...appProps} />
+</div>

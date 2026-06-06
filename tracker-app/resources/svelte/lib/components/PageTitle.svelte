@@ -6,8 +6,10 @@
     <title>{pageState.title ?? ""}</title>
 </svelte:head>
 
-<div>
-    <h1 class="text-center py-2">
-        {pageState.title}
-    </h1>
-</div>
+{#if pageState.title && pageState.title.length > 0}
+    <div>
+        <h1 class="text-center py-3 site-title">
+            {pageState.title}
+        </h1>
+    </div>
+{/if}
