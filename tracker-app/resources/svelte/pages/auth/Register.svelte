@@ -1,17 +1,9 @@
 <script lang="ts">
+    import PageTitle from "$lib/components/PageTitle.svelte";
     import { usePage } from "@inertiajs/svelte";
-    import PageTitle from "../../lib/components/PageTitle.svelte";
 
     const page = usePage();
-
-    const appName = $derived(
-        (page.props.appName as string | undefined) ?? "Troop Tracker",
-    );
 </script>
-
-<svelte:head>
-    <title>{appName}</title>
-</svelte:head>
 
 <PageTitle title={appName} />
 

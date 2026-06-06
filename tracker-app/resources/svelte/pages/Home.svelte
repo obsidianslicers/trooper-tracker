@@ -9,10 +9,6 @@
     );
 </script>
 
-<svelte:head>
-    <title>{appName}</title>
-</svelte:head>
-
 <PageTitle title={appName} />
 
 <section class="py-4">
