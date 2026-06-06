@@ -16,7 +16,7 @@ trait HasMessageDispatcher
         /** @var Message $message */
         $message = $message_class::fromRequest($request);
 
-        $handler_class = $message_class . 'Handler';
+        $handler_class = $message_class.'Handler';
 
         if (!class_exists($handler_class))
         {
