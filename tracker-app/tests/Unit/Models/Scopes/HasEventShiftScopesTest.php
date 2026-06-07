@@ -23,6 +23,14 @@ class HasEventShiftScopesTest extends TestCase
         ], $query->getBindings());
     }
 
+    public function test_closed_scope_filters_to_closed_status(): void
+    {
+        $query = EventShift::query()->closed();
+
+        $this->assertStringContainsString('"status" in (?)', $query->toBase()->toSql());
+        $this->assertSame([EventStatus::CLOSED->value], $query->getBindings());
+    }
+
     public function test_by_trooper_adds_status_and_participation_filters(): void
     {
         $query = EventShift::query()->byTrooper(7, false);
