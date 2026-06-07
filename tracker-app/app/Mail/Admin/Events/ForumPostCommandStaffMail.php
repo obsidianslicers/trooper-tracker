@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Mail\Admin\Events;
 
+use App\Mail\HasRetryPolicy;
 use App\Models\Event;
 use App\Models\Trooper;
 use Illuminate\Bus\Queueable;
@@ -16,23 +17,18 @@ use Illuminate\Queue\SerializesModels;
 class ForumPostCommandStaffMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
-
-    public int $tries = 3;
-
-    public function backoff(): array
-    {
-        return [30, 60];
-    }
+    use HasRetryPolicy;
 
     public function __construct(
         private readonly Event $event,
         private readonly Trooper $poster,
-    ) {}
+    ) {
+    }
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Forum Post — Command Staff Alert'
+            subject: config('mail.prefix') . ' Forum Post — Command Staff Alert'
         );
     }
 

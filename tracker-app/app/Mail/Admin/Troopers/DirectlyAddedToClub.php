@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Mail\Admin\Troopers;
 
+use App\Mail\HasRetryPolicy;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Bus\Queueable;
@@ -19,13 +20,7 @@ use Illuminate\Queue\SerializesModels;
 class DirectlyAddedToClub extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
-
-    public int $tries = 3;
-
-    public function backoff(): array
-    {
-        return [30, 60];
-    }
+    use HasRetryPolicy;
 
     /**
      * @param  Trooper  $trooper  The trooper who was added
@@ -34,12 +29,13 @@ class DirectlyAddedToClub extends Mailable implements ShouldQueue
     public function __construct(
         private readonly Trooper $trooper,
         private readonly Organization $organization,
-    ) {}
+    ) {
+    }
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' You\'ve Been Added to '.$this->organization->name
+            subject: config('mail.prefix') . ' You\'ve Been Added to ' . $this->organization->name
         );
     }
 

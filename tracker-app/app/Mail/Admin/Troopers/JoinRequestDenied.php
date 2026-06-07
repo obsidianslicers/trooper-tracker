@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Mail\Admin\Troopers;
 
+use App\Mail\HasRetryPolicy;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Bus\Queueable;
@@ -19,24 +20,19 @@ use Illuminate\Queue\SerializesModels;
 class JoinRequestDenied extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
-
-    public int $tries = 3;
-
-    public function backoff(): array
-    {
-        return [30, 60];
-    }
+    use HasRetryPolicy;
 
     public function __construct(
         private readonly Trooper $trooper,
         private readonly Organization $organization,
         private readonly ?string $denial_reason,
-    ) {}
+    ) {
+    }
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Join Request Not Approved — '.$this->organization->name
+            subject: config('mail.prefix') . ' Join Request Not Approved — ' . $this->organization->name
         );
     }
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Mail\Events;
 
+use App\Mail\HasRetryPolicy;
 use App\Models\EventNotification;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -25,13 +26,7 @@ use Symfony\Component\Mime\Email;
 class DailyEventNotification extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
-
-    public int $tries = 3;
-
-    public function backoff(): array
-    {
-        return [30, 60];
-    }
+    use HasRetryPolicy;
 
     /**
      * Create a new daily event notification email instance.
@@ -51,7 +46,7 @@ class DailyEventNotification extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' New Event Posted'
+            subject: config('mail.prefix') . ' New Event Posted'
         );
     }
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Mail\Account;
 
+use App\Mail\HasRetryPolicy;
 use App\Models\Trooper;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -16,20 +17,16 @@ use Illuminate\Queue\SerializesModels;
 class AccountDeletionCancelledMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
+    use HasRetryPolicy;
 
-    public int $tries = 3;
-
-    public function backoff(): array
+    public function __construct(public Trooper $trooper)
     {
-        return [30, 60];
     }
-
-    public function __construct(public Trooper $trooper) {}
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Account Deletion Cancelled',
+            subject: config('mail.prefix') . ' Account Deletion Cancelled',
         );
     }
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Mail\Admin\Troopers;
 
+use App\Mail\HasRetryPolicy;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -22,13 +23,7 @@ use Illuminate\Queue\SerializesModels;
 class TrooperAwaitingApproval extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
-
-    public int $tries = 3;
-
-    public function backoff(): array
-    {
-        return [30, 60];
-    }
+    use HasRetryPolicy;
 
     /**
      * Create a new awaiting approval email instance.
@@ -46,7 +41,7 @@ class TrooperAwaitingApproval extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Awaiting Approval',
+            subject: config('mail.prefix') . ' Awaiting Approval',
         );
     }
 

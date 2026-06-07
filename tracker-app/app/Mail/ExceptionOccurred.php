@@ -30,13 +30,7 @@ use Throwable;
 class ExceptionOccurred extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
-
-    public int $tries = 3;
-
-    public function backoff(): array
-    {
-        return [30, 60];
-    }
+    use HasRetryPolicy;
 
     /**
      * Create a new exception notification email instance.
@@ -61,7 +55,7 @@ class ExceptionOccurred extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Exception Occurred!'
+            subject: config('mail.prefix') . ' Exception Occurred!'
         );
     }
 

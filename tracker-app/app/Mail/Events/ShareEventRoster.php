@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Mail\Events;
 
+use App\Mail\HasRetryPolicy;
 use App\Models\EventShare;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -23,13 +24,7 @@ use Illuminate\Queue\SerializesModels;
 class ShareEventRoster extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
-
-    public int $tries = 3;
-
-    public function backoff(): array
-    {
-        return [30, 60];
-    }
+    use HasRetryPolicy;
 
     /**
      * Create a new event roster share email instance.
@@ -49,7 +44,7 @@ class ShareEventRoster extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Event Roster Link'
+            subject: config('mail.prefix') . ' Event Roster Link'
         );
     }
 

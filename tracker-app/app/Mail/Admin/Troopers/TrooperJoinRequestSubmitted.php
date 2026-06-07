@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Mail\Admin\Troopers;
 
+use App\Mail\HasRetryPolicy;
 use App\Models\TrooperOrganization;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -18,23 +19,19 @@ use Illuminate\Queue\SerializesModels;
 class TrooperJoinRequestSubmitted extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
-
-    public int $tries = 3;
-
-    public function backoff(): array
-    {
-        return [30, 60];
-    }
+    use HasRetryPolicy;
 
     /**
      * @param  TrooperOrganization  $join_request  The pending TrooperOrganization record
      */
-    public function __construct(private readonly TrooperOrganization $join_request) {}
+    public function __construct(private readonly TrooperOrganization $join_request)
+    {
+    }
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Club Join Request Submitted'
+            subject: config('mail.prefix') . ' Club Join Request Submitted'
         );
     }
 
