@@ -22,8 +22,8 @@ use Illuminate\Queue\SerializesModels;
  */
 class CancelledEventNotification extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels;
     use HasRetryPolicy;
+    use Queueable, SerializesModels;
 
     /**
      * Create a new cancelled event notification email instance.
@@ -43,7 +43,7 @@ class CancelledEventNotification extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix') . ' Event Cancelled'
+            subject: config('mail.prefix').' Event Cancelled'
         );
     }
 

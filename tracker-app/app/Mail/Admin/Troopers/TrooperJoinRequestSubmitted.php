@@ -18,20 +18,18 @@ use Illuminate\Queue\SerializesModels;
  */
 class TrooperJoinRequestSubmitted extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels;
     use HasRetryPolicy;
+    use Queueable, SerializesModels;
 
     /**
      * @param  TrooperOrganization  $join_request  The pending TrooperOrganization record
      */
-    public function __construct(private readonly TrooperOrganization $join_request)
-    {
-    }
+    public function __construct(private readonly TrooperOrganization $join_request) {}
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix') . ' Club Join Request Submitted'
+            subject: config('mail.prefix').' Club Join Request Submitted'
         );
     }
 

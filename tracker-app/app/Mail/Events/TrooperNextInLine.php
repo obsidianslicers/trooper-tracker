@@ -23,8 +23,8 @@ use Illuminate\Queue\SerializesModels;
  */
 class TrooperNextInLine extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels;
     use HasRetryPolicy;
+    use Queueable, SerializesModels;
 
     /**
      * Create a new trooper next-in-line notification email instance.
@@ -44,7 +44,7 @@ class TrooperNextInLine extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix') . ' Event Sign-Up Status Update - GOING'
+            subject: config('mail.prefix').' Event Sign-Up Status Update - GOING'
         );
     }
 

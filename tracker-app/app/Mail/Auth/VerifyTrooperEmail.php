@@ -21,8 +21,8 @@ use Illuminate\Queue\SerializesModels;
  */
 class VerifyTrooperEmail extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels;
     use HasRetryPolicy;
+    use Queueable, SerializesModels;
 
     /**
      * Create a new trooper email verification instance.
@@ -40,7 +40,7 @@ class VerifyTrooperEmail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix') . ' Verify Your Email Address',
+            subject: config('mail.prefix').' Verify Your Email Address',
         );
     }
 

@@ -25,8 +25,8 @@ use Symfony\Component\Mime\Email;
  */
 class DailyEventNotification extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels;
     use HasRetryPolicy;
+    use Queueable, SerializesModels;
 
     /**
      * Create a new daily event notification email instance.
@@ -46,7 +46,7 @@ class DailyEventNotification extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix') . ' New Event Posted'
+            subject: config('mail.prefix').' New Event Posted'
         );
     }
 

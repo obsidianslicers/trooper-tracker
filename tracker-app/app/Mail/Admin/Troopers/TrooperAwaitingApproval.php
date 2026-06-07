@@ -22,8 +22,8 @@ use Illuminate\Queue\SerializesModels;
  */
 class TrooperAwaitingApproval extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels;
     use HasRetryPolicy;
+    use Queueable, SerializesModels;
 
     /**
      * Create a new awaiting approval email instance.
@@ -41,7 +41,7 @@ class TrooperAwaitingApproval extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix') . ' Awaiting Approval',
+            subject: config('mail.prefix').' Awaiting Approval',
         );
     }
 

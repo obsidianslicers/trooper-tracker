@@ -15,19 +15,18 @@ use Illuminate\Queue\SerializesModels;
 
 class EventUpdatedMail extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels;
     use HasRetryPolicy;
+    use Queueable, SerializesModels;
 
     public function __construct(
         private readonly Event $event,
         private readonly array $changed_fields,
-    ) {
-    }
+    ) {}
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix') . ' Event Details Updated'
+            subject: config('mail.prefix').' Event Details Updated'
         );
     }
 

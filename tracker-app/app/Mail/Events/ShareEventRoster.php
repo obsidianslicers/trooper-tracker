@@ -23,8 +23,8 @@ use Illuminate\Queue\SerializesModels;
  */
 class ShareEventRoster extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels;
     use HasRetryPolicy;
+    use Queueable, SerializesModels;
 
     /**
      * Create a new event roster share email instance.
@@ -44,7 +44,7 @@ class ShareEventRoster extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix') . ' Event Roster Link'
+            subject: config('mail.prefix').' Event Roster Link'
         );
     }
 

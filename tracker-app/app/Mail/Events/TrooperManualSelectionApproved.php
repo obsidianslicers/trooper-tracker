@@ -16,19 +16,18 @@ use Illuminate\Queue\SerializesModels;
 
 class TrooperManualSelectionApproved extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels;
     use HasRetryPolicy;
+    use Queueable, SerializesModels;
 
     public function __construct(
         private readonly EventTrooper $event_trooper,
         private readonly Trooper $approved_by,
-    ) {
-    }
+    ) {}
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix') . ' Event Sign-Up Status Update - Approved to GOING'
+            subject: config('mail.prefix').' Event Sign-Up Status Update - Approved to GOING'
         );
     }
 

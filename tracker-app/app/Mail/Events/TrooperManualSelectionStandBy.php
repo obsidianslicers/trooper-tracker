@@ -16,19 +16,18 @@ use Illuminate\Queue\SerializesModels;
 
 class TrooperManualSelectionStandBy extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels;
     use HasRetryPolicy;
+    use Queueable, SerializesModels;
 
     public function __construct(
         private readonly EventTrooper $event_trooper,
         private readonly Trooper $changed_by,
-    ) {
-    }
+    ) {}
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix') . ' Event Sign-Up Status Update - Changed to STAND BY'
+            subject: config('mail.prefix').' Event Sign-Up Status Update - Changed to STAND BY'
         );
     }
 

@@ -23,8 +23,8 @@ use Illuminate\Queue\SerializesModels;
  */
 class EventShiftComplete extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels;
     use HasRetryPolicy;
+    use Queueable, SerializesModels;
 
     /**
      * Create a new event shift completion email instance.
@@ -44,7 +44,7 @@ class EventShiftComplete extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix') . ' Event Shift Complete - Action Required'
+            subject: config('mail.prefix').' Event Shift Complete - Action Required'
         );
     }
 

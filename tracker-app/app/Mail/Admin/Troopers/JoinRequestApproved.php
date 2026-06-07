@@ -19,8 +19,8 @@ use Illuminate\Queue\SerializesModels;
  */
 class JoinRequestApproved extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels;
     use HasRetryPolicy;
+    use Queueable, SerializesModels;
 
     /**
      * @param  Trooper  $trooper  The trooper whose request was approved
@@ -29,13 +29,12 @@ class JoinRequestApproved extends Mailable implements ShouldQueue
     public function __construct(
         private readonly Trooper $trooper,
         private readonly Organization $organization,
-    ) {
-    }
+    ) {}
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix') . ' Join Request Approved — ' . $this->organization->name
+            subject: config('mail.prefix').' Join Request Approved — '.$this->organization->name
         );
     }
 

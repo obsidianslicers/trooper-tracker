@@ -16,19 +16,18 @@ use Illuminate\Queue\SerializesModels;
 
 class ForumPostCommandStaffMail extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels;
     use HasRetryPolicy;
+    use Queueable, SerializesModels;
 
     public function __construct(
         private readonly Event $event,
         private readonly Trooper $poster,
-    ) {
-    }
+    ) {}
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix') . ' Forum Post — Command Staff Alert'
+            subject: config('mail.prefix').' Forum Post — Command Staff Alert'
         );
     }
 

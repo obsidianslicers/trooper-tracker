@@ -16,17 +16,15 @@ use Illuminate\Queue\SerializesModels;
 
 class AccountDeletionCancelledMail extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels;
     use HasRetryPolicy;
+    use Queueable, SerializesModels;
 
-    public function __construct(public Trooper $trooper)
-    {
-    }
+    public function __construct(public Trooper $trooper) {}
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix') . ' Account Deletion Cancelled',
+            subject: config('mail.prefix').' Account Deletion Cancelled',
         );
     }
 

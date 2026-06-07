@@ -24,8 +24,8 @@ use Symfony\Component\Mime\Email;
  */
 class InstantEventNotification extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels;
     use HasRetryPolicy;
+    use Queueable, SerializesModels;
 
     /**
      * Create a new instant event notification email instance.
@@ -45,7 +45,7 @@ class InstantEventNotification extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix') . ' New Event Posted'
+            subject: config('mail.prefix').' New Event Posted'
         );
     }
 

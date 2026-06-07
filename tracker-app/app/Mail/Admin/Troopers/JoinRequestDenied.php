@@ -19,20 +19,19 @@ use Illuminate\Queue\SerializesModels;
  */
 class JoinRequestDenied extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels;
     use HasRetryPolicy;
+    use Queueable, SerializesModels;
 
     public function __construct(
         private readonly Trooper $trooper,
         private readonly Organization $organization,
         private readonly ?string $denial_reason,
-    ) {
-    }
+    ) {}
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix') . ' Join Request Not Approved — ' . $this->organization->name
+            subject: config('mail.prefix').' Join Request Not Approved — '.$this->organization->name
         );
     }
 

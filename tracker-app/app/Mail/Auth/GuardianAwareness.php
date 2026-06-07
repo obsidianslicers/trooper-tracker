@@ -23,8 +23,8 @@ use Illuminate\Queue\SerializesModels;
  */
 class GuardianAwareness extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels;
     use HasRetryPolicy;
+    use Queueable, SerializesModels;
 
     /**
      * Create a new guardian awareness email instance.
@@ -44,7 +44,7 @@ class GuardianAwareness extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix') . ' Parent/Guardian of Cadet Registration',
+            subject: config('mail.prefix').' Parent/Guardian of Cadet Registration',
         );
     }
 

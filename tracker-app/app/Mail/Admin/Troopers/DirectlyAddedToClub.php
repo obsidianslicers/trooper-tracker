@@ -19,8 +19,8 @@ use Illuminate\Queue\SerializesModels;
  */
 class DirectlyAddedToClub extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels;
     use HasRetryPolicy;
+    use Queueable, SerializesModels;
 
     /**
      * @param  Trooper  $trooper  The trooper who was added
@@ -29,13 +29,12 @@ class DirectlyAddedToClub extends Mailable implements ShouldQueue
     public function __construct(
         private readonly Trooper $trooper,
         private readonly Organization $organization,
-    ) {
-    }
+    ) {}
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix') . ' You\'ve Been Added to ' . $this->organization->name
+            subject: config('mail.prefix').' You\'ve Been Added to '.$this->organization->name
         );
     }
 

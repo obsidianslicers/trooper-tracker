@@ -22,8 +22,8 @@ use Illuminate\Queue\SerializesModels;
  */
 class TrooperApproved extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels;
     use HasRetryPolicy;
+    use Queueable, SerializesModels;
 
     /**
      * Create a new trooper approval email instance.
@@ -43,7 +43,7 @@ class TrooperApproved extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix') . ' Welcome, Trooper! You Passed Inspection!'
+            subject: config('mail.prefix').' Welcome, Trooper! You Passed Inspection!'
         );
     }
 

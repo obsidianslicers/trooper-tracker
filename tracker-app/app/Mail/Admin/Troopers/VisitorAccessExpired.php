@@ -20,17 +20,15 @@ use Illuminate\Queue\SerializesModels;
  */
 class VisitorAccessExpired extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels;
     use HasRetryPolicy;
+    use Queueable, SerializesModels;
 
-    public function __construct(private readonly Trooper $trooper)
-    {
-    }
+    public function __construct(private readonly Trooper $trooper) {}
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix') . ' Your Visitor Access Has Expired'
+            subject: config('mail.prefix').' Your Visitor Access Has Expired'
         );
     }
 

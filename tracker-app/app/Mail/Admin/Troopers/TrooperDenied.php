@@ -18,19 +18,18 @@ use Illuminate\Queue\SerializesModels;
  */
 class TrooperDenied extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels;
     use HasRetryPolicy;
+    use Queueable, SerializesModels;
 
     public function __construct(
         private readonly Trooper $trooper,
         private readonly ?string $denial_reason,
-    ) {
-    }
+    ) {}
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix') . ' Registration Not Approved'
+            subject: config('mail.prefix').' Registration Not Approved'
         );
     }
 
