@@ -43,7 +43,7 @@ class SignUpUpdateHtmxController extends MagicBusController
                 && $requestedStatus === EventTrooperStatus::GOING;
             $isManualRejection = $isManualSelectionEvent
                 && $canModerateEvent
-                && $event_trooper->status === EventTrooperStatus::GOING
+                && $event_trooper->intendsToGo()
                 && $requestedStatus === EventTrooperStatus::STAND_BY;
 
             if ($isManualSelectionEvent && $requestedStatus === EventTrooperStatus::GOING && !$canModerateEvent)
@@ -128,9 +128,10 @@ class SignUpUpdateHtmxController extends MagicBusController
 
             if (
                 $new_org_id !== null
-                && $event_trooper->status === EventTrooperStatus::GOING
+                && $event_trooper->intendsToGo()
                 && $event_shift->orgTroopersMaxed($new_org_id, $event_trooper->is_handler)
-            ) {
+            )
+            {
                 $message = json_encode([
                     'message' => 'That organization is already at capacity.',
                     'type' => 'danger',
@@ -215,7 +216,7 @@ class SignUpUpdateHtmxController extends MagicBusController
         {
             $costume_id = $request->validated('costume_id');
             $previous_is_handler = $event_trooper->is_handler;
-            $was_going = $event_trooper->status === EventTrooperStatus::GOING;
+            $was_going = $event_trooper->intendsToGo();
             $event_shift = $event_trooper->event_shift;
             $effective_org_id = $event_trooper->organization_id
                 ?? $event_trooper->effectiveOrgId($event_shift->event);

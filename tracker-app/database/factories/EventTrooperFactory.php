@@ -81,6 +81,13 @@ class EventTrooperFactory extends BaseEventTrooperFactory
         ]);
     }
 
+    public function asTentative(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            EventTrooper::STATUS => EventTrooperStatus::TENTATIVE,
+        ]);
+    }
+
     public function asAttended(): static
     {
         return $this->state(fn(array $attributes): array => [

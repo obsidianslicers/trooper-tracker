@@ -8,7 +8,7 @@
         {{ to_title($event_shift->status->name) }}
     </div>
     <div class="col-6 text-end">
-        @php($count_of_troopers = $event_shift->event_troopers->filter(fn($et) => $et->is_going)->count())
+        @php($count_of_troopers = $event_shift->event_troopers->filter(fn($et) => $et->intendsToGo())->count())
         @if($event_shift->is_open)
             @if($event_shift->troopers_allowed != null && $count_of_troopers >= $event_shift->troopers_allowed)
                 <span class="text-success">

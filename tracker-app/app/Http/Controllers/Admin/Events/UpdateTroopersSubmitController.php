@@ -46,7 +46,7 @@ class UpdateTroopersSubmitController extends MagicBusController
 
         foreach ($troopers as $id => $input)
         {
-            $event_trooper = $event_troopers->filter(fn ($et) => $et->id === (int) $id)->first();
+            $event_trooper = $event_troopers->filter(fn($et) => $et->id === (int) $id)->first();
 
             if ($event_trooper === null)
             {
@@ -68,8 +68,8 @@ class UpdateTroopersSubmitController extends MagicBusController
 
             $validOrgIds = array_values(array_filter(
                 $submittedOrgIds,
-                fn ($id) => in_array($id, $trooperOrgIds, true)
-                    && ($allowed_org_ids === null || in_array($id, $allowed_org_ids, true))
+                fn($id) => in_array($id, $trooperOrgIds, true)
+                && ($allowed_org_ids === null || in_array($id, $allowed_org_ids, true))
             ));
 
             $event_trooper->costume_organization_ids = !empty($validOrgIds) ? $validOrgIds : null;
@@ -79,7 +79,7 @@ class UpdateTroopersSubmitController extends MagicBusController
 
             $wasManualApproval = $isManualSelectionEvent
                 && $oldStatus === EventTrooperStatus::STAND_BY
-                && $event_trooper->status === EventTrooperStatus::GOING;
+                && $event_trooper->intendsToGo();
             $wasMovedToStandBy = $isManualSelectionEvent
                 && $oldStatus === EventTrooperStatus::GOING
                 && $event_trooper->status === EventTrooperStatus::STAND_BY;
@@ -97,7 +97,7 @@ class UpdateTroopersSubmitController extends MagicBusController
 
         foreach ($guests as $id => $input)
         {
-            $event_guest = $event_guests->first(fn ($eg) => $eg->id === (int) $id);
+            $event_guest = $event_guests->first(fn($eg) => $eg->id === (int) $id);
 
             if ($event_guest === null)
             {
