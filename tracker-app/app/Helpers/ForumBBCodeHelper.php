@@ -70,7 +70,7 @@ class ForumBBCodeHelper
 
         // Add sign-up link
         $bb .= "\n[b][u]Sign Up / Event Roster:[/u][/b]\n";
-        $bb .= '[url]'.url('/events/'.$event->id).'[/url]';
+        $bb .= '[url]'.url('/events/details/'.$event->id).'[/url]';
 
         return $bb;
     }

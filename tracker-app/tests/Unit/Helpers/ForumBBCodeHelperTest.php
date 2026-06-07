@@ -33,7 +33,7 @@ class ForumBBCodeHelperTest extends TestCase
             $result
         );
         $this->assertStringContainsString('[b][u]Sign Up / Event Roster:[/u][/b]', $result);
-        $this->assertStringContainsString('[url]' . url('/events/' . $event->id) . '[/url]', $result);
+        $this->assertStringContainsString('[url]' . url('/events/details/' . $event->id) . '[/url]', $result);
     }
 
     public function test_thread_template_escapes_bbcode_text_fields(): void
