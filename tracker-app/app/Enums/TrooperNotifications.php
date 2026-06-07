@@ -30,4 +30,9 @@ enum TrooperNotifications: string
      * Sent when an event shift is completed.
      */
     case EVENT_SHIFT_COMPLETED = 'event_shift_completed';
+
+    /**
+     * Sent when a new post is made in the event's forum thread.
+     */
+    case EVENT_FORUM_POST = 'event_forum_post';
 }

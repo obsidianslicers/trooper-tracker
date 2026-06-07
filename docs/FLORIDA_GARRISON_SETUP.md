@@ -422,7 +422,23 @@ To update a group ID: `Command Staff > Organizations > [org] > edit` → **XenFo
 
 ---
 
-## 12. Verification Checklist
+## 12. XenForo Forum Post Webhook
+
+This step enables Troop Tracker to receive notifications from XenForo when a new post is made in an event thread, and to notify event watchers automatically.
+
+For full setup instructions see [XENFORO_OAUTH.md](XENFORO_OAUTH.md) → "Forum Post Notifications (Webhook)".
+
+**Florida Garrison-specific values:**
+
+- **Webhook URL**: `https://tracker.fl501st.com/webhooks/xenforo`
+- **Secret**: must match `XENFORO_WEBHOOK_SECRET` in the production `.env`
+- **Event**: Post → Insert
+
+In XenForo Admin CP go to **Setup → Webhooks**, create a new webhook with the URL and secret above, select **Post → Insert**, and save.
+
+---
+
+## 13. Verification Checklist
 
 After setup or migration, verify all of the following:
 
@@ -435,6 +451,7 @@ After setup or migration, verify all of the following:
 - a XenForo forum thread is created when a new event is saved (`tt_events.thread_id` is populated)
 - a Discord notification includes the correct squad role mention
 - `tracker:synchronize-xenforo-users` applies the expected secondary group IDs to a test trooper (1415 + squad group + 18)
+- posting a reply in an event's forum thread causes event watchers to receive an **Event Forum Post** in-app notification
 
 If new uploads are broken but legacy images work, the most likely issue is that `php artisan storage:link` was not run or the symlink is missing on the server.
 
@@ -442,7 +459,7 @@ If legacy event images are broken but new uploads work, the most likely issue is
 
 ---
 
-## 13. Suggested Order for Florida Garrison Launch
+## 14. Suggested Order for Florida Garrison Launch
 
 Use this order when standing up the Florida Garrison instance:
 
@@ -455,12 +472,13 @@ Use this order when standing up the Florida Garrison instance:
 7. upload or migrate squad logos
 8. (optional) add `FIREBASE_CREDENTIALS` to `.env` for mobile push notifications — see section 10
 9. configure XenForo env vars (`XENFORO_BASE_URL`, `XENFORO_API_KEY`, `XENFORO_API_USER`) and run `php artisan config:clear` — see [XENFORO_OAUTH.md](XENFORO_OAUTH.md) section 4; forum node IDs, Discord mentions, and XenForo group IDs are pre-seeded for Florida Garrison
-10. if Discord webhook is new, verify `DISCORD_WEBHOOK_URL` is set; confirm squad mention strings match current Discord role IDs
-11. verify several events and organization pages in the browser
+10. configure the XenForo forum post webhook — set `XENFORO_WEBHOOK_SECRET` in `.env`, create the webhook in XenForo Admin CP pointing to `https://tracker.fl501st.com/webhooks/xenforo` — see section 12 and [XENFORO_OAUTH.md](XENFORO_OAUTH.md)
+11. if Discord webhook is new, verify `DISCORD_WEBHOOK_URL` is set; confirm squad mention strings match current Discord role IDs
+12. verify several events and organization pages in the browser
 
 ---
 
-## 14. Laravel Queue Worker and SES SMTP on Bitnami AWS
+## 15. Laravel Queue Worker and SES SMTP on Bitnami AWS
 
 ### 14.1 Set up Laravel queue worker with Supervisor
 
