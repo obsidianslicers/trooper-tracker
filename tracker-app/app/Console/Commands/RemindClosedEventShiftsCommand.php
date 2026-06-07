@@ -7,6 +7,7 @@ namespace App\Console\Commands;
 use App\Bus\MagicBus;
 use App\Enums\EventStatus;
 use App\Features\Events\Queries\GetEventShiftsToCloseQuery;
+use App\Features\Events\Queries\GetEventShiftsToRemindQuery;
 use App\Notifications\Events\EventShiftCompletedNotification;
 use Illuminate\Console\Command;
 
@@ -18,21 +19,21 @@ use Illuminate\Console\Command;
  * service, updates each shift's status to CLOSED, and sends completion emails to
  * troopers who attended.
  */
-class RemindEventTroopersCommand extends Command
+class RemindClosedEventShiftsCommand extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'tracker:remind-event-troopers';
+    protected $signature = 'tracker:remind-closed-event-shifts';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Remind event troopers about upcoming shifts';
+    protected $description = 'Remind event troopers about closed event shifts';
 
     /**
      * Execute the console command.
@@ -45,11 +46,11 @@ class RemindEventTroopersCommand extends Command
      */
     public function handle(MagicBus $bus): void
     {
-        $event_shifts = $bus->send(new GetRemindEventShiftsQuery);
+        $event_shifts = $bus->send(new GetEventShiftsToRemindQuery());
 
         foreach ($event_shifts as $event_shift)
         {
-            $event_shift->status = EventStatus::CLOSED;
+            $event_shift->last_notified_at = now();
             $event_shift->save();
 
             //  EMAIL DAH TROOPAHZ!
@@ -57,7 +58,7 @@ class RemindEventTroopersCommand extends Command
             {
                 if ($event_trooper->is_going)
                 {
-                    $event_trooper->trooper->notify(new EventShiftReminderNotification($event_trooper));
+                    $event_trooper->trooper->notify(new EventShiftCompletedNotification($event_trooper));
                 }
             }
         }
