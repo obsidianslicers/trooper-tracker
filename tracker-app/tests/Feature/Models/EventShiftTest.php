@@ -289,6 +289,21 @@ class EventShiftTest extends TestCase
         $this->assertTrue($result);
     }
 
+    public function test_is_going_returns_true_when_trooper_status_tentative(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $subject = EventShift::factory()->create();
+        EventTrooper::factory()
+            ->forEventShift($subject)
+            ->forTrooper($trooper)
+            ->asTentative()
+            ->create();
+
+        $result = $subject->isGoing($trooper);
+
+        $this->assertTrue($result);
+    }
+
     public function test_is_going_returns_false_when_trooper_not_going(): void
     {
         $trooper = Trooper::factory()->create();

@@ -101,16 +101,6 @@ class EventTrooper extends BaseEventTrooper
     }
 
     /**
-     * Check if the trooper is going to the event.
-     *
-     * @return bool True when status is GOING.
-     */
-    public function getIsGoingAttribute(): bool
-    {
-        return $this->status === EventTrooperStatus::GOING;
-    }
-
-    /**
      * Check if the trooper is on stand-by for the event.
      *
      * @return bool True when status is STAND_BY.
@@ -159,6 +149,17 @@ class EventTrooper extends BaseEventTrooper
     }
 
     /**
+     * Check if the trooper is going to the event.
+     *
+     * @return bool True when status is GOING.
+     */
+    public function intendsToGo(): bool
+    {
+        /** @var EventTrooperStatus $this->status */
+        return $this->status->intendsToGo();
+    }
+
+    /**
      * Determines whether attendance can be marked for this assignment.
      *
      * Attendance can be marked only when the shift is closed, the event allows
@@ -171,7 +172,7 @@ class EventTrooper extends BaseEventTrooper
     {
         if ($this->event_shift->is_closed && $this->event_shift->event->can_update_trooper_status && $this->hasOwnership($actor))
         {
-            if ($this->status === EventTrooperStatus::GOING)
+            if ($this->intendsToGo())
             {
                 return true;
             }
@@ -268,7 +269,7 @@ class EventTrooper extends BaseEventTrooper
 
         if ($this->event_shift->is_closed && $this->event_shift->event->is_within_grace_period)
         {
-            if ($this->status === EventTrooperStatus::GOING && $this->hasOwnership($actor))
+            if ($this->intendsToGo() && $this->hasOwnership($actor))
             {
                 return true;
             }

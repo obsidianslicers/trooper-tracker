@@ -261,7 +261,7 @@ class EventShift extends BaseEventShift
         // we assume event_troopers relationship is loaded for the UI's sake
         return $this->event_troopers
             ->where(EventTrooper::TROOPER_ID, $trooper->id)
-            ->where(EventTrooper::STATUS, EventTrooperStatus::GOING)
+            ->whereIn(EventTrooper::STATUS, EventTrooperStatus::intentToGoArray())
             ->isNotEmpty();
     }
 

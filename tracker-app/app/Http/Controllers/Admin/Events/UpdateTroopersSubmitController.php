@@ -69,7 +69,7 @@ class UpdateTroopersSubmitController extends MagicBusController
             $validOrgIds = array_values(array_filter(
                 $submittedOrgIds,
                 fn ($id) => in_array($id, $trooperOrgIds, true)
-                    && ($allowed_org_ids === null || in_array($id, $allowed_org_ids, true))
+                && ($allowed_org_ids === null || in_array($id, $allowed_org_ids, true))
             ));
 
             $event_trooper->costume_organization_ids = !empty($validOrgIds) ? $validOrgIds : null;
@@ -79,7 +79,7 @@ class UpdateTroopersSubmitController extends MagicBusController
 
             $wasManualApproval = $isManualSelectionEvent
                 && $oldStatus === EventTrooperStatus::STAND_BY
-                && $event_trooper->status === EventTrooperStatus::GOING;
+                && $event_trooper->intendsToGo();
             $wasMovedToStandBy = $isManualSelectionEvent
                 && $oldStatus === EventTrooperStatus::GOING
                 && $event_trooper->status === EventTrooperStatus::STAND_BY;

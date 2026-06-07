@@ -56,7 +56,7 @@ class CloseEventShiftsCommand extends Command
             //  EMAIL DAH TROOPAHZ!
             foreach ($event_shift->event_troopers as $event_trooper)
             {
-                if ($event_trooper->is_going)
+                if ($event_trooper->intendsToGo())
                 {
                     $event_trooper->trooper->notify(new EventShiftCompletedNotification($event_trooper));
                 }
