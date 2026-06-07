@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Mail\Events;
 
+use App\Mail\HasRetryPolicy;
 use App\Models\EventNotification;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -24,6 +25,7 @@ use Symfony\Component\Mime\Email;
  */
 class DailyEventNotification extends Mailable implements ShouldQueue
 {
+    use HasRetryPolicy;
     use Queueable, SerializesModels;
 
     /**

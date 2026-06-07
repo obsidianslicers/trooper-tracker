@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Mail\Events;
 
+use App\Mail\HasRetryPolicy;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
 use Illuminate\Bus\Queueable;
@@ -15,6 +16,7 @@ use Illuminate\Queue\SerializesModels;
 
 class TrooperManualSelectionStandBy extends Mailable implements ShouldQueue
 {
+    use HasRetryPolicy;
     use Queueable, SerializesModels;
 
     public function __construct(

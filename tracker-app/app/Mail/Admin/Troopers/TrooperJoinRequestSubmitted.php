@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Mail\Admin\Troopers;
 
+use App\Mail\HasRetryPolicy;
 use App\Models\TrooperOrganization;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -17,6 +18,7 @@ use Illuminate\Queue\SerializesModels;
  */
 class TrooperJoinRequestSubmitted extends Mailable implements ShouldQueue
 {
+    use HasRetryPolicy;
     use Queueable, SerializesModels;
 
     /**

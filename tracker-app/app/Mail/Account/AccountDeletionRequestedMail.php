@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Mail\Account;
 
+use App\Mail\HasRetryPolicy;
 use App\Models\Trooper;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -15,6 +16,7 @@ use Illuminate\Queue\SerializesModels;
 
 class AccountDeletionRequestedMail extends Mailable implements ShouldQueue
 {
+    use HasRetryPolicy;
     use Queueable, SerializesModels;
 
     public function __construct(public Trooper $trooper) {}

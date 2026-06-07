@@ -29,6 +29,7 @@ use Throwable;
  */
 class ExceptionOccurred extends Mailable implements ShouldQueue
 {
+    use HasRetryPolicy;
     use Queueable, SerializesModels;
 
     /**

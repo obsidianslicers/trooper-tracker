@@ -486,7 +486,7 @@ Use this order when standing up the Florida Garrison instance:
    sudo tee /etc/supervisor/conf.d/laravel-worker.conf > /dev/null <<'EOF'
    [program:laravel-worker]
    process_name=%(program_name)s_%(process_num)02d
-   command=/opt/bitnami/php/bin/php /home/bitnami/trooper-tracker/tracker-app/artisan queue:work --sleep=3 --tries=3 --timeout=90
+   command=/opt/bitnami/php/bin/php /home/bitnami/trooper-tracker/tracker-app/artisan queue:work --sleep=3 --tries=3 --timeout=90 --max-jobs=100
    directory=/home/bitnami/trooper-tracker/tracker-app
    autostart=true
    autorestart=true
