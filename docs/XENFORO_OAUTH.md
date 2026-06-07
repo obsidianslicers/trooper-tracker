@@ -13,6 +13,7 @@ When XenForo integration is fully configured, Troop Tracker can:
 - synchronize Troop Tracker data back to XenForo user profiles and groups
 - calculate support totals from XenForo user upgrades
 - display XenForo user-group banner HTML on trooper service-record pages
+- notify event watchers when a new post is added to the event's forum thread
 
 This guide covers what the integration does, why the required add-ons exist, and how to set everything up.
 
@@ -414,6 +415,44 @@ For a single user:
 php artisan tracker:synchronize-xenforo-user 644
 ```
 
+## Forum Post Notifications (Webhook)
+
+When a new reply is posted in an event's XenForo thread, XenForo sends a webhook to Troop Tracker. Troop Tracker then notifies all troopers watching that event across their preferred channels (email, push, in-app). The poster is automatically excluded if they have a linked XenForo account.
+
+Troopers can toggle this notification per-channel at `/account/notifications` under **Event Forum Post**.
+
+### Setup
+
+1. Set `XENFORO_WEBHOOK_SECRET` in `.env` to a long random string, then clear config:
+
+   ```bash
+   php artisan config:clear
+   ```
+
+2. In XenForo Admin CP, go to **Setup → Webhooks** and click **+ Add webhook**.
+
+3. Configure the webhook:
+   - **URL**: `{APP_URL}/webhooks/xenforo` (e.g. `https://tracker.fl501st.com/webhooks/xenforo`)
+   - **Content type**: `application/json`
+   - **Secret**: the same value you set for `XENFORO_WEBHOOK_SECRET`
+   - **Events**: expand **Post** and check **Insert**
+
+4. Save. XenForo will now POST to Troop Tracker for every new forum reply.
+
+### How it works
+
+- XenForo sends the secret as the `xf-webhook-secret` request header (plaintext).
+- Troop Tracker validates it with `hash_equals` — requests with a missing or wrong secret receive a 401 and are ignored.
+- Only `insert` events trigger notifications; `update` and `delete` events are silently ignored.
+- Notification delivery is handled by a background job — the **queue worker must be running** (`php artisan queue:work`) for notifications to be sent.
+
+### Notes
+
+- Only events that have a `thread_id` stored (i.e., events with a linked XenForo thread) will trigger notifications. Events without a forum thread are silently skipped.
+- If a trooper has not linked their XenForo account, they cannot be identified as the poster and will receive a notification even if they made the post.
+
+---
+
 ## Validation Steps
 
 After setup, verify each layer:
@@ -442,6 +481,12 @@ After setup, verify each layer:
 
 - run the sync command
 - confirm XenForo custom fields and secondary groups update as expected
+
+### Forum post notifications
+
+- post a reply in an event's forum thread
+- confirm troopers watching that event receive an **Event Forum Post** in-app notification (bell icon)
+- confirm email and push arrive for troopers with those channels enabled
 
 ## Troubleshooting
 

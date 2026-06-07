@@ -318,6 +318,7 @@ Configuration reference for all `.env` variables in Troop Tracker.
    - synchronizing XenForo user fields and groups
    - reading upgrade stats via the Upgrade Stats add-on
    - reading user-group banner data via the User Groups add-on
+   - receiving and validating inbound XenForo webhooks for forum post notifications
 - **Security**: Never commit to version control
 - **See**: [XENFORO_OAUTH.md](XENFORO_OAUTH.md)
 
@@ -344,6 +345,13 @@ Configuration reference for all `.env` variables in Troop Tracker.
 - **Required**: No
 - **Default**: `/api/me`
 - **When to change**: Only if your XenForo OAuth endpoint differs from the default
+
+#### XENFORO_WEBHOOK_SECRET
+- **Purpose**: Validates incoming webhook requests sent by XenForo (received as the `xf-webhook-secret` request header)
+- **Required**: Yes, to receive forum post notifications in Troop Tracker
+- **Security**: Use a long random string; treat like a password — never commit to version control
+- **Setup**: Set this value in `.env`, then enter the same string as the **Secret** when creating the webhook in XenForo Admin CP → Setup → Webhooks
+- **See**: [XENFORO_OAUTH.md](XENFORO_OAUTH.md) → "Forum Post Notifications (Webhook)"
 
 #### TRACKER_REQUIRE_XENFORO
 - **Purpose**: Force Troop Tracker to require XenForo-linked accounts
@@ -477,6 +485,7 @@ XENFORO_REDIRECT_URI=https://trooptracker.example.com/oauth/xenforo/callback
 XENFORO_BASE_URL=https://forum.example.com
 XENFORO_API_KEY=YOUR_XENFORO_API_KEY
 XENFORO_API_USER=1
+XENFORO_WEBHOOK_SECRET=YOUR_WEBHOOK_SECRET_HERE
 TRACKER_REQUIRE_XENFORO=true
 TRACKER_EXCEPTION_EMAIL_ENABLED=true
 
