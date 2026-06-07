@@ -107,6 +107,53 @@ class CloseEventShiftsCommandTest extends TestCase
     }
 
     /**
+     * Test that the command sends notifications to troopers with TENTATIVE status.
+     */
+    public function test_command_sends_notifications_to_tentative_troopers(): void
+    {
+        // Arrange: Create event shift with troopers in different statuses
+        $shift = EventShift::factory()->create([EventShift::STATUS => EventStatus::OPEN, EventShift::SHIFT_ENDS_AT => Carbon::now()->subHour()]);
+
+        $trooper_tentative = Mockery::mock(Trooper::class)->makePartial();
+        $trooper_tentative->shouldReceive('notify')
+            ->once()
+            ->with(Mockery::type(EventShiftCompletedNotification::class));
+
+        $event_trooper_tentative = EventTrooper::factory()->make([
+            EventTrooper::EVENT_SHIFT_ID => $shift->id,
+            EventTrooper::STATUS => EventTrooperStatus::TENTATIVE,
+        ]);
+        $event_trooper_tentative->setRelation('trooper', $trooper_tentative);
+
+        $trooper_cancelled = Mockery::mock(Trooper::class)->makePartial();
+        $trooper_cancelled->shouldNotReceive('notify');
+
+        $event_trooper_cancelled = EventTrooper::factory()->make([
+            EventTrooper::EVENT_SHIFT_ID => $shift->id,
+            EventTrooper::STATUS => EventTrooperStatus::CANCELLED,
+        ]);
+        $event_trooper_cancelled->setRelation('trooper', $trooper_cancelled);
+
+        $shift->setRelation(
+            'event_troopers',
+            collect([$event_trooper_tentative, $event_trooper_cancelled])
+        );
+
+        // Mock MagicBus
+        $this->mock(MagicBus::class, function (MockInterface $mock) use ($shift)
+        {
+            $mock->shouldReceive('send')
+                ->once()
+                ->with(Mockery::type(GetEventShiftsToCloseQuery::class))
+                ->andReturn(collect([$shift]));
+        });
+
+        // Act: Execute the command
+        $this->artisan('tracker:close-event-shifts')
+            ->assertExitCode(0);
+    }
+
+    /**
      * Test that the command does not notify non-GOING troopers.
      */
     public function test_command_does_not_notify_non_going_troopers(): void
@@ -118,7 +165,7 @@ class CloseEventShiftsCommandTest extends TestCase
         $trooper1->shouldNotReceive('notify');
         $event_trooper1 = EventTrooper::factory()->make([
             EventTrooper::EVENT_SHIFT_ID => $shift->id,
-            EventTrooper::STATUS => EventTrooperStatus::TENTATIVE,
+            EventTrooper::STATUS => EventTrooperStatus::STAND_BY,
         ]);
         $event_trooper1->setRelation('trooper', $trooper1);
 

@@ -132,4 +132,30 @@ enum EventTrooperStatus: string
     {
         return sprintf('<i class="fa fa-fw %s %s ms-2"></i>', $this->icon(), $this->color());
     }
+
+    /**
+     * Determine if the trooper intends to go based on their status.
+     *
+     * A trooper is considered to intend to go if their status is either GOING or TENTATIVE,
+     * as both indicate some level of commitment to attending the event.
+     *
+     * @return bool True if the status indicates intent to go, false otherwise
+     */
+    public function intendsToGo(): bool
+    {
+        return in_array($this, self::intentToGoArray());
+    }
+
+    /**
+     * Get an array of statuses that indicate the trooper intends to go.
+     *
+     * This includes both GOING and TENTATIVE statuses, as both represent
+     * some level of intent to attend the event.
+     *
+     * @return array<EventTrooperStatus> Array of statuses indicating intent to go
+     */
+    public static function intentToGoArray(): array
+    {
+        return [self::GOING, self::TENTATIVE];
+    }
 }
