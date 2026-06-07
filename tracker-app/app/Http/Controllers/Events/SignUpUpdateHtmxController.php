@@ -130,8 +130,7 @@ class SignUpUpdateHtmxController extends MagicBusController
                 $new_org_id !== null
                 && $event_trooper->intendsToGo()
                 && $event_shift->orgTroopersMaxed($new_org_id, $event_trooper->is_handler)
-            )
-            {
+            ) {
                 $message = json_encode([
                     'message' => 'That organization is already at capacity.',
                     'type' => 'danger',

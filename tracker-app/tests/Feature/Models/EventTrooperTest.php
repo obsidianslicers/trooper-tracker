@@ -65,20 +65,29 @@ class EventTrooperTest extends TestCase
         $this->assertFalse($subject->attended);
     }
 
-    public function test_get_is_going_attribute_returns_true_when_status_going(): void
+    public function test_intends_to_go_returns_true_when_status_going(): void
     {
         $subject = EventTrooper::factory()->asGoing()->create();
 
-        $this->assertTrue($subject->is_going);
+        $this->assertTrue($subject->intendsToGo());
     }
 
-    public function test_get_is_going_attribute_returns_false_when_status_not_going(): void
+    public function test_intends_to_go_returns_true_when_status_tentative(): void
+    {
+        $subject = EventTrooper::factory()
+            ->state([EventTrooper::STATUS => EventTrooperStatus::TENTATIVE])
+            ->create();
+
+        $this->assertTrue($subject->intendsToGo());
+    }
+
+    public function test_intends_to_go_returns_false_when_status_none(): void
     {
         $subject = EventTrooper::factory()
             ->state([EventTrooper::STATUS => EventTrooperStatus::NONE])
             ->create();
 
-        $this->assertFalse($subject->is_going);
+        $this->assertFalse($subject->intendsToGo());
     }
 
     public function test_get_is_stand_by_attribute_returns_true_when_status_stand_by(): void
