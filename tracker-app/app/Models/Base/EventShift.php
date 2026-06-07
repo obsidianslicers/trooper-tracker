@@ -24,6 +24,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $status
  * @property Carbon $shift_starts_at
  * @property Carbon $shift_ends_at
+ * @property Carbon|null $last_notified_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property string|null $deleted_at
@@ -45,6 +46,7 @@ class EventShift extends Model
     const STATUS = 'status';
     const SHIFT_STARTS_AT = 'shift_starts_at';
     const SHIFT_ENDS_AT = 'shift_ends_at';
+    const LAST_NOTIFIED_AT = 'last_notified_at';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
     const DELETED_AT = 'deleted_at';
@@ -58,6 +60,7 @@ class EventShift extends Model
         self::EVENT_ID => 'int',
         self::SHIFT_STARTS_AT => 'datetime',
         self::SHIFT_ENDS_AT => 'datetime',
+        self::LAST_NOTIFIED_AT => 'datetime',
         self::CREATED_AT => 'datetime',
         self::UPDATED_AT => 'datetime',
         self::CREATED_ID => 'int',
@@ -69,7 +72,8 @@ class EventShift extends Model
         self::EVENT_ID,
         self::STATUS,
         self::SHIFT_STARTS_AT,
-        self::SHIFT_ENDS_AT
+        self::SHIFT_ENDS_AT,
+        self::LAST_NOTIFIED_AT
     ];
 
     public function event(): BelongsTo
