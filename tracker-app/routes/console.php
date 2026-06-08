@@ -35,6 +35,8 @@ Schedule::command('tracker:send-daily-event-notifications')
 
 Schedule::command('tracker:remind-closed-event-shifts')
     ->dailyAt('09:00')
+Schedule::command('tracker:send-tentative-reminders')
+    ->dailyAt('08:00')
     ->timezone($timezone);
 
 Schedule::command('tracker:process-account-deletions')
