@@ -10,7 +10,6 @@ use App\Enums\EventTrooperStatus;
 use App\Models\Event;
 use App\Models\EventTrooper;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Collection;
 
 /**
  * @implements QueryHandlerInterface<GetTentativeEventTroopersQuery>

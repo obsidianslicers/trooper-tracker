@@ -9,7 +9,6 @@ use App\Models\EventTrooper;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -36,8 +35,8 @@ class TentativeStatusReminderMail extends Mailable implements ShouldQueue
             view: 'emails.events.tentative-status-reminder',
             with: [
                 'event_trooper' => $this->event_trooper,
-                'event'         => $event,
-                'days_until'    => (int) now()->diffInDays($event->event_start, false),
+                'event' => $event,
+                'days_until' => (int) now()->diffInDays($event->event_start, false),
             ]
         );
     }
