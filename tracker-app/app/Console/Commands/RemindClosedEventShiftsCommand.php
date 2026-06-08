@@ -5,19 +5,16 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Bus\MagicBus;
-use App\Enums\EventStatus;
-use App\Features\Events\Queries\GetEventShiftsToCloseQuery;
 use App\Features\Events\Queries\GetEventShiftsToRemindQuery;
 use App\Notifications\Events\EventShiftCompletedNotification;
 use Illuminate\Console\Command;
 
 /**
- * Artisan command to close event shifts that have ended.
+ * Artisan command to remind troopers about closed event shifts.
  *
- * This command orchestrates the process of identifying and closing event shifts
- * whose end time has passed. It delegates the query logic to GetEventShiftsToCloseQuery
- * service, updates each shift's status to CLOSED, and sends completion emails to
- * troopers who attended.
+ * This command orchestrates the process of identifying closed event shifts
+ * and sending reminder notifications to troopers who signed up as GOING or
+ * TENTATIVE, prompting them to update their attendance status.
  */
 class RemindClosedEventShiftsCommand extends Command
 {
@@ -38,9 +35,10 @@ class RemindClosedEventShiftsCommand extends Command
     /**
      * Execute the console command.
      *
-     * Orchestrates the process of reminding event troopers about upcoming shifts by:
-     * 1. Dispatching a query to retrieve upcoming event shifts
-     * 2. Sending reminder notifications to troopers with GOING status
+     * Orchestrates the process of reminding event troopers about closed shifts by:
+     * 1. Dispatching a query to retrieve closed shifts needing reminders
+     * 2. Updating last_notified_at on each shift
+     * 3. Sending reminder notifications to troopers with GOING or TENTATIVE status
      *
      * @param  MagicBus  $bus  The message bus for dispatching queries
      */

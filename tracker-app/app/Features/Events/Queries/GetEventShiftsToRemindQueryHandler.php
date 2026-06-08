@@ -43,10 +43,14 @@ readonly class GetEventShiftsToRemindQueryHandler implements QueryHandlerInterfa
         return EventShift::with($with)
             ->closed()
             ->where(EventShift::SHIFT_ENDS_AT, '>=', now()->subDays(30))
-            ->where(EventShift::LAST_NOTIFIED_AT, '<=', now()->addDays(3))
+            ->where(function ($query)
+            {
+                $query->whereNull(EventShift::LAST_NOTIFIED_AT)
+                    ->orWhere(EventShift::LAST_NOTIFIED_AT, '<=', now()->subDays(3));
+            })
             ->whereHas('event_troopers', function ($query)
             {
-                $query->whereIn(EventTrooper::STATUS, EventTrooperStatus::intendedToGoArray());
+                $query->whereIn(EventTrooper::STATUS, EventTrooperStatus::intentToGoArray());
             })
             ->get();
     }
