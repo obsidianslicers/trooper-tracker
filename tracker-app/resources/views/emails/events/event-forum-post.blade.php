@@ -19,7 +19,7 @@
     </p>
 
     <blockquote style="border-left: 3px solid #ccc; padding-left: 1em; margin: 0 0 1em; color: #555;">
-        {{ \Illuminate\Support\Str::limit(strip_tags($message), 300) }}
+        {{ \Illuminate\Support\Str::limit(strip_tags($post_body), 300) }}
     </blockquote>
 
     @if ($post_url)

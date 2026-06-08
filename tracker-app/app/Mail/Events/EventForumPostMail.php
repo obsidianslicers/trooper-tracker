@@ -19,7 +19,7 @@ class EventForumPostMail extends Mailable implements ShouldQueue
     public function __construct(
         private readonly Event $event,
         private readonly string $username,
-        private readonly string $message,
+        private readonly string $post_body,
         private readonly ?string $post_url,
     ) {}
 
@@ -37,7 +37,7 @@ class EventForumPostMail extends Mailable implements ShouldQueue
             with: [
                 'event' => $this->event,
                 'username' => $this->username,
-                'message' => $this->message,
+                'post_body' => $this->post_body,
                 'post_url' => $this->post_url,
             ]
         );
