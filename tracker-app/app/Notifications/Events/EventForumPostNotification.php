@@ -21,7 +21,7 @@ class EventForumPostNotification extends Notification implements ShouldQueue
         private readonly Event $event,
         private readonly int $post_id,
         private readonly string $username,
-        private readonly string $message,
+        private readonly string $post_body,
     ) {}
 
     public function via(Trooper $notifiable): array
@@ -53,7 +53,7 @@ class EventForumPostNotification extends Notification implements ShouldQueue
         $base_url = rtrim((string) config('services.xenforo.base_url', ''), '/');
         $post_url = $base_url !== '' ? $base_url.'/posts/'.$this->post_id.'/' : null;
 
-        return (new EventForumPostMail($this->event, $this->username, $this->message, $post_url))
+        return (new EventForumPostMail($this->event, $this->username, $this->post_body, $post_url))
             ->to($notifiable->email);
     }
 

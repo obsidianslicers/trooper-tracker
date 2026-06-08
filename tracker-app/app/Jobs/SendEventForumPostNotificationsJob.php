@@ -21,7 +21,7 @@ class SendEventForumPostNotificationsJob implements ShouldQueue
         private readonly int $post_id,
         private readonly string $username,
         private readonly ?int $xenforo_user_id,
-        private readonly string $message,
+        private readonly string $post_body,
     ) {}
 
     public function handle(): void
@@ -32,7 +32,7 @@ class SendEventForumPostNotificationsJob implements ShouldQueue
             $this->event,
             $this->post_id,
             $this->username,
-            $this->message,
+            $this->post_body,
         );
 
         Trooper::whereHas('event_watches', fn ($q) => $q->where('event_id', $this->event->id))
