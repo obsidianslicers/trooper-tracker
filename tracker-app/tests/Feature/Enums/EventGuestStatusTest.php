@@ -28,6 +28,25 @@ class EventGuestStatusTest extends TestCase
         $this->assertArrayHasKey(EventGuestStatus::CANCELLED->value, $result);
     }
 
+    public function test_intent_to_go_array_includes_going_and_tentative_only(): void
+    {
+        $result = EventGuestStatus::intentToGoArray();
+
+        $this->assertSame([
+            EventGuestStatus::GOING,
+            EventGuestStatus::TENTATIVE,
+        ], $result);
+    }
+
+    public function test_intends_to_go_returns_expected_values_for_each_case(): void
+    {
+        $this->assertTrue(EventGuestStatus::GOING->intendsToGo());
+        $this->assertTrue(EventGuestStatus::TENTATIVE->intendsToGo());
+
+        $this->assertFalse(EventGuestStatus::STAND_BY->intendsToGo());
+        $this->assertFalse(EventGuestStatus::CANCELLED->intendsToGo());
+    }
+
     public function test_icon_returns_non_empty_string_for_each_case(): void
     {
         foreach (EventGuestStatus::cases() as $status)

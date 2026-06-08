@@ -20,7 +20,7 @@ class GetSharedEventRosterQueryHandlerTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_invoke_returns_event_with_shifts_and_sorted_going_troopers(): void
+    public function test_invoke_returns_event_with_shifts_and_sorted_intent_to_go_troopers(): void
     {
         $event = Event::factory()->create();
         $shift = EventShift::factory()->forEvent($event)->create();
@@ -28,7 +28,7 @@ class GetSharedEventRosterQueryHandlerTest extends TestCase
         $trooper_b = Trooper::factory()->asMember()->withLegalName('Zulu Alpha')->create();
         $trooper_a = Trooper::factory()->asMember()->withLegalName('Alpha Bravo')->create();
 
-        EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper_b)->asGoing()->withSignedUpAt(Carbon::parse('2026-03-10 10:00:00'))->create();
+        EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper_b)->asTentative()->withSignedUpAt(Carbon::parse('2026-03-10 10:00:00'))->create();
         EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper_a)->asGoing()->withSignedUpAt(Carbon::parse('2026-03-10 09:00:00'))->create();
 
         $event_share = EventShare::factory()->forEvent($event)->create();
@@ -39,7 +39,9 @@ class GetSharedEventRosterQueryHandlerTest extends TestCase
 
         $this->assertSame($event->id, $result->id);
         $this->assertCount(1, $result->event_shifts);
+        $this->assertCount(2, $result->event_shifts->first()->event_troopers);
         $this->assertSame('Alpha Bravo', $result->event_shifts->first()->event_troopers->first()->trooper->legal_name);
+        $this->assertSame('Zulu Alpha', $result->event_shifts->first()->event_troopers->last()->trooper->legal_name);
     }
 
     public function test_invoke_returns_only_going_guests_sorted_by_signed_up_at(): void
