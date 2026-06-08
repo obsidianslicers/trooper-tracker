@@ -19,7 +19,5 @@ readonly class GetEventShiftsToRemindQuery
      *
      * No parameters required - returns all event shifts that need reminding.
      */
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 }

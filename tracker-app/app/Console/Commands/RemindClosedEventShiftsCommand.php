@@ -44,7 +44,7 @@ class RemindClosedEventShiftsCommand extends Command
      */
     public function handle(MagicBus $bus): void
     {
-        $event_shifts = $bus->send(new GetEventShiftsToRemindQuery());
+        $event_shifts = $bus->send(new GetEventShiftsToRemindQuery);
 
         foreach ($event_shifts as $event_shift)
         {
