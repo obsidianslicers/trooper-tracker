@@ -39,6 +39,24 @@ trait HasEventShiftScopes
     }
 
     /**
+     * Scope a query to only include active event shifts.
+     *
+     * Active shifts are those with status of OPEN, DRAFT, or SIGN_UP_LOCKED
+     * that haven't ended yet, ordered by their start time.
+     *
+     * @param Builder<self> $query The Eloquent query builder.
+     * @return Builder<self>
+     */
+    public function scopeClosed(Builder $query): Builder
+    {
+        $status_list = [
+            EventStatus::CLOSED,
+        ];
+
+        return $query->whereIn(self::STATUS, $status_list);
+    }
+
+    /**
      * Scope a query to find events a specific trooper is signed up for.
      *
      * This scope filters events based on a trooper's participation and whether the
