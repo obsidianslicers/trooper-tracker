@@ -52,11 +52,10 @@ readonly class GetSharedEventRosterQueryHandler implements QueryHandlerInterface
             ->withShifts()
             ->findOrFail($message->event_share->event_id);
 
-        $event->event_shifts->each(fn($shift) => $this->transformEventShift($shift));
+        $event->event_shifts->each(fn ($shift) => $this->transformEventShift($shift));
 
-        $event->event_shifts->each(function ($shift)
-        {
-            $shift->event_troopers = $shift->event_troopers->sortBy(fn($et) => $et->trooper->legal_name)->values();
+        $event->event_shifts->each(function ($shift) {
+            $shift->event_troopers = $shift->event_troopers->sortBy(fn ($et) => $et->trooper->legal_name)->values();
         });
 
         return $event;
@@ -81,26 +80,22 @@ readonly class GetSharedEventRosterQueryHandler implements QueryHandlerInterface
         ];
 
         return [
-            'organization:' . implode(',', $organization_columns),
+            'organization:'.implode(',', $organization_columns),
             'organizations.organization',
-            'organizations' => function ($query)
-            {
+            'organizations' => function ($query) {
                 $query->orderBy(Organization::NAME);
             },
-            'event_shifts' => function ($query)
-            {
+            'event_shifts' => function ($query) {
                 $query->orderBy(EventShift::SHIFT_STARTS_AT, 'asc');
             },
-            'event_shifts.event_troopers.trooper:' . implode(',', $trooper_columns),
+            'event_shifts.event_troopers.trooper:'.implode(',', $trooper_columns),
             'event_shifts.event_troopers.trooper.trooper_costumes.organization_costume',
-            'event_shifts.event_troopers.costume:' . implode(',', $costume_columns),
-            'event_shifts.event_troopers' => function ($query)
-            {
+            'event_shifts.event_troopers.costume:'.implode(',', $costume_columns),
+            'event_shifts.event_troopers' => function ($query) {
                 $query->whereIn(EventTrooper::STATUS, EventTrooperStatus::intentToGoArray())
                     ->orderBy(EventTrooper::SIGNED_UP_AT, 'asc');
             },
-            'event_shifts.event_guests' => function ($query)
-            {
+            'event_shifts.event_guests' => function ($query) {
                 $query->whereIn(EventGuest::STATUS, EventGuestStatus::intentToGoArray())
                     ->orderBy(EventGuest::SIGNED_UP_AT, 'asc');
             },
