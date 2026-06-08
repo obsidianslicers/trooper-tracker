@@ -60,6 +60,13 @@ class OauthCallbackController extends MagicBusController
             return redirect()->route('auth.login');
         }
 
+        if ($request->has('error'))
+        {
+            $this->flash->warning('Login was cancelled or access was denied.');
+
+            return redirect()->route('auth.login');
+        }
+
         $provider_user = Socialite::driver($provider)->user();
 
         // Check XenForo ban status at login.
