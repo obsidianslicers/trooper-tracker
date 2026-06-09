@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Account;
 
+use App\Enums\MembershipStatus;
 use App\Features\Troopers\Commands\SubmitJoinRequestCommand;
 use App\Features\Troopers\Commands\UpdateTrooperIdentifiersCommand;
 use App\Features\Troopers\Commands\UpdateTrooperMembershipsCommand;
@@ -11,7 +12,6 @@ use App\Features\Troopers\Commands\UpdateTrooperNotificationsCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Account\ClubMembershipRequest;
 use App\Models\Organization;
-use App\Enums\MembershipStatus;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Response;
 
@@ -43,14 +43,12 @@ class ClubMembershipsSubmitHtmxController extends MagicBusController
 
         // membership update for the organization picked
         $membership = [
-            $primary_organization->id =>
-                [
-                    'assignment' => $trooper->is_visitor ? $primary_organization->id : $organization->id,
-                ],
+            $primary_organization->id => [
+                'assignment' => $trooper->is_visitor ? $primary_organization->id : $organization->id,
+            ],
         ];
         $membership_command = new UpdateTrooperMembershipsCommand($trooper, $membership);
         $this->bus->send($membership_command);
-
 
         $notification = [
             $primary_organization->id => [
