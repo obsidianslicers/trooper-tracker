@@ -32,7 +32,7 @@ readonly class ApproveJoinRequestCommandHandler implements CommandHandlerInterfa
 
         $primary_club = $trooper_org->organization->getPrimaryClub();
 
-        $this->enforceAssignment($primary_club, $trooper_org);
+        //$this->enforceAssignment($primary_club, $trooper_org);
 
         if (!$message->suppress_notification)
         {
@@ -44,9 +44,9 @@ readonly class ApproveJoinRequestCommandHandler implements CommandHandlerInterfa
 
     private function enforceAssignment(Organization $primary_club, TrooperOrganization $trooper_org): void
     {
-        //$this->clearExistingAssignments($primary_club, $trooper_org);
-        //$this->createOrUpdateAssignment($trooper_org);
-        //$this->syncPrimaryClubMembership($primary_club, $trooper_org);
+        $this->clearExistingAssignments($primary_club, $trooper_org);
+        $this->createOrUpdateAssignment($trooper_org);
+        $this->syncPrimaryClubMembership($primary_club, $trooper_org);
     }
 
     private function clearExistingAssignments(Organization $primary_club, TrooperOrganization $trooper_org): void
