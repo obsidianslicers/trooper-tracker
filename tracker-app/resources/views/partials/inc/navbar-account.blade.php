@@ -21,6 +21,11 @@
             <x-nav-link :url="route('account.club-memberships')">
                 Club Memberships
             </x-nav-link>
+            @if(Auth::user()->minors()->exists())
+                <x-nav-link :url="route('account.minors')">
+                    Minors
+                </x-nav-link>
+            @endif
             <x-nav-link :url="route('auth.logout')">
                 Logout
             </x-nav-link>

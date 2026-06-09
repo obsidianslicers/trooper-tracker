@@ -115,6 +115,11 @@ class Trooper extends BaseTrooper implements
         return $this->trooper();
     }
 
+    public function minors(): HasMany
+    {
+        return $this->troopers();
+    }
+
     /**
      * Check if the trooper's membership role is admin.
      *

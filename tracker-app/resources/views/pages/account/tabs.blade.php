@@ -13,7 +13,7 @@
     <x-tab :label="'Club Memberships'"
            :target="route('account.club-memberships')"
            :active="request()->routeIs('account.club-memberships')" />
-    @if(Auth::user()->troopers()->exists())
+    @if(Auth::user()->minors()->exists())
         <x-tab :label="'Minors'"
                :target="route('account.minors')"
                :active="request()->routeIs('account.minors')" />
