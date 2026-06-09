@@ -51,27 +51,41 @@ readonly class ApproveJoinRequestCommandHandler implements CommandHandlerInterfa
 
     private function clearExistingAssignments(Organization $primary_club, TrooperOrganization $trooper_org): void
     {
-        // Clear any existing club membership in the same top-level org hierarchy (replace rule).
         TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $trooper_org->trooper_id)
             ->where(TrooperAssignment::IS_MEMBER, true)
-            ->whereHas('organization', function ($q) use ($primary_club) {
-                return $q->where(Organization::NODE_PATH, 'like', $primary_club->node_path.'%');
+            ->where(TrooperAssignment::ORGANIZATION_ID, '!=', $trooper_org->organization_id)
+            ->whereHas('organization', function ($q) use ($primary_club): void {
+                $q->where(Organization::NODE_PATH, 'like', $primary_club->node_path.'%')
+                    ->orWhereRaw('? LIKE CONCAT('.Organization::NODE_PATH.', "%")', [$primary_club->node_path]);
             })
-            ->update([TrooperAssignment::IS_MEMBER => false]);
+            ->delete();
     }
 
     private function createOrUpdateAssignment(TrooperOrganization $trooper_org): void
     {
-        $key = [
+        $assignment = TrooperAssignment::withTrashed()
+            ->where(TrooperAssignment::TROOPER_ID, $trooper_org->trooper_id)
+            ->where(TrooperAssignment::ORGANIZATION_ID, $trooper_org->organization_id)
+            ->first();
+
+        if ($assignment)
+        {
+            if ($assignment->trashed())
+            {
+                $assignment->restore();
+            }
+
+            $assignment->is_member = true;
+            $assignment->save();
+
+            return;
+        }
+
+        TrooperAssignment::create([
             TrooperAssignment::TROOPER_ID => $trooper_org->trooper_id,
             TrooperAssignment::ORGANIZATION_ID => $trooper_org->organization_id,
-        ];
-
-        $set = [
             TrooperAssignment::IS_MEMBER => true,
-        ];
-
-        TrooperAssignment::updateOrCreate($key, $set);
+        ]);
     }
 
     private function syncPrimaryClubMembership(Organization $primary_club, TrooperOrganization $trooper_org): void

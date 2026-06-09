@@ -62,7 +62,7 @@ class ApproveJoinRequestCommandHandlerTest extends TestCase
         ]);
     }
 
-    public function test_invoke_does_not_create_trooper_assignment_for_non_visitor(): void
+    public function test_invoke_creates_trooper_assignment_as_member_for_non_visitor(): void
     {
         $trooper = Trooper::factory()->asMember()->asPending()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
@@ -75,9 +75,10 @@ class ApproveJoinRequestCommandHandlerTest extends TestCase
         $handler = app(ApproveJoinRequestCommandHandler::class);
         $handler(new ApproveJoinRequestCommand($join_request));
 
-        $this->assertDatabaseMissing('tt_trooper_assignments', [
+        $this->assertDatabaseHas('tt_trooper_assignments', [
             TrooperAssignment::TROOPER_ID => $trooper->id,
             TrooperAssignment::ORGANIZATION_ID => $organization->id,
+            TrooperAssignment::IS_MEMBER => true,
         ]);
     }
 
@@ -110,10 +111,9 @@ class ApproveJoinRequestCommandHandlerTest extends TestCase
         $handler = app(ApproveJoinRequestCommandHandler::class);
         $handler(new ApproveJoinRequestCommand($join_request));
 
-        $this->assertDatabaseHas('tt_trooper_assignments', [
+        $this->assertSoftDeleted('tt_trooper_assignments', [
             TrooperAssignment::TROOPER_ID => $trooper->id,
             TrooperAssignment::ORGANIZATION_ID => $stale_assignment_org->id,
-            TrooperAssignment::IS_MEMBER => false,
         ]);
     }
 
@@ -272,15 +272,15 @@ class ApproveJoinRequestCommandHandlerTest extends TestCase
         $join_request->refresh();
         $this->assertEquals(MembershipStatus::ACTIVE, $join_request->membership_status);
 
-        $this->assertDatabaseHas('tt_trooper_assignments', [
+        $this->assertSoftDeleted('tt_trooper_assignments', [
             TrooperAssignment::TROOPER_ID => $child->id,
             TrooperAssignment::ORGANIZATION_ID => $unit->id,
-            TrooperAssignment::IS_MEMBER => true,
         ]);
 
-        $this->assertDatabaseMissing('tt_trooper_assignments', [
+        $this->assertDatabaseHas('tt_trooper_assignments', [
             TrooperAssignment::TROOPER_ID => $child->id,
             TrooperAssignment::ORGANIZATION_ID => $organization->id,
+            TrooperAssignment::IS_MEMBER => true,
         ]);
 
         $this->assertDatabaseHas('tt_trooper_organizations', [
