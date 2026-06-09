@@ -32,10 +32,7 @@ readonly class ApproveJoinRequestCommandHandler implements CommandHandlerInterfa
 
         $primary_club = $trooper_org->organization->getPrimaryClub();
 
-        if ($trooper->is_visitor)
-        {
-            $this->enforceVisitorAssignment($primary_club, $trooper_org);
-        }
+        $this->enforceAssignment($primary_club, $trooper_org);
 
         if (!$message->suppress_notification)
         {
@@ -45,14 +42,14 @@ readonly class ApproveJoinRequestCommandHandler implements CommandHandlerInterfa
         return null;
     }
 
-    private function enforceVisitorAssignment(Organization $primary_club, TrooperOrganization $trooper_org): void
+    private function enforceAssignment(Organization $primary_club, TrooperOrganization $trooper_org): void
     {
-        $this->clearExistingVisitorAssignments($primary_club, $trooper_org);
-        $this->createOrUpdateVisitorAssignment($primary_club, $trooper_org);
-        $this->updateOrganizationIdentifer($primary_club, $trooper_org);
+        $this->clearExistingAssignments($primary_club, $trooper_org);
+        $this->createOrUpdateAssignment($trooper_org);
+        $this->syncPrimaryClubMembership($primary_club, $trooper_org);
     }
 
-    private function clearExistingVisitorAssignments(Organization $primary_club, TrooperOrganization $trooper_org): void
+    private function clearExistingAssignments(Organization $primary_club, TrooperOrganization $trooper_org): void
     {
         // Clear any existing club membership in the same top-level org hierarchy (replace rule).
         TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $trooper_org->trooper_id)
@@ -63,7 +60,7 @@ readonly class ApproveJoinRequestCommandHandler implements CommandHandlerInterfa
             ->update([TrooperAssignment::IS_MEMBER => false]);
     }
 
-    private function createOrUpdateVisitorAssignment(Organization $primary_club, TrooperOrganization $trooper_org): void
+    private function createOrUpdateAssignment(TrooperOrganization $trooper_org): void
     {
         $key = [
             TrooperAssignment::TROOPER_ID => $trooper_org->trooper_id,
@@ -77,7 +74,7 @@ readonly class ApproveJoinRequestCommandHandler implements CommandHandlerInterfa
         TrooperAssignment::updateOrCreate($key, $set);
     }
 
-    private function updateOrganizationIdentifer(Organization $primary_club, TrooperOrganization $trooper_org): void
+    private function syncPrimaryClubMembership(Organization $primary_club, TrooperOrganization $trooper_org): void
     {
         $update_data = [TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE];
 
@@ -86,12 +83,29 @@ readonly class ApproveJoinRequestCommandHandler implements CommandHandlerInterfa
             $update_data[TrooperOrganization::IDENTIFIER] = $trooper_org->identifier;
         }
 
-        TrooperOrganization::updateOrCreate(
+        $record = TrooperOrganization::withTrashed()
+            ->where(TrooperOrganization::TROOPER_ID, $trooper_org->trooper_id)
+            ->where(TrooperOrganization::ORGANIZATION_ID, $primary_club->id)
+            ->first();
+
+        if ($record)
+        {
+            if ($record->trashed())
+            {
+                $record->restore();
+            }
+
+            $record->fill($update_data)->save();
+
+            return;
+        }
+
+        TrooperOrganization::create(array_merge(
             [
                 TrooperOrganization::TROOPER_ID => $trooper_org->trooper_id,
                 TrooperOrganization::ORGANIZATION_ID => $primary_club->id,
             ],
             $update_data
-        );
+        ));
     }
 }
