@@ -14,7 +14,7 @@
            :target="route('account.club-memberships')"
            :active="request()->routeIs('account.club-memberships')" />
     @if(Auth::user()->minors()->exists())
-        <x-tab :label="'Minors'"
+        <x-tab :label="'Cadets'"
                :target="route('account.minors')"
                :active="request()->routeIs('account.minors')" />
     @endif
