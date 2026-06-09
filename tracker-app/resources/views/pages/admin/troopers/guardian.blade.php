@@ -21,6 +21,9 @@
                     <x-input-text :property="'date_of_birth'"
                                   :type="'date'"
                                   :value="$trooper->date_of_birth?->format('Y-m-d')" />
+                    <x-input-help>
+                        Enter in YYYY-MM-DD format (e.g. 2012-04-15).
+                    </x-input-help>
                 </x-input-container>
 
                 <x-input-container>
