@@ -194,7 +194,7 @@ class ApproveJoinRequestCommandHandlerTest extends TestCase
 
         $join_request = TrooperOrganization::factory()
             ->forTrooper($trooper)
-            ->forOrganization($region)
+            ->forOrganization($region->getPrimaryClub())
             ->create([TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::PENDING]);
 
         $handler = app(ApproveJoinRequestCommandHandler::class);
