@@ -60,11 +60,12 @@
                                     Approved At
                                 </th>
                             @endif
+                            <th></th>
                         </tr>
                     </thead>
                     @foreach ($event_shifts as $event_shift)
                         <tr>
-                            <td colspan="{{ $event->status === \App\Enums\EventStatus::MANUAL_SELECTION ? '6' : '4' }}">
+                            <td colspan="{{ $event->status === \App\Enums\EventStatus::MANUAL_SELECTION ? '7' : '5' }}">
                                 {{ $event_shift->time_display }}
                             </td>
                         </tr>
@@ -138,16 +139,29 @@
                                         @endif
                                     </td>
                                 @endif
+                                <td>
+                                    @if(Auth::user()->is_administrator || $event->can_update_trooper_status)
+                                        <button class="btn btn-sm btn-link text-danger p-1"
+                                                type="submit"
+                                                formaction="{{ route('admin.events.troopers.remove', compact('event', 'event_trooper')) }}"
+                                                formmethod="POST"
+                                                title="Remove from roster"
+                                                aria-label="Remove {{ $event_trooper->trooper->display_name }} from roster"
+                                                onclick="return confirm('Remove {{ $event_trooper->trooper->display_name }} from the roster?')">
+                                            <i class="fa fw fa-times"></i>
+                                        </button>
+                                    @endif
+                                </td>
                             </tr>
                         @empty
-                            <x-table-empty :colspan="$event->status === \App\Enums\EventStatus::MANUAL_SELECTION ? 6 : 4">
+                            <x-table-empty :colspan="$event->status === \App\Enums\EventStatus::MANUAL_SELECTION ? 7 : 5">
                                 No troopers assigned to this shift.
                             </x-table-empty>
                         @endforelse
 
                         @if($event_shift->event_guests->isNotEmpty())
                             <tr>
-                                <td colspan="{{ $event->status === \App\Enums\EventStatus::MANUAL_SELECTION ? '6' : '4' }}"
+                                <td colspan="{{ $event->status === \App\Enums\EventStatus::MANUAL_SELECTION ? '7' : '5' }}"
                                     class="ps-4 text-muted small">
                                     Guests
                                 </td>
@@ -192,6 +206,7 @@
                                         @endif
                                     </td>
                                 @endif
+                                <td></td>
                             </tr>
                         @endforeach
                     @endforeach

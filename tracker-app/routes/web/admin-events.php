@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\Events\UpdateController;
 use App\Http\Controllers\Admin\Events\UpdateShiftsController;
 use App\Http\Controllers\Admin\Events\UpdateShiftsSubmitController;
 use App\Http\Controllers\Admin\Events\UpdateSubmitController;
+use App\Http\Controllers\Admin\Events\RemoveEventTrooperController;
 use App\Http\Controllers\Admin\Events\UpdateTroopersController;
 use App\Http\Controllers\Admin\Events\UpdateTroopersSubmitController;
 use App\Http\Controllers\Admin\Events\DeleteUploadController;
@@ -36,6 +37,7 @@ Route::prefix('admin/events')
         Route::post('/{event}/shifts', UpdateShiftsSubmitController::class);
         Route::get('/{event}/troopers', UpdateTroopersController::class)->name('troopers');
         Route::post('/{event}/troopers', UpdateTroopersSubmitController::class);
+        Route::post('/{event}/troopers/{event_trooper}/remove', RemoveEventTrooperController::class)->name('troopers.remove');
         Route::get('/{event}/uploads', UploadsController::class)->name('uploads');
         Route::post('/{event}/upload', UploadImageController::class)->name('upload-image');
         Route::get('/{event}/mission-review', MissionReviewController::class)->name('mission-review');
