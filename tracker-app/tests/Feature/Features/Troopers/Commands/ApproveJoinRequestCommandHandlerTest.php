@@ -114,6 +114,7 @@ class ApproveJoinRequestCommandHandlerTest extends TestCase
         $this->assertSoftDeleted('tt_trooper_assignments', [
             TrooperAssignment::TROOPER_ID => $trooper->id,
             TrooperAssignment::ORGANIZATION_ID => $stale_assignment_org->id,
+            TrooperAssignment::IS_MEMBER => false,
         ]);
     }
 

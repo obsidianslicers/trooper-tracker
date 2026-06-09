@@ -51,14 +51,22 @@ readonly class ApproveJoinRequestCommandHandler implements CommandHandlerInterfa
 
     private function clearExistingAssignments(Organization $primary_club, TrooperOrganization $trooper_org): void
     {
-        TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $trooper_org->trooper_id)
+        $ids = TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $trooper_org->trooper_id)
             ->where(TrooperAssignment::IS_MEMBER, true)
             ->where(TrooperAssignment::ORGANIZATION_ID, '!=', $trooper_org->organization_id)
             ->whereHas('organization', function ($q) use ($primary_club): void {
                 $q->where(Organization::NODE_PATH, 'like', $primary_club->node_path.'%')
                     ->orWhereRaw('? LIKE CONCAT('.Organization::NODE_PATH.', "%")', [$primary_club->node_path]);
             })
-            ->delete();
+            ->pluck(TrooperAssignment::ID);
+
+        if ($ids->isEmpty())
+        {
+            return;
+        }
+
+        TrooperAssignment::whereIn(TrooperAssignment::ID, $ids)->update([TrooperAssignment::IS_MEMBER => false]);
+        TrooperAssignment::whereIn(TrooperAssignment::ID, $ids)->delete();
     }
 
     private function createOrUpdateAssignment(TrooperOrganization $trooper_org): void
