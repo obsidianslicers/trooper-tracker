@@ -6,15 +6,16 @@ namespace Database\Seeders\Issues;
 
 use App\Models\Organization;
 use App\Models\TrooperAssignment;
+use App\Models\TrooperOrganization;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Repairs bad TrooperAssignment data left by earlier versions of
- * ApproveJoinRequestCommandHandler and RemoveTrooperMembershipCommandHandler
+ * Repairs bad TrooperAssignment and TrooperOrganization data left by earlier
+ * versions of ApproveJoinRequestCommandHandler and RemoveTrooperMembershipCommandHandler
  * before they were updated to set is_member=false AND soft-delete atomically.
  *
- * Fixes three bad states:
+ * TrooperAssignment fixes (tt_trooper_assignments):
  *
  *   1. is_member=true with deleted_at set — flag was not cleared before soft-delete.
  *      Fix: set is_member=false on those rows.
@@ -26,6 +27,13 @@ use Illuminate\Support\Facades\DB;
  *   3. Multiple active assignments (is_member=true, not soft-deleted) in the same
  *      primary-club hierarchy for the same trooper — only one is allowed (replace rule).
  *      Fix: keep the most recently updated assignment, soft-delete the rest.
+ *
+ * TrooperOrganization fixes (tt_trooper_organizations):
+ *
+ *   4. Active TrooperOrganization at a primary club with no active TrooperAssignment
+ *      anywhere in that club's hierarchy — orphaned record from old code that cleared
+ *      assignments without cleaning up the membership record.
+ *      Fix: soft-delete those orphaned TrooperOrganization rows.
  */
 class Fix242 extends Seeder
 {
@@ -34,15 +42,17 @@ class Fix242 extends Seeder
         DB::transaction(function (): void
         {
             $counts = [
-                'flag_cleared'   => $this->fixFlagNotClearedOnDelete(),
-                'not_deleted'    => $this->fixFlagClearedButNotDeleted(),
-                'hierarchy_dupes' => $this->fixHierarchyDuplicates(),
+                'flag_cleared'        => $this->fixFlagNotClearedOnDelete(),
+                'not_deleted'         => $this->fixFlagClearedButNotDeleted(),
+                'hierarchy_dupes'     => $this->fixHierarchyDuplicates(),
+                'orphaned_trooper_org' => $this->fixOrphanedTrooperOrganizations(),
             ];
 
-            $this->command?->info("Fix242 complete:");
-            $this->command?->info("  Cleared is_member flag on {$counts['flag_cleared']} soft-deleted row(s).");
-            $this->command?->info("  Soft-deleted {$counts['not_deleted']} cleared-but-not-deleted row(s).");
-            $this->command?->info("  Resolved {$counts['hierarchy_dupes']} hierarchy duplicate(s).");
+            $this->command?->info('Fix242 complete:');
+            $this->command?->info("  Cleared is_member flag on {$counts['flag_cleared']} soft-deleted assignment row(s).");
+            $this->command?->info("  Soft-deleted {$counts['not_deleted']} cleared-but-not-deleted assignment row(s).");
+            $this->command?->info("  Resolved {$counts['hierarchy_dupes']} hierarchy duplicate assignment(s).");
+            $this->command?->info("  Soft-deleted {$counts['orphaned_trooper_org']} orphaned TrooperOrganization row(s).");
         });
     }
 
@@ -132,6 +142,50 @@ class Fix242 extends Seeder
                 TrooperAssignment::whereIn(TrooperAssignment::ID, $stale_ids)->delete();
 
                 $resolved += $stale_ids->count();
+            }
+        }
+
+        return $resolved;
+    }
+
+    /**
+     * State 4: active TrooperOrganization at a primary club where the trooper has no
+     * active TrooperAssignment (is_member=true, not soft-deleted) anywhere in that
+     * club's hierarchy.
+     *
+     * These orphans were created when old code cleared assignments without cleaning up
+     * the corresponding membership record, leaving ghost memberships that do not
+     * correspond to any real placement.
+     */
+    private function fixOrphanedTrooperOrganizations(): int
+    {
+        $resolved = 0;
+
+        $primary_clubs = Organization::ofTypeOrganizations()->get();
+
+        foreach ($primary_clubs as $primary_club)
+        {
+            $org_ids = Organization::where(
+                Organization::NODE_PATH, 'like', $primary_club->node_path.'%'
+            )->pluck(Organization::ID);
+
+            $trooper_orgs = TrooperOrganization::where(TrooperOrganization::ORGANIZATION_ID, $primary_club->id)
+                ->whereNull(TrooperOrganization::DELETED_AT)
+                ->get();
+
+            foreach ($trooper_orgs as $trooper_org)
+            {
+                $has_active_assignment = TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $trooper_org->trooper_id)
+                    ->whereIn(TrooperAssignment::ORGANIZATION_ID, $org_ids)
+                    ->where(TrooperAssignment::IS_MEMBER, true)
+                    ->whereNull(TrooperAssignment::DELETED_AT)
+                    ->exists();
+
+                if (!$has_active_assignment)
+                {
+                    $trooper_org->delete();
+                    $resolved++;
+                }
             }
         }
 
