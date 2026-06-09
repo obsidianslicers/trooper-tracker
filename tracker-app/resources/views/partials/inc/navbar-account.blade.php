@@ -23,7 +23,7 @@
             </x-nav-link>
             @if(Auth::user()->minors()->exists())
                 <x-nav-link :url="route('account.minors')">
-                    Minors
+                    Cadets
                 </x-nav-link>
             @endif
             <x-nav-link :url="route('auth.logout')">
