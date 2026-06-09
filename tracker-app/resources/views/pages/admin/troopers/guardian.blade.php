@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', 'Guardian Info')
+@section('page-title', 'Assigned Guardian')
 
 @section('content')
 
@@ -18,7 +18,7 @@
                     <x-label>
                         Date of Birth:
                     </x-label>
-                    <x-input-text :property="'date_of_birth'"
+                    <x-input-date :property="'date_of_birth'"
                                   :type="'date'"
                                   :value="$trooper->date_of_birth?->format('Y-m-d')" />
                     <x-input-help>
@@ -33,6 +33,12 @@
                     <x-input-text :property="'guardian_email'"
                                   :type="'email'"
                                   :value="$trooper->guardian?->email" />
+                    <x-input-help>
+                        This is the email address of the guardian assigned to this
+                        trooper/cadet. It must be an email address of an existing user
+                        in the tracker. If left blank, the trooper will not have a
+                        guardian assigned.
+                    </x-input-help>
                 </x-input-container>
 
                 <x-submit-container>
