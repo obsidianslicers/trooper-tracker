@@ -44,9 +44,9 @@ readonly class ApproveJoinRequestCommandHandler implements CommandHandlerInterfa
 
     private function enforceAssignment(Organization $primary_club, TrooperOrganization $trooper_org): void
     {
-        $this->clearExistingAssignments($primary_club, $trooper_org);
-        $this->createOrUpdateAssignment($trooper_org);
-        $this->syncPrimaryClubMembership($primary_club, $trooper_org);
+        //$this->clearExistingAssignments($primary_club, $trooper_org);
+        //$this->createOrUpdateAssignment($trooper_org);
+        //$this->syncPrimaryClubMembership($primary_club, $trooper_org);
     }
 
     private function clearExistingAssignments(Organization $primary_club, TrooperOrganization $trooper_org): void
@@ -54,9 +54,10 @@ readonly class ApproveJoinRequestCommandHandler implements CommandHandlerInterfa
         $ids = TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $trooper_org->trooper_id)
             ->where(TrooperAssignment::IS_MEMBER, true)
             ->where(TrooperAssignment::ORGANIZATION_ID, '!=', $trooper_org->organization_id)
-            ->whereHas('organization', function ($q) use ($primary_club): void {
-                $q->where(Organization::NODE_PATH, 'like', $primary_club->node_path.'%')
-                    ->orWhereRaw('? LIKE CONCAT('.Organization::NODE_PATH.', "%")', [$primary_club->node_path]);
+            ->whereHas('organization', function ($q) use ($primary_club): void
+            {
+                $q->where(Organization::NODE_PATH, 'like', $primary_club->node_path . '%')
+                    ->orWhereRaw('? LIKE CONCAT(' . Organization::NODE_PATH . ', "%")', [$primary_club->node_path]);
             })
             ->pluck(TrooperAssignment::ID);
 
