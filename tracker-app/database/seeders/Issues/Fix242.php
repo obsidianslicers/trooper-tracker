@@ -31,9 +31,10 @@ use Illuminate\Support\Facades\DB;
  * TrooperOrganization fixes (tt_trooper_organizations):
  *
  *   4. Active TrooperOrganization at a primary club with no active TrooperAssignment
- *      anywhere in that club's hierarchy — orphaned record from old code that cleared
- *      assignments without cleaning up the membership record.
- *      Fix: soft-delete those orphaned TrooperOrganization rows.
+ *      anywhere in that club's hierarchy — record from old code that registered memberships
+ *      without creating assignment records. The trooper IS a valid member; the new display
+ *      just requires both records.
+ *      Fix: create a TrooperAssignment at the primary club (is_member=true).
  */
 class Fix242 extends Seeder
 {
@@ -52,7 +53,7 @@ class Fix242 extends Seeder
             $this->command?->info("  Cleared is_member flag on {$counts['flag_cleared']} soft-deleted assignment row(s).");
             $this->command?->info("  Soft-deleted {$counts['not_deleted']} cleared-but-not-deleted assignment row(s).");
             $this->command?->info("  Resolved {$counts['hierarchy_dupes']} hierarchy duplicate assignment(s).");
-            $this->command?->info("  Soft-deleted {$counts['orphaned_trooper_org']} orphaned TrooperOrganization row(s).");
+            $this->command?->info("  Created {$counts['orphaned_trooper_org']} missing TrooperAssignment row(s) for orphaned memberships.");
         });
     }
 
@@ -153,13 +154,15 @@ class Fix242 extends Seeder
      * active TrooperAssignment (is_member=true, not soft-deleted) anywhere in that
      * club's hierarchy.
      *
-     * These orphans were created when old code cleared assignments without cleaning up
-     * the corresponding membership record, leaving ghost memberships that do not
-     * correspond to any real placement.
+     * These were created by old code that registered memberships without creating
+     * assignment records. The TrooperOrganization is valid — the trooper IS a member —
+     * but the new display requires both records. Fix: create the missing TrooperAssignment
+     * at the primary club so the membership shows correctly. Admins can move troopers to
+     * a specific sub-org later via the assignment picker.
      */
     private function fixOrphanedTrooperOrganizations(): int
     {
-        $resolved = 0;
+        $created = 0;
 
         $primary_clubs = Organization::ofTypeOrganizations()->get();
 
@@ -183,12 +186,16 @@ class Fix242 extends Seeder
 
                 if (!$has_active_assignment)
                 {
-                    $trooper_org->delete();
-                    $resolved++;
+                    TrooperAssignment::create([
+                        TrooperAssignment::TROOPER_ID     => $trooper_org->trooper_id,
+                        TrooperAssignment::ORGANIZATION_ID => $primary_club->id,
+                        TrooperAssignment::IS_MEMBER      => true,
+                    ]);
+                    $created++;
                 }
             }
         }
 
-        return $resolved;
+        return $created;
     }
 }
