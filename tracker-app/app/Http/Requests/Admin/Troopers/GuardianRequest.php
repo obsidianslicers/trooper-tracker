@@ -33,13 +33,12 @@ class GuardianRequest extends FormRequest
         return [
             Trooper::DATE_OF_BIRTH => ['nullable', 'date'],
             'guardian_email' => [
-                Rule::requiredIf(fn(): bool => $this->requiresGuardianEmail()),
+                Rule::requiredIf(fn (): bool => $this->requiresGuardianEmail()),
                 'nullable',
                 'email',
                 'max:256',
                 Rule::exists(Trooper::class, Trooper::EMAIL)
-                    ->where(function (Builder $query) use ($adult_cutoff): void
-                    {
+                    ->where(function (Builder $query) use ($adult_cutoff): void {
                         $query->whereNull(Trooper::DATE_OF_BIRTH)
                             ->orWhereDate(Trooper::DATE_OF_BIRTH, '<=', $adult_cutoff);
                     }),
