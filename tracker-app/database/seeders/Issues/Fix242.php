@@ -186,11 +186,29 @@ class Fix242 extends Seeder
 
                 if (!$has_active_assignment)
                 {
-                    TrooperAssignment::create([
-                        TrooperAssignment::TROOPER_ID     => $trooper_org->trooper_id,
-                        TrooperAssignment::ORGANIZATION_ID => $primary_club->id,
-                        TrooperAssignment::IS_MEMBER      => true,
-                    ]);
+                    $assignment = TrooperAssignment::withTrashed()
+                        ->where(TrooperAssignment::TROOPER_ID, $trooper_org->trooper_id)
+                        ->where(TrooperAssignment::ORGANIZATION_ID, $primary_club->id)
+                        ->first();
+
+                    if ($assignment)
+                    {
+                        if ($assignment->trashed())
+                        {
+                            $assignment->restore();
+                        }
+                        $assignment->is_member = true;
+                        $assignment->save();
+                    }
+                    else
+                    {
+                        TrooperAssignment::create([
+                            TrooperAssignment::TROOPER_ID      => $trooper_org->trooper_id,
+                            TrooperAssignment::ORGANIZATION_ID => $primary_club->id,
+                            TrooperAssignment::IS_MEMBER       => true,
+                        ]);
+                    }
+
                     $created++;
                 }
             }
