@@ -18,7 +18,9 @@ use App\Notifications\Troopers\TrooperDeniedNotification;
  */
 readonly class ApproveTrooperCommandHandler implements CommandHandlerInterface
 {
-    public function __construct(private MagicBus $bus) {}
+    public function __construct(private MagicBus $bus)
+    {
+    }
 
     /**
      * @param  ApproveTrooperCommand  $message
@@ -50,8 +52,10 @@ readonly class ApproveTrooperCommandHandler implements CommandHandlerInterface
                 ->pending()
                 ->with('organization')
                 ->get()
-                ->each(fn (TrooperOrganization $org) => $this->bus->send(new ApproveJoinRequestCommand($org, suppress_notification: true))
-                );
+                ->each(function (TrooperOrganization $org)
+                {
+                    $this->bus->send(new ApproveJoinRequestCommand($org, suppress_notification: true));
+                });
         }
 
         return null;

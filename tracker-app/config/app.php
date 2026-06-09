@@ -125,4 +125,5 @@ return [
 
     'contact_email' => env('CONTACT_EMAIL', null),
 
+    'version' => env('APP_VERSION', null),
 ];

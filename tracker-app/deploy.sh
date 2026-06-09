@@ -38,6 +38,20 @@ $PHP artisan view:clear
 echo "🗄️ Running database migrations..."
 $PHP artisan migrate --force
 
+# --- VERSION SYSTEM ---
+echo "📝 Updating APP_VERSION in .env..."
+COMMIT_HASH=$(git rev-parse --short HEAD)
+COMMIT_DATE=$(git log -1 --format="%cd" --date=format:"%y%m%d")
+APP_VERSION="build-${COMMIT_HASH}-${COMMIT_DATE}"
+
+if grep -q "^APP_VERSION=" .env; then
+    sed -i "s|^APP_VERSION=.*|APP_VERSION=\"$APP_VERSION\"|" .env
+else
+    echo "APP_VERSION=\"$APP_VERSION\"" >> .env
+fi
+echo "🔹 Application version set to: $APP_VERSION"
+# -----------------------------
+
 echo "⚡ Optimizing..."
 $PHP artisan config:cache
 $PHP artisan route:cache

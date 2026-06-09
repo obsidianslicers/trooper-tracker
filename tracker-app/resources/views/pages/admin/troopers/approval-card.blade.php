@@ -15,23 +15,23 @@
             </x-message>
         @endif
         <dl class="row mb-0">
-            <dt class="col-4">Legal Name:</dt>
-            <dd class="col-8">{{ $trooper->legal_name }}</dd>
-            <dt class="col-4">Display Name:</dt>
-            <dd class="col-8">{{ $trooper->display_name }}</dd>
-            <dt class="col-4">Email:</dt>
-            <dd class="col-8">{{ $trooper->email }}</dd>
-            <dt class="col-4">Phone:</dt>
-            <dd class="col-8">{{ $trooper->phone ?? 'n/a' }}</dd>
-            <dt class="col-4">Role:</dt>
-            <dd class="col-8">{{ to_title($trooper->membership_role->name) }}</dd>
+            <dt class="col-md-4">Legal Name:</dt>
+            <dd class="col-md-8">{{ $trooper->legal_name }}</dd>
+            <dt class="col-md-4">Display Name:</dt>
+            <dd class="col-md-8">{{ $trooper->display_name }}</dd>
+            <dt class="col-md-4">Email:</dt>
+            <dd class="col-md-8 text-wrap">{{ $trooper->email }}</dd>
+            <dt class="col-md-4">Phone:</dt>
+            <dd class="col-md-8">{{ $trooper->phone ?? 'n/a' }}</dd>
+            <dt class="col-md-4">Role:</dt>
+            <dd class="col-md-8">{{ to_title($trooper->membership_role->name) }}</dd>
             @if($trooper->is_minor)
-                <dt class="col-4 text-warning fw-bold">Parent/Guardian:</dt>
-                <dd class="col-8 text-warning">{{ $trooper->guardian->email }}</dd>
-                <dt class="col-4 text-warning fw-bold">Legal Name:</dt>
-                <dd class="col-8 text-warning">{{ $trooper->guardian->legal_name }}</dd>
-                <dt class="col-4 text-warning fw-bold">Display Name:</dt>
-                <dd class="col-8 text-warning">{{ $trooper->guardian->display_name }}</dd>
+                <dt class="col-md-4 text-warning fw-bold">Parent/Guardian:</dt>
+                <dd class="col-md-8 text-warning">{{ $trooper->guardian->email }}</dd>
+                <dt class="col-md-4 text-warning fw-bold">Legal Name:</dt>
+                <dd class="col-md-8 text-warning">{{ $trooper->guardian->legal_name }}</dd>
+                <dt class="col-md-4 text-warning fw-bold">Display Name:</dt>
+                <dd class="col-md-8 text-warning">{{ $trooper->guardian->display_name }}</dd>
             @endif
         </dl>
         <hr />
@@ -86,8 +86,10 @@
                         <tr>
                             <td colspan="2">
                                 <i class="fa fa-fw"></i>
-                                {{ $assignment->organization->parent->name }}
-                                -
+                                @if($assignment->organization->type != \App\Enums\OrganizationType::ORGANIZATION && $assignment->organization->parent !== null)
+                                    {{ $assignment->organization->parent->name }}
+                                    -
+                                @endif
                                 {{ $assignment->organization->name }}
                             </td>
                         </tr>
