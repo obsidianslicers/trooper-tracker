@@ -92,11 +92,11 @@ readonly class GetSharedEventRosterQueryHandler implements QueryHandlerInterface
             'event_shifts.event_troopers.trooper.trooper_costumes.organization_costume',
             'event_shifts.event_troopers.costume:'.implode(',', $costume_columns),
             'event_shifts.event_troopers' => function ($query) {
-                $query->where(EventTrooper::STATUS, EventTrooperStatus::GOING)
+                $query->whereIn(EventTrooper::STATUS, EventTrooperStatus::intentToGoArray())
                     ->orderBy(EventTrooper::SIGNED_UP_AT, 'asc');
             },
             'event_shifts.event_guests' => function ($query) {
-                $query->where(EventGuest::STATUS, EventGuestStatus::GOING)
+                $query->whereIn(EventGuest::STATUS, EventGuestStatus::intentToGoArray())
                     ->orderBy(EventGuest::SIGNED_UP_AT, 'asc');
             },
         ];

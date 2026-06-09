@@ -29,6 +29,9 @@
                             <th>
                                 Costume
                             </th>
+                            <th>
+                                Status
+                            </th>
                         </tr>
                     </thead>
                     @foreach($event_shift->event_troopers as $event_trooper)
@@ -47,6 +50,14 @@
                                     </i>
                                 @endif
                             </td>
+                            <td>
+                                <span class="{{ $event_trooper->status->color() }}">
+                                    {{ to_title($event_trooper->status->name) }}
+                                    <span class="d-none d-md-inline">
+                                        {!! $event_trooper->status->iconTag() !!}
+                                    </span>
+                                </span>
+                            </td>
                         </tr>
                     @endforeach
                 </x-table>
@@ -59,12 +70,23 @@
                                 <th>
                                     Guest
                                 </th>
+                                <th>
+                                    Status
+                                </th>
                             </tr>
                         </thead>
                         @foreach($event_shift->event_guests as $event_guest)
                             <tr>
                                 <td>
                                     {{ $event_guest->name }}
+                                </td>
+                                <td>
+                                    <span class="{{ $event_guest->status->color() }}">
+                                        {{ to_title($event_guest->status->name) }}
+                                        <span class="d-none d-md-inline">
+                                            {!! $event_guest->status->iconTag() !!}
+                                        </span>
+                                    </span>
                                 </td>
                             </tr>
                         @endforeach

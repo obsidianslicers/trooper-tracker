@@ -21,6 +21,31 @@ class EventTrooperStatusTest extends TestCase
         $this->assertArrayHasKey(EventTrooperStatus::TENTATIVE->value, $with_tentative);
     }
 
+    public function test_intent_to_go_array_includes_going_and_tentative_only(): void
+    {
+        $result = EventTrooperStatus::intentToGoArray();
+
+        $this->assertSame([
+            EventTrooperStatus::GOING,
+            EventTrooperStatus::TENTATIVE,
+        ], $result);
+    }
+
+    public function test_intends_to_go_returns_expected_values_for_each_case(): void
+    {
+        $this->assertTrue(EventTrooperStatus::GOING->intendsToGo());
+        $this->assertTrue(EventTrooperStatus::TENTATIVE->intendsToGo());
+
+        $this->assertFalse(EventTrooperStatus::NONE->intendsToGo());
+        $this->assertFalse(EventTrooperStatus::STAND_BY->intendsToGo());
+        $this->assertFalse(EventTrooperStatus::ATTENDED->intendsToGo());
+        $this->assertFalse(EventTrooperStatus::CANCELLED->intendsToGo());
+        $this->assertFalse(EventTrooperStatus::PENDING->intendsToGo());
+        $this->assertFalse(EventTrooperStatus::NOT_PICKED->intendsToGo());
+        $this->assertFalse(EventTrooperStatus::NO_SHOW->intendsToGo());
+        $this->assertFalse(EventTrooperStatus::UNABLE_TO_ATTEND->intendsToGo());
+    }
+
     public function test_icon_and_color_return_non_empty_values_for_each_case(): void
     {
         foreach (EventTrooperStatus::cases() as $case)
