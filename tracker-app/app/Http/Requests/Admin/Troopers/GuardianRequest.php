@@ -27,7 +27,7 @@ class GuardianRequest extends FormRequest
     {
         return [
             Trooper::DATE_OF_BIRTH => ['nullable', 'date'],
-            'guardian_email'       => [
+            'guardian_email' => [
                 'nullable',
                 'email',
                 'max:256',
@@ -38,7 +38,8 @@ class GuardianRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if ($this->input('guardian_email') === '') {
+        if ($this->input('guardian_email') === '')
+        {
             $this->merge(['guardian_email' => null]);
         }
     }

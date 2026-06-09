@@ -16,7 +16,8 @@ class GuardianSubmitController extends MagicBusController
     {
         $data = $request->validated();
 
-        if (array_key_exists('guardian_email', $data)) {
+        if (array_key_exists('guardian_email', $data))
+        {
             $guardian_email = $data['guardian_email'];
             $data[Trooper::GUARDIAN_ID] = $guardian_email
                 ? Trooper::where(Trooper::EMAIL, $guardian_email)->value(Trooper::ID)
