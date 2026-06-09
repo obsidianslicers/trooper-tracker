@@ -10,6 +10,11 @@
     <x-tab :label="'Memberships'"
            :target="route('admin.troopers.membership', compact('trooper'))"
            :active="request()->routeIs('admin.troopers.membership')" />
+    @if($trooper->has_guardian_required_membership)
+        <x-tab :label="'Guardian'"
+               :target="route('admin.troopers.guardian', compact('trooper'))"
+               :active="request()->routeIs('admin.troopers.guardian')" />
+    @endif
     <x-tab :label="'Costumes'"
            :target="route('admin.troopers.costumes', compact('trooper'))"
            :active="request()->routeIs('admin.troopers.costumes')" />

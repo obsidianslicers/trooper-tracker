@@ -115,6 +115,11 @@ class Trooper extends BaseTrooper implements
         return $this->trooper();
     }
 
+    public function minors(): HasMany
+    {
+        return $this->troopers();
+    }
+
     /**
      * Check if the trooper's membership role is admin.
      *
@@ -202,6 +207,14 @@ class Trooper extends BaseTrooper implements
     public function getIsAdultAttribute(): bool
     {
         return !$this->is_minor;
+    }
+
+    public function getHasGuardianRequiredMembershipAttribute(): bool
+    {
+        return $this->organizations()
+            ->where(Organization::REQUIRES_GUARDIAN, true)
+            ->wherePivotNull('deleted_at')
+            ->exists();
     }
 
     /**
