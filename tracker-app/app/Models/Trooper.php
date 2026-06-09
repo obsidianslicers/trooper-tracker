@@ -204,6 +204,14 @@ class Trooper extends BaseTrooper implements
         return !$this->is_minor;
     }
 
+    public function getHasGuardianRequiredMembershipAttribute(): bool
+    {
+        return $this->organizations()
+            ->where(Organization::REQUIRES_GUARDIAN, true)
+            ->wherePivotNull('deleted_at')
+            ->exists();
+    }
+
     /**
      * Check if the trooper has an active status in any of their assigned organizations.
      *
