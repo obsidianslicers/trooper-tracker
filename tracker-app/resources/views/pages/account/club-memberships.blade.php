@@ -38,7 +38,7 @@
 
     @if($current_clubs->isNotEmpty())
         <x-card>
-            <h6 class="mb-3">Current Club Memberships</h6>
+            <h6 class="mb-3">Current Club Assignments</h6>
             <ul class="list-group list-group-flush">
                 @foreach($current_clubs as $club)
                     @php
@@ -46,7 +46,11 @@
                         $path_names = collect($path_ids)->map(fn($id) => $ancestors[$id]?->name ?? '?');
                     @endphp
                     <li class="list-group-item d-flex align-items-center gap-2 px-0">
-                        <i class="fa fa-fw fa-circle-check text-success"></i>
+                        @if($club->is_pending)
+                             <i class="fa fa-fw fa-clock text-warning"></i>
+                        @else
+                            <i class="fa fa-fw fa-circle-check text-success"></i>
+                        @endif
                         <span>{{ $path_names->implode(' — ') }}</span>
                     </li>
                 @endforeach

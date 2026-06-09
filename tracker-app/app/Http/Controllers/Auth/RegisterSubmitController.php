@@ -46,20 +46,15 @@ class RegisterSubmitController extends MagicBusController
         $trooper = $this->bus->send($register_cmd);
 
         $organizations = $request->validated('organizations', []);
-
-        $memberships = $this->getMemberships($organizations, $request->validated('account_type'));
-        $notifications = $this->getNotifications($organizations);
-
         $identifier_command = new UpdateTrooperIdentifiersCommand($trooper, $organizations);
-
         $this->bus->send($identifier_command);
 
+        $memberships = $this->getMemberships($organizations, $request->validated('account_type'));
         $membership_command = new UpdateTrooperMembershipsCommand($trooper, $memberships);
-
         $this->bus->send($membership_command);
 
+        $notifications = $this->getNotifications($organizations);
         $notification_command = new UpdateTrooperNotificationsCommand($trooper, $notifications);
-
         $this->bus->send($notification_command);
 
         Mail::to($trooper->email)->queue(new TrooperRegistered);
