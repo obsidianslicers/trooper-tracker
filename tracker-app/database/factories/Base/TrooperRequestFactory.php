@@ -17,7 +17,7 @@ class TrooperRequestFactory extends Factory
     {
         return [
             TrooperRequest::TROOPER_ID => \App\Models\Trooper::factory(),
-            TrooperRequest::ORGANIZATION_ID => $this->faker->randomDigitNotNull(),
+            TrooperRequest::ORGANIZATION_ID => \App\Models\Organization::factory(),
             TrooperRequest::PRIMARY_ORGANIZATION_ID => \App\Models\Organization::factory(),
             TrooperRequest::STATUS => $this->faker->word(),
         ];

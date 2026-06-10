@@ -515,10 +515,6 @@ Purpose: Club join requests submitted by troopers, pending admin approval.
 | primary_organization_id | bigint unsigned | no | FK -> tt_organizations.id, cascadeOnDelete |
 | identifier | varchar(64) | yes | |
 | status | varchar(16) | no | default `pending` |
-| approved_by_id | bigint unsigned | yes | FK -> tt_troopers.id, nullOnDelete |
-| approved_at | timestamp | yes | |
-| denied_by_id | bigint unsigned | yes | FK -> tt_troopers.id, nullOnDelete |
-| denied_at | timestamp | yes | |
 | denial_reason | text | yes | |
 | created_at | timestamp | yes | timestamps helper |
 | updated_at | timestamp | yes | timestamps helper |

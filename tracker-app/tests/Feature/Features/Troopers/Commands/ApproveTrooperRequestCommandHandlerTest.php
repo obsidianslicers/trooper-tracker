@@ -43,7 +43,7 @@ class ApproveTrooperRequestCommandHandlerTest extends TestCase
 
         $trooper_request->refresh();
         $this->assertEquals(TrooperRequestStatus::APPROVED, $trooper_request->status);
-        $this->assertNotNull($trooper_request->approved_at);
+        $this->assertNotNull($trooper_request->updated_at);
     }
 
     public function test_invoke_creates_active_trooper_organization_at_primary_club(): void
@@ -324,7 +324,7 @@ class ApproveTrooperRequestCommandHandlerTest extends TestCase
 
         $trooper_request->refresh();
         $this->assertEquals(TrooperRequestStatus::APPROVED, $trooper_request->status);
-        $this->assertNotNull($trooper_request->approved_at);
+        $this->assertNotNull($trooper_request->updated_at);
 
         $this->assertSoftDeleted('tt_trooper_assignments', [
             TrooperAssignment::TROOPER_ID => $child->id,

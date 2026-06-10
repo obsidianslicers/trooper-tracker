@@ -54,7 +54,7 @@
                                 <i class="fa fa-fw fa-circle-xmark text-danger"></i>
                                 {{ $path_names->implode(' — ') }}
                             </span>
-                            <small class="text-muted">{{ $request->denied_at->diffForHumans() }}</small>
+                            <small class="text-muted">{{ $request->updated_at->diffForHumans() }}</small>
                         </div>
                         @if($request->denial_reason)
                             <small class="text-muted d-block mt-1">{{ $request->denial_reason }}</small>

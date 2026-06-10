@@ -166,11 +166,6 @@ class Fix242 extends Seeder
         $trooper_request->identifier = $trooper_org->identifier;
         $trooper_request->status = $status;
 
-        if ($status === TrooperRequestStatus::DENIED && $trooper_request->denied_at === null)
-        {
-            $trooper_request->denied_at = $trooper_org->updated_at ?? now();
-        }
-
         $trooper_request->save();
     }
 

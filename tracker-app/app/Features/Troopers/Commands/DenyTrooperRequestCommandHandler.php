@@ -23,7 +23,6 @@ readonly class DenyTrooperRequestCommandHandler implements CommandHandlerInterfa
         $trooper_request = $message->trooper_request;
 
         $trooper_request->status = TrooperRequestStatus::DENIED;
-        $trooper_request->denied_at = now();
         $trooper_request->denial_reason = $message->denial_reason;
         $trooper_request->save();
 

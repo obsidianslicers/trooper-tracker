@@ -31,8 +31,6 @@ All three use soft-deletes (`deleted_at`). The distinction matters:
 | `primary_organization_id` | Top-level ancestor; denormalized at submit time via `getPrimaryClub()` |
 | `identifier` | Optional club-specific ID submitted with the request (e.g. TK number) |
 | `status` | `pending`, `approved`, `denied` |
-| `approved_by_id` / `approved_at` | Set on approval |
-| `denied_by_id` / `denied_at` / `denial_reason` | Set on denial |
 
 **`tt_trooper_organizations`**
 
@@ -149,7 +147,7 @@ The individual `->save()` call here **does** fire `TrooperAssignmentObserver.sav
 
 ## Denial
 
-`DenyTrooperRequestCommandHandler` sets `status = DENIED`, records `denied_at` and `denial_reason`, and sends `JoinRequestDeniedNotification` to the trooper. No `TrooperOrganization` or `TrooperAssignment` records are created or modified.
+`DenyTrooperRequestCommandHandler` sets `status = DENIED`, records `denial_reason`, and sends `JoinRequestDeniedNotification` to the trooper. No `TrooperOrganization` or `TrooperAssignment` records are created or modified.
 
 ---
 

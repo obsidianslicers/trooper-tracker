@@ -77,7 +77,7 @@ class Fix242Test extends TestCase
             TrooperRequest::ORGANIZATION_ID => $primary->id,
             TrooperRequest::STATUS => TrooperRequestStatus::DENIED->value,
         ]);
-        $this->assertNotNull(TrooperRequest::first()->denied_at);
+        $this->assertNotNull(TrooperRequest::first()->updated_at);
     }
 
     public function test_run_repairs_active_sub_org_membership_with_notification_lineage(): void

@@ -109,7 +109,7 @@ class ApproveTrooperCommandHandlerTest extends TestCase
 
         $this->assertEquals(TrooperRequestStatus::DENIED, $trooper_request->status);
         $this->assertSame('Not eligible', $trooper_request->denial_reason);
-        $this->assertNotNull($trooper_request->denied_at);
+        $this->assertNotNull($trooper_request->updated_at);
         Notification::assertSentTo($trooper, TrooperDeniedNotification::class);
         Notification::assertNotSentTo($trooper, JoinRequestDeniedNotification::class);
     }

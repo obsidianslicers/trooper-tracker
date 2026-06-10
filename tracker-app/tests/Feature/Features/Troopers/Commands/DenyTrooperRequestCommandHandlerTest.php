@@ -38,7 +38,7 @@ class DenyTrooperRequestCommandHandlerTest extends TestCase
 
         $trooper_request->refresh();
         $this->assertEquals(TrooperRequestStatus::DENIED, $trooper_request->status);
-        $this->assertNotNull($trooper_request->denied_at);
+        $this->assertNotNull($trooper_request->updated_at);
     }
 
     public function test_invoke_persists_denial_reason_on_the_record(): void

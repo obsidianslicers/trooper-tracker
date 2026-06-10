@@ -45,7 +45,7 @@ class ClubMembershipsControllerTest extends TestCase
             ->forOrganization($organization)
             ->forPrimaryOrganization($organization)
             ->asDenied()
-            ->create(['denied_at' => now()->subDays(10)]);
+            ->create(['updated_at' => now()->subDays(10)]);
 
         $response = $this->actingAs($trooper)->get(route('account.club-memberships'));
 
@@ -62,7 +62,7 @@ class ClubMembershipsControllerTest extends TestCase
             ->forOrganization($organization)
             ->forPrimaryOrganization($organization)
             ->asDenied()
-            ->create(['denied_at' => now()->subDays(31)]);
+            ->create(['updated_at' => now()->subDays(31)]);
 
         $response = $this->actingAs($trooper)->get(route('account.club-memberships'));
 
