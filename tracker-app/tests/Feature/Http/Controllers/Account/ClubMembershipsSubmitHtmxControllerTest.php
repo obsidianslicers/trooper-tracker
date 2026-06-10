@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Account;
 
+use App\Http\Controllers\Account\ClubMembershipsSubmitHtmxController;
 use App\Jobs\SendJoinRequestNotificationsJob;
-use App\Models\JoinRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 /**
- * @see \App\Http\Controllers\Account\ClubMembershipsSubmitHtmxController
+ * @see ClubMembershipsSubmitHtmxController
  */
 class ClubMembershipsSubmitHtmxControllerTest extends TestCase
 {
@@ -43,12 +43,13 @@ class ClubMembershipsSubmitHtmxControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertViewIs('pages.account.club-memberships-row');
+        $response->assertSee('id="club-membership-form"', false);
         $this->assertNotEmpty($response->headers->get('X-Flash-Message'));
         $this->assertDatabaseHas('tt_join_requests', [
-            'trooper_id'              => $trooper->id,
-            'organization_id'         => $organization->id,
+            'trooper_id' => $trooper->id,
+            'organization_id' => $organization->id,
             'primary_organization_id' => $organization->id,
-            'status'                  => 'pending',
+            'status' => 'pending',
         ]);
         Queue::assertPushed(SendJoinRequestNotificationsJob::class);
     }

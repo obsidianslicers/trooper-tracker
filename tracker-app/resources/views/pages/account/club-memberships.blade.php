@@ -104,7 +104,7 @@
         <x-card>
             <div x-data="{
                         orgs: {{ Js::from($available_clubs_data) }},
-                        selectedId: '',
+                        selectedId: @js((string) old('organization_id', '')),
                         get selectedOrg() {
                             const id = parseInt(this.selectedId);
                             return this.orgs.find(o => o.id === id) ?? null;
@@ -158,7 +158,8 @@
                                class="form-control @error('identifier') is-invalid @enderror"
                                :placeholder="selectedOrg?.identifier_display ?? 'Member ID'"
                                :required="isIdentifierRequired"
-                               maxlength="64" />
+                               maxlength="64"
+                               value="{{ old('identifier') }}" />
                         <x-input-help>
                             Enter your member ID for this organization if you have one. Leave blank if unknown.
                         </x-input-help>
@@ -173,7 +174,8 @@
                                 hx-post="{{ route('account.club-memberships-htmx') }}"
                                 hx-include="#organization_id, #identifier"
                                 hx-target="#club-membership-form"
-                                hx-swap="innerHTML"
+                                hx-select="#club-membership-form"
+                                hx-swap="outerHTML"
                                 hx-indicator="#transmission-bar-club-memberships">
                             <i class="fa fa-fw fa-paper-plane"></i>
                             Request Access
