@@ -60,8 +60,8 @@ class TrooperRequestFactory extends BaseTrooperRequestFactory
     {
         return $this->state(fn(array $attributes): array => [
             TrooperRequest::STATUS => TrooperRequestStatus::APPROVED,
-            TrooperRequest::APPROVED_BY_ID => $by?->id,
-            TrooperRequest::APPROVED_AT => now(),
+            TrooperRequest::UPDATED_ID => $by?->id,
+            TrooperRequest::UPDATED_AT => now(),
         ]);
     }
 
@@ -69,8 +69,8 @@ class TrooperRequestFactory extends BaseTrooperRequestFactory
     {
         return $this->state(fn(array $attributes): array => [
             TrooperRequest::STATUS => TrooperRequestStatus::DENIED,
-            TrooperRequest::DENIED_BY_ID => $by?->id,
-            TrooperRequest::DENIED_AT => now(),
+            TrooperRequest::UPDATED_ID => $by?->id,
+            TrooperRequest::UPDATED_AT => now(),
             TrooperRequest::DENIAL_REASON => $reason,
         ]);
     }
