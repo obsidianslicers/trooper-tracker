@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Admin\Troopers;
 
-use App\Enums\MembershipStatus;
+use App\Models\JoinRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
-use App\Models\TrooperOrganization;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -39,10 +38,11 @@ class ApprovalListControllerTest extends TestCase
         $member = Trooper::factory()->asMember()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
 
-        TrooperOrganization::factory()
+        JoinRequest::factory()
             ->forTrooper($member)
             ->forOrganization($organization)
-            ->create([TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::PENDING]);
+            ->forPrimaryOrganization($organization)
+            ->create();
 
         $response = $this->actingAs($admin)->get(route('admin.troopers.approvals'));
 

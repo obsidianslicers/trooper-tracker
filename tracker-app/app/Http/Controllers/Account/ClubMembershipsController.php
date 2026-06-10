@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Account;
 
-use App\Enums\MembershipStatus;
 use App\Features\Troopers\Queries\GetAvailableClubsQuery;
 use App\Http\Controllers\MagicBusController;
+use App\Models\JoinRequest;
 use App\Models\Organization;
 use App\Models\TrooperAssignment;
-use App\Models\TrooperOrganization;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -35,25 +34,20 @@ class ClubMembershipsController extends MagicBusController
             ->orderBy(Organization::SEQUENCE)
             ->get();
 
-        $pending_requests = TrooperOrganization::query()
-            ->where(TrooperOrganization::TROOPER_ID, $trooper->id)
+        $pending_requests = JoinRequest::query()
+            ->where(JoinRequest::TROOPER_ID, $trooper->id)
             ->pending()
             ->with('organization')
-            ->orderBy(TrooperOrganization::CREATED_AT, 'desc')
+            ->orderBy(JoinRequest::CREATED_AT, 'desc')
             ->get();
 
         foreach ($current_clubs as $current_club)
         {
             $primary_club = $current_club->getPrimaryClub();
 
-            $current_club->is_pending = $pending_requests->contains(function ($pr) use ($primary_club) {
-                if ($pr->organization_id === $primary_club->id)
-                {
-                    return $pr->membership_status === MembershipStatus::PENDING;
-                }
-
-                return false;
-            });
+            $current_club->is_pending = $pending_requests->contains(
+                fn ($pr) => $pr->primary_organization_id === $primary_club->id
+            );
         }
 
         $ancestors = $this->loadAncestors($current_clubs, $pending_requests);

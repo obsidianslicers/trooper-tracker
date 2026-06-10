@@ -10,6 +10,7 @@ use App\Models\Award;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventTrooper;
+use App\Models\JoinRequest;
 use App\Models\Notice;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
@@ -60,6 +61,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Collection|Award[] $awards
  * @property Collection|Event[] $events
  * @property Collection|EventTrooper[] $event_troopers
+ * @property Collection|JoinRequest[] $join_requests
  * @property Collection|Notice[] $notices
  * @property Collection|Costume[] $costumes
  * @property Collection|\App\Models\Organization[] $organizations
@@ -165,6 +167,11 @@ class Organization extends Model
     public function event_troopers(): HasMany
     {
         return $this->hasMany(EventTrooper::class);
+    }
+
+    public function join_requests(): HasMany
+    {
+        return $this->hasMany(JoinRequest::class, JoinRequest::PRIMARY_ORGANIZATION_ID);
     }
 
     public function notices(): HasMany

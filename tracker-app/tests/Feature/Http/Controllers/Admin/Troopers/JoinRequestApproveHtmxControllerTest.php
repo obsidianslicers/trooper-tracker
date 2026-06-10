@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Admin\Troopers;
 
-use App\Enums\MembershipStatus;
+use App\Models\JoinRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
-use App\Models\TrooperAssignment;
-use App\Models\TrooperOrganization;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -23,10 +21,11 @@ class JoinRequestApproveHtmxControllerTest extends TestCase
     {
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
         $member = Trooper::factory()->asMember()->create();
-        $join_request = TrooperOrganization::factory()
+        $join_request = JoinRequest::factory()
             ->forTrooper($member)
             ->forOrganization($organization)
-            ->create([TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::PENDING]);
+            ->forPrimaryOrganization($organization)
+            ->create();
 
         $response = $this->post(route('admin.troopers.join-requests.approve-htmx', $join_request));
 
@@ -39,10 +38,11 @@ class JoinRequestApproveHtmxControllerTest extends TestCase
         $member = Trooper::factory()->asMember()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
 
-        $join_request = TrooperOrganization::factory()
+        $join_request = JoinRequest::factory()
             ->forTrooper($member)
             ->forOrganization($organization)
-            ->create([TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::PENDING]);
+            ->forPrimaryOrganization($organization)
+            ->create();
 
         $response = $this->actingAs($admin)
             ->post(route('admin.troopers.join-requests.approve-htmx', $join_request));
@@ -58,10 +58,11 @@ class JoinRequestApproveHtmxControllerTest extends TestCase
         $other_member = Trooper::factory()->asMember()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
 
-        $join_request = TrooperOrganization::factory()
+        $join_request = JoinRequest::factory()
             ->forTrooper($other_member)
             ->forOrganization($organization)
-            ->create([TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::PENDING]);
+            ->forPrimaryOrganization($organization)
+            ->create();
 
         $response = $this->actingAs($member)
             ->post(route('admin.troopers.join-requests.approve-htmx', $join_request));

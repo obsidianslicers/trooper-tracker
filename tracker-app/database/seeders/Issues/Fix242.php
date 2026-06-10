@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Database\Seeders\Issues;
 
+use App\Enums\JoinRequestStatus;
+use App\Enums\MembershipStatus;
+use App\Enums\OrganizationType;
+use App\Models\JoinRequest;
 use App\Models\Organization;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperOrganization;
@@ -11,30 +15,32 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Repairs bad TrooperAssignment and TrooperOrganization data left by earlier
- * versions of ApproveJoinRequestCommandHandler and RemoveTrooperMembershipCommandHandler
- * before they were updated to set is_member=false AND soft-delete atomically.
+ * Migrates legacy join-request data into tt_join_requests and repairs bad membership records.
  *
- * TrooperAssignment fixes (tt_trooper_assignments):
+ * Legacy data problems handled:
  *
- *   1. is_member=true with deleted_at set — flag was not cleared before soft-delete.
- *      Fix: set is_member=false on those rows.
+ *   1. Pending TrooperOrganization rows — old code stored pending join requests as TrooperOrganization
+ *      records. Migrate each to a JoinRequest (pending) and soft-delete the old row.
  *
- *   2. is_member=false with deleted_at null and no moderator/notify purpose — flag
- *      was cleared but the row was never soft-deleted.
- *      Fix: soft-delete those rows.
+ *   2. Denied TrooperOrganization rows — same as above for denied status.
+ *      Migrate to JoinRequest (denied) with null denial_reason (was never persisted).
  *
- *   3. Multiple active assignments (is_member=true, not soft-deleted) in the same
- *      primary-club hierarchy for the same trooper — only one is allowed (replace rule).
- *      Fix: keep the most recently updated assignment, soft-delete the rest.
+ *   3. Active TrooperOrganization rows pointing to a sub-org — bad records from before the observer
+ *      was added. Repair: create TrooperOrganization at the primary club + TrooperAssignment at the
+ *      sub-org, then soft-delete the incorrect sub-org membership row.
  *
- * TrooperOrganization fixes (tt_trooper_organizations):
+ * TrooperAssignment integrity repairs (unchanged from original Fix242):
  *
- *   4. Active TrooperOrganization at a primary club with no active TrooperAssignment
- *      anywhere in that club's hierarchy — record from old code that registered memberships
- *      without creating assignment records. The trooper IS a valid member; the new display
- *      just requires both records.
- *      Fix: create a TrooperAssignment at the primary club (is_member=true).
+ *   4. is_member=true with deleted_at set — flag was not cleared before soft-delete.
+ *
+ *   5. is_member=false with deleted_at null and no moderator/notify purpose — flag cleared but
+ *      the row was never soft-deleted.
+ *
+ *   6. Multiple active assignments in the same primary-club hierarchy — only one allowed.
+ *      Keep the most recently updated; soft-delete the rest.
+ *
+ *   7. Active TrooperOrganization at primary club with no active TrooperAssignment anywhere in
+ *      that club's hierarchy — create the missing assignment at the primary club.
  */
 class Fix242 extends Seeder
 {
@@ -43,13 +49,19 @@ class Fix242 extends Seeder
         DB::transaction(function (): void
         {
             $counts = [
-                'flag_cleared'        => $this->fixFlagNotClearedOnDelete(),
-                'not_deleted'         => $this->fixFlagClearedButNotDeleted(),
-                'hierarchy_dupes'     => $this->fixHierarchyDuplicates(),
+                'pending_migrated'     => $this->migratePendingTrooperOrganizations(),
+                'denied_migrated'      => $this->migrateDeniedTrooperOrganizations(),
+                'sub_org_repaired'     => $this->repairActiveSubOrgMemberships(),
+                'flag_cleared'         => $this->fixFlagNotClearedOnDelete(),
+                'not_deleted'          => $this->fixFlagClearedButNotDeleted(),
+                'hierarchy_dupes'      => $this->fixHierarchyDuplicates(),
                 'orphaned_trooper_org' => $this->fixOrphanedTrooperOrganizations(),
             ];
 
             $this->command?->info('Fix242 complete:');
+            $this->command?->info("  Migrated {$counts['pending_migrated']} pending TrooperOrganization row(s) to JoinRequest.");
+            $this->command?->info("  Migrated {$counts['denied_migrated']} denied TrooperOrganization row(s) to JoinRequest.");
+            $this->command?->info("  Repaired {$counts['sub_org_repaired']} active sub-org TrooperOrganization row(s).");
             $this->command?->info("  Cleared is_member flag on {$counts['flag_cleared']} soft-deleted assignment row(s).");
             $this->command?->info("  Soft-deleted {$counts['not_deleted']} cleared-but-not-deleted assignment row(s).");
             $this->command?->info("  Resolved {$counts['hierarchy_dupes']} hierarchy duplicate assignment(s).");
@@ -58,10 +70,159 @@ class Fix242 extends Seeder
     }
 
     /**
-     * State 1: is_member=true AND deleted_at IS NOT NULL
+     * Migrate pending TrooperOrganization rows to JoinRequest (pending).
      *
-     * Rows were soft-deleted by old code that did not clear the flag first.
-     * The row is already inactive (deleted_at is set), so we just clear the flag.
+     * These are old join requests stored in the wrong table. Preserves trooper,
+     * requested organization, primary club, and identifier.
+     */
+    private function migratePendingTrooperOrganizations(): int
+    {
+        return $this->migrateTrooperOrganizationsByStatus(
+            MembershipStatus::PENDING,
+            JoinRequestStatus::PENDING,
+        );
+    }
+
+    /**
+     * Migrate denied TrooperOrganization rows to JoinRequest (denied).
+     *
+     * Denial reason was never persisted in the old model, so denial_reason is left null.
+     */
+    private function migrateDeniedTrooperOrganizations(): int
+    {
+        return $this->migrateTrooperOrganizationsByStatus(
+            MembershipStatus::DENIED,
+            JoinRequestStatus::DENIED,
+        );
+    }
+
+    private function migrateTrooperOrganizationsByStatus(
+        MembershipStatus $from_status,
+        JoinRequestStatus $to_status,
+    ): int
+    {
+        $migrated = 0;
+
+        $rows = TrooperOrganization::where(TrooperOrganization::MEMBERSHIP_STATUS, $from_status)
+            ->whereNull(TrooperOrganization::DELETED_AT)
+            ->get();
+
+        foreach ($rows as $trooper_org)
+        {
+            $primary_club = $trooper_org->organization->getPrimaryClub();
+
+            JoinRequest::create([
+                JoinRequest::TROOPER_ID              => $trooper_org->trooper_id,
+                JoinRequest::ORGANIZATION_ID         => $trooper_org->organization_id,
+                JoinRequest::PRIMARY_ORGANIZATION_ID => $primary_club->id,
+                JoinRequest::IDENTIFIER              => $trooper_org->identifier,
+                JoinRequest::STATUS                  => $to_status,
+            ]);
+
+            $trooper_org->delete();
+
+            $migrated++;
+        }
+
+        return $migrated;
+    }
+
+    /**
+     * Repair active TrooperOrganization rows that point to a sub-org instead of the primary club.
+     *
+     * These are bad membership records from before the observer was added. For each:
+     *   - Create or update TrooperOrganization at the primary club (active, copy identifier).
+     *   - Create or update TrooperAssignment at the sub-org with is_member=true.
+     *   - Soft-delete the incorrect sub-org row.
+     */
+    private function repairActiveSubOrgMemberships(): int
+    {
+        $repaired = 0;
+
+        $sub_org_memberships = TrooperOrganization::where(TrooperOrganization::MEMBERSHIP_STATUS, MembershipStatus::ACTIVE)
+            ->whereNull(TrooperOrganization::DELETED_AT)
+            ->whereHas('organization', fn ($q) => $q->where(Organization::TYPE, '!=', OrganizationType::ORGANIZATION))
+            ->get();
+
+        foreach ($sub_org_memberships as $trooper_org)
+        {
+            $primary_club = $trooper_org->organization->getPrimaryClub();
+
+            $this->upsertPrimaryClubMembership($primary_club, $trooper_org);
+            $this->upsertAssignment($trooper_org->organization_id, $trooper_org->trooper_id);
+
+            $trooper_org->delete();
+
+            $repaired++;
+        }
+
+        return $repaired;
+    }
+
+    private function upsertPrimaryClubMembership(Organization $primary_club, TrooperOrganization $source): void
+    {
+        $update_data = [TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE];
+
+        if (!empty($source->identifier))
+        {
+            $update_data[TrooperOrganization::IDENTIFIER] = $source->identifier;
+        }
+
+        $record = TrooperOrganization::withTrashed()
+            ->where(TrooperOrganization::TROOPER_ID, $source->trooper_id)
+            ->where(TrooperOrganization::ORGANIZATION_ID, $primary_club->id)
+            ->first();
+
+        if ($record)
+        {
+            if ($record->trashed())
+            {
+                $record->restore();
+            }
+
+            $record->fill($update_data)->save();
+
+            return;
+        }
+
+        TrooperOrganization::create(array_merge(
+            [
+                TrooperOrganization::TROOPER_ID      => $source->trooper_id,
+                TrooperOrganization::ORGANIZATION_ID => $primary_club->id,
+            ],
+            $update_data
+        ));
+    }
+
+    private function upsertAssignment(int $organization_id, int $trooper_id): void
+    {
+        $assignment = TrooperAssignment::withTrashed()
+            ->where(TrooperAssignment::TROOPER_ID, $trooper_id)
+            ->where(TrooperAssignment::ORGANIZATION_ID, $organization_id)
+            ->first();
+
+        if ($assignment)
+        {
+            if ($assignment->trashed())
+            {
+                $assignment->restore();
+            }
+
+            $assignment->is_member = true;
+            $assignment->save();
+
+            return;
+        }
+
+        TrooperAssignment::create([
+            TrooperAssignment::TROOPER_ID      => $trooper_id,
+            TrooperAssignment::ORGANIZATION_ID => $organization_id,
+            TrooperAssignment::IS_MEMBER       => true,
+        ]);
+    }
+
+    /**
+     * State 4: is_member=true AND deleted_at IS NOT NULL
      */
     private function fixFlagNotClearedOnDelete(): int
     {
@@ -72,10 +233,7 @@ class Fix242 extends Seeder
     }
 
     /**
-     * State 2: is_member=false AND deleted_at IS NULL AND is_moderator=false AND should_notify=false
-     *
-     * Rows had their flag cleared by old code that never followed up with a soft-delete.
-     * Rows with is_moderator=true or should_notify=true have a separate purpose and are left alone.
+     * State 5: is_member=false AND deleted_at IS NULL AND is_moderator=false AND should_notify=false
      */
     private function fixFlagClearedButNotDeleted(): int
     {
@@ -96,12 +254,7 @@ class Fix242 extends Seeder
     }
 
     /**
-     * State 3: multiple active assignments (is_member=true, not soft-deleted) in the
-     * same primary-club hierarchy for the same trooper.
-     *
-     * For each primary club, finds troopers with more than one active assignment
-     * anywhere in its org tree. Keeps the most recently updated record; soft-deletes
-     * the rest.
+     * State 6: Multiple active assignments in the same primary-club hierarchy for the same trooper.
      */
     private function fixHierarchyDuplicates(): int
     {
@@ -150,15 +303,8 @@ class Fix242 extends Seeder
     }
 
     /**
-     * State 4: active TrooperOrganization at a primary club where the trooper has no
-     * active TrooperAssignment (is_member=true, not soft-deleted) anywhere in that
-     * club's hierarchy.
-     *
-     * These were created by old code that registered memberships without creating
-     * assignment records. The TrooperOrganization is valid — the trooper IS a member —
-     * but the new display requires both records. Fix: create the missing TrooperAssignment
-     * at the primary club so the membership shows correctly. Admins can move troopers to
-     * a specific sub-org later via the assignment picker.
+     * State 7: Active TrooperOrganization at a primary club with no active TrooperAssignment
+     * anywhere in that club's hierarchy.
      */
     private function fixOrphanedTrooperOrganizations(): int
     {
@@ -186,29 +332,7 @@ class Fix242 extends Seeder
 
                 if (!$has_active_assignment)
                 {
-                    $assignment = TrooperAssignment::withTrashed()
-                        ->where(TrooperAssignment::TROOPER_ID, $trooper_org->trooper_id)
-                        ->where(TrooperAssignment::ORGANIZATION_ID, $primary_club->id)
-                        ->first();
-
-                    if ($assignment)
-                    {
-                        if ($assignment->trashed())
-                        {
-                            $assignment->restore();
-                        }
-                        $assignment->is_member = true;
-                        $assignment->save();
-                    }
-                    else
-                    {
-                        TrooperAssignment::create([
-                            TrooperAssignment::TROOPER_ID      => $trooper_org->trooper_id,
-                            TrooperAssignment::ORGANIZATION_ID => $primary_club->id,
-                            TrooperAssignment::IS_MEMBER       => true,
-                        ]);
-                    }
-
+                    $this->upsertAssignment($primary_club->id, $trooper_org->trooper_id);
                     $created++;
                 }
             }

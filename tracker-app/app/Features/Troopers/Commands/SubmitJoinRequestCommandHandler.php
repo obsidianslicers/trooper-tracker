@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace App\Features\Troopers\Commands;
 
 use App\Bus\Contracts\CommandHandlerInterface;
-use App\Enums\MembershipStatus;
+use App\Enums\JoinRequestStatus;
 use App\Jobs\SendJoinRequestNotificationsJob;
-use App\Models\Organization;
-use App\Models\TrooperOrganization;
+use App\Models\JoinRequest;
 
 /**
  * Handler for submitting a trooper's club join request.
@@ -22,38 +21,23 @@ readonly class SubmitJoinRequestCommandHandler implements CommandHandlerInterfac
      */
     public function __invoke(object $message): mixed
     {
-        $organization = $message->organization;
-        $trooper = $message->trooper;
+        $organization  = $message->organization;
+        $trooper       = $message->trooper;
+        $primary_club  = $organization->getPrimaryClub();
 
-        // Cancel any OTHER pending request in this top-level family so only one exists at a time.
-        $root_id = explode(Organization::NODE_PATH_SEP, $organization->node_path)[0];
-        $root_path = $root_id.Organization::NODE_PATH_SEP;
-        $family_ids = Organization::where(Organization::NODE_PATH, 'LIKE', $root_path.'%')
-            ->pluck(Organization::ID);
-
-        TrooperOrganization::where(TrooperOrganization::TROOPER_ID, $trooper->id)
-            ->where(TrooperOrganization::MEMBERSHIP_STATUS, MembershipStatus::PENDING)
-            ->whereIn(TrooperOrganization::ORGANIZATION_ID, $family_ids)
-            ->where(TrooperOrganization::ORGANIZATION_ID, '!=', $organization->id)
+        // Cancel any other pending request in this primary-club family.
+        JoinRequest::where(JoinRequest::TROOPER_ID, $trooper->id)
+            ->where(JoinRequest::STATUS, JoinRequestStatus::PENDING)
+            ->where(JoinRequest::PRIMARY_ORGANIZATION_ID, $primary_club->id)
             ->delete();
 
-        $update_data = [
-            TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::PENDING,
-            TrooperOrganization::UPDATED_AT => now(),
-        ];
-
-        if (!empty($message->identifier))
-        {
-            $update_data[TrooperOrganization::IDENTIFIER] = $message->identifier;
-        }
-
-        $join_request = TrooperOrganization::updateOrCreate(
-            [
-                TrooperOrganization::TROOPER_ID => $trooper->id,
-                TrooperOrganization::ORGANIZATION_ID => $organization->id,
-            ],
-            $update_data
-        );
+        $join_request = JoinRequest::create([
+            JoinRequest::TROOPER_ID              => $trooper->id,
+            JoinRequest::ORGANIZATION_ID         => $organization->id,
+            JoinRequest::PRIMARY_ORGANIZATION_ID => $primary_club->id,
+            JoinRequest::IDENTIFIER              => $message->identifier ?: null,
+            JoinRequest::STATUS                  => JoinRequestStatus::PENDING,
+        ]);
 
         SendJoinRequestNotificationsJob::dispatch($join_request);
 

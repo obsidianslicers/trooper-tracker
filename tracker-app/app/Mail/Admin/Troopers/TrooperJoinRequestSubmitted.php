@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Mail\Admin\Troopers;
 
 use App\Mail\HasRetryPolicy;
-use App\Models\TrooperOrganization;
+use App\Models\JoinRequest;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -22,9 +22,9 @@ class TrooperJoinRequestSubmitted extends Mailable implements ShouldQueue
     use Queueable, SerializesModels;
 
     /**
-     * @param  TrooperOrganization  $join_request  The pending TrooperOrganization record
+     * @param  JoinRequest  $join_request  The newly submitted pending JoinRequest
      */
-    public function __construct(private readonly TrooperOrganization $join_request) {}
+    public function __construct(private readonly JoinRequest $join_request) {}
 
     public function envelope(): Envelope
     {

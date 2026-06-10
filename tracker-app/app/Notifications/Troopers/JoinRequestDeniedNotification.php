@@ -6,7 +6,7 @@ namespace App\Notifications\Troopers;
 
 use App\Channels\FcmChannel;
 use App\Mail\Admin\Troopers\JoinRequestDenied;
-use App\Models\Organization;
+use App\Models\JoinRequest;
 use App\Models\Trooper;
 use Illuminate\Notifications\Notification;
 
@@ -15,10 +15,7 @@ use Illuminate\Notifications\Notification;
  */
 class JoinRequestDeniedNotification extends Notification
 {
-    public function __construct(
-        private readonly Organization $organization,
-        private readonly ?string $denial_reason = null,
-    ) {}
+    public function __construct(private readonly JoinRequest $join_request) {}
 
     public function via(Trooper $notifiable): array
     {
@@ -46,16 +43,20 @@ class JoinRequestDeniedNotification extends Notification
 
     public function toMail(Trooper $notifiable): JoinRequestDenied
     {
-        return (new JoinRequestDenied($notifiable, $this->organization, $this->denial_reason))->to($notifiable->email);
+        return (new JoinRequestDenied(
+            $notifiable,
+            $this->join_request->organization,
+            $this->join_request->denial_reason,
+        ))->to($notifiable->email);
     }
 
     public function toArray(Trooper $notifiable): array
     {
-        $body = "Your request to join {$this->organization->name} was not approved.";
+        $body = "Your request to join {$this->join_request->organization->name} was not approved.";
 
-        if ($this->denial_reason)
+        if ($this->join_request->denial_reason)
         {
-            $body .= " Reason: {$this->denial_reason}";
+            $body .= " Reason: {$this->join_request->denial_reason}";
         }
 
         return [

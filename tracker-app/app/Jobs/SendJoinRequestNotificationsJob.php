@@ -7,7 +7,7 @@ namespace App\Jobs;
 use App\Bus\MagicBus;
 use App\Enums\MembershipRole;
 use App\Features\Troopers\Queries\GetTroopersByRoleQuery;
-use App\Models\TrooperOrganization;
+use App\Models\JoinRequest;
 use App\Notifications\Admin\JoinRequestSubmittedNotification;
 use App\Policies\TrooperJoinRequestPolicy;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -25,9 +25,9 @@ class SendJoinRequestNotificationsJob implements ShouldQueue
     use Queueable;
 
     /**
-     * @param  TrooperOrganization  $join_request  The newly submitted pending TrooperOrganization
+     * @param  JoinRequest  $join_request  The newly submitted pending JoinRequest
      */
-    public function __construct(private readonly TrooperOrganization $join_request) {}
+    public function __construct(private readonly JoinRequest $join_request) {}
 
     public function handle(MagicBus $bus): void
     {

@@ -6,13 +6,13 @@ namespace App\Notifications\Admin;
 
 use App\Channels\FcmChannel;
 use App\Mail\Admin\Troopers\TrooperJoinRequestSubmitted;
+use App\Models\JoinRequest;
 use App\Models\Trooper;
-use App\Models\TrooperOrganization;
 use Illuminate\Notifications\Notification;
 
 class JoinRequestSubmittedNotification extends Notification
 {
-    public function __construct(private readonly TrooperOrganization $join_request) {}
+    public function __construct(private readonly JoinRequest $join_request) {}
 
     public function via(Trooper $notifiable): array
     {

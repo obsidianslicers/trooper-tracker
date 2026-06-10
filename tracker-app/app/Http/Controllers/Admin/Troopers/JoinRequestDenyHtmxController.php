@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Admin\Troopers;
 
 use App\Features\Troopers\Commands\DenyJoinRequestCommand;
 use App\Http\Controllers\MagicBusController;
-use App\Models\TrooperOrganization;
+use App\Models\JoinRequest;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -14,12 +14,12 @@ use Illuminate\Http\Response;
 /**
  * Denies a pending club join request via HTMX.
  *
- * Sets the membership status to DENIED and notifies the trooper.
+ * Marks the join request denied, persists the reason, and notifies the trooper.
  * Returns an updated join-request-card fragment for HTMX to swap in place.
  */
 class JoinRequestDenyHtmxController extends MagicBusController
 {
-    public function __invoke(Request $request, TrooperOrganization $join_request): Response|View
+    public function __invoke(Request $request, JoinRequest $join_request): Response|View
     {
         $this->authorize('moderate', $join_request);
 
@@ -27,7 +27,7 @@ class JoinRequestDenyHtmxController extends MagicBusController
 
         $this->bus->send(new DenyJoinRequestCommand($join_request, $validated['denial_reason'] ?? null));
 
-        $join_request->load(['trooper', 'organization']);
+        $join_request->load(['trooper', 'organization', 'primaryOrganization']);
 
         $data = compact('join_request');
 

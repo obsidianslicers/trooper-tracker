@@ -15,6 +15,7 @@ use App\Models\EventShare;
 use App\Models\EventTrooper;
 use App\Models\EventUpload;
 use App\Models\EventWatch;
+use App\Models\JoinRequest;
 use App\Models\MobileDevice;
 use App\Models\ModelChange;
 use App\Models\Notice;
@@ -75,6 +76,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Collection|EventTrooper[] $event_troopers
  * @property Collection|EventUpload[] $event_uploads
  * @property Collection|EventWatch[] $event_watches
+ * @property Collection|JoinRequest[] $join_requests
  * @property Collection|MobileDevice[] $mobile_devices
  * @property Collection|ModelChange[] $model_changes
  * @property Collection|Notice[] $notices
@@ -218,6 +220,11 @@ class Trooper extends Model
     public function event_watches(): HasMany
     {
         return $this->hasMany(EventWatch::class);
+    }
+
+    public function join_requests(): HasMany
+    {
+        return $this->hasMany(JoinRequest::class);
     }
 
     public function mobile_devices(): HasMany

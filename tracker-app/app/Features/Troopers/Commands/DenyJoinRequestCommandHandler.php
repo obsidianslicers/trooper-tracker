@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Features\Troopers\Commands;
 
 use App\Bus\Contracts\CommandHandlerInterface;
-use App\Enums\MembershipStatus;
+use App\Enums\JoinRequestStatus;
 use App\Notifications\Troopers\JoinRequestDeniedNotification;
 
 /**
@@ -20,12 +20,14 @@ readonly class DenyJoinRequestCommandHandler implements CommandHandlerInterface
      */
     public function __invoke(object $message): mixed
     {
-        $request = $message->trooper_organization;
+        $join_request = $message->join_request;
 
-        $request->membership_status = MembershipStatus::DENIED;
-        $request->save();
+        $join_request->status        = JoinRequestStatus::DENIED;
+        $join_request->denied_at     = now();
+        $join_request->denial_reason = $message->denial_reason;
+        $join_request->save();
 
-        $request->trooper->notify(new JoinRequestDeniedNotification($request->organization, $message->denial_reason));
+        $join_request->trooper->notify(new JoinRequestDeniedNotification($join_request));
 
         return null;
     }
