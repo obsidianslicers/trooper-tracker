@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Features\Troopers\Commands;
 
+use App\Enums\JoinRequestStatus;
+use App\Enums\MembershipStatus;
 use App\Features\Troopers\Commands\ApproveTrooperCommand;
 use App\Features\Troopers\Commands\ApproveTrooperCommandHandler;
-use App\Enums\MembershipStatus;
+use App\Models\JoinRequest;
+use App\Models\Organization;
 use App\Models\Trooper;
 use App\Notifications\Troopers\MembershipApprovedNotification;
 use App\Notifications\Troopers\TrooperDeniedNotification;
@@ -39,6 +42,26 @@ class ApproveTrooperCommandHandlerTest extends TestCase
         $trooper->refresh();
         $this->assertEquals(MembershipStatus::ACTIVE, $trooper->membership_status);
         Notification::assertSentTo($trooper, MembershipApprovedNotification::class);
+    }
+
+    public function test_invoke_auto_approves_pending_join_requests_without_notification(): void
+    {
+        Notification::fake();
+        $trooper = Trooper::factory()->asPending()->create();
+        $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
+
+        $join_request = JoinRequest::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($organization)
+            ->forPrimaryOrganization($organization)
+            ->create();
+
+        $handler = app(ApproveTrooperCommandHandler::class);
+        $handler(new ApproveTrooperCommand(trooper: $trooper, is_approved: true));
+
+        $join_request->refresh();
+        $this->assertEquals(JoinRequestStatus::APPROVED, $join_request->status);
+        Notification::assertNotSentTo($trooper, \App\Notifications\Troopers\JoinRequestApprovedNotification::class);
     }
 
     public function test_invoke_denies_trooper_and_sends_denial_notification(): void

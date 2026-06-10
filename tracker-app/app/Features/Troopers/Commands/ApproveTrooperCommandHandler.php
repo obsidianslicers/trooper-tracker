@@ -7,7 +7,7 @@ namespace App\Features\Troopers\Commands;
 use App\Bus\Contracts\CommandHandlerInterface;
 use App\Bus\MagicBus;
 use App\Enums\MembershipStatus;
-use App\Models\TrooperOrganization;
+use App\Models\JoinRequest;
 use App\Notifications\Troopers\MembershipApprovedNotification;
 use App\Notifications\Troopers\TrooperDeniedNotification;
 
@@ -46,12 +46,11 @@ readonly class ApproveTrooperCommandHandler implements CommandHandlerInterface
         {
             $message->trooper->notify(new MembershipApprovedNotification);
 
-            TrooperOrganization::where(TrooperOrganization::TROOPER_ID, $message->trooper->id)
+            JoinRequest::where(JoinRequest::TROOPER_ID, $message->trooper->id)
                 ->pending()
-                ->with('organization')
                 ->get()
-                ->each(function (TrooperOrganization $org) {
-                    $this->bus->send(new ApproveJoinRequestCommand($org, suppress_notification: true));
+                ->each(function (JoinRequest $join_request): void {
+                    $this->bus->send(new ApproveJoinRequestCommand($join_request, suppress_notification: true));
                 });
         }
 

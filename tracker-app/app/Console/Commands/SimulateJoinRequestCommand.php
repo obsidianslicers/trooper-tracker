@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Bus\MagicBus;
+use App\Enums\JoinRequestStatus;
 use App\Enums\MembershipStatus;
 use App\Features\Troopers\Commands\SubmitJoinRequestCommand;
+use App\Models\JoinRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperOrganization;
@@ -49,22 +51,32 @@ class SimulateJoinRequestCommand extends Command
         }
 
         $already = TrooperOrganization::where(TrooperOrganization::TROOPER_ID, $trooper->id)
-            ->whereIn(TrooperOrganization::MEMBERSHIP_STATUS, [MembershipStatus::PENDING, MembershipStatus::ACTIVE])
+            ->where(TrooperOrganization::MEMBERSHIP_STATUS, MembershipStatus::ACTIVE)
             ->pluck(TrooperOrganization::ORGANIZATION_ID);
 
+        $pending = JoinRequest::where(JoinRequest::TROOPER_ID, $trooper->id)
+            ->where(JoinRequest::STATUS, JoinRequestStatus::PENDING)
+            ->pluck(JoinRequest::ORGANIZATION_ID);
+
         $organization = Organization::where(Organization::DEPTH, '>', 0)
-            ->whereNotIn(Organization::ID, $already)
+            ->whereNotIn(Organization::ID, $already->merge($pending))
             ->inRandomOrder()
             ->first();
 
         if (!$organization)
         {
-            $this->error("No eligible organizations found for {$trooper->display_name} — they may already be pending or active in all clubs.");
+            $this->error("No eligible organizations found for {$trooper->display_name} — they may already be active or have a pending request in all clubs.");
 
             return self::FAILURE;
         }
 
         $bus->send(new SubmitJoinRequestCommand($trooper, $organization, null));
+
+        $join_request = JoinRequest::where(JoinRequest::TROOPER_ID, $trooper->id)
+            ->where(JoinRequest::ORGANIZATION_ID, $organization->id)
+            ->where(JoinRequest::STATUS, JoinRequestStatus::PENDING)
+            ->latest()
+            ->first();
 
         $org_label = $organization->parent
             ? "{$organization->parent->name} — {$organization->name}"
@@ -76,6 +88,7 @@ class SimulateJoinRequestCommand extends Command
         $this->line('<fg=cyan;options=bold>── Join Request ──────────────────────────────────</>');
         $this->info("  Trooper:       {$trooper->display_name} (ID {$trooper->id})");
         $this->info("  Organization:  {$org_label} (ID {$organization->id})");
+        $this->info("  Request ID:    {$join_request->id}");
         $this->newLine();
         $this->info("  Review at: {$review_url}");
         $this->newLine();
