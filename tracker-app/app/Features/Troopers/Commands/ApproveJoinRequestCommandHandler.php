@@ -12,8 +12,6 @@ use App\Models\Organization;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperOrganization;
 use App\Notifications\Troopers\JoinRequestApprovedNotification;
-use Exception;
-
 /**
  * Handler for approving a club join request.
  *
@@ -23,7 +21,6 @@ readonly class ApproveJoinRequestCommandHandler implements CommandHandlerInterfa
 {
     /**
      * @param  ApproveJoinRequestCommand  $message
-     * @throws Exception if the join request is not pending
      */
     public function __invoke(object $message): mixed
     {
@@ -31,11 +28,6 @@ readonly class ApproveJoinRequestCommandHandler implements CommandHandlerInterfa
         $trooper       = $join_request->trooper;
         $primary_club  = $join_request->primaryOrganization;
         $requested_org = $join_request->organization;
-
-        if ($join_request->status !== JoinRequestStatus::PENDING)
-        {
-            throw new Exception('Join request is not pending.');
-        }
 
         $this->clearExistingAssignments($primary_club, $join_request);
         $this->createOrUpdateMembership($primary_club, $join_request);

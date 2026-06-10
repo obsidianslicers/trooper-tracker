@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Enums\JoinRequestStatus;
 use App\Models\Base\JoinRequest as BaseJoinRequest;
+use App\Models\Concerns\HasObserver;
 use App\Models\Scopes\HasJoinRequestScopes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,6 +15,7 @@ class JoinRequest extends BaseJoinRequest
 {
     use HasFactory;
     use HasJoinRequestScopes;
+    use HasObserver;
 
     protected function casts(): array
     {
