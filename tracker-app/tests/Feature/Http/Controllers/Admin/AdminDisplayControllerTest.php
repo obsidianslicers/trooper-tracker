@@ -47,4 +47,29 @@ class AdminDisplayControllerTest extends TestCase
 
         $response->assertViewHas('pending_join_requests', 1);
     }
+
+    public function test_invoke_does_not_count_pending_signup_join_requests_as_standalone_requests(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $pending_trooper = Trooper::factory()->asPending()->create();
+        $active_member = Trooper::factory()->asMember()->create();
+        $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
+
+        JoinRequest::factory()
+            ->forTrooper($pending_trooper)
+            ->forOrganization($organization)
+            ->forPrimaryOrganization($organization)
+            ->create();
+
+        JoinRequest::factory()
+            ->forTrooper($active_member)
+            ->forOrganization($organization)
+            ->forPrimaryOrganization($organization)
+            ->create();
+
+        $response = $this->actingAs($admin)->get(route('admin.display'));
+
+        $response->assertViewHas('not_approved', 1);
+        $response->assertViewHas('pending_join_requests', 1);
+    }
 }
