@@ -41,6 +41,12 @@
                        class="mb-0">
                 Trooper approved.
             </x-message>
+        @elseif($trooper->is_denied)
+            <x-message type="danger"
+                       icon="fa-solid fa-circle-xmark"
+                       class="mb-0">
+                Trooper denied.
+            </x-message>
         {{-- Handlers are not required to select a unit --}}
         @elseif($trooper->membership_role == \App\Enums\MembershipRole::HANDLER && $trooper->join_requests->isEmpty())
             <x-message type="warning"

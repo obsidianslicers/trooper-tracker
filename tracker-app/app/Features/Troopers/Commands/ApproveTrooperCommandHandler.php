@@ -39,6 +39,17 @@ readonly class ApproveTrooperCommandHandler implements CommandHandlerInterface
 
         if (!$message->is_approved)
         {
+            JoinRequest::where(JoinRequest::TROOPER_ID, $message->trooper->id)
+                ->pending()
+                ->get()
+                ->each(function (JoinRequest $join_request) use ($message): void {
+                    $this->bus->send(new DenyJoinRequestCommand(
+                        $join_request,
+                        $message->denial_reason,
+                        suppress_notification: true
+                    ));
+                });
+
             $message->trooper->notify(new TrooperDeniedNotification($message->denial_reason));
         }
 

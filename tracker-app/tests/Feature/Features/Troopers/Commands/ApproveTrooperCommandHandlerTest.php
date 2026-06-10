@@ -11,6 +11,8 @@ use App\Features\Troopers\Commands\ApproveTrooperCommandHandler;
 use App\Models\JoinRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
+use App\Notifications\Troopers\JoinRequestApprovedNotification;
+use App\Notifications\Troopers\JoinRequestDeniedNotification;
 use App\Notifications\Troopers\MembershipApprovedNotification;
 use App\Notifications\Troopers\TrooperDeniedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -61,7 +63,7 @@ class ApproveTrooperCommandHandlerTest extends TestCase
 
         $join_request->refresh();
         $this->assertEquals(JoinRequestStatus::APPROVED, $join_request->status);
-        Notification::assertNotSentTo($trooper, \App\Notifications\Troopers\JoinRequestApprovedNotification::class);
+        Notification::assertNotSentTo($trooper, JoinRequestApprovedNotification::class);
     }
 
     public function test_invoke_denies_trooper_and_sends_denial_notification(): void
@@ -82,5 +84,33 @@ class ApproveTrooperCommandHandlerTest extends TestCase
         $trooper->refresh();
         $this->assertEquals(MembershipStatus::DENIED, $trooper->membership_status);
         Notification::assertSentTo($trooper, TrooperDeniedNotification::class);
+    }
+
+    public function test_invoke_denies_pending_join_requests_when_trooper_is_denied(): void
+    {
+        Notification::fake();
+        $trooper = Trooper::factory()->asPending()->create();
+        $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
+
+        $join_request = JoinRequest::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($organization)
+            ->forPrimaryOrganization($organization)
+            ->create();
+
+        $handler = app(ApproveTrooperCommandHandler::class);
+        $handler(new ApproveTrooperCommand(
+            trooper: $trooper,
+            is_approved: false,
+            denial_reason: 'Not eligible'
+        ));
+
+        $join_request->refresh();
+
+        $this->assertEquals(JoinRequestStatus::DENIED, $join_request->status);
+        $this->assertSame('Not eligible', $join_request->denial_reason);
+        $this->assertNotNull($join_request->denied_at);
+        Notification::assertSentTo($trooper, TrooperDeniedNotification::class);
+        Notification::assertNotSentTo($trooper, JoinRequestDeniedNotification::class);
     }
 }

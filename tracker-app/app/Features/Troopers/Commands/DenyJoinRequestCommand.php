@@ -22,5 +22,6 @@ readonly class DenyJoinRequestCommand
     public function __construct(
         public JoinRequest $join_request,
         public ?string $denial_reason = null,
+        public bool $suppress_notification = false,
     ) {}
 }

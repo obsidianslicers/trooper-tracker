@@ -27,7 +27,10 @@ readonly class DenyJoinRequestCommandHandler implements CommandHandlerInterface
         $join_request->denial_reason = $message->denial_reason;
         $join_request->save();
 
-        $join_request->trooper->notify(new JoinRequestDeniedNotification($join_request));
+        if (!$message->suppress_notification)
+        {
+            $join_request->trooper->notify(new JoinRequestDeniedNotification($join_request));
+        }
 
         return null;
     }

@@ -239,7 +239,7 @@ class RegisterSubmitControllerTest extends TestCase
         $this->assertDatabaseHas('tt_join_requests', [
             JoinRequest::TROOPER_ID => $trooper->id,
             JoinRequest::ORGANIZATION_ID => $unit->id,
-            JoinRequest::STATUS => JoinRequestStatus::PENDING->value,
+            JoinRequest::STATUS => JoinRequestStatus::DENIED->value,
         ]);
         $this->assertDatabaseMissing('tt_trooper_organizations', [
             TrooperOrganization::TROOPER_ID => $trooper->id,
