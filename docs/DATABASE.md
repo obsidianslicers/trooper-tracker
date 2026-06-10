@@ -40,6 +40,9 @@ erDiagram
     tt_organizations ||--o{ tt_event_troopers : signed_up_as
     tt_organizations ||--o{ tt_awards : has
     tt_organizations ||--o{ tt_notices : has
+    tt_organizations ||--o{ tt_join_requests : receives
+
+    tt_troopers ||--o{ tt_join_requests : submits
 
     tt_costumes ||--o{ tt_organization_costumes : approved_as
     tt_costumes ||--o{ tt_event_troopers : selected_primary
@@ -84,8 +87,10 @@ erDiagram
 
     tt_organizations ||--o{ tt_trooper_assignments : has
     tt_organizations ||--o{ tt_trooper_organizations : has
+    tt_organizations ||--o{ tt_join_requests : receives
     tt_organization_costumes ||--o{ tt_trooper_costumes : assigned_to
 
+    tt_troopers ||--o{ tt_join_requests : submits
     tt_troopers ||--o{ tt_oauth_logins : has
   ```
 
@@ -181,9 +186,9 @@ Events, Awards, and Notices. It uses:
 
 ## Inventory
 
-Discovered migration files: 32
+Discovered migration files: 33
 
-Discovered tables: 38
+Discovered tables: 39
 
 - tt_troopers
 - tt_password_reset_tokens
@@ -197,6 +202,7 @@ Discovered tables: 38
 - tt_organizations
 - tt_organization_costumes
 - tt_trooper_assignments
+- tt_join_requests
 - tt_trooper_organizations
 - tt_trooper_donations
 - tt_trooper_costumes
@@ -496,6 +502,39 @@ Unique: (trooper_id, organization_id)
 Relationships:
 
 - Belongs To: tt_troopers, tt_organizations
+
+### tt_join_requests
+
+Purpose: Club join requests submitted by troopers, pending admin approval.
+
+| Column | Type | Nullable | Key / Constraints |
+| --- | --- | --- | --- |
+| id | bigint unsigned | no | PK, auto increment |
+| trooper_id | bigint unsigned | no | FK -> tt_troopers.id, cascadeOnDelete |
+| organization_id | bigint unsigned | no | FK -> tt_organizations.id, cascadeOnDelete |
+| primary_organization_id | bigint unsigned | no | FK -> tt_organizations.id, cascadeOnDelete |
+| identifier | varchar(64) | yes | |
+| status | varchar(16) | no | default `pending` |
+| approved_by_id | bigint unsigned | yes | FK -> tt_troopers.id, nullOnDelete |
+| approved_at | timestamp | yes | |
+| denied_by_id | bigint unsigned | yes | FK -> tt_troopers.id, nullOnDelete |
+| denied_at | timestamp | yes | |
+| denial_reason | text | yes | |
+| created_at | timestamp | yes | timestamps helper |
+| updated_at | timestamp | yes | timestamps helper |
+| deleted_at | timestamp | yes | softDeletes helper |
+| created_id | bigint unsigned | yes | trooperstamps helper |
+| updated_id | bigint unsigned | yes | trooperstamps helper |
+| deleted_id | bigint unsigned | yes | trooperstamps helper |
+
+Indexes: trooper_id, status
+
+Relationships:
+
+- Belongs To: tt_troopers (trooper_id)
+- Belongs To: tt_organizations (organization_id)
+- Belongs To: tt_organizations (primary_organization_id)
+- Belongs To: tt_troopers (approved_by_id, denied_by_id)
 
 ### tt_trooper_organizations
 
