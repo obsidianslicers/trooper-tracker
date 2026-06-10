@@ -6,8 +6,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Enums\MembershipStatus;
 use App\Http\Controllers\MagicBusController;
-use App\Models\JoinRequest;
 use App\Models\Trooper;
+use App\Models\TrooperRequest;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -34,7 +34,7 @@ class AdminDisplayController extends MagicBusController
 
         $not_approved = Trooper::pendingApprovals()->moderatedBy($trooper)->count();
 
-        $pending_join_requests = JoinRequest::pending()
+        $pending_join_requests = TrooperRequest::pending()
             ->whereHas('trooper', function ($query): void {
                 $query->where(Trooper::MEMBERSHIP_STATUS, MembershipStatus::ACTIVE);
             })

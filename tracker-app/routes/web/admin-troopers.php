@@ -10,8 +10,8 @@ use App\Http\Controllers\Admin\Troopers\ChangesController;
 use App\Http\Controllers\Admin\Troopers\CostumesController;
 use App\Http\Controllers\Admin\Troopers\DenialSubmitHtmxController;
 use App\Http\Controllers\Admin\Troopers\EventsController;
-use App\Http\Controllers\Admin\Troopers\JoinRequestApproveHtmxController;
-use App\Http\Controllers\Admin\Troopers\JoinRequestDenyHtmxController;
+use App\Http\Controllers\Admin\Troopers\TrooperRequestApproveHtmxController;
+use App\Http\Controllers\Admin\Troopers\TrooperRequestDenyHtmxController;
 use App\Http\Controllers\Admin\Troopers\ListController;
 use App\Http\Controllers\Admin\Troopers\MembershipController;
 use App\Http\Controllers\Admin\Troopers\GuardianController;
@@ -39,8 +39,8 @@ Route::prefix('admin/troopers')
         Route::get('/recruit', RecruitController::class)->name('recruit');
         Route::post('/recruit', RecruitSubmitController::class);
 
-        Route::post('/join-requests/{join_request}/approve', JoinRequestApproveHtmxController::class)->name('join-requests.approve-htmx');
-        Route::post('/join-requests/{join_request}/deny', JoinRequestDenyHtmxController::class)->name('join-requests.deny-htmx');
+        Route::post('/trooper-requests/{trooper_request}/approve', TrooperRequestApproveHtmxController::class)->name('trooper-requests.approve-htmx');
+        Route::post('/trooper-requests/{trooper_request}/deny', TrooperRequestDenyHtmxController::class)->name('trooper-requests.deny-htmx');
 
         Route::get('/{trooper}', ProfileController::class)->name('profile');
         Route::post('/{trooper}', ProfileSubmitController::class);

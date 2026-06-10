@@ -39,30 +39,30 @@
             <p class="text-muted small mb-0">
                 Review complete.
             </p>
-        {{-- Handlers are not required to select a unit --}}
-        @elseif($trooper->membership_role == \App\Enums\MembershipRole::HANDLER && $trooper->join_requests->isEmpty())
+            {{-- Handlers are not required to select a unit --}}
+        @elseif($trooper->membership_role == \App\Enums\MembershipRole::HANDLER && $trooper->trooper_requests->isEmpty())
             <x-message type="warning"
                        icon="fa-solid fa-triangle-exclamation"
                        class="mb-3">
                 This trooper is registered as a Handler and not required to select a unit.
             </x-message>
         @else
-            @forelse($trooper->join_requests as $join_request)
+            @forelse($trooper->trooper_requests as $trooper_request)
                 <div class="border rounded p-2 mb-2">
                     <dl class="row mb-0 small">
                         <dt class="col-4">Primary Club:</dt>
                         <dd class="col-8">
-                            @if($join_request->primaryOrganization->requires_guardian)
+                            @if($trooper_request->primaryOrganization->requires_guardian)
                                 <i class="fa-solid fa-shield-halved text-warning my-1 me-1"></i>
                             @endif
-                            {{ $join_request->primaryOrganization->name }}
+                            {{ $trooper_request->primaryOrganization->name }}
                         </dd>
                         <dt class="col-4">Requested Unit:</dt>
                         <dd class="col-8">
-                            {{ $join_request->organization->parent?->name ? $join_request->organization->parent->name . ' — ' : '' }}{{ $join_request->organization->name }}
+                            {{ $trooper_request->organization->parent?->name ? $trooper_request->organization->parent->name . ' — ' : '' }}{{ $trooper_request->organization->name }}
                         </dd>
                         <dt class="col-4">Identifier:</dt>
-                        <dd class="col-8 mb-0">{{ $join_request->identifier ?? 'n/a' }}</dd>
+                        <dd class="col-8 mb-0">{{ $trooper_request->identifier ?? 'n/a' }}</dd>
                     </dl>
                 </div>
             @empty

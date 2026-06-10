@@ -6,7 +6,7 @@ namespace Tests\Feature\Features\Troopers\Queries;
 
 use App\Features\Troopers\Queries\GetTrooperApprovalsQuery;
 use App\Features\Troopers\Queries\GetTrooperApprovalsQueryHandler;
-use App\Models\JoinRequest;
+use App\Models\TrooperRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
@@ -84,13 +84,13 @@ class GetTrooperApprovalsQueryHandlerTest extends TestCase
         $pending_inside = Trooper::factory()->asPending()->withDisplayName('Inside Pending')->create();
         $pending_outside = Trooper::factory()->asPending()->withDisplayName('Outside Pending')->create();
 
-        JoinRequest::factory()
+        TrooperRequest::factory()
             ->forTrooper($pending_inside)
             ->forOrganization($moderated_org)
             ->forPrimaryOrganization($moderated_org)
             ->create();
 
-        JoinRequest::factory()
+        TrooperRequest::factory()
             ->forTrooper($pending_outside)
             ->forOrganization($outside_org)
             ->forPrimaryOrganization($outside_org)
@@ -102,7 +102,7 @@ class GetTrooperApprovalsQueryHandlerTest extends TestCase
 
         $this->assertCount(1, $result);
         $this->assertSame('Inside Pending', $result->first()->display_name);
-        $this->assertTrue($result->first()->relationLoaded('join_requests'));
-        $this->assertCount(1, $result->first()->join_requests);
+        $this->assertTrue($result->first()->relationLoaded('trooper_requests'));
+        $this->assertCount(1, $result->first()->trooper_requests);
     }
 }

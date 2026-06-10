@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Scopes;
 
-use App\Enums\JoinRequestStatus;
+use App\Enums\TrooperRequestStatus;
 use App\Enums\MembershipStatus;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
@@ -37,11 +37,13 @@ trait HasTrooperScopes
     public function scopePendingApprovals(Builder $query): Builder
     {
         $with = [
-            'join_requests' => function ($q) {
+            'trooper_requests' => function ($q)
+            {
                 $q->pending()
                     ->with(['organization.parent', 'primaryOrganization']);
             },
-            'trooper_assignments' => function ($q) {
+            'trooper_assignments' => function ($q)
+            {
                 $q->where(TrooperAssignment::IS_MEMBER, true)
                     ->with('organization.parent');
             },
@@ -67,25 +69,29 @@ trait HasTrooperScopes
             return $query;
         }
 
-        return $query->whereExists(function ($sub) use ($trooper) {
+        return $query->whereExists(function ($sub) use ($trooper)
+        {
             $sub->select(DB::raw(1))
                 ->from('tt_trooper_assignments as ta_moderator')
                 ->join('tt_organizations as org_moderator', 'ta_moderator.organization_id', '=', 'org_moderator.id')
                 ->where('ta_moderator.trooper_id', $trooper->id)
                 ->where('ta_moderator.is_moderator', true)
-                ->where(function ($query): void {
-                    $query->whereExists(function ($candidate_assignment): void {
+                ->where(function ($query): void
+                {
+                    $query->whereExists(function ($candidate_assignment): void
+                    {
                         $candidate_assignment->select(DB::raw(1))
                             ->from('tt_trooper_assignments as ta_candidate')
                             ->join('tt_organizations as org_candidate', 'ta_candidate.organization_id', '=', 'org_candidate.id')
                             ->whereColumn('ta_candidate.trooper_id', 'tt_troopers.id')
                             ->whereRaw('org_candidate.node_path LIKE CONCAT(org_moderator.node_path, "%")');
-                    })->orWhereExists(function ($join_request): void {
-                        $join_request->select(DB::raw(1))
-                            ->from('tt_join_requests as jr_candidate')
-                            ->join('tt_organizations as org_request', 'jr_candidate.organization_id', '=', 'org_request.id')
-                            ->whereColumn('jr_candidate.trooper_id', 'tt_troopers.id')
-                            ->where('jr_candidate.status', JoinRequestStatus::PENDING->value)
+                    })->orWhereExists(function ($trooper_request): void
+                    {
+                        $trooper_request->select(DB::raw(1))
+                            ->from('tt_trooper_requests as tr_candidate')
+                            ->join('tt_organizations as org_request', 'tr_candidate.organization_id', '=', 'org_request.id')
+                            ->whereColumn('tr_candidate.trooper_id', 'tt_troopers.id')
+                            ->where('tr_candidate.status', TrooperRequestStatus::PENDING->value)
                             ->whereRaw('org_request.node_path LIKE CONCAT(org_moderator.node_path, "%")');
                     });
                 });
@@ -103,7 +109,7 @@ trait HasTrooperScopes
     {
         if (!str_starts_with($search_term, '%'))
         {
-            $search_term = '%'.$search_term;
+            $search_term = '%' . $search_term;
         }
 
         if (!str_ends_with($search_term, '%'))
@@ -111,7 +117,8 @@ trait HasTrooperScopes
             $search_term .= '%';
         }
 
-        return $query->where(function ($query) use ($search_term) {
+        return $query->where(function ($query) use ($search_term)
+        {
             $query->where(self::EMAIL, 'like', $search_term)
                 ->orWhere(self::DISPLAY_NAME, 'like', $search_term)
                 ->orWhere(self::LEGAL_NAME, 'like', $search_term);

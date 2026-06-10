@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Auth;
 
 use App\Features\Troopers\Commands\RegisterTrooperCommand;
-use App\Features\Troopers\Commands\SubmitJoinRequestCommand;
+use App\Features\Troopers\Commands\SubmitTrooperRequestCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Jobs\SendTrooperRegisteredNotificationsJob;
@@ -93,7 +93,7 @@ class RegisterSubmitController extends MagicBusController
             {
                 $identifier = isset($data['identifier']) ? trim((string) $data['identifier']) : null;
 
-                $this->bus->send(new SubmitJoinRequestCommand(
+                $this->bus->send(new SubmitTrooperRequestCommand(
                     $trooper,
                     $requested_organization,
                     $identifier === '' ? null : $identifier

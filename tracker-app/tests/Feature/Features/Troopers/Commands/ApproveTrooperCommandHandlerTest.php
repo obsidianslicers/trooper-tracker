@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Features\Troopers\Commands;
 
-use App\Enums\JoinRequestStatus;
+use App\Enums\TrooperRequestStatus;
 use App\Enums\MembershipStatus;
 use App\Features\Troopers\Commands\ApproveTrooperCommand;
 use App\Features\Troopers\Commands\ApproveTrooperCommandHandler;
-use App\Models\JoinRequest;
+use App\Models\TrooperRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Notifications\Troopers\JoinRequestApprovedNotification;
@@ -52,7 +52,7 @@ class ApproveTrooperCommandHandlerTest extends TestCase
         $trooper = Trooper::factory()->asPending()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
 
-        $join_request = JoinRequest::factory()
+        $trooper_request = TrooperRequest::factory()
             ->forTrooper($trooper)
             ->forOrganization($organization)
             ->forPrimaryOrganization($organization)
@@ -61,8 +61,8 @@ class ApproveTrooperCommandHandlerTest extends TestCase
         $handler = app(ApproveTrooperCommandHandler::class);
         $handler(new ApproveTrooperCommand(trooper: $trooper, is_approved: true));
 
-        $join_request->refresh();
-        $this->assertEquals(JoinRequestStatus::APPROVED, $join_request->status);
+        $trooper_request->refresh();
+        $this->assertEquals(TrooperRequestStatus::APPROVED, $trooper_request->status);
         Notification::assertNotSentTo($trooper, JoinRequestApprovedNotification::class);
     }
 
@@ -92,7 +92,7 @@ class ApproveTrooperCommandHandlerTest extends TestCase
         $trooper = Trooper::factory()->asPending()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
 
-        $join_request = JoinRequest::factory()
+        $trooper_request = TrooperRequest::factory()
             ->forTrooper($trooper)
             ->forOrganization($organization)
             ->forPrimaryOrganization($organization)
@@ -105,11 +105,11 @@ class ApproveTrooperCommandHandlerTest extends TestCase
             denial_reason: 'Not eligible'
         ));
 
-        $join_request->refresh();
+        $trooper_request->refresh();
 
-        $this->assertEquals(JoinRequestStatus::DENIED, $join_request->status);
-        $this->assertSame('Not eligible', $join_request->denial_reason);
-        $this->assertNotNull($join_request->denied_at);
+        $this->assertEquals(TrooperRequestStatus::DENIED, $trooper_request->status);
+        $this->assertSame('Not eligible', $trooper_request->denial_reason);
+        $this->assertNotNull($trooper_request->denied_at);
         Notification::assertSentTo($trooper, TrooperDeniedNotification::class);
         Notification::assertNotSentTo($trooper, JoinRequestDeniedNotification::class);
     }

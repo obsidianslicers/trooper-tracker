@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Database\Seeders\Issues;
 
-use App\Enums\JoinRequestStatus;
+use App\Enums\TrooperRequestStatus;
 use App\Enums\MembershipStatus;
-use App\Models\JoinRequest;
+use App\Models\TrooperRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
@@ -39,12 +39,12 @@ class Fix242Test extends TestCase
 
         $this->seed(Fix242::class);
 
-        $this->assertDatabaseHas('tt_join_requests', [
-            JoinRequest::TROOPER_ID => $trooper->id,
-            JoinRequest::ORGANIZATION_ID => $unit->id,
-            JoinRequest::PRIMARY_ORGANIZATION_ID => $primary->id,
-            JoinRequest::IDENTIFIER => 'TK-12345',
-            JoinRequest::STATUS => JoinRequestStatus::PENDING->value,
+        $this->assertDatabaseHas('tt_trooper_requests', [
+            TrooperRequest::TROOPER_ID => $trooper->id,
+            TrooperRequest::ORGANIZATION_ID => $unit->id,
+            TrooperRequest::PRIMARY_ORGANIZATION_ID => $primary->id,
+            TrooperRequest::IDENTIFIER => 'TK-12345',
+            TrooperRequest::STATUS => TrooperRequestStatus::PENDING->value,
         ]);
         $this->assertSoftDeleted('tt_trooper_organizations', [
             TrooperOrganization::TROOPER_ID => $trooper->id,
@@ -64,7 +64,7 @@ class Fix242Test extends TestCase
         ]);
         [$primary] = $this->createOrganizationHierarchy();
 
-        JoinRequest::factory()
+        TrooperRequest::factory()
             ->forTrooper($trooper)
             ->forOrganization($primary)
             ->forPrimaryOrganization($primary)
@@ -72,12 +72,12 @@ class Fix242Test extends TestCase
 
         $this->seed(Fix242::class);
 
-        $this->assertDatabaseHas('tt_join_requests', [
-            JoinRequest::TROOPER_ID => $trooper->id,
-            JoinRequest::ORGANIZATION_ID => $primary->id,
-            JoinRequest::STATUS => JoinRequestStatus::DENIED->value,
+        $this->assertDatabaseHas('tt_trooper_requests', [
+            TrooperRequest::TROOPER_ID => $trooper->id,
+            TrooperRequest::ORGANIZATION_ID => $primary->id,
+            TrooperRequest::STATUS => TrooperRequestStatus::DENIED->value,
         ]);
-        $this->assertNotNull(JoinRequest::first()->denied_at);
+        $this->assertNotNull(TrooperRequest::first()->denied_at);
     }
 
     public function test_run_repairs_active_sub_org_membership_with_notification_lineage(): void

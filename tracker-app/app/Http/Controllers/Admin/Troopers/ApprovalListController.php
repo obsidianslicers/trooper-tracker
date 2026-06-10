@@ -43,9 +43,9 @@ class ApprovalListController extends MagicBusController
 
         $join_requests_query = new GetPendingJoinRequestsQuery($trooper);
 
-        $join_requests = $this->bus->send($join_requests_query);
+        $trooper_requests = $this->bus->send($join_requests_query);
 
-        $data = compact('troopers', 'join_requests');
+        $data = compact('troopers', 'trooper_requests');
 
         return view('pages.admin.troopers.approvals', $data);
     }

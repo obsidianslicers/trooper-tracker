@@ -6,9 +6,9 @@ namespace App\Http\Controllers\Account;
 
 use App\Features\Troopers\Queries\GetAvailableClubsQuery;
 use App\Http\Controllers\MagicBusController;
-use App\Models\JoinRequest;
 use App\Models\Organization;
 use App\Models\TrooperAssignment;
+use App\Models\TrooperRequest;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -34,19 +34,19 @@ class ClubMembershipsController extends MagicBusController
             ->orderBy(Organization::SEQUENCE)
             ->get();
 
-        $pending_requests = JoinRequest::query()
-            ->where(JoinRequest::TROOPER_ID, $trooper->id)
+        $pending_requests = TrooperRequest::query()
+            ->where(TrooperRequest::TROOPER_ID, $trooper->id)
             ->pending()
             ->with('organization')
-            ->orderBy(JoinRequest::CREATED_AT, 'desc')
+            ->orderBy(TrooperRequest::CREATED_AT, 'desc')
             ->get();
 
-        $denied_requests = JoinRequest::query()
-            ->where(JoinRequest::TROOPER_ID, $trooper->id)
+        $denied_requests = TrooperRequest::query()
+            ->where(TrooperRequest::TROOPER_ID, $trooper->id)
             ->denied()
-            ->where(JoinRequest::DENIED_AT, '>=', now()->subDays(30))
+            ->where(TrooperRequest::DENIED_AT, '>=', now()->subDays(30))
             ->with('organization')
-            ->orderBy(JoinRequest::DENIED_AT, 'desc')
+            ->orderBy(TrooperRequest::DENIED_AT, 'desc')
             ->get();
 
         foreach ($current_clubs as $current_club)

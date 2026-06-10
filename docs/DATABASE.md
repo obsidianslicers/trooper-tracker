@@ -40,9 +40,9 @@ erDiagram
     tt_organizations ||--o{ tt_event_troopers : signed_up_as
     tt_organizations ||--o{ tt_awards : has
     tt_organizations ||--o{ tt_notices : has
-    tt_organizations ||--o{ tt_join_requests : receives
+    tt_organizations ||--o{ tt_trooper_requests : receives
 
-    tt_troopers ||--o{ tt_join_requests : submits
+    tt_troopers ||--o{ tt_trooper_requests : submits
 
     tt_costumes ||--o{ tt_organization_costumes : approved_as
     tt_costumes ||--o{ tt_event_troopers : selected_primary
@@ -87,10 +87,10 @@ erDiagram
 
     tt_organizations ||--o{ tt_trooper_assignments : has
     tt_organizations ||--o{ tt_trooper_organizations : has
-    tt_organizations ||--o{ tt_join_requests : receives
+    tt_organizations ||--o{ tt_trooper_requests : receives
     tt_organization_costumes ||--o{ tt_trooper_costumes : assigned_to
 
-    tt_troopers ||--o{ tt_join_requests : submits
+    tt_troopers ||--o{ tt_trooper_requests : submits
     tt_troopers ||--o{ tt_oauth_logins : has
   ```
 
@@ -202,7 +202,7 @@ Discovered tables: 39
 - tt_organizations
 - tt_organization_costumes
 - tt_trooper_assignments
-- tt_join_requests
+- tt_trooper_requests
 - tt_trooper_organizations
 - tt_trooper_donations
 - tt_trooper_costumes
@@ -503,7 +503,7 @@ Relationships:
 
 - Belongs To: tt_troopers, tt_organizations
 
-### tt_join_requests
+### tt_trooper_requests
 
 Purpose: Club join requests submitted by troopers, pending admin approval.
 

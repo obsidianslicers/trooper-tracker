@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Admin;
 
-use App\Models\JoinRequest;
+use App\Models\TrooperRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -37,7 +37,7 @@ class AdminDisplayControllerTest extends TestCase
         $member = Trooper::factory()->asMember()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
 
-        JoinRequest::factory()
+        TrooperRequest::factory()
             ->forTrooper($member)
             ->forOrganization($organization)
             ->forPrimaryOrganization($organization)
@@ -55,13 +55,13 @@ class AdminDisplayControllerTest extends TestCase
         $active_member = Trooper::factory()->asMember()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
 
-        JoinRequest::factory()
+        TrooperRequest::factory()
             ->forTrooper($pending_trooper)
             ->forOrganization($organization)
             ->forPrimaryOrganization($organization)
             ->create();
 
-        JoinRequest::factory()
+        TrooperRequest::factory()
             ->forTrooper($active_member)
             ->forOrganization($organization)
             ->forPrimaryOrganization($organization)

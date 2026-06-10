@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Features\Troopers\Commands;
 
-use App\Models\JoinRequest;
+use App\Models\TrooperRequest;
 
 /**
  * Command to approve a pending club join request.
@@ -12,16 +12,16 @@ use App\Models\JoinRequest;
  * Creates TrooperOrganization at the primary club, creates TrooperAssignment at the
  * requested organization, marks the join request approved, and notifies the trooper.
  *
- * @see ApproveJoinRequestCommandHandler
+ * @see ApproveTrooperRequestCommandHandler
  */
-readonly class ApproveJoinRequestCommand
+readonly class ApproveTrooperRequestCommand
 {
     /**
-     * @param  JoinRequest  $join_request  The pending JoinRequest to approve
+     * @param  TrooperRequest  $trooper_request  The pending TrooperRequest to approve
      * @param  bool  $suppress_notification  When true, skips the approval notification
      */
     public function __construct(
-        public JoinRequest $join_request,
+        public TrooperRequest $trooper_request,
         public bool $suppress_notification = false,
     ) {}
 }

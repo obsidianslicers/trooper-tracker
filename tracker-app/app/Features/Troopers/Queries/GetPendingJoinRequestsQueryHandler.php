@@ -6,8 +6,8 @@ namespace App\Features\Troopers\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Enums\MembershipStatus;
-use App\Models\JoinRequest;
 use App\Models\Trooper;
+use App\Models\TrooperRequest;
 use Illuminate\Support\Collection;
 
 /**
@@ -19,17 +19,17 @@ readonly class GetPendingJoinRequestsQueryHandler implements QueryHandlerInterfa
 {
     /**
      * @param  GetPendingJoinRequestsQuery  $message
-     * @return Collection<int, JoinRequest>
+     * @return Collection<int, TrooperRequest>
      */
     public function __invoke(object $message): Collection
     {
-        return JoinRequest::with(['trooper', 'organization', 'primaryOrganization'])
+        return TrooperRequest::with(['trooper', 'organization', 'primaryOrganization'])
             ->pending()
             ->whereHas('trooper', function ($query): void {
                 $query->where(Trooper::MEMBERSHIP_STATUS, MembershipStatus::ACTIVE);
             })
             ->forModerator($message->moderator)
-            ->orderBy(JoinRequest::CREATED_AT)
+            ->orderBy(TrooperRequest::CREATED_AT)
             ->get();
     }
 }

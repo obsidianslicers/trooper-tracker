@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Admin\Troopers;
 
-use App\Models\JoinRequest;
+use App\Models\TrooperRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -38,7 +38,7 @@ class ApprovalListControllerTest extends TestCase
         $member = Trooper::factory()->asMember()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
 
-        JoinRequest::factory()
+        TrooperRequest::factory()
             ->forTrooper($member)
             ->forOrganization($organization)
             ->forPrimaryOrganization($organization)
@@ -46,8 +46,8 @@ class ApprovalListControllerTest extends TestCase
 
         $response = $this->actingAs($admin)->get(route('admin.troopers.approvals'));
 
-        $response->assertViewHas('join_requests');
-        $this->assertCount(1, $response->viewData('join_requests'));
+        $response->assertViewHas('trooper_requests');
+        $this->assertCount(1, $response->viewData('trooper_requests'));
     }
 
     public function test_invoke_keeps_pending_signup_join_requests_in_trooper_approval_queue_only(): void
@@ -56,7 +56,7 @@ class ApprovalListControllerTest extends TestCase
         $pending_trooper = Trooper::factory()->asPending()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
 
-        JoinRequest::factory()
+        TrooperRequest::factory()
             ->forTrooper($pending_trooper)
             ->forOrganization($organization)
             ->forPrimaryOrganization($organization)
@@ -65,7 +65,7 @@ class ApprovalListControllerTest extends TestCase
         $response = $this->actingAs($admin)->get(route('admin.troopers.approvals'));
 
         $this->assertCount(1, $response->viewData('troopers'));
-        $this->assertCount(1, $response->viewData('troopers')->first()->join_requests);
-        $this->assertCount(0, $response->viewData('join_requests'));
+        $this->assertCount(1, $response->viewData('troopers')->first()->trooper_requests);
+        $this->assertCount(0, $response->viewData('trooper_requests'));
     }
 }

@@ -10,12 +10,12 @@ use App\Models\Trooper;
 /**
  * Command to submit a club join request on behalf of a trooper.
  *
- * Creates a pending JoinRequest record for later approval.
+ * Creates a pending TrooperRequest record for later approval.
  * Moderators of the target organization are notified by the handler.
  *
- * @see SubmitJoinRequestCommandHandler
+ * @see SubmitTrooperRequestCommandHandler
  */
-readonly class SubmitJoinRequestCommand
+readonly class SubmitTrooperRequestCommand
 {
     /**
      * @param  Trooper  $trooper  The trooper requesting membership

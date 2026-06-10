@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Models\Observers;
 
-use App\Enums\JoinRequestStatus;
-use App\Models\JoinRequest;
-use App\Models\Observers\JoinRequestObserver;
+use App\Enums\TrooperRequestStatus;
+use App\Models\TrooperRequest;
+use App\Models\Observers\TrooperRequestObserver;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Exception;
@@ -14,9 +14,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * @see JoinRequestObserver
+ * @see TrooperRequestObserver
  */
-class JoinRequestObserverTest extends TestCase
+class TrooperRequestObserverTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -25,18 +25,18 @@ class JoinRequestObserverTest extends TestCase
         $trooper = Trooper::factory()->asMember()->create();
         $organization = Organization::factory()->asOrganization()->create();
 
-        $join_request = JoinRequest::factory()
+        $trooper_request = TrooperRequest::factory()
             ->forTrooper($trooper)
             ->forOrganization($organization)
             ->forPrimaryOrganization($organization)
             ->create();
 
-        $join_request->status = JoinRequestStatus::APPROVED;
+        $trooper_request->status = TrooperRequestStatus::APPROVED;
 
-        $subject = new JoinRequestObserver();
+        $subject = new TrooperRequestObserver();
 
         $this->expectNotToPerformAssertions();
-        $subject->updating($join_request);
+        $subject->updating($trooper_request);
     }
 
     public function test_updating_throws_when_transitioning_from_approved(): void
@@ -44,20 +44,20 @@ class JoinRequestObserverTest extends TestCase
         $trooper = Trooper::factory()->asMember()->create();
         $organization = Organization::factory()->asOrganization()->create();
 
-        $join_request = JoinRequest::factory()
+        $trooper_request = TrooperRequest::factory()
             ->forTrooper($trooper)
             ->forOrganization($organization)
             ->forPrimaryOrganization($organization)
             ->asApproved()
             ->create();
 
-        $join_request->status = JoinRequestStatus::DENIED;
+        $trooper_request->status = TrooperRequestStatus::DENIED;
 
-        $subject = new JoinRequestObserver();
+        $subject = new TrooperRequestObserver();
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Join request is not pending.');
-        $subject->updating($join_request);
+        $subject->updating($trooper_request);
     }
 
     public function test_updating_throws_when_transitioning_from_denied(): void
@@ -65,20 +65,20 @@ class JoinRequestObserverTest extends TestCase
         $trooper = Trooper::factory()->asMember()->create();
         $organization = Organization::factory()->asOrganization()->create();
 
-        $join_request = JoinRequest::factory()
+        $trooper_request = TrooperRequest::factory()
             ->forTrooper($trooper)
             ->forOrganization($organization)
             ->forPrimaryOrganization($organization)
             ->asDenied()
             ->create();
 
-        $join_request->status = JoinRequestStatus::APPROVED;
+        $trooper_request->status = TrooperRequestStatus::APPROVED;
 
-        $subject = new JoinRequestObserver();
+        $subject = new TrooperRequestObserver();
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Join request is not pending.');
-        $subject->updating($join_request);
+        $subject->updating($trooper_request);
     }
 
     public function test_updating_skips_check_when_status_is_not_dirty(): void
@@ -86,18 +86,18 @@ class JoinRequestObserverTest extends TestCase
         $trooper = Trooper::factory()->asMember()->create();
         $organization = Organization::factory()->asOrganization()->create();
 
-        $join_request = JoinRequest::factory()
+        $trooper_request = TrooperRequest::factory()
             ->forTrooper($trooper)
             ->forOrganization($organization)
             ->forPrimaryOrganization($organization)
             ->asApproved()
             ->create();
 
-        $join_request->denial_reason = 'updated reason';
+        $trooper_request->denial_reason = 'updated reason';
 
-        $subject = new JoinRequestObserver();
+        $subject = new TrooperRequestObserver();
 
         $this->expectNotToPerformAssertions();
-        $subject->updating($join_request);
+        $subject->updating($trooper_request);
     }
 }

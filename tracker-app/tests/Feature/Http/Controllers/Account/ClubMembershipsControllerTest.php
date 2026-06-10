@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Account;
 
-use App\Models\JoinRequest;
+use App\Models\TrooperRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -40,7 +40,7 @@ class ClubMembershipsControllerTest extends TestCase
         $trooper = Trooper::factory()->asMember()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
 
-        JoinRequest::factory()
+        TrooperRequest::factory()
             ->forTrooper($trooper)
             ->forOrganization($organization)
             ->forPrimaryOrganization($organization)
@@ -49,7 +49,7 @@ class ClubMembershipsControllerTest extends TestCase
 
         $response = $this->actingAs($trooper)->get(route('account.club-memberships'));
 
-        $response->assertViewHas('denied_requests', fn ($denied) => $denied->count() === 1);
+        $response->assertViewHas('denied_requests', fn($denied) => $denied->count() === 1);
     }
 
     public function test_invoke_excludes_denied_requests_older_than_30_days(): void
@@ -57,7 +57,7 @@ class ClubMembershipsControllerTest extends TestCase
         $trooper = Trooper::factory()->asMember()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
 
-        JoinRequest::factory()
+        TrooperRequest::factory()
             ->forTrooper($trooper)
             ->forOrganization($organization)
             ->forPrimaryOrganization($organization)
@@ -66,6 +66,6 @@ class ClubMembershipsControllerTest extends TestCase
 
         $response = $this->actingAs($trooper)->get(route('account.club-memberships'));
 
-        $response->assertViewHas('denied_requests', fn ($denied) => $denied->isEmpty());
+        $response->assertViewHas('denied_requests', fn($denied) => $denied->isEmpty());
     }
 }

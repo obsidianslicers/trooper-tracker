@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Database\Seeders\Issues;
 
-use App\Enums\JoinRequestStatus;
+use App\Enums\TrooperRequestStatus;
 use App\Enums\MembershipStatus;
 use App\Enums\OrganizationType;
-use App\Models\JoinRequest;
+use App\Models\TrooperRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
@@ -16,15 +16,15 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Migrates legacy join-request data into tt_join_requests and repairs bad membership records.
+ * Migrates legacy join-request data into tt_trooper_requests and repairs bad membership records.
  *
  * Legacy data problems handled:
  *
  *   1. Pending TrooperOrganization rows — old code stored pending join requests as TrooperOrganization
- *      records. Migrate each to a JoinRequest (pending) and soft-delete the old row.
+ *      records. Migrate each to a TrooperRequest (pending) and soft-delete the old row.
  *
  *   2. Denied TrooperOrganization rows — same as above for denied status.
- *      Migrate to JoinRequest (denied) with null denial_reason (was never persisted).
+ *      Migrate to TrooperRequest (denied) with null denial_reason (was never persisted).
  *
  *   3. Active TrooperOrganization rows pointing to a sub-org — bad records from before the observer
  *      was added. Repair: create TrooperOrganization at the primary club + TrooperAssignment at the
@@ -47,7 +47,8 @@ class Fix242 extends Seeder
 {
     public function run(): void
     {
-        DB::transaction(function (): void {
+        DB::transaction(function (): void
+        {
             $counts = [
                 'pending_migrated' => $this->migratePendingTrooperOrganizations(),
                 'denied_migrated' => $this->migrateDeniedTrooperOrganizations(),
@@ -60,10 +61,10 @@ class Fix242 extends Seeder
             ];
 
             $this->command?->info('Fix242 complete:');
-            $this->command?->info("  Migrated {$counts['pending_migrated']} pending TrooperOrganization row(s) to JoinRequest.");
-            $this->command?->info("  Migrated {$counts['denied_migrated']} denied TrooperOrganization row(s) to JoinRequest.");
+            $this->command?->info("  Migrated {$counts['pending_migrated']} pending TrooperOrganization row(s) to TrooperRequest.");
+            $this->command?->info("  Migrated {$counts['denied_migrated']} denied TrooperOrganization row(s) to TrooperRequest.");
             $this->command?->info("  Repaired {$counts['sub_org_repaired']} active sub-org TrooperOrganization row(s).");
-            $this->command?->info("  Denied {$counts['denied_requests']} pending JoinRequest row(s) for denied troopers.");
+            $this->command?->info("  Denied {$counts['denied_requests']} pending TrooperRequest row(s) for denied troopers.");
             $this->command?->info("  Cleared is_member flag on {$counts['flag_cleared']} soft-deleted assignment row(s).");
             $this->command?->info("  Soft-deleted {$counts['not_deleted']} cleared-but-not-deleted assignment row(s).");
             $this->command?->info("  Resolved {$counts['hierarchy_dupes']} hierarchy duplicate assignment(s).");
@@ -72,7 +73,7 @@ class Fix242 extends Seeder
     }
 
     /**
-     * Migrate pending TrooperOrganization rows to JoinRequest (pending).
+     * Migrate pending TrooperOrganization rows to TrooperRequest (pending).
      *
      * These are old join requests stored in the wrong table. Preserves trooper,
      * requested organization, primary club, and identifier.
@@ -81,12 +82,12 @@ class Fix242 extends Seeder
     {
         return $this->migrateTrooperOrganizationsByStatus(
             MembershipStatus::PENDING,
-            JoinRequestStatus::PENDING,
+            TrooperRequestStatus::PENDING,
         );
     }
 
     /**
-     * Migrate denied TrooperOrganization rows to JoinRequest (denied).
+     * Migrate denied TrooperOrganization rows to TrooperRequest (denied).
      *
      * Denial reason was never persisted in the old model, so denial_reason is left null.
      */
@@ -94,13 +95,13 @@ class Fix242 extends Seeder
     {
         return $this->migrateTrooperOrganizationsByStatus(
             MembershipStatus::DENIED,
-            JoinRequestStatus::DENIED,
+            TrooperRequestStatus::DENIED,
         );
     }
 
     private function migrateTrooperOrganizationsByStatus(
         MembershipStatus $from_status,
-        JoinRequestStatus $to_status,
+        TrooperRequestStatus $to_status,
     ): int {
         $migrated = 0;
 
@@ -131,8 +132,9 @@ class Fix242 extends Seeder
         $assignment = TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $trooper_org->trooper_id)
             ->where(TrooperAssignment::IS_MEMBER, true)
             ->whereNull(TrooperAssignment::DELETED_AT)
-            ->whereHas('organization', function ($query) use ($primary_club): void {
-                $query->where(Organization::NODE_PATH, 'like', $primary_club->node_path.'%');
+            ->whereHas('organization', function ($query) use ($primary_club): void
+            {
+                $query->where(Organization::NODE_PATH, 'like', $primary_club->node_path . '%');
             })
             ->with('organization')
             ->orderByDesc(TrooperAssignment::UPDATED_AT)
@@ -145,31 +147,31 @@ class Fix242 extends Seeder
         TrooperOrganization $trooper_org,
         Organization $requested_org,
         Organization $primary_club,
-        JoinRequestStatus $status,
+        TrooperRequestStatus $status,
     ): void {
-        $join_request = JoinRequest::withTrashed()
-            ->where(JoinRequest::TROOPER_ID, $trooper_org->trooper_id)
-            ->where(JoinRequest::PRIMARY_ORGANIZATION_ID, $primary_club->id)
-            ->where(JoinRequest::STATUS, $status)
-            ->first() ?? new JoinRequest;
+        $trooper_request = TrooperRequest::withTrashed()
+            ->where(TrooperRequest::TROOPER_ID, $trooper_org->trooper_id)
+            ->where(TrooperRequest::PRIMARY_ORGANIZATION_ID, $primary_club->id)
+            ->where(TrooperRequest::STATUS, $status)
+            ->first() ?? new TrooperRequest;
 
-        if ($join_request->exists && $join_request->trashed())
+        if ($trooper_request->exists && $trooper_request->trashed())
         {
-            $join_request->restore();
+            $trooper_request->restore();
         }
 
-        $join_request->trooper_id = $trooper_org->trooper_id;
-        $join_request->organization_id = $requested_org->id;
-        $join_request->primary_organization_id = $primary_club->id;
-        $join_request->identifier = $trooper_org->identifier;
-        $join_request->status = $status;
+        $trooper_request->trooper_id = $trooper_org->trooper_id;
+        $trooper_request->organization_id = $requested_org->id;
+        $trooper_request->primary_organization_id = $primary_club->id;
+        $trooper_request->identifier = $trooper_org->identifier;
+        $trooper_request->status = $status;
 
-        if ($status === JoinRequestStatus::DENIED && $join_request->denied_at === null)
+        if ($status === TrooperRequestStatus::DENIED && $trooper_request->denied_at === null)
         {
-            $join_request->denied_at = $trooper_org->updated_at ?? now();
+            $trooper_request->denied_at = $trooper_org->updated_at ?? now();
         }
 
-        $join_request->save();
+        $trooper_request->save();
     }
 
     private function clearMemberAssignmentsInHierarchy(Organization $primary_club, int $trooper_id): int
@@ -177,8 +179,9 @@ class Fix242 extends Seeder
         $ids = TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $trooper_id)
             ->where(TrooperAssignment::IS_MEMBER, true)
             ->whereNull(TrooperAssignment::DELETED_AT)
-            ->whereHas('organization', function ($query) use ($primary_club): void {
-                $query->where(Organization::NODE_PATH, 'like', $primary_club->node_path.'%');
+            ->whereHas('organization', function ($query) use ($primary_club): void
+            {
+                $query->where(Organization::NODE_PATH, 'like', $primary_club->node_path . '%');
             })
             ->pluck(TrooperAssignment::ID);
 
@@ -208,7 +211,7 @@ class Fix242 extends Seeder
 
         $sub_org_memberships = TrooperOrganization::where(TrooperOrganization::MEMBERSHIP_STATUS, MembershipStatus::ACTIVE)
             ->whereNull(TrooperOrganization::DELETED_AT)
-            ->whereHas('organization', fn ($q) => $q->where(Organization::TYPE, '!=', OrganizationType::ORGANIZATION))
+            ->whereHas('organization', fn($q) => $q->where(Organization::TYPE, '!=', OrganizationType::ORGANIZATION))
             ->get();
 
         foreach ($sub_org_memberships as $trooper_org)
@@ -305,9 +308,10 @@ class Fix242 extends Seeder
         $query = TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $trooper_id)
             ->where(TrooperAssignment::IS_MEMBER, true)
             ->whereNull(TrooperAssignment::DELETED_AT)
-            ->whereHas('organization', function ($query) use ($organization): void {
-                $query->where(Organization::NODE_PATH, 'like', $organization->node_path.'%')
-                    ->orWhereRaw('? LIKE CONCAT('.Organization::NODE_PATH.', "%")', [$organization->node_path]);
+            ->whereHas('organization', function ($query) use ($organization): void
+            {
+                $query->where(Organization::NODE_PATH, 'like', $organization->node_path . '%')
+                    ->orWhereRaw('? LIKE CONCAT(' . Organization::NODE_PATH . ', "%")', [$organization->node_path]);
             });
 
         if ($except_assignment_id !== null)
@@ -407,13 +411,14 @@ class Fix242 extends Seeder
 
     private function denyPendingJoinRequestsForDeniedTroopers(): int
     {
-        return JoinRequest::where(JoinRequest::STATUS, JoinRequestStatus::PENDING)
-            ->whereHas('trooper', function ($query): void {
+        return TrooperRequest::where(TrooperRequest::STATUS, TrooperRequestStatus::PENDING)
+            ->whereHas('trooper', function ($query): void
+            {
                 $query->where(Trooper::MEMBERSHIP_STATUS, MembershipStatus::DENIED);
             })
             ->update([
-                JoinRequest::STATUS => JoinRequestStatus::DENIED,
-                JoinRequest::DENIED_AT => now(),
+                TrooperRequest::STATUS => TrooperRequestStatus::DENIED,
+                TrooperRequest::DENIED_AT => now(),
             ]);
     }
 
@@ -461,7 +466,7 @@ class Fix242 extends Seeder
         foreach ($primary_clubs as $primary_club)
         {
             $org_ids = Organization::where(
-                Organization::NODE_PATH, 'like', $primary_club->node_path.'%'
+                Organization::NODE_PATH, 'like', $primary_club->node_path . '%'
             )->pluck(Organization::ID);
 
             $conflicted_trooper_ids = TrooperAssignment::whereIn(TrooperAssignment::ORGANIZATION_ID, $org_ids)
@@ -511,7 +516,7 @@ class Fix242 extends Seeder
         foreach ($primary_clubs as $primary_club)
         {
             $org_ids = Organization::where(
-                Organization::NODE_PATH, 'like', $primary_club->node_path.'%'
+                Organization::NODE_PATH, 'like', $primary_club->node_path . '%'
             )->pluck(Organization::ID);
 
             $trooper_orgs = TrooperOrganization::where(TrooperOrganization::ORGANIZATION_ID, $primary_club->id)

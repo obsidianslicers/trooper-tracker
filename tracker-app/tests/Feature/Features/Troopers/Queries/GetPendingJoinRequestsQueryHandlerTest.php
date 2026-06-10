@@ -6,7 +6,7 @@ namespace Tests\Feature\Features\Troopers\Queries;
 
 use App\Features\Troopers\Queries\GetPendingJoinRequestsQuery;
 use App\Features\Troopers\Queries\GetPendingJoinRequestsQueryHandler;
-use App\Models\JoinRequest;
+use App\Models\TrooperRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
@@ -30,8 +30,8 @@ class GetPendingJoinRequestsQueryHandlerTest extends TestCase
         $member_a = Trooper::factory()->asMember()->create();
         $member_b = Trooper::factory()->asMember()->create();
 
-        JoinRequest::factory()->forTrooper($member_a)->forOrganization($org_a)->forPrimaryOrganization($org_a)->create();
-        JoinRequest::factory()->forTrooper($member_b)->forOrganization($org_b)->forPrimaryOrganization($org_b)->create();
+        TrooperRequest::factory()->forTrooper($member_a)->forOrganization($org_a)->forPrimaryOrganization($org_a)->create();
+        TrooperRequest::factory()->forTrooper($member_b)->forOrganization($org_b)->forPrimaryOrganization($org_b)->create();
 
         $handler = app(GetPendingJoinRequestsQueryHandler::class);
         $result = $handler(new GetPendingJoinRequestsQuery($admin));
@@ -51,8 +51,8 @@ class GetPendingJoinRequestsQueryHandlerTest extends TestCase
         $member_a = Trooper::factory()->asMember()->create();
         $member_b = Trooper::factory()->asMember()->create();
 
-        JoinRequest::factory()->forTrooper($member_a)->forOrganization($org_a)->forPrimaryOrganization($org_a)->create();
-        JoinRequest::factory()->forTrooper($member_b)->forOrganization($org_b)->forPrimaryOrganization($org_b)->create();
+        TrooperRequest::factory()->forTrooper($member_a)->forOrganization($org_a)->forPrimaryOrganization($org_a)->create();
+        TrooperRequest::factory()->forTrooper($member_b)->forOrganization($org_b)->forPrimaryOrganization($org_b)->create();
 
         $handler = app(GetPendingJoinRequestsQueryHandler::class);
         $result = $handler(new GetPendingJoinRequestsQuery($moderator));
@@ -67,7 +67,7 @@ class GetPendingJoinRequestsQueryHandlerTest extends TestCase
         $organization = Organization::factory()->asOrganization()->create();
         $member = Trooper::factory()->asMember()->create();
 
-        JoinRequest::factory()
+        TrooperRequest::factory()
             ->forTrooper($member)
             ->forOrganization($organization)
             ->forPrimaryOrganization($organization)
@@ -86,7 +86,7 @@ class GetPendingJoinRequestsQueryHandlerTest extends TestCase
         $organization = Organization::factory()->asOrganization()->create();
         $pending_trooper = Trooper::factory()->asPending()->create();
 
-        JoinRequest::factory()
+        TrooperRequest::factory()
             ->forTrooper($pending_trooper)
             ->forOrganization($organization)
             ->forPrimaryOrganization($organization)
@@ -104,7 +104,7 @@ class GetPendingJoinRequestsQueryHandlerTest extends TestCase
         $organization = Organization::factory()->asOrganization()->create();
         $member = Trooper::factory()->asMember()->create();
 
-        JoinRequest::factory()
+        TrooperRequest::factory()
             ->forTrooper($member)
             ->forOrganization($organization)
             ->forPrimaryOrganization($organization)
@@ -113,9 +113,9 @@ class GetPendingJoinRequestsQueryHandlerTest extends TestCase
         $handler = app(GetPendingJoinRequestsQueryHandler::class);
         $result = $handler(new GetPendingJoinRequestsQuery($admin));
 
-        $join_request = $result->first();
-        $this->assertTrue($join_request->relationLoaded('trooper'));
-        $this->assertTrue($join_request->relationLoaded('organization'));
-        $this->assertTrue($join_request->relationLoaded('primaryOrganization'));
+        $trooper_request = $result->first();
+        $this->assertTrue($trooper_request->relationLoaded('trooper'));
+        $this->assertTrue($trooper_request->relationLoaded('organization'));
+        $this->assertTrue($trooper_request->relationLoaded('primaryOrganization'));
     }
 }

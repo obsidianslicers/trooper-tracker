@@ -10,19 +10,19 @@ Three tables track a trooper's relationship with organizations:
 
 | Table | Model | Purpose |
 |---|---|---|
-| `tt_join_requests` | `JoinRequest` | Pending/resolved request — "this trooper asked to join this org" |
+| `tt_trooper_requests` | `TrooperRequest` | Pending/resolved request — "this trooper asked to join this org" |
 | `tt_trooper_organizations` | `TrooperOrganization` | Formal membership record — "this trooper is a member of this primary club" |
 | `tt_trooper_assignments` | `TrooperAssignment` | Active assignment — "this is the specific org (or sub-org) the trooper is actively placed in" |
 
 All three use soft-deletes (`deleted_at`). The distinction matters:
 
-- `tt_join_requests` is the source of truth for pending/resolved requests. A `TrooperOrganization` is created only on approval.
+- `tt_trooper_requests` is the source of truth for pending/resolved requests. A `TrooperOrganization` is created only on approval.
 - A trooper can have a `TrooperOrganization` for a primary club without an active `TrooperAssignment` (historical record, membership removed).
 - The `is_member` display on the membership page requires **both** `TrooperOrganization` and `TrooperAssignment` to be present.
 
 ### Key Columns
 
-**`tt_join_requests`**
+**`tt_trooper_requests`**
 
 | Column | Purpose |
 |---|---|
@@ -40,7 +40,7 @@ All three use soft-deletes (`deleted_at`). The distinction matters:
 |---|---|
 | `trooper_id` | FK to trooper |
 | `organization_id` | FK to organization |
-| `membership_status` | `active`, `retired` (created as `active` on approval; `pending` state is tracked in `tt_join_requests`) |
+| `membership_status` | `active`, `retired` (created as `active` on approval; `pending` state is tracked in `tt_trooper_requests`) |
 | `identifier` | Trooper's ID within that org (e.g. TK number) |
 | `deleted_at` | Soft-delete; non-null = membership removed |
 
@@ -72,7 +72,7 @@ The **primary club** for any org is the top-level ancestor (the `organization` t
 
 ## Join Request Lifecycle
 
-A join request is a `JoinRequest` record in `tt_join_requests`. Submitting a request does **not** create a `TrooperOrganization` — that record is created (or restored) only on approval, always scoped to the primary club.
+A join request is a `TrooperRequest` record in `tt_trooper_requests`. Submitting a request does **not** create a `TrooperOrganization` — that record is created (or restored) only on approval, always scoped to the primary club.
 
 ```mermaid
 sequenceDiagram
@@ -81,32 +81,32 @@ sequenceDiagram
     participant A as Admin
 
     T->>DB: Submit join request
-    Note over DB: JoinRequest created<br/>status = PENDING<br/>(any prior PENDING request in same<br/>primary-club family is deleted)
+    Note over DB: TrooperRequest created<br/>status = PENDING<br/>(any prior PENDING request in same<br/>primary-club family is deleted)
 
     A->>DB: Approve join request
-    Note over DB: ApproveJoinRequestCommandHandler runs
+    Note over DB: ApproveTrooperRequestCommandHandler runs
 
     DB->>DB: 1. Clear conflicting assignments (soft-delete)
     DB->>DB: 2. Create/restore TrooperOrganization at primary club (ACTIVE)
     DB->>DB: 3. Create/restore TrooperAssignment at requested org
-    DB->>DB: 4. Mark JoinRequest APPROVED
+    DB->>DB: 4. Mark TrooperRequest APPROVED
 
     A->>DB: Deny join request
-    Note over DB: DenyJoinRequestCommandHandler runs
-    DB->>DB: Mark JoinRequest DENIED + store reason
+    Note over DB: DenyTrooperRequestCommandHandler runs
+    DB->>DB: Mark TrooperRequest DENIED + store reason
 ```
 
-### Step-by-Step: `ApproveJoinRequestCommandHandler`
+### Step-by-Step: `ApproveTrooperRequestCommandHandler`
 
-**File:** `app/Features/Troopers/Commands/ApproveJoinRequestCommandHandler.php`
+**File:** `app/Features/Troopers/Commands/ApproveTrooperRequestCommandHandler.php`
 
 ```
 __invoke()
-├── Resolve primary_club = join_request->primaryOrganization  (denormalized; no tree traversal needed)
-├── clearExistingAssignments(primary_club, join_request)
-├── createOrUpdateMembership(primary_club, join_request)   → TrooperOrganization at primary club, status = ACTIVE
+├── Resolve primary_club = trooper_request->primaryOrganization  (denormalized; no tree traversal needed)
+├── clearExistingAssignments(primary_club, trooper_request)
+├── createOrUpdateMembership(primary_club, trooper_request)   → TrooperOrganization at primary club, status = ACTIVE
 ├── createOrUpdateAssignment(requested_org.id, trooper.id) → TrooperAssignment at the requested org
-├── join_request->status = APPROVED, save
+├── trooper_request->status = APPROVED, save
 └── notify trooper (unless suppress_notification = true)
 ```
 
@@ -114,7 +114,7 @@ __invoke()
 
 Enforces the **replace rule**: a trooper can only have one active assignment in a given club hierarchy at a time.
 
-Takes `Organization $primary_club` and `JoinRequest $join_request` (reads `trooper_id` and `organization_id` from the request).
+Takes `Organization $primary_club` and `TrooperRequest $trooper_request` (reads `trooper_id` and `organization_id` from the request).
 
 1. Plucks IDs of all `TrooperAssignment` records where:
    - `is_member = true`
@@ -149,7 +149,7 @@ The individual `->save()` call here **does** fire `TrooperAssignmentObserver.sav
 
 ## Denial
 
-`DenyJoinRequestCommandHandler` sets `status = DENIED`, records `denied_at` and `denial_reason`, and sends `JoinRequestDeniedNotification` to the trooper. No `TrooperOrganization` or `TrooperAssignment` records are created or modified.
+`DenyTrooperRequestCommandHandler` sets `status = DENIED`, records `denied_at` and `denial_reason`, and sends `JoinRequestDeniedNotification` to the trooper. No `TrooperOrganization` or `TrooperAssignment` records are created or modified.
 
 ---
 
@@ -257,16 +257,16 @@ Visitors can only be assigned to organizations at `depth 0` (primary clubs). The
 
 | Concern | Path |
 |---|---|
-| Submit join request | `app/Features/Troopers/Commands/SubmitJoinRequestCommandHandler.php` |
-| Approve join request | `app/Features/Troopers/Commands/ApproveJoinRequestCommandHandler.php` |
-| Deny join request | `app/Features/Troopers/Commands/DenyJoinRequestCommandHandler.php` |
+| Submit join request | `app/Features/Troopers/Commands/SubmitTrooperRequestCommandHandler.php` |
+| Approve join request | `app/Features/Troopers/Commands/ApproveTrooperRequestCommandHandler.php` |
+| Deny join request | `app/Features/Troopers/Commands/DenyTrooperRequestCommandHandler.php` |
 | Remove membership | `app/Features/Troopers/Commands/RemoveTrooperMembershipCommandHandler.php` |
 | Update assignment picker | `app/Features/Troopers/Commands/UpdateTrooperMembershipsCommandHandler.php` |
 | Direct admin add | `app/Features/Troopers/Commands/DirectAddTrooperCommandHandler.php` |
 | Membership page query | `app/Features/Troopers/Queries/GetTrooperMembershipsQueryHandler.php` |
 | Assignment observer | `app/Models/Observers/TrooperAssignmentObserver.php` |
 | Membership page view | `resources/views/pages/admin/troopers/membership.blade.php` |
-| JoinRequest model | `app/Models/JoinRequest.php` |
+| TrooperRequest model | `app/Models/TrooperRequest.php` |
 | Organization model | `app/Models/Organization.php` |
 | TrooperAssignment model | `app/Models/TrooperAssignment.php` |
 | TrooperOrganization model | `app/Models/TrooperOrganization.php` |

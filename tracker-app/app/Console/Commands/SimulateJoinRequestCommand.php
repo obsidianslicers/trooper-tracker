@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Bus\MagicBus;
-use App\Enums\JoinRequestStatus;
 use App\Enums\MembershipStatus;
-use App\Features\Troopers\Commands\SubmitJoinRequestCommand;
-use App\Models\JoinRequest;
+use App\Enums\TrooperRequestStatus;
+use App\Features\Troopers\Commands\SubmitTrooperRequestCommand;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperOrganization;
+use App\Models\TrooperRequest;
 use Illuminate\Console\Command;
 
 class SimulateJoinRequestCommand extends Command
@@ -54,9 +54,9 @@ class SimulateJoinRequestCommand extends Command
             ->where(TrooperOrganization::MEMBERSHIP_STATUS, MembershipStatus::ACTIVE)
             ->pluck(TrooperOrganization::ORGANIZATION_ID);
 
-        $pending = JoinRequest::where(JoinRequest::TROOPER_ID, $trooper->id)
-            ->where(JoinRequest::STATUS, JoinRequestStatus::PENDING)
-            ->pluck(JoinRequest::ORGANIZATION_ID);
+        $pending = TrooperRequest::where(TrooperRequest::TROOPER_ID, $trooper->id)
+            ->where(TrooperRequest::STATUS, TrooperRequestStatus::PENDING)
+            ->pluck(TrooperRequest::ORGANIZATION_ID);
 
         $organization = Organization::where(Organization::DEPTH, '>', 0)
             ->whereNotIn(Organization::ID, $already->merge($pending))
@@ -70,11 +70,11 @@ class SimulateJoinRequestCommand extends Command
             return self::FAILURE;
         }
 
-        $bus->send(new SubmitJoinRequestCommand($trooper, $organization, null));
+        $bus->send(new SubmitTrooperRequestCommand($trooper, $organization, null));
 
-        $join_request = JoinRequest::where(JoinRequest::TROOPER_ID, $trooper->id)
-            ->where(JoinRequest::ORGANIZATION_ID, $organization->id)
-            ->where(JoinRequest::STATUS, JoinRequestStatus::PENDING)
+        $trooper_request = TrooperRequest::where(TrooperRequest::TROOPER_ID, $trooper->id)
+            ->where(TrooperRequest::ORGANIZATION_ID, $organization->id)
+            ->where(TrooperRequest::STATUS, TrooperRequestStatus::PENDING)
             ->latest()
             ->first();
 
@@ -88,7 +88,7 @@ class SimulateJoinRequestCommand extends Command
         $this->line('<fg=cyan;options=bold>── Join Request ──────────────────────────────────</>');
         $this->info("  Trooper:       {$trooper->display_name} (ID {$trooper->id})");
         $this->info("  Organization:  {$org_label} (ID {$organization->id})");
-        $this->info("  Request ID:    {$join_request->id}");
+        $this->info("  Request ID:    {$trooper_request->id}");
         $this->newLine();
         $this->info("  Review at: {$review_url}");
         $this->newLine();

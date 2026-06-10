@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Admin\Troopers;
 
-use App\Enums\JoinRequestStatus;
+use App\Enums\TrooperRequestStatus;
 use App\Enums\MembershipStatus;
-use App\Models\JoinRequest;
+use App\Models\TrooperRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -26,7 +26,7 @@ class DenialSubmitHtmxControllerTest extends TestCase
             ->withNodePath('100:')
             ->create();
 
-        $join_request = JoinRequest::factory()
+        $trooper_request = TrooperRequest::factory()
             ->forTrooper($subject)
             ->forOrganization($organization)
             ->forPrimaryOrganization($organization)
@@ -46,11 +46,11 @@ class DenialSubmitHtmxControllerTest extends TestCase
         $response->assertDontSeeText('No organization membership was requested.');
 
         $subject->refresh();
-        $join_request->refresh();
+        $trooper_request->refresh();
 
         $this->assertSame(MembershipStatus::DENIED->value, $subject->{Trooper::MEMBERSHIP_STATUS}->value);
-        $this->assertEquals(JoinRequestStatus::DENIED, $join_request->status);
-        $this->assertSame('Not eligible', $join_request->denial_reason);
+        $this->assertEquals(TrooperRequestStatus::DENIED, $trooper_request->status);
+        $this->assertSame('Not eligible', $trooper_request->denial_reason);
     }
 
     public function test_invoke_requires_authentication(): void

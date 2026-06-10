@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Features\Troopers\Commands;
 
-use App\Enums\JoinRequestStatus;
-use App\Features\Troopers\Commands\DenyJoinRequestCommand;
-use App\Features\Troopers\Commands\DenyJoinRequestCommandHandler;
-use App\Models\JoinRequest;
+use App\Enums\TrooperRequestStatus;
+use App\Features\Troopers\Commands\DenyTrooperRequestCommand;
+use App\Features\Troopers\Commands\DenyTrooperRequestCommandHandler;
+use App\Models\TrooperRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Notifications\Troopers\JoinRequestDeniedNotification;
@@ -16,9 +16,9 @@ use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 /**
- * @see DenyJoinRequestCommandHandler
+ * @see DenyTrooperRequestCommandHandler
  */
-class DenyJoinRequestCommandHandlerTest extends TestCase
+class DenyTrooperRequestCommandHandlerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -27,18 +27,18 @@ class DenyJoinRequestCommandHandlerTest extends TestCase
         $trooper = Trooper::factory()->asMember()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
 
-        $join_request = JoinRequest::factory()
+        $trooper_request = TrooperRequest::factory()
             ->forTrooper($trooper)
             ->forOrganization($organization)
             ->forPrimaryOrganization($organization)
             ->create();
 
-        $handler = app(DenyJoinRequestCommandHandler::class);
-        $handler(new DenyJoinRequestCommand($join_request));
+        $handler = app(DenyTrooperRequestCommandHandler::class);
+        $handler(new DenyTrooperRequestCommand($trooper_request));
 
-        $join_request->refresh();
-        $this->assertEquals(JoinRequestStatus::DENIED, $join_request->status);
-        $this->assertNotNull($join_request->denied_at);
+        $trooper_request->refresh();
+        $this->assertEquals(TrooperRequestStatus::DENIED, $trooper_request->status);
+        $this->assertNotNull($trooper_request->denied_at);
     }
 
     public function test_invoke_persists_denial_reason_on_the_record(): void
@@ -46,17 +46,17 @@ class DenyJoinRequestCommandHandlerTest extends TestCase
         $trooper = Trooper::factory()->asMember()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
 
-        $join_request = JoinRequest::factory()
+        $trooper_request = TrooperRequest::factory()
             ->forTrooper($trooper)
             ->forOrganization($organization)
             ->forPrimaryOrganization($organization)
             ->create();
 
-        $handler = app(DenyJoinRequestCommandHandler::class);
-        $handler(new DenyJoinRequestCommand($join_request, 'Membership not yet verified.'));
+        $handler = app(DenyTrooperRequestCommandHandler::class);
+        $handler(new DenyTrooperRequestCommand($trooper_request, 'Membership not yet verified.'));
 
-        $join_request->refresh();
-        $this->assertEquals('Membership not yet verified.', $join_request->denial_reason);
+        $trooper_request->refresh();
+        $this->assertEquals('Membership not yet verified.', $trooper_request->denial_reason);
     }
 
     public function test_invoke_does_not_create_membership_or_assignment(): void
@@ -64,14 +64,14 @@ class DenyJoinRequestCommandHandlerTest extends TestCase
         $trooper = Trooper::factory()->asMember()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
 
-        $join_request = JoinRequest::factory()
+        $trooper_request = TrooperRequest::factory()
             ->forTrooper($trooper)
             ->forOrganization($organization)
             ->forPrimaryOrganization($organization)
             ->create();
 
-        $handler = app(DenyJoinRequestCommandHandler::class);
-        $handler(new DenyJoinRequestCommand($join_request));
+        $handler = app(DenyTrooperRequestCommandHandler::class);
+        $handler(new DenyTrooperRequestCommand($trooper_request));
 
         $this->assertDatabaseEmpty('tt_trooper_organizations');
         $this->assertDatabaseEmpty('tt_trooper_assignments');
@@ -84,14 +84,14 @@ class DenyJoinRequestCommandHandlerTest extends TestCase
         $trooper = Trooper::factory()->asMember()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
 
-        $join_request = JoinRequest::factory()
+        $trooper_request = TrooperRequest::factory()
             ->forTrooper($trooper)
             ->forOrganization($organization)
             ->forPrimaryOrganization($organization)
             ->create();
 
-        $handler = app(DenyJoinRequestCommandHandler::class);
-        $handler(new DenyJoinRequestCommand($join_request));
+        $handler = app(DenyTrooperRequestCommandHandler::class);
+        $handler(new DenyTrooperRequestCommand($trooper_request));
 
         Notification::assertSentTo($trooper, JoinRequestDeniedNotification::class);
     }

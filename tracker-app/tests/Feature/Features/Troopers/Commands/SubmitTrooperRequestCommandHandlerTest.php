@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Features\Troopers\Commands;
 
-use App\Enums\JoinRequestStatus;
-use App\Features\Troopers\Commands\SubmitJoinRequestCommand;
-use App\Features\Troopers\Commands\SubmitJoinRequestCommandHandler;
+use App\Enums\TrooperRequestStatus;
+use App\Features\Troopers\Commands\SubmitTrooperRequestCommand;
+use App\Features\Troopers\Commands\SubmitTrooperRequestCommandHandler;
 use App\Jobs\SendJoinRequestNotificationsJob;
-use App\Models\JoinRequest;
+use App\Models\TrooperRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -16,9 +16,9 @@ use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 /**
- * @see SubmitJoinRequestCommandHandler
+ * @see SubmitTrooperRequestCommandHandler
  */
-class SubmitJoinRequestCommandHandlerTest extends TestCase
+class SubmitTrooperRequestCommandHandlerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -29,15 +29,15 @@ class SubmitJoinRequestCommandHandlerTest extends TestCase
 
         Queue::fake();
 
-        $handler = app(SubmitJoinRequestCommandHandler::class);
-        $handler(new SubmitJoinRequestCommand($trooper, $organization, 'TK-12345'));
+        $handler = app(SubmitTrooperRequestCommandHandler::class);
+        $handler(new SubmitTrooperRequestCommand($trooper, $organization, 'TK-12345'));
 
-        $this->assertDatabaseHas('tt_join_requests', [
-            JoinRequest::TROOPER_ID              => $trooper->id,
-            JoinRequest::ORGANIZATION_ID         => $organization->id,
-            JoinRequest::PRIMARY_ORGANIZATION_ID => $organization->id,
-            JoinRequest::IDENTIFIER              => 'TK-12345',
-            JoinRequest::STATUS                  => JoinRequestStatus::PENDING,
+        $this->assertDatabaseHas('tt_trooper_requests', [
+            TrooperRequest::TROOPER_ID => $trooper->id,
+            TrooperRequest::ORGANIZATION_ID => $organization->id,
+            TrooperRequest::PRIMARY_ORGANIZATION_ID => $organization->id,
+            TrooperRequest::IDENTIFIER => 'TK-12345',
+            TrooperRequest::STATUS => TrooperRequestStatus::PENDING,
         ]);
     }
 
@@ -48,8 +48,8 @@ class SubmitJoinRequestCommandHandlerTest extends TestCase
 
         Queue::fake();
 
-        $handler = app(SubmitJoinRequestCommandHandler::class);
-        $handler(new SubmitJoinRequestCommand($trooper, $organization, null));
+        $handler = app(SubmitTrooperRequestCommandHandler::class);
+        $handler(new SubmitTrooperRequestCommand($trooper, $organization, null));
 
         $this->assertDatabaseEmpty('tt_trooper_organizations');
         $this->assertDatabaseEmpty('tt_trooper_assignments');
@@ -62,7 +62,7 @@ class SubmitJoinRequestCommandHandlerTest extends TestCase
         $sibling = Organization::factory()->asRegion()->withParent($root)->withNodePath('100:200:')->create();
         $target = Organization::factory()->asRegion()->withParent($root)->withNodePath('100:300:')->create();
 
-        JoinRequest::factory()
+        TrooperRequest::factory()
             ->forTrooper($trooper)
             ->forOrganization($sibling)
             ->forPrimaryOrganization($root)
@@ -70,12 +70,12 @@ class SubmitJoinRequestCommandHandlerTest extends TestCase
 
         Queue::fake();
 
-        $handler = app(SubmitJoinRequestCommandHandler::class);
-        $handler(new SubmitJoinRequestCommand($trooper, $target, null));
+        $handler = app(SubmitTrooperRequestCommandHandler::class);
+        $handler(new SubmitTrooperRequestCommand($trooper, $target, null));
 
-        $this->assertSoftDeleted('tt_join_requests', [
-            JoinRequest::TROOPER_ID      => $trooper->id,
-            JoinRequest::ORGANIZATION_ID => $sibling->id,
+        $this->assertSoftDeleted('tt_trooper_requests', [
+            TrooperRequest::TROOPER_ID => $trooper->id,
+            TrooperRequest::ORGANIZATION_ID => $sibling->id,
         ]);
     }
 
@@ -85,7 +85,7 @@ class SubmitJoinRequestCommandHandlerTest extends TestCase
         $org_a = Organization::factory()->asOrganization()->withNodePath('100:')->create();
         $org_b = Organization::factory()->asOrganization()->withNodePath('200:')->create();
 
-        $sibling_request = JoinRequest::factory()
+        $sibling_request = TrooperRequest::factory()
             ->forTrooper($trooper)
             ->forOrganization($org_b)
             ->forPrimaryOrganization($org_b)
@@ -93,14 +93,14 @@ class SubmitJoinRequestCommandHandlerTest extends TestCase
 
         Queue::fake();
 
-        $handler = app(SubmitJoinRequestCommandHandler::class);
-        $handler(new SubmitJoinRequestCommand($trooper, $org_a, null));
+        $handler = app(SubmitTrooperRequestCommandHandler::class);
+        $handler(new SubmitTrooperRequestCommand($trooper, $org_a, null));
 
-        $this->assertDatabaseHas('tt_join_requests', [
-            JoinRequest::ID              => $sibling_request->id,
-            JoinRequest::TROOPER_ID      => $trooper->id,
-            JoinRequest::ORGANIZATION_ID => $org_b->id,
-            JoinRequest::STATUS          => JoinRequestStatus::PENDING,
+        $this->assertDatabaseHas('tt_trooper_requests', [
+            TrooperRequest::ID => $sibling_request->id,
+            TrooperRequest::TROOPER_ID => $trooper->id,
+            TrooperRequest::ORGANIZATION_ID => $org_b->id,
+            TrooperRequest::STATUS => TrooperRequestStatus::PENDING,
         ]);
         $this->assertNull($sibling_request->fresh()->deleted_at);
     }
@@ -112,8 +112,8 @@ class SubmitJoinRequestCommandHandlerTest extends TestCase
         $trooper = Trooper::factory()->asMember()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
 
-        $handler = app(SubmitJoinRequestCommandHandler::class);
-        $handler(new SubmitJoinRequestCommand($trooper, $organization, 'TK-12345'));
+        $handler = app(SubmitTrooperRequestCommandHandler::class);
+        $handler(new SubmitTrooperRequestCommand($trooper, $organization, 'TK-12345'));
 
         Queue::assertPushed(SendJoinRequestNotificationsJob::class);
     }

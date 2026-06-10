@@ -4,31 +4,31 @@ declare(strict_types=1);
 
 namespace App\Models\Observers;
 
-use App\Enums\JoinRequestStatus;
-use App\Models\JoinRequest;
+use App\Enums\TrooperRequestStatus;
+use App\Models\TrooperRequest;
 use Exception;
 
 /**
- * Handles lifecycle events for the JoinRequest model.
+ * Handles lifecycle events for the TrooperRequest model.
  */
-class JoinRequestObserver
+class TrooperRequestObserver
 {
     /**
-     * Handle the JoinRequest "updating" event.
+     * Handle the TrooperRequest "updating" event.
      *
      * Enforces that a status transition can only originate from PENDING.
      * Prevents approving or denying a request that has already been resolved.
      *
      * @throws Exception if the status is being changed and the original status was not pending.
      */
-    public function updating(JoinRequest $join_request): void
+    public function updating(TrooperRequest $trooper_request): void
     {
-        if (!$join_request->isDirty(JoinRequest::STATUS))
+        if (!$trooper_request->isDirty(TrooperRequest::STATUS))
         {
             return;
         }
 
-        if ($join_request->getRawOriginal(JoinRequest::STATUS) !== JoinRequestStatus::PENDING->value)
+        if ($trooper_request->getRawOriginal(TrooperRequest::STATUS) !== TrooperRequestStatus::PENDING->value)
         {
             throw new Exception('Join request is not pending.');
         }

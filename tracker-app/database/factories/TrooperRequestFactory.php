@@ -4,74 +4,74 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
-use App\Enums\JoinRequestStatus;
-use App\Models\JoinRequest;
+use App\Enums\TrooperRequestStatus;
+use App\Models\TrooperRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
-use Database\Factories\Base\JoinRequestFactory as BaseJoinRequestFactory;
+use Database\Factories\Base\TrooperRequestFactory as BaseTrooperRequestFactory;
 
-class JoinRequestFactory extends BaseJoinRequestFactory
+class TrooperRequestFactory extends BaseTrooperRequestFactory
 {
     public function definition(): array
     {
         return array_merge(parent::definition(), [
-            JoinRequest::ORGANIZATION_ID         => Organization::factory(),
-            JoinRequest::PRIMARY_ORGANIZATION_ID => Organization::factory(),
-            JoinRequest::STATUS                  => JoinRequestStatus::PENDING,
+            TrooperRequest::ORGANIZATION_ID => Organization::factory(),
+            TrooperRequest::PRIMARY_ORGANIZATION_ID => Organization::factory(),
+            TrooperRequest::STATUS => TrooperRequestStatus::PENDING,
         ]);
     }
 
     public function forTrooper(Trooper $trooper): static
     {
         return $this->state(fn(array $attributes): array => [
-            JoinRequest::TROOPER_ID => $trooper->id,
+            TrooperRequest::TROOPER_ID => $trooper->id,
         ]);
     }
 
     public function forOrganization(Organization $organization): static
     {
         return $this->state(fn(array $attributes): array => [
-            JoinRequest::ORGANIZATION_ID => $organization->id,
+            TrooperRequest::ORGANIZATION_ID => $organization->id,
         ]);
     }
 
     public function forPrimaryOrganization(Organization $organization): static
     {
         return $this->state(fn(array $attributes): array => [
-            JoinRequest::PRIMARY_ORGANIZATION_ID => $organization->id,
+            TrooperRequest::PRIMARY_ORGANIZATION_ID => $organization->id,
         ]);
     }
 
     public function withIdentifier(string $identifier): static
     {
         return $this->state(fn(array $attributes): array => [
-            JoinRequest::IDENTIFIER => $identifier,
+            TrooperRequest::IDENTIFIER => $identifier,
         ]);
     }
 
     public function asPending(): static
     {
         return $this->state(fn(array $attributes): array => [
-            JoinRequest::STATUS => JoinRequestStatus::PENDING,
+            TrooperRequest::STATUS => TrooperRequestStatus::PENDING,
         ]);
     }
 
     public function asApproved(?Trooper $by = null): static
     {
         return $this->state(fn(array $attributes): array => [
-            JoinRequest::STATUS          => JoinRequestStatus::APPROVED,
-            JoinRequest::APPROVED_BY_ID  => $by?->id,
-            JoinRequest::APPROVED_AT     => now(),
+            TrooperRequest::STATUS => TrooperRequestStatus::APPROVED,
+            TrooperRequest::APPROVED_BY_ID => $by?->id,
+            TrooperRequest::APPROVED_AT => now(),
         ]);
     }
 
     public function asDenied(?Trooper $by = null, ?string $reason = null): static
     {
         return $this->state(fn(array $attributes): array => [
-            JoinRequest::STATUS         => JoinRequestStatus::DENIED,
-            JoinRequest::DENIED_BY_ID   => $by?->id,
-            JoinRequest::DENIED_AT      => now(),
-            JoinRequest::DENIAL_REASON  => $reason,
+            TrooperRequest::STATUS => TrooperRequestStatus::DENIED,
+            TrooperRequest::DENIED_BY_ID => $by?->id,
+            TrooperRequest::DENIED_AT => now(),
+            TrooperRequest::DENIAL_REASON => $reason,
         ]);
     }
 }

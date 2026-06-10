@@ -6,10 +6,10 @@
     </p>
 
     <p>
-        <strong>{{ $join_request->trooper->display_name }}</strong> has submitted a
+        <strong>{{ $trooper_request->trooper->display_name }}</strong> has submitted a
         request to join {{ $organization->name }}.
-        @if($join_request->identifier && $join_request->identifier != $join_request->trooper->display_name)
-            Their submitted identifier is: <strong>{{ $join_request->identifier }}</strong>.
+        @if($trooper_request->identifier && $trooper_request->identifier != $trooper_request->trooper->display_name)
+            Their submitted identifier is: <strong>{{ $trooper_request->identifier }}</strong>.
         @endif
     </p>
 

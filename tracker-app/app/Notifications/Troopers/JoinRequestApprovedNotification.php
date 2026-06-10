@@ -6,7 +6,7 @@ namespace App\Notifications\Troopers;
 
 use App\Channels\FcmChannel;
 use App\Mail\Admin\Troopers\JoinRequestApproved;
-use App\Models\JoinRequest;
+use App\Models\TrooperRequest;
 use App\Models\Trooper;
 use Illuminate\Notifications\Notification;
 
@@ -15,7 +15,9 @@ use Illuminate\Notifications\Notification;
  */
 class JoinRequestApprovedNotification extends Notification
 {
-    public function __construct(private readonly JoinRequest $join_request) {}
+    public function __construct(private readonly TrooperRequest $trooper_request)
+    {
+    }
 
     public function via(Trooper $notifiable): array
     {
@@ -43,15 +45,15 @@ class JoinRequestApprovedNotification extends Notification
 
     public function toMail(Trooper $notifiable): JoinRequestApproved
     {
-        return (new JoinRequestApproved($notifiable, $this->join_request->organization))->to($notifiable->email);
+        return (new JoinRequestApproved($notifiable, $this->trooper_request->organization))->to($notifiable->email);
     }
 
     public function toArray(Trooper $notifiable): array
     {
         return [
             'title' => 'Join Request Approved',
-            'body'  => "You've been added to {$this->join_request->organization->name}!",
-            'url'   => '/account/club-memberships',
+            'body' => "You've been added to {$this->trooper_request->organization->name}!",
+            'url' => '/account/club-memberships',
         ];
     }
 

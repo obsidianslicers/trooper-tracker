@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Features\Troopers\Commands;
 
-use App\Enums\JoinRequestStatus;
+use App\Enums\TrooperRequestStatus;
 use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
-use App\Features\Troopers\Commands\ApproveJoinRequestCommand;
-use App\Features\Troopers\Commands\ApproveJoinRequestCommandHandler;
-use App\Models\JoinRequest;
+use App\Features\Troopers\Commands\ApproveTrooperRequestCommand;
+use App\Features\Troopers\Commands\ApproveTrooperRequestCommandHandler;
+use App\Models\TrooperRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
@@ -21,9 +21,9 @@ use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 /**
- * @see ApproveJoinRequestCommandHandler
+ * @see ApproveTrooperRequestCommandHandler
  */
-class ApproveJoinRequestCommandHandlerTest extends TestCase
+class ApproveTrooperRequestCommandHandlerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -32,18 +32,18 @@ class ApproveJoinRequestCommandHandlerTest extends TestCase
         $trooper = Trooper::factory()->asMember()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
 
-        $join_request = JoinRequest::factory()
+        $trooper_request = TrooperRequest::factory()
             ->forTrooper($trooper)
             ->forOrganization($organization)
             ->forPrimaryOrganization($organization)
             ->create();
 
-        $handler = app(ApproveJoinRequestCommandHandler::class);
-        $handler(new ApproveJoinRequestCommand($join_request));
+        $handler = app(ApproveTrooperRequestCommandHandler::class);
+        $handler(new ApproveTrooperRequestCommand($trooper_request));
 
-        $join_request->refresh();
-        $this->assertEquals(JoinRequestStatus::APPROVED, $join_request->status);
-        $this->assertNotNull($join_request->approved_at);
+        $trooper_request->refresh();
+        $this->assertEquals(TrooperRequestStatus::APPROVED, $trooper_request->status);
+        $this->assertNotNull($trooper_request->approved_at);
     }
 
     public function test_invoke_creates_active_trooper_organization_at_primary_club(): void
@@ -51,14 +51,14 @@ class ApproveJoinRequestCommandHandlerTest extends TestCase
         $trooper = Trooper::factory()->asMember()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
 
-        $join_request = JoinRequest::factory()
+        $trooper_request = TrooperRequest::factory()
             ->forTrooper($trooper)
             ->forOrganization($organization)
             ->forPrimaryOrganization($organization)
             ->create();
 
-        $handler = app(ApproveJoinRequestCommandHandler::class);
-        $handler(new ApproveJoinRequestCommand($join_request));
+        $handler = app(ApproveTrooperRequestCommandHandler::class);
+        $handler(new ApproveTrooperRequestCommand($trooper_request));
 
         $this->assertDatabaseHas('tt_trooper_organizations', [
             TrooperOrganization::TROOPER_ID => $trooper->id,
@@ -73,14 +73,14 @@ class ApproveJoinRequestCommandHandlerTest extends TestCase
         $primary = Organization::factory()->asOrganization()->withNodePath('100:')->create();
         $region = Organization::factory()->asRegion()->withParent($primary)->withNodePath('100:200:')->create();
 
-        $join_request = JoinRequest::factory()
+        $trooper_request = TrooperRequest::factory()
             ->forTrooper($trooper)
             ->forOrganization($region)
             ->forPrimaryOrganization($primary)
             ->create();
 
-        $handler = app(ApproveJoinRequestCommandHandler::class);
-        $handler(new ApproveJoinRequestCommand($join_request));
+        $handler = app(ApproveTrooperRequestCommandHandler::class);
+        $handler(new ApproveTrooperRequestCommand($trooper_request));
 
         $this->assertDatabaseHas('tt_trooper_assignments', [
             TrooperAssignment::TROOPER_ID => $trooper->id,
@@ -101,14 +101,14 @@ class ApproveJoinRequestCommandHandlerTest extends TestCase
         $region = Organization::factory()->asRegion()->withParent($primary)->withNodePath('100:200:')->create();
         $unit = Organization::factory()->asUnit()->withParent($region)->withNodePath('100:200:300:')->create();
 
-        $join_request = JoinRequest::factory()
+        $trooper_request = TrooperRequest::factory()
             ->forTrooper($trooper)
             ->forOrganization($unit)
             ->forPrimaryOrganization($primary)
             ->create();
 
-        $handler = app(ApproveJoinRequestCommandHandler::class);
-        $handler(new ApproveJoinRequestCommand($join_request));
+        $handler = app(ApproveTrooperRequestCommandHandler::class);
+        $handler(new ApproveTrooperRequestCommand($trooper_request));
 
         $this->assertDatabaseHas('tt_trooper_assignments', [
             TrooperAssignment::TROOPER_ID => $trooper->id,
@@ -151,14 +151,14 @@ class ApproveJoinRequestCommandHandlerTest extends TestCase
             'updated_at' => now(),
         ]);
 
-        $join_request = JoinRequest::factory()
+        $trooper_request = TrooperRequest::factory()
             ->forTrooper($trooper)
             ->forOrganization($root)
             ->forPrimaryOrganization($root)
             ->create();
 
-        $handler = app(ApproveJoinRequestCommandHandler::class);
-        $handler(new ApproveJoinRequestCommand($join_request));
+        $handler = app(ApproveTrooperRequestCommandHandler::class);
+        $handler(new ApproveTrooperRequestCommand($trooper_request));
 
         $this->assertSoftDeleted('tt_trooper_assignments', [
             TrooperAssignment::TROOPER_ID => $trooper->id,
@@ -174,14 +174,14 @@ class ApproveJoinRequestCommandHandlerTest extends TestCase
         $trooper = Trooper::factory()->asMember()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
 
-        $join_request = JoinRequest::factory()
+        $trooper_request = TrooperRequest::factory()
             ->forTrooper($trooper)
             ->forOrganization($organization)
             ->forPrimaryOrganization($organization)
             ->create();
 
-        $handler = app(ApproveJoinRequestCommandHandler::class);
-        $handler(new ApproveJoinRequestCommand($join_request));
+        $handler = app(ApproveTrooperRequestCommandHandler::class);
+        $handler(new ApproveTrooperRequestCommand($trooper_request));
 
         Notification::assertSentTo($trooper, JoinRequestApprovedNotification::class);
     }
@@ -193,14 +193,14 @@ class ApproveJoinRequestCommandHandlerTest extends TestCase
         $trooper = Trooper::factory()->asMember()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
 
-        $join_request = JoinRequest::factory()
+        $trooper_request = TrooperRequest::factory()
             ->forTrooper($trooper)
             ->forOrganization($organization)
             ->forPrimaryOrganization($organization)
             ->create();
 
-        $handler = app(ApproveJoinRequestCommandHandler::class);
-        $handler(new ApproveJoinRequestCommand($join_request, true));
+        $handler = app(ApproveTrooperRequestCommandHandler::class);
+        $handler(new ApproveTrooperRequestCommand($trooper_request, true));
 
         Notification::assertNothingSent();
     }
@@ -210,15 +210,15 @@ class ApproveJoinRequestCommandHandlerTest extends TestCase
         $trooper = Trooper::factory()->asMember()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
 
-        $join_request = JoinRequest::factory()
+        $trooper_request = TrooperRequest::factory()
             ->forTrooper($trooper)
             ->forOrganization($organization)
             ->forPrimaryOrganization($organization)
             ->withIdentifier('TK-99999')
             ->create();
 
-        $handler = app(ApproveJoinRequestCommandHandler::class);
-        $handler(new ApproveJoinRequestCommand($join_request));
+        $handler = app(ApproveTrooperRequestCommandHandler::class);
+        $handler(new ApproveTrooperRequestCommand($trooper_request));
 
         $this->assertDatabaseHas('tt_trooper_organizations', [
             TrooperOrganization::TROOPER_ID => $trooper->id,
@@ -244,14 +244,14 @@ class ApproveJoinRequestCommandHandlerTest extends TestCase
             ->withIdentifier('TK-11111')
             ->create([TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE]);
 
-        $join_request = JoinRequest::factory()
+        $trooper_request = TrooperRequest::factory()
             ->forTrooper($trooper)
             ->forOrganization($region)
             ->forPrimaryOrganization($primary_club)
             ->create();
 
-        $handler = app(ApproveJoinRequestCommandHandler::class);
-        $handler(new ApproveJoinRequestCommand($join_request));
+        $handler = app(ApproveTrooperRequestCommandHandler::class);
+        $handler(new ApproveTrooperRequestCommand($trooper_request));
 
         $this->assertDatabaseHas('tt_trooper_organizations', [
             TrooperOrganization::TROOPER_ID => $trooper->id,
@@ -312,19 +312,19 @@ class ApproveJoinRequestCommandHandlerTest extends TestCase
             ->asMember()
             ->create();
 
-        $join_request = JoinRequest::factory()
+        $trooper_request = TrooperRequest::factory()
             ->forTrooper($child)
             ->forOrganization($organization)
             ->forPrimaryOrganization($organization)
             ->withIdentifier('654321')
             ->create();
 
-        $handler = app(ApproveJoinRequestCommandHandler::class);
-        $handler(new ApproveJoinRequestCommand($join_request));
+        $handler = app(ApproveTrooperRequestCommandHandler::class);
+        $handler(new ApproveTrooperRequestCommand($trooper_request));
 
-        $join_request->refresh();
-        $this->assertEquals(JoinRequestStatus::APPROVED, $join_request->status);
-        $this->assertNotNull($join_request->approved_at);
+        $trooper_request->refresh();
+        $this->assertEquals(TrooperRequestStatus::APPROVED, $trooper_request->status);
+        $this->assertNotNull($trooper_request->approved_at);
 
         $this->assertSoftDeleted('tt_trooper_assignments', [
             TrooperAssignment::TROOPER_ID => $child->id,

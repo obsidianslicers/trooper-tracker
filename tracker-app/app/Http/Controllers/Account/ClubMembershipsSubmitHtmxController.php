@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Account;
 
-use App\Features\Troopers\Commands\SubmitJoinRequestCommand;
+use App\Features\Troopers\Commands\SubmitTrooperRequestCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Account\ClubMembershipRequest;
 use App\Models\Organization;
@@ -24,7 +24,7 @@ class ClubMembershipsSubmitHtmxController extends MagicBusController
 
         $organization = Organization::findOrFail($request->integer('organization_id'));
 
-        $command = new SubmitJoinRequestCommand(
+        $command = new SubmitTrooperRequestCommand(
             $trooper,
             $organization,
             $request->filled('identifier') ? $request->string('identifier')->toString() : null,

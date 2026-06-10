@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Enums\JoinRequestStatus;
+use App\Enums\TrooperRequestStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -11,7 +11,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('tt_join_requests', function (Blueprint $table)
+        Schema::create('tt_trooper_requests', function (Blueprint $table)
         {
             $table->id();
 
@@ -28,19 +28,7 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
             $table->string('identifier', 64)->nullable();
-            $table->string('status', 16)->default(JoinRequestStatus::PENDING->value);
-
-            $table->foreignId('approved_by_id')
-                ->nullable()
-                ->constrained('tt_troopers')
-                ->nullOnDelete();
-            $table->timestamp('approved_at')->nullable();
-
-            $table->foreignId('denied_by_id')
-                ->nullable()
-                ->constrained('tt_troopers')
-                ->nullOnDelete();
-            $table->timestamp('denied_at')->nullable();
+            $table->string('status', 16)->default(TrooperRequestStatus::PENDING->value);
             $table->text('denial_reason')->nullable();
 
             $table->timestamps();
@@ -54,6 +42,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('tt_join_requests');
+        Schema::dropIfExists('tt_trooper_requests');
     }
 };

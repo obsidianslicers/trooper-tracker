@@ -45,7 +45,7 @@ class ClubMembershipsSubmitHtmxControllerTest extends TestCase
         $response->assertViewIs('pages.account.club-memberships-row');
         $response->assertSee('id="club-membership-form"', false);
         $this->assertNotEmpty($response->headers->get('X-Flash-Message'));
-        $this->assertDatabaseHas('tt_join_requests', [
+        $this->assertDatabaseHas('tt_trooper_requests', [
             'trooper_id' => $trooper->id,
             'organization_id' => $organization->id,
             'primary_organization_id' => $organization->id,

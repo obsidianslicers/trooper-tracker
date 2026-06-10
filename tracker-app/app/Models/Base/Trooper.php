@@ -15,7 +15,6 @@ use App\Models\EventShare;
 use App\Models\EventTrooper;
 use App\Models\EventUpload;
 use App\Models\EventWatch;
-use App\Models\JoinRequest;
 use App\Models\MobileDevice;
 use App\Models\ModelChange;
 use App\Models\Notice;
@@ -28,6 +27,7 @@ use App\Models\TrooperCostume;
 use App\Models\TrooperDonation;
 use App\Models\TrooperFriend;
 use App\Models\TrooperOrganization;
+use App\Models\TrooperRequest;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -76,7 +76,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Collection|EventTrooper[] $event_troopers
  * @property Collection|EventUpload[] $event_uploads
  * @property Collection|EventWatch[] $event_watches
- * @property Collection|JoinRequest[] $join_requests
  * @property Collection|MobileDevice[] $mobile_devices
  * @property Collection|ModelChange[] $model_changes
  * @property Collection|Notice[] $notices
@@ -87,6 +86,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Collection|TrooperDonation[] $trooper_donations
  * @property Collection|TrooperFriend[] $trooper_friends
  * @property Collection|Organization[] $organizations
+ * @property Collection|TrooperRequest[] $trooper_requests
  * @property Collection|\App\Models\Trooper[] $troopers
  *
  * @package App\Models\Base
@@ -222,11 +222,6 @@ class Trooper extends Model
         return $this->hasMany(EventWatch::class);
     }
 
-    public function join_requests(): HasMany
-    {
-        return $this->hasMany(JoinRequest::class);
-    }
-
     public function mobile_devices(): HasMany
     {
         return $this->hasMany(MobileDevice::class);
@@ -279,6 +274,11 @@ class Trooper extends Model
         return $this->belongsToMany(Organization::class, 'tt_trooper_organizations')
                     ->withPivot(TrooperOrganization::ID, TrooperOrganization::IDENTIFIER, TrooperOrganization::MEMBERSHIP_STATUS, TrooperOrganization::JOIN_DATE, TrooperOrganization::SYNCHRONIZED_AT, TrooperOrganization::DELETED_AT, TrooperOrganization::CREATED_ID, TrooperOrganization::UPDATED_ID, TrooperOrganization::DELETED_ID)
                     ->withTimestamps();
+    }
+
+    public function trooper_requests(): HasMany
+    {
+        return $this->hasMany(TrooperRequest::class);
     }
 
     public function troopers(): HasMany

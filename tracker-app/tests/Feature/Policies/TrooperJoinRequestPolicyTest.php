@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Policies;
 
-use App\Models\JoinRequest;
+use App\Models\TrooperRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
@@ -27,13 +27,13 @@ class TrooperJoinRequestPolicyTest extends TestCase
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
         $member = Trooper::factory()->asMember()->create();
 
-        $join_request = JoinRequest::factory()
+        $trooper_request = TrooperRequest::factory()
             ->forTrooper($member)
             ->forOrganization($organization)
             ->forPrimaryOrganization($organization)
             ->create();
 
-        $this->assertTrue($policy->moderate($admin, $join_request));
+        $this->assertTrue($policy->moderate($admin, $trooper_request));
     }
 
     public function test_moderate_allows_moderator_within_their_org_tree(): void
@@ -45,13 +45,13 @@ class TrooperJoinRequestPolicyTest extends TestCase
         TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($organization)->asModerator()->create();
 
         $member = Trooper::factory()->asMember()->create();
-        $join_request = JoinRequest::factory()
+        $trooper_request = TrooperRequest::factory()
             ->forTrooper($member)
             ->forOrganization($organization)
             ->forPrimaryOrganization($organization)
             ->create();
 
-        $this->assertTrue($policy->moderate($moderator, $join_request));
+        $this->assertTrue($policy->moderate($moderator, $trooper_request));
     }
 
     public function test_moderate_denies_moderator_outside_their_org_tree(): void
@@ -65,12 +65,12 @@ class TrooperJoinRequestPolicyTest extends TestCase
         TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($org_a)->asModerator()->create();
 
         $member = Trooper::factory()->asMember()->create();
-        $join_request = JoinRequest::factory()
+        $trooper_request = TrooperRequest::factory()
             ->forTrooper($member)
             ->forOrganization($org_b)
             ->forPrimaryOrganization($org_b)
             ->create();
 
-        $this->assertFalse($policy->moderate($moderator, $join_request));
+        $this->assertFalse($policy->moderate($moderator, $trooper_request));
     }
 }

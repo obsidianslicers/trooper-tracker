@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Auth;
 
-use App\Enums\JoinRequestStatus;
+use App\Enums\TrooperRequestStatus;
 use App\Enums\MembershipStatus;
 use App\Features\Troopers\Commands\ApproveTrooperCommand;
 use App\Features\Troopers\Commands\ApproveTrooperCommandHandler;
 use App\Mail\Auth\TrooperRegistered;
-use App\Models\JoinRequest;
+use App\Models\TrooperRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
@@ -50,12 +50,12 @@ class RegisterSubmitControllerTest extends TestCase
         $trooper = Trooper::where(Trooper::EMAIL, 'johndoe@example.com')->firstOrFail();
 
         $this->assertEquals(MembershipStatus::PENDING, $trooper->membership_status);
-        $this->assertDatabaseHas('tt_join_requests', [
-            JoinRequest::TROOPER_ID => $trooper->id,
-            JoinRequest::ORGANIZATION_ID => $unit->id,
-            JoinRequest::PRIMARY_ORGANIZATION_ID => $organization->id,
-            JoinRequest::IDENTIFIER => 'TK-12345',
-            JoinRequest::STATUS => JoinRequestStatus::PENDING->value,
+        $this->assertDatabaseHas('tt_trooper_requests', [
+            TrooperRequest::TROOPER_ID => $trooper->id,
+            TrooperRequest::ORGANIZATION_ID => $unit->id,
+            TrooperRequest::PRIMARY_ORGANIZATION_ID => $organization->id,
+            TrooperRequest::IDENTIFIER => 'TK-12345',
+            TrooperRequest::STATUS => TrooperRequestStatus::PENDING->value,
         ]);
         $this->assertDatabaseMissing('tt_trooper_organizations', [
             TrooperOrganization::TROOPER_ID => $trooper->id,
@@ -99,10 +99,10 @@ class RegisterSubmitControllerTest extends TestCase
         $trooper->refresh();
 
         $this->assertEquals(MembershipStatus::ACTIVE, $trooper->membership_status);
-        $this->assertDatabaseHas('tt_join_requests', [
-            JoinRequest::TROOPER_ID => $trooper->id,
-            JoinRequest::ORGANIZATION_ID => $unit->id,
-            JoinRequest::STATUS => JoinRequestStatus::APPROVED->value,
+        $this->assertDatabaseHas('tt_trooper_requests', [
+            TrooperRequest::TROOPER_ID => $trooper->id,
+            TrooperRequest::ORGANIZATION_ID => $unit->id,
+            TrooperRequest::STATUS => TrooperRequestStatus::APPROVED->value,
         ]);
         $this->assertDatabaseHas('tt_trooper_organizations', [
             TrooperOrganization::TROOPER_ID => $trooper->id,
@@ -159,12 +159,12 @@ class RegisterSubmitControllerTest extends TestCase
 
         $trooper = Trooper::where(Trooper::EMAIL, 'johndoe@example.com')->firstOrFail();
 
-        $this->assertDatabaseHas('tt_join_requests', [
-            JoinRequest::TROOPER_ID => $trooper->id,
-            JoinRequest::ORGANIZATION_ID => $region->id,
-            JoinRequest::PRIMARY_ORGANIZATION_ID => $organization->id,
-            JoinRequest::IDENTIFIER => 'TK-12345',
-            JoinRequest::STATUS => JoinRequestStatus::PENDING->value,
+        $this->assertDatabaseHas('tt_trooper_requests', [
+            TrooperRequest::TROOPER_ID => $trooper->id,
+            TrooperRequest::ORGANIZATION_ID => $region->id,
+            TrooperRequest::PRIMARY_ORGANIZATION_ID => $organization->id,
+            TrooperRequest::IDENTIFIER => 'TK-12345',
+            TrooperRequest::STATUS => TrooperRequestStatus::PENDING->value,
         ]);
         $this->assertDatabaseMissing('tt_trooper_assignments', [
             TrooperAssignment::TROOPER_ID => $trooper->id,
@@ -192,12 +192,12 @@ class RegisterSubmitControllerTest extends TestCase
 
         $trooper = Trooper::where(Trooper::EMAIL, 'johndoe@example.com')->firstOrFail();
 
-        $this->assertDatabaseHas('tt_join_requests', [
-            JoinRequest::TROOPER_ID => $trooper->id,
-            JoinRequest::ORGANIZATION_ID => $organization->id,
-            JoinRequest::PRIMARY_ORGANIZATION_ID => $organization->id,
-            JoinRequest::IDENTIFIER => 'VIS-123',
-            JoinRequest::STATUS => JoinRequestStatus::PENDING->value,
+        $this->assertDatabaseHas('tt_trooper_requests', [
+            TrooperRequest::TROOPER_ID => $trooper->id,
+            TrooperRequest::ORGANIZATION_ID => $organization->id,
+            TrooperRequest::PRIMARY_ORGANIZATION_ID => $organization->id,
+            TrooperRequest::IDENTIFIER => 'VIS-123',
+            TrooperRequest::STATUS => TrooperRequestStatus::PENDING->value,
         ]);
         $this->assertDatabaseMissing('tt_trooper_assignments', [
             TrooperAssignment::TROOPER_ID => $trooper->id,
@@ -236,10 +236,10 @@ class RegisterSubmitControllerTest extends TestCase
         $trooper->refresh();
 
         $this->assertEquals(MembershipStatus::DENIED, $trooper->membership_status);
-        $this->assertDatabaseHas('tt_join_requests', [
-            JoinRequest::TROOPER_ID => $trooper->id,
-            JoinRequest::ORGANIZATION_ID => $unit->id,
-            JoinRequest::STATUS => JoinRequestStatus::DENIED->value,
+        $this->assertDatabaseHas('tt_trooper_requests', [
+            TrooperRequest::TROOPER_ID => $trooper->id,
+            TrooperRequest::ORGANIZATION_ID => $unit->id,
+            TrooperRequest::STATUS => TrooperRequestStatus::DENIED->value,
         ]);
         $this->assertDatabaseMissing('tt_trooper_organizations', [
             TrooperOrganization::TROOPER_ID => $trooper->id,

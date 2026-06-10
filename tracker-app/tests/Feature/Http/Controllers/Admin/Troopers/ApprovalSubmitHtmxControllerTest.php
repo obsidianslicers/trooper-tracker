@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\Admin\Troopers;
 
 use App\Enums\MembershipStatus;
-use App\Models\JoinRequest;
+use App\Models\TrooperRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -53,7 +53,7 @@ class ApprovalSubmitHtmxControllerTest extends TestCase
             ->withNodePath('100:200:300:')
             ->create();
 
-        JoinRequest::factory()
+        TrooperRequest::factory()
             ->forTrooper($subject)
             ->forOrganization($unit)
             ->forPrimaryOrganization($organization)

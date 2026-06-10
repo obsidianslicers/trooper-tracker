@@ -7,7 +7,7 @@ namespace App\Jobs;
 use App\Bus\MagicBus;
 use App\Enums\MembershipRole;
 use App\Features\Troopers\Queries\GetTroopersByRoleQuery;
-use App\Models\JoinRequest;
+use App\Models\TrooperRequest;
 use App\Notifications\Admin\JoinRequestSubmittedNotification;
 use App\Policies\TrooperJoinRequestPolicy;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -25,9 +25,9 @@ class SendJoinRequestNotificationsJob implements ShouldQueue
     use Queueable;
 
     /**
-     * @param  JoinRequest  $join_request  The newly submitted pending JoinRequest
+     * @param  TrooperRequest  $trooper_request  The newly submitted pending TrooperRequest
      */
-    public function __construct(private readonly JoinRequest $join_request) {}
+    public function __construct(private readonly TrooperRequest $trooper_request) {}
 
     public function handle(MagicBus $bus): void
     {
@@ -35,7 +35,7 @@ class SendJoinRequestNotificationsJob implements ShouldQueue
 
         foreach ($admins as $admin)
         {
-            $admin->notify(new JoinRequestSubmittedNotification($this->join_request));
+            $admin->notify(new JoinRequestSubmittedNotification($this->trooper_request));
         }
 
         $moderators = $bus->send(new GetTroopersByRoleQuery(MembershipRole::MODERATOR));
@@ -44,9 +44,9 @@ class SendJoinRequestNotificationsJob implements ShouldQueue
 
         foreach ($moderators as $moderator)
         {
-            if ($policy->moderate($moderator, $this->join_request))
+            if ($policy->moderate($moderator, $this->trooper_request))
             {
-                $moderator->notify(new JoinRequestSubmittedNotification($this->join_request));
+                $moderator->notify(new JoinRequestSubmittedNotification($this->trooper_request));
             }
         }
     }
