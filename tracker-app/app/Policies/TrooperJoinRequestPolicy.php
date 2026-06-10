@@ -19,8 +19,8 @@ class TrooperJoinRequestPolicy
     /**
      * Determine whether the moderator can approve or deny a join request.
      *
-     * @param  Trooper      $trooper      The authenticated moderator
-     * @param  JoinRequest  $join_request The pending request being acted on
+     * @param  Trooper  $trooper  The authenticated moderator
+     * @param  JoinRequest  $join_request  The pending request being acted on
      */
     public function moderate(Trooper $trooper, JoinRequest $join_request): bool
     {

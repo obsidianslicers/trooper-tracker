@@ -21,9 +21,9 @@ readonly class SubmitJoinRequestCommandHandler implements CommandHandlerInterfac
      */
     public function __invoke(object $message): mixed
     {
-        $organization  = $message->organization;
-        $trooper       = $message->trooper;
-        $primary_club  = $organization->getPrimaryClub();
+        $organization = $message->organization;
+        $trooper = $message->trooper;
+        $primary_club = $organization->getPrimaryClub();
 
         // Cancel any other pending request in this primary-club family.
         JoinRequest::where(JoinRequest::TROOPER_ID, $trooper->id)
@@ -32,11 +32,11 @@ readonly class SubmitJoinRequestCommandHandler implements CommandHandlerInterfac
             ->delete();
 
         $join_request = JoinRequest::create([
-            JoinRequest::TROOPER_ID              => $trooper->id,
-            JoinRequest::ORGANIZATION_ID         => $organization->id,
+            JoinRequest::TROOPER_ID => $trooper->id,
+            JoinRequest::ORGANIZATION_ID => $organization->id,
             JoinRequest::PRIMARY_ORGANIZATION_ID => $primary_club->id,
-            JoinRequest::IDENTIFIER              => $message->identifier ?: null,
-            JoinRequest::STATUS                  => JoinRequestStatus::PENDING,
+            JoinRequest::IDENTIFIER => $message->identifier ?: null,
+            JoinRequest::STATUS => JoinRequestStatus::PENDING,
         ]);
 
         SendJoinRequestNotificationsJob::dispatch($join_request);

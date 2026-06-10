@@ -17,7 +17,7 @@ readonly class DenyJoinRequestCommand
 {
     /**
      * @param  JoinRequest  $join_request  The pending JoinRequest to deny
-     * @param  string|null  $denial_reason Optional reason shown to the trooper and stored on the record
+     * @param  string|null  $denial_reason  Optional reason shown to the trooper and stored on the record
      */
     public function __construct(
         public JoinRequest $join_request,

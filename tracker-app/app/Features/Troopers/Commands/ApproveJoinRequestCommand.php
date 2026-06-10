@@ -17,8 +17,8 @@ use App\Models\JoinRequest;
 readonly class ApproveJoinRequestCommand
 {
     /**
-     * @param  JoinRequest  $join_request         The pending JoinRequest to approve
-     * @param  bool         $suppress_notification When true, skips the approval notification
+     * @param  JoinRequest  $join_request  The pending JoinRequest to approve
+     * @param  bool  $suppress_notification  When true, skips the approval notification
      */
     public function __construct(
         public JoinRequest $join_request,

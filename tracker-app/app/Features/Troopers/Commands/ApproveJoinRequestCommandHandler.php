@@ -12,6 +12,7 @@ use App\Models\Organization;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperOrganization;
 use App\Notifications\Troopers\JoinRequestApprovedNotification;
+
 /**
  * Handler for approving a club join request.
  *
@@ -24,16 +25,16 @@ readonly class ApproveJoinRequestCommandHandler implements CommandHandlerInterfa
      */
     public function __invoke(object $message): mixed
     {
-        $join_request  = $message->join_request;
-        $trooper       = $join_request->trooper;
-        $primary_club  = $join_request->primaryOrganization;
+        $join_request = $message->join_request;
+        $trooper = $join_request->trooper;
+        $primary_club = $join_request->primaryOrganization;
         $requested_org = $join_request->organization;
 
         $this->clearExistingAssignments($primary_club, $join_request);
         $this->createOrUpdateMembership($primary_club, $join_request);
         $this->createOrUpdateAssignment($requested_org->id, $trooper->id);
 
-        $join_request->status      = JoinRequestStatus::APPROVED;
+        $join_request->status = JoinRequestStatus::APPROVED;
         $join_request->approved_at = now();
         $join_request->save();
 
@@ -50,10 +51,9 @@ readonly class ApproveJoinRequestCommandHandler implements CommandHandlerInterfa
         $ids = TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $join_request->trooper_id)
             ->where(TrooperAssignment::IS_MEMBER, true)
             ->where(TrooperAssignment::ORGANIZATION_ID, '!=', $join_request->organization_id)
-            ->whereHas('organization', function ($q) use ($primary_club): void
-            {
-                $q->where(Organization::NODE_PATH, 'like', $primary_club->node_path . '%')
-                    ->orWhereRaw('? LIKE CONCAT(' . Organization::NODE_PATH . ', "%")', [$primary_club->node_path]);
+            ->whereHas('organization', function ($q) use ($primary_club): void {
+                $q->where(Organization::NODE_PATH, 'like', $primary_club->node_path.'%')
+                    ->orWhereRaw('? LIKE CONCAT('.Organization::NODE_PATH.', "%")', [$primary_club->node_path]);
             })
             ->pluck(TrooperAssignment::ID);
 
@@ -94,7 +94,7 @@ readonly class ApproveJoinRequestCommandHandler implements CommandHandlerInterfa
 
         TrooperOrganization::create(array_merge(
             [
-                TrooperOrganization::TROOPER_ID      => $join_request->trooper_id,
+                TrooperOrganization::TROOPER_ID => $join_request->trooper_id,
                 TrooperOrganization::ORGANIZATION_ID => $primary_club->id,
             ],
             $update_data
@@ -122,9 +122,9 @@ readonly class ApproveJoinRequestCommandHandler implements CommandHandlerInterfa
         }
 
         TrooperAssignment::create([
-            TrooperAssignment::TROOPER_ID      => $trooper_id,
+            TrooperAssignment::TROOPER_ID => $trooper_id,
             TrooperAssignment::ORGANIZATION_ID => $organization_id,
-            TrooperAssignment::IS_MEMBER       => true,
+            TrooperAssignment::IS_MEMBER => true,
         ]);
     }
 }

@@ -22,8 +22,8 @@ readonly class DenyJoinRequestCommandHandler implements CommandHandlerInterface
     {
         $join_request = $message->join_request;
 
-        $join_request->status        = JoinRequestStatus::DENIED;
-        $join_request->denied_at     = now();
+        $join_request->status = JoinRequestStatus::DENIED;
+        $join_request->denied_at = now();
         $join_request->denial_reason = $message->denial_reason;
         $join_request->save();
 

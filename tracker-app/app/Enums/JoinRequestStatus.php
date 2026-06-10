@@ -8,7 +8,7 @@ enum JoinRequestStatus: string
 {
     use HasEnumHelpers;
 
-    case PENDING  = 'pending';
+    case PENDING = 'pending';
     case APPROVED = 'approved';
-    case DENIED   = 'denied';
+    case DENIED = 'denied';
 }
