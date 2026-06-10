@@ -51,10 +51,9 @@ readonly class ApproveTrooperRequestCommandHandler implements CommandHandlerInte
         $ids = TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $trooper_request->trooper_id)
             ->where(TrooperAssignment::IS_MEMBER, true)
             ->where(TrooperAssignment::ORGANIZATION_ID, '!=', $trooper_request->organization_id)
-            ->whereHas('organization', function ($q) use ($primary_club): void
-            {
-                $q->where(Organization::NODE_PATH, 'like', $primary_club->node_path . '%')
-                    ->orWhereRaw('? LIKE CONCAT(' . Organization::NODE_PATH . ', "%")', [$primary_club->node_path]);
+            ->whereHas('organization', function ($q) use ($primary_club): void {
+                $q->where(Organization::NODE_PATH, 'like', $primary_club->node_path.'%')
+                    ->orWhereRaw('? LIKE CONCAT('.Organization::NODE_PATH.', "%")', [$primary_club->node_path]);
             })
             ->pluck(TrooperAssignment::ID);
 

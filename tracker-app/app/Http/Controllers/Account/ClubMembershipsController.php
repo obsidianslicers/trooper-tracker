@@ -27,7 +27,7 @@ class ClubMembershipsController extends MagicBusController
 
         $available_clubs = $this->bus->send(new GetAvailableClubsQuery($trooper));
 
-        $current_clubs = Organization::whereHas('trooper_assignments', fn($q) => $q
+        $current_clubs = Organization::whereHas('trooper_assignments', fn ($q) => $q
             ->where(TrooperAssignment::TROOPER_ID, $trooper->id)
             ->where(TrooperAssignment::IS_MEMBER, true)
         )
@@ -54,7 +54,7 @@ class ClubMembershipsController extends MagicBusController
             $primary_club = $current_club->getPrimaryClub();
 
             $current_club->is_pending = $pending_requests->contains(
-                fn($pr) => $pr->primary_organization_id === $primary_club->id
+                fn ($pr) => $pr->primary_organization_id === $primary_club->id
             );
         }
 
@@ -68,13 +68,13 @@ class ClubMembershipsController extends MagicBusController
 
     private function loadAncestors(Collection $current_clubs, Collection $pending_requests, Collection $denied_requests): Collection
     {
-        $parse = fn($path) => array_filter(explode(Organization::NODE_PATH_SEP, trim($path, Organization::NODE_PATH_SEP)));
+        $parse = fn ($path) => array_filter(explode(Organization::NODE_PATH_SEP, trim($path, Organization::NODE_PATH_SEP)));
 
-        $ancestor_ids = $current_clubs->flatMap(fn($c) => $parse($c->node_path))->unique()->values()->toArray();
+        $ancestor_ids = $current_clubs->flatMap(fn ($c) => $parse($c->node_path))->unique()->values()->toArray();
 
-        $pending_ancestor_ids = $pending_requests->flatMap(fn($r) => $parse($r->organization->node_path))->toArray();
+        $pending_ancestor_ids = $pending_requests->flatMap(fn ($r) => $parse($r->organization->node_path))->toArray();
 
-        $denied_ancestor_ids = $denied_requests->flatMap(fn($r) => $parse($r->organization->node_path))->toArray();
+        $denied_ancestor_ids = $denied_requests->flatMap(fn ($r) => $parse($r->organization->node_path))->toArray();
 
         $all_ids = array_unique(array_merge($ancestor_ids, $pending_ancestor_ids, $denied_ancestor_ids));
 
@@ -85,8 +85,7 @@ class ClubMembershipsController extends MagicBusController
 
     private function buildAvailableClubsData(Collection $available_clubs): Collection
     {
-        $root_org_ids = $available_clubs->map(function ($org)
-        {
+        $root_org_ids = $available_clubs->map(function ($org) {
             $parts = array_filter(explode(Organization::NODE_PATH_SEP, $org->node_path));
 
             return (int) reset($parts);
@@ -96,8 +95,7 @@ class ClubMembershipsController extends MagicBusController
             ->get([Organization::ID, Organization::IDENTIFIER_DISPLAY, Organization::IDENTIFIER_VALIDATION])
             ->keyBy(Organization::ID);
 
-        return $available_clubs->map(function ($org) use ($root_orgs)
-        {
+        return $available_clubs->map(function ($org) use ($root_orgs) {
             $parts = array_filter(explode(Organization::NODE_PATH_SEP, $org->node_path));
             $root = $root_orgs[(int) reset($parts)] ?? null;
 
