@@ -43,46 +43,31 @@
                 This trooper is registered as a Handler and not required to select a unit.
             </x-message>
         @else
-            <x-table>
-                <thead>
-                    <tr>
-                        <th>Requested Membership</th>
-                        <th>ID</th>
-                    </tr>
-                </thead>
-                @forelse($trooper->join_requests as $join_request)
-                    <tr>
-                        <td>
-                            <i class="fa fa-fw"></i>
+            @forelse($trooper->join_requests as $join_request)
+                <div class="border rounded p-2 mb-2">
+                    <dl class="row mb-0 small">
+                        <dt class="col-4">Primary Club:</dt>
+                        <dd class="col-8">
                             @if($join_request->primaryOrganization->requires_guardian)
                                 <i class="fa-solid fa-shield-halved text-warning my-1 me-1"></i>
                             @endif
                             {{ $join_request->primaryOrganization->name }}
-                        </td>
-                        <td>
-                            {{ $join_request->identifier ?? 'n/a' }}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="2">
-                            <i class="fa fa-fw"></i>
-                            @if($join_request->organization->parent !== null)
-                                {{ $join_request->organization->parent->name }}
-                                -
-                            @endif
-                            {{ $join_request->organization->name }}
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="2"
-                            class="text-muted fst-italic">
-                            <i class="fa fa-fw fa-circle-info"></i>
-                            No organization membership was requested.
-                        </td>
-                    </tr>
-                @endforelse
-            </x-table>
+                        </dd>
+                        <dt class="col-4">Requested Unit:</dt>
+                        <dd class="col-8">
+                            {{ $join_request->organization->parent?->name ? $join_request->organization->parent->name . ' — ' : '' }}{{ $join_request->organization->name }}
+                        </dd>
+                        <dt class="col-4">Identifier:</dt>
+                        <dd class="col-8 mb-0">{{ $join_request->identifier ?? 'n/a' }}</dd>
+                    </dl>
+                </div>
+            @empty
+                <x-message type="info"
+                           icon="fa-solid fa-circle-info"
+                           class="mb-0">
+                    No organization membership was requested.
+                </x-message>
+            @endforelse
         @endif
 
     </div>
