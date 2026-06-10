@@ -35,8 +35,14 @@
             @endif
         </dl>
         <hr />
+        @if($trooper->is_active)
+            <x-message type="success"
+                       icon="fa-solid fa-circle-check"
+                       class="mb-0">
+                Trooper approved.
+            </x-message>
         {{-- Handlers are not required to select a unit --}}
-        @if($trooper->membership_role == \App\Enums\MembershipRole::HANDLER && $trooper->join_requests->isEmpty())
+        @elseif($trooper->membership_role == \App\Enums\MembershipRole::HANDLER && $trooper->join_requests->isEmpty())
             <x-message type="warning"
                        icon="fa-solid fa-triangle-exclamation"
                        class="mb-3">

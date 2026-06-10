@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\Admin\Troopers;
 
 use App\Enums\MembershipStatus;
+use App\Models\JoinRequest;
+use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -27,6 +29,45 @@ class ApprovalSubmitHtmxControllerTest extends TestCase
         $subject->refresh();
 
         $this->assertSame(MembershipStatus::ACTIVE->value, $subject->{Trooper::MEMBERSHIP_STATUS}->value);
+    }
+
+    public function test_invoke_returns_simple_approved_state_after_approval(): void
+    {
+        $trooper = Trooper::factory()->asAdministrator()->create();
+        $subject = Trooper::factory()->asPending()->create();
+        $organization = Organization::factory()
+            ->asOrganization()
+            ->withName('501st Legion')
+            ->withNodePath('100:')
+            ->create();
+        $region = Organization::factory()
+            ->asRegion()
+            ->withName('Florida Garrison')
+            ->withParent($organization)
+            ->withNodePath('100:200:')
+            ->create();
+        $unit = Organization::factory()
+            ->asUnit()
+            ->withName('Makaze Squad')
+            ->withParent($region)
+            ->withNodePath('100:200:300:')
+            ->create();
+
+        JoinRequest::factory()
+            ->forTrooper($subject)
+            ->forOrganization($unit)
+            ->forPrimaryOrganization($organization)
+            ->withIdentifier('545345')
+            ->create();
+
+        $response = $this->actingAs($trooper)->post(route('admin.troopers.approve-htmx', $subject));
+
+        $response->assertOk();
+        $response->assertSeeText('Trooper approved.');
+        $response->assertDontSeeText('Primary Club:');
+        $response->assertDontSeeText('Assigned Unit:');
+        $response->assertDontSeeText('Identifier:');
+        $response->assertDontSeeText('No organization membership was requested.');
     }
 
     public function test_invoke_requires_authentication(): void
