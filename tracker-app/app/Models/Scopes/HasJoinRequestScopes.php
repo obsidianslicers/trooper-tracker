@@ -17,6 +17,11 @@ trait HasJoinRequestScopes
         return $query->where(self::STATUS, JoinRequestStatus::PENDING);
     }
 
+    public function scopeDenied(Builder $query): Builder
+    {
+        return $query->where(self::STATUS, JoinRequestStatus::DENIED);
+    }
+
     public function scopeForModerator(Builder $query, Trooper $moderator): Builder
     {
         if ($moderator->is_administrator)

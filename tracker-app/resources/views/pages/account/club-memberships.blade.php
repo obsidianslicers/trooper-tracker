@@ -36,6 +36,35 @@
         </x-card>
     @endif
 
+    @if($denied_requests->isNotEmpty())
+        <x-card>
+            <h6 class="mb-3">
+                <i class="fa fa-fw fa-circle-xmark text-danger"></i> Recently Denied Requests
+            </h6>
+            <ul class="list-group list-group-flush">
+                @foreach($denied_requests as $request)
+                    @php
+                        $org = $request->organization;
+                        $path_ids = array_filter(explode(':', trim($org->node_path, ':')));
+                        $path_names = collect($path_ids)->map(fn($id) => $ancestors[$id]?->name ?? '?');
+                    @endphp
+                    <li class="list-group-item px-0">
+                        <div class="d-flex align-items-center justify-content-between gap-2">
+                            <span>
+                                <i class="fa fa-fw fa-circle-xmark text-danger"></i>
+                                {{ $path_names->implode(' — ') }}
+                            </span>
+                            <small class="text-muted">{{ $request->denied_at->diffForHumans() }}</small>
+                        </div>
+                        @if($request->denial_reason)
+                            <small class="text-muted d-block mt-1">{{ $request->denial_reason }}</small>
+                        @endif
+                    </li>
+                @endforeach
+            </ul>
+        </x-card>
+    @endif
+
     @if($current_clubs->isNotEmpty())
         <x-card>
             <h6 class="mb-3">Current Club Assignments</h6>

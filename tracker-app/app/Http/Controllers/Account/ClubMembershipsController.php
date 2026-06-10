@@ -41,6 +41,14 @@ class ClubMembershipsController extends MagicBusController
             ->orderBy(JoinRequest::CREATED_AT, 'desc')
             ->get();
 
+        $denied_requests = JoinRequest::query()
+            ->where(JoinRequest::TROOPER_ID, $trooper->id)
+            ->denied()
+            ->where(JoinRequest::DENIED_AT, '>=', now()->subDays(30))
+            ->with('organization')
+            ->orderBy(JoinRequest::DENIED_AT, 'desc')
+            ->get();
+
         foreach ($current_clubs as $current_club)
         {
             $primary_club = $current_club->getPrimaryClub();
@@ -50,15 +58,15 @@ class ClubMembershipsController extends MagicBusController
             );
         }
 
-        $ancestors = $this->loadAncestors($current_clubs, $pending_requests);
+        $ancestors = $this->loadAncestors($current_clubs, $pending_requests, $denied_requests);
         $available_clubs_data = $this->buildAvailableClubsData($available_clubs);
 
-        $data = compact('available_clubs', 'available_clubs_data', 'current_clubs', 'ancestors', 'pending_requests', 'trooper');
+        $data = compact('available_clubs', 'available_clubs_data', 'current_clubs', 'ancestors', 'pending_requests', 'denied_requests', 'trooper');
 
         return view('pages.account.club-memberships', $data);
     }
 
-    private function loadAncestors(Collection $current_clubs, Collection $pending_requests): Collection
+    private function loadAncestors(Collection $current_clubs, Collection $pending_requests, Collection $denied_requests): Collection
     {
         $parse = fn ($path) => array_filter(explode(Organization::NODE_PATH_SEP, trim($path, Organization::NODE_PATH_SEP)));
 
@@ -66,7 +74,9 @@ class ClubMembershipsController extends MagicBusController
 
         $pending_ancestor_ids = $pending_requests->flatMap(fn ($r) => $parse($r->organization->node_path))->toArray();
 
-        $all_ids = array_unique(array_merge($ancestor_ids, $pending_ancestor_ids));
+        $denied_ancestor_ids = $denied_requests->flatMap(fn ($r) => $parse($r->organization->node_path))->toArray();
+
+        $all_ids = array_unique(array_merge($ancestor_ids, $pending_ancestor_ids, $denied_ancestor_ids));
 
         return Organization::whereIn(Organization::ID, $all_ids)
             ->get([Organization::ID, Organization::NAME])
