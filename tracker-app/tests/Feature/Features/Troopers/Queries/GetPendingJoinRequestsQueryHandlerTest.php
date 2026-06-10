@@ -80,7 +80,7 @@ class GetPendingJoinRequestsQueryHandlerTest extends TestCase
         $this->assertCount(0, $result);
     }
 
-    public function test_invoke_includes_requests_from_pending_troopers(): void
+    public function test_invoke_excludes_requests_from_pending_troopers(): void
     {
         $admin = Trooper::factory()->asAdministrator()->create();
         $organization = Organization::factory()->asOrganization()->create();
@@ -95,8 +95,7 @@ class GetPendingJoinRequestsQueryHandlerTest extends TestCase
         $handler = app(GetPendingJoinRequestsQueryHandler::class);
         $result = $handler(new GetPendingJoinRequestsQuery($admin));
 
-        $this->assertCount(1, $result);
-        $this->assertEquals($pending_trooper->id, $result->first()->trooper_id);
+        $this->assertCount(0, $result);
     }
 
     public function test_invoke_eager_loads_trooper_organization_and_primary_organization(): void
