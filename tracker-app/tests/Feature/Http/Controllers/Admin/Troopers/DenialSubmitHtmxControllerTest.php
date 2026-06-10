@@ -39,7 +39,9 @@ class DenialSubmitHtmxControllerTest extends TestCase
         $response->assertOk();
         $response->assertViewIs('pages.admin.troopers.approval-card');
         $response->assertHeader('X-Flash-Message');
-        $response->assertSeeText('Trooper denied.');
+        $response->assertSeeText('Review complete.');
+        $response->assertSeeText('Denied');
+        $response->assertSeeText('Trooper account was not approved.');
         $response->assertDontSeeText('Primary Club:');
         $response->assertDontSeeText('No organization membership was requested.');
 

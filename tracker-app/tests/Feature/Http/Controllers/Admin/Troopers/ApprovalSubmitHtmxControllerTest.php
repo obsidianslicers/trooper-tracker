@@ -63,7 +63,9 @@ class ApprovalSubmitHtmxControllerTest extends TestCase
         $response = $this->actingAs($trooper)->post(route('admin.troopers.approve-htmx', $subject));
 
         $response->assertOk();
-        $response->assertSeeText('Trooper approved.');
+        $response->assertSeeText('Review complete.');
+        $response->assertSeeText('Approved');
+        $response->assertSeeText('Trooper account is active.');
         $response->assertDontSeeText('Primary Club:');
         $response->assertDontSeeText('Assigned Unit:');
         $response->assertDontSeeText('Identifier:');
