@@ -413,7 +413,7 @@ class Fix242 extends Seeder
             })
             ->update([
                 TrooperRequest::STATUS => TrooperRequestStatus::DENIED,
-                TrooperRequest::DENIED_AT => now(),
+                TrooperRequest::UPDATED_AT => now(),
             ]);
     }
 
