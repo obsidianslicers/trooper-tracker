@@ -9,6 +9,7 @@ use App\Enums\MembershipStatus;
 use App\Enums\OrganizationType;
 use App\Models\JoinRequest;
 use App\Models\Organization;
+use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperOrganization;
 use Illuminate\Database\Seeder;
@@ -46,15 +47,15 @@ class Fix242 extends Seeder
 {
     public function run(): void
     {
-        DB::transaction(function (): void
-        {
+        DB::transaction(function (): void {
             $counts = [
-                'pending_migrated'     => $this->migratePendingTrooperOrganizations(),
-                'denied_migrated'      => $this->migrateDeniedTrooperOrganizations(),
-                'sub_org_repaired'     => $this->repairActiveSubOrgMemberships(),
-                'flag_cleared'         => $this->fixFlagNotClearedOnDelete(),
-                'not_deleted'          => $this->fixFlagClearedButNotDeleted(),
-                'hierarchy_dupes'      => $this->fixHierarchyDuplicates(),
+                'pending_migrated' => $this->migratePendingTrooperOrganizations(),
+                'denied_migrated' => $this->migrateDeniedTrooperOrganizations(),
+                'sub_org_repaired' => $this->repairActiveSubOrgMemberships(),
+                'denied_requests' => $this->denyPendingJoinRequestsForDeniedTroopers(),
+                'flag_cleared' => $this->fixFlagNotClearedOnDelete(),
+                'not_deleted' => $this->fixFlagClearedButNotDeleted(),
+                'hierarchy_dupes' => $this->fixHierarchyDuplicates(),
                 'orphaned_trooper_org' => $this->fixOrphanedTrooperOrganizations(),
             ];
 
@@ -62,6 +63,7 @@ class Fix242 extends Seeder
             $this->command?->info("  Migrated {$counts['pending_migrated']} pending TrooperOrganization row(s) to JoinRequest.");
             $this->command?->info("  Migrated {$counts['denied_migrated']} denied TrooperOrganization row(s) to JoinRequest.");
             $this->command?->info("  Repaired {$counts['sub_org_repaired']} active sub-org TrooperOrganization row(s).");
+            $this->command?->info("  Denied {$counts['denied_requests']} pending JoinRequest row(s) for denied troopers.");
             $this->command?->info("  Cleared is_member flag on {$counts['flag_cleared']} soft-deleted assignment row(s).");
             $this->command?->info("  Soft-deleted {$counts['not_deleted']} cleared-but-not-deleted assignment row(s).");
             $this->command?->info("  Resolved {$counts['hierarchy_dupes']} hierarchy duplicate assignment(s).");
@@ -99,8 +101,7 @@ class Fix242 extends Seeder
     private function migrateTrooperOrganizationsByStatus(
         MembershipStatus $from_status,
         JoinRequestStatus $to_status,
-    ): int
-    {
+    ): int {
         $migrated = 0;
 
         $rows = TrooperOrganization::where(TrooperOrganization::MEMBERSHIP_STATUS, $from_status)
@@ -110,14 +111,10 @@ class Fix242 extends Seeder
         foreach ($rows as $trooper_org)
         {
             $primary_club = $trooper_org->organization->getPrimaryClub();
+            $requested_org = $this->requestedOrganizationForLegacyMembership($trooper_org, $primary_club);
 
-            JoinRequest::create([
-                JoinRequest::TROOPER_ID              => $trooper_org->trooper_id,
-                JoinRequest::ORGANIZATION_ID         => $trooper_org->organization_id,
-                JoinRequest::PRIMARY_ORGANIZATION_ID => $primary_club->id,
-                JoinRequest::IDENTIFIER              => $trooper_org->identifier,
-                JoinRequest::STATUS                  => $to_status,
-            ]);
+            $this->upsertJoinRequest($trooper_org, $requested_org, $primary_club, $to_status);
+            $this->clearMemberAssignmentsInHierarchy($primary_club, $trooper_org->trooper_id);
 
             $trooper_org->delete();
 
@@ -125,6 +122,76 @@ class Fix242 extends Seeder
         }
 
         return $migrated;
+    }
+
+    private function requestedOrganizationForLegacyMembership(
+        TrooperOrganization $trooper_org,
+        Organization $primary_club,
+    ): Organization {
+        $assignment = TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $trooper_org->trooper_id)
+            ->where(TrooperAssignment::IS_MEMBER, true)
+            ->whereNull(TrooperAssignment::DELETED_AT)
+            ->whereHas('organization', function ($query) use ($primary_club): void {
+                $query->where(Organization::NODE_PATH, 'like', $primary_club->node_path.'%');
+            })
+            ->with('organization')
+            ->orderByDesc(TrooperAssignment::UPDATED_AT)
+            ->first();
+
+        return $assignment?->organization ?? $trooper_org->organization;
+    }
+
+    private function upsertJoinRequest(
+        TrooperOrganization $trooper_org,
+        Organization $requested_org,
+        Organization $primary_club,
+        JoinRequestStatus $status,
+    ): void {
+        $join_request = JoinRequest::withTrashed()
+            ->where(JoinRequest::TROOPER_ID, $trooper_org->trooper_id)
+            ->where(JoinRequest::PRIMARY_ORGANIZATION_ID, $primary_club->id)
+            ->where(JoinRequest::STATUS, $status)
+            ->first() ?? new JoinRequest;
+
+        if ($join_request->exists && $join_request->trashed())
+        {
+            $join_request->restore();
+        }
+
+        $join_request->trooper_id = $trooper_org->trooper_id;
+        $join_request->organization_id = $requested_org->id;
+        $join_request->primary_organization_id = $primary_club->id;
+        $join_request->identifier = $trooper_org->identifier;
+        $join_request->status = $status;
+
+        if ($status === JoinRequestStatus::DENIED && $join_request->denied_at === null)
+        {
+            $join_request->denied_at = $trooper_org->updated_at ?? now();
+        }
+
+        $join_request->save();
+    }
+
+    private function clearMemberAssignmentsInHierarchy(Organization $primary_club, int $trooper_id): int
+    {
+        $ids = TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $trooper_id)
+            ->where(TrooperAssignment::IS_MEMBER, true)
+            ->whereNull(TrooperAssignment::DELETED_AT)
+            ->whereHas('organization', function ($query) use ($primary_club): void {
+                $query->where(Organization::NODE_PATH, 'like', $primary_club->node_path.'%');
+            })
+            ->pluck(TrooperAssignment::ID);
+
+        if ($ids->isEmpty())
+        {
+            return 0;
+        }
+
+        TrooperAssignment::whereIn(TrooperAssignment::ID, $ids)
+            ->update([TrooperAssignment::IS_MEMBER => false]);
+        TrooperAssignment::whereIn(TrooperAssignment::ID, $ids)->delete();
+
+        return $ids->count();
     }
 
     /**
@@ -150,6 +217,7 @@ class Fix242 extends Seeder
 
             $this->upsertPrimaryClubMembership($primary_club, $trooper_org);
             $this->upsertAssignment($trooper_org->organization_id, $trooper_org->trooper_id);
+            $this->createOrUpdateNotificationAssignments($primary_club, $trooper_org->organization, $trooper_org->trooper_id);
 
             $trooper_org->delete();
 
@@ -165,7 +233,10 @@ class Fix242 extends Seeder
 
         if (!empty($source->identifier))
         {
-            $update_data[TrooperOrganization::IDENTIFIER] = $source->identifier;
+            if ($this->identifierIsAvailable($primary_club, $source->identifier, $source->trooper_id))
+            {
+                $update_data[TrooperOrganization::IDENTIFIER] = $source->identifier;
+            }
         }
 
         $record = TrooperOrganization::withTrashed()
@@ -187,7 +258,7 @@ class Fix242 extends Seeder
 
         TrooperOrganization::create(array_merge(
             [
-                TrooperOrganization::TROOPER_ID      => $source->trooper_id,
+                TrooperOrganization::TROOPER_ID => $source->trooper_id,
                 TrooperOrganization::ORGANIZATION_ID => $primary_club->id,
             ],
             $update_data
@@ -196,6 +267,7 @@ class Fix242 extends Seeder
 
     private function upsertAssignment(int $organization_id, int $trooper_id): void
     {
+        $organization = Organization::findOrFail($organization_id);
         $assignment = TrooperAssignment::withTrashed()
             ->where(TrooperAssignment::TROOPER_ID, $trooper_id)
             ->where(TrooperAssignment::ORGANIZATION_ID, $organization_id)
@@ -203,6 +275,8 @@ class Fix242 extends Seeder
 
         if ($assignment)
         {
+            $this->clearConflictingMemberAssignments($organization, $trooper_id, (int) $assignment->id);
+
             if ($assignment->trashed())
             {
                 $assignment->restore();
@@ -214,11 +288,133 @@ class Fix242 extends Seeder
             return;
         }
 
+        $this->clearConflictingMemberAssignments($organization, $trooper_id);
+
         TrooperAssignment::create([
-            TrooperAssignment::TROOPER_ID      => $trooper_id,
+            TrooperAssignment::TROOPER_ID => $trooper_id,
             TrooperAssignment::ORGANIZATION_ID => $organization_id,
-            TrooperAssignment::IS_MEMBER       => true,
+            TrooperAssignment::IS_MEMBER => true,
         ]);
+    }
+
+    private function clearConflictingMemberAssignments(
+        Organization $organization,
+        int $trooper_id,
+        ?int $except_assignment_id = null,
+    ): int {
+        $query = TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $trooper_id)
+            ->where(TrooperAssignment::IS_MEMBER, true)
+            ->whereNull(TrooperAssignment::DELETED_AT)
+            ->whereHas('organization', function ($query) use ($organization): void {
+                $query->where(Organization::NODE_PATH, 'like', $organization->node_path.'%')
+                    ->orWhereRaw('? LIKE CONCAT('.Organization::NODE_PATH.', "%")', [$organization->node_path]);
+            });
+
+        if ($except_assignment_id !== null)
+        {
+            $query->where(TrooperAssignment::ID, '!=', $except_assignment_id);
+        }
+
+        $ids = $query->pluck(TrooperAssignment::ID);
+
+        if ($ids->isEmpty())
+        {
+            return 0;
+        }
+
+        TrooperAssignment::whereIn(TrooperAssignment::ID, $ids)
+            ->update([TrooperAssignment::IS_MEMBER => false]);
+
+        $delete_ids = TrooperAssignment::whereIn(TrooperAssignment::ID, $ids)
+            ->where(TrooperAssignment::IS_MODERATOR, false)
+            ->where(TrooperAssignment::SHOULD_NOTIFY, false)
+            ->pluck(TrooperAssignment::ID);
+
+        if ($delete_ids->isNotEmpty())
+        {
+            TrooperAssignment::whereIn(TrooperAssignment::ID, $delete_ids)->delete();
+        }
+
+        return $ids->count();
+    }
+
+    private function createOrUpdateNotificationAssignments(
+        Organization $primary_club,
+        Organization $requested_org,
+        int $trooper_id,
+    ): void {
+        foreach ($this->notificationOrganizations($primary_club, $requested_org) as $organization)
+        {
+            $assignment = TrooperAssignment::withTrashed()
+                ->where(TrooperAssignment::TROOPER_ID, $trooper_id)
+                ->where(TrooperAssignment::ORGANIZATION_ID, $organization->id)
+                ->first();
+
+            if ($assignment)
+            {
+                if ($assignment->trashed())
+                {
+                    $assignment->restore();
+                }
+
+                $assignment->should_notify = true;
+                $assignment->save();
+
+                continue;
+            }
+
+            TrooperAssignment::create([
+                TrooperAssignment::TROOPER_ID => $trooper_id,
+                TrooperAssignment::ORGANIZATION_ID => $organization->id,
+                TrooperAssignment::SHOULD_NOTIFY => true,
+            ]);
+        }
+    }
+
+    /**
+     * @return array<int, Organization>
+     */
+    private function notificationOrganizations(Organization $primary_club, Organization $requested_org): array
+    {
+        $organizations = [];
+        $organization = $requested_org;
+
+        while ($organization !== null)
+        {
+            $organizations[$organization->id] = $organization;
+
+            if ($organization->id === $primary_club->id)
+            {
+                break;
+            }
+
+            $organization = $organization->parent;
+        }
+
+        $organizations[$primary_club->id] = $primary_club;
+
+        return $organizations;
+    }
+
+    private function identifierIsAvailable(Organization $primary_club, string $identifier, int $trooper_id): bool
+    {
+        return !TrooperOrganization::withTrashed()
+            ->where(TrooperOrganization::ORGANIZATION_ID, $primary_club->id)
+            ->where(TrooperOrganization::IDENTIFIER, $identifier)
+            ->where(TrooperOrganization::TROOPER_ID, '!=', $trooper_id)
+            ->exists();
+    }
+
+    private function denyPendingJoinRequestsForDeniedTroopers(): int
+    {
+        return JoinRequest::where(JoinRequest::STATUS, JoinRequestStatus::PENDING)
+            ->whereHas('trooper', function ($query): void {
+                $query->where(Trooper::MEMBERSHIP_STATUS, MembershipStatus::DENIED);
+            })
+            ->update([
+                JoinRequest::STATUS => JoinRequestStatus::DENIED,
+                JoinRequest::DENIED_AT => now(),
+            ]);
     }
 
     /**
@@ -333,6 +529,7 @@ class Fix242 extends Seeder
                 if (!$has_active_assignment)
                 {
                     $this->upsertAssignment($primary_club->id, $trooper_org->trooper_id);
+                    $this->createOrUpdateNotificationAssignments($primary_club, $primary_club, $trooper_org->trooper_id);
                     $created++;
                 }
             }
