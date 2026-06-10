@@ -6,6 +6,7 @@ namespace Tests\Feature\Features\Troopers\Queries;
 
 use App\Features\Troopers\Queries\GetTrooperApprovalsQuery;
 use App\Features\Troopers\Queries\GetTrooperApprovalsQueryHandler;
+use App\Models\JoinRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
@@ -24,7 +25,7 @@ class GetTrooperApprovalsQueryHandlerTest extends TestCase
         $pending_zeta = Trooper::factory()->asPending()->withDisplayName('Zeta Pending')->create();
         Trooper::factory()->asMember()->withDisplayName('Active Member')->create();
 
-        $subject = new GetTrooperApprovalsQueryHandler();
+        $subject = new GetTrooperApprovalsQueryHandler;
 
         $result = $subject(new GetTrooperApprovalsQuery($admin));
 
@@ -59,11 +60,49 @@ class GetTrooperApprovalsQueryHandlerTest extends TestCase
             ->asMember()
             ->create();
 
-        $subject = new GetTrooperApprovalsQueryHandler();
+        $subject = new GetTrooperApprovalsQueryHandler;
 
         $result = $subject(new GetTrooperApprovalsQuery($moderator));
 
         $this->assertCount(1, $result);
         $this->assertSame('Inside Pending', $result->first()->display_name);
+    }
+
+    public function test_invoke_filters_pending_troopers_by_moderated_join_requests(): void
+    {
+        $moderator = Trooper::factory()->asModerator()->create();
+
+        $moderated_org = Organization::factory()->asOrganization()->withNodePath('100:')->create();
+        $outside_org = Organization::factory()->asOrganization()->withNodePath('900:')->create();
+
+        TrooperAssignment::factory()
+            ->forTrooper($moderator)
+            ->forOrganization($moderated_org)
+            ->asModerator()
+            ->create();
+
+        $pending_inside = Trooper::factory()->asPending()->withDisplayName('Inside Pending')->create();
+        $pending_outside = Trooper::factory()->asPending()->withDisplayName('Outside Pending')->create();
+
+        JoinRequest::factory()
+            ->forTrooper($pending_inside)
+            ->forOrganization($moderated_org)
+            ->forPrimaryOrganization($moderated_org)
+            ->create();
+
+        JoinRequest::factory()
+            ->forTrooper($pending_outside)
+            ->forOrganization($outside_org)
+            ->forPrimaryOrganization($outside_org)
+            ->create();
+
+        $subject = new GetTrooperApprovalsQueryHandler;
+
+        $result = $subject(new GetTrooperApprovalsQuery($moderator));
+
+        $this->assertCount(1, $result);
+        $this->assertSame('Inside Pending', $result->first()->display_name);
+        $this->assertTrue($result->first()->relationLoaded('join_requests'));
+        $this->assertCount(1, $result->first()->join_requests);
     }
 }

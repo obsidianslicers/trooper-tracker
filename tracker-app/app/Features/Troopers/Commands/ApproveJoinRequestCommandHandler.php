@@ -33,6 +33,7 @@ readonly class ApproveJoinRequestCommandHandler implements CommandHandlerInterfa
         $this->clearExistingAssignments($primary_club, $join_request);
         $this->createOrUpdateMembership($primary_club, $join_request);
         $this->createOrUpdateAssignment($requested_org->id, $trooper->id);
+        $this->createOrUpdateNotificationAssignments($primary_club, $requested_org, $trooper->id);
 
         $join_request->status = JoinRequestStatus::APPROVED;
         $join_request->approved_at = now();
@@ -125,6 +126,66 @@ readonly class ApproveJoinRequestCommandHandler implements CommandHandlerInterfa
             TrooperAssignment::TROOPER_ID => $trooper_id,
             TrooperAssignment::ORGANIZATION_ID => $organization_id,
             TrooperAssignment::IS_MEMBER => true,
+        ]);
+    }
+
+    private function createOrUpdateNotificationAssignments(Organization $primary_club, Organization $requested_org, int $trooper_id): void
+    {
+        foreach ($this->notificationOrganizations($primary_club, $requested_org) as $organization)
+        {
+            $this->createOrUpdateNotificationAssignment($organization->id, $trooper_id);
+        }
+    }
+
+    /**
+     * @return array<int, Organization>
+     */
+    private function notificationOrganizations(Organization $primary_club, Organization $requested_org): array
+    {
+        $organizations = [];
+        $organization = $requested_org;
+
+        while ($organization !== null)
+        {
+            $organizations[$organization->id] = $organization;
+
+            if ($organization->id === $primary_club->id)
+            {
+                break;
+            }
+
+            $organization = $organization->parent;
+        }
+
+        $organizations[$primary_club->id] = $primary_club;
+
+        return $organizations;
+    }
+
+    private function createOrUpdateNotificationAssignment(int $organization_id, int $trooper_id): void
+    {
+        $assignment = TrooperAssignment::withTrashed()
+            ->where(TrooperAssignment::TROOPER_ID, $trooper_id)
+            ->where(TrooperAssignment::ORGANIZATION_ID, $organization_id)
+            ->first();
+
+        if ($assignment)
+        {
+            if ($assignment->trashed())
+            {
+                $assignment->restore();
+            }
+
+            $assignment->should_notify = true;
+            $assignment->save();
+
+            return;
+        }
+
+        TrooperAssignment::create([
+            TrooperAssignment::TROOPER_ID => $trooper_id,
+            TrooperAssignment::ORGANIZATION_ID => $organization_id,
+            TrooperAssignment::SHOULD_NOTIFY => true,
         ]);
     }
 }

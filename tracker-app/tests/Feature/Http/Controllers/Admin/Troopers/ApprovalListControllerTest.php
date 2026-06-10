@@ -49,4 +49,23 @@ class ApprovalListControllerTest extends TestCase
         $response->assertViewHas('join_requests');
         $this->assertCount(1, $response->viewData('join_requests'));
     }
+
+    public function test_invoke_keeps_pending_signup_join_requests_in_trooper_approval_queue_only(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $pending_trooper = Trooper::factory()->asPending()->create();
+        $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
+
+        JoinRequest::factory()
+            ->forTrooper($pending_trooper)
+            ->forOrganization($organization)
+            ->forPrimaryOrganization($organization)
+            ->create();
+
+        $response = $this->actingAs($admin)->get(route('admin.troopers.approvals'));
+
+        $this->assertCount(1, $response->viewData('troopers'));
+        $this->assertCount(1, $response->viewData('troopers')->first()->join_requests);
+        $this->assertCount(0, $response->viewData('join_requests'));
+    }
 }

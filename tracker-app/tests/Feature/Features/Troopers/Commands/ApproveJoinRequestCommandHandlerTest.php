@@ -61,7 +61,7 @@ class ApproveJoinRequestCommandHandlerTest extends TestCase
         $handler(new ApproveJoinRequestCommand($join_request));
 
         $this->assertDatabaseHas('tt_trooper_organizations', [
-            TrooperOrganization::TROOPER_ID      => $trooper->id,
+            TrooperOrganization::TROOPER_ID => $trooper->id,
             TrooperOrganization::ORGANIZATION_ID => $organization->id,
             TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
         ]);
@@ -83,14 +83,50 @@ class ApproveJoinRequestCommandHandlerTest extends TestCase
         $handler(new ApproveJoinRequestCommand($join_request));
 
         $this->assertDatabaseHas('tt_trooper_assignments', [
-            TrooperAssignment::TROOPER_ID      => $trooper->id,
+            TrooperAssignment::TROOPER_ID => $trooper->id,
             TrooperAssignment::ORGANIZATION_ID => $region->id,
-            TrooperAssignment::IS_MEMBER       => true,
+            TrooperAssignment::IS_MEMBER => true,
         ]);
         $this->assertDatabaseHas('tt_trooper_organizations', [
-            TrooperOrganization::TROOPER_ID      => $trooper->id,
+            TrooperOrganization::TROOPER_ID => $trooper->id,
             TrooperOrganization::ORGANIZATION_ID => $primary->id,
             TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
+        ]);
+    }
+
+    public function test_invoke_creates_notification_assignments_for_requested_org_lineage(): void
+    {
+        $trooper = Trooper::factory()->asMember()->create();
+        $primary = Organization::factory()->asOrganization()->withNodePath('100:')->create();
+        $region = Organization::factory()->asRegion()->withParent($primary)->withNodePath('100:200:')->create();
+        $unit = Organization::factory()->asUnit()->withParent($region)->withNodePath('100:200:300:')->create();
+
+        $join_request = JoinRequest::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($unit)
+            ->forPrimaryOrganization($primary)
+            ->create();
+
+        $handler = app(ApproveJoinRequestCommandHandler::class);
+        $handler(new ApproveJoinRequestCommand($join_request));
+
+        $this->assertDatabaseHas('tt_trooper_assignments', [
+            TrooperAssignment::TROOPER_ID => $trooper->id,
+            TrooperAssignment::ORGANIZATION_ID => $primary->id,
+            TrooperAssignment::SHOULD_NOTIFY => true,
+            TrooperAssignment::IS_MEMBER => false,
+        ]);
+        $this->assertDatabaseHas('tt_trooper_assignments', [
+            TrooperAssignment::TROOPER_ID => $trooper->id,
+            TrooperAssignment::ORGANIZATION_ID => $region->id,
+            TrooperAssignment::SHOULD_NOTIFY => true,
+            TrooperAssignment::IS_MEMBER => false,
+        ]);
+        $this->assertDatabaseHas('tt_trooper_assignments', [
+            TrooperAssignment::TROOPER_ID => $trooper->id,
+            TrooperAssignment::ORGANIZATION_ID => $unit->id,
+            TrooperAssignment::SHOULD_NOTIFY => true,
+            TrooperAssignment::IS_MEMBER => true,
         ]);
     }
 
@@ -108,9 +144,9 @@ class ApproveJoinRequestCommandHandlerTest extends TestCase
 
         // Insert directly to simulate stale historical data.
         DB::table('tt_trooper_assignments')->insert([
-            TrooperAssignment::TROOPER_ID      => $trooper->id,
+            TrooperAssignment::TROOPER_ID => $trooper->id,
             TrooperAssignment::ORGANIZATION_ID => $stale_assignment_org->id,
-            TrooperAssignment::IS_MEMBER       => true,
+            TrooperAssignment::IS_MEMBER => true,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -125,9 +161,9 @@ class ApproveJoinRequestCommandHandlerTest extends TestCase
         $handler(new ApproveJoinRequestCommand($join_request));
 
         $this->assertSoftDeleted('tt_trooper_assignments', [
-            TrooperAssignment::TROOPER_ID      => $trooper->id,
+            TrooperAssignment::TROOPER_ID => $trooper->id,
             TrooperAssignment::ORGANIZATION_ID => $stale_assignment_org->id,
-            TrooperAssignment::IS_MEMBER       => false,
+            TrooperAssignment::IS_MEMBER => false,
         ]);
     }
 
@@ -185,9 +221,9 @@ class ApproveJoinRequestCommandHandlerTest extends TestCase
         $handler(new ApproveJoinRequestCommand($join_request));
 
         $this->assertDatabaseHas('tt_trooper_organizations', [
-            TrooperOrganization::TROOPER_ID      => $trooper->id,
+            TrooperOrganization::TROOPER_ID => $trooper->id,
             TrooperOrganization::ORGANIZATION_ID => $organization->id,
-            TrooperOrganization::IDENTIFIER      => 'TK-99999',
+            TrooperOrganization::IDENTIFIER => 'TK-99999',
             TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
         ]);
     }
@@ -218,9 +254,9 @@ class ApproveJoinRequestCommandHandlerTest extends TestCase
         $handler(new ApproveJoinRequestCommand($join_request));
 
         $this->assertDatabaseHas('tt_trooper_organizations', [
-            TrooperOrganization::TROOPER_ID      => $trooper->id,
+            TrooperOrganization::TROOPER_ID => $trooper->id,
             TrooperOrganization::ORGANIZATION_ID => $primary_club->id,
-            TrooperOrganization::IDENTIFIER      => 'TK-11111',
+            TrooperOrganization::IDENTIFIER => 'TK-11111',
             TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
         ]);
     }
@@ -291,20 +327,20 @@ class ApproveJoinRequestCommandHandlerTest extends TestCase
         $this->assertNotNull($join_request->approved_at);
 
         $this->assertSoftDeleted('tt_trooper_assignments', [
-            TrooperAssignment::TROOPER_ID      => $child->id,
+            TrooperAssignment::TROOPER_ID => $child->id,
             TrooperAssignment::ORGANIZATION_ID => $unit->id,
         ]);
 
         $this->assertDatabaseHas('tt_trooper_assignments', [
-            TrooperAssignment::TROOPER_ID      => $child->id,
+            TrooperAssignment::TROOPER_ID => $child->id,
             TrooperAssignment::ORGANIZATION_ID => $organization->id,
-            TrooperAssignment::IS_MEMBER       => true,
+            TrooperAssignment::IS_MEMBER => true,
         ]);
 
         $this->assertDatabaseHas('tt_trooper_organizations', [
-            TrooperOrganization::TROOPER_ID      => $child->id,
+            TrooperOrganization::TROOPER_ID => $child->id,
             TrooperOrganization::ORGANIZATION_ID => $organization->id,
-            TrooperOrganization::IDENTIFIER      => '654321',
+            TrooperOrganization::IDENTIFIER => '654321',
             TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
         ]);
     }
