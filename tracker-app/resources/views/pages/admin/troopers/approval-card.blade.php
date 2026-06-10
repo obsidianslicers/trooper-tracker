@@ -35,18 +35,10 @@
             @endif
         </dl>
         <hr />
-        @if($trooper->is_active)
-            <x-message type="success"
-                       icon="fa-solid fa-circle-check"
-                       class="mb-0">
-                Trooper approved.
-            </x-message>
-        @elseif($trooper->is_denied)
-            <x-message type="danger"
-                       icon="fa-solid fa-circle-xmark"
-                       class="mb-0">
-                Trooper denied.
-            </x-message>
+        @if($trooper->is_active || $trooper->is_denied)
+            <p class="text-muted small mb-0">
+                Review complete.
+            </p>
         {{-- Handlers are not required to select a unit --}}
         @elseif($trooper->membership_role == \App\Enums\MembershipRole::HANDLER && $trooper->join_requests->isEmpty())
             <x-message type="warning"
@@ -85,18 +77,20 @@
     </div>
     <div class="card-footer d-flex justify-content-between">
         @if($trooper->is_active)
-            <div class="w-100">
-                <x-message type="success"
-                           icon="fa-brands fa-empire"
-                           class="w-100">
-                    Let the Trooping begin!
-                </x-message>
+            <div class="alert alert-success d-flex align-items-center gap-2 mb-0 py-2 px-3 w-100">
+                <i class="fa-solid fa-circle-check"></i>
+                <div>
+                    <div class="fw-semibold">Approved</div>
+                    <div class="small">Trooper account is active.</div>
+                </div>
             </div>
         @elseif($trooper->is_denied)
-            <div class="w-100">
-                <x-message type="danger">
-                    Denied Trooper Status
-                </x-message>
+            <div class="alert alert-danger d-flex align-items-center gap-2 mb-0 py-2 px-3 w-100">
+                <i class="fa-solid fa-circle-xmark"></i>
+                <div>
+                    <div class="fw-semibold">Denied</div>
+                    <div class="small">Trooper account was not approved.</div>
+                </div>
             </div>
         @else
             <div x-data="{ denying: false }"

@@ -31,18 +31,20 @@
     </div>
     <div class="card-footer d-flex justify-content-between">
         @if($join_request->status === \App\Enums\JoinRequestStatus::APPROVED)
-            <div class="w-100">
-                <x-message type="success"
-                           icon="fa-brands fa-empire"
-                           class="w-100">
-                    Request Approved!
-                </x-message>
+            <div class="alert alert-success d-flex align-items-center gap-2 mb-0 py-2 px-3 w-100">
+                <i class="fa-solid fa-circle-check"></i>
+                <div>
+                    <div class="fw-semibold">Approved</div>
+                    <div class="small">Membership request is active.</div>
+                </div>
             </div>
         @elseif($join_request->status === \App\Enums\JoinRequestStatus::DENIED)
-            <div class="w-100">
-                <x-message type="danger">
-                    Request Denied
-                </x-message>
+            <div class="alert alert-danger d-flex align-items-center gap-2 mb-0 py-2 px-3 w-100">
+                <i class="fa-solid fa-circle-xmark"></i>
+                <div>
+                    <div class="fw-semibold">Denied</div>
+                    <div class="small">Membership request was not approved.</div>
+                </div>
             </div>
         @else
             <div x-data="{ denying: false }"
