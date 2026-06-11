@@ -6,6 +6,7 @@ namespace Database\Seeders\FloridaGarrison;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * One-time correction seeder. Run manually after the add_charity_to_event_shifts migration.
@@ -44,17 +45,22 @@ class EventCharityShiftSeeder extends Seeder
             'updated_with_empty_charity_data' => 0,
         ];
 
-        $legacy_rows = DB::table('events')
-            ->select([
-                'id',
-                'charityDirectFunds',
-                'charityIndirectFunds',
-                'charityName',
-                'charityAddHours',
-                'charityNote',
-            ])
-            ->get()
-            ->keyBy('id');
+        $legacy_rows = collect();
+
+        if (Schema::hasTable('events'))
+        {
+            $legacy_rows = DB::table('events')
+                ->select([
+                    'id',
+                    'charityDirectFunds',
+                    'charityIndirectFunds',
+                    'charityName',
+                    'charityAddHours',
+                    'charityNote',
+                ])
+                ->get()
+                ->keyBy('id');
+        }
 
         $shifts = DB::table('tt_event_shifts')
             ->whereNull('deleted_at')
@@ -113,7 +119,23 @@ class EventCharityShiftSeeder extends Seeder
             'skipped_no_active_shifts' => 0,
             'skipped_shift_charity_exists' => 0,
             'fallback_updates_applied' => 0,
+            'skipped_event_charity_columns_unavailable' => 0,
         ];
+
+        $event_charity_columns = [
+            'charity_direct_funds',
+            'charity_indirect_funds',
+            'charity_name',
+            'charity_hours',
+            'charity_notes',
+        ];
+
+        if (!$this->hasColumns('tt_events', $event_charity_columns))
+        {
+            $stats['skipped_event_charity_columns_unavailable'] = 1;
+
+            return $stats;
+        }
 
         // For each event that still has event-level charity data, copy it down only
         // when none of the event's non-deleted shifts already has charity data.
@@ -207,6 +229,22 @@ class EventCharityShiftSeeder extends Seeder
     }
 
     /**
+     * @param  array<int, string>  $columns
+     */
+    private function hasColumns(string $table, array $columns): bool
+    {
+        foreach ($columns as $column)
+        {
+            if (!Schema::hasColumn($table, $column))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * @param  array<string, int>  $pass_one
      * @param  array<string, int>  $pass_two
      */
@@ -229,6 +267,7 @@ class EventCharityShiftSeeder extends Seeder
         $this->command?->line('- Fallback updates applied: '.$this->formatNumber($pass_two['fallback_updates_applied']));
         $this->command?->line('- Skipped, shift charity already exists: '.$this->formatNumber($pass_two['skipped_shift_charity_exists']));
         $this->command?->line('- Skipped, no active shifts: '.$this->formatNumber($pass_two['skipped_no_active_shifts']));
+        $this->command?->line('- Skipped, event charity columns unavailable: '.$this->formatNumber($pass_two['skipped_event_charity_columns_unavailable']));
         $this->command?->newLine();
 
         $this->command?->line('Done.');

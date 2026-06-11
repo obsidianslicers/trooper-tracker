@@ -105,6 +105,7 @@ class EventCharityShiftSeederTest extends TestCase
             ->expectsOutput('- Fallback updates applied: 1')
             ->expectsOutput('- Skipped, shift charity already exists: 1')
             ->expectsOutput('- Skipped, no active shifts: 1')
+            ->expectsOutput('- Skipped, event charity columns unavailable: 0')
             ->expectsOutput('Done.')
             ->assertSuccessful();
 
@@ -137,6 +138,42 @@ class EventCharityShiftSeederTest extends TestCase
             'charity_direct_funds' => 0,
             'charity_indirect_funds' => 0,
             'charity_name' => null,
+        ]);
+    }
+
+    public function test_run_after_event_charity_columns_are_removed_skips_event_level_fallback(): void
+    {
+        $event = Event::factory()->create();
+        EventShift::factory()->forEvent($event)->create([EventShift::ID => 200]);
+
+        $this->assertFalse(Schema::hasTable('events'));
+        $this->assertFalse(Schema::hasColumn('tt_events', 'charity_direct_funds'));
+
+        $this->artisan('db:seed', ['--class' => EventCharityShiftSeeder::class])
+            ->expectsOutput('Event charity shift backfill')
+            ->expectsOutput('Pass 1: legacy shift charity mapping')
+            ->expectsOutput('- Shifts scanned: 1')
+            ->expectsOutput('- Legacy rows matched by shift id: 0')
+            ->expectsOutput('- Shifts updated: 0')
+            ->expectsOutput('- Updated with charity data: 0')
+            ->expectsOutput('- Updated with empty charity data: 0')
+            ->expectsOutput('- Skipped, no legacy row: 1')
+            ->expectsOutput('Pass 2: event-level fallback')
+            ->expectsOutput('- Events with event-level charity scanned: 0')
+            ->expectsOutput('- Fallback updates applied: 0')
+            ->expectsOutput('- Skipped, shift charity already exists: 0')
+            ->expectsOutput('- Skipped, no active shifts: 0')
+            ->expectsOutput('- Skipped, event charity columns unavailable: 1')
+            ->expectsOutput('Done.')
+            ->assertSuccessful();
+
+        $this->assertDatabaseHas('tt_event_shifts', [
+            'id' => 200,
+            'charity_direct_funds' => 0,
+            'charity_indirect_funds' => 0,
+            'charity_name' => null,
+            'charity_hours' => null,
+            'charity_notes' => null,
         ]);
     }
 
