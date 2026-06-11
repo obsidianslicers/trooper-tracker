@@ -14,9 +14,9 @@ use App\Models\TrooperOrganization;
 use App\Models\TrooperRequest;
 use Illuminate\Console\Command;
 
-class SimulateJoinRequestCommand extends Command
+class SimulateTrooperRequestCommand extends Command
 {
-    protected $signature = 'tracker:simulate-join-request
+    protected $signature = 'tracker:simulate-trooper-request
         {trooper_id? : Optional trooper ID — picks a random active trooper if omitted}';
 
     protected $description = 'Create a pending club join request for a trooper and output the admin review URL. Dev use only.';
@@ -85,7 +85,7 @@ class SimulateJoinRequestCommand extends Command
         $review_url = route('admin.troopers.approvals');
 
         $this->newLine();
-        $this->line('<fg=cyan;options=bold>── Join Request ──────────────────────────────────</>');
+        $this->line('<fg=cyan;options=bold>── Trooper Request ───────────────────────────────</>');
         $this->info("  Trooper:       {$trooper->display_name} (ID {$trooper->id})");
         $this->info("  Organization:  {$org_label} (ID {$organization->id})");
         $this->info("  Request ID:    {$trooper_request->id}");

@@ -8,8 +8,8 @@ use App\Bus\MagicBus;
 use App\Enums\MembershipRole;
 use App\Features\Troopers\Queries\GetTroopersByRoleQuery;
 use App\Models\TrooperRequest;
-use App\Notifications\Admin\JoinRequestSubmittedNotification;
-use App\Policies\TrooperJoinRequestPolicy;
+use App\Notifications\Admin\TrooperRequestSubmittedNotification;
+use App\Policies\TrooperRequestPolicy;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
@@ -20,7 +20,7 @@ use Illuminate\Foundation\Queue\Queueable;
  * are notified, and moderators receive the notification only if they have
  * authority over the requested organization.
  */
-class SendJoinRequestNotificationsJob implements ShouldQueue
+class SendTrooperRequestNotificationsJob implements ShouldQueue
 {
     use Queueable;
 
@@ -35,18 +35,18 @@ class SendJoinRequestNotificationsJob implements ShouldQueue
 
         foreach ($admins as $admin)
         {
-            $admin->notify(new JoinRequestSubmittedNotification($this->trooper_request));
+            $admin->notify(new TrooperRequestSubmittedNotification($this->trooper_request));
         }
 
         $moderators = $bus->send(new GetTroopersByRoleQuery(MembershipRole::MODERATOR));
 
-        $policy = new TrooperJoinRequestPolicy;
+        $policy = new TrooperRequestPolicy;
 
         foreach ($moderators as $moderator)
         {
             if ($policy->moderate($moderator, $this->trooper_request))
             {
-                $moderator->notify(new JoinRequestSubmittedNotification($this->trooper_request));
+                $moderator->notify(new TrooperRequestSubmittedNotification($this->trooper_request));
             }
         }
     }

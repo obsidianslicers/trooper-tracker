@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Notifications\Troopers;
 
 use App\Channels\FcmChannel;
-use App\Mail\Admin\Troopers\JoinRequestDenied;
+use App\Mail\Admin\Troopers\TrooperRequestDenied;
 use App\Models\TrooperRequest;
 use App\Models\Trooper;
 use Illuminate\Notifications\Notification;
@@ -13,7 +13,7 @@ use Illuminate\Notifications\Notification;
 /**
  * Notifies a trooper their club join request was denied.
  */
-class JoinRequestDeniedNotification extends Notification
+class TrooperRequestDeniedNotification extends Notification
 {
     public function __construct(private readonly TrooperRequest $trooper_request)
     {
@@ -43,13 +43,9 @@ class JoinRequestDeniedNotification extends Notification
         return $channels;
     }
 
-    public function toMail(Trooper $notifiable): JoinRequestDenied
+    public function toMail(Trooper $notifiable): TrooperRequestDenied
     {
-        return (new JoinRequestDenied(
-            $notifiable,
-            $this->trooper_request->organization,
-            $this->trooper_request->denial_reason,
-        ))->to($notifiable->email);
+        return (new TrooperRequestDenied($this->trooper_request))->to($notifiable->email);
     }
 
     public function toArray(Trooper $notifiable): array

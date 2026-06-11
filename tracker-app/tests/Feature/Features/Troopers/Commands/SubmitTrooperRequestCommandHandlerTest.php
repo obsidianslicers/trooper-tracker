@@ -7,7 +7,7 @@ namespace Tests\Feature\Features\Troopers\Commands;
 use App\Enums\TrooperRequestStatus;
 use App\Features\Troopers\Commands\SubmitTrooperRequestCommand;
 use App\Features\Troopers\Commands\SubmitTrooperRequestCommandHandler;
-use App\Jobs\SendJoinRequestNotificationsJob;
+use App\Jobs\SendTrooperRequestNotificationsJob;
 use App\Models\TrooperRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
@@ -115,6 +115,6 @@ class SubmitTrooperRequestCommandHandlerTest extends TestCase
         $handler = app(SubmitTrooperRequestCommandHandler::class);
         $handler(new SubmitTrooperRequestCommand($trooper, $organization, 'TK-12345'));
 
-        Queue::assertPushed(SendJoinRequestNotificationsJob::class);
+        Queue::assertPushed(SendTrooperRequestNotificationsJob::class);
     }
 }

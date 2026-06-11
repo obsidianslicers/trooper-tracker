@@ -7,21 +7,21 @@ namespace Tests\Feature\Jobs;
 use App\Bus\MagicBus;
 use App\Enums\MembershipRole;
 use App\Features\Troopers\Queries\GetTroopersByRoleQuery;
-use App\Jobs\SendJoinRequestNotificationsJob;
+use App\Jobs\SendTrooperRequestNotificationsJob;
 use App\Models\TrooperRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
-use App\Notifications\Admin\JoinRequestSubmittedNotification;
+use App\Notifications\Admin\TrooperRequestSubmittedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Mockery;
 use Tests\TestCase;
 
 /**
- * @see \App\Jobs\SendJoinRequestNotificationsJob
+ * @see \App\Jobs\SendTrooperRequestNotificationsJob
  */
-class SendJoinRequestNotificationsJobTest extends TestCase
+class SendTrooperRequestNotificationsJobTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -54,11 +54,11 @@ class SendJoinRequestNotificationsJobTest extends TestCase
                 && $query->membership_role === MembershipRole::MODERATOR)
             ->andReturn(collect([]));
 
-        $subject = new SendJoinRequestNotificationsJob($trooper_request);
+        $subject = new SendTrooperRequestNotificationsJob($trooper_request);
         $subject->handle($bus);
 
-        Notification::assertSentTo($admin_valid, JoinRequestSubmittedNotification::class);
-        Notification::assertSentTo($admin_invalid, JoinRequestSubmittedNotification::class);
+        Notification::assertSentTo($admin_valid, TrooperRequestSubmittedNotification::class);
+        Notification::assertSentTo($admin_invalid, TrooperRequestSubmittedNotification::class);
     }
 
     public function test_handle_notifies_moderators_with_authority_over_request(): void
@@ -96,10 +96,10 @@ class SendJoinRequestNotificationsJobTest extends TestCase
                 && $query->membership_role === MembershipRole::MODERATOR)
             ->andReturn(collect([$moderator_in_tree, $moderator_outside_tree]));
 
-        $subject = new SendJoinRequestNotificationsJob($trooper_request);
+        $subject = new SendTrooperRequestNotificationsJob($trooper_request);
         $subject->handle($bus);
 
-        Notification::assertSentTo($moderator_in_tree, JoinRequestSubmittedNotification::class);
-        Notification::assertNotSentTo($moderator_outside_tree, JoinRequestSubmittedNotification::class);
+        Notification::assertSentTo($moderator_in_tree, TrooperRequestSubmittedNotification::class);
+        Notification::assertNotSentTo($moderator_outside_tree, TrooperRequestSubmittedNotification::class);
     }
 }

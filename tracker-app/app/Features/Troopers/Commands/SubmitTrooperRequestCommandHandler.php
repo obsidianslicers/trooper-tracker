@@ -6,7 +6,7 @@ namespace App\Features\Troopers\Commands;
 
 use App\Bus\Contracts\CommandHandlerInterface;
 use App\Enums\TrooperRequestStatus;
-use App\Jobs\SendJoinRequestNotificationsJob;
+use App\Jobs\SendTrooperRequestNotificationsJob;
 use App\Models\TrooperRequest;
 
 /**
@@ -39,7 +39,7 @@ readonly class SubmitTrooperRequestCommandHandler implements CommandHandlerInter
             TrooperRequest::STATUS => TrooperRequestStatus::PENDING,
         ]);
 
-        SendJoinRequestNotificationsJob::dispatch($trooper_request);
+        SendTrooperRequestNotificationsJob::dispatch($trooper_request);
 
         return null;
     }
