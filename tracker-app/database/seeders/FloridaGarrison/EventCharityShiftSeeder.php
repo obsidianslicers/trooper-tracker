@@ -61,9 +61,9 @@ class EventCharityShiftSeeder extends Seeder
                 ->update([
                     'charity_direct_funds'   => $legacy->charityDirectFunds ?? 0,
                     'charity_indirect_funds' => $legacy->charityIndirectFunds ?? 0,
-                    'charity_name'           => $legacy->charityName,
+                    'charity_name'           => $legacy->charityName ? html_entity_decode($legacy->charityName, ENT_QUOTES | ENT_HTML5, 'UTF-8') : null,
                     'charity_hours'          => $legacy->charityAddHours,
-                    'charity_notes'          => $legacy->charityNote,
+                    'charity_notes'          => $legacy->charityNote ? html_entity_decode($legacy->charityNote, ENT_QUOTES | ENT_HTML5, 'UTF-8') : null,
                 ]);
         }
     }
@@ -120,9 +120,9 @@ class EventCharityShiftSeeder extends Seeder
                 ->update([
                     'charity_direct_funds'   => $event->charity_direct_funds,
                     'charity_indirect_funds' => $event->charity_indirect_funds,
-                    'charity_name'           => $event->charity_name,
+                    'charity_name'           => $event->charity_name ? html_entity_decode($event->charity_name, ENT_QUOTES | ENT_HTML5, 'UTF-8') : null,
                     'charity_hours'          => $event->charity_hours,
-                    'charity_notes'          => $event->charity_notes,
+                    'charity_notes'          => $event->charity_notes ? html_entity_decode($event->charity_notes, ENT_QUOTES | ENT_HTML5, 'UTF-8') : null,
                 ]);
         }
     }
