@@ -16,7 +16,7 @@ use Illuminate\Queue\SerializesModels;
 /**
  * Notifies moderators that a trooper has submitted a club join request.
  */
-class TrooperJoinRequestSubmitted extends Mailable implements ShouldQueue
+class TrooperRequestSubmitted extends Mailable implements ShouldQueue
 {
     use HasRetryPolicy;
     use Queueable, SerializesModels;
@@ -36,7 +36,7 @@ class TrooperJoinRequestSubmitted extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            view: 'emails.admin.troopers.join-request-submitted',
+            view: 'emails.admin.troopers.trooper-request-submitted',
             with: [
                 'trooper_request' => $this->trooper_request,
                 'organization' => $this->trooper_request->organization,

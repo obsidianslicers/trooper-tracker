@@ -12,7 +12,7 @@ use App\Policies\Concerns\HasTrooperPermissionsTrait;
 /**
  * Authorization rules for club join request actions.
  */
-class TrooperJoinRequestPolicy
+class TrooperRequestPolicy
 {
     use HasTrooperPermissionsTrait;
 

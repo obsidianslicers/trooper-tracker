@@ -207,12 +207,12 @@ php artisan tracker:simulate-account-deletion --execute
 
 ---
 
-### `tracker:simulate-join-request`
+### `tracker:simulate-trooper-request`
 
 Creates a pending club join request for a trooper and outputs the admin review URL. Dev use only.
 
 ```bash
-php artisan tracker:simulate-join-request [trooper_id]
+php artisan tracker:simulate-trooper-request [trooper_id]
 ```
 
 | Argument | Required | Description |
@@ -221,8 +221,8 @@ php artisan tracker:simulate-join-request [trooper_id]
 
 **Examples:**
 ```bash
-php artisan tracker:simulate-join-request
-php artisan tracker:simulate-join-request 42
+php artisan tracker:simulate-trooper-request
+php artisan tracker:simulate-trooper-request 42
 ```
 
 ---

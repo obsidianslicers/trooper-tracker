@@ -13,12 +13,12 @@ use Illuminate\Support\Collection;
 /**
  * Handler for retrieving pending club join requests.
  *
- * @implements QueryHandlerInterface<GetPendingJoinRequestsQuery>
+ * @implements QueryHandlerInterface<GetPendingTrooperRequestsQuery>
  */
-readonly class GetPendingJoinRequestsQueryHandler implements QueryHandlerInterface
+readonly class GetPendingTrooperRequestsQueryHandler implements QueryHandlerInterface
 {
     /**
-     * @param  GetPendingJoinRequestsQuery  $message
+     * @param  GetPendingTrooperRequestsQuery  $message
      * @return Collection<int, TrooperRequest>
      */
     public function __invoke(object $message): Collection

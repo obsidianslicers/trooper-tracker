@@ -6,7 +6,7 @@ namespace App\Features\Troopers\Commands;
 
 use App\Bus\Contracts\CommandHandlerInterface;
 use App\Enums\TrooperRequestStatus;
-use App\Notifications\Troopers\JoinRequestDeniedNotification;
+use App\Notifications\Troopers\TrooperRequestDeniedNotification;
 
 /**
  * Handler for denying a club join request.
@@ -28,7 +28,7 @@ readonly class DenyTrooperRequestCommandHandler implements CommandHandlerInterfa
 
         if (!$message->suppress_notification)
         {
-            $trooper_request->trooper->notify(new JoinRequestDeniedNotification($trooper_request));
+            $trooper_request->trooper->notify(new TrooperRequestDeniedNotification($trooper_request));
         }
 
         return null;
