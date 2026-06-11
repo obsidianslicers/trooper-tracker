@@ -30,6 +30,8 @@ class XenforoUserSyncService
             return;
         }
 
+        $this->syncEmailFromXenforo($trooper, $xenforoUserId);
+
         $payload = $this->buildUserPayload($trooper, $xenforoUserId);
 
         if (empty($payload))
@@ -107,6 +109,27 @@ class XenforoUserSyncService
             'computed_result' => $computed_result,
             'would_send' => $computed_result !== null,
         ]);
+    }
+
+    private function syncEmailFromXenforo(Trooper $trooper, int $xenforoUserId): void
+    {
+        $user = $this->xenforo->get_user($xenforoUserId);
+
+        if ($user['status'] < 200 || $user['status'] >= 300 || ! is_array($user['body']))
+        {
+            return;
+        }
+
+        $body = $user['body'];
+        $userData = is_array($body['user'] ?? null) ? $body['user'] : $body;
+        $xenforoEmail = $userData['email'] ?? null;
+
+        if (! empty($xenforoEmail) && $trooper->email !== $xenforoEmail)
+        {
+            $trooper->email = $xenforoEmail;
+            $trooper->email_verified_at ??= now();
+            $trooper->save();
+        }
     }
 
     /**
