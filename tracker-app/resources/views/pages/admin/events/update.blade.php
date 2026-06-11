@@ -27,7 +27,6 @@
                 @include('pages.admin.events.inc.contact-information')
                 @include('pages.admin.events.inc.character-requests-and-limits')
                 @include('pages.admin.events.inc.venue-permissions-and-amenities')
-                @include('pages.admin.events.inc.charity')
                 @include('pages.admin.events.inc.miscellaneous')
 
                 <x-submit-container>

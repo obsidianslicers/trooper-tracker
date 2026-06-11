@@ -25,6 +25,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Carbon $shift_starts_at
  * @property Carbon $shift_ends_at
  * @property Carbon|null $last_notified_at
+ * @property int $charity_direct_funds
+ * @property int $charity_indirect_funds
+ * @property string|null $charity_name
+ * @property int|null $charity_hours
+ * @property string|null $charity_notes
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property string|null $deleted_at
@@ -47,6 +52,11 @@ class EventShift extends Model
     const SHIFT_STARTS_AT = 'shift_starts_at';
     const SHIFT_ENDS_AT = 'shift_ends_at';
     const LAST_NOTIFIED_AT = 'last_notified_at';
+    const CHARITY_DIRECT_FUNDS = 'charity_direct_funds';
+    const CHARITY_INDIRECT_FUNDS = 'charity_indirect_funds';
+    const CHARITY_NAME = 'charity_name';
+    const CHARITY_HOURS = 'charity_hours';
+    const CHARITY_NOTES = 'charity_notes';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
     const DELETED_AT = 'deleted_at';
@@ -61,6 +71,9 @@ class EventShift extends Model
         self::SHIFT_STARTS_AT => 'datetime',
         self::SHIFT_ENDS_AT => 'datetime',
         self::LAST_NOTIFIED_AT => 'datetime',
+        self::CHARITY_DIRECT_FUNDS => 'int',
+        self::CHARITY_INDIRECT_FUNDS => 'int',
+        self::CHARITY_HOURS => 'int',
         self::CREATED_AT => 'datetime',
         self::UPDATED_AT => 'datetime',
         self::CREATED_ID => 'int',
@@ -73,7 +86,12 @@ class EventShift extends Model
         self::STATUS,
         self::SHIFT_STARTS_AT,
         self::SHIFT_ENDS_AT,
-        self::LAST_NOTIFIED_AT
+        self::LAST_NOTIFIED_AT,
+        self::CHARITY_DIRECT_FUNDS,
+        self::CHARITY_INDIRECT_FUNDS,
+        self::CHARITY_NAME,
+        self::CHARITY_HOURS,
+        self::CHARITY_NOTES
     ];
 
     public function event(): BelongsTo

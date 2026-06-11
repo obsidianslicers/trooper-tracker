@@ -20,6 +20,8 @@ class EventShiftFactory extends Factory
             EventShift::STATUS => $this->faker->word(),
             EventShift::SHIFT_STARTS_AT => $this->faker->dateTime(),
             EventShift::SHIFT_ENDS_AT => $this->faker->dateTime(),
+            EventShift::CHARITY_DIRECT_FUNDS => $this->faker->randomNumber(),
+            EventShift::CHARITY_INDIRECT_FUNDS => $this->faker->randomNumber(),
         ];
     }
 }

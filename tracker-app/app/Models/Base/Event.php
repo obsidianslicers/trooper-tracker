@@ -44,11 +44,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $friends_allowed
  * @property int|null $guests_allowed
  * @property bool $tentative_signups_allowed
- * @property int $charity_direct_funds
- * @property int $charity_indirect_funds
- * @property string|null $charity_name
- * @property int|null $charity_hours
- * @property string|null $charity_notes
  * @property string|null $contact_name
  * @property string|null $contact_phone
  * @property string|null $contact_email
@@ -114,11 +109,6 @@ class Event extends Model
     const FRIENDS_ALLOWED = 'friends_allowed';
     const GUESTS_ALLOWED = 'guests_allowed';
     const TENTATIVE_SIGNUPS_ALLOWED = 'tentative_signups_allowed';
-    const CHARITY_DIRECT_FUNDS = 'charity_direct_funds';
-    const CHARITY_INDIRECT_FUNDS = 'charity_indirect_funds';
-    const CHARITY_NAME = 'charity_name';
-    const CHARITY_HOURS = 'charity_hours';
-    const CHARITY_NOTES = 'charity_notes';
     const CONTACT_NAME = 'contact_name';
     const CONTACT_PHONE = 'contact_phone';
     const CONTACT_EMAIL = 'contact_email';
@@ -169,9 +159,6 @@ class Event extends Model
         self::FRIENDS_ALLOWED => 'int',
         self::GUESTS_ALLOWED => 'int',
         self::TENTATIVE_SIGNUPS_ALLOWED => 'bool',
-        self::CHARITY_DIRECT_FUNDS => 'int',
-        self::CHARITY_INDIRECT_FUNDS => 'int',
-        self::CHARITY_HOURS => 'int',
         self::EVENT_START => 'datetime',
         self::EVENT_END => 'datetime',
         self::EXPECTED_ATTENDEES => 'int',
@@ -208,11 +195,6 @@ class Event extends Model
         self::FRIENDS_ALLOWED,
         self::GUESTS_ALLOWED,
         self::TENTATIVE_SIGNUPS_ALLOWED,
-        self::CHARITY_DIRECT_FUNDS,
-        self::CHARITY_INDIRECT_FUNDS,
-        self::CHARITY_NAME,
-        self::CHARITY_HOURS,
-        self::CHARITY_NOTES,
         self::CONTACT_NAME,
         self::CONTACT_PHONE,
         self::CONTACT_EMAIL,

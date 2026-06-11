@@ -23,6 +23,11 @@ class EventShiftFactory extends BaseEventShiftFactory
             EventShift::STATUS => EventStatus::OPEN,
             EventShift::SHIFT_STARTS_AT => $this->faker->dateTimeBetween('now', '+1 hour'),
             EventShift::SHIFT_ENDS_AT => $this->faker->dateTimeBetween('+2 hours', '+3 hours'),
+            EventShift::CHARITY_DIRECT_FUNDS => 0,
+            EventShift::CHARITY_INDIRECT_FUNDS => 0,
+            EventShift::CHARITY_NAME => null,
+            EventShift::CHARITY_HOURS => null,
+            EventShift::CHARITY_NOTES => null,
         ]);
     }
 
@@ -53,6 +58,22 @@ class EventShiftFactory extends BaseEventShiftFactory
             EventShift::STATUS => EventStatus::CLOSED,
             EventShift::SHIFT_STARTS_AT => Carbon::now()->subDay()->setTime(10, 0),
             EventShift::SHIFT_ENDS_AT => Carbon::now()->subDay()->setTime(14, 0),
+        ]);
+    }
+
+    public function withCharityData(
+        string $charity_name = 'Test Charity',
+        int $direct_funds = 500,
+        int $indirect_funds = 0,
+        ?int $charity_hours = null,
+        ?string $charity_notes = null,
+    ): static {
+        return $this->state(fn(array $attributes): array => [
+            EventShift::CHARITY_NAME           => $charity_name,
+            EventShift::CHARITY_DIRECT_FUNDS   => $direct_funds,
+            EventShift::CHARITY_INDIRECT_FUNDS => $indirect_funds,
+            EventShift::CHARITY_HOURS          => $charity_hours,
+            EventShift::CHARITY_NOTES          => $charity_notes,
         ]);
     }
 }

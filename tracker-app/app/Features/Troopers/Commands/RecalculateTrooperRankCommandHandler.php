@@ -163,7 +163,7 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
     private function computeMetrics(Trooper $trooper): array
     {
         $event_troopers = $trooper->event_troopers()
-            ->with('event_shift.event')
+            ->with('event_shift')
             ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED)
             ->whereHas('event_shift.event', fn ($q) => $q->where(Event::STATUS, EventStatus::CLOSED))
             ->get();
@@ -174,13 +174,11 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
 
         foreach ($event_troopers as $et)
         {
-            $event = $et->event_shift->event;
-
-            $total_direct += $event->charity_direct_funds;
-            $total_indirect += $event->charity_indirect_funds;
-
             $shift = $et->event_shift;
-            $total_hours += $shift->shift_starts_at->diffInHours($shift->shift_ends_at) + $event->charity_hours;
+
+            $total_direct   += $shift->charity_direct_funds;
+            $total_indirect += $shift->charity_indirect_funds;
+            $total_hours    += $shift->shift_starts_at->diffInHours($shift->shift_ends_at) + ($shift->charity_hours ?? 0);
         }
 
         return [

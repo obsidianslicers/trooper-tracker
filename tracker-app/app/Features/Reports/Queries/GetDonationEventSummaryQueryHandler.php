@@ -28,18 +28,53 @@ readonly class GetDonationEventSummaryQueryHandler implements QueryHandlerInterf
             ->whereColumn('tt_event_shifts.event_id', 'tt_events.id')
             ->where('tt_event_troopers.status', EventTrooperStatus::ATTENDED->value);
 
+        $directFundsSub = DB::table('tt_event_shifts')
+            ->selectRaw('COALESCE(SUM(charity_direct_funds), 0)')
+            ->whereColumn('event_id', 'tt_events.id')
+            ->whereNull('deleted_at');
+
+        $indirectFundsSub = DB::table('tt_event_shifts')
+            ->selectRaw('COALESCE(SUM(charity_indirect_funds), 0)')
+            ->whereColumn('event_id', 'tt_events.id')
+            ->whereNull('deleted_at');
+
+        $charityNameSub = DB::table('tt_event_shifts')
+            ->select('charity_name')
+            ->whereColumn('event_id', 'tt_events.id')
+            ->whereNull('deleted_at')
+            ->whereNotNull('charity_name')
+            ->orderBy('shift_starts_at')
+            ->limit(1);
+
+        $charityNotesSub = DB::table('tt_event_shifts')
+            ->select('charity_notes')
+            ->whereColumn('event_id', 'tt_events.id')
+            ->whereNull('deleted_at')
+            ->whereNotNull('charity_notes')
+            ->orderBy('shift_starts_at')
+            ->limit(1);
+
         $query = Event::query()
             ->select('tt_events.*')
             ->selectSub($attendeesCountSub, 'attendees_count')
+            ->selectSub($directFundsSub, 'charity_direct_funds')
+            ->selectSub($indirectFundsSub, 'charity_indirect_funds')
+            ->selectSub($charityNameSub, 'charity_name')
+            ->selectSub($charityNotesSub, 'charity_notes')
             ->with('organization:id,name')
             ->moderatedBy($message->moderator)
             ->where(Event::STATUS, EventStatus::CLOSED)
             ->when($message->date_start, fn ($q) => $q->where(Event::EVENT_START, '>=', $message->date_start))
             ->when($message->date_end, fn ($q) => $q->where(Event::EVENT_START, '<=', $message->date_end))
-            ->when($message->charity_only, fn ($q) => $q->where(function ($q) {
-                $q->where(Event::CHARITY_DIRECT_FUNDS, '>', 0)
-                    ->orWhere(Event::CHARITY_INDIRECT_FUNDS, '>', 0)
-                    ->orWhereNotNull(Event::CHARITY_NAME);
+            ->when($message->charity_only, fn ($q) => $q->whereExists(function ($q) {
+                $q->from('tt_event_shifts')
+                    ->whereColumn('event_id', 'tt_events.id')
+                    ->whereNull('deleted_at')
+                    ->where(function ($inner) {
+                        $inner->where('charity_direct_funds', '>', 0)
+                            ->orWhere('charity_indirect_funds', '>', 0)
+                            ->orWhereNotNull('charity_name');
+                    });
             }));
 
         $allowed = ['name', 'event_start', 'charity_name', 'charity_direct_funds', 'charity_indirect_funds', 'attendees_count'];

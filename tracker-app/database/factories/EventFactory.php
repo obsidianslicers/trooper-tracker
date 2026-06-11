@@ -33,11 +33,6 @@ class EventFactory extends BaseEventFactory
             Event::TYPE => EventType::REGULAR->value,
             Event::STATUS => EventStatus::OPEN,
 
-            Event::CHARITY_DIRECT_FUNDS => $this->faker->numberBetween(0, 5000),
-            Event::CHARITY_INDIRECT_FUNDS => $this->faker->numberBetween(0, 5000),
-            Event::CHARITY_NAME => $this->faker->company(),
-            Event::CHARITY_HOURS => $this->faker->numberBetween(0, 40),
-
             Event::LATITUDE => $this->faker->latitude(),
             Event::LONGITUDE => $this->faker->longitude(),
 
@@ -197,14 +192,4 @@ class EventFactory extends BaseEventFactory
         ]);
     }
 
-    public function withoutCharityData(): static
-    {
-        return $this->state(fn(array $attributes): array => [
-            Event::CHARITY_DIRECT_FUNDS => 0,
-            Event::CHARITY_INDIRECT_FUNDS => 0,
-            Event::CHARITY_NAME => null,
-            Event::CHARITY_HOURS => null,
-            Event::CHARITY_NOTES => null,
-        ]);
-    }
 }

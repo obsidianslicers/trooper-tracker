@@ -66,41 +66,4 @@ class CreateSubmitControllerTest extends TestCase
         ]);
     }
 
-    public function test_invoke_creates_event_with_blank_charity_funds(): void
-    {
-        Queue::fake([SendEventCreatedNotificationsJob::class]);
-
-        $trooper = Trooper::factory()->asAdministrator()->create();
-        $organization = Organization::factory()->asOrganization()->create();
-
-        $event_start = now()->addDays(7);
-        $event_end = now()->addDays(7)->addHours(4);
-
-        // Simulate real form submission: blank strings for optional integer fields.
-        // ConvertEmptyStringsToNull converts '' -> null before validation runs,
-        // which previously caused a NOT NULL constraint violation on insert.
-        $response = $this->actingAs($trooper)->post('/admin/events/create', [
-            'organization_id' => $organization->id,
-            'name' => 'Imperial Muster',
-            'type' => EventType::REGULAR->value,
-            'status' => EventStatus::DRAFT->value,
-            'event_start' => $event_start->format('Y-m-d H:i:s'),
-            'event_end' => $event_end->format('Y-m-d H:i:s'),
-            'tentative_signups_allowed' => false,
-            'secure_staging_area' => false,
-            'allow_blasters' => false,
-            'allow_props' => false,
-            'parking_available' => false,
-            'accessible' => false,
-            'create_forum_thread' => false,
-            'charity_direct_funds' => '',
-            'charity_indirect_funds' => '',
-        ]);
-
-        $response->assertRedirect();
-        $this->assertDatabaseHas('tt_events', [
-            'charity_direct_funds' => 0,
-            'charity_indirect_funds' => 0,
-        ]);
-    }
 }

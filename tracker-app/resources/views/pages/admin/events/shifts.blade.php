@@ -41,6 +41,11 @@
                             <th>Starts At</th>
                             <th>Ends At</th>
                             <th>Status</th>
+                            <th>Charity</th>
+                            <th>Hours</th>
+                            <th>Direct $</th>
+                            <th>Indirect $</th>
+                            <th>Notes</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -74,6 +79,37 @@
                                                     :disabled="!$event->is_active"
                                                     class="form-select-sm" />
                                 </td>
+                                <td>
+                                    <x-input-text :property="'shifts.' . $shift->id . '.charity_name'"
+                                                  :value="$shift->charity_name"
+                                                  :disabled="!$event->is_active"
+                                                  class="form-control-sm" />
+                                </td>
+                                <td>
+                                    <x-input-text :property="'shifts.' . $shift->id . '.charity_hours'"
+                                                  :value="$shift->charity_hours"
+                                                  :disabled="!$event->is_active"
+                                                  class="form-control-sm" />
+                                </td>
+                                <td>
+                                    <x-input-text :property="'shifts.' . $shift->id . '.charity_direct_funds'"
+                                                  :value="$shift->charity_direct_funds"
+                                                  :disabled="!$event->is_active"
+                                                  class="form-control-sm" />
+                                </td>
+                                <td>
+                                    <x-input-text :property="'shifts.' . $shift->id . '.charity_indirect_funds'"
+                                                  :value="$shift->charity_indirect_funds"
+                                                  :disabled="!$event->is_active"
+                                                  class="form-control-sm" />
+                                </td>
+                                <td>
+                                    <x-input-text :property="'shifts.' . $shift->id . '.charity_notes'"
+                                                  :value="$shift->charity_notes"
+                                                  :multiline="true"
+                                                  :disabled="!$event->is_active"
+                                                  class="form-control-sm" />
+                                </td>
                             </tr>
                         @endforeach
 
@@ -102,7 +138,7 @@
                     @if($event->is_active)
                         <tfoot>
                             <tr>
-                                <td colspan="5"
+                                <td colspan="10"
                                     class="text-end">
                                     <button type="button"
                                             class="btn btn-sm btn-outline-success"
@@ -193,6 +229,50 @@
             const tdStatus = document.createElement("td");
             tdStatus.innerHTML = ``;
             tr.appendChild(tdStatus);
+
+            // charity name
+            const tdCharityName = document.createElement("td");
+            tdCharityName.innerHTML = `
+          <input type="text"
+                 name="shifts[${newIndex}][charity_name]"
+                 id="shifts.${newIndex}.charity_name"
+                 class="form-control form-control-sm">`;
+            tr.appendChild(tdCharityName);
+
+            // charity hours
+            const tdCharityHours = document.createElement("td");
+            tdCharityHours.innerHTML = `
+          <input type="number" min="0"
+                 name="shifts[${newIndex}][charity_hours]"
+                 id="shifts.${newIndex}.charity_hours"
+                 class="form-control form-control-sm">`;
+            tr.appendChild(tdCharityHours);
+
+            // charity direct funds
+            const tdDirect = document.createElement("td");
+            tdDirect.innerHTML = `
+          <input type="number" min="0"
+                 name="shifts[${newIndex}][charity_direct_funds]"
+                 id="shifts.${newIndex}.charity_direct_funds"
+                 class="form-control form-control-sm">`;
+            tr.appendChild(tdDirect);
+
+            // charity indirect funds
+            const tdIndirect = document.createElement("td");
+            tdIndirect.innerHTML = `
+          <input type="number" min="0"
+                 name="shifts[${newIndex}][charity_indirect_funds]"
+                 id="shifts.${newIndex}.charity_indirect_funds"
+                 class="form-control form-control-sm">`;
+            tr.appendChild(tdIndirect);
+
+            // charity notes
+            const tdNotes = document.createElement("td");
+            tdNotes.innerHTML = `
+          <textarea name="shifts[${newIndex}][charity_notes]"
+                    id="shifts.${newIndex}.charity_notes"
+                    class="form-control form-control-sm" rows="1"></textarea>`;
+            tr.appendChild(tdNotes);
 
             tbody.appendChild(tr);
 

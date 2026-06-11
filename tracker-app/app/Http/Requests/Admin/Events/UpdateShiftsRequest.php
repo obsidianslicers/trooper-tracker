@@ -42,10 +42,15 @@ class UpdateShiftsRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'shifts.*.date' => ['required', 'date'],
-            'shifts.*.starts_at' => ['required', 'date_format:H:i'],
-            'shifts.*.ends_at' => ['required', 'date_format:H:i'],
-            'shifts.*.status' => ['nullable', 'in:'.EventStatus::toValidator()],
+            'shifts.*.date'                   => ['required', 'date'],
+            'shifts.*.starts_at'              => ['required', 'date_format:H:i'],
+            'shifts.*.ends_at'                => ['required', 'date_format:H:i'],
+            'shifts.*.status'                 => ['nullable', 'in:'.EventStatus::toValidator()],
+            'shifts.*.charity_name'           => ['nullable', 'string', 'max:128'],
+            'shifts.*.charity_hours'          => ['nullable', 'integer', 'min:0'],
+            'shifts.*.charity_direct_funds'   => ['nullable', 'integer', 'min:0'],
+            'shifts.*.charity_indirect_funds' => ['nullable', 'integer', 'min:0'],
+            'shifts.*.charity_notes'          => ['nullable', 'string'],
         ];
 
         return $rules;
