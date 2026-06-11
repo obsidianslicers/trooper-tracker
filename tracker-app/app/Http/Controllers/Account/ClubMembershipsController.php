@@ -60,8 +60,9 @@ class ClubMembershipsController extends MagicBusController
 
         $ancestors = $this->loadAncestors($current_clubs, $pending_requests, $denied_requests);
         $available_clubs_data = $this->buildAvailableClubsData($available_clubs);
+        $ancestor_map_data = $this->buildAncestorMapData($available_clubs);
 
-        $data = compact('available_clubs', 'available_clubs_data', 'current_clubs', 'ancestors', 'pending_requests', 'denied_requests', 'trooper');
+        $data = compact('available_clubs', 'available_clubs_data', 'ancestor_map_data', 'current_clubs', 'ancestors', 'pending_requests', 'denied_requests', 'trooper');
 
         return view('pages.account.club-memberships', $data);
     }
@@ -79,7 +80,7 @@ class ClubMembershipsController extends MagicBusController
         $all_ids = array_unique(array_merge($ancestor_ids, $pending_ancestor_ids, $denied_ancestor_ids));
 
         return Organization::whereIn(Organization::ID, $all_ids)
-            ->get([Organization::ID, Organization::NAME])
+            ->get([Organization::ID, Organization::NAME, Organization::IMAGE_PATH_SM])
             ->keyBy(Organization::ID);
     }
 
@@ -104,9 +105,28 @@ class ClubMembershipsController extends MagicBusController
                 'name' => $org->name,
                 'parent_id' => $org->parent_id,
                 'depth' => $org->depth,
+                'node_path' => $org->node_path,
+                'image_url' => map_image_url($org->image_path_sm, 'img/icons/organization-128x128.png'),
                 'identifier_display' => $org->identifier_display ?? $root?->identifier_display,
                 'identifier_validation' => $org->identifier_validation ?? $root?->identifier_validation,
             ];
         });
+    }
+
+    private function buildAncestorMapData(Collection $available_clubs): array
+    {
+        $parse = fn ($path) => array_filter(explode(Organization::NODE_PATH_SEP, trim($path, Organization::NODE_PATH_SEP)));
+
+        $ancestor_ids = $available_clubs->flatMap(fn ($org) => $parse($org->node_path))->unique()->map(fn ($id) => (int) $id)->toArray();
+
+        return Organization::whereIn(Organization::ID, $ancestor_ids)
+            ->get([Organization::ID, Organization::NAME, Organization::IMAGE_PATH_SM])
+            ->mapWithKeys(fn ($org) => [
+                $org->id => [
+                    'name' => $org->name,
+                    'image_url' => map_image_url($org->image_path_sm, 'img/icons/organization-128x128.png'),
+                ],
+            ])
+            ->all();
     }
 }

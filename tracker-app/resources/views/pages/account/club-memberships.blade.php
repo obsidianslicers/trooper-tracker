@@ -19,12 +19,15 @@
                 @foreach($pending_requests as $request)
                     @php
                         $org = $request->organization;
-                        $path_ids = array_filter(explode(':', trim($org->node_path, ':')));
-                        $path_names = collect($path_ids)->map(fn($id) => $ancestors[$id]?->name ?? '?');
+                        $path_ids = collect(array_filter(explode(':', trim($org->node_path, ':'))));
+                        $path_names = $path_ids->map(fn($id) => $ancestors[$id]?->name ?? '?');
+                        $root_id = (int) $path_ids->first();
+                        $root_org = $ancestors[$root_id] ?? null;
                     @endphp
                     <li class="list-group-item d-flex align-items-center justify-content-between gap-2 px-0">
-                        <span>
+                        <span class="d-flex align-items-center gap-2">
                             <i class="fa fa-fw fa-clock text-warning"></i>
+                            <x-logo :storage_path="$root_org?->image_path_sm" default_path="img/icons/organization-128x128.png" width="24" height="24" />
                             {{ $path_names->implode(' — ') }}
                         </span>
                         <small class="text-muted">
@@ -71,15 +74,18 @@
             <ul class="list-group list-group-flush">
                 @foreach($current_clubs as $club)
                     @php
-                        $path_ids = array_filter(explode(':', trim($club->node_path, ':')));
-                        $path_names = collect($path_ids)->map(fn($id) => $ancestors[$id]?->name ?? '?');
+                        $path_ids = collect(array_filter(explode(':', trim($club->node_path, ':'))));
+                        $path_names = $path_ids->map(fn($id) => $ancestors[$id]?->name ?? '?');
+                        $root_id = (int) $path_ids->first();
+                        $root_org = $ancestors[$root_id] ?? null;
                     @endphp
                     <li class="list-group-item d-flex align-items-center gap-2 px-0">
                         @if($club->is_pending)
-                             <i class="fa fa-fw fa-clock text-warning"></i>
+                            <i class="fa fa-fw fa-clock text-warning"></i>
                         @else
                             <i class="fa fa-fw fa-circle-check text-success"></i>
                         @endif
+                        <x-logo :storage_path="$root_org?->image_path_sm" default_path="img/icons/organization-128x128.png" width="24" height="24" />
                         <span>{{ $path_names->implode(' — ') }}</span>
                     </li>
                 @endforeach
@@ -104,10 +110,19 @@
         <x-card>
             <div x-data="{
                         orgs: {{ Js::from($available_clubs_data) }},
+                        orgMap: {{ Js::from($ancestor_map_data) }},
                         selectedId: @js((string) old('organization_id', '')),
                         get selectedOrg() {
                             const id = parseInt(this.selectedId);
                             return this.orgs.find(o => o.id === id) ?? null;
+                        },
+                        get selectedChain() {
+                            if (!this.selectedOrg?.node_path) return [];
+                            return this.selectedOrg.node_path
+                                .split(':')
+                                .filter(id => id !== '')
+                                .map(id => this.orgMap[parseInt(id)])
+                                .filter(Boolean);
                         },
                         get isIdentifierRequired() {
                             if (!this.selectedOrg?.identifier_validation) return false;
@@ -117,7 +132,7 @@
                         <p class="text-muted mb-3">
                             Select a club below only if you are already a member of that organization. A moderator will review your request and approve access.
                             @if(!$trooper->is_visitor)
-                                You may request access at any level — organization, region, or unit — but please choose the most specific unit that applies to you.
+                                Choose the most specific unit that applies to you — access is granted through the full hierarchy.
                             @endif
                             Access is not required to view events from the organization. Only one access membership per organization is allowed.
                         </p>
@@ -146,6 +161,28 @@
                     </select>
                     <x-input-error :property="'organization_id'" />
                 </x-input-container>
+
+                <div x-show="selectedId && selectedChain.length > 1"
+                     x-cloak
+                     class="mt-3 mb-3 p-3 bg-body-tertiary rounded border">
+                    <p class="text-muted small mb-0">
+                        <i class="fa fa-fw fa-circle-info"></i>
+                        Requesting access to all levels:
+                    </p>
+                    <div class="mt-3">
+                    <template x-for="(item, index) in selectedChain" :key="index">
+                        <div class="d-flex align-items-center gap-2 py-1"
+                             :style="`padding-left: calc(${index} * 1.25rem)`">
+                            <img :src="item.image_url" alt="" width="20" height="20" style="object-fit: contain; flex-shrink: 0;" />
+                            <span x-text="item.name" class="small"></span>
+                            <span x-show="index === selectedChain.length - 1"
+                                  class="badge bg-primary-subtle text-primary-emphasis ms-1 small">
+                                your selection
+                            </span>
+                        </div>
+                    </template>
+                    </div>
+                </div>
 
                 <div x-show="selectedId"
                      x-cloak>
