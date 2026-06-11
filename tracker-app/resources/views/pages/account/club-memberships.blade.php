@@ -39,9 +39,38 @@
         </x-card>
     @endif
 
+    @if($denied_requests->isNotEmpty())
+        <x-card>
+            <h6 class="mb-3">
+                <i class="fa fa-fw fa-circle-xmark text-danger"></i> Recently Denied Requests
+            </h6>
+            <ul class="list-group list-group-flush">
+                @foreach($denied_requests as $request)
+                    @php
+                        $org = $request->organization;
+                        $path_ids = array_filter(explode(':', trim($org->node_path, ':')));
+                        $path_names = collect($path_ids)->map(fn($id) => $ancestors[$id]?->name ?? '?');
+                    @endphp
+                    <li class="list-group-item px-0">
+                        <div class="d-flex align-items-center justify-content-between gap-2">
+                            <span>
+                                <i class="fa fa-fw fa-circle-xmark text-danger"></i>
+                                {{ $path_names->implode(' — ') }}
+                            </span>
+                            <small class="text-muted">{{ $request->updated_at->diffForHumans() }}</small>
+                        </div>
+                        @if($request->denial_reason)
+                            <small class="text-muted d-block mt-1">{{ $request->denial_reason }}</small>
+                        @endif
+                    </li>
+                @endforeach
+            </ul>
+        </x-card>
+    @endif
+
     @if($current_clubs->isNotEmpty())
         <x-card>
-            <h6 class="mb-3">Current Club Memberships</h6>
+            <h6 class="mb-3">Current Club Assignments</h6>
             <ul class="list-group list-group-flush">
                 @foreach($current_clubs as $club)
                     @php
@@ -51,7 +80,11 @@
                         $root_org = $ancestors[$root_id] ?? null;
                     @endphp
                     <li class="list-group-item d-flex align-items-center gap-2 px-0">
-                        <i class="fa fa-fw fa-circle-check text-success"></i>
+                        @if($club->is_pending)
+                            <i class="fa fa-fw fa-clock text-warning"></i>
+                        @else
+                            <i class="fa fa-fw fa-circle-check text-success"></i>
+                        @endif
                         <x-logo :storage_path="$root_org?->image_path_sm" default_path="img/icons/organization-128x128.png" width="24" height="24" />
                         <span>{{ $path_names->implode(' — ') }}</span>
                     </li>
@@ -78,7 +111,7 @@
             <div x-data="{
                         orgs: {{ Js::from($available_clubs_data) }},
                         orgMap: {{ Js::from($ancestor_map_data) }},
-                        selectedId: '',
+                        selectedId: @js((string) old('organization_id', '')),
                         get selectedOrg() {
                             const id = parseInt(this.selectedId);
                             return this.orgs.find(o => o.id === id) ?? null;
@@ -162,7 +195,8 @@
                                class="form-control @error('identifier') is-invalid @enderror"
                                :placeholder="selectedOrg?.identifier_display ?? 'Member ID'"
                                :required="isIdentifierRequired"
-                               maxlength="64" />
+                               maxlength="64"
+                               value="{{ old('identifier') }}" />
                         <x-input-help>
                             Enter your member ID for this organization if you have one. Leave blank if unknown.
                         </x-input-help>
@@ -177,7 +211,8 @@
                                 hx-post="{{ route('account.club-memberships-htmx') }}"
                                 hx-include="#organization_id, #identifier"
                                 hx-target="#club-membership-form"
-                                hx-swap="innerHTML"
+                                hx-select="#club-membership-form"
+                                hx-swap="outerHTML"
                                 hx-indicator="#transmission-bar-club-memberships">
                             <i class="fa fa-fw fa-paper-plane"></i>
                             Request Access

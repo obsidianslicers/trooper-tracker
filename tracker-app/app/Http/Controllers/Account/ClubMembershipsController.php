@@ -8,7 +8,7 @@ use App\Features\Troopers\Queries\GetAvailableClubsQuery;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Organization;
 use App\Models\TrooperAssignment;
-use App\Models\TrooperOrganization;
+use App\Models\TrooperRequest;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -34,23 +34,40 @@ class ClubMembershipsController extends MagicBusController
             ->orderBy(Organization::SEQUENCE)
             ->get();
 
-        $pending_requests = TrooperOrganization::query()
-            ->where(TrooperOrganization::TROOPER_ID, $trooper->id)
+        $pending_requests = TrooperRequest::query()
+            ->where(TrooperRequest::TROOPER_ID, $trooper->id)
             ->pending()
             ->with('organization')
-            ->orderBy(TrooperOrganization::CREATED_AT, 'desc')
+            ->orderBy(TrooperRequest::CREATED_AT, 'desc')
             ->get();
 
-        $ancestors = $this->loadAncestors($current_clubs, $pending_requests);
+        $denied_requests = TrooperRequest::query()
+            ->where(TrooperRequest::TROOPER_ID, $trooper->id)
+            ->denied()
+            ->where(TrooperRequest::UPDATED_AT, '>=', now()->subDays(30))
+            ->with('organization')
+            ->orderBy(TrooperRequest::UPDATED_AT, 'desc')
+            ->get();
+
+        foreach ($current_clubs as $current_club)
+        {
+            $primary_club = $current_club->getPrimaryClub();
+
+            $current_club->is_pending = $pending_requests->contains(
+                fn ($pr) => $pr->primary_organization_id === $primary_club->id
+            );
+        }
+
+        $ancestors = $this->loadAncestors($current_clubs, $pending_requests, $denied_requests);
         $available_clubs_data = $this->buildAvailableClubsData($available_clubs);
         $ancestor_map_data = $this->buildAncestorMapData($available_clubs);
 
-        $data = compact('available_clubs', 'available_clubs_data', 'ancestor_map_data', 'current_clubs', 'ancestors', 'pending_requests', 'trooper');
+        $data = compact('available_clubs', 'available_clubs_data', 'ancestor_map_data', 'current_clubs', 'ancestors', 'pending_requests', 'denied_requests', 'trooper');
 
         return view('pages.account.club-memberships', $data);
     }
 
-    private function loadAncestors(Collection $current_clubs, Collection $pending_requests): Collection
+    private function loadAncestors(Collection $current_clubs, Collection $pending_requests, Collection $denied_requests): Collection
     {
         $parse = fn ($path) => array_filter(explode(Organization::NODE_PATH_SEP, trim($path, Organization::NODE_PATH_SEP)));
 
@@ -58,7 +75,9 @@ class ClubMembershipsController extends MagicBusController
 
         $pending_ancestor_ids = $pending_requests->flatMap(fn ($r) => $parse($r->organization->node_path))->toArray();
 
-        $all_ids = array_unique(array_merge($ancestor_ids, $pending_ancestor_ids));
+        $denied_ancestor_ids = $denied_requests->flatMap(fn ($r) => $parse($r->organization->node_path))->toArray();
+
+        $all_ids = array_unique(array_merge($ancestor_ids, $pending_ancestor_ids, $denied_ancestor_ids));
 
         return Organization::whereIn(Organization::ID, $all_ids)
             ->get([Organization::ID, Organization::NAME, Organization::IMAGE_PATH_SM])

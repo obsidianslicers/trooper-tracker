@@ -6,31 +6,33 @@ namespace App\Notifications\Admin;
 
 use App\Channels\FcmChannel;
 use App\Mail\Admin\Troopers\TrooperJoinRequestSubmitted;
+use App\Models\TrooperRequest;
 use App\Models\Trooper;
-use App\Models\TrooperOrganization;
 use Illuminate\Notifications\Notification;
 
 class JoinRequestSubmittedNotification extends Notification
 {
-    public function __construct(private readonly TrooperOrganization $join_request) {}
+    public function __construct(private readonly TrooperRequest $trooper_request)
+    {
+    }
 
     public function via(Trooper $notifiable): array
     {
         $channels = [];
 
-        if ($notifiable->wantsNotification('join_requests', 'database'))
+        if ($notifiable->wantsNotification('trooper_requests', 'database'))
         {
             $channels[] = 'database';
         }
 
         if ($notifiable->push_notifications_enabled
-            && $notifiable->wantsNotification('join_requests', 'fcm'))
+            && $notifiable->wantsNotification('trooper_requests', 'fcm'))
         {
             $channels[] = FcmChannel::class;
         }
 
         if ($notifiable->emailAppearsValid()
-            && $notifiable->wantsNotification('join_requests', 'mail'))
+            && $notifiable->wantsNotification('trooper_requests', 'mail'))
         {
             $channels[] = 'mail';
         }
@@ -40,18 +42,18 @@ class JoinRequestSubmittedNotification extends Notification
 
     public function toMail(Trooper $notifiable): TrooperJoinRequestSubmitted
     {
-        return (new TrooperJoinRequestSubmitted($this->join_request))->to($notifiable->email);
+        return (new TrooperJoinRequestSubmitted($this->trooper_request))->to($notifiable->email);
     }
 
     public function toArray(Trooper $notifiable): array
     {
-        $trooper = $this->join_request->trooper;
-        $org = $this->join_request->organization;
+        $trooper = $this->trooper_request->trooper;
+        $org = $this->trooper_request->organization;
 
         return [
             'title' => 'Club Join Request',
-            'body'  => "{$trooper->display_name} has requested to join {$org->name}.",
-            'url'   => '/admin/troopers/approvals',
+            'body' => "{$trooper->display_name} has requested to join {$org->name}.",
+            'url' => '/admin/troopers/approvals',
         ];
     }
 

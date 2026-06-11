@@ -9,7 +9,7 @@ use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
 use App\Enums\OauthProvider;
 use App\Mail\Auth\VerifyTrooperEmail;
-use App\Models\TrooperOrganization;
+use App\Models\TrooperRequest;
 use App\Policies\TrooperJoinRequestPolicy;
 use App\Services\BreadCrumbService;
 use App\Services\Socialite\XenforoProvider;
@@ -73,7 +73,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Gate::policy(TrooperOrganization::class, TrooperJoinRequestPolicy::class);
+        Gate::policy(TrooperRequest::class, TrooperJoinRequestPolicy::class);
 
         //
         //  SMTP PING THRESHOLD

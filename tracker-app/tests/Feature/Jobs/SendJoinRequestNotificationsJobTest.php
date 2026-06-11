@@ -6,13 +6,12 @@ namespace Tests\Feature\Jobs;
 
 use App\Bus\MagicBus;
 use App\Enums\MembershipRole;
-use App\Enums\MembershipStatus;
 use App\Features\Troopers\Queries\GetTroopersByRoleQuery;
 use App\Jobs\SendJoinRequestNotificationsJob;
+use App\Models\TrooperRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
-use App\Models\TrooperOrganization;
 use App\Notifications\Admin\JoinRequestSubmittedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
@@ -33,10 +32,11 @@ class SendJoinRequestNotificationsJobTest extends TestCase
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
         $trooper = Trooper::factory()->asMember()->create();
 
-        $join_request = TrooperOrganization::factory()
+        $trooper_request = TrooperRequest::factory()
             ->forTrooper($trooper)
             ->forOrganization($organization)
-            ->create([TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::PENDING]);
+            ->forPrimaryOrganization($organization)
+            ->create();
 
         $admin_valid = Trooper::factory()->asAdministrator()->withEmail('admin@example.com')->create();
         $admin_invalid = Trooper::factory()->asAdministrator()->withInvalidEmail()->create();
@@ -44,17 +44,17 @@ class SendJoinRequestNotificationsJobTest extends TestCase
         $bus = Mockery::mock(MagicBus::class);
         $bus->shouldReceive('send')
             ->once()
-            ->withArgs(fn (object $query): bool => $query instanceof GetTroopersByRoleQuery
+            ->withArgs(fn(object $query): bool => $query instanceof GetTroopersByRoleQuery
                 && $query->membership_role === MembershipRole::ADMINISTRATOR)
             ->andReturn(collect([$admin_valid, $admin_invalid]));
 
         $bus->shouldReceive('send')
             ->once()
-            ->withArgs(fn (object $query): bool => $query instanceof GetTroopersByRoleQuery
+            ->withArgs(fn(object $query): bool => $query instanceof GetTroopersByRoleQuery
                 && $query->membership_role === MembershipRole::MODERATOR)
             ->andReturn(collect([]));
 
-        $subject = new SendJoinRequestNotificationsJob($join_request);
+        $subject = new SendJoinRequestNotificationsJob($trooper_request);
         $subject->handle($bus);
 
         Notification::assertSentTo($admin_valid, JoinRequestSubmittedNotification::class);
@@ -66,14 +66,15 @@ class SendJoinRequestNotificationsJobTest extends TestCase
         Notification::fake();
 
         $root = Organization::factory()->asOrganization()->withNodePath('100:')->create();
-        $child = Organization::factory()->asOrganization()->withNodePath('100:200:')->withParent($root)->create();
+        $child = Organization::factory()->asRegion()->withNodePath('100:200:')->withParent($root)->create();
 
         $trooper = Trooper::factory()->asMember()->create();
 
-        $join_request = TrooperOrganization::factory()
+        $trooper_request = TrooperRequest::factory()
             ->forTrooper($trooper)
             ->forOrganization($child)
-            ->create([TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::PENDING]);
+            ->forPrimaryOrganization($root)
+            ->create();
 
         $moderator_in_tree = Trooper::factory()->asModerator()->withEmail('mod@example.com')->create();
         TrooperAssignment::factory()->forTrooper($moderator_in_tree)->forOrganization($root)->asModerator()->create();
@@ -85,17 +86,17 @@ class SendJoinRequestNotificationsJobTest extends TestCase
         $bus = Mockery::mock(MagicBus::class);
         $bus->shouldReceive('send')
             ->once()
-            ->withArgs(fn (object $query): bool => $query instanceof GetTroopersByRoleQuery
+            ->withArgs(fn(object $query): bool => $query instanceof GetTroopersByRoleQuery
                 && $query->membership_role === MembershipRole::ADMINISTRATOR)
             ->andReturn(collect([]));
 
         $bus->shouldReceive('send')
             ->once()
-            ->withArgs(fn (object $query): bool => $query instanceof GetTroopersByRoleQuery
+            ->withArgs(fn(object $query): bool => $query instanceof GetTroopersByRoleQuery
                 && $query->membership_role === MembershipRole::MODERATOR)
             ->andReturn(collect([$moderator_in_tree, $moderator_outside_tree]));
 
-        $subject = new SendJoinRequestNotificationsJob($join_request);
+        $subject = new SendJoinRequestNotificationsJob($trooper_request);
         $subject->handle($bus);
 
         Notification::assertSentTo($moderator_in_tree, JoinRequestSubmittedNotification::class);

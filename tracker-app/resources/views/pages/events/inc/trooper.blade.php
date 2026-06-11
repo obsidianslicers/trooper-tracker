@@ -137,7 +137,7 @@
                                 hx-target="#shift-container-{{ $event_trooper->event_shift->id }}"
                                 hx-swap="outerHTML"
                                 class="form-select-sm" />
-            @elseif($event_shift->is_closed && $event_shift->shift_ends_at->isPast() && ($can_moderate || $event_trooper->canMarkAttendance(Auth::user())))
+            @elseif($event_shift->is_closed && $event_shift->shift_ends_at->isPast() && $event_trooper->isEligibleForAttendance() && ($can_moderate || $event_trooper->canMarkAttendance(Auth::user())))
                 @if($event_trooper->status === \App\Enums\EventTrooperStatus::ATTENDED || $event_trooper->status === \App\Enums\EventTrooperStatus::UNABLE_TO_ATTEND)
                     <span class="{{ $event_trooper->status->color() }} d-block mb-1">
                         {{ to_title($event_trooper->status->name) }}

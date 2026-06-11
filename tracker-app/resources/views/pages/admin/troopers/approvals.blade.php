@@ -24,12 +24,12 @@
     <h5 class="mt-5">Club Join Requests</h5>
     <p class="text-muted small mb-3">Troopers requesting membership in external organizations.</p>
 
-    <x-transmission-bar :id="'join-requests'" />
+    <x-transmission-bar :id="'trooper-requests'" />
 
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-2 g-4">
-        @forelse($join_requests as $join_request)
+        @forelse($trooper_requests as $trooper_request)
             <div class="col">
-                @include('pages.admin.troopers.join-request-card', compact('join_request'))
+                @include('pages.admin.troopers.trooper-request-card', compact('trooper_request'))
             </div>
         @empty
             <div class="col-12 text-center py-5">

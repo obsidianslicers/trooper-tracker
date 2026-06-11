@@ -159,6 +159,11 @@ class EventTrooper extends BaseEventTrooper
         return $this->status->intendsToGo();
     }
 
+    public function isEligibleForAttendance(): bool
+    {
+        return $this->status !== EventTrooperStatus::CANCELLED;
+    }
+
     /**
      * Determines whether attendance can be marked for this assignment.
      *
@@ -170,7 +175,7 @@ class EventTrooper extends BaseEventTrooper
      */
     public function canMarkAttendance(Trooper $actor): bool
     {
-        if ($this->event_shift->is_closed && $this->event_shift->event->can_update_trooper_status && $this->hasOwnership($actor))
+        if ($this->isEligibleForAttendance() && $this->event_shift->is_closed && $this->event_shift->event->can_update_trooper_status && $this->hasOwnership($actor))
         {
             if ($this->intendsToGo())
             {

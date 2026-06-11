@@ -27,6 +27,7 @@ use App\Models\TrooperCostume;
 use App\Models\TrooperDonation;
 use App\Models\TrooperFriend;
 use App\Models\TrooperOrganization;
+use App\Models\TrooperRequest;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -85,6 +86,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Collection|TrooperDonation[] $trooper_donations
  * @property Collection|TrooperFriend[] $trooper_friends
  * @property Collection|Organization[] $organizations
+ * @property Collection|TrooperRequest[] $trooper_requests
  * @property Collection|\App\Models\Trooper[] $troopers
  *
  * @package App\Models\Base
@@ -272,6 +274,11 @@ class Trooper extends Model
         return $this->belongsToMany(Organization::class, 'tt_trooper_organizations')
                     ->withPivot(TrooperOrganization::ID, TrooperOrganization::IDENTIFIER, TrooperOrganization::MEMBERSHIP_STATUS, TrooperOrganization::JOIN_DATE, TrooperOrganization::SYNCHRONIZED_AT, TrooperOrganization::DELETED_AT, TrooperOrganization::CREATED_ID, TrooperOrganization::UPDATED_ID, TrooperOrganization::DELETED_ID)
                     ->withTimestamps();
+    }
+
+    public function trooper_requests(): HasMany
+    {
+        return $this->hasMany(TrooperRequest::class);
     }
 
     public function troopers(): HasMany

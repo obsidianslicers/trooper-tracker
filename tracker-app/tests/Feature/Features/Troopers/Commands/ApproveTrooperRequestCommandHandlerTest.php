@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Features\Troopers\Commands;
 
-use App\Features\Troopers\Commands\ApproveJoinRequestCommand;
-use App\Features\Troopers\Commands\ApproveJoinRequestCommandHandler;
+use App\Enums\TrooperRequestStatus;
 use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
+use App\Features\Troopers\Commands\ApproveTrooperRequestCommand;
+use App\Features\Troopers\Commands\ApproveTrooperRequestCommandHandler;
+use App\Models\TrooperRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
@@ -19,65 +21,112 @@ use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 /**
- * @see ApproveJoinRequestCommandHandler
+ * @see ApproveTrooperRequestCommandHandler
  */
-class ApproveJoinRequestCommandHandlerTest extends TestCase
+class ApproveTrooperRequestCommandHandlerTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_invoke_sets_status_to_active(): void
+    public function test_invoke_marks_join_request_as_approved(): void
     {
         $trooper = Trooper::factory()->asMember()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
 
-        $join_request = TrooperOrganization::factory()
+        $trooper_request = TrooperRequest::factory()
             ->forTrooper($trooper)
             ->forOrganization($organization)
-            ->create([TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::PENDING]);
+            ->forPrimaryOrganization($organization)
+            ->create();
 
-        $handler = app(ApproveJoinRequestCommandHandler::class);
-        $handler(new ApproveJoinRequestCommand($join_request));
+        $handler = app(ApproveTrooperRequestCommandHandler::class);
+        $handler(new ApproveTrooperRequestCommand($trooper_request));
 
-        $join_request->refresh();
-        $this->assertEquals(MembershipStatus::ACTIVE, $join_request->membership_status);
+        $trooper_request->refresh();
+        $this->assertEquals(TrooperRequestStatus::APPROVED, $trooper_request->status);
+        $this->assertNotNull($trooper_request->updated_at);
     }
 
-    public function test_invoke_creates_trooper_assignment_as_member_for_visitor(): void
+    public function test_invoke_creates_active_trooper_organization_at_primary_club(): void
     {
-        $trooper = Trooper::factory()->asVisitor()->asPending()->create();
+        $trooper = Trooper::factory()->asMember()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
 
-        $join_request = TrooperOrganization::factory()
+        $trooper_request = TrooperRequest::factory()
             ->forTrooper($trooper)
             ->forOrganization($organization)
-            ->create([TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::PENDING]);
+            ->forPrimaryOrganization($organization)
+            ->create();
 
-        $handler = app(ApproveJoinRequestCommandHandler::class);
-        $handler(new ApproveJoinRequestCommand($join_request));
+        $handler = app(ApproveTrooperRequestCommandHandler::class);
+        $handler(new ApproveTrooperRequestCommand($trooper_request));
 
-        $this->assertDatabaseHas('tt_trooper_assignments', [
-            TrooperAssignment::TROOPER_ID => $trooper->id,
-            TrooperAssignment::ORGANIZATION_ID => $organization->id,
-            TrooperAssignment::IS_MEMBER => true,
+        $this->assertDatabaseHas('tt_trooper_organizations', [
+            TrooperOrganization::TROOPER_ID => $trooper->id,
+            TrooperOrganization::ORGANIZATION_ID => $organization->id,
+            TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
         ]);
     }
 
-    public function test_invoke_does_not_create_trooper_assignment_for_non_visitor(): void
+    public function test_invoke_creates_trooper_assignment_at_requested_org(): void
     {
-        $trooper = Trooper::factory()->asMember()->asPending()->create();
-        $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
+        $trooper = Trooper::factory()->asMember()->create();
+        $primary = Organization::factory()->asOrganization()->withNodePath('100:')->create();
+        $region = Organization::factory()->asRegion()->withParent($primary)->withNodePath('100:200:')->create();
 
-        $join_request = TrooperOrganization::factory()
+        $trooper_request = TrooperRequest::factory()
             ->forTrooper($trooper)
-            ->forOrganization($organization)
-            ->create([TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::PENDING]);
+            ->forOrganization($region)
+            ->forPrimaryOrganization($primary)
+            ->create();
 
-        $handler = app(ApproveJoinRequestCommandHandler::class);
-        $handler(new ApproveJoinRequestCommand($join_request));
+        $handler = app(ApproveTrooperRequestCommandHandler::class);
+        $handler(new ApproveTrooperRequestCommand($trooper_request));
 
-        $this->assertDatabaseMissing('tt_trooper_assignments', [
+        $this->assertDatabaseHas('tt_trooper_assignments', [
             TrooperAssignment::TROOPER_ID => $trooper->id,
-            TrooperAssignment::ORGANIZATION_ID => $organization->id,
+            TrooperAssignment::ORGANIZATION_ID => $region->id,
+            TrooperAssignment::IS_MEMBER => true,
+        ]);
+        $this->assertDatabaseHas('tt_trooper_organizations', [
+            TrooperOrganization::TROOPER_ID => $trooper->id,
+            TrooperOrganization::ORGANIZATION_ID => $primary->id,
+            TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
+        ]);
+    }
+
+    public function test_invoke_creates_notification_assignments_for_requested_org_lineage(): void
+    {
+        $trooper = Trooper::factory()->asMember()->create();
+        $primary = Organization::factory()->asOrganization()->withNodePath('100:')->create();
+        $region = Organization::factory()->asRegion()->withParent($primary)->withNodePath('100:200:')->create();
+        $unit = Organization::factory()->asUnit()->withParent($region)->withNodePath('100:200:300:')->create();
+
+        $trooper_request = TrooperRequest::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($unit)
+            ->forPrimaryOrganization($primary)
+            ->create();
+
+        $handler = app(ApproveTrooperRequestCommandHandler::class);
+        $handler(new ApproveTrooperRequestCommand($trooper_request));
+
+        $this->assertDatabaseHas('tt_trooper_assignments', [
+            TrooperAssignment::TROOPER_ID => $trooper->id,
+            TrooperAssignment::ORGANIZATION_ID => $primary->id,
+            TrooperAssignment::SHOULD_NOTIFY => true,
+            TrooperAssignment::IS_MEMBER => false,
+        ]);
+        $this->assertDatabaseHas('tt_trooper_assignments', [
+            TrooperAssignment::TROOPER_ID => $trooper->id,
+            TrooperAssignment::ORGANIZATION_ID => $region->id,
+            TrooperAssignment::SHOULD_NOTIFY => true,
+            TrooperAssignment::IS_MEMBER => false,
+        ]);
+        $this->assertDatabaseHas('tt_trooper_assignments', [
+            TrooperAssignment::TROOPER_ID => $trooper->id,
+            TrooperAssignment::ORGANIZATION_ID => $unit->id,
+            TrooperAssignment::SHOULD_NOTIFY => true,
+            TrooperAssignment::IS_MEMBER => true,
         ]);
     }
 
@@ -93,7 +142,7 @@ class ApproveJoinRequestCommandHandlerTest extends TestCase
             ->withNodePath('100:200:')
             ->create();
 
-        // Insert directly to simulate stale historical data that predates visitor restrictions.
+        // Insert directly to simulate stale historical data.
         DB::table('tt_trooper_assignments')->insert([
             TrooperAssignment::TROOPER_ID => $trooper->id,
             TrooperAssignment::ORGANIZATION_ID => $stale_assignment_org->id,
@@ -102,15 +151,16 @@ class ApproveJoinRequestCommandHandlerTest extends TestCase
             'updated_at' => now(),
         ]);
 
-        $join_request = TrooperOrganization::factory()
+        $trooper_request = TrooperRequest::factory()
             ->forTrooper($trooper)
             ->forOrganization($root)
-            ->create([TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::PENDING]);
+            ->forPrimaryOrganization($root)
+            ->create();
 
-        $handler = app(ApproveJoinRequestCommandHandler::class);
-        $handler(new ApproveJoinRequestCommand($join_request));
+        $handler = app(ApproveTrooperRequestCommandHandler::class);
+        $handler(new ApproveTrooperRequestCommand($trooper_request));
 
-        $this->assertDatabaseHas('tt_trooper_assignments', [
+        $this->assertSoftDeleted('tt_trooper_assignments', [
             TrooperAssignment::TROOPER_ID => $trooper->id,
             TrooperAssignment::ORGANIZATION_ID => $stale_assignment_org->id,
             TrooperAssignment::IS_MEMBER => false,
@@ -124,13 +174,14 @@ class ApproveJoinRequestCommandHandlerTest extends TestCase
         $trooper = Trooper::factory()->asMember()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
 
-        $join_request = TrooperOrganization::factory()
+        $trooper_request = TrooperRequest::factory()
             ->forTrooper($trooper)
             ->forOrganization($organization)
-            ->create([TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::PENDING]);
+            ->forPrimaryOrganization($organization)
+            ->create();
 
-        $handler = app(ApproveJoinRequestCommandHandler::class);
-        $handler(new ApproveJoinRequestCommand($join_request));
+        $handler = app(ApproveTrooperRequestCommandHandler::class);
+        $handler(new ApproveTrooperRequestCommand($trooper_request));
 
         Notification::assertSentTo($trooper, JoinRequestApprovedNotification::class);
     }
@@ -142,13 +193,14 @@ class ApproveJoinRequestCommandHandlerTest extends TestCase
         $trooper = Trooper::factory()->asMember()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
 
-        $join_request = TrooperOrganization::factory()
+        $trooper_request = TrooperRequest::factory()
             ->forTrooper($trooper)
             ->forOrganization($organization)
-            ->create([TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::PENDING]);
+            ->forPrimaryOrganization($organization)
+            ->create();
 
-        $handler = app(ApproveJoinRequestCommandHandler::class);
-        $handler(new ApproveJoinRequestCommand($join_request, true));
+        $handler = app(ApproveTrooperRequestCommandHandler::class);
+        $handler(new ApproveTrooperRequestCommand($trooper_request, true));
 
         Notification::assertNothingSent();
     }
@@ -158,14 +210,15 @@ class ApproveJoinRequestCommandHandlerTest extends TestCase
         $trooper = Trooper::factory()->asMember()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
 
-        $join_request = TrooperOrganization::factory()
+        $trooper_request = TrooperRequest::factory()
             ->forTrooper($trooper)
             ->forOrganization($organization)
+            ->forPrimaryOrganization($organization)
             ->withIdentifier('TK-99999')
-            ->create([TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::PENDING]);
+            ->create();
 
-        $handler = app(ApproveJoinRequestCommandHandler::class);
-        $handler(new ApproveJoinRequestCommand($join_request));
+        $handler = app(ApproveTrooperRequestCommandHandler::class);
+        $handler(new ApproveTrooperRequestCommand($trooper_request));
 
         $this->assertDatabaseHas('tt_trooper_organizations', [
             TrooperOrganization::TROOPER_ID => $trooper->id,
@@ -191,13 +244,14 @@ class ApproveJoinRequestCommandHandlerTest extends TestCase
             ->withIdentifier('TK-11111')
             ->create([TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE]);
 
-        $join_request = TrooperOrganization::factory()
+        $trooper_request = TrooperRequest::factory()
             ->forTrooper($trooper)
             ->forOrganization($region)
-            ->create([TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::PENDING]);
+            ->forPrimaryOrganization($primary_club)
+            ->create();
 
-        $handler = app(ApproveJoinRequestCommandHandler::class);
-        $handler(new ApproveJoinRequestCommand($join_request));
+        $handler = app(ApproveTrooperRequestCommandHandler::class);
+        $handler(new ApproveTrooperRequestCommand($trooper_request));
 
         $this->assertDatabaseHas('tt_trooper_organizations', [
             TrooperOrganization::TROOPER_ID => $trooper->id,
@@ -258,29 +312,29 @@ class ApproveJoinRequestCommandHandlerTest extends TestCase
             ->asMember()
             ->create();
 
-        $join_request = TrooperOrganization::factory()
+        $trooper_request = TrooperRequest::factory()
             ->forTrooper($child)
             ->forOrganization($organization)
+            ->forPrimaryOrganization($organization)
             ->withIdentifier('654321')
-            ->create([
-                TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::PENDING,
-            ]);
+            ->create();
 
-        $handler = app(ApproveJoinRequestCommandHandler::class);
-        $handler(new ApproveJoinRequestCommand($join_request));
+        $handler = app(ApproveTrooperRequestCommandHandler::class);
+        $handler(new ApproveTrooperRequestCommand($trooper_request));
 
-        $join_request->refresh();
-        $this->assertEquals(MembershipStatus::ACTIVE, $join_request->membership_status);
+        $trooper_request->refresh();
+        $this->assertEquals(TrooperRequestStatus::APPROVED, $trooper_request->status);
+        $this->assertNotNull($trooper_request->updated_at);
+
+        $this->assertSoftDeleted('tt_trooper_assignments', [
+            TrooperAssignment::TROOPER_ID => $child->id,
+            TrooperAssignment::ORGANIZATION_ID => $unit->id,
+        ]);
 
         $this->assertDatabaseHas('tt_trooper_assignments', [
             TrooperAssignment::TROOPER_ID => $child->id,
-            TrooperAssignment::ORGANIZATION_ID => $unit->id,
-            TrooperAssignment::IS_MEMBER => true,
-        ]);
-
-        $this->assertDatabaseMissing('tt_trooper_assignments', [
-            TrooperAssignment::TROOPER_ID => $child->id,
             TrooperAssignment::ORGANIZATION_ID => $organization->id,
+            TrooperAssignment::IS_MEMBER => true,
         ]);
 
         $this->assertDatabaseHas('tt_trooper_organizations', [

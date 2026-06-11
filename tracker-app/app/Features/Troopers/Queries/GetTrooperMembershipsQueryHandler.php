@@ -54,7 +54,17 @@ readonly class GetTrooperMembershipsQueryHandler implements QueryHandlerInterfac
         foreach ($organizations as $organization)
         {
             $trooper_organization = $organization_memberships->get($organization->id);
-            $organization->is_member = $trooper_organization !== null;
+
+            $assignment_org = null;
+            foreach ($assignments as $assignment)
+            {
+                if (str_starts_with($assignment->organization->node_path, $organization->node_path))
+                {
+                    $assignment_org = $assignment->organization;
+                }
+            }
+
+            $organization->is_member = $trooper_organization !== null && $assignment_org !== null;
 
             if ($trooper_organization === null)
             {
@@ -63,14 +73,7 @@ readonly class GetTrooperMembershipsQueryHandler implements QueryHandlerInterfac
 
             $organization->identifier = $trooper_organization->identifier;
             $organization->membership_status = $trooper_organization->membership_status;
-
-            foreach ($assignments as $assignment)
-            {
-                if (str_starts_with($assignment->organization->node_path, $organization->node_path))
-                {
-                    $organization->assignment = $assignment->organization;
-                }
-            }
+            $organization->assignment = $assignment_org;
         }
 
         return $organizations;

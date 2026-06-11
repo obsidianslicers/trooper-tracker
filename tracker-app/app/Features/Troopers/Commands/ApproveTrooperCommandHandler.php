@@ -7,7 +7,7 @@ namespace App\Features\Troopers\Commands;
 use App\Bus\Contracts\CommandHandlerInterface;
 use App\Bus\MagicBus;
 use App\Enums\MembershipStatus;
-use App\Models\TrooperOrganization;
+use App\Models\TrooperRequest;
 use App\Notifications\Troopers\MembershipApprovedNotification;
 use App\Notifications\Troopers\TrooperDeniedNotification;
 
@@ -39,6 +39,17 @@ readonly class ApproveTrooperCommandHandler implements CommandHandlerInterface
 
         if (!$message->is_approved)
         {
+            TrooperRequest::where(TrooperRequest::TROOPER_ID, $message->trooper->id)
+                ->pending()
+                ->get()
+                ->each(function (TrooperRequest $trooper_request) use ($message): void {
+                    $this->bus->send(new DenyTrooperRequestCommand(
+                        $trooper_request,
+                        $message->denial_reason,
+                        suppress_notification: true
+                    ));
+                });
+
             $message->trooper->notify(new TrooperDeniedNotification($message->denial_reason));
         }
 
@@ -46,12 +57,12 @@ readonly class ApproveTrooperCommandHandler implements CommandHandlerInterface
         {
             $message->trooper->notify(new MembershipApprovedNotification);
 
-            TrooperOrganization::where(TrooperOrganization::TROOPER_ID, $message->trooper->id)
+            TrooperRequest::where(TrooperRequest::TROOPER_ID, $message->trooper->id)
                 ->pending()
-                ->with('organization')
                 ->get()
-                ->each(fn (TrooperOrganization $org) => $this->bus->send(new ApproveJoinRequestCommand($org, suppress_notification: true))
-                );
+                ->each(function (TrooperRequest $trooper_request): void {
+                    $this->bus->send(new ApproveTrooperRequestCommand($trooper_request, suppress_notification: true));
+                });
         }
 
         return null;
