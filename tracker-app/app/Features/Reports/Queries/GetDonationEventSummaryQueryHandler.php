@@ -10,7 +10,6 @@ use App\Enums\EventTrooperStatus;
 use App\Models\Event;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 
 /**
  * @implements QueryHandlerInterface<GetDonationEventSummaryQuery>
@@ -55,15 +54,8 @@ readonly class GetDonationEventSummaryQueryHandler implements QueryHandlerInterf
             ->orderBy('shift_starts_at')
             ->limit(1);
 
-        // Exclude legacy charity_* columns from tt_events.* to prevent name conflicts
-        // with the shift-level charity subquery aliases below.
-        $event_columns = collect(Schema::getColumnListing('tt_events'))
-            ->reject(fn (string $col): bool => str_starts_with($col, 'charity_'))
-            ->map(fn (string $col): string => "tt_events.{$col}")
-            ->all();
-
         $query = Event::query()
-            ->select($event_columns)
+            ->select('tt_events.*')
             ->selectSub($attendeesCountSub, 'attendees_count')
             ->selectSub($directFundsSub, 'charity_direct_funds')
             ->selectSub($indirectFundsSub, 'charity_indirect_funds')

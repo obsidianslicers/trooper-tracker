@@ -79,12 +79,12 @@ class DatabaseSeeder extends Seeder
                 Event::EVENT_START => $date,
                 Event::EVENT_END => $date->copy()->addHours(4),
                 Event::STATUS => $isPast ? EventStatus::CLOSED : EventStatus::OPEN,
-                Event::CHARITY_DIRECT_FUNDS => $isPast ? rand(100, 1000) : 0,
             ]);
 
             // 5. Tactical Deployment (Shifts & Attendance)
             $shift = EventShift::factory()->create([
                 EventShift::EVENT_ID => $event->id,
+                EventShift::CHARITY_DIRECT_FUNDS => $isPast ? rand(100, 1000) : 0,
             ]);
 
             if ($event->status === EventStatus::CLOSED)

@@ -20,6 +20,7 @@ class EventCharityShiftSeederTest extends TestCase
     public function test_run_updates_shift_charity_and_prints_summary_breakdown(): void
     {
         $this->createLegacyEventsTable();
+        $this->createTemporaryEventCharityColumns();
 
         $mapped_event = Event::factory()->create();
         EventShift::factory()->forEvent($mapped_event)->create([EventShift::ID => 100]);
@@ -148,6 +149,22 @@ class EventCharityShiftSeederTest extends TestCase
             $table->string('charityName')->nullable();
             $table->integer('charityAddHours')->nullable();
             $table->text('charityNote')->nullable();
+        });
+    }
+
+    private function createTemporaryEventCharityColumns(): void
+    {
+        if (Schema::hasColumn('tt_events', 'charity_direct_funds'))
+        {
+            return;
+        }
+
+        Schema::table('tt_events', function (Blueprint $table): void {
+            $table->integer('charity_direct_funds')->default(0);
+            $table->integer('charity_indirect_funds')->default(0);
+            $table->string('charity_name', 128)->nullable();
+            $table->integer('charity_hours')->nullable();
+            $table->text('charity_notes')->nullable();
         });
     }
 }
