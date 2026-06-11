@@ -40,14 +40,12 @@ class ApprovalSubmitHtmxController extends MagicBusController
 
         $this->bus->send($approval_cmd);
 
-        $with = [
+        $trooper->load([
             'trooper_assignments' => function ($q) {
                 $q->where(TrooperAssignment::IS_MEMBER, true)
                     ->with('organization.parent');
             },
-        ];
-
-        $trooper->load($with);
+        ]);
 
         $data = compact('trooper');
 

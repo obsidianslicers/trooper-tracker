@@ -86,4 +86,19 @@ class GetTrooperMembershipsQueryHandlerTest extends TestCase
         $matched = $result->firstWhere('id', $organization->id);
         $this->assertFalse($matched->is_member);
     }
+
+    public function test_invoke_sets_is_member_false_when_no_active_assignment(): void
+    {
+        $trooper = Trooper::factory()->asMember()->create();
+        $organization = Organization::factory()->asOrganization()->withNodePath('100.')->create();
+
+        // Formal membership record exists but no active assignment (stale data scenario).
+        TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($organization)->create();
+
+        $subject = new GetTrooperMembershipsQueryHandler;
+        $result = $subject(new GetTrooperMembershipsQuery($trooper));
+
+        $matched = $result->firstWhere('id', $organization->id);
+        $this->assertFalse($matched->is_member);
+    }
 }

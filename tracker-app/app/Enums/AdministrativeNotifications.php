@@ -14,7 +14,7 @@ enum AdministrativeNotifications: string
     /**
      * Sent when there are new club join requests.
      */
-    case JOIN_REQUESTS = 'join_requests';
+    case TROOPER_REQUESTS = 'trooper_requests';
 
     /**
      * Sent when a new trooper registration is submitted.

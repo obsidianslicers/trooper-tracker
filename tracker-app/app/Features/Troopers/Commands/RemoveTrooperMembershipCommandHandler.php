@@ -35,11 +35,17 @@ readonly class RemoveTrooperMembershipCommandHandler implements CommandHandlerIn
 
         if ($organization_ids->isNotEmpty())
         {
-            TrooperAssignment::query()
-                ->where(TrooperAssignment::TROOPER_ID, $message->trooper->id)
+            $ids = TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $message->trooper->id)
                 ->whereIn(TrooperAssignment::ORGANIZATION_ID, $organization_ids)
                 ->where(TrooperAssignment::IS_MEMBER, true)
-                ->update([TrooperAssignment::IS_MEMBER => false]);
+                ->pluck(TrooperAssignment::ID);
+
+            if ($ids->isNotEmpty())
+            {
+                TrooperAssignment::whereIn(TrooperAssignment::ID, $ids)
+                    ->update([TrooperAssignment::IS_MEMBER => false]);
+                TrooperAssignment::whereIn(TrooperAssignment::ID, $ids)->delete();
+            }
         }
 
         return null;

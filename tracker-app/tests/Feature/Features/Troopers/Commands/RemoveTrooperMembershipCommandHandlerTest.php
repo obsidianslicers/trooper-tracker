@@ -48,7 +48,7 @@ class RemoveTrooperMembershipCommandHandlerTest extends TestCase
         $handler = app(RemoveTrooperMembershipCommandHandler::class);
         $handler(new RemoveTrooperMembershipCommand($trooper, $root));
 
-        $this->assertDatabaseHas('tt_trooper_assignments', [
+        $this->assertSoftDeleted('tt_trooper_assignments', [
             TrooperAssignment::TROOPER_ID => $trooper->id,
             TrooperAssignment::ORGANIZATION_ID => $child->id,
             TrooperAssignment::IS_MEMBER => false,

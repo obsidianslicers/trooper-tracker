@@ -6,11 +6,10 @@ namespace Tests\Feature\Features\Troopers\Queries;
 
 use App\Features\Troopers\Queries\GetPendingJoinRequestsQuery;
 use App\Features\Troopers\Queries\GetPendingJoinRequestsQueryHandler;
-use App\Enums\MembershipStatus;
+use App\Models\TrooperRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
-use App\Models\TrooperOrganization;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -31,15 +30,8 @@ class GetPendingJoinRequestsQueryHandlerTest extends TestCase
         $member_a = Trooper::factory()->asMember()->create();
         $member_b = Trooper::factory()->asMember()->create();
 
-        TrooperOrganization::factory()
-            ->forTrooper($member_a)
-            ->forOrganization($org_a)
-            ->create([TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::PENDING]);
-
-        TrooperOrganization::factory()
-            ->forTrooper($member_b)
-            ->forOrganization($org_b)
-            ->create([TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::PENDING]);
+        TrooperRequest::factory()->forTrooper($member_a)->forOrganization($org_a)->forPrimaryOrganization($org_a)->create();
+        TrooperRequest::factory()->forTrooper($member_b)->forOrganization($org_b)->forPrimaryOrganization($org_b)->create();
 
         $handler = app(GetPendingJoinRequestsQueryHandler::class);
         $result = $handler(new GetPendingJoinRequestsQuery($admin));
@@ -59,15 +51,8 @@ class GetPendingJoinRequestsQueryHandlerTest extends TestCase
         $member_a = Trooper::factory()->asMember()->create();
         $member_b = Trooper::factory()->asMember()->create();
 
-        TrooperOrganization::factory()
-            ->forTrooper($member_a)
-            ->forOrganization($org_a)
-            ->create([TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::PENDING]);
-
-        TrooperOrganization::factory()
-            ->forTrooper($member_b)
-            ->forOrganization($org_b)
-            ->create([TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::PENDING]);
+        TrooperRequest::factory()->forTrooper($member_a)->forOrganization($org_a)->forPrimaryOrganization($org_a)->create();
+        TrooperRequest::factory()->forTrooper($member_b)->forOrganization($org_b)->forPrimaryOrganization($org_b)->create();
 
         $handler = app(GetPendingJoinRequestsQueryHandler::class);
         $result = $handler(new GetPendingJoinRequestsQuery($moderator));
@@ -76,16 +61,18 @@ class GetPendingJoinRequestsQueryHandlerTest extends TestCase
         $this->assertEquals($org_a->id, $result->first()->organization_id);
     }
 
-    public function test_invoke_excludes_non_pending_requests(): void
+    public function test_invoke_excludes_approved_requests(): void
     {
         $admin = Trooper::factory()->asAdministrator()->create();
         $organization = Organization::factory()->asOrganization()->create();
         $member = Trooper::factory()->asMember()->create();
 
-        TrooperOrganization::factory()
+        TrooperRequest::factory()
             ->forTrooper($member)
             ->forOrganization($organization)
-            ->create([TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE]);
+            ->forPrimaryOrganization($organization)
+            ->asApproved()
+            ->create();
 
         $handler = app(GetPendingJoinRequestsQueryHandler::class);
         $result = $handler(new GetPendingJoinRequestsQuery($admin));
@@ -93,22 +80,42 @@ class GetPendingJoinRequestsQueryHandlerTest extends TestCase
         $this->assertCount(0, $result);
     }
 
-    public function test_invoke_eager_loads_trooper_and_organization(): void
+    public function test_invoke_excludes_requests_from_pending_troopers(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $organization = Organization::factory()->asOrganization()->create();
+        $pending_trooper = Trooper::factory()->asPending()->create();
+
+        TrooperRequest::factory()
+            ->forTrooper($pending_trooper)
+            ->forOrganization($organization)
+            ->forPrimaryOrganization($organization)
+            ->create();
+
+        $handler = app(GetPendingJoinRequestsQueryHandler::class);
+        $result = $handler(new GetPendingJoinRequestsQuery($admin));
+
+        $this->assertCount(0, $result);
+    }
+
+    public function test_invoke_eager_loads_trooper_organization_and_primary_organization(): void
     {
         $admin = Trooper::factory()->asAdministrator()->create();
         $organization = Organization::factory()->asOrganization()->create();
         $member = Trooper::factory()->asMember()->create();
 
-        TrooperOrganization::factory()
+        TrooperRequest::factory()
             ->forTrooper($member)
             ->forOrganization($organization)
-            ->create([TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::PENDING]);
+            ->forPrimaryOrganization($organization)
+            ->create();
 
         $handler = app(GetPendingJoinRequestsQueryHandler::class);
         $result = $handler(new GetPendingJoinRequestsQuery($admin));
 
-        $join_request = $result->first();
-        $this->assertTrue($join_request->relationLoaded('trooper'));
-        $this->assertTrue($join_request->relationLoaded('organization'));
+        $trooper_request = $result->first();
+        $this->assertTrue($trooper_request->relationLoaded('trooper'));
+        $this->assertTrue($trooper_request->relationLoaded('organization'));
+        $this->assertTrue($trooper_request->relationLoaded('primaryOrganization'));
     }
 }

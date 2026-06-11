@@ -6,7 +6,7 @@ namespace App\Models;
 
 use App\Enums\MembershipStatus;
 use App\Models\Base\TrooperOrganization as BaseTrooperOrganization;
-use App\Models\Scopes\HasTrooperOrganizationScopes;
+use App\Models\Concerns\HasObserver;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
@@ -19,7 +19,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class TrooperOrganization extends BaseTrooperOrganization
 {
     use HasFactory;
-    use HasTrooperOrganizationScopes;
+    use HasObserver;
 
     /**
      * The attributes that should be cast.

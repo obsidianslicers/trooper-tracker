@@ -5,15 +5,14 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Auth;
 
 use App\Features\Troopers\Commands\RegisterTrooperCommand;
-use App\Features\Troopers\Commands\UpdateTrooperIdentifiersCommand;
-use App\Features\Troopers\Commands\UpdateTrooperMembershipsCommand;
-use App\Features\Troopers\Commands\UpdateTrooperNotificationsCommand;
+use App\Features\Troopers\Commands\SubmitTrooperRequestCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Jobs\SendTrooperRegisteredNotificationsJob;
 use App\Mail\Auth\GuardianAwareness;
 use App\Mail\Auth\TrooperRegistered;
 use App\Models\Organization;
+use App\Models\Trooper;
 use Illuminate\Http\RedirectResponse;
 use Mail;
 
@@ -22,7 +21,7 @@ use Mail;
  *
  * This controller processes the complete registration flow by:
  * - Creating the trooper account with PENDING status
- * - Assigning organization memberships and notification preferences
+ * - Submitting pending organization join requests
  * - Linking OAuth accounts if applicable
  * - Sending confirmation email
  * - Redirecting to the thank you page
@@ -33,7 +32,7 @@ class RegisterSubmitController extends MagicBusController
      * Handle the incoming registration request.
      *
      * Orchestrates the multi-step registration process including trooper creation,
-     * organization assignments, notification preferences, and email confirmation.
+     * organization join requests and email confirmation.
      * The newly created trooper will have PENDING status until approved by an admin.
      *
      * @param  RegisterRequest  $request  The validated registration form request
@@ -46,21 +45,7 @@ class RegisterSubmitController extends MagicBusController
         $trooper = $this->bus->send($register_cmd);
 
         $organizations = $request->validated('organizations', []);
-
-        $memberships = $this->getMemberships($organizations, $request->validated('account_type'));
-        $notifications = $this->getNotifications($organizations);
-
-        $identifier_command = new UpdateTrooperIdentifiersCommand($trooper, $organizations);
-
-        $this->bus->send($identifier_command);
-
-        $membership_command = new UpdateTrooperMembershipsCommand($trooper, $memberships);
-
-        $this->bus->send($membership_command);
-
-        $notification_command = new UpdateTrooperNotificationsCommand($trooper, $notifications);
-
-        $this->bus->send($notification_command);
+        $this->submitJoinRequests($trooper, $organizations, $request->validated('account_type'));
 
         Mail::to($trooper->email)->queue(new TrooperRegistered);
 
@@ -77,53 +62,16 @@ class RegisterSubmitController extends MagicBusController
     }
 
     /**
-     * Extract notification preferences from the organizations data.
+     * Submit pending join requests from the organizations selected during registration.
      *
-     * Builds an array of organization IDs with notification flags enabled
-     * for selected organizations and their associated regions/units.
-     *
-     * @param  array  $organizations  The organizations data from the registration form
-     * @return array Array keyed by organization ID with should_notify flags
+     * @param  array<int, array<string, mixed>>  $organizations  The organizations data from the registration form
      */
-    private function getNotifications(array $organizations): array
+    private function submitJoinRequests(Trooper $trooper, array $organizations, string $account_type): void
     {
-        $notifications = [];
-
-        foreach ($organizations as $organization_id => $data)
+        if ($account_type === 'handler')
         {
-            if (!empty($data['selected']))
-            {
-                $notifications[$organization_id]['should_notify'] = true;
-
-                if (isset($data['region_id']))
-                {
-                    $notifications[$data['region_id']]['should_notify'] = true;
-                }
-
-                if (isset($data['unit_id']))
-                {
-                    $notifications[$data['unit_id']]['should_notify'] = true;
-                }
-            }
+            return;
         }
-
-        return $notifications;
-    }
-
-    /**
-     * Extract membership assignments from the organizations data.
-     *
-     * Determines which organization hierarchy level (region or unit) the trooper
-     * should be marked as a member of based on the selected organization structure.
-     * If a region has no units, membership is assigned to the region; otherwise,
-     * membership is assigned to the selected unit.
-     *
-     * @param  array  $organizations  The organizations data from the registration form
-     * @return array Array keyed by organization ID with is_member flags
-     */
-    private function getMemberships(array $organizations, string $account_type): array
-    {
-        $memberships = [];
 
         foreach ($organizations as $organization_id => $data)
         {
@@ -139,38 +87,54 @@ class RegisterSubmitController extends MagicBusController
                 continue;
             }
 
-            $assignment = $this->resolveAssignment($data, $organization, $account_type, (int) $organization_id);
+            $requested_organization = $this->resolveJoinRequestOrganization($data, $organization, $account_type);
 
-            if ($assignment !== null)
+            if ($requested_organization !== null)
             {
-                $memberships[$organization_id]['assignment'] = $assignment;
+                $identifier = isset($data['identifier']) ? trim((string) $data['identifier']) : null;
+
+                $this->bus->send(new SubmitTrooperRequestCommand(
+                    $trooper,
+                    $requested_organization,
+                    $identifier === '' ? null : $identifier
+                ));
             }
         }
-
-        return $memberships;
     }
 
-    private function resolveAssignment(array $data, Organization $organization, string $account_type, int $organization_id): ?int
+    private function resolveJoinRequestOrganization(array $data, Organization $organization, string $account_type): ?Organization
     {
-        if (isset($data['region_id']))
-        {
-            $region = $organization->organizations()
-                ->ofTypeRegions()
-                ->firstWhere(Organization::ID, $data['region_id']);
-
-            if ($region->organizations()->count() == 0)
-            {
-                return (int) $data['region_id'];
-            }
-
-            return isset($data['unit_id']) ? (int) $data['unit_id'] : null;
-        }
-
         if ($account_type === 'visitor')
         {
-            return $organization_id;
+            return $organization;
         }
 
-        return null;
+        if (!isset($data['region_id']))
+        {
+            return null;
+        }
+
+        $region = $organization->organizations()
+            ->ofTypeRegions()
+            ->firstWhere(Organization::ID, $data['region_id']);
+
+        if (!$region)
+        {
+            return null;
+        }
+
+        if ($region->organizations()->count() == 0)
+        {
+            return $region;
+        }
+
+        if (!isset($data['unit_id']))
+        {
+            return null;
+        }
+
+        return $region->organizations()
+            ->ofTypeUnits()
+            ->firstWhere(Organization::ID, $data['unit_id']);
     }
 }
