@@ -48,7 +48,6 @@ class Event extends BaseEvent
             self::TYPE => EventType::class,
             self::STATUS => EventStatus::class,
             self::NAME => SanitizeHtmlCast::class,
-            self::CHARITY_NAME => SanitizeHtmlCast::class,
             self::CONTACT_NAME => SanitizeHtmlCast::class,
             self::CONTACT_PHONE => SanitizeHtmlCast::class,
             self::CONTACT_EMAIL => SanitizeHtmlCast::class,
@@ -60,8 +59,6 @@ class Event extends BaseEvent
             self::VENUE_COUNTRY => SanitizeHtmlCast::class,
             self::EVENT_WEBSITE => SanitizeHtmlCast::class,
             self::REQUESTED_CHARACTER_TYPES => SanitizeHtmlCast::class,
-            self::CHARITY_DIRECT_FUNDS => EnforceZeroCast::class,
-            self::CHARITY_INDIRECT_FUNDS => EnforceZeroCast::class,
         ]);
     }
 

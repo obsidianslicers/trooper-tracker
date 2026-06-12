@@ -59,12 +59,6 @@ trait CommonRules
             Event::VENUE_ZIP => ['nullable', 'string', 'max:128'],
             Event::VENUE_COUNTRY => ['nullable', 'string', 'max:128'],
 
-            Event::CHARITY_NAME => ['nullable', 'string', 'max:128'],
-            Event::CHARITY_HOURS => ['nullable', 'integer', 'min:0'],
-            Event::CHARITY_DIRECT_FUNDS => ['nullable', 'integer', 'min:0'],
-            Event::CHARITY_INDIRECT_FUNDS => ['nullable', 'integer', 'min:0'],
-            Event::CHARITY_NOTES => ['nullable', 'string'],
-
             Event::EVENT_START => ['required', 'date'],
             Event::EVENT_END => ['required', 'date', 'after:'.Event::EVENT_START],
             Event::EVENT_WEBSITE => ['nullable', 'string', 'max:512'],

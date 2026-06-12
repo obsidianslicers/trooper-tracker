@@ -123,12 +123,19 @@ readonly class GetDashboardMetricsQueryHandler implements QueryHandlerInterface
      */
     private function getImpactMetrics(Carbon $date): array
     {
-        $closed_events = Event::where(Event::EVENT_START, '>=', $date)
-            ->where(Event::STATUS, EventStatus::CLOSED)
-            ->get();
+        $shifts = EventShift::whereHas('event', fn ($q) => $q
+            ->where(Event::EVENT_START, '>=', $date)
+            ->where(Event::STATUS, EventStatus::CLOSED))
+            ->get([
+                EventShift::CHARITY_DIRECT_FUNDS,
+                EventShift::CHARITY_INDIRECT_FUNDS,
+                EventShift::CHARITY_HOURS,
+                EventShift::SHIFT_STARTS_AT,
+                EventShift::SHIFT_ENDS_AT,
+            ]);
 
-        $total_credits = $closed_events->sum(fn ($e) => $e->charity_direct_funds + $e->charity_indirect_funds);
-        $volunteer_hours = $closed_events->sum('charity_hours');
+        $total_credits = $shifts->sum(fn ($s) => $s->charity_direct_funds + $s->charity_indirect_funds);
+        $volunteer_hours = $shifts->sum('effective_charity_hours');
 
         $internal_donations = TrooperDonation::where(TrooperDonation::CREATED_AT, '>=', $date)
             ->sum('amount');
@@ -167,37 +174,37 @@ readonly class GetDashboardMetricsQueryHandler implements QueryHandlerInterface
     private function getOrganizationLeaderboard(Carbon $date): Collection
     {
         $org_fields = [Organization::ID, Organization::NAME];
-        $event_fields = [
-            Event::ID,
-            Event::ORGANIZATION_ID,
-            Event::PRIMARY_ORGANIZATION_ID,
-            Event::CHARITY_DIRECT_FUNDS,
-            Event::CHARITY_INDIRECT_FUNDS,
+        $event_fields = [Event::ID, Event::ORGANIZATION_ID, Event::PRIMARY_ORGANIZATION_ID];
+        $shift_fields = [
+            EventShift::ID,
+            EventShift::EVENT_ID,
+            EventShift::CHARITY_DIRECT_FUNDS,
+            EventShift::CHARITY_INDIRECT_FUNDS,
         ];
-        $shift_fields = [EventShift::ID, EventShift::EVENT_ID];
         $trooper_fields = [EventTrooper::ID, EventTrooper::EVENT_SHIFT_ID, EventTrooper::TROOPER_ID];
 
         return Organization::select($org_fields)
             ->with([
-                'events' => function ($q) use ($date, $event_fields, $trooper_fields) {
+                'events' => function ($q) use ($date, $event_fields, $shift_fields, $trooper_fields) {
                     $q->select($event_fields)
                         ->where(Event::EVENT_START, '>=', $date)
                         ->where(Event::STATUS, EventStatus::CLOSED)
-                        // Load the signups that are specifically in 'going' status
                         ->with([
-                            'event_shifts.event_troopers' => function ($sq) use ($trooper_fields) {
-                                $sq->select($trooper_fields)
-                                    ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED);
+                            'event_shifts' => function ($sq) use ($shift_fields, $trooper_fields) {
+                                $sq->select($shift_fields)
+                                    ->with([
+                                        'event_troopers' => function ($tq) use ($trooper_fields) {
+                                            $tq->select($trooper_fields)
+                                                ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED);
+                                        }]);
                             }]);
                 }])
             ->where(Organization::TYPE, OrganizationType::ORGANIZATION)
             ->get()
             ->map(function ($org) {
-                // 1. Flatten the events into their shifts
-                // 2. Flatten those shifts into their troopers
-                // 3. Pluck unique trooper IDs
-                $attended_count = $org->events
-                    ->flatMap(fn ($event) => $event->event_shifts)
+                $shifts = $org->events->flatMap(fn ($event) => $event->event_shifts);
+
+                $attended_count = $shifts
                     ->flatMap(fn ($shift) => $shift->event_troopers)
                     ->pluck('trooper_id')
                     ->unique()
@@ -207,9 +214,9 @@ readonly class GetDashboardMetricsQueryHandler implements QueryHandlerInterface
                     'name' => $org->name,
                     'events_completed' => $org->events->count(),
                     'troopers_attended' => $attended_count,
-                    'direct_funds_raised' => $org->events->sum(fn ($e) => $e->charity_direct_funds),
-                    'indirect_funds_raised' => $org->events->sum(fn ($e) => $e->charity_indirect_funds),
-                    'total_funds_raised' => $org->events->sum(fn ($e) => $e->charity_direct_funds + $e->charity_indirect_funds),
+                    'direct_funds_raised' => $shifts->sum('charity_direct_funds'),
+                    'indirect_funds_raised' => $shifts->sum('charity_indirect_funds'),
+                    'total_funds_raised' => $shifts->sum(fn ($s) => $s->charity_direct_funds + $s->charity_indirect_funds),
                 ];
             })
             ->sortByDesc('total_funds_raised')

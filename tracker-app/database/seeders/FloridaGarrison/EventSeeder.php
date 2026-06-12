@@ -186,6 +186,8 @@ class EventSeeder extends Seeder
 
                 $shift->save();
 
+                $this->overlayShiftCharity($legacy_shift, $shift);
+
                 $shift->key = $key;
 
                 $this->overlayTroopers($legacy_shift->id, $shift->id);
@@ -193,6 +195,18 @@ class EventSeeder extends Seeder
                 $shifts->add($shift);
             }
         }
+    }
+
+    private function overlayShiftCharity($legacy_shift, EventShift $shift): void
+    {
+        $shift->charity_direct_funds   = $legacy_shift->charityDirectFunds ?? 0;
+        $shift->charity_indirect_funds = $legacy_shift->charityIndirectFunds ?? 0;
+        $shift->charity_name           = $legacy_shift->charityName;
+        $offset                        = (int) ($legacy_shift->charityAddHours ?? 0);
+        $duration                      = (int) $shift->shift_starts_at->diffInHours($shift->shift_ends_at);
+        $shift->charity_hours          = $offset === 0 ? null : $duration + $offset;
+        $shift->charity_notes          = $legacy_shift->charityNote;
+        $shift->save();
     }
 
     private function overlayTroopers($legacy_id, $shift_id)
@@ -334,12 +348,6 @@ class EventSeeder extends Seeder
         $event->tentative_signups_allowed = (bool) $legacy->allowTentative;
 
         $event->status = $legacy->closed ? EventStatus::CLOSED : EventStatus::OPEN;
-
-        $event->charity_direct_funds = $legacy->charityDirectFunds;
-        $event->charity_indirect_funds = $legacy->charityIndirectFunds;
-        $event->charity_name = $legacy->charityName;
-        $event->charity_hours = $legacy->charityAddHours;
-        $event->charity_notes = $legacy->charityNote;
 
         // Carry legacy forum references when present; otherwise clear to null.
         $event->thread_id = $this->toNullablePositiveInt($legacy->thread_id ?? null);

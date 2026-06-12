@@ -32,6 +32,15 @@ class EventShiftTest extends TestCase
         ]);
     }
 
+    public function test_charity_notes_are_sanitized_when_stored(): void
+    {
+        $subject = EventShift::factory()->create([
+            EventShift::CHARITY_NOTES => 'Bring &amp; share <script>alert(1)</script>',
+        ]);
+
+        $this->assertSame('Bring & share alert(1)', $subject->refresh()->charity_notes);
+    }
+
     public function test_get_is_open_attribute_returns_true_when_event_and_shift_open(): void
     {
         $event = Event::factory()->state([Event::STATUS => EventStatus::OPEN])->create();

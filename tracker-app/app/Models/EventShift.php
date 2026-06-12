@@ -8,6 +8,8 @@ use App\Enums\EventGuestStatus;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Models\Base\EventShift as BaseEventShift;
+use App\Models\Casts\EnforceZeroCast;
+use App\Models\Casts\SanitizeHtmlCast;
 use App\Models\Concerns\HasObserver;
 use App\Models\Concerns\HasTrooperStamps;
 use App\Models\Scopes\HasEventShiftScopes;
@@ -38,6 +40,10 @@ class EventShift extends BaseEventShift
     {
         return array_merge($this->casts, [
             self::STATUS => EventStatus::class,
+            self::CHARITY_DIRECT_FUNDS => EnforceZeroCast::class,
+            self::CHARITY_INDIRECT_FUNDS => EnforceZeroCast::class,
+            self::CHARITY_NAME => SanitizeHtmlCast::class,
+            self::CHARITY_NOTES => SanitizeHtmlCast::class,
         ]);
     }
 
@@ -48,6 +54,11 @@ class EventShift extends BaseEventShift
      *
      * @return bool True if the shift is open
      */
+    public function getEffectiveCharityHoursAttribute(): int
+    {
+        return $this->charity_hours ?? (int) $this->shift_starts_at->diffInHours($this->shift_ends_at);
+    }
+
     public function getIsOpenAttribute(): bool
     {
         if (!$this->event->is_open)

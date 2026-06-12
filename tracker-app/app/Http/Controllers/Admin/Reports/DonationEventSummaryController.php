@@ -69,7 +69,7 @@ class DonationEventSummaryController extends BaseReportsController
                 fputcsv($handle, $meta);
             }
 
-            fputcsv($handle, ['Event', 'Date', 'Club', 'Charity', 'Direct Funds', 'Indirect Funds', 'Total Funds', 'Attendees', 'Notes']);
+            fputcsv($handle, ['Event', 'Date', 'Club', 'Charity', 'Direct Funds', 'Indirect Funds', 'Total Funds', 'Hours', 'Attendees', 'Notes']);
 
             foreach ($events as $event)
             {
@@ -81,6 +81,7 @@ class DonationEventSummaryController extends BaseReportsController
                     $event->charity_direct_funds,
                     $event->charity_indirect_funds,
                     $event->charity_direct_funds + $event->charity_indirect_funds,
+                    $event->charity_hours,
                     $event->attendees_count,
                     $event->charity_notes,
                 ]);
@@ -92,6 +93,7 @@ class DonationEventSummaryController extends BaseReportsController
                 $events->sum('charity_direct_funds'),
                 $events->sum('charity_indirect_funds'),
                 $events->sum(fn ($e) => $e->charity_direct_funds + $e->charity_indirect_funds),
+                $events->sum('charity_hours'),
                 $events->sum('attendees_count'),
                 '',
             ]);

@@ -23,8 +23,6 @@ class EventFactory extends Factory
             Event::STATUS => $this->faker->word(),
             Event::CREATE_FORUM_THREAD => $this->faker->randomNumber(1),
             Event::TENTATIVE_SIGNUPS_ALLOWED => $this->faker->randomNumber(1),
-            Event::CHARITY_DIRECT_FUNDS => $this->faker->randomNumber(),
-            Event::CHARITY_INDIRECT_FUNDS => $this->faker->randomNumber(),
             Event::SECURE_STAGING_AREA => $this->faker->randomNumber(1),
             Event::ALLOW_BLASTERS => $this->faker->randomNumber(1),
             Event::ALLOW_PROPS => $this->faker->randomNumber(1),

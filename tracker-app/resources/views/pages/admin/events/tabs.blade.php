@@ -5,6 +5,9 @@
     <x-tab :label="'Shifts'"
            :target="route('admin.events.shifts', compact('event'))"
            :active="request()->routeIs('admin.events.shifts')" />
+    <x-tab :label="'Charity'"
+           :target="route('admin.events.charity', compact('event'))"
+           :active="request()->routeIs('admin.events.charity')" />
     <x-tab :label="'Roster'"
            :target="route('admin.events.troopers', compact('event'))"
            :active="request()->routeIs('admin.events.troopers')" />

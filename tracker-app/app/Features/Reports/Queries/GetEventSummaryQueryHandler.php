@@ -39,7 +39,7 @@ readonly class GetEventSummaryQueryHandler implements QueryHandlerInterface
             'organizations' => function ($q) {
                 $q->select('tt_organizations.id', 'tt_organizations.name')->withPivot('id', 'can_attend');
             },
-            'event_shifts:id,event_id',
+            'event_shifts:id,event_id,charity_direct_funds,charity_indirect_funds',
             'event_shifts.event_troopers' => function ($q) {
                 $q->where('status', EventTrooperStatus::ATTENDED)->select('id', 'event_shift_id', 'trooper_id', 'status');
             },
@@ -58,10 +58,10 @@ readonly class GetEventSummaryQueryHandler implements QueryHandlerInterface
             ->get()
             ->each(function (Event $event) {
                 $event->event_shifts_count = $event->event_shifts->count();
-                // Total trooper rows across all shifts
                 $event->total_trooper_count = $event->event_shifts->sum(fn ($shift) => $shift->event_troopers->count());
-                // Unique troopers across all shifts
                 $event->unique_trooper_count = $event->event_shifts->flatMap(fn ($shift) => $shift->event_troopers->pluck('trooper_id'))->unique()->count();
+                $event->charity_direct_funds = $event->event_shifts->sum('charity_direct_funds');
+                $event->charity_indirect_funds = $event->event_shifts->sum('charity_indirect_funds');
             });
     }
 }

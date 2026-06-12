@@ -93,6 +93,11 @@
                                                           :value="$data['starts_at'] ?? ''"
                                                           class="form-control-sm" />
                                         </td>
+                                        <td>
+                                            <x-input-time :property="'shifts.' . $key . '.ends_at'"
+                                                          :value="$data['ends_at'] ?? ''"
+                                                          class="form-control-sm" />
+                                        </td>
                                         <td></td>
                                     </tr>
                                 @endif
@@ -112,14 +117,13 @@
                                     </button>
                                 </td>
                             </tr>
+                        </tfoot>
                     @endif
                 </x-table>
 
                 @if($event->is_active)
                     <x-submit-container>
-                        @if($event->is_active)
-                            <x-submit-button>Update</x-submit-button>
-                        @endif
+                        <x-submit-button>Update</x-submit-button>
                         <x-link-button-cancel :url="route('admin.events.shifts', compact('event'))" />
                     </x-submit-container>
                 @endif
@@ -144,15 +148,14 @@
 
             // Count how many "negative" rows already exist
             const existingNegRows = [...tbody.querySelectorAll("input")]
-                .map(input => input.name.match(/shift\[(\-?\d+)\]/))
+                .map(input => input.name.match(/shifts\[(\-?\d+)\]/))
                 .filter(Boolean)
                 .map(match => parseInt(match[1], 10))
                 .filter(n => n < 0);
 
             let minNeg = existingNegRows.length ? Math.min(...existingNegRows) : 0;
 
-            const newIndex = minNeg - 1; // next negative index
-            minNeg = newIndex;
+            const newIndex = minNeg - 1;
 
             const tr = document.createElement("tr");
 
@@ -189,9 +192,8 @@
                  class="form-control form-control-sm">`;
             tr.appendChild(tdEnd);
 
-            // status input
+            // Status (empty for new rows)
             const tdStatus = document.createElement("td");
-            tdStatus.innerHTML = ``;
             tr.appendChild(tdStatus);
 
             tbody.appendChild(tr);

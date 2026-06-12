@@ -46,6 +46,7 @@ class UpdateShiftsRequest extends FormRequest
             'shifts.*.starts_at' => ['required', 'date_format:H:i'],
             'shifts.*.ends_at' => ['required', 'date_format:H:i'],
             'shifts.*.status' => ['nullable', 'in:'.EventStatus::toValidator()],
+
         ];
 
         return $rules;

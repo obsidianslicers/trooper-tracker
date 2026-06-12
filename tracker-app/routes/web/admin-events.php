@@ -8,6 +8,8 @@ use App\Http\Controllers\Admin\Events\CreateController;
 use App\Http\Controllers\Admin\Events\CreateSubmitController;
 use App\Http\Controllers\Admin\Events\ListController;
 use App\Http\Controllers\Admin\Events\UpdateController;
+use App\Http\Controllers\Admin\Events\UpdateCharityController;
+use App\Http\Controllers\Admin\Events\UpdateCharitySubmitController;
 use App\Http\Controllers\Admin\Events\UpdateShiftsController;
 use App\Http\Controllers\Admin\Events\UpdateShiftsSubmitController;
 use App\Http\Controllers\Admin\Events\UpdateSubmitController;
@@ -34,6 +36,8 @@ Route::prefix('admin/events')
         Route::post('/{event}/update', UpdateSubmitController::class);
         Route::get('/{event}/shifts', UpdateShiftsController::class)->name('shifts');
         Route::post('/{event}/shifts', UpdateShiftsSubmitController::class);
+        Route::get('/{event}/charity', UpdateCharityController::class)->name('charity');
+        Route::post('/{event}/charity', UpdateCharitySubmitController::class);
         Route::get('/{event}/troopers', UpdateTroopersController::class)->name('troopers');
         Route::post('/{event}/troopers', UpdateTroopersSubmitController::class);
         Route::get('/{event}/uploads', UploadsController::class)->name('uploads');
