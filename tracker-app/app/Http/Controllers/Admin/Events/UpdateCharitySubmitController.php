@@ -24,11 +24,11 @@ class UpdateCharitySubmitController extends MagicBusController
                 continue;
             }
 
-            $shift->charity_name           = $input['charity_name'] ?? null;
-            $shift->charity_hours          = filled($input['charity_hours'] ?? null) ? (int) $input['charity_hours'] : null;
-            $shift->charity_direct_funds   = (int) ($input['charity_direct_funds'] ?? 0);
+            $shift->charity_name = $input['charity_name'] ?? null;
+            $shift->charity_hours = filled($input['charity_hours'] ?? null) ? (int) $input['charity_hours'] : null;
+            $shift->charity_direct_funds = (int) ($input['charity_direct_funds'] ?? 0);
             $shift->charity_indirect_funds = (int) ($input['charity_indirect_funds'] ?? 0);
-            $shift->charity_notes          = $input['charity_notes'] ?? null;
+            $shift->charity_notes = $input['charity_notes'] ?? null;
 
             $shift->save();
         }

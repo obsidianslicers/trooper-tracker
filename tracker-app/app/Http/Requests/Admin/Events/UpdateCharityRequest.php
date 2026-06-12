@@ -24,11 +24,11 @@ class UpdateCharityRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'shifts.*.charity_name'           => ['nullable', 'string', 'max:512'],
-            'shifts.*.charity_hours'          => ['nullable', 'integer', 'min:0'],
-            'shifts.*.charity_direct_funds'   => ['nullable', 'integer', 'min:0'],
+            'shifts.*.charity_name' => ['nullable', 'string', 'max:512'],
+            'shifts.*.charity_hours' => ['nullable', 'integer', 'min:0'],
+            'shifts.*.charity_direct_funds' => ['nullable', 'integer', 'min:0'],
             'shifts.*.charity_indirect_funds' => ['nullable', 'integer', 'min:0'],
-            'shifts.*.charity_notes'          => ['nullable', 'string'],
+            'shifts.*.charity_notes' => ['nullable', 'string'],
         ];
     }
 }

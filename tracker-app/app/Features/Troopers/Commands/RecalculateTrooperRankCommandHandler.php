@@ -176,9 +176,9 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
         {
             $shift = $et->event_shift;
 
-            $total_direct   += $shift->charity_direct_funds;
+            $total_direct += $shift->charity_direct_funds;
             $total_indirect += $shift->charity_indirect_funds;
-            $total_hours    += $shift->effective_charity_hours;
+            $total_hours += $shift->effective_charity_hours;
         }
 
         return [
