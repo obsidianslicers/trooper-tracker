@@ -9,26 +9,20 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * One-time correction seeder. Run manually after the add_charity_to_event_shifts migration.
+ * Optional Florida Garrison legacy import correction.
  *
- * Pass 1 — Re-maps per-shift charity from the legacy v1.0 `events` table directly onto
+ * Re-maps per-shift charity from the legacy v1.0 `events` table directly onto
  * `tt_event_shifts` rows. This recovers data that was silently dropped during the original
  * 1.0→2.0 migration because EventSeeder only copied charity from the parent event row.
  * Requires the legacy `events` table to still be present in the database.
- *
- * Pass 2 — For any shift that still has no charity after Pass 1 (e.g. the legacy row was
- * not found or had no data), copies the parent event's current `tt_events.charity_*` data
- * to the first shift of that event. This preserves any charity entered natively in v2.0
- * before this migration runs.
  */
 class EventCharityShiftSeeder extends Seeder
 {
     public function run(): void
     {
         $pass_one = $this->passOne();
-        $pass_two = $this->passTwo();
 
-        $this->printSummary($pass_one, $pass_two);
+        $this->printSummary($pass_one);
     }
 
     /**
@@ -42,12 +36,17 @@ class EventCharityShiftSeeder extends Seeder
             'shifts_updated' => 0,
             'skipped_no_legacy_row' => 0,
             'updated_with_charity_data' => 0,
-            'updated_with_empty_charity_data' => 0,
+            'skipped_empty_legacy_charity' => 0,
+            'skipped_legacy_table_unavailable' => 0,
         ];
 
         $legacy_rows = collect();
 
-        if (Schema::hasTable('events'))
+        if (!Schema::hasTable('events'))
+        {
+            $stats['skipped_legacy_table_unavailable'] = 1;
+        }
+        else
         {
             $legacy_rows = DB::table('events')
                 ->select([
@@ -90,120 +89,19 @@ class EventCharityShiftSeeder extends Seeder
                 'charity_notes'          => $this->decodeNullableText($legacy->charityNote),
             ];
 
+            if (!$this->hasCharityData((object) $charity_data))
+            {
+                $stats['skipped_empty_legacy_charity']++;
+
+                continue;
+            }
+
             DB::table('tt_event_shifts')
                 ->where('id', $shift->id)
                 ->update($charity_data);
 
             $stats['shifts_updated']++;
-
-            if ($this->hasCharityData((object) $charity_data))
-            {
-                $stats['updated_with_charity_data']++;
-            }
-            else
-            {
-                $stats['updated_with_empty_charity_data']++;
-            }
-        }
-
-        return $stats;
-    }
-
-    /**
-     * @return array<string, int>
-     */
-    private function passTwo(): array
-    {
-        $stats = [
-            'events_with_event_level_charity_scanned' => 0,
-            'skipped_no_active_shifts' => 0,
-            'skipped_shift_charity_exists' => 0,
-            'fallback_updates_applied' => 0,
-            'skipped_event_charity_columns_unavailable' => 0,
-        ];
-
-        $event_charity_columns = [
-            'charity_direct_funds',
-            'charity_indirect_funds',
-            'charity_name',
-            'charity_hours',
-            'charity_notes',
-        ];
-
-        if (!$this->hasColumns('tt_events', $event_charity_columns))
-        {
-            $stats['skipped_event_charity_columns_unavailable'] = 1;
-
-            return $stats;
-        }
-
-        // For each event that still has event-level charity data, copy it down only
-        // when none of the event's non-deleted shifts already has charity data.
-        $events_with_charity = DB::table('tt_events')
-            ->where(function ($q) {
-                $q->where('charity_direct_funds', '>', 0)
-                    ->orWhere('charity_indirect_funds', '>', 0)
-                    ->orWhere(fn ($q) => $q->whereNotNull('charity_name')->where('charity_name', '!=', ''))
-                    ->orWhereNotNull('charity_hours')
-                    ->orWhere(fn ($q) => $q->whereNotNull('charity_notes')->where('charity_notes', '!=', ''));
-            })
-            ->select([
-                'id',
-                'charity_direct_funds',
-                'charity_indirect_funds',
-                'charity_name',
-                'charity_hours',
-                'charity_notes',
-            ])
-            ->get();
-
-        foreach ($events_with_charity as $event)
-        {
-            $stats['events_with_event_level_charity_scanned']++;
-
-            $first_shift_id = DB::table('tt_event_shifts')
-                ->where('event_id', $event->id)
-                ->whereNull('deleted_at')
-                ->orderBy('shift_starts_at')
-                ->value('id');
-
-            if ($first_shift_id === null)
-            {
-                $stats['skipped_no_active_shifts']++;
-
-                continue;
-            }
-
-            $shift_has_charity = DB::table('tt_event_shifts')
-                ->where('event_id', $event->id)
-                ->whereNull('deleted_at')
-                ->where(function ($q) {
-                    $q->where('charity_direct_funds', '>', 0)
-                        ->orWhere('charity_indirect_funds', '>', 0)
-                        ->orWhere(fn ($q) => $q->whereNotNull('charity_name')->where('charity_name', '!=', ''))
-                        ->orWhereNotNull('charity_hours')
-                        ->orWhere(fn ($q) => $q->whereNotNull('charity_notes')->where('charity_notes', '!=', ''));
-                })
-                ->exists();
-
-            if ($shift_has_charity)
-            {
-                $stats['skipped_shift_charity_exists']++;
-
-                continue;
-            }
-
-            DB::table('tt_event_shifts')
-                ->where('id', $first_shift_id)
-                ->update([
-                    'charity_direct_funds'   => $event->charity_direct_funds,
-                    'charity_indirect_funds' => $event->charity_indirect_funds,
-                    'charity_name'           => $this->decodeNullableText($event->charity_name),
-                    'charity_hours'          => $event->charity_hours,
-                    'charity_notes'          => $this->decodeNullableText($event->charity_notes),
-                ]);
-
-            $stats['fallback_updates_applied']++;
+            $stats['updated_with_charity_data']++;
         }
 
         return $stats;
@@ -229,45 +127,21 @@ class EventCharityShiftSeeder extends Seeder
     }
 
     /**
-     * @param  array<int, string>  $columns
-     */
-    private function hasColumns(string $table, array $columns): bool
-    {
-        foreach ($columns as $column)
-        {
-            if (!Schema::hasColumn($table, $column))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
      * @param  array<string, int>  $pass_one
-     * @param  array<string, int>  $pass_two
      */
-    private function printSummary(array $pass_one, array $pass_two): void
+    private function printSummary(array $pass_one): void
     {
-        $this->command?->info('Event charity shift backfill');
+        $this->command?->info('Florida Garrison event charity shift backfill');
         $this->command?->newLine();
 
-        $this->command?->line('Pass 1: legacy shift charity mapping');
+        $this->command?->line('Legacy shift charity mapping');
         $this->command?->line('- Shifts scanned: '.$this->formatNumber($pass_one['shifts_scanned']));
         $this->command?->line('- Legacy rows matched by shift id: '.$this->formatNumber($pass_one['legacy_rows_matched']));
         $this->command?->line('- Shifts updated: '.$this->formatNumber($pass_one['shifts_updated']));
         $this->command?->line('- Updated with charity data: '.$this->formatNumber($pass_one['updated_with_charity_data']));
-        $this->command?->line('- Updated with empty charity data: '.$this->formatNumber($pass_one['updated_with_empty_charity_data']));
+        $this->command?->line('- Skipped, empty legacy charity data: '.$this->formatNumber($pass_one['skipped_empty_legacy_charity']));
         $this->command?->line('- Skipped, no legacy row: '.$this->formatNumber($pass_one['skipped_no_legacy_row']));
-        $this->command?->newLine();
-
-        $this->command?->line('Pass 2: event-level fallback');
-        $this->command?->line('- Events with event-level charity scanned: '.$this->formatNumber($pass_two['events_with_event_level_charity_scanned']));
-        $this->command?->line('- Fallback updates applied: '.$this->formatNumber($pass_two['fallback_updates_applied']));
-        $this->command?->line('- Skipped, shift charity already exists: '.$this->formatNumber($pass_two['skipped_shift_charity_exists']));
-        $this->command?->line('- Skipped, no active shifts: '.$this->formatNumber($pass_two['skipped_no_active_shifts']));
-        $this->command?->line('- Skipped, event charity columns unavailable: '.$this->formatNumber($pass_two['skipped_event_charity_columns_unavailable']));
+        $this->command?->line('- Skipped, legacy table unavailable: '.$this->formatNumber($pass_one['skipped_legacy_table_unavailable']));
         $this->command?->newLine();
 
         $this->command?->line('Done.');
