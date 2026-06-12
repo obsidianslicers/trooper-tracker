@@ -14,7 +14,7 @@ return new class extends Migration
         {
             $table->integer('charity_direct_funds')->default(0)->after('last_notified_at');
             $table->integer('charity_indirect_funds')->default(0)->after('charity_direct_funds');
-            $table->string('charity_name', 512)->nullable()->after('charity_indirect_funds');
+            $table->string('charity_name', 128)->nullable()->after('charity_indirect_funds');
             $table->integer('charity_hours')->nullable()->after('charity_name');
             $table->text('charity_notes')->nullable()->after('charity_hours');
         });

@@ -722,7 +722,7 @@ Purpose: Shift windows within events.
 | shift_ends_at | datetime | no |  |
 | charity_direct_funds | integer | no | default 0 |
 | charity_indirect_funds | integer | no | default 0 |
-| charity_name | varchar(512) | yes |  |
+| charity_name | varchar(128) | yes |  |
 | charity_hours | integer | yes | null = auto-calc from duration; integer = absolute override |
 | charity_notes | text | yes |  |
 | created_at | timestamp | yes | timestamps helper |

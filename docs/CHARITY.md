@@ -9,7 +9,7 @@ hours contributed, and funds raised. All five fields live on `tt_event_shifts`.
 
 | Column | Type | Default | Description |
 |---|---|---|---|
-| `charity_name` | varchar(512) | null | Name of the charitable organization |
+| `charity_name` | varchar(128) | null | Name of the charitable organization |
 | `charity_hours` | integer | null | Override for volunteer hours (see below) |
 | `charity_direct_funds` | integer | 0 | Direct funds raised (dollars) |
 | `charity_indirect_funds` | integer | 0 | Indirect funds raised (dollars) |
