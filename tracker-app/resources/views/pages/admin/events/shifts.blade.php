@@ -46,14 +46,7 @@
                     </thead>
 
                     @foreach($shifts as $shift)
-                        @php
-                            $has_charity = $shift->charity_name
-                                || $shift->charity_hours
-                                || $shift->charity_direct_funds
-                                || $shift->charity_indirect_funds
-                                || $shift->charity_notes;
-                        @endphp
-                        <tbody x-data="{ open: {{ $has_charity ? 'true' : 'false' }} }">
+                        <tbody x-data="{ open: false }">
                             <tr>
                                 <td>
                                     {{ $shift->shift_starts_at->format('D') }}
@@ -131,7 +124,10 @@
                                             <x-input-text :property="'shifts.' . $shift->id . '.charity_notes'"
                                                           :value="$shift->charity_notes"
                                                           :multiline="true"
+                                                          :rows="1"
                                                           :disabled="!$event->is_active"
+                                                          style="resize:none;overflow:hidden"
+                                                          x-on:input="$el.style.height='auto';$el.style.height=$el.scrollHeight+'px'"
                                                           class="form-control-sm" />
                                         </div>
                                     </div>
@@ -207,6 +203,9 @@
                                                     <x-input-text :property="'shifts.' . $key . '.charity_notes'"
                                                                   :value="$data['charity_notes'] ?? ''"
                                                                   :multiline="true"
+                                                                  :rows="1"
+                                                                  style="resize:none;overflow:hidden"
+                                                                  x-on:input="$el.style.height='auto';$el.style.height=$el.scrollHeight+'px'"
                                                                   class="form-control-sm" />
                                                 </div>
                                             </div>
@@ -350,7 +349,9 @@
                             <textarea name="shifts[${newIndex}][charity_notes]"
                                       id="shifts.${newIndex}.charity_notes"
                                       class="form-control form-control-sm"
-                                      rows="1"></textarea>
+                                      rows="1"
+                                      style="resize:none;overflow:hidden"
+                                      x-on:input="$el.style.height='auto';$el.style.height=$el.scrollHeight+'px'"></textarea>
                         </div>
                     </div>
                 </td>`;
