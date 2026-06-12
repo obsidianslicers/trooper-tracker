@@ -4,6 +4,9 @@ namespace App\Helpers;
 
 use App\Enums\EventTrooperStatus;
 use App\Models\Event;
+use App\Models\EventShift;
+use App\Models\EventTrooper;
+use Illuminate\Support\Collection;
 
 class ForumBBCodeHelper
 {
@@ -78,41 +81,62 @@ class ForumBBCodeHelper
     /**
      * Generate a detailed, auto-updated roster listing for an event.
      *
-     * Mirrors the legacy behaviour:
      *  - Header: [b]Roster:[/b]
-     *  - One line per signup in signup order:
+     *  - Single-shift events: one line per signup in signup order (legacy format):
      *      -[i]Status[/i]: Name (Costume)
+     *  - Multi-shift events: signups grouped per shift, each section headed by
+     *    the shift's time display, shifts in start-time order.
      *  - Fallback when there are no signups.
      */
     public static function rosterSummary(Event $event): string
     {
         $event->loadMissing('event_shifts.event_troopers.trooper', 'event_shifts.event_troopers.costume');
 
-        $troopers = collect();
-
-        foreach ($event->event_shifts as $shift)
-        {
-            foreach ($shift->event_troopers as $event_trooper)
-            {
-                $troopers->push($event_trooper);
-            }
-        }
-
-        // Sort globally by signup time to approximate the legacy signuptime ordering.
-        $troopers = $troopers->sortBy(function ($event_trooper) {
-            return $event_trooper->signed_up_at;
-        })->values();
+        $shifts = $event->event_shifts->sortBy(EventShift::SHIFT_STARTS_AT)->values();
 
         $bb = '[b]Roster:[/b]';
 
-        if ($troopers->isEmpty())
+        if ($shifts->every(fn (EventShift $shift) => $shift->event_troopers->isEmpty()))
         {
             $bb .= "\n-No troopers are signed up for this event.";
 
             return $bb;
         }
 
-        foreach ($troopers as $event_trooper)
+        if ($shifts->count() === 1)
+        {
+            return $bb.self::rosterLines($shifts->first()->event_troopers);
+        }
+
+        foreach ($shifts as $shift)
+        {
+            $bb .= "\n[b][u]".$shift->time_display.'[/u][/b]';
+
+            if ($shift->event_troopers->isEmpty())
+            {
+                $bb .= "\n-No troopers are signed up for this shift.";
+
+                continue;
+            }
+
+            $bb .= self::rosterLines($shift->event_troopers);
+        }
+
+        return $bb;
+    }
+
+    /**
+     * Render one roster line per signup, ordered by signup time.
+     */
+    private static function rosterLines(Collection $event_troopers): string
+    {
+        $event_troopers = $event_troopers
+            ->sortBy(fn (EventTrooper $event_trooper) => $event_trooper->signed_up_at)
+            ->values();
+
+        $bb = '';
+
+        foreach ($event_troopers as $event_trooper)
         {
             $status = $event_trooper->status instanceof EventTrooperStatus
                 ? $event_trooper->status
