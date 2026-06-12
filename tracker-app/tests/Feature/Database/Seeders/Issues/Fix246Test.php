@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Database\Seeders\FloridaGarrison;
+namespace Tests\Feature\Database\Seeders\Issues;
 
 use App\Models\Event;
 use App\Models\EventShift;
-use Database\Seeders\FloridaGarrison\EventCharityShiftSeeder;
+use Database\Seeders\Issues\Fix246;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
-class EventCharityShiftSeederTest extends TestCase
+class Fix246Test extends TestCase
 {
     use RefreshDatabase;
 
@@ -22,7 +22,11 @@ class EventCharityShiftSeederTest extends TestCase
         $this->createLegacyEventsTable();
 
         $mapped_event = Event::factory()->create();
-        EventShift::factory()->forEvent($mapped_event)->create([EventShift::ID => 100]);
+        EventShift::factory()->forEvent($mapped_event)->create([
+            EventShift::ID => 100,
+            EventShift::SHIFT_STARTS_AT => '2025-01-01 10:00:00',
+            EventShift::SHIFT_ENDS_AT => '2025-01-01 13:00:00',
+        ]);
         DB::table('events')->insert([
             'id' => 100,
             'charityDirectFunds' => 25,
@@ -51,7 +55,7 @@ class EventCharityShiftSeederTest extends TestCase
         $no_legacy_event = Event::factory()->create();
         EventShift::factory()->forEvent($no_legacy_event)->create([EventShift::ID => 102]);
 
-        $this->artisan('db:seed', ['--class' => EventCharityShiftSeeder::class])
+        $this->artisan('db:seed', ['--class' => Fix246::class])
             ->expectsOutput('Florida Garrison event charity shift backfill')
             ->expectsOutput('Legacy shift charity mapping')
             ->expectsOutput('- Shifts scanned: 3')
@@ -69,7 +73,7 @@ class EventCharityShiftSeederTest extends TestCase
             'charity_direct_funds' => 25,
             'charity_indirect_funds' => 5,
             'charity_name' => 'Kids & Co',
-            'charity_hours' => 2,
+            'charity_hours' => 5, // 3-hour shift duration + 2 legacy offset
             'charity_notes' => 'Bring extra smiles & stickers',
         ]);
         $this->assertDatabaseHas('tt_event_shifts', [
@@ -89,7 +93,7 @@ class EventCharityShiftSeederTest extends TestCase
 
         $this->assertFalse(Schema::hasTable('events'));
 
-        $this->artisan('db:seed', ['--class' => EventCharityShiftSeeder::class])
+        $this->artisan('db:seed', ['--class' => Fix246::class])
             ->expectsOutput('Florida Garrison event charity shift backfill')
             ->expectsOutput('Legacy shift charity mapping')
             ->expectsOutput('- Shifts scanned: 1')
@@ -123,5 +127,4 @@ class EventCharityShiftSeederTest extends TestCase
             $table->text('charityNote')->nullable();
         });
     }
-
 }

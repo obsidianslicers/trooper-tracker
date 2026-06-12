@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Database\Seeders\FloridaGarrison;
+namespace Database\Seeders\Issues;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Schema;
  * 1.0→2.0 migration because EventSeeder only copied charity from the parent event row.
  * Requires the legacy `events` table to still be present in the database.
  */
-class EventCharityShiftSeeder extends Seeder
+class Fix246 extends Seeder
 {
     public function run(): void
     {
