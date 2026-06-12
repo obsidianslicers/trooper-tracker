@@ -61,8 +61,8 @@
         <thead>
             <tr>
                 <th colspan="4"></th>
-                <th scope="col" class="text-center" colspan="3">— Donations —</th>
-                <th colspan="2"></th>
+                <th scope="col" class="text-center" colspan="4">— Charity —</th>
+                <th></th>
             </tr>
             <tr>
                 <th>
@@ -92,6 +92,11 @@
                     </a>
                 </th>
                 <th scope="col" class="text-end">Total</th>
+                <th scope="col" class="text-end">
+                    <a href="{{ $sortLink('charity_hours') }}" class="text-reset text-decoration-none">
+                        Hours{!! $sortIcon('charity_hours') !!}
+                    </a>
+                </th>
                 <th scope="col" class="text-end">
                     <a href="{{ $sortLink('attendees_count') }}" class="text-reset text-decoration-none">
                         Attendees{!! $sortIcon('attendees_count') !!}
@@ -125,11 +130,14 @@
                         <x-number-format :value="$event->charity_direct_funds + $event->charity_indirect_funds" />
                     </td>
                     <td class="text-end">
+                        <x-number-format :value="$event->charity_hours" />
+                    </td>
+                    <td class="text-end">
                         <x-number-format :value="$event->attendees_count" />
                     </td>
                 </tr>
             @empty
-                <x-table-empty :colspan="8">
+                <x-table-empty :colspan="9">
                     No closed events found for the selected filters.
                 </x-table-empty>
             @endforelse
@@ -148,12 +156,15 @@
                     <x-number-format :value="$events->sum(fn($e) => $e->charity_direct_funds + $e->charity_indirect_funds)" />
                 </th>
                 <th class="text-end">
+                    <x-number-format :value="$events->sum('charity_hours')" />
+                </th>
+                <th class="text-end">
                     <x-number-format :value="$events->sum('attendees_count')" />
                 </th>
             </tr>
             @endif
             <tr>
-                <td colspan="8">
+                <td colspan="9">
                     {{ $events->links() }}
                 </td>
             </tr>

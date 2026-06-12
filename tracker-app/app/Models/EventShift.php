@@ -43,6 +43,7 @@ class EventShift extends BaseEventShift
             self::CHARITY_DIRECT_FUNDS => EnforceZeroCast::class,
             self::CHARITY_INDIRECT_FUNDS => EnforceZeroCast::class,
             self::CHARITY_NAME => SanitizeHtmlCast::class,
+            self::CHARITY_NOTES => SanitizeHtmlCast::class,
         ]);
     }
 

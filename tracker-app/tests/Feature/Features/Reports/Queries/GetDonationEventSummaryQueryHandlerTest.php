@@ -211,6 +211,44 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         $this->assertSame('First Charity', $result->first()->charity_name);
     }
 
+    public function test_invoke_aggregates_charity_hours_from_shifts(): void
+    {
+        $moderator = Trooper::factory()->asModerator()->create();
+        $org = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($org)->asModerator()->create();
+
+        $event = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(5))->create();
+        EventShift::factory()->forEvent($event)->create([EventShift::CHARITY_HOURS => 2]);
+        EventShift::factory()->forEvent($event)->create([EventShift::CHARITY_HOURS => 3]);
+
+        $subject = new GetDonationEventSummaryQueryHandler();
+
+        $result = $subject(new GetDonationEventSummaryQuery($moderator));
+
+        $this->assertSame(5, (int) $result->first()->charity_hours);
+    }
+
+    public function test_invoke_returns_first_shift_charity_notes(): void
+    {
+        $moderator = Trooper::factory()->asModerator()->create();
+        $org = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($org)->asModerator()->create();
+
+        $event = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(5))->create();
+        EventShift::factory()->forEvent($event)
+            ->withShiftStartsAt(now()->subDays(5)->setTime(10, 0))
+            ->create([EventShift::CHARITY_NOTES => 'First note']);
+        EventShift::factory()->forEvent($event)
+            ->withShiftStartsAt(now()->subDays(5)->setTime(14, 0))
+            ->create([EventShift::CHARITY_NOTES => 'Second note']);
+
+        $subject = new GetDonationEventSummaryQueryHandler();
+
+        $result = $subject(new GetDonationEventSummaryQuery($moderator));
+
+        $this->assertSame('First note', $result->first()->charity_notes);
+    }
+
     // -------------------------------------------------------------------------
     // Date range filtering
     // -------------------------------------------------------------------------
@@ -323,6 +361,46 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
 
         $with = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(5))->create();
         EventShift::factory()->forEvent($with)->withCharityData(direct_funds: 0, indirect_funds: 0, charity_name: "Children's Hospital")->create();
+
+        $without = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(3))->create();
+        EventShift::factory()->forEvent($without)->create();
+
+        $subject = new GetDonationEventSummaryQueryHandler();
+
+        $result = $subject(new GetDonationEventSummaryQuery($moderator, charity_only: true));
+
+        $this->assertCount(1, $result);
+        $this->assertSame($with->id, $result->first()->id);
+    }
+
+    public function test_invoke_charity_only_includes_event_with_shift_charity_hours(): void
+    {
+        $moderator = Trooper::factory()->asModerator()->create();
+        $org = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($org)->asModerator()->create();
+
+        $with = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(5))->create();
+        EventShift::factory()->forEvent($with)->create([EventShift::CHARITY_HOURS => 4]);
+
+        $without = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(3))->create();
+        EventShift::factory()->forEvent($without)->create();
+
+        $subject = new GetDonationEventSummaryQueryHandler();
+
+        $result = $subject(new GetDonationEventSummaryQuery($moderator, charity_only: true));
+
+        $this->assertCount(1, $result);
+        $this->assertSame($with->id, $result->first()->id);
+    }
+
+    public function test_invoke_charity_only_includes_event_with_shift_charity_notes(): void
+    {
+        $moderator = Trooper::factory()->asModerator()->create();
+        $org = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($org)->asModerator()->create();
+
+        $with = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(5))->create();
+        EventShift::factory()->forEvent($with)->create([EventShift::CHARITY_NOTES => 'Reportable notes']);
 
         $without = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(3))->create();
         EventShift::factory()->forEvent($without)->create();
@@ -482,6 +560,26 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         $subject = new GetDonationEventSummaryQueryHandler();
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator, sort: 'charity_indirect_funds', dir: 'desc'));
+
+        $this->assertSame($high->id, $result->first()->id);
+        $this->assertSame($low->id, $result->last()->id);
+    }
+
+    public function test_invoke_sort_by_charity_hours_descending(): void
+    {
+        $moderator = Trooper::factory()->asModerator()->create();
+        $org = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($org)->asModerator()->create();
+
+        $low = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(5))->create();
+        EventShift::factory()->forEvent($low)->create([EventShift::CHARITY_HOURS => 2]);
+
+        $high = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(3))->create();
+        EventShift::factory()->forEvent($high)->create([EventShift::CHARITY_HOURS => 8]);
+
+        $subject = new GetDonationEventSummaryQueryHandler();
+
+        $result = $subject(new GetDonationEventSummaryQuery($moderator, sort: 'charity_hours', dir: 'desc'));
 
         $this->assertSame($high->id, $result->first()->id);
         $this->assertSame($low->id, $result->last()->id);

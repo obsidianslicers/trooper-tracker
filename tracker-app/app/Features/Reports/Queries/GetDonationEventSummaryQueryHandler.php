@@ -38,11 +38,17 @@ readonly class GetDonationEventSummaryQueryHandler implements QueryHandlerInterf
             ->whereColumn('event_id', 'tt_events.id')
             ->whereNull('deleted_at');
 
+        $charityHoursSub = DB::table('tt_event_shifts')
+            ->selectRaw('COALESCE(SUM(charity_hours), 0)')
+            ->whereColumn('event_id', 'tt_events.id')
+            ->whereNull('deleted_at');
+
         $charityNameSub = DB::table('tt_event_shifts')
             ->select('charity_name')
             ->whereColumn('event_id', 'tt_events.id')
             ->whereNull('deleted_at')
             ->whereNotNull('charity_name')
+            ->where('charity_name', '!=', '')
             ->orderBy('shift_starts_at')
             ->limit(1);
 
@@ -51,6 +57,7 @@ readonly class GetDonationEventSummaryQueryHandler implements QueryHandlerInterf
             ->whereColumn('event_id', 'tt_events.id')
             ->whereNull('deleted_at')
             ->whereNotNull('charity_notes')
+            ->where('charity_notes', '!=', '')
             ->orderBy('shift_starts_at')
             ->limit(1);
 
@@ -59,6 +66,7 @@ readonly class GetDonationEventSummaryQueryHandler implements QueryHandlerInterf
             ->selectSub($attendeesCountSub, 'attendees_count')
             ->selectSub($directFundsSub, 'charity_direct_funds')
             ->selectSub($indirectFundsSub, 'charity_indirect_funds')
+            ->selectSub($charityHoursSub, 'charity_hours')
             ->selectSub($charityNameSub, 'charity_name')
             ->selectSub($charityNotesSub, 'charity_notes')
             ->with('organization:id,name')
@@ -73,11 +81,13 @@ readonly class GetDonationEventSummaryQueryHandler implements QueryHandlerInterf
                     ->where(function ($inner) {
                         $inner->where('charity_direct_funds', '>', 0)
                             ->orWhere('charity_indirect_funds', '>', 0)
-                            ->orWhereNotNull('charity_name');
+                            ->orWhere('charity_hours', '>', 0)
+                            ->orWhere(fn ($q) => $q->whereNotNull('charity_name')->where('charity_name', '!=', ''))
+                            ->orWhere(fn ($q) => $q->whereNotNull('charity_notes')->where('charity_notes', '!=', ''));
                     });
             }));
 
-        $allowed = ['name', 'event_start', 'charity_name', 'charity_direct_funds', 'charity_indirect_funds', 'attendees_count'];
+        $allowed = ['name', 'event_start', 'charity_name', 'charity_direct_funds', 'charity_indirect_funds', 'charity_hours', 'attendees_count'];
         $sort = in_array($message->sort, $allowed) ? $message->sort : 'event_start';
         $dir = $message->dir === 'asc' ? 'asc' : 'desc';
 

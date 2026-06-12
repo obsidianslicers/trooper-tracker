@@ -1,5 +1,5 @@
 @php
-    $charity_shifts = $event->event_shifts->filter(fn($s) => $s->charity_name || $s->charity_direct_funds > 0 || $s->charity_indirect_funds > 0);
+    $charity_shifts = $event->event_shifts->filter(fn($s) => $s->charity_name || $s->charity_direct_funds > 0 || $s->charity_indirect_funds > 0 || $s->charity_hours > 0 || $s->charity_notes);
 @endphp
 
 @if($charity_shifts->isNotEmpty())
@@ -17,6 +17,9 @@
                 <p class="mb-1">Indirect Funds: ${{ number_format($shift->charity_indirect_funds) }}</p>
                 @if($shift->charity_hours)
                     <p class="mb-1">Hours: {{ $shift->charity_hours }}</p>
+                @endif
+                @if($shift->charity_notes)
+                    <p class="mb-1">{{ $shift->charity_notes }}</p>
                 @endif
             </div>
         @endforeach
