@@ -39,7 +39,7 @@ readonly class GetDonationEventSummaryQueryHandler implements QueryHandlerInterf
             ->whereNull('deleted_at');
 
         $charityHoursSub = DB::table('tt_event_shifts')
-            ->selectRaw('SUM(COALESCE(charity_hours, TIMESTAMPDIFF(HOUR, shift_starts_at, shift_ends_at)))')
+            ->selectRaw('SUM(COALESCE(charity_hours, '.$this->diffInHoursSql('shift_starts_at', 'shift_ends_at').'))')
             ->whereColumn('event_id', 'tt_events.id')
             ->whereNull('deleted_at');
 
@@ -92,5 +92,12 @@ readonly class GetDonationEventSummaryQueryHandler implements QueryHandlerInterf
         $dir = $message->dir === 'asc' ? 'asc' : 'desc';
 
         return $query->orderBy($sort, $dir)->paginate($message->page_size)->withQueryString();
+    }
+
+    private function diffInHoursSql(string $start_col, string $end_col): string
+    {
+        return DB::getDriverName() === 'sqlite'
+            ? "CAST((julianday({$end_col}) - julianday({$start_col})) * 24 AS INTEGER)"
+            : "TIMESTAMPDIFF(HOUR, {$start_col}, {$end_col})";
     }
 }

@@ -46,7 +46,7 @@ class TrooperAchievementSeederTest extends TestCase
                 EventShift::SHIFT_ENDS_AT => $event_start->copy()->addHours(2),
                 EventShift::CHARITY_DIRECT_FUNDS => 125,
                 EventShift::CHARITY_INDIRECT_FUNDS => 75,
-                EventShift::CHARITY_HOURS => 3,
+                EventShift::CHARITY_HOURS => 5,
             ]);
 
         EventTrooper::factory()
