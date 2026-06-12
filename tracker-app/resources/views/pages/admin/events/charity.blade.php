@@ -53,9 +53,12 @@
                         </div>
                         <div style="width:75px">
                             <label class="form-label small text-muted mb-1">Hours</label>
-                            <x-input-text :property="'shifts.' . $shift->id . '.charity_hours'"
-                                          :value="$shift->charity_hours"
-                                          class="form-control-sm" />
+                            <input type="text"
+                                   name="shifts[{{ $shift->id }}][charity_hours]"
+                                   id="shifts.{{ $shift->id }}.charity_hours"
+                                   class="form-control form-control-sm"
+                                   placeholder="{{ (int) $shift->shift_starts_at->diffInHours($shift->shift_ends_at) }}"
+                                   value="{{ $shift->charity_hours ?? '' }}">
                         </div>
                         <div style="width:90px">
                             <label class="form-label small text-muted mb-1">Direct $</label>

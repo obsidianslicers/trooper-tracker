@@ -54,6 +54,11 @@ class EventShift extends BaseEventShift
      *
      * @return bool True if the shift is open
      */
+    public function getEffectiveCharityHoursAttribute(): int
+    {
+        return $this->charity_hours ?? (int) $this->shift_starts_at->diffInHours($this->shift_ends_at);
+    }
+
     public function getIsOpenAttribute(): bool
     {
         if (!$this->event->is_open)

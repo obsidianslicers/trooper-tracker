@@ -63,7 +63,7 @@ class EventCharityShiftSeeder extends Seeder
 
         $shifts = DB::table('tt_event_shifts')
             ->whereNull('deleted_at')
-            ->select(['id'])
+            ->select(['id', 'shift_starts_at', 'shift_ends_at'])
             ->get();
 
         foreach ($shifts as $shift)
@@ -81,11 +81,14 @@ class EventCharityShiftSeeder extends Seeder
 
             $stats['legacy_rows_matched']++;
 
+            $offset = (int) ($legacy->charityAddHours ?? 0);
+            $duration = (int) \Carbon\Carbon::parse($shift->shift_starts_at)->diffInHours(\Carbon\Carbon::parse($shift->shift_ends_at));
+
             $charity_data = [
                 'charity_direct_funds'   => $legacy->charityDirectFunds ?? 0,
                 'charity_indirect_funds' => $legacy->charityIndirectFunds ?? 0,
                 'charity_name'           => $this->decodeNullableText($legacy->charityName),
-                'charity_hours'          => $legacy->charityAddHours,
+                'charity_hours'          => $offset === 0 ? null : $duration + $offset,
                 'charity_notes'          => $this->decodeNullableText($legacy->charityNote),
             ];
 

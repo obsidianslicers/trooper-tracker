@@ -39,7 +39,7 @@ readonly class GetDonationEventSummaryQueryHandler implements QueryHandlerInterf
             ->whereNull('deleted_at');
 
         $charityHoursSub = DB::table('tt_event_shifts')
-            ->selectRaw('COALESCE(SUM(charity_hours), 0)')
+            ->selectRaw('SUM(COALESCE(charity_hours, TIMESTAMPDIFF(HOUR, shift_starts_at, shift_ends_at)))')
             ->whereColumn('event_id', 'tt_events.id')
             ->whereNull('deleted_at');
 

@@ -175,7 +175,7 @@ class TrooperAchievementSeeder extends Seeder
 
             $total_direct += $shift->charity_direct_funds;
             $total_indirect += $shift->charity_indirect_funds;
-            $total_hours += $shift->shift_starts_at->diffInHours($shift->shift_ends_at) + ($shift->charity_hours ?? 0);
+            $total_hours += $shift->effective_charity_hours;
         }
 
         return [

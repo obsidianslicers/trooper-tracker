@@ -130,10 +130,12 @@ readonly class GetDashboardMetricsQueryHandler implements QueryHandlerInterface
                 EventShift::CHARITY_DIRECT_FUNDS,
                 EventShift::CHARITY_INDIRECT_FUNDS,
                 EventShift::CHARITY_HOURS,
+                EventShift::SHIFT_STARTS_AT,
+                EventShift::SHIFT_ENDS_AT,
             ]);
 
         $total_credits = $shifts->sum(fn ($s) => $s->charity_direct_funds + $s->charity_indirect_funds);
-        $volunteer_hours = $shifts->sum('charity_hours');
+        $volunteer_hours = $shifts->sum('effective_charity_hours');
 
         $internal_donations = TrooperDonation::where(TrooperDonation::CREATED_AT, '>=', $date)
             ->sum('amount');
