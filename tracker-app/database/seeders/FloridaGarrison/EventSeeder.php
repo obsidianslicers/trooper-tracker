@@ -202,7 +202,9 @@ class EventSeeder extends Seeder
         $shift->charity_direct_funds   = $legacy_shift->charityDirectFunds ?? 0;
         $shift->charity_indirect_funds = $legacy_shift->charityIndirectFunds ?? 0;
         $shift->charity_name           = $legacy_shift->charityName;
-        $shift->charity_hours          = $legacy_shift->charityAddHours;
+        $offset                        = (int) ($legacy_shift->charityAddHours ?? 0);
+        $duration                      = (int) $shift->shift_starts_at->diffInHours($shift->shift_ends_at);
+        $shift->charity_hours          = $offset === 0 ? null : $duration + $offset;
         $shift->charity_notes          = $legacy_shift->charityNote;
         $shift->save();
     }
