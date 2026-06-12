@@ -41,12 +41,10 @@
                             <th>Starts At</th>
                             <th>Ends At</th>
                             <th>Status</th>
-                            <th></th>
                         </tr>
                     </thead>
-
-                    @foreach($shifts as $shift)
-                        <tbody x-data="{ open: false }">
+                    <tbody>
+                        @foreach($shifts as $shift)
                             <tr>
                                 <td>
                                     {{ $shift->shift_starts_at->format('D') }}
@@ -76,71 +74,13 @@
                                                     :disabled="!$event->is_active"
                                                     class="form-select-sm" />
                                 </td>
-                                <td>
-                                    <button type="button"
-                                            class="btn btn-sm"
-                                            :class="open ? 'btn-outline-success' : 'btn-outline-secondary'"
-                                            @click="open = !open"
-                                            title="Charity details">
-                                        <i class="fa fa-fw fa-dollar-sign"></i>
-                                    </button>
-                                </td>
                             </tr>
-                            <tr x-show="open"
-                                x-cloak>
-                                <td colspan="6"
-                                    class="pb-2 pt-0">
-                                    <div class="d-flex gap-2 align-items-start px-1">
-                                        <div class="flex-grow-1">
-                                            <div class="form-label small text-muted mb-1">Charity</div>
-                                            <x-input-text :property="'shifts.' . $shift->id . '.charity_name'"
-                                                          :value="$shift->charity_name"
-                                                          :disabled="!$event->is_active"
-                                                          class="form-control-sm" />
-                                        </div>
-                                        <div style="width:80px">
-                                            <div class="form-label small text-muted mb-1">Hours</div>
-                                            <x-input-text :property="'shifts.' . $shift->id . '.charity_hours'"
-                                                          :value="$shift->charity_hours"
-                                                          :disabled="!$event->is_active"
-                                                          class="form-control-sm" />
-                                        </div>
-                                        <div style="width:90px">
-                                            <div class="form-label small text-muted mb-1">Direct $</div>
-                                            <x-input-text :property="'shifts.' . $shift->id . '.charity_direct_funds'"
-                                                          :value="$shift->charity_direct_funds"
-                                                          :disabled="!$event->is_active"
-                                                          class="form-control-sm" />
-                                        </div>
-                                        <div style="width:90px">
-                                            <div class="form-label small text-muted mb-1">Indirect $</div>
-                                            <x-input-text :property="'shifts.' . $shift->id . '.charity_indirect_funds'"
-                                                          :value="$shift->charity_indirect_funds"
-                                                          :disabled="!$event->is_active"
-                                                          class="form-control-sm" />
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <div class="form-label small text-muted mb-1">Notes</div>
-                                            <x-input-text :property="'shifts.' . $shift->id . '.charity_notes'"
-                                                          :value="$shift->charity_notes"
-                                                          :multiline="true"
-                                                          :rows="1"
-                                                          :disabled="!$event->is_active"
-                                                          style="resize:none;overflow:hidden"
-                                                          x-on:input="$el.style.height='auto';$el.style.height=$el.scrollHeight+'px'"
-                                                          class="form-control-sm" />
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    @endforeach
+                        @endforeach
 
-                    {{-- Rows created dynamically (negative indices) --}}
-                    @if(old('shifts'))
-                        @foreach(old('shifts') as $key => $data)
-                            @if($key < 0)
-                                <tbody x-data="{ open: false }">
+                        {{-- Rows created dynamically (negative indices) --}}
+                        @if(old('shifts'))
+                            @foreach(old('shifts') as $key => $data)
+                                @if($key < 0)
                                     <tr>
                                         <td></td>
                                         <td>
@@ -159,67 +99,15 @@
                                                           class="form-control-sm" />
                                         </td>
                                         <td></td>
-                                        <td>
-                                            <button type="button"
-                                                    class="btn btn-sm"
-                                                    :class="open ? 'btn-outline-success' : 'btn-outline-secondary'"
-                                                    @click="open = !open"
-                                                    title="Charity details">
-                                                <i class="fa fa-fw fa-dollar-sign"></i>
-                                            </button>
-                                        </td>
                                     </tr>
-                                    <tr x-show="open"
-                                        x-cloak>
-                                        <td colspan="6"
-                                            class="pb-2 pt-0">
-                                            <div class="d-flex gap-2 align-items-start px-1">
-                                                <div class="flex-grow-1">
-                                                    <div class="form-label small text-muted mb-1">Charity</div>
-                                                    <x-input-text :property="'shifts.' . $key . '.charity_name'"
-                                                                  :value="$data['charity_name'] ?? ''"
-                                                                  class="form-control-sm" />
-                                                </div>
-                                                <div style="width:80px">
-                                                    <div class="form-label small text-muted mb-1">Hours</div>
-                                                    <x-input-text :property="'shifts.' . $key . '.charity_hours'"
-                                                                  :value="$data['charity_hours'] ?? ''"
-                                                                  class="form-control-sm" />
-                                                </div>
-                                                <div style="width:90px">
-                                                    <div class="form-label small text-muted mb-1">Direct $</div>
-                                                    <x-input-text :property="'shifts.' . $key . '.charity_direct_funds'"
-                                                                  :value="$data['charity_direct_funds'] ?? ''"
-                                                                  class="form-control-sm" />
-                                                </div>
-                                                <div style="width:90px">
-                                                    <div class="form-label small text-muted mb-1">Indirect $</div>
-                                                    <x-input-text :property="'shifts.' . $key . '.charity_indirect_funds'"
-                                                                  :value="$data['charity_indirect_funds'] ?? ''"
-                                                                  class="form-control-sm" />
-                                                </div>
-                                                <div class="flex-grow-1">
-                                                    <div class="form-label small text-muted mb-1">Notes</div>
-                                                    <x-input-text :property="'shifts.' . $key . '.charity_notes'"
-                                                                  :value="$data['charity_notes'] ?? ''"
-                                                                  :multiline="true"
-                                                                  :rows="1"
-                                                                  style="resize:none;overflow:hidden"
-                                                                  x-on:input="$el.style.height='auto';$el.style.height=$el.scrollHeight+'px'"
-                                                                  class="form-control-sm" />
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            @endif
-                        @endforeach
-                    @endif
-
+                                @endif
+                            @endforeach
+                        @endif
+                    </tbody>
                     @if($event->is_active)
                         <tfoot>
                             <tr>
-                                <td colspan="6"
+                                <td colspan="5"
                                     class="text-end">
                                     <button type="button"
                                             class="btn btn-sm btn-outline-success"
@@ -235,9 +123,7 @@
 
                 @if($event->is_active)
                     <x-submit-container>
-                        @if($event->is_active)
-                            <x-submit-button>Update</x-submit-button>
-                        @endif
+                        <x-submit-button>Update</x-submit-button>
                         <x-link-button-cancel :url="route('admin.events.shifts', compact('event'))" />
                     </x-submit-container>
                 @endif
@@ -251,121 +137,66 @@
 
 @section('page-script')
     <script type="text/javascript">
-        function addShiftRow(tableSelector) {
-            const table = document.querySelector(tableSelector);
-            if (!table) return;
+        function addShiftRow(tableSelector, rowCount = 1) {
+            const tbody = document.querySelector(`${tableSelector} tbody`);
+            if (!tbody) return;
 
-            // Find the last date input with a value across all tbodies
-            const dateInputs = [...table.querySelectorAll('input.date-picker')];
+            // Find the last date input with a value
+            const dateInputs = [...tbody.querySelectorAll('input.date-picker')];
             const lastWithValue = dateInputs.reverse().find(input => input.value && input.value.trim() !== '');
             const defaultDate = lastWithValue ? lastWithValue.value : '';
 
             // Count how many "negative" rows already exist
-            const existingNegRows = [...table.querySelectorAll('input')]
+            const existingNegRows = [...tbody.querySelectorAll("input")]
                 .map(input => input.name.match(/shifts\[(\-?\d+)\]/))
                 .filter(Boolean)
                 .map(match => parseInt(match[1], 10))
                 .filter(n => n < 0);
 
-            const minNeg = existingNegRows.length ? Math.min(...existingNegRows) : 0;
+            let minNeg = existingNegRows.length ? Math.min(...existingNegRows) : 0;
+
             const newIndex = minNeg - 1;
 
-            const tbodyEl = document.createElement('tbody');
-            tbodyEl.setAttribute('x-data', '{ open: false }');
+            const tr = document.createElement("tr");
 
-            // Row 1: core shift fields
-            const tr1 = document.createElement('tr');
-            tr1.innerHTML = `
-                <td></td>
-                <td>
-                    <input type="text"
-                           name="shifts[${newIndex}][date]"
-                           id="shifts.${newIndex}.date"
-                           class="form-control date-picker form-control-sm"
-                           value="${defaultDate}"
-                           readonly="readonly">
-                </td>
-                <td>
-                    <input type="time"
-                           name="shifts[${newIndex}][starts_at]"
-                           id="shifts.${newIndex}.starts_at"
-                           class="form-control form-control-sm">
-                </td>
-                <td>
-                    <input type="time"
-                           name="shifts[${newIndex}][ends_at]"
-                           id="shifts.${newIndex}.ends_at"
-                           class="form-control form-control-sm">
-                </td>
-                <td></td>
-                <td>
-                    <button type="button"
-                            class="btn btn-sm"
-                            :class="open ? 'btn-outline-success' : 'btn-outline-secondary'"
-                            @click="open = !open"
-                            title="Charity details">
-                        <i class="fa fa-fw fa-dollar-sign"></i>
-                    </button>
-                </td>`;
-            tbodyEl.appendChild(tr1);
+            // Day display
+            const tdDay = document.createElement("td");
+            tr.appendChild(tdDay);
 
-            // Row 2: charity fields (hidden by default)
-            const tr2 = document.createElement('tr');
-            tr2.setAttribute('x-show', 'open');
-            tr2.setAttribute('x-cloak', '');
-            tr2.innerHTML = `
-                <td colspan="6" class="pb-2 pt-0">
-                    <div class="d-flex gap-2 align-items-start px-1">
-                        <div class="flex-grow-1">
-                            <div class="form-label small text-muted mb-1">Charity</div>
-                            <input type="text"
-                                   name="shifts[${newIndex}][charity_name]"
-                                   id="shifts.${newIndex}.charity_name"
-                                   class="form-control form-control-sm">
-                        </div>
-                        <div style="width:80px">
-                            <div class="form-label small text-muted mb-1">Hours</div>
-                            <input type="number" min="0"
-                                   name="shifts[${newIndex}][charity_hours]"
-                                   id="shifts.${newIndex}.charity_hours"
-                                   class="form-control form-control-sm">
-                        </div>
-                        <div style="width:90px">
-                            <div class="form-label small text-muted mb-1">Direct $</div>
-                            <input type="number" min="0"
-                                   name="shifts[${newIndex}][charity_direct_funds]"
-                                   id="shifts.${newIndex}.charity_direct_funds"
-                                   class="form-control form-control-sm">
-                        </div>
-                        <div style="width:90px">
-                            <div class="form-label small text-muted mb-1">Indirect $</div>
-                            <input type="number" min="0"
-                                   name="shifts[${newIndex}][charity_indirect_funds]"
-                                   id="shifts.${newIndex}.charity_indirect_funds"
-                                   class="form-control form-control-sm">
-                        </div>
-                        <div class="flex-grow-1">
-                            <div class="form-label small text-muted mb-1">Notes</div>
-                            <textarea name="shifts[${newIndex}][charity_notes]"
-                                      id="shifts.${newIndex}.charity_notes"
-                                      class="form-control form-control-sm"
-                                      rows="1"
-                                      style="resize:none;overflow:hidden"
-                                      x-on:input="$el.style.height='auto';$el.style.height=$el.scrollHeight+'px'"></textarea>
-                        </div>
-                    </div>
-                </td>`;
-            tbodyEl.appendChild(tr2);
+            // Date input
+            const tdDate = document.createElement("td");
+            tdDate.innerHTML = `
+          <input type="text"
+                 name="shifts[${newIndex}][date]"
+                 id="shifts.${newIndex}.date"
+                 class="form-control date-picker form-control-sm"
+                 value="${defaultDate}"
+                 readonly="readonly">`;
+            tr.appendChild(tdDate);
 
-            // Insert before tfoot if it exists, otherwise append to table
-            const tfoot = table.querySelector('tfoot');
-            if (tfoot) {
-                table.insertBefore(tbodyEl, tfoot);
-            } else {
-                table.appendChild(tbodyEl);
-            }
+            // Starts_at input
+            const tdStart = document.createElement("td");
+            tdStart.innerHTML = `
+          <input type="time"
+                 name="shifts[${newIndex}][starts_at]"
+                 id="shifts.${newIndex}.starts_at"
+                 class="form-control form-control-sm">`;
+            tr.appendChild(tdStart);
 
-            Alpine.initTree(tbodyEl);
+            // Ends_at input
+            const tdEnd = document.createElement("td");
+            tdEnd.innerHTML = `
+          <input type="time"
+                 name="shifts[${newIndex}][ends_at]"
+                 id="shifts.${newIndex}.ends_at"
+                 class="form-control form-control-sm">`;
+            tr.appendChild(tdEnd);
+
+            // Status (empty for new rows)
+            const tdStatus = document.createElement("td");
+            tr.appendChild(tdStatus);
+
+            tbody.appendChild(tr);
 
             document.body.dispatchEvent(new Event('tracker:date-picker:added'));
         }
