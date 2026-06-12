@@ -670,11 +670,6 @@ Purpose: Event master records.
 | friends_allowed | integer | yes |  |
 | guests_allowed | integer | yes |  |
 | tentative_signups_allowed | boolean | no | default false |
-| charity_direct_funds | integer | no | default 0 |
-| charity_indirect_funds | integer | no | default 0 |
-| charity_name | varchar(128) | yes |  |
-| charity_hours | integer | yes |  |
-| charity_notes | text | yes |  |
 | contact_name | varchar(128) | yes |  |
 | contact_phone | varchar(128) | yes |  |
 | contact_email | varchar(128) | yes |  |
@@ -725,6 +720,11 @@ Purpose: Shift windows within events.
 | status | varchar(16) | no | default EventStatus::DRAFT->value |
 | shift_starts_at | datetime | no | unique with event_id |
 | shift_ends_at | datetime | no |  |
+| charity_direct_funds | integer | no | default 0 |
+| charity_indirect_funds | integer | no | default 0 |
+| charity_name | varchar(512) | yes |  |
+| charity_hours | integer | yes | null = auto-calc from duration; integer = absolute override |
+| charity_notes | text | yes |  |
 | created_at | timestamp | yes | timestamps helper |
 | updated_at | timestamp | yes | timestamps helper |
 | deleted_at | timestamp | yes | softDeletes helper |
