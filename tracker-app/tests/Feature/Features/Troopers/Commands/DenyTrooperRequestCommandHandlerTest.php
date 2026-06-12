@@ -10,7 +10,7 @@ use App\Features\Troopers\Commands\DenyTrooperRequestCommandHandler;
 use App\Models\TrooperRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
-use App\Notifications\Troopers\JoinRequestDeniedNotification;
+use App\Notifications\Troopers\TrooperRequestDeniedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
@@ -93,6 +93,6 @@ class DenyTrooperRequestCommandHandlerTest extends TestCase
         $handler = app(DenyTrooperRequestCommandHandler::class);
         $handler(new DenyTrooperRequestCommand($trooper_request));
 
-        Notification::assertSentTo($trooper, JoinRequestDeniedNotification::class);
+        Notification::assertSentTo($trooper, TrooperRequestDeniedNotification::class);
     }
 }

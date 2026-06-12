@@ -11,7 +11,7 @@ use App\Models\Organization;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperOrganization;
 use App\Models\TrooperRequest;
-use App\Notifications\Troopers\JoinRequestApprovedNotification;
+use App\Notifications\Troopers\TrooperRequestApprovedNotification;
 
 /**
  * Handler for approving a club join request.
@@ -40,7 +40,7 @@ readonly class ApproveTrooperRequestCommandHandler implements CommandHandlerInte
 
         if (!$message->suppress_notification)
         {
-            $trooper->notify(new JoinRequestApprovedNotification($trooper_request));
+            $trooper->notify(new TrooperRequestApprovedNotification($trooper_request));
         }
 
         return null;

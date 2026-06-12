@@ -14,7 +14,7 @@ use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperOrganization;
-use App\Notifications\Troopers\JoinRequestApprovedNotification;
+use App\Notifications\Troopers\TrooperRequestApprovedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -183,7 +183,7 @@ class ApproveTrooperRequestCommandHandlerTest extends TestCase
         $handler = app(ApproveTrooperRequestCommandHandler::class);
         $handler(new ApproveTrooperRequestCommand($trooper_request));
 
-        Notification::assertSentTo($trooper, JoinRequestApprovedNotification::class);
+        Notification::assertSentTo($trooper, TrooperRequestApprovedNotification::class);
     }
 
     public function test_invoke_does_not_send_notification_when_suppressed(): void

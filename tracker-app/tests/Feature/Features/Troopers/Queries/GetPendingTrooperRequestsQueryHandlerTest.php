@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Features\Troopers\Queries;
 
-use App\Features\Troopers\Queries\GetPendingJoinRequestsQuery;
-use App\Features\Troopers\Queries\GetPendingJoinRequestsQueryHandler;
+use App\Features\Troopers\Queries\GetPendingTrooperRequestsQuery;
+use App\Features\Troopers\Queries\GetPendingTrooperRequestsQueryHandler;
 use App\Models\TrooperRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
@@ -14,9 +14,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * @see GetPendingJoinRequestsQueryHandler
+ * @see GetPendingTrooperRequestsQueryHandler
  */
-class GetPendingJoinRequestsQueryHandlerTest extends TestCase
+class GetPendingTrooperRequestsQueryHandlerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -33,8 +33,8 @@ class GetPendingJoinRequestsQueryHandlerTest extends TestCase
         TrooperRequest::factory()->forTrooper($member_a)->forOrganization($org_a)->forPrimaryOrganization($org_a)->create();
         TrooperRequest::factory()->forTrooper($member_b)->forOrganization($org_b)->forPrimaryOrganization($org_b)->create();
 
-        $handler = app(GetPendingJoinRequestsQueryHandler::class);
-        $result = $handler(new GetPendingJoinRequestsQuery($admin));
+        $handler = app(GetPendingTrooperRequestsQueryHandler::class);
+        $result = $handler(new GetPendingTrooperRequestsQuery($admin));
 
         $this->assertCount(2, $result);
     }
@@ -54,8 +54,8 @@ class GetPendingJoinRequestsQueryHandlerTest extends TestCase
         TrooperRequest::factory()->forTrooper($member_a)->forOrganization($org_a)->forPrimaryOrganization($org_a)->create();
         TrooperRequest::factory()->forTrooper($member_b)->forOrganization($org_b)->forPrimaryOrganization($org_b)->create();
 
-        $handler = app(GetPendingJoinRequestsQueryHandler::class);
-        $result = $handler(new GetPendingJoinRequestsQuery($moderator));
+        $handler = app(GetPendingTrooperRequestsQueryHandler::class);
+        $result = $handler(new GetPendingTrooperRequestsQuery($moderator));
 
         $this->assertCount(1, $result);
         $this->assertEquals($org_a->id, $result->first()->organization_id);
@@ -74,8 +74,8 @@ class GetPendingJoinRequestsQueryHandlerTest extends TestCase
             ->asApproved()
             ->create();
 
-        $handler = app(GetPendingJoinRequestsQueryHandler::class);
-        $result = $handler(new GetPendingJoinRequestsQuery($admin));
+        $handler = app(GetPendingTrooperRequestsQueryHandler::class);
+        $result = $handler(new GetPendingTrooperRequestsQuery($admin));
 
         $this->assertCount(0, $result);
     }
@@ -92,8 +92,8 @@ class GetPendingJoinRequestsQueryHandlerTest extends TestCase
             ->forPrimaryOrganization($organization)
             ->create();
 
-        $handler = app(GetPendingJoinRequestsQueryHandler::class);
-        $result = $handler(new GetPendingJoinRequestsQuery($admin));
+        $handler = app(GetPendingTrooperRequestsQueryHandler::class);
+        $result = $handler(new GetPendingTrooperRequestsQuery($admin));
 
         $this->assertCount(0, $result);
     }
@@ -110,8 +110,8 @@ class GetPendingJoinRequestsQueryHandlerTest extends TestCase
             ->forPrimaryOrganization($organization)
             ->create();
 
-        $handler = app(GetPendingJoinRequestsQueryHandler::class);
-        $result = $handler(new GetPendingJoinRequestsQuery($admin));
+        $handler = app(GetPendingTrooperRequestsQueryHandler::class);
+        $result = $handler(new GetPendingTrooperRequestsQuery($admin));
 
         $trooper_request = $result->first();
         $this->assertTrue($trooper_request->relationLoaded('trooper'));

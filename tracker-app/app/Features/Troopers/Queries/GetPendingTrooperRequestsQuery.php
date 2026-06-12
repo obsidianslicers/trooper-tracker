@@ -12,9 +12,9 @@ use App\Models\Trooper;
  * Results are scoped to organizations within the moderator's tree.
  * Administrators see all pending requests.
  *
- * @see GetPendingJoinRequestsQueryHandler
+ * @see GetPendingTrooperRequestsQueryHandler
  */
-readonly class GetPendingJoinRequestsQuery
+readonly class GetPendingTrooperRequestsQuery
 {
     /**
      * @param  Trooper  $moderator  The moderator or administrator viewing the queue

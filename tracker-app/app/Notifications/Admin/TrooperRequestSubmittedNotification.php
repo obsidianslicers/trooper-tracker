@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Notifications\Admin;
 
 use App\Channels\FcmChannel;
-use App\Mail\Admin\Troopers\TrooperJoinRequestSubmitted;
+use App\Mail\Admin\Troopers\TrooperRequestSubmitted;
 use App\Models\TrooperRequest;
 use App\Models\Trooper;
 use Illuminate\Notifications\Notification;
 
-class JoinRequestSubmittedNotification extends Notification
+class TrooperRequestSubmittedNotification extends Notification
 {
     public function __construct(private readonly TrooperRequest $trooper_request)
     {
@@ -40,9 +40,9 @@ class JoinRequestSubmittedNotification extends Notification
         return $channels;
     }
 
-    public function toMail(Trooper $notifiable): TrooperJoinRequestSubmitted
+    public function toMail(Trooper $notifiable): TrooperRequestSubmitted
     {
-        return (new TrooperJoinRequestSubmitted($this->trooper_request))->to($notifiable->email);
+        return (new TrooperRequestSubmitted($this->trooper_request))->to($notifiable->email);
     }
 
     public function toArray(Trooper $notifiable): array

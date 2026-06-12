@@ -11,8 +11,8 @@ use App\Features\Troopers\Commands\ApproveTrooperCommandHandler;
 use App\Models\TrooperRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
-use App\Notifications\Troopers\JoinRequestApprovedNotification;
-use App\Notifications\Troopers\JoinRequestDeniedNotification;
+use App\Notifications\Troopers\TrooperRequestApprovedNotification;
+use App\Notifications\Troopers\TrooperRequestDeniedNotification;
 use App\Notifications\Troopers\MembershipApprovedNotification;
 use App\Notifications\Troopers\TrooperDeniedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -63,7 +63,7 @@ class ApproveTrooperCommandHandlerTest extends TestCase
 
         $trooper_request->refresh();
         $this->assertEquals(TrooperRequestStatus::APPROVED, $trooper_request->status);
-        Notification::assertNotSentTo($trooper, JoinRequestApprovedNotification::class);
+        Notification::assertNotSentTo($trooper, TrooperRequestApprovedNotification::class);
     }
 
     public function test_invoke_denies_trooper_and_sends_denial_notification(): void
@@ -111,6 +111,6 @@ class ApproveTrooperCommandHandlerTest extends TestCase
         $this->assertSame('Not eligible', $trooper_request->denial_reason);
         $this->assertNotNull($trooper_request->updated_at);
         Notification::assertSentTo($trooper, TrooperDeniedNotification::class);
-        Notification::assertNotSentTo($trooper, JoinRequestDeniedNotification::class);
+        Notification::assertNotSentTo($trooper, TrooperRequestDeniedNotification::class);
     }
 }

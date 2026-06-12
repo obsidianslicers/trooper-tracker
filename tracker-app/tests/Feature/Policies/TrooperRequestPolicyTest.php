@@ -8,20 +8,20 @@ use App\Models\TrooperRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
-use App\Policies\TrooperJoinRequestPolicy;
+use App\Policies\TrooperRequestPolicy;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * @see TrooperJoinRequestPolicy
+ * @see TrooperRequestPolicy
  */
-class TrooperJoinRequestPolicyTest extends TestCase
+class TrooperRequestPolicyTest extends TestCase
 {
     use RefreshDatabase;
 
     public function test_moderate_allows_administrator_for_any_join_request(): void
     {
-        $policy = new TrooperJoinRequestPolicy;
+        $policy = new TrooperRequestPolicy;
         $admin = Trooper::factory()->asAdministrator()->create();
 
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
@@ -38,7 +38,7 @@ class TrooperJoinRequestPolicyTest extends TestCase
 
     public function test_moderate_allows_moderator_within_their_org_tree(): void
     {
-        $policy = new TrooperJoinRequestPolicy;
+        $policy = new TrooperRequestPolicy;
         $moderator = Trooper::factory()->asModerator()->create();
 
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
@@ -56,7 +56,7 @@ class TrooperJoinRequestPolicyTest extends TestCase
 
     public function test_moderate_denies_moderator_outside_their_org_tree(): void
     {
-        $policy = new TrooperJoinRequestPolicy;
+        $policy = new TrooperRequestPolicy;
         $moderator = Trooper::factory()->asModerator()->create();
 
         $org_a = Organization::factory()->asOrganization()->withNodePath('100:')->create();

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\Account;
 
 use App\Http\Controllers\Account\ClubMembershipsSubmitHtmxController;
-use App\Jobs\SendJoinRequestNotificationsJob;
+use App\Jobs\SendTrooperRequestNotificationsJob;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -51,7 +51,7 @@ class ClubMembershipsSubmitHtmxControllerTest extends TestCase
             'primary_organization_id' => $organization->id,
             'status' => 'pending',
         ]);
-        Queue::assertPushed(SendJoinRequestNotificationsJob::class);
+        Queue::assertPushed(SendTrooperRequestNotificationsJob::class);
     }
 
     public function test_invoke_validates_organization_id_required(): void
