@@ -31,9 +31,9 @@
             <div class="row g-3 align-items-end mt-1">
                 <div class="col-sm-4">
                     <x-label value="Clubs" />
-                    <div class="border rounded p-2 overflow-auto" style="max-height: 160px;">
+                    <div class="border rounded p-2 overflow-auto" style="max-height: 200px;">
                         @foreach($organizations as $org)
-                            <div class="form-check">
+                            <div class="form-check" style="padding-left: calc(1.5em + {{ $org->depth }}rem);">
                                 <input class="form-check-input" type="checkbox"
                                        name="organization_ids[]"
                                        value="{{ $org->id }}"

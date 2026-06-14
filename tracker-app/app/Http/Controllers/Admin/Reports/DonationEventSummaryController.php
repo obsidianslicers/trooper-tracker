@@ -32,8 +32,8 @@ class DonationEventSummaryController extends BaseReportsController
         $dir = $request->input('dir', 'desc');
 
         $organizations = Organization::moderatedBy($trooper)
-            ->orderBy(Organization::NAME)
-            ->get(['id', 'name', 'node_path']);
+            ->orderBy(Organization::SEQUENCE)
+            ->get(['id', 'name', 'depth', 'sequence', 'node_path']);
 
         $accessible_org_ids = $organizations
             ->map(fn ($org) => (int) explode(Organization::NODE_PATH_SEP, $org->node_path)[0])
