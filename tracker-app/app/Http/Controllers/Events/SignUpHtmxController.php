@@ -48,11 +48,17 @@ class SignUpHtmxController extends MagicBusController
 
         $signed_up = false;
 
+        $can_moderate = $auth_trooper->isModeratorForOrganization($event_shift->event->organization);
+
         $can_add_friend = !$request->has('trooper_id')
-            || $auth_trooper->can('update', $event_shift->event)
+            || $can_moderate
             || $event_shift->canSignUpTrooper($auth_trooper);
 
-        if ($can_add_friend && $event_shift->canSignUp($trooper))
+        $grace_period_moderator_add = $can_moderate
+            && $event_shift->event->is_within_grace_period
+            && !$event_shift->isSignedUp($trooper);
+
+        if ($can_add_friend && ($event_shift->canSignUp($trooper) || $grace_period_moderator_add))
         {
             $organization_id = $request->input('organization_id') ? (int) $request->input('organization_id') : null;
 
@@ -70,8 +76,6 @@ class SignUpHtmxController extends MagicBusController
         $event_shift = $this->bus->send($event_shift_query);
 
         $event = $event_shift->event;
-
-        $can_moderate = $auth_trooper->isModeratorForOrganization($event->organization);
 
         $count_of_shifts = $event->event_shifts()->count();
 

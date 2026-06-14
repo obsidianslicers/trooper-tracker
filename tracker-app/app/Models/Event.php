@@ -291,12 +291,7 @@ class Event extends BaseEvent
      */
     public function canModerateIfClosed(bool $can_moderate): bool
     {
-        if ($this->is_closed && $this->is_within_grace_period && $can_moderate)
-        {
-            return true;
-        }
-
-        return false;
+        return $can_moderate && $this->is_within_grace_period;
     }
 
     /**

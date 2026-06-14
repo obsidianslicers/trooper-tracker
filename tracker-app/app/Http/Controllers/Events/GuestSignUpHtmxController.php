@@ -40,7 +40,9 @@ class GuestSignUpHtmxController extends MagicBusController
             return $this->shiftContainerResponse($event_shift, $trooper, $can_moderate);
         }
 
-        if (!$event_shift->is_open)
+        $grace_period_moderator_add = $can_moderate && $event->is_within_grace_period;
+
+        if (!$event_shift->is_open && !$grace_period_moderator_add)
         {
             return $this->shiftContainerResponse($event_shift, $trooper, $can_moderate);
         }
