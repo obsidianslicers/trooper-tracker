@@ -62,12 +62,12 @@
             <tr>
                 <th colspan="4"></th>
                 <th scope="col" class="text-center" colspan="4">— Charity —</th>
-                <th></th>
+                <th colspan="2"></th>
             </tr>
             <tr>
                 <th>
                     <a href="{{ $sortLink('name') }}" class="text-reset text-decoration-none">
-                        Event{!! $sortIcon('name') !!}
+                        Event / Shift{!! $sortIcon('name') !!}
                     </a>
                 </th>
                 <th>
@@ -75,11 +75,7 @@
                         Date{!! $sortIcon('event_start') !!}
                     </a>
                 </th>
-                <th>
-                    <a href="{{ $sortLink('charity_name') }}" class="text-reset text-decoration-none">
-                        Charity{!! $sortIcon('charity_name') !!}
-                    </a>
-                </th>
+                <th>Charity</th>
                 <th>Notes</th>
                 <th scope="col" class="text-end">
                     <a href="{{ $sortLink('charity_direct_funds') }}" class="text-reset text-decoration-none">
@@ -102,69 +98,94 @@
                         Attendees{!! $sortIcon('attendees_count') !!}
                     </a>
                 </th>
+                <th scope="col" class="text-end">Trooper Hrs</th>
             </tr>
         </thead>
         <tbody>
             @forelse ($events as $event)
-                <tr>
+                @php
+                    $event_direct   = $event->event_shifts->sum('charity_direct_funds');
+                    $event_indirect = $event->event_shifts->sum('charity_indirect_funds');
+                    $event_hours    = $event->event_shifts->sum(fn($s) => $s->effective_charity_hours);
+                    $event_attended = $event->event_shifts->sum('attendees_count');
+                    $event_trooper_hours = $event->event_shifts->sum(fn($s) => $s->effective_charity_hours * $s->attendees_count);
+                @endphp
+                <tr class="table-secondary fw-semibold">
                     <td>
-                        <a href="{{ route('admin.events.update', compact('event')) }}">
+                        <a href="{{ route('admin.events.update', compact('event')) }}" class="text-reset">
                             {{ $event->name }}
                         </a>
                         @if($event->organization)
-                            <br><small class="text-muted">{{ $event->organization->name }}</small>
+                            <br><small class="fw-normal text-muted">{{ $event->organization->name }}</small>
                         @endif
                     </td>
-                    <td class="text-nowrap">
-                        {{ $event->event_start?->format('M d, Y') }}
-                    </td>
-                    <td>{{ $event->charity_name }}</td>
-                    <td><small>{{ $event->charity_notes }}</small></td>
-                    <td class="text-end">
-                        <x-number-format :value="$event->charity_direct_funds" />
-                    </td>
-                    <td class="text-end">
-                        <x-number-format :value="$event->charity_indirect_funds" />
-                    </td>
-                    <td class="text-end">
-                        <x-number-format :value="$event->charity_direct_funds + $event->charity_indirect_funds" />
-                    </td>
-                    <td class="text-end">
-                        <x-number-format :value="$event->charity_hours" />
-                    </td>
-                    <td class="text-end">
-                        <x-number-format :value="$event->attendees_count" />
-                    </td>
+                    <td class="text-nowrap">{{ $event->event_start?->format('M d, Y') }}</td>
+                    <td colspan="2"></td>
+                    <td class="text-end"><x-number-format :value="$event_direct" /></td>
+                    <td class="text-end"><x-number-format :value="$event_indirect" /></td>
+                    <td class="text-end"><x-number-format :value="$event_direct + $event_indirect" /></td>
+                    <td class="text-end"><x-number-format :value="$event_hours" /></td>
+                    <td class="text-end"><x-number-format :value="$event_attended" /></td>
+                    <td class="text-end"><x-number-format :value="$event_trooper_hours" /></td>
                 </tr>
+                @foreach($event->event_shifts as $shift)
+                    @php
+                        $shift_trooper_hours = $shift->effective_charity_hours * $shift->attendees_count;
+                    @endphp
+                    <tr>
+                        <td class="ps-4">
+                            <small class="text-muted">{{ $shift->compact_time_display }}</small>
+                        </td>
+                        <td></td>
+                        <td><small>{{ $shift->charity_name }}</small></td>
+                        <td><small>{{ $shift->charity_notes }}</small></td>
+                        <td class="text-end">
+                            <x-number-format :value="$shift->charity_direct_funds" />
+                        </td>
+                        <td class="text-end">
+                            <x-number-format :value="$shift->charity_indirect_funds" />
+                        </td>
+                        <td class="text-end">
+                            <x-number-format :value="$shift->charity_direct_funds + $shift->charity_indirect_funds" />
+                        </td>
+                        <td class="text-end">
+                            <x-number-format :value="$shift->effective_charity_hours" />
+                        </td>
+                        <td class="text-end">
+                            <x-number-format :value="$shift->attendees_count" />
+                        </td>
+                        <td class="text-end">
+                            <x-number-format :value="$shift_trooper_hours" />
+                        </td>
+                    </tr>
+                @endforeach
             @empty
-                <x-table-empty :colspan="9">
+                <x-table-empty :colspan="10">
                     No closed events found for the selected filters.
                 </x-table-empty>
             @endforelse
         </tbody>
         <tfoot>
             @if($events->count())
+            @php
+                $total_direct        = $events->sum(fn($e) => $e->event_shifts->sum('charity_direct_funds'));
+                $total_indirect      = $events->sum(fn($e) => $e->event_shifts->sum('charity_indirect_funds'));
+                $total_hours         = $events->sum(fn($e) => $e->event_shifts->sum(fn($s) => $s->effective_charity_hours));
+                $total_attended      = $events->sum(fn($e) => $e->event_shifts->sum('attendees_count'));
+                $total_trooper_hours = $events->sum(fn($e) => $e->event_shifts->sum(fn($s) => $s->effective_charity_hours * $s->attendees_count));
+            @endphp
             <tr>
                 <th colspan="4">Total</th>
-                <th class="text-end">
-                    <x-number-format :value="$events->sum('charity_direct_funds')" />
-                </th>
-                <th class="text-end">
-                    <x-number-format :value="$events->sum('charity_indirect_funds')" />
-                </th>
-                <th class="text-end">
-                    <x-number-format :value="$events->sum(fn($e) => $e->charity_direct_funds + $e->charity_indirect_funds)" />
-                </th>
-                <th class="text-end">
-                    <x-number-format :value="$events->sum('charity_hours')" />
-                </th>
-                <th class="text-end">
-                    <x-number-format :value="$events->sum('attendees_count')" />
-                </th>
+                <th class="text-end"><x-number-format :value="$total_direct" /></th>
+                <th class="text-end"><x-number-format :value="$total_indirect" /></th>
+                <th class="text-end"><x-number-format :value="$total_direct + $total_indirect" /></th>
+                <th class="text-end"><x-number-format :value="$total_hours" /></th>
+                <th class="text-end"><x-number-format :value="$total_attended" /></th>
+                <th class="text-end"><x-number-format :value="$total_trooper_hours" /></th>
             </tr>
             @endif
             <tr>
-                <td colspan="9">
+                <td colspan="10">
                     {{ $events->links() }}
                 </td>
             </tr>

@@ -43,33 +43,21 @@ readonly class GetDonationEventSummaryQueryHandler implements QueryHandlerInterf
             ->whereColumn('event_id', 'tt_events.id')
             ->whereNull('deleted_at');
 
-        $charityNameSub = DB::table('tt_event_shifts')
-            ->select('charity_name')
-            ->whereColumn('event_id', 'tt_events.id')
-            ->whereNull('deleted_at')
-            ->whereNotNull('charity_name')
-            ->where('charity_name', '!=', '')
-            ->orderBy('shift_starts_at')
-            ->limit(1);
-
-        $charityNotesSub = DB::table('tt_event_shifts')
-            ->select('charity_notes')
-            ->whereColumn('event_id', 'tt_events.id')
-            ->whereNull('deleted_at')
-            ->whereNotNull('charity_notes')
-            ->where('charity_notes', '!=', '')
-            ->orderBy('shift_starts_at')
-            ->limit(1);
-
         $query = Event::query()
             ->select('tt_events.*')
             ->selectSub($attendeesCountSub, 'attendees_count')
             ->selectSub($directFundsSub, 'charity_direct_funds')
             ->selectSub($indirectFundsSub, 'charity_indirect_funds')
             ->selectSub($charityHoursSub, 'charity_hours')
-            ->selectSub($charityNameSub, 'charity_name')
-            ->selectSub($charityNotesSub, 'charity_notes')
-            ->with('organization:id,name')
+            ->with([
+                'organization:id,name',
+                'event_shifts' => function ($q) {
+                    $q->withCount(['event_troopers as attendees_count' => function ($inner) {
+                        $inner->where('status', EventTrooperStatus::ATTENDED->value);
+                    }])
+                    ->orderBy('shift_starts_at');
+                },
+            ])
             ->moderatedBy($message->moderator)
             ->where(Event::STATUS, EventStatus::CLOSED)
             ->when($message->date_start, fn ($q) => $q->where(Event::EVENT_START, '>=', $message->date_start))
@@ -87,7 +75,7 @@ readonly class GetDonationEventSummaryQueryHandler implements QueryHandlerInterf
                     });
             }));
 
-        $allowed = ['name', 'event_start', 'charity_name', 'charity_direct_funds', 'charity_indirect_funds', 'charity_hours', 'attendees_count'];
+        $allowed = ['name', 'event_start', 'charity_direct_funds', 'charity_indirect_funds', 'charity_hours', 'attendees_count'];
         $sort = in_array($message->sort, $allowed) ? $message->sort : 'event_start';
         $dir = $message->dir === 'asc' ? 'asc' : 'desc';
 

@@ -69,32 +69,56 @@ class DonationEventSummaryController extends BaseReportsController
                 fputcsv($handle, $meta);
             }
 
-            fputcsv($handle, ['Event', 'Date', 'Club', 'Charity', 'Direct Funds', 'Indirect Funds', 'Total Funds', 'Hours', 'Attendees', 'Notes']);
+            fputcsv($handle, ['Event', 'Date', 'Club', 'Shift', 'Charity', 'Direct Funds', 'Indirect Funds', 'Total Funds', 'Hours', 'Attendees', 'Trooper Hours', 'Notes']);
+
+            $total_direct = 0;
+            $total_indirect = 0;
+            $total_hours = 0;
+            $total_attended = 0;
+            $total_trooper_hours = 0;
 
             foreach ($events as $event)
             {
-                fputcsv($handle, [
-                    $event->name,
-                    $event->event_start?->format('Y-m-d'),
-                    $event->organization?->name,
-                    $event->charity_name,
-                    $event->charity_direct_funds,
-                    $event->charity_indirect_funds,
-                    $event->charity_direct_funds + $event->charity_indirect_funds,
-                    $event->charity_hours,
-                    $event->attendees_count,
-                    $event->charity_notes,
-                ]);
+                foreach ($event->event_shifts as $shift)
+                {
+                    $direct = $shift->charity_direct_funds;
+                    $indirect = $shift->charity_indirect_funds;
+                    $hours = $shift->effective_charity_hours;
+                    $attended = $shift->attendees_count;
+                    $trooper_hours = $hours * $attended;
+
+                    fputcsv($handle, [
+                        $event->name,
+                        $event->event_start?->format('Y-m-d'),
+                        $event->organization?->name,
+                        $shift->compact_time_display,
+                        $shift->charity_name,
+                        $direct,
+                        $indirect,
+                        $direct + $indirect,
+                        $hours,
+                        $attended,
+                        $trooper_hours,
+                        $shift->charity_notes,
+                    ]);
+
+                    $total_direct        += $direct;
+                    $total_indirect      += $indirect;
+                    $total_hours         += $hours;
+                    $total_attended      += $attended;
+                    $total_trooper_hours += $trooper_hours;
+                }
             }
 
             fputcsv($handle, []);
             fputcsv($handle, [
-                'Total', '', '', '',
-                $events->sum('charity_direct_funds'),
-                $events->sum('charity_indirect_funds'),
-                $events->sum(fn ($e) => $e->charity_direct_funds + $e->charity_indirect_funds),
-                $events->sum('charity_hours'),
-                $events->sum('attendees_count'),
+                'Total', '', '', '', '',
+                $total_direct,
+                $total_indirect,
+                $total_direct + $total_indirect,
+                $total_hours,
+                $total_attended,
+                $total_trooper_hours,
                 '',
             ]);
 
