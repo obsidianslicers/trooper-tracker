@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 readonly class GetDonationEventSummaryQueryHandler implements QueryHandlerInterface
 {
     use HasOrgAttributionQuery;
+
     /**
      * @param  GetDonationEventSummaryQuery  $message
      * @return LengthAwarePaginator
@@ -60,7 +61,7 @@ readonly class GetDonationEventSummaryQueryHandler implements QueryHandlerInterf
                         $inner->where('status', EventTrooperStatus::ATTENDED->value);
                         $this->applyAttribution($inner, $message);
                     }])
-                    ->orderBy('shift_starts_at');
+                        ->orderBy('shift_starts_at');
                 },
             ])
             ->moderatedBy($message->moderator)

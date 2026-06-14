@@ -50,18 +50,24 @@ class DonationEventSummaryController extends BaseReportsController
         $filter_ids = $filter_orgs->pluck('id')->all();
         $selected_ids = array_values(array_intersect($raw_ids, $filter_ids));
 
-        if (empty($selected_ids) || count($selected_ids) === count($filter_ids)) {
+        if (empty($selected_ids) || count($selected_ids) === count($filter_ids))
+        {
             $selected_ids = [];
             $selected_org_ids = [];
-        } else {
+        }
+        else
+        {
             $node_paths = $filter_orgs->whereIn('id', $selected_ids)->pluck('node_path');
             $selected_org_ids = $organizations->filter(function ($org) use ($node_paths) {
-                foreach ($node_paths as $path) {
+                foreach ($node_paths as $path)
+                {
                     if ($org->node_path === $path
-                        || str_starts_with($org->node_path, $path.Organization::NODE_PATH_SEP)) {
+                        || str_starts_with($org->node_path, $path.Organization::NODE_PATH_SEP))
+                    {
                         return true;
                     }
                 }
+
                 return false;
             })->pluck('id')->values()->all();
         }
@@ -144,10 +150,10 @@ class DonationEventSummaryController extends BaseReportsController
                         $shift->charity_notes,
                     ]);
 
-                    $total_direct        += $direct;
-                    $total_indirect      += $indirect;
-                    $total_hours         += $hours;
-                    $total_attended      += $attended;
+                    $total_direct += $direct;
+                    $total_indirect += $indirect;
+                    $total_hours += $hours;
+                    $total_attended += $attended;
                     $total_trooper_hours += $trooper_hours;
                 }
             }
