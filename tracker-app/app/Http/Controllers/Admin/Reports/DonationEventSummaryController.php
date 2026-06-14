@@ -33,7 +33,7 @@ class DonationEventSummaryController extends BaseReportsController
 
         $organizations = Organization::moderatedBy($trooper)
             ->orderBy(Organization::SEQUENCE)
-            ->get(['id', 'name', 'depth', 'sequence', 'node_path']);
+            ->get(['id', 'name', 'depth', 'node_path']);
 
         $accessible_org_ids = $organizations
             ->map(fn ($org) => (int) explode(Organization::NODE_PATH_SEP, $org->node_path)[0])
@@ -41,22 +41,43 @@ class DonationEventSummaryController extends BaseReportsController
             ->values()
             ->all();
 
+        $top_level_orgs = $organizations->where('depth', 0)->values();
+        $filter_orgs = $top_level_orgs->count() > 1
+            ? $top_level_orgs
+            : $organizations->where('depth', 1)->values();
+
         $raw_ids = array_map('intval', (array) $request->input('organization_ids', []));
-        $accessible_id_list = $organizations->pluck('id')->all();
-        $selected_org_ids = array_values(array_intersect($raw_ids, $accessible_id_list));
+        $filter_ids = $filter_orgs->pluck('id')->all();
+        $selected_ids = array_values(array_intersect($raw_ids, $filter_ids));
+
+        if (empty($selected_ids) || count($selected_ids) === count($filter_ids)) {
+            $selected_ids = [];
+            $selected_org_ids = [];
+        } else {
+            $node_paths = $filter_orgs->whereIn('id', $selected_ids)->pluck('node_path');
+            $selected_org_ids = $organizations->filter(function ($org) use ($node_paths) {
+                foreach ($node_paths as $path) {
+                    if ($org->node_path === $path
+                        || str_starts_with($org->node_path, $path.Organization::NODE_PATH_SEP)) {
+                        return true;
+                    }
+                }
+                return false;
+            })->pluck('id')->values()->all();
+        }
 
         if ($request->input('format') === 'csv')
         {
             $all = $this->bus->send(new GetDonationEventSummaryQuery($trooper, $date_start, $date_end, $charity_only, PHP_INT_MAX, $sort, $dir, $selected_org_ids, $accessible_org_ids));
 
-            $selected_names = $organizations->whereIn('id', $selected_org_ids)->pluck('name')->join(', ');
+            $selected_names = $filter_orgs->whereIn('id', $selected_ids)->pluck('name')->join(', ');
 
             return $this->streamCsv($all, $date_start, $date_end, $charity_only, $selected_names ?: null);
         }
 
         $events = $this->bus->send(new GetDonationEventSummaryQuery($trooper, $date_start, $date_end, $charity_only, 50, $sort, $dir, $selected_org_ids, $accessible_org_ids));
 
-        $data = compact('events', 'date_start', 'date_end', 'charity_only', 'sort', 'dir', 'organizations', 'selected_org_ids');
+        $data = compact('events', 'date_start', 'date_end', 'charity_only', 'sort', 'dir', 'filter_orgs', 'selected_ids');
 
         return view('pages.admin.reports.donation-event-summary', $data);
     }

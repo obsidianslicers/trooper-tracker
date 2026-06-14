@@ -27,18 +27,18 @@
                 </div>
             </div>
 
-            @if($organizations->count() > 1)
+            @if($filter_orgs->count() > 1)
             <div class="row g-3 align-items-end mt-1">
                 <div class="col-sm-4">
                     <x-label value="Clubs" />
                     <div class="border rounded p-2 overflow-auto" style="max-height: 200px;">
-                        @foreach($organizations as $org)
-                            <div class="form-check" style="padding-left: calc(1.5em + {{ $org->depth }}rem);">
+                        @foreach($filter_orgs as $org)
+                            <div class="form-check">
                                 <input class="form-check-input" type="checkbox"
                                        name="organization_ids[]"
                                        value="{{ $org->id }}"
                                        id="org_{{ $org->id }}"
-                                       @checked(in_array($org->id, $selected_org_ids))>
+                                       @checked(empty($selected_ids) || in_array($org->id, $selected_ids))>
                                 <label class="form-check-label" for="org_{{ $org->id }}">
                                     {{ $org->name }}
                                 </label>
@@ -81,10 +81,10 @@
         </form>
     </x-card>
 
-    @if($date_start || $date_end || $charity_only || !empty($selected_org_ids))
+    @if($date_start || $date_end || $charity_only || !empty($selected_ids))
         <p class="text-muted small mb-2">
-            @if(!empty($selected_org_ids))
-                {{ $organizations->whereIn('id', $selected_org_ids)->pluck('name')->join(', ') }}
+            @if(!empty($selected_ids))
+                {{ $filter_orgs->whereIn('id', $selected_ids)->pluck('name')->join(', ') }}
             @endif
             @if($date_start) &mdash; From {{ $date_start->format('M d, Y') }} @endif
             @if($date_end) to {{ $date_end->format('M d, Y') }} @endif
