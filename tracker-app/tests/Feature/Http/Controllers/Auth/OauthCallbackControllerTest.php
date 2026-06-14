@@ -10,6 +10,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Session;
 use Laravel\Socialite\Contracts\User as SocialiteUser;
 use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\InvalidStateException;
 use Mockery;
 use Tests\TestCase;
 
@@ -107,6 +108,20 @@ class OauthCallbackControllerTest extends TestCase
 
         $response->assertRedirect('/');
         $this->assertAuthenticatedAs($trooper);
+    }
+
+    public function test_invoke_redirects_to_login_on_invalid_state(): void
+    {
+        Socialite::shouldReceive('driver')
+            ->with('xenforo')
+            ->andReturn(Mockery::self())
+            ->shouldReceive('user')
+            ->andThrow(new InvalidStateException);
+
+        $response = $this->get(route('auth.oauth-callback', ['provider' => 'xenforo']));
+
+        $response->assertRedirect(route('auth.login'));
+        $this->assertGuest();
     }
 
     public function test_invoke_rejects_oauth_without_email(): void
