@@ -35,27 +35,28 @@ class DonationEventSummaryController extends BaseReportsController
             ->orderBy(Organization::NAME)
             ->get(['id', 'name', 'node_path']);
 
-        $organization_id = $request->integer('organization_id') ?: null;
-        $organization = $organization_id
-            ? $organizations->firstWhere('id', $organization_id)
-            : null;
-
         $accessible_org_ids = $organizations
             ->map(fn ($org) => (int) explode(Organization::NODE_PATH_SEP, $org->node_path)[0])
             ->unique()
             ->values()
             ->all();
 
+        $raw_ids = array_map('intval', (array) $request->input('organization_ids', []));
+        $accessible_id_list = $organizations->pluck('id')->all();
+        $selected_org_ids = array_values(array_intersect($raw_ids, $accessible_id_list));
+
         if ($request->input('format') === 'csv')
         {
-            $all = $this->bus->send(new GetDonationEventSummaryQuery($trooper, $date_start, $date_end, $charity_only, PHP_INT_MAX, $sort, $dir, $organization, $accessible_org_ids));
+            $all = $this->bus->send(new GetDonationEventSummaryQuery($trooper, $date_start, $date_end, $charity_only, PHP_INT_MAX, $sort, $dir, $selected_org_ids, $accessible_org_ids));
 
-            return $this->streamCsv($all, $date_start, $date_end, $charity_only, $organization?->name);
+            $selected_names = $organizations->whereIn('id', $selected_org_ids)->pluck('name')->join(', ');
+
+            return $this->streamCsv($all, $date_start, $date_end, $charity_only, $selected_names ?: null);
         }
 
-        $events = $this->bus->send(new GetDonationEventSummaryQuery($trooper, $date_start, $date_end, $charity_only, 50, $sort, $dir, $organization, $accessible_org_ids));
+        $events = $this->bus->send(new GetDonationEventSummaryQuery($trooper, $date_start, $date_end, $charity_only, 50, $sort, $dir, $selected_org_ids, $accessible_org_ids));
 
-        $data = compact('events', 'date_start', 'date_end', 'charity_only', 'sort', 'dir', 'organizations', 'organization_id');
+        $data = compact('events', 'date_start', 'date_end', 'charity_only', 'sort', 'dir', 'organizations', 'selected_org_ids');
 
         return view('pages.admin.reports.donation-event-summary', $data);
     }

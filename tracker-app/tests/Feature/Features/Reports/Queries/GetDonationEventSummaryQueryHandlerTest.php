@@ -684,7 +684,7 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
 
         $subject = new GetDonationEventSummaryQueryHandler();
 
-        $result = $subject(new GetDonationEventSummaryQuery($moderator, organization: $org));
+        $result = $subject(new GetDonationEventSummaryQuery($moderator, selected_org_ids: [$org->id]));
 
         $this->assertSame(1, (int) $result->first()->attendees_count);
         $this->assertSame(1, $result->first()->event_shifts->first()->attendees_count);
@@ -710,7 +710,7 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
 
         $subject = new GetDonationEventSummaryQueryHandler();
 
-        $result = $subject(new GetDonationEventSummaryQuery($moderator, organization: $org));
+        $result = $subject(new GetDonationEventSummaryQuery($moderator, selected_org_ids: [$org->id]));
 
         $this->assertSame(1, (int) $result->first()->attendees_count);
         $this->assertSame(1, $result->first()->event_shifts->first()->attendees_count);
@@ -729,9 +729,34 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
 
         $subject = new GetDonationEventSummaryQueryHandler();
 
-        $result = $subject(new GetDonationEventSummaryQuery($moderator, organization: $org));
+        $result = $subject(new GetDonationEventSummaryQuery($moderator, selected_org_ids: [$org->id]));
 
         $this->assertSame(0, (int) $result->first()->attendees_count);
         $this->assertSame(0, $result->first()->event_shifts->first()->attendees_count);
+    }
+
+    public function test_invoke_org_filter_counts_attendees_from_multiple_selected_orgs(): void
+    {
+        $moderator = Trooper::factory()->asModerator()->create();
+        $org_a = Organization::factory()->create();
+        $org_b = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($org_a)->asModerator()->create();
+
+        $event = Event::factory()->asClosed()->withOrganization($org_a)->withEventStart(now()->subDays(5))->create();
+        $shift = EventShift::factory()->forEvent($event)->create();
+
+        EventTrooper::factory()->forEventShift($shift)->asAttended()
+            ->create([EventTrooper::ORGANIZATION_ID => $org_a->id]);
+        EventTrooper::factory()->forEventShift($shift)->asAttended()
+            ->create([EventTrooper::ORGANIZATION_ID => $org_b->id]);
+        EventTrooper::factory()->forEventShift($shift)->asAttended()
+            ->create([EventTrooper::ORGANIZATION_ID => Organization::factory()->create()->id]);
+
+        $subject = new GetDonationEventSummaryQueryHandler();
+
+        $result = $subject(new GetDonationEventSummaryQuery($moderator, selected_org_ids: [$org_a->id, $org_b->id]));
+
+        $this->assertSame(2, (int) $result->first()->attendees_count);
+        $this->assertSame(2, $result->first()->event_shifts->first()->attendees_count);
     }
 }

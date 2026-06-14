@@ -30,7 +30,7 @@ readonly class GetDonationEventSummaryQueryHandler implements QueryHandlerInterf
             ->whereColumn('tt_event_shifts.event_id', 'tt_events.id')
             ->where('tt_event_troopers.status', EventTrooperStatus::ATTENDED->value);
 
-        $this->applyOrgAttribution($attendeesCountSub, $message->organization, $message->accessible_org_ids);
+        $this->applyAttribution($attendeesCountSub, $message);
 
         $directFundsSub = DB::table('tt_event_shifts')
             ->selectRaw('COALESCE(SUM(charity_direct_funds), 0)')
@@ -58,7 +58,7 @@ readonly class GetDonationEventSummaryQueryHandler implements QueryHandlerInterf
                 'event_shifts' => function ($q) use ($message) {
                     $q->withCount(['event_troopers as attendees_count' => function ($inner) use ($message) {
                         $inner->where('status', EventTrooperStatus::ATTENDED->value);
-                        $this->applyOrgAttribution($inner, $message->organization, $message->accessible_org_ids);
+                        $this->applyAttribution($inner, $message);
                     }])
                     ->orderBy('shift_starts_at');
                 },
@@ -85,6 +85,36 @@ readonly class GetDonationEventSummaryQueryHandler implements QueryHandlerInterf
         $dir = $message->dir === 'asc' ? 'asc' : 'desc';
 
         return $query->orderBy($sort, $dir)->paginate($message->page_size)->withQueryString();
+    }
+
+    private function applyAttribution(mixed $q, GetDonationEventSummaryQuery $message): void
+    {
+        if (!empty($message->selected_org_ids))
+        {
+            $this->applySelectedOrgs($q, $message->selected_org_ids);
+        }
+        else
+        {
+            $this->applyOrgAttribution($q, null, $message->accessible_org_ids);
+        }
+    }
+
+    private function applySelectedOrgs(mixed $q, array $org_ids): void
+    {
+        $q->where(function ($q) use ($org_ids) {
+            $q->whereIn('tt_event_troopers.organization_id', $org_ids)
+                ->orWhere(function ($q) use ($org_ids) {
+                    $q->whereNull('tt_event_troopers.organization_id')
+                        ->where(function ($q) use ($org_ids) {
+                            foreach ($org_ids as $id)
+                            {
+                                $q->orWhere(function ($q) use ($id) {
+                                    $this->whereJsonArrayContainsOrganization($q, (int) $id);
+                                });
+                            }
+                        });
+                });
+        });
     }
 
     private function diffInHoursSql(string $start_col, string $end_col): string
