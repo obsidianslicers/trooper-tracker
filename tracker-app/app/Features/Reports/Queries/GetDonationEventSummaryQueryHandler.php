@@ -7,6 +7,7 @@ namespace App\Features\Reports\Queries;
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
+use App\Features\Events\Queries\HasOrgAttributionQuery;
 use App\Models\Event;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +17,7 @@ use Illuminate\Support\Facades\DB;
  */
 readonly class GetDonationEventSummaryQueryHandler implements QueryHandlerInterface
 {
+    use HasOrgAttributionQuery;
     /**
      * @param  GetDonationEventSummaryQuery  $message
      * @return LengthAwarePaginator
@@ -27,6 +29,8 @@ readonly class GetDonationEventSummaryQueryHandler implements QueryHandlerInterf
             ->join('tt_event_shifts', 'tt_event_troopers.event_shift_id', '=', 'tt_event_shifts.id')
             ->whereColumn('tt_event_shifts.event_id', 'tt_events.id')
             ->where('tt_event_troopers.status', EventTrooperStatus::ATTENDED->value);
+
+        $this->applyOrgAttribution($attendeesCountSub, $message->organization, $message->accessible_org_ids);
 
         $directFundsSub = DB::table('tt_event_shifts')
             ->selectRaw('COALESCE(SUM(charity_direct_funds), 0)')
@@ -51,9 +55,10 @@ readonly class GetDonationEventSummaryQueryHandler implements QueryHandlerInterf
             ->selectSub($charityHoursSub, 'charity_hours')
             ->with([
                 'organization:id,name',
-                'event_shifts' => function ($q) {
-                    $q->withCount(['event_troopers as attendees_count' => function ($inner) {
+                'event_shifts' => function ($q) use ($message) {
+                    $q->withCount(['event_troopers as attendees_count' => function ($inner) use ($message) {
                         $inner->where('status', EventTrooperStatus::ATTENDED->value);
+                        $this->applyOrgAttribution($inner, $message->organization, $message->accessible_org_ids);
                     }])
                     ->orderBy('shift_starts_at');
                 },

@@ -29,6 +29,16 @@
 
             <div class="row g-3 align-items-end mt-1">
                 <div class="col-sm-4">
+                    <x-label value="Club" />
+                    <x-input-select :property="'organization_id'"
+                                    :optional="true"
+                                    :value="$organization_id"
+                                    :options="$organizations->pluck('name', 'id')->toArray()" />
+                </div>
+            </div>
+
+            <div class="row g-3 align-items-end mt-1">
+                <div class="col-sm-4">
                     <x-label value="Sort By" />
                     <x-input-select :property="'sort'" :value="$sort" :options="[
                         'event_start'           => 'Date',
@@ -59,9 +69,10 @@
         </form>
     </x-card>
 
-    @if($date_start || $date_end || $charity_only)
+    @if($date_start || $date_end || $charity_only || $organization_id)
         <p class="text-muted small mb-2">
-            @if($date_start) From {{ $date_start->format('M d, Y') }} @endif
+            @if($organization_id) {{ $organizations->firstWhere('id', $organization_id)?->name }} @endif
+            @if($date_start) &mdash; From {{ $date_start->format('M d, Y') }} @endif
             @if($date_end) to {{ $date_end->format('M d, Y') }} @endif
             @if($charity_only) &mdash; Charity data only @endif
         </p>

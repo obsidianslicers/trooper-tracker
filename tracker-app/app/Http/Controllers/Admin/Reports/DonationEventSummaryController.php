@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Reports;
 
 use App\Features\Reports\Queries\GetDonationEventSummaryQuery;
+use App\Models\Organization;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
@@ -30,28 +31,47 @@ class DonationEventSummaryController extends BaseReportsController
         $sort = $request->input('sort', 'event_start');
         $dir = $request->input('dir', 'desc');
 
+        $organizations = Organization::moderatedBy($trooper)
+            ->orderBy(Organization::NAME)
+            ->get(['id', 'name', 'node_path']);
+
+        $organization_id = $request->integer('organization_id') ?: null;
+        $organization = $organization_id
+            ? $organizations->firstWhere('id', $organization_id)
+            : null;
+
+        $accessible_org_ids = $organizations
+            ->map(fn ($org) => (int) explode(Organization::NODE_PATH_SEP, $org->node_path)[0])
+            ->unique()
+            ->values()
+            ->all();
+
         if ($request->input('format') === 'csv')
         {
-            $all = $this->bus->send(new GetDonationEventSummaryQuery($trooper, $date_start, $date_end, $charity_only, PHP_INT_MAX, $sort, $dir));
+            $all = $this->bus->send(new GetDonationEventSummaryQuery($trooper, $date_start, $date_end, $charity_only, PHP_INT_MAX, $sort, $dir, $organization, $accessible_org_ids));
 
-            return $this->streamCsv($all, $date_start, $date_end, $charity_only);
+            return $this->streamCsv($all, $date_start, $date_end, $charity_only, $organization?->name);
         }
 
-        $events = $this->bus->send(new GetDonationEventSummaryQuery($trooper, $date_start, $date_end, $charity_only, 50, $sort, $dir));
+        $events = $this->bus->send(new GetDonationEventSummaryQuery($trooper, $date_start, $date_end, $charity_only, 50, $sort, $dir, $organization, $accessible_org_ids));
 
-        $data = compact('events', 'date_start', 'date_end', 'charity_only', 'sort', 'dir');
+        $data = compact('events', 'date_start', 'date_end', 'charity_only', 'sort', 'dir', 'organizations', 'organization_id');
 
         return view('pages.admin.reports.donation-event-summary', $data);
     }
 
-    private function streamCsv(LengthAwarePaginator $events, ?Carbon $date_start, ?Carbon $date_end, bool $charity_only): StreamedResponse
+    private function streamCsv(LengthAwarePaginator $events, ?Carbon $date_start, ?Carbon $date_end, bool $charity_only, ?string $organization_name = null): StreamedResponse
     {
         $filename = 'donation-event-summary-'.now()->format('Y-m-d').'.csv';
 
-        return response()->streamDownload(function () use ($events, $date_start, $date_end, $charity_only) {
+        return response()->streamDownload(function () use ($events, $date_start, $date_end, $charity_only, $organization_name) {
             $handle = fopen('php://output', 'w');
 
             $meta = [];
+            if ($organization_name)
+            {
+                $meta[] = 'Club: '.$organization_name;
+            }
             if ($date_start)
             {
                 $meta[] = 'From: '.$date_start->format('Y-m-d');
