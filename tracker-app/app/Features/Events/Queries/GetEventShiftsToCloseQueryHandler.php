@@ -24,7 +24,7 @@ readonly class GetEventShiftsToCloseQueryHandler implements QueryHandlerInterfac
      *
      * Process:
      * 1. Filter event shifts with active status
-     * 2. Filter event shifts with shift_ends_at < now()
+     * 2. Filter event shifts with shift_ends_at < now() - 6 hours (buffer for shift signups)
      * 3. Eager load event.organization and event_troopers.trooper
      * 4. Return collection of EventShift models
      *
@@ -38,9 +38,10 @@ readonly class GetEventShiftsToCloseQueryHandler implements QueryHandlerInterfac
             'event_troopers.trooper',
         ];
 
+        // Buffer to ensure all shifts have ended to allow troopers to signup
         return EventShift::with($with)
             ->active()
-            ->where(EventShift::SHIFT_ENDS_AT, '<', now())
+            ->where(EventShift::SHIFT_ENDS_AT, '<', now()->subHours(6))
             ->get();
     }
 }
