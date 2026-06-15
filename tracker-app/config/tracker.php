@@ -14,7 +14,7 @@ return [
     */
 
     'calendar' => [
-        'timezone' => env('TRACKER_CALENDAR_TIMEZONE', 'UTC'),
+        'timezone' => env('TRACKER_CALENDAR_TIMEZONE', env('APP_TIMEZONE', 'UTC')),
     ],
 
     /*

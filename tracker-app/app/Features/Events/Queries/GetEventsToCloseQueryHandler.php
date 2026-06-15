@@ -23,7 +23,7 @@ readonly class GetEventsToCloseQueryHandler implements QueryHandlerInterface
      *
      * Process:
      * 1. Filter events with active status
-     * 2. Filter events with event_end < now()
+     * 2. Filter events with event_end < now() - 6 hours (buffer for shift signups)
      * 3. Return collection of Event models
      *
      * @param  GetEventsToCloseQuery  $message  The query (no parameters)
@@ -31,8 +31,9 @@ readonly class GetEventsToCloseQueryHandler implements QueryHandlerInterface
      */
     public function __invoke(object $message): mixed
     {
+        // Buffer to ensure all shifts have ended to allow troopers to signup
         return Event::active()
-            ->where(Event::EVENT_END, '<', now())
+            ->where(Event::EVENT_END, '<', now()->subHours(6))
             ->get();
     }
 }
