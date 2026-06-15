@@ -60,11 +60,12 @@
                                     Approved At
                                 </th>
                             @endif
+                            <th></th>
                         </tr>
                     </thead>
                     @foreach ($event_shifts as $event_shift)
                         <tr>
-                            <td colspan="{{ $event->status === \App\Enums\EventStatus::MANUAL_SELECTION ? '6' : '4' }}">
+                            <td colspan="{{ $event->status === \App\Enums\EventStatus::MANUAL_SELECTION ? '7' : '5' }}">
                                 {{ $event_shift->time_display }}
                             </td>
                         </tr>
@@ -74,12 +75,6 @@
                                     <a href="{{ route('admin.troopers.profile', ['trooper' => $event_trooper->trooper_id]) }}">
                                         {{ $event_trooper->trooper->display_name }}
                                     </a>
-                                    @if(Auth::user()->is_administrator || Auth::user()->isModeratorForOrganization($event->organization))
-                                        <x-button-delete class="btn-sm mt-1"
-                                                         hx-post="{{ route('admin.events.troopers.remove', compact('event', 'event_trooper')) }}"
-                                                         hx-confirm="Remove {{ $event_trooper->trooper->display_name }} from the roster?"
-                                                         hx-trigger="click" />
-                                    @endif
                                 </td>
                                 <td>
                                     @if($event_trooper->costume == null && $event_trooper->backup_costume == null)
@@ -144,16 +139,28 @@
                                         @endif
                                     </td>
                                 @endif
+                                <td class="text-end">
+                                    @if(Auth::user()->is_administrator || Auth::user()->isModeratorForOrganization($event->organization))
+                                        <button type="button"
+                                                class="btn btn-sm btn-link text-danger p-1"
+                                                hx-post="{{ route('admin.events.troopers.remove', compact('event', 'event_trooper')) }}"
+                                                hx-confirm="Remove {{ $event_trooper->trooper->display_name }} from the roster?"
+                                                hx-trigger="click"
+                                                title="Remove from roster">
+                                            <i class="fa fw fa-times"></i>
+                                        </button>
+                                    @endif
+                                </td>
                             </tr>
                         @empty
-                            <x-table-empty :colspan="$event->status === \App\Enums\EventStatus::MANUAL_SELECTION ? 6 : 4">
+                            <x-table-empty :colspan="$event->status === \App\Enums\EventStatus::MANUAL_SELECTION ? 7 : 5">
                                 No troopers assigned to this shift.
                             </x-table-empty>
                         @endforelse
 
                         @if($event_shift->event_guests->isNotEmpty())
                             <tr>
-                                <td colspan="{{ $event->status === \App\Enums\EventStatus::MANUAL_SELECTION ? '6' : '4' }}"
+                                <td colspan="{{ $event->status === \App\Enums\EventStatus::MANUAL_SELECTION ? '7' : '5' }}"
                                     class="ps-4 text-muted small">
                                     Guests
                                 </td>
@@ -198,12 +205,13 @@
                                         @endif
                                     </td>
                                 @endif
+                                <td></td>
                             </tr>
                         @endforeach
 
                         @if(Auth::user()->is_administrator || Auth::user()->isModeratorForOrganization($event->organization))
                             <tr>
-                                <td colspan="{{ $event->status === \App\Enums\EventStatus::MANUAL_SELECTION ? '6' : '4' }}"
+                                <td colspan="{{ $event->status === \App\Enums\EventStatus::MANUAL_SELECTION ? '7' : '5' }}"
                                     class="ps-4 py-2">
                                     <button type="button"
                                             class="btn btn-sm btn-outline-primary"
