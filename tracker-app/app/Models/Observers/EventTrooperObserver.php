@@ -171,7 +171,7 @@ class EventTrooperObserver
 
         if ($event_trooper->isDirty($costume_field))
         {
-            return $this->assignOrganizations($event_trooper->trooper_id, $costume_id, $organization_ids);
+            return $this->assignOrganizations($event_trooper->trooper_id, $costume_id, $organization_ids, $costume);
         }
 
         if ($event_trooper->is_handler || $costume?->countsAsHandler())
@@ -179,7 +179,7 @@ class EventTrooperObserver
             return $this->memberOrganizationIds($event_trooper->trooper_id);
         }
 
-        return $this->assignOrganizations($event_trooper->trooper_id, $costume_id, $organization_ids);
+        return $this->assignOrganizations($event_trooper->trooper_id, $costume_id, $organization_ids, $costume);
     }
 
     public function created(EventTrooper $event_trooper): void
@@ -219,14 +219,14 @@ class EventTrooperObserver
      * @param  array  $organization_ids  The organization IDs allowed for this event shift
      * @return array<int> Array of organization IDs where this costume is approved for use
      */
-    private function assignOrganizations(int $trooper_id, ?int $costume_id, array $organization_ids): array
+    private function assignOrganizations(int $trooper_id, ?int $costume_id, array $organization_ids, ?Costume $costume = null): array
     {
         if ($costume_id === null)
         {
             return [];
         }
 
-        $costume = Costume::find($costume_id);
+        $costume ??= Costume::find($costume_id);
 
         if ($costume?->countsAsHandler())
         {

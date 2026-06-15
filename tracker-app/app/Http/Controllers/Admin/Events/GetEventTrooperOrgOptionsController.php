@@ -9,6 +9,7 @@ use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventTrooper;
 use App\Models\Organization;
+use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -21,97 +22,87 @@ class GetEventTrooperOrgOptionsController extends MagicBusController
         $this->authorize('update', $event);
         abort_if($event_trooper->event_shift->event_id !== $event->id, 404);
 
-        $trooper_orgs = $event_trooper->trooper->organizations;
         $costume_id = $request->input('costume_id') !== null && $request->input('costume_id') !== ''
             ? (int) $request->input('costume_id')
             : null;
+        $allowed_org_ids = $this->resolveAllowedOrgIds($request->user());
 
-        $allowed_org_ids = $request->user()->is_administrator
-            ? null
-            : $request->user()->trooper_assignments()
-                ->where(TrooperAssignment::IS_MODERATOR, true)
-                ->pluck(TrooperAssignment::ORGANIZATION_ID)
-                ->toArray();
-
-        if ($costume_id !== null)
-        {
-            $costume = Costume::find($costume_id);
-
-            if ($costume?->countsAsHandler())
-            {
-                $org_options = $this->memberCreditParentOrganizations($event_trooper)
-                    ->when($allowed_org_ids !== null, fn ($c) => $c->whereIn('id', $allowed_org_ids))
-                    ->values();
-
-                $eligible_root_ids = $org_options->pluck('id')->all();
-            }
-            else
-            {
-                $eligible_root_ids = $event_trooper->trooper->trooper_costumes
-                    ->filter(fn ($tc) => (int) $tc->organization_costume->costume_id === $costume_id)
-                    ->map(fn ($tc) => (int) $tc->organization_costume->organization_id)
-                    ->map(function ($id) use ($trooper_orgs) {
-                        $org = $trooper_orgs->find($id);
-
-                        return $org ? (int) explode(':', $org->node_path)[0] : (int) $id;
-                    })
-                    ->unique()
-                    ->values()
-                    ->all();
-
-                $org_options = $trooper_orgs
-                    ->whereIn('id', $eligible_root_ids)
-                    ->when($allowed_org_ids !== null, fn ($c) => $c->whereIn('id', $allowed_org_ids))
-                    ->values();
-            }
-
-            $is_new_costume = $costume_id !== $event_trooper->costume_id;
-            if ($is_new_costume)
-            {
-                $credited_ids = $eligible_root_ids;
-            }
-            else
-            {
-                $credited_ids = collect($event_trooper->costume_organization_ids ?? [])
-                    ->map(function ($id) use ($trooper_orgs) {
-                        $org = $trooper_orgs->find($id);
-
-                        return $org ? (int) explode(':', $org->node_path)[0] : (int) $id;
-                    })
-                    ->unique()
-                    ->values()
-                    ->all();
-            }
-
-            return view('pages.admin.events.inc.trooper-org-options', compact(
-                'event_trooper',
-                'org_options',
-                'credited_ids'
-            ));
-        }
-
-        $org_options = $this->memberCreditParentOrganizations($event_trooper)
-            ->when($allowed_org_ids !== null, fn ($c) => $c->whereIn('id', $allowed_org_ids))
-            ->values();
-
-        $is_new_costume = $event_trooper->costume_id !== null;
-        $credited_ids = $is_new_costume
-            ? $org_options->pluck('id')->all()
-            : collect($event_trooper->costume_organization_ids ?? [])
-                ->map(function ($id) use ($trooper_orgs) {
-                    $org = $trooper_orgs->find($id);
-
-                    return $org ? (int) explode(':', $org->node_path)[0] : (int) $id;
-                })
-                ->unique()
-                ->values()
-                ->all();
+        [$org_options, $credited_ids] = $costume_id !== null
+            ? $this->resolveWithCostume($event_trooper, $costume_id, $allowed_org_ids)
+            : $this->resolveWithoutCostume($event_trooper, $allowed_org_ids);
 
         return view('pages.admin.events.inc.trooper-org-options', compact(
             'event_trooper',
             'org_options',
             'credited_ids'
         ));
+    }
+
+    private function resolveAllowedOrgIds(Trooper $auth_trooper): ?array
+    {
+        if ($auth_trooper->is_administrator)
+        {
+            return null;
+        }
+
+        return $auth_trooper->trooper_assignments()
+            ->where(TrooperAssignment::IS_MODERATOR, true)
+            ->pluck(TrooperAssignment::ORGANIZATION_ID)
+            ->toArray();
+    }
+
+    private function resolveWithCostume(EventTrooper $event_trooper, int $costume_id, ?array $allowed_org_ids): array
+    {
+        $costume = Costume::find($costume_id);
+        $is_new_costume = $costume_id !== $event_trooper->costume_id;
+
+        if ($costume?->countsAsHandler())
+        {
+            $org_options = $this->memberCreditParentOrganizations($event_trooper)
+                ->when($allowed_org_ids !== null, fn ($c) => $c->whereIn('id', $allowed_org_ids))
+                ->values();
+            $eligible_root_ids = $org_options->pluck('id')->all();
+        }
+        else
+        {
+            $eligible_root_ids = $event_trooper->rootOrgIdsForCostume($costume_id);
+            $org_options = $event_trooper->trooper->organizations
+                ->whereIn('id', $eligible_root_ids)
+                ->when($allowed_org_ids !== null, fn ($c) => $c->whereIn('id', $allowed_org_ids))
+                ->values();
+        }
+
+        $credited_ids = $is_new_costume ? $eligible_root_ids : $this->storedCreditedRootIds($event_trooper);
+
+        return [$org_options, $credited_ids];
+    }
+
+    private function resolveWithoutCostume(EventTrooper $event_trooper, ?array $allowed_org_ids): array
+    {
+        $org_options = $this->memberCreditParentOrganizations($event_trooper)
+            ->when($allowed_org_ids !== null, fn ($c) => $c->whereIn('id', $allowed_org_ids))
+            ->values();
+
+        $credited_ids = $event_trooper->costume_id !== null
+            ? $org_options->pluck('id')->all()
+            : $this->storedCreditedRootIds($event_trooper);
+
+        return [$org_options, $credited_ids];
+    }
+
+    private function storedCreditedRootIds(EventTrooper $event_trooper): array
+    {
+        $trooper_orgs = $event_trooper->trooper->organizations;
+
+        return collect($event_trooper->costume_organization_ids ?? [])
+            ->map(function ($id) use ($trooper_orgs) {
+                $org = $trooper_orgs->find($id);
+
+                return $org ? (int) explode(':', $org->node_path)[0] : (int) $id;
+            })
+            ->unique()
+            ->values()
+            ->all();
     }
 
     /**

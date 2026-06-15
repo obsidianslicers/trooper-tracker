@@ -390,6 +390,30 @@ class EventTrooper extends BaseEventTrooper
     }
 
     /**
+     * Returns root (primary-club) organization IDs where the trooper has this costume approved.
+     *
+     * Uses the in-memory trooper_costumes and organizations collections to avoid extra queries.
+     *
+     * @return array<int, int>
+     */
+    public function rootOrgIdsForCostume(int $costume_id): array
+    {
+        $trooper_orgs = $this->trooper->organizations;
+
+        return $this->trooper->trooper_costumes
+            ->filter(fn ($tc) => (int) $tc->organization_costume->costume_id === $costume_id)
+            ->map(fn ($tc) => (int) $tc->organization_costume->organization_id)
+            ->map(function ($id) use ($trooper_orgs) {
+                $org = $trooper_orgs->find($id);
+
+                return $org ? (int) explode(':', $org->node_path)[0] : $id;
+            })
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    /**
      * Maps selected top-level organization IDs to eligible child organization IDs.
      *
      * @param array<int, int> $parent_org_ids Selected primary-club organization IDs.
