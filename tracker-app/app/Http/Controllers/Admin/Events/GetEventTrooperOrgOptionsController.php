@@ -46,11 +46,11 @@ class GetEventTrooperOrgOptionsController extends MagicBusController
 
             if ($costume?->countsAsHandler())
             {
-                $org_ids = TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $event_trooper->trooper_id)
-                    ->where(TrooperAssignment::IS_MEMBER, true)
-                    ->whereIn(TrooperAssignment::ORGANIZATION_ID, $can_attend_ids)
-                    ->pluck(TrooperAssignment::ORGANIZATION_ID)
-                    ->toArray();
+                $org_options = $event_trooper->getEligibleCreditParentOrganizations()
+                    ->when($allowed_org_ids !== null, fn ($c) => $c->whereIn('id', $allowed_org_ids))
+                    ->values();
+
+                $eligible_root_ids = $org_options->pluck('id')->all();
             }
             else
             {
@@ -61,22 +61,22 @@ class GetEventTrooperOrgOptionsController extends MagicBusController
                         ->pluck('organization_id')
                         ->toArray()
                     : [];
+
+                $eligible_root_ids = collect($org_ids)
+                    ->map(function ($id) use ($trooper_orgs) {
+                        $org = $trooper_orgs->find($id);
+
+                        return $org ? (int) explode(':', $org->node_path)[0] : (int) $id;
+                    })
+                    ->unique()
+                    ->values()
+                    ->all();
+
+                $org_options = $trooper_orgs
+                    ->whereIn('id', $eligible_root_ids)
+                    ->when($allowed_org_ids !== null, fn ($c) => $c->whereIn('id', $allowed_org_ids))
+                    ->values();
             }
-
-            $eligible_root_ids = collect($org_ids)
-                ->map(function ($id) use ($trooper_orgs) {
-                    $org = $trooper_orgs->find($id);
-
-                    return $org ? (int) explode(':', $org->node_path)[0] : (int) $id;
-                })
-                ->unique()
-                ->values()
-                ->all();
-
-            $org_options = $trooper_orgs
-                ->whereIn('id', $eligible_root_ids)
-                ->when($allowed_org_ids !== null, fn ($c) => $c->whereIn('id', $allowed_org_ids))
-                ->values();
 
             $is_new_costume = $costume_id !== $event_trooper->costume_id;
             if ($is_new_costume)

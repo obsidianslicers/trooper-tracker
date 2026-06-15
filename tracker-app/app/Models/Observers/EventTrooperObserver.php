@@ -44,21 +44,28 @@ class EventTrooperObserver
     {
         $attributes = [
             'costume_id',
+            'costume_organization_ids',
             'backup_costume_id',
+            'backup_costume_organization_ids',
         ];
 
-        if ($event_trooper->isDirty($attributes)
-            || $event_trooper->costume_id !== null
-            || $event_trooper->backup_costume_id !== null)
+        if ($event_trooper->isDirty($attributes))
         {
             $event_shift = $event_trooper->event_shift;
             $event = $event_shift->event;
 
             $organization_ids = $event->event_organizations()->pluckCanAttend($event_shift)->toArray();
 
-            if ($event_trooper->costume_id !== null)
+            if ($event_trooper->costume_id !== null
+                && $event_trooper->isDirty(['costume_id', 'costume_organization_ids']))
             {
-                $eligible = $this->assignOrganizations($event_trooper->trooper_id, $event_trooper->costume_id, $organization_ids);
+                $eligible = $this->eligibleOrganizationsForCostumeSave(
+                    $event_trooper,
+                    $event_trooper->costume_id,
+                    $organization_ids,
+                    EventTrooper::COSTUME_ID,
+                    EventTrooper::COSTUME_ORGANIZATION_IDS
+                );
                 $current = $event_trooper->costume_organization_ids ?? [];
                 $validated = array_values(array_intersect($current, $eligible));
                 $event_trooper->costume_organization_ids = !empty($validated) ? $validated : $eligible;
@@ -68,9 +75,16 @@ class EventTrooperObserver
                 $event_trooper->costume_organization_ids = [];
             }
 
-            if ($event_trooper->backup_costume_id !== null)
+            if ($event_trooper->backup_costume_id !== null
+                && $event_trooper->isDirty(['backup_costume_id', 'backup_costume_organization_ids']))
             {
-                $eligible = $this->assignOrganizations($event_trooper->trooper_id, $event_trooper->backup_costume_id, $organization_ids);
+                $eligible = $this->eligibleOrganizationsForCostumeSave(
+                    $event_trooper,
+                    $event_trooper->backup_costume_id,
+                    $organization_ids,
+                    EventTrooper::BACKUP_COSTUME_ID,
+                    EventTrooper::BACKUP_COSTUME_ORGANIZATION_IDS
+                );
                 $current = $event_trooper->backup_costume_organization_ids ?? [];
                 $validated = array_values(array_intersect($current, $eligible));
                 $event_trooper->backup_costume_organization_ids = !empty($validated) ? $validated : $eligible;
@@ -96,6 +110,45 @@ class EventTrooperObserver
                 }
             }
         }
+    }
+
+    /**
+     * @param  array<int>  $organization_ids
+     * @return array<int>
+     */
+    private function eligibleOrganizationsForCostumeSave(
+        EventTrooper $event_trooper,
+        int $costume_id,
+        array $organization_ids,
+        string $costume_field,
+        string $organization_field
+    ): array
+    {
+        $costume = Costume::find($costume_id);
+
+        if ($event_trooper->isDirty($costume_field))
+        {
+            return $this->assignOrganizations($event_trooper->trooper_id, $costume_id, $organization_ids);
+        }
+
+        if ($event_trooper->is_handler || $costume?->countsAsHandler())
+        {
+            return TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $event_trooper->trooper_id)
+                ->where(TrooperAssignment::IS_MEMBER, true)
+                ->pluck(TrooperAssignment::ORGANIZATION_ID)
+                ->toArray();
+        }
+
+        $original = $event_trooper->getOriginal($organization_field) ?? [];
+
+        if (is_string($original))
+        {
+            $original = json_decode($original, true) ?: [];
+        }
+
+        return !empty($original)
+            ? array_map('intval', $original)
+            : $this->assignOrganizations($event_trooper->trooper_id, $costume_id, $organization_ids);
     }
 
     public function created(EventTrooper $event_trooper): void
@@ -148,7 +201,6 @@ class EventTrooperObserver
         {
             return TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $trooper_id)
                 ->where(TrooperAssignment::IS_MEMBER, true)
-                ->whereIn(TrooperAssignment::ORGANIZATION_ID, $organization_ids)
                 ->pluck(TrooperAssignment::ORGANIZATION_ID)
                 ->toArray();
         }

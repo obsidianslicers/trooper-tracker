@@ -12,6 +12,7 @@ use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
+use App\Models\TrooperAssignment;
 use App\Models\TrooperCostume;
 use App\Models\TrooperOrganization;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -103,6 +104,48 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertViewHas('credited_ids', fn ($ids) => in_array($org->id, $ids, true));
+    }
+
+    public function test_invoke_returns_all_member_clubs_for_handler_costume(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $org1 = Organization::factory()->create();
+        $org2 = Organization::factory()->create();
+        $org1->update([Organization::NODE_PATH => (string) $org1->id]);
+        $org2->update([Organization::NODE_PATH => (string) $org2->id]);
+
+        $event = Event::factory()->withOrganization($org1)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $handler_costume = Costume::factory()->withName(Costume::COMMAND_STAFF)->create();
+
+        EventOrganization::factory()->create([
+            EventOrganization::EVENT_ID => $event->id,
+            EventOrganization::ORGANIZATION_ID => $org1->id,
+            EventOrganization::CAN_ATTEND => true,
+        ]);
+
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org1)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org2)->asMember()->create();
+        TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($org1)->create();
+        TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($org2)->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->create([EventTrooper::COSTUME_ID => null]);
+
+        $response = $this->actingAs($admin)->get(
+            route('admin.events.troopers.org-options', compact('event', 'event_trooper'))
+            .'?costume_id='.$handler_costume->id
+        );
+
+        $response->assertOk();
+        $response->assertViewHas('org_options', function ($org_options) use ($org1, $org2) {
+            return $org_options->contains('id', $org1->id)
+                && $org_options->contains('id', $org2->id);
+        });
+        $response->assertViewHas('credited_ids', fn ($ids) => $ids === [$org1->id, $org2->id]);
     }
 
     public function test_invoke_uses_stored_selection_when_costume_unchanged(): void

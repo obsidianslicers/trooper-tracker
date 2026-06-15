@@ -72,22 +72,33 @@ class UpdateTroopersController extends MagicBusController
 
                 if ($event_trooper->costume_id !== null)
                 {
-                    $eligible_root_ids = $event_trooper->trooper->trooper_costumes
-                        ->filter(fn ($tc) => (int) $tc->organization_costume->costume_id === (int) $event_trooper->costume_id)
-                        ->map(fn ($tc) => (int) $tc->organization_costume->organization_id)
-                        ->map(function ($id) use ($trooper_orgs) {
-                            $org = $trooper_orgs->find($id);
+                    $costume = Costume::find($event_trooper->costume_id);
 
-                            return $org ? (int) explode(':', $org->node_path)[0] : (int) $id;
-                        })
-                        ->unique()
-                        ->values()
-                        ->all();
+                    if ($costume?->countsAsHandler())
+                    {
+                        $event_trooper->org_options = $event_trooper->getEligibleCreditParentOrganizations()
+                            ->when($allowed_org_ids !== null, fn ($c) => $c->whereIn('id', $allowed_org_ids))
+                            ->values();
+                    }
+                    else
+                    {
+                        $eligible_root_ids = $event_trooper->trooper->trooper_costumes
+                            ->filter(fn ($tc) => (int) $tc->organization_costume->costume_id === (int) $event_trooper->costume_id)
+                            ->map(fn ($tc) => (int) $tc->organization_costume->organization_id)
+                            ->map(function ($id) use ($trooper_orgs) {
+                                $org = $trooper_orgs->find($id);
 
-                    $event_trooper->org_options = $trooper_orgs
-                        ->whereIn('id', $eligible_root_ids)
-                        ->when($allowed_org_ids !== null, fn ($c) => $c->whereIn('id', $allowed_org_ids))
-                        ->values();
+                                return $org ? (int) explode(':', $org->node_path)[0] : (int) $id;
+                            })
+                            ->unique()
+                            ->values()
+                            ->all();
+
+                        $event_trooper->org_options = $trooper_orgs
+                            ->whereIn('id', $eligible_root_ids)
+                            ->when($allowed_org_ids !== null, fn ($c) => $c->whereIn('id', $allowed_org_ids))
+                            ->values();
+                    }
                 }
                 else
                 {

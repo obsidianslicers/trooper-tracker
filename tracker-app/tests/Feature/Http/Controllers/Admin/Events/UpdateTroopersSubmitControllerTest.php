@@ -12,6 +12,7 @@ use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
+use App\Models\TrooperAssignment;
 use App\Models\TrooperCostume;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -129,5 +130,45 @@ class UpdateTroopersSubmitControllerTest extends TestCase
 
         $event_trooper->refresh();
         $this->assertSame([$eligible_org->id], $event_trooper->costume_organization_ids);
+    }
+
+    public function test_invoke_saves_any_member_club_for_handler_costume(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $event_org = Organization::factory()->create();
+        $other_member_org = Organization::factory()->create();
+        $event = Event::factory()->withOrganization($event_org)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $handler_costume = Costume::factory()->withName(Costume::HANDLER)->create();
+
+        EventOrganization::factory()->create([
+            EventOrganization::EVENT_ID => $event->id,
+            EventOrganization::ORGANIZATION_ID => $event_org->id,
+            EventOrganization::CAN_ATTEND => true,
+        ]);
+
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($event_org)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($other_member_org)->asMember()->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->asGoing()
+            ->create([EventTrooper::COSTUME_ID => null]);
+
+        $this->actingAs($admin)->post('/admin/events/'.$event->id.'/troopers', [
+            'troopers' => [
+                $event_trooper->id => [
+                    'status' => 'going',
+                    'costume_id' => $handler_costume->id,
+                    'organization_ids' => [$other_member_org->id],
+                ],
+            ],
+        ]);
+
+        $event_trooper->refresh();
+        $this->assertTrue($event_trooper->is_handler);
+        $this->assertSame([$other_member_org->id], $event_trooper->costume_organization_ids);
     }
 }
