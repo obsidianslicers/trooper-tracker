@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Troopers;
 
 use App\Features\Troopers\Commands\ApproveTrooperCommand;
+use App\Features\Troopers\Exceptions\DuplicateOrganizationIdentifierException;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
@@ -38,14 +39,27 @@ class ApprovalSubmitHtmxController extends MagicBusController
 
         $approval_cmd = new ApproveTrooperCommand($trooper, true);
 
-        $this->bus->send($approval_cmd);
+        try
+        {
+            $this->bus->send($approval_cmd);
+        }
+        catch (DuplicateOrganizationIdentifierException $exception)
+        {
+            $trooper->refresh();
+            $this->loadApprovalCardRelations($trooper);
 
-        $trooper->load([
-            'trooper_assignments' => function ($q) {
-                $q->where(TrooperAssignment::IS_MEMBER, true)
-                    ->with('organization.parent');
-            },
-        ]);
+            $message = json_encode([
+                'message' => $exception->flashMessage(),
+                'type' => 'danger',
+                'focus' => true,
+            ]);
+
+            return response()
+                ->view('pages.admin.troopers.approval-card', compact('trooper'))
+                ->header('X-Flash-Message', $message);
+        }
+
+        $this->loadApprovalCardRelations($trooper);
 
         $data = compact('trooper');
 
@@ -57,5 +71,17 @@ class ApprovalSubmitHtmxController extends MagicBusController
         return response()
             ->view('pages.admin.troopers.approval-card', $data)
             ->header('X-Flash-Message', $message);
+    }
+
+    private function loadApprovalCardRelations(Trooper $trooper): void
+    {
+        $trooper->load([
+            'trooper_assignments' => function ($q) {
+                $q->where(TrooperAssignment::IS_MEMBER, true)
+                    ->with('organization.parent');
+            },
+            'trooper_requests.organization.parent',
+            'trooper_requests.primaryOrganization',
+        ]);
     }
 }

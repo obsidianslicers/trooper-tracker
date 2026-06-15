@@ -9,6 +9,7 @@ use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
 use App\Features\Troopers\Commands\ApproveTrooperRequestCommand;
 use App\Features\Troopers\Commands\ApproveTrooperRequestCommandHandler;
+use App\Features\Troopers\Exceptions\DuplicateOrganizationIdentifierException;
 use App\Models\TrooperRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
@@ -226,6 +227,62 @@ class ApproveTrooperRequestCommandHandlerTest extends TestCase
             TrooperOrganization::IDENTIFIER => 'TK-99999',
             TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
         ]);
+    }
+
+    public function test_invoke_rejects_identifier_that_belongs_to_another_trooper_in_primary_club(): void
+    {
+        $existing_trooper = Trooper::factory()->asMember()->create();
+        $pending_trooper = Trooper::factory()->asMember()->create();
+        $primary_club = Organization::factory()
+            ->asOrganization()
+            ->withName('501st Legion')
+            ->withIdentifierDisplay('TKID')
+            ->withNodePath('100:')
+            ->create();
+        $unit = Organization::factory()
+            ->asUnit()
+            ->withParent($primary_club)
+            ->withNodePath('100:200:')
+            ->create();
+
+        TrooperOrganization::factory()
+            ->forTrooper($existing_trooper)
+            ->forOrganization($primary_club)
+            ->withIdentifier('1012')
+            ->create([TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE]);
+
+        $trooper_request = TrooperRequest::withoutEvents(fn() => TrooperRequest::factory()
+            ->forTrooper($pending_trooper)
+            ->forOrganization($unit)
+            ->forPrimaryOrganization($primary_club)
+            ->withIdentifier('1012')
+            ->create());
+
+        $this->expectException(DuplicateOrganizationIdentifierException::class);
+        $this->expectExceptionMessage('501st Legion TKID 1012 is already assigned to another trooper.');
+
+        $handler = app(ApproveTrooperRequestCommandHandler::class);
+
+        try
+        {
+            $handler(new ApproveTrooperRequestCommand($trooper_request));
+        }
+        finally
+        {
+            $this->assertDatabaseHas('tt_trooper_requests', [
+                TrooperRequest::ID => $trooper_request->id,
+                TrooperRequest::STATUS => TrooperRequestStatus::PENDING,
+            ]);
+            $this->assertDatabaseMissing('tt_trooper_organizations', [
+                TrooperOrganization::TROOPER_ID => $pending_trooper->id,
+                TrooperOrganization::ORGANIZATION_ID => $primary_club->id,
+            ]);
+            $this->assertDatabaseMissing('tt_trooper_assignments', [
+                TrooperAssignment::TROOPER_ID => $pending_trooper->id,
+                TrooperAssignment::ORGANIZATION_ID => $unit->id,
+                TrooperAssignment::IS_MEMBER => true,
+            ]);
+        }
     }
 
     public function test_invoke_does_not_overwrite_primary_club_identifier_when_request_identifier_empty(): void

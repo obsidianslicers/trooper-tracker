@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models\Observers;
 
 use App\Enums\TrooperRequestStatus;
+use App\Features\Troopers\Support\OrganizationIdentifierAvailability;
 use App\Models\TrooperRequest;
 use Exception;
 
@@ -13,6 +14,24 @@ use Exception;
  */
 class TrooperRequestObserver
 {
+    public function saving(TrooperRequest $trooper_request): void
+    {
+        if (
+            $trooper_request->status !== TrooperRequestStatus::PENDING
+            && $trooper_request->status !== TrooperRequestStatus::PENDING->value
+        )
+        {
+            return;
+        }
+
+        app(OrganizationIdentifierAvailability::class)->ensureAvailable(
+            $trooper_request->primaryOrganization,
+            $trooper_request->identifier,
+            $trooper_request->trooper_id,
+            $trooper_request->id
+        );
+    }
+
     /**
      * Handle the TrooperRequest "updating" event.
      *
