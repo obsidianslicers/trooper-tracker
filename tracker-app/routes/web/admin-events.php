@@ -8,18 +8,19 @@ use App\Http\Controllers\Admin\Events\CopyController;
 use App\Http\Controllers\Admin\Events\CopySubmitController;
 use App\Http\Controllers\Admin\Events\CreateController;
 use App\Http\Controllers\Admin\Events\CreateSubmitController;
+use App\Http\Controllers\Admin\Events\DeleteUploadController;
+use App\Http\Controllers\Admin\Events\GetEventTrooperOrgOptionsController;
 use App\Http\Controllers\Admin\Events\ListController;
-use App\Http\Controllers\Admin\Events\UpdateController;
+use App\Http\Controllers\Admin\Events\MissionReviewController;
+use App\Http\Controllers\Admin\Events\RemoveEventTrooperController;
 use App\Http\Controllers\Admin\Events\UpdateCharityController;
 use App\Http\Controllers\Admin\Events\UpdateCharitySubmitController;
+use App\Http\Controllers\Admin\Events\UpdateController;
 use App\Http\Controllers\Admin\Events\UpdateShiftsController;
 use App\Http\Controllers\Admin\Events\UpdateShiftsSubmitController;
 use App\Http\Controllers\Admin\Events\UpdateSubmitController;
-use App\Http\Controllers\Admin\Events\RemoveEventTrooperController;
 use App\Http\Controllers\Admin\Events\UpdateTroopersController;
 use App\Http\Controllers\Admin\Events\UpdateTroopersSubmitController;
-use App\Http\Controllers\Admin\Events\DeleteUploadController;
-use App\Http\Controllers\Admin\Events\MissionReviewController;
 use App\Http\Controllers\Admin\Events\UploadImageController;
 use App\Http\Controllers\Admin\Events\UploadsController;
 use Illuminate\Support\Facades\Route;
@@ -28,8 +29,7 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('admin/events')
     ->name('admin.events.')
     ->middleware(['auth', 'check.role:moderator,administrator'])
-    ->group(function ()
-    {
+    ->group(function () {
         Route::get('/', ListController::class)->name('list');
         Route::get('/create', CreateController::class)->name('create');
         Route::post('/create', CreateSubmitController::class);
@@ -43,6 +43,7 @@ Route::prefix('admin/events')
         Route::post('/{event}/charity', UpdateCharitySubmitController::class);
         Route::get('/{event}/troopers', UpdateTroopersController::class)->name('troopers');
         Route::post('/{event}/troopers', UpdateTroopersSubmitController::class);
+        Route::get('/{event}/troopers/{event_trooper}/org-options', GetEventTrooperOrgOptionsController::class)->name('troopers.org-options');
         Route::get('/{event}/shifts/{event_shift}/troopers/costume-picker', AddEventTrooperCostumePickerController::class)->name('troopers.costume-picker');
         Route::post('/{event}/shifts/{event_shift}/troopers/add', AddEventTrooperController::class)->name('troopers.add');
         Route::post('/{event}/troopers/{event_trooper}/remove', RemoveEventTrooperController::class)->name('troopers.remove');

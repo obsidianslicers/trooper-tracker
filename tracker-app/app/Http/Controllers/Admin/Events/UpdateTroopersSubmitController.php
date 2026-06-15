@@ -71,11 +71,7 @@ class UpdateTroopersSubmitController extends MagicBusController
             {
                 $event_trooper->costume_id = $costume->id;
                 $event_trooper->is_handler = $costume->countsAsHandler();
-                $org_ids = $costume->organization_costumes()
-                    ->whereHas('trooper_costumes', fn ($q) => $q->where('trooper_id', $event_trooper->trooper_id))
-                    ->pluck('organization_id')
-                    ->toArray();
-                $event_trooper->costume_organization_ids = !empty($org_ids) ? $org_ids : null;
+                // costume_organization_ids set by EventTrooperObserver::saving()
             }
             else
             {

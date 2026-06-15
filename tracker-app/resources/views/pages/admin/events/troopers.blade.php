@@ -81,7 +81,11 @@
                                                     :options="$event_trooper->costume_options"
                                                     :value="$event_trooper->costume_id"
                                                     :placeholder="'-- No Costume --'"
-                                                    class="form-select-sm" />
+                                                    class="form-select-sm"
+                                                    hx-get="{{ route('admin.events.troopers.org-options', compact('event', 'event_trooper')) }}"
+                                                    hx-vals="js:{costume_id: this.value}"
+                                                    hx-target="#org-options-{{ $event_trooper->id }}"
+                                                    hx-trigger="change" />
                                     @if($event_trooper->backup_costume)
                                         <i class="small text-muted d-block mt-1">
                                             <i class="fa fa-fw fa-box-archive"></i>
@@ -96,22 +100,13 @@
                                                     class="form-select-sm" />
                                 </td>
                                 <td>
-                                    @forelse($event_trooper->org_options as $org)
-                                        <div class="form-check mb-0">
-                                            <input type="checkbox"
-                                                   name="troopers[{{ $event_trooper->id }}][organization_ids][]"
-                                                   value="{{ $org->id }}"
-                                                   id="org_{{ $event_trooper->id }}_{{ $org->id }}"
-                                                   class="form-check-input"
-                                                   @checked(in_array($org->id, $event_trooper->credited_checked_ids))>
-                                            <label class="form-check-label small"
-                                                   for="org_{{ $event_trooper->id }}_{{ $org->id }}">
-                                                {{ $org->name }}
-                                            </label>
-                                        </div>
-                                    @empty
-                                        <span class="text-muted small">(Unattached)</span>
-                                    @endforelse
+                                    <div id="org-options-{{ $event_trooper->id }}">
+                                        @include('pages.admin.events.inc.trooper-org-options', [
+                                            'org_options' => $event_trooper->org_options,
+                                            'credited_ids' => $event_trooper->credited_checked_ids,
+                                            'disabled' => $event_trooper->costume_id !== null,
+                                        ])
+                                    </div>
                                 </td>
                                 @if($event->status === \App\Enums\EventStatus::MANUAL_SELECTION)
                                     <td>

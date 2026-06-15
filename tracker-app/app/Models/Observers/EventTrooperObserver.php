@@ -38,8 +38,7 @@ class EventTrooperObserver
      * recalculates the organization associations for both costumes. This ensures
      * the organization IDs stored in the model remain accurate when costumes change.
      *
-     * @param  \App\Models\EventTrooper  $event_trooper  The event trooper being saved
-     * @return void
+     * @param  EventTrooper  $event_trooper  The event trooper being saved
      */
     public function saving(EventTrooper $event_trooper): void
     {
@@ -48,7 +47,9 @@ class EventTrooperObserver
             'backup_costume_id',
         ];
 
-        if ($event_trooper->isDirty($attributes))
+        if ($event_trooper->isDirty($attributes)
+            || $event_trooper->costume_id !== null
+            || $event_trooper->backup_costume_id !== null)
         {
             $event_shift = $event_trooper->event_shift;
             $event = $event_shift->event;
@@ -108,10 +109,10 @@ class EventTrooperObserver
      * This ensures that organization assignments reflect both the event's
      * configuration and the trooper's actual costume approvals.
      *
-     * @param  int         $trooper_id        The ID of the trooper to check approvals for
-     * @param  int|null    $costume_id        The ID of the costume (null returns empty array)
-     * @param  array       $organization_ids  The organization IDs allowed for this event shift
-     * @return array<int>  Array of organization IDs where this costume is approved for use
+     * @param  int  $trooper_id  The ID of the trooper to check approvals for
+     * @param  int|null  $costume_id  The ID of the costume (null returns empty array)
+     * @param  array  $organization_ids  The organization IDs allowed for this event shift
+     * @return array<int> Array of organization IDs where this costume is approved for use
      */
     private function assignOrganizations(int $trooper_id, ?int $costume_id, array $organization_ids): array
     {
@@ -134,8 +135,7 @@ class EventTrooperObserver
         return OrganizationCostume::query()
             ->where('costume_id', $costume_id)
             ->whereIn('organization_id', $organization_ids)
-            ->whereHas('trooper_costumes', function ($query) use ($trooper_id)
-            {
+            ->whereHas('trooper_costumes', function ($query) use ($trooper_id) {
                 $query->where(TrooperCostume::TROOPER_ID, $trooper_id);
             })
             ->pluck('organization_id')
