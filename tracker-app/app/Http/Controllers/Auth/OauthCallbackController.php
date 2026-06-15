@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\InvalidStateException;
 
 /**
  * Handles OAuth provider callbacks during authentication.
@@ -67,7 +68,16 @@ class OauthCallbackController extends MagicBusController
             return redirect()->route('auth.login');
         }
 
-        $provider_user = Socialite::driver($provider)->user();
+        try
+        {
+            $provider_user = Socialite::driver($provider)->user();
+        }
+        catch (InvalidStateException)
+        {
+            $this->flash->warning('Your login session expired. Please try again.');
+
+            return redirect()->route('auth.login');
+        }
 
         // Check XenForo ban status at login.
         if ($provider === OauthProvider::XENFORO->value)

@@ -74,13 +74,27 @@ class GetDonationEventSummaryQueryTest extends TestCase
         $this->assertSame('desc', $subject->dir);
     }
 
+    public function test_construct_defaults_selected_org_ids_to_empty(): void
+    {
+        $subject = new GetDonationEventSummaryQuery(new Trooper());
+
+        $this->assertSame([], $subject->selected_org_ids);
+    }
+
+    public function test_construct_stores_selected_org_ids(): void
+    {
+        $subject = new GetDonationEventSummaryQuery(new Trooper(), selected_org_ids: [1, 2, 3]);
+
+        $this->assertSame([1, 2, 3], $subject->selected_org_ids);
+    }
+
     public function test_construct_accepts_all_parameters(): void
     {
         $trooper = new Trooper();
         $start   = Carbon::parse('2025-01-01');
         $end     = Carbon::parse('2025-12-31');
 
-        $subject = new GetDonationEventSummaryQuery($trooper, $start, $end, true, 100, 'name', 'asc');
+        $subject = new GetDonationEventSummaryQuery($trooper, $start, $end, true, 100, 'name', 'asc', [5], [1, 2]);
 
         $this->assertSame($trooper, $subject->moderator);
         $this->assertSame($start, $subject->date_start);
@@ -89,5 +103,7 @@ class GetDonationEventSummaryQueryTest extends TestCase
         $this->assertSame(100, $subject->page_size);
         $this->assertSame('name', $subject->sort);
         $this->assertSame('asc', $subject->dir);
+        $this->assertSame([5], $subject->selected_org_ids);
+        $this->assertSame([1, 2], $subject->accessible_org_ids);
     }
 }

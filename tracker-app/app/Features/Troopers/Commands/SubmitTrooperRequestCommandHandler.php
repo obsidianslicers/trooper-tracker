@@ -6,6 +6,7 @@ namespace App\Features\Troopers\Commands;
 
 use App\Bus\Contracts\CommandHandlerInterface;
 use App\Enums\TrooperRequestStatus;
+use App\Features\Troopers\Support\OrganizationIdentifierAvailability;
 use App\Jobs\SendTrooperRequestNotificationsJob;
 use App\Models\TrooperRequest;
 
@@ -16,6 +17,8 @@ use App\Models\TrooperRequest;
  */
 readonly class SubmitTrooperRequestCommandHandler implements CommandHandlerInterface
 {
+    public function __construct(private OrganizationIdentifierAvailability $identifier_availability) {}
+
     /**
      * @param  SubmitTrooperRequestCommand  $message
      */
@@ -24,6 +27,12 @@ readonly class SubmitTrooperRequestCommandHandler implements CommandHandlerInter
         $organization = $message->organization;
         $trooper = $message->trooper;
         $primary_club = $organization->getPrimaryClub();
+
+        $this->identifier_availability->ensureAvailable(
+            $primary_club,
+            $message->identifier,
+            $trooper->id
+        );
 
         // Cancel any other pending request in this primary-club family.
         TrooperRequest::where(TrooperRequest::TROOPER_ID, $trooper->id)

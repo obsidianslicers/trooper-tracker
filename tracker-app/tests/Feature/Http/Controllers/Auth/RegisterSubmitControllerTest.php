@@ -67,6 +67,77 @@ class RegisterSubmitControllerTest extends TestCase
         Mail::assertQueued(TrooperRegistered::class);
     }
 
+    public function test_invoke_rejects_duplicate_pending_identifier_without_creating_trooper(): void
+    {
+        Mail::fake();
+        Queue::fake();
+
+        session(['registration_auth' => ['method' => 'email', 'email' => null, 'expires_at' => now()->addMinutes(20)]]);
+
+        [$organization, $region, $unit] = $this->createOrganizationHierarchy();
+
+        TrooperRequest::factory()
+            ->forTrooper(Trooper::factory()->asMember()->create())
+            ->forOrganization($unit)
+            ->forPrimaryOrganization($organization)
+            ->withIdentifier('TK-12345')
+            ->create();
+
+        $response = $this->post(route('auth.register'), $this->registrationData([
+            'organizations' => [
+                $organization->id => [
+                    'selected' => '1',
+                    'identifier' => 'TK-12345',
+                    'region_id' => (string) $region->id,
+                    'unit_id' => (string) $unit->id,
+                    'should_notify' => '1',
+                ],
+            ],
+        ]));
+
+        $response->assertSessionHasErrors('organizations');
+        $this->assertDatabaseMissing('tt_troopers', [
+            Trooper::EMAIL => 'johndoe@example.com',
+        ]);
+        $this->assertDatabaseCount('tt_trooper_requests', 1);
+        Mail::assertNothingQueued();
+    }
+
+    public function test_invoke_allows_identifier_from_resolved_historical_request(): void
+    {
+        Mail::fake();
+        Queue::fake();
+
+        session(['registration_auth' => ['method' => 'email', 'email' => null, 'expires_at' => now()->addMinutes(20)]]);
+
+        [$organization, $region, $unit] = $this->createOrganizationHierarchy();
+
+        TrooperRequest::factory()
+            ->forTrooper(Trooper::factory()->asMember()->create())
+            ->forOrganization($unit)
+            ->forPrimaryOrganization($organization)
+            ->withIdentifier('TK-12345')
+            ->asDenied()
+            ->create();
+
+        $response = $this->post(route('auth.register'), $this->registrationData([
+            'organizations' => [
+                $organization->id => [
+                    'selected' => '1',
+                    'identifier' => 'TK-12345',
+                    'region_id' => (string) $region->id,
+                    'unit_id' => (string) $unit->id,
+                    'should_notify' => '1',
+                ],
+            ],
+        ]));
+
+        $response->assertRedirect(route('auth.thank-you'));
+        $this->assertDatabaseHas('tt_troopers', [
+            Trooper::EMAIL => 'johndoe@example.com',
+        ]);
+    }
+
     public function test_approving_registered_trooper_converts_pending_join_request_to_membership(): void
     {
         Mail::fake();

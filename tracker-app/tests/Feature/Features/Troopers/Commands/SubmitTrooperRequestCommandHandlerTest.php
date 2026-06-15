@@ -7,6 +7,7 @@ namespace Tests\Feature\Features\Troopers\Commands;
 use App\Enums\TrooperRequestStatus;
 use App\Features\Troopers\Commands\SubmitTrooperRequestCommand;
 use App\Features\Troopers\Commands\SubmitTrooperRequestCommandHandler;
+use App\Features\Troopers\Exceptions\DuplicateOrganizationIdentifierException;
 use App\Jobs\SendTrooperRequestNotificationsJob;
 use App\Models\TrooperRequest;
 use App\Models\Organization;
@@ -116,5 +117,43 @@ class SubmitTrooperRequestCommandHandlerTest extends TestCase
         $handler(new SubmitTrooperRequestCommand($trooper, $organization, 'TK-12345'));
 
         Queue::assertPushed(SendTrooperRequestNotificationsJob::class);
+    }
+
+    public function test_invoke_rejects_identifier_from_another_pending_request(): void
+    {
+        Queue::fake();
+
+        $existing_trooper = Trooper::factory()->asMember()->create();
+        $trooper = Trooper::factory()->asMember()->create();
+        $organization = Organization::factory()
+            ->asOrganization()
+            ->withName('501st Legion')
+            ->withIdentifierDisplay('TKID')
+            ->withNodePath('100:')
+            ->create();
+
+        TrooperRequest::factory()
+            ->forTrooper($existing_trooper)
+            ->forOrganization($organization)
+            ->forPrimaryOrganization($organization)
+            ->withIdentifier('1012')
+            ->create();
+
+        $this->expectException(DuplicateOrganizationIdentifierException::class);
+        $this->expectExceptionMessage('501st Legion TKID 1012 is already assigned to another trooper.');
+
+        try
+        {
+            app(SubmitTrooperRequestCommandHandler::class)(new SubmitTrooperRequestCommand($trooper, $organization, '1012'));
+        }
+        finally
+        {
+            $this->assertDatabaseMissing('tt_trooper_requests', [
+                TrooperRequest::TROOPER_ID => $trooper->id,
+                TrooperRequest::ORGANIZATION_ID => $organization->id,
+                TrooperRequest::IDENTIFIER => '1012',
+            ]);
+            Queue::assertNotPushed(SendTrooperRequestNotificationsJob::class);
+        }
     }
 }

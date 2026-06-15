@@ -8,6 +8,7 @@ use App\Http\Requests\Account\ClubMembershipRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperOrganization;
+use App\Models\TrooperRequest;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Validator;
 use Tests\TestCase;
@@ -136,6 +137,35 @@ class ClubMembershipRequestTest extends TestCase
         TrooperOrganization::factory()
             ->forTrooper($existing_trooper)
             ->forOrganization($primary)
+            ->withIdentifier('TK-1234')
+            ->create();
+
+        $subject = $this->makeRequest($trooper, [
+            'organization_id' => $region->id,
+        ]);
+
+        $validator = Validator::make([
+            'organization_id' => $region->id,
+            'identifier' => 'TK-1234',
+        ], $subject->rules());
+
+        $this->assertTrue($validator->fails());
+        $this->assertArrayHasKey('identifier', $validator->errors()->toArray());
+    }
+
+    public function test_rules_identifier_must_not_exist_on_pending_request_within_primary_club(): void
+    {
+        $trooper = Trooper::factory()->asMember()->create();
+        $existing_trooper = Trooper::factory()->asMember()->create();
+        $primary = Organization::factory()->asOrganization()->withNodePath('100:')->create([
+            Organization::IDENTIFIER_VALIDATION => 'regex:/^TK-[0-9]{4}$/',
+        ]);
+        $region = Organization::factory()->asRegion()->withParent($primary)->withNodePath('100:200:')->create();
+
+        TrooperRequest::factory()
+            ->forTrooper($existing_trooper)
+            ->forOrganization($region)
+            ->forPrimaryOrganization($primary)
             ->withIdentifier('TK-1234')
             ->create();
 

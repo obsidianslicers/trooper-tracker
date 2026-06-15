@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Rules\Auth;
 
+use App\Features\Troopers\Support\OrganizationIdentifierAvailability;
 use App\Models\Organization;
 use App\Models\Trooper;
-use App\Models\TrooperOrganization;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Translation\PotentiallyTranslatedString;
@@ -41,17 +41,13 @@ class UniqueOrganizationIdentifierRule implements ValidationRule
     {
         if (! empty($value))
         {
-            $query = $this->organization->troopers()
-                ->wherePivot(TrooperOrganization::IDENTIFIER, $value);
+            $available = app(OrganizationIdentifierAvailability::class)->isAvailable(
+                $this->organization,
+                (string) $value,
+                $this->trooper?->id
+            );
 
-            if ($this->trooper !== null)
-            {
-                $query->where('tt_trooper_organizations.trooper_id', '!=', $this->trooper->id);
-            }
-
-            $exists = $query->exists();
-
-            if ($exists)
+            if (!$available)
             {
                 $fail("{$this->organization->name} {$this->organization->identifier_display} already exists.");
             }

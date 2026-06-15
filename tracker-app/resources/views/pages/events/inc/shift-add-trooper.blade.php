@@ -89,7 +89,7 @@
 
             <div class="modal fade"
                  id="modal-guest-{{ $event_shift->id }}"
-                 hx-on:event-shift-guest-added="bootstrap.Modal.getInstance(this).hide()"
+                 hx-on:event-shift-guest-added="bootstrap.Modal.getInstance(this)?.hide()"
                  tabindex="-1">
                 <div class="modal-dialog modal-lg">
                     <div class="modal-content">
@@ -116,6 +116,7 @@
                         <div class="modal-footer">
                             <button type="button"
                                     class="btn btn-primary"
+                                    data-bs-dismiss="modal"
                                     hx-post="{{ route('events.guest-signup-htmx', compact('event_shift')) }}"
                                     hx-include="#modal-guest-{{ $event_shift->id }} textarea[name='guest_names']"
                                     hx-select="#shift-container-{{ $event_shift->id }}"
