@@ -71,7 +71,9 @@ class UpdateTroopersSubmitController extends MagicBusController
             {
                 $event_trooper->costume_id = $costume->id;
                 $event_trooper->is_handler = $costume->countsAsHandler();
-                // costume_organization_ids set by EventTrooperObserver::saving()
+                $submittedOrgIds = array_map('intval', $input['organization_ids'] ?? []);
+                $event_trooper->costume_organization_ids = $submittedOrgIds;
+                // EventTrooperObserver::saving() validates submitted IDs against eligible orgs
             }
             else
             {

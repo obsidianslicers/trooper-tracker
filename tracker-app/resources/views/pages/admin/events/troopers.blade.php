@@ -104,7 +104,6 @@
                                         @include('pages.admin.events.inc.trooper-org-options', [
                                             'org_options' => $event_trooper->org_options,
                                             'credited_ids' => $event_trooper->credited_checked_ids,
-                                            'disabled' => $event_trooper->costume_id !== null,
                                         ])
                                     </div>
                                 </td>

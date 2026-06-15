@@ -56,12 +56,33 @@ class EventTrooperObserver
 
             $organization_ids = $event->event_organizations()->pluckCanAttend($event_shift)->toArray();
 
-            $costume_org_ids = $this->assignOrganizations($event_trooper->trooper_id, $event_trooper->costume_id, $organization_ids);
-            $event_trooper->costume_organization_ids = $costume_org_ids;
-            $event_trooper->backup_costume_organization_ids = $this->assignOrganizations($event_trooper->trooper_id, $event_trooper->backup_costume_id, $organization_ids);
+            if ($event_trooper->costume_id !== null)
+            {
+                $eligible = $this->assignOrganizations($event_trooper->trooper_id, $event_trooper->costume_id, $organization_ids);
+                $current = $event_trooper->costume_organization_ids ?? [];
+                $validated = array_values(array_intersect($current, $eligible));
+                $event_trooper->costume_organization_ids = !empty($validated) ? $validated : $eligible;
+            }
+            elseif ($event_trooper->isDirty('costume_id'))
+            {
+                $event_trooper->costume_organization_ids = [];
+            }
+
+            if ($event_trooper->backup_costume_id !== null)
+            {
+                $eligible = $this->assignOrganizations($event_trooper->trooper_id, $event_trooper->backup_costume_id, $organization_ids);
+                $current = $event_trooper->backup_costume_organization_ids ?? [];
+                $validated = array_values(array_intersect($current, $eligible));
+                $event_trooper->backup_costume_organization_ids = !empty($validated) ? $validated : $eligible;
+            }
+            elseif ($event_trooper->isDirty('backup_costume_id'))
+            {
+                $event_trooper->backup_costume_organization_ids = [];
+            }
 
             // Auto-set organization_id when the costume resolves to exactly one
             // per-org-limited organization and no org has been explicitly chosen.
+            $costume_org_ids = $event_trooper->costume_organization_ids ?? [];
             if ($event_trooper->organization_id === null && count($costume_org_ids) === 1)
             {
                 $limited_org_ids = $event->event_organizations
