@@ -75,15 +75,10 @@
                                         {{ $event_trooper->trooper->display_name }}
                                     </a>
                                     @if(Auth::user()->is_administrator || Auth::user()->isModeratorForOrganization($event->organization))
-                                        <div class="mt-1">
-                                            <button type="button"
-                                                    class="btn btn-outline-danger btn-sm"
-                                                    hx-post="{{ route('admin.events.troopers.remove', compact('event', 'event_trooper')) }}"
-                                                    hx-confirm="Remove {{ $event_trooper->trooper->display_name }} from the roster?"
-                                                    hx-trigger="click">
-                                                <i class="fa fa-fw fa-trash"></i> Remove
-                                            </button>
-                                        </div>
+                                        <x-button-delete class="btn-sm mt-1"
+                                                         hx-post="{{ route('admin.events.troopers.remove', compact('event', 'event_trooper')) }}"
+                                                         hx-confirm="Remove {{ $event_trooper->trooper->display_name }} from the roster?"
+                                                         hx-trigger="click" />
                                     @endif
                                 </td>
                                 <td>
