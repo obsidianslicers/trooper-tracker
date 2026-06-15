@@ -230,7 +230,11 @@ class EventTrooperObserver
 
         if ($costume?->countsAsHandler())
         {
-            return $this->memberOrganizationIds($trooper_id);
+            return TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $trooper_id)
+                ->where(TrooperAssignment::IS_MEMBER, true)
+                ->whereIn(TrooperAssignment::ORGANIZATION_ID, $organization_ids)
+                ->pluck(TrooperAssignment::ORGANIZATION_ID)
+                ->toArray();
         }
 
         return OrganizationCostume::query()
@@ -243,9 +247,7 @@ class EventTrooperObserver
             ->toArray();
     }
 
-    /**
-     * @return array<int>
-     */
+    /** @return array<int> */
     private function memberOrganizationIds(int $trooper_id): array
     {
         return TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $trooper_id)

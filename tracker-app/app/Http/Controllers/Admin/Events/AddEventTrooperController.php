@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin\Events;
 
 use App\Features\Events\Commands\SignUpEventTrooperCommand;
 use App\Http\Controllers\MagicBusController;
+use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\Trooper;
@@ -34,6 +35,11 @@ class AddEventTrooperController extends MagicBusController
         }
 
         $costume_id = $request->input('costume_id') ? (int) $request->input('costume_id') : null;
+
+        if ($costume_id !== null && !Costume::forTrooper($trooper->id)->where('id', $costume_id)->exists())
+        {
+            $costume_id = null;
+        }
 
         $this->bus->send(new SignUpEventTrooperCommand($event_shift, $trooper, $auth_trooper, costume_id: $costume_id));
 

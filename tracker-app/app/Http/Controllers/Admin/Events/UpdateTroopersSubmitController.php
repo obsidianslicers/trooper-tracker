@@ -14,7 +14,6 @@ use App\Models\EventGuest;
 use App\Models\EventTrooper;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
-use App\Models\TrooperAssignment;
 use App\Notifications\Events\ManualSelectionApprovedNotification;
 use App\Notifications\Events\ManualSelectionStandByNotification;
 use Illuminate\Http\RedirectResponse;
@@ -28,14 +27,25 @@ class UpdateTroopersSubmitController extends MagicBusController
 
         $auth_trooper = $request->user();
         $is_manual_selection_event = $event->status === EventStatus::MANUAL_SELECTION;
-        $allowed_org_ids = $this->resolveAllowedOrgIds($auth_trooper);
+        $allowed_org_ids = $auth_trooper->resolveModeratorOrgIds();
 
         $event_troopers = $event->troopers()->with('trooper.organizations')->get();
         $event_guests = $this->resolveEventGuests($event);
 
-        foreach ($request->validated('troopers', []) as $id => $input)
+        $validated_troopers = $request->validated('troopers', []);
+
+        $submitted_costume_ids = collect($validated_troopers)
+            ->map(fn ($input) => isset($input['costume_id']) && $input['costume_id'] !== '' ? (int) $input['costume_id'] : null)
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        $costumes_by_id = Costume::findMany($submitted_costume_ids)->keyBy('id');
+
+        foreach ($validated_troopers as $id => $input)
         {
-            $this->processEventTrooper($event_troopers, (int) $id, $input, $allowed_org_ids, $is_manual_selection_event, $auth_trooper);
+            $this->processEventTrooper($event_troopers, (int) $id, $input, $allowed_org_ids, $is_manual_selection_event, $auth_trooper, $costumes_by_id);
         }
 
         foreach ($request->validated('guests', []) as $id => $input)
@@ -46,19 +56,6 @@ class UpdateTroopersSubmitController extends MagicBusController
         $this->flash->updated($event);
 
         return redirect()->route('admin.events.troopers', compact('event'));
-    }
-
-    private function resolveAllowedOrgIds(Trooper $auth_trooper): ?array
-    {
-        if ($auth_trooper->is_administrator)
-        {
-            return null;
-        }
-
-        return $auth_trooper->trooper_assignments()
-            ->where(TrooperAssignment::IS_MODERATOR, true)
-            ->pluck(TrooperAssignment::ORGANIZATION_ID)
-            ->toArray();
     }
 
     private function resolveEventGuests(Event $event): Collection
@@ -74,7 +71,8 @@ class UpdateTroopersSubmitController extends MagicBusController
         array $input,
         ?array $allowed_org_ids,
         bool $is_manual_selection_event,
-        Trooper $auth_trooper
+        Trooper $auth_trooper,
+        Collection $costumes_by_id
     ): void {
         $event_trooper = $event_troopers->filter(fn ($et) => $et->id === $id)->first();
 
@@ -93,7 +91,7 @@ class UpdateTroopersSubmitController extends MagicBusController
         $old_status = $event_trooper->status;
         $event_trooper->status = $new_status;
 
-        $this->applyCostumeAndOrgSelection($event_trooper, $input, $allowed_org_ids);
+        $this->applyCostumeAndOrgSelection($event_trooper, $input, $allowed_org_ids, $costumes_by_id);
 
         $event_trooper->organization_id = null;
         $event_trooper->save();
@@ -101,10 +99,10 @@ class UpdateTroopersSubmitController extends MagicBusController
         $this->dispatchManualSelectionNotifications($event_trooper, $old_status, $is_manual_selection_event, $auth_trooper);
     }
 
-    private function applyCostumeAndOrgSelection(EventTrooper $event_trooper, array $input, ?array $allowed_org_ids): void
+    private function applyCostumeAndOrgSelection(EventTrooper $event_trooper, array $input, ?array $allowed_org_ids, Collection $costumes_by_id): void
     {
         $submitted_costume_id = isset($input['costume_id']) && $input['costume_id'] !== '' ? (int) $input['costume_id'] : null;
-        $costume = $submitted_costume_id !== null ? Costume::find($submitted_costume_id) : null;
+        $costume = $submitted_costume_id !== null ? $costumes_by_id->get($submitted_costume_id) : null;
         $has_submitted_org_selection = array_key_exists('organization_selection', $input)
             || array_key_exists('organization_ids', $input);
 

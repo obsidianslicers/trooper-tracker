@@ -9,7 +9,6 @@ use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventTrooper;
 use App\Models\Organization;
-use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -22,10 +21,12 @@ class GetEventTrooperOrgOptionsController extends MagicBusController
         $this->authorize('update', $event);
         abort_if($event_trooper->event_shift->event_id !== $event->id, 404);
 
+        $event_trooper->load('trooper.trooper_costumes.organization_costume', 'trooper.organizations');
+
         $costume_id = $request->input('costume_id') !== null && $request->input('costume_id') !== ''
             ? (int) $request->input('costume_id')
             : null;
-        $allowed_org_ids = $this->resolveAllowedOrgIds($request->user());
+        $allowed_org_ids = $request->user()->resolveModeratorOrgIds();
 
         [$org_options, $credited_ids] = $costume_id !== null
             ? $this->resolveWithCostume($event_trooper, $costume_id, $allowed_org_ids)
@@ -36,19 +37,6 @@ class GetEventTrooperOrgOptionsController extends MagicBusController
             'org_options',
             'credited_ids'
         ));
-    }
-
-    private function resolveAllowedOrgIds(Trooper $auth_trooper): ?array
-    {
-        if ($auth_trooper->is_administrator)
-        {
-            return null;
-        }
-
-        return $auth_trooper->trooper_assignments()
-            ->where(TrooperAssignment::IS_MODERATOR, true)
-            ->pluck(TrooperAssignment::ORGANIZATION_ID)
-            ->toArray();
     }
 
     private function resolveWithCostume(EventTrooper $event_trooper, int $costume_id, ?array $allowed_org_ids): array

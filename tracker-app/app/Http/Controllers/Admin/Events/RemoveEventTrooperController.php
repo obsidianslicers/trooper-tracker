@@ -10,6 +10,7 @@ use App\Models\Event;
 use App\Models\EventTrooper;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 
 class RemoveEventTrooperController extends MagicBusController
 {
@@ -21,12 +22,14 @@ class RemoveEventTrooperController extends MagicBusController
 
         $trooper_name = $event_trooper->trooper->display_name;
 
-        if ($event_trooper->intendsToGo())
-        {
-            $this->bus->send(new PromoteNextInLineEventTrooperCommand($event_trooper));
-        }
+        DB::transaction(function () use ($event_trooper) {
+            if ($event_trooper->intendsToGo())
+            {
+                $this->bus->send(new PromoteNextInLineEventTrooperCommand($event_trooper));
+            }
 
-        $event_trooper->delete();
+            $event_trooper->delete();
+        });
 
         $this->flash->success("{$trooper_name} was removed from the roster.");
 
