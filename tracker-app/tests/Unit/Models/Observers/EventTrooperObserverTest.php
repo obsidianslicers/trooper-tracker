@@ -200,6 +200,38 @@ class EventTrooperObserverTest extends TestCase
         $this->assertSame([], $event_trooper->{EventTrooper::COSTUME_ORGANIZATION_IDS});
     }
 
+    public function test_saving_preserves_submitted_costume_organization_ids(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $organization = Organization::factory()->create();
+        $event = Event::factory()->withOrganization($organization)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $costume = Costume::factory()->create();
+
+        TrooperAssignment::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($organization)
+            ->asMember()
+            ->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->create([
+                EventTrooper::COSTUME_ID => null,
+                EventTrooper::BACKUP_COSTUME_ID => null,
+            ]);
+
+        $event_trooper->{EventTrooper::COSTUME_ID} = $costume->id;
+        $event_trooper->{EventTrooper::COSTUME_ORGANIZATION_IDS} = [$organization->id];
+        $event_trooper->preserve_empty_credit_organization_ids = true;
+
+        $subject = new EventTrooperObserver;
+        $subject->saving($event_trooper);
+
+        $this->assertSame([$organization->id], $event_trooper->{EventTrooper::COSTUME_ORGANIZATION_IDS});
+    }
+
     public function test_created_queues_forum_thread_sync_for_event_roster_changes(): void
     {
         Queue::fake();

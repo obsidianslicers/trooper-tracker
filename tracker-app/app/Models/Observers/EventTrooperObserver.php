@@ -67,9 +67,13 @@ class EventTrooperObserver
                 );
                 $current = $event_trooper->costume_organization_ids ?? [];
                 $validated = array_values(array_intersect($current, $eligible));
-                $event_trooper->costume_organization_ids = $this->shouldPreserveSubmittedCreditOrganizations($event_trooper, EventTrooper::COSTUME_ORGANIZATION_IDS, $validated)
-                    ? $validated
-                    : $eligible;
+                $event_trooper->costume_organization_ids = $this->creditOrganizationsForSave(
+                    $event_trooper,
+                    EventTrooper::COSTUME_ORGANIZATION_IDS,
+                    $current,
+                    $validated,
+                    $eligible
+                );
             }
             elseif ($event_trooper->costume_id === null
                 && $event_trooper->isDirty(['costume_id', 'costume_organization_ids']))
@@ -77,9 +81,13 @@ class EventTrooperObserver
                 $eligible = $this->memberOrganizationIds($event_trooper->trooper_id);
                 $current = $event_trooper->costume_organization_ids ?? [];
                 $validated = array_values(array_intersect($current, $eligible));
-                $event_trooper->costume_organization_ids = $this->shouldPreserveSubmittedCreditOrganizations($event_trooper, EventTrooper::COSTUME_ORGANIZATION_IDS, $validated)
-                    ? $validated
-                    : $eligible;
+                $event_trooper->costume_organization_ids = $this->creditOrganizationsForSave(
+                    $event_trooper,
+                    EventTrooper::COSTUME_ORGANIZATION_IDS,
+                    $current,
+                    $validated,
+                    $eligible
+                );
             }
             elseif ($event_trooper->isDirty('costume_id'))
             {
@@ -97,9 +105,13 @@ class EventTrooperObserver
                 );
                 $current = $event_trooper->backup_costume_organization_ids ?? [];
                 $validated = array_values(array_intersect($current, $eligible));
-                $event_trooper->backup_costume_organization_ids = $this->shouldPreserveSubmittedCreditOrganizations($event_trooper, EventTrooper::BACKUP_COSTUME_ORGANIZATION_IDS, $validated)
-                    ? $validated
-                    : $eligible;
+                $event_trooper->backup_costume_organization_ids = $this->creditOrganizationsForSave(
+                    $event_trooper,
+                    EventTrooper::BACKUP_COSTUME_ORGANIZATION_IDS,
+                    $current,
+                    $validated,
+                    $eligible
+                );
             }
             elseif ($event_trooper->isDirty('backup_costume_id'))
             {
@@ -125,12 +137,24 @@ class EventTrooperObserver
     }
 
     /**
+     * @param  array<int>  $current
      * @param  array<int>  $validated
+     * @param  array<int>  $eligible
+     * @return array<int>
      */
-    private function shouldPreserveSubmittedCreditOrganizations(EventTrooper $event_trooper, string $organization_field, array $validated): bool
+    private function creditOrganizationsForSave(EventTrooper $event_trooper, string $organization_field, array $current, array $validated, array $eligible): array
     {
-        return $event_trooper->preserve_empty_credit_organization_ids
-            || ($event_trooper->isDirty($organization_field) && !empty($validated));
+        if ($event_trooper->preserve_empty_credit_organization_ids)
+        {
+            return array_values($current);
+        }
+
+        if ($event_trooper->isDirty($organization_field) && !empty($validated))
+        {
+            return $validated;
+        }
+
+        return $eligible;
     }
 
     /**
@@ -142,8 +166,7 @@ class EventTrooperObserver
         int $costume_id,
         array $organization_ids,
         string $costume_field
-    ): array
-    {
+    ): array {
         $costume = Costume::find($costume_id);
 
         if ($event_trooper->isDirty($costume_field))
