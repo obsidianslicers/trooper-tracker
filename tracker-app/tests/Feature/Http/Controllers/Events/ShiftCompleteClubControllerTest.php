@@ -259,6 +259,46 @@ class ShiftCompleteClubControllerTest extends TestCase
         $this->assertSame([$org1->id], $fresh->costume_organization_ids);
     }
 
+    public function test_no_costume_club_select_credits_selected_clubs(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $org1 = Organization::factory()->create();
+        $org2 = Organization::factory()->create();
+
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org1)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org2)->asMember()->create();
+
+        $event = Event::factory()->withOrganization($org1)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->asGoing()
+            ->create([
+                EventTrooper::COSTUME_ID => null,
+                EventTrooper::COSTUME_ORGANIZATION_IDS => null,
+                EventTrooper::ORGANIZATION_ID => null,
+                'is_handler' => false,
+            ]);
+
+        $encrypted_status = Crypt::encryptString(EventTrooperStatus::ATTENDED->value);
+
+        $response = $this->actingAs($trooper)->post(route('events.shift-complete-club-select', [
+            'event_trooper' => $event_trooper->id,
+        ]), [
+            'encrypted_status' => $encrypted_status,
+            'organization_ids' => [$org1->id],
+        ]);
+
+        $response->assertOk();
+        $response->assertViewIs('pages.events.shift-complete');
+
+        $fresh = $event_trooper->fresh();
+        $this->assertSame(EventTrooperStatus::ATTENDED, $fresh->status);
+        $this->assertNull($fresh->organization_id);
+        $this->assertSame([$org1->id], $fresh->costume_organization_ids);
+    }
+
     public function test_invalid_encrypted_status_returns_404(): void
     {
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();

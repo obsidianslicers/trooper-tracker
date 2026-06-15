@@ -25,12 +25,6 @@ class GetEventTrooperOrgOptionsController extends MagicBusController
             ? (int) $request->input('costume_id')
             : null;
 
-        $root_ids = $trooper_orgs
-            ->map(fn ($o) => (int) explode(':', $o->node_path)[0])
-            ->unique()
-            ->values()
-            ->toArray();
-
         $allowed_org_ids = $request->user()->is_administrator
             ? null
             : $request->user()->trooper_assignments()
@@ -103,8 +97,7 @@ class GetEventTrooperOrgOptionsController extends MagicBusController
             ));
         }
 
-        $org_options = $trooper_orgs
-            ->whereIn('id', $root_ids)
+        $org_options = $event_trooper->getEligibleCreditParentOrganizations()
             ->when($allowed_org_ids !== null, fn ($c) => $c->whereIn('id', $allowed_org_ids))
             ->values();
 

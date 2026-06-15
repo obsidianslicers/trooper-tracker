@@ -195,7 +195,7 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
         $response->assertViewHas('credited_ids', fn ($ids) => $ids === [$org1->id]);
     }
 
-    public function test_invoke_returns_all_trooper_root_orgs_when_no_costume(): void
+    public function test_invoke_returns_all_member_clubs_when_no_costume(): void
     {
         $admin = Trooper::factory()->asAdministrator()->create();
         $trooper = Trooper::factory()->asActive()->create();
@@ -205,7 +205,7 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
         $event = Event::factory()->withOrganization($org)->create();
         $event_shift = EventShift::factory()->forEvent($event)->create();
 
-        TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($org)->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org)->asMember()->create();
 
         $event_trooper = EventTrooper::factory()
             ->forEventShift($event_shift)

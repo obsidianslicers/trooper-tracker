@@ -343,12 +343,12 @@ class EventTrooper extends BaseEventTrooper
      */
     public function getEligibleCreditOrganizations(): Collection
     {
-        // Handler/Command Staff credit derives from membership, not costume approvals.
+        // Handler/Command Staff and no-costume credit derives from membership, not costume approvals.
         // costume_organization_ids is filtered to the event's can_attend orgs for capacity
-        // tracking, but credit selection must see the full membership so multi-club handlers
-        // are offered the club-select form.
+        // tracking, but credit selection must see the full membership so multi-club
+        // non-costumed and handler troops are offered the club-select form.
         $this->loadMissing('costume');
-        if ($this->costume?->countsAsHandler())
+        if ($this->costume_id === null || $this->costume?->countsAsHandler())
         {
             return Organization::whereHas('trooper_assignments', fn($q) =>
                 $q->where(TrooperAssignment::TROOPER_ID, $this->trooper_id)

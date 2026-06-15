@@ -79,11 +79,11 @@ class UpdateTroopersSubmitController extends MagicBusController
             {
                 $event_trooper->costume_id = null;
                 $submittedOrgIds = array_map('intval', $input['organization_ids'] ?? []);
-                $trooperOrgIds = $event_trooper->trooper->organizations->pluck('id')->toArray();
+                $eligibleParentIds = $event_trooper->getEligibleCreditParentOrganizations()->pluck('id')->toArray();
 
                 $validOrgIds = array_values(array_filter(
                     $submittedOrgIds,
-                    fn ($id) => in_array($id, $trooperOrgIds, true)
+                    fn ($id) => in_array($id, $eligibleParentIds, true)
                     && ($allowed_org_ids === null || in_array($id, $allowed_org_ids, true))
                 ));
 

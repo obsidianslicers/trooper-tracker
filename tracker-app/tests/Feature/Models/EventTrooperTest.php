@@ -712,4 +712,28 @@ class EventTrooperTest extends TestCase
         $this->assertTrue($result->contains('id', $org1->id));
         $this->assertTrue($result->contains('id', $org2->id));
     }
+
+    public function test_get_eligible_credit_organizations_returns_all_member_orgs_when_no_costume_selected(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $org1 = Organization::factory()->create();
+        $org2 = Organization::factory()->create();
+
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org1)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org2)->asMember()->create();
+
+        $subject = EventTrooper::factory()
+            ->forTrooper($trooper)
+            ->state([
+                EventTrooper::COSTUME_ID => null,
+                EventTrooper::COSTUME_ORGANIZATION_IDS => [$org1->id],
+            ])
+            ->create();
+
+        $result = $subject->getEligibleCreditOrganizations();
+
+        $this->assertCount(2, $result);
+        $this->assertTrue($result->contains('id', $org1->id));
+        $this->assertTrue($result->contains('id', $org2->id));
+    }
 }

@@ -271,6 +271,39 @@ class ShiftCompleteControllerTest extends TestCase
         $this->assertSame(EventTrooperStatus::GOING, $event_trooper->fresh()->status);
     }
 
+    public function test_no_costume_with_multiple_clubs_shows_club_select(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $org1 = Organization::factory()->create();
+        $org2 = Organization::factory()->create();
+
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org1)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org2)->asMember()->create();
+
+        $event = Event::factory()->withOrganization($org1)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->asGoing()
+            ->create([
+                EventTrooper::COSTUME_ID => null,
+                EventTrooper::COSTUME_ORGANIZATION_IDS => null,
+                'is_handler' => false,
+            ]);
+
+        $status = Crypt::encryptString(EventTrooperStatus::ATTENDED->value);
+
+        $response = $this->actingAs($trooper)->get(route('events.shift-complete', [
+            'event_trooper' => $event_trooper->id,
+            'status' => $status,
+        ]));
+
+        $response->assertOk();
+        $response->assertViewIs('pages.events.shift-complete-club-select');
+        $this->assertSame(EventTrooperStatus::GOING, $event_trooper->fresh()->status);
+    }
+
     public function test_invoke_shows_club_select_for_handler_when_observer_limited_costume_org_ids_to_one_club(): void
     {
         // Regression: when a handler is in two clubs but the event's can_attend only

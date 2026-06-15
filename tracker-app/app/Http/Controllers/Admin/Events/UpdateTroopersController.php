@@ -64,12 +64,6 @@ class UpdateTroopersController extends MagicBusController
 
                 $trooper_orgs = $event_trooper->trooper->organizations;
 
-                $root_ids = $trooper_orgs
-                    ->map(fn ($org) => (int) explode(':', $org->node_path)[0])
-                    ->unique()
-                    ->values()
-                    ->toArray();
-
                 if ($event_trooper->costume_id !== null)
                 {
                     $costume = Costume::find($event_trooper->costume_id);
@@ -102,8 +96,7 @@ class UpdateTroopersController extends MagicBusController
                 }
                 else
                 {
-                    $event_trooper->org_options = $trooper_orgs
-                        ->whereIn('id', $root_ids)
+                    $event_trooper->org_options = $event_trooper->getEligibleCreditParentOrganizations()
                         ->when($allowed_org_ids !== null, fn ($c) => $c->whereIn('id', $allowed_org_ids))
                         ->values();
                 }

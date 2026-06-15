@@ -70,6 +70,14 @@ class EventTrooperObserver
                 $validated = array_values(array_intersect($current, $eligible));
                 $event_trooper->costume_organization_ids = !empty($validated) ? $validated : $eligible;
             }
+            elseif ($event_trooper->costume_id === null
+                && $event_trooper->isDirty(['costume_id', 'costume_organization_ids']))
+            {
+                $eligible = $this->memberOrganizationIds($event_trooper->trooper_id);
+                $current = $event_trooper->costume_organization_ids ?? [];
+                $validated = array_values(array_intersect($current, $eligible));
+                $event_trooper->costume_organization_ids = !empty($validated) ? $validated : $eligible;
+            }
             elseif ($event_trooper->isDirty('costume_id'))
             {
                 $event_trooper->costume_organization_ids = [];
@@ -133,10 +141,7 @@ class EventTrooperObserver
 
         if ($event_trooper->is_handler || $costume?->countsAsHandler())
         {
-            return TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $event_trooper->trooper_id)
-                ->where(TrooperAssignment::IS_MEMBER, true)
-                ->pluck(TrooperAssignment::ORGANIZATION_ID)
-                ->toArray();
+            return $this->memberOrganizationIds($event_trooper->trooper_id);
         }
 
         $original = $event_trooper->getOriginal($organization_field) ?? [];
@@ -199,10 +204,7 @@ class EventTrooperObserver
 
         if ($costume?->countsAsHandler())
         {
-            return TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $trooper_id)
-                ->where(TrooperAssignment::IS_MEMBER, true)
-                ->pluck(TrooperAssignment::ORGANIZATION_ID)
-                ->toArray();
+            return $this->memberOrganizationIds($trooper_id);
         }
 
         return OrganizationCostume::query()
@@ -212,6 +214,17 @@ class EventTrooperObserver
                 $query->where(TrooperCostume::TROOPER_ID, $trooper_id);
             })
             ->pluck('organization_id')
+            ->toArray();
+    }
+
+    /**
+     * @return array<int>
+     */
+    private function memberOrganizationIds(int $trooper_id): array
+    {
+        return TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $trooper_id)
+            ->where(TrooperAssignment::IS_MEMBER, true)
+            ->pluck(TrooperAssignment::ORGANIZATION_ID)
             ->toArray();
     }
 
