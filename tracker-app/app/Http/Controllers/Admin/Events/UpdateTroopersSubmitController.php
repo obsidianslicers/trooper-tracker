@@ -11,6 +11,7 @@ use App\Http\Requests\Admin\Events\UpdateTroopersRequest;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventGuest;
+use App\Models\OrganizationCostume;
 use App\Models\TrooperAssignment;
 use App\Notifications\Events\ManualSelectionApprovedNotification;
 use App\Notifications\Events\ManualSelectionStandByNotification;
@@ -66,28 +67,55 @@ class UpdateTroopersSubmitController extends MagicBusController
 
             $submittedCostumeId = isset($input['costume_id']) && $input['costume_id'] !== '' ? (int) $input['costume_id'] : null;
             $costume = $submittedCostumeId !== null ? Costume::find($submittedCostumeId) : null;
+            $hasSubmittedOrgSelection = array_key_exists('organization_selection', $input)
+                || array_key_exists('organization_ids', $input);
+            $event_trooper->preserve_empty_credit_organization_ids = $hasSubmittedOrgSelection;
 
             if ($costume !== null)
             {
                 $event_trooper->costume_id = $costume->id;
                 $event_trooper->is_handler = $costume->countsAsHandler();
-                $submittedOrgIds = array_map('intval', $input['organization_ids'] ?? []);
-                $event_trooper->costume_organization_ids = $submittedOrgIds;
-                // EventTrooperObserver::saving() validates submitted IDs against eligible orgs
+                $submittedParentIds = array_map('intval', $input['organization_ids'] ?? []);
+
+                if ($costume->countsAsHandler() && $hasSubmittedOrgSelection)
+                {
+                    $event_trooper->costume_organization_ids = $event_trooper->childOrgIdsForSelectedParents($submittedParentIds);
+                }
+                elseif ($hasSubmittedOrgSelection)
+                {
+                    $trooper_orgs = $event_trooper->trooper->organizations;
+                    $approved_child_ids = OrganizationCostume::where('costume_id', $costume->id)
+                        ->whereHas('trooper_costumes', fn ($q) => $q->where('trooper_id', $event_trooper->trooper_id))
+                        ->pluck('organization_id')
+                        ->toArray();
+                    $event_trooper->costume_organization_ids = collect($approved_child_ids)
+                        ->filter(function ($child_id) use ($trooper_orgs, $submittedParentIds) {
+                            $org = $trooper_orgs->find($child_id);
+                            $root_id = $org ? (int) explode(':', $org->node_path)[0] : (int) $child_id;
+
+                            return in_array($root_id, $submittedParentIds, true);
+                        })
+                        ->values()
+                        ->all();
+                }
             }
             else
             {
                 $event_trooper->costume_id = null;
-                $submittedOrgIds = array_map('intval', $input['organization_ids'] ?? []);
-                $eligibleParentIds = $event_trooper->getEligibleCreditParentOrganizations()->pluck('id')->toArray();
 
-                $validOrgIds = array_values(array_filter(
-                    $submittedOrgIds,
-                    fn ($id) => in_array($id, $eligibleParentIds, true)
-                    && ($allowed_org_ids === null || in_array($id, $allowed_org_ids, true))
-                ));
+                if ($hasSubmittedOrgSelection)
+                {
+                    $submittedOrgIds = array_map('intval', $input['organization_ids'] ?? []);
+                    $eligibleParentIds = $event_trooper->getEligibleCreditParentOrganizations()->pluck('id')->toArray();
 
-                $event_trooper->costume_organization_ids = !empty($validOrgIds) ? $validOrgIds : null;
+                    $validOrgIds = array_values(array_filter(
+                        $submittedOrgIds,
+                        fn ($id) => in_array($id, $eligibleParentIds, true)
+                        && ($allowed_org_ids === null || in_array($id, $allowed_org_ids, true))
+                    ));
+
+                    $event_trooper->costume_organization_ids = $validOrgIds;
+                }
             }
 
             $event_trooper->organization_id = null;

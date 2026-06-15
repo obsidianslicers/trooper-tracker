@@ -8,7 +8,6 @@ use App\Http\Controllers\MagicBusController;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventTrooper;
-use App\Models\OrganizationCostume;
 use App\Models\TrooperAssignment;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -34,8 +33,6 @@ class GetEventTrooperOrgOptionsController extends MagicBusController
 
         if ($costume_id !== null)
         {
-            $event_shift = $event_trooper->event_shift;
-            $can_attend_ids = $event->event_organizations()->pluckCanAttend($event_shift)->toArray();
             $costume = Costume::find($costume_id);
 
             if ($costume?->countsAsHandler())
@@ -48,15 +45,9 @@ class GetEventTrooperOrgOptionsController extends MagicBusController
             }
             else
             {
-                $org_ids = $costume !== null
-                    ? OrganizationCostume::where('costume_id', $costume_id)
-                        ->whereIn('organization_id', $can_attend_ids)
-                        ->whereHas('trooper_costumes', fn ($q) => $q->where('trooper_id', $event_trooper->trooper_id))
-                        ->pluck('organization_id')
-                        ->toArray()
-                    : [];
-
-                $eligible_root_ids = collect($org_ids)
+                $eligible_root_ids = $event_trooper->trooper->trooper_costumes
+                    ->filter(fn ($tc) => (int) $tc->organization_costume->costume_id === $costume_id)
+                    ->map(fn ($tc) => (int) $tc->organization_costume->organization_id)
                     ->map(function ($id) use ($trooper_orgs) {
                         $org = $trooper_orgs->find($id);
 

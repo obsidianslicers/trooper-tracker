@@ -1,3 +1,7 @@
+<input type="hidden"
+       name="troopers[{{ $event_trooper->id }}][organization_selection]"
+       value="1">
+
 @forelse($org_options as $org)
     <div class="form-check mb-0">
         <input type="checkbox"

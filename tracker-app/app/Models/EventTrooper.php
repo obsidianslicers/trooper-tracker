@@ -36,6 +36,8 @@ class EventTrooper extends BaseEventTrooper
     use HasAuditTrail;
     use HasObserver;
 
+    public bool $preserve_empty_credit_organization_ids = false;
+
     /**
      * Define the model attributes should be audited for changes.
      *

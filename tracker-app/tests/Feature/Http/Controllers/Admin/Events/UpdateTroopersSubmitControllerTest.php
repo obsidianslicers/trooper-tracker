@@ -129,7 +129,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
         ]);
 
         $event_trooper->refresh();
-        $this->assertSame([$eligible_org->id], $event_trooper->costume_organization_ids);
+        $this->assertSame([], $event_trooper->costume_organization_ids);
     }
 
     public function test_invoke_saves_any_member_club_for_handler_costume(): void
@@ -209,5 +209,81 @@ class UpdateTroopersSubmitControllerTest extends TestCase
         $event_trooper->refresh();
         $this->assertNull($event_trooper->costume_id);
         $this->assertSame([$other_member_org->id], $event_trooper->costume_organization_ids);
+    }
+
+    public function test_invoke_can_clear_credited_org_selection_when_no_costume_selected(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $org = Organization::factory()->create();
+        $event = Event::factory()->withOrganization($org)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org)->asMember()->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->asGoing()
+            ->create([
+                EventTrooper::COSTUME_ID => null,
+                EventTrooper::COSTUME_ORGANIZATION_IDS => [$org->id],
+            ]);
+
+        $this->actingAs($admin)->post('/admin/events/'.$event->id.'/troopers', [
+            'troopers' => [
+                $event_trooper->id => [
+                    'status' => 'going',
+                    'costume_id' => '',
+                    'organization_selection' => '1',
+                ],
+            ],
+        ]);
+
+        $event_trooper->refresh();
+        $this->assertNull($event_trooper->costume_id);
+        $this->assertSame([], $event_trooper->costume_organization_ids);
+    }
+
+    public function test_invoke_can_clear_credited_org_selection_when_regular_costume_selected(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $org = Organization::factory()->create();
+        $event = Event::factory()->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $costume = Costume::factory()->create();
+
+        EventOrganization::factory()->create([
+            EventOrganization::EVENT_ID => $event->id,
+            EventOrganization::ORGANIZATION_ID => $org->id,
+            EventOrganization::CAN_ATTEND => true,
+        ]);
+
+        $org_costume = OrganizationCostume::factory()->forOrganization($org)->forCostume($costume)->create();
+        TrooperCostume::factory()->forTrooper($trooper)->forOrganizationCostume($org_costume)->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->asGoing()
+            ->create([
+                EventTrooper::COSTUME_ID => $costume->id,
+                EventTrooper::COSTUME_ORGANIZATION_IDS => [$org->id],
+            ]);
+
+        $this->actingAs($admin)->post('/admin/events/'.$event->id.'/troopers', [
+            'troopers' => [
+                $event_trooper->id => [
+                    'status' => 'going',
+                    'costume_id' => $costume->id,
+                    'organization_selection' => '1',
+                ],
+            ],
+        ]);
+
+        $event_trooper->refresh();
+        $this->assertSame($costume->id, $event_trooper->costume_id);
+        $this->assertSame([], $event_trooper->costume_organization_ids);
     }
 }

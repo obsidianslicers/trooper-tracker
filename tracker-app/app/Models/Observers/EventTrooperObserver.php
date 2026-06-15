@@ -63,12 +63,13 @@ class EventTrooperObserver
                     $event_trooper,
                     $event_trooper->costume_id,
                     $organization_ids,
-                    EventTrooper::COSTUME_ID,
-                    EventTrooper::COSTUME_ORGANIZATION_IDS
+                    EventTrooper::COSTUME_ID
                 );
                 $current = $event_trooper->costume_organization_ids ?? [];
                 $validated = array_values(array_intersect($current, $eligible));
-                $event_trooper->costume_organization_ids = !empty($validated) ? $validated : $eligible;
+                $event_trooper->costume_organization_ids = $this->shouldPreserveSubmittedCreditOrganizations($event_trooper, EventTrooper::COSTUME_ORGANIZATION_IDS, $validated)
+                    ? $validated
+                    : $eligible;
             }
             elseif ($event_trooper->costume_id === null
                 && $event_trooper->isDirty(['costume_id', 'costume_organization_ids']))
@@ -76,7 +77,9 @@ class EventTrooperObserver
                 $eligible = $this->memberOrganizationIds($event_trooper->trooper_id);
                 $current = $event_trooper->costume_organization_ids ?? [];
                 $validated = array_values(array_intersect($current, $eligible));
-                $event_trooper->costume_organization_ids = !empty($validated) ? $validated : $eligible;
+                $event_trooper->costume_organization_ids = $this->shouldPreserveSubmittedCreditOrganizations($event_trooper, EventTrooper::COSTUME_ORGANIZATION_IDS, $validated)
+                    ? $validated
+                    : $eligible;
             }
             elseif ($event_trooper->isDirty('costume_id'))
             {
@@ -90,12 +93,13 @@ class EventTrooperObserver
                     $event_trooper,
                     $event_trooper->backup_costume_id,
                     $organization_ids,
-                    EventTrooper::BACKUP_COSTUME_ID,
-                    EventTrooper::BACKUP_COSTUME_ORGANIZATION_IDS
+                    EventTrooper::BACKUP_COSTUME_ID
                 );
                 $current = $event_trooper->backup_costume_organization_ids ?? [];
                 $validated = array_values(array_intersect($current, $eligible));
-                $event_trooper->backup_costume_organization_ids = !empty($validated) ? $validated : $eligible;
+                $event_trooper->backup_costume_organization_ids = $this->shouldPreserveSubmittedCreditOrganizations($event_trooper, EventTrooper::BACKUP_COSTUME_ORGANIZATION_IDS, $validated)
+                    ? $validated
+                    : $eligible;
             }
             elseif ($event_trooper->isDirty('backup_costume_id'))
             {
@@ -121,6 +125,15 @@ class EventTrooperObserver
     }
 
     /**
+     * @param  array<int>  $validated
+     */
+    private function shouldPreserveSubmittedCreditOrganizations(EventTrooper $event_trooper, string $organization_field, array $validated): bool
+    {
+        return $event_trooper->preserve_empty_credit_organization_ids
+            || ($event_trooper->isDirty($organization_field) && !empty($validated));
+    }
+
+    /**
      * @param  array<int>  $organization_ids
      * @return array<int>
      */
@@ -128,8 +141,7 @@ class EventTrooperObserver
         EventTrooper $event_trooper,
         int $costume_id,
         array $organization_ids,
-        string $costume_field,
-        string $organization_field
+        string $costume_field
     ): array
     {
         $costume = Costume::find($costume_id);
@@ -144,16 +156,7 @@ class EventTrooperObserver
             return $this->memberOrganizationIds($event_trooper->trooper_id);
         }
 
-        $original = $event_trooper->getOriginal($organization_field) ?? [];
-
-        if (is_string($original))
-        {
-            $original = json_decode($original, true) ?: [];
-        }
-
-        return !empty($original)
-            ? array_map('intval', $original)
-            : $this->assignOrganizations($event_trooper->trooper_id, $costume_id, $organization_ids);
+        return $this->assignOrganizations($event_trooper->trooper_id, $costume_id, $organization_ids);
     }
 
     public function created(EventTrooper $event_trooper): void
