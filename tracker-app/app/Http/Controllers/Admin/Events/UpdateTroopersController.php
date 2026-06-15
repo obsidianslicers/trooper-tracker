@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin\Events;
 
 use App\Features\Events\Queries\GetTroopersForEventAdminQuery;
 use App\Http\Controllers\MagicBusController;
+use App\Models\Costume;
 use App\Models\Event;
 use App\Models\TrooperAssignment;
 use Illuminate\Contracts\View\View;
@@ -57,6 +58,10 @@ class UpdateTroopersController extends MagicBusController
         {
             foreach ($shift->event_troopers as $event_trooper)
             {
+                $event_trooper->costume_options = Costume::forTrooper($event_trooper->trooper_id)
+                    ->pluck('name', 'id')
+                    ->toArray();
+
                 $trooper_orgs = $event_trooper->trooper->organizations;
 
                 $root_ids = $trooper_orgs

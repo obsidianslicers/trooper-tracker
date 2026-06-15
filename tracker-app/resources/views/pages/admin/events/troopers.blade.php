@@ -77,25 +77,15 @@
                                     </a>
                                 </td>
                                 <td>
-                                    @if($event_trooper->costume == null && $event_trooper->backup_costume == null)
-                                        <i class="small text-muted">
-                                            no costume selected
-                                        </i>
-                                    @endif
-                                    @if($event_trooper->costume)
-                                        {{ $event_trooper->costume->name }}
-                                        <br />
-                                        <i class="small text-muted">
-                                            {{ $event_trooper->costume_organizations }}
-                                        </i>
-                                    @endif
+                                    <x-input-select :property="'troopers.' . $event_trooper->id . '.costume_id'"
+                                                    :options="$event_trooper->costume_options"
+                                                    :value="$event_trooper->costume_id"
+                                                    :placeholder="'-- No Costume --'"
+                                                    class="form-select-sm" />
                                     @if($event_trooper->backup_costume)
-                                        <br />
-                                        <i class="small text-muted">
+                                        <i class="small text-muted d-block mt-1">
                                             <i class="fa fa-fw fa-box-archive"></i>
                                             {{ $event_trooper->backup_costume->name }}
-                                            <br />
-                                            {{ $event_trooper->backup_costume_organizations }}
                                         </i>
                                     @endif
                                 </td>

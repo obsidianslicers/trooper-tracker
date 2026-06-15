@@ -8,6 +8,7 @@ use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Events\UpdateTroopersRequest;
+use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventGuest;
 use App\Models\TrooperAssignment;
@@ -63,16 +64,34 @@ class UpdateTroopersSubmitController extends MagicBusController
 
             $event_trooper->status = $newStatus;
 
-            $submittedOrgIds = array_map('intval', $input['organization_ids'] ?? []);
-            $trooperOrgIds = $event_trooper->trooper->organizations->pluck('id')->toArray();
+            $submittedCostumeId = isset($input['costume_id']) && $input['costume_id'] !== '' ? (int) $input['costume_id'] : null;
+            $costume = $submittedCostumeId !== null ? Costume::find($submittedCostumeId) : null;
 
-            $validOrgIds = array_values(array_filter(
-                $submittedOrgIds,
-                fn ($id) => in_array($id, $trooperOrgIds, true)
-                && ($allowed_org_ids === null || in_array($id, $allowed_org_ids, true))
-            ));
+            if ($costume !== null)
+            {
+                $event_trooper->costume_id = $costume->id;
+                $event_trooper->is_handler = $costume->countsAsHandler();
+                $org_ids = $costume->organization_costumes()
+                    ->whereHas('trooper_costumes', fn ($q) => $q->where('trooper_id', $event_trooper->trooper_id))
+                    ->pluck('organization_id')
+                    ->toArray();
+                $event_trooper->costume_organization_ids = !empty($org_ids) ? $org_ids : null;
+            }
+            else
+            {
+                $event_trooper->costume_id = null;
+                $submittedOrgIds = array_map('intval', $input['organization_ids'] ?? []);
+                $trooperOrgIds = $event_trooper->trooper->organizations->pluck('id')->toArray();
 
-            $event_trooper->costume_organization_ids = !empty($validOrgIds) ? $validOrgIds : null;
+                $validOrgIds = array_values(array_filter(
+                    $submittedOrgIds,
+                    fn ($id) => in_array($id, $trooperOrgIds, true)
+                    && ($allowed_org_ids === null || in_array($id, $allowed_org_ids, true))
+                ));
+
+                $event_trooper->costume_organization_ids = !empty($validOrgIds) ? $validOrgIds : null;
+            }
+
             $event_trooper->organization_id = null;
 
             $event_trooper->save();
