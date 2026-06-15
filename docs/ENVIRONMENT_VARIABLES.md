@@ -34,6 +34,13 @@ Configuration reference for all `.env` variables in Troop Tracker.
 - **Example**: `https://trooptracker.example.com`
 - **When to change**: Set to your domain in production
 
+### APP_TIMEZONE
+- **Purpose**: Default application timezone for date/time handling
+- **Required**: No
+- **Default**: `UTC`
+- **Example**: `America/New_York`
+- **When to change**: Set to your organization's timezone
+
 ### APP_KEY
 - **Purpose**: Encryption key for sessions, cookies, encrypted data
 - **Required**: Yes
@@ -445,6 +452,7 @@ APP_NAME="Your Organization Name"
 APP_ENV=production
 APP_DEBUG=false
 APP_URL=https://trooptracker.example.com
+APP_TIMEZONE=America/New_York
 APP_KEY=base64:YOUR_GENERATED_KEY_HERE
 
 # Troop Tracker
