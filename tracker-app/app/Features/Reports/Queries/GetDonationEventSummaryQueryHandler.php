@@ -7,6 +7,7 @@ namespace App\Features\Reports\Queries;
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
+use App\Features\Events\Queries\HasOrgAttributionQuery;
 use App\Models\Event;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +17,8 @@ use Illuminate\Support\Facades\DB;
  */
 readonly class GetDonationEventSummaryQueryHandler implements QueryHandlerInterface
 {
+    use HasOrgAttributionQuery;
+
     /**
      * @param  GetDonationEventSummaryQuery  $message
      * @return LengthAwarePaginator
@@ -27,6 +30,8 @@ readonly class GetDonationEventSummaryQueryHandler implements QueryHandlerInterf
             ->join('tt_event_shifts', 'tt_event_troopers.event_shift_id', '=', 'tt_event_shifts.id')
             ->whereColumn('tt_event_shifts.event_id', 'tt_events.id')
             ->where('tt_event_troopers.status', EventTrooperStatus::ATTENDED->value);
+
+        $this->applyAttribution($attendeesCountSub, $message);
 
         $directFundsSub = DB::table('tt_event_shifts')
             ->selectRaw('COALESCE(SUM(charity_direct_funds), 0)')
@@ -43,33 +48,22 @@ readonly class GetDonationEventSummaryQueryHandler implements QueryHandlerInterf
             ->whereColumn('event_id', 'tt_events.id')
             ->whereNull('deleted_at');
 
-        $charityNameSub = DB::table('tt_event_shifts')
-            ->select('charity_name')
-            ->whereColumn('event_id', 'tt_events.id')
-            ->whereNull('deleted_at')
-            ->whereNotNull('charity_name')
-            ->where('charity_name', '!=', '')
-            ->orderBy('shift_starts_at')
-            ->limit(1);
-
-        $charityNotesSub = DB::table('tt_event_shifts')
-            ->select('charity_notes')
-            ->whereColumn('event_id', 'tt_events.id')
-            ->whereNull('deleted_at')
-            ->whereNotNull('charity_notes')
-            ->where('charity_notes', '!=', '')
-            ->orderBy('shift_starts_at')
-            ->limit(1);
-
         $query = Event::query()
             ->select('tt_events.*')
             ->selectSub($attendeesCountSub, 'attendees_count')
             ->selectSub($directFundsSub, 'charity_direct_funds')
             ->selectSub($indirectFundsSub, 'charity_indirect_funds')
             ->selectSub($charityHoursSub, 'charity_hours')
-            ->selectSub($charityNameSub, 'charity_name')
-            ->selectSub($charityNotesSub, 'charity_notes')
-            ->with('organization:id,name')
+            ->with([
+                'organization:id,name',
+                'event_shifts' => function ($q) use ($message) {
+                    $q->withCount(['event_troopers as attendees_count' => function ($inner) use ($message) {
+                        $inner->where('status', EventTrooperStatus::ATTENDED->value);
+                        $this->applyAttribution($inner, $message);
+                    }])
+                        ->orderBy('shift_starts_at');
+                },
+            ])
             ->moderatedBy($message->moderator)
             ->where(Event::STATUS, EventStatus::CLOSED)
             ->when($message->date_start, fn ($q) => $q->where(Event::EVENT_START, '>=', $message->date_start))
@@ -87,11 +81,41 @@ readonly class GetDonationEventSummaryQueryHandler implements QueryHandlerInterf
                     });
             }));
 
-        $allowed = ['name', 'event_start', 'charity_name', 'charity_direct_funds', 'charity_indirect_funds', 'charity_hours', 'attendees_count'];
+        $allowed = ['name', 'event_start', 'charity_direct_funds', 'charity_indirect_funds', 'charity_hours', 'attendees_count'];
         $sort = in_array($message->sort, $allowed) ? $message->sort : 'event_start';
         $dir = $message->dir === 'asc' ? 'asc' : 'desc';
 
         return $query->orderBy($sort, $dir)->paginate($message->page_size)->withQueryString();
+    }
+
+    private function applyAttribution(mixed $q, GetDonationEventSummaryQuery $message): void
+    {
+        if (!empty($message->selected_org_ids))
+        {
+            $this->applySelectedOrgs($q, $message->selected_org_ids);
+        }
+        else
+        {
+            $this->applyOrgAttribution($q, null, $message->accessible_org_ids);
+        }
+    }
+
+    private function applySelectedOrgs(mixed $q, array $org_ids): void
+    {
+        $q->where(function ($q) use ($org_ids) {
+            $q->whereIn('tt_event_troopers.organization_id', $org_ids)
+                ->orWhere(function ($q) use ($org_ids) {
+                    $q->whereNull('tt_event_troopers.organization_id')
+                        ->where(function ($q) use ($org_ids) {
+                            foreach ($org_ids as $id)
+                            {
+                                $q->orWhere(function ($q) use ($id) {
+                                    $this->whereJsonArrayContainsOrganization($q, (int) $id);
+                                });
+                            }
+                        });
+                });
+        });
     }
 
     private function diffInHoursSql(string $start_col, string $end_col): string
