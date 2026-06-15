@@ -8,9 +8,11 @@ use App\Http\Controllers\MagicBusController;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventTrooper;
+use App\Models\Organization;
 use App\Models\TrooperAssignment;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class GetEventTrooperOrgOptionsController extends MagicBusController
 {
@@ -37,7 +39,7 @@ class GetEventTrooperOrgOptionsController extends MagicBusController
 
             if ($costume?->countsAsHandler())
             {
-                $org_options = $event_trooper->getEligibleCreditParentOrganizations()
+                $org_options = $this->memberCreditParentOrganizations($event_trooper)
                     ->when($allowed_org_ids !== null, fn ($c) => $c->whereIn('id', $allowed_org_ids))
                     ->values();
 
@@ -88,24 +90,45 @@ class GetEventTrooperOrgOptionsController extends MagicBusController
             ));
         }
 
-        $org_options = $event_trooper->getEligibleCreditParentOrganizations()
+        $org_options = $this->memberCreditParentOrganizations($event_trooper)
             ->when($allowed_org_ids !== null, fn ($c) => $c->whereIn('id', $allowed_org_ids))
             ->values();
 
-        $credited_ids = collect($event_trooper->costume_organization_ids ?? [])
-            ->map(function ($id) use ($trooper_orgs) {
-                $org = $trooper_orgs->find($id);
+        $is_new_costume = $event_trooper->costume_id !== null;
+        $credited_ids = $is_new_costume
+            ? $org_options->pluck('id')->all()
+            : collect($event_trooper->costume_organization_ids ?? [])
+                ->map(function ($id) use ($trooper_orgs) {
+                    $org = $trooper_orgs->find($id);
 
-                return $org ? (int) explode(':', $org->node_path)[0] : (int) $id;
-            })
-            ->unique()
-            ->values()
-            ->all();
+                    return $org ? (int) explode(':', $org->node_path)[0] : (int) $id;
+                })
+                ->unique()
+                ->values()
+                ->all();
 
         return view('pages.admin.events.inc.trooper-org-options', compact(
             'event_trooper',
             'org_options',
             'credited_ids'
         ));
+    }
+
+    /**
+     * Handler and no-costume credit derives from memberships, not the currently
+     * saved costume. This keeps HTMX option refreshes accurate before save.
+     *
+     * @return Collection<int, Organization>
+     */
+    private function memberCreditParentOrganizations(EventTrooper $event_trooper): Collection
+    {
+        return Organization::whereHas('trooper_assignments', fn ($q) => $q
+            ->where(TrooperAssignment::TROOPER_ID, $event_trooper->trooper_id)
+            ->where(TrooperAssignment::IS_MEMBER, true)
+        )
+            ->get()
+            ->map(fn ($org) => $org->getPrimaryClub())
+            ->unique('id')
+            ->values();
     }
 }

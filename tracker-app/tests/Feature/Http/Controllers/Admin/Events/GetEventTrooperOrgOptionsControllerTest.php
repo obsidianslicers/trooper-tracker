@@ -148,6 +148,43 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
         $response->assertViewHas('credited_ids', fn ($ids) => $ids === [$org1->id, $org2->id]);
     }
 
+    public function test_invoke_returns_all_member_clubs_when_changing_from_regular_costume_to_handler(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $org1 = Organization::factory()->create();
+        $org2 = Organization::factory()->create();
+        $org1->update([Organization::NODE_PATH => (string) $org1->id]);
+        $org2->update([Organization::NODE_PATH => (string) $org2->id]);
+
+        $event = Event::factory()->withOrganization($org1)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $old_costume = Costume::factory()->create();
+        $handler_costume = Costume::factory()->withName(Costume::HANDLER)->create();
+
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org1)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org2)->asMember()->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->withCostume($old_costume)
+            ->withCostumeOrganizationIds([$org1->id])
+            ->create();
+
+        $response = $this->actingAs($admin)->get(
+            route('admin.events.troopers.org-options', compact('event', 'event_trooper'))
+            .'?costume_id='.$handler_costume->id
+        );
+
+        $response->assertOk();
+        $response->assertViewHas('org_options', function ($org_options) use ($org1, $org2) {
+            return $org_options->contains('id', $org1->id)
+                && $org_options->contains('id', $org2->id);
+        });
+        $response->assertViewHas('credited_ids', fn ($ids) => $ids === [$org1->id, $org2->id]);
+    }
+
     public function test_invoke_uses_stored_selection_when_costume_unchanged(): void
     {
         $admin = Trooper::factory()->asAdministrator()->create();
@@ -218,6 +255,42 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertViewHas('org_options', fn ($org_options) => $org_options->contains('id', $org->id));
+    }
+
+    public function test_invoke_returns_all_member_clubs_when_changing_from_regular_costume_to_no_costume(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $org1 = Organization::factory()->create();
+        $org2 = Organization::factory()->create();
+        $org1->update([Organization::NODE_PATH => (string) $org1->id]);
+        $org2->update([Organization::NODE_PATH => (string) $org2->id]);
+
+        $event = Event::factory()->withOrganization($org1)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $old_costume = Costume::factory()->create();
+
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org1)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org2)->asMember()->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->withCostume($old_costume)
+            ->withCostumeOrganizationIds([$org1->id])
+            ->create();
+
+        $response = $this->actingAs($admin)->get(
+            route('admin.events.troopers.org-options', compact('event', 'event_trooper'))
+            .'?costume_id='
+        );
+
+        $response->assertOk();
+        $response->assertViewHas('org_options', function ($org_options) use ($org1, $org2) {
+            return $org_options->contains('id', $org1->id)
+                && $org_options->contains('id', $org2->id);
+        });
+        $response->assertViewHas('credited_ids', fn ($ids) => $ids === [$org1->id, $org2->id]);
     }
 
     public function test_invoke_requires_authentication(): void
