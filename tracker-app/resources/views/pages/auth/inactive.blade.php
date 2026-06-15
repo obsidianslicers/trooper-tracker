@@ -8,8 +8,7 @@
 
         <x-message>
             <p>
-                PLEASE NOTE: Your account is currently inactive. If you believe this is an error, please
-                contact an administrator for assistance.
+                PLEASE NOTE: Your account is currently inactive. If this is your first time using Troop Tracker, your account may not have been approved yet. If you believe this is an error, please contact an administrator for assistance.
             </p>
         </x-message>
 

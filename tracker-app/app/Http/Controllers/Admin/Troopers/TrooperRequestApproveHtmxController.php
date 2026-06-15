@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Troopers;
 
 use App\Features\Troopers\Commands\ApproveTrooperRequestCommand;
+use App\Features\Troopers\Exceptions\DuplicateOrganizationIdentifierException;
 use App\Http\Controllers\MagicBusController;
 use App\Models\TrooperRequest;
 use Illuminate\Contracts\View\View;
@@ -24,7 +25,24 @@ class TrooperRequestApproveHtmxController extends MagicBusController
     {
         $this->authorize('moderate', $trooper_request);
 
-        $this->bus->send(new ApproveTrooperRequestCommand($trooper_request));
+        try
+        {
+            $this->bus->send(new ApproveTrooperRequestCommand($trooper_request));
+        }
+        catch (DuplicateOrganizationIdentifierException $exception)
+        {
+            $trooper_request->load(['trooper', 'organization', 'primaryOrganization']);
+
+            $message = json_encode([
+                'message' => $exception->flashMessage(),
+                'type' => 'danger',
+                'focus' => true,
+            ]);
+
+            return response()
+                ->view('pages.admin.troopers.trooper-request-card', compact('trooper_request'))
+                ->header('X-Flash-Message', $message);
+        }
 
         $trooper_request->load(['trooper', 'organization', 'primaryOrganization']);
 

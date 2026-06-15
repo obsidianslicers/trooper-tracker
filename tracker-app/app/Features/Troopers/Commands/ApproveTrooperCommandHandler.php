@@ -10,6 +10,7 @@ use App\Enums\MembershipStatus;
 use App\Models\TrooperRequest;
 use App\Notifications\Troopers\MembershipApprovedNotification;
 use App\Notifications\Troopers\TrooperDeniedNotification;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Handler for approving a trooper's membership application.
@@ -25,16 +26,33 @@ readonly class ApproveTrooperCommandHandler implements CommandHandlerInterface
      */
     public function __invoke(object $message): mixed
     {
-        $message->trooper->membership_status = $message->is_approved
-            ? MembershipStatus::ACTIVE
-            : MembershipStatus::DENIED;
-
-        if ($message->is_approved && $message->trooper->is_visitor)
+        if ($message->is_approved)
         {
-            $message->trooper->visitor_expires_at = now()->addMonths(6);
-            $message->trooper->visitor_notified_at = null;
+            DB::transaction(function () use ($message): void {
+                $message->trooper->membership_status = MembershipStatus::ACTIVE;
+
+                if ($message->trooper->is_visitor)
+                {
+                    $message->trooper->visitor_expires_at = now()->addMonths(6);
+                    $message->trooper->visitor_notified_at = null;
+                }
+
+                $message->trooper->save();
+
+                TrooperRequest::where(TrooperRequest::TROOPER_ID, $message->trooper->id)
+                    ->pending()
+                    ->get()
+                    ->each(function (TrooperRequest $trooper_request): void {
+                        $this->bus->send(new ApproveTrooperRequestCommand($trooper_request, suppress_notification: true));
+                    });
+            });
+
+            $message->trooper->notify(new MembershipApprovedNotification);
+
+            return null;
         }
 
+        $message->trooper->membership_status = MembershipStatus::DENIED;
         $message->trooper->save();
 
         if (!$message->is_approved)
@@ -51,18 +69,6 @@ readonly class ApproveTrooperCommandHandler implements CommandHandlerInterface
                 });
 
             $message->trooper->notify(new TrooperDeniedNotification($message->denial_reason));
-        }
-
-        if ($message->is_approved)
-        {
-            $message->trooper->notify(new MembershipApprovedNotification);
-
-            TrooperRequest::where(TrooperRequest::TROOPER_ID, $message->trooper->id)
-                ->pending()
-                ->get()
-                ->each(function (TrooperRequest $trooper_request): void {
-                    $this->bus->send(new ApproveTrooperRequestCommand($trooper_request, suppress_notification: true));
-                });
         }
 
         return null;
