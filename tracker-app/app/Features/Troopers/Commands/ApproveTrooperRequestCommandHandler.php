@@ -7,7 +7,7 @@ namespace App\Features\Troopers\Commands;
 use App\Bus\Contracts\CommandHandlerInterface;
 use App\Enums\MembershipStatus;
 use App\Enums\TrooperRequestStatus;
-use App\Features\Troopers\Exceptions\DuplicateOrganizationIdentifierException;
+use App\Features\Troopers\Support\OrganizationIdentifierAvailability;
 use App\Models\Organization;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperOrganization;
@@ -21,6 +21,8 @@ use App\Notifications\Troopers\TrooperRequestApprovedNotification;
  */
 readonly class ApproveTrooperRequestCommandHandler implements CommandHandlerInterface
 {
+    public function __construct(private OrganizationIdentifierAvailability $identifier_availability) {}
+
     /**
      * @param  ApproveTrooperRequestCommand  $message
      */
@@ -50,21 +52,12 @@ readonly class ApproveTrooperRequestCommandHandler implements CommandHandlerInte
 
     private function ensureIdentifierIsAvailable(Organization $primary_club, TrooperRequest $trooper_request): void
     {
-        if (empty($trooper_request->identifier))
-        {
-            return;
-        }
-
-        $exists = TrooperOrganization::withTrashed()
-            ->where(TrooperOrganization::ORGANIZATION_ID, $primary_club->id)
-            ->where(TrooperOrganization::IDENTIFIER, $trooper_request->identifier)
-            ->where(TrooperOrganization::TROOPER_ID, '!=', $trooper_request->trooper_id)
-            ->exists();
-
-        if ($exists)
-        {
-            throw new DuplicateOrganizationIdentifierException($primary_club, $trooper_request->identifier);
-        }
+        $this->identifier_availability->ensureAvailable(
+            $primary_club,
+            $trooper_request->identifier,
+            $trooper_request->trooper_id,
+            $trooper_request->id
+        );
     }
 
     private function clearExistingAssignments(Organization $primary_club, TrooperRequest $trooper_request): void

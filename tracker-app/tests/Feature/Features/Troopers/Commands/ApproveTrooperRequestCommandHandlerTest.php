@@ -251,12 +251,12 @@ class ApproveTrooperRequestCommandHandlerTest extends TestCase
             ->withIdentifier('1012')
             ->create([TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE]);
 
-        $trooper_request = TrooperRequest::factory()
+        $trooper_request = TrooperRequest::withoutEvents(fn() => TrooperRequest::factory()
             ->forTrooper($pending_trooper)
             ->forOrganization($unit)
             ->forPrimaryOrganization($primary_club)
             ->withIdentifier('1012')
-            ->create();
+            ->create());
 
         $this->expectException(DuplicateOrganizationIdentifierException::class);
         $this->expectExceptionMessage('501st Legion TKID 1012 is already assigned to another trooper.');

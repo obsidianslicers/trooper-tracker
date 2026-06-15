@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Account;
 
 use App\Features\Troopers\Commands\SubmitTrooperRequestCommand;
+use App\Features\Troopers\Exceptions\DuplicateOrganizationIdentifierException;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Account\ClubMembershipRequest;
 use App\Models\Organization;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Response;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Submits a club join request for the authenticated trooper via HTMX.
@@ -30,7 +32,16 @@ class ClubMembershipsSubmitHtmxController extends MagicBusController
             $request->filled('identifier') ? $request->string('identifier')->toString() : null,
         );
 
-        $this->bus->send($command);
+        try
+        {
+            $this->bus->send($command);
+        }
+        catch (DuplicateOrganizationIdentifierException $exception)
+        {
+            throw ValidationException::withMessages([
+                'identifier' => $exception->flashMessage(),
+            ]);
+        }
 
         $org = $organization;
         $org->is_pending = true;

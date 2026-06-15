@@ -97,12 +97,12 @@ class ApprovalSubmitHtmxControllerTest extends TestCase
             ->withIdentifier('1012')
             ->create([TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE]);
 
-        TrooperRequest::factory()
+        TrooperRequest::withoutEvents(fn() => TrooperRequest::factory()
             ->forTrooper($subject)
             ->forOrganization($unit)
             ->forPrimaryOrganization($organization)
             ->withIdentifier('1012')
-            ->create();
+            ->create());
 
         $response = $this->actingAs($trooper)->post(route('admin.troopers.approve-htmx', $subject));
 

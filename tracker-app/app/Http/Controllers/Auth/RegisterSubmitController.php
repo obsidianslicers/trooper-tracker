@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Features\Troopers\Commands\RegisterTrooperCommand;
 use App\Features\Troopers\Commands\SubmitTrooperRequestCommand;
+use App\Features\Troopers\Exceptions\DuplicateOrganizationIdentifierException;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Jobs\SendTrooperRegisteredNotificationsJob;
@@ -14,6 +15,8 @@ use App\Mail\Auth\TrooperRegistered;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Mail;
 
 /**
@@ -42,10 +45,23 @@ class RegisterSubmitController extends MagicBusController
     {
         $register_cmd = new RegisterTrooperCommand($request->validated());
 
-        $trooper = $this->bus->send($register_cmd);
+        try
+        {
+            $trooper = DB::transaction(function () use ($request, $register_cmd): Trooper {
+                $trooper = $this->bus->send($register_cmd);
 
-        $organizations = $request->validated('organizations', []);
-        $this->submitJoinRequests($trooper, $organizations, $request->validated('account_type'));
+                $organizations = $request->validated('organizations', []);
+                $this->submitJoinRequests($trooper, $organizations, $request->validated('account_type'));
+
+                return $trooper;
+            });
+        }
+        catch (DuplicateOrganizationIdentifierException $exception)
+        {
+            throw ValidationException::withMessages([
+                'organizations' => $exception->flashMessage(),
+            ]);
+        }
 
         Mail::to($trooper->email)->queue(new TrooperRegistered);
 
