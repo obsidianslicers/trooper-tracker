@@ -286,4 +286,118 @@ class UpdateTroopersSubmitControllerTest extends TestCase
         $this->assertSame($costume->id, $event_trooper->costume_id);
         $this->assertSame([], $event_trooper->costume_organization_ids);
     }
+
+    public function test_invoke_filters_regular_costume_credit_selection_for_moderator_scope(): void
+    {
+        $moderator = Trooper::factory()->asModerator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $allowed_org = Organization::factory()->create();
+        $blocked_org = Organization::factory()->create();
+        $event = Event::factory()->withOrganization($allowed_org)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $costume = Costume::factory()->create();
+
+        TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($allowed_org)->asModerator()->create();
+        EventOrganization::factory()->create([
+            EventOrganization::EVENT_ID => $event->id,
+            EventOrganization::ORGANIZATION_ID => $allowed_org->id,
+            EventOrganization::CAN_ATTEND => true,
+        ]);
+        EventOrganization::factory()->create([
+            EventOrganization::EVENT_ID => $event->id,
+            EventOrganization::ORGANIZATION_ID => $blocked_org->id,
+            EventOrganization::CAN_ATTEND => true,
+        ]);
+
+        $allowed_org_costume = OrganizationCostume::factory()->forOrganization($allowed_org)->forCostume($costume)->create();
+        $blocked_org_costume = OrganizationCostume::factory()->forOrganization($blocked_org)->forCostume($costume)->create();
+        TrooperCostume::factory()->forTrooper($trooper)->forOrganizationCostume($allowed_org_costume)->create();
+        TrooperCostume::factory()->forTrooper($trooper)->forOrganizationCostume($blocked_org_costume)->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->asGoing()
+            ->create([EventTrooper::COSTUME_ID => null]);
+
+        $this->actingAs($moderator)->post('/admin/events/'.$event->id.'/troopers', [
+            'troopers' => [
+                $event_trooper->id => [
+                    'status' => 'going',
+                    'costume_id' => $costume->id,
+                    'organization_ids' => [$allowed_org->id, $blocked_org->id],
+                ],
+            ],
+        ]);
+
+        $event_trooper->refresh();
+        $this->assertSame([$allowed_org->id], $event_trooper->costume_organization_ids);
+    }
+
+    public function test_invoke_filters_handler_credit_selection_for_moderator_scope(): void
+    {
+        $moderator = Trooper::factory()->asModerator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $allowed_org = Organization::factory()->create();
+        $blocked_org = Organization::factory()->create();
+        $event = Event::factory()->withOrganization($allowed_org)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $handler_costume = Costume::factory()->withName(Costume::HANDLER)->create();
+
+        TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($allowed_org)->asModerator()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($allowed_org)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($blocked_org)->asMember()->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->asGoing()
+            ->create([EventTrooper::COSTUME_ID => null]);
+
+        $this->actingAs($moderator)->post('/admin/events/'.$event->id.'/troopers', [
+            'troopers' => [
+                $event_trooper->id => [
+                    'status' => 'going',
+                    'costume_id' => $handler_costume->id,
+                    'organization_ids' => [$allowed_org->id, $blocked_org->id],
+                ],
+            ],
+        ]);
+
+        $event_trooper->refresh();
+        $this->assertSame([$allowed_org->id], $event_trooper->costume_organization_ids);
+    }
+
+    public function test_invoke_filters_no_costume_credit_selection_for_moderator_scope(): void
+    {
+        $moderator = Trooper::factory()->asModerator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $allowed_org = Organization::factory()->create();
+        $blocked_org = Organization::factory()->create();
+        $event = Event::factory()->withOrganization($allowed_org)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($allowed_org)->asModerator()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($allowed_org)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($blocked_org)->asMember()->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->asGoing()
+            ->create([EventTrooper::COSTUME_ID => null]);
+
+        $this->actingAs($moderator)->post('/admin/events/'.$event->id.'/troopers', [
+            'troopers' => [
+                $event_trooper->id => [
+                    'status' => 'going',
+                    'costume_id' => '',
+                    'organization_ids' => [$allowed_org->id, $blocked_org->id],
+                ],
+            ],
+        ]);
+
+        $event_trooper->refresh();
+        $this->assertSame([$allowed_org->id], $event_trooper->costume_organization_ids);
+    }
 }

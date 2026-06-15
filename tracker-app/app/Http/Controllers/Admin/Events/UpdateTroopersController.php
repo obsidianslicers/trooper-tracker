@@ -9,6 +9,7 @@ use App\Http\Controllers\MagicBusController;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventTrooper;
+use App\Models\Organization;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -119,16 +120,19 @@ class UpdateTroopersController extends MagicBusController
 
         if ($event_trooper->organization_id !== null)
         {
-            $org = $trooper_orgs->find($event_trooper->organization_id);
+            $org = Organization::find($event_trooper->organization_id) ?? $trooper_orgs->find($event_trooper->organization_id);
 
-            return [$org ? (int) explode(':', $org->node_path)[0] : $event_trooper->organization_id];
+            return [$org ? $org->getPrimaryClub()->id : $event_trooper->organization_id];
         }
 
-        return collect($event_trooper->costume_organization_ids ?? [])
-            ->map(function ($id) use ($trooper_orgs) {
-                $org = $trooper_orgs->find($id);
+        $credited_ids = collect($event_trooper->costume_organization_ids ?? []);
+        $credit_orgs = Organization::findMany($credited_ids->all())->keyBy('id');
 
-                return $org ? (int) explode(':', $org->node_path)[0] : $id;
+        return $credited_ids
+            ->map(function ($id) use ($credit_orgs) {
+                $org = $credit_orgs->get($id);
+
+                return $org ? $org->getPrimaryClub()->id : $id;
             })
             ->unique()
             ->values()

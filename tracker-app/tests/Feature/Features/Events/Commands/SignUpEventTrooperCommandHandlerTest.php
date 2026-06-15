@@ -9,12 +9,15 @@ use App\Features\Events\Commands\SignUpEventTrooperCommand;
 use App\Features\Events\Commands\SignUpEventTrooperCommandHandler;
 use App\Jobs\CreateTrooperFriendshipJob;
 use App\Mail\Events\TrooperSignUp;
+use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventOrganization;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Organization;
+use App\Models\OrganizationCostume;
 use App\Models\Trooper;
+use App\Models\TrooperCostume;
 use App\Notifications\Events\TrooperSignedUpNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
@@ -169,6 +172,83 @@ class SignUpEventTrooperCommandHandlerTest extends TestCase
             EventTrooper::TROOPER_ID => $trooper->id,
             EventTrooper::ORGANIZATION_ID => $organization->id,
         ]);
+    }
+
+    public function test_invoke_saves_selected_costume_and_credit_orgs(): void
+    {
+        Notification::fake();
+
+        $organization = Organization::factory()->create();
+        $event = Event::factory()->state([Event::TROOPERS_ALLOWED => null])->create();
+        EventOrganization::factory()
+            ->state([
+                EventOrganization::EVENT_ID => $event->id,
+                EventOrganization::ORGANIZATION_ID => $organization->id,
+                EventOrganization::CAN_ATTEND => true,
+            ])
+            ->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $trooper = Trooper::factory()->create();
+        $costume = Costume::factory()->create();
+        $org_costume = OrganizationCostume::factory()->forOrganization($organization)->forCostume($costume)->create();
+        TrooperCostume::factory()->forTrooper($trooper)->forOrganizationCostume($org_costume)->create();
+
+        $handler = app(SignUpEventTrooperCommandHandler::class);
+        $handler(new SignUpEventTrooperCommand(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+            costume_id: $costume->id,
+        ));
+
+        $event_trooper = EventTrooper::query()->where(EventTrooper::TROOPER_ID, $trooper->id)->firstOrFail();
+
+        $this->assertSame($costume->id, $event_trooper->costume_id);
+        $this->assertSame([$organization->id], $event_trooper->costume_organization_ids);
+    }
+
+    public function test_invoke_sets_is_handler_from_selected_handler_costume(): void
+    {
+        Notification::fake();
+
+        $event_shift = EventShift::factory()->create();
+        $trooper = Trooper::factory()->create();
+        $handler_costume = Costume::factory()->withName(Costume::HANDLER)->create();
+
+        $handler = app(SignUpEventTrooperCommandHandler::class);
+        $handler(new SignUpEventTrooperCommand(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+            costume_id: $handler_costume->id,
+        ));
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::COSTUME_ID => $handler_costume->id,
+            EventTrooper::IS_HANDLER => true,
+        ]);
+    }
+
+    public function test_invoke_ignores_missing_costume_id(): void
+    {
+        Notification::fake();
+
+        $event_shift = EventShift::factory()->create();
+        $trooper = Trooper::factory()->create();
+
+        $handler = app(SignUpEventTrooperCommandHandler::class);
+        $handler(new SignUpEventTrooperCommand(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+            costume_id: 999999,
+        ));
+
+        $event_trooper = EventTrooper::query()->where(EventTrooper::TROOPER_ID, $trooper->id)->firstOrFail();
+
+        $this->assertNull($event_trooper->costume_id);
+        $this->assertNull($event_trooper->costume_organization_ids);
     }
 
     public function test_invoke_assigns_stand_by_when_org_limit_reached(): void

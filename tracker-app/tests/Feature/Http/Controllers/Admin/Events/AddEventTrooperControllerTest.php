@@ -62,6 +62,56 @@ class AddEventTrooperControllerTest extends TestCase
         ]);
     }
 
+    public function test_invoke_ignores_unapproved_costume(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $event = Event::factory()->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $costume = Costume::factory()->create();
+
+        $response = $this->actingAs($admin)->post(
+            route('admin.events.troopers.add', compact('event', 'event_shift')),
+            ['trooper_id' => $trooper->id, 'costume_id' => $costume->id]
+        );
+
+        $response->assertNoContent();
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::EVENT_SHIFT_ID => $event_shift->id,
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::COSTUME_ID => null,
+        ]);
+    }
+
+    public function test_invoke_returns_404_for_inactive_trooper(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asPending()->create();
+        $event = Event::factory()->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        $response = $this->actingAs($admin)->post(
+            route('admin.events.troopers.add', compact('event', 'event_shift')),
+            ['trooper_id' => $trooper->id]
+        );
+
+        $response->assertNotFound();
+    }
+
+    public function test_invoke_returns_404_for_missing_trooper(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $event = Event::factory()->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        $response = $this->actingAs($admin)->post(
+            route('admin.events.troopers.add', compact('event', 'event_shift')),
+            ['trooper_id' => 999999]
+        );
+
+        $response->assertNotFound();
+    }
+
     public function test_invoke_returns_no_content_if_trooper_already_signed_up(): void
     {
         $admin = Trooper::factory()->asAdministrator()->create();

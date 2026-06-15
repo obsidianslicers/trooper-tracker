@@ -30,4 +30,20 @@ class SignUpEventTrooperCommandTest extends TestCase
         $this->assertSame($trooper, $subject->trooper);
         $this->assertSame($added_by_trooper, $subject->added_by_trooper);
     }
+
+    public function test_constructor_stores_costume_id(): void
+    {
+        $event_shift = new EventShift([EventShift::ID => 123]);
+        $trooper = new Trooper([Trooper::ID => 456]);
+        $added_by_trooper = new Trooper([Trooper::ID => 789]);
+
+        $subject = new SignUpEventTrooperCommand(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $added_by_trooper,
+            costume_id: 321,
+        );
+
+        $this->assertSame(321, $subject->costume_id);
+    }
 }

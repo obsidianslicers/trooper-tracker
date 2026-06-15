@@ -145,7 +145,11 @@ class UpdateTroopersSubmitController extends MagicBusController
             return;
         }
 
-        $event_trooper->costume_organization_ids = $this->costumeChildOrgIdsForParents($event_trooper, $costume, $submitted_parent_ids);
+        $filtered_parent_ids = $allowed_org_ids === null
+            ? $submitted_parent_ids
+            : array_values(array_filter($submitted_parent_ids, fn ($id) => in_array($id, $allowed_org_ids, true)));
+
+        $event_trooper->costume_organization_ids = $this->costumeChildOrgIdsForParents($event_trooper, $costume, $filtered_parent_ids);
     }
 
     private function applyWithoutCostume(

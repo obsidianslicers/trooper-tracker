@@ -293,6 +293,57 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
         $response->assertViewHas('credited_ids', fn ($ids) => $ids === [$org1->id, $org2->id]);
     }
 
+    public function test_invoke_filters_org_options_for_moderator_scope(): void
+    {
+        $moderator = Trooper::factory()->asModerator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $allowed_org = Organization::factory()->create();
+        $blocked_org = Organization::factory()->create();
+        $allowed_org->update([Organization::NODE_PATH => (string) $allowed_org->id]);
+        $blocked_org->update([Organization::NODE_PATH => (string) $blocked_org->id]);
+
+        $event = Event::factory()->withOrganization($allowed_org)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($allowed_org)->asModerator()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($allowed_org)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($blocked_org)->asMember()->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->create([EventTrooper::COSTUME_ID => null]);
+
+        $response = $this->actingAs($moderator)->get(
+            route('admin.events.troopers.org-options', compact('event', 'event_trooper'))
+        );
+
+        $response->assertOk();
+        $response->assertViewHas('org_options', function ($org_options) use ($allowed_org, $blocked_org) {
+            return $org_options->contains('id', $allowed_org->id)
+                && ! $org_options->contains('id', $blocked_org->id);
+        });
+    }
+
+    public function test_invoke_returns_404_if_event_trooper_belongs_to_different_event(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $event = Event::factory()->create();
+        $other_event = Event::factory()->create();
+        $other_shift = EventShift::factory()->forEvent($other_event)->create();
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($other_shift)
+            ->forTrooper($trooper)
+            ->create();
+
+        $response = $this->actingAs($admin)->get(
+            route('admin.events.troopers.org-options', compact('event', 'event_trooper'))
+        );
+
+        $response->assertNotFound();
+    }
+
     public function test_invoke_requires_authentication(): void
     {
         $event = Event::factory()->create();

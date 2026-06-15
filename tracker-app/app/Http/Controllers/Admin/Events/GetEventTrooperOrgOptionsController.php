@@ -80,13 +80,14 @@ class GetEventTrooperOrgOptionsController extends MagicBusController
 
     private function storedCreditedRootIds(EventTrooper $event_trooper): array
     {
-        $trooper_orgs = $event_trooper->trooper->organizations;
+        $credited_ids = collect($event_trooper->costume_organization_ids ?? []);
+        $credit_orgs = Organization::findMany($credited_ids->all())->keyBy('id');
 
-        return collect($event_trooper->costume_organization_ids ?? [])
-            ->map(function ($id) use ($trooper_orgs) {
-                $org = $trooper_orgs->find($id);
+        return $credited_ids
+            ->map(function ($id) use ($credit_orgs) {
+                $org = $credit_orgs->get($id);
 
-                return $org ? (int) explode(':', $org->node_path)[0] : (int) $id;
+                return $org ? $org->getPrimaryClub()->id : (int) $id;
             })
             ->unique()
             ->values()
