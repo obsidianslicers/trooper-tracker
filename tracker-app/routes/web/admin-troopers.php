@@ -22,6 +22,8 @@ use App\Http\Controllers\Admin\Troopers\ProfileController;
 use App\Http\Controllers\Admin\Troopers\ProfileSubmitController;
 use App\Http\Controllers\Admin\Troopers\RecruitController;
 use App\Http\Controllers\Admin\Troopers\RecruitSubmitController;
+use App\Http\Controllers\Admin\Troopers\MarkRipSubmitController;
+use App\Http\Controllers\Admin\Troopers\UnmarkRipSubmitController;
 use App\Http\Controllers\Admin\Troopers\UnvoidSubmitController;
 use App\Http\Controllers\Admin\Troopers\VoidSubmitController;
 use Illuminate\Support\Facades\Route;
@@ -58,4 +60,6 @@ Route::prefix('admin/troopers')
         Route::get('/{trooper}/changes', ChangesController::class)->name('changes');
         Route::post('/{trooper}/void', VoidSubmitController::class)->name('void');
         Route::post('/{trooper}/unvoid', UnvoidSubmitController::class)->name('unvoid');
+        Route::post('/{trooper}/rip', MarkRipSubmitController::class)->name('rip');
+        Route::post('/{trooper}/unrip', UnmarkRipSubmitController::class)->name('unrip');
     });

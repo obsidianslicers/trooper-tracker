@@ -15,6 +15,13 @@
             </div>
         @endif
 
+        @if($trooper->membership_status === \App\Enums\MembershipStatus::RIP)
+            <div class="alert alert-dark border-warning mb-3" role="alert">
+                <strong>This account is marked R.I.P. — In Memoriam.</strong>
+                The service record displays a memorial tribute. The account cannot log in.
+            </div>
+        @endif
+
         <x-card>
 
             <form method="POST"
@@ -119,6 +126,39 @@
                     @csrf
                     <button type="submit" class="btn btn-outline-warning btn-sm">
                         Restore Account
+                    </button>
+                </form>
+            </x-card>
+        @endcan
+
+        @can('markRip', $trooper)
+            <x-card class="mt-3 border-secondary">
+                <h6 class="text-secondary mb-3">In Memoriam</h6>
+                <p class="text-muted small mb-3">
+                    Mark this account to honor a member who has passed away. Their service record
+                    will display a Star Wars themed memorial tribute. The account cannot log in.
+                </p>
+                <form method="POST" action="{{ route('admin.troopers.rip', compact('trooper')) }}">
+                    @csrf
+                    <button type="submit" class="btn btn-outline-secondary btn-sm"
+                            onclick="return confirm('Mark {{ $trooper->display_name }} as R.I.P.?')">
+                        Mark as R.I.P.
+                    </button>
+                </form>
+            </x-card>
+        @endcan
+
+        @can('unmarkRip', $trooper)
+            <x-card class="mt-3 border-secondary">
+                <h6 class="text-secondary mb-3">Remove R.I.P. Status</h6>
+                <p class="text-muted small mb-3">
+                    Remove the R.I.P. status and restore this account to pending.
+                    Use only if this was marked in error.
+                </p>
+                <form method="POST" action="{{ route('admin.troopers.unrip', compact('trooper')) }}">
+                    @csrf
+                    <button type="submit" class="btn btn-outline-secondary btn-sm">
+                        Remove R.I.P. Status
                     </button>
                 </form>
             </x-card>

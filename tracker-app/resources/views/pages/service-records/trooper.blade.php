@@ -4,6 +4,20 @@
 
 @section('content')
 
+    @if($trooper->membership_status === \App\Enums\MembershipStatus::RIP)
+        <div class="bg-dark border border-warning rounded p-4 mb-4 text-center">
+            <p class="text-warning fst-italic fs-5 mb-2">"The Force will be with you, always."</p>
+            <p class="text-light mb-2">
+                {{ $trooper->display_name }} has become one with the Force.
+                Their service, dedication, and the light they brought to those they served
+                will be honored here, always.
+            </p>
+            <p class="text-warning small mb-0 fst-italic">
+                — In memoriam. May the Force be with them, always. —
+            </p>
+        </div>
+    @endif
+
     <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
         <div>
             <h2 class="h1 mb-0 text-upper">
@@ -53,21 +67,23 @@
                     <ul class="nav nav-pills p-3 border-bottom"
                         id="dashboardTabs"
                         role="tablist">
+                        @if($trooper->membership_status !== \App\Enums\MembershipStatus::RIP)
+                            <li class="nav-item"
+                                role="presentation">
+                                <button class="nav-link active text-uppercase small fw-bold"
+                                        data-bs-toggle="tab"
+                                        data-bs-target="#upcoming-shifts"
+                                        aria-selected="true"
+                                        role="tab">Upcoming</button>
+                            </li>
+                        @endif
                         <li class="nav-item"
                             role="presentation">
-                            <button class="nav-link active text-uppercase small fw-bold"
-                                    data-bs-toggle="tab"
-                                    data-bs-target="#upcoming-shifts"
-                                    aria-selected="true"
-                                    role="tab">Upcoming</button>
-                        </li>
-                        <li class="nav-item"
-                            role="presentation">
-                            <button class="nav-link text-uppercase small fw-bold"
+                            <button class="nav-link text-uppercase small fw-bold {{ $trooper->membership_status === \App\Enums\MembershipStatus::RIP ? 'active' : '' }}"
                                     data-bs-toggle="tab"
                                     data-bs-target="#recent-shifts"
-                                    aria-selected="false"
-                                    tabindex="-1"
+                                    aria-selected="{{ $trooper->membership_status === \App\Enums\MembershipStatus::RIP ? 'true' : 'false' }}"
+                                    @if($trooper->membership_status !== \App\Enums\MembershipStatus::RIP) tabindex="-1" @endif
                                     role="tab">History</button>
                         </li>
                         <li class="nav-item"
@@ -111,12 +127,14 @@
                     </ul>
                 </div>
                 <div class="card-body tab-content">
-                    <div class="tab-pane fade show active"
-                         id="upcoming-shifts"
-                         role="tabpanel">
-                        @include('pages.service-records.inc.trooper-upcoming-shifts')
-                    </div>
-                    <div class="tab-pane fade"
+                    @if($trooper->membership_status !== \App\Enums\MembershipStatus::RIP)
+                        <div class="tab-pane fade show active"
+                             id="upcoming-shifts"
+                             role="tabpanel">
+                            @include('pages.service-records.inc.trooper-upcoming-shifts')
+                        </div>
+                    @endif
+                    <div class="tab-pane fade {{ $trooper->membership_status === \App\Enums\MembershipStatus::RIP ? 'show active' : '' }}"
                          id="recent-shifts"
                          role="tabpanel">
                         @include('pages.service-records.inc.trooper-recent-shifts')
