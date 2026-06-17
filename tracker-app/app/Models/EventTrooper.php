@@ -396,13 +396,18 @@ class EventTrooper extends BaseEventTrooper
      */
     public function rootOrgIdsForCostume(int $costume_id): array
     {
-        $trooper_orgs = $this->trooper->organizations;
-
-        return $this->trooper->trooper_costumes
+        $organization_ids = $this->trooper->trooper_costumes
             ->filter(fn ($tc) => (int) $tc->organization_costume->costume_id === $costume_id)
             ->map(fn ($tc) => (int) $tc->organization_costume->organization_id)
-            ->map(function ($id) use ($trooper_orgs) {
-                $org = $trooper_orgs->find($id);
+            ->unique()
+            ->values()
+            ->all();
+
+        $organizations = Organization::findMany($organization_ids)->keyBy('id');
+
+        return collect($organization_ids)
+            ->map(function ($id) use ($organizations) {
+                $org = $organizations->get($id);
 
                 return $org ? (int) explode(':', $org->node_path)[0] : $id;
             })

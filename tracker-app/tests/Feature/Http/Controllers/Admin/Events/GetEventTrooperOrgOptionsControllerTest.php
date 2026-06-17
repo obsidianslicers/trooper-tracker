@@ -70,6 +70,46 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
         });
     }
 
+    public function test_invoke_returns_regular_costume_org_options_without_trooper_organization_rows(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $org1 = Organization::factory()->create();
+        $org2 = Organization::factory()->create();
+        $org1->update([Organization::NODE_PATH => (string) $org1->id]);
+        $org2->update([Organization::NODE_PATH => (string) $org2->id]);
+
+        $event = Event::factory()->withOrganization($org1)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $costume = Costume::factory()->create();
+
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org1)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org2)->asMember()->create();
+        $org_costume1 = OrganizationCostume::factory()->forOrganization($org1)->forCostume($costume)->create();
+        $org_costume2 = OrganizationCostume::factory()->forOrganization($org2)->forCostume($costume)->create();
+        TrooperCostume::factory()->forTrooper($trooper)->forOrganizationCostume($org_costume1)->create();
+        TrooperCostume::factory()->forTrooper($trooper)->forOrganizationCostume($org_costume2)->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->withCostume($costume)
+            ->withCostumeOrganizationIds([$org1->id, $org2->id])
+            ->create();
+
+        $response = $this->actingAs($admin)->get(
+            route('admin.events.troopers.org-options', compact('event', 'event_trooper'))
+            .'?costume_id='.$costume->id
+        );
+
+        $response->assertOk();
+        $response->assertViewHas('org_options', function ($org_options) use ($org1, $org2) {
+            return $org_options->contains('id', $org1->id)
+                && $org_options->contains('id', $org2->id);
+        });
+        $response->assertViewHas('credited_ids', fn ($ids) => $ids === [$org1->id, $org2->id]);
+    }
+
     public function test_invoke_pre_checks_all_eligible_orgs_when_costume_is_new(): void
     {
         $admin = Trooper::factory()->asAdministrator()->create();

@@ -88,6 +88,43 @@ class UpdateTroopersSubmitControllerTest extends TestCase
         $this->assertSame([$org1->id], $event_trooper->costume_organization_ids);
     }
 
+    public function test_invoke_saves_regular_costume_org_selection_without_trooper_organization_rows(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $org1 = Organization::factory()->create();
+        $org2 = Organization::factory()->create();
+        $org1->update([Organization::NODE_PATH => (string) $org1->id]);
+        $org2->update([Organization::NODE_PATH => (string) $org2->id]);
+        $event = Event::factory()->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $costume = Costume::factory()->create();
+
+        $org_costume1 = OrganizationCostume::factory()->forOrganization($org1)->forCostume($costume)->create();
+        $org_costume2 = OrganizationCostume::factory()->forOrganization($org2)->forCostume($costume)->create();
+        TrooperCostume::factory()->forTrooper($trooper)->forOrganizationCostume($org_costume1)->create();
+        TrooperCostume::factory()->forTrooper($trooper)->forOrganizationCostume($org_costume2)->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->asGoing()
+            ->create([EventTrooper::COSTUME_ID => $costume->id]);
+
+        $this->actingAs($admin)->post('/admin/events/'.$event->id.'/troopers', [
+            'troopers' => [
+                $event_trooper->id => [
+                    'status' => 'going',
+                    'costume_id' => $costume->id,
+                    'organization_ids' => [$org1->id, $org2->id],
+                ],
+            ],
+        ]);
+
+        $event_trooper->refresh();
+        $this->assertEqualsCanonicalizing([$org1->id, $org2->id], $event_trooper->costume_organization_ids);
+    }
+
     public function test_invoke_strips_ineligible_org_selection(): void
     {
         $admin = Trooper::factory()->asAdministrator()->create();

@@ -111,6 +111,55 @@ class UpdateTroopersControllerTest extends TestCase
         $this->assertSame($costume->id, $event_trooper->costume_id);
     }
 
+    public function test_invoke_shows_regular_costume_org_options_from_assignments_without_trooper_organization_rows(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $org1 = Organization::factory()->create(['name' => 'Florida Garrison']);
+        $org2 = Organization::factory()->create(['name' => 'Rebel Legion']);
+        $org1->update([Organization::NODE_PATH => (string) $org1->id]);
+        $org2->update([Organization::NODE_PATH => (string) $org2->id]);
+        $event = Event::factory()->withOrganization($org1)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $costume = Costume::factory()->create();
+
+        EventOrganization::factory()->create([
+            EventOrganization::EVENT_ID => $event->id,
+            EventOrganization::ORGANIZATION_ID => $org1->id,
+            EventOrganization::CAN_ATTEND => true,
+        ]);
+        EventOrganization::factory()->create([
+            EventOrganization::EVENT_ID => $event->id,
+            EventOrganization::ORGANIZATION_ID => $org2->id,
+            EventOrganization::CAN_ATTEND => true,
+        ]);
+
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org1)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org2)->asMember()->create();
+        $org_costume1 = OrganizationCostume::factory()->forOrganization($org1)->forCostume($costume)->create();
+        $org_costume2 = OrganizationCostume::factory()->forOrganization($org2)->forCostume($costume)->create();
+        TrooperCostume::factory()->forTrooper($trooper)->forOrganizationCostume($org_costume1)->create();
+        TrooperCostume::factory()->forTrooper($trooper)->forOrganizationCostume($org_costume2)->create();
+
+        EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->withCostume($costume)
+            ->withCostumeOrganizationIds([$org1->id, $org2->id])
+            ->asGoing()
+            ->create();
+
+        $response = $this->actingAs($admin)->get(route('admin.events.troopers', ['event' => $event->id]));
+
+        $response->assertOk();
+        $response->assertDontSee('(Unattached)');
+
+        $event_trooper = $response->viewData('event_shifts')->first()->event_troopers->first();
+        $this->assertTrue($event_trooper->org_options->contains('id', $org1->id));
+        $this->assertTrue($event_trooper->org_options->contains('id', $org2->id));
+        $this->assertEqualsCanonicalizing([$org1->id, $org2->id], $event_trooper->credited_checked_ids);
+    }
+
     public function test_invoke_shows_member_clubs_when_no_costume_selected(): void
     {
         $admin = Trooper::factory()->asAdministrator()->create();

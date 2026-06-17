@@ -54,9 +54,10 @@ class GetEventTrooperOrgOptionsController extends MagicBusController
         else
         {
             $eligible_root_ids = $event_trooper->rootOrgIdsForCostume($costume_id);
-            $org_options = $event_trooper->trooper->organizations
-                ->whereIn('id', $eligible_root_ids)
+            $org_options = Organization::whereIn('id', $eligible_root_ids)
                 ->when($allowed_org_ids !== null, fn ($c) => $c->whereIn('id', $allowed_org_ids))
+                ->orderBy(Organization::NAME)
+                ->get()
                 ->values();
         }
 

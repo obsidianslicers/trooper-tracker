@@ -103,9 +103,10 @@ class UpdateTroopersController extends MagicBusController
         {
             $root_ids = $event_trooper->rootOrgIdsForCostume($event_trooper->costume_id);
 
-            return $event_trooper->trooper->organizations
-                ->whereIn('id', $root_ids)
+            return Organization::whereIn('id', $root_ids)
                 ->when($allowed_org_ids !== null, fn ($c) => $c->whereIn('id', $allowed_org_ids))
+                ->orderBy(Organization::NAME)
+                ->get()
                 ->values();
         }
 
@@ -117,6 +118,22 @@ class UpdateTroopersController extends MagicBusController
     private function resolveCreditedCheckedIds(EventTrooper $event_trooper): array
     {
         $trooper_orgs = $event_trooper->trooper->organizations;
+        $credited_ids = collect($event_trooper->costume_organization_ids ?? []);
+
+        if ($credited_ids->isNotEmpty())
+        {
+            $credit_orgs = Organization::findMany($credited_ids->all())->keyBy('id');
+
+            return $credited_ids
+                ->map(function ($id) use ($credit_orgs) {
+                    $org = $credit_orgs->get($id);
+
+                    return $org ? $org->getPrimaryClub()->id : $id;
+                })
+                ->unique()
+                ->values()
+                ->all();
+        }
 
         if ($event_trooper->organization_id !== null)
         {
@@ -125,17 +142,6 @@ class UpdateTroopersController extends MagicBusController
             return [$org ? $org->getPrimaryClub()->id : $event_trooper->organization_id];
         }
 
-        $credited_ids = collect($event_trooper->costume_organization_ids ?? []);
-        $credit_orgs = Organization::findMany($credited_ids->all())->keyBy('id');
-
-        return $credited_ids
-            ->map(function ($id) use ($credit_orgs) {
-                $org = $credit_orgs->get($id);
-
-                return $org ? $org->getPrimaryClub()->id : $id;
-            })
-            ->unique()
-            ->values()
-            ->all();
+        return [];
     }
 }
