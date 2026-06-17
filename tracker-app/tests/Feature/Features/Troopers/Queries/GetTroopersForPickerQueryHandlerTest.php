@@ -236,7 +236,7 @@ class GetTroopersForPickerQueryHandlerTest extends TestCase
             ->forFriend($friend_target)
             ->create();
 
-        $filter = new TrooperFilter(new Request(['search_term' => 'Friend']));
+        $filter = new TrooperFilter(new Request(['search_term' => 'Friend Target']));
 
         $subject = new GetTroopersForPickerQueryHandler();
 
@@ -282,5 +282,46 @@ class GetTroopersForPickerQueryHandlerTest extends TestCase
         ]));
 
         $this->assertEmpty($result);
+    }
+
+    public function test_invoke_with_friends_picker_mode_and_goodall_search_term_when_not_local(): void
+    {
+        $this->assertFalse(app()->isLocal());
+
+        $requesting_trooper = Trooper::factory()
+            ->asMember()
+            ->withDisplayName('Requesting Trooper')
+            ->create();
+
+        $friend_goodall = Trooper::factory()
+            ->asMember()
+            ->withSetupCompleted()
+            ->withDisplayName('TK Goodall')
+            ->create();
+
+        $friend_without_setup = Trooper::factory()
+            ->asMember()
+            ->withSetupIncomplete()
+            ->withDisplayName('DZ Goodall')
+            ->create();
+
+        Trooper::factory()
+            ->asMember()
+            ->withSetupCompleted()
+            ->withDisplayName('AA Goodall')
+            ->create();
+
+        $filter = new TrooperFilter(new Request(['search_term' => 'Goodall']));
+
+        $subject = new GetTroopersForPickerQueryHandler();
+
+        $result = $subject(new GetTroopersForPickerQuery($requesting_trooper, $filter, [
+            'picker_mode' => TrooperPickerMode::FRIENDS->value,
+        ]));
+
+        $this->assertSame(
+            ['AA Goodall', 'TK Goodall'],
+            $result->pluck(Trooper::DISPLAY_NAME)->all()
+        );
     }
 }
