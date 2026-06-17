@@ -32,7 +32,7 @@ readonly class UpdateTrooperNotificationsCommandHandler implements CommandHandle
     {
         $message->trooper->trooper_assignments()->update(['should_notify' => false]);
 
-        $assignments = $message->trooper->trooper_assignments()->get();
+        $assignments = $message->trooper->trooper_assignments()->withTrashed()->get();
 
         foreach ($message->valid_data as $organization_id => $data)
         {
@@ -49,9 +49,12 @@ readonly class UpdateTrooperNotificationsCommandHandler implements CommandHandle
             }
             else
             {
-                $message->trooper->trooper_assignments()
-                    ->where(TrooperAssignment::ORGANIZATION_ID, $organization_id)
-                    ->update(['should_notify' => $should_notify]);
+                if ($assignment->trashed())
+                {
+                    $assignment->restore();
+                }
+                $assignment->should_notify = $should_notify;
+                $assignment->save();
             }
         }
 
