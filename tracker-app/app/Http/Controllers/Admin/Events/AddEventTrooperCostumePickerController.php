@@ -23,12 +23,14 @@ class AddEventTrooperCostumePickerController extends MagicBusController
         $trooper = Trooper::active()->findOrFail((int) $request->input('trooper_id'));
 
         $costumes = Costume::forTrooper($trooper->id)->pluck('name', 'id')->toArray();
+        $eligible_orgs = $trooper->eligibleOrgsForEvent($event);
 
         return view('pages.admin.events.inc.add-trooper-costume-picker', compact(
             'event',
             'event_shift',
             'trooper',
             'costumes',
+            'eligible_orgs',
         ));
     }
 }

@@ -41,7 +41,25 @@ class AddEventTrooperController extends MagicBusController
             $costume_id = null;
         }
 
-        $this->bus->send(new SignUpEventTrooperCommand($event_shift, $trooper, $auth_trooper, costume_id: $costume_id));
+        $organization_id = $request->input('organization_id') ? (int) $request->input('organization_id') : null;
+
+        if ($organization_id !== null)
+        {
+            $eligible_org_ids = $trooper->eligibleOrgsForEvent($event)->pluck('id')->all();
+
+            if (!in_array($organization_id, $eligible_org_ids, true))
+            {
+                $organization_id = null;
+            }
+        }
+
+        $this->bus->send(new SignUpEventTrooperCommand(
+            $event_shift,
+            $trooper,
+            $auth_trooper,
+            organization_id: $organization_id,
+            costume_id: $costume_id,
+        ));
 
         $this->flash->success("{$trooper->display_name} was added to the shift.");
 
