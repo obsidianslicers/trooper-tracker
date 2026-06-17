@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Admin\Events;
 
-use App\Http\Controllers\Admin\Events\UpdateTroopersController;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventOrganization;
@@ -229,11 +228,9 @@ class UpdateTroopersControllerTest extends TestCase
             Organization::findMany([$child_org->id])->keyBy('id')->get($child_org->id)->getPrimaryClub()->id
         );
 
-        $event_trooper->load('trooper.organizations');
         $event_trooper->organization_id = null;
-        $method = new \ReflectionMethod(UpdateTroopersController::class, 'resolveCreditedCheckedIds');
 
-        $this->assertSame([$parent_org->id], $method->invoke(app(UpdateTroopersController::class), $event_trooper));
+        $this->assertSame([$parent_org->id], $event_trooper->creditedRootOrgIds());
     }
 
     public function test_invoke_filters_org_options_for_moderator_scope(): void
