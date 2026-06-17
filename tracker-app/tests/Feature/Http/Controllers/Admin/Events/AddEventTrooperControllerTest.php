@@ -162,4 +162,23 @@ class AddEventTrooperControllerTest extends TestCase
 
         $response->assertRedirect(route('auth.login'));
     }
+
+    public function test_invoke_forbids_member_without_update_permission(): void
+    {
+        $member = Trooper::factory()->asMember()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $event = Event::factory()->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        $response = $this->actingAs($member)->post(
+            route('admin.events.troopers.add', compact('event', 'event_shift')),
+            ['trooper_id' => $trooper->id]
+        );
+
+        $response->assertForbidden();
+        $this->assertDatabaseMissing('tt_event_troopers', [
+            EventTrooper::EVENT_SHIFT_ID => $event_shift->id,
+            EventTrooper::TROOPER_ID => $trooper->id,
+        ]);
+    }
 }

@@ -207,6 +207,36 @@ class SignUpEventTrooperCommandHandlerTest extends TestCase
         $this->assertSame([$organization->id], $event_trooper->costume_organization_ids);
     }
 
+    public function test_invoke_saves_all_approved_credit_orgs_for_selected_costume(): void
+    {
+        Notification::fake();
+
+        $org1 = Organization::factory()->create();
+        $org2 = Organization::factory()->create();
+        $event = Event::factory()->state([Event::TROOPERS_ALLOWED => null])->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $trooper = Trooper::factory()->create();
+        $costume = Costume::factory()->create();
+
+        $org_costume1 = OrganizationCostume::factory()->forOrganization($org1)->forCostume($costume)->create();
+        $org_costume2 = OrganizationCostume::factory()->forOrganization($org2)->forCostume($costume)->create();
+        TrooperCostume::factory()->forTrooper($trooper)->forOrganizationCostume($org_costume1)->create();
+        TrooperCostume::factory()->forTrooper($trooper)->forOrganizationCostume($org_costume2)->create();
+
+        $handler = app(SignUpEventTrooperCommandHandler::class);
+        $handler(new SignUpEventTrooperCommand(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+            costume_id: $costume->id,
+        ));
+
+        $event_trooper = EventTrooper::query()->where(EventTrooper::TROOPER_ID, $trooper->id)->firstOrFail();
+
+        $this->assertSame($costume->id, $event_trooper->costume_id);
+        $this->assertEqualsCanonicalizing([$org1->id, $org2->id], $event_trooper->costume_organization_ids);
+    }
+
     public function test_invoke_sets_is_handler_from_selected_handler_costume(): void
     {
         Notification::fake();

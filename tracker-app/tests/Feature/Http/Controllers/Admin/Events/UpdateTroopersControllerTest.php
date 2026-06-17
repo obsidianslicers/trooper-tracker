@@ -233,6 +233,48 @@ class UpdateTroopersControllerTest extends TestCase
         $this->assertSame([$parent_org->id], $event_trooper->creditedRootOrgIds());
     }
 
+    public function test_invoke_shows_parent_org_checked_when_regular_costume_credit_is_child_org_without_trooper_organization_rows(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $parent_org = Organization::factory()->create(['name' => 'Parent Club']);
+        $child_org = Organization::factory()->withParent($parent_org)->create(['name' => 'Child Base']);
+        \Illuminate\Support\Facades\DB::table('tt_organizations')
+            ->where('id', $child_org->id)
+            ->update([
+                Organization::PARENT_ID => $parent_org->id,
+                Organization::NODE_PATH => $parent_org->id.':'.$child_org->id.':',
+            ]);
+        $event = Event::factory()->withOrganization($parent_org)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $costume = Costume::factory()->create();
+
+        EventOrganization::factory()->create([
+            EventOrganization::EVENT_ID => $event->id,
+            EventOrganization::ORGANIZATION_ID => $child_org->id,
+            EventOrganization::CAN_ATTEND => true,
+        ]);
+
+        $org_costume = OrganizationCostume::factory()->forOrganization($child_org)->forCostume($costume)->create();
+        TrooperCostume::factory()->forTrooper($trooper)->forOrganizationCostume($org_costume)->create();
+
+        EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->withCostume($costume)
+            ->withCostumeOrganizationIds([$child_org->id])
+            ->asGoing()
+            ->create([EventTrooper::ORGANIZATION_ID => null]);
+
+        $response = $this->actingAs($admin)->get(route('admin.events.troopers', ['event' => $event->id]));
+
+        $response->assertOk();
+
+        $event_trooper = $response->viewData('event_shifts')->first()->event_troopers->first();
+        $this->assertTrue($event_trooper->org_options->contains('id', $parent_org->id));
+        $this->assertEqualsCanonicalizing([$parent_org->id], $event_trooper->credited_checked_ids);
+    }
+
     public function test_invoke_filters_org_options_for_moderator_scope(): void
     {
         $moderator = Trooper::factory()->asModerator()->create();

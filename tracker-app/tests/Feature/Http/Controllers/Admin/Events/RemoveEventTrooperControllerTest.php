@@ -91,6 +91,93 @@ class RemoveEventTrooperControllerTest extends TestCase
         ]);
     }
 
+    public function test_invoke_removing_cancelled_trooper_does_not_promote_stand_by(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $org = Organization::factory()->create();
+        $event = Event::factory()->create([Event::ORGANIZATION_ID => $org->id]);
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        EventOrganization::factory()
+            ->forEvent($event)
+            ->forOrganization($org)
+            ->canAttend()
+            ->create(['troopers_allowed' => 2]);
+
+        $cancelled_trooper = Trooper::factory()->asActive()->create();
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($cancelled_trooper)
+            ->create([
+                EventTrooper::ORGANIZATION_ID => $org->id,
+                EventTrooper::STATUS => EventTrooperStatus::CANCELLED,
+                EventTrooper::COSTUME_ID => null,
+                EventTrooper::BACKUP_COSTUME_ID => null,
+            ]);
+
+        $stand_by_event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper(Trooper::factory()->asActive()->create())
+            ->create([
+                EventTrooper::ORGANIZATION_ID => $org->id,
+                EventTrooper::STATUS => EventTrooperStatus::STAND_BY,
+                EventTrooper::COSTUME_ID => null,
+                EventTrooper::BACKUP_COSTUME_ID => null,
+            ]);
+
+        $this->actingAs($admin)->post(
+            route('admin.events.troopers.remove', compact('event', 'event_trooper'))
+        );
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            'id' => $stand_by_event_trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::STAND_BY->value,
+        ]);
+    }
+
+    public function test_invoke_removing_stand_by_trooper_does_not_promote_another_stand_by(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $org = Organization::factory()->create();
+        $event = Event::factory()->create([Event::ORGANIZATION_ID => $org->id]);
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        EventOrganization::factory()
+            ->forEvent($event)
+            ->forOrganization($org)
+            ->canAttend()
+            ->create(['troopers_allowed' => 2]);
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper(Trooper::factory()->asActive()->create())
+            ->create([
+                EventTrooper::ORGANIZATION_ID => $org->id,
+                EventTrooper::STATUS => EventTrooperStatus::STAND_BY,
+                EventTrooper::COSTUME_ID => null,
+                EventTrooper::BACKUP_COSTUME_ID => null,
+            ]);
+
+        $next_stand_by = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper(Trooper::factory()->asActive()->create())
+            ->create([
+                EventTrooper::ORGANIZATION_ID => $org->id,
+                EventTrooper::STATUS => EventTrooperStatus::STAND_BY,
+                EventTrooper::COSTUME_ID => null,
+                EventTrooper::BACKUP_COSTUME_ID => null,
+            ]);
+
+        $this->actingAs($admin)->post(
+            route('admin.events.troopers.remove', compact('event', 'event_trooper'))
+        );
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            'id' => $next_stand_by->id,
+            EventTrooper::STATUS => EventTrooperStatus::STAND_BY->value,
+        ]);
+    }
+
     public function test_invoke_returns_404_if_event_trooper_belongs_to_different_event(): void
     {
         $admin = Trooper::factory()->asAdministrator()->create();
@@ -131,5 +218,27 @@ class RemoveEventTrooperControllerTest extends TestCase
         );
 
         $response->assertRedirect(route('auth.login'));
+    }
+
+    public function test_invoke_forbids_member_without_update_permission(): void
+    {
+        $member = Trooper::factory()->asMember()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $event = Event::factory()->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->create([
+                EventTrooper::COSTUME_ID => null,
+                EventTrooper::BACKUP_COSTUME_ID => null,
+            ]);
+
+        $response = $this->actingAs($member)->post(
+            route('admin.events.troopers.remove', compact('event', 'event_trooper'))
+        );
+
+        $response->assertForbidden();
+        $this->assertNotSoftDeleted('tt_event_troopers', ['id' => $event_trooper->id]);
     }
 }
