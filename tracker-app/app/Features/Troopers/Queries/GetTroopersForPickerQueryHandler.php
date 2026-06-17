@@ -41,14 +41,12 @@ readonly class GetTroopersForPickerQueryHandler implements QueryHandlerInterface
      */
     public function __invoke(object $message): mixed
     {
-        $query = app()->isLocal()
-            ? Trooper::query()
-            : Trooper::active()->whereNotNull(Trooper::SETUP_COMPLETED_AT);
-
-        $query = $query->where(function ($q) use ($message) {
-            $q->whereNull(Trooper::GUARDIAN_ID)
-                ->orWhere(Trooper::GUARDIAN_ID, $message->trooper->id);
-        })
+        $query = Trooper::active()
+            ->whereNotNull(Trooper::SETUP_COMPLETED_AT)
+            ->where(function ($q) use ($message) {
+                $q->whereNull(Trooper::GUARDIAN_ID)
+                    ->orWhere(Trooper::GUARDIAN_ID, $message->trooper->id);
+            })
             ->orderBy(Trooper::DISPLAY_NAME);
 
         if ($message->organization_id)
@@ -66,7 +64,7 @@ readonly class GetTroopersForPickerQueryHandler implements QueryHandlerInterface
         $execute_query = false;
         $has_filter = $message->filter->hasFilter();
 
-        if ($message->picker_mode == TrooperPickerMode::FRIENDS && !app()->isLocal())
+        if ($message->picker_mode == TrooperPickerMode::FRIENDS)
         {
             if (!$has_filter)
             {
