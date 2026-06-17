@@ -98,39 +98,6 @@
 
         </x-card>
 
-        @can('void', $trooper)
-            <x-card class="mt-3 border-danger">
-                <h6 class="text-danger mb-3">Danger Zone</h6>
-                <p class="text-muted small mb-3">
-                    Mark this account as created in error. The account will be blocked from logging in
-                    and will no longer appear in event sign-up pickers or reports.
-                </p>
-                <form method="POST" action="{{ route('admin.troopers.void', compact('trooper')) }}">
-                    @csrf
-                    <button type="submit" class="btn btn-outline-danger btn-sm"
-                            onclick="return confirm('Mark {{ $trooper->display_name }} as created in error?')">
-                        Mark as Created in Error
-                    </button>
-                </form>
-            </x-card>
-        @endcan
-
-        @can('unmarkRip', $trooper)
-            <x-card class="mt-3 border-secondary">
-                <h6 class="text-secondary mb-3">Remove R.I.P. Status</h6>
-                <p class="text-muted small mb-3">
-                    Remove the R.I.P. status and restore this account to pending.
-                    Use only if this was marked in error.
-                </p>
-                <form method="POST" action="{{ route('admin.troopers.unrip', compact('trooper')) }}">
-                    @csrf
-                    <button type="submit" class="btn btn-outline-secondary btn-sm">
-                        Remove R.I.P. Status
-                    </button>
-                </form>
-            </x-card>
-        @endcan
-
     </x-slim-container>
 
 @endsection
