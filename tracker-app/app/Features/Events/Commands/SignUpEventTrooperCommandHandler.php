@@ -7,6 +7,7 @@ namespace App\Features\Events\Commands;
 use App\Bus\Contracts\CommandHandlerInterface;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
+use App\Enums\MembershipRole;
 use App\Enums\RosterAction;
 use App\Jobs\CreateTrooperFriendshipJob;
 use App\Jobs\SendEventRosterActivityNotificationsJob;
@@ -71,7 +72,14 @@ readonly class SignUpEventTrooperCommandHandler implements CommandHandlerInterfa
 
         if ($event_trooper->added_by_trooper_id !== null)
         {
-            dispatch(new CreateTrooperFriendshipJob($event_trooper->added_by_trooper_id, $event_trooper->trooper_id));
+            $moderator = $message->added_by_trooper->membership_role === MembershipRole::MODERATOR ||
+                $message->added_by_trooper->membership_role === MembershipRole::ADMINISTRATOR;
+
+            if (!$moderator)
+            {
+                //  don't create a friendship if the added by trooper is a moderator or administrator
+                dispatch(new CreateTrooperFriendshipJob($event_trooper->added_by_trooper_id, $event_trooper->trooper_id));
+            }
         }
 
         $message->trooper->notify(new TrooperSignedUpNotification($event_trooper));

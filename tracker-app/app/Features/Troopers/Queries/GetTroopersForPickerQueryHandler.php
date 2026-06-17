@@ -64,19 +64,23 @@ readonly class GetTroopersForPickerQueryHandler implements QueryHandlerInterface
         }
 
         $execute_query = false;
+        $has_filter = $message->filter->hasFilter();
 
         if ($message->picker_mode == TrooperPickerMode::FRIENDS && !app()->isLocal())
         {
-            $q = TrooperFriend::query()
-                ->select(TrooperFriend::FRIEND_ID)
-                ->where(TrooperFriend::TROOPER_ID, $message->trooper->id);
+            if (!$has_filter)
+            {
+                $q = TrooperFriend::query()
+                    ->select(TrooperFriend::FRIEND_ID)
+                    ->where(TrooperFriend::TROOPER_ID, $message->trooper->id);
 
-            $query = $query->whereIn(Trooper::ID, $q);
+                $query = $query->whereIn(Trooper::ID, $q);
+            }
 
             $execute_query = true;
         }
 
-        if ($message->filter->hasFilter())
+        if ($has_filter)
         {
             $query = $query->filterWith($message->filter);
 
