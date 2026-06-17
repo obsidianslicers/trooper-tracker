@@ -13,7 +13,6 @@ use App\Models\Event;
 use App\Models\EventGuest;
 use App\Models\EventTrooper;
 use App\Models\Organization;
-use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Notifications\Events\ManualSelectionApprovedNotification;
 use App\Notifications\Events\ManualSelectionStandByNotification;
@@ -175,10 +174,7 @@ class UpdateTroopersSubmitController extends MagicBusController
 
     private function costumeChildOrgIdsForParents(EventTrooper $event_trooper, Costume $costume, array $submitted_parent_ids): array
     {
-        $approved_child_ids = OrganizationCostume::where('costume_id', $costume->id)
-            ->whereHas('trooper_costumes', fn ($q) => $q->where('trooper_id', $event_trooper->trooper_id))
-            ->pluck('organization_id')
-            ->toArray();
+        $approved_child_ids = $costume->approvedOrgIdsForTrooper($event_trooper->trooper_id);
         $approved_orgs = Organization::findMany($approved_child_ids)->keyBy('id');
 
         return collect($approved_child_ids)

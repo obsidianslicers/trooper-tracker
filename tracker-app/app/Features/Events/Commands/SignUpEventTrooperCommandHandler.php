@@ -74,10 +74,7 @@ readonly class SignUpEventTrooperCommandHandler implements CommandHandlerInterfa
         if ($costume !== null)
         {
             $event_trooper->costume_id = $costume->id;
-            $org_ids = $costume->organization_costumes()
-                ->whereHas('trooper_costumes', fn ($q) => $q->where('trooper_id', $message->trooper->id))
-                ->pluck('organization_id')
-                ->toArray();
+            $org_ids = $costume->approvedOrgIdsForTrooper($message->trooper->id);
             $event_trooper->costume_organization_ids = !empty($org_ids) ? $org_ids : null;
         }
 

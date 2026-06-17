@@ -14,6 +14,7 @@ use App\Models\Scopes\HasEventTrooperScopes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Collection;
+use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventOrganization;
 use App\Models\Organization;
@@ -457,6 +458,73 @@ class EventTrooper extends BaseEventTrooper
             ->sort()
             ->values()
             ->all();
+    }
+
+    /**
+     * Returns root org IDs pre-checked for the credit org form.
+     *
+     * Maps costume_organization_ids (or organization_id as fallback) to their
+     * top-level (primary-club) IDs for use as checkbox defaults.
+     *
+     * @return array<int, int>
+     */
+    public function creditedRootOrgIds(): array
+    {
+        $ids = collect($this->costume_organization_ids ?? []);
+
+        if ($ids->isNotEmpty())
+        {
+            $orgs = Organization::findMany($ids->all())->keyBy('id');
+
+            return $ids
+                ->map(fn ($id) => $orgs->get($id)?->getPrimaryClub()->id ?? $id)
+                ->unique()
+                ->values()
+                ->all();
+        }
+
+        if ($this->organization_id !== null)
+        {
+            $org = Organization::find($this->organization_id);
+
+            return [$org ? $org->getPrimaryClub()->id : $this->organization_id];
+        }
+
+        return [];
+    }
+
+    /**
+     * Returns eligible top-level organizations for the admin roster UI.
+     *
+     * For non-handler costumes: orgs where the trooper has the costume approved.
+     * For handler costumes or no costume: derives from the trooper's memberships.
+     * Always filtered to `$allowed_org_ids` when the acting user is a moderator.
+     *
+     * @param  array<int>|null  $allowed_org_ids  Null means no restriction (admin).
+     * @return Collection<int, Organization>
+     */
+    public function eligibleRootOrgsForAdmin(?array $allowed_org_ids, ?Costume $costume = null): Collection
+    {
+        if ($costume !== null && !$costume->countsAsHandler())
+        {
+            $root_ids = $this->rootOrgIdsForCostume($costume->id);
+
+            return Organization::whereIn('id', $root_ids)
+                ->when($allowed_org_ids !== null, fn ($q) => $q->whereIn('id', $allowed_org_ids))
+                ->orderBy(Organization::NAME)
+                ->get()
+                ->values();
+        }
+
+        return Organization::whereHas('trooper_assignments', fn ($q) =>
+            $q->where(TrooperAssignment::TROOPER_ID, $this->trooper_id)
+                ->where(TrooperAssignment::IS_MEMBER, true)
+        )
+            ->get()
+            ->map(fn ($org) => $org->getPrimaryClub())
+            ->unique('id')
+            ->when($allowed_org_ids !== null, fn ($c) => $c->whereIn('id', $allowed_org_ids))
+            ->values();
     }
 
     /**

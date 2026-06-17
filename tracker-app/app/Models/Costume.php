@@ -38,4 +38,13 @@ class Costume extends BaseCostume
         return $this->hasMany(OrganizationCostume::class);
     }
 
+    /** @return array<int, int> */
+    public function approvedOrgIdsForTrooper(int $trooper_id): array
+    {
+        return $this->organization_costumes()
+            ->whereHas('trooper_costumes', fn ($q) => $q->where('trooper_id', $trooper_id))
+            ->pluck('organization_id')
+            ->toArray();
+    }
+
 }

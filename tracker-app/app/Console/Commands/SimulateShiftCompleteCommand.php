@@ -333,10 +333,6 @@ class SimulateShiftCompleteCommand extends Command
                 ->toArray();
         }
 
-        return OrganizationCostume::query()
-            ->where(OrganizationCostume::COSTUME_ID, $costume->id)
-            ->whereHas('trooper_costumes', fn ($query) => $query->where(TrooperCostume::TROOPER_ID, $trooper->id))
-            ->pluck(OrganizationCostume::ORGANIZATION_ID)
-            ->toArray();
+        return $costume->approvedOrgIdsForTrooper($trooper->id);
     }
 }
