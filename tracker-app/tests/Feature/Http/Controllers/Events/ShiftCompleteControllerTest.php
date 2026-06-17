@@ -76,7 +76,7 @@ class ShiftCompleteControllerTest extends TestCase
             ->asGoing()
             ->create();
 
-        // The observer recomputes costume_organization_ids on save; set it directly after creation.
+        // Seed a multi-club credit scenario directly for the confirmation flow.
         DB::table('tt_event_troopers')
             ->where('id', $event_trooper->id)
             ->update(['costume_organization_ids' => json_encode([$org1->id, $org2->id])]);

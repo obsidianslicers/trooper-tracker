@@ -106,8 +106,6 @@ class UpdateTroopersSubmitController extends MagicBusController
         $has_submitted_org_selection = array_key_exists('organization_selection', $input)
             || array_key_exists('organization_ids', $input);
 
-        $event_trooper->preserve_empty_credit_organization_ids = $has_submitted_org_selection;
-
         if ($costume !== null)
         {
             $submitted_parent_ids = array_map('intval', $input['organization_ids'] ?? []);

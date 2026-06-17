@@ -48,9 +48,9 @@ trait HasOrgCreditAnnotation
             }
 
             $et = $shift->event_trooper;
-            $credited_ids = $et->organization_id !== null
-                ? $this->creditByExplicitOrg($et, $organizations, $candidate_orgs)
-                : $this->creditByCostumeOrgs($et, $organizations, $candidate_orgs);
+            $credited_ids = !empty($et->costume_organization_ids)
+                ? $this->creditByCostumeOrgs($et, $organizations, $candidate_orgs)
+                : $this->creditByExplicitOrg($et, $organizations, $candidate_orgs);
 
             foreach ($credited_ids as $org_id)
             {

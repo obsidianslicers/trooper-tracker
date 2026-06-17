@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Console\Commands;
 
+use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Organization;
+use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
+use App\Models\TrooperCostume;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -85,5 +88,42 @@ class SimulateShiftCompleteCommandTest extends TestCase
             ->expectsOutputToContain('Florida Garrison')
             ->expectsOutputToContain('Southern Region')
             ->expectsOutputToContain('Club selection will be shown');
+
+        $event_trooper = EventTrooper::latest('id')->first();
+
+        $this->assertEqualsCanonicalizing([$org1->id, $org2->id], $event_trooper->costume_organization_ids);
+        $this->assertSame(
+            2,
+            OrganizationCostume::where(OrganizationCostume::COSTUME_ID, $event_trooper->costume_id)
+                ->whereIn(OrganizationCostume::ORGANIZATION_ID, [$org1->id, $org2->id])
+                ->whereHas('trooper_costumes', fn ($query) => $query->where(TrooperCostume::TROOPER_ID, $trooper->id))
+                ->count()
+        );
+    }
+
+    public function test_command_dual_costume_does_not_use_single_club_costume(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $org1 = Organization::factory()->create(['name' => 'Florida Garrison']);
+        $org2 = Organization::factory()->create(['name' => 'Rebel Legion']);
+        $single_club_costume = Costume::factory()->withName('Single Club Costume')->create();
+
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org1)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org2)->asMember()->create();
+
+        $single_org_costume = OrganizationCostume::factory()->forOrganization($org1)->forCostume($single_club_costume)->create();
+        TrooperCostume::factory()->forTrooper($trooper)->forOrganizationCostume($single_org_costume)->create();
+
+        $this->artisan('tracker:simulate-shift-complete', [
+            'trooper_id'      => $trooper->id,
+            '--dual-costume'  => true,
+        ])
+            ->assertExitCode(0)
+            ->expectsOutputToContain('Club selection will be shown');
+
+        $event_trooper = EventTrooper::latest('id')->first();
+
+        $this->assertNotSame($single_club_costume->id, $event_trooper->costume_id);
+        $this->assertEqualsCanonicalizing([$org1->id, $org2->id], $event_trooper->costume_organization_ids);
     }
 }

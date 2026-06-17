@@ -18,33 +18,36 @@ trait HasOrgAttributionQuery
         {
             $org_id = $org->id;
             $q->where(function ($q) use ($org_id) {
-                $q->where('tt_event_troopers.organization_id', $org_id)
+                $q->where(function ($q) use ($org_id) {
+                    $this->whereJsonArrayContainsOrganization($q, $org_id);
+                })
                     ->orWhere(function ($q) use ($org_id) {
-                        $q->whereNull('tt_event_troopers.organization_id')
-                            ->where(function ($q) use ($org_id) {
-                                $this->whereJsonArrayContainsOrganization($q, $org_id);
-                            });
+                        $this->whereNoCostumeOrganizationCredit($q);
+                        $q->where('tt_event_troopers.organization_id', $org_id);
                     });
             });
         }
         elseif (!empty($accessible_org_ids))
         {
             $q->where(function ($q) use ($accessible_org_ids) {
-                $q->whereExists(function ($q) use ($accessible_org_ids) {
-                    $q->from('tt_organizations as et_org')
-                        ->whereColumn('et_org.id', 'tt_event_troopers.organization_id')
-                        ->whereIn(
-                            DB::raw("CAST(SUBSTRING_INDEX(et_org.node_path, ':', 1) AS UNSIGNED)"),
-                            $accessible_org_ids
-                        );
+                $q->where(function ($q) use ($accessible_org_ids) {
+                    foreach ($accessible_org_ids as $org_id)
+                    {
+                        $q->orWhere(function ($q) use ($org_id) {
+                            $this->whereJsonArrayContainsOrganization($q, (int) $org_id);
+                        });
+                    }
                 })
                     ->orWhere(function ($q) use ($accessible_org_ids) {
-                        foreach ($accessible_org_ids as $org_id)
-                        {
-                            $q->orWhere(function ($q) use ($org_id) {
-                                $this->whereJsonArrayContainsOrganization($q, (int) $org_id);
-                            });
-                        }
+                        $this->whereNoCostumeOrganizationCredit($q);
+                        $q->whereExists(function ($q) use ($accessible_org_ids) {
+                            $q->from('tt_organizations as et_org')
+                                ->whereColumn('et_org.id', 'tt_event_troopers.organization_id')
+                                ->whereIn(
+                                    DB::raw("CAST(SUBSTRING_INDEX(et_org.node_path, ':', 1) AS UNSIGNED)"),
+                                    $accessible_org_ids
+                                );
+                        });
                     });
             });
         }
@@ -59,5 +62,13 @@ trait HasOrgAttributionQuery
             ->orWhereRaw($json_path.' LIKE ?', ['['.$org_id.',%'])
             ->orWhereRaw($json_path.' LIKE ?', ['%,'.$org_id.',%'])
             ->orWhereRaw($json_path.' LIKE ?', ['%,'.$org_id.']']);
+    }
+
+    private function whereNoCostumeOrganizationCredit(mixed $q): void
+    {
+        $q->where(function ($q) {
+            $q->whereNull('tt_event_troopers.costume_organization_ids')
+                ->orWhereRaw('JSON_LENGTH(tt_event_troopers.costume_organization_ids) = 0');
+        });
     }
 }

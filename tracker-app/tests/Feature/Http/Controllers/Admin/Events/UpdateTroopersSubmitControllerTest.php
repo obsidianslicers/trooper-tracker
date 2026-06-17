@@ -88,7 +88,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
         $this->assertSame([$org1->id], $event_trooper->costume_organization_ids);
     }
 
-    public function test_invoke_observer_strips_ineligible_org_on_save(): void
+    public function test_invoke_strips_ineligible_org_selection(): void
     {
         $admin = Trooper::factory()->asAdministrator()->create();
         $trooper = Trooper::factory()->asActive()->create();
