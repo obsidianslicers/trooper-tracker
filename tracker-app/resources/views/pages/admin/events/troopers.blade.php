@@ -60,11 +60,12 @@
                                     Approved At
                                 </th>
                             @endif
+                            <th></th>
                         </tr>
                     </thead>
                     @foreach ($event_shifts as $event_shift)
                         <tr>
-                            <td colspan="{{ $event->status === \App\Enums\EventStatus::MANUAL_SELECTION ? '6' : '4' }}">
+                            <td colspan="{{ $event->status === \App\Enums\EventStatus::MANUAL_SELECTION ? '7' : '5' }}">
                                 {{ $event_shift->time_display }}
                             </td>
                         </tr>
@@ -76,25 +77,19 @@
                                     </a>
                                 </td>
                                 <td>
-                                    @if($event_trooper->costume == null && $event_trooper->backup_costume == null)
-                                        <i class="small text-muted">
-                                            no costume selected
-                                        </i>
-                                    @endif
-                                    @if($event_trooper->costume)
-                                        {{ $event_trooper->costume->name }}
-                                        <br />
-                                        <i class="small text-muted">
-                                            {{ $event_trooper->costume_organizations }}
-                                        </i>
-                                    @endif
+                                    <x-input-select :property="'troopers.' . $event_trooper->id . '.costume_id'"
+                                                    :options="$event_trooper->costume_options"
+                                                    :value="$event_trooper->costume_id"
+                                                    :placeholder="'-- No Costume --'"
+                                                    class="form-select-sm"
+                                                    hx-get="{{ route('admin.events.troopers.org-options', compact('event', 'event_trooper')) }}"
+                                                    hx-vals="js:{costume_id: this.value}"
+                                                    hx-target="#org-options-{{ $event_trooper->id }}"
+                                                    hx-trigger="change" />
                                     @if($event_trooper->backup_costume)
-                                        <br />
-                                        <i class="small text-muted">
+                                        <i class="small text-muted d-block mt-1">
                                             <i class="fa fa-fw fa-box-archive"></i>
                                             {{ $event_trooper->backup_costume->name }}
-                                            <br />
-                                            {{ $event_trooper->backup_costume_organizations }}
                                         </i>
                                     @endif
                                 </td>
@@ -105,22 +100,12 @@
                                                     class="form-select-sm" />
                                 </td>
                                 <td>
-                                    @forelse($event_trooper->org_options as $org)
-                                        <div class="form-check mb-0">
-                                            <input type="checkbox"
-                                                   name="troopers[{{ $event_trooper->id }}][organization_ids][]"
-                                                   value="{{ $org->id }}"
-                                                   id="org_{{ $event_trooper->id }}_{{ $org->id }}"
-                                                   class="form-check-input"
-                                                   @checked(in_array($org->id, $event_trooper->credited_checked_ids))>
-                                            <label class="form-check-label small"
-                                                   for="org_{{ $event_trooper->id }}_{{ $org->id }}">
-                                                {{ $org->name }}
-                                            </label>
-                                        </div>
-                                    @empty
-                                        <span class="text-muted small">(Unattached)</span>
-                                    @endforelse
+                                    <div id="org-options-{{ $event_trooper->id }}">
+                                        @include('pages.admin.events.inc.trooper-org-options', [
+                                            'org_options' => $event_trooper->org_options,
+                                            'credited_ids' => $event_trooper->credited_checked_ids,
+                                        ])
+                                    </div>
                                 </td>
                                 @if($event->status === \App\Enums\EventStatus::MANUAL_SELECTION)
                                     <td>
@@ -138,16 +123,28 @@
                                         @endif
                                     </td>
                                 @endif
+                                <td class="text-end">
+                                    @if(Auth::user()->is_administrator || Auth::user()->isModeratorForOrganization($event->organization))
+                                        <button type="button"
+                                                class="btn btn-sm btn-link text-danger p-1"
+                                                hx-post="{{ route('admin.events.troopers.remove', compact('event', 'event_trooper')) }}"
+                                                hx-confirm="Remove {{ $event_trooper->trooper->display_name }} from the roster?"
+                                                hx-trigger="click"
+                                                title="Remove from roster">
+                                            <i class="fa fw fa-times"></i>
+                                        </button>
+                                    @endif
+                                </td>
                             </tr>
                         @empty
-                            <x-table-empty :colspan="$event->status === \App\Enums\EventStatus::MANUAL_SELECTION ? 6 : 4">
+                            <x-table-empty :colspan="$event->status === \App\Enums\EventStatus::MANUAL_SELECTION ? 7 : 5">
                                 No troopers assigned to this shift.
                             </x-table-empty>
                         @endforelse
 
                         @if($event_shift->event_guests->isNotEmpty())
                             <tr>
-                                <td colspan="{{ $event->status === \App\Enums\EventStatus::MANUAL_SELECTION ? '6' : '4' }}"
+                                <td colspan="{{ $event->status === \App\Enums\EventStatus::MANUAL_SELECTION ? '7' : '5' }}"
                                     class="ps-4 text-muted small">
                                     Guests
                                 </td>
@@ -192,10 +189,39 @@
                                         @endif
                                     </td>
                                 @endif
+                                <td></td>
                             </tr>
                         @endforeach
+
+                        @if(Auth::user()->is_administrator || Auth::user()->isModeratorForOrganization($event->organization))
+                            <tr>
+                                <td colspan="{{ $event->status === \App\Enums\EventStatus::MANUAL_SELECTION ? '7' : '5' }}"
+                                    class="ps-4 py-2">
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-primary"
+                                            hx-get="{{ route('pickers.trooper', ['property' => 'admin-add-' . $event_shift->id, 'event' => 'trooper:selected']) }}"
+                                            hx-target="#modal-trooper .modal-body"
+                                            hx-trigger="click"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modal-trooper">
+                                        <i class="fa fa-fw fa-plus-circle me-1"></i>
+                                        Add Trooper
+                                    </button>
+                                    <div id="admin-add-step2-{{ $event_shift->id }}"></div>
+                                    <div class="d-none"
+                                         hx-get="{{ route('admin.events.troopers.costume-picker', compact('event', 'event_shift')) }}"
+                                         hx-vals="js:{trooper_id: event.detail.id}"
+                                         hx-trigger="trooper:selected[event.detail.property == 'admin-add-{{ $event_shift->id }}'] from:document"
+                                         hx-target="#admin-add-step2-{{ $event_shift->id }}"
+                                         hx-swap="innerHTML">
+                                    </div>
+                                </td>
+                            </tr>
+                        @endif
                     @endforeach
                 </x-table>
+
+                <x-modal-picker :id="'modal-trooper'" :label="'Find a Trooper'" />
 
                 <x-submit-container>
                     @if(Auth::user()->is_administrator || $event->can_update_trooper_status)

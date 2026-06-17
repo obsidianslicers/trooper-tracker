@@ -37,24 +37,21 @@ Credit attributed to a child org rolls up to its parent. When the service record
 
 ## How `costume_organization_ids` Gets Populated
 
-The `EventTrooperObserver` computes `costume_organization_ids` automatically whenever `costume_id` or `backup_costume_id` changes on an `EventTrooper` record.
+`costume_organization_ids` is populated explicitly by the flow that creates or updates the credit decision. It is not recomputed by the `EventTrooperObserver`.
 
 ```mermaid
 flowchart TD
-    A[EventTrooper saved] --> B{costume_id or backup_costume_id dirty?}
-    B -->|No| Z[No change to org IDs]
-    B -->|Yes| C[Load event_organizations where can_attend = true for this shift]
-    C --> D[Query OrganizationCostume: costume matches + org in can_attend list]
-    D --> E[Filter: trooper has a TrooperCostume approval for that org_costume]
-    E --> F[Store matching org IDs → costume_organization_ids]
-    F --> G{organization_id is null AND exactly one org AND that org has per-org limits?}
-    G -->|Yes| H[Auto-set organization_id to that org]
-    G -->|No| Z
+    A[Signup, admin roster update, shift complete, or simulator] --> B{Costume selected?}
+    B -->|Regular costume| C[Use OrganizationCostume + TrooperCostume approvals]
+    B -->|Handler or no costume| D[Use member organizations]
+    C --> E[Store selected/eligible org IDs in costume_organization_ids]
+    D --> E
+    E --> F[Save EventTrooper]
 ```
 
-**Result**: `costume_organization_ids` always reflects which orgs the trooper is approved to represent with their chosen costume, within the scope of orgs allowed at this specific event.
+**Result**: `costume_organization_ids` reflects the orgs selected for credit, or the eligible orgs for flows that can safely auto-resolve credit.
 
-The auto-set of `organization_id` (last branch) is a convenience for capacity tracking: if the costume unambiguously resolves to one per-org-limited org, that org is stamped into `organization_id` so slot counts stay accurate.
+`organization_id` may still be present for capacity tracking or old records. It is not allowed to override a non-empty `costume_organization_ids` value.
 
 ---
 
@@ -111,7 +108,7 @@ flowchart TD
     H --> I
 ```
 
-The admin path always clears `organization_id` and sets `costume_organization_ids`, routing credit through Rule 2 exclusively.
+The admin path always clears `organization_id` and sets `costume_organization_ids`, routing credit through the primary credit field.
 
 ---
 
@@ -126,9 +123,9 @@ flowchart TD
     C --> D[Collect all candidate org IDs from shifts\norganization_id + costume_organization_ids]
     D --> E[Query Organization table for candidate orgs → keyed by ID with node_path]
     E --> F[For each ATTENDED shift]
-    F --> G{organization_id set on event_trooper?}
-    G -->|Yes — Rule 1| H[Look up candidate org's node_path\nFind trooper org where node_path is a prefix of it]
-    G -->|No — Rule 2| I[Map each costume_org_id → node_path via candidate_orgs\nFind trooper orgs where any costume node_path starts with trooper org's node_path]
+    F --> G{costume_organization_ids non-empty?}
+    G -->|Yes| I[Map each costume_org_id → node_path via candidate_orgs\nFind trooper orgs where any costume node_path starts with trooper org's node_path]
+    G -->|No — legacy fallback| H[Use organization_id node_path\nFind trooper org where node_path is a prefix of it]
     H --> J[Increment troop_count for matched trooper org]
     I --> J
     J --> F
@@ -147,9 +144,9 @@ The `HasOrgAttributionQuery` trait applies org filtering at the SQL level for re
 ```mermaid
 flowchart TD
     A[Report query with org filter] --> B{Single org specified?}
-    B -->|Yes| C[WHERE organization_id = org.id\nOR organization_id IS NULL\n   AND JSON_CONTAINS costume_organization_ids, org.id]
+    B -->|Yes| C[WHERE JSON_CONTAINS costume_organization_ids, org.id\nOR costume_organization_ids empty\n   AND organization_id = org.id]
     B -->|No| D{accessible_org_ids provided?}
-    D -->|Yes| E[WHERE EXISTS org with matching node_path root\n   OR JSON_OVERLAPS costume_organization_ids, accessible_org_ids]
+    D -->|Yes| E[WHERE JSON credit overlaps access\nOR costume_organization_ids empty\n   AND organization_id has matching root]
     D -->|No — no filter| F[No attribution WHERE clause added]
     C --> G[Scoped result set]
     E --> G
@@ -164,8 +161,8 @@ The multi-org path uses `SUBSTRING_INDEX(node_path, ':', 1)` to extract the root
 
 | Table | Column | Role |
 |---|---|---|
-| `tt_event_troopers` | `organization_id` | Rule 1 — explicit org chosen at signup or by observer auto-set |
-| `tt_event_troopers` | `costume_organization_ids` | Rule 2 — orgs derived from costume approvals or admin/trooper selection |
+| `tt_event_troopers` | `organization_id` | Capacity tracking and legacy fallback when `costume_organization_ids` is empty |
+| `tt_event_troopers` | `costume_organization_ids` | Primary credit attribution — orgs derived from costume approvals or admin/trooper selection |
 | `tt_organization_costumes` | `organization_id`, `costume_id` | Links costumes to orgs |
 | `tt_trooper_costumes` | `trooper_id`, `organization_costume_id` | Trooper's approval to wear a costume for a given org |
 | `tt_event_organizations` | `can_attend`, `organization_id` | Which orgs may attend an event/shift |
@@ -175,10 +172,11 @@ The multi-org path uses `SUBSTRING_INDEX(node_path, ':', 1)` to extract the root
 
 | Concern | File |
 |---|---|
-| Compute `costume_organization_ids` on save | `app/Models/Observers/EventTrooperObserver.php` |
+| Forum-thread sync for roster lifecycle changes | `app/Models/Observers/EventTrooperObserver.php` |
 | Attendance credit assignment (self-service) | `app/Http/Controllers/Events/ShiftCompleteController.php` |
 | Multi-club selection | `app/Http/Controllers/Events/ShiftCompleteClubController.php` |
 | Admin roster credit override | `app/Http/Controllers/Admin/Events/UpdateTroopersSubmitController.php` |
+| Shift-complete scenario generation | `app/Console/Commands/SimulateShiftCompleteCommand.php` |
 | PHP troop count + org annotation | `app/Features/Troopers/Queries/HasOrgCreditAnnotation.php` |
 | SQL attribution WHERE clause | `app/Features/Events/Queries/HasOrgAttributionQuery.php` |
 | Service record handler | `app/Features/Troopers/Queries/GetTrooperServiceRecordQueryHandler.php` |
@@ -191,3 +189,5 @@ The multi-org path uses `SUBSTRING_INDEX(node_path, ':', 1)` to extract the root
 **`organization_id` is capacity-only going forward.** The self-service flow now always offers club selection and always writes credit into `costume_organization_ids`, regardless of whether `organization_id` is set. `organization_id` and `costume_organization_ids` can coexist on the same record: one tracks which capacity slot was used, the other tracks which clubs receive credit. The admin path always clears `organization_id` when setting `costume_organization_ids`.
 
 **Multi-club credit always flows through `costume_organization_ids`.** When a trooper's costume spans multiple clubs and they confirm attendance for multiple clubs, all club IDs live in `costume_organization_ids`. This allows one shift to credit more than one `troop_count` entry.
+
+**Shift simulation uses real costume approvals.** `tracker:simulate-shift-complete --dual-costume` and `--triple-costume` select a costume that is approved for the requested number of distinct top-level clubs. If the trooper does not already have one, the command creates a deterministic simulator costume and matching `OrganizationCostume`/`TrooperCostume` approvals so the club-selection page reflects real credit data.

@@ -6,6 +6,7 @@ namespace Tests\Feature\Http\Requests\Admin\Events;
 
 use App\Enums\EventTrooperStatus;
 use App\Http\Requests\Admin\Events\UpdateTroopersRequest;
+use App\Models\Costume;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Models\Trooper;
@@ -193,5 +194,102 @@ class UpdateTroopersRequestTest extends TestCase
         );
 
         $this->assertFalse($validator->fails());
+    }
+
+    public function test_rules_accepts_existing_nullable_costume_id(): void
+    {
+        $costume = Costume::factory()->create();
+        $subject = new UpdateTroopersRequest;
+        $this->setupMockedRoute($subject, $this->event);
+
+        $validator = Validator::make(
+            [
+                'troopers' => [
+                    ['costume_id' => $costume->id],
+                    ['costume_id' => null],
+                ],
+            ],
+            $subject->rules()
+        );
+
+        $this->assertFalse($validator->fails());
+    }
+
+    public function test_rules_rejects_missing_costume_id(): void
+    {
+        $subject = new UpdateTroopersRequest;
+        $this->setupMockedRoute($subject, $this->event);
+
+        $validator = Validator::make(
+            [
+                'troopers' => [
+                    ['costume_id' => 999999],
+                ],
+            ],
+            $subject->rules()
+        );
+
+        $this->assertTrue($validator->fails());
+    }
+
+    public function test_rules_validates_organization_selection_is_boolean(): void
+    {
+        $subject = new UpdateTroopersRequest;
+        $this->setupMockedRoute($subject, $this->event);
+
+        $valid = Validator::make(
+            [
+                'troopers' => [
+                    ['organization_selection' => '1'],
+                ],
+            ],
+            $subject->rules()
+        );
+        $invalid = Validator::make(
+            [
+                'troopers' => [
+                    ['organization_selection' => 'definitely'],
+                ],
+            ],
+            $subject->rules()
+        );
+
+        $this->assertFalse($valid->fails());
+        $this->assertTrue($invalid->fails());
+    }
+
+    public function test_rules_validates_organization_ids_are_array_of_integers(): void
+    {
+        $subject = new UpdateTroopersRequest;
+        $this->setupMockedRoute($subject, $this->event);
+
+        $valid = Validator::make(
+            [
+                'troopers' => [
+                    ['organization_ids' => [1, 2]],
+                ],
+            ],
+            $subject->rules()
+        );
+        $invalid_list = Validator::make(
+            [
+                'troopers' => [
+                    ['organization_ids' => '1'],
+                ],
+            ],
+            $subject->rules()
+        );
+        $invalid_item = Validator::make(
+            [
+                'troopers' => [
+                    ['organization_ids' => ['abc']],
+                ],
+            ],
+            $subject->rules()
+        );
+
+        $this->assertFalse($valid->fails());
+        $this->assertTrue($invalid_list->fails());
+        $this->assertTrue($invalid_item->fails());
     }
 }

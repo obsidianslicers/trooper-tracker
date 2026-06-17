@@ -129,6 +129,39 @@ class GetLeaderboardMetricsQueryHandlerTest extends TestCase
         $this->assertFalse($trooper_ids->contains($other_trooper->id));
     }
 
+    public function test_invoke_club_filter_uses_organization_id_when_costume_credit_is_empty_array(): void
+    {
+        $club = Organization::factory()->asOrganization()->create();
+        $trooper = Trooper::factory()->asMember()->create();
+        $event_trooper = $this->createAttendance($trooper, now()->subDays(5), $club);
+
+        DB::table('tt_event_troopers')
+            ->where(EventTrooper::ID, $event_trooper->id)
+            ->update([EventTrooper::COSTUME_ORGANIZATION_IDS => json_encode([])]);
+
+        $subject = new GetLeaderboardMetricsQueryHandler;
+        $result = $subject(new GetLeaderboardMetricsQuery(null, $club));
+
+        $this->assertTrue($result['operatives']->pluck('trooper_id')->contains($trooper->id));
+    }
+
+    public function test_invoke_club_filter_ignores_organization_id_when_costume_credit_points_elsewhere(): void
+    {
+        $club = Organization::factory()->asOrganization()->create();
+        $other_club = Organization::factory()->asOrganization()->create();
+        $trooper = Trooper::factory()->asMember()->create();
+        $event_trooper = $this->createAttendance($trooper, now()->subDays(5), $club);
+
+        DB::table('tt_event_troopers')
+            ->where(EventTrooper::ID, $event_trooper->id)
+            ->update([EventTrooper::COSTUME_ORGANIZATION_IDS => json_encode([$other_club->id])]);
+
+        $subject = new GetLeaderboardMetricsQueryHandler;
+        $result = $subject(new GetLeaderboardMetricsQuery(null, $club));
+
+        $this->assertFalse($result['operatives']->pluck('trooper_id')->contains($trooper->id));
+    }
+
     public function test_invoke_diversity_includes_id_name_and_count_keys(): void
     {
         $costume = Costume::factory()->create();

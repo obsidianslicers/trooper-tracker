@@ -1,0 +1,309 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Feature\Http\Controllers\Admin\Events;
+
+use App\Enums\EventTrooperStatus;
+use App\Models\Costume;
+use App\Models\Event;
+use App\Models\EventOrganization;
+use App\Models\EventShift;
+use App\Models\EventTrooper;
+use App\Models\Organization;
+use App\Models\OrganizationCostume;
+use App\Models\Trooper;
+use App\Models\TrooperAssignment;
+use App\Models\TrooperCostume;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class AddEventTrooperControllerTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_invoke_adds_trooper_to_event_shift(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $event = Event::factory()->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        $response = $this->actingAs($admin)->post(
+            route('admin.events.troopers.add', compact('event', 'event_shift')),
+            ['trooper_id' => $trooper->id]
+        );
+
+        $response->assertNoContent();
+        $response->assertHeader('HX-Redirect');
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::EVENT_SHIFT_ID => $event_shift->id,
+            EventTrooper::TROOPER_ID => $trooper->id,
+        ]);
+    }
+
+    public function test_invoke_adds_trooper_with_costume(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $event = Event::factory()->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $costume = Costume::factory()->create();
+
+        $org_costume = OrganizationCostume::factory()->forCostume($costume)->create();
+        TrooperCostume::factory()->forTrooper($trooper)->forOrganizationCostume($org_costume)->create();
+
+        $response = $this->actingAs($admin)->post(
+            route('admin.events.troopers.add', compact('event', 'event_shift')),
+            ['trooper_id' => $trooper->id, 'costume_id' => $costume->id]
+        );
+
+        $response->assertNoContent();
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::EVENT_SHIFT_ID => $event_shift->id,
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::COSTUME_ID => $costume->id,
+        ]);
+    }
+
+    public function test_invoke_ignores_unapproved_costume(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $event = Event::factory()->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $costume = Costume::factory()->create();
+
+        $response = $this->actingAs($admin)->post(
+            route('admin.events.troopers.add', compact('event', 'event_shift')),
+            ['trooper_id' => $trooper->id, 'costume_id' => $costume->id]
+        );
+
+        $response->assertNoContent();
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::EVENT_SHIFT_ID => $event_shift->id,
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::COSTUME_ID => null,
+        ]);
+    }
+
+    public function test_invoke_adds_trooper_with_eligible_organization(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $organization = Organization::factory()->create();
+        $event = Event::factory()
+            ->withOrganization($organization)
+            ->state([Event::TROOPERS_ALLOWED => null])
+            ->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        EventOrganization::factory()
+            ->forEvent($event)
+            ->forOrganization($organization)
+            ->canAttend()
+            ->create();
+        TrooperAssignment::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($organization)
+            ->asMember()
+            ->create();
+
+        $response = $this->actingAs($admin)->post(
+            route('admin.events.troopers.add', compact('event', 'event_shift')),
+            ['trooper_id' => $trooper->id, 'organization_id' => $organization->id]
+        );
+
+        $response->assertNoContent();
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::EVENT_SHIFT_ID => $event_shift->id,
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::ORGANIZATION_ID => $organization->id,
+        ]);
+    }
+
+    public function test_invoke_ignores_ineligible_organization(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $eligible_organization = Organization::factory()->create();
+        $ineligible_organization = Organization::factory()->create();
+        $event = Event::factory()
+            ->withOrganization($eligible_organization)
+            ->state([Event::TROOPERS_ALLOWED => null])
+            ->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        EventOrganization::factory()
+            ->forEvent($event)
+            ->forOrganization($eligible_organization)
+            ->canAttend()
+            ->create();
+        TrooperAssignment::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($eligible_organization)
+            ->asMember()
+            ->create();
+
+        $response = $this->actingAs($admin)->post(
+            route('admin.events.troopers.add', compact('event', 'event_shift')),
+            ['trooper_id' => $trooper->id, 'organization_id' => $ineligible_organization->id]
+        );
+
+        $response->assertNoContent();
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::EVENT_SHIFT_ID => $event_shift->id,
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::ORGANIZATION_ID => null,
+        ]);
+    }
+
+    public function test_invoke_uses_organization_for_limited_event_capacity(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $existing_trooper = Trooper::factory()->asActive()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $organization = Organization::factory()->create();
+        $event = Event::factory()
+            ->withOrganization($organization)
+            ->state([
+                Event::TROOPERS_ALLOWED => null,
+                Event::HANDLERS_ALLOWED => null,
+            ])
+            ->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        EventOrganization::factory()
+            ->forEvent($event)
+            ->forOrganization($organization)
+            ->canAttend()
+            ->state([EventOrganization::TROOPERS_ALLOWED => 1])
+            ->create();
+        TrooperAssignment::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($organization)
+            ->asMember()
+            ->create();
+        EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($existing_trooper)
+            ->asGoing()
+            ->state([
+                EventTrooper::IS_HANDLER => false,
+                EventTrooper::ORGANIZATION_ID => $organization->id,
+            ])
+            ->create();
+
+        $response = $this->actingAs($admin)->post(
+            route('admin.events.troopers.add', compact('event', 'event_shift')),
+            ['trooper_id' => $trooper->id, 'organization_id' => $organization->id]
+        );
+
+        $response->assertNoContent();
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::EVENT_SHIFT_ID => $event_shift->id,
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::ORGANIZATION_ID => $organization->id,
+            EventTrooper::STATUS => EventTrooperStatus::STAND_BY->value,
+        ]);
+    }
+
+    public function test_invoke_returns_404_for_inactive_trooper(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asPending()->create();
+        $event = Event::factory()->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        $response = $this->actingAs($admin)->post(
+            route('admin.events.troopers.add', compact('event', 'event_shift')),
+            ['trooper_id' => $trooper->id]
+        );
+
+        $response->assertNotFound();
+    }
+
+    public function test_invoke_returns_404_for_missing_trooper(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $event = Event::factory()->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        $response = $this->actingAs($admin)->post(
+            route('admin.events.troopers.add', compact('event', 'event_shift')),
+            ['trooper_id' => 999999]
+        );
+
+        $response->assertNotFound();
+    }
+
+    public function test_invoke_returns_no_content_if_trooper_already_signed_up(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $event = Event::factory()->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->create();
+
+        $response = $this->actingAs($admin)->post(
+            route('admin.events.troopers.add', compact('event', 'event_shift')),
+            ['trooper_id' => $trooper->id]
+        );
+
+        $response->assertNoContent();
+        $response->assertHeader('HX-Redirect');
+        $this->assertDatabaseCount('tt_event_troopers', 1);
+    }
+
+    public function test_invoke_returns_404_if_shift_not_in_event(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $event = Event::factory()->create();
+        $other_event = Event::factory()->create();
+        $event_shift = EventShift::factory()->forEvent($other_event)->create();
+
+        $response = $this->actingAs($admin)->post(
+            route('admin.events.troopers.add', compact('event', 'event_shift')),
+            ['trooper_id' => $trooper->id]
+        );
+
+        $response->assertNotFound();
+    }
+
+    public function test_invoke_requires_authentication(): void
+    {
+        $event = Event::factory()->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        $response = $this->post(
+            route('admin.events.troopers.add', compact('event', 'event_shift')),
+            ['trooper_id' => 1]
+        );
+
+        $response->assertRedirect(route('auth.login'));
+    }
+
+    public function test_invoke_forbids_member_without_update_permission(): void
+    {
+        $member = Trooper::factory()->asMember()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $event = Event::factory()->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        $response = $this->actingAs($member)->post(
+            route('admin.events.troopers.add', compact('event', 'event_shift')),
+            ['trooper_id' => $trooper->id]
+        );
+
+        $response->assertForbidden();
+        $this->assertDatabaseMissing('tt_event_troopers', [
+            EventTrooper::EVENT_SHIFT_ID => $event_shift->id,
+            EventTrooper::TROOPER_ID => $trooper->id,
+        ]);
+    }
+}

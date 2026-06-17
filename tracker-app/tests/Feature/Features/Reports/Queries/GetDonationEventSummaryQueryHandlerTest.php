@@ -716,6 +716,33 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         $this->assertSame(1, $result->first()->event_shifts->first()->attendees_count);
     }
 
+    public function test_invoke_org_filter_prefers_costume_organization_ids_over_capacity_org(): void
+    {
+        $this->skipIfSqlite();
+        $moderator = Trooper::factory()->asModerator()->create();
+        $capacity_org = Organization::factory()->create();
+        $credit_org = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($credit_org)->asModerator()->create();
+
+        $event = Event::factory()->asClosed()->withOrganization($credit_org)->withEventStart(now()->subDays(5))->create();
+        $shift = EventShift::factory()->forEvent($event)->create();
+
+        EventTrooper::factory()->forEventShift($shift)->asAttended()
+            ->withCostumeOrganizationIds([$credit_org->id])
+            ->create([EventTrooper::ORGANIZATION_ID => $capacity_org->id]);
+
+        EventTrooper::factory()->forEventShift($shift)->asAttended()
+            ->withCostumeOrganizationIds([Organization::factory()->create()->id])
+            ->create([EventTrooper::ORGANIZATION_ID => $credit_org->id]);
+
+        $subject = new GetDonationEventSummaryQueryHandler();
+
+        $result = $subject(new GetDonationEventSummaryQuery($moderator, selected_org_ids: [$credit_org->id]));
+
+        $this->assertSame(1, (int) $result->first()->attendees_count);
+        $this->assertSame(1, $result->first()->event_shifts->first()->attendees_count);
+    }
+
     public function test_invoke_org_filter_excludes_unattributed_attendees(): void
     {
         $moderator = Trooper::factory()->asModerator()->create();

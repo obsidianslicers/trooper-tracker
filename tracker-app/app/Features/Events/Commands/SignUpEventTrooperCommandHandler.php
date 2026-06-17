@@ -11,6 +11,7 @@ use App\Enums\MembershipRole;
 use App\Enums\RosterAction;
 use App\Jobs\CreateTrooperFriendshipJob;
 use App\Jobs\SendEventRosterActivityNotificationsJob;
+use App\Models\Costume;
 use App\Models\EventTrooper;
 use App\Notifications\Events\TrooperSignedUpNotification;
 
@@ -31,10 +32,12 @@ readonly class SignUpEventTrooperCommandHandler implements CommandHandlerInterfa
     {
         $event_trooper = new EventTrooper;
 
+        $costume = $message->costume_id !== null ? Costume::find($message->costume_id) : null;
+
         $event_trooper->event_shift_id = $message->event_shift->id;
         $event_trooper->trooper_id = $message->trooper->id;
         $event_trooper->organization_id = $message->organization_id;
-        $event_trooper->is_handler = $message->is_handler;
+        $event_trooper->is_handler = $costume !== null ? $costume->countsAsHandler() : $message->is_handler;
         $event_trooper->signed_up_at = now();
         $event_trooper->added_by_trooper_id = $message->added_by_trooper->id == $message->trooper->id ? null : $message->added_by_trooper->id;
         $status = EventTrooperStatus::GOING;
@@ -68,6 +71,14 @@ readonly class SignUpEventTrooperCommandHandler implements CommandHandlerInterfa
         }
 
         $event_trooper->status = $status;
+
+        if ($costume !== null)
+        {
+            $event_trooper->costume_id = $costume->id;
+            $org_ids = $costume->approvedOrgIdsForTrooper($message->trooper->id);
+            $event_trooper->costume_organization_ids = !empty($org_ids) ? $org_ids : null;
+        }
+
         $event_trooper->save();
 
         if ($event_trooper->added_by_trooper_id !== null)

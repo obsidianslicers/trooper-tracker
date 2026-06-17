@@ -76,7 +76,7 @@ class ShiftCompleteControllerTest extends TestCase
             ->asGoing()
             ->create();
 
-        // The observer recomputes costume_organization_ids on save; set it directly after creation.
+        // Seed a multi-club credit scenario directly for the confirmation flow.
         DB::table('tt_event_troopers')
             ->where('id', $event_trooper->id)
             ->update(['costume_organization_ids' => json_encode([$org1->id, $org2->id])]);
@@ -258,6 +258,39 @@ class ShiftCompleteControllerTest extends TestCase
             ->where('id', $event_trooper->id)
             ->update(['costume_organization_ids' => null]);
         $event_trooper->refresh();
+
+        $status = Crypt::encryptString(EventTrooperStatus::ATTENDED->value);
+
+        $response = $this->actingAs($trooper)->get(route('events.shift-complete', [
+            'event_trooper' => $event_trooper->id,
+            'status' => $status,
+        ]));
+
+        $response->assertOk();
+        $response->assertViewIs('pages.events.shift-complete-club-select');
+        $this->assertSame(EventTrooperStatus::GOING, $event_trooper->fresh()->status);
+    }
+
+    public function test_no_costume_with_multiple_clubs_shows_club_select(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $org1 = Organization::factory()->create();
+        $org2 = Organization::factory()->create();
+
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org1)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org2)->asMember()->create();
+
+        $event = Event::factory()->withOrganization($org1)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->asGoing()
+            ->create([
+                EventTrooper::COSTUME_ID => null,
+                EventTrooper::COSTUME_ORGANIZATION_IDS => null,
+                'is_handler' => false,
+            ]);
 
         $status = Crypt::encryptString(EventTrooperStatus::ATTENDED->value);
 

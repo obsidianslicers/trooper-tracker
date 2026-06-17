@@ -126,6 +126,34 @@ class GetTrooperServiceRecordQueryHandlerTest extends TestCase
         $this->assertSame(1, $result['trooper_organizations']->first()->troop_count);
     }
 
+    public function test_invoke_troop_count_prefers_costume_organization_ids_over_capacity_org(): void
+    {
+        $trooper = Trooper::factory()->asMember()->create();
+        $capacity_org = Organization::factory()->asOrganization()->withNodePath('100')->create();
+        $credit_org1 = Organization::factory()->asOrganization()->withNodePath('200')->create();
+        $credit_org2 = Organization::factory()->asOrganization()->withNodePath('300')->create();
+
+        TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($capacity_org)->create();
+        TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($credit_org1)->create();
+        TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($credit_org2)->create();
+
+        $event = Event::factory()->asClosed()->create();
+        $shift = EventShift::factory()->forEvent($event)->asClosed()->withShiftStartsAt(now()->subDays(5))->create();
+        EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asAttended()->create()
+            ->updateQuietly([
+                EventTrooper::ORGANIZATION_ID => $capacity_org->id,
+                EventTrooper::COSTUME_ORGANIZATION_IDS => [$credit_org1->id, $credit_org2->id],
+            ]);
+
+        $subject = new GetTrooperServiceRecordQueryHandler();
+        $result = $subject(new GetTrooperServiceRecordQuery($trooper->id));
+        $counts = $result['trooper_organizations']->pluck('troop_count', 'id');
+
+        $this->assertSame(0, $counts[$capacity_org->id]);
+        $this->assertSame(1, $counts[$credit_org1->id]);
+        $this->assertSame(1, $counts[$credit_org2->id]);
+    }
+
     public function test_invoke_troop_count_unattached_shift_gives_no_org_credit(): void
     {
         $trooper = Trooper::factory()->asMember()->create();

@@ -6,18 +6,12 @@ namespace App\Http\Controllers\Admin\Events;
 
 use App\Features\Events\Queries\GetTroopersForEventAdminQuery;
 use App\Http\Controllers\MagicBusController;
+use App\Models\Costume;
 use App\Models\Event;
-use App\Models\TrooperAssignment;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
-/**
- * Displays the trooper roster management form for an event.
- *
- * Provides administrators and moderators with a form to manage trooper
- * registrations and status updates for an event. Displays troopers
- * organized by shifts.
- */
 class UpdateTroopersController extends MagicBusController
 {
     protected function initialized(): void
@@ -26,74 +20,71 @@ class UpdateTroopersController extends MagicBusController
         $this->crumbs->addRoute('Events', 'admin.events.list');
     }
 
-    /**
-     * Displays the trooper roster management form
-     *
-     * Authorizes administrative permission to update the event via policy.
-     * Retrieves event shifts with enriched trooper and costume data via
-     * GetTroopersForEventAdminQuery and renders the roster management view.
-     *
-     * @param  Request  $request  The incoming HTTP request (unused)
-     * @param  Event  $event  The event whose trooper roster is being managed (route model binding)
-     * @return View The trooper roster management form view
-     */
     public function __invoke(Request $request, Event $event): View
     {
         $this->authorize('update', $event);
 
-        $query = new GetTroopersForEventAdminQuery($event);
+        $event_shifts = $this->bus->send(new GetTroopersForEventAdminQuery($event));
+        $allowed_org_ids = $request->user()->resolveModeratorOrgIds();
 
-        $event_shifts = $this->bus->send($query);
+        $this->decorateEventTroopers($event_shifts, $allowed_org_ids);
 
-        $auth_trooper = $request->user();
-        $allowed_org_ids = $auth_trooper->is_administrator
-            ? null
-            : $auth_trooper->trooper_assignments()
-                ->where(TrooperAssignment::IS_MODERATOR, true)
-                ->pluck(TrooperAssignment::ORGANIZATION_ID)
-                ->toArray();
+        return view('pages.admin.events.troopers', compact('event', 'event_shifts'));
+    }
+
+    private function decorateEventTroopers(Collection $event_shifts, ?array $allowed_org_ids): void
+    {
+        $all = $event_shifts->flatMap(fn ($s) => $s->event_troopers);
+
+        $costume_ids = $all->pluck('costume_id')->filter()->unique()->values()->all();
+        $costumes_by_id = Costume::findMany($costume_ids)->keyBy('id');
+
+        // Build costume options from the already-eager-loaded trooper_costumes rather than
+        // firing one query per trooper. Handler/Command Staff costumes are always included.
+        $approved_costume_ids = $all
+            ->flatMap(fn ($et) => $et->trooper->trooper_costumes->pluck('organization_costume.costume_id'))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        $all_option_costumes = Costume::query()
+            ->where(function ($q) use ($approved_costume_ids) {
+                $q->whereIn(Costume::NAME, [Costume::COMMAND_STAFF, Costume::HANDLER]);
+                if (!empty($approved_costume_ids))
+                {
+                    $q->orWhereIn('id', $approved_costume_ids);
+                }
+            })
+            ->pluck('name', 'id');
+
+        $handler_costume_ids = $all_option_costumes
+            ->filter(fn ($name) => in_array($name, [Costume::COMMAND_STAFF, Costume::HANDLER], true))
+            ->keys()
+            ->toArray();
+
+        $costume_options_by_trooper = $all->groupBy('trooper_id')
+            ->map(function ($group) use ($all_option_costumes, $handler_costume_ids) {
+                $trooper_costume_ids = $group->first()->trooper->trooper_costumes
+                    ->pluck('organization_costume.costume_id')
+                    ->filter()
+                    ->unique()
+                    ->toArray();
+
+                $ids = array_unique(array_merge($trooper_costume_ids, $handler_costume_ids));
+
+                return $all_option_costumes->only($ids)->toArray();
+            });
 
         foreach ($event_shifts as $shift)
         {
             foreach ($shift->event_troopers as $event_trooper)
             {
-                $trooper_orgs = $event_trooper->trooper->organizations;
-
-                $root_ids = $trooper_orgs
-                    ->map(fn ($org) => (int) explode(':', $org->node_path)[0])
-                    ->unique()
-                    ->values()
-                    ->toArray();
-
-                $event_trooper->org_options = $trooper_orgs
-                    ->whereIn('id', $root_ids)
-                    ->when($allowed_org_ids !== null, fn ($c) => $c->whereIn('id', $allowed_org_ids))
-                    ->values();
-
-                if ($event_trooper->organization_id !== null)
-                {
-                    $org = $trooper_orgs->find($event_trooper->organization_id);
-                    $event_trooper->credited_checked_ids = [
-                        $org ? (int) explode(':', $org->node_path)[0] : $event_trooper->organization_id,
-                    ];
-                }
-                else
-                {
-                    $event_trooper->credited_checked_ids = collect($event_trooper->costume_organization_ids ?? [])
-                        ->map(function ($id) use ($trooper_orgs) {
-                            $org = $trooper_orgs->find($id);
-
-                            return $org ? (int) explode(':', $org->node_path)[0] : $id;
-                        })
-                        ->unique()
-                        ->values()
-                        ->all();
-                }
+                $event_trooper->costume_options = $costume_options_by_trooper->get($event_trooper->trooper_id, []);
+                $costume = $costumes_by_id->get($event_trooper->costume_id);
+                $event_trooper->org_options = $event_trooper->eligibleRootOrgsForAdmin($allowed_org_ids, $costume);
+                $event_trooper->credited_checked_ids = $event_trooper->creditedRootOrgIds();
             }
         }
-
-        $data = compact('event', 'event_shifts');
-
-        return view('pages.admin.events.troopers', $data);
     }
 }

@@ -12,10 +12,13 @@ use App\Models\EventOrganization;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Organization;
+use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
+use App\Models\TrooperCostume;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 
@@ -115,8 +118,15 @@ class SimulateShiftCompleteCommand extends Command
             }
         }
 
+        $costume = null;
+
+        if ($multi_club_target > 0)
+        {
+            $costume = $this->resolveMultiClubCostume($trooper, $credit_orgs);
+        }
+
         // Select costume randomly from the trooper's approved costumes, fall back to Handler.
-        $costume = Costume::whereHas('organization_costumes.trooper_costumes', fn ($q) => $q->where('trooper_id', $trooper->id)
+        $costume ??= Costume::whereHas('organization_costumes.trooper_costumes', fn ($q) => $q->where('trooper_id', $trooper->id)
         )->inRandomOrder()->first();
 
         if ($costume === null)
@@ -159,12 +169,12 @@ class SimulateShiftCompleteCommand extends Command
             ->withEventStart($event_end->clone()->subHours(4))
             ->create();
 
-        // Make the primary org eligible to attend.
-        EventOrganization::factory()
-            ->forEvent($event)
-            ->forOrganization($primary_org)
-            ->canAttend()
-            ->create();
+        $this->ensureEventOrganizationCanAttend($event, $primary_org);
+
+        foreach ($credit_orgs as $credit_org)
+        {
+            $this->ensureEventOrganizationCanAttend($event, $credit_org);
+        }
 
         $event_shift = EventShift::factory()->forEvent($event)->create([
             EventShift::STATUS => EventStatus::CLOSED,
@@ -172,25 +182,19 @@ class SimulateShiftCompleteCommand extends Command
             EventShift::SHIFT_STARTS_AT => $event_end->clone()->subHours(4),
         ]);
 
+        $initial_credit_org_ids = $multi_club_target > 0
+            ? $credit_orgs->pluck('id')->values()->all()
+            : $this->creditOrgIdsForCostume($trooper, $costume);
+
         $event_trooper = EventTrooper::factory()
             ->forEventShift($event_shift)
             ->forTrooper($trooper)
             ->asGoing()
             ->create([
                 EventTrooper::COSTUME_ID => $costume?->id,
+                EventTrooper::COSTUME_ORGANIZATION_IDS => !empty($initial_credit_org_ids) ? $initial_credit_org_ids : null,
                 EventTrooper::IS_HANDLER => $costume?->countsAsHandler() ?? false,
             ]);
-
-        if ($multi_club_target > 0)
-        {
-            // Bypass the EventTrooperObserver which recomputes costume_organization_ids
-            // based on OrganizationCostume/TrooperCostume records we don't need here.
-            DB::table('tt_event_troopers')
-                ->where('id', $event_trooper->id)
-                ->update(['costume_organization_ids' => json_encode($credit_orgs->pluck('id')->values()->all())]);
-
-            $event_trooper->refresh();
-        }
 
         if ($no_eligible)
         {
@@ -226,6 +230,7 @@ class SimulateShiftCompleteCommand extends Command
         $this->info("  Event end:     {$event_end->format('Y-m-d H:i')} ({$this->windowLabel($expired)})");
         $this->info('  Updates open:  '.($event->can_update_trooper_status ? '<fg=green>yes</>' : '<fg=red>no</>'));
         $this->info('  Costume:       '.($costume ? "{$costume->name} (ID {$costume->id})" : 'none'));
+        $this->info('  Credit orgs:   '.($event_trooper->costume_organization_ids ? implode(', ', $event_trooper->costume_organization_ids) : 'none'));
 
         $this->newLine();
         $parent_orgs = $event_trooper->getEligibleCreditParentOrganizations();
@@ -262,5 +267,72 @@ class SimulateShiftCompleteCommand extends Command
     private function windowLabel(bool $expired): string
     {
         return $expired ? 'outside 30-day window' : 'within 30-day window';
+    }
+
+    private function resolveMultiClubCostume(Trooper $trooper, Collection $credit_orgs): Costume
+    {
+        $costume = Costume::query()
+            ->whereNotIn(Costume::NAME, [Costume::HANDLER, Costume::COMMAND_STAFF])
+            ->where(function ($query) use ($trooper, $credit_orgs) {
+                foreach ($credit_orgs as $org)
+                {
+                    $query->whereHas('organization_costumes', function ($query) use ($trooper, $org) {
+                        $query->where(OrganizationCostume::ORGANIZATION_ID, $org->id)
+                            ->whereHas('trooper_costumes', fn ($query) => $query->where(TrooperCostume::TROOPER_ID, $trooper->id));
+                    });
+                }
+            })
+            ->first();
+
+        $costume ??= Costume::firstOrCreate([
+            Costume::NAME => 'Troop Credit Simulator Multi-Club Costume',
+        ]);
+
+        foreach ($credit_orgs as $org)
+        {
+            $organization_costume = OrganizationCostume::firstOrCreate([
+                OrganizationCostume::ORGANIZATION_ID => $org->id,
+                OrganizationCostume::COSTUME_ID => $costume->id,
+            ]);
+
+            TrooperCostume::firstOrCreate([
+                TrooperCostume::TROOPER_ID => $trooper->id,
+                TrooperCostume::ORGANIZATION_COSTUME_ID => $organization_costume->id,
+            ]);
+        }
+
+        return $costume;
+    }
+
+    private function ensureEventOrganizationCanAttend(Event $event, Organization $organization): void
+    {
+        EventOrganization::updateOrCreate(
+            [
+                EventOrganization::EVENT_ID => $event->id,
+                EventOrganization::ORGANIZATION_ID => $organization->id,
+            ],
+            [
+                EventOrganization::CAN_ATTEND => true,
+            ]
+        );
+    }
+
+    /** @return array<int> */
+    private function creditOrgIdsForCostume(Trooper $trooper, ?Costume $costume): array
+    {
+        if ($costume === null)
+        {
+            return [];
+        }
+
+        if ($costume->countsAsHandler())
+        {
+            return TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $trooper->id)
+                ->where(TrooperAssignment::IS_MEMBER, true)
+                ->pluck(TrooperAssignment::ORGANIZATION_ID)
+                ->toArray();
+        }
+
+        return $costume->approvedOrgIdsForTrooper($trooper->id);
     }
 }

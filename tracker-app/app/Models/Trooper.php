@@ -240,6 +240,19 @@ class Trooper extends BaseTrooper implements
      * @param  Organization  $organization  The organization to check moderator status for
      * @return bool True if trooper is a moderator for the organization
      */
+    public function resolveModeratorOrgIds(): ?array
+    {
+        if ($this->is_administrator)
+        {
+            return null;
+        }
+
+        return $this->trooper_assignments()
+            ->where(TrooperAssignment::IS_MODERATOR, true)
+            ->pluck(TrooperAssignment::ORGANIZATION_ID)
+            ->toArray();
+    }
+
     public function isModeratorForOrganization(Organization $organization): bool
     {
         if ($this->is_administrator)
