@@ -18,9 +18,9 @@ use App\Models\TrooperAssignment;
 use App\Models\TrooperCostume;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Collection;
 
 class SimulateShiftCompleteCommand extends Command
 {
