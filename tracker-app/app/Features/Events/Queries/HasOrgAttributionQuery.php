@@ -68,7 +68,7 @@ trait HasOrgAttributionQuery
     {
         $q->where(function ($q) {
             $q->whereNull('tt_event_troopers.costume_organization_ids')
-                ->orWhereRaw('JSON_LENGTH(tt_event_troopers.costume_organization_ids) = 0');
+                ->orWhereRaw("REPLACE(CAST(tt_event_troopers.costume_organization_ids AS CHAR), ' ', '') = ?", ['[]']);
         });
     }
 }

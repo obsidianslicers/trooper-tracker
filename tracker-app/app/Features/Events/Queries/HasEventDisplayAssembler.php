@@ -206,7 +206,9 @@ trait HasEventDisplayAssembler
             ->unique()
             ?? collect();
 
-        $final_orgs = $potential_orgs->intersect($approved_orgs);
+        $final_orgs = $potential_orgs->isEmpty()
+            ? $approved_orgs
+            : $potential_orgs->intersect($approved_orgs);
 
         $names = $final_orgs->map(fn ($id) => $this->organizations[$id] ?? '??')->sort();
 
