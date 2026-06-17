@@ -40,4 +40,9 @@ enum MembershipStatus: string
      * A retired member.
      */
     case RETIRED = 'retired';
+
+    /**
+     * Account created in error — excluded from all normal views and cannot log in.
+     */
+    case VOID = 'void';
 }

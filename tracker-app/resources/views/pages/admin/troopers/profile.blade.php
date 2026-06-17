@@ -8,6 +8,13 @@
 
     <x-slim-container>
 
+        @if($trooper->membership_status === \App\Enums\MembershipStatus::VOID)
+            <div class="alert alert-warning mb-3" role="alert">
+                <strong>This account has been marked as created in error.</strong>
+                It cannot log in and does not appear in event pickers or reports.
+            </div>
+        @endif
+
         <x-card>
 
             <form method="POST"
@@ -83,6 +90,39 @@
             </form>
 
         </x-card>
+
+        @can('void', $trooper)
+            <x-card class="mt-3 border-danger">
+                <h6 class="text-danger mb-3">Danger Zone</h6>
+                <p class="text-muted small mb-3">
+                    Mark this account as created in error. The account will be blocked from logging in
+                    and will no longer appear in event sign-up pickers or reports.
+                </p>
+                <form method="POST" action="{{ route('admin.troopers.void', compact('trooper')) }}">
+                    @csrf
+                    <button type="submit" class="btn btn-outline-danger btn-sm"
+                            onclick="return confirm('Mark {{ $trooper->display_name }} as created in error?')">
+                        Mark as Created in Error
+                    </button>
+                </form>
+            </x-card>
+        @endcan
+
+        @can('unvoid', $trooper)
+            <x-card class="mt-3 border-warning">
+                <h6 class="text-warning mb-3">Restore Account</h6>
+                <p class="text-muted small mb-3">
+                    Restore this account to pending status. The account will need to go through
+                    the normal approval process before the trooper can log in.
+                </p>
+                <form method="POST" action="{{ route('admin.troopers.unvoid', compact('trooper')) }}">
+                    @csrf
+                    <button type="submit" class="btn btn-outline-warning btn-sm">
+                        Restore Account
+                    </button>
+                </form>
+            </x-card>
+        @endcan
 
     </x-slim-container>
 

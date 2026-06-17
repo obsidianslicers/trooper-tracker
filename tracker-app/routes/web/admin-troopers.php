@@ -22,6 +22,8 @@ use App\Http\Controllers\Admin\Troopers\ProfileController;
 use App\Http\Controllers\Admin\Troopers\ProfileSubmitController;
 use App\Http\Controllers\Admin\Troopers\RecruitController;
 use App\Http\Controllers\Admin\Troopers\RecruitSubmitController;
+use App\Http\Controllers\Admin\Troopers\UnvoidSubmitController;
+use App\Http\Controllers\Admin\Troopers\VoidSubmitController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -54,4 +56,6 @@ Route::prefix('admin/troopers')
         Route::get('/{trooper}/events', EventsController::class)->name('events');
         Route::get('/{trooper}/costumes', CostumesController::class)->name('costumes');
         Route::get('/{trooper}/changes', ChangesController::class)->name('changes');
+        Route::post('/{trooper}/void', VoidSubmitController::class)->name('void');
+        Route::post('/{trooper}/unvoid', UnvoidSubmitController::class)->name('unvoid');
     });
