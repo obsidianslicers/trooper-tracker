@@ -115,39 +115,6 @@
             </x-card>
         @endcan
 
-        @can('unvoid', $trooper)
-            <x-card class="mt-3 border-warning">
-                <h6 class="text-warning mb-3">Restore Account</h6>
-                <p class="text-muted small mb-3">
-                    Restore this account to pending status. The account will need to go through
-                    the normal approval process before the trooper can log in.
-                </p>
-                <form method="POST" action="{{ route('admin.troopers.unvoid', compact('trooper')) }}">
-                    @csrf
-                    <button type="submit" class="btn btn-outline-warning btn-sm">
-                        Restore Account
-                    </button>
-                </form>
-            </x-card>
-        @endcan
-
-        @can('markRip', $trooper)
-            <x-card class="mt-3 border-secondary">
-                <h6 class="text-secondary mb-3">In Memoriam</h6>
-                <p class="text-muted small mb-3">
-                    Mark this account to honor a member who has passed away. Their service record
-                    will display a Star Wars themed memorial tribute. The account cannot log in.
-                </p>
-                <form method="POST" action="{{ route('admin.troopers.rip', compact('trooper')) }}">
-                    @csrf
-                    <button type="submit" class="btn btn-outline-secondary btn-sm"
-                            onclick="return confirm('Mark {{ $trooper->display_name }} as R.I.P.?')">
-                        Mark as R.I.P.
-                    </button>
-                </form>
-            </x-card>
-        @endcan
-
         @can('unmarkRip', $trooper)
             <x-card class="mt-3 border-secondary">
                 <h6 class="text-secondary mb-3">Remove R.I.P. Status</h6>
