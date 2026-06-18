@@ -14,8 +14,8 @@ class GoogleSheetsMemberLookupService implements MemberLookupInterface
         private readonly Organization $organization,
         private readonly GoogleService $google,
         private readonly string $sheet_name,
-        private readonly int $identifier_column,
-        private readonly int $name_column = -1,
+        private readonly string $identifier_header,
+        private readonly string $name_header = '',
         private readonly string $identifier_prefix = '',
     ) {}
 
@@ -30,17 +30,25 @@ class GoogleSheetsMemberLookupService implements MemberLookupInterface
 
         $rows = $this->google->getSheet($sheet_id, $this->sheet_name);
 
-        if (!is_array($rows))
+        if (!is_array($rows) || empty($rows))
         {
             return null;
         }
 
-        // Skip header row
-        $rows = array_slice($rows, 1);
+        $headers = array_map('trim', $rows[0]);
 
-        foreach ($rows as $row)
+        $identifier_col = $this->findColumn($headers, $this->identifier_header);
+
+        if ($identifier_col === -1)
         {
-            $sheet_identifier = (string) ($row[$this->identifier_column] ?? '');
+            return null;
+        }
+
+        $name_col = !empty($this->name_header) ? $this->findColumn($headers, $this->name_header) : -1;
+
+        foreach (array_slice($rows, 1) as $row)
+        {
+            $sheet_identifier = (string) ($row[$identifier_col] ?? '');
 
             if (!empty($this->identifier_prefix) && stripos($sheet_identifier, $this->identifier_prefix) === 0)
             {
@@ -52,7 +60,7 @@ class GoogleSheetsMemberLookupService implements MemberLookupInterface
                 continue;
             }
 
-            $full_name = ($this->name_column >= 0) ? ($row[$this->name_column] ?? null) : null;
+            $full_name = ($name_col >= 0) ? (($row[$name_col] ?? null) ?: null) : null;
 
             return [
                 'identifier'           => $identifier,
@@ -68,5 +76,18 @@ class GoogleSheetsMemberLookupService implements MemberLookupInterface
         }
 
         return null;
+    }
+
+    private function findColumn(array $headers, string $target): int
+    {
+        foreach ($headers as $index => $header)
+        {
+            if (strcasecmp(trim($header), trim($target)) === 0)
+            {
+                return $index;
+            }
+        }
+
+        return -1;
     }
 }
