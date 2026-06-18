@@ -263,9 +263,9 @@ class Trooper extends BaseTrooper implements
         if ($this->is_moderator)
         {
             return $this->trooper_assignments()
-                ->where(TrooperAssignment::TROOPER_ID, $this->id)
-                ->where(TrooperAssignment::ORGANIZATION_ID, $organization->id)
+                ->join('tt_organizations as org_mod', 'tt_trooper_assignments.organization_id', '=', 'org_mod.id')
                 ->where(TrooperAssignment::IS_MODERATOR, true)
+                ->whereRaw('? LIKE CONCAT(org_mod.node_path, "%")', [$organization->node_path])
                 ->exists();
         }
 
