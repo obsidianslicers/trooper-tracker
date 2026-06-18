@@ -36,6 +36,6 @@ class DeniedResubmitController extends MagicBusController
 
         $this->flash->success('Your application has been resubmitted. You will receive an email when a decision is made.');
 
-        return redirect()->route('account.denied');
+        return redirect()->route('account.pending');
     }
 }

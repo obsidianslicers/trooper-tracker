@@ -1,5 +1,5 @@
 @auth
-    @unless(Auth::user()->is_denied)
+    @unless(Auth::user()->is_denied || Auth::user()->is_pending)
     <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle"
            href="#"

@@ -8,7 +8,7 @@
         </a>
 
         <ul class="dropdown-menu">
-            @unless(Auth::user()->is_denied)
+            @unless(Auth::user()->is_denied || Auth::user()->is_pending)
                 <x-nav-link :url="route('account.profile')"
                             :active="request()->routeIs('account.*') && !request()->routeIs('account.push-notifications')">
                     Profile

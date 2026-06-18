@@ -24,7 +24,7 @@ class DeniedController extends MagicBusController
 
         if (!$trooper->is_denied)
         {
-            return redirect()->route('account.profile');
+            return redirect()->route($trooper->is_pending ? 'account.pending' : 'account.profile');
         }
 
         $denied_requests = TrooperRequest::query()

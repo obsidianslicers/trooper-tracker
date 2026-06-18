@@ -36,7 +36,7 @@
                 @include('partials.inc.navbar-service-records')
                 @auth
                 @include('partials.inc.navbar-account')
-                @unless(Auth::user()->is_denied)
+                @unless(Auth::user()->is_denied || Auth::user()->is_pending)
                     @include('partials.inc.navbar-notifications')
                     @if(App\Facades\TroopTrackerFacade::isXenforoIntegrationConfigured())
                         <x-nav-link :url="config('services.xenforo.base_url')">
