@@ -205,6 +205,22 @@ class TrooperTest extends TestCase
         $this->assertTrue($result);
     }
 
+    public function test_is_moderator_for_organization_returns_true_when_moderator_for_parent_organization(): void
+    {
+        $subject = Trooper::factory()->asModerator()->create();
+        $parent = Organization::factory()->create();
+        $child = Organization::factory()->withParent($parent)->create()->fresh();
+        TrooperAssignment::factory()
+            ->forTrooper($subject)
+            ->forOrganization($parent)
+            ->asModerator()
+            ->create();
+
+        $result = $subject->isModeratorForOrganization($child);
+
+        $this->assertTrue($result);
+    }
+
     public function test_is_moderator_for_organization_returns_false_when_moderator_without_assignment(): void
     {
         $subject = Trooper::factory()->asModerator()->create();
