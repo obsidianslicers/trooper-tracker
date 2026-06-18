@@ -35,7 +35,7 @@ class TrooperSetupRequiredMiddleware
         {
             $user = Auth::user();
 
-            if ($user->setup_completed_at === null)
+            if ($user->setup_completed_at === null && !$user->is_denied)
             {
                 if ($request->routeIs('account.setup', 'account.setup-submit', 'account.xenforo.*', 'auth.*', 'pickers.*', 'verification.*'))
                 {

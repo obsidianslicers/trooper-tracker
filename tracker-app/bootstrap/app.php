@@ -63,6 +63,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'check.role' => \App\Http\Middleware\CheckActorRoleMiddleware::class,
             'check.active' => \App\Http\Middleware\CheckActiveTrooperMiddleware::class,
             'auth.registration' => \App\Http\Middleware\RegistrationMiddleware::class,
+            'redirect.denied' => \App\Http\Middleware\RedirectDeniedTrooperMiddleware::class,
         ]);
 
         $middleware->redirectGuestsTo(fn(Illuminate\Http\Request $request) => route('auth.login'));

@@ -113,6 +113,13 @@ class OauthCallbackController extends MagicBusController
         {
             $trooper = $account->trooper;
 
+            if ($trooper->is_denied)
+            {
+                Auth::login($trooper, true);
+
+                return redirect()->route('account.denied');
+            }
+
             if (!$trooper->is_active)
             {
                 return redirect()->route('auth.inactive');
@@ -169,6 +176,13 @@ class OauthCallbackController extends MagicBusController
             Session::put('oauth_pending', $oauth_pending);
 
             return redirect()->route('auth.register');
+        }
+
+        if ($trooper->is_denied)
+        {
+            Auth::login($trooper, true);
+
+            return redirect()->route('account.denied');
         }
 
         if (!$trooper->is_active)

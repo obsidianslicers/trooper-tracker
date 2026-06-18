@@ -33,7 +33,7 @@ class EnsureXenforoLinked
 
         $user = Auth::user();
 
-        if (!$user)
+        if (!$user || $user->is_denied)
         {
             return $next($request);
         }

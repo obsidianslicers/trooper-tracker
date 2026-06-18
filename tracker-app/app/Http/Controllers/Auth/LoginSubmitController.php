@@ -61,6 +61,20 @@ class LoginSubmitController extends MagicBusController
         //  trooper existance is checked via LoginRequest
         $trooper = Trooper::query()->byEmail($email)->first();
 
+        if ($trooper->membership_status === MembershipStatus::DENIED)
+        {
+            if (!Hash::check($password, $trooper->password))
+            {
+                return back()
+                    ->withInput(request()->except('password'))
+                    ->withErrors(['email' => 'Invalid email and password.']);
+            }
+
+            Auth::login($trooper, $request->remember_me);
+
+            return redirect()->route('account.denied');
+        }
+
         if ($trooper->membership_status === MembershipStatus::PENDING)
         {
             $this->flash->warning('Your access has not been approved yet. Please refer to command staff for additional information.');
