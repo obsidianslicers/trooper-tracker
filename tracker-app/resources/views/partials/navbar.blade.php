@@ -36,20 +36,22 @@
                 @include('partials.inc.navbar-service-records')
                 @auth
                 @include('partials.inc.navbar-account')
-                @include('partials.inc.navbar-notifications')
-                @if(App\Facades\TroopTrackerFacade::isXenforoIntegrationConfigured())
-                    <x-nav-link :url="config('services.xenforo.base_url')">
-                        Forum
-                    </x-nav-link>
-                @endif
-                @role(['administrator', 'moderator'])
-                    <x-nav-link :url="route('admin.display')"
-                                :active="request()->routeIs('admin.*')">
-                        <span class="text-warning">
-                            Command Staff
-                        </span>
-                    </x-nav-link>
+                @unless(Auth::user()->is_denied)
+                    @include('partials.inc.navbar-notifications')
+                    @if(App\Facades\TroopTrackerFacade::isXenforoIntegrationConfigured())
+                        <x-nav-link :url="config('services.xenforo.base_url')">
+                            Forum
+                        </x-nav-link>
+                    @endif
+                    @role(['administrator', 'moderator'])
+                        <x-nav-link :url="route('admin.display')"
+                                    :active="request()->routeIs('admin.*')">
+                            <span class="text-warning">
+                                Command Staff
+                            </span>
+                        </x-nav-link>
                     @endrole
+                @endunless
                 @else
                 @include('partials.inc.navbar-auth')
                 @endauth

@@ -1,4 +1,5 @@
 @auth
+    @unless(Auth::user()->is_denied)
     <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle"
            href="#"
@@ -34,4 +35,5 @@
             </x-nav-link>
         </ul>
     </li>
+    @endunless
 @endauth

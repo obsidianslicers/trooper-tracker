@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Account;
 use App\Features\Troopers\Queries\GetAvailableClubsQuery;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Organization;
+use App\Models\Trooper;
 use App\Models\TrooperRequest;
 use App\Notifications\Troopers\TrooperDeniedNotification;
 use Illuminate\Contracts\View\View;
@@ -57,7 +58,8 @@ class DeniedController extends MagicBusController
 
     private function resolveDenialReasonFromNotification(int $trooper_id): ?string
     {
-        $notification = DB::table('notifications')
+        $notification = DB::table('tt_notifications')
+            ->where('notifiable_type', Trooper::class)
             ->where('notifiable_id', $trooper_id)
             ->where('type', TrooperDeniedNotification::class)
             ->orderByDesc('created_at')
