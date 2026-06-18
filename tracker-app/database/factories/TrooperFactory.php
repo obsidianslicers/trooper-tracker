@@ -149,6 +149,13 @@ class TrooperFactory extends BaseTrooperFactory
         ]);
     }
 
+    public function asDenied(): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            Trooper::MEMBERSHIP_STATUS => MembershipStatus::DENIED,
+        ]);
+    }
+
     public function asRetired(): static
     {
         return $this->state(fn(array $attributes): array => [
