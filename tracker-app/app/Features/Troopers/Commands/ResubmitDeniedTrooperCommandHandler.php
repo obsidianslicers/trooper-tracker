@@ -59,11 +59,11 @@ readonly class ResubmitDeniedTrooperCommandHandler implements CommandHandlerInte
                 $identifier = isset($data['identifier']) ? (trim((string) $data['identifier']) ?: null) : null;
 
                 TrooperRequest::create([
-                    TrooperRequest::TROOPER_ID              => $trooper->id,
-                    TrooperRequest::ORGANIZATION_ID         => $resolved->id,
+                    TrooperRequest::TROOPER_ID => $trooper->id,
+                    TrooperRequest::ORGANIZATION_ID => $resolved->id,
                     TrooperRequest::PRIMARY_ORGANIZATION_ID => $primary->id,
-                    TrooperRequest::IDENTIFIER              => $identifier,
-                    TrooperRequest::STATUS                  => TrooperRequestStatus::PENDING,
+                    TrooperRequest::IDENTIFIER => $identifier,
+                    TrooperRequest::STATUS => TrooperRequestStatus::PENDING,
                 ]);
             }
         }

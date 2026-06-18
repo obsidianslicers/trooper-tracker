@@ -77,12 +77,12 @@ class ResubmitDeniedRequest extends FormRequest
     private function getOrganizationValidationRules(): array
     {
         $rules = [
-            'organizations'           => ['array', new AtLeastOneOrganizationSelectedRule],
+            'organizations' => ['array', new AtLeastOneOrganizationSelectedRule],
             'organizations.*.selected' => ['nullable', 'boolean'],
         ];
 
         $account_type = $this->resolveAccountType();
-        $trooper      = $this->user();
+        $trooper = $this->user();
         $organizations = $this->getOrganizations();
 
         foreach ($organizations as $organization)
@@ -170,8 +170,8 @@ class ResubmitDeniedRequest extends FormRequest
         return match ($rule)
         {
             'integer' => 'an integer',
-            'string'  => 'a valid string',
-            default   => str_replace(':', ' ', $rule),
+            'string' => 'a valid string',
+            default => str_replace(':', ' ', $rule),
         };
     }
 }

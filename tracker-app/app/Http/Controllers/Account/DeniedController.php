@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Account;
 
-use App\Features\Organizations\Queries\GetOrganizationHierarchyQuery;
 use App\Enums\OrganizationType;
+use App\Features\Organizations\Queries\GetOrganizationHierarchyQuery;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Organization;
 use App\Models\Trooper;
@@ -50,14 +50,14 @@ class DeniedController extends MagicBusController
 
         foreach ($organization_hierarchy as $org)
         {
-            $denied   = $request_by_primary[$org->id] ?? null;
+            $denied = $request_by_primary[$org->id] ?? null;
             $specific = $denied ? ($specific_orgs[$denied->organization_id] ?? null) : null;
 
-            $org->selected   = old("organizations.{$org->id}.selected") === '1'
+            $org->selected = old("organizations.{$org->id}.selected") === '1'
                                || ($denied !== null && !old('organizations'));
             $org->identifier = old("organizations.{$org->id}.identifier", $denied?->identifier);
-            $org->region_id  = old("organizations.{$org->id}.region_id", $this->resolveRegionId($specific));
-            $org->unit_id    = old("organizations.{$org->id}.unit_id", $this->resolveUnitId($specific));
+            $org->region_id = old("organizations.{$org->id}.region_id", $this->resolveRegionId($specific));
+            $org->unit_id = old("organizations.{$org->id}.unit_id", $this->resolveUnitId($specific));
         }
 
         $account_type = $this->resolveAccountType($trooper);
@@ -89,10 +89,11 @@ class DeniedController extends MagicBusController
 
     private function resolveRegionId(?Organization $org): ?int
     {
-        return match ($org?->type) {
+        return match ($org?->type)
+        {
             OrganizationType::REGION => $org->id,
-            OrganizationType::UNIT   => $org->parent_id,
-            default                  => null,
+            OrganizationType::UNIT => $org->parent_id,
+            default => null,
         };
     }
 
