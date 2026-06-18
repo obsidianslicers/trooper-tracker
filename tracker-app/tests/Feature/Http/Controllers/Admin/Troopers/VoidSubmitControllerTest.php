@@ -46,13 +46,13 @@ class VoidSubmitControllerTest extends TestCase
 
         $response->assertRedirect(route('admin.troopers.profile', $trooper));
         $trooper->refresh();
-        $this->assertEquals(MembershipStatus::VOID, $trooper->membership_status);
+        $this->assertEquals(MembershipStatus::INVALID, $trooper->membership_status);
     }
 
     public function test_invoke_denies_when_trooper_is_already_void(): void
     {
         $admin = Trooper::factory()->asAdministrator()->create();
-        $trooper = Trooper::factory()->create(['membership_status' => MembershipStatus::VOID]);
+        $trooper = Trooper::factory()->create(['membership_status' => MembershipStatus::INVALID]);
 
         $response = $this->actingAs($admin)
             ->post(route('admin.troopers.void', $trooper));

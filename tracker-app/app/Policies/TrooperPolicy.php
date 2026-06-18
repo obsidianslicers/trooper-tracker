@@ -144,7 +144,7 @@ class TrooperPolicy
     public function markRip(Trooper $trooper, Trooper $subject): bool
     {
         return $this->isAdministrator($trooper)
-            && $subject->membership_status !== MembershipStatus::RIP;
+            && $subject->membership_status !== MembershipStatus::DEPARTED;
     }
 
     /**
@@ -157,7 +157,7 @@ class TrooperPolicy
     public function unmarkRip(Trooper $trooper, Trooper $subject): bool
     {
         return $this->isAdministrator($trooper)
-            && $subject->membership_status === MembershipStatus::RIP;
+            && $subject->membership_status === MembershipStatus::DEPARTED;
     }
 
     /**
@@ -170,7 +170,7 @@ class TrooperPolicy
     public function void(Trooper $trooper, Trooper $subject): bool
     {
         return $this->isAdministrator($trooper)
-            && $subject->membership_status !== MembershipStatus::VOID;
+            && $subject->membership_status !== MembershipStatus::INVALID;
     }
 
     /**
@@ -183,7 +183,7 @@ class TrooperPolicy
     public function unvoid(Trooper $trooper, Trooper $subject): bool
     {
         return $this->isAdministrator($trooper)
-            && $subject->membership_status === MembershipStatus::VOID;
+            && $subject->membership_status === MembershipStatus::INVALID;
     }
 
     /**

@@ -44,10 +44,10 @@ enum MembershipStatus: string
     /**
      * Account created in error — excluded from all normal views and cannot log in.
      */
-    case VOID = 'void';
+    case INVALID = 'invalid';
 
     /**
      * Member has passed away — service record shows a memorial tribute; cannot log in.
      */
-    case RIP = 'rip';
+    case DEPARTED = 'departed';
 }

@@ -21,7 +21,7 @@ readonly class VoidTrooperCommandHandler implements CommandHandlerInterface
     public function __invoke(object $message): mixed
     {
         $message->trooper->forceFill([
-            'membership_status' => MembershipStatus::VOID,
+            'membership_status' => MembershipStatus::INVALID,
         ])->save();
 
         return null;

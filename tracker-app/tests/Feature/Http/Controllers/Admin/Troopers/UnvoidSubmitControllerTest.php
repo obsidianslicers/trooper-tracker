@@ -18,7 +18,7 @@ class UnvoidSubmitControllerTest extends TestCase
 
     public function test_invoke_requires_authentication(): void
     {
-        $trooper = Trooper::factory()->create(['membership_status' => MembershipStatus::VOID]);
+        $trooper = Trooper::factory()->create(['membership_status' => MembershipStatus::INVALID]);
 
         $response = $this->post(route('admin.troopers.unvoid', $trooper));
 
@@ -28,7 +28,7 @@ class UnvoidSubmitControllerTest extends TestCase
     public function test_invoke_requires_administrator(): void
     {
         $actor = Trooper::factory()->asMember()->create();
-        $trooper = Trooper::factory()->create(['membership_status' => MembershipStatus::VOID]);
+        $trooper = Trooper::factory()->create(['membership_status' => MembershipStatus::INVALID]);
 
         $response = $this->actingAs($actor)
             ->post(route('admin.troopers.unvoid', $trooper));
@@ -39,7 +39,7 @@ class UnvoidSubmitControllerTest extends TestCase
     public function test_invoke_unvoids_trooper_and_redirects_to_profile(): void
     {
         $admin = Trooper::factory()->asAdministrator()->create();
-        $trooper = Trooper::factory()->create(['membership_status' => MembershipStatus::VOID]);
+        $trooper = Trooper::factory()->create(['membership_status' => MembershipStatus::INVALID]);
 
         $response = $this->actingAs($admin)
             ->post(route('admin.troopers.unvoid', $trooper));

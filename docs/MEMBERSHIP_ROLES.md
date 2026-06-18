@@ -20,12 +20,12 @@ These are global, per-account values. Organization-level moderation scope is a s
 | RESERVE | `reserve` | Temporarily inactive; event access suspended |
 | RETIRED | `retired` | Permanently stepped back; no event access |
 | NONE | `none` | No membership record; treated as a stranger |
-| VOID | `void` | Account created in error; blocked from login; excluded from all normal views |
-| RIP | `rip` | Member has passed away; service record shows a Star Wars memorial tribute; blocked from login |
+| INVALID | `invalid` | Account created in error; blocked from login; excluded from all normal views |
+| DEPARTED | `departed` | Member has passed away; service record shows a Star Wars memorial tribute; blocked from login |
 
 Feature access generally requires `membership_status === ACTIVE`. Status changes are applied by admins via the authority panel, except for the visitor renewal flow which automatically resets status to PENDING.
 
-> `VOID` and `RIP` are admin-only statuses that block login. They do not participate in the standard approval lifecycle.
+> `INVALID` and `DEPARTED` are admin-only statuses that block login. They do not participate in the standard approval lifecycle.
 
 ### Status Lifecycle
 
@@ -37,8 +37,8 @@ flowchart TD
     C -->|Admin action| E[RESERVE]
     C -->|Admin action| F[RETIRED]
     C -->|Admin action| G[NONE]
-    C -->|Admin action| H[RIP]
-    C -->|Admin action| I[VOID]
+    C -->|Admin action| H[DEPARTED]
+    C -->|Admin action| I[INVALID]
     E -->|Admin action| C
     E -->|Admin action| G
     F -->|Admin action| G

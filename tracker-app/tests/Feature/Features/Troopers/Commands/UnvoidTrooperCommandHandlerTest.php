@@ -20,7 +20,7 @@ class UnvoidTrooperCommandHandlerTest extends TestCase
 
     public function test_invoke_sets_membership_status_to_pending(): void
     {
-        $trooper = Trooper::factory()->create(['membership_status' => MembershipStatus::VOID]);
+        $trooper = Trooper::factory()->create(['membership_status' => MembershipStatus::INVALID]);
         $subject = app(UnvoidTrooperCommandHandler::class);
 
         $subject(new UnvoidTrooperCommand($trooper));

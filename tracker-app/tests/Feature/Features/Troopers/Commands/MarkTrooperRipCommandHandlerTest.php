@@ -26,6 +26,6 @@ class MarkTrooperRipCommandHandlerTest extends TestCase
         $subject(new MarkTrooperRipCommand($trooper));
 
         $trooper->refresh();
-        $this->assertEquals(MembershipStatus::RIP, $trooper->membership_status);
+        $this->assertEquals(MembershipStatus::DEPARTED, $trooper->membership_status);
     }
 }

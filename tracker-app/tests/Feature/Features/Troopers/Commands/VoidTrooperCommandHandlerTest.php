@@ -26,6 +26,6 @@ class VoidTrooperCommandHandlerTest extends TestCase
         $subject(new VoidTrooperCommand($trooper));
 
         $trooper->refresh();
-        $this->assertEquals(MembershipStatus::VOID, $trooper->membership_status);
+        $this->assertEquals(MembershipStatus::INVALID, $trooper->membership_status);
     }
 }

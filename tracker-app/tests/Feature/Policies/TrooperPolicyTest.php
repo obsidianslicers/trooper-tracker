@@ -61,7 +61,7 @@ class TrooperPolicyTest extends TestCase
         $administrator = Trooper::factory()->asAdministrator()->create();
         $moderator = Trooper::factory()->asModerator()->create();
         $active_trooper = Trooper::factory()->asActive()->create();
-        $void_trooper = Trooper::factory()->create(['membership_status' => MembershipStatus::VOID]);
+        $void_trooper = Trooper::factory()->create(['membership_status' => MembershipStatus::INVALID]);
 
         $this->assertTrue($policy->void($administrator, $active_trooper));
         $this->assertFalse($policy->void($administrator, $void_trooper));
@@ -79,7 +79,7 @@ class TrooperPolicyTest extends TestCase
         $administrator = Trooper::factory()->asAdministrator()->create();
         $moderator = Trooper::factory()->asModerator()->create();
         $active_trooper = Trooper::factory()->asActive()->create();
-        $rip_trooper = Trooper::factory()->create(['membership_status' => MembershipStatus::RIP]);
+        $rip_trooper = Trooper::factory()->create(['membership_status' => MembershipStatus::DEPARTED]);
 
         $this->assertTrue($policy->markRip($administrator, $active_trooper));
         $this->assertFalse($policy->markRip($administrator, $rip_trooper));

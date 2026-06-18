@@ -100,10 +100,10 @@
                             <i class="fa fa-fw fa-times text-danger pe-2"></i>
                         @endif
                         {{ $trooper->display_name }}
-                        @if($trooper->membership_status === \App\Enums\MembershipStatus::VOID)
+                        @if($trooper->membership_status === \App\Enums\MembershipStatus::INVALID)
                             <span class="badge bg-secondary ms-1">Created in Error</span>
                         @endif
-                        @if($trooper->membership_status === \App\Enums\MembershipStatus::RIP)
+                        @if($trooper->membership_status === \App\Enums\MembershipStatus::DEPARTED)
                             <span class="badge bg-dark border border-warning text-warning ms-1">In Memoriam</span>
                         @endif
                         <br />

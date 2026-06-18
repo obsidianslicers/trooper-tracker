@@ -4,7 +4,7 @@
 
 @section('content')
 
-    @if($trooper->membership_status === \App\Enums\MembershipStatus::RIP)
+    @if($trooper->membership_status === \App\Enums\MembershipStatus::DEPARTED)
         <div class="bg-dark border border-warning rounded p-4 mb-4 text-center">
             <p class="text-warning fst-italic fs-5 mb-2">"The Force will be with you, always."</p>
             <p class="text-light mb-2">
@@ -67,7 +67,7 @@
                     <ul class="nav nav-pills p-3 border-bottom"
                         id="dashboardTabs"
                         role="tablist">
-                        @if($trooper->membership_status !== \App\Enums\MembershipStatus::RIP)
+                        @if($trooper->membership_status !== \App\Enums\MembershipStatus::DEPARTED)
                             <li class="nav-item"
                                 role="presentation">
                                 <button class="nav-link active text-uppercase small fw-bold"
@@ -79,11 +79,11 @@
                         @endif
                         <li class="nav-item"
                             role="presentation">
-                            <button class="nav-link text-uppercase small fw-bold {{ $trooper->membership_status === \App\Enums\MembershipStatus::RIP ? 'active' : '' }}"
+                            <button class="nav-link text-uppercase small fw-bold {{ $trooper->membership_status === \App\Enums\MembershipStatus::DEPARTED ? 'active' : '' }}"
                                     data-bs-toggle="tab"
                                     data-bs-target="#recent-shifts"
-                                    aria-selected="{{ $trooper->membership_status === \App\Enums\MembershipStatus::RIP ? 'true' : 'false' }}"
-                                    @if($trooper->membership_status !== \App\Enums\MembershipStatus::RIP) tabindex="-1" @endif
+                                    aria-selected="{{ $trooper->membership_status === \App\Enums\MembershipStatus::DEPARTED ? 'true' : 'false' }}"
+                                    @if($trooper->membership_status !== \App\Enums\MembershipStatus::DEPARTED) tabindex="-1" @endif
                                     role="tab">History</button>
                         </li>
                         <li class="nav-item"
@@ -127,14 +127,14 @@
                     </ul>
                 </div>
                 <div class="card-body tab-content">
-                    @if($trooper->membership_status !== \App\Enums\MembershipStatus::RIP)
+                    @if($trooper->membership_status !== \App\Enums\MembershipStatus::DEPARTED)
                         <div class="tab-pane fade show active"
                              id="upcoming-shifts"
                              role="tabpanel">
                             @include('pages.service-records.inc.trooper-upcoming-shifts')
                         </div>
                     @endif
-                    <div class="tab-pane fade {{ $trooper->membership_status === \App\Enums\MembershipStatus::RIP ? 'show active' : '' }}"
+                    <div class="tab-pane fade {{ $trooper->membership_status === \App\Enums\MembershipStatus::DEPARTED ? 'show active' : '' }}"
                          id="recent-shifts"
                          role="tabpanel">
                         @include('pages.service-records.inc.trooper-recent-shifts')

@@ -46,13 +46,13 @@ class MarkRipSubmitControllerTest extends TestCase
 
         $response->assertRedirect(route('admin.troopers.profile', $trooper));
         $trooper->refresh();
-        $this->assertEquals(MembershipStatus::RIP, $trooper->membership_status);
+        $this->assertEquals(MembershipStatus::DEPARTED, $trooper->membership_status);
     }
 
     public function test_invoke_denies_when_trooper_is_already_rip(): void
     {
         $admin = Trooper::factory()->asAdministrator()->create();
-        $trooper = Trooper::factory()->create(['membership_status' => MembershipStatus::RIP]);
+        $trooper = Trooper::factory()->create(['membership_status' => MembershipStatus::DEPARTED]);
 
         $response = $this->actingAs($admin)
             ->post(route('admin.troopers.rip', $trooper));

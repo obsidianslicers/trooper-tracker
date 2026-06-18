@@ -20,7 +20,7 @@ class UnmarkTrooperRipCommandHandlerTest extends TestCase
 
     public function test_invoke_sets_membership_status_to_pending(): void
     {
-        $trooper = Trooper::factory()->create(['membership_status' => MembershipStatus::RIP]);
+        $trooper = Trooper::factory()->create(['membership_status' => MembershipStatus::DEPARTED]);
         $subject = app(UnmarkTrooperRipCommandHandler::class);
 
         $subject(new UnmarkTrooperRipCommand($trooper));

@@ -18,7 +18,7 @@ class UnmarkRipSubmitControllerTest extends TestCase
 
     public function test_invoke_requires_authentication(): void
     {
-        $trooper = Trooper::factory()->create(['membership_status' => MembershipStatus::RIP]);
+        $trooper = Trooper::factory()->create(['membership_status' => MembershipStatus::DEPARTED]);
 
         $response = $this->post(route('admin.troopers.unrip', $trooper));
 
@@ -28,7 +28,7 @@ class UnmarkRipSubmitControllerTest extends TestCase
     public function test_invoke_requires_administrator(): void
     {
         $actor = Trooper::factory()->asMember()->create();
-        $trooper = Trooper::factory()->create(['membership_status' => MembershipStatus::RIP]);
+        $trooper = Trooper::factory()->create(['membership_status' => MembershipStatus::DEPARTED]);
 
         $response = $this->actingAs($actor)
             ->post(route('admin.troopers.unrip', $trooper));
@@ -39,7 +39,7 @@ class UnmarkRipSubmitControllerTest extends TestCase
     public function test_invoke_unmarks_trooper_rip_and_redirects_to_profile(): void
     {
         $admin = Trooper::factory()->asAdministrator()->create();
-        $trooper = Trooper::factory()->create(['membership_status' => MembershipStatus::RIP]);
+        $trooper = Trooper::factory()->create(['membership_status' => MembershipStatus::DEPARTED]);
 
         $response = $this->actingAs($admin)
             ->post(route('admin.troopers.unrip', $trooper));

@@ -21,7 +21,7 @@ readonly class MarkTrooperRipCommandHandler implements CommandHandlerInterface
     public function __invoke(object $message): mixed
     {
         $message->trooper->forceFill([
-            'membership_status' => MembershipStatus::RIP,
+            'membership_status' => MembershipStatus::DEPARTED,
         ])->save();
 
         return null;
