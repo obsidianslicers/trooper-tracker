@@ -75,15 +75,15 @@ class GoogleSheetsMemberLookupService implements MemberLookupInterface
             $full_name = ($name_col >= 0) ? (($row[$name_col] ?? null) ?: null) : null;
 
             return [
-                'identifier'           => $identifier,
+                'identifier' => $identifier,
                 'formatted_identifier' => $identifier,
-                'full_name'            => $full_name,
-                'status'               => 'Active',
-                'standing'             => 'Good',
-                'is_approved'          => true,
-                'unit_name'            => null,
-                'profile_url'          => null,
-                'thumbnail_url'        => null,
+                'full_name' => $full_name,
+                'status' => 'Active',
+                'standing' => 'Good',
+                'is_approved' => true,
+                'unit_name' => null,
+                'profile_url' => null,
+                'thumbnail_url' => null,
             ];
         }
 

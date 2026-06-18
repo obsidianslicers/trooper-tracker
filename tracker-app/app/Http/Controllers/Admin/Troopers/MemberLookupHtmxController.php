@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Troopers;
 
 use App\Http\Controllers\MagicBusController;
+use App\Models\Trooper;
 use App\Models\TrooperOrganization;
 use App\Models\TrooperRequest;
 use App\Services\MemberLookup\MemberLookupResolver;
@@ -22,11 +23,11 @@ class MemberLookupHtmxController extends MagicBusController
         if (empty($identifier))
         {
             return view('pages.admin.troopers.partials.member-lookup', [
-                'identifier'         => null,
-                'org_name'           => $primary_org?->name,
+                'identifier' => null,
+                'org_name' => $primary_org?->name,
                 'has_lookup_service' => $service !== null,
-                'duplicate'          => null,
-                'member'             => null,
+                'duplicate' => null,
+                'member' => null,
             ]);
         }
 
@@ -35,15 +36,15 @@ class MemberLookupHtmxController extends MagicBusController
         $member = $service?->lookup($identifier);
 
         return view('pages.admin.troopers.partials.member-lookup', [
-            'identifier'         => $identifier,
-            'org_name'           => $primary_org?->name,
+            'identifier' => $identifier,
+            'org_name' => $primary_org?->name,
             'has_lookup_service' => $service !== null,
-            'duplicate'          => $duplicate_trooper,
-            'member'             => $member,
+            'duplicate' => $duplicate_trooper,
+            'member' => $member,
         ]);
     }
 
-    private function findDuplicate(TrooperRequest $trooper_request): ?\App\Models\Trooper
+    private function findDuplicate(TrooperRequest $trooper_request): ?Trooper
     {
         $identifier = $trooper_request->identifier;
         $primary_org_id = $trooper_request->primary_organization_id;
@@ -64,8 +65,8 @@ class MemberLookupHtmxController extends MagicBusController
             ->where(TrooperOrganization::TROOPER_ID, '!=', $requesting_trooper_id)
             ->whereHas('organization', function ($q) use ($primary_org_id) {
                 $q->where('id', $primary_org_id)
-                  ->orWhere('parent_id', $primary_org_id)
-                  ->orWhereHas('parent', fn($q2) => $q2->where('parent_id', $primary_org_id));
+                    ->orWhere('parent_id', $primary_org_id)
+                    ->orWhereHas('parent', fn ($q2) => $q2->where('parent_id', $primary_org_id));
             })
             ->with('trooper')
             ->first();

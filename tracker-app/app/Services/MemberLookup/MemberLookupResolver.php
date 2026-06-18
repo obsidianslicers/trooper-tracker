@@ -19,13 +19,14 @@ class MemberLookupResolver
 
     public function resolve(Organization $organization): ?MemberLookupInterface
     {
-        return match($organization->service_class) {
-            TheLegionService::class        => new TheLegionMemberLookupService(),
-            RebelLegionService::class      => new GoogleSheetsMemberLookupService($organization, $this->google, 'Troopers', 'ID', 'Name'),
-            SaberGuildServices::class      => new GoogleSheetsMemberLookupService($organization, $this->google, 'Troopers', 'ID', 'IRL Name', 'SG-'),
-            DroidBuildersService::class    => new GoogleSheetsMemberLookupService($organization, $this->google, 'Troopers', 'Forum Name'),
+        return match ($organization->service_class)
+        {
+            TheLegionService::class => new TheLegionMemberLookupService,
+            RebelLegionService::class => new GoogleSheetsMemberLookupService($organization, $this->google, 'Troopers', 'ID', 'Name'),
+            SaberGuildServices::class => new GoogleSheetsMemberLookupService($organization, $this->google, 'Troopers', 'ID', 'IRL Name', 'SG-'),
+            DroidBuildersService::class => new GoogleSheetsMemberLookupService($organization, $this->google, 'Troopers', 'Forum Name'),
             MandalorianMercsService::class => new GoogleSheetsMemberLookupService($organization, $this->google, 'Troopers', 'ID', 'Name'),
-            default                        => null,
+            default => null,
         };
     }
 }

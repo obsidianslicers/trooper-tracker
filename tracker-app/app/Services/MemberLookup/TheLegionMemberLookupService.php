@@ -30,15 +30,15 @@ class TheLegionMemberLookupService implements MemberLookupInterface
             }
 
             return [
-                'identifier'           => (string) ($json['legionId'] ?? $identifier),
+                'identifier' => (string) ($json['legionId'] ?? $identifier),
                 'formatted_identifier' => $json['formattedLegionId'] ?? $identifier,
-                'full_name'            => $json['fullName'] ?? null,
-                'status'               => $json['memberStatus'] ?? null,
-                'standing'             => $json['memberStanding'] ?? null,
-                'is_approved'          => ($json['memberApproved'] ?? null) === 'YES',
-                'unit_name'            => $json['garrisonName'] ?? null,
-                'profile_url'          => $json['profileUrl'] ?? null,
-                'thumbnail_url'        => $json['primaryThumbnail'] ?? null,
+                'full_name' => $json['fullName'] ?? null,
+                'status' => $json['memberStatus'] ?? null,
+                'standing' => $json['memberStanding'] ?? null,
+                'is_approved' => ($json['memberApproved'] ?? null) === 'YES',
+                'unit_name' => $json['garrisonName'] ?? null,
+                'profile_url' => $json['profileUrl'] ?? null,
+                'thumbnail_url' => $json['primaryThumbnail'] ?? null,
             ];
         });
 
