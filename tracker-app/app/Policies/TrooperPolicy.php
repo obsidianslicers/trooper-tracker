@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
+use App\Enums\MembershipStatus;
 use App\Models\Trooper;
 use App\Policies\Concerns\HasTrooperPermissionsTrait;
 
@@ -131,6 +132,58 @@ class TrooperPolicy
     public function forceDelete(Trooper $trooper, Trooper $subject): bool
     {
         return false;
+    }
+
+    /**
+     * Determine whether the user can mark a trooper as R.I.P. (In Memoriam).
+     *
+     * @param  Trooper  $trooper  The authenticated user performing the action.
+     * @param  Trooper  $subject  The trooper being marked as R.I.P.
+     * @return bool True if the user is an administrator and the account is not already marked R.I.P.
+     */
+    public function markRip(Trooper $trooper, Trooper $subject): bool
+    {
+        return $this->isAdministrator($trooper)
+            && $subject->membership_status !== MembershipStatus::DEPARTED;
+    }
+
+    /**
+     * Determine whether the user can remove the R.I.P. status from a trooper account.
+     *
+     * @param  Trooper  $trooper  The authenticated user performing the action.
+     * @param  Trooper  $subject  The trooper being restored from R.I.P. status.
+     * @return bool True if the user is an administrator and the account is currently marked R.I.P.
+     */
+    public function unmarkRip(Trooper $trooper, Trooper $subject): bool
+    {
+        return $this->isAdministrator($trooper)
+            && $subject->membership_status === MembershipStatus::DEPARTED;
+    }
+
+    /**
+     * Determine whether the user can mark a trooper's account as created in error.
+     *
+     * @param  Trooper  $trooper  The authenticated user performing the action.
+     * @param  Trooper  $subject  The trooper being voided.
+     * @return bool True if the user is an administrator and the account is not already voided.
+     */
+    public function void(Trooper $trooper, Trooper $subject): bool
+    {
+        return $this->isAdministrator($trooper)
+            && $subject->membership_status !== MembershipStatus::INVALID;
+    }
+
+    /**
+     * Determine whether the user can restore a voided trooper account.
+     *
+     * @param  Trooper  $trooper  The authenticated user performing the action.
+     * @param  Trooper  $subject  The trooper being unvoided.
+     * @return bool True if the user is an administrator and the account is currently voided.
+     */
+    public function unvoid(Trooper $trooper, Trooper $subject): bool
+    {
+        return $this->isAdministrator($trooper)
+            && $subject->membership_status === MembershipStatus::INVALID;
     }
 
     /**

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Policies;
 
+use App\Enums\MembershipStatus;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
@@ -51,6 +52,42 @@ class TrooperPolicyTest extends TestCase
         $this->assertTrue($policy->update($administrator, $subject));
         $this->assertTrue($policy->moderate($administrator, $subject));
         $this->assertTrue($policy->approve($administrator, $subject));
+    }
+
+    public function test_void_and_unvoid_require_administrator_and_respect_current_status(): void
+    {
+        $policy = new TrooperPolicy;
+
+        $administrator = Trooper::factory()->asAdministrator()->create();
+        $moderator = Trooper::factory()->asModerator()->create();
+        $active_trooper = Trooper::factory()->asActive()->create();
+        $void_trooper = Trooper::factory()->create(['membership_status' => MembershipStatus::INVALID]);
+
+        $this->assertTrue($policy->void($administrator, $active_trooper));
+        $this->assertFalse($policy->void($administrator, $void_trooper));
+        $this->assertFalse($policy->void($moderator, $active_trooper));
+
+        $this->assertTrue($policy->unvoid($administrator, $void_trooper));
+        $this->assertFalse($policy->unvoid($administrator, $active_trooper));
+        $this->assertFalse($policy->unvoid($moderator, $void_trooper));
+    }
+
+    public function test_mark_rip_and_unmark_rip_require_administrator_and_respect_current_status(): void
+    {
+        $policy = new TrooperPolicy;
+
+        $administrator = Trooper::factory()->asAdministrator()->create();
+        $moderator = Trooper::factory()->asModerator()->create();
+        $active_trooper = Trooper::factory()->asActive()->create();
+        $rip_trooper = Trooper::factory()->create(['membership_status' => MembershipStatus::DEPARTED]);
+
+        $this->assertTrue($policy->markRip($administrator, $active_trooper));
+        $this->assertFalse($policy->markRip($administrator, $rip_trooper));
+        $this->assertFalse($policy->markRip($moderator, $active_trooper));
+
+        $this->assertTrue($policy->unmarkRip($administrator, $rip_trooper));
+        $this->assertFalse($policy->unmarkRip($administrator, $active_trooper));
+        $this->assertFalse($policy->unmarkRip($moderator, $rip_trooper));
     }
 
     public function test_moderator_permissions_follow_assignment_scope(): void

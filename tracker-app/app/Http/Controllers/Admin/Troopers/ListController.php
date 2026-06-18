@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Troopers;
 
+use App\Enums\MembershipStatus;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Filters\TrooperFilter;
 use App\Models\Organization;
@@ -88,7 +89,9 @@ class ListController extends MagicBusController
     ): LengthAwarePaginator {
         $trooper = $request->user();
 
-        $q = Trooper::moderatedBy($trooper)->orderBy($sort_col, $sort_dir);
+        $q = Trooper::moderatedBy($trooper)
+            ->when(! $trooper->is_administrator, fn ($q) => $q->where(Trooper::MEMBERSHIP_STATUS, '!=', MembershipStatus::INVALID->value))
+            ->orderBy($sort_col, $sort_dir);
 
         return $q->filterWith($filter)->paginate(15)->withQueryString();
     }
