@@ -64,7 +64,7 @@
                         @foreach ($organization_authorities as $organization)
                         @php($trooper_assignment = $organization->trooper_assignments->first())
                         @php($parent_selected = $selected_map[$organization->parent_id] ?? false)
-                        @php($selected_map[$organization->id] = $trooper_assignment->is_moderator ?? false)
+                        @php($selected_map[$organization->id] = $parent_selected || ($trooper_assignment->is_moderator ?? false))
                         <tr data-id="{{ $organization->id }}"
                             data-parent-id="{{ $organization->parent_id }}">
                             <td>
