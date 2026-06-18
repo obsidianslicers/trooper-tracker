@@ -7,6 +7,7 @@ namespace App\Services\MemberLookup;
 use App\Contracts\MemberLookupInterface;
 use App\Models\Organization;
 use App\Services\GoogleService;
+use Illuminate\Support\Facades\Cache;
 
 class GoogleSheetsMemberLookupService implements MemberLookupInterface
 {
@@ -20,6 +21,17 @@ class GoogleSheetsMemberLookupService implements MemberLookupInterface
     ) {}
 
     public function lookup(string $identifier): ?array
+    {
+        $cache_key = "tracker:member-lookup:sheet:{$this->organization->id}:{$identifier}";
+
+        $result = Cache::remember($cache_key, 3600, function () use ($identifier) {
+            return $this->fetchFromSheet($identifier) ?? false;
+        });
+
+        return $result === false ? null : $result;
+    }
+
+    private function fetchFromSheet(string $identifier): ?array
     {
         $sheet_id = $this->organization->sync_sheet_id;
 
