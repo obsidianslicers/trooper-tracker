@@ -13,6 +13,8 @@
             </div>
         </div>
     </div>
+@elseif(!$has_lookup_service)
+    {{-- Org has no lookup service configured; nothing to show --}}
 @elseif($member !== null)
     <div class="border rounded p-2 mt-2 d-flex gap-2 align-items-start small
                 {{ $member['is_approved'] ? 'border-success-subtle bg-success-subtle' : 'border-warning-subtle bg-warning-subtle' }}">
@@ -27,7 +29,7 @@
         @endif
         <div class="flex-grow-1 min-width-0">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-1">
-                <span class="fw-semibold">{{ $member['full_name'] }}</span>
+                <span class="fw-semibold">{{ $member['full_name'] ?? $member['formatted_identifier'] }}</span>
                 <div class="d-flex gap-1">
                     @if($member['status'])
                         <span class="badge {{ $member['status'] === 'Active' ? 'bg-success' : 'bg-secondary' }}">

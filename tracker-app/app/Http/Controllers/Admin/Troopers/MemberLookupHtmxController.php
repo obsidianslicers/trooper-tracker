@@ -17,27 +17,29 @@ class MemberLookupHtmxController extends MagicBusController
         $identifier = $trooper_request->identifier;
         $primary_org = $trooper_request->primaryOrganization;
 
+        $service = $primary_org ? $resolver->resolve($primary_org) : null;
+
         if (empty($identifier))
         {
             return view('pages.admin.troopers.partials.member-lookup', [
-                'identifier'      => null,
-                'org_name'        => $primary_org?->name,
-                'duplicate'       => null,
-                'member'          => null,
+                'identifier'         => null,
+                'org_name'           => $primary_org?->name,
+                'has_lookup_service' => $service !== null,
+                'duplicate'          => null,
+                'member'             => null,
             ]);
         }
 
         $duplicate_trooper = $this->findDuplicate($trooper_request);
 
-        $service = $primary_org ? $resolver->resolve($primary_org) : null;
-
         $member = $service?->lookup($identifier);
 
         return view('pages.admin.troopers.partials.member-lookup', [
-            'identifier' => $identifier,
-            'org_name'   => $primary_org?->name,
-            'duplicate'  => $duplicate_trooper,
-            'member'     => $member,
+            'identifier'         => $identifier,
+            'org_name'           => $primary_org?->name,
+            'has_lookup_service' => $service !== null,
+            'duplicate'          => $duplicate_trooper,
+            'member'             => $member,
         ]);
     }
 

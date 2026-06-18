@@ -6,25 +6,26 @@ namespace App\Services\MemberLookup;
 
 use App\Contracts\MemberLookupInterface;
 use App\Models\Organization;
+use App\Services\GoogleService;
+use App\Services\Synchronizers\DroidBuildersService;
+use App\Services\Synchronizers\MandalorianMercsService;
+use App\Services\Synchronizers\RebelLegionService;
+use App\Services\Synchronizers\SaberGuildServices;
 use App\Services\Synchronizers\TheLegionService;
 
 class MemberLookupResolver
 {
-    private array $map = [
-        TheLegionService::class => TheLegionMemberLookupService::class,
-    ];
+    public function __construct(private readonly GoogleService $google) {}
 
     public function resolve(Organization $organization): ?MemberLookupInterface
     {
-        $service_class = $organization->service_class;
-
-        if (empty($service_class) || !isset($this->map[$service_class]))
-        {
-            return null;
-        }
-
-        $lookup_class = $this->map[$service_class];
-
-        return new $lookup_class();
+        return match($organization->service_class) {
+            TheLegionService::class     => new TheLegionMemberLookupService(),
+            RebelLegionService::class   => new GoogleSheetsMemberLookupService($organization, $this->google, 'Troopers', 0, 1),
+            SaberGuildServices::class   => new GoogleSheetsMemberLookupService($organization, $this->google, 'Troopers', 2, 0, 'SG-'),
+            DroidBuildersService::class => new GoogleSheetsMemberLookupService($organization, $this->google, 'Troopers', 0, 1),
+            MandalorianMercsService::class => new GoogleSheetsMemberLookupService($organization, $this->google, 'Troopers', 0, 1),
+            default                     => null,
+        };
     }
 }
