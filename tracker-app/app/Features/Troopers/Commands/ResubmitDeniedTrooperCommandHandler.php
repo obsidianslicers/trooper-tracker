@@ -30,14 +30,29 @@ readonly class ResubmitDeniedTrooperCommandHandler implements CommandHandlerInte
         $trooper->membership_status = MembershipStatus::PENDING;
         $trooper->save();
 
-        TrooperRequest::where(TrooperRequest::TROOPER_ID, $trooper->id)
+        $denied_requests = TrooperRequest::where(TrooperRequest::TROOPER_ID, $trooper->id)
             ->denied()
-            ->update([
-                TrooperRequest::STATUS        => TrooperRequestStatus::PENDING,
-                TrooperRequest::DENIAL_REASON => null,
-            ]);
+            ->get();
 
-        if ($message->organization !== null)
+        foreach ($denied_requests as $denied_request)
+        {
+            $denied_request->delete();
+        }
+
+        if ($message->organization === null)
+        {
+            foreach ($denied_requests as $denied_request)
+            {
+                TrooperRequest::create([
+                    TrooperRequest::TROOPER_ID              => $trooper->id,
+                    TrooperRequest::ORGANIZATION_ID         => $denied_request->organization_id,
+                    TrooperRequest::PRIMARY_ORGANIZATION_ID => $denied_request->primary_organization_id,
+                    TrooperRequest::IDENTIFIER              => $denied_request->identifier,
+                    TrooperRequest::STATUS                  => TrooperRequestStatus::PENDING,
+                ]);
+            }
+        }
+        else
         {
             $primary_club = $message->organization->getPrimaryClub();
 
