@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Account;
 
 use App\Features\Organizations\Queries\GetOrganizationHierarchyQuery;
+use App\Enums\OrganizationType;
 use App\Http\Controllers\MagicBusController;
+use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperRequest;
 use App\Notifications\Troopers\TrooperDeniedNotification;
@@ -28,12 +30,16 @@ class DeniedController extends MagicBusController
         $denied_requests = TrooperRequest::query()
             ->where(TrooperRequest::TROOPER_ID, $trooper->id)
             ->denied()
-            ->with('organization')
             ->orderBy(TrooperRequest::UPDATED_AT, 'desc')
             ->get();
 
         $denial_reason = $denied_requests->first()?->denial_reason
             ?? $this->resolveDenialReasonFromNotification($trooper->id);
+
+        $specific_orgs = Organization::whereIn(
+            Organization::ID,
+            $denied_requests->pluck(TrooperRequest::ORGANIZATION_ID)->unique()
+        )->get()->keyBy(Organization::ID);
 
         $organization_hierarchy = $this->bus->send(new GetOrganizationHierarchyQuery)
             ->map(fn (array $org) => (object) $org);
@@ -42,13 +48,14 @@ class DeniedController extends MagicBusController
 
         foreach ($organization_hierarchy as $org)
         {
-            $denied = $request_by_primary[$org->id] ?? null;
+            $denied   = $request_by_primary[$org->id] ?? null;
+            $specific = $denied ? ($specific_orgs[$denied->organization_id] ?? null) : null;
 
             $org->selected   = old("organizations.{$org->id}.selected") === '1'
                                || ($denied !== null && !old('organizations'));
             $org->identifier = old("organizations.{$org->id}.identifier", $denied?->identifier);
-            $org->region_id  = old("organizations.{$org->id}.region_id", $this->resolveRegionId($denied));
-            $org->unit_id    = old("organizations.{$org->id}.unit_id", $this->resolveUnitId($denied));
+            $org->region_id  = old("organizations.{$org->id}.region_id", $this->resolveRegionId($specific));
+            $org->unit_id    = old("organizations.{$org->id}.unit_id", $this->resolveUnitId($specific));
         }
 
         $account_type = $this->resolveAccountType($trooper);
@@ -57,6 +64,7 @@ class DeniedController extends MagicBusController
             'trooper',
             'denied_requests',
             'denial_reason',
+            'specific_orgs',
             'organization_hierarchy',
             'account_type',
         );
@@ -76,36 +84,18 @@ class DeniedController extends MagicBusController
         return $notification ? json_decode($notification->data, true)['body'] ?? null : null;
     }
 
-    private function resolveRegionId(?TrooperRequest $request): ?int
+    private function resolveRegionId(?Organization $org): ?int
     {
-        if ($request === null)
-        {
-            return null;
-        }
-
-        $org = $request->organization;
-
-        if ($org->depth === 1)
-        {
-            return $org->id;
-        }
-
-        if ($org->depth === 2)
-        {
-            return $org->parent_id;
-        }
-
-        return null;
+        return match ($org?->type) {
+            OrganizationType::REGION => $org->id,
+            OrganizationType::UNIT   => $org->parent_id,
+            default                  => null,
+        };
     }
 
-    private function resolveUnitId(?TrooperRequest $request): ?int
+    private function resolveUnitId(?Organization $org): ?int
     {
-        if ($request === null)
-        {
-            return null;
-        }
-
-        return $request->organization->depth === 2 ? $request->organization->id : null;
+        return $org?->type === OrganizationType::UNIT ? $org->id : null;
     }
 
     private function resolveAccountType(mixed $trooper): string

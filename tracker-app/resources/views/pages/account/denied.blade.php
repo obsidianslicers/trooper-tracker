@@ -6,6 +6,7 @@
 
 <x-transmission-bar :id="'denied'" />
 
+
 <x-slim-container>
 
     <x-message type="danger"
@@ -30,7 +31,7 @@
                     <li class="list-group-item px-0">
                         <div class="d-flex align-items-center gap-2">
                             <i class="fa fa-fw fa-circle-xmark text-danger"></i>
-                            <span>{{ $request->organization->name }}</span>
+                            <span>{{ $specific_orgs[$request->organization_id]?->name ?? '—' }}</span>
                         </div>
                     </li>
                 @endforeach
