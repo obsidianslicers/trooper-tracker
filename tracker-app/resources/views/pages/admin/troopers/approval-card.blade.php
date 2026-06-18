@@ -64,6 +64,13 @@
                         <dt class="col-4">Identifier:</dt>
                         <dd class="col-8 mb-0">{{ $trooper_request->identifier ?? 'n/a' }}</dd>
                     </dl>
+                    <div hx-get="{{ route('admin.troopers.trooper-requests.member-lookup', $trooper_request) }}"
+                         hx-trigger="load"
+                         hx-swap="outerHTML">
+                        <div class="text-center text-muted py-1 small">
+                            <i class="fa-solid fa-spinner fa-spin me-1"></i> Checking member status&hellip;
+                        </div>
+                    </div>
                 </div>
             @empty
                 <x-message type="info"
