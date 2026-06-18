@@ -31,7 +31,7 @@
                     <li class="list-group-item px-0">
                         <div class="d-flex align-items-center gap-2">
                             <i class="fa fa-fw fa-circle-xmark text-danger"></i>
-                            <span>{{ $specific_orgs[$request->organization_id]?->name ?? '—' }}</span>
+                            <span>{{ $org_paths[$request->organization_id] ?? '—' }}</span>
                         </div>
                     </li>
                 @endforeach

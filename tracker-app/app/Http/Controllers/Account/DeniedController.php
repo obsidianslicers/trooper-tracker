@@ -41,6 +41,8 @@ class DeniedController extends MagicBusController
             $denied_requests->pluck(TrooperRequest::ORGANIZATION_ID)->unique()
         )->get()->keyBy(Organization::ID);
 
+        $org_paths = Organization::buildPathLabels($specific_orgs);
+
         $organization_hierarchy = $this->bus->send(new GetOrganizationHierarchyQuery)
             ->map(fn (array $org) => (object) $org);
 
@@ -65,6 +67,7 @@ class DeniedController extends MagicBusController
             'denied_requests',
             'denial_reason',
             'specific_orgs',
+            'org_paths',
             'organization_hierarchy',
             'account_type',
         );
