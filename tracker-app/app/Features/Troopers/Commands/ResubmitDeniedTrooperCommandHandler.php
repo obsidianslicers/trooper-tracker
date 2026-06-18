@@ -9,13 +9,9 @@ use App\Bus\Contracts\CommandHandlerInterface;
 use App\Enums\MembershipStatus;
 use App\Enums\TrooperRequestStatus;
 use App\Jobs\SendTrooperResubmittedNotificationsJob;
+use App\Models\Organization;
 use App\Models\TrooperRequest;
 
-/**
- * Handler for resubmitting a denied trooper's registration application.
- *
- * @implements CommandHandlerInterface<ResubmitDeniedTrooperCommand>
- */
 readonly class ResubmitDeniedTrooperCommandHandler implements CommandHandlerInterface
 {
     use ShouldBeTransactional;
@@ -30,43 +26,91 @@ readonly class ResubmitDeniedTrooperCommandHandler implements CommandHandlerInte
         $trooper->membership_status = MembershipStatus::PENDING;
         $trooper->save();
 
-        $denied_requests = TrooperRequest::where(TrooperRequest::TROOPER_ID, $trooper->id)
+        TrooperRequest::where(TrooperRequest::TROOPER_ID, $trooper->id)
             ->denied()
-            ->get();
+            ->delete();
 
-        foreach ($denied_requests as $denied_request)
-        {
-            $denied_request->delete();
-        }
+        $account_type = $this->resolveAccountType($trooper->membership_role->value);
 
-        if ($message->organization === null)
+        if ($account_type !== 'handler')
         {
-            foreach ($denied_requests as $denied_request)
+            foreach ($message->organizations as $org_id => $data)
             {
+                if (empty($data['selected']))
+                {
+                    continue;
+                }
+
+                $organization = Organization::find((int) $org_id);
+
+                if (!$organization)
+                {
+                    continue;
+                }
+
+                $resolved = $this->resolveOrganization($data, $organization, $account_type);
+
+                if ($resolved === null)
+                {
+                    continue;
+                }
+
+                $primary = $resolved->getPrimaryClub();
+                $identifier = isset($data['identifier']) ? (trim((string) $data['identifier']) ?: null) : null;
+
                 TrooperRequest::create([
                     TrooperRequest::TROOPER_ID              => $trooper->id,
-                    TrooperRequest::ORGANIZATION_ID         => $denied_request->organization_id,
-                    TrooperRequest::PRIMARY_ORGANIZATION_ID => $denied_request->primary_organization_id,
-                    TrooperRequest::IDENTIFIER              => $denied_request->identifier,
+                    TrooperRequest::ORGANIZATION_ID         => $resolved->id,
+                    TrooperRequest::PRIMARY_ORGANIZATION_ID => $primary->id,
+                    TrooperRequest::IDENTIFIER              => $identifier,
                     TrooperRequest::STATUS                  => TrooperRequestStatus::PENDING,
                 ]);
             }
-        }
-        else
-        {
-            $primary_club = $message->organization->getPrimaryClub();
-
-            TrooperRequest::create([
-                TrooperRequest::TROOPER_ID              => $trooper->id,
-                TrooperRequest::ORGANIZATION_ID         => $message->organization->id,
-                TrooperRequest::PRIMARY_ORGANIZATION_ID => $primary_club->id,
-                TrooperRequest::IDENTIFIER              => $message->identifier ?: null,
-                TrooperRequest::STATUS                  => TrooperRequestStatus::PENDING,
-            ]);
         }
 
         SendTrooperResubmittedNotificationsJob::dispatch($trooper);
 
         return null;
+    }
+
+    private function resolveOrganization(array $data, Organization $organization, string $account_type): ?Organization
+    {
+        if ($account_type === 'visitor')
+        {
+            return $organization;
+        }
+
+        if (!isset($data['region_id']))
+        {
+            return null;
+        }
+
+        $region = $organization->organizations()
+            ->ofTypeRegions()
+            ->firstWhere(Organization::ID, $data['region_id']);
+
+        if (!$region)
+        {
+            return null;
+        }
+
+        if ($region->organizations()->count() === 0)
+        {
+            return $region;
+        }
+
+        if (!isset($data['unit_id']))
+        {
+            return null;
+        }
+
+        return $region->organizations()
+            ->ofTypeUnits()
+            ->firstWhere(Organization::ID, $data['unit_id']);
+    }
+
+    private function resolveAccountType(string $role): string
+    {
+        return in_array($role, ['visitor', 'handler'], true) ? $role : 'member';
     }
 }
