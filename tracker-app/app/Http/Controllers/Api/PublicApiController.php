@@ -19,6 +19,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Provides a public API for use by external developers.
@@ -135,27 +136,31 @@ class PublicApiController
             return $this->rosterResponse(collect(), collect());
         }
 
-        $org_ids = Organization::where(Organization::NODE_PATH, 'like', $org->node_path.'%')
-            ->pluck(Organization::ID);
+        $html = Cache::remember("tracker:roster:{$org->id}", 86400, function () use ($org) {
+            $org_ids = Organization::where(Organization::NODE_PATH, 'like', $org->node_path.'%')
+                ->pluck(Organization::ID);
 
-        $troopers = Trooper::active()
-            ->whereHas('trooper_assignments', fn ($q) => $q
-                ->whereIn(TrooperAssignment::ORGANIZATION_ID, $org_ids)
-                ->where(TrooperAssignment::IS_MEMBER, true)
-            )
-            ->with([
-                'trooper_costumes.organization_costume',
-                'organizations' => fn ($q) => $q->withPivot(TrooperOrganization::IDENTIFIER),
-            ])
-            ->orderBy(Trooper::DISPLAY_NAME)
-            ->get();
+            $troopers = Trooper::active()
+                ->whereHas('trooper_assignments', fn ($q) => $q
+                    ->whereIn(TrooperAssignment::ORGANIZATION_ID, $org_ids)
+                    ->where(TrooperAssignment::IS_MEMBER, true)
+                )
+                ->with([
+                    'trooper_costumes.organization_costume',
+                    'organizations' => fn ($q) => $q->withPivot(TrooperOrganization::IDENTIFIER),
+                ])
+                ->orderBy(Trooper::DISPLAY_NAME)
+                ->get();
 
-        $staff_ids = TrooperAssignment::whereIn(TrooperAssignment::ORGANIZATION_ID, $org_ids)
-            ->where(TrooperAssignment::IS_MODERATOR, true)
-            ->pluck(TrooperAssignment::TROOPER_ID)
-            ->unique();
+            $staff_ids = TrooperAssignment::whereIn(TrooperAssignment::ORGANIZATION_ID, $org_ids)
+                ->where(TrooperAssignment::IS_MODERATOR, true)
+                ->pluck(TrooperAssignment::TROOPER_ID)
+                ->unique();
 
-        return $this->rosterResponse($troopers, $staff_ids);
+            return $this->rosterResponse($troopers, $staff_ids)->getContent();
+        });
+
+        return response($html);
     }
 
     private function rosterResponse(Collection $troopers, Collection $staff_ids): Response
