@@ -6,6 +6,7 @@ namespace App\Features\Troopers\Commands;
 
 use App\Bus\Concerns\ShouldBeTransactional;
 use App\Bus\Contracts\CommandHandlerInterface;
+use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
 use App\Enums\TrooperRequestStatus;
 use App\Jobs\SendTrooperResubmittedNotificationsJob;
@@ -30,7 +31,7 @@ readonly class ResubmitDeniedTrooperCommandHandler implements CommandHandlerInte
             ->denied()
             ->delete();
 
-        $account_type = $this->resolveAccountType($trooper->membership_role->value);
+        $account_type = $trooper->membership_role?->toAccountType() ?? MembershipRole::MEMBER->toAccountType();
 
         if ($account_type !== 'handler')
         {
@@ -107,10 +108,5 @@ readonly class ResubmitDeniedTrooperCommandHandler implements CommandHandlerInte
         return $region->organizations()
             ->ofTypeUnits()
             ->firstWhere(Organization::ID, $data['unit_id']);
-    }
-
-    private function resolveAccountType(string $role): string
-    {
-        return in_array($role, ['visitor', 'handler'], true) ? $role : 'member';
     }
 }

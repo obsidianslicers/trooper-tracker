@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Account;
 
+use App\Enums\MembershipRole;
 use App\Http\Requests\Concerns\HasNormalizers;
 use App\Models\Organization;
 use App\Rules\Auth\AtLeastOneOrganizationSelectedRule;
@@ -81,7 +82,7 @@ class ResubmitDeniedRequest extends FormRequest
             'organizations.*.selected' => ['nullable', 'boolean'],
         ];
 
-        $account_type = $this->resolveAccountType();
+        $account_type = $this->user()?->membership_role?->toAccountType() ?? MembershipRole::MEMBER->toAccountType();
         $trooper = $this->user();
         $organizations = $this->getOrganizations();
 
@@ -146,13 +147,6 @@ class ResubmitDeniedRequest extends FormRequest
         }
 
         return $rules;
-    }
-
-    private function resolveAccountType(): string
-    {
-        $role = $this->user()?->membership_role?->value ?? 'member';
-
-        return in_array($role, ['visitor', 'handler'], true) ? $role : 'member';
     }
 
     private function getOrganizations(): Collection

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Account;
 
+use App\Enums\MembershipRole;
 use App\Enums\OrganizationType;
 use App\Features\Organizations\Queries\GetOrganizationHierarchyQuery;
 use App\Http\Controllers\MagicBusController;
@@ -60,7 +61,7 @@ class DeniedController extends MagicBusController
             $org->unit_id = old("organizations.{$org->id}.unit_id", $this->resolveUnitId($specific));
         }
 
-        $account_type = $this->resolveAccountType($trooper);
+        $account_type = $trooper->membership_role?->toAccountType() ?? MembershipRole::MEMBER->toAccountType();
 
         $data = compact(
             'trooper',
@@ -100,12 +101,5 @@ class DeniedController extends MagicBusController
     private function resolveUnitId(?Organization $org): ?int
     {
         return $org?->type === OrganizationType::UNIT ? $org->id : null;
-    }
-
-    private function resolveAccountType(mixed $trooper): string
-    {
-        $role = $trooper->membership_role?->value ?? 'member';
-
-        return in_array($role, ['visitor', 'handler'], true) ? $role : 'member';
     }
 }

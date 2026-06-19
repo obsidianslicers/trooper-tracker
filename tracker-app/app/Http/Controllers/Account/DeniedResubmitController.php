@@ -15,8 +15,6 @@ class DeniedResubmitController extends MagicBusController
     {
         $trooper = $request->user();
 
-        abort_unless($trooper->is_denied, 409);
-
         $this->bus->send(new ResubmitDeniedTrooperCommand(
             $trooper,
             $request->validated('organizations', []),
