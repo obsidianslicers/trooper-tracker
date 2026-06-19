@@ -273,22 +273,6 @@ class RegisterRequest extends FormRequest
         $validator->setCustomMessages($messages);
     }
 
-    private function normalizeRuleKey(string $rule): string
-    {
-        // Laravel uses 'between' not 'between:1000,9999' for message keys
-        return explode(':', $rule)[0];
-    }
-
-    private function friendlyPhrase(string $rule): string
-    {
-        return match ($rule)
-        {
-            'integer' => 'an integer',
-            'string' => 'a valid string',
-            default => str_replace(':', ' ', $rule),
-        };
-    }
-
     private function getOrganizations(): Collection
     {
         $getter = function (): Collection {

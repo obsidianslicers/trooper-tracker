@@ -153,19 +153,4 @@ class ResubmitDeniedRequest extends FormRequest
     {
         return once(fn (): Collection => Organization::fullyLoaded()->get());
     }
-
-    private function normalizeRuleKey(string $rule): string
-    {
-        return explode(':', $rule)[0];
-    }
-
-    private function friendlyPhrase(string $rule): string
-    {
-        return match ($rule)
-        {
-            'integer' => 'an integer',
-            'string' => 'a valid string',
-            default => str_replace(':', ' ', $rule),
-        };
-    }
 }
