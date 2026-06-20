@@ -46,4 +46,14 @@ enum MembershipRole: string
             default => 'member',
         };
     }
+
+    public function isHandler(): bool
+    {
+        return $this === self::HANDLER;
+    }
+
+    public function isVisitor(): bool
+    {
+        return $this === self::VISITOR;
+    }
 }

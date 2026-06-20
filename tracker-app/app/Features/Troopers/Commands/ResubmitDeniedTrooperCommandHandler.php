@@ -31,9 +31,7 @@ readonly class ResubmitDeniedTrooperCommandHandler implements CommandHandlerInte
             ->denied()
             ->delete();
 
-        $account_type = $trooper->membership_role?->toAccountType() ?? MembershipRole::MEMBER->toAccountType();
-
-        if ($account_type !== 'handler')
+        if ($trooper->membership_role !== MembershipRole::HANDLER)
         {
             foreach ($message->organizations as $org_id => $data)
             {
@@ -49,7 +47,7 @@ readonly class ResubmitDeniedTrooperCommandHandler implements CommandHandlerInte
                     continue;
                 }
 
-                $resolved = $this->resolveOrganization($data, $organization, $account_type);
+                $resolved = $this->resolveOrganization($data, $organization, $trooper->membership_role);
 
                 if ($resolved === null)
                 {
@@ -74,9 +72,9 @@ readonly class ResubmitDeniedTrooperCommandHandler implements CommandHandlerInte
         return null;
     }
 
-    private function resolveOrganization(array $data, Organization $organization, string $account_type): ?Organization
+    private function resolveOrganization(array $data, Organization $organization, ?MembershipRole $role): ?Organization
     {
-        if ($account_type === 'visitor')
+        if ($role?->isVisitor())
         {
             return $organization;
         }
