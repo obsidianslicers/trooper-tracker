@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Synchronizers;
 
+use App\Contracts\MemberLookupInterface;
 use App\Contracts\SynchronizerInterface;
 use App\Enums\MembershipStatus;
 use App\Models\Costume;
@@ -35,6 +36,8 @@ abstract class BaseOrganizationService implements SynchronizerInterface
     }
 
     abstract protected function synchronize(): void;
+
+    abstract public function lookupMember(): ?MemberLookupInterface;
 
     protected function getSheetRows(string $sheet_name, bool $skip_header = true): array
     {

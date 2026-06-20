@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Services\Synchronizers;
 
+use App\Contracts\MemberLookupInterface;
 use App\Enums\MembershipStatus;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
@@ -149,6 +150,11 @@ class BaseOrganizationServiceTest extends TestCase
 class BaseOrganizationServiceHarness extends BaseOrganizationService
 {
     public int $synchronize_call_count = 0;
+
+    public function lookupMember(): ?MemberLookupInterface
+    {
+        return null;
+    }
 
     protected function synchronize(): void
     {

@@ -27,8 +27,8 @@ class MemberLookupResolverTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $google = Mockery::mock(GoogleService::class);
-        $this->subject = new MemberLookupResolver($google);
+        $this->app->instance(GoogleService::class, Mockery::mock(GoogleService::class));
+        $this->subject = new MemberLookupResolver();
     }
 
     public function test_resolve_returns_the_legion_service_for_501st_org(): void

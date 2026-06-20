@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services\Synchronizers;
 
+use App\Contracts\MemberLookupInterface;
+
 /**
  * Service class for managing Mandalorian Mercs organization data.
  *
@@ -12,5 +14,10 @@ namespace App\Services\Synchronizers;
  */
 class DarkEmpireServices extends BaseOrganizationService
 {
+    public function lookupMember(): ?MemberLookupInterface
+    {
+        return null;
+    }
+
     protected function synchronize(): void {}
 }
