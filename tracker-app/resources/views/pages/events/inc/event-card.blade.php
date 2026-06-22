@@ -5,9 +5,7 @@
      x-show="matches($el)"
      data-event-name="{{ $event->name }}"
      data-event-hosting-organization-id="{{ $event->organization_id  }}">
-    <div class="card h-100"
-         data-route="{{ route('events.display', compact('event')) }}"
-         x-on:click="window.location = $el.dataset.route">
+    <div class="card h-100">
         <div class="card-header {{ $bg }} d-flex align-items-center">
             <span class="p-2">
                 @if($event->at_risk)
@@ -19,9 +17,10 @@
                             :height="32" />
                 @endif
             </span>
-            <span class="p-1 text-white">
+            <a class="p-1 text-white text-decoration-none stretched-link"
+               href="{{ route('events.display', compact('event')) }}">
                 {{ $event->name }}
-            </span>
+            </a>
         </div>
 
         <div class="card-body">
@@ -30,11 +29,10 @@
                     ** risk of cancellation **
                 </p>
             @endif
-            <p class="card-text">
+            <p class="card-text position-relative" style="z-index: 2;">
                 <a href="https://www.google.com/maps/search/?api=1&query={{ $event->venue_address }}"
                    target="_blank"
-                   class="text-decoration-none"
-                   x-on:click.stop>
+                   class="text-decoration-none">
                     <i class="fa fa-fw fa-location-dot me-2"></i>
                     {{ $event->venue_address }}
                 </a>
@@ -52,7 +50,8 @@
                 @endif
                 @foreach($event->event_shifts as $shift)
                     <a href="{{ route('events.display', compact('event')) }}#shift-{{ $shift->id }}"
-                       class="list-group-item d-flex justify-content-between align-items-center">
+                       class="list-group-item d-flex justify-content-between align-items-center position-relative"
+                       style="z-index: 2;">
                         <span>
                             @if($shifts_count > 1)
                                 {{ $shift->shift_starts_at->format('m/d') }}
