@@ -811,4 +811,104 @@ class EventShiftTest extends TestCase
         $this->assertInstanceOf(EventStatus::class, $subject->{EventShift::STATUS});
         $this->assertSame(EventStatus::OPEN, $subject->{EventShift::STATUS});
     }
+
+    public function test_going_label_returns_empty_string_when_no_attendees(): void
+    {
+        $subject = EventShift::factory()->create();
+        $subject->event_troopers_count = 0;
+        $subject->event_handlers_count = 0;
+        $subject->event_guests_count = 0;
+
+        $this->assertSame('', $subject->going_label);
+    }
+
+    public function test_going_label_shows_singular_trooper(): void
+    {
+        $subject = EventShift::factory()->create();
+        $subject->event_troopers_count = 1;
+        $subject->event_handlers_count = 0;
+        $subject->event_guests_count = 0;
+
+        $this->assertSame('1 trooper', $subject->going_label);
+    }
+
+    public function test_going_label_shows_plural_troopers(): void
+    {
+        $subject = EventShift::factory()->create();
+        $subject->event_troopers_count = 5;
+        $subject->event_handlers_count = 0;
+        $subject->event_guests_count = 0;
+
+        $this->assertSame('5 troopers', $subject->going_label);
+    }
+
+    public function test_going_label_shows_singular_handler(): void
+    {
+        $subject = EventShift::factory()->create();
+        $subject->event_troopers_count = 0;
+        $subject->event_handlers_count = 1;
+        $subject->event_guests_count = 0;
+
+        $this->assertSame('1 handler', $subject->going_label);
+    }
+
+    public function test_going_label_shows_plural_handlers(): void
+    {
+        $subject = EventShift::factory()->create();
+        $subject->event_troopers_count = 0;
+        $subject->event_handlers_count = 3;
+        $subject->event_guests_count = 0;
+
+        $this->assertSame('3 handlers', $subject->going_label);
+    }
+
+    public function test_going_label_shows_singular_guest(): void
+    {
+        $subject = EventShift::factory()->create();
+        $subject->event_troopers_count = 0;
+        $subject->event_handlers_count = 0;
+        $subject->event_guests_count = 1;
+
+        $this->assertSame('1 guest', $subject->going_label);
+    }
+
+    public function test_going_label_shows_plural_guests(): void
+    {
+        $subject = EventShift::factory()->create();
+        $subject->event_troopers_count = 0;
+        $subject->event_handlers_count = 0;
+        $subject->event_guests_count = 4;
+
+        $this->assertSame('4 guests', $subject->going_label);
+    }
+
+    public function test_going_label_joins_troopers_and_handlers_with_separator(): void
+    {
+        $subject = EventShift::factory()->create();
+        $subject->event_troopers_count = 5;
+        $subject->event_handlers_count = 2;
+        $subject->event_guests_count = 0;
+
+        $this->assertSame('5 troopers · 2 handlers', $subject->going_label);
+    }
+
+    public function test_going_label_skips_zero_counts_in_middle(): void
+    {
+        $subject = EventShift::factory()->create();
+        $subject->event_troopers_count = 5;
+        $subject->event_handlers_count = 0;
+        $subject->event_guests_count = 3;
+
+        $this->assertSame('5 troopers · 3 guests', $subject->going_label);
+    }
+
+    public function test_going_label_joins_all_three_types(): void
+    {
+        $subject = EventShift::factory()->create();
+        $subject->event_troopers_count = 5;
+        $subject->event_handlers_count = 2;
+        $subject->event_guests_count = 1;
+
+        $this->assertSame('5 troopers · 2 handlers · 1 guest', $subject->going_label);
+    }
 }
