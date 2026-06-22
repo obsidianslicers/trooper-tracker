@@ -72,12 +72,12 @@
                                     FULL TROOP
                                     <i class="fa fa-fw fa-check-circle ms-2"></i>
                                 </span>
-                            @elseif($shift->event_troopers_count == 0)
+                            @elseif($shift->event_troopers_count == 0 && $shift->event_handlers_count == 0 && $shift->event_guests_count == 0)
                                 <span class="text-danger">
                                     NOT ENOUGH!
                                 </span>
                             @else
-                                {{ $shift->event_troopers_count }} going
+                                {{ $shift->going_label }} going
                             @endif
                         </span>
                     </a>

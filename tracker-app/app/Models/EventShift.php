@@ -153,6 +153,35 @@ class EventShift extends BaseEventShift
     }
 
     /**
+     * Get a formatted label of who is going to this shift, hiding zero counts.
+     *
+     * Returns parts joined by " · ", e.g. "5 troopers · 2 handlers · 1 guest".
+     * Returns an empty string when no one is going.
+     *
+     * @return string
+     */
+    public function getGoingLabelAttribute(): string
+    {
+        $parts = array_filter([
+            $this->formatCount((int) $this->event_troopers_count, 'trooper', 'troopers'),
+            $this->formatCount((int) $this->event_handlers_count, 'handler', 'handlers'),
+            $this->formatCount((int) $this->event_guests_count, 'guest', 'guests'),
+        ]);
+
+        return implode(' · ', $parts);
+    }
+
+    private function formatCount(int $count, string $singular, string $plural): ?string
+    {
+        if ($count === 0)
+        {
+            return null;
+        }
+
+        return $count . ' ' . ($count === 1 ? $singular : $plural);
+    }
+
+    /**
      * Get a shortened formatted display string for the shift time.
      *
      * Format: "10/03 - 2:00pm - 4:00pm"
