@@ -9,6 +9,7 @@ use App\Enums\AchievementType;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Enums\OauthProvider;
+use App\Jobs\SendTrooperMilestoneNotificationsJob;
 use App\Models\Event;
 use App\Models\EventTrooper;
 use App\Models\OauthLogin;
@@ -366,10 +367,16 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
 
             $type = AchievementType::from($type_value);
 
-            TrooperAchievement::firstOrCreate(
+            $achievement = TrooperAchievement::firstOrCreate(
                 [TrooperAchievement::TROOPER_ID => $trooper->id, TrooperAchievement::TYPE => $type],
                 [TrooperAchievement::VALUE => true, TrooperAchievement::ACHIEVEMENT_DATE => now()]
             );
+
+            if ($achievement->wasRecentlyCreated)
+            {
+                $achievement->setRelation('trooper', $trooper);
+                dispatch(new SendTrooperMilestoneNotificationsJob($achievement));
+            }
         }
 
         $amount_thresholds = [
@@ -388,10 +395,16 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
 
             $type = AchievementType::from($type_value);
 
-            TrooperAchievement::firstOrCreate(
+            $achievement = TrooperAchievement::firstOrCreate(
                 [TrooperAchievement::TROOPER_ID => $trooper->id, TrooperAchievement::TYPE => $type],
                 [TrooperAchievement::VALUE => true, TrooperAchievement::ACHIEVEMENT_DATE => now()]
             );
+
+            if ($achievement->wasRecentlyCreated)
+            {
+                $achievement->setRelation('trooper', $trooper);
+                dispatch(new SendTrooperMilestoneNotificationsJob($achievement));
+            }
         }
     }
 
@@ -447,7 +460,13 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
                 TrooperAchievement::ACHIEVEMENT_DATE => now(),
             ];
 
-            TrooperAchievement::firstOrCreate($where, $set);
+            $record = TrooperAchievement::firstOrCreate($where, $set);
+
+            if ($record->wasRecentlyCreated)
+            {
+                $record->setRelation('trooper', $trooper);
+                dispatch(new SendTrooperMilestoneNotificationsJob($record));
+            }
         }
     }
 }

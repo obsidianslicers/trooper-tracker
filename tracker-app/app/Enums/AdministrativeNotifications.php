@@ -25,4 +25,9 @@ enum AdministrativeNotifications: string
      * Sent to command staff when a trooper flags a forum post for their attention.
      */
     case FORUM_POST_COMMAND_STAFF = 'forum_post_command_staff';
+
+    /**
+     * Sent when a trooper earns a milestone achievement (troop counts, donation milestones, etc.).
+     */
+    case TROOPER_MILESTONES = 'trooper_milestones';
 }
