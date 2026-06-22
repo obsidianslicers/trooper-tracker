@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Services\Synchronizers;
 
+use App\Contracts\MemberLookupInterface;
 use App\Enums\MembershipStatus;
 use App\Models\Trooper;
 use App\Models\TrooperCostume;
 use App\Models\TrooperOrganization;
+use App\Services\MemberLookup\TheLegionMemberLookupService;
 use Carbon\Carbon;
 use Carbon\Exceptions\InvalidFormatException;
 use Illuminate\Support\Facades\Http;
@@ -15,6 +17,11 @@ use Symfony\Component\DomCrawler\Crawler;
 
 class TheLegionService extends BaseOrganizationService
 {
+    public function lookupMember(): ?MemberLookupInterface
+    {
+        return new TheLegionMemberLookupService;
+    }
+
     protected function synchronize(): void
     {
         $this->syncCostumes();

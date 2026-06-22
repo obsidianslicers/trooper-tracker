@@ -28,6 +28,13 @@
                 <dd class="col-8">{{ $trooper_request->denial_reason }}</dd>
             @endif
         </dl>
+        <div hx-get="{{ route('admin.troopers.trooper-requests.member-lookup', $trooper_request) }}"
+             hx-trigger="load"
+             hx-swap="outerHTML">
+            <div class="text-center text-muted py-1 small">
+                <i class="fa-solid fa-spinner fa-spin me-1"></i> Checking member status&hellip;
+            </div>
+        </div>
     </div>
     <div class="card-footer d-flex justify-content-between">
         @if($trooper_request->status === \App\Enums\TrooperRequestStatus::APPROVED)
