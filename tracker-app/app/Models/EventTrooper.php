@@ -11,6 +11,7 @@ use App\Models\Concerns\HasAuditTrail;
 use App\Models\Concerns\HasObserver;
 use App\Models\Concerns\HasTrooperStamps;
 use App\Models\Scopes\HasEventTrooperScopes;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Collection;
@@ -347,46 +348,16 @@ class EventTrooper extends BaseEventTrooper
         // Credit eligibility always queries live data — never the stored costume_organization_ids,
         // which can be narrowed by admin edits or capacity tracking and would hide eligible clubs.
         $this->loadMissing('costume');
-        if ($this->costume_id === null || $this->costume?->countsAsHandler())
-        {
-            return Organization::whereHas('trooper_assignments', fn($q) =>
-                $q->where(TrooperAssignment::TROOPER_ID, $this->trooper_id)
-                    ->where(TrooperAssignment::IS_MEMBER, true)
-            )->get();
+        if ($this->costume_id === null || $this->costume?->countsAsHandler()) {
+            return $this->memberOrgsQuery()->get();
         }
 
-        $stored_ids = $this->costume_organization_ids ?? [];
         $approved_ids = $this->costume->approvedOrgIdsForTrooper($this->trooper_id);
-        $effective_ids = array_values(array_unique(array_merge($stored_ids, $approved_ids)));
-
-        if (!empty($effective_ids))
-        {
-            return Organization::whereIn('id', $effective_ids)
-                ->whereHas('trooper_assignments', fn($q) =>
-                    $q->where(TrooperAssignment::TROOPER_ID, $this->trooper_id)
-                        ->where(TrooperAssignment::IS_MEMBER, true)
-                )
-                ->get();
+        if (!empty($approved_ids)) {
+            return $this->memberOrgsQuery()->whereIn('id', $approved_ids)->get();
         }
 
-        // costume_organization_ids not set yet — derive from the costume's approvals rather than
-        // falling back to all member orgs (which would credit the wrong club).
-        $approved_ids = $this->costume->approvedOrgIdsForTrooper($this->trooper_id);
-
-        if (!empty($approved_ids))
-        {
-            return Organization::whereIn('id', $approved_ids)
-                ->whereHas('trooper_assignments', fn($q) =>
-                    $q->where(TrooperAssignment::TROOPER_ID, $this->trooper_id)
-                        ->where(TrooperAssignment::IS_MEMBER, true)
-                )
-                ->get();
-        }
-
-        return Organization::whereHas('trooper_assignments', fn($q) =>
-            $q->where(TrooperAssignment::TROOPER_ID, $this->trooper_id)
-                ->where(TrooperAssignment::IS_MEMBER, true)
-        )->get();
+        return $this->memberOrgsQuery()->get();
     }
 
     /**
@@ -400,6 +371,14 @@ class EventTrooper extends BaseEventTrooper
             ->map(fn($org) => $org->getPrimaryClub())
             ->unique('id')
             ->values();
+    }
+
+    private function memberOrgsQuery(): Builder
+    {
+        return Organization::whereHas('trooper_assignments', fn($q) =>
+            $q->where(TrooperAssignment::TROOPER_ID, $this->trooper_id)
+              ->where(TrooperAssignment::IS_MEMBER, true)
+        );
     }
 
     /**
