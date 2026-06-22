@@ -170,6 +170,11 @@ class Trooper extends BaseTrooper implements
         return $this->membership_status == MembershipStatus::DENIED;
     }
 
+    public function getIsPendingAttribute(): bool
+    {
+        return $this->membership_status == MembershipStatus::PENDING;
+    }
+
     public function getIsVisitorAttribute(): bool
     {
         return $this->membership_role === MembershipRole::VISITOR;

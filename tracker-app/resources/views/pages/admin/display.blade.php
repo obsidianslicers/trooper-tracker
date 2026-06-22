@@ -4,6 +4,54 @@
 
 @section('content')
 
+    <div x-data="{
+        notApproved: {{ $not_approved }},
+        pendingJoinRequests: {{ $pending_join_requests }},
+        dismissedApprovalCount: $persist(0).as('admin_dismissed_approvals_{{ auth()->id() }}'),
+        dismissedRequestCount: $persist(0).as('admin_dismissed_requests_{{ auth()->id() }}'),
+        showApproval: false,
+        showRequest: false,
+        init() {
+            this.showApproval = this.notApproved > this.dismissedApprovalCount;
+            this.showRequest = this.pendingJoinRequests > this.dismissedRequestCount;
+        },
+        dismissApproval() {
+            this.dismissedApprovalCount = this.notApproved;
+            this.showApproval = false;
+        },
+        dismissRequest() {
+            this.dismissedRequestCount = this.pendingJoinRequests;
+            this.showRequest = false;
+        }
+    }">
+        <div x-show="showApproval"
+             x-transition
+             class="alert alert-warning alert-dismissible mt-2">
+            <strong>
+                <i class="fa fa-fw fa-solid fa-circle-exclamation"></i>
+                @if($not_approved === 1)
+                    There is 1 trooper ready for action!
+                @else
+                    There are {{ $not_approved }} troopers ready for action!
+                @endif
+            </strong>
+            <button type="button" class="btn-close" @click="dismissApproval()"></button>
+        </div>
+        <div x-show="showRequest"
+             x-transition
+             class="alert alert-warning alert-dismissible mt-2">
+            <strong>
+                <i class="fa fa-fw fa-solid fa-circle-exclamation"></i>
+                @if($pending_join_requests === 1)
+                    1 trooper has a pending request!
+                @else
+                    {{ $pending_join_requests }} troopers have a pending request!
+                @endif
+            </strong>
+            <button type="button" class="btn-close" @click="dismissRequest()"></button>
+        </div>
+    </div>
+
     <x-dashboard-cards x-data="Admin.cardNavigator()"
                        x-on:click="navigate">
         <x-dashboard-card :label="'Trooper Approvals'"

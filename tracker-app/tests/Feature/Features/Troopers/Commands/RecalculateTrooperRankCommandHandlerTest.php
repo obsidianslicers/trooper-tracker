@@ -9,12 +9,14 @@ use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Features\Troopers\Commands\RecalculateTrooperRankCommand;
 use App\Features\Troopers\Commands\RecalculateTrooperRankCommandHandler;
+use App\Jobs\SendTrooperMilestoneNotificationsJob;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
 use App\Models\TrooperAchievement;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Bus;
 use Tests\TestCase;
 
 /**
@@ -170,5 +172,53 @@ class RecalculateTrooperRankCommandHandlerTest extends TestCase
             TrooperAchievement::TYPE => AchievementType::FIRST_TROOP->value,
             TrooperAchievement::VALUE => 1,
         ]);
+    }
+
+    public function test_invoke_dispatches_milestone_notification_job_for_new_milestone(): void
+    {
+        Bus::fake();
+
+        $trooper = Trooper::factory()->create();
+        $event = Event::factory()->asClosed()->create();
+        $shift = EventShift::factory()->forEvent($event)->create();
+        EventTrooper::factory()
+            ->forTrooper($trooper)
+            ->forEventShift($shift)
+            ->asAttended()
+            ->create();
+
+        $command = new RecalculateTrooperRankCommand(trooper_id: $trooper->id);
+        $handler = app(RecalculateTrooperRankCommandHandler::class);
+
+        $handler($command);
+
+        Bus::assertDispatched(SendTrooperMilestoneNotificationsJob::class);
+    }
+
+    public function test_invoke_does_not_dispatch_milestone_notification_job_for_existing_milestone(): void
+    {
+        Bus::fake();
+
+        $trooper = Trooper::factory()->create();
+        $event = Event::factory()->asClosed()->create();
+        $shift = EventShift::factory()->forEvent($event)->create();
+        EventTrooper::factory()
+            ->forTrooper($trooper)
+            ->forEventShift($shift)
+            ->asAttended()
+            ->create();
+
+        TrooperAchievement::factory()->create([
+            TrooperAchievement::TROOPER_ID => $trooper->id,
+            TrooperAchievement::TYPE       => AchievementType::FIRST_TROOP,
+            TrooperAchievement::VALUE      => true,
+        ]);
+
+        $command = new RecalculateTrooperRankCommand(trooper_id: $trooper->id);
+        $handler = app(RecalculateTrooperRankCommandHandler::class);
+
+        $handler($command);
+
+        Bus::assertNotDispatched(SendTrooperMilestoneNotificationsJob::class);
     }
 }

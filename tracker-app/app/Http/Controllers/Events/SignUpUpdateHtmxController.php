@@ -229,9 +229,14 @@ class SignUpUpdateHtmxController extends MagicBusController
             $new_pool_org_was_maxed = $effective_org_id !== null
                 && $event_shift->orgTroopersMaxed($effective_org_id, $is_handler);
 
+            $org_ids = ($costume !== null && !$costume->countsAsHandler())
+                ? $costume->approvedOrgIdsForTrooper($event_trooper->trooper_id)
+                : null;
+
             $this->bus->send(new UpdateEventTrooperCommand($event_trooper, [
                 EventTrooper::COSTUME_ID => $costume_id,
                 EventTrooper::IS_HANDLER => $is_handler,
+                EventTrooper::COSTUME_ORGANIZATION_IDS => !empty($org_ids) ? $org_ids : null,
             ]));
 
             if ($handler_changed && $was_going)

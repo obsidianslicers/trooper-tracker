@@ -142,4 +142,49 @@ class OauthCallbackControllerTest extends TestCase
         $response->assertRedirect();
         $response->assertSessionHasErrors(['oauth']);
     }
+
+    public function test_invoke_logs_in_denied_trooper_via_linked_oauth_and_redirects_to_denied(): void
+    {
+        $trooper = Trooper::factory()->asDenied()->create();
+
+        $oauth_login = OauthLogin::factory()
+            ->forTrooper($trooper)
+            ->forProvider('google')
+            ->create();
+
+        $socialite_user = Mockery::mock(SocialiteUser::class);
+        $socialite_user->shouldReceive('getId')->andReturn($oauth_login->provider_id);
+        $socialite_user->shouldReceive('getEmail')->andReturn($trooper->email);
+
+        Socialite::shouldReceive('driver')
+            ->with('google')
+            ->andReturn(Mockery::self())
+            ->shouldReceive('user')
+            ->andReturn($socialite_user);
+
+        $response = $this->get(route('auth.oauth-callback', ['provider' => 'google']));
+
+        $response->assertRedirect(route('account.denied'));
+        $this->assertAuthenticatedAs($trooper);
+    }
+
+    public function test_invoke_logs_in_denied_trooper_via_email_match_and_redirects_to_denied(): void
+    {
+        $trooper = Trooper::factory()->asDenied()->create();
+
+        $socialite_user = Mockery::mock(SocialiteUser::class);
+        $socialite_user->shouldReceive('getId')->andReturn('google-new-id');
+        $socialite_user->shouldReceive('getEmail')->andReturn($trooper->email);
+
+        Socialite::shouldReceive('driver')
+            ->with('google')
+            ->andReturn(Mockery::self())
+            ->shouldReceive('user')
+            ->andReturn($socialite_user);
+
+        $response = $this->get(route('auth.oauth-callback', ['provider' => 'google']));
+
+        $response->assertRedirect(route('account.denied'));
+        $this->assertAuthenticatedAs($trooper);
+    }
 }

@@ -9,19 +9,22 @@
          data-route="{{ route('events.display', compact('event')) }}"
          x-on:click="window.location = $el.dataset.route">
         <div class="card-header {{ $bg }} d-flex align-items-center">
-            <span class="p-2">
-                @if($event->at_risk)
-                    <i class="fa fa-fw fa-warning fa-2x pe-2"></i>
-                @else
-                    <x-logo :storage_path="$event->organization->image_path_sm ?? ''"
-                            :default_path="'img/icons/organization-32x32.png'"
-                            :width="32"
-                            :height="32" />
-                @endif
-            </span>
-            <span class="p-1 text-white">
-                {{ $event->name }}
-            </span>
+            <a href="{{ route('events.display', compact('event')) }}"
+               class="d-block w-100">
+                <span class="p-2">
+                    @if($event->at_risk)
+                        <i class="fa fa-fw fa-warning fa-2x pe-2 text-white"></i>
+                    @else
+                        <x-logo :storage_path="$event->organization->image_path_sm ?? ''"
+                                :default_path="'img/icons/organization-32x32.png'"
+                                :width="32"
+                                :height="32" />
+                    @endif
+                </span>
+                <span class="p-1 text-white">
+                    {{ $event->name }}
+                </span>
+            </a>
         </div>
 
         <div class="card-body">
@@ -30,11 +33,11 @@
                     ** risk of cancellation **
                 </p>
             @endif
-            <p class="card-text">
+            <p class="card-text position-relative"
+               style="z-index: 2;">
                 <a href="https://www.google.com/maps/search/?api=1&query={{ $event->venue_address }}"
                    target="_blank"
-                   class="text-decoration-none"
-                   x-on:click.stop>
+                   class="text-decoration-none">
                     <i class="fa fa-fw fa-location-dot me-2"></i>
                     {{ $event->venue_address }}
                 </a>
@@ -52,7 +55,8 @@
                 @endif
                 @foreach($event->event_shifts as $shift)
                     <a href="{{ route('events.display', compact('event')) }}#shift-{{ $shift->id }}"
-                       class="list-group-item d-flex justify-content-between align-items-center">
+                       class="list-group-item d-flex justify-content-between align-items-center position-relative"
+                       style="z-index: 2;">
                         <span>
                             @if($shifts_count > 1)
                                 {{ $shift->shift_starts_at->format('m/d') }}
