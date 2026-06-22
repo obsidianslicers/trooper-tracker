@@ -62,7 +62,14 @@ class ClubMembershipsController extends MagicBusController
         $available_clubs_data = $this->buildAvailableClubsData($available_clubs);
         $ancestor_map_data = $this->buildAncestorMapData($available_clubs);
 
-        $data = compact('available_clubs', 'available_clubs_data', 'ancestor_map_data', 'current_clubs', 'ancestors', 'pending_requests', 'denied_requests', 'trooper');
+        $all_orgs = $current_clubs
+            ->concat($pending_requests->pluck('organization'))
+            ->concat($denied_requests->pluck('organization'))
+            ->unique('id');
+
+        $path_labels = Organization::buildPathLabels($all_orgs, ' — ');
+
+        $data = compact('available_clubs', 'available_clubs_data', 'ancestor_map_data', 'current_clubs', 'ancestors', 'path_labels', 'pending_requests', 'denied_requests', 'trooper');
 
         return view('pages.account.club-memberships', $data);
     }

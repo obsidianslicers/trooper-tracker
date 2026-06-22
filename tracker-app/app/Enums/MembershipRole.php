@@ -37,4 +37,23 @@ enum MembershipRole: string
      * An administrator with full system access and control.
      */
     case ADMINISTRATOR = 'administrator';
+
+    public function toAccountType(): string
+    {
+        return match ($this)
+        {
+            MembershipRole::VISITOR, MembershipRole::HANDLER => $this->value,
+            default => 'member',
+        };
+    }
+
+    public function isHandler(): bool
+    {
+        return $this === self::HANDLER;
+    }
+
+    public function isVisitor(): bool
+    {
+        return $this === self::VISITOR;
+    }
 }

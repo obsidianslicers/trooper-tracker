@@ -114,4 +114,37 @@ class LoginSubmitControllerTest extends TestCase
 
         $response->assertRedirect();
     }
+
+    public function test_invoke_logs_in_denied_trooper_with_valid_credentials_and_redirects_to_denied(): void
+    {
+        $trooper = Trooper::factory()
+            ->asDenied()
+            ->withPassword('password123')
+            ->create();
+
+        $response = $this->post(route('auth.login'), [
+            'email' => $trooper->email,
+            'password' => 'password123',
+        ]);
+
+        $response->assertRedirect(route('account.denied'));
+        $this->assertAuthenticatedAs($trooper);
+    }
+
+    public function test_invoke_rejects_denied_trooper_with_invalid_password(): void
+    {
+        $trooper = Trooper::factory()
+            ->asDenied()
+            ->withPassword('correctpassword')
+            ->create();
+
+        $response = $this->post(route('auth.login'), [
+            'email' => $trooper->email,
+            'password' => 'wrongpassword',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHasErrors(['email']);
+        $this->assertGuest();
+    }
 }

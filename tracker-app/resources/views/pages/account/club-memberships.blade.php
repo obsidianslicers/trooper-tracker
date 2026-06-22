@@ -19,16 +19,14 @@
                 @foreach($pending_requests as $request)
                     @php
                         $org = $request->organization;
-                        $path_ids = collect(array_filter(explode(':', trim($org->node_path, ':'))));
-                        $path_names = $path_ids->map(fn($id) => $ancestors[$id]?->name ?? '?');
-                        $root_id = (int) $path_ids->first();
+                        $root_id = (int) collect(array_filter(explode(':', trim($org->node_path, ':'))))->first();
                         $root_org = $ancestors[$root_id] ?? null;
                     @endphp
                     <li class="list-group-item d-flex align-items-center justify-content-between gap-2 px-0">
                         <span class="d-flex align-items-center gap-2">
                             <i class="fa fa-fw fa-clock text-warning"></i>
                             <x-logo :storage_path="$root_org?->image_path_sm" default_path="img/icons/organization-128x128.png" width="24" height="24" />
-                            {{ $path_names->implode(' — ') }}
+                            {{ $path_labels[$org->id] ?? '—' }}
                         </span>
                         <small class="text-muted">
                             {{ $request->updated_at->diffForHumans() }}
@@ -46,16 +44,11 @@
             </h6>
             <ul class="list-group list-group-flush">
                 @foreach($denied_requests as $request)
-                    @php
-                        $org = $request->organization;
-                        $path_ids = array_filter(explode(':', trim($org->node_path, ':')));
-                        $path_names = collect($path_ids)->map(fn($id) => $ancestors[$id]?->name ?? '?');
-                    @endphp
                     <li class="list-group-item px-0">
                         <div class="d-flex align-items-center justify-content-between gap-2">
                             <span>
                                 <i class="fa fa-fw fa-circle-xmark text-danger"></i>
-                                {{ $path_names->implode(' — ') }}
+                                {{ $path_labels[$request->organization_id] ?? '—' }}
                             </span>
                             <small class="text-muted">{{ $request->updated_at->diffForHumans() }}</small>
                         </div>
@@ -74,9 +67,7 @@
             <ul class="list-group list-group-flush">
                 @foreach($current_clubs as $club)
                     @php
-                        $path_ids = collect(array_filter(explode(':', trim($club->node_path, ':'))));
-                        $path_names = $path_ids->map(fn($id) => $ancestors[$id]?->name ?? '?');
-                        $root_id = (int) $path_ids->first();
+                        $root_id = (int) collect(array_filter(explode(':', trim($club->node_path, ':'))))->first();
                         $root_org = $ancestors[$root_id] ?? null;
                     @endphp
                     <li class="list-group-item d-flex align-items-center gap-2 px-0">
@@ -86,7 +77,7 @@
                             <i class="fa fa-fw fa-circle-check text-success"></i>
                         @endif
                         <x-logo :storage_path="$root_org?->image_path_sm" default_path="img/icons/organization-128x128.png" width="24" height="24" />
-                        <span>{{ $path_names->implode(' — ') }}</span>
+                        <span>{{ $path_labels[$club->id] ?? '—' }}</span>
                     </li>
                 @endforeach
             </ul>

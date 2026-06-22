@@ -11,6 +11,7 @@ use App\Models\Concerns\HasTrooperStamps;
 use App\Models\Scopes\HasOrganizationScopes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Collection;
 
 /**
  * Represents an organization within the trooping community hierarchy.
@@ -103,6 +104,40 @@ class Organization extends BaseOrganization
         }
 
         return $organization;
+    }
+
+    public static function buildPathLabels(Collection $orgs, string $separator = ' › '): array
+    {
+        if ($orgs->isEmpty())
+        {
+            return [];
+        }
+
+        $parse = fn (string $path): array => array_map(
+            'intval',
+            array_filter(explode(self::NODE_PATH_SEP, trim($path, self::NODE_PATH_SEP)))
+        );
+
+        $all_ids = $orgs
+            ->flatMap(fn ($org) => $parse($org->node_path))
+            ->unique()
+            ->values()
+            ->toArray();
+
+        $ancestors = self::whereIn(self::ID, $all_ids)
+            ->get([self::ID, self::NAME])
+            ->keyBy(self::ID);
+
+        $paths = [];
+
+        foreach ($orgs as $org)
+        {
+            $ids   = $parse($org->node_path);
+            $names = array_filter(array_map(fn (int $id) => $ancestors[$id]?->name, $ids));
+            $paths[$org->id] = implode($separator, $names) ?: $org->name;
+        }
+
+        return $paths;
     }
 
     /**

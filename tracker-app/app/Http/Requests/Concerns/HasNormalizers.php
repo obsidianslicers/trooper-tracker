@@ -30,6 +30,21 @@ trait HasNormalizers
      * @param  array  $boolean_keys  The keys of the fields to normalize as booleans.
      * @return array The input array with normalized boolean fields.
      */
+    protected function normalizeRuleKey(string $rule): string
+    {
+        return explode(':', $rule)[0];
+    }
+
+    protected function friendlyPhrase(string $rule): string
+    {
+        return match ($rule)
+        {
+            'integer' => 'an integer',
+            'string' => 'a valid string',
+            default => str_replace(':', ' ', $rule),
+        };
+    }
+
     protected function normalizeBooleanFields(array $input, array $boolean_keys, bool $add_missing = false): array
     {
         foreach ($input as $id => $data)
