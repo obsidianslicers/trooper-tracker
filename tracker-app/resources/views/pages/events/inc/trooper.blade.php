@@ -83,8 +83,8 @@
             @endif
         @endif
     </div>
-    <div class="col-5 col-md-3 order-2 order-md-3 text-end">
-        <div class="ps-3 ps-md-0">
+    <div class="col-12 col-md-3 order-2 order-md-3 text-md-end">
+        <div class="ps-md-0">
             @if(
                     $can_moderate
                     && $event->status === \App\Enums\EventStatus::MANUAL_SELECTION
