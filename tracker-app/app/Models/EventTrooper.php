@@ -369,6 +369,20 @@ class EventTrooper extends BaseEventTrooper
                 ->get();
         }
 
+        // costume_organization_ids not set yet — derive from the costume's approvals rather than
+        // falling back to all member orgs (which would credit the wrong club).
+        $approved_ids = $this->costume->approvedOrgIdsForTrooper($this->trooper_id);
+
+        if (!empty($approved_ids))
+        {
+            return Organization::whereIn('id', $approved_ids)
+                ->whereHas('trooper_assignments', fn($q) =>
+                    $q->where(TrooperAssignment::TROOPER_ID, $this->trooper_id)
+                        ->where(TrooperAssignment::IS_MEMBER, true)
+                )
+                ->get();
+        }
+
         return Organization::whereHas('trooper_assignments', fn($q) =>
             $q->where(TrooperAssignment::TROOPER_ID, $this->trooper_id)
                 ->where(TrooperAssignment::IS_MEMBER, true)
