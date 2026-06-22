@@ -344,10 +344,8 @@ class EventTrooper extends BaseEventTrooper
      */
     public function getEligibleCreditOrganizations(): Collection
     {
-        // Handler/Command Staff and no-costume credit derives from membership, not costume approvals.
-        // costume_organization_ids is filtered to the event's can_attend orgs for capacity
-        // tracking, but credit selection must see the full membership so multi-club
-        // non-costumed and handler troops are offered the club-select form.
+        // Credit eligibility always queries live data — never the stored costume_organization_ids,
+        // which can be narrowed by admin edits or capacity tracking and would hide eligible clubs.
         $this->loadMissing('costume');
         if ($this->costume_id === null || $this->costume?->countsAsHandler())
         {
@@ -357,11 +355,13 @@ class EventTrooper extends BaseEventTrooper
             )->get();
         }
 
-        $costume_org_ids = $this->costume_organization_ids ?? [];
+        $stored_ids = $this->costume_organization_ids ?? [];
+        $approved_ids = $this->costume->approvedOrgIdsForTrooper($this->trooper_id);
+        $effective_ids = array_values(array_unique(array_merge($stored_ids, $approved_ids)));
 
-        if (!empty($costume_org_ids))
+        if (!empty($effective_ids))
         {
-            return Organization::whereIn('id', $costume_org_ids)
+            return Organization::whereIn('id', $effective_ids)
                 ->whereHas('trooper_assignments', fn($q) =>
                     $q->where(TrooperAssignment::TROOPER_ID, $this->trooper_id)
                         ->where(TrooperAssignment::IS_MEMBER, true)
