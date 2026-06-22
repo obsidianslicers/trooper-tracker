@@ -5,21 +5,25 @@
      x-show="matches($el)"
      data-event-name="{{ $event->name }}"
      data-event-hosting-organization-id="{{ $event->organization_id  }}">
-    <div class="card h-100">
+    <div class="card h-100"
+         data-route="{{ route('events.display', compact('event')) }}"
+         x-on:click="window.location = $el.dataset.route">
         <div class="card-header {{ $bg }} d-flex align-items-center">
-            <span class="p-2">
-                @if($event->at_risk)
-                    <i class="fa fa-fw fa-warning fa-2x pe-2"></i>
-                @else
-                    <x-logo :storage_path="$event->organization->image_path_sm ?? ''"
-                            :default_path="'img/icons/organization-32x32.png'"
-                            :width="32"
-                            :height="32" />
-                @endif
-            </span>
-            <a class="p-1 text-white text-decoration-none stretched-link"
-               href="{{ route('events.display', compact('event')) }}">
-                {{ $event->name }}
+            <a href="{{ route('events.display', compact('event')) }}"
+               class="d-block w-100">
+                <span class="p-2">
+                    @if($event->at_risk)
+                        <i class="fa fa-fw fa-warning fa-2x pe-2 text-white"></i>
+                    @else
+                        <x-logo :storage_path="$event->organization->image_path_sm ?? ''"
+                                :default_path="'img/icons/organization-32x32.png'"
+                                :width="32"
+                                :height="32" />
+                    @endif
+                </span>
+                <span class="p-1 text-white">
+                    {{ $event->name }}
+                </span>
             </a>
         </div>
 
@@ -29,7 +33,8 @@
                     ** risk of cancellation **
                 </p>
             @endif
-            <p class="card-text position-relative" style="z-index: 2;">
+            <p class="card-text position-relative"
+               style="z-index: 2;">
                 <a href="https://www.google.com/maps/search/?api=1&query={{ $event->venue_address }}"
                    target="_blank"
                    class="text-decoration-none">
