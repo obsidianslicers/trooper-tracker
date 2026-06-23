@@ -713,6 +713,35 @@ class EventTrooperTest extends TestCase
         $this->assertTrue($result->contains('id', $org2->id));
     }
 
+    public function test_get_eligible_credit_organizations_returns_only_approved_orgs_ignoring_stored_ids(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $approved_org = Organization::factory()->create();
+        $other_org    = Organization::factory()->create();
+
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($approved_org)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($other_org)->asMember()->create();
+
+        $costume = Costume::factory()->state(['name' => 'Stormtrooper'])->create();
+        $org_costume = OrganizationCostume::factory()->forCostume($costume)->forOrganization($approved_org)->create();
+        TrooperCostume::factory()->forTrooper($trooper)->forOrganizationCostume($org_costume)->create();
+
+        $subject = EventTrooper::factory()
+            ->forTrooper($trooper)
+            ->state([
+                EventTrooper::COSTUME_ID => $costume->id,
+                // stored snapshot includes both orgs — only approved_org should be returned
+                EventTrooper::COSTUME_ORGANIZATION_IDS => [$approved_org->id, $other_org->id],
+            ])
+            ->create();
+
+        $result = $subject->getEligibleCreditOrganizations();
+
+        $this->assertCount(1, $result);
+        $this->assertTrue($result->contains('id', $approved_org->id));
+        $this->assertFalse($result->contains('id', $other_org->id));
+    }
+
     public function test_get_eligible_credit_organizations_returns_all_member_orgs_when_no_costume_selected(): void
     {
         $trooper = Trooper::factory()->create();

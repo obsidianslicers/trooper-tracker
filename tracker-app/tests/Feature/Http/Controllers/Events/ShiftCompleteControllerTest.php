@@ -10,8 +10,10 @@ use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Organization;
+use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
+use App\Models\TrooperCostume;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
@@ -333,6 +335,53 @@ class ShiftCompleteControllerTest extends TestCase
             ->where('id', $event_trooper->id)
             ->update([
                 'costume_id' => $handler_costume->id,
+                'costume_organization_ids' => json_encode([$org1->id]),
+            ]);
+        $event_trooper->refresh();
+
+        $status = Crypt::encryptString(EventTrooperStatus::ATTENDED->value);
+
+        $response = $this->actingAs($trooper)->get(route('events.shift-complete', [
+            'event_trooper' => $event_trooper->id,
+            'status' => $status,
+        ]));
+
+        $response->assertOk();
+        $response->assertViewIs('pages.events.shift-complete-club-select');
+        $this->assertSame(EventTrooperStatus::GOING, $event_trooper->fresh()->status);
+    }
+
+    public function test_invoke_shows_club_select_for_costumed_trooper_when_costume_org_ids_limited_to_one_club(): void
+    {
+        // Regression: when a non-handler costumed trooper has the costume approved in two clubs
+        // but costume_organization_ids was narrowed to only one club (e.g. by an admin edit),
+        // getEligibleCreditOrganizations() must use live approvals and still show the form.
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $org1 = Organization::factory()->create();
+        $org2 = Organization::factory()->create();
+
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org1)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org2)->asMember()->create();
+
+        $costume = Costume::factory()->create();
+        $org_costume1 = OrganizationCostume::factory()->forOrganization($org1)->forCostume($costume)->create();
+        $org_costume2 = OrganizationCostume::factory()->forOrganization($org2)->forCostume($costume)->create();
+        TrooperCostume::factory()->forTrooper($trooper)->forOrganizationCostume($org_costume1)->create();
+        TrooperCostume::factory()->forTrooper($trooper)->forOrganizationCostume($org_costume2)->create();
+
+        $event = Event::factory()->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->asGoing()
+            ->create();
+
+        // Simulate costume_organization_ids narrowed to only org1 (e.g. by an admin edit).
+        DB::table('tt_event_troopers')
+            ->where('id', $event_trooper->id)
+            ->update([
+                'costume_id' => $costume->id,
                 'costume_organization_ids' => json_encode([$org1->id]),
             ]);
         $event_trooper->refresh();
