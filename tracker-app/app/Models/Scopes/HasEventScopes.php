@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Models\Scopes;
 
+use App\Enums\EventGuestStatus;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
+use App\Models\Base\EventGuest;
 use App\Models\Base\EventTrooper;
 use App\Models\EventShift;
 use App\Models\Trooper;
@@ -77,7 +79,16 @@ trait HasEventScopes
                 {
                     $qx->where(EventTrooper::IS_HANDLER, false)
                         ->where(EventTrooper::STATUS, EventTrooperStatus::GOING);
-                }
+                },
+                'event_troopers as event_handlers_count' => function ($qx)
+                {
+                    $qx->where(EventTrooper::IS_HANDLER, true)
+                        ->where(EventTrooper::STATUS, EventTrooperStatus::GOING);
+                },
+                'event_guests as event_guests_count' => function ($qx)
+                {
+                    $qx->where(EventGuest::STATUS, EventGuestStatus::GOING);
+                },
             ]);
         }]);
     }
