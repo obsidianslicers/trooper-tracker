@@ -19,8 +19,7 @@ class OrganizationObserver
     /**
      * Handle the Organization "saved" event.
      *
-     * @param Organization $organization The organization instance that was saved.
-     * @return void
+     * @param  Organization  $organization  The organization instance that was saved.
      */
     public function saved(Organization $organization): void
     {
@@ -35,7 +34,7 @@ class OrganizationObserver
      *
      * This path represents the hierarchy of the organization by concatenating the IDs of its ancestors.
      *
-     * @param Organization $organization The organization to generate the path for.
+     * @param  Organization  $organization  The organization to generate the path for.
      * @return string The generated node path.
      */
     private function buildNodePath(Organization $organization): string
@@ -45,12 +44,11 @@ class OrganizationObserver
         $node = $organization;
 
         while ($node = $node->parent) // assumes you defined a parent() relationship
-        {
-            // prepend each ancestor slug
+        {// prepend each ancestor slug
             $node_path[] = $node->id;
         }
 
         // Reverse so root comes first, then join with dots
-        return implode(self::SEP, array_reverse($node_path)) . self::SEP;
+        return implode(self::SEP, array_reverse($node_path)).self::SEP;
     }
 }

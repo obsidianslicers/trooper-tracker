@@ -16,10 +16,10 @@ class SanitizeHtmlCast implements CastsAttributes
      *
      * Returns the value as-is without modification (sanitization occurs on set).
      *
-     * @param mixed $model The model instance.
-     * @param string $key The attribute key.
-     * @param mixed $value The raw value from the database.
-     * @param array<string, mixed> $attributes All model attributes.
+     * @param  mixed  $model  The model instance.
+     * @param  string  $key  The attribute key.
+     * @param  mixed  $value  The raw value from the database.
+     * @param  array<string, mixed>  $attributes  All model attributes.
      * @return string|null The unchanged value.
      */
     public function get($model, string $key, $value, array $attributes)
@@ -37,10 +37,10 @@ class SanitizeHtmlCast implements CastsAttributes
      *
      * Decodes HTML entities and strips all HTML tags before storing in the database.
      *
-     * @param mixed $model The model instance.
-     * @param string $key The attribute key.
-     * @param mixed $value The value to be stored.
-     * @param array<string, mixed> $attributes All model attributes.
+     * @param  mixed  $model  The model instance.
+     * @param  string  $key  The attribute key.
+     * @param  mixed  $value  The value to be stored.
+     * @param  array<string, mixed>  $attributes  All model attributes.
      * @return string|null The sanitized value with tags stripped.
      */
     public function set($model, string $key, $value, array $attributes)

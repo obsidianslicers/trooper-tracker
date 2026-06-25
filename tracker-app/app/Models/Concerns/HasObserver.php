@@ -24,6 +24,7 @@ trait HasObserver
      * Throws RuntimeException if the observer class doesn't exist.
      *
      * @return void
+     *
      * @throws RuntimeException If the expected observer class is not found.
      */
     public static function bootHasObserver()
@@ -45,6 +46,5 @@ trait HasObserver
                 sprintf('Observer class [%s] not found for model [%s]', $observer_class, static::class)
             );
         }
-
     }
 }

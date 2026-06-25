@@ -25,10 +25,10 @@ class AchievementValueCast implements CastsAttributes
      * - 'bool' types: converted to boolean
      * - default: returned as-is
      *
-     * @param Model $model The model instance
-     * @param string $key The attribute key being cast
-     * @param mixed $value The raw database value
-     * @param array<string, mixed> $attributes All model attributes
+     * @param  Model  $model  The model instance
+     * @param  string  $key  The attribute key being cast
+     * @param  mixed  $value  The raw database value
+     * @param  array<string, mixed>  $attributes  All model attributes
      * @return int|float|bool|mixed|null The cast value
      */
     public function get($model, string $key, $value, array $attributes)
@@ -51,10 +51,10 @@ class AchievementValueCast implements CastsAttributes
      * - 'bool' types: converted to '1' or '0'
      * - default: returned as-is
      *
-     * @param Model $model The model instance
-     * @param string $key The attribute key being cast
-     * @param mixed $value The value to be stored
-     * @param array<string, mixed> $attributes All model attributes
+     * @param  Model  $model  The model instance
+     * @param  string  $key  The attribute key being cast
+     * @param  mixed  $value  The value to be stored
+     * @param  array<string, mixed>  $attributes  All model attributes
      * @return string The database-ready value
      */
     public function set($model, string $key, $value, array $attributes)

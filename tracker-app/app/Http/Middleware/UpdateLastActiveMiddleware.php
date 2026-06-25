@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Models\Trooper;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -32,14 +33,21 @@ class UpdateLastActiveMiddleware
     {
         if (Auth::check())
         {
-            $user = Auth::user();
+            $trooper = Auth::user();
+
+            if (!$trooper instanceof Trooper)
+            {
+                return $next($request);
+            }
 
             // Only update if it's been more than 3 minutes (optional optimization)
-            if ($user->last_active_at === null || now()->diffInMinutes($user->last_active_at) > 3)
+            if ($trooper->last_active_at === null || now()->diffInMinutes($trooper->last_active_at, true) > 3)
             {
-                $user->last_active_at = now();
-
-                $user->save();
+                // Using updateQuietly to avoid triggering global
+                // model events or updating 'updated_at'
+                $trooper->updateQuietly([
+                    Trooper::LAST_ACTIVE_AT => now(),
+                ]);
             }
         }
 

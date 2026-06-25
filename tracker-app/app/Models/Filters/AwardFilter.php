@@ -26,8 +26,8 @@ class AwardFilter extends QueryFilter
     /**
      * Filters the query by organization ID.
      *
-     * @param Builder $query The Eloquent query builder.
-     * @param int|string $value The organization ID from the request.
+     * @param  Builder  $query  The Eloquent query builder.
+     * @param  int|string  $value  The organization ID from the request.
      * @return Builder The modified query builder.
      */
     protected function organization(Builder $query, $value): Builder

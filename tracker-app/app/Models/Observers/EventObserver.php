@@ -27,8 +27,7 @@ class EventObserver
      *
      * Sets the primary_organization_id based on the event's organization's primary club.
      *
-     * @param Event $event The event instance being created.
-     * @return void
+     * @param  Event  $event  The event instance being created.
      */
     public function creating(Event $event): void
     {
@@ -43,8 +42,7 @@ class EventObserver
     /**
      * Handle the Event "created" event.
      *
-     * @param Event $event The event instance that was created.
-     * @return void
+     * @param  Event  $event  The event instance that was created.
      */
     public function created(Event $event): void
     {
@@ -57,8 +55,7 @@ class EventObserver
      *
      * Re-geocodes the event location if any address components have changed.
      *
-     * @param Event $event The event instance that was updated.
-     * @return void
+     * @param  Event  $event  The event instance that was updated.
      */
     public function updated(Event $event): void
     {
@@ -102,12 +99,12 @@ class EventObserver
      */
     public function deleted(Event $event): void
     {
-        if (! TroopTrackerFacade::isXenforoIntegrationConfigured())
+        if (!TroopTrackerFacade::isXenforoIntegrationConfigured())
         {
             return;
         }
 
-        if (! $event->create_forum_thread || empty($event->thread_id))
+        if (!$event->create_forum_thread || empty($event->thread_id))
         {
             return;
         }
@@ -121,8 +118,7 @@ class EventObserver
      * Uses the Google Maps API if configured, otherwise falls back to Nominatim geocoding.
      * Silently handles failures by reporting exceptions without stopping execution.
      *
-     * @param Event $event The event instance to geocode.
-     * @return void
+     * @param  Event  $event  The event instance to geocode.
      */
     private function storeGeocode(Event $event): void
     {
@@ -167,7 +163,7 @@ class EventObserver
      * Constructs an address by combining venue address, city, state, zip, and country fields.
      * Avoids duplicating address components that are already included in the base address.
      *
-     * @param Event $event The event instance to build the address from.
+     * @param  Event  $event  The event instance to build the address from.
      * @return string The formatted address string suitable for geocoding services.
      */
     private function buildGeocodeAddress(Event $event): string
@@ -175,10 +171,10 @@ class EventObserver
         $parts = [];
 
         // Normalize the base address for duplicate detection
-        $base = strtolower((string) $event->venue_address);
+        $base = strtolower($event->venue_address ?? '');
 
         // Always start with the raw address field
-        $parts[] = trim($event->venue_address);
+        $parts[] = trim($event->venue_address ?? '');
 
         // Append city if not already included
         if (!empty($event->venue_city) && !str_contains($base, strtolower($event->venue_city)))
