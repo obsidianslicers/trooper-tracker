@@ -102,12 +102,12 @@ class EventObserver
      */
     public function deleted(Event $event): void
     {
-        if (! TroopTrackerFacade::isXenforoIntegrationConfigured())
+        if (!TroopTrackerFacade::isXenforoIntegrationConfigured())
         {
             return;
         }
 
-        if (! $event->create_forum_thread || empty($event->thread_id))
+        if (!$event->create_forum_thread || empty($event->thread_id))
         {
             return;
         }
@@ -175,10 +175,10 @@ class EventObserver
         $parts = [];
 
         // Normalize the base address for duplicate detection
-        $base = strtolower((string) $event->venue_address);
+        $base = strtolower($event->venue_address ?? "");
 
         // Always start with the raw address field
-        $parts[] = trim($event->venue_address);
+        $parts[] = trim($event->venue_address ?? "");
 
         // Append city if not already included
         if (!empty($event->venue_city) && !str_contains($base, strtolower($event->venue_city)))
