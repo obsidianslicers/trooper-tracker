@@ -35,13 +35,10 @@ trait HasAuditTrail
      * records for any audited fields that have been modified. Only fields returned
      * by the audits() method are tracked. Records include the authenticated trooper
      * ID, old value, and new value.
-     *
-     * @return void
      */
     public static function bootHasAuditTrail(): void
     {
-        static::updating(function ($model)
-        {
+        static::updating(function ($model) {
             $audits = $model->audits();
 
             if (!empty($audits))

@@ -22,7 +22,7 @@ class TrooperFilter extends QueryFilter
     {
         return [
             'membership_role' => 'membershipRole',
-            'search_term'     => 'searchTerm',
+            'search_term' => 'searchTerm',
             'organization_id' => 'organization',
         ];
     }
@@ -30,8 +30,8 @@ class TrooperFilter extends QueryFilter
     /**
      * Filters the query by membership role.
      *
-     * @param Builder $query The Eloquent query builder.
-     * @param string $value The role value from the request.
+     * @param  Builder  $query  The Eloquent query builder.
+     * @param  string  $value  The role value from the request.
      * @return Builder The modified query builder.
      */
     protected function membershipRole(Builder $query, $value): Builder
@@ -44,8 +44,8 @@ class TrooperFilter extends QueryFilter
     /**
      * Filters the query to troopers assigned to the given organization or any of its descendants.
      *
-     * @param Builder $query The Eloquent query builder.
-     * @param string $value The organization ID from the request.
+     * @param  Builder  $query  The Eloquent query builder.
+     * @param  string  $value  The organization ID from the request.
      * @return Builder The modified query builder.
      */
     protected function organization(Builder $query, $value): Builder
@@ -59,14 +59,13 @@ class TrooperFilter extends QueryFilter
 
         $node_path = $organization->node_path;
 
-        return $query->whereExists(function ($sub) use ($node_path)
-        {
+        return $query->whereExists(function ($sub) use ($node_path) {
             $sub->select(DB::raw(1))
                 ->from('tt_trooper_assignments as ta_org')
                 ->join('tt_organizations as org_match', 'ta_org.organization_id', '=', 'org_match.id')
                 ->whereColumn('ta_org.trooper_id', 'tt_troopers.id')
                 ->where('ta_org.is_member', true)
-                ->whereRaw('org_match.node_path LIKE ?', [$node_path . '%']);
+                ->whereRaw('org_match.node_path LIKE ?', [$node_path.'%']);
         });
     }
 
@@ -75,8 +74,8 @@ class TrooperFilter extends QueryFilter
      *
      * The search is only applied if the term is 3 or more characters long.
      *
-     * @param Builder $query The Eloquent query builder.
-     * @param string $value The search term from the request.
+     * @param  Builder  $query  The Eloquent query builder.
+     * @param  string  $value  The search term from the request.
      * @return Builder The modified query builder.
      */
     protected function searchTerm(Builder $query, $value): Builder

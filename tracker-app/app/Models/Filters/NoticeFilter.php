@@ -26,8 +26,8 @@ class NoticeFilter extends QueryFilter
     /**
      * Filters the query by the notice's scope (active, past, or future).
      *
-     * @param Builder $query The Eloquent query builder.
-     * @param string $value The scope value from the request.
+     * @param  Builder  $query  The Eloquent query builder.
+     * @param  string  $value  The scope value from the request.
      * @return Builder The modified query builder.
      */
     protected function scope(Builder $query, $value): Builder
@@ -48,8 +48,8 @@ class NoticeFilter extends QueryFilter
     /**
      * Filters the query by organization ID.
      *
-     * @param Builder $query The Eloquent query builder.
-     * @param int|string $value The organization ID from the request.
+     * @param  Builder  $query  The Eloquent query builder.
+     * @param  int|string  $value  The organization ID from the request.
      * @return Builder The modified query builder.
      */
     protected function organization(Builder $query, $value): Builder

@@ -20,8 +20,8 @@ class TrooperOrganizationObserver
      * Enforces the business rule that a trooper can only be a "member" of an
      * organization that is a leaf node (has no children).
      *
-     * @param TrooperOrganization $trooper_organization The trooper organization instance being saved.
-     * @return void
+     * @param  TrooperOrganization  $trooper_organization  The trooper organization instance being saved.
+     *
      * @throws Exception if a trooper is assigned as a member to a non-leaf organization.
      */
     public function saving(TrooperOrganization $trooper_organization): void

@@ -22,7 +22,7 @@ abstract class QueryFilter
     /**
      * Create a new QueryFilter instance.
      *
-     * @param Request $request The HTTP request containing filter parameters.
+     * @param  Request  $request  The HTTP request containing filter parameters.
      */
     public function __construct(Request $request)
     {
@@ -35,9 +35,10 @@ abstract class QueryFilter
      * Allows accessing filter values as properties (e.g., $filter->status).
      * Only works for keys defined in the filters() method.
      *
-     * @param string $name The filter parameter key.
+     * @param  string  $name  The filter parameter key.
      * @return mixed The value from the request for the given filter key.
-     * @throws \InvalidArgumentException If the key is not a valid filter.
+     *
+     * @throws InvalidArgumentException If the key is not a valid filter.
      */
     public function __get(string $name)
     {
@@ -76,7 +77,7 @@ abstract class QueryFilter
      * request parameters are present. If a filter is not present in the request but has a
      * default value, the default is applied instead.
      *
-     * @param Builder $query The Eloquent query builder.
+     * @param  Builder  $query  The Eloquent query builder.
      * @return Builder The modified query builder with filters applied.
      */
     public function apply(Builder $query): Builder
@@ -96,7 +97,6 @@ abstract class QueryFilter
                     $query = $this->{$method}($query, $defaults[$name]);
                 }
             }
-
         }
 
         return $query;

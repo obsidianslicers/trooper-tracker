@@ -19,8 +19,7 @@ class TrooperRequestObserver
         if (
             $trooper_request->status !== TrooperRequestStatus::PENDING
             && $trooper_request->status !== TrooperRequestStatus::PENDING->value
-        )
-        {
+        ) {
             return;
         }
 

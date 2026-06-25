@@ -17,10 +17,10 @@ final class LowerCast implements CastsAttributes
      *
      * Returns the value as-is without modification.
      *
-     * @param Model $model The model instance.
-     * @param string $key The attribute key.
-     * @param mixed $value The raw value from the database.
-     * @param array<string, mixed> $attributes All model attributes.
+     * @param  Model  $model  The model instance.
+     * @param  string  $key  The attribute key.
+     * @param  mixed  $value  The raw value from the database.
+     * @param  array<string, mixed>  $attributes  All model attributes.
      * @return string The unchanged value.
      */
     public function get(Model $model, string $key, mixed $value, array $attributes): string
@@ -33,10 +33,10 @@ final class LowerCast implements CastsAttributes
      *
      * Converts the value to lowercase before storing in the database.
      *
-     * @param Model $model The model instance.
-     * @param string $key The attribute key.
-     * @param mixed $value The value to be stored.
-     * @param array<string, mixed> $attributes All model attributes.
+     * @param  Model  $model  The model instance.
+     * @param  string  $key  The attribute key.
+     * @param  mixed  $value  The value to be stored.
+     * @param  array<string, mixed>  $attributes  All model attributes.
      * @return string The lowercased value.
      */
     public function set(Model $model, string $key, mixed $value, array $attributes): string

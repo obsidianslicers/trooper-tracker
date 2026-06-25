@@ -19,8 +19,8 @@ class TrooperAssignmentObserver
      * Enforces the business rule that a trooper can only be a "member" of an
      * organization that is a leaf node (has no children).
      *
-     * @param TrooperAssignment $trooper_assignment The trooper assignment instance being saved.
-     * @return void
+     * @param  TrooperAssignment  $trooper_assignment  The trooper assignment instance being saved.
+     *
      * @throws Exception if a trooper is assigned as a member to a non-leaf organization.
      */
     public function saving(TrooperAssignment $trooper_assignment): void
@@ -49,10 +49,9 @@ class TrooperAssignmentObserver
             ->where(TrooperAssignment::TROOPER_ID, $trooper_assignment->trooper_id)
             ->where(TrooperAssignment::IS_MEMBER, true)
             ->where(TrooperAssignment::ID, '!=', (int) $trooper_assignment->getKey())
-            ->whereHas('organization', function ($query) use ($node_path): void
-            {
-                $query->where(Organization::NODE_PATH, 'like', $node_path . '%')
-                    ->orWhereRaw('? LIKE CONCAT(' . Organization::NODE_PATH . ', "%")', [$node_path]);
+            ->whereHas('organization', function ($query) use ($node_path): void {
+                $query->where(Organization::NODE_PATH, 'like', $node_path.'%')
+                    ->orWhereRaw('? LIKE CONCAT('.Organization::NODE_PATH.', "%")', [$node_path]);
             });
 
         if ($conflict_query->exists())
@@ -62,5 +61,4 @@ class TrooperAssignmentObserver
             );
         }
     }
-
 }

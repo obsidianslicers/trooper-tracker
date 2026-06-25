@@ -18,8 +18,8 @@ trait HasFilter
     /**
      * Apply a filter class to the query.
      *
-     * @param Builder<self> $query The Eloquent query builder.
-     * @param QueryFilter $filter The filter instance to apply to the query.
+     * @param  Builder<self>  $query  The Eloquent query builder.
+     * @param  QueryFilter  $filter  The filter instance to apply to the query.
      * @return Builder<self> The filtered query builder.
      */
     public function scopeFilterWith(Builder $query, QueryFilter $filter): Builder
