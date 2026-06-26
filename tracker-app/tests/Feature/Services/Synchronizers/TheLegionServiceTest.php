@@ -118,4 +118,93 @@ class TheLegionServiceTest extends TestCase
         $this->assertNotNull($pivot);
         $this->assertSame(MembershipStatus::ACTIVE, $pivot->{TrooperOrganization::MEMBERSHIP_STATUS});
     }
+
+    public function test_run_sets_pivot_retired_and_global_retired_when_api_returns_retired_and_no_other_active_org(): void
+    {
+        $organization = Organization::factory()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+
+        TrooperOrganization::factory()->create([
+            TrooperOrganization::TROOPER_ID => $trooper->id,
+            TrooperOrganization::ORGANIZATION_ID => $organization->id,
+            TrooperOrganization::IDENTIFIER => 'TK-423',
+            TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
+        ]);
+
+        Http::fake([
+            'https://crls.501st.com/costume-reference-library/costumes-by-name' => Http::response(
+                '<article><a>AR - ARC Trooper</a></article>',
+                200
+            ),
+            'https://www.501st.com/memberAPI/v3/legionId/TK-423/costumes' => Http::response([
+                'legionId' => 'TK-423',
+                'memberStatus' => 'Retired',
+                'costumes' => [
+                    ['costumeName' => 'ARC Trooper', 'photoURL' => null, 'thumbnail' => null, 'bucketOffPhoto' => null],
+                ],
+            ], 200),
+        ]);
+
+        $google = Mockery::mock(GoogleService::class);
+        $subject = new TheLegionService($organization, $google);
+
+        $subject->run();
+
+        $pivot = TrooperOrganization::query()
+            ->where(TrooperOrganization::TROOPER_ID, $trooper->id)
+            ->where(TrooperOrganization::ORGANIZATION_ID, $organization->id)
+            ->first();
+
+        $this->assertNotNull($pivot);
+        $this->assertSame(MembershipStatus::RETIRED, $pivot->{TrooperOrganization::MEMBERSHIP_STATUS});
+        $this->assertSame(MembershipStatus::RETIRED, $trooper->fresh()->membership_status);
+    }
+
+    public function test_run_sets_pivot_retired_but_preserves_global_active_when_other_active_org_exists(): void
+    {
+        $organization = Organization::factory()->create();
+        $other_organization = Organization::factory()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+
+        TrooperOrganization::factory()->create([
+            TrooperOrganization::TROOPER_ID => $trooper->id,
+            TrooperOrganization::ORGANIZATION_ID => $organization->id,
+            TrooperOrganization::IDENTIFIER => 'TK-424',
+            TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
+        ]);
+
+        TrooperOrganization::factory()->create([
+            TrooperOrganization::TROOPER_ID => $trooper->id,
+            TrooperOrganization::ORGANIZATION_ID => $other_organization->id,
+            TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
+        ]);
+
+        Http::fake([
+            'https://crls.501st.com/costume-reference-library/costumes-by-name' => Http::response(
+                '<article><a>AR - ARC Trooper</a></article>',
+                200
+            ),
+            'https://www.501st.com/memberAPI/v3/legionId/TK-424/costumes' => Http::response([
+                'legionId' => 'TK-424',
+                'memberStatus' => 'Retired',
+                'costumes' => [
+                    ['costumeName' => 'ARC Trooper', 'photoURL' => null, 'thumbnail' => null, 'bucketOffPhoto' => null],
+                ],
+            ], 200),
+        ]);
+
+        $google = Mockery::mock(GoogleService::class);
+        $subject = new TheLegionService($organization, $google);
+
+        $subject->run();
+
+        $pivot = TrooperOrganization::query()
+            ->where(TrooperOrganization::TROOPER_ID, $trooper->id)
+            ->where(TrooperOrganization::ORGANIZATION_ID, $organization->id)
+            ->first();
+
+        $this->assertNotNull($pivot);
+        $this->assertSame(MembershipStatus::RETIRED, $pivot->{TrooperOrganization::MEMBERSHIP_STATUS});
+        $this->assertSame(MembershipStatus::ACTIVE, $trooper->fresh()->membership_status);
+    }
 }

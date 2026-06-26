@@ -88,4 +88,116 @@ class TrooperOrganizationObserverTest extends TestCase
 
         (new TrooperOrganizationObserver())->saving($trooper_organization);
     }
+
+    public function test_saved_demotes_global_to_retired_when_last_active_pivot_changes_to_retired(): void
+    {
+        $organization = Organization::factory()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+
+        $pivot = TrooperOrganization::factory()->create([
+            TrooperOrganization::TROOPER_ID => $trooper->id,
+            TrooperOrganization::ORGANIZATION_ID => $organization->id,
+            TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
+        ]);
+
+        $pivot->membership_status = MembershipStatus::RETIRED;
+        $pivot->save();
+
+        $this->assertSame(MembershipStatus::RETIRED, $trooper->fresh()->membership_status);
+    }
+
+    public function test_saved_preserves_global_active_when_pivot_changes_to_retired_but_another_active_org_remains(): void
+    {
+        $organization = Organization::factory()->create();
+        $other_organization = Organization::factory()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+
+        $pivot = TrooperOrganization::factory()->create([
+            TrooperOrganization::TROOPER_ID => $trooper->id,
+            TrooperOrganization::ORGANIZATION_ID => $organization->id,
+            TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
+        ]);
+
+        TrooperOrganization::factory()->create([
+            TrooperOrganization::TROOPER_ID => $trooper->id,
+            TrooperOrganization::ORGANIZATION_ID => $other_organization->id,
+            TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
+        ]);
+
+        $pivot->membership_status = MembershipStatus::RETIRED;
+        $pivot->save();
+
+        $this->assertSame(MembershipStatus::ACTIVE, $trooper->fresh()->membership_status);
+    }
+
+    public function test_saved_promotes_global_to_active_when_retired_trooper_gets_active_org(): void
+    {
+        $organization = Organization::factory()->create();
+        $trooper = Trooper::factory()->asRetired()->create();
+
+        $pivot = TrooperOrganization::factory()->create([
+            TrooperOrganization::TROOPER_ID => $trooper->id,
+            TrooperOrganization::ORGANIZATION_ID => $organization->id,
+            TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::RETIRED,
+        ]);
+
+        $pivot->membership_status = MembershipStatus::ACTIVE;
+        $pivot->save();
+
+        $this->assertSame(MembershipStatus::ACTIVE, $trooper->fresh()->membership_status);
+    }
+
+    public function test_saved_does_not_reconcile_when_membership_status_unchanged(): void
+    {
+        $organization = Organization::factory()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+
+        $pivot = TrooperOrganization::factory()->create([
+            TrooperOrganization::TROOPER_ID => $trooper->id,
+            TrooperOrganization::ORGANIZATION_ID => $organization->id,
+            TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
+        ]);
+
+        // Change only identifier — membership_status wasChanged() returns false
+        $pivot->identifier = 'TK-999';
+        $pivot->save();
+
+        $this->assertSame(MembershipStatus::ACTIVE, $trooper->fresh()->membership_status);
+    }
+
+    public function test_saved_does_not_touch_invalid_global_status(): void
+    {
+        $organization = Organization::factory()->create();
+        $trooper = Trooper::factory()->create([
+            Trooper::MEMBERSHIP_STATUS => MembershipStatus::INVALID,
+        ]);
+
+        $pivot = TrooperOrganization::factory()->create([
+            TrooperOrganization::TROOPER_ID => $trooper->id,
+            TrooperOrganization::ORGANIZATION_ID => $organization->id,
+            TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
+        ]);
+
+        $pivot->membership_status = MembershipStatus::RETIRED;
+        $pivot->save();
+
+        $this->assertSame(MembershipStatus::INVALID, $trooper->fresh()->membership_status);
+    }
+
+    public function test_saved_does_not_promote_pending_trooper_to_active(): void
+    {
+        $organization = Organization::factory()->create();
+        $trooper = Trooper::factory()->asPending()->create();
+
+        $pivot = TrooperOrganization::factory()->create([
+            TrooperOrganization::TROOPER_ID => $trooper->id,
+            TrooperOrganization::ORGANIZATION_ID => $organization->id,
+            TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::RETIRED,
+        ]);
+
+        $pivot->membership_status = MembershipStatus::ACTIVE;
+        $pivot->save();
+
+        $this->assertSame(MembershipStatus::PENDING, $trooper->fresh()->membership_status);
+    }
 }

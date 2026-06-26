@@ -139,6 +139,12 @@ class TheLegionService extends BaseOrganizationService
         $member_standing = $json['memberStanding'] ?? null;
         $member_status = $json['memberStatus'] ?? null;
 
+        // Check Retired first — retired members may not pass approved/standing criteria
+        if ($member_status === 'Retired')
+        {
+            return MembershipStatus::RETIRED;
+        }
+
         if (isset($member_error))
         {
             if ($pivot->membership_status == MembershipStatus::ACTIVE)
@@ -150,13 +156,12 @@ class TheLegionService extends BaseOrganizationService
         {
             if ($member_approved == 'YES' && $member_standing == 'Good')
             {
-                switch ($member_status)
+                return match ($member_status)
                 {
-                    case 'Active':
-                        return MembershipStatus::ACTIVE;
-                    case 'Reserve':
-                        return MembershipStatus::RESERVE;
-                }
+                    'Active'  => MembershipStatus::ACTIVE,
+                    'Reserve' => MembershipStatus::RESERVE,
+                    default   => MembershipStatus::NONE,
+                };
             }
 
             return MembershipStatus::NONE;
