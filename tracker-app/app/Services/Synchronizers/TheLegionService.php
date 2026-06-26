@@ -13,6 +13,7 @@ use App\Services\MemberLookup\TheLegionMemberLookupService;
 use Carbon\Carbon;
 use Carbon\Exceptions\InvalidFormatException;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\DomCrawler\Crawler;
 
 class TheLegionService extends BaseOrganizationService
@@ -58,23 +59,34 @@ class TheLegionService extends BaseOrganizationService
         {
             $legion_id = $trooper->pivot->identifier;
 
-            $url = "https://www.501st.com/memberAPI/v3/legionId/{$legion_id}/costumes";
+            $url = "https://api.501st.com/legionId/{$legion_id}/costumes";
 
             $json = Http::get($url)->json();
 
             if (!is_array($json))
             {
+                Log::warning(__CLASS__.": {$legion_id} API response was not an array");
                 continue;
             }
 
-            $trooper = $this->getTrooper($json['legionId'].'');
+            $api_legion_id = $json['legionId'] ?? null;
+            $api_status    = $json['memberStatus'] ?? null;
+            $api_error     = $json['error'] ?? null;
+
+            Log::debug(__CLASS__.": {$legion_id} API memberStatus={$api_status} error={$api_error} legionId={$api_legion_id}");
+
+            $lookup_id = !empty($api_legion_id) ? $api_legion_id.'' : $legion_id;
+            $trooper   = $this->getTrooper($lookup_id);
 
             if ($trooper === null)
             {
+                Log::warning(__CLASS__.": {$legion_id} getTrooper({$lookup_id}) returned null — identifier mismatch?");
                 continue;
             }
 
             $status = $this->convertStatus($trooper, $json);
+
+            Log::debug(__CLASS__.": {$legion_id} convertStatus={$status->value}");
 
             $this->syncTrooperStatus($trooper, $status);
 
@@ -125,9 +137,8 @@ class TheLegionService extends BaseOrganizationService
                 $org_costume = $this->getOrCreateOrganizationCostume($costume_name);
 
                 $attributes = [
-                    TrooperCostume::IMAGE_URL_LG => $c['photoURL'] ?? ($c['photo'] ?? null),
+                    TrooperCostume::IMAGE_URL_LG => $c['photoUrl'] ?? null,
                     TrooperCostume::IMAGE_URL_SM => $c['thumbnail'] ?? null,
-                    TrooperCostume::IMAGE_URL_BUCKET_OFF => $c['bucketOffPhoto'] ?? null,
                 ];
 
                 $this->syncTrooperCostume($trooper, $org_costume, $attributes);
@@ -145,14 +156,15 @@ class TheLegionService extends BaseOrganizationService
         $member_standing = $json['memberStanding'] ?? null;
         $member_status = $json['memberStatus'] ?? null;
 
-        // Check Retired first — retired members may not pass approved/standing criteria
-        if ($member_status === 'Retired')
+        // Explicit retired/classified responses — retired members may not pass approved/standing
+        if (in_array($member_status, ['Retired', 'Classified Record'], true))
         {
             return MembershipStatus::RETIRED;
         }
 
         if (isset($member_error))
         {
+            // API error (member not found): only downgrade from ACTIVE
             if ($current_status === MembershipStatus::ACTIVE)
             {
                 return MembershipStatus::NONE;
@@ -170,7 +182,13 @@ class TheLegionService extends BaseOrganizationService
                 };
             }
 
-            return MembershipStatus::NONE;
+            // No error but the API cannot confirm active/reserve status (null or unrecognized
+            // memberStatus). The 501st API omits or redacts memberStatus for classified/retired
+            // records. Treat as retired unless the member is in a pre-approval or terminal state.
+            if (!in_array($current_status, [MembershipStatus::PENDING, MembershipStatus::DENIED, MembershipStatus::INVALID, MembershipStatus::DEPARTED], true))
+            {
+                return MembershipStatus::RETIRED;
+            }
         }
 
         return $current_status;

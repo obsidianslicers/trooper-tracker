@@ -37,7 +37,7 @@ class TheLegionServiceTest extends TestCase
                 '<article><a>AR - ARC Trooper</a></article>',
                 200
             ),
-            'https://www.501st.com/memberAPI/v3/legionId/TK-421/costumes' => Http::response([
+            'https://api.501st.com/legionId/TK-421/costumes' => Http::response([
                 'legionId' => 'TK-421',
                 'memberApproved' => 'YES',
                 'memberStanding' => 'Good',
@@ -46,9 +46,8 @@ class TheLegionServiceTest extends TestCase
                 'costumes' => [
                     [
                         'costumeName' => 'ARC Trooper',
-                        'photoURL' => 'https://img/lg.jpg',
+                        'photoUrl' => 'https://img/lg.jpg',
                         'thumbnail' => 'https://img/sm.jpg',
-                        'bucketOffPhoto' => 'https://img/off.jpg',
                     ],
                 ],
             ], 200),
@@ -75,7 +74,6 @@ class TheLegionServiceTest extends TestCase
 
         $this->assertNotNull($saved_costume);
         $this->assertSame('https://img/sm.jpg', $saved_costume->{TrooperCostume::IMAGE_URL_SM});
-        $this->assertSame('https://img/off.jpg', $saved_costume->{TrooperCostume::IMAGE_URL_BUCKET_OFF});
 
         $organization->refresh();
         $this->assertNotNull($organization->{Organization::SYNCHRONIZED_AT});
@@ -98,7 +96,7 @@ class TheLegionServiceTest extends TestCase
                 '<article><a>AR - ARC Trooper</a></article>',
                 200
             ),
-            'https://www.501st.com/memberAPI/v3/legionId/TK-422/costumes' => Http::response([
+            'https://api.501st.com/legionId/TK-422/costumes' => Http::response([
                 'legionId' => 'TK-422',
                 'error' => 'member not found',
                 'costumes' => [],
@@ -136,11 +134,11 @@ class TheLegionServiceTest extends TestCase
                 '<article><a>AR - ARC Trooper</a></article>',
                 200
             ),
-            'https://www.501st.com/memberAPI/v3/legionId/TK-423/costumes' => Http::response([
+            'https://api.501st.com/legionId/TK-423/costumes' => Http::response([
                 'legionId' => 'TK-423',
                 'memberStatus' => 'Retired',
                 'costumes' => [
-                    ['costumeName' => 'ARC Trooper', 'photoURL' => null, 'thumbnail' => null, 'bucketOffPhoto' => null],
+                    ['costumeName' => 'ARC Trooper', 'photoUrl' => null, 'thumbnail' => null],
                 ],
             ], 200),
         ]);
@@ -184,11 +182,11 @@ class TheLegionServiceTest extends TestCase
                 '<article><a>AR - ARC Trooper</a></article>',
                 200
             ),
-            'https://www.501st.com/memberAPI/v3/legionId/TK-424/costumes' => Http::response([
+            'https://api.501st.com/legionId/TK-424/costumes' => Http::response([
                 'legionId' => 'TK-424',
                 'memberStatus' => 'Retired',
                 'costumes' => [
-                    ['costumeName' => 'ARC Trooper', 'photoURL' => null, 'thumbnail' => null, 'bucketOffPhoto' => null],
+                    ['costumeName' => 'ARC Trooper', 'photoUrl' => null, 'thumbnail' => null],
                 ],
             ], 200),
         ]);
@@ -225,7 +223,7 @@ class TheLegionServiceTest extends TestCase
                 '<article><a>AR - ARC Trooper</a></article>',
                 200
             ),
-            'https://www.501st.com/memberAPI/v3/legionId/TK-425/costumes' => Http::response([
+            'https://api.501st.com/legionId/TK-425/costumes' => Http::response([
                 'legionId' => 'TK-425',
                 'memberStatus' => 'Retired',
                 'costumes' => [],
@@ -264,7 +262,7 @@ class TheLegionServiceTest extends TestCase
                 '<article><a>AR - ARC Trooper</a></article>',
                 200
             ),
-            'https://www.501st.com/memberAPI/v3/legionId/TK-426/costumes' => Http::response([
+            'https://api.501st.com/legionId/TK-426/costumes' => Http::response([
                 'legionId' => 'TK-426',
                 'memberApproved' => 'YES',
                 'memberStanding' => 'Good',
@@ -285,5 +283,158 @@ class TheLegionServiceTest extends TestCase
 
         $this->assertNotNull($pivot);
         $this->assertSame(MembershipStatus::RESERVE, $pivot->{TrooperOrganization::MEMBERSHIP_STATUS});
+    }
+
+    public function test_run_sets_pivot_retired_when_api_returns_classified_record_status(): void
+    {
+        $organization = Organization::factory()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+
+        TrooperOrganization::factory()->create([
+            TrooperOrganization::TROOPER_ID => $trooper->id,
+            TrooperOrganization::ORGANIZATION_ID => $organization->id,
+            TrooperOrganization::IDENTIFIER => 'TK-427',
+            TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
+        ]);
+
+        Http::fake([
+            'https://crls.501st.com/costume-reference-library/costumes-by-name' => Http::response(
+                '<article><a>AR - ARC Trooper</a></article>',
+                200
+            ),
+            'https://api.501st.com/legionId/TK-427/costumes' => Http::response([
+                'legionId' => 'TK-427',
+                'memberStatus' => 'Classified Record',
+                'costumes' => [],
+            ], 200),
+        ]);
+
+        $google = Mockery::mock(GoogleService::class);
+        $subject = new TheLegionService($organization, $google);
+
+        $subject->run();
+
+        $pivot = TrooperOrganization::query()
+            ->where(TrooperOrganization::TROOPER_ID, $trooper->id)
+            ->where(TrooperOrganization::ORGANIZATION_ID, $organization->id)
+            ->first();
+
+        $this->assertNotNull($pivot);
+        $this->assertSame(MembershipStatus::RETIRED, $pivot->{TrooperOrganization::MEMBERSHIP_STATUS});
+        $this->assertSame(MembershipStatus::RETIRED, $trooper->fresh()->membership_status);
+    }
+
+    public function test_run_sets_pivot_retired_when_api_returns_null_member_status_for_active_member(): void
+    {
+        $organization = Organization::factory()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+
+        TrooperOrganization::factory()->create([
+            TrooperOrganization::TROOPER_ID => $trooper->id,
+            TrooperOrganization::ORGANIZATION_ID => $organization->id,
+            TrooperOrganization::IDENTIFIER => 'TK-428',
+            TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
+        ]);
+
+        Http::fake([
+            'https://crls.501st.com/costume-reference-library/costumes-by-name' => Http::response(
+                '<article><a>AR - ARC Trooper</a></article>',
+                200
+            ),
+            'https://api.501st.com/legionId/TK-428/costumes' => Http::response([
+                'legionId' => 'TK-428',
+                'costumes' => [],
+            ], 200),
+        ]);
+
+        $google = Mockery::mock(GoogleService::class);
+        $subject = new TheLegionService($organization, $google);
+
+        $subject->run();
+
+        $pivot = TrooperOrganization::query()
+            ->where(TrooperOrganization::TROOPER_ID, $trooper->id)
+            ->where(TrooperOrganization::ORGANIZATION_ID, $organization->id)
+            ->first();
+
+        $this->assertNotNull($pivot);
+        $this->assertSame(MembershipStatus::RETIRED, $pivot->{TrooperOrganization::MEMBERSHIP_STATUS});
+        $this->assertSame(MembershipStatus::RETIRED, $trooper->fresh()->membership_status);
+    }
+
+    public function test_run_sets_pivot_retired_when_api_returns_null_member_status_for_none_pivot_member(): void
+    {
+        $organization = Organization::factory()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+
+        TrooperOrganization::factory()->create([
+            TrooperOrganization::TROOPER_ID => $trooper->id,
+            TrooperOrganization::ORGANIZATION_ID => $organization->id,
+            TrooperOrganization::IDENTIFIER => 'TK-429',
+            TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::NONE,
+        ]);
+
+        Http::fake([
+            'https://crls.501st.com/costume-reference-library/costumes-by-name' => Http::response(
+                '<article><a>AR - ARC Trooper</a></article>',
+                200
+            ),
+            'https://api.501st.com/legionId/TK-429/costumes' => Http::response([
+                'legionId' => 'TK-429',
+                'costumes' => [],
+            ], 200),
+        ]);
+
+        $google = Mockery::mock(GoogleService::class);
+        $subject = new TheLegionService($organization, $google);
+
+        $subject->run();
+
+        $pivot = TrooperOrganization::query()
+            ->where(TrooperOrganization::TROOPER_ID, $trooper->id)
+            ->where(TrooperOrganization::ORGANIZATION_ID, $organization->id)
+            ->first();
+
+        $this->assertNotNull($pivot);
+        $this->assertSame(MembershipStatus::RETIRED, $pivot->{TrooperOrganization::MEMBERSHIP_STATUS});
+        $this->assertSame(MembershipStatus::RETIRED, $trooper->fresh()->membership_status);
+    }
+
+    public function test_run_sets_pivot_retired_when_api_returns_classified_record_without_legion_id(): void
+    {
+        $organization = Organization::factory()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+
+        TrooperOrganization::factory()->create([
+            TrooperOrganization::TROOPER_ID => $trooper->id,
+            TrooperOrganization::ORGANIZATION_ID => $organization->id,
+            TrooperOrganization::IDENTIFIER => 'TK-430',
+            TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
+        ]);
+
+        Http::fake([
+            'https://crls.501st.com/costume-reference-library/costumes-by-name' => Http::response(
+                '<article><a>AR - ARC Trooper</a></article>',
+                200
+            ),
+            'https://api.501st.com/legionId/TK-430/costumes' => Http::response([
+                'memberStatus' => 'Classified Record',
+                'costumes' => [],
+            ], 200),
+        ]);
+
+        $google = Mockery::mock(GoogleService::class);
+        $subject = new TheLegionService($organization, $google);
+
+        $subject->run();
+
+        $pivot = TrooperOrganization::query()
+            ->where(TrooperOrganization::TROOPER_ID, $trooper->id)
+            ->where(TrooperOrganization::ORGANIZATION_ID, $organization->id)
+            ->first();
+
+        $this->assertNotNull($pivot);
+        $this->assertSame(MembershipStatus::RETIRED, $pivot->{TrooperOrganization::MEMBERSHIP_STATUS});
+        $this->assertSame(MembershipStatus::RETIRED, $trooper->fresh()->membership_status);
     }
 }

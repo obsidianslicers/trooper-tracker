@@ -9,6 +9,7 @@ use App\Features\Troopers\Support\OrganizationIdentifierAvailability;
 use App\Models\Organization;
 use App\Models\TrooperOrganization;
 use Exception;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Handles lifecycle events for the TrooperOrganization model.
@@ -44,8 +45,11 @@ class TrooperOrganizationObserver
 
         if ($trooper === null)
         {
+            Log::warning('TrooperOrganizationObserver::saved — trooper relation was null for pivot id='.$trooper_organization->id);
             return;
         }
+
+        Log::debug('TrooperOrganizationObserver::saved — pivot id='.$trooper_organization->id.' trooper id='.$trooper->id.' global='.$trooper->membership_status->value);
 
         if (in_array($trooper->membership_status, [MembershipStatus::INVALID, MembershipStatus::DEPARTED], true))
         {
@@ -59,6 +63,7 @@ class TrooperOrganizationObserver
 
         if ($has_active_org && $trooper->membership_status === MembershipStatus::RETIRED)
         {
+            Log::info('TrooperOrganizationObserver::saved — promoting trooper id='.$trooper->id.' to ACTIVE');
             $trooper->membership_status = MembershipStatus::ACTIVE;
             $trooper->save();
 
@@ -74,6 +79,7 @@ class TrooperOrganizationObserver
 
             if ($has_retired_org)
             {
+                Log::info('TrooperOrganizationObserver::saved — demoting trooper id='.$trooper->id.' to RETIRED');
                 $trooper->membership_status = MembershipStatus::RETIRED;
                 $trooper->save();
             }
