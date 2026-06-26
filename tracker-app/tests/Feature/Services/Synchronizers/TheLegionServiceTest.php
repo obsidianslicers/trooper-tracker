@@ -116,7 +116,7 @@ class TheLegionServiceTest extends TestCase
             ->first();
 
         $this->assertNotNull($pivot);
-        $this->assertSame(MembershipStatus::ACTIVE, $pivot->{TrooperOrganization::MEMBERSHIP_STATUS});
+        $this->assertSame(MembershipStatus::NONE, $pivot->{TrooperOrganization::MEMBERSHIP_STATUS});
     }
 
     public function test_run_sets_pivot_retired_and_global_retired_when_api_returns_retired_and_no_other_active_org(): void
@@ -206,5 +206,84 @@ class TheLegionServiceTest extends TestCase
         $this->assertNotNull($pivot);
         $this->assertSame(MembershipStatus::RETIRED, $pivot->{TrooperOrganization::MEMBERSHIP_STATUS});
         $this->assertSame(MembershipStatus::ACTIVE, $trooper->fresh()->membership_status);
+    }
+
+    public function test_run_sets_pivot_retired_and_global_retired_when_api_returns_retired_with_empty_costumes(): void
+    {
+        $organization = Organization::factory()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+
+        TrooperOrganization::factory()->create([
+            TrooperOrganization::TROOPER_ID => $trooper->id,
+            TrooperOrganization::ORGANIZATION_ID => $organization->id,
+            TrooperOrganization::IDENTIFIER => 'TK-425',
+            TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
+        ]);
+
+        Http::fake([
+            'https://crls.501st.com/costume-reference-library/costumes-by-name' => Http::response(
+                '<article><a>AR - ARC Trooper</a></article>',
+                200
+            ),
+            'https://www.501st.com/memberAPI/v3/legionId/TK-425/costumes' => Http::response([
+                'legionId' => 'TK-425',
+                'memberStatus' => 'Retired',
+                'costumes' => [],
+            ], 200),
+        ]);
+
+        $google = Mockery::mock(GoogleService::class);
+        $subject = new TheLegionService($organization, $google);
+
+        $subject->run();
+
+        $pivot = TrooperOrganization::query()
+            ->where(TrooperOrganization::TROOPER_ID, $trooper->id)
+            ->where(TrooperOrganization::ORGANIZATION_ID, $organization->id)
+            ->first();
+
+        $this->assertNotNull($pivot);
+        $this->assertSame(MembershipStatus::RETIRED, $pivot->{TrooperOrganization::MEMBERSHIP_STATUS});
+        $this->assertSame(MembershipStatus::RETIRED, $trooper->fresh()->membership_status);
+    }
+
+    public function test_run_sets_pivot_reserve_when_api_returns_reserve_status(): void
+    {
+        $organization = Organization::factory()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+
+        TrooperOrganization::factory()->create([
+            TrooperOrganization::TROOPER_ID => $trooper->id,
+            TrooperOrganization::ORGANIZATION_ID => $organization->id,
+            TrooperOrganization::IDENTIFIER => 'TK-426',
+            TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
+        ]);
+
+        Http::fake([
+            'https://crls.501st.com/costume-reference-library/costumes-by-name' => Http::response(
+                '<article><a>AR - ARC Trooper</a></article>',
+                200
+            ),
+            'https://www.501st.com/memberAPI/v3/legionId/TK-426/costumes' => Http::response([
+                'legionId' => 'TK-426',
+                'memberApproved' => 'YES',
+                'memberStanding' => 'Good',
+                'memberStatus' => 'Reserve',
+                'costumes' => [],
+            ], 200),
+        ]);
+
+        $google = Mockery::mock(GoogleService::class);
+        $subject = new TheLegionService($organization, $google);
+
+        $subject->run();
+
+        $pivot = TrooperOrganization::query()
+            ->where(TrooperOrganization::TROOPER_ID, $trooper->id)
+            ->where(TrooperOrganization::ORGANIZATION_ID, $organization->id)
+            ->first();
+
+        $this->assertNotNull($pivot);
+        $this->assertSame(MembershipStatus::RESERVE, $pivot->{TrooperOrganization::MEMBERSHIP_STATUS});
     }
 }

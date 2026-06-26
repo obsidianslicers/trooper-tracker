@@ -62,7 +62,7 @@ class TheLegionService extends BaseOrganizationService
 
             $json = Http::get($url)->json();
 
-            if (!is_array($json) || empty($json['costumes']))
+            if (!is_array($json))
             {
                 continue;
             }
@@ -107,6 +107,11 @@ class TheLegionService extends BaseOrganizationService
                 }
             }
 
+            if (empty($json['costumes']))
+            {
+                continue;
+            }
+
             foreach ($json['costumes'] as $c)
             {
                 $costume_name = $c['costumeName'] ?? null;
@@ -132,7 +137,8 @@ class TheLegionService extends BaseOrganizationService
 
     private function convertStatus(Trooper $trooper, $json): MembershipStatus
     {
-        $pivot = $trooper->pivot;
+        $raw = $trooper->pivot->membership_status;
+        $current_status = $raw instanceof MembershipStatus ? $raw : MembershipStatus::from($raw);
 
         $member_error = $json['error'] ?? null;
         $member_approved = $json['memberApproved'] ?? null;
@@ -147,7 +153,7 @@ class TheLegionService extends BaseOrganizationService
 
         if (isset($member_error))
         {
-            if ($pivot->membership_status == MembershipStatus::ACTIVE)
+            if ($current_status === MembershipStatus::ACTIVE)
             {
                 return MembershipStatus::NONE;
             }
@@ -167,6 +173,6 @@ class TheLegionService extends BaseOrganizationService
             return MembershipStatus::NONE;
         }
 
-        return $pivot->membership_status;
+        return $current_status;
     }
 }
