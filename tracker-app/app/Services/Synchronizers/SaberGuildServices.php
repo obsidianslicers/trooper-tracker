@@ -24,7 +24,7 @@ class SaberGuildServices extends BaseOrganizationService
 
     protected function synchronize(): void
     {
-        $costume_rows = $this->getSheetRows('Sheet1');
+        $costume_rows = $this->getSheetRows('Troopers');
 
         foreach ($costume_rows as $row)
         {

@@ -47,7 +47,7 @@ class BaseOrganizationServiceTest extends TestCase
 
         $subject = new BaseOrganizationServiceHarness($organization, $google);
 
-        $result = $subject->publicGetSheetRows('Sheet1');
+        $result = $subject->publicGetSheetRows('Troopers');
 
         $this->assertSame([], $result);
     }
@@ -61,7 +61,7 @@ class BaseOrganizationServiceTest extends TestCase
         $google = Mockery::mock(GoogleService::class);
         $google->shouldReceive('getSheet')
             ->once()
-            ->with('sheet-123', 'Sheet1')
+            ->with('sheet-123', 'Troopers')
             ->andReturn([
                 ['header_a', 'header_b'],
                 ['row1_a', 'row1_b'],
@@ -69,7 +69,7 @@ class BaseOrganizationServiceTest extends TestCase
 
         $subject = new BaseOrganizationServiceHarness($organization, $google);
 
-        $result = $subject->publicGetSheetRows('Sheet1');
+        $result = $subject->publicGetSheetRows('Troopers');
 
         $this->assertSame([['row1_a', 'row1_b']], $result);
     }
