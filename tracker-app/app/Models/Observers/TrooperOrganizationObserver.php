@@ -49,8 +49,6 @@ class TrooperOrganizationObserver
             return;
         }
 
-        Log::debug('TrooperOrganizationObserver::saved — pivot id='.$trooper_organization->id.' trooper id='.$trooper->id.' global='.$trooper->membership_status->value);
-
         if (in_array($trooper->membership_status, [MembershipStatus::INVALID, MembershipStatus::DEPARTED], true))
         {
             return;
@@ -63,7 +61,6 @@ class TrooperOrganizationObserver
 
         if ($has_active_org && $trooper->membership_status === MembershipStatus::RETIRED)
         {
-            Log::info('TrooperOrganizationObserver::saved — promoting trooper id='.$trooper->id.' to ACTIVE');
             $trooper->membership_status = MembershipStatus::ACTIVE;
             $trooper->save();
 
@@ -79,7 +76,6 @@ class TrooperOrganizationObserver
 
             if ($has_retired_org)
             {
-                Log::info('TrooperOrganizationObserver::saved — demoting trooper id='.$trooper->id.' to RETIRED');
                 $trooper->membership_status = MembershipStatus::RETIRED;
                 $trooper->save();
             }

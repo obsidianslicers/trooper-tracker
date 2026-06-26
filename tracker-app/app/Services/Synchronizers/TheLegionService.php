@@ -70,10 +70,6 @@ class TheLegionService extends BaseOrganizationService
             }
 
             $api_legion_id = $json['legionId'] ?? null;
-            $api_status    = $json['memberStatus'] ?? null;
-            $api_error     = $json['error'] ?? null;
-
-            Log::debug(__CLASS__.": {$legion_id} API memberStatus={$api_status} error={$api_error} legionId={$api_legion_id}");
 
             $lookup_id = !empty($api_legion_id) ? $api_legion_id.'' : $legion_id;
             $trooper   = $this->getTrooper($lookup_id);
@@ -85,8 +81,6 @@ class TheLegionService extends BaseOrganizationService
             }
 
             $status = $this->convertStatus($trooper, $json);
-
-            Log::debug(__CLASS__.": {$legion_id} convertStatus={$status->value}");
 
             $this->syncTrooperStatus($trooper, $status);
 
