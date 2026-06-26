@@ -46,6 +46,7 @@ class TrooperOrganizationObserver
         if ($trooper === null)
         {
             Log::warning('TrooperOrganizationObserver::saved — trooper relation was null for pivot id='.$trooper_organization->id);
+
             return;
         }
 

@@ -66,17 +66,19 @@ class TheLegionService extends BaseOrganizationService
             if (!is_array($json))
             {
                 Log::warning(__CLASS__.": {$legion_id} API response was not an array");
+
                 continue;
             }
 
             $api_legion_id = $json['legionId'] ?? null;
 
             $lookup_id = !empty($api_legion_id) ? $api_legion_id.'' : $legion_id;
-            $trooper   = $this->getTrooper($lookup_id);
+            $trooper = $this->getTrooper($lookup_id);
 
             if ($trooper === null)
             {
                 Log::warning(__CLASS__.": {$legion_id} getTrooper({$lookup_id}) returned null — identifier mismatch?");
+
                 continue;
             }
 
@@ -170,9 +172,9 @@ class TheLegionService extends BaseOrganizationService
             {
                 return match ($member_status)
                 {
-                    'Active'  => MembershipStatus::ACTIVE,
+                    'Active' => MembershipStatus::ACTIVE,
                     'Reserve' => MembershipStatus::RESERVE,
-                    default   => MembershipStatus::NONE,
+                    default => MembershipStatus::NONE,
                 };
             }
 
