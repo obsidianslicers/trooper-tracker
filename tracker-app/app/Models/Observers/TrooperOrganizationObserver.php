@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Models\Observers;
 
+use App\Enums\MembershipStatus;
 use App\Features\Troopers\Support\OrganizationIdentifierAvailability;
 use App\Models\Organization;
 use App\Models\TrooperOrganization;
 use Exception;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Handles lifecycle events for the TrooperOrganization model.
@@ -24,6 +26,63 @@ class TrooperOrganizationObserver
      *
      * @throws Exception if a trooper is assigned as a member to a non-leaf organization.
      */
+    /**
+     * Handle the TrooperOrganization "saved" event.
+     *
+     * Reconciles global trooper membership_status whenever the org-level status changes:
+     * - Demote: globally ACTIVE + no remaining active orgs + has retired org → RETIRED
+     * - Promote: globally RETIRED + now has an active org → ACTIVE
+     * PENDING/DENIED are never touched; terminal statuses (INVALID/DEPARTED) are skipped.
+     */
+    public function saved(TrooperOrganization $trooper_organization): void
+    {
+        if (!$trooper_organization->wasChanged(TrooperOrganization::MEMBERSHIP_STATUS))
+        {
+            return;
+        }
+
+        $trooper = $trooper_organization->trooper;
+
+        if ($trooper === null)
+        {
+            Log::warning('TrooperOrganizationObserver::saved — trooper relation was null for pivot id='.$trooper_organization->id);
+
+            return;
+        }
+
+        if (in_array($trooper->membership_status, [MembershipStatus::INVALID, MembershipStatus::DEPARTED], true))
+        {
+            return;
+        }
+
+        $has_active_org = TrooperOrganization::query()
+            ->where(TrooperOrganization::TROOPER_ID, $trooper->id)
+            ->where(TrooperOrganization::MEMBERSHIP_STATUS, MembershipStatus::ACTIVE)
+            ->exists();
+
+        if ($has_active_org && $trooper->membership_status === MembershipStatus::RETIRED)
+        {
+            $trooper->membership_status = MembershipStatus::ACTIVE;
+            $trooper->save();
+
+            return;
+        }
+
+        if (!$has_active_org && $trooper->membership_status === MembershipStatus::ACTIVE)
+        {
+            $has_retired_org = TrooperOrganization::query()
+                ->where(TrooperOrganization::TROOPER_ID, $trooper->id)
+                ->where(TrooperOrganization::MEMBERSHIP_STATUS, MembershipStatus::RETIRED)
+                ->exists();
+
+            if ($has_retired_org)
+            {
+                $trooper->membership_status = MembershipStatus::RETIRED;
+                $trooper->save();
+            }
+        }
+    }
+
     public function saving(TrooperOrganization $trooper_organization): void
     {
         $primary_club = $trooper_organization->organization->getPrimaryClub();

@@ -35,7 +35,7 @@ class DroidBuildersServiceTest extends TestCase
 
         $subject->shouldReceive('getSheetRows')
             ->once()
-            ->with('Sheet1')
+            ->with('Troopers')
             ->andReturn([
                 ['TK-123', 'Droid Armor', 'https://img.example/droid.jpg'],
             ]);

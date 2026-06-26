@@ -58,16 +58,19 @@ class TheLegionService extends BaseOrganizationService
         {
             $legion_id = $trooper->pivot->identifier;
 
-            $url = "https://www.501st.com/memberAPI/v3/legionId/{$legion_id}/costumes";
+            $url = "https://api.501st.com/legionId/{$legion_id}/costumes";
 
             $json = Http::get($url)->json();
 
-            if (!is_array($json) || empty($json['costumes']))
+            if (!is_array($json))
             {
                 continue;
             }
 
-            $trooper = $this->getTrooper($json['legionId'].'');
+            $api_legion_id = $json['legionId'] ?? null;
+
+            $lookup_id = !empty($api_legion_id) ? $api_legion_id.'' : $legion_id;
+            $trooper = $this->getTrooper($lookup_id);
 
             if ($trooper === null)
             {
@@ -107,6 +110,11 @@ class TheLegionService extends BaseOrganizationService
                 }
             }
 
+            if (empty($json['costumes']))
+            {
+                continue;
+            }
+
             foreach ($json['costumes'] as $c)
             {
                 $costume_name = $c['costumeName'] ?? null;
@@ -120,9 +128,8 @@ class TheLegionService extends BaseOrganizationService
                 $org_costume = $this->getOrCreateOrganizationCostume($costume_name);
 
                 $attributes = [
-                    TrooperCostume::IMAGE_URL_LG => $c['photoURL'] ?? ($c['photo'] ?? null),
+                    TrooperCostume::IMAGE_URL_LG => $c['photoUrl'] ?? null,
                     TrooperCostume::IMAGE_URL_SM => $c['thumbnail'] ?? null,
-                    TrooperCostume::IMAGE_URL_BUCKET_OFF => $c['bucketOffPhoto'] ?? null,
                 ];
 
                 $this->syncTrooperCostume($trooper, $org_costume, $attributes);
@@ -132,16 +139,24 @@ class TheLegionService extends BaseOrganizationService
 
     private function convertStatus(Trooper $trooper, $json): MembershipStatus
     {
-        $pivot = $trooper->pivot;
+        $raw = $trooper->pivot->membership_status;
+        $current_status = $raw instanceof MembershipStatus ? $raw : MembershipStatus::from($raw);
 
         $member_error = $json['error'] ?? null;
         $member_approved = $json['memberApproved'] ?? null;
         $member_standing = $json['memberStanding'] ?? null;
         $member_status = $json['memberStatus'] ?? null;
 
+        // Explicit retired/classified responses — retired members may not pass approved/standing
+        if (in_array($member_status, ['Retired', 'Classified Record'], true))
+        {
+            return MembershipStatus::RETIRED;
+        }
+
         if (isset($member_error))
         {
-            if ($pivot->membership_status == MembershipStatus::ACTIVE)
+            // API error (member not found): only downgrade from ACTIVE
+            if ($current_status === MembershipStatus::ACTIVE)
             {
                 return MembershipStatus::NONE;
             }
@@ -150,18 +165,23 @@ class TheLegionService extends BaseOrganizationService
         {
             if ($member_approved == 'YES' && $member_standing == 'Good')
             {
-                switch ($member_status)
+                return match ($member_status)
                 {
-                    case 'Active':
-                        return MembershipStatus::ACTIVE;
-                    case 'Reserve':
-                        return MembershipStatus::RESERVE;
-                }
+                    'Active' => MembershipStatus::ACTIVE,
+                    'Reserve' => MembershipStatus::RESERVE,
+                    default => MembershipStatus::NONE,
+                };
             }
 
-            return MembershipStatus::NONE;
+            // No error but the API cannot confirm active/reserve status (null or unrecognized
+            // memberStatus). The 501st API omits or redacts memberStatus for classified/retired
+            // records. Treat as retired unless the member is in a pre-approval or terminal state.
+            if (!in_array($current_status, [MembershipStatus::PENDING, MembershipStatus::DENIED, MembershipStatus::INVALID, MembershipStatus::DEPARTED], true))
+            {
+                return MembershipStatus::RETIRED;
+            }
         }
 
-        return $pivot->membership_status;
+        return $current_status;
     }
 }

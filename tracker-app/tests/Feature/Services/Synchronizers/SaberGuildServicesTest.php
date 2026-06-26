@@ -35,7 +35,7 @@ class SaberGuildServicesTest extends TestCase
 
         $subject->shouldReceive('getSheetRows')
             ->once()
-            ->with('Sheet1')
+            ->with('Troopers')
             ->andReturn([
                 ['Name', 'Rank', 'SG-1', 'Saber Gear', 'https://drive.google.com/file/d/abc123/view?usp=drivesdk'],
             ]);

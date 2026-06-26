@@ -149,7 +149,15 @@ abstract class BaseOrganizationService implements SynchronizerInterface
 
     protected function syncTrooperStatus(Trooper $trooper, MembershipStatus $status): void
     {
-        $pivot = $trooper->pivot;
+        $pivot = TrooperOrganization::query()
+            ->where(TrooperOrganization::TROOPER_ID, $trooper->id)
+            ->where(TrooperOrganization::ORGANIZATION_ID, $this->organization->id)
+            ->first();
+
+        if ($pivot === null)
+        {
+            return;
+        }
 
         $pivot->synchronized_at = now();
         $pivot->membership_status = $status;
