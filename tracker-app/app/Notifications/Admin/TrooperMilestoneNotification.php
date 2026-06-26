@@ -49,7 +49,7 @@ class TrooperMilestoneNotification extends Notification
 
         return [
             'title' => 'Trooper Milestone Achieved',
-            'body' => $trooper->display_name.' has earned: '.$this->achievement->type->label().'.',
+            'body' => $trooper->display_name.' has earned: '.$this->achievement->type->toTitle().'.',
             'url' => route('admin.troopers.profile', $trooper),
         ];
     }
