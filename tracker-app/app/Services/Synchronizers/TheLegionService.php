@@ -13,7 +13,6 @@ use App\Services\MemberLookup\TheLegionMemberLookupService;
 use Carbon\Carbon;
 use Carbon\Exceptions\InvalidFormatException;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 use Symfony\Component\DomCrawler\Crawler;
 
 class TheLegionService extends BaseOrganizationService
@@ -65,8 +64,6 @@ class TheLegionService extends BaseOrganizationService
 
             if (!is_array($json))
             {
-                Log::warning(__CLASS__.": {$legion_id} API response was not an array");
-
                 continue;
             }
 
@@ -77,8 +74,6 @@ class TheLegionService extends BaseOrganizationService
 
             if ($trooper === null)
             {
-                Log::warning(__CLASS__.": {$legion_id} getTrooper({$lookup_id}) returned null — identifier mismatch?");
-
                 continue;
             }
 
