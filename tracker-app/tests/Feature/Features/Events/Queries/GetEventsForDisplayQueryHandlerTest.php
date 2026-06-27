@@ -97,4 +97,56 @@ class GetEventsForDisplayQueryHandlerTest extends TestCase
 
         $this->assertFalse($result->contains('id', $event->id));
     }
+
+    public function test_invoke_hides_shifts_that_have_already_ended(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-06-02 12:00:00'));
+
+        $event = Event::factory()
+            ->withEventStart(Carbon::parse('2026-06-02 08:00:00'))
+            ->withEventEnd(Carbon::parse('2026-06-02 18:00:00'))
+            ->create();
+
+        $ended_shift = EventShift::factory()
+            ->forEvent($event)
+            ->withShiftStartsAt(Carbon::parse('2026-06-02 08:00:00'))
+            ->withShiftEndsAt(Carbon::parse('2026-06-02 10:00:00'))
+            ->create();
+        $future_shift = EventShift::factory()
+            ->forEvent($event)
+            ->withShiftStartsAt(Carbon::parse('2026-06-02 14:00:00'))
+            ->withShiftEndsAt(Carbon::parse('2026-06-02 16:00:00'))
+            ->create();
+
+        $subject = new GetEventsForDisplayQueryHandler();
+
+        $result = $subject(new GetEventsForDisplayQuery());
+        $display_event = $result->firstWhere('id', $event->id);
+
+        $this->assertNotNull($display_event);
+        $this->assertFalse($display_event->event_shifts->contains('id', $ended_shift->id));
+        $this->assertTrue($display_event->event_shifts->contains('id', $future_shift->id));
+    }
+
+    public function test_invoke_hides_event_when_all_shifts_ended_before_now(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-06-02 12:00:00'));
+
+        $event = Event::factory()
+            ->withEventStart(Carbon::parse('2026-06-02 08:00:00'))
+            ->withEventEnd(Carbon::parse('2026-06-02 10:00:00'))
+            ->create();
+
+        EventShift::factory()
+            ->forEvent($event)
+            ->withShiftStartsAt(Carbon::parse('2026-06-02 08:00:00'))
+            ->withShiftEndsAt(Carbon::parse('2026-06-02 10:00:00'))
+            ->create();
+
+        $subject = new GetEventsForDisplayQueryHandler();
+
+        $result = $subject(new GetEventsForDisplayQuery());
+
+        $this->assertFalse($result->contains('id', $event->id));
+    }
 }
