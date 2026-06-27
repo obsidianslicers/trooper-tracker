@@ -41,7 +41,21 @@ final class ForumBBCodeRenderer
         $html = self::replacePairedTag($html, 's', 's');
 
         // Quotes.
-        $html = preg_replace('~\[quote\]~i', '<blockquote class="border-start ps-3 my-2">', $html) ?? $html;
+        $html = preg_replace_callback(
+            '~\[quote(?:=(?:"|&quot;)?([^\]]+?)(?:"|&quot;)?)?\]~i',
+            static function (array $matches): string {
+                $attribution = isset($matches[1])
+                    ? self::quoteAttribution($matches[1])
+                    : null;
+
+                $header = $attribution !== null
+                    ? '<div class="small text-muted mb-1">'.$attribution.' said:</div>'
+                    : '';
+
+                return '<blockquote class="border-start ps-3 my-2">'.$header;
+            },
+            $html
+        ) ?? $html;
         $html = preg_replace('~\[/quote\]~i', '</blockquote>', $html) ?? $html;
 
         // URLs.
@@ -148,5 +162,20 @@ final class ForumBBCodeRenderer
         }
 
         return filter_var($url, FILTER_VALIDATE_URL) ? $url : null;
+    }
+
+    private static function quoteAttribution(string $attribution): ?string
+    {
+        $attribution = html_entity_decode($attribution, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $attribution = trim($attribution, " \t\n\r\0\x0B\"'");
+
+        if ($attribution === '')
+        {
+            return null;
+        }
+
+        $name = trim(explode(',', $attribution, 2)[0]);
+
+        return $name === '' ? null : e($name);
     }
 }
