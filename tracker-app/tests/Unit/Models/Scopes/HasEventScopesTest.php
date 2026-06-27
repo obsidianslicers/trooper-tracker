@@ -31,7 +31,8 @@ class HasEventScopesTest extends TestCase
     {
         $query = Event::query()->upcoming();
 
-        $this->assertStringContainsString('"event_start" >= ?', $query->toBase()->toSql());
+        $this->assertStringContainsString('"shift_ends_at" >= ?', $query->toBase()->toSql());
+        $this->assertStringContainsString('"event_end" >= ?', $query->toBase()->toSql());
         $this->assertStringContainsString('order by "event_start" asc', $query->toBase()->toSql());
     }
 

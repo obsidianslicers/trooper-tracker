@@ -55,9 +55,24 @@ trait HasEventScopes
             EventStatus::MANUAL_SELECTION,
             EventStatus::SIGN_UP_LOCKED,
         ];
+        $cutoff = now()->startOfDay();
 
         return $query->whereIn(self::STATUS, $status_list)
-            ->where(self::EVENT_START, '>=', now()->startOfDay())
+            ->where(function (Builder $query) use ($cutoff): void
+            {
+                $query->where(function (Builder $query) use ($cutoff): void
+                {
+                    $query->whereHas('event_shifts', function (Builder $query) use ($cutoff): void
+                    {
+                        $query->where(EventShift::SHIFT_ENDS_AT, '>=', $cutoff);
+                    });
+                })
+                    ->orWhere(function (Builder $query) use ($cutoff): void
+                    {
+                        $query->whereDoesntHave('event_shifts')
+                            ->where(self::EVENT_END, '>=', $cutoff);
+                    });
+            })
             ->orderBy(self::EVENT_START);
     }
 
