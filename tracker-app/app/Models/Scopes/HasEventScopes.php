@@ -55,10 +55,56 @@ trait HasEventScopes
             EventStatus::MANUAL_SELECTION,
             EventStatus::SIGN_UP_LOCKED,
         ];
+        $cutoff = now();
 
         return $query->whereIn(self::STATUS, $status_list)
-            ->where(self::EVENT_START, '>=', now()->startOfDay())
+            ->where(function (Builder $query) use ($cutoff): void
+            {
+                $query->where(function (Builder $query) use ($cutoff): void
+                {
+                    $query->whereHas('event_shifts', function (Builder $query) use ($cutoff): void
+                    {
+                        $query->where(EventShift::SHIFT_ENDS_AT, '>=', $cutoff);
+                    });
+                })
+                    ->orWhere(function (Builder $query) use ($cutoff): void
+                    {
+                        $query->whereDoesntHave('event_shifts')
+                            ->where(self::EVENT_END, '>=', $cutoff);
+                    });
+            })
             ->orderBy(self::EVENT_START);
+    }
+
+    /**
+     * Scope a query to eager load only shifts that have not ended yet.
+     *
+     * @param Builder<self> $query The Eloquent query builder.
+     * @return Builder<self>
+     */
+    public function scopeWithUpcomingShifts(Builder $query): Builder
+    {
+        return $query->with(['event_shifts' => function ($q)
+        {
+            $q->where(EventShift::SHIFT_ENDS_AT, '>=', now())
+                ->orderBy(EventShift::SHIFT_STARTS_AT)
+                ->withCount([
+                    'event_troopers as event_troopers_count' => function ($qx)
+                    {
+                        $qx->where(EventTrooper::IS_HANDLER, false)
+                            ->where(EventTrooper::STATUS, EventTrooperStatus::GOING);
+                    },
+                    'event_troopers as event_handlers_count' => function ($qx)
+                    {
+                        $qx->where(EventTrooper::IS_HANDLER, true)
+                            ->where(EventTrooper::STATUS, EventTrooperStatus::GOING);
+                    },
+                    'event_guests as event_guests_count' => function ($qx)
+                    {
+                        $qx->where(EventGuest::STATUS, EventGuestStatus::GOING);
+                    },
+                ]);
+        }]);
     }
 
     /**

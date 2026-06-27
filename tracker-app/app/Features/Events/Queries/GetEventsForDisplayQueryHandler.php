@@ -49,7 +49,7 @@ readonly class GetEventsForDisplayQueryHandler implements QueryHandlerInterface
         ];
 
         $events = Event::with($relations)
-            ->withShifts()
+            ->withUpcomingShifts()
             ->upcoming()
             ->get();
 

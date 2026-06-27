@@ -6,6 +6,7 @@ namespace App\Features\Events\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Models\Event;
+use App\Models\EventShift;
 use Illuminate\Support\Collection;
 
 /**
@@ -32,8 +33,21 @@ readonly class GetEventsToCloseQueryHandler implements QueryHandlerInterface
     public function __invoke(object $message): mixed
     {
         // Buffer to ensure all shifts have ended to allow troopers to signup
+        $cutoff = now()->subHours(6);
+
         return Event::active()
-            ->where(Event::EVENT_END, '<', now()->subHours(6))
+            ->where(function ($query) use ($cutoff): void {
+                $query->where(function ($query) use ($cutoff): void {
+                    $query->whereHas('event_shifts')
+                        ->whereDoesntHave('event_shifts', function ($query) use ($cutoff): void {
+                            $query->where(EventShift::SHIFT_ENDS_AT, '>=', $cutoff);
+                        });
+                })
+                    ->orWhere(function ($query) use ($cutoff): void {
+                        $query->whereDoesntHave('event_shifts')
+                            ->where(Event::EVENT_END, '<', $cutoff);
+                    });
+            })
             ->get();
     }
 }

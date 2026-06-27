@@ -59,6 +59,20 @@ class UpdateShiftsSubmitController extends MagicBusController
             $shift->save();
         }
 
+        $starts_at = $event->event_shifts()->min(EventShift::SHIFT_STARTS_AT);
+        $ends_at = $event->event_shifts()->max(EventShift::SHIFT_ENDS_AT);
+
+        if ($starts_at !== null && $ends_at !== null)
+        {
+            $event->event_start = Carbon::parse($starts_at);
+            $event->event_end = Carbon::parse($ends_at);
+
+            if ($event->isDirty([Event::EVENT_START, Event::EVENT_END]))
+            {
+                $event->save();
+            }
+        }
+
         $this->flash->updated($event);
 
         return redirect()->route('admin.events.shifts', compact('event'));
