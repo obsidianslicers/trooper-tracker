@@ -66,11 +66,13 @@ class GuestSignUpHtmxController extends MagicBusController
 
             if (!empty($guest_name))
             {
-                $event_shift->event_guests()->firstOrCreate([
-                    EventGuest::ADDED_BY_TROOPER_ID => $trooper->id,
-                    EventGuest::NAME => $guest_name,
-                    EventGuest::STATUS => $guestStatus,
-                ]);
+                $event_shift->event_guests()->firstOrCreate(
+                    [EventGuest::NAME => $guest_name],
+                    [
+                        EventGuest::ADDED_BY_TROOPER_ID => $trooper->id,
+                        EventGuest::STATUS => $guestStatus,
+                    ]
+                );
             }
         }
 
