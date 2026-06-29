@@ -12,7 +12,7 @@
     </p>
 
     <p>
-        <strong>Trooper:</strong> {{ $achievement->trooper->display_name }}<br>
+        <strong>Trooper:</strong> {{ $achievement->trooper->legal_name }} ({{ $achievement->trooper->display_name }})<br>
         <strong>Achievement:</strong> {{ $achievement->type->toDescription() }}
     </p>
 
