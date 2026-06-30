@@ -26,19 +26,29 @@ class SendTrooperMilestoneNotificationsJob implements ShouldQueue
 {
     use Queueable;
 
-    public function __construct(private readonly TrooperAchievement $achievement) {}
+    public function __construct(private readonly TrooperAchievement $achievement)
+    {
+    }
 
     public function handle(MagicBus $bus): void
     {
         $trooper = $this->achievement->trooper;
 
-        $trooper_org_ids = $trooper->trooper_assignments()
-            ->where(TrooperAssignment::IS_MEMBER, true)
+        $trooper->load([
+            'trooper_assignments' => function ($query)
+            {
+                $query->where(TrooperAssignment::IS_MEMBER, true)
+                    ->with('organization');
+            }
+        ]);
+
+        $trooper_org_ids = $trooper->trooper_assignments
             ->pluck(TrooperAssignment::ORGANIZATION_ID)
             ->all();
 
         if (empty($trooper_org_ids))
         {
+            //  not a member of any club/organization
             return;
         }
 

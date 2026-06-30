@@ -9,14 +9,16 @@
     <x-slim-container>
 
         @if($trooper->membership_status === \App\Enums\MembershipStatus::INVALID)
-            <div class="alert alert-warning mb-3" role="alert">
+            <div class="alert alert-warning mb-3"
+                 role="alert">
                 <strong>This account has been marked as created in error.</strong>
                 It cannot log in and does not appear in event pickers or reports.
             </div>
         @endif
 
         @if($trooper->membership_status === \App\Enums\MembershipStatus::DEPARTED)
-            <div class="alert alert-dark border-warning mb-3" role="alert">
+            <div class="alert alert-dark border-warning mb-3"
+                 role="alert">
                 <strong>This account is marked R.I.P. — In Memoriam.</strong>
                 The service record displays a memorial tribute. The account cannot log in.
             </div>
@@ -83,7 +85,7 @@
                     <span class="float-start">
                         <a href="{{ route('service-records.trooper', compact('trooper')) }}"
                            class="btn btn-outline-info mb-2">
-                            View Dashboard
+                            Service Record
                         </a>
                     </span>
                     <x-submit-button>

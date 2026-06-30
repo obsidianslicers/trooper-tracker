@@ -16,6 +16,12 @@
         <strong>Achievement:</strong> {{ $achievement->type->toDescription() }}
     </p>
 
+    <ul>
+        @foreach ($achievement->trooper->trooper_assignments as $assignment)
+            <li>{{ $assignment->organization->name }}</li>
+        @endforeach
+    </ul>
+
     <p>
         You may review this trooper's full service record in the
         <a href="{{ route('admin.troopers.profile', $achievement->trooper) }}">Imperial Personnel Registry</a>.
