@@ -40,6 +40,34 @@ final class ForumBBCodeRenderer
         $html = self::replacePairedTag($html, 'u', 'u');
         $html = self::replacePairedTag($html, 's', 's');
 
+        // User mentions.
+        $resolved = [];
+        $html = preg_replace_callback(
+            '~\[USER=(\d+)\](.*?)\[/USER\]~si',
+            static function (array $matches) use (&$resolved): string {
+                $xenforo_id = $matches[1];
+                $display_name = $matches[2];
+
+                if (! array_key_exists($xenforo_id, $resolved)) {
+                    $resolved[$xenforo_id] = \App\Models\OauthLogin::query()
+                        ->where('provider', 'xenforo')
+                        ->where('provider_id', $xenforo_id)
+                        ->value('trooper_id');
+                }
+
+                $trooper_id = $resolved[$xenforo_id];
+                if ($trooper_id !== null) {
+                    $href = e(route('service-records.trooper', $trooper_id));
+                } else {
+                    $base = rtrim((string) config('services.xenforo.base_url', ''), '/');
+                    $href = e($base.'/index.php?members/'.$xenforo_id.'/');
+                }
+
+                return '<a href="'.$href.'" target="_blank" rel="noopener noreferrer">'.$display_name.'</a>';
+            },
+            $html
+        ) ?? $html;
+
         // Quotes.
         $html = preg_replace_callback(
             '~\[quote(?:=(?:"|&quot;)?([^\]]+?)(?:"|&quot;)?)?\]~i',
