@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Helpers;
 
+use App\Models\OauthLogin;
 use Illuminate\Support\Str;
 
 final class ForumBBCodeRenderer
@@ -39,6 +40,31 @@ final class ForumBBCodeRenderer
         $html = self::replacePairedTag($html, 'i', 'em');
         $html = self::replacePairedTag($html, 'u', 'u');
         $html = self::replacePairedTag($html, 's', 's');
+
+        // User mentions.
+        $resolved = [];
+        $html = preg_replace_callback(
+            '~\[USER=(\d+)\](.*?)\[/USER\]~si',
+            static function (array $matches) use (&$resolved): string {
+                $xenforo_id = $matches[1];
+                $display_name = $matches[2];
+
+                if (! array_key_exists($xenforo_id, $resolved))
+                {
+                    $resolved[$xenforo_id] = OauthLogin::query()
+                        ->where('provider', 'xenforo')
+                        ->where('provider_id', $xenforo_id)
+                        ->value('trooper_id');
+                }
+
+                $href = self::resolveUserMentionHref($resolved[$xenforo_id], $xenforo_id);
+
+                return $href !== null
+                    ? '<a href="'.$href.'" target="_blank" rel="noopener noreferrer">'.$display_name.'</a>'
+                    : $display_name;
+            },
+            $html
+        ) ?? $html;
 
         // Quotes.
         $html = preg_replace_callback(
@@ -123,6 +149,18 @@ final class ForumBBCodeRenderer
         $html = preg_replace('~(<br\s*/?>\s*){3,}~i', '<br><br>', $html) ?? $html;
 
         return $html;
+    }
+
+    private static function resolveUserMentionHref(?int $trooper_id, string $xenforo_id): ?string
+    {
+        if ($trooper_id !== null)
+        {
+            return e(route('service-records.trooper', $trooper_id));
+        }
+
+        $base = rtrim((string) config('services.xenforo.base_url', ''), '/');
+
+        return $base !== '' ? e($base.'/index.php?members/'.$xenforo_id.'/') : null;
     }
 
     private static function replacePairedTag(string $html, string $bbTag, string $htmlTag): string
