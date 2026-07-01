@@ -53,6 +53,16 @@ class ForumBBCodeRendererTest extends TestCase
         $this->assertStringContainsString('@DownedDak', $html);
     }
 
+    public function test_user_mention_renders_plain_text_when_xenforo_not_configured(): void
+    {
+        Config::set('services.xenforo.base_url', '');
+
+        $html = ForumBBCodeRenderer::toHtml('[USER=18076]@DownedDak[/USER]');
+
+        $this->assertStringContainsString('@DownedDak', $html);
+        $this->assertStringNotContainsString('<a ', $html);
+    }
+
     public function test_user_mention_display_name_is_xss_safe(): void
     {
         Config::set('services.xenforo.base_url', 'https://forum.example.com');
