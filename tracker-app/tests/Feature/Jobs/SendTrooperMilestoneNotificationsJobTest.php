@@ -71,6 +71,29 @@ class SendTrooperMilestoneNotificationsJobTest extends TestCase
         Notification::assertNotSentTo($admin_opted_out, TrooperMilestoneNotification::class);
     }
 
+    public function test_club_scoped_notification_body_includes_club_context(): void
+    {
+        $org = Organization::factory()->withName('501st Legion')->create();
+        $trooper = Trooper::factory()->asMember()->create();
+
+        $achievement = TrooperAchievement::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($org)
+            ->create([
+                TrooperAchievement::TYPE => AchievementType::FIRST_TROOP,
+            ]);
+        $achievement->setRelation('trooper', $trooper);
+        $achievement->setRelation('organization', $org);
+
+        $notification = new TrooperMilestoneNotification($achievement);
+
+        $this->assertStringContainsString(
+            '501st Legion: First Troop - Combat Readiness Citation',
+            $notification->toArray($trooper)['body'],
+        );
+        $this->assertSame($notification->toArray($trooper), $notification->toFcm($trooper));
+    }
+
     public function test_handle_notifies_moderators_in_scope_with_should_notify(): void
     {
         Notification::fake();

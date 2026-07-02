@@ -44,6 +44,21 @@ class TrooperMilestoneMailTest extends TestCase
         $this->assertSame([], $mail->attachments());
     }
 
+    public function test_content_includes_club_context_for_scoped_milestone(): void
+    {
+        $achievement = $this->createAchievementForMemberTrooper();
+        $club = Organization::factory()->withName('501st Legion')->create();
+        $achievement->organization()->associate($club);
+        $achievement->setRelation('organization', $club);
+
+        $mail = new TrooperMilestoneMail($achievement);
+
+        $this->assertStringContainsString(
+            '501st Legion: First Troop - Combat Readiness Citation',
+            $mail->render(),
+        );
+    }
+
     public function test_mail_implements_should_queue(): void
     {
         $achievement = $this->createAchievementForMemberTrooper();
