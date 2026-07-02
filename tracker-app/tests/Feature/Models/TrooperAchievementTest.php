@@ -111,4 +111,24 @@ class TrooperAchievementTest extends TestCase
         );
         $this->assertTrue($subject->isClubScoped());
     }
+
+    public function test_display_group_order_classifies_milestone_families(): void
+    {
+        $organization = Organization::factory()->asOrganization()->create();
+
+        $global_troop = TrooperAchievement::factory()
+            ->withType(AchievementType::FIRST_TROOP)
+            ->create([TrooperAchievement::VALUE => true]);
+        $club_troop = TrooperAchievement::factory()
+            ->forOrganization($organization)
+            ->withType(AchievementType::FIRST_TROOP)
+            ->create([TrooperAchievement::VALUE => true]);
+        $donation = TrooperAchievement::factory()
+            ->withType(AchievementType::DONATED_100)
+            ->create([TrooperAchievement::VALUE => true]);
+
+        $this->assertSame(TrooperAchievement::DISPLAY_GROUP_GLOBAL_TROOPS, $global_troop->display_group_order);
+        $this->assertSame(TrooperAchievement::DISPLAY_GROUP_CLUB_TROOPS, $club_troop->display_group_order);
+        $this->assertSame(TrooperAchievement::DISPLAY_GROUP_DONATIONS, $donation->display_group_order);
+    }
 }

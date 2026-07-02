@@ -106,7 +106,12 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
     {
         return $trooper->trooper_achievements
             ->filter(fn ($achievement) => $achievement->type->isMilestone() && (bool) $achievement->value)
-            ->sortByDesc(fn ($achievement) => $achievement->display_order)
+            ->sortBy(fn ($achievement) => sprintf(
+                '%02d|%s|%06d',
+                $achievement->display_group_order,
+                $achievement->display_group_key,
+                999999 - $achievement->display_order,
+            ))
             ->map(fn ($achievement) => [
                 'type' => $achievement->type,
                 'title' => $achievement->type->toTitle(),
