@@ -50,6 +50,29 @@ class TrooperAchievement extends BaseTrooperAchievement
     ];
 
     /**
+     * Whether this achievement belongs to a specific top-level club.
+     */
+    public function isClubScoped(): bool
+    {
+        return $this->organization_id !== null;
+    }
+
+    /**
+     * Achievement description with club context when scoped to an organization.
+     */
+    public function getDisplayDescriptionAttribute(): string
+    {
+        $description = $this->type->toDescription();
+
+        if ($this->organization_id === null)
+        {
+            return $description;
+        }
+
+        return "{$this->organization?->name}: {$description}";
+    }
+
+    /**
      * The attributes that should be cast.
      *
      * @var array<string, string>

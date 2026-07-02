@@ -13,6 +13,7 @@ use App\Models\EventTrooper;
 use App\Models\Notice;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
+use App\Models\TrooperAchievement;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperOrganization;
 use App\Models\TrooperRequest;
@@ -64,6 +65,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Collection|Notice[] $notices
  * @property Collection|Costume[] $costumes
  * @property Collection|\App\Models\Organization[] $organizations
+ * @property Collection|TrooperAchievement[] $trooper_achievements
  * @property Collection|TrooperAssignment[] $trooper_assignments
  * @property Collection|Trooper[] $troopers
  * @property Collection|TrooperRequest[] $trooper_requests
@@ -184,6 +186,11 @@ class Organization extends Model
     public function organizations(): HasMany
     {
         return $this->hasMany(\App\Models\Organization::class, \App\Models\Organization::PARENT_ID);
+    }
+
+    public function trooper_achievements(): HasMany
+    {
+        return $this->hasMany(TrooperAchievement::class);
     }
 
     public function trooper_assignments(): HasMany

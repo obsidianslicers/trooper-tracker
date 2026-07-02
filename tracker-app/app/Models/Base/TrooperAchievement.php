@@ -6,6 +6,7 @@
 
 namespace App\Models\Base;
 
+use App\Models\Organization;
 use App\Models\Trooper;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
@@ -17,6 +18,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * 
  * @property int $id
  * @property int $trooper_id
+ * @property int|null $organization_id
+ * @property int|null $organization_scope_id
  * @property string $type
  * @property string|null $value
  * @property Carbon|null $achievement_date
@@ -24,6 +27,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Carbon|null $updated_at
  * @property string|null $deleted_at
  * 
+ * @property Organization|null $organization
  * @property Trooper $trooper
  *
  * @package App\Models\Base
@@ -33,6 +37,8 @@ class TrooperAchievement extends Model
     use SoftDeletes;
     const ID = 'id';
     const TROOPER_ID = 'trooper_id';
+    const ORGANIZATION_ID = 'organization_id';
+    const ORGANIZATION_SCOPE_ID = 'organization_scope_id';
     const TYPE = 'type';
     const VALUE = 'value';
     const ACHIEVEMENT_DATE = 'achievement_date';
@@ -44,6 +50,8 @@ class TrooperAchievement extends Model
     protected $casts = [
         self::ID => 'int',
         self::TROOPER_ID => 'int',
+        self::ORGANIZATION_ID => 'int',
+        self::ORGANIZATION_SCOPE_ID => 'int',
         self::ACHIEVEMENT_DATE => 'datetime',
         self::CREATED_AT => 'datetime',
         self::UPDATED_AT => 'datetime'
@@ -51,10 +59,17 @@ class TrooperAchievement extends Model
 
     protected $fillable = [
         self::TROOPER_ID,
+        self::ORGANIZATION_ID,
+        self::ORGANIZATION_SCOPE_ID,
         self::TYPE,
         self::VALUE,
         self::ACHIEVEMENT_DATE
     ];
+
+    public function organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class);
+    }
 
     public function trooper(): BelongsTo
     {

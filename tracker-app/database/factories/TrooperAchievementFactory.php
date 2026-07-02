@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Enums\AchievementType;
+use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAchievement;
 use Carbon\Carbon;
@@ -33,6 +34,13 @@ class TrooperAchievementFactory extends BaseTrooperAchievementFactory
     {
         return $this->state(fn(array $attributes): array => [
             TrooperAchievement::TYPE => $type,
+        ]);
+    }
+
+    public function forOrganization(Organization $organization): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            TrooperAchievement::ORGANIZATION_ID => $organization->{Organization::ID},
         ]);
     }
 

@@ -348,10 +348,11 @@ class Trooper extends BaseTrooper implements
      * @param AchievementType $type The type of achievement to retrieve
      * @return TrooperAchievement|null The trooper achievement if found, or null if not found
      */
-    public function getTrooperAchievement(AchievementType $type): ?TrooperAchievement
+    public function getTrooperAchievement(AchievementType $type, ?int $organization_id = null): ?TrooperAchievement
     {
         return $this->trooper_achievements
             ->where(TrooperAchievement::TYPE, $type)
+            ->where(TrooperAchievement::ORGANIZATION_ID, $organization_id)
             ->first();
     }
 
@@ -361,9 +362,9 @@ class Trooper extends BaseTrooper implements
      * @param AchievementType $type The type of achievement to retrieve
      * @return mixed|null The value of the trooper achievement if found, or null if not found
      */
-    public function getAchievementValue(AchievementType $type): mixed
+    public function getAchievementValue(AchievementType $type, ?int $organization_id = null): mixed
     {
-        $trooper_achievement = $this->getTrooperAchievement($type);
+        $trooper_achievement = $this->getTrooperAchievement($type, $organization_id);
 
         if ($trooper_achievement)
         {

@@ -7,6 +7,7 @@ namespace Tests\Feature\Features\Troopers\Queries;
 use App\Enums\AchievementType;
 use App\Features\Troopers\Queries\GetTrooperAchievementsQuery;
 use App\Features\Troopers\Queries\GetTrooperAchievementsQueryHandler;
+use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAchievement;
 use Carbon\Carbon;
@@ -47,6 +48,30 @@ class GetTrooperAchievementsQueryHandlerTest extends TestCase
         $this->assertSame($included->id, $result->first()->id);
         $this->assertTrue($result->first()->relationLoaded('trooper'));
         $this->assertSame(AchievementType::FIRST_TROOP, $result->first()->type);
+    }
+
+    public function test_invoke_loads_organization_for_club_scoped_milestones(): void
+    {
+        $trooper = Trooper::factory()->asMember()->create();
+        $organization = Organization::factory()->asOrganization()->withName('501st Legion')->create();
+
+        TrooperAchievement::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($organization)
+            ->withType(AchievementType::FIRST_TROOP)
+            ->earnedOn(Carbon::now()->subDays(2))
+            ->create([TrooperAchievement::VALUE => true]);
+
+        $subject = new GetTrooperAchievementsQueryHandler();
+
+        $result = $subject(new GetTrooperAchievementsQuery(30));
+
+        $this->assertCount(1, $result);
+        $this->assertTrue($result->first()->relationLoaded('organization'));
+        $this->assertSame(
+            '501st Legion: First Troop - Combat Readiness Citation',
+            $result->first()->display_description,
+        );
     }
 
     public function test_invoke_orders_milestones_by_achievement_date_descending(): void

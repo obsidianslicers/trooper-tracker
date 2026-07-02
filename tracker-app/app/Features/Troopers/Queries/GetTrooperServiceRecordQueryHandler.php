@@ -32,7 +32,7 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
 
     public function __invoke(object $message): mixed
     {
-        $trooper = Trooper::with('trooper_achievements')->findOrFail($message->trooper_id);
+        $trooper = Trooper::with('trooper_achievements.organization')->findOrFail($message->trooper_id);
 
         $recent_shifts = $this->getRecentEventShifts($trooper);
 
@@ -104,17 +104,16 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
 
     private function buildEarnedMilestones(Trooper $trooper): array
     {
-        return collect(AchievementType::cases())
-            ->filter(fn (AchievementType $type) => $type->isMilestone())
-            ->map(fn (AchievementType $type) => [
-                'type' => $type,
-                'title' => $type->toTitle(),
-                'description' => $type->toDescription(),
-                'icon' => $type->toIcon(),
-                'is_earned' => ($trooper->getAchievementValue($type) ?? 0) > 0,
+        return $trooper->trooper_achievements
+            ->filter(fn ($achievement) => $achievement->type->isMilestone() && (bool) $achievement->value)
+            ->sortByDesc(fn ($achievement) => $achievement->display_order)
+            ->map(fn ($achievement) => [
+                'type' => $achievement->type,
+                'title' => $achievement->type->toTitle(),
+                'description' => $achievement->display_description,
+                'icon' => $achievement->type->toIcon(),
+                'is_earned' => true,
             ])
-            ->filter(fn ($milestone) => $milestone['is_earned'])
-            ->reverse()
             ->values()
             ->toArray();
     }
