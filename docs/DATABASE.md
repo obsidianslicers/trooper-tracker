@@ -38,6 +38,7 @@ erDiagram
     tt_organizations ||--o{ tt_events : primary_for
     tt_organizations ||--o{ tt_event_organizations : invited_to
     tt_organizations ||--o{ tt_event_troopers : signed_up_as
+    tt_organizations ||--o{ tt_trooper_achievements : achievement_scope
     tt_organizations ||--o{ tt_awards : has
     tt_organizations ||--o{ tt_notices : has
     tt_organizations ||--o{ tt_trooper_requests : receives
@@ -87,6 +88,7 @@ erDiagram
 
     tt_organizations ||--o{ tt_trooper_assignments : has
     tt_organizations ||--o{ tt_trooper_organizations : has
+    tt_organizations ||--o{ tt_trooper_achievements : achievement_scope
     tt_organizations ||--o{ tt_trooper_requests : receives
     tt_organization_costumes ||--o{ tt_trooper_costumes : assigned_to
 
@@ -614,16 +616,23 @@ Purpose: Trooper achievement ledger.
 | --- | --- | --- | --- |
 | id | bigint unsigned | no | PK, auto increment |
 | trooper_id | bigint unsigned | no | FK -> tt_troopers.id, cascadeOnDelete |
-| type | varchar(64) | no | unique with trooper_id |
+| organization_id | bigint unsigned | yes | FK -> tt_organizations.id, nullOnDelete; null for global achievements |
+| organization_scope_id | bigint unsigned | no | generated from COALESCE(organization_id, 0), unique scope helper |
+| type | varchar(64) | no | unique with trooper_id and organization_scope_id |
 | value | varchar(64) | yes |  |
 | achievement_date | date | yes |  |
 | created_at | timestamp | yes | timestamps helper |
 | updated_at | timestamp | yes | timestamps helper |
 | deleted_at | timestamp | yes | softDeletes helper |
 
+Indexes:
+
+- Index: trooper_id
+- Unique: (trooper_id, type, organization_scope_id)
+
 Relationships:
 
-- Belongs To: tt_troopers
+- Belongs To: tt_troopers, tt_organizations
 
 ### tt_trooper_friends
 

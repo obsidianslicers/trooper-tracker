@@ -232,6 +232,7 @@ Read the documentation in this order for maximum comprehension efficiency.
 Consult these when working on specific subsystems:
 
 - **[Authentication](docs/AUTHENTICATION.md)** - Multi-provider auth and registration pipeline
+- **[Achievements](docs/ACHIEVEMENTS.md)** - Automatic achievement calculation, club-scoped milestones, and notifications
 - **[Notifications](docs/NOTIFICATIONS.md)** - Event notification system (instant/daily/cancellations)
 - **[XenForo OAuth](docs/XENFORO_OAUTH.md)** - Forum integration via OAuth2
 
