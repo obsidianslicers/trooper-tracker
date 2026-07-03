@@ -114,9 +114,9 @@ Global troop milestones count all attended shifts.
 
 Club-scoped troop milestones mirror the same troop-count thresholds, but count only shifts credited to that top-level club.
 
-### Why `organization_scope_id` exists
+### Why `organization_coalesce_id` exists
 
-The table also has a generated `organization_scope_id` column:
+The table also has a generated `organization_coalesce_id` column:
 
 ```text
 COALESCE(organization_id, 0)
@@ -124,13 +124,13 @@ COALESCE(organization_id, 0)
 
 This exists only to enforce uniqueness.
 
-MySQL allows multiple `NULL` values inside a unique index, so a unique index on `(trooper_id, type, organization_id)` would not reliably prevent duplicate global achievements. The generated scope column turns global achievements into scope `0`, allowing this unique constraint:
+MySQL allows multiple `NULL` values inside a unique index, so a unique index on `(trooper_id, type, organization_id)` would not reliably prevent duplicate global achievements. The generated coalesced column turns global achievements into value `0`, allowing this unique constraint:
 
 ```text
-(trooper_id, type, organization_scope_id)
+(trooper_id, type, organization_coalesce_id)
 ```
 
-Application code should use `organization_id`; `organization_scope_id` is a database helper.
+Application code should use `organization_id`; `organization_coalesce_id` is a database helper.
 
 ---
 

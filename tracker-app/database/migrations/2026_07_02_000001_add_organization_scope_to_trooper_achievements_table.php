@@ -26,13 +26,13 @@ return new class extends Migration
                 ->constrained('tt_organizations')
                 ->nullOnDelete();
 
-            $table->unsignedBigInteger('organization_scope_id')
+            $table->unsignedBigInteger('organization_coalesce_id')
                 ->virtualAs('coalesce(organization_id, 0)')
                 ->after('organization_id');
 
             $table->unique(
-                ['trooper_id', 'type', 'organization_scope_id'],
-                'tt_trooper_achievements_scope_unique'
+                ['trooper_id', 'type', 'organization_coalesce_id'],
+                'tt_trooper_achievements_coalesce_unique'
             );
         });
     }
@@ -44,12 +44,12 @@ return new class extends Migration
     {
         Schema::table('tt_trooper_achievements', function (Blueprint $table)
         {
-            $table->dropUnique('tt_trooper_achievements_scope_unique');
+            $table->dropUnique('tt_trooper_achievements_coalesce_unique');
         });
 
         Schema::table('tt_trooper_achievements', function (Blueprint $table)
         {
-            $table->dropColumn('organization_scope_id');
+            $table->dropColumn('organization_coalesce_id');
             $table->dropConstrainedForeignId('organization_id');
 
             $table->unique(['trooper_id', 'type']);

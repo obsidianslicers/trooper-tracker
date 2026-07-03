@@ -617,8 +617,8 @@ Purpose: Trooper achievement ledger.
 | id | bigint unsigned | no | PK, auto increment |
 | trooper_id | bigint unsigned | no | FK -> tt_troopers.id, cascadeOnDelete |
 | organization_id | bigint unsigned | yes | FK -> tt_organizations.id, nullOnDelete; null for global achievements |
-| organization_scope_id | bigint unsigned | no | generated from COALESCE(organization_id, 0), unique scope helper |
-| type | varchar(64) | no | unique with trooper_id and organization_scope_id |
+| organization_coalesce_id | bigint unsigned | no | generated from COALESCE(organization_id, 0), coalesced unique helper |
+| type | varchar(64) | no | unique with trooper_id and organization_coalesce_id |
 | value | varchar(64) | yes |  |
 | achievement_date | date | yes |  |
 | created_at | timestamp | yes | timestamps helper |
@@ -628,7 +628,7 @@ Purpose: Trooper achievement ledger.
 Indexes:
 
 - Index: trooper_id
-- Unique: (trooper_id, type, organization_scope_id)
+- Unique: (trooper_id, type, organization_coalesce_id)
 
 Relationships:
 

@@ -19,7 +19,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $id
  * @property int $trooper_id
  * @property int|null $organization_id
- * @property int|null $organization_scope_id
+ * @property int|null $organization_coalesce_id
  * @property string $type
  * @property string|null $value
  * @property Carbon|null $achievement_date
@@ -38,7 +38,7 @@ class TrooperAchievement extends Model
     const ID = 'id';
     const TROOPER_ID = 'trooper_id';
     const ORGANIZATION_ID = 'organization_id';
-    const ORGANIZATION_SCOPE_ID = 'organization_scope_id';
+    const ORGANIZATION_COALESCE_ID = 'organization_coalesce_id';
     const TYPE = 'type';
     const VALUE = 'value';
     const ACHIEVEMENT_DATE = 'achievement_date';
@@ -51,7 +51,7 @@ class TrooperAchievement extends Model
         self::ID => 'int',
         self::TROOPER_ID => 'int',
         self::ORGANIZATION_ID => 'int',
-        self::ORGANIZATION_SCOPE_ID => 'int',
+        self::ORGANIZATION_COALESCE_ID => 'int',
         self::ACHIEVEMENT_DATE => 'datetime',
         self::CREATED_AT => 'datetime',
         self::UPDATED_AT => 'datetime'
@@ -60,7 +60,7 @@ class TrooperAchievement extends Model
     protected $fillable = [
         self::TROOPER_ID,
         self::ORGANIZATION_ID,
-        self::ORGANIZATION_SCOPE_ID,
+        self::ORGANIZATION_COALESCE_ID,
         self::TYPE,
         self::VALUE,
         self::ACHIEVEMENT_DATE
