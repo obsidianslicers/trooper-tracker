@@ -14,6 +14,7 @@ use App\Models\Trooper;
 use App\Models\TrooperAchievement;
 use App\Models\TrooperAssignment;
 use App\Notifications\Admin\TrooperMilestoneNotification;
+use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Mockery;
@@ -69,6 +70,7 @@ class SendTrooperMilestoneNotificationsJobTest extends TestCase
 
         Notification::assertSentTo($admin_opted_in, TrooperMilestoneNotification::class);
         Notification::assertNotSentTo($admin_opted_out, TrooperMilestoneNotification::class);
+        $this->assertNotNull($achievement->fresh()->notification_sent_at);
     }
 
     public function test_club_scoped_notification_body_includes_club_context(): void
@@ -214,5 +216,39 @@ class SendTrooperMilestoneNotificationsJobTest extends TestCase
         $subject->handle($bus);
 
         Notification::assertNothingSent();
+        $this->assertNotNull($achievement->fresh()->notification_sent_at);
+    }
+
+    public function test_handle_does_not_mark_notification_sent_when_delivery_fails(): void
+    {
+        $org = Organization::factory()->create();
+        $trooper = Trooper::factory()->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org)->asMember()->create();
+
+        $achievement = TrooperAchievement::factory()->create([
+            TrooperAchievement::TROOPER_ID => $trooper->id,
+            TrooperAchievement::TYPE => AchievementType::FIRST_TROOP,
+        ]);
+        $achievement->setRelation('trooper', $trooper);
+
+        $bus = Mockery::mock(MagicBus::class);
+        $bus->shouldReceive('send')
+            ->once()
+            ->withArgs(fn (object $query): bool => $query instanceof GetTroopersByRoleQuery
+                && $query->membership_role === MembershipRole::ADMINISTRATOR)
+            ->andThrow(new Exception('delivery failed'));
+
+        $subject = new SendTrooperMilestoneNotificationsJob($achievement);
+
+        $this->expectException(Exception::class);
+
+        try
+        {
+            $subject->handle($bus);
+        }
+        finally
+        {
+            $this->assertNull($achievement->fresh()->notification_sent_at);
+        }
     }
 }

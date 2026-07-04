@@ -46,45 +46,47 @@ class SendTrooperMilestoneNotificationsJob implements ShouldQueue
         if (empty($trooper_org_ids))
         {
             //  not a member of any club/organization
+            $this->markNotificationSent();
+
             return;
         }
 
-        try
+        $notification = new TrooperMilestoneNotification($this->achievement);
+
+        $admins = $bus->send(new GetTroopersByRoleQuery(MembershipRole::ADMINISTRATOR));
+
+        foreach ($admins as $admin)
         {
-            $notification = new TrooperMilestoneNotification($this->achievement);
-
-            $admins = $bus->send(new GetTroopersByRoleQuery(MembershipRole::ADMINISTRATOR));
-
-            foreach ($admins as $admin)
+            if ($admin->trooper_assignments()
+                ->where(TrooperAssignment::SHOULD_NOTIFY, true)
+                ->whereIn(TrooperAssignment::ORGANIZATION_ID, $trooper_org_ids)
+                ->exists())
             {
-                if ($admin->trooper_assignments()
+                $admin->notify($notification);
+            }
+        }
+
+        $moderators = $bus->send(new GetTroopersByRoleQuery(MembershipRole::MODERATOR));
+        $policy = new TrooperPolicy;
+
+        foreach ($moderators as $moderator)
+        {
+            if ($policy->moderate($moderator, $trooper)
+                && $moderator->trooper_assignments()
                     ->where(TrooperAssignment::SHOULD_NOTIFY, true)
                     ->whereIn(TrooperAssignment::ORGANIZATION_ID, $trooper_org_ids)
                     ->exists())
-                {
-                    $admin->notify($notification);
-                }
-            }
-
-            $moderators = $bus->send(new GetTroopersByRoleQuery(MembershipRole::MODERATOR));
-            $policy = new TrooperPolicy;
-
-            foreach ($moderators as $moderator)
             {
-                if ($policy->moderate($moderator, $trooper)
-                    && $moderator->trooper_assignments()
-                        ->where(TrooperAssignment::SHOULD_NOTIFY, true)
-                        ->whereIn(TrooperAssignment::ORGANIZATION_ID, $trooper_org_ids)
-                        ->exists())
-                {
-                    $moderator->notify($notification);
-                }
+                $moderator->notify($notification);
             }
         }
-        finally
-        {
-            $this->achievement->notification_sent_at = now();
-            $this->achievement->save();
-        }
+
+        $this->markNotificationSent();
+    }
+
+    private function markNotificationSent(): void
+    {
+        $this->achievement->notification_sent_at = now();
+        $this->achievement->save();
     }
 }
