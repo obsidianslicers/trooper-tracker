@@ -46,6 +46,8 @@ class SendTrooperMilestoneNotificationsJob implements ShouldQueue
         if (empty($trooper_org_ids))
         {
             //  not a member of any club/organization
+            $this->markNotificationSent();
+
             return;
         }
 
@@ -78,5 +80,13 @@ class SendTrooperMilestoneNotificationsJob implements ShouldQueue
                 $moderator->notify($notification);
             }
         }
+
+        $this->markNotificationSent();
+    }
+
+    private function markNotificationSent(): void
+    {
+        $this->achievement->notification_sent_at = now();
+        $this->achievement->save();
     }
 }

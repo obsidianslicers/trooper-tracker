@@ -94,4 +94,48 @@ class CalculateTrooperAchievementsCommandTest extends TestCase
         $this->artisan('tracker:calculate-trooper-achievements')
             ->assertExitCode(0);
     }
+
+    public function test_command_without_notifications_option_disables_milestone_notifications(): void
+    {
+        $this->mock(MagicBus::class, function (MockInterface $mock)
+        {
+            $mock->shouldReceive('send')
+                ->once()
+                ->withArgs(function (RecalculateTrooperRankCommand $command)
+                {
+                    return $command->send_milestone_notifications === false;
+                })
+                ->andReturn(null);
+        });
+
+        $this->artisan('tracker:calculate-trooper-achievements --without-notifications')
+            ->expectsOutput('Milestone notifications were disabled for this run.')
+            ->assertExitCode(0);
+    }
+
+    public function test_command_outputs_created_milestone_summary(): void
+    {
+        $this->mock(MagicBus::class, function (MockInterface $mock)
+        {
+            $mock->shouldReceive('send')
+                ->once()
+                ->andReturn([
+                    'created_milestones' => [
+                        'total' => 3,
+                        'global' => 1,
+                        'club' => 2,
+                        'by_type' => [
+                            'first_troop' => 2,
+                            'trooped_10' => 1,
+                        ],
+                    ],
+                ]);
+        });
+
+        $this->artisan('tracker:calculate-trooper-achievements')
+            ->expectsOutput('Milestones created: 3 (global: 1, club-scoped: 2).')
+            ->expectsOutput(' - first_troop: 2')
+            ->expectsOutput(' - trooped_10: 1')
+            ->assertExitCode(0);
+    }
 }

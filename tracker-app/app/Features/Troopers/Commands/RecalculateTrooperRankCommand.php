@@ -15,6 +15,8 @@ use App\Models\Trooper;
  *
  * When trooper_id is null, processes all troopers in the system.
  * When trooper_id is provided, processes only that specific trooper.
+ * Milestone notifications are enabled by default and can be disabled for
+ * large backfills.
  *
  * @see RecalculateTrooperRankCommandHandler
  */
@@ -24,6 +26,10 @@ readonly class RecalculateTrooperRankCommand
      * Create a new command instance.
      *
      * @param  int|null  $trooper_id  The ID of the trooper to recalculate rank for, or null to recalculate all troopers
+     * @param  bool  $send_milestone_notifications  Whether unsent milestone achievements should notify command staff
      */
-    public function __construct(public readonly ?int $trooper_id = null) {}
+    public function __construct(
+        public readonly ?int $trooper_id = null,
+        public readonly bool $send_milestone_notifications = true,
+    ) {}
 }

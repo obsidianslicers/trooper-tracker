@@ -26,6 +26,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property string|null $deleted_at
+ * @property Carbon|null $notification_sent_at
  * 
  * @property Organization|null $organization
  * @property Trooper $trooper
@@ -45,6 +46,7 @@ class TrooperAchievement extends Model
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
     const DELETED_AT = 'deleted_at';
+    const NOTIFICATION_SENT_AT = 'notification_sent_at';
     protected $table = 'tt_trooper_achievements';
 
     protected $casts = [
@@ -54,7 +56,8 @@ class TrooperAchievement extends Model
         self::ORGANIZATION_COALESCE_ID => 'int',
         self::ACHIEVEMENT_DATE => 'datetime',
         self::CREATED_AT => 'datetime',
-        self::UPDATED_AT => 'datetime'
+        self::UPDATED_AT => 'datetime',
+        self::NOTIFICATION_SENT_AT => 'datetime'
     ];
 
     protected $fillable = [
@@ -63,7 +66,8 @@ class TrooperAchievement extends Model
         self::ORGANIZATION_COALESCE_ID,
         self::TYPE,
         self::VALUE,
-        self::ACHIEVEMENT_DATE
+        self::ACHIEVEMENT_DATE,
+        self::NOTIFICATION_SENT_AT
     ];
 
     public function organization(): BelongsTo

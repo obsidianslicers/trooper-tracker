@@ -23,7 +23,8 @@ class CalculateTrooperAchievementsCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'tracker:calculate-trooper-achievements';
+    protected $signature = 'tracker:calculate-trooper-achievements
+        {--without-notifications : Create milestone achievements without dispatching milestone notifications}';
 
     /**
      * The console command description.
@@ -42,12 +43,48 @@ class CalculateTrooperAchievementsCommand extends Command
      */
     public function handle(MagicBus $bus): void
     {
-        $ms = Benchmark::measure(function () use ($bus) {
-            $bus->send(new RecalculateTrooperRankCommand);
+        $summary = null;
+        $send_milestone_notifications = !$this->option('without-notifications');
+
+        $ms = Benchmark::measure(function () use ($bus, $send_milestone_notifications, &$summary) {
+            $summary = $bus->send(new RecalculateTrooperRankCommand(
+                send_milestone_notifications: $send_milestone_notifications,
+            ));
         });
 
         $readable = CarbonInterval::millisecond($ms)->cascade()->forHumans();
 
         $this->info("Trooper achievement calculation completed in {$readable}.");
+        $this->displayMilestoneSummary($summary);
+
+        if (!$send_milestone_notifications)
+        {
+            $this->warn('Milestone notifications were disabled for this run.');
+        }
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $summary
+     */
+    private function displayMilestoneSummary(?array $summary): void
+    {
+        $created = $summary['created_milestones'] ?? null;
+
+        if (!is_array($created))
+        {
+            return;
+        }
+
+        $this->info(sprintf(
+            'Milestones created: %d (global: %d, club-scoped: %d).',
+            $created['total'] ?? 0,
+            $created['global'] ?? 0,
+            $created['club'] ?? 0,
+        ));
+
+        foreach ($created['by_type'] ?? [] as $type => $count)
+        {
+            $this->line(" - {$type}: {$count}");
+        }
     }
 }
