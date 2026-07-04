@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tests\Feature\Models;
 
 use App\Enums\AchievementType;
+use App\Models\Organization;
+use App\Models\Trooper;
 use App\Models\TrooperAchievement;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -75,5 +77,58 @@ class TrooperAchievementTest extends TestCase
 
         $this->assertInstanceOf(AchievementType::class, $subject->{TrooperAchievement::TYPE});
         $this->assertSame(AchievementType::FIRST_TROOP, $subject->{TrooperAchievement::TYPE});
+    }
+
+    public function test_global_and_club_scoped_achievements_can_share_type_for_trooper(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $organization = Organization::factory()->asOrganization()->withName('501st Legion')->create();
+
+        TrooperAchievement::factory()
+            ->forTrooper($trooper)
+            ->withType(AchievementType::FIRST_TROOP)
+            ->create([TrooperAchievement::VALUE => true]);
+        TrooperAchievement::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($organization)
+            ->withType(AchievementType::FIRST_TROOP)
+            ->create([TrooperAchievement::VALUE => true]);
+
+        $this->assertDatabaseCount('tt_trooper_achievements', 2);
+    }
+
+    public function test_display_description_includes_club_name_for_scoped_achievement(): void
+    {
+        $organization = Organization::factory()->asOrganization()->withName('Rebel Legion')->create();
+        $subject = TrooperAchievement::factory()
+            ->forOrganization($organization)
+            ->withType(AchievementType::TROOPED_10)
+            ->create([TrooperAchievement::VALUE => true]);
+
+        $this->assertSame(
+            'Rebel Legion: 10 Troops - Frontier Service Ribbon',
+            $subject->display_description,
+        );
+        $this->assertTrue($subject->isClubScoped());
+    }
+
+    public function test_display_group_order_classifies_milestone_families(): void
+    {
+        $organization = Organization::factory()->asOrganization()->create();
+
+        $global_troop = TrooperAchievement::factory()
+            ->withType(AchievementType::FIRST_TROOP)
+            ->create([TrooperAchievement::VALUE => true]);
+        $club_troop = TrooperAchievement::factory()
+            ->forOrganization($organization)
+            ->withType(AchievementType::FIRST_TROOP)
+            ->create([TrooperAchievement::VALUE => true]);
+        $donation = TrooperAchievement::factory()
+            ->withType(AchievementType::DONATED_100)
+            ->create([TrooperAchievement::VALUE => true]);
+
+        $this->assertSame(TrooperAchievement::DISPLAY_GROUP_GLOBAL_TROOPS, $global_troop->display_group_order);
+        $this->assertSame(TrooperAchievement::DISPLAY_GROUP_CLUB_TROOPS, $club_troop->display_group_order);
+        $this->assertSame(TrooperAchievement::DISPLAY_GROUP_DONATIONS, $donation->display_group_order);
     }
 }

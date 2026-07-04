@@ -27,6 +27,7 @@ readonly class GetTrooperAchievementsQueryHandler implements QueryHandlerInterfa
         $lookback = $message->parseLookback();
 
         $relations = [
+            'organization',
             'trooper:'.implode(',', [Trooper::ID, Trooper::DISPLAY_NAME]),
         ];
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Features\Troopers\Queries;
 
+use App\Enums\AchievementType;
 use App\Features\Troopers\Queries\GetTrooperServiceRecordQuery;
 use App\Features\Troopers\Queries\GetTrooperServiceRecordQueryHandler;
 use App\Models\Award;
@@ -14,6 +15,7 @@ use App\Models\EventTrooper;
 use App\Models\EventUpload;
 use App\Models\EventUploadTrooper;
 use App\Models\Organization;
+use App\Models\TrooperAchievement;
 use App\Models\TrooperAssignment;
 use App\Models\Trooper;
 use App\Models\TrooperDonation;
@@ -192,5 +194,76 @@ class GetTrooperServiceRecordQueryHandlerTest extends TestCase
         $result = $subject(new GetTrooperServiceRecordQuery($trooper->id));
 
         $this->assertSame(1, $result['trooper_organizations']->first()->troop_count);
+    }
+
+    public function test_invoke_service_summary_includes_club_scoped_milestones(): void
+    {
+        $trooper = Trooper::factory()->asMember()->create();
+        $organization = Organization::factory()->asOrganization()->withName('501st Legion')->create();
+
+        TrooperAchievement::factory()
+            ->forTrooper($trooper)
+            ->withType(AchievementType::FIRST_TROOP)
+            ->create([TrooperAchievement::VALUE => true]);
+        TrooperAchievement::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($organization)
+            ->withType(AchievementType::FIRST_TROOP)
+            ->create([TrooperAchievement::VALUE => true]);
+
+        $subject = new GetTrooperServiceRecordQueryHandler();
+        $result = $subject(new GetTrooperServiceRecordQuery($trooper->id));
+
+        $descriptions = collect($result['service_summary']['milestones'])->pluck('description');
+
+        $this->assertTrue($descriptions->contains('First Troop - Combat Readiness Citation'));
+        $this->assertTrue($descriptions->contains('501st Legion: First Troop - Combat Readiness Citation'));
+    }
+
+    public function test_invoke_service_summary_groups_milestones_by_family(): void
+    {
+        $trooper = Trooper::factory()->asMember()->create();
+        $legion = Organization::factory()->asOrganization()->withName('501st Legion')->create();
+        $rebel = Organization::factory()->asOrganization()->withName('Rebel Legion')->create();
+
+        TrooperAchievement::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($rebel)
+            ->withType(AchievementType::TROOPED_10)
+            ->create([TrooperAchievement::VALUE => true]);
+        TrooperAchievement::factory()
+            ->forTrooper($trooper)
+            ->withType(AchievementType::DONATED_100)
+            ->create([TrooperAchievement::VALUE => true]);
+        TrooperAchievement::factory()
+            ->forTrooper($trooper)
+            ->withType(AchievementType::FIRST_TROOP)
+            ->create([TrooperAchievement::VALUE => true]);
+        TrooperAchievement::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($legion)
+            ->withType(AchievementType::FIRST_TROOP)
+            ->create([TrooperAchievement::VALUE => true]);
+        TrooperAchievement::factory()
+            ->forTrooper($trooper)
+            ->withType(AchievementType::TROOPED_10)
+            ->create([TrooperAchievement::VALUE => true]);
+        TrooperAchievement::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($legion)
+            ->withType(AchievementType::TROOPED_10)
+            ->create([TrooperAchievement::VALUE => true]);
+
+        $subject = new GetTrooperServiceRecordQueryHandler();
+        $result = $subject(new GetTrooperServiceRecordQuery($trooper->id));
+
+        $this->assertSame([
+            '10 Troops - Frontier Service Ribbon',
+            'First Troop - Combat Readiness Citation',
+            '501st Legion: 10 Troops - Frontier Service Ribbon',
+            '501st Legion: First Troop - Combat Readiness Citation',
+            'Rebel Legion: 10 Troops - Frontier Service Ribbon',
+            '$100 Donated - Quartermaster\'s Commendation',
+        ], collect($result['service_summary']['milestones'])->pluck('description')->all());
     }
 }

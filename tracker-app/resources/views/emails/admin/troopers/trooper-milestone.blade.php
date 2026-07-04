@@ -13,8 +13,14 @@
 
     <p>
         <strong>Trooper:</strong> {{ $achievement->trooper->legal_name }} ({{ $achievement->trooper->display_name }})<br>
-        <strong>Achievement:</strong> {{ $achievement->type->toDescription() }}
+        <strong>Achievement:</strong> {{ $achievement->display_description }}
     </p>
+
+    <ul>
+        @foreach ($achievement->trooper->trooper_assignments as $assignment)
+            <li>{{ $assignment->organization->name }}</li>
+        @endforeach
+    </ul>
 
     <p>
         You may review this trooper's full service record in the

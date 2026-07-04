@@ -47,7 +47,112 @@ class TrooperAchievement extends BaseTrooperAchievement
         AchievementType::TROOPED_400->value => 400,
         AchievementType::TROOPED_500->value => 500,
         AchievementType::TROOPED_501->value => 501,
+        AchievementType::SUPPORTER_12_MONTHS->value => 12,
+        AchievementType::SUPPORTER_24_MONTHS->value => 24,
+        AchievementType::SUPPORTER_36_MONTHS->value => 36,
+        AchievementType::SUPPORTER_60_MONTHS->value => 60,
+        AchievementType::DONATED_100->value => 100,
+        AchievementType::DONATED_250->value => 250,
+        AchievementType::DONATED_500->value => 500,
+        AchievementType::DONATED_1000->value => 1000,
     ];
+
+    public const DISPLAY_GROUP_GLOBAL_TROOPS = 1;
+
+    public const DISPLAY_GROUP_CLUB_TROOPS = 2;
+
+    public const DISPLAY_GROUP_DONATIONS = 3;
+
+    public const DISPLAY_GROUP_OTHER = 4;
+
+    /**
+     * Whether this achievement belongs to a specific top-level club.
+     */
+    public function isClubScoped(): bool
+    {
+        return $this->organization_id !== null;
+    }
+
+    /**
+     * Achievement description with club context when scoped to an organization.
+     */
+    public function getDisplayDescriptionAttribute(): string
+    {
+        $description = $this->type->toDescription();
+
+        if ($this->organization_id === null)
+        {
+            return $description;
+        }
+
+        return "{$this->organization?->name}: {$description}";
+    }
+
+    /**
+     * Broad display group for keeping related milestone families together.
+     */
+    public function getDisplayGroupOrderAttribute(): int
+    {
+        if ($this->isTroopCountMilestone())
+        {
+            return $this->isClubScoped()
+                ? self::DISPLAY_GROUP_CLUB_TROOPS
+                : self::DISPLAY_GROUP_GLOBAL_TROOPS;
+        }
+
+        if ($this->isDonationMilestone())
+        {
+            return self::DISPLAY_GROUP_DONATIONS;
+        }
+
+        return self::DISPLAY_GROUP_OTHER;
+    }
+
+    /**
+     * Secondary grouping key, used to keep each club's achievements together.
+     */
+    public function getDisplayGroupKeyAttribute(): string
+    {
+        if ($this->isClubScoped())
+        {
+            return $this->organization?->name ?? '';
+        }
+
+        return '';
+    }
+
+    public function isTroopCountMilestone(): bool
+    {
+        return in_array($this->type, [
+            AchievementType::FIRST_TROOP,
+            AchievementType::TROOPED_10,
+            AchievementType::TROOPED_25,
+            AchievementType::TROOPED_50,
+            AchievementType::TROOPED_75,
+            AchievementType::TROOPED_100,
+            AchievementType::TROOPED_150,
+            AchievementType::TROOPED_200,
+            AchievementType::TROOPED_250,
+            AchievementType::TROOPED_300,
+            AchievementType::TROOPED_400,
+            AchievementType::TROOPED_500,
+            AchievementType::TROOPED_501,
+        ], true);
+    }
+
+    public function isDonationMilestone(): bool
+    {
+        return in_array($this->type, [
+            AchievementType::SUPPORTER_12_MONTHS,
+            AchievementType::SUPPORTER_24_MONTHS,
+            AchievementType::SUPPORTER_36_MONTHS,
+            AchievementType::SUPPORTER_60_MONTHS,
+            AchievementType::DONATED_100,
+            AchievementType::DONATED_250,
+            AchievementType::DONATED_500,
+            AchievementType::DONATED_1000,
+        ], true);
+    }
 
     /**
      * The attributes that should be cast.

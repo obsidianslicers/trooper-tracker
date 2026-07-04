@@ -13,6 +13,7 @@ use App\Jobs\SendTrooperMilestoneNotificationsJob;
 use App\Models\Event;
 use App\Models\EventTrooper;
 use App\Models\OauthLogin;
+use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAchievement;
 use App\Models\TrooperDonation;
@@ -117,6 +118,7 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
             $this->storeDonationMilestoneAchievements($trooper, $donation_metrics);
 
             $this->storeTroopThresholdAchievements($trooper, $trooper->event_count);
+            $this->storeClubTroopThresholdAchievements($trooper);
 
             $this->rank++;
         }
@@ -137,6 +139,7 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
     {
         $where = [
             TrooperAchievement::TROOPER_ID => $trooper->id,
+            TrooperAchievement::ORGANIZATION_ID => null,
             TrooperAchievement::TYPE => $type,
         ];
 
@@ -367,16 +370,7 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
 
             $type = AchievementType::from($type_value);
 
-            $achievement = TrooperAchievement::firstOrCreate(
-                [TrooperAchievement::TROOPER_ID => $trooper->id, TrooperAchievement::TYPE => $type],
-                [TrooperAchievement::VALUE => true, TrooperAchievement::ACHIEVEMENT_DATE => now()]
-            );
-
-            if ($achievement->wasRecentlyCreated)
-            {
-                $achievement->setRelation('trooper', $trooper);
-                dispatch(new SendTrooperMilestoneNotificationsJob($achievement));
-            }
+            $this->storeMilestoneAchievement($trooper, $type);
         }
 
         $amount_thresholds = [
@@ -395,16 +389,7 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
 
             $type = AchievementType::from($type_value);
 
-            $achievement = TrooperAchievement::firstOrCreate(
-                [TrooperAchievement::TROOPER_ID => $trooper->id, TrooperAchievement::TYPE => $type],
-                [TrooperAchievement::VALUE => true, TrooperAchievement::ACHIEVEMENT_DATE => now()]
-            );
-
-            if ($achievement->wasRecentlyCreated)
-            {
-                $achievement->setRelation('trooper', $trooper);
-                dispatch(new SendTrooperMilestoneNotificationsJob($achievement));
-            }
+            $this->storeMilestoneAchievement($trooper, $type);
         }
     }
 
@@ -423,50 +408,145 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
      */
     private function storeTroopThresholdAchievements(Trooper $trooper, int $event_count): void
     {
-        foreach (AchievementType::cases() as $achievement)
+        foreach ($this->troopThresholds() as $achievement_value => $threshold)
         {
-            $threshold = match ($achievement)
-            {
-                AchievementType::FIRST_TROOP => 1,
-                AchievementType::TROOPED_10 => 10,
-                AchievementType::TROOPED_25 => 25,
-                AchievementType::TROOPED_50 => 50,
-                AchievementType::TROOPED_75 => 75,
-                AchievementType::TROOPED_100 => 100,
-                AchievementType::TROOPED_150 => 150,
-                AchievementType::TROOPED_200 => 200,
-                AchievementType::TROOPED_250 => 250,
-                AchievementType::TROOPED_300 => 300,
-                AchievementType::TROOPED_400 => 400,
-                AchievementType::TROOPED_500 => 500,
-                AchievementType::TROOPED_501 => 501,
-                default => null,
-            };
+            $achievement = AchievementType::from($achievement_value);
 
-            if ($threshold === null || $event_count < $threshold)
+            if ($event_count < $threshold)
             {
-                //  not a troop threshold achievement or
                 //  hasn't reached this threshold yet
                 continue;
             }
 
-            $where = [
-                TrooperAchievement::TROOPER_ID => $trooper->id,
-                TrooperAchievement::TYPE => $achievement,
-            ];
+            $this->storeMilestoneAchievement($trooper, $achievement);
+        }
+    }
 
-            $set = [
+    /**
+     * Store top-level club troop-count milestone achievements.
+     */
+    private function storeClubTroopThresholdAchievements(Trooper $trooper): void
+    {
+        foreach ($this->computeClubTroopCounts($trooper) as $organization_id => $event_count)
+        {
+            foreach ($this->troopThresholds() as $achievement_value => $threshold)
+            {
+                if ($event_count < $threshold)
+                {
+                    continue;
+                }
+
+                $this->storeMilestoneAchievement(
+                    trooper: $trooper,
+                    type: AchievementType::from($achievement_value),
+                    organization_id: (int) $organization_id
+                );
+            }
+        }
+    }
+
+    /**
+     * Count attended shifts credited to each top-level club.
+     *
+     * @return array<int, int>
+     */
+    private function computeClubTroopCounts(Trooper $trooper): array
+    {
+        $event_troopers = EventTrooper::where(EventTrooper::TROOPER_ID, $trooper->id)
+            ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED)
+            ->get([
+                EventTrooper::ID,
+                EventTrooper::ORGANIZATION_ID,
+                EventTrooper::COSTUME_ORGANIZATION_IDS,
+            ]);
+
+        $candidate_org_ids = $event_troopers
+            ->flatMap(function (EventTrooper $event_trooper): array {
+                $costume_org_ids = $event_trooper->costume_organization_ids ?? [];
+
+                return !empty($costume_org_ids)
+                    ? $costume_org_ids
+                    : array_filter([$event_trooper->organization_id]);
+            })
+            ->map(fn ($id): int => (int) $id)
+            ->unique()
+            ->values();
+
+        if ($candidate_org_ids->isEmpty())
+        {
+            return [];
+        }
+
+        $node_paths = Organization::whereIn(Organization::ID, $candidate_org_ids->all())
+            ->pluck(Organization::NODE_PATH, Organization::ID);
+
+        $counts = [];
+
+        foreach ($event_troopers as $event_trooper)
+        {
+            $costume_org_ids = $event_trooper->costume_organization_ids ?? [];
+            $credited_org_ids = !empty($costume_org_ids)
+                ? $costume_org_ids
+                : array_filter([$event_trooper->organization_id]);
+
+            $club_ids = collect($credited_org_ids)
+                ->map(fn ($id) => $node_paths[(int) $id] ?? null)
+                ->filter()
+                ->map(fn (string $node_path): int => (int) explode(Organization::NODE_PATH_SEP, $node_path)[0])
+                ->unique();
+
+            foreach ($club_ids as $club_id)
+            {
+                $counts[$club_id] = ($counts[$club_id] ?? 0) + 1;
+            }
+        }
+
+        return $counts;
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    private function troopThresholds(): array
+    {
+        return [
+            AchievementType::FIRST_TROOP->value => 1,
+            AchievementType::TROOPED_10->value => 10,
+            AchievementType::TROOPED_25->value => 25,
+            AchievementType::TROOPED_50->value => 50,
+            AchievementType::TROOPED_75->value => 75,
+            AchievementType::TROOPED_100->value => 100,
+            AchievementType::TROOPED_150->value => 150,
+            AchievementType::TROOPED_200->value => 200,
+            AchievementType::TROOPED_250->value => 250,
+            AchievementType::TROOPED_300->value => 300,
+            AchievementType::TROOPED_400->value => 400,
+            AchievementType::TROOPED_500->value => 500,
+            AchievementType::TROOPED_501->value => 501,
+        ];
+    }
+
+    private function storeMilestoneAchievement(
+        Trooper $trooper,
+        AchievementType $type,
+        ?int $organization_id = null
+    ): void {
+        $achievement = TrooperAchievement::firstOrCreate(
+            [
+                TrooperAchievement::TROOPER_ID => $trooper->id,
+                TrooperAchievement::ORGANIZATION_ID => $organization_id,
+                TrooperAchievement::TYPE => $type,
+            ],
+            [
                 TrooperAchievement::VALUE => true,
                 TrooperAchievement::ACHIEVEMENT_DATE => now(),
-            ];
+            ]
+        );
 
-            $record = TrooperAchievement::firstOrCreate($where, $set);
-
-            if ($record->wasRecentlyCreated)
-            {
-                $record->setRelation('trooper', $trooper);
-                dispatch(new SendTrooperMilestoneNotificationsJob($record));
-            }
+        if ($achievement->wasRecentlyCreated)
+        {
+            $achievement->setRelation('trooper', $trooper);
+            dispatch(new SendTrooperMilestoneNotificationsJob($achievement));
         }
     }
 }

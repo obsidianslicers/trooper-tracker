@@ -232,6 +232,18 @@ Read the documentation in this order for maximum comprehension efficiency.
 Consult these when working on specific subsystems:
 
 - **[Authentication](docs/AUTHENTICATION.md)** - Multi-provider auth and registration pipeline
+- **[OAuth Auth Flow](docs/TT3_AUTH.md)** - OAuth2 authorization code flow for web and mobile clients
+- **[Achievements](docs/ACHIEVEMENTS.md)** - Automatic achievement calculation, club-scoped milestones, and notifications
+- **[Club Memberships](docs/CLUB_MEMBERSHIPS.md)** - Join requests, memberships, and trooper-organization data flow
+- **[Membership Roles](docs/MEMBERSHIP_ROLES.md)** - Member, moderator, administrator, handler, visitor permissions
+- **[Events](docs/EVENTS.md)** - Event types, signup behavior, capacity, and status rules
+- **[Event Workflow](docs/EVENT_WORKFLOW.md)** - Event lifecycle, mission brief acknowledgement, and notification flow
+- **[Trooper Signup Limits](docs/TROOPER_SIGNUP_LIMITS.md)** - Code-backed signup limiting scenarios
+- **[Troop Credit](docs/TROOP_CREDIT.md)** - How event attendance credit is attributed to organizations
+- **[Charity Tracking](docs/CHARITY.md)** - Charity fields, hours, funds, and report usage
+- **[Galactic Academy](docs/GALACTIC_ACADEMY.md)** - Guardian/minor account rules for child-focused organizations
+- **[FAQ](docs/FAQ.md)** - FAQ sections, admin management, and public rendering
+- **[Shared Club Tracking](docs/SHARED_CLUB_TRACKING.md)** - Multi-club operating model and shared tracking rationale
 - **[Notifications](docs/NOTIFICATIONS.md)** - Event notification system (instant/daily/cancellations)
 - **[XenForo OAuth](docs/XENFORO_OAUTH.md)** - Forum integration via OAuth2
 
@@ -239,6 +251,9 @@ Consult these when working on specific subsystems:
 
 - **[Environment Variables](docs/ENVIRONMENT_VARIABLES.md)** - Complete `.env` configuration reference
 - **[Deployment Guide](docs/DEPLOY.md)** - Production server setup and deployment procedures
+- **[Artisan Commands](docs/COMMANDS.md)** - Scheduled and manual tracker command reference
+- **[Issue Fix Seeders](docs/ISSUE_MIGRATIONS.md)** - One-time data repair seeders and how to run them
+- **[Florida Garrison Setup](docs/FLORIDA_GARRISON_SETUP.md)** - Florida Garrison-specific installation and migration setup
 - **[Composer Dependencies](docs/COMPOSER.md)** - PHP package reference
 - **[NPM Dependencies](docs/NPM.md)** - Frontend package reference
 

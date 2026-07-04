@@ -13,6 +13,7 @@ use App\Jobs\SendTrooperMilestoneNotificationsJob;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
+use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAchievement;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -35,7 +36,7 @@ class RecalculateTrooperRankCommandHandlerTest extends TestCase
             ->forTrooper($trooper)
             ->forEventShift($shift)
             ->asAttended()
-            ->create();
+            ->create([EventTrooper::ORGANIZATION_ID => null]);
 
         $command = new RecalculateTrooperRankCommand(trooper_id: $trooper->id);
         $handler = app(RecalculateTrooperRankCommandHandler::class);
@@ -60,12 +61,12 @@ class RecalculateTrooperRankCommandHandlerTest extends TestCase
             ->forTrooper($trooper)
             ->forEventShift($shift1)
             ->asAttended()
-            ->create();
+            ->create([EventTrooper::ORGANIZATION_ID => null]);
         EventTrooper::factory()
             ->forTrooper($trooper)
             ->forEventShift($shift2)
             ->asAttended()
-            ->create();
+            ->create([EventTrooper::ORGANIZATION_ID => null]);
 
         TrooperAchievement::factory()
             ->create([
@@ -160,7 +161,7 @@ class RecalculateTrooperRankCommandHandlerTest extends TestCase
             ->forTrooper($trooper)
             ->forEventShift($shift)
             ->asAttended()
-            ->create();
+            ->create([EventTrooper::ORGANIZATION_ID => null]);
 
         $command = new RecalculateTrooperRankCommand(trooper_id: $trooper->id);
         $handler = app(RecalculateTrooperRankCommandHandler::class);
@@ -185,7 +186,7 @@ class RecalculateTrooperRankCommandHandlerTest extends TestCase
             ->forTrooper($trooper)
             ->forEventShift($shift)
             ->asAttended()
-            ->create();
+            ->create([EventTrooper::ORGANIZATION_ID => null]);
 
         $command = new RecalculateTrooperRankCommand(trooper_id: $trooper->id);
         $handler = app(RecalculateTrooperRankCommandHandler::class);
@@ -206,7 +207,7 @@ class RecalculateTrooperRankCommandHandlerTest extends TestCase
             ->forTrooper($trooper)
             ->forEventShift($shift)
             ->asAttended()
-            ->create();
+            ->create([EventTrooper::ORGANIZATION_ID => null]);
 
         TrooperAchievement::factory()->create([
             TrooperAchievement::TROOPER_ID => $trooper->id,
@@ -220,5 +221,168 @@ class RecalculateTrooperRankCommandHandlerTest extends TestCase
         $handler($command);
 
         Bus::assertNotDispatched(SendTrooperMilestoneNotificationsJob::class);
+    }
+
+    public function test_invoke_creates_club_milestone_from_explicit_organization_id(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $club = $this->createClub('501st Legion');
+        $shift = $this->createClosedShift();
+
+        EventTrooper::factory()
+            ->forTrooper($trooper)
+            ->forEventShift($shift)
+            ->asAttended()
+            ->create([EventTrooper::ORGANIZATION_ID => $club->id]);
+
+        $handler = app(RecalculateTrooperRankCommandHandler::class);
+        $handler(new RecalculateTrooperRankCommand(trooper_id: $trooper->id));
+
+        $this->assertDatabaseHas('tt_trooper_achievements', [
+            TrooperAchievement::TROOPER_ID => $trooper->id,
+            TrooperAchievement::ORGANIZATION_ID => null,
+            TrooperAchievement::TYPE => AchievementType::FIRST_TROOP->value,
+            TrooperAchievement::VALUE => 1,
+        ]);
+        $this->assertDatabaseHas('tt_trooper_achievements', [
+            TrooperAchievement::TROOPER_ID => $trooper->id,
+            TrooperAchievement::ORGANIZATION_ID => $club->id,
+            TrooperAchievement::TYPE => AchievementType::FIRST_TROOP->value,
+            TrooperAchievement::VALUE => 1,
+        ]);
+    }
+
+    public function test_invoke_creates_club_milestone_from_costume_organization_ids(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $club = $this->createClub('Rebel Legion');
+        $region = $this->createRegion($club, 'Ra Kura Base');
+        $shift = $this->createClosedShift();
+
+        EventTrooper::factory()
+            ->forTrooper($trooper)
+            ->forEventShift($shift)
+            ->asAttended()
+            ->withCostumeOrganizationIds([$region->id])
+            ->create([EventTrooper::ORGANIZATION_ID => null]);
+
+        $handler = app(RecalculateTrooperRankCommandHandler::class);
+        $handler(new RecalculateTrooperRankCommand(trooper_id: $trooper->id));
+
+        $this->assertDatabaseHas('tt_trooper_achievements', [
+            TrooperAchievement::TROOPER_ID => $trooper->id,
+            TrooperAchievement::ORGANIZATION_ID => $club->id,
+            TrooperAchievement::TYPE => AchievementType::FIRST_TROOP->value,
+            TrooperAchievement::VALUE => 1,
+        ]);
+    }
+
+    public function test_invoke_prefers_costume_credit_over_explicit_capacity_org_for_club_milestones(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $capacity_club = $this->createClub('501st Legion');
+        $credit_club = $this->createClub('Rebel Legion');
+        $shift = $this->createClosedShift();
+
+        EventTrooper::factory()
+            ->forTrooper($trooper)
+            ->forEventShift($shift)
+            ->asAttended()
+            ->withCostumeOrganizationIds([$credit_club->id])
+            ->create([EventTrooper::ORGANIZATION_ID => $capacity_club->id]);
+
+        $handler = app(RecalculateTrooperRankCommandHandler::class);
+        $handler(new RecalculateTrooperRankCommand(trooper_id: $trooper->id));
+
+        $this->assertDatabaseMissing('tt_trooper_achievements', [
+            TrooperAchievement::TROOPER_ID => $trooper->id,
+            TrooperAchievement::ORGANIZATION_ID => $capacity_club->id,
+            TrooperAchievement::TYPE => AchievementType::FIRST_TROOP->value,
+        ]);
+        $this->assertDatabaseHas('tt_trooper_achievements', [
+            TrooperAchievement::TROOPER_ID => $trooper->id,
+            TrooperAchievement::ORGANIZATION_ID => $credit_club->id,
+            TrooperAchievement::TYPE => AchievementType::FIRST_TROOP->value,
+        ]);
+    }
+
+    public function test_invoke_does_not_double_count_same_shift_for_same_club(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $club = $this->createClub('501st Legion');
+        $region = $this->createRegion($club, 'Florida Garrison');
+
+        for ($i = 0; $i < 5; $i++)
+        {
+            EventTrooper::factory()
+                ->forTrooper($trooper)
+                ->forEventShift($this->createClosedShift())
+                ->asAttended()
+                ->withCostumeOrganizationIds([$club->id, $region->id])
+                ->create([EventTrooper::ORGANIZATION_ID => null]);
+        }
+
+        $handler = app(RecalculateTrooperRankCommandHandler::class);
+        $handler(new RecalculateTrooperRankCommand(trooper_id: $trooper->id));
+
+        $this->assertDatabaseHas('tt_trooper_achievements', [
+            TrooperAchievement::TROOPER_ID => $trooper->id,
+            TrooperAchievement::ORGANIZATION_ID => $club->id,
+            TrooperAchievement::TYPE => AchievementType::FIRST_TROOP->value,
+        ]);
+        $this->assertDatabaseMissing('tt_trooper_achievements', [
+            TrooperAchievement::TROOPER_ID => $trooper->id,
+            TrooperAchievement::ORGANIZATION_ID => $club->id,
+            TrooperAchievement::TYPE => AchievementType::TROOPED_10->value,
+        ]);
+    }
+
+    public function test_invoke_dispatches_milestone_notification_job_for_new_club_milestone(): void
+    {
+        Bus::fake();
+
+        $trooper = Trooper::factory()->create();
+        $club = $this->createClub('501st Legion');
+        $shift = $this->createClosedShift();
+
+        EventTrooper::factory()
+            ->forTrooper($trooper)
+            ->forEventShift($shift)
+            ->asAttended()
+            ->create([EventTrooper::ORGANIZATION_ID => $club->id]);
+
+        $handler = app(RecalculateTrooperRankCommandHandler::class);
+        $handler(new RecalculateTrooperRankCommand(trooper_id: $trooper->id));
+
+        Bus::assertDispatched(SendTrooperMilestoneNotificationsJob::class);
+    }
+
+    private function createClub(string $name): Organization
+    {
+        $club = Organization::factory()->asOrganization()->withName($name)->create();
+        $club->updateQuietly([Organization::NODE_PATH => (string) $club->id]);
+
+        return $club;
+    }
+
+    private function createRegion(Organization $club, string $name): Organization
+    {
+        $region = Organization::factory()
+            ->asRegion()
+            ->withName($name)
+            ->withParent($club)
+            ->create();
+        $region->updateQuietly([
+            Organization::NODE_PATH => $club->id.Organization::NODE_PATH_SEP.$region->id,
+        ]);
+
+        return $region;
+    }
+
+    private function createClosedShift(): EventShift
+    {
+        $event = Event::factory()->asClosed()->create();
+
+        return EventShift::factory()->forEvent($event)->create();
     }
 }

@@ -37,7 +37,7 @@
                                 </td>
                                 <td>
                                     <i class="fa fa-fw {{ $trooper_achievement->type->toIcon() }} me-2 text-warning"></i>
-                                    {{ $trooper_achievement->type->toDescription() }}
+                                    {{ $trooper_achievement->display_description }}
                                 </td>
                                 <td class="text-nowrap">{{ $trooper_achievement->achievement_date->format('M j, Y') }}</td>
                             </tr>
@@ -76,7 +76,7 @@
                                         <div class="col-7">
                                             <small class="text-muted d-block text-uppercase fw-bold text-xs mb-0.5">Achievement Earned</small>
                                             <span class="text-white small fw-semibold d-block text-break">
-                                                {{ $trooper_achievement->type->toDescription() }}
+                                                {{ $trooper_achievement->display_description }}
                                             </span>
                                         </div>
                                         <div class="col-5 text-end">
