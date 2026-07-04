@@ -26,14 +26,17 @@ class SendTrooperMilestoneNotificationsJob implements ShouldQueue
 {
     use Queueable;
 
-    public function __construct(private readonly TrooperAchievement $achievement) {}
+    public function __construct(private readonly TrooperAchievement $achievement)
+    {
+    }
 
     public function handle(MagicBus $bus): void
     {
         $trooper = $this->achievement->trooper;
 
         $trooper->load([
-            'trooper_assignments' => function ($query) {
+            'trooper_assignments' => function ($query)
+            {
                 $query->where(TrooperAssignment::IS_MEMBER, true)
                     ->with('organization');
             },
@@ -49,34 +52,42 @@ class SendTrooperMilestoneNotificationsJob implements ShouldQueue
             return;
         }
 
-        $notification = new TrooperMilestoneNotification($this->achievement);
-
-        $admins = $bus->send(new GetTroopersByRoleQuery(MembershipRole::ADMINISTRATOR));
-
-        foreach ($admins as $admin)
+        try
         {
-            if ($admin->trooper_assignments()
-                ->where(TrooperAssignment::SHOULD_NOTIFY, true)
-                ->whereIn(TrooperAssignment::ORGANIZATION_ID, $trooper_org_ids)
-                ->exists())
+            $notification = new TrooperMilestoneNotification($this->achievement);
+
+            $admins = $bus->send(new GetTroopersByRoleQuery(MembershipRole::ADMINISTRATOR));
+
+            foreach ($admins as $admin)
             {
-                $admin->notify($notification);
-            }
-        }
-
-        $moderators = $bus->send(new GetTroopersByRoleQuery(MembershipRole::MODERATOR));
-        $policy = new TrooperPolicy;
-
-        foreach ($moderators as $moderator)
-        {
-            if ($policy->moderate($moderator, $trooper)
-                && $moderator->trooper_assignments()
+                if ($admin->trooper_assignments()
                     ->where(TrooperAssignment::SHOULD_NOTIFY, true)
                     ->whereIn(TrooperAssignment::ORGANIZATION_ID, $trooper_org_ids)
                     ->exists())
-            {
-                $moderator->notify($notification);
+                {
+                    $admin->notify($notification);
+                }
             }
+
+            $moderators = $bus->send(new GetTroopersByRoleQuery(MembershipRole::MODERATOR));
+            $policy = new TrooperPolicy;
+
+            foreach ($moderators as $moderator)
+            {
+                if ($policy->moderate($moderator, $trooper)
+                    && $moderator->trooper_assignments()
+                        ->where(TrooperAssignment::SHOULD_NOTIFY, true)
+                        ->whereIn(TrooperAssignment::ORGANIZATION_ID, $trooper_org_ids)
+                        ->exists())
+                {
+                    $moderator->notify($notification);
+                }
+            }
+        }
+        finally
+        {
+            $this->achievement->sent_at = now();
+            $this->achievement->save();
         }
     }
 }

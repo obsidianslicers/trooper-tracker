@@ -42,7 +42,8 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
     public function __invoke(object $message): mixed
     {
         $with_count = [
-            'event_troopers as event_count' => function ($q) {
+            'event_troopers as event_count' => function ($q)
+            {
                 $q->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED);
             },
         ];
@@ -60,7 +61,8 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
         // One API call for the entire run — all users' upgrade records.
         $xenforo_upgrades = $this->prefetchXenforoUpgrades();
 
-        $q->chunk(200, function ($troopers) use ($message, $xenforo_upgrades) {
+        $q->chunk(200, function ($troopers) use ($message, $xenforo_upgrades)
+        {
             //  only process rank if we're processing all troopers, otherwise
             //  the rank won't be accurate since we're not reordering all the
             //  troopers by attendance
@@ -93,7 +95,7 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
         $xenforo_id_map = OauthLogin::where(OauthLogin::PROVIDER, OauthProvider::XENFORO)
             ->whereIn(OauthLogin::TROOPER_ID, $trooper_ids)
             ->pluck(OauthLogin::PROVIDER_ID, OauthLogin::TROOPER_ID)
-            ->map(fn ($id) => (int) $id)
+            ->map(fn($id) => (int) $id)
             ->all();
 
         foreach ($troopers as $trooper)
@@ -169,7 +171,7 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
         $event_troopers = $trooper->event_troopers()
             ->with('event_shift')
             ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED)
-            ->whereHas('event_shift.event', fn ($q) => $q->where(Event::STATUS, EventStatus::CLOSED))
+            ->whereHas('event_shift.event', fn($q) => $q->where(Event::STATUS, EventStatus::CLOSED))
             ->get();
 
         $total_direct = 0;
@@ -262,7 +264,7 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
     private function computeDonationMetrics(Trooper $trooper, ?int $xenforo_user_id, array $xenforo_upgrades): array
     {
         $donations = $this->loadLocalDonations($trooper);
-        $local_total = (float) $donations->sum(fn ($d) => (float) $d->amount);
+        $local_total = (float) $donations->sum(fn($d) => (float) $d->amount);
         $local_keys = $this->buildLocalMonthKeys($donations);
 
         if ($xenforo_user_id !== null && isset($xenforo_upgrades[$xenforo_user_id]))
@@ -461,14 +463,15 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
             ]);
 
         $candidate_org_ids = $event_troopers
-            ->flatMap(function (EventTrooper $event_trooper): array {
+            ->flatMap(function (EventTrooper $event_trooper): array
+            {
                 $costume_org_ids = $event_trooper->costume_organization_ids ?? [];
 
                 return !empty($costume_org_ids)
                     ? $costume_org_ids
                     : array_filter([$event_trooper->organization_id]);
             })
-            ->map(fn ($id): int => (int) $id)
+            ->map(fn($id): int => (int) $id)
             ->unique()
             ->values();
 
@@ -490,9 +493,9 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
                 : array_filter([$event_trooper->organization_id]);
 
             $club_ids = collect($credited_org_ids)
-                ->map(fn ($id) => $node_paths[(int) $id] ?? null)
+                ->map(fn($id) => $node_paths[(int) $id] ?? null)
                 ->filter()
-                ->map(fn (string $node_path): int => (int) explode(Organization::NODE_PATH_SEP, $node_path)[0])
+                ->map(fn(string $node_path): int => (int) explode(Organization::NODE_PATH_SEP, $node_path)[0])
                 ->unique();
 
             foreach ($club_ids as $club_id)
@@ -543,6 +546,7 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
             ]
         );
 
+        // TODO SCE - USE SENT_AT
         if ($achievement->wasRecentlyCreated)
         {
             $achievement->setRelation('trooper', $trooper);
