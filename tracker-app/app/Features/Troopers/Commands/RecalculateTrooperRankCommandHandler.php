@@ -547,7 +547,7 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
         );
 
         // TODO SCE - USE SENT_AT
-        if ($achievement->wasRecentlyCreated)
+        if ($achievement->notification_sent_at === null)
         {
             $achievement->setRelation('trooper', $trooper);
             dispatch(new SendTrooperMilestoneNotificationsJob($achievement));
