@@ -26,7 +26,7 @@ readonly class RecalculateTrooperRankCommand
      * Create a new command instance.
      *
      * @param  int|null  $trooper_id  The ID of the trooper to recalculate rank for, or null to recalculate all troopers
-     * @param  bool  $send_milestone_notifications  Whether newly created milestone achievements should notify command staff
+     * @param  bool  $send_milestone_notifications  Whether unsent milestone achievements should notify command staff
      */
     public function __construct(
         public readonly ?int $trooper_id = null,

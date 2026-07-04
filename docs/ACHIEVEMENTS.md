@@ -35,7 +35,7 @@ For large backfills, disable milestone notifications:
 php artisan tracker:calculate-trooper-achievements --without-notifications
 ```
 
-This still creates missing milestone rows and prints a summary of created milestones, but does not dispatch per-milestone notification jobs.
+This still creates missing milestone rows and prints a summary of created milestones, but does not dispatch per-milestone notification jobs. Milestones touched during this mode are marked with `notification_sent_at` so a later scheduled run does not send the suppressed notifications.
 
 ---
 
@@ -74,7 +74,7 @@ Metrics are global only.
 
 ### Milestones
 
-Milestones are created once with `firstOrCreate`, preserving the original `achievement_date`.
+Milestones are looked up by trooper, type, and optional organization. Missing milestones are created once, preserving the original `achievement_date` on later recalculations.
 
 Troop-count milestones:
 
@@ -159,13 +159,13 @@ This matches the service-record troop credit behavior.
 
 ## Notifications
 
-When a milestone row is newly created, `RecalculateTrooperRankCommandHandler` dispatches:
+When a milestone row has no `notification_sent_at` timestamp and notifications are enabled, `RecalculateTrooperRankCommandHandler` dispatches:
 
 ```text
 App\Jobs\SendTrooperMilestoneNotificationsJob
 ```
 
-That job notifies administrators and in-scope moderators who have opted into `trooper_milestones` notifications for one of the trooper's member organizations.
+That job notifies administrators and in-scope moderators who have opted into `trooper_milestones` notifications for one of the trooper's member organizations, then stamps `notification_sent_at`.
 
 Club-scoped milestones use the same notification path as global milestones. Notification bodies and milestone emails use `TrooperAchievement::display_description`, so scoped milestones include club context, for example:
 

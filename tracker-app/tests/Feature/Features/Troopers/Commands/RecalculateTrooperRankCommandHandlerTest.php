@@ -223,6 +223,9 @@ class RecalculateTrooperRankCommandHandlerTest extends TestCase
         $this->assertSame(1, $summary['created_milestones']['total']);
         $this->assertSame(1, $summary['created_milestones']['global']);
         $this->assertSame(0, $summary['created_milestones']['club']);
+        $this->assertNotNull(TrooperAchievement::where(TrooperAchievement::TROOPER_ID, $trooper->id)
+            ->where(TrooperAchievement::TYPE, AchievementType::FIRST_TROOP)
+            ->value(TrooperAchievement::NOTIFICATION_SENT_AT));
         Bus::assertNotDispatched(SendTrooperMilestoneNotificationsJob::class);
     }
 
@@ -243,6 +246,7 @@ class RecalculateTrooperRankCommandHandlerTest extends TestCase
             TrooperAchievement::TROOPER_ID => $trooper->id,
             TrooperAchievement::TYPE       => AchievementType::FIRST_TROOP,
             TrooperAchievement::VALUE      => true,
+            TrooperAchievement::NOTIFICATION_SENT_AT => now(),
         ]);
 
         $command = new RecalculateTrooperRankCommand(trooper_id: $trooper->id);
@@ -251,6 +255,33 @@ class RecalculateTrooperRankCommandHandlerTest extends TestCase
         $handler($command);
 
         Bus::assertNotDispatched(SendTrooperMilestoneNotificationsJob::class);
+    }
+
+    public function test_invoke_dispatches_milestone_notification_job_for_existing_unsent_milestone(): void
+    {
+        Bus::fake();
+
+        $trooper = Trooper::factory()->create();
+        $event = Event::factory()->asClosed()->create();
+        $shift = EventShift::factory()->forEvent($event)->create();
+        EventTrooper::factory()
+            ->forTrooper($trooper)
+            ->forEventShift($shift)
+            ->asAttended()
+            ->create([EventTrooper::ORGANIZATION_ID => null]);
+
+        TrooperAchievement::factory()->create([
+            TrooperAchievement::TROOPER_ID => $trooper->id,
+            TrooperAchievement::TYPE => AchievementType::FIRST_TROOP,
+            TrooperAchievement::VALUE => true,
+            TrooperAchievement::NOTIFICATION_SENT_AT => null,
+        ]);
+
+        $handler = app(RecalculateTrooperRankCommandHandler::class);
+        $summary = $handler(new RecalculateTrooperRankCommand(trooper_id: $trooper->id));
+
+        $this->assertSame(0, $summary['created_milestones']['total']);
+        Bus::assertDispatched(SendTrooperMilestoneNotificationsJob::class);
     }
 
     public function test_invoke_creates_club_milestone_from_explicit_organization_id(): void
@@ -417,6 +448,10 @@ class RecalculateTrooperRankCommandHandlerTest extends TestCase
         $this->assertSame(1, $summary['created_milestones']['global']);
         $this->assertSame(1, $summary['created_milestones']['club']);
         $this->assertSame(2, $summary['created_milestones']['by_type'][AchievementType::FIRST_TROOP->value]);
+        $this->assertNotNull(TrooperAchievement::where(TrooperAchievement::TROOPER_ID, $trooper->id)
+            ->where(TrooperAchievement::ORGANIZATION_ID, $club->id)
+            ->where(TrooperAchievement::TYPE, AchievementType::FIRST_TROOP)
+            ->value(TrooperAchievement::NOTIFICATION_SENT_AT));
         Bus::assertNotDispatched(SendTrooperMilestoneNotificationsJob::class);
     }
 

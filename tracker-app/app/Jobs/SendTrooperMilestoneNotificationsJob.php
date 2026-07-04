@@ -83,7 +83,7 @@ class SendTrooperMilestoneNotificationsJob implements ShouldQueue
         }
         finally
         {
-            $this->achievement->sent_at = now();
+            $this->achievement->notification_sent_at = now();
             $this->achievement->save();
         }
     }

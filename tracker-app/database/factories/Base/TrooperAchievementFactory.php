@@ -17,7 +17,7 @@ class TrooperAchievementFactory extends Factory
     {
         return [
             TrooperAchievement::TROOPER_ID => \App\Models\Trooper::factory(),
-            TrooperAchievement::ORGANIZATION_ID => \App\Models\Organization::factory(),
+            TrooperAchievement::ORGANIZATION_ID => null,
             TrooperAchievement::TYPE => $this->faker->word(),
         ];
     }

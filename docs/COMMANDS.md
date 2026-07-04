@@ -36,7 +36,7 @@ Dispatches `RecalculateTrooperRankCommand` through the message bus. Reports exec
 php artisan tracker:calculate-trooper-achievements
 ```
 
-Use `--without-notifications` for large backfills or schema changes that may create many historical milestones. This still creates achievement rows, but skips per-milestone command-staff notifications and prints a summary instead.
+Use `--without-notifications` for large backfills or schema changes that may create many historical milestones. This still creates achievement rows, skips per-milestone command-staff notifications, marks milestone notifications as handled, and prints a summary instead.
 
 ```bash
 php artisan tracker:calculate-trooper-achievements --without-notifications

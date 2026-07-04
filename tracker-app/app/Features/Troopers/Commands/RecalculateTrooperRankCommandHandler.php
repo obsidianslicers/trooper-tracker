@@ -571,27 +571,43 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
         ?int $organization_id = null,
         bool $send_milestone_notifications = true,
     ): void {
-        $achievement = TrooperAchievement::firstOrCreate(
-            [
-                TrooperAchievement::TROOPER_ID => $trooper->id,
-                TrooperAchievement::ORGANIZATION_ID => $organization_id,
-                TrooperAchievement::TYPE => $type,
-            ],
-            [
+        $achievement = TrooperAchievement::firstOrNew([
+            TrooperAchievement::TROOPER_ID => $trooper->id,
+            TrooperAchievement::ORGANIZATION_ID => $organization_id,
+            TrooperAchievement::TYPE => $type,
+        ]);
+
+        $created = !$achievement->exists;
+
+        if ($created)
+        {
+            $achievement->fill([
                 TrooperAchievement::VALUE => true,
                 TrooperAchievement::ACHIEVEMENT_DATE => now(),
-            ]
-        );
+            ]);
+            $achievement->save();
 
-        if ($achievement->notification_sent_at === null)
-        {
             $this->recordCreatedMilestone($achievement);
+        }
+
+        if ($achievement->notification_sent_at !== null)
+        {
+            return;
+        }
+
+        if (!$send_milestone_notifications)
+        {
+            $achievement->notification_sent_at = now();
+            $achievement->save();
+
+            return;
+        }
+
+        if ($send_milestone_notifications)
+        {
             $achievement->setRelation('trooper', $trooper);
 
-            if ($send_milestone_notifications)
-            {
-                dispatch(new SendTrooperMilestoneNotificationsJob($achievement));
-            }
+            dispatch(new SendTrooperMilestoneNotificationsJob($achievement));
         }
     }
 
