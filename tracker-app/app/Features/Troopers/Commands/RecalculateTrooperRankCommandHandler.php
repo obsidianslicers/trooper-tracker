@@ -115,8 +115,7 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
         bool $process_rank,
         array $xenforo_upgrades,
         bool $send_milestone_notifications,
-    ): void
-    {
+    ): void {
         // One query per chunk to map trooper_id → xenforo_user_id.
         $trooper_ids = $troopers->pluck('id')->all();
 
@@ -386,8 +385,7 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
         Trooper $trooper,
         array $metrics,
         bool $send_milestone_notifications,
-    ): void
-    {
+    ): void {
         $month_thresholds = [
             AchievementType::SUPPORTER_12_MONTHS->value => 12,
             AchievementType::SUPPORTER_24_MONTHS->value => 24,
@@ -444,8 +442,7 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
         Trooper $trooper,
         int $event_count,
         bool $send_milestone_notifications,
-    ): void
-    {
+    ): void {
         foreach ($this->troopThresholds() as $achievement_value => $threshold)
         {
             $achievement = AchievementType::from($achievement_value);
