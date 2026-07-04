@@ -34,6 +34,16 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
     private int $rank = 1;
 
     /**
+     * @var array{total:int,global:int,club:int,by_type:array<string,int>}
+     */
+    private array $created_milestones = [
+        'total' => 0,
+        'global' => 0,
+        'club' => 0,
+        'by_type' => [],
+    ];
+
+    /**
      * Execute the command to recalculate a trooper's rank.
      *
      * @param  RecalculateTrooperRankCommand  $message  The command with trooper rank recalculation data
@@ -41,6 +51,14 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
      */
     public function __invoke(object $message): mixed
     {
+        $this->rank = 1;
+        $this->created_milestones = [
+            'total' => 0,
+            'global' => 0,
+            'club' => 0,
+            'by_type' => [],
+        ];
+
         $with_count = [
             'event_troopers as event_count' => function ($q) {
                 $q->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED);
@@ -66,10 +84,17 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
             //  troopers by attendance
             $process_rank = $message->trooper_id === null;
 
-            $this->processChunk($troopers, $process_rank, $xenforo_upgrades);
+            $this->processChunk(
+                troopers: $troopers,
+                process_rank: $process_rank,
+                xenforo_upgrades: $xenforo_upgrades,
+                send_milestone_notifications: $message->send_milestone_notifications,
+            );
         });
 
-        return null;
+        return [
+            'created_milestones' => $this->created_milestones,
+        ];
     }
 
     /**
@@ -85,7 +110,12 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
      *
      * @param  Collection  $troopers  Chunk of troopers to process
      */
-    private function processChunk(Collection $troopers, bool $process_rank, array $xenforo_upgrades): void
+    private function processChunk(
+        Collection $troopers,
+        bool $process_rank,
+        array $xenforo_upgrades,
+        bool $send_milestone_notifications,
+    ): void
     {
         // One query per chunk to map trooper_id → xenforo_user_id.
         $trooper_ids = $troopers->pluck('id')->all();
@@ -115,10 +145,10 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
             $donation_metrics = $this->computeDonationMetrics($trooper, $xenforo_user_id, $xenforo_upgrades);
             $this->updateAchievement($trooper, AchievementType::DONATION_MONTHS, $donation_metrics['donation_months']);
             $this->updateAchievement($trooper, AchievementType::TOTAL_DONATED, $donation_metrics['total_donated']);
-            $this->storeDonationMilestoneAchievements($trooper, $donation_metrics);
+            $this->storeDonationMilestoneAchievements($trooper, $donation_metrics, $send_milestone_notifications);
 
-            $this->storeTroopThresholdAchievements($trooper, $trooper->event_count);
-            $this->storeClubTroopThresholdAchievements($trooper);
+            $this->storeTroopThresholdAchievements($trooper, $trooper->event_count, $send_milestone_notifications);
+            $this->storeClubTroopThresholdAchievements($trooper, $send_milestone_notifications);
 
             $this->rank++;
         }
@@ -352,7 +382,11 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
      * @param  Trooper  $trooper  The trooper to check milestones for
      * @param  array{donation_months: int, total_donated: float}  $metrics
      */
-    private function storeDonationMilestoneAchievements(Trooper $trooper, array $metrics): void
+    private function storeDonationMilestoneAchievements(
+        Trooper $trooper,
+        array $metrics,
+        bool $send_milestone_notifications,
+    ): void
     {
         $month_thresholds = [
             AchievementType::SUPPORTER_12_MONTHS->value => 12,
@@ -370,7 +404,7 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
 
             $type = AchievementType::from($type_value);
 
-            $this->storeMilestoneAchievement($trooper, $type);
+            $this->storeMilestoneAchievement($trooper, $type, send_milestone_notifications: $send_milestone_notifications);
         }
 
         $amount_thresholds = [
@@ -389,7 +423,7 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
 
             $type = AchievementType::from($type_value);
 
-            $this->storeMilestoneAchievement($trooper, $type);
+            $this->storeMilestoneAchievement($trooper, $type, send_milestone_notifications: $send_milestone_notifications);
         }
     }
 
@@ -406,7 +440,11 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
      * @param  Trooper  $trooper  The trooper to check milestones for
      * @param  int  $event_count  The trooper's total attended event count
      */
-    private function storeTroopThresholdAchievements(Trooper $trooper, int $event_count): void
+    private function storeTroopThresholdAchievements(
+        Trooper $trooper,
+        int $event_count,
+        bool $send_milestone_notifications,
+    ): void
     {
         foreach ($this->troopThresholds() as $achievement_value => $threshold)
         {
@@ -418,14 +456,14 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
                 continue;
             }
 
-            $this->storeMilestoneAchievement($trooper, $achievement);
+            $this->storeMilestoneAchievement($trooper, $achievement, send_milestone_notifications: $send_milestone_notifications);
         }
     }
 
     /**
      * Store top-level club troop-count milestone achievements.
      */
-    private function storeClubTroopThresholdAchievements(Trooper $trooper): void
+    private function storeClubTroopThresholdAchievements(Trooper $trooper, bool $send_milestone_notifications): void
     {
         foreach ($this->computeClubTroopCounts($trooper) as $organization_id => $event_count)
         {
@@ -439,7 +477,8 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
                 $this->storeMilestoneAchievement(
                     trooper: $trooper,
                     type: AchievementType::from($achievement_value),
-                    organization_id: (int) $organization_id
+                    organization_id: (int) $organization_id,
+                    send_milestone_notifications: $send_milestone_notifications,
                 );
             }
         }
@@ -529,7 +568,8 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
     private function storeMilestoneAchievement(
         Trooper $trooper,
         AchievementType $type,
-        ?int $organization_id = null
+        ?int $organization_id = null,
+        bool $send_milestone_notifications = true,
     ): void {
         $achievement = TrooperAchievement::firstOrCreate(
             [
@@ -545,8 +585,22 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
 
         if ($achievement->notification_sent_at === null)
         {
+            $this->recordCreatedMilestone($achievement);
             $achievement->setRelation('trooper', $trooper);
-            dispatch(new SendTrooperMilestoneNotificationsJob($achievement));
+
+            if ($send_milestone_notifications)
+            {
+                dispatch(new SendTrooperMilestoneNotificationsJob($achievement));
+            }
         }
+    }
+
+    private function recordCreatedMilestone(TrooperAchievement $achievement): void
+    {
+        $type = $achievement->type->value;
+
+        $this->created_milestones['total']++;
+        $this->created_milestones[$achievement->organization_id === null ? 'global' : 'club']++;
+        $this->created_milestones['by_type'][$type] = ($this->created_milestones['by_type'][$type] ?? 0) + 1;
     }
 }

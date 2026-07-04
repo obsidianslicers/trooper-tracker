@@ -28,12 +28,18 @@ These commands run automatically via the scheduler defined in `routes/console.ph
 
 ### `tracker:calculate-trooper-achievements`
 
-Recalculates trooper ranks for all troopers based on their event history.
+Recalculates trooper ranks, metrics, and milestone achievements for all troopers based on their event history.
 
-Dispatches `RecalculateTrooperRankCommand` through the message bus. Reports execution time when complete.
+Dispatches `RecalculateTrooperRankCommand` through the message bus. Reports execution time and newly created milestone counts when complete.
 
 ```bash
 php artisan tracker:calculate-trooper-achievements
+```
+
+Use `--without-notifications` for large backfills or schema changes that may create many historical milestones. This still creates achievement rows, but skips per-milestone command-staff notifications and prints a summary instead.
+
+```bash
+php artisan tracker:calculate-trooper-achievements --without-notifications
 ```
 
 ---

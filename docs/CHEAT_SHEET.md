@@ -33,6 +33,7 @@ Troop Tracker includes several custom Artisan commands for maintenance and autom
 | `php artisan tracker:close-events` | Auto-closes events after their end date. |
 | `php artisan tracker:close-event-shifts` | Auto-closes shifts after completion. |
 | `php artisan tracker:calculate-trooper-achievements` | Recalculates trooper stats and achievement badges. |
+| `php artisan tracker:calculate-trooper-achievements --without-notifications` | Recalculates achievements for large backfills without milestone notification jobs. |
 | `php artisan tracker:synchronize-organizations` | Syncs with external organization systems. |
 | `php artisan tracker:generate-factories` | Generates factory classes from base models. |
 

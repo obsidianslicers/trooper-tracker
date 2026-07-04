@@ -29,6 +29,14 @@ app/Features/Troopers/Commands/RecalculateTrooperRankCommandHandler.php
 
 The handler processes troopers in chunks and writes rows to `tt_trooper_achievements`.
 
+For large backfills, disable milestone notifications:
+
+```bash
+php artisan tracker:calculate-trooper-achievements --without-notifications
+```
+
+This still creates missing milestone rows and prints a summary of created milestones, but does not dispatch per-milestone notification jobs.
+
 ---
 
 ## Achievement types
@@ -214,6 +222,12 @@ Run the recalculation manually:
 
 ```bash
 php artisan tracker:calculate-trooper-achievements
+```
+
+Run a backfill without sending milestone notifications:
+
+```bash
+php artisan tracker:calculate-trooper-achievements --without-notifications
 ```
 
 Run focused tests:

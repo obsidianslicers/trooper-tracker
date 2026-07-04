@@ -196,6 +196,36 @@ class RecalculateTrooperRankCommandHandlerTest extends TestCase
         Bus::assertDispatched(SendTrooperMilestoneNotificationsJob::class);
     }
 
+    public function test_invoke_can_create_global_milestone_without_dispatching_notification_job(): void
+    {
+        Bus::fake();
+
+        $trooper = Trooper::factory()->create();
+        $event = Event::factory()->asClosed()->create();
+        $shift = EventShift::factory()->forEvent($event)->create();
+        EventTrooper::factory()
+            ->forTrooper($trooper)
+            ->forEventShift($shift)
+            ->asAttended()
+            ->create([EventTrooper::ORGANIZATION_ID => null]);
+
+        $handler = app(RecalculateTrooperRankCommandHandler::class);
+        $summary = $handler(new RecalculateTrooperRankCommand(
+            trooper_id: $trooper->id,
+            send_milestone_notifications: false,
+        ));
+
+        $this->assertDatabaseHas('tt_trooper_achievements', [
+            TrooperAchievement::TROOPER_ID => $trooper->id,
+            TrooperAchievement::TYPE => AchievementType::FIRST_TROOP->value,
+            TrooperAchievement::VALUE => 1,
+        ]);
+        $this->assertSame(1, $summary['created_milestones']['total']);
+        $this->assertSame(1, $summary['created_milestones']['global']);
+        $this->assertSame(0, $summary['created_milestones']['club']);
+        Bus::assertNotDispatched(SendTrooperMilestoneNotificationsJob::class);
+    }
+
     public function test_invoke_does_not_dispatch_milestone_notification_job_for_existing_milestone(): void
     {
         Bus::fake();
@@ -355,6 +385,39 @@ class RecalculateTrooperRankCommandHandlerTest extends TestCase
         $handler(new RecalculateTrooperRankCommand(trooper_id: $trooper->id));
 
         Bus::assertDispatched(SendTrooperMilestoneNotificationsJob::class);
+    }
+
+    public function test_invoke_can_create_club_milestone_without_dispatching_notification_job(): void
+    {
+        Bus::fake();
+
+        $trooper = Trooper::factory()->create();
+        $club = $this->createClub('501st Legion');
+        $shift = $this->createClosedShift();
+
+        EventTrooper::factory()
+            ->forTrooper($trooper)
+            ->forEventShift($shift)
+            ->asAttended()
+            ->create([EventTrooper::ORGANIZATION_ID => $club->id]);
+
+        $handler = app(RecalculateTrooperRankCommandHandler::class);
+        $summary = $handler(new RecalculateTrooperRankCommand(
+            trooper_id: $trooper->id,
+            send_milestone_notifications: false,
+        ));
+
+        $this->assertDatabaseHas('tt_trooper_achievements', [
+            TrooperAchievement::TROOPER_ID => $trooper->id,
+            TrooperAchievement::ORGANIZATION_ID => $club->id,
+            TrooperAchievement::TYPE => AchievementType::FIRST_TROOP->value,
+            TrooperAchievement::VALUE => 1,
+        ]);
+        $this->assertSame(2, $summary['created_milestones']['total']);
+        $this->assertSame(1, $summary['created_milestones']['global']);
+        $this->assertSame(1, $summary['created_milestones']['club']);
+        $this->assertSame(2, $summary['created_milestones']['by_type'][AchievementType::FIRST_TROOP->value]);
+        Bus::assertNotDispatched(SendTrooperMilestoneNotificationsJob::class);
     }
 
     private function createClub(string $name): Organization

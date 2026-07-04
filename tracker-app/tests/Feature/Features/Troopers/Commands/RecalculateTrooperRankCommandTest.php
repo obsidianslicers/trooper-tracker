@@ -27,4 +27,18 @@ class RecalculateTrooperRankCommandTest extends TestCase
 
         $this->assertNull($subject->trooper_id);
     }
+
+    public function test_constructor_defaults_milestone_notifications_to_enabled(): void
+    {
+        $subject = new RecalculateTrooperRankCommand();
+
+        $this->assertTrue($subject->send_milestone_notifications);
+    }
+
+    public function test_constructor_stores_milestone_notification_flag(): void
+    {
+        $subject = new RecalculateTrooperRankCommand(send_milestone_notifications: false);
+
+        $this->assertFalse($subject->send_milestone_notifications);
+    }
 }
