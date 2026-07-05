@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\Events\GetEventTrooperOrgOptionsController;
 use App\Http\Controllers\Admin\Events\ListController;
 use App\Http\Controllers\Admin\Events\MissionReviewController;
 use App\Http\Controllers\Admin\Events\RemoveEventTrooperController;
+use App\Http\Controllers\Admin\Events\ToggleUploadTypeController;
 use App\Http\Controllers\Admin\Events\UpdateCharityController;
 use App\Http\Controllers\Admin\Events\UpdateCharitySubmitController;
 use App\Http\Controllers\Admin\Events\UpdateController;
@@ -50,5 +51,6 @@ Route::prefix('admin/events')
         Route::get('/{event}/uploads', UploadsController::class)->name('uploads');
         Route::post('/{event}/upload', UploadImageController::class)->name('upload-image');
         Route::get('/{event}/mission-review', MissionReviewController::class)->name('mission-review');
+        Route::post('/{event}/uploads/{event_upload}/toggle-type', ToggleUploadTypeController::class)->name('uploads.toggle-type');
         Route::post('/{event}/uploads/{event_upload}/delete', DeleteUploadController::class)->name('uploads.delete');
     });

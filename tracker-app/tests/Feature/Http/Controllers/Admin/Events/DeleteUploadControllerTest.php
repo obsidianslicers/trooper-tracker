@@ -48,6 +48,22 @@ class DeleteUploadControllerTest extends TestCase
         $this->assertCount(0, $uploads);
     }
 
+    public function test_invoke_deletes_admin_upload_and_returns_uploads_view(): void
+    {
+        Storage::fake('public');
+
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $event = Event::factory()->create();
+        $upload = EventUpload::factory()->for($event)->create([EventUpload::IS_ADMINISTRATIVE => true]);
+
+        $response = $this->actingAs($admin)
+            ->post(route('admin.events.uploads.delete', ['event' => $event, 'event_upload' => $upload]));
+
+        $response->assertOk();
+        $response->assertViewIs('pages.admin.events.uploads');
+        $this->assertDatabaseMissing('tt_event_uploads', [EventUpload::ID => $upload->id]);
+    }
+
     public function test_invoke_deletes_tagged_pivot_rows(): void
     {
         Storage::fake('public');
