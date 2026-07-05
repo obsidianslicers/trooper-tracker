@@ -127,6 +127,37 @@ class UpdateTrooperAuthorityCommandHandlerTest extends TestCase
         ]);
     }
 
+    public function test_invoke_restores_soft_deleted_assignment_when_setting_moderator_flag(): void
+    {
+        $trooper = Trooper::factory()->asModerator()->create();
+        $organization = Organization::factory()->create();
+
+        $assignment = TrooperAssignment::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($organization)
+            ->create([TrooperAssignment::IS_MODERATOR => false]);
+
+        $assignment->delete();
+
+        $command = new UpdateTrooperAuthorityCommand(
+            trooper: $trooper,
+            membership_role: MembershipRole::MODERATOR,
+            valid_data: [
+                $organization->id => ['is_moderator' => true],
+            ]
+        );
+        $handler = app(UpdateTrooperAuthorityCommandHandler::class);
+
+        $handler($command);
+
+        $this->assertDatabaseHas('tt_trooper_assignments', [
+            TrooperAssignment::TROOPER_ID => $trooper->id,
+            TrooperAssignment::ORGANIZATION_ID => $organization->id,
+            TrooperAssignment::IS_MODERATOR => true,
+            TrooperAssignment::DELETED_AT => null,
+        ]);
+    }
+
     public function test_invoke_skips_moderator_assignment_when_trooper_is_not_moderator(): void
     {
         $trooper = Trooper::factory()->asMember()->create();

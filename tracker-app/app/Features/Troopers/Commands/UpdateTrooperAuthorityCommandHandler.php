@@ -48,6 +48,8 @@ readonly class UpdateTrooperAuthorityCommandHandler implements CommandHandlerInt
         $message->trooper->trooper_assignments()
             ->update([TrooperAssignment::IS_MODERATOR => false]);
 
+        $assignments = $message->trooper->trooper_assignments()->withTrashed()->get();
+
         if (!$message->trooper->is_moderator)
         {
             return null;
@@ -62,11 +64,21 @@ readonly class UpdateTrooperAuthorityCommandHandler implements CommandHandlerInt
                 continue;
             }
 
-            $where = [TrooperAssignment::ORGANIZATION_ID => $organization_id];
+            $assignment = $assignments->firstWhere(TrooperAssignment::ORGANIZATION_ID, (int) $organization_id);
 
-            $set = [TrooperAssignment::IS_MODERATOR => $is_moderator];
+            if ($assignment === null)
+            {
+                $assignment = new TrooperAssignment;
+                $assignment->{TrooperAssignment::TROOPER_ID} = $message->trooper->id;
+                $assignment->{TrooperAssignment::ORGANIZATION_ID} = $organization_id;
+            }
+            elseif ($assignment->trashed())
+            {
+                $assignment->restore();
+            }
 
-            $message->trooper->trooper_assignments()->updateOrCreate($where, $set);
+            $assignment->{TrooperAssignment::IS_MODERATOR} = $is_moderator;
+            $assignment->save();
         }
 
         return null;
