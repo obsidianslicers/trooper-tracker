@@ -224,7 +224,7 @@
                 <x-modal-picker :id="'modal-trooper'" :label="'Find a Trooper'" />
 
                 <x-submit-container>
-                    @if(Auth::user()->is_administrator || $event->can_update_trooper_status)
+                    @if(Auth::user()->is_administrator || Auth::user()->isModeratorForOrganization($event->organization))
                         <x-submit-button>Update</x-submit-button>
                     @endif
                     <x-link-button-cancel :url="route('admin.events.troopers', compact('event'))" />
