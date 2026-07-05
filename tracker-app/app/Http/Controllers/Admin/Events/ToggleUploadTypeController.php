@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
+use App\Features\Events\Commands\ToggleEventUploadTypeCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Event;
 use App\Models\EventUpload;
@@ -22,8 +23,7 @@ class ToggleUploadTypeController extends MagicBusController
 
         $was_administrative = (bool) $event_upload->is_administrative;
 
-        $event_upload->is_administrative = ! $was_administrative;
-        $event_upload->save();
+        $this->bus->send(new ToggleEventUploadTypeCommand($event_upload));
 
         if ($was_administrative)
         {
