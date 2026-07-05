@@ -96,8 +96,7 @@ class DonationEventSummaryController extends BaseReportsController
         array $selected_org_ids,
         array $accessible_org_ids,
         ?string $organization_name = null,
-    ): StreamedResponse
-    {
+    ): StreamedResponse {
         $filename = 'donation-event-summary-'.now()->format('Y-m-d').'.csv';
 
         return response()->streamDownload(function () use ($trooper, $date_start, $date_end, $charity_only, $sort, $dir, $selected_org_ids, $accessible_org_ids, $organization_name) {
@@ -184,7 +183,8 @@ class DonationEventSummaryController extends BaseReportsController
                 }
 
                 $page++;
-            } while ($events->hasMorePages());
+            }
+            while ($events->hasMorePages());
 
             fputcsv($handle, []);
             fputcsv($handle, [
