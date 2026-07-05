@@ -6,8 +6,8 @@ namespace App\Http\Controllers\Admin\Reports;
 
 use App\Features\Reports\Queries\GetDonationEventSummaryQuery;
 use App\Models\Organization;
+use App\Models\Trooper;
 use Carbon\Carbon;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -74,11 +74,9 @@ class DonationEventSummaryController extends BaseReportsController
 
         if ($request->input('format') === 'csv')
         {
-            $all = $this->bus->send(new GetDonationEventSummaryQuery($trooper, $date_start, $date_end, $charity_only, PHP_INT_MAX, $sort, $dir, $selected_org_ids, $accessible_org_ids));
-
             $selected_names = $filter_orgs->whereIn('id', $selected_ids)->pluck('name')->join(', ');
 
-            return $this->streamCsv($all, $date_start, $date_end, $charity_only, $selected_names ?: null);
+            return $this->streamCsv($trooper, $date_start, $date_end, $charity_only, $sort, $dir, $selected_org_ids, $accessible_org_ids, $selected_names ?: null);
         }
 
         $events = $this->bus->send(new GetDonationEventSummaryQuery($trooper, $date_start, $date_end, $charity_only, 50, $sort, $dir, $selected_org_ids, $accessible_org_ids));
@@ -88,11 +86,20 @@ class DonationEventSummaryController extends BaseReportsController
         return view('pages.admin.reports.donation-event-summary', $data);
     }
 
-    private function streamCsv(LengthAwarePaginator $events, ?Carbon $date_start, ?Carbon $date_end, bool $charity_only, ?string $organization_name = null): StreamedResponse
-    {
+    private function streamCsv(
+        Trooper $trooper,
+        ?Carbon $date_start,
+        ?Carbon $date_end,
+        bool $charity_only,
+        string $sort,
+        string $dir,
+        array $selected_org_ids,
+        array $accessible_org_ids,
+        ?string $organization_name = null,
+    ): StreamedResponse {
         $filename = 'donation-event-summary-'.now()->format('Y-m-d').'.csv';
 
-        return response()->streamDownload(function () use ($events, $date_start, $date_end, $charity_only, $organization_name) {
+        return response()->streamDownload(function () use ($trooper, $date_start, $date_end, $charity_only, $sort, $dir, $selected_org_ids, $accessible_org_ids, $organization_name) {
             $handle = fopen('php://output', 'w');
 
             $meta = [];
@@ -124,39 +131,60 @@ class DonationEventSummaryController extends BaseReportsController
             $total_hours = 0;
             $total_attended = 0;
             $total_trooper_hours = 0;
+            $page = 1;
+            $page_size = 500;
 
-            foreach ($events as $event)
+            do
             {
-                foreach ($event->event_shifts as $shift)
+                $events = $this->bus->send(new GetDonationEventSummaryQuery(
+                    $trooper,
+                    $date_start,
+                    $date_end,
+                    $charity_only,
+                    $page_size,
+                    $sort,
+                    $dir,
+                    $selected_org_ids,
+                    $accessible_org_ids,
+                    $page,
+                ));
+
+                foreach ($events as $event)
                 {
-                    $direct = $shift->charity_direct_funds;
-                    $indirect = $shift->charity_indirect_funds;
-                    $hours = $shift->effective_charity_hours;
-                    $attended = $shift->attendees_count;
-                    $trooper_hours = $hours * $attended;
+                    foreach ($event->event_shifts as $shift)
+                    {
+                        $direct = $shift->charity_direct_funds;
+                        $indirect = $shift->charity_indirect_funds;
+                        $hours = $shift->effective_charity_hours;
+                        $attended = $shift->attendees_count;
+                        $trooper_hours = $hours * $attended;
 
-                    fputcsv($handle, [
-                        $event->name,
-                        $event->event_start?->format('Y-m-d'),
-                        $event->organization?->name,
-                        $shift->compact_time_display,
-                        $shift->charity_name,
-                        $direct,
-                        $indirect,
-                        $direct + $indirect,
-                        $hours,
-                        $attended,
-                        $trooper_hours,
-                        $shift->charity_notes,
-                    ]);
+                        fputcsv($handle, [
+                            $event->name,
+                            $event->event_start?->format('Y-m-d'),
+                            $event->organization?->name,
+                            $shift->compact_time_display,
+                            $shift->charity_name,
+                            $direct,
+                            $indirect,
+                            $direct + $indirect,
+                            $hours,
+                            $attended,
+                            $trooper_hours,
+                            $shift->charity_notes,
+                        ]);
 
-                    $total_direct += $direct;
-                    $total_indirect += $indirect;
-                    $total_hours += $hours;
-                    $total_attended += $attended;
-                    $total_trooper_hours += $trooper_hours;
+                        $total_direct += $direct;
+                        $total_indirect += $indirect;
+                        $total_hours += $hours;
+                        $total_attended += $attended;
+                        $total_trooper_hours += $trooper_hours;
+                    }
                 }
+
+                $page++;
             }
+            while ($events->hasMorePages());
 
             fputcsv($handle, []);
             fputcsv($handle, [

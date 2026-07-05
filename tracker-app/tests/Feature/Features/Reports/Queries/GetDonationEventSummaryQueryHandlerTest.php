@@ -663,6 +663,26 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         $this->assertCount(2, $result->items());
     }
 
+    public function test_invoke_uses_explicit_page(): void
+    {
+        $moderator = Trooper::factory()->asModerator()->create();
+        $org = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($org)->asModerator()->create();
+
+        Event::factory()->asClosed()->withOrganization($org)->withEventStart(Carbon::parse('2026-01-01'))->create();
+        Event::factory()->asClosed()->withOrganization($org)->withEventStart(Carbon::parse('2026-01-02'))->create();
+        $third = Event::factory()->asClosed()->withOrganization($org)->withEventStart(Carbon::parse('2026-01-03'))->create();
+
+        $subject = new GetDonationEventSummaryQueryHandler();
+
+        $result = $subject(new GetDonationEventSummaryQuery($moderator, page_size: 2, sort: 'event_start', dir: 'asc', page: 2));
+
+        $this->assertSame(2, $result->currentPage());
+        $this->assertSame(3, $result->total());
+        $this->assertCount(1, $result->items());
+        $this->assertSame($third->id, $result->first()->id);
+    }
+
     // -------------------------------------------------------------------------
     // Organization attribution filter
     // -------------------------------------------------------------------------

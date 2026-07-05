@@ -19,5 +19,6 @@ readonly class GetDonationEventSummaryQuery
         public readonly string $dir = 'desc',
         public readonly array $selected_org_ids = [],
         public readonly array $accessible_org_ids = [],
+        public readonly ?int $page = null,
     ) {}
 }

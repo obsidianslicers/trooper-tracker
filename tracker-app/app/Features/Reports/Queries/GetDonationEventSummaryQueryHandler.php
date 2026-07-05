@@ -85,7 +85,9 @@ readonly class GetDonationEventSummaryQueryHandler implements QueryHandlerInterf
         $sort = in_array($message->sort, $allowed) ? $message->sort : 'event_start';
         $dir = $message->dir === 'asc' ? 'asc' : 'desc';
 
-        return $query->orderBy($sort, $dir)->paginate($message->page_size)->withQueryString();
+        return $query->orderBy($sort, $dir)
+            ->paginate($message->page_size, ['*'], 'page', $message->page)
+            ->withQueryString();
     }
 
     private function applyAttribution(mixed $q, GetDonationEventSummaryQuery $message): void
