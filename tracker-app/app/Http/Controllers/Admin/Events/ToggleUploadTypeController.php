@@ -4,20 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
-use App\Features\Events\Commands\DeleteEventUploadCommand;
+use App\Features\Events\Commands\ToggleEventUploadTypeCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Event;
 use App\Models\EventUpload;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
-/**
- * Handles deletion of an event photo upload.
- *
- * Soft-deletes the upload record, removes its trooper tags, and deletes the
- * associated files from storage.
- */
-class DeleteUploadController extends MagicBusController
+class ToggleUploadTypeController extends MagicBusController
 {
     protected function initialized(): void {}
 
@@ -29,7 +23,7 @@ class DeleteUploadController extends MagicBusController
 
         $was_administrative = (bool) $event_upload->is_administrative;
 
-        $this->bus->send(new DeleteEventUploadCommand($event_upload));
+        $this->bus->send(new ToggleEventUploadTypeCommand($event_upload));
 
         if ($was_administrative)
         {

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\Admin\Events;
 
 use App\Models\Event;
+use App\Models\EventUpload;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -17,11 +18,15 @@ class UploadsControllerTest extends TestCase
     {
         $trooper = Trooper::factory()->asAdministrator()->create();
         $event = Event::factory()->create();
+        EventUpload::factory()->for($event)->create([
+            EventUpload::IS_ADMINISTRATIVE => true,
+        ]);
 
         $response = $this->actingAs($trooper)->get(route('admin.events.uploads', ['event' => $event->id]));
 
         $response->assertOk();
         $response->assertViewIs('pages.admin.events.uploads');
+        $response->assertSee('Send to Mission Review');
     }
 
     public function test_invoke_requires_authentication(): void
