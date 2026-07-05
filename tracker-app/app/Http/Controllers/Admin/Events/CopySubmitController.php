@@ -51,7 +51,12 @@ class CopySubmitController extends MagicBusController
         $new_start = Carbon::parse($request->validated(Event::EVENT_START));
         $diff = $old_start->diffAsCarbonInterval($new_start);
 
-        $event_copy = $event->replicate();
+        $event_copy = $event->replicate([
+            Event::CREATE_NOTIFICATIONS_SENT_AT,
+            Event::CANCEL_NOTIFICATIONS_SENT_AT,
+            Event::THREAD_ID,
+            Event::POST_ID,
+        ]);
         $event_copy->name = $request->validated(Event::NAME);
         $event_copy->event_start = $event->event_start->add($diff);
         $event_copy->event_end = $event->event_end->add($diff);

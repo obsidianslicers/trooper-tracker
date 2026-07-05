@@ -28,6 +28,36 @@ class CopySubmitControllerTest extends TestCase
         $response->assertRedirect();
     }
 
+    public function test_invoke_resets_forum_and_notification_state_on_copied_event(): void
+    {
+        $trooper = Trooper::factory()->asAdministrator()->create();
+        $event = Event::factory()
+            ->withForumThreadEnabled()
+            ->withCreateNotificationsSent()
+            ->withCancelNotificationsSent()
+            ->state([
+                Event::THREAD_ID => 321,
+                Event::POST_ID => 654,
+            ])
+            ->create();
+
+        $this->actingAs($trooper)->post('/admin/events/' . $event->id . '/copy', [
+            'name' => 'Copied Event Name',
+            'event_start' => now()->addDays(7)->toDateString(),
+        ]);
+
+        $event_copy = Event::query()
+            ->whereKeyNot($event->id)
+            ->where(Event::NAME, 'Copied Event Name')
+            ->firstOrFail();
+
+        $this->assertTrue($event_copy->create_forum_thread);
+        $this->assertNull($event_copy->thread_id);
+        $this->assertNull($event_copy->post_id);
+        $this->assertNull($event_copy->create_notifications_sent_at);
+        $this->assertNull($event_copy->cancel_notifications_sent_at);
+    }
+
     public function test_invoke_requires_authentication(): void
     {
         $event = Event::factory()->create();
