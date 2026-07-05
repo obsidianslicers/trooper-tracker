@@ -47,7 +47,6 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
      * Execute the command to recalculate a trooper's rank.
      *
      * @param  RecalculateTrooperRankCommand  $message  The command with trooper rank recalculation data
-     * @return null
      */
     public function __invoke(object $message): mixed
     {
@@ -568,20 +567,20 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
         ?int $organization_id = null,
         bool $send_milestone_notifications = true,
     ): void {
-        $achievement = TrooperAchievement::firstOrNew([
-            TrooperAchievement::TROOPER_ID => $trooper->id,
-            TrooperAchievement::ORGANIZATION_ID => $organization_id,
-            TrooperAchievement::TYPE => $type,
-        ]);
+        $achievement = TrooperAchievement::query()
+            ->where(TrooperAchievement::TROOPER_ID, $trooper->id)
+            ->where(TrooperAchievement::ORGANIZATION_ID, $organization_id)
+            ->where(TrooperAchievement::TYPE, $type)
+            ->first();
 
-        $created = !$achievement->exists;
-
-        if ($created)
+        if ($achievement == null)
         {
-            $achievement->fill([
-                TrooperAchievement::VALUE => true,
-                TrooperAchievement::ACHIEVEMENT_DATE => now(),
-            ]);
+            $achievement = new TrooperAchievement;
+            $achievement->{TrooperAchievement::TROOPER_ID} = $trooper->id;
+            $achievement->{TrooperAchievement::ORGANIZATION_ID} = $organization_id;
+            $achievement->{TrooperAchievement::TYPE} = $type;
+            $achievement->{TrooperAchievement::VALUE} = true;
+            $achievement->{TrooperAchievement::ACHIEVEMENT_DATE} = now();
             $achievement->save();
 
             $this->recordCreatedMilestone($achievement);

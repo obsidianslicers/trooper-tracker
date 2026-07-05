@@ -50,6 +50,53 @@ class RecalculateTrooperRankCommandHandlerTest extends TestCase
         ]);
     }
 
+    public function test_invoke_creates_shift_count_achievement_for_all_troopers(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $event = Event::factory()->asClosed()->create();
+        $shift = EventShift::factory()->forEvent($event)->create();
+        EventTrooper::factory()
+            ->forTrooper($trooper)
+            ->forEventShift($shift)
+            ->asAttended()
+            ->create([EventTrooper::ORGANIZATION_ID => null]);
+
+        $command = new RecalculateTrooperRankCommand();
+        $handler = app(RecalculateTrooperRankCommandHandler::class);
+
+        $handler($command);
+
+        $this->assertDatabaseHas('tt_trooper_achievements', [
+            TrooperAchievement::TROOPER_ID => $trooper->id,
+            TrooperAchievement::TYPE => AchievementType::TROOPER_SHIFTS->value,
+            TrooperAchievement::VALUE => 1,
+        ]);
+    }
+
+    public function test_invoke_creates_shift_count_achievement_for_all_troopers_with_an_organization(): void
+    {
+        $organization = Organization::factory()->create();
+        $trooper = Trooper::factory()->create();
+        $event = Event::factory()->asClosed()->create();
+        $shift = EventShift::factory()->forEvent($event)->create();
+        EventTrooper::factory()
+            ->forTrooper($trooper)
+            ->forEventShift($shift)
+            ->asAttended()
+            ->create([EventTrooper::ORGANIZATION_ID => $organization->id]);
+
+        $command = new RecalculateTrooperRankCommand();
+        $handler = app(RecalculateTrooperRankCommandHandler::class);
+
+        $handler($command);
+
+        $this->assertDatabaseHas('tt_trooper_achievements', [
+            TrooperAchievement::TROOPER_ID => $trooper->id,
+            TrooperAchievement::TYPE => AchievementType::TROOPER_SHIFTS->value,
+            TrooperAchievement::VALUE => 1,
+        ]);
+    }
+
     public function test_invoke_updates_existing_achievement(): void
     {
         $trooper = Trooper::factory()->create();
@@ -244,8 +291,8 @@ class RecalculateTrooperRankCommandHandlerTest extends TestCase
 
         TrooperAchievement::factory()->create([
             TrooperAchievement::TROOPER_ID => $trooper->id,
-            TrooperAchievement::TYPE       => AchievementType::FIRST_TROOP,
-            TrooperAchievement::VALUE      => true,
+            TrooperAchievement::TYPE => AchievementType::FIRST_TROOP,
+            TrooperAchievement::VALUE => true,
             TrooperAchievement::NOTIFICATION_SENT_AT => now(),
         ]);
 
@@ -471,7 +518,7 @@ class RecalculateTrooperRankCommandHandlerTest extends TestCase
             ->withParent($club)
             ->create();
         $region->updateQuietly([
-            Organization::NODE_PATH => $club->id.Organization::NODE_PATH_SEP.$region->id,
+            Organization::NODE_PATH => $club->id . Organization::NODE_PATH_SEP . $region->id,
         ]);
 
         return $region;
