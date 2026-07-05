@@ -188,7 +188,7 @@ Events, Awards, and Notices. It uses:
 
 ## Inventory
 
-Discovered migration files: 33
+Discovered migration files: 41
 
 Discovered tables: 39
 
@@ -265,12 +265,13 @@ Purpose: Authenticated Trooper accounts and profile state.
 | created_at | timestamp | yes | timestamps helper |
 | updated_at | timestamp | yes | timestamps helper |
 | deleted_at | timestamp | yes | softDeletes helper |
+| deletion_requested_at | timestamp | yes | account deletion request marker |
 
 Relationships:
 
 - Belongs To: tt_troopers (guardian_id)
 - Belongs To: tt_trooper_costumes (display_costume_id)
-- Has Many: tt_trooper_assignments, tt_trooper_organizations, tt_trooper_donations,
+- Has Many: tt_trooper_assignments, tt_trooper_requests, tt_trooper_organizations, tt_trooper_donations,
   tt_trooper_costumes, tt_trooper_achievements, tt_trooper_friends, tt_event_notifications,
   tt_notifications, tt_event_troopers, tt_event_uploads, tt_event_upload_troopers,
   tt_event_shares, tt_event_guests, tt_award_troopers, tt_notice_troopers, tt_oauth_logins,
@@ -532,7 +533,6 @@ Relationships:
 - Belongs To: tt_troopers (trooper_id)
 - Belongs To: tt_organizations (organization_id)
 - Belongs To: tt_organizations (primary_organization_id)
-- Belongs To: tt_troopers (approved_by_id, denied_by_id)
 
 ### tt_trooper_organizations
 
@@ -621,6 +621,7 @@ Purpose: Trooper achievement ledger.
 | type | varchar(64) | no | unique with trooper_id and organization_coalesce_id |
 | value | varchar(64) | yes |  |
 | achievement_date | date | yes |  |
+| notification_sent_at | timestamp | yes | achievement notification delivery marker |
 | created_at | timestamp | yes | timestamps helper |
 | updated_at | timestamp | yes | timestamps helper |
 | deleted_at | timestamp | yes | softDeletes helper |
@@ -716,7 +717,7 @@ Relationships:
 - Belongs To: tt_organizations (organization_id)
 - Belongs To: tt_organizations (primary_organization_id)
 - Has Many: tt_event_shifts, tt_event_notifications, tt_event_organizations,
-  tt_event_uploads, tt_event_shares, tt_event_watches
+  tt_event_uploads, tt_event_shares, tt_event_mission_acks, tt_event_watches
 
 ### tt_event_shifts
 
@@ -729,6 +730,7 @@ Purpose: Shift windows within events.
 | status | varchar(16) | no | default EventStatus::DRAFT->value |
 | shift_starts_at | datetime | no | unique with event_id |
 | shift_ends_at | datetime | no |  |
+| last_notified_at | timestamp | yes | shift completion reminder marker |
 | charity_direct_funds | integer | no | default 0 |
 | charity_indirect_funds | integer | no | default 0 |
 | charity_name | varchar(128) | yes |  |
