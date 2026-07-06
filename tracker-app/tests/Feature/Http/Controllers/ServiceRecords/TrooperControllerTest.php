@@ -234,6 +234,7 @@ class TrooperControllerTest extends TestCase
             ],
             'upcoming_shifts' => collect(),
             'recent_shifts' => collect(),
+            'pending_confirmation_shifts' => collect(),
             'all_donations' => collect(),
             'awards' => collect(),
         ];

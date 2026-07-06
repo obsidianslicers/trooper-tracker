@@ -1,30 +1,39 @@
 @php
-    $pending_shifts = $recent_shifts->filter(function (\App\Models\EventShift $shift)
-    {
-        return $shift->event_trooper
-            && $shift->event_trooper->intendsToGo()
-            && $shift->status === \App\Enums\EventStatus::CLOSED
-            && $shift->shift_ends_at->isPast()
-            && $shift->shift_ends_at->isAfter(now()->subDays(30));
-    });
+    $pending_shifts = $pending_confirmation_shifts ?? collect();
 @endphp
 
 @if($pending_shifts->isNotEmpty() && auth()->id() === $trooper->id)
-    <div class="alert alert-warning mb-3">
-        <strong>{{ $pending_shifts->count() }} shift{{ $pending_shifts->count() === 1 ? '' : 's' }} need{{ $pending_shifts->count() === 1 ? 's' : '' }}
-            confirmation</strong>
-        <ul class="mb-0 mt-2 ps-3">
+    <div class="service-record-confirmation mb-3 shadow-sm">
+        <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="fa fa-fw fa-clipboard-check service-record-confirmation-icon"></i>
+            <strong class="service-record-confirmation-title">
+                {{ $pending_shifts->count() }} shift{{ $pending_shifts->count() === 1 ? '' : 's' }} need{{ $pending_shifts->count() === 1 ? 's' : '' }}
+                confirmation
+            </strong>
+        </div>
+        <div class="service-record-confirmation-list">
             @foreach($pending_shifts as $shift)
-                <li class="mb-1">
-                    <span class="fw-semibold">{{ $shift->event->name }}</span>
-                    <span class="text-muted small ms-1">{{ $shift->full_date_display }}</span>
-                    <a href="{{ $shift->event_trooper->getAttendanceUrl(\App\Enums\EventTrooperStatus::ATTENDED) }}"
-                       class="btn btn-success btn-sm ms-2 py-0">Made It</a>
-                    <a href="{{ $shift->event_trooper->getAttendanceUrl(\App\Enums\EventTrooperStatus::UNABLE_TO_ATTEND) }}"
-                       class="btn btn-outline-secondary btn-sm ms-1 py-0">Missed It</a>
-                </li>
+                <div class="service-record-confirmation-item">
+                    <div class="d-flex flex-column flex-md-row align-items-md-center gap-2">
+                        <div class="flex-grow-1">
+                            <a href="{{ route('events.display', ['event' => $shift->event]) }}"
+                               class="service-record-confirmation-link">
+                                {{ $shift->event->name }}
+                            </a>
+                            <div class="service-record-confirmation-time">
+                                {{ $shift->full_date_display }} &middot; {{ $shift->compact_time_display }}
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="{{ $shift->event_trooper->getAttendanceUrl(\App\Enums\EventTrooperStatus::ATTENDED) }}"
+                               class="btn btn-success btn-sm">Made It</a>
+                            <a href="{{ $shift->event_trooper->getAttendanceUrl(\App\Enums\EventTrooperStatus::UNABLE_TO_ATTEND) }}"
+                               class="btn btn-outline-danger btn-sm">Missed It</a>
+                        </div>
+                    </div>
+                </div>
             @endforeach
-        </ul>
+        </div>
     </div>
 @endif
 
@@ -84,11 +93,6 @@
                                     </div>
                                 @endif
                             </div>
-                            @if($pending_shifts->contains('id', $shift->id) && auth()->id() === $trooper->id)
-                                <div class="mt-2">
-                                    <span class="badge bg-warning text-dark">Confirmation needed</span>
-                                </div>
-                            @endif
                         </div>
                     </div>
                 </div>
@@ -126,9 +130,6 @@
                             <a href="{{ route('events.display', ['event' => $shift->event]) }}">
                                 {{ $shift->event->name }}
                             </a>
-                            @if($pending_shifts->contains('id', $shift->id) && auth()->id() === $trooper->id)
-                                <span class="badge bg-warning text-dark ms-1">Confirm</span>
-                            @endif
                         </td>
                         <td class="text-start text-nowrap">
                             {{ $shift->full_date_display }}
