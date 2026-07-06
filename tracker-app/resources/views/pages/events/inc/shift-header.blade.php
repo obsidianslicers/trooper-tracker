@@ -43,9 +43,15 @@
         <div class="col-12">
             <div class="d-flex flex-wrap gap-2">
                 @foreach($event_shift->event_shift_stations as $station)
+                    <?php
+                        $station_count = $event_shift->event_troopers
+                            ->filter(fn ($event_trooper) => $event_trooper->event_shift_station_id === $station->id)
+                            ->filter(fn ($event_trooper) => $event_trooper->status === \App\Enums\EventTrooperStatus::GOING)
+                            ->count();
+                    ?>
                     <span class="badge text-bg-light border">
                         {{ $station->name }}:
-                        {{ $station->goingCount() }}/{{ $station->troopers_allowed }}
+                        {{ $station_count }}/{{ $station->troopers_allowed }}
                     </span>
                 @endforeach
             </div>

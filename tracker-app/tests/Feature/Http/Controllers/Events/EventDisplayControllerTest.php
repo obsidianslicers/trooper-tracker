@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Events;
 
+use App\Enums\EventTrooperStatus;
 use App\Models\Event;
 use App\Models\EventShift;
+use App\Models\EventShiftStation;
+use App\Models\EventTrooper;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -42,6 +45,38 @@ class EventDisplayControllerTest extends TestCase
         $response->assertSee('Charity');
         $response->assertSee('Hours: 4');
         $response->assertSee('Community service hours only');
+    }
+
+    public function test_invoke_displays_station_count_from_visible_going_roster(): void
+    {
+        $viewer = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $event = Event::factory()->create();
+        $shift = EventShift::factory()->forEvent($event)->create();
+        $station = EventShiftStation::factory()
+            ->forEventShift($shift)
+            ->withName('Docking Bay')
+            ->withTroopersAllowed(3)
+            ->create();
+
+        EventTrooper::factory()
+            ->forEventShiftStation($station)
+            ->forTrooper(Trooper::factory()->asMember()->create())
+            ->asGoing()
+            ->create();
+        EventTrooper::factory()
+            ->forEventShiftStation($station)
+            ->forTrooper(Trooper::factory()->asMember()->create())
+            ->asGoing()
+            ->create();
+        EventTrooper::factory()
+            ->forEventShiftStation($station)
+            ->forTrooper(Trooper::factory()->asMember()->create())
+            ->create([EventTrooper::STATUS => EventTrooperStatus::STAND_BY]);
+
+        $response = $this->actingAs($viewer)->get(route('events.display', ['event' => $event->id]));
+
+        $response->assertOk();
+        $response->assertSeeTextInOrder(['Docking Bay:', '2/3']);
     }
 
     public function test_invoke_requires_authentication(): void

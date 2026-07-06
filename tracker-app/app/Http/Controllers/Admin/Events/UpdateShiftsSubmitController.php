@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
+use App\Enums\EventTrooperStatus;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Events\UpdateShiftsRequest;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventShiftStation;
+use App\Models\EventTrooper;
+use App\Notifications\Events\TrooperPromotedToGoingNotification;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 
@@ -102,6 +105,8 @@ class UpdateShiftsSubmitController extends MagicBusController
                 }
 
                 $station->save();
+
+                $this->promoteStationStandbysWhileRoom($station);
             }
         }
 
@@ -122,5 +127,26 @@ class UpdateShiftsSubmitController extends MagicBusController
         $this->flash->updated($event);
 
         return redirect()->route('admin.events.shifts', compact('event'));
+    }
+
+    private function promoteStationStandbysWhileRoom(EventShiftStation $station): void
+    {
+        while ($station->fresh()->hasRoom())
+        {
+            $next_in_line = $station->event_troopers()
+                ->where(EventTrooper::STATUS, EventTrooperStatus::STAND_BY)
+                ->orderBy(EventTrooper::SIGNED_UP_AT)
+                ->first();
+
+            if ($next_in_line === null)
+            {
+                return;
+            }
+
+            $next_in_line->status = EventTrooperStatus::GOING;
+            $next_in_line->save();
+
+            $next_in_line->trooper->notify(new TrooperPromotedToGoingNotification($next_in_line));
+        }
     }
 }

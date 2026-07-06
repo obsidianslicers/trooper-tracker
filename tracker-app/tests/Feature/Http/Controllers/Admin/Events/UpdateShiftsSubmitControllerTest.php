@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Admin\Events;
 
+use App\Enums\EventTrooperStatus;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventShiftStation;
+use App\Models\EventTrooper;
 use App\Models\Trooper;
+use Illuminate\Support\Facades\Notification;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -163,6 +166,47 @@ class UpdateShiftsSubmitControllerTest extends TestCase
             EventShiftStation::NAME => 'Check-in',
             EventShiftStation::TROOPERS_ALLOWED => 1,
         ]);
+    }
+
+    public function test_invoke_promotes_station_standbys_when_station_capacity_has_room(): void
+    {
+        Notification::fake();
+
+        $trooper = Trooper::factory()->asAdministrator()->create();
+        $event = Event::factory()->create();
+        $shift = EventShift::factory()->forEvent($event)->create();
+        $station = EventShiftStation::factory()
+            ->forEventShift($shift)
+            ->withName('Docking Bay')
+            ->withTroopersAllowed(1)
+            ->create();
+        EventTrooper::factory()
+            ->forEventShiftStation($station)
+            ->asGoing()
+            ->create();
+        $standby = EventTrooper::factory()
+            ->forEventShiftStation($station)
+            ->create([EventTrooper::STATUS => EventTrooperStatus::STAND_BY]);
+
+        $response = $this->actingAs($trooper)->post('/admin/events/' . $event->id . '/shifts', [
+            'shifts' => [
+                $shift->id => [
+                    'date' => '2026-06-03',
+                    'starts_at' => '10:00',
+                    'ends_at' => '12:00',
+                    'stations' => [
+                        $station->id => [
+                            'name' => 'Docking Bay',
+                            'troopers_allowed' => 2,
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $response->assertRedirect(route('admin.events.shifts', ['event' => $event->id]));
+
+        $this->assertSame(EventTrooperStatus::GOING, $standby->fresh()->status);
     }
 
     public function test_invoke_requires_authentication(): void
