@@ -45,6 +45,9 @@
                     </thead>
                     <tbody>
                         @foreach($shifts as $shift)
+                            @php
+                                $hasStationRows = $shift->event_shift_stations->isNotEmpty() || !empty(old('shifts.' . $shift->id . '.stations'));
+                            @endphp
                             <tr>
                                 <td>
                                     {{ $shift->shift_starts_at->format('D') }}
@@ -73,9 +76,18 @@
                                                     :value="$shift->status->value"
                                                     :disabled="!$event->is_active"
                                                     class="form-select-sm" />
+                                    @if($event->is_active && !$hasStationRows)
+                                        <button type="button"
+                                                class="btn btn-sm btn-link text-muted px-0 mt-1"
+                                                onclick="showStationEditor({{ $shift->id }}, true)">
+                                            <i class="fa fa-fw fa-plus me-1"></i>
+                                            Stations
+                                        </button>
+                                    @endif
                                 </td>
                             </tr>
-                            <tr>
+                            <tr id="station-editor-row-{{ $shift->id }}"
+                                class="{{ $hasStationRows ? '' : 'd-none' }}">
                                     <td colspan="5" class="pt-0 pb-3 border-top-0">
                                         <div class="rounded border border-secondary border-opacity-50 bg-black bg-opacity-25 p-3 ms-md-5">
                                             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
@@ -83,10 +95,14 @@
                                                     <span class="fw-semibold">
                                                         Stations
                                                     </span>
-                                                    @if($shift->event_shift_stations->isNotEmpty())
+                                                    @if($hasStationRows)
                                                         <span class="text-muted small ms-md-2 d-block d-md-inline">
                                                             <i class="fa fa-fw fa-grip-vertical me-1"></i>
                                                             Drag rows to reorder.
+                                                        </span>
+                                                    @else
+                                                        <span class="text-muted small ms-md-2 d-block d-md-inline">
+                                                            Add optional station signup limits for this shift.
                                                         </span>
                                                     @endif
                                                 </div>
@@ -341,6 +357,16 @@
                 </td>`;
 
             tbody.appendChild(tr);
+        }
+
+        function showStationEditor(shiftId, addInitialRow = false) {
+            const row = document.querySelector(`#station-editor-row-${shiftId}`);
+            if (row) row.classList.remove('d-none');
+
+            const tbody = document.querySelector(`#stations-${shiftId} tbody`);
+            if (addInitialRow && tbody && tbody.querySelectorAll('tr').length === 0) {
+                addStationRow(shiftId);
+            }
         }
 
         document.addEventListener('DOMContentLoaded', function () {
