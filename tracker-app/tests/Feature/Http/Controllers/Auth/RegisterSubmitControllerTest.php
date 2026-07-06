@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Auth;
 
-use App\Enums\TrooperRequestStatus;
 use App\Enums\MembershipStatus;
+use App\Enums\TrooperRequestStatus;
 use App\Features\Troopers\Commands\ApproveTrooperCommand;
 use App\Features\Troopers\Commands\ApproveTrooperCommandHandler;
 use App\Mail\Auth\TrooperRegistered;
-use App\Models\TrooperRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperOrganization;
+use App\Models\TrooperRequest;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
@@ -95,7 +95,7 @@ class RegisterSubmitControllerTest extends TestCase
             ],
         ]));
 
-        $response->assertSessionHasErrors('organizations');
+        $response->assertSessionHasErrors("organizations.{$organization->id}.identifier");
         $this->assertDatabaseMissing('tt_troopers', [
             Trooper::EMAIL => 'johndoe@example.com',
         ]);
