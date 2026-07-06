@@ -38,11 +38,11 @@
                         <div class="card-footer">
                             <div>
                                 <small class="text-muted d-block">Planned Costume</small>
-                                @if($shift->event_trooper->is_handler)
-                                    <p class="mb-0">Handler</p>
-                                @elseif($shift->event_trooper->costume)
+                                @if($shift->event_trooper->costume)
                                     <p class="mb-0"><strong>{{ $shift->event_trooper->costume->name }}</strong></p>
                                     <p class="small text-muted mb-0">{{ $shift->event_trooper->costume_organizations }}</p>
+                                @elseif($shift->event_trooper->is_handler)
+                                    <p class="mb-0">Handler</p>
                                 @endif
                             </div>
                         </div>
@@ -91,18 +91,16 @@
                             </span>
                         </td>
                         <td class="text-start text-nowrap">
-                            @if($shift->event_trooper->is_handler)
+                            @if($shift->event_trooper->costume != null)
+                                <b>
+                                    {{ $shift->event_trooper->costume->name }}
+                                </b>
+                                <br />
+                                <i class="small text-muted">
+                                    {{ $shift->event_trooper->costume_organizations }}
+                                </i>
+                            @elseif($shift->event_trooper->is_handler)
                                 Handler
-                            @else
-                                @if($shift->event_trooper->costume != null)
-                                    <b>
-                                        {{ $shift->event_trooper->costume->name }}
-                                    </b>
-                                    <br />
-                                    <i class="small text-muted">
-                                        {{ $shift->event_trooper->costume_organizations }}
-                                    </i>
-                                @endif
                             @endif
                         </td>
                     </tr>

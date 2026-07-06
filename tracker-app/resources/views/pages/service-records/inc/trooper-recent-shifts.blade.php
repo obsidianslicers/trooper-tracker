@@ -77,10 +77,10 @@
                         <div class="card-footer">
                             <div>
                                 <small class="text-muted d-block">Attended Costume</small>
-                                @if($shift->event_trooper->is_handler)
-                                    <p class="mb-0">Handler</p>
-                                @elseif($shift->event_trooper->costume)
+                                @if($shift->event_trooper->costume)
                                     <p class="mb-0"><strong>{{ $shift->event_trooper->costume->name }}</strong></p>
+                                @elseif($shift->event_trooper->is_handler)
+                                    <p class="mb-0">Handler</p>
                                 @else
                                     <p class="mb-0 text-muted">N/A</p>
                                 @endif
@@ -139,10 +139,10 @@
                             </span>
                         </td>
                         <td class="text-start text-nowrap">
-                            @if($shift->event_trooper->is_handler)
-                                Handler
-                            @elseif($shift->event_trooper->costume != null)
+                            @if($shift->event_trooper->costume != null)
                                 <b>{{ $shift->event_trooper->costume->name }}</b>
+                            @elseif($shift->event_trooper->is_handler)
+                                Handler
                             @else
                                 <span class="text-muted">N/A</span>
                             @endif
