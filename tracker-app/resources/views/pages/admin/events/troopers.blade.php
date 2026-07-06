@@ -108,7 +108,15 @@
                                 </td>
                                 @if($has_station_shifts)
                                     <td>
-                                        {{ $event_trooper->event_shift_station?->name ?? '-' }}
+                                        @if($event_shift->usesStations())
+                                            <x-input-select :property="'troopers.' . $event_trooper->id . '.event_shift_station_id'"
+                                                            :options="$event_shift->event_shift_stations->pluck('name', 'id')->toArray()"
+                                                            :value="$event_trooper->event_shift_station_id"
+                                                            :placeholder="'-- No Station --'"
+                                                            class="form-select-sm" />
+                                        @else
+                                            <span class="text-muted">-</span>
+                                        @endif
                                     </td>
                                 @endif
                                 <td>

@@ -16,7 +16,7 @@
     </div>
     <div class="col-12 col-md-5 order-3 order-md-2">
         @if($event_shift->usesStations())
-            @if($event_trooper->canUpdateCostume(Auth::user()) || $can_moderate)
+            @if($event_trooper->canUpdateCostume(Auth::user()))
                 <x-input-select :property="'event_shift_station_id'"
                                 :options="$event_shift->event_shift_stations->pluck('name', 'id')->toArray()"
                                 :value="$event_trooper->event_shift_station_id"
