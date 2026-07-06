@@ -60,6 +60,8 @@ erDiagram
     tt_events ||--o{ tt_event_watches : has
 
     tt_event_shifts ||--o{ tt_event_troopers : has
+    tt_event_shifts ||--o{ tt_event_shift_stations : has
+    tt_event_shift_stations ||--o{ tt_event_troopers : assigned_to
     tt_event_shifts ||--o{ tt_event_guests : has
     tt_event_mission_acks ||--|| tt_events : per_event_ack
 
@@ -124,6 +126,8 @@ erDiagram
     tt_events ||--o{ tt_event_mission_acks : has
 
     tt_event_shifts ||--o{ tt_event_troopers : has
+    tt_event_shifts ||--o{ tt_event_shift_stations : has
+    tt_event_shift_stations ||--o{ tt_event_troopers : assigned_to
     tt_event_shifts ||--o{ tt_event_guests : has
 
     tt_event_uploads ||--o{ tt_event_upload_troopers : has
@@ -188,9 +192,9 @@ Events, Awards, and Notices. It uses:
 
 ## Inventory
 
-Discovered migration files: 41
+Discovered migration files: 43
 
-Discovered tables: 39
+Discovered tables: 40
 
 - tt_troopers
 - tt_password_reset_tokens
@@ -214,6 +218,7 @@ Discovered tables: 39
 - tt_event_shifts
 - tt_event_notifications
 - tt_event_organizations
+- tt_event_shift_stations
 - tt_event_troopers
 - tt_event_uploads
 - tt_event_upload_troopers
@@ -746,7 +751,32 @@ Purpose: Shift windows within events.
 Relationships:
 
 - Belongs To: tt_events
-- Has Many: tt_event_troopers, tt_event_guests
+- Has Many: tt_event_troopers, tt_event_shift_stations, tt_event_guests
+
+### tt_event_shift_stations
+
+Purpose: Optional station signup buckets within an event shift.
+
+| Column | Type | Nullable | Key / Constraints |
+| --- | --- | --- | --- |
+| id | bigint unsigned | no | PK, auto increment |
+| event_shift_id | bigint unsigned | no | FK -> tt_event_shifts.id, cascadeOnDelete; indexed with sequence |
+| name | varchar(128) | no |  |
+| troopers_allowed | integer unsigned | no | requested station capacity |
+| sequence | integer unsigned | no | default 0; indexed with event_shift_id |
+| created_at | timestamp | yes | timestamps helper |
+| updated_at | timestamp | yes | timestamps helper |
+| deleted_at | timestamp | yes | softDeletes helper |
+| created_id | bigint unsigned | yes | trooperstamps helper |
+| updated_id | bigint unsigned | yes | trooperstamps helper |
+| deleted_id | bigint unsigned | yes | trooperstamps helper |
+
+Index: (event_shift_id, sequence)
+
+Relationships:
+
+- Belongs To: tt_event_shifts
+- Has Many: tt_event_troopers
 
 ### tt_event_notifications
 
@@ -805,6 +835,7 @@ Purpose: Trooper signups per event shift.
 | --- | --- | --- | --- |
 | id | bigint unsigned | no | PK, auto increment |
 | event_shift_id | bigint unsigned | no | FK -> tt_event_shifts.id, cascadeOnDelete |
+| event_shift_station_id | bigint unsigned | yes | FK -> tt_event_shift_stations.id, nullOnDelete |
 | trooper_id | bigint unsigned | no | FK -> tt_troopers.id, cascadeOnDelete |
 | organization_id | bigint unsigned | yes | FK -> tt_organizations.id, nullOnDelete |
 | costume_id | bigint unsigned | yes | FK -> tt_costumes.id, cascadeOnDelete |
@@ -826,7 +857,7 @@ Unique: (event_shift_id, trooper_id)
 
 Relationships:
 
-- Belongs To: tt_event_shifts, tt_troopers
+- Belongs To: tt_event_shifts, tt_event_shift_stations, tt_troopers
 - Belongs To: tt_organizations (organization_id)
 - Belongs To: tt_costumes (costume_id, backup_costume_id)
 - Belongs To: tt_troopers (added_by_trooper_id)
