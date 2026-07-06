@@ -27,5 +27,6 @@ readonly class PromoteNextInLineEventTrooperCommand
         public readonly bool $global_was_full = false,
         public readonly ?int $effective_org_id = null,
         public readonly ?bool $override_is_handler = null,
+        public readonly ?int $event_shift_station_id = null,
     ) {}
 }

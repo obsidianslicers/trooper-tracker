@@ -9,6 +9,7 @@ use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventOrganization;
 use App\Models\EventShift;
+use App\Models\EventShiftStation;
 use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
@@ -370,6 +371,41 @@ class SignUpUpdateHtmxControllerTest extends TestCase
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::ID => $standby_handler->id,
             EventTrooper::STATUS => EventTrooperStatus::GOING->value,
+        ]);
+    }
+
+    public function test_invoke_station_update_moves_going_trooper_to_standby_when_target_station_is_full(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $organization = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();
+
+        $event = Event::factory()->withOrganization($organization)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $old_station = EventShiftStation::factory()->forEventShift($event_shift)->withTroopersAllowed(2)->create();
+        $full_station = EventShiftStation::factory()->forEventShift($event_shift)->withTroopersAllowed(1)->create();
+
+        EventTrooper::factory()
+            ->forEventShiftStation($full_station)
+            ->asGoing()
+            ->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShiftStation($old_station)
+            ->forTrooper($trooper)
+            ->asGoing()
+            ->create();
+
+        $response = $this->actingAs($trooper)->post(
+            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            ['event_shift_station_id' => $full_station->id]
+        );
+
+        $response->assertOk();
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::ID => $event_trooper->id,
+            EventTrooper::EVENT_SHIFT_STATION_ID => $full_station->id,
+            EventTrooper::STATUS => EventTrooperStatus::STAND_BY->value,
         ]);
     }
 }

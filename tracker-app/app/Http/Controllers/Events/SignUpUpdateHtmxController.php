@@ -51,6 +51,14 @@ class SignUpUpdateHtmxController extends MagicBusController
                 return response('Forbidden', 403);
             }
 
+            if (
+                $requestedStatus === EventTrooperStatus::GOING
+                && $event_trooper->event_shift_station_id !== null
+                && $event_shift->stationMaxed($event_trooper->event_shift_station_id, $event_trooper->id)
+            ) {
+                return response('Station is full', 409);
+            }
+
             $isCancelFromStandBy = $requestedStatus === EventTrooperStatus::CANCELLED
                 && $event_trooper->canCancel($authTrooper);
 
@@ -70,6 +78,8 @@ class SignUpUpdateHtmxController extends MagicBusController
 
             $org_was_full = $effective_org_id !== null
                 && $event_shift->orgTroopersMaxed($effective_org_id, $event_trooper->is_handler);
+            $station_was_full = $event_trooper->event_shift_station_id !== null
+                && $event_shift->stationMaxed($event_trooper->event_shift_station_id);
 
             $valid_data = ['status' => $requestedStatus];
 
@@ -95,9 +105,14 @@ class SignUpUpdateHtmxController extends MagicBusController
                 && $requestedStatus !== EventTrooperStatus::GOING
                 && !$isManualSelectionEvent;
 
-            if ($going_to_not_going && ($is_global_full || $org_was_full))
+            if ($going_to_not_going && ($is_global_full || $org_was_full || $station_was_full))
             {
-                $this->bus->send(new PromoteNextInLineEventTrooperCommand($event_trooper, $is_global_full, $effective_org_id));
+                $this->bus->send(new PromoteNextInLineEventTrooperCommand(
+                    $event_trooper,
+                    $is_global_full,
+                    $effective_org_id,
+                    event_shift_station_id: $event_trooper->event_shift_station_id,
+                ));
             }
 
             $trooper = $authTrooper;
@@ -169,6 +184,51 @@ class SignUpUpdateHtmxController extends MagicBusController
 
             return response()->view('pages.events.inc.shift-container', $data);
         }
+        elseif ($request->has('event_shift_station_id'))
+        {
+            $event_shift = $event_trooper->event_shift;
+            $auth_trooper = Auth::user();
+
+            if (!$event_trooper->canUpdateCostume($auth_trooper) && !$auth_trooper->can('update', $event_shift->event))
+            {
+                return response('Forbidden', 403);
+            }
+
+            $old_station_id = $event_trooper->event_shift_station_id;
+            $old_station_was_full = $old_station_id !== null && $event_shift->stationMaxed($old_station_id);
+            $new_station_id = $request->validated('event_shift_station_id') ? (int) $request->validated('event_shift_station_id') : null;
+            $new_station_full = $new_station_id !== null
+                && $event_shift->stationMaxed($new_station_id, $event_trooper->id);
+
+            $valid_data = [
+                EventTrooper::EVENT_SHIFT_STATION_ID => $new_station_id,
+            ];
+
+            if ($event_trooper->intendsToGo() && $new_station_full)
+            {
+                $valid_data[EventTrooper::STATUS] = EventTrooperStatus::STAND_BY;
+            }
+
+            $this->bus->send(new UpdateEventTrooperCommand($event_trooper, $valid_data));
+
+            if ($old_station_id !== null && $old_station_id !== $new_station_id && $old_station_was_full)
+            {
+                $this->bus->send(new PromoteNextInLineEventTrooperCommand(
+                    $event_trooper,
+                    event_shift_station_id: $old_station_id,
+                ));
+            }
+
+            $event_shift_query = new GetEventShiftDisplayQuery($event_shift, $auth_trooper);
+            $event_shift = $this->bus->send($event_shift_query);
+            $event = $event_shift->event;
+            $can_moderate = $auth_trooper->isModeratorForOrganization($event->organization);
+            $count_of_shifts = $event->event_shifts()->count();
+            $data = compact('event', 'event_shift', 'can_moderate', 'count_of_shifts');
+            $data['open'] = true;
+
+            return response()->view('pages.events.inc.shift-container', $data);
+        }
         elseif ($request->has('resign_up'))
         {
             $event_shift = $event_trooper->event_shift;
@@ -184,10 +244,12 @@ class SignUpUpdateHtmxController extends MagicBusController
             $effective_org_id = $event_trooper->organization_id
                 ?? $event_trooper->effectiveOrgId($event);
 
+            $station_maxed = $event_trooper->event_shift_station_id !== null
+                && $event_shift->stationMaxed($event_trooper->event_shift_station_id, $event_trooper->id);
             $global_maxed = $is_handler ? $event_shift->handlersMaxed() : $event_shift->troopersMaxed();
             $org_maxed = $effective_org_id !== null && $event_shift->orgTroopersMaxed($effective_org_id, $is_handler);
 
-            $new_status = ($global_maxed || $org_maxed)
+            $new_status = ($station_maxed || $global_maxed || $org_maxed)
                 ? EventTrooperStatus::STAND_BY
                 : EventTrooperStatus::GOING;
 
@@ -228,6 +290,8 @@ class SignUpUpdateHtmxController extends MagicBusController
             $new_pool_was_maxed = $is_handler ? $event_shift->handlersMaxed() : $event_shift->troopersMaxed();
             $new_pool_org_was_maxed = $effective_org_id !== null
                 && $event_shift->orgTroopersMaxed($effective_org_id, $is_handler);
+            $new_station_was_maxed = $event_trooper->event_shift_station_id !== null
+                && $event_shift->stationMaxed($event_trooper->event_shift_station_id, $event_trooper->id);
 
             $org_ids = ($costume !== null && !$costume->countsAsHandler())
                 ? $costume->approvedOrgIdsForTrooper($event_trooper->trooper_id)
@@ -250,7 +314,7 @@ class SignUpUpdateHtmxController extends MagicBusController
                 ));
 
                 // New pool was already full before this trooper joined → demote to stand-by
-                if ($new_pool_was_maxed || $new_pool_org_was_maxed)
+                if ($new_station_was_maxed || $new_pool_was_maxed || $new_pool_org_was_maxed)
                 {
                     $this->bus->send(new UpdateEventTrooperCommand($event_trooper, [
                         EventTrooper::STATUS => EventTrooperStatus::STAND_BY,

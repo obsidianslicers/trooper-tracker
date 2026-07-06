@@ -8,6 +8,7 @@ namespace App\Models\Base;
 
 use App\Models\Costume;
 use App\Models\EventShift;
+use App\Models\EventShiftStation;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Carbon\Carbon;
@@ -20,6 +21,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * 
  * @property int $id
  * @property int $event_shift_id
+ * @property int|null $event_shift_station_id
  * @property int $trooper_id
  * @property int|null $organization_id
  * @property int|null $costume_id
@@ -40,6 +42,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Trooper $trooper
  * @property Costume|null $costume
  * @property EventShift $event_shift
+ * @property EventShiftStation|null $event_shift_station
  * @property Organization|null $organization
  *
  * @package App\Models\Base
@@ -49,6 +52,7 @@ class EventTrooper extends Model
     use SoftDeletes;
     const ID = 'id';
     const EVENT_SHIFT_ID = 'event_shift_id';
+    const EVENT_SHIFT_STATION_ID = 'event_shift_station_id';
     const TROOPER_ID = 'trooper_id';
     const ORGANIZATION_ID = 'organization_id';
     const COSTUME_ID = 'costume_id';
@@ -70,6 +74,7 @@ class EventTrooper extends Model
     protected $casts = [
         self::ID => 'int',
         self::EVENT_SHIFT_ID => 'int',
+        self::EVENT_SHIFT_STATION_ID => 'int',
         self::TROOPER_ID => 'int',
         self::ORGANIZATION_ID => 'int',
         self::COSTUME_ID => 'int',
@@ -88,6 +93,7 @@ class EventTrooper extends Model
 
     protected $fillable = [
         self::EVENT_SHIFT_ID,
+        self::EVENT_SHIFT_STATION_ID,
         self::TROOPER_ID,
         self::ORGANIZATION_ID,
         self::COSTUME_ID,
@@ -113,6 +119,11 @@ class EventTrooper extends Model
     public function event_shift(): BelongsTo
     {
         return $this->belongsTo(EventShift::class);
+    }
+
+    public function event_shift_station(): BelongsTo
+    {
+        return $this->belongsTo(EventShiftStation::class);
     }
 
     public function organization(): BelongsTo

@@ -60,19 +60,53 @@ class SignUpHtmxController extends MagicBusController
 
         if ($can_add_friend && ($event_shift->canSignUp($trooper) || $grace_period_moderator_add))
         {
+            $event_shift->loadMissing('event_shift_stations');
+
+            $event_shift_station_id = $request->input('event_shift_station_id')
+                ? (int) $request->input('event_shift_station_id')
+                : null;
+
+            if ($event_shift->usesStations())
+            {
+                $valid_station = $event_shift_station_id !== null
+                    && $event_shift->event_shift_stations->contains('id', $event_shift_station_id);
+
+                if (!$valid_station)
+                {
+                    return $this->shiftContainerResponse($event_shift, $auth_trooper, $trooper, $can_moderate)
+                        ->header('X-Flash-Message', json_encode([
+                            'message' => 'Select a station before signing up.',
+                            'type' => 'danger',
+                            'focus' => true,
+                            'fadeOut' => 5000,
+                        ]));
+                }
+            }
+
             $organization_id = $request->input('organization_id') ? (int) $request->input('organization_id') : null;
 
             $is_handler = (bool) $request->input('is_handler', $trooper->is_handler ? 1 : 0);
 
-            $event_trooper_cmd = new SignUpEventTrooperCommand($event_shift, $trooper, $auth_trooper, $organization_id, $is_handler);
+            $event_trooper_cmd = new SignUpEventTrooperCommand(
+                $event_shift,
+                $trooper,
+                $auth_trooper,
+                $organization_id,
+                $is_handler,
+                event_shift_station_id: $event_shift_station_id,
+            );
 
             $this->bus->send($event_trooper_cmd);
 
             $signed_up = true;
         }
 
-        $event_shift_query = new GetEventShiftDisplayQuery($event_shift, $auth_trooper);
+        return $this->shiftContainerResponse($event_shift, $auth_trooper, $trooper, $can_moderate, $signed_up);
+    }
 
+    private function shiftContainerResponse(EventShift $event_shift, Trooper $auth_trooper, Trooper $trooper, bool $can_moderate, bool $signed_up = true): Response
+    {
+        $event_shift_query = new GetEventShiftDisplayQuery($event_shift, $auth_trooper);
         $event_shift = $this->bus->send($event_shift_query);
 
         $event = $event_shift->event;

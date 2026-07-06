@@ -20,13 +20,23 @@
             </div>
         @endif
     @endif
+    @if($shift_uses_stations)
+        <select id="station-picker-{{ $event_shift->id }}"
+                name="event_shift_station_id"
+                class="form-select form-select-sm w-auto">
+            <option value="">-- Select Station --</option>
+            @foreach($station_options as $station_id => $station_name)
+                <option value="{{ $station_id }}">{{ $station_name }}</option>
+            @endforeach
+        </select>
+    @endif
     <button class="btn btn-sm btn-outline-success text-start text-md-center htmx-disable"
             hx-post="{{ route('events.signup-htmx', compact('event_shift')) }}"
             hx-select="#shift-container-{{ $event_shift->id }}"
             hx-target="#shift-container-{{ $event_shift->id }}"
             hx-swap="outerHTML"
             hx-trigger="click"
-            hx-include="#org-picker-{{ $event_shift->id }}"
+            hx-include="#org-picker-{{ $event_shift->id }}, #station-picker-{{ $event_shift->id }}"
             hx-indicator="#transmission-bar-shift-{{ $event_shift->id }}, closest .btn">
         <i class="fa fa-fw fa-plus-circle me-2"></i>
         Sign Up
@@ -67,7 +77,7 @@
                 {{-- No org limits — sign up directly --}}
                 <div class="d-none"
                      hx-post="{{ route('events.signup-htmx', compact('event_shift')) }}"
-                     hx-vals="js:{trooper_id: event.detail.id}"
+                     hx-vals="js:{trooper_id: event.detail.id, event_shift_station_id: (document.getElementById('station-picker-{{ $event_shift->id }}')?.value || '')}"
                      hx-trigger="trooper:selected[event.detail.property == 'add-shift-friend-{{ $event_shift->id }}'] from:document"
                      hx-select="#shift-container-{{ $event_shift->id }}"
                      hx-target="#shift-container-{{ $event_shift->id }}"

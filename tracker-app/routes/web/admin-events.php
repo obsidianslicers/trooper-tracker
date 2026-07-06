@@ -13,6 +13,8 @@ use App\Http\Controllers\Admin\Events\GetEventTrooperOrgOptionsController;
 use App\Http\Controllers\Admin\Events\ListController;
 use App\Http\Controllers\Admin\Events\MissionReviewController;
 use App\Http\Controllers\Admin\Events\RemoveEventTrooperController;
+use App\Http\Controllers\Admin\Events\RemoveShiftStationController;
+use App\Http\Controllers\Admin\Events\ReorderShiftStationsSubmitController;
 use App\Http\Controllers\Admin\Events\ToggleUploadTypeController;
 use App\Http\Controllers\Admin\Events\UpdateCharityController;
 use App\Http\Controllers\Admin\Events\UpdateCharitySubmitController;
@@ -40,6 +42,8 @@ Route::prefix('admin/events')
         Route::post('/{event}/update', UpdateSubmitController::class);
         Route::get('/{event}/shifts', UpdateShiftsController::class)->name('shifts');
         Route::post('/{event}/shifts', UpdateShiftsSubmitController::class);
+        Route::post('/{event}/shifts/{event_shift}/stations/reorder', ReorderShiftStationsSubmitController::class)->name('shifts.stations.reorder');
+        Route::post('/{event}/shifts/{event_shift}/stations/{event_shift_station}/remove', RemoveShiftStationController::class)->name('shifts.stations.remove');
         Route::get('/{event}/charity', UpdateCharityController::class)->name('charity');
         Route::post('/{event}/charity', UpdateCharitySubmitController::class);
         Route::get('/{event}/troopers', UpdateTroopersController::class)->name('troopers');

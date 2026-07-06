@@ -8,6 +8,7 @@ use App\Enums\EventTrooperStatus;
 use App\Models\Event;
 use App\Models\EventOrganization;
 use App\Models\EventShift;
+use App\Models\EventShiftStation;
 use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\Trooper;
@@ -62,6 +63,47 @@ class SignUpHtmxControllerTest extends TestCase
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::TROOPER_ID => $trooper->id,
             EventTrooper::ORGANIZATION_ID => $organization->id,
+        ]);
+    }
+
+    public function test_invoke_requires_station_when_shift_has_stations(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $organization = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();
+
+        $event = Event::factory()->withOrganization($organization)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        EventShiftStation::factory()->forEventShift($event_shift)->create();
+
+        $this->actingAs($trooper)
+            ->post(route('events.signup-htmx', ['event_shift' => $event_shift->id]))
+            ->assertOk();
+
+        $this->assertDatabaseMissing('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::EVENT_SHIFT_ID => $event_shift->id,
+        ]);
+    }
+
+    public function test_invoke_saves_station_id_from_request(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $organization = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();
+
+        $event = Event::factory()->withOrganization($organization)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $station = EventShiftStation::factory()->forEventShift($event_shift)->create();
+
+        $this->actingAs($trooper)->post(
+            route('events.signup-htmx', ['event_shift' => $event_shift->id]),
+            ['event_shift_station_id' => $station->id]
+        );
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::EVENT_SHIFT_STATION_ID => $station->id,
         ]);
     }
 

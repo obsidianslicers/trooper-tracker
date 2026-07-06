@@ -102,8 +102,14 @@ class SignupUpdateHtmxRequest extends FormRequest
             ->toArray();
 
         $eligible_org_ids = $event_trooper->trooper->eligibleOrgsForEvent($event)->pluck('id')->toArray();
+        $valid_station_ids = $event_shift->event_shift_stations()->pluck('id')->toArray();
 
         return [
+            EventTrooper::EVENT_SHIFT_STATION_ID => [
+                'nullable',
+                'int',
+                Rule::in($valid_station_ids),
+            ],
             EventTrooper::ORGANIZATION_ID => [
                 'nullable',
                 'int',

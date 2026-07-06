@@ -30,11 +30,14 @@ readonly class SignUpEventTrooperCommandHandler implements CommandHandlerInterfa
      */
     public function __invoke(object $message): mixed
     {
+        $message->event_shift->loadMissing('event_shift_stations');
+
         $event_trooper = new EventTrooper;
 
         $costume = $message->costume_id !== null ? Costume::find($message->costume_id) : null;
 
         $event_trooper->event_shift_id = $message->event_shift->id;
+        $event_trooper->event_shift_station_id = $message->event_shift_station_id;
         $event_trooper->trooper_id = $message->trooper->id;
         $event_trooper->organization_id = $message->organization_id;
         $event_trooper->is_handler = $costume !== null ? $costume->countsAsHandler() : $message->is_handler;
@@ -47,7 +50,17 @@ readonly class SignUpEventTrooperCommandHandler implements CommandHandlerInterfa
             $status = EventTrooperStatus::STAND_BY;
         }
 
-        if ($status !== EventTrooperStatus::STAND_BY && $event_trooper->is_handler)
+        if (
+            $status !== EventTrooperStatus::STAND_BY
+            && $message->event_shift->usesStations()
+            && (
+                $message->event_shift_station_id === null
+                || $message->event_shift->stationMaxed($message->event_shift_station_id)
+            )
+        ) {
+            $status = EventTrooperStatus::STAND_BY;
+        }
+        elseif ($status !== EventTrooperStatus::STAND_BY && $event_trooper->is_handler)
         {
             if ($message->event_shift->handlersMaxed())
             {

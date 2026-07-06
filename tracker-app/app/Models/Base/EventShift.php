@@ -8,6 +8,7 @@ namespace App\Models\Base;
 
 use App\Models\Event;
 use App\Models\EventGuest;
+use App\Models\EventShiftStation;
 use App\Models\EventTrooper;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
@@ -39,6 +40,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * 
  * @property Event $event
  * @property Collection|EventGuest[] $event_guests
+ * @property Collection|EventShiftStation[] $event_shift_stations
  * @property Collection|EventTrooper[] $event_troopers
  *
  * @package App\Models\Base
@@ -102,6 +104,11 @@ class EventShift extends Model
     public function event_guests(): HasMany
     {
         return $this->hasMany(EventGuest::class);
+    }
+
+    public function event_shift_stations(): HasMany
+    {
+        return $this->hasMany(EventShiftStation::class);
     }
 
     public function event_troopers(): HasMany

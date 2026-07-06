@@ -6,6 +6,7 @@ namespace Tests\Feature\Http\Controllers\Admin\Events;
 
 use App\Models\Event;
 use App\Models\EventShift;
+use App\Models\EventShiftStation;
 use App\Models\Trooper;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -64,6 +65,104 @@ class UpdateShiftsSubmitControllerTest extends TestCase
 
         $this->assertSame('2026-06-03 10:00:00', $event->event_start->toDateTimeString());
         $this->assertSame('2026-06-05 17:30:00', $event->event_end->toDateTimeString());
+    }
+
+    public function test_invoke_creates_and_updates_shift_stations(): void
+    {
+        $trooper = Trooper::factory()->asAdministrator()->create();
+        $event = Event::factory()->create();
+        $shift = EventShift::factory()->forEvent($event)->create();
+        $station = EventShiftStation::factory()
+            ->forEventShift($shift)
+            ->withName('Booth')
+            ->withTroopersAllowed(2)
+            ->create();
+
+        $response = $this->actingAs($trooper)->post('/admin/events/' . $event->id . '/shifts', [
+            'shifts' => [
+                $shift->id => [
+                    'date' => '2026-06-03',
+                    'starts_at' => '10:00',
+                    'ends_at' => '12:00',
+                    'stations' => [
+                        $station->id => [
+                            'name' => 'Info Booth',
+                            'troopers_allowed' => 3,
+                            'sequence' => 10,
+                        ],
+                        -1 => [
+                            'name' => 'Floor',
+                            'troopers_allowed' => 4,
+                            'sequence' => 20,
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $response->assertRedirect(route('admin.events.shifts', ['event' => $event->id]));
+
+        $this->assertDatabaseHas('tt_event_shift_stations', [
+            EventShiftStation::ID => $station->id,
+            EventShiftStation::NAME => 'Info Booth',
+            EventShiftStation::TROOPERS_ALLOWED => 3,
+            EventShiftStation::SEQUENCE => 10,
+        ]);
+        $this->assertDatabaseHas('tt_event_shift_stations', [
+            EventShiftStation::EVENT_SHIFT_ID => $shift->id,
+            EventShiftStation::NAME => 'Floor',
+            EventShiftStation::TROOPERS_ALLOWED => 4,
+            EventShiftStation::SEQUENCE => 20,
+        ]);
+    }
+
+    public function test_invoke_creates_multiple_new_shift_stations_at_once(): void
+    {
+        $trooper = Trooper::factory()->asAdministrator()->create();
+        $event = Event::factory()->create();
+        $shift = EventShift::factory()->forEvent($event)->create();
+
+        $response = $this->actingAs($trooper)->post('/admin/events/' . $event->id . '/shifts', [
+            'shifts' => [
+                $shift->id => [
+                    'date' => '2026-06-03',
+                    'starts_at' => '10:00',
+                    'ends_at' => '12:00',
+                    'stations' => [
+                        -1 => [
+                            'name' => 'Booth',
+                            'troopers_allowed' => 2,
+                        ],
+                        -2 => [
+                            'name' => 'Floor',
+                            'troopers_allowed' => 4,
+                        ],
+                        -3 => [
+                            'name' => 'Check-in',
+                            'troopers_allowed' => 1,
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $response->assertRedirect(route('admin.events.shifts', ['event' => $event->id]));
+
+        $this->assertDatabaseHas('tt_event_shift_stations', [
+            EventShiftStation::EVENT_SHIFT_ID => $shift->id,
+            EventShiftStation::NAME => 'Booth',
+            EventShiftStation::TROOPERS_ALLOWED => 2,
+        ]);
+        $this->assertDatabaseHas('tt_event_shift_stations', [
+            EventShiftStation::EVENT_SHIFT_ID => $shift->id,
+            EventShiftStation::NAME => 'Floor',
+            EventShiftStation::TROOPERS_ALLOWED => 4,
+        ]);
+        $this->assertDatabaseHas('tt_event_shift_stations', [
+            EventShiftStation::EVENT_SHIFT_ID => $shift->id,
+            EventShiftStation::NAME => 'Check-in',
+            EventShiftStation::TROOPERS_ALLOWED => 1,
+        ]);
     }
 
     public function test_invoke_requires_authentication(): void

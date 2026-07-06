@@ -17,6 +17,7 @@ class EventTrooperFactory extends Factory
     {
         return [
             EventTrooper::EVENT_SHIFT_ID => \App\Models\EventShift::factory(),
+            EventTrooper::EVENT_SHIFT_STATION_ID => null,
             EventTrooper::TROOPER_ID => \App\Models\Trooper::factory(),
             EventTrooper::ORGANIZATION_ID => \App\Models\Organization::factory(),
             EventTrooper::COSTUME_ID => \App\Models\Costume::factory(),

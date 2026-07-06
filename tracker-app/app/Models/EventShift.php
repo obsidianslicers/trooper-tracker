@@ -14,6 +14,7 @@ use App\Models\Concerns\HasObserver;
 use App\Models\Concerns\HasTrooperStamps;
 use App\Models\Scopes\HasEventShiftScopes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\CalendarLinks\Link;
 
 /**
@@ -98,6 +99,34 @@ class EventShift extends BaseEventShift
             return true;
         }
         return $this->status === EventStatus::SIGN_UP_LOCKED;
+    }
+
+    public function activeStations(): HasMany
+    {
+        return $this->event_shift_stations()->orderBy('sequence')->orderBy('name');
+    }
+
+    public function usesStations(): bool
+    {
+        if (!$this->relationLoaded('event_shift_stations'))
+        {
+            return $this->event_shift_stations()->exists();
+        }
+
+        return $this->event_shift_stations->isNotEmpty();
+    }
+
+    public function stationMaxed(int $event_shift_station_id, ?int $excluding_event_trooper_id = null): bool
+    {
+        $station = $this->event_shift_stations->firstWhere('id', $event_shift_station_id)
+            ?? $this->event_shift_stations()->find($event_shift_station_id);
+
+        if ($station === null)
+        {
+            return true;
+        }
+
+        return !$station->hasRoom($excluding_event_trooper_id);
     }
 
     /**
@@ -202,6 +231,11 @@ class EventShift extends BaseEventShift
      */
     public function troopersMaxed(): bool
     {
+        if ($this->usesStations())
+        {
+            return false;
+        }
+
         $troopers_allowed = $this->event->troopers_allowed;
 
         if ($troopers_allowed === null)
@@ -223,6 +257,11 @@ class EventShift extends BaseEventShift
      */
     public function orgTroopersMaxed(int $organization_id, bool $is_handler = false): bool
     {
+        if ($this->usesStations())
+        {
+            return false;
+        }
+
         $event_org = $this->event->event_organizations
             ->firstWhere(EventOrganization::ORGANIZATION_ID, $organization_id);
 
@@ -262,6 +301,11 @@ class EventShift extends BaseEventShift
      */
     public function handlersMaxed(): bool
     {
+        if ($this->usesStations())
+        {
+            return false;
+        }
+
         $handlers_allowed = $this->event->handlers_allowed;
 
         if ($handlers_allowed === null)

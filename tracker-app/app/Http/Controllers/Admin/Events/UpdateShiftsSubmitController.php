@@ -9,6 +9,7 @@ use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Events\UpdateShiftsRequest;
 use App\Models\Event;
 use App\Models\EventShift;
+use App\Models\EventShiftStation;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 
@@ -35,6 +36,8 @@ class UpdateShiftsSubmitController extends MagicBusController
     {
         $this->authorize('update', $event);
 
+        $event->load('event_shifts.event_shift_stations');
+
         $shifts = $request->validated('shifts', []);
 
         foreach ($shifts as $id => $input)
@@ -57,6 +60,49 @@ class UpdateShiftsSubmitController extends MagicBusController
             }
 
             $shift->save();
+
+            foreach ($input['stations'] ?? [] as $station_id => $station_input)
+            {
+                $name = trim((string) ($station_input['name'] ?? ''));
+                $troopers_allowed = $station_input['troopers_allowed'] ?? null;
+
+                if ($name === '' && empty($troopers_allowed))
+                {
+                    continue;
+                }
+
+                if ($id <= 0)
+                {
+                    continue;
+                }
+
+                $station = new EventShiftStation;
+                $station->event_shift_id = $shift->id;
+
+                if ((int) $station_id > 0)
+                {
+                    $station = $shift->event_shift_stations->firstWhere('id', (int) $station_id);
+
+                    if ($station === null)
+                    {
+                        continue;
+                    }
+                }
+
+                $station->name = $name;
+                $station->troopers_allowed = (int) $troopers_allowed;
+
+                if (array_key_exists('sequence', $station_input))
+                {
+                    $station->sequence = (int) $station_input['sequence'];
+                }
+                elseif (!$station->exists)
+                {
+                    $station->sequence = ((int) $shift->event_shift_stations()->max(EventShiftStation::SEQUENCE)) + 10;
+                }
+
+                $station->save();
+            }
         }
 
         $starts_at = $event->event_shifts()->min(EventShift::SHIFT_STARTS_AT);

@@ -13,6 +13,7 @@ use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventOrganization;
 use App\Models\EventShift;
+use App\Models\EventShiftStation;
 use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
@@ -53,6 +54,60 @@ class SignUpEventTrooperCommandHandlerTest extends TestCase
             EventTrooper::EVENT_SHIFT_ID => $event_shift->id,
             EventTrooper::TROOPER_ID => $trooper->id,
             EventTrooper::STATUS => EventTrooperStatus::GOING->value,
+        ]);
+    }
+
+    public function test_invoke_saves_station_and_assigns_going_when_station_has_room(): void
+    {
+        Notification::fake();
+
+        $event_shift = EventShift::factory()->create();
+        $station = EventShiftStation::factory()
+            ->forEventShift($event_shift)
+            ->withTroopersAllowed(2)
+            ->create();
+        $trooper = Trooper::factory()->create();
+
+        app(SignUpEventTrooperCommandHandler::class)(new SignUpEventTrooperCommand(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+            event_shift_station_id: $station->id,
+        ));
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::EVENT_SHIFT_STATION_ID => $station->id,
+            EventTrooper::STATUS => EventTrooperStatus::GOING->value,
+        ]);
+    }
+
+    public function test_invoke_assigns_standby_when_station_is_full(): void
+    {
+        Notification::fake();
+
+        $event_shift = EventShift::factory()->create();
+        $station = EventShiftStation::factory()
+            ->forEventShift($event_shift)
+            ->withTroopersAllowed(1)
+            ->create();
+        EventTrooper::factory()
+            ->forEventShiftStation($station)
+            ->asGoing()
+            ->create();
+        $trooper = Trooper::factory()->create();
+
+        app(SignUpEventTrooperCommandHandler::class)(new SignUpEventTrooperCommand(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+            event_shift_station_id: $station->id,
+        ));
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::EVENT_SHIFT_STATION_ID => $station->id,
+            EventTrooper::STATUS => EventTrooperStatus::STAND_BY->value,
         ]);
     }
 

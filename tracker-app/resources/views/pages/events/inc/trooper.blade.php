@@ -15,6 +15,25 @@
         @endif
     </div>
     <div class="col-12 col-md-5 order-3 order-md-2">
+        @if($event_shift->usesStations())
+            @if($event_trooper->canUpdateCostume(Auth::user()) || $can_moderate)
+                <x-input-select :property="'event_shift_station_id'"
+                                :options="$event_shift->event_shift_stations->pluck('name', 'id')->toArray()"
+                                :value="$event_trooper->event_shift_station_id"
+                                :placeholder="'-- Select Station --'"
+                                hx-post="{{ route('events.signup-update-htmx', compact('event_trooper')) }}"
+                                hx-indicator="#transmission-bar-shift-{{ $event_trooper->event_shift->id }}"
+                                hx-select="#shift-container-{{ $event_trooper->event_shift->id }}"
+                                hx-target="#shift-container-{{ $event_trooper->event_shift->id }}"
+                                hx-swap="outerHTML"
+                                class="form-select-sm mt-2 mt-md-0 mb-2" />
+            @elseif($event_trooper->event_shift_station)
+                <div class="small text-muted mb-1">
+                    <i class="fa fa-fw fa-location-dot me-1"></i>
+                    {{ $event_trooper->event_shift_station->name }}
+                </div>
+            @endif
+        @endif
         @if($event_trooper->canUpdateCostume(Auth::user()))
             @php
                 $eligible_orgs_for_change = $event_trooper->trooper->eligibleOrgsForEvent($event);

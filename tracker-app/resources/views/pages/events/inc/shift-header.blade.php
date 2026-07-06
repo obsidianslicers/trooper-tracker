@@ -38,6 +38,20 @@
         </div>
     </div>
 @endif
+@if($event_shift->usesStations())
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="d-flex flex-wrap gap-2">
+                @foreach($event_shift->event_shift_stations as $station)
+                    <span class="badge text-bg-light border">
+                        {{ $station->name }}:
+                        {{ $station->goingCount() }}/{{ $station->troopers_allowed }}
+                    </span>
+                @endforeach
+            </div>
+        </div>
+    </div>
+@endif
 @if($event_shift->isSignedUp(Auth::user()))
 <div class="row mb-3">
     <div class="col-12 text-end">

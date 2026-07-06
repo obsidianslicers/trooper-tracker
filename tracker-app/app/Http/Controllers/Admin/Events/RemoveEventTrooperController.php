@@ -25,7 +25,10 @@ class RemoveEventTrooperController extends MagicBusController
         DB::transaction(function () use ($event_trooper) {
             if ($event_trooper->intendsToGo())
             {
-                $this->bus->send(new PromoteNextInLineEventTrooperCommand($event_trooper));
+                $this->bus->send(new PromoteNextInLineEventTrooperCommand(
+                    $event_trooper,
+                    event_shift_station_id: $event_trooper->event_shift_station_id,
+                ));
             }
 
             $event_trooper->delete();

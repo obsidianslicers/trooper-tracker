@@ -36,10 +36,19 @@ readonly class PromoteNextInLineEventTrooperCommandHandler implements CommandHan
 
         $next_in_line = null;
 
+        if ($message->event_shift_station_id !== null)
+        {
+            $next_in_line = $event_shift->event_troopers()
+                ->where(EventTrooper::STATUS, EventTrooperStatus::STAND_BY)
+                ->where(EventTrooper::EVENT_SHIFT_STATION_ID, $message->event_shift_station_id)
+                ->orderBy(EventTrooper::SIGNED_UP_AT)
+                ->first();
+        }
+
         // Prefer the next STAND_BY trooper from the same organization when the
         // departing trooper held an org-limited slot. Also match troopers whose
         // costume org infers the same org (organization_id may be null).
-        if ($org_id !== null)
+        if ($message->event_shift_station_id === null && $next_in_line === null && $org_id !== null)
         {
             $next_in_line = $event_shift->event_troopers()
                 ->where(EventTrooper::STATUS, EventTrooperStatus::STAND_BY)
@@ -54,7 +63,7 @@ readonly class PromoteNextInLineEventTrooperCommandHandler implements CommandHan
 
         // Fall back to any STAND_BY with the same role when the global event
         // capacity was also full, or when there was no org context at all.
-        if ($next_in_line === null && ($message->global_was_full || $org_id === null))
+        if ($message->event_shift_station_id === null && $next_in_line === null && ($message->global_was_full || $org_id === null))
         {
             $next_in_line = $event_shift->event_troopers()
                 ->where(EventTrooper::STATUS, EventTrooperStatus::STAND_BY)

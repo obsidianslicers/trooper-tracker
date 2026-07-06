@@ -7,6 +7,7 @@ namespace Database\Factories;
 use App\Enums\EventTrooperStatus;
 use App\Models\Costume;
 use App\Models\EventShift;
+use App\Models\EventShiftStation;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
 use Database\Factories\Base\EventTrooperFactory as BaseEventTrooperFactory;
@@ -29,6 +30,14 @@ class EventTrooperFactory extends BaseEventTrooperFactory
     {
         return $this->state(fn(array $attributes): array => [
             EventTrooper::EVENT_SHIFT_ID => $event_shift->{EventShift::ID},
+        ]);
+    }
+
+    public function forEventShiftStation(EventShiftStation $event_shift_station): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            EventTrooper::EVENT_SHIFT_ID => $event_shift_station->event_shift_id,
+            EventTrooper::EVENT_SHIFT_STATION_ID => $event_shift_station->id,
         ]);
     }
 

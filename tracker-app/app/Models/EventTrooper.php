@@ -224,6 +224,13 @@ class EventTrooper extends BaseEventTrooper
                     }
                 }
 
+                if (
+                    $this->event_shift_station_id !== null
+                    && $this->event_shift->stationMaxed($this->event_shift_station_id, $this->id)
+                ) {
+                    return false;
+                }
+
                 if ($this->is_handler)
                 {
                     if ($this->event_shift->handlersMaxed())

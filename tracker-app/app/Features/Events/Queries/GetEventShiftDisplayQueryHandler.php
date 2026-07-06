@@ -78,10 +78,16 @@ readonly class GetEventShiftDisplayQueryHandler implements QueryHandlerInterface
             'event.organizations' => function ($query) {
                 $query->orderBy(Organization::NAME);
             },
+            'event_shift_stations' => function ($query) {
+                $query->withCount('going_event_troopers')
+                    ->orderBy('sequence')
+                    ->orderBy('name');
+            },
             'event_troopers.trooper:'.implode(',', $trooper_columns),
             'event_troopers.trooper.trooper_costumes.organization_costume',
             'event_troopers.costume:'.implode(',', $costume_columns),
             'event_troopers.backup_costume:'.implode(',', $costume_columns),
+            'event_troopers.event_shift_station',
             'event_troopers.added_by_trooper:'.implode(',', $trooper_columns),
             'event_troopers.updated_by:'.implode(',', $trooper_columns),
             'event_troopers' => function ($query) {
