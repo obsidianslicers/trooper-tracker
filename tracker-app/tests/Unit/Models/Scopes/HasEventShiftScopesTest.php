@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Models\Scopes;
 
 use App\Enums\EventStatus;
+use App\Enums\EventTrooperStatus;
 use App\Models\EventShift;
 use Tests\TestCase;
 
@@ -39,6 +40,17 @@ class HasEventShiftScopesTest extends TestCase
         $this->assertStringContainsString('exists', $query->toBase()->toSql());
         $this->assertContains(EventStatus::OPEN->value, $query->getBindings());
         $this->assertContains(EventStatus::MANUAL_SELECTION->value, $query->getBindings());
+        $this->assertContains(7, $query->getBindings());
+    }
+
+    public function test_by_trooper_closed_scope_filters_to_attended_participation(): void
+    {
+        $query = EventShift::query()->byTrooper(7, true);
+
+        $this->assertStringContainsString('"status" = ?', $query->toBase()->toSql());
+        $this->assertStringContainsString('exists', $query->toBase()->toSql());
+        $this->assertContains(EventStatus::CLOSED->value, $query->getBindings());
+        $this->assertContains(EventTrooperStatus::ATTENDED->value, $query->getBindings());
         $this->assertContains(7, $query->getBindings());
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Features\Troopers\Queries;
 
 use App\Enums\AchievementType;
+use App\Enums\EventTrooperStatus;
 use App\Features\Troopers\Queries\GetTrooperServiceRecordQuery;
 use App\Features\Troopers\Queries\GetTrooperServiceRecordQueryHandler;
 use App\Models\Award;
@@ -15,9 +16,9 @@ use App\Models\EventTrooper;
 use App\Models\EventUpload;
 use App\Models\EventUploadTrooper;
 use App\Models\Organization;
+use App\Models\Trooper;
 use App\Models\TrooperAchievement;
 use App\Models\TrooperAssignment;
-use App\Models\Trooper;
 use App\Models\TrooperDonation;
 use App\Models\TrooperOrganization;
 use Carbon\Carbon;
@@ -63,7 +64,7 @@ class GetTrooperServiceRecordQueryHandlerTest extends TestCase
         $award = Award::factory()->create();
         AwardTrooper::factory()->forTrooper($trooper)->forAward($award)->create();
 
-        $subject = new GetTrooperServiceRecordQueryHandler();
+        $subject = new GetTrooperServiceRecordQueryHandler;
 
         $result = $subject(new GetTrooperServiceRecordQuery($trooper->id));
 
@@ -74,6 +75,7 @@ class GetTrooperServiceRecordQueryHandlerTest extends TestCase
         $this->assertArrayHasKey('service_summary', $result);
         $this->assertArrayHasKey('upcoming_shifts', $result);
         $this->assertArrayHasKey('recent_shifts', $result);
+        $this->assertArrayHasKey('pending_confirmation_shifts', $result);
         $this->assertArrayHasKey('all_donations', $result);
         $this->assertArrayHasKey('awards', $result);
         $this->assertSame($trooper->id, $result['trooper']->id);
@@ -85,6 +87,75 @@ class GetTrooperServiceRecordQueryHandlerTest extends TestCase
         $this->assertCount(1, $result['tagged_uploads']);
         $this->assertCount(1, $result['all_donations']);
         $this->assertCount(1, $result['awards']);
+    }
+
+    public function test_invoke_recent_shifts_only_includes_attended_troops(): void
+    {
+        $trooper = Trooper::factory()->asMember()->create();
+        $event = Event::factory()->asClosed()->create();
+
+        $attended_shift = EventShift::factory()
+            ->forEvent($event)
+            ->asClosed()
+            ->withShiftStartsAt(now()->subDays(2))
+            ->create();
+        EventTrooper::factory()
+            ->forEventShift($attended_shift)
+            ->forTrooper($trooper)
+            ->asAttended()
+            ->create();
+
+        $unable_shift = EventShift::factory()
+            ->forEvent($event)
+            ->asClosed()
+            ->withShiftStartsAt(now()->subDay())
+            ->create();
+        EventTrooper::factory()
+            ->forEventShift($unable_shift)
+            ->forTrooper($trooper)
+            ->state(fn () => [EventTrooper::STATUS => EventTrooperStatus::UNABLE_TO_ATTEND])
+            ->create();
+
+        $subject = new GetTrooperServiceRecordQueryHandler;
+        $result = $subject(new GetTrooperServiceRecordQuery($trooper->id));
+
+        $this->assertSame([$attended_shift->id], $result['recent_shifts']->pluck('id')->all());
+        $this->assertSame(EventTrooperStatus::ATTENDED, $result['recent_shifts']->first()->event_trooper->status);
+    }
+
+    public function test_invoke_pending_confirmation_shifts_include_going_troops_without_adding_them_to_history(): void
+    {
+        $trooper = Trooper::factory()->asMember()->create();
+        $event = Event::factory()->asClosed()->create();
+
+        $going_shift = EventShift::factory()
+            ->forEvent($event)
+            ->asClosed()
+            ->withShiftStartsAt(now()->subDays(2))
+            ->create();
+        EventTrooper::factory()
+            ->forEventShift($going_shift)
+            ->forTrooper($trooper)
+            ->asGoing()
+            ->create();
+
+        $unable_shift = EventShift::factory()
+            ->forEvent($event)
+            ->asClosed()
+            ->withShiftStartsAt(now()->subDay())
+            ->create();
+        EventTrooper::factory()
+            ->forEventShift($unable_shift)
+            ->forTrooper($trooper)
+            ->state(fn () => [EventTrooper::STATUS => EventTrooperStatus::UNABLE_TO_ATTEND])
+            ->create();
+
+        $subject = new GetTrooperServiceRecordQueryHandler;
+        $result = $subject(new GetTrooperServiceRecordQuery($trooper->id));
+
+        $this->assertSame([], $result['recent_shifts']->pluck('id')->all());
+        $this->assertSame([$going_shift->id], $result['pending_confirmation_shifts']->pluck('id')->all());
+        $this->assertSame(EventTrooperStatus::GOING, $result['pending_confirmation_shifts']->first()->event_trooper->status);
     }
 
     // -------------------------------------------------------------------------
@@ -100,9 +171,9 @@ class GetTrooperServiceRecordQueryHandlerTest extends TestCase
         $event = Event::factory()->asClosed()->create();
         $shift = EventShift::factory()->forEvent($event)->asClosed()->withShiftStartsAt(now()->subDays(5))->create();
         EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asAttended()
-            ->state(fn() => [EventTrooper::ORGANIZATION_ID => $org->id])->create();
+            ->state(fn () => [EventTrooper::ORGANIZATION_ID => $org->id])->create();
 
-        $subject = new GetTrooperServiceRecordQueryHandler();
+        $subject = new GetTrooperServiceRecordQueryHandler;
         $result = $subject(new GetTrooperServiceRecordQuery($trooper->id));
 
         $this->assertSame(1, $result['trooper_organizations']->first()->troop_count);
@@ -122,7 +193,7 @@ class GetTrooperServiceRecordQueryHandlerTest extends TestCase
                 EventTrooper::COSTUME_ORGANIZATION_IDS => [$org->id],
             ]);
 
-        $subject = new GetTrooperServiceRecordQueryHandler();
+        $subject = new GetTrooperServiceRecordQueryHandler;
         $result = $subject(new GetTrooperServiceRecordQuery($trooper->id));
 
         $this->assertSame(1, $result['trooper_organizations']->first()->troop_count);
@@ -147,7 +218,7 @@ class GetTrooperServiceRecordQueryHandlerTest extends TestCase
                 EventTrooper::COSTUME_ORGANIZATION_IDS => [$credit_org1->id, $credit_org2->id],
             ]);
 
-        $subject = new GetTrooperServiceRecordQueryHandler();
+        $subject = new GetTrooperServiceRecordQueryHandler;
         $result = $subject(new GetTrooperServiceRecordQuery($trooper->id));
         $counts = $result['trooper_organizations']->pluck('troop_count', 'id');
 
@@ -166,7 +237,7 @@ class GetTrooperServiceRecordQueryHandlerTest extends TestCase
         $shift = EventShift::factory()->forEvent($event)->asClosed()->withShiftStartsAt(now()->subDays(5))->create();
         EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asAttended()->create();
 
-        $subject = new GetTrooperServiceRecordQueryHandler();
+        $subject = new GetTrooperServiceRecordQueryHandler;
         $result = $subject(new GetTrooperServiceRecordQuery($trooper->id));
 
         $this->assertSame(0, $result['trooper_organizations']->first()->troop_count);
@@ -178,7 +249,7 @@ class GetTrooperServiceRecordQueryHandlerTest extends TestCase
         $org = Organization::factory()->asOrganization()->withNodePath('100')->create();
 
         TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($org)
-            ->state(fn() => [TrooperOrganization::JOIN_DATE => Carbon::parse('2026-06-01')])
+            ->state(fn () => [TrooperOrganization::JOIN_DATE => Carbon::parse('2026-06-01')])
             ->create();
 
         $event = Event::factory()->asClosed()->create();
@@ -190,7 +261,7 @@ class GetTrooperServiceRecordQueryHandlerTest extends TestCase
                 EventTrooper::COSTUME_ORGANIZATION_IDS => [$org->id],
             ]);
 
-        $subject = new GetTrooperServiceRecordQueryHandler();
+        $subject = new GetTrooperServiceRecordQueryHandler;
         $result = $subject(new GetTrooperServiceRecordQuery($trooper->id));
 
         $this->assertSame(1, $result['trooper_organizations']->first()->troop_count);
@@ -211,7 +282,7 @@ class GetTrooperServiceRecordQueryHandlerTest extends TestCase
             ->withType(AchievementType::FIRST_TROOP)
             ->create([TrooperAchievement::VALUE => true]);
 
-        $subject = new GetTrooperServiceRecordQueryHandler();
+        $subject = new GetTrooperServiceRecordQueryHandler;
         $result = $subject(new GetTrooperServiceRecordQuery($trooper->id));
 
         $descriptions = collect($result['service_summary']['milestones'])->pluck('description');
@@ -254,7 +325,7 @@ class GetTrooperServiceRecordQueryHandlerTest extends TestCase
             ->withType(AchievementType::TROOPED_10)
             ->create([TrooperAchievement::VALUE => true]);
 
-        $subject = new GetTrooperServiceRecordQueryHandler();
+        $subject = new GetTrooperServiceRecordQueryHandler;
         $result = $subject(new GetTrooperServiceRecordQuery($trooper->id));
 
         $this->assertSame([
