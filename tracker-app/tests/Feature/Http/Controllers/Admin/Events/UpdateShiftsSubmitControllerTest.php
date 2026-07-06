@@ -209,6 +209,55 @@ class UpdateShiftsSubmitControllerTest extends TestCase
         $this->assertSame(EventTrooperStatus::GOING, $standby->fresh()->status);
     }
 
+    public function test_invoke_demotes_latest_station_going_troopers_when_station_capacity_is_lowered(): void
+    {
+        $trooper = Trooper::factory()->asAdministrator()->create();
+        $event = Event::factory()->create();
+        $shift = EventShift::factory()->forEvent($event)->create();
+        $station = EventShiftStation::factory()
+            ->forEventShift($shift)
+            ->withName('Docking Bay')
+            ->withTroopersAllowed(3)
+            ->create();
+        $first = EventTrooper::factory()
+            ->forEventShiftStation($station)
+            ->asGoing()
+            ->withSignedUpAt(Carbon::parse('2026-06-01 10:00:00'))
+            ->create();
+        $second = EventTrooper::factory()
+            ->forEventShiftStation($station)
+            ->asGoing()
+            ->withSignedUpAt(Carbon::parse('2026-06-01 10:01:00'))
+            ->create();
+        $latest = EventTrooper::factory()
+            ->forEventShiftStation($station)
+            ->asGoing()
+            ->withSignedUpAt(Carbon::parse('2026-06-01 10:02:00'))
+            ->create();
+
+        $response = $this->actingAs($trooper)->post('/admin/events/' . $event->id . '/shifts', [
+            'shifts' => [
+                $shift->id => [
+                    'date' => '2026-06-03',
+                    'starts_at' => '10:00',
+                    'ends_at' => '12:00',
+                    'stations' => [
+                        $station->id => [
+                            'name' => 'Docking Bay',
+                            'troopers_allowed' => 2,
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $response->assertRedirect(route('admin.events.shifts', ['event' => $event->id]));
+
+        $this->assertSame(EventTrooperStatus::GOING, $first->fresh()->status);
+        $this->assertSame(EventTrooperStatus::GOING, $second->fresh()->status);
+        $this->assertSame(EventTrooperStatus::STAND_BY, $latest->fresh()->status);
+    }
+
     public function test_invoke_requires_authentication(): void
     {
         $event = Event::factory()->create();

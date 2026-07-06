@@ -106,7 +106,7 @@ class UpdateShiftsSubmitController extends MagicBusController
 
                 $station->save();
 
-                $this->promoteStationStandbysWhileRoom($station);
+                $this->reconcileStationRoster($station);
             }
         }
 
@@ -129,8 +129,22 @@ class UpdateShiftsSubmitController extends MagicBusController
         return redirect()->route('admin.events.shifts', compact('event'));
     }
 
-    private function promoteStationStandbysWhileRoom(EventShiftStation $station): void
+    private function reconcileStationRoster(EventShiftStation $station): void
     {
+        $going_count = $station->going_event_troopers()->count();
+
+        if ($going_count > $station->troopers_allowed)
+        {
+            $station->going_event_troopers()
+                ->orderByDesc(EventTrooper::SIGNED_UP_AT)
+                ->limit($going_count - $station->troopers_allowed)
+                ->get()
+                ->each(function (EventTrooper $event_trooper): void {
+                    $event_trooper->status = EventTrooperStatus::STAND_BY;
+                    $event_trooper->save();
+                });
+        }
+
         while ($station->fresh()->hasRoom())
         {
             $next_in_line = $station->event_troopers()

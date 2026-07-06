@@ -47,6 +47,8 @@ The code uses different capacity checks depending on the type of signup:
 3. Non-handler signups use the trooper capacity for the shift.
 4. If an organization is selected, the signup is also limited by the organization-specific capacity for that shift.
 
+If a shift has stations, station capacity becomes the signup capacity source for that shift. See [Station Signups](STATION_SIGNUPS.md) for the station-specific rules, display behavior, and standby promotion flow.
+
 When a signup cannot be completed because the trooper has reached the event’s shift limit, `SignUpHtmxController` returns the normal shift container plus an `X-Flash-Message` explaining that the maximum number of shift signups has been reached.
 
 The actual status assigned after a successful submit is decided by `SignUpEventTrooperCommandHandler` in [`tracker-app/app/Features/Events/Commands/SignUpEventTrooperCommandHandler.php`](../tracker-app/app/Features/Events/Commands/SignUpEventTrooperCommandHandler.php):
