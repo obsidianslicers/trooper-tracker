@@ -74,31 +74,31 @@
                             hx-swap="none"
                             class="form-select-sm mt-2 mt-md-0" />
         @else
-            @if($event_trooper->is_handler)
-                Handler
-            @else
-                @if($event_trooper->costume === null)
+            @if($event_trooper->costume === null)
+                @if($event_trooper->is_handler)
+                    Handler
+                @else
                     <i class="small text-muted">
                         No costume selected
                     </i>
-                @else
-                    <b>
-                        {{ $event_trooper->costume->name }}
-                    </b>
-                    <br />
-                    <i class="small text-muted">
-                        {{ $event_trooper->costume_organizations }}
-                    </i>
                 @endif
-                @if($event_trooper->backup_costume != null)
+            @else
+                <b>
+                    {{ $event_trooper->costume->name }}
+                </b>
+                <br />
+                <i class="small text-muted">
+                    {{ $event_trooper->costume_organizations }}
+                </i>
+            @endif
+            @if($event_trooper->backup_costume != null)
+                <br />
+                <i class="small text-muted">
+                    <i class="fa fa-fw fa-box-archive"></i>
+                    {{ $event_trooper->backup_costume->name }}
                     <br />
-                    <i class="small text-muted">
-                        <i class="fa fa-fw fa-box-archive"></i>
-                        {{ $event_trooper->backup_costume->name }}
-                        <br />
-                        {{ $event_trooper->backup_costume_organizations }}
-                    </i>
-                @endif
+                    {{ $event_trooper->backup_costume_organizations }}
+                </i>
             @endif
         @endif
     </div>

@@ -8,6 +8,9 @@ use App\Bus\MagicBus;
 use App\Features\Troopers\Queries\GetTrooperCostumesQuery;
 use App\Features\Troopers\Queries\GetTrooperServiceRecordQuery;
 use App\Models\Costume;
+use App\Models\Event;
+use App\Models\EventShift;
+use App\Models\EventTrooper;
 use App\Models\Trooper;
 use App\Services\BreadCrumbService;
 use App\Services\Forums\XenforoService;
@@ -213,6 +216,36 @@ class TrooperControllerTest extends TestCase
         $response->assertDontSee('Edit');
     }
 
+    public function test_recent_shift_partial_displays_command_staff_costume_for_handler_pool_assignment(): void
+    {
+        $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
+        $event = Event::factory()->create();
+        $shift = EventShift::factory()->forEvent($event)->asClosed()->create();
+        $command_staff_costume = Costume::factory()->withName(Costume::COMMAND_STAFF)->create();
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($shift)
+            ->forTrooper($trooper)
+            ->asAttended()
+            ->state([
+                EventTrooper::COSTUME_ID => $command_staff_costume->id,
+                EventTrooper::IS_HANDLER => true,
+            ])
+            ->create();
+
+        $shift->setRelation('event', $event);
+        $event_trooper->setRelation('costume', $command_staff_costume);
+        $shift->event_trooper = $event_trooper;
+
+        $response = $this->actingAs($trooper)->view('pages.service-records.inc.trooper-recent-shifts', [
+            'trooper' => $trooper,
+            'recent_shifts' => collect([$shift]),
+            'pending_confirmation_shifts' => collect(),
+        ]);
+
+        $response->assertSee(Costume::COMMAND_STAFF);
+        $response->assertDontSee('>Handler<', false);
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -234,6 +267,7 @@ class TrooperControllerTest extends TestCase
             ],
             'upcoming_shifts' => collect(),
             'recent_shifts' => collect(),
+            'pending_confirmation_shifts' => collect(),
             'all_donations' => collect(),
             'awards' => collect(),
         ];

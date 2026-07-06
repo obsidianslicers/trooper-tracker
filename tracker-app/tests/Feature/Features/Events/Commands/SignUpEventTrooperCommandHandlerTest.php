@@ -8,7 +8,6 @@ use App\Enums\EventTrooperStatus;
 use App\Features\Events\Commands\SignUpEventTrooperCommand;
 use App\Features\Events\Commands\SignUpEventTrooperCommandHandler;
 use App\Jobs\CreateTrooperFriendshipJob;
-use App\Mail\Events\TrooperSignUp;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventOrganization;
@@ -134,8 +133,7 @@ class SignUpEventTrooperCommandHandlerTest extends TestCase
             EventTrooper::ADDED_BY_TROOPER_ID => $added_by->id,
         ]);
 
-        Bus::assertDispatched(CreateTrooperFriendshipJob::class, function (CreateTrooperFriendshipJob $job) use ($trooper, $added_by): bool
-        {
+        Bus::assertDispatched(CreateTrooperFriendshipJob::class, function (CreateTrooperFriendshipJob $job) use ($trooper, $added_by): bool {
             return $job->trooper_id === $added_by->{Trooper::ID}
                 && $job->friend_id === $trooper->{Trooper::ID};
         });
@@ -312,6 +310,97 @@ class SignUpEventTrooperCommandHandlerTest extends TestCase
             EventTrooper::TROOPER_ID => $trooper->id,
             EventTrooper::COSTUME_ID => $handler_costume->id,
             EventTrooper::IS_HANDLER => true,
+        ]);
+    }
+
+    public function test_invoke_sets_is_handler_from_selected_command_staff_costume(): void
+    {
+        Notification::fake();
+
+        $event_shift = EventShift::factory()->create();
+        $trooper = Trooper::factory()->create();
+        $command_staff_costume = Costume::factory()->withName(Costume::COMMAND_STAFF)->create();
+
+        $handler = app(SignUpEventTrooperCommandHandler::class);
+        $handler(new SignUpEventTrooperCommand(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+            costume_id: $command_staff_costume->id,
+        ));
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::COSTUME_ID => $command_staff_costume->id,
+            EventTrooper::IS_HANDLER => true,
+        ]);
+    }
+
+    public function test_invoke_uses_handler_capacity_for_command_staff_when_trooper_capacity_is_full(): void
+    {
+        Notification::fake();
+
+        $event = Event::factory()->state([
+            Event::TROOPERS_ALLOWED => 1,
+            Event::HANDLERS_ALLOWED => 1,
+        ])->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->asGoing()
+            ->state([EventTrooper::IS_HANDLER => false])
+            ->create();
+
+        $trooper = Trooper::factory()->create();
+        $command_staff_costume = Costume::factory()->withName(Costume::COMMAND_STAFF)->create();
+
+        $handler = app(SignUpEventTrooperCommandHandler::class);
+        $handler(new SignUpEventTrooperCommand(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+            costume_id: $command_staff_costume->id,
+        ));
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::COSTUME_ID => $command_staff_costume->id,
+            EventTrooper::IS_HANDLER => true,
+            EventTrooper::STATUS => EventTrooperStatus::GOING->value,
+        ]);
+    }
+
+    public function test_invoke_assigns_command_staff_to_stand_by_when_handler_capacity_is_full(): void
+    {
+        Notification::fake();
+
+        $event = Event::factory()->state([
+            Event::TROOPERS_ALLOWED => null,
+            Event::HANDLERS_ALLOWED => 1,
+        ])->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->asGoing()
+            ->state([EventTrooper::IS_HANDLER => true])
+            ->create();
+
+        $trooper = Trooper::factory()->create();
+        $command_staff_costume = Costume::factory()->withName(Costume::COMMAND_STAFF)->create();
+
+        $handler = app(SignUpEventTrooperCommandHandler::class);
+        $handler(new SignUpEventTrooperCommand(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+            costume_id: $command_staff_costume->id,
+        ));
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::COSTUME_ID => $command_staff_costume->id,
+            EventTrooper::IS_HANDLER => true,
+            EventTrooper::STATUS => EventTrooperStatus::STAND_BY->value,
         ]);
     }
 

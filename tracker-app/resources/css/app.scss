@@ -174,6 +174,52 @@ a:hover {
     max-width: 100%;
 }
 
+.service-record-confirmation {
+    background:
+        linear-gradient(90deg, color-mix(in srgb, var(--bs-info) 18%, transparent), transparent 40%),
+        var(--bs-card-bg);
+    border: 1px solid var(--bs-border-color);
+    border-left: 4px solid var(--bs-info);
+    border-radius: 8px;
+    color: var(--bs-body-color);
+    padding: 1rem 1.25rem;
+}
+
+.service-record-confirmation-icon {
+    color: var(--bs-info);
+}
+
+.service-record-confirmation-title {
+    color: var(--bs-body-color);
+}
+
+.service-record-confirmation-list {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.service-record-confirmation-item {
+    border-top: 1px solid color-mix(in srgb, var(--bs-border-color) 45%, transparent);
+    padding-top: 0.75rem;
+}
+
+.service-record-confirmation-link {
+    color: var(--bs-body-color);
+    font-weight: 700;
+    text-decoration: none;
+
+    &:hover,
+    &:focus {
+        color: var(--bs-info);
+        text-decoration: underline;
+    }
+}
+
+.service-record-confirmation-time {
+    color: color-mix(in srgb, var(--bs-body-color) 68%, transparent);
+    font-size: 0.875rem;
+}
+
 //  for the comments on event display page
 @keyframes terminal-glitch {
 

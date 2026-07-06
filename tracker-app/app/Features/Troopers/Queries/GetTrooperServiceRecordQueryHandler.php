@@ -6,11 +6,14 @@ namespace App\Features\Troopers\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Enums\AchievementType;
+use App\Enums\EventStatus;
+use App\Enums\EventTrooperStatus;
 use App\Features\Events\Queries\HasEventDisplayAssembler;
 use App\Models\AwardTrooper;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventShift;
+use App\Models\EventTrooper;
 use App\Models\EventUpload;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
@@ -43,6 +46,7 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
             'service_summary' => $this->getServiceSummary($trooper),
             'upcoming_shifts' => $this->getUpcomingEventShifts($trooper),
             'recent_shifts' => $recent_shifts,
+            'pending_confirmation_shifts' => $this->getPendingConfirmationEventShifts($trooper),
             'all_donations' => $this->getAllDonations($trooper),
             'awards' => $this->getAwards($trooper),
         ];
@@ -129,6 +133,33 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
             ->byTrooper($trooper->id, false)
             ->where(EventShift::SHIFT_STARTS_AT, '>', now()->subYear(1))
             ->orderBy(EventShift::SHIFT_STARTS_AT)
+            ->get();
+
+        $shifts->each(fn ($shift) => $this->transformEventShift($shift));
+        $shifts->each(fn ($shift) => $shift->event_trooper = $shift->event_troopers->first());
+
+        return $shifts;
+    }
+
+    private function getPendingConfirmationEventShifts(Trooper $trooper): Collection
+    {
+        $event_trooper_filter = function ($query) use ($trooper) {
+            $query->where(EventTrooper::TROOPER_ID, $trooper->id)
+                ->whereIn(EventTrooper::STATUS, EventTrooperStatus::intentToGoArray());
+        };
+
+        $with = $this->buildEventShiftRelations();
+        $with['event_troopers'] = function ($query) use ($event_trooper_filter) {
+            $event_trooper_filter($query);
+            $query->with('costume');
+        };
+
+        $shifts = EventShift::with($with)
+            ->where(EventShift::STATUS, EventStatus::CLOSED)
+            ->where(EventShift::SHIFT_ENDS_AT, '<=', now())
+            ->where(EventShift::SHIFT_ENDS_AT, '>', now()->subDays(30))
+            ->whereHas('event_troopers', $event_trooper_filter)
+            ->orderByDesc(EventShift::SHIFT_STARTS_AT)
             ->get();
 
         $shifts->each(fn ($shift) => $this->transformEventShift($shift));

@@ -232,6 +232,36 @@ class SignUpUpdateHtmxControllerTest extends TestCase
         ]);
     }
 
+    public function test_invoke_costume_update_sets_is_handler_true_for_command_staff_costume(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $organization = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();
+
+        $event = Event::factory()->withOrganization($organization)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $command_staff_costume = Costume::factory()->withName(Costume::COMMAND_STAFF)->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->asGoing()
+            ->state([EventTrooper::IS_HANDLER => false])
+            ->create();
+
+        $response = $this->actingAs($trooper)->post(
+            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            ['costume_id' => $command_staff_costume->id]
+        );
+
+        $response->assertOk();
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::ID => $event_trooper->id,
+            EventTrooper::IS_HANDLER => true,
+            EventTrooper::COSTUME_ID => $command_staff_costume->id,
+        ]);
+    }
+
     public function test_invoke_costume_update_sets_is_handler_false_for_regular_costume(): void
     {
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();

@@ -23,7 +23,7 @@ trait HasEventShiftScopes
      * Active shifts are those with status of OPEN, DRAFT, or SIGN_UP_LOCKED
      * that haven't ended yet, ordered by their start time.
      *
-     * @param Builder<self> $query The Eloquent query builder.
+     * @param  Builder<self>  $query  The Eloquent query builder.
      * @return Builder<self>
      */
     public function scopeActive(Builder $query): Builder
@@ -44,7 +44,7 @@ trait HasEventShiftScopes
      * Active shifts are those with status of OPEN, DRAFT, or SIGN_UP_LOCKED
      * that haven't ended yet, ordered by their start time.
      *
-     * @param Builder<self> $query The Eloquent query builder.
+     * @param  Builder<self>  $query  The Eloquent query builder.
      * @return Builder<self>
      */
     public function scopeClosed(Builder $query): Builder
@@ -63,21 +63,32 @@ trait HasEventShiftScopes
      * event is open or closed. It also eagerly loads the relevant relationships
      * for displaying the event details for that trooper.
      *
-     * @param Builder<self> $query The Eloquent query builder.
-     * @param int $trooper_id The ID of the trooper to filter by.
-     * @param bool $closed True to fetch closed (historical) events, false for open events.
+     * @param  Builder<self>  $query  The Eloquent query builder.
+     * @param  int  $trooper_id  The ID of the trooper to filter by.
+     * @param  bool  $closed  True to fetch closed (historical) events, false for open events.
      * @return Builder<self>
      */
     public function scopeByTrooper(Builder $query, int $trooper_id, bool $closed): Builder
     {
         $excluded_statuses = [EventTrooperStatus::CANCELLED, EventTrooperStatus::NOT_PICKED];
 
-        $with = [
-            'event_troopers' => function ($q) use ($trooper_id, $excluded_statuses)
+        $event_trooper_filter = function ($q) use ($trooper_id, $closed, $excluded_statuses) {
+            $q->where(EventTrooper::TROOPER_ID, $trooper_id);
+
+            if ($closed)
             {
-                $q->where(EventTrooper::TROOPER_ID, $trooper_id)
-                    ->whereNotIn(EventTrooper::STATUS, $excluded_statuses)
-                    ->with('costume');
+                $q->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED);
+
+                return;
+            }
+
+            $q->whereNotIn(EventTrooper::STATUS, $excluded_statuses);
+        };
+
+        $with = [
+            'event_troopers' => function ($q) use ($event_trooper_filter) {
+                $event_trooper_filter($q);
+                $q->with('costume');
             },
         ];
 
@@ -85,19 +96,11 @@ trait HasEventShiftScopes
         {
             return $query->with($with)
                 ->where(self::STATUS, EventStatus::CLOSED)
-                ->whereHas('event_troopers', function ($q) use ($trooper_id, $excluded_statuses)
-                {
-                    $q->where(EventTrooper::TROOPER_ID, $trooper_id)
-                        ->whereNotIn(EventTrooper::STATUS, $excluded_statuses);
-                });
+                ->whereHas('event_troopers', $event_trooper_filter);
         }
 
         return $query->with($with)
             ->whereIn(self::STATUS, [EventStatus::OPEN, EventStatus::MANUAL_SELECTION])
-            ->whereHas('event_troopers', function ($q) use ($trooper_id, $excluded_statuses)
-            {
-                $q->where(EventTrooper::TROOPER_ID, $trooper_id)
-                    ->whereNotIn(EventTrooper::STATUS, $excluded_statuses);
-            });
+            ->whereHas('event_troopers', $event_trooper_filter);
     }
 }
