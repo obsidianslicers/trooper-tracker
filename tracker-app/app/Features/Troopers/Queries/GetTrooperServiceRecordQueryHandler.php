@@ -21,6 +21,7 @@ use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperCostume;
 use App\Models\TrooperDonation;
+use App\Models\TrooperOrganization;
 use Illuminate\Support\Collection;
 
 readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterface
@@ -55,6 +56,7 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
     private function getOrganizations(Trooper $trooper, Collection $recent_shifts): Collection
     {
         $organizations = $trooper->organizations()
+            ->wherePivotNull(TrooperOrganization::DELETED_AT)
             ->orderBy(Organization::NAME)
             ->get();
 

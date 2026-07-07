@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Account;
 use App\Features\Costumes\Queries\GetCostumesPickerQuery;
 use App\Features\Troopers\Queries\GetTrooperCostumesQuery;
 use App\Http\Controllers\MagicBusController;
+use App\Models\TrooperOrganization;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -29,7 +30,10 @@ class CostumesController extends MagicBusController
     {
         $trooper = $request->user();
 
-        $organization_ids = $trooper->organizations()->pluck('organization_id')->toArray();
+        $organization_ids = $trooper->organizations()
+            ->wherePivotNull(TrooperOrganization::DELETED_AT)
+            ->pluck('organization_id')
+            ->toArray();
 
         $costumes_query = new GetCostumesPickerQuery($organization_ids);
 

@@ -89,6 +89,24 @@ class GetTrooperServiceRecordQueryHandlerTest extends TestCase
         $this->assertCount(1, $result['awards']);
     }
 
+    public function test_invoke_excludes_soft_deleted_organization_memberships(): void
+    {
+        $trooper = Trooper::factory()->asMember()->create();
+
+        $parent = Organization::factory()->asOrganization()->withNodePath('100:')->withName('Alpha')->create();
+        $child = Organization::factory()->withNodePath('100:200:')->withName('Alpha Unit')->create();
+
+        TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($parent)->create();
+        TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($child)
+            ->state(fn () => [TrooperOrganization::DELETED_AT => now()])
+            ->create();
+
+        $subject = new GetTrooperServiceRecordQueryHandler;
+        $result = $subject(new GetTrooperServiceRecordQuery($trooper->id));
+
+        $this->assertSame([$parent->id], $result['trooper_organizations']->pluck('id')->all());
+    }
+
     public function test_invoke_recent_shifts_only_includes_attended_troops(): void
     {
         $trooper = Trooper::factory()->asMember()->create();
