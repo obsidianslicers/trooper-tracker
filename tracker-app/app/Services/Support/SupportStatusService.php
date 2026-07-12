@@ -8,15 +8,23 @@ use App\Facades\TroopTrackerFacade;
 use App\Models\TrooperDonation;
 use App\Services\Forums\XenforoService;
 use App\Support\XenforoUpgradeHelper;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 
 class SupportStatusService
 {
+    public const CACHE_KEY = 'support_status';
+
+    private const CACHE_TTL = 900;
+
     /**
      * Calculate the current support status for the tracker.
      *
      * When XenForo is configured, this prefers the XenForo upgrade stats
      * endpoint. Otherwise, it falls back to local TrooperDonation records.
+     *
+     * Results are cached for 15 minutes, except when the XenForo fetch
+     * fails - a transient outage should not pin the local fallback total.
      *
      * @return array{goal:float,current:float,progress:float,uses_xenforo:bool}
      */
@@ -34,10 +42,33 @@ class SupportStatusService
             ];
         }
 
-        $stats = TroopTrackerFacade::isXenforoIntegrationConfigured()
-            ? app(XenforoService::class)->get_upgrade_stats()
-            : null;
+        $cached = Cache::get(self::CACHE_KEY);
 
+        if (is_array($cached))
+        {
+            return $cached;
+        }
+
+        $xenforo_configured = TroopTrackerFacade::isXenforoIntegrationConfigured();
+        $stats = $xenforo_configured ? app(XenforoService::class)->get_upgrade_stats() : null;
+        $status = $this->buildStatus($goal, $stats);
+
+        if (!$xenforo_configured || is_array($stats))
+        {
+            Cache::put(self::CACHE_KEY, $status, self::CACHE_TTL);
+        }
+
+        return $status;
+    }
+
+    /**
+     * Build the support status from XenForo stats or local donations.
+     *
+     * @param  array<string,mixed>|null  $stats
+     * @return array{goal:float,current:float,progress:float,uses_xenforo:bool}
+     */
+    private function buildStatus(float $goal, ?array $stats): array
+    {
         if (is_array($stats))
         {
             $current = $this->calculateFromXenforo($stats);
