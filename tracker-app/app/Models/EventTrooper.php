@@ -353,8 +353,18 @@ class EventTrooper extends BaseEventTrooper
         }
 
         $approved_ids = $this->costume->approvedOrgIdsForTrooper($this->trooper_id);
-        if (!empty($approved_ids)) {
-            return $this->memberOrgsQuery()->whereIn('id', $approved_ids)->get();
+        if (!empty($approved_ids))
+        {
+            $member_orgs = $this->memberOrgsQuery()->get();
+
+            return Organization::findMany($approved_ids)
+                ->filter(function ($approved_org) use ($member_orgs) {
+                    return $member_orgs->contains(function ($member_org) use ($approved_org) {
+                        return str_starts_with($member_org->node_path, $approved_org->node_path)
+                            || str_starts_with($approved_org->node_path, $member_org->node_path);
+                    });
+                })
+                ->values();
         }
 
         return $this->memberOrgsQuery()->get();
