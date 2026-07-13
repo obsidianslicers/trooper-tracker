@@ -40,6 +40,7 @@ class AddEventTrooperCostumePickerControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertViewIs('pages.admin.events.inc.add-trooper-costume-picker');
+        $response->assertSee('hx-params="trooper_id,costume_id,organization_id"', false);
         $response->assertViewHas('costumes', function (array $costumes) use ($approved_costume, $unapproved_costume): bool {
             return array_key_exists($approved_costume->id, $costumes)
                 && ! array_key_exists($unapproved_costume->id, $costumes);

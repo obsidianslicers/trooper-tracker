@@ -34,6 +34,21 @@ class UpdateTroopersControllerTest extends TestCase
         $response->assertViewIs('pages.admin.events.troopers');
     }
 
+    public function test_add_trooper_picker_uses_an_event_scoped_to_each_shift(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $event = Event::factory()->create();
+        $first_shift = EventShift::factory()->forEvent($event)->create();
+        $second_shift = EventShift::factory()->forEvent($event)->create();
+
+        $response = $this->actingAs($admin)->get(route('admin.events.troopers', compact('event')));
+
+        $response->assertOk();
+        $response->assertSee("admin-add-trooper-{$first_shift->id}", false);
+        $response->assertSee("admin-add-trooper-{$second_shift->id}", false);
+        $response->assertDontSee('trooper:selected[event.detail.property', false);
+    }
+
     public function test_invoke_shows_all_member_clubs_for_handler_costume(): void
     {
         $admin = Trooper::factory()->asAdministrator()->create();
