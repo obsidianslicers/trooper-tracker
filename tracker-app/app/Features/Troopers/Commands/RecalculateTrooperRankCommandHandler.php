@@ -9,7 +9,6 @@ use App\Enums\AchievementType;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Enums\OauthProvider;
-use App\Jobs\SendTrooperMilestoneNotificationsJob;
 use App\Models\Event;
 use App\Models\EventTrooper;
 use App\Models\OauthLogin;
@@ -599,12 +598,7 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
             return;
         }
 
-        if ($send_milestone_notifications)
-        {
-            $achievement->setRelation('trooper', $trooper);
-
-            dispatch(new SendTrooperMilestoneNotificationsJob($achievement));
-        }
+        // Pending milestones are delivered together by the daily roundup command.
     }
 
     private function recordCreatedMilestone(TrooperAchievement $achievement): void

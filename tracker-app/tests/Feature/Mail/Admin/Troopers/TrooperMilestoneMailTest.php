@@ -22,24 +22,24 @@ class TrooperMilestoneMailTest extends TestCase
         config(['mail.prefix' => '[TEST]']);
 
         $achievement = $this->createAchievementForMemberTrooper();
-        $mail = new TrooperMilestoneMail($achievement);
+        $mail = new TrooperMilestoneMail(collect([$achievement]));
 
-        $this->assertSame('[TEST] Trooper Milestone Achieved', $mail->envelope()->subject);
+        $this->assertSame('[TEST] Daily Trooper Milestones', $mail->envelope()->subject);
     }
 
     public function test_content_contains_expected_view_and_achievement(): void
     {
         $achievement = $this->createAchievementForMemberTrooper();
 
-        $mail = new TrooperMilestoneMail($achievement);
+        $mail = new TrooperMilestoneMail(collect([$achievement]));
         $content = $mail->content();
         $html = $mail->render();
 
         $this->assertSame('emails.admin.troopers.trooper-milestone', $content->view);
-        $this->assertSame($achievement, $mail->achievement);
+        $this->assertTrue($mail->achievements->contains($achievement));
         $this->assertStringContainsString($achievement->trooper->legal_name, $html);
         $this->assertStringContainsString($achievement->trooper->display_name, $html);
-        $this->assertStringContainsString('Imperial Personnel Registry', $html);
+        $this->assertStringContainsString('Review recent achievements', $html);
         $this->assertStringContainsString('Test Garrison', $html);
         $this->assertSame([], $mail->attachments());
     }
@@ -51,7 +51,7 @@ class TrooperMilestoneMailTest extends TestCase
         $achievement->organization()->associate($club);
         $achievement->setRelation('organization', $club);
 
-        $mail = new TrooperMilestoneMail($achievement);
+        $mail = new TrooperMilestoneMail(collect([$achievement]));
 
         $this->assertStringContainsString(
             '501st Legion: First Troop - Combat Readiness Citation',
@@ -63,7 +63,7 @@ class TrooperMilestoneMailTest extends TestCase
     {
         $achievement = $this->createAchievementForMemberTrooper();
 
-        $mail = new TrooperMilestoneMail($achievement);
+        $mail = new TrooperMilestoneMail(collect([$achievement]));
 
         $this->assertInstanceOf(ShouldQueue::class, $mail);
     }
