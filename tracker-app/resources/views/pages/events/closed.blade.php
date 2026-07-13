@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('page-title', 'Recently Completed Events')
+@section('page-title', 'Completed Events')
 
 @section('content')
 
@@ -10,7 +10,7 @@
 
         <x-table class="caption-top">
             <caption>
-                Summary of Event Details over the last {{ $lookback }} days.
+                Closed event history, newest first.
             </caption>
             <thead>
                 <tr>
@@ -100,20 +100,20 @@
                     </tr>
                 @empty
                     <x-table-empty :colspan="7">
-                        No events have been closed in the last {{ $lookback }} days.
+                        No closed events found.
                     </x-table-empty>
                 @endforelse
             </tbody>
             <tfoot>
                 <tr>
                     <th colspan="2">
-                        <x-number-format :value="$events->count()" />
+                        <x-number-format :value="$events->total()" />
                         <span class="text-muted">
-                            Events Summary (over the last {{ $lookback }} days)
+                            Closed Events
                         </span>
                         <br />
                         <span class="small text-muted">
-                            * Totals only all include events that have been closed within the lookback period (not filtered).
+                            * Summary totals are for the events shown on this page (not filtered).
                         </span>
                     </th>
                     <th class="text-end">
@@ -135,6 +135,8 @@
             </tfoot>
 
         </x-table>
+
+        {{ $events->links() }}
 
     </div>
 

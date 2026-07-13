@@ -14,6 +14,7 @@ use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Tests\TestCase;
 
 class GetEventSummaryQueryHandlerTest extends TestCase
@@ -29,7 +30,7 @@ class GetEventSummaryQueryHandlerTest extends TestCase
         $event = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(10))->create();
         Event::factory()->asClosed()->withEventStart(now()->subDays(5))->create(); // Other org
 
-        $subject = new GetEventSummaryQueryHandler();
+        $subject = new GetEventSummaryQueryHandler;
 
         $result = $subject(new GetEventSummaryQuery($moderator, 30));
 
@@ -46,7 +47,7 @@ class GetEventSummaryQueryHandlerTest extends TestCase
         $event = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(10))->create();
         EventShift::factory()->forEvent($event)->count(3)->create();
 
-        $subject = new GetEventSummaryQueryHandler();
+        $subject = new GetEventSummaryQueryHandler;
 
         $result = $subject(new GetEventSummaryQuery($moderator, 30));
 
@@ -65,7 +66,7 @@ class GetEventSummaryQueryHandlerTest extends TestCase
 
         EventTrooper::factory()->forEventShift($shift)->asAttended()->count(5)->create();
 
-        $subject = new GetEventSummaryQueryHandler();
+        $subject = new GetEventSummaryQueryHandler;
 
         $result = $subject(new GetEventSummaryQuery($moderator, 30));
 
@@ -88,7 +89,7 @@ class GetEventSummaryQueryHandlerTest extends TestCase
         EventTrooper::factory()->forEventShift($shift1)->forTrooper($trooper)->asAttended()->create();
         EventTrooper::factory()->forEventShift($shift2)->forTrooper($trooper)->asAttended()->create();
 
-        $subject = new GetEventSummaryQueryHandler();
+        $subject = new GetEventSummaryQueryHandler;
 
         $result = $subject(new GetEventSummaryQuery($moderator, 30));
 
@@ -105,7 +106,7 @@ class GetEventSummaryQueryHandlerTest extends TestCase
         Event::factory()->asClosed()->withOrganization($org)->withEventStart(Carbon::parse('2026-02-15'))->create();
         Event::factory()->asClosed()->withOrganization($org)->withEventStart(Carbon::parse('2026-01-15'))->create();
 
-        $subject = new GetEventSummaryQueryHandler();
+        $subject = new GetEventSummaryQueryHandler;
 
         $result = $subject(new GetEventSummaryQuery($moderator, Carbon::parse('2026-02-01')));
 
@@ -118,10 +119,29 @@ class GetEventSummaryQueryHandlerTest extends TestCase
 
         Event::factory()->asClosed()->withEventStart(now()->subDays(10))->count(3)->create();
 
-        $subject = new GetEventSummaryQueryHandler();
+        $subject = new GetEventSummaryQueryHandler;
 
-        $result = $subject(new GetEventSummaryQuery(new Trooper(), 30, true));
+        $result = $subject(new GetEventSummaryQuery(new Trooper, 30, true));
 
         $this->assertCount(3, $result);
+    }
+
+    public function test_invoke_can_paginate_all_event_history(): void
+    {
+        Event::factory()->asClosed()->withEventStart(now()->subYears(5))->create();
+        Event::factory()->asClosed()->withEventStart(now()->subDays(5))->count(2)->create();
+
+        $subject = new GetEventSummaryQueryHandler;
+
+        $result = $subject(new GetEventSummaryQuery(
+            moderator: new Trooper,
+            lookback: null,
+            show_all: true,
+            page_size: 2,
+        ));
+
+        $this->assertInstanceOf(LengthAwarePaginator::class, $result);
+        $this->assertSame(3, $result->total());
+        $this->assertSame(2, $result->lastPage());
     }
 }

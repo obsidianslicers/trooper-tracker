@@ -11,8 +11,13 @@ trait HasLookback
     /**
      * Convert the lookback parameter to a Carbon date if needed.
      */
-    public function parseLookback(): Carbon
+    public function parseLookback(): ?Carbon
     {
+        if ($this->lookback === null)
+        {
+            return null;
+        }
+
         if (is_int($this->lookback))
         {
             return now()->startOfDay()->subDays($this->lookback);

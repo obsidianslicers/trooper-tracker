@@ -12,10 +12,10 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 /**
- * Displays the list of recently closed events.
+ * Displays the list of closed events.
  *
  * This controller renders the closed events listing page, showing events
- * that finished within the last 30 days with their organizations, shifts,
+ * from the complete event history with their organizations, shifts,
  * and attendance information.
  */
 class ClosedController extends MagicBusController
@@ -30,9 +30,12 @@ class ClosedController extends MagicBusController
     {
         $trooper = $request->user();
 
-        $lookback = 30;
-
-        $events_query = new GetEventSummaryQuery($trooper, $lookback, true);
+        $events_query = new GetEventSummaryQuery(
+            moderator: $trooper,
+            lookback: null,
+            show_all: true,
+            page_size: 25,
+        );
 
         $events = $this->bus->send($events_query);
 
@@ -40,7 +43,7 @@ class ClosedController extends MagicBusController
 
         $hosting_organizations = $this->bus->send(new GetOrganizationsForPickerQuery($trooper, []));
 
-        $data = compact('events', 'lookback', 'costume_organizations', 'hosting_organizations');
+        $data = compact('events', 'costume_organizations', 'hosting_organizations');
 
         return view('pages.events.closed', $data);
     }
