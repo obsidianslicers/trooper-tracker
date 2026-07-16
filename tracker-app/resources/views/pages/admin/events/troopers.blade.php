@@ -199,7 +199,10 @@
                                     class="ps-4 py-2">
                                     <button type="button"
                                             class="btn btn-sm btn-outline-primary"
-                                            hx-get="{{ route('pickers.trooper', ['property' => 'admin-add-' . $event_shift->id, 'event' => 'trooper:selected']) }}"
+                                            hx-get="{{ route('pickers.trooper', [
+                                                'property' => 'admin-add-' . $event_shift->id,
+                                                'event' => 'admin-add-trooper-' . $event_shift->id,
+                                            ]) }}"
                                             hx-target="#modal-trooper .modal-body"
                                             hx-trigger="click"
                                             data-bs-toggle="modal"
@@ -211,7 +214,7 @@
                                     <div class="d-none"
                                          hx-get="{{ route('admin.events.troopers.costume-picker', compact('event', 'event_shift')) }}"
                                          hx-vals="js:{trooper_id: event.detail.id}"
-                                         hx-trigger="trooper:selected[event.detail.property == 'admin-add-{{ $event_shift->id }}'] from:document"
+                                         hx-trigger="admin-add-trooper-{{ $event_shift->id }} from:document"
                                          hx-target="#admin-add-step2-{{ $event_shift->id }}"
                                          hx-swap="innerHTML">
                                     </div>
