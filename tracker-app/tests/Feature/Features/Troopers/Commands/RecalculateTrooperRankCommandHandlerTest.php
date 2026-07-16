@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Feature\Features\Troopers\Commands;
 
 use App\Enums\AchievementType;
-use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Features\Troopers\Commands\RecalculateTrooperRankCommand;
 use App\Features\Troopers\Commands\RecalculateTrooperRankCommandHandler;
@@ -61,7 +60,7 @@ class RecalculateTrooperRankCommandHandlerTest extends TestCase
             ->asAttended()
             ->create([EventTrooper::ORGANIZATION_ID => null]);
 
-        $command = new RecalculateTrooperRankCommand();
+        $command = new RecalculateTrooperRankCommand;
         $handler = app(RecalculateTrooperRankCommandHandler::class);
 
         $handler($command);
@@ -85,7 +84,7 @@ class RecalculateTrooperRankCommandHandlerTest extends TestCase
             ->asAttended()
             ->create([EventTrooper::ORGANIZATION_ID => $organization->id]);
 
-        $command = new RecalculateTrooperRankCommand();
+        $command = new RecalculateTrooperRankCommand;
         $handler = app(RecalculateTrooperRankCommandHandler::class);
 
         $handler($command);
@@ -183,7 +182,7 @@ class RecalculateTrooperRankCommandHandlerTest extends TestCase
             ->asAttended()
             ->create();
 
-        $command = new RecalculateTrooperRankCommand();
+        $command = new RecalculateTrooperRankCommand;
         $handler = app(RecalculateTrooperRankCommandHandler::class);
 
         $handler($command);
@@ -222,7 +221,7 @@ class RecalculateTrooperRankCommandHandlerTest extends TestCase
         ]);
     }
 
-    public function test_invoke_dispatches_milestone_notification_job_for_new_milestone(): void
+    public function test_invoke_leaves_new_milestone_pending_for_daily_roundup(): void
     {
         Bus::fake();
 
@@ -240,7 +239,10 @@ class RecalculateTrooperRankCommandHandlerTest extends TestCase
 
         $handler($command);
 
-        Bus::assertDispatched(SendTrooperMilestoneNotificationsJob::class);
+        Bus::assertNotDispatched(SendTrooperMilestoneNotificationsJob::class);
+        $this->assertNull(TrooperAchievement::where(TrooperAchievement::TROOPER_ID, $trooper->id)
+            ->where(TrooperAchievement::TYPE, AchievementType::FIRST_TROOP)
+            ->value(TrooperAchievement::NOTIFICATION_SENT_AT));
     }
 
     public function test_invoke_can_create_global_milestone_without_dispatching_notification_job(): void
@@ -304,7 +306,7 @@ class RecalculateTrooperRankCommandHandlerTest extends TestCase
         Bus::assertNotDispatched(SendTrooperMilestoneNotificationsJob::class);
     }
 
-    public function test_invoke_dispatches_milestone_notification_job_for_existing_unsent_milestone(): void
+    public function test_invoke_leaves_existing_unsent_milestone_pending_for_daily_roundup(): void
     {
         Bus::fake();
 
@@ -328,7 +330,10 @@ class RecalculateTrooperRankCommandHandlerTest extends TestCase
         $summary = $handler(new RecalculateTrooperRankCommand(trooper_id: $trooper->id));
 
         $this->assertSame(0, $summary['created_milestones']['total']);
-        Bus::assertDispatched(SendTrooperMilestoneNotificationsJob::class);
+        Bus::assertNotDispatched(SendTrooperMilestoneNotificationsJob::class);
+        $this->assertNull(TrooperAchievement::where(TrooperAchievement::TROOPER_ID, $trooper->id)
+            ->where(TrooperAchievement::TYPE, AchievementType::FIRST_TROOP)
+            ->value(TrooperAchievement::NOTIFICATION_SENT_AT));
     }
 
     public function test_invoke_creates_club_milestone_from_explicit_organization_id(): void
@@ -445,7 +450,7 @@ class RecalculateTrooperRankCommandHandlerTest extends TestCase
         ]);
     }
 
-    public function test_invoke_dispatches_milestone_notification_job_for_new_club_milestone(): void
+    public function test_invoke_leaves_new_club_milestone_pending_for_daily_roundup(): void
     {
         Bus::fake();
 
@@ -462,7 +467,7 @@ class RecalculateTrooperRankCommandHandlerTest extends TestCase
         $handler = app(RecalculateTrooperRankCommandHandler::class);
         $handler(new RecalculateTrooperRankCommand(trooper_id: $trooper->id));
 
-        Bus::assertDispatched(SendTrooperMilestoneNotificationsJob::class);
+        Bus::assertNotDispatched(SendTrooperMilestoneNotificationsJob::class);
     }
 
     public function test_invoke_can_create_club_milestone_without_dispatching_notification_job(): void
@@ -518,7 +523,7 @@ class RecalculateTrooperRankCommandHandlerTest extends TestCase
             ->withParent($club)
             ->create();
         $region->updateQuietly([
-            Organization::NODE_PATH => $club->id . Organization::NODE_PATH_SEP . $region->id,
+            Organization::NODE_PATH => $club->id.Organization::NODE_PATH_SEP.$region->id,
         ]);
 
         return $region;

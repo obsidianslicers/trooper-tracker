@@ -34,7 +34,7 @@ class SendTrooperMilestoneNotificationsJobTest extends TestCase
 
         $achievement = TrooperAchievement::factory()->create([
             TrooperAchievement::TROOPER_ID => $trooper->id,
-            TrooperAchievement::TYPE       => AchievementType::FIRST_TROOP,
+            TrooperAchievement::TYPE => AchievementType::FIRST_TROOP,
         ]);
         $achievement->setRelation('trooper', $trooper);
 
@@ -65,7 +65,7 @@ class SendTrooperMilestoneNotificationsJobTest extends TestCase
                 && $query->membership_role === MembershipRole::MODERATOR)
             ->andReturn(collect([]));
 
-        $subject = new SendTrooperMilestoneNotificationsJob($achievement);
+        $subject = new SendTrooperMilestoneNotificationsJob;
         $subject->handle($bus);
 
         Notification::assertSentTo($admin_opted_in, TrooperMilestoneNotification::class);
@@ -87,13 +87,37 @@ class SendTrooperMilestoneNotificationsJobTest extends TestCase
         $achievement->setRelation('trooper', $trooper);
         $achievement->setRelation('organization', $org);
 
-        $notification = new TrooperMilestoneNotification($achievement);
+        $notification = new TrooperMilestoneNotification(collect([$achievement]));
 
         $this->assertStringContainsString(
-            '501st Legion: First Troop - Combat Readiness Citation',
-            $notification->toArray($trooper)['body'],
+            'Daily Trooper Milestones',
+            $notification->toArray($trooper)['title'],
         );
         $this->assertSame($notification->toArray($trooper), $notification->toFcm($trooper));
+    }
+
+    public function test_notification_summarizes_multiple_troopers_and_abbreviates_names(): void
+    {
+        $achievements = collect();
+
+        foreach (range(1, 4) as $number)
+        {
+            $trooper = Trooper::factory()->create(['display_name' => 'Trooper '.$number]);
+            $achievement = TrooperAchievement::factory()->forTrooper($trooper)->create();
+            $achievement->setRelation('trooper', $trooper);
+            $achievements->push($achievement);
+        }
+
+        $notification = new TrooperMilestoneNotification($achievements);
+        $data = $notification->toArray($achievements->first()->trooper);
+
+        $this->assertSame(4, $data['trooper_count']);
+        $this->assertSame(4, $data['milestone_count']);
+        $this->assertSame(route('service-records.achievements'), $data['url']);
+        $this->assertSame(
+            'Trooper 1, Trooper 2, Trooper 3 and 1 more achieved 4 milestones.',
+            $data['body'],
+        );
     }
 
     public function test_handle_notifies_moderators_in_scope_with_should_notify(): void
@@ -108,7 +132,7 @@ class SendTrooperMilestoneNotificationsJobTest extends TestCase
 
         $achievement = TrooperAchievement::factory()->create([
             TrooperAchievement::TROOPER_ID => $trooper->id,
-            TrooperAchievement::TYPE       => AchievementType::FIRST_TROOP,
+            TrooperAchievement::TYPE => AchievementType::FIRST_TROOP,
         ]);
         $achievement->setRelation('trooper', $trooper);
 
@@ -141,7 +165,7 @@ class SendTrooperMilestoneNotificationsJobTest extends TestCase
                 && $query->membership_role === MembershipRole::MODERATOR)
             ->andReturn(collect([$mod_in_scope, $mod_out_of_scope]));
 
-        $subject = new SendTrooperMilestoneNotificationsJob($achievement);
+        $subject = new SendTrooperMilestoneNotificationsJob;
         $subject->handle($bus);
 
         Notification::assertSentTo($mod_in_scope, TrooperMilestoneNotification::class);
@@ -160,7 +184,7 @@ class SendTrooperMilestoneNotificationsJobTest extends TestCase
 
         $achievement = TrooperAchievement::factory()->create([
             TrooperAchievement::TROOPER_ID => $trooper->id,
-            TrooperAchievement::TYPE       => AchievementType::FIRST_TROOP,
+            TrooperAchievement::TYPE => AchievementType::FIRST_TROOP,
         ]);
         $achievement->setRelation('trooper', $trooper);
 
@@ -191,7 +215,7 @@ class SendTrooperMilestoneNotificationsJobTest extends TestCase
                 && $query->membership_role === MembershipRole::MODERATOR)
             ->andReturn(collect([$mod_opted_out]));
 
-        $subject = new SendTrooperMilestoneNotificationsJob($achievement);
+        $subject = new SendTrooperMilestoneNotificationsJob;
         $subject->handle($bus);
 
         Notification::assertNotSentTo($mod_opted_out, TrooperMilestoneNotification::class);
@@ -205,14 +229,14 @@ class SendTrooperMilestoneNotificationsJobTest extends TestCase
 
         $achievement = TrooperAchievement::factory()->create([
             TrooperAchievement::TROOPER_ID => $trooper->id,
-            TrooperAchievement::TYPE       => AchievementType::FIRST_TROOP,
+            TrooperAchievement::TYPE => AchievementType::FIRST_TROOP,
         ]);
         $achievement->setRelation('trooper', $trooper);
 
         $bus = Mockery::mock(MagicBus::class);
-        $bus->shouldNotReceive('send');
+        $bus->shouldReceive('send')->twice()->andReturn(collect());
 
-        $subject = new SendTrooperMilestoneNotificationsJob($achievement);
+        $subject = new SendTrooperMilestoneNotificationsJob;
         $subject->handle($bus);
 
         Notification::assertNothingSent();
@@ -238,7 +262,7 @@ class SendTrooperMilestoneNotificationsJobTest extends TestCase
                 && $query->membership_role === MembershipRole::ADMINISTRATOR)
             ->andThrow(new Exception('delivery failed'));
 
-        $subject = new SendTrooperMilestoneNotificationsJob($achievement);
+        $subject = new SendTrooperMilestoneNotificationsJob;
 
         $this->expectException(Exception::class);
 

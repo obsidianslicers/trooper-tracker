@@ -159,13 +159,13 @@ This matches the service-record troop credit behavior.
 
 ## Notifications
 
-When a milestone row has no `notification_sent_at` timestamp and notifications are enabled, `RecalculateTrooperRankCommandHandler` dispatches:
+When a milestone row has no `notification_sent_at` timestamp and notifications are enabled, it remains pending for the daily roundup. The scheduler runs:
 
 ```text
-App\Jobs\SendTrooperMilestoneNotificationsJob
+tracker:send-daily-milestone-notifications
 ```
 
-That job notifies administrators and in-scope moderators who have opted into `trooper_milestones` notifications for one of the trooper's member organizations, then stamps `notification_sent_at`.
+at 8:00 AM. The command dispatches `SendTrooperMilestoneNotificationsJob`, which groups all pending milestones into one recipient-specific notification across each enabled mail, database, and FCM channel. Administrators and in-scope moderators receive only troopers belonging to organizations they selected for notifications. Processed milestones are then stamped with `notification_sent_at`.
 
 Club-scoped milestones use the same notification path as global milestones. Notification bodies and milestone emails use `TrooperAchievement::display_description`, so scoped milestones include club context, for example:
 
