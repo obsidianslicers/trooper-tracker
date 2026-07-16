@@ -397,4 +397,81 @@ class ShiftCompleteControllerTest extends TestCase
         $response->assertViewIs('pages.events.shift-complete-club-select');
         $this->assertSame(EventTrooperStatus::GOING, $event_trooper->fresh()->status);
     }
+
+    public function test_invoke_auto_credits_root_costume_approval_for_child_unit_member(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $parent_org = Organization::factory()->create();
+        $child_org = Organization::factory()->withParent($parent_org)->create();
+        $costume = Costume::factory()->create();
+
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($child_org)->asMember()->create();
+        $org_costume = OrganizationCostume::factory()
+            ->forOrganization($parent_org)
+            ->forCostume($costume)
+            ->create();
+        TrooperCostume::factory()->forTrooper($trooper)->forOrganizationCostume($org_costume)->create();
+
+        $event = Event::factory()->withOrganization($child_org)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->withCostume($costume)
+            ->asGoing()
+            ->create([EventTrooper::COSTUME_ORGANIZATION_IDS => null]);
+
+        $response = $this->actingAs($trooper)->get(route('events.shift-complete', [
+            'event_trooper' => $event_trooper->id,
+            'status' => Crypt::encryptString(EventTrooperStatus::ATTENDED->value),
+        ]));
+
+        $response->assertOk();
+        $response->assertViewIs('pages.events.shift-complete');
+        $this->assertSame([$parent_org->id], $event_trooper->fresh()->costume_organization_ids);
+    }
+
+    public function test_invoke_shows_club_select_for_root_approvals_and_child_unit_memberships(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $parent_org1 = Organization::factory()->create();
+        $parent_org2 = Organization::factory()->create();
+        $child_org1 = Organization::factory()->withParent($parent_org1)->create();
+        $child_org2 = Organization::factory()->withParent($parent_org2)->create();
+        $costume = Costume::factory()->create();
+
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($child_org1)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($child_org2)->asMember()->create();
+
+        foreach ([$parent_org1, $parent_org2] as $parent_org)
+        {
+            $org_costume = OrganizationCostume::factory()
+                ->forOrganization($parent_org)
+                ->forCostume($costume)
+                ->create();
+            TrooperCostume::factory()->forTrooper($trooper)->forOrganizationCostume($org_costume)->create();
+        }
+
+        $event = Event::factory()->withOrganization($child_org1)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->withCostume($costume)
+            ->asGoing()
+            ->create([EventTrooper::COSTUME_ORGANIZATION_IDS => null]);
+
+        $response = $this->actingAs($trooper)->get(route('events.shift-complete', [
+            'event_trooper' => $event_trooper->id,
+            'status' => Crypt::encryptString(EventTrooperStatus::ATTENDED->value),
+        ]));
+
+        $response->assertOk();
+        $response->assertViewIs('pages.events.shift-complete-club-select');
+        $this->assertSame(EventTrooperStatus::GOING, $event_trooper->fresh()->status);
+        $this->assertEqualsCanonicalizing(
+            [$parent_org1->id, $parent_org2->id],
+            $response->viewData('organizations')->pluck('id')->all()
+        );
+    }
 }
