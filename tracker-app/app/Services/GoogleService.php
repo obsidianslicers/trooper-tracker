@@ -48,7 +48,8 @@ class GoogleService
         $response = json_decode($geocode, false);
 
         // Check if API returned results, return null coordinates if not
-        if (!isset($response->results) || empty($response->results)) {
+        if (!isset($response->results) || empty($response->results))
+        {
             return [null, null];
         }
 
