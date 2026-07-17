@@ -47,6 +47,11 @@ class GoogleService
         // Decode JSON data returned by API
         $response = json_decode($geocode, false);
 
+        // Check if API returned results, return null coordinates if not
+        if (!isset($response->results) || empty($response->results)) {
+            return [null, null];
+        }
+
         // Retrieve latitude and longitude from API data
         $latitude = $response->results[0]->geometry->location->lat;
         $longitude = $response->results[0]->geometry->location->lng;
