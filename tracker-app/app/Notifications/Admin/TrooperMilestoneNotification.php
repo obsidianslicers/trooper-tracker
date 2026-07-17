@@ -54,7 +54,7 @@ class TrooperMilestoneNotification extends Notification
         return [
             'title' => 'Daily Trooper Milestones',
             'body' => $this->summaryBody($troopers, $milestone_count),
-            'url' => route('service-records.achievements'),
+            'url' => '/service-records/achievements',
             'trooper_count' => $trooper_count,
             'milestone_count' => $milestone_count,
             'trooper_ids' => $troopers->pluck('id')->all(),
