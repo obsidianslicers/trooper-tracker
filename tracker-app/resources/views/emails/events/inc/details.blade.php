@@ -30,9 +30,8 @@
             Outlook
         </a>
         &nbsp;|&nbsp;
-        <a target="_blank"
-           title="Download ICS File"
-           href="{{ $link->ics() }}">
+        <a title="Download ICS File"
+           href="{{ route('events.download-shift-ics', ['event' => $event, 'event_shift' => $event_shift], absolute: true) }}">
             Download ICS File
         </a>
     </li>

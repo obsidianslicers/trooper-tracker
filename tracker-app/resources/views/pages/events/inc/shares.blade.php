@@ -23,7 +23,7 @@
                title="Add to Outlook Calendar">
                 <i class="fab fa-microsoft"></i>
             </a>
-            <a href="{{ $link->ics() }}"
+            <a href="{{ route('events.download-ics', $event) }}"
                class="btn btn-outline-secondary"
                title="Add to Calendar (.ics)">
                 <i class="fa fa-fw fa-calendar"></i>
