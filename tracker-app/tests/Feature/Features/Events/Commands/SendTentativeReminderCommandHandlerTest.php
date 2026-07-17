@@ -31,6 +31,11 @@ class SendTentativeReminderCommandHandlerTest extends TestCase
         $handler = app(SendTentativeReminderCommandHandler::class);
         $handler(new SendTentativeReminderCommand($event_trooper));
 
-        Notification::assertSentTo($trooper, TentativeStatusReminderNotification::class);
+        Notification::assertSentTo(
+            $trooper,
+            TentativeStatusReminderNotification::class,
+            fn (TentativeStatusReminderNotification $notification): bool =>
+                $notification->toArray($trooper)['url'] === '/events/details/'.$event->id,
+        );
     }
 }
