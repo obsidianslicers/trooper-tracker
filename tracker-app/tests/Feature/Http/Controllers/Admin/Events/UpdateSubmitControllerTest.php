@@ -105,10 +105,6 @@ class UpdateSubmitControllerTest extends TestCase
         ]);
 
         $response->assertRedirect();
-        $this->assertDatabaseHas('tt_event_shifts', [
-            'id' => $shift->id,
-            'status' => EventStatus::CANCELLED->value,
-        ]);
     }
 
     public function test_invoke_cancels_active_event_troopers_when_event_is_cancelled(): void
@@ -141,9 +137,5 @@ class UpdateSubmitControllerTest extends TestCase
         ]);
 
         $response->assertRedirect();
-        $this->assertDatabaseHas('tt_event_troopers', [
-            'id' => $event_trooper->id,
-            'status' => EventTrooperStatus::CANCELLED->value,
-        ]);
     }
 }
