@@ -1,7 +1,7 @@
 <div class="row">
-    <div class="col-6 mb-2 mb-md-0">
+    <div class="col-12 col-lg-6 mb-2 mb-lg-0">
         @php($link = $event->createCalendarLink())
-        <div class="btn-group">
+        <div class="btn-group w-100" style="overflow-x: auto;">
             <a href="{{ $link->google() }}"
                class="btn btn-outline-secondary"
                target="_blank"
@@ -30,8 +30,8 @@
             </a>
         </div>
     </div>
-    <div class="col-6 mb-2 mb-md-0">
-        <div class="btn-group">
+    <div class="col-12 col-lg-6 mb-2 mb-lg-0">
+        <div class="btn-group" style="overflow-x: auto;">
             @if(App\Facades\TroopTrackerFacade::isXenforoIntegrationConfigured() && !empty($event->thread_id) && !empty($event->post_id))
                 <a href="{{ config('services.xenforo.base_url') . '/posts/' . $event->post_id . '/' }}"
                    class="btn btn-outline-secondary"
@@ -45,6 +45,8 @@
             @include('pages.events.inc.watch-toggle', compact('event', 'is_watching'))
         </div>
 
-        {!! Share::page(route('shares.event', compact('event')), $event->name)->facebook()->twitter() !!}
+        <div class="mt-2 mb-3">
+            {!! Share::page(route('shares.event', compact('event')), $event->name)->facebook()->twitter() !!}
+        </div>
     </div>
 </div>
