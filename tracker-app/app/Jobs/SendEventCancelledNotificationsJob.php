@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Bus\MagicBus;
+use App\Enums\EventStatus;
+use App\Enums\EventTrooperStatus;
 use App\Features\Events\Commands\SendEventCancelledNotificationCommand;
 use App\Features\Events\Queries\GetTroopersForEventCancelledQuery;
 use App\Models\Event;
@@ -55,6 +57,23 @@ class SendEventCancelledNotificationsJob implements ShouldQueue
             $send_notification_command = new SendEventCancelledNotificationCommand($this->event, $trooper);
 
             $bus->send($send_notification_command);
+        }
+
+        foreach ($this->event->event_shifts as $shift)
+        {
+            $shift->status = EventStatus::CANCELLED;
+            $shift->save();
+
+            foreach ($shift->event_troopers as $event_trooper)
+            {
+                if ($event_trooper->status === EventTrooperStatus::CANCELLED)
+                {
+                    continue;
+                }
+
+                $event_trooper->status = EventTrooperStatus::CANCELLED;
+                $event_trooper->save();
+            }
         }
 
         $this->event->cancel_notifications_sent_at = now();
