@@ -51,7 +51,7 @@ class TentativeStatusReminderNotification extends Notification
         return [
             'title' => 'Update Your Tentative Status: '.$event->name,
             'body'  => "You have {$days_until} day(s) to confirm or cancel your tentative status.",
-            'url'   => route('events.display', $event),
+            'url'   => '/events/details/'.$event->id,
         ];
     }
 

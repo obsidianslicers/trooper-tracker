@@ -113,7 +113,7 @@ class SendTrooperMilestoneNotificationsJobTest extends TestCase
 
         $this->assertSame(4, $data['trooper_count']);
         $this->assertSame(4, $data['milestone_count']);
-        $this->assertSame(route('service-records.achievements'), $data['url']);
+        $this->assertSame('/service-records/achievements', $data['url']);
         $this->assertSame(
             'Trooper 1, Trooper 2, Trooper 3 and 1 more achieved 4 milestones.',
             $data['body'],
