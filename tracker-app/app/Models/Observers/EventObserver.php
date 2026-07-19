@@ -132,6 +132,11 @@ class EventObserver
         {
             $address = $this->buildGeocodeAddress($event);
 
+            if (empty(trim($address)))
+            {
+                return;
+            }
+
             if (config('services.google.maps_api_key'))
             {
                 $google = app(GoogleService::class);
