@@ -88,107 +88,100 @@
                             </tr>
                             <tr id="station-editor-row-{{ $shift->id }}"
                                 class="{{ $hasStationRows ? '' : 'd-none' }}">
-                                    <td colspan="5" class="pt-0 pb-3 border-top-0">
-                                        <div class="rounded border border-secondary border-opacity-50 bg-black bg-opacity-25 p-3 ms-md-5">
-                                            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
-                                                <div>
-                                                    <span class="fw-semibold">
-                                                        Stations
+                                    <td colspan="5" class="pt-2 pb-3 border-top-0">
+                                        <div class="station-editor ms-md-5">
+                                            <div class="station-editor__header">
+                                                <div class="d-flex align-items-start gap-2">
+                                                    <span class="station-editor__icon" aria-hidden="true">
+                                                        <i class="fa fa-fw fa-map-marker"></i>
                                                     </span>
+                                                    <div>
+                                                        <div class="fw-semibold">Stations</div>
                                                     @if($hasStationRows)
-                                                        <span class="text-muted small ms-md-2 d-block d-md-inline">
-                                                            <i class="fa fa-fw fa-grip-vertical me-1"></i>
-                                                            Drag rows to reorder.
-                                                        </span>
-                                                    @else
-                                                        <span class="text-muted small ms-md-2 d-block d-md-inline">
-                                                            Add optional station signup limits for this shift.
-                                                        </span>
+                                                            <div class="text-muted small mt-1">
+                                                                <i class="fa fa-fw fa-grip-vertical me-1"></i>
+                                                                Drag stations to change their display order.
+                                                            </div>
                                                     @endif
+                                                    </div>
                                                 </div>
                                                 @if($event->is_active)
                                                     <button type="button"
-                                                            class="btn btn-sm btn-outline-success align-self-start align-self-md-auto"
+                                                            class="btn btn-sm btn-outline-success flex-shrink-0"
                                                             onclick="addStationRow({{ $shift->id }})">
                                                         <i class="fa fa-fw fa-plus me-1"></i>
                                                         Add Station
                                                     </button>
                                                 @endif
                                             </div>
-                                        <div class="table-responsive">
-                                            <table class="table table-sm table-borderless align-middle mb-0"
-                                                   id="stations-{{ $shift->id }}">
-                                                <thead class="small text-muted">
-                                                    <tr>
-                                                        <th style="width: 34px;"></th>
-                                                        <th class="fw-normal">Name</th>
-                                                        <th class="fw-normal" style="width: 160px;">Requested</th>
-                                                        <th style="width: 42px;"></th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody class="station-sortable-tbody"
-                                                       data-reorder-url="{{ route('admin.events.shifts.stations.reorder', ['event' => $event, 'event_shift' => $shift]) }}">
+                                            <div class="station-list station-sortable-tbody"
+                                                 id="stations-{{ $shift->id }}"
+                                                 data-reorder-url="{{ route('admin.events.shifts.stations.reorder', ['event' => $event, 'event_shift' => $shift]) }}">
                                                     @foreach($shift->event_shift_stations->sortBy([['sequence', 'asc'], ['name', 'asc']]) as $station)
-                                                        <tr data-id="{{ $station->id }}" class="border-top border-secondary border-opacity-25" style="cursor: grab;">
-                                                            <td class="text-muted station-drag-handle text-center" style="cursor: grab;">
+                                                        <div data-id="{{ $station->id }}" class="station-item">
+                                                            <button type="button" class="station-drag-handle" title="Drag to reorder" aria-label="Drag to reorder">
                                                                 <i class="fa fa-fw fa-grip-vertical"></i>
-                                                            </td>
-                                                            <td>
+                                                            </button>
+                                                            <div class="station-field station-field--name">
+                                                                <label class="form-label small mb-1" for="shifts.{{ $shift->id }}.stations.{{ $station->id }}.name">Station name</label>
                                                                 <x-input-text :property="'shifts.' . $shift->id . '.stations.' . $station->id . '.name'"
                                                                               :value="$station->name"
                                                                               :disabled="!$event->is_active"
                                                                               class="form-control-sm" />
-                                                            </td>
-                                                            <td>
+                                                            </div>
+                                                            <div class="station-field station-field--capacity">
+                                                                <label class="form-label small mb-1" for="shifts.{{ $shift->id }}.stations.{{ $station->id }}.troopers_allowed">Capacity</label>
                                                                 <x-input-text :property="'shifts.' . $shift->id . '.stations.' . $station->id . '.troopers_allowed'"
                                                                               :value="$station->troopers_allowed"
                                                                               :disabled="!$event->is_active"
                                                                               class="form-control-sm" />
-                                                            </td>
-                                                            <td class="text-end">
+                                                            </div>
+                                                            <div class="station-item__action">
                                                                 @if($event->is_active)
                                                                     <button type="button"
-                                                                            class="btn btn-sm btn-link text-danger p-1"
+                                                                            class="btn btn-sm btn-outline-danger station-remove"
                                                                             hx-post="{{ route('admin.events.shifts.stations.remove', ['event' => $event, 'event_shift' => $shift, 'event_shift_station' => $station]) }}"
                                                                             hx-confirm="Remove station {{ $station->name }}?"
                                                                             hx-trigger="click"
                                                                             title="Remove station">
-                                                                        <i class="fa fa-fw fa-times"></i>
+                                                                        <i class="fa fa-fw fa-trash"></i>
+                                                                        <span class="visually-hidden">Remove {{ $station->name }}</span>
                                                                     </button>
                                                                 @endif
-                                                            </td>
-                                                        </tr>
+                                                            </div>
+                                                        </div>
                                                     @endforeach
                                                     @if(old('shifts.' . $shift->id . '.stations'))
                                                         @foreach(old('shifts.' . $shift->id . '.stations') as $key => $data)
                                                             @if($key < 0)
-                                                                <tr class="border-top border-secondary border-opacity-25">
-                                                                    <td></td>
-                                                                    <td>
+                                                                <div class="station-item">
+                                                                    <span class="station-drag-placeholder"></span>
+                                                                    <div class="station-field station-field--name">
+                                                                        <label class="form-label small mb-1" for="shifts.{{ $shift->id }}.stations.{{ $key }}.name">Station name</label>
                                                                         <x-input-text :property="'shifts.' . $shift->id . '.stations.' . $key . '.name'"
                                                                                       :value="$data['name'] ?? ''"
                                                                                       class="form-control-sm" />
-                                                                    </td>
-                                                                    <td>
+                                                                    </div>
+                                                                    <div class="station-field station-field--capacity">
+                                                                        <label class="form-label small mb-1" for="shifts.{{ $shift->id }}.stations.{{ $key }}.troopers_allowed">Capacity</label>
                                                                         <x-input-text :property="'shifts.' . $shift->id . '.stations.' . $key . '.troopers_allowed'"
                                                                                      :value="$data['troopers_allowed'] ?? ''"
                                                                                      class="form-control-sm" />
-                                                                    </td>
-                                                                    <td class="text-end">
+                                                                    </div>
+                                                                    <div class="station-item__action">
                                                                         <button type="button"
-                                                                                class="btn btn-sm btn-link text-danger p-1"
-                                                                                onclick="this.closest('tr').remove()"
+                                                                                class="btn btn-sm btn-outline-danger station-remove"
+                                                                                onclick="this.closest('.station-item').remove()"
                                                                                 title="Remove station">
-                                                                            <i class="fa fa-fw fa-times"></i>
+                                                                            <i class="fa fa-fw fa-trash"></i>
+                                                                            <span class="visually-hidden">Remove station</span>
                                                                         </button>
-                                                                    </td>
-                                                                </tr>
+                                                                    </div>
+                                                                </div>
                                                             @endif
                                                         @endforeach
                                                     @endif
-                                                </tbody>
-                                            </table>
-                                        </div>
+                                            </div>
                                         </div>
                                     </td>
                             </tr>
@@ -319,10 +312,10 @@
         }
 
         function addStationRow(shiftId) {
-            const tbody = document.querySelector(`#stations-${shiftId} tbody`);
-            if (!tbody) return;
+            const stationList = document.querySelector(`#stations-${shiftId}`);
+            if (!stationList) return;
 
-            const existingNegRows = [...tbody.querySelectorAll("input")]
+            const existingNegRows = [...stationList.querySelectorAll("input")]
                 .map(input => input.name.match(/stations\]\[(\-?\d+)\]/))
                 .filter(Boolean)
                 .map(match => parseInt(match[1], 10))
@@ -331,40 +324,44 @@
             let minNeg = existingNegRows.length ? Math.min(...existingNegRows) : 0;
             const newIndex = minNeg - 1;
 
-            const tr = document.createElement("tr");
-            tr.className = "border-top border-secondary border-opacity-25";
-            tr.innerHTML = `
-                <td></td>
-                <td>
+            const stationItem = document.createElement("div");
+            stationItem.className = "station-item";
+            stationItem.innerHTML = `
+                <span class="station-drag-placeholder"></span>
+                <div class="station-field station-field--name">
+                    <label class="form-label small mb-1" for="shifts.${shiftId}.stations.${newIndex}.name">Station name</label>
                     <input type="text"
                            name="shifts[${shiftId}][stations][${newIndex}][name]"
                            id="shifts.${shiftId}.stations.${newIndex}.name"
                            class="form-control form-control-sm">
-                </td>
-                <td>
+                </div>
+                <div class="station-field station-field--capacity">
+                    <label class="form-label small mb-1" for="shifts.${shiftId}.stations.${newIndex}.troopers_allowed">Capacity</label>
                     <input type="text"
                            name="shifts[${shiftId}][stations][${newIndex}][troopers_allowed]"
                            id="shifts.${shiftId}.stations.${newIndex}.troopers_allowed"
                            class="form-control form-control-sm">
-                </td>
-                <td class="text-end">
+                </div>
+                <div class="station-item__action">
                     <button type="button"
-                            class="btn btn-sm btn-link text-danger p-1"
-                            onclick="this.closest('tr').remove()"
+                            class="btn btn-sm btn-outline-danger station-remove"
+                            onclick="this.closest('.station-item').remove()"
                             title="Remove station">
-                        <i class="fa fa-fw fa-times"></i>
+                        <i class="fa fa-fw fa-trash"></i>
+                        <span class="visually-hidden">Remove station</span>
                     </button>
-                </td>`;
+                </div>`;
 
-            tbody.appendChild(tr);
+            stationList.appendChild(stationItem);
+            stationItem.querySelector('input')?.focus();
         }
 
         function showStationEditor(shiftId, addInitialRow = false) {
             const row = document.querySelector(`#station-editor-row-${shiftId}`);
             if (row) row.classList.remove('d-none');
 
-            const tbody = document.querySelector(`#stations-${shiftId} tbody`);
-            if (addInitialRow && tbody && tbody.querySelectorAll('tr').length === 0) {
+            const stationList = document.querySelector(`#stations-${shiftId}`);
+            if (addInitialRow && stationList && stationList.querySelectorAll('.station-item').length === 0) {
                 addStationRow(shiftId);
             }
         }
@@ -372,15 +369,15 @@
         document.addEventListener('DOMContentLoaded', function () {
             if (typeof Sortable === 'undefined') return;
 
-            document.querySelectorAll('.station-sortable-tbody').forEach(function (tbody) {
-                Sortable.create(tbody, {
+            document.querySelectorAll('.station-sortable-tbody').forEach(function (stationList) {
+                Sortable.create(stationList, {
                     handle: '.station-drag-handle',
                     animation: 150,
                     onEnd: function () {
-                        var ordered_ids = Array.from(tbody.querySelectorAll('tr[data-id]'))
+                        var ordered_ids = Array.from(stationList.querySelectorAll('.station-item[data-id]'))
                             .map(function (row) { return row.dataset.id; });
 
-                        fetch(tbody.dataset.reorderUrl, {
+                        fetch(stationList.dataset.reorderUrl, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
