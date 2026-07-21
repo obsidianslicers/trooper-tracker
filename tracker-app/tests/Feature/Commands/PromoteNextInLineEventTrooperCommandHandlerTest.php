@@ -51,7 +51,7 @@ class PromoteNextInLineEventTrooperCommandHandlerTest extends TestCase
 
         $this->shift = EventShift::factory()->forEvent($this->event)->create();
 
-        $this->handler = new PromoteNextInLineEventTrooperCommandHandler();
+        $this->handler = app(PromoteNextInLineEventTrooperCommandHandler::class);
     }
 
     private function makeTrooper(EventTrooperStatus $status, Carbon $signed_up_at, ?int $org_id = null): EventTrooper
@@ -155,6 +155,10 @@ class PromoteNextInLineEventTrooperCommandHandlerTest extends TestCase
         $other_station_standby = $this->makeTrooper(EventTrooperStatus::STAND_BY, now()->subMinute(), $this->org->id);
         $other_station_standby->event_shift_station_id = $other_station->id;
         $other_station_standby->save();
+
+        //  production cancels the departing trooper before dispatching the promotion
+        $going->status = EventTrooperStatus::CANCELLED;
+        $going->save();
 
         ($this->handler)(new PromoteNextInLineEventTrooperCommand(
             $going,

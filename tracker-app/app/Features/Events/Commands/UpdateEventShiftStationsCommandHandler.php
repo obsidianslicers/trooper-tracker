@@ -11,6 +11,7 @@ use App\Models\EventShift;
 use App\Models\EventShiftStation;
 use App\Models\EventTrooper;
 use App\Notifications\Events\TrooperPromotedToGoingNotification;
+use InvalidArgumentException;
 
 readonly class UpdateEventShiftStationsCommandHandler implements CommandHandlerInterface
 {
@@ -28,6 +29,15 @@ readonly class UpdateEventShiftStationsCommandHandler implements CommandHandlerI
             if ($name === '' && empty($troopers_allowed))
             {
                 continue;
+            }
+
+            //  stations always require a positive numerical limit; request
+            //  validation guards this, so reaching here without one is a bug
+            if (!is_numeric($troopers_allowed) || (int) $troopers_allowed < 1)
+            {
+                throw new InvalidArgumentException(
+                    'Station troopers_allowed must be a positive integer.'
+                );
             }
 
             $station = $this->resolveStation($message->event_shift, (int) $station_id);

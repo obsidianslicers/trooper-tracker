@@ -15,6 +15,7 @@ use App\Jobs\SendEventRosterActivityNotificationsJob;
 use App\Models\Costume;
 use App\Models\EventTrooper;
 use App\Notifications\Events\TrooperSignedUpNotification;
+use App\Services\EventRosterCapacityService;
 
 /**
  * Handler for signing up a trooper for an event shift.
@@ -27,6 +28,9 @@ use App\Notifications\Events\TrooperSignedUpNotification;
 readonly class SignUpEventTrooperCommandHandler implements CommandHandlerInterface
 {
     use ShouldBeTransactional;
+
+    public function __construct(private EventRosterCapacityService $capacity) {}
+
     /**
      * @param  SignUpEventTrooperCommand  $message
      */
@@ -54,40 +58,17 @@ readonly class SignUpEventTrooperCommandHandler implements CommandHandlerInterfa
 
         if ($status !== EventTrooperStatus::STAND_BY)
         {
-            $station_maxed = false;
-            if ($message->event_shift->usesStations())
-            {
-                if ($message->event_shift_station_id === null || $message->event_shift->stationMaxed($message->event_shift_station_id, lock: true))
-                {
-                    $station_maxed = true;
-                }
-            }
+            $can_go = $this->capacity->canGo(
+                $message->event_shift,
+                $message->organization_id,
+                $message->event_shift_station_id,
+                $event_trooper->is_handler,
+                lock: true,
+            );
 
-            if ($station_maxed)
+            if (!$can_go)
             {
                 $status = EventTrooperStatus::STAND_BY;
-            }
-            elseif ($event_trooper->is_handler)
-            {
-                if ($message->event_shift->handlersMaxed(lock: true))
-                {
-                    $status = EventTrooperStatus::STAND_BY;
-                }
-                elseif ($message->organization_id !== null && $message->event_shift->orgTroopersMaxed($message->organization_id, true, lock: true))
-                {
-                    $status = EventTrooperStatus::STAND_BY;
-                }
-            }
-            else
-            {
-                if ($message->event_shift->troopersMaxed(lock: true))
-                {
-                    $status = EventTrooperStatus::STAND_BY;
-                }
-                elseif ($message->organization_id !== null && $message->event_shift->orgTroopersMaxed($message->organization_id, false, lock: true))
-                {
-                    $status = EventTrooperStatus::STAND_BY;
-                }
             }
         }
 
