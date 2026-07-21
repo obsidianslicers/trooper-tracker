@@ -7,7 +7,6 @@ namespace App\Http\Controllers;
 use App\Bus\MagicBus;
 use App\Services\BreadCrumbService;
 use App\Services\FlashMessageService;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 /**
  * Base controller providing MagicBus integration and common services.
@@ -16,10 +15,8 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
  * providing dependency injection for MagicBus, flash messaging, and breadcrumb services.
  * Extends the functionality with authorization capabilities and an initialization hook.
  */
-abstract class MagicBusController
+abstract class MagicBusController extends Controller
 {
-    use AuthorizesRequests;
-
     /**
      * Create a new controller instance with core services.
      *
@@ -42,5 +39,7 @@ abstract class MagicBusController
      * such as setting breadcrumbs or preparing shared view data. This is called
      * after dependency injection is complete.
      */
-    protected function initialized(): void {}
+    protected function initialized(): void
+    {
+    }
 }

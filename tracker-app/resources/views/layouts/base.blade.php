@@ -53,9 +53,9 @@
 
         @yield('content')
 
-        @include('partials.footer')
     </div>
 
+    @include('partials.footer')
     @vite(['resources/js/app.js'])
     @yield('page-script')
     @stack('scripts')

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Generators;
+namespace Fabricator;
 
 use Faker\Generator as Faker;
 use Faker\Provider\Base;
@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
 class TypeGuesser
 {
     /**
-     * @var \Faker\Generator
+     * @var Faker
      */
     protected $generator;
 
@@ -23,9 +23,6 @@ class TypeGuesser
         $this->generator = $generator;
     }
 
-    /**
-     * Infers a Faker generator expression for the provided column metadata.
-     */
     public function guess(string $name, string $type, ?string $size = null): string
     {
         $name = Str::of($name)->lower();

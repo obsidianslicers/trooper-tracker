@@ -1,4 +1,4 @@
-<div class="container pt-4 border-top"
+<div class="container-fluid pt-4 border-top"
      style="margin-top: 128px;">
     <div class="row text-center text-md-start">
 

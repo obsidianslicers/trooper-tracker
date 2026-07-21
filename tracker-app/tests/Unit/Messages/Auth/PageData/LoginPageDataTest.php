@@ -1,0 +1,52 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Unit\Messages\Auth\PageData;
+
+use App\Messages\Auth\PageData\LoginPageData;
+use App\Messages\Auth\Queries\GetAuthConfig;
+use Mockery;
+use Tests\TestCase;
+
+class LoginPageDataTest extends TestCase
+{
+    public function test_handle_returns_oauth_data_from_get_auth_config(): void
+    {
+        $oauth = [
+            'session' => ['method' => 'email'],
+            'xenforo' => [
+                'name' => 'Florida Garrison',
+                'required' => false,
+                'configured' => true,
+            ],
+            'google' => [
+                'enabled' => true,
+                'configured' => true,
+            ],
+            'email_password' => [
+                'enabled' => true,
+            ],
+        ];
+
+        Mockery::mock('alias:' . GetAuthConfig::class)
+            ->shouldReceive('call')
+            ->once()
+            ->andReturn($oauth);
+
+        $subject = new LoginPageData();
+
+        $result = $subject->handle();
+
+        $this->assertSame([
+            'oauth' => $oauth,
+        ], $result);
+    }
+
+    protected function tearDown(): void
+    {
+        Mockery::close();
+
+        parent::tearDown();
+    }
+}

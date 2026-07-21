@@ -49,6 +49,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->web(append: [
+            \App\Http\Middleware\HandleInertiaRequests::class,
             \App\Http\Middleware\FlashMessageMiddleware::class,
             \App\Http\Middleware\PushNotificationCountMiddleware::class,
             \App\Http\Middleware\HtmxDispatchHeaderMiddleware::class,
@@ -118,7 +119,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $exceptions->render(function (PostTooLargeException $e, Request $request)
         {
-            if (! $request->isHtmx())
+            if (!$request->isHtmx())
             {
                 return null;
             }
