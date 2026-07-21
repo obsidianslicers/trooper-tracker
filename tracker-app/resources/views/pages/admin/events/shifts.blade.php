@@ -78,8 +78,11 @@
                                                     class="form-select-sm" />
                                     @if($event->is_active && !$hasStationRows)
                                         <button type="button"
+                                                id="station-toggle-{{ $shift->id }}"
                                                 class="btn btn-sm btn-link text-muted px-0 mt-1"
-                                                onclick="showStationEditor({{ $shift->id }}, true)">
+                                                aria-controls="station-editor-row-{{ $shift->id }}"
+                                                aria-expanded="false"
+                                                onclick="toggleStationEditor({{ $shift->id }}, true)">
                                             <i class="fa fa-fw fa-plus me-1"></i>
                                             Stations
                                         </button>
@@ -356,12 +359,18 @@
             stationItem.querySelector('input')?.focus();
         }
 
-        function showStationEditor(shiftId, addInitialRow = false) {
+        function toggleStationEditor(shiftId, addInitialRow = false) {
             const row = document.querySelector(`#station-editor-row-${shiftId}`);
-            if (row) row.classList.remove('d-none');
+            if (!row) return;
+
+            const willShow = row.classList.contains('d-none');
+            row.classList.toggle('d-none', !willShow);
+
+            const toggle = document.querySelector(`#station-toggle-${shiftId}`);
+            toggle?.setAttribute('aria-expanded', willShow ? 'true' : 'false');
 
             const stationList = document.querySelector(`#stations-${shiftId}`);
-            if (addInitialRow && stationList && stationList.querySelectorAll('.station-item').length === 0) {
+            if (willShow && addInitialRow && stationList && stationList.querySelectorAll('.station-item').length === 0) {
                 addStationRow(shiftId);
             }
         }
