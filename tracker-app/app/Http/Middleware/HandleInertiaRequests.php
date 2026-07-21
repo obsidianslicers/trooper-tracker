@@ -55,18 +55,17 @@ class HandleInertiaRequests extends Middleware
             ];
         }
 
-
         return [
             ...parent::share($request),
             'config' => $config,
             'user' => $actor,
-            'results' => fn() => $request->session()->get('results'),
+            'results' => fn () => $request->session()->get('results'),
             // Lazy-load flash: only evaluated if the frontend specifically requests 'flash'
             'flash' => [
-                'success' => fn() => $request->session()->get('success'),
-                'info' => fn() => $request->session()->get('info'),
-                'warning' => fn() => $request->session()->get('warning'),
-                'danger' => fn() => $request->session()->get('danger'),
+                'success' => fn () => $request->session()->get('success'),
+                'info' => fn () => $request->session()->get('info'),
+                'warning' => fn () => $request->session()->get('warning'),
+                'danger' => fn () => $request->session()->get('danger'),
             ],
         ];
     }

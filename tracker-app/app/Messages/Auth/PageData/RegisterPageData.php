@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Messages\Auth\PageData;
 
 use App\Enums\MembershipRole;
-use App\Facades\TroopTracker;
 use App\Messages\Auth\Queries\GetAuthConfig;
 use App\Messages\Organizations\Queries\GetOrganizationHierarchy;
 use App\Models\Organization;
@@ -41,15 +40,15 @@ final class RegisterPageData extends Message
     private function getOrganizationHierarchy(): array
     {
         return GetOrganizationHierarchy::call()
-            ->map(fn(Organization $org) => [
+            ->map(fn (Organization $org) => [
                 'id' => $org->id,
                 'name' => $org->name,
                 'identifier_display' => $org->identifier_display,
                 'requires_guardian' => $org->requires_guardian,
-                'regions' => $org->organizations->map(fn($region) => [
+                'regions' => $org->organizations->map(fn ($region) => [
                     'id' => $region->id,
                     'name' => $region->name,
-                    'units' => $region->organizations->map(fn($unit) => [
+                    'units' => $region->organizations->map(fn ($unit) => [
                         'id' => $unit->id,
                         'name' => $unit->name,
                     ]),

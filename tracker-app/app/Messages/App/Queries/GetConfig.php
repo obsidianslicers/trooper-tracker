@@ -12,9 +12,8 @@ use Hyperdrive\Message;
  * This query message responds with configuration data for authorization providers (XenForo OAuth,
  * Google OAuth, email/password authentication), application metadata, and feature/localization settings.
  * Used by frontend clients to determine available authentication methods and application capabilities.
- * 
+ *
  * @method static void call()
- * 
  */
 final class GetConfig extends Message
 {

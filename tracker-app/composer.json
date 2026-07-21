@@ -64,6 +64,7 @@
             "pint app/Http",
             "pint app/Jobs",
             "pint app/Mail",
+            "pint app/Messages",
             "pint app/Models/Casts",
             "pint app/Models/Concerns",
             "pint app/Models/Filters",

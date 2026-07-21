@@ -7,10 +7,12 @@ namespace Tests\Unit\Messages\Auth\PageData;
 use App\Messages\Auth\PageData\LoginPageData;
 use App\Messages\Auth\Queries\GetAuthConfig;
 use Mockery;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use Tests\TestCase;
 
 class LoginPageDataTest extends TestCase
 {
+    #[RunInSeparateProcess]
     public function test_handle_returns_oauth_data_from_get_auth_config(): void
     {
         $oauth = [

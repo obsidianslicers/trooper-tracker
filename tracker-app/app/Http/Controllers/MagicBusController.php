@@ -39,7 +39,5 @@ abstract class MagicBusController extends Controller
      * such as setting breadcrumbs or preparing shared view data. This is called
      * after dependency injection is complete.
      */
-    protected function initialized(): void
-    {
-    }
+    protected function initialized(): void {}
 }

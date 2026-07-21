@@ -14,7 +14,7 @@ class TroopTracker
 {
     /**
      * Retrieves the configured name of the XenForo instance.
-     * 
+     *
      * @return string The configured name of the XenForo instance.
      */
     public function getXenforoOAuthName(): string

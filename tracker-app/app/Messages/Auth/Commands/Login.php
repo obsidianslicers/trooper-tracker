@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace App\Messages\Auth\Commands;
 
-use Hyperdrive\Message;
 use App\Enums\MembershipStatus;
-use App\Facades\TroopTracker;
 use App\Models\Trooper;
-use Illuminate\Http\RedirectResponse;
+use Hyperdrive\Message;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
@@ -19,21 +17,16 @@ use Illuminate\Support\Facades\Hash;
  * via various providers (XenForo OAuth, Google OAuth, email/password).
  *
  * @method static void call(string $email, string $password, bool $remember_me)
- *
  */
 final class Login extends Message
 {
     public function __construct(
         private readonly string $email,
         private readonly string $password,
-        private readonly bool $remember_me)
-    {
-    }
+        private readonly bool $remember_me) {}
 
     /**
      * Handles the login process for the application.
-     *
-     * @return void
      */
     public function handle(): void
     {
