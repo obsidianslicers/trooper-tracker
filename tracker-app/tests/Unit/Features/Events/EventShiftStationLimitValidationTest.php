@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Features\Events;
+namespace Tests\Unit\Features\Events;
 
 use App\Enums\EventTrooperStatus;
 use App\Features\Events\Commands\UpdateEventShiftStationsCommand;

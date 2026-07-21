@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Features\Events\Commands;
+namespace Tests\Unit\Features\Events\Commands;
 
 use App\Enums\EventTrooperStatus;
 use App\Features\Events\Commands\ReconcileEventRosterCommand;
@@ -388,5 +388,49 @@ class ReconcileEventRosterLimitChangeTest extends TestCase
             $standby_cet->status,
             'Cancelled troopers do not count toward capacity'
         );
+    }
+
+    public function test_station_capacity_is_shared_between_troopers_and_handlers(): void
+    {
+        $this->event->update([Event::HANDLERS_ALLOWED => null]);
+
+        $oldest_trooper = $this->makeTrooper(EventTrooperStatus::GOING, $this->target_station, 30);
+        $handler_cet = $this->makeHandler(EventTrooperStatus::GOING, $this->target_station, 20);
+        $newest_trooper = $this->makeTrooper(EventTrooperStatus::GOING, $this->target_station, 10);
+
+        $this->reconcile();
+
+        $oldest_trooper->refresh();
+        $handler_cet->refresh();
+        $newest_trooper->refresh();
+
+        $this->assertSame(EventTrooperStatus::GOING, $oldest_trooper->status, 'Oldest keeps their spot');
+        $this->assertSame(
+            EventTrooperStatus::GOING,
+            $handler_cet->status,
+            'Handler occupies a station slot like any trooper'
+        );
+        $this->assertSame(
+            EventTrooperStatus::STAND_BY,
+            $newest_trooper->status,
+            'Station holds at most its limit across troopers and handlers combined'
+        );
+    }
+
+    private function makeHandler(
+        EventTrooperStatus $status,
+        EventShiftStation $station,
+        int $minutes_ago,
+    ): EventTrooper {
+        return EventTrooper::factory()
+            ->forEventShift($this->shift)
+            ->forTrooper(Trooper::factory()->create())
+            ->forEventShiftStation($station)
+            ->create([
+                EventTrooper::STATUS => $status,
+                EventTrooper::ORGANIZATION_ID => null,
+                EventTrooper::IS_HANDLER => true,
+                EventTrooper::SIGNED_UP_AT => now()->subMinutes($minutes_ago),
+            ]);
     }
 }
