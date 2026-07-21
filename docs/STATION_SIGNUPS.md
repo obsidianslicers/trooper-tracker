@@ -55,34 +55,32 @@ This applies to:
 
 Guests stay outside station capacity in the current implementation.
 
-When a station is selected:
+When a station is selected, `EventRosterCapacityService::canGo()` decides the status. The signup becomes `GOING` only when every applicable limit has room:
 
-1. The app counts current `GOING` `tt_event_troopers` for that station.
-2. If the count is below `troopers_allowed`, the signup becomes `GOING`.
-3. If the station is full, the signup becomes `STAND_BY`.
+1. The station's `troopers_allowed` count (always required, never unlimited).
+2. The event-wide trooper or handler limit (`null` = unlimited).
+3. The organization limit, when an organization applies (`null` = unlimited).
 
-While a shift is open, signup owners can switch their own station from the event page. Admins can also edit station assignments from the admin roster backend.
+If any of those limits is full, the signup becomes `STAND_BY`.
 
-Switching into a full station moves or keeps the signup on `STAND_BY`.
+While a shift is open, signup owners can switch their own station from the event page. The switch is handled by `ChangeEventTrooperStationCommand`: moving into a full station demotes a `GOING` signup to `STAND_BY`, and vacating a full station promotes the earliest standby from that station's queue. Admins can also edit station assignments from the admin roster backend.
 
 ---
 
 ## Capacity Rules
 
-Stations are the capacity source for shifts that have stations.
+`EventRosterCapacityService` is the single source of truth for capacity decisions. A trooper holds a `GOING` spot only when every applicable limit has room.
 
 For a stationed shift:
 
-- Station capacity decides whether a trooper is `GOING` or `STAND_BY`.
-- Global shift trooper limits do not block stationed signups.
-- Organization trooper and handler limits do not block stationed signups.
-- Handler and trooper station capacity is shared; stations count `EventTrooper` rows, including handlers.
+- A station assignment is required; a signup without one cannot be `GOING`.
+- Station capacity is checked alongside the event-wide and organization limits — a stationed signup must fit all of them.
+- Station capacity is role-agnostic: handlers and troopers share the same station slots. Event-wide and organization limits remain tracked per role.
+- Station limits are always a required positive number and are never unlimited.
 
 For a shift with no stations:
 
 - Existing global shift limits, organization limits, trooper limits, and handler limits continue to work as before.
-
-This means an enabled stationed shift is intentionally controlled by the station totals rather than the older global/org limit pools.
 
 ---
 
@@ -90,11 +88,13 @@ This means an enabled stationed shift is intentionally controlled by the station
 
 Standby promotion is station-scoped when a station is involved.
 
-If a `GOING` trooper leaves a full station, the earliest `STAND_BY` trooper assigned to that same station is promoted to `GOING`.
+If a `GOING` trooper leaves a full station, `PromoteNextInLineEventTrooperCommand` promotes the earliest eligible `STAND_BY` trooper assigned to that same station. Candidates are evaluated in `signed_up_at ASC, id ASC` order and promoted only when every applicable limit (event, organization, station) has room.
 
-If command staff raise a station's requested count, saving the shift promotes station standbys while the station has room.
+Saving the shift form with station changes dispatches `ReconcileEventRosterJob`, which reconciles the whole event roster through `ReconcileEventRosterCommandHandler` — the same path used when event or organization limits change. The reconcile walks each shift in deterministic queue order (`signed_up_at ASC, id ASC`) and re-assigns `GOING` / `STAND_BY` against the current limits:
 
-If command staff lower a station's requested count below the current `GOING` count, saving the shift demotes the overflow signups to `STAND_BY`. The newest signups are demoted first so earlier signups keep priority.
+- Raising a station's requested count promotes the oldest eligible standbys while the station (and every other applicable limit) has room.
+- Lowering a station's requested count below the current `GOING` count demotes the overflow; the newest signups are demoted first so earlier signups keep priority.
+- Promoted troopers receive a `TrooperNextInLine` email; demoted troopers receive a `TrooperManualSelectionStandBy` email.
 
 Example:
 
@@ -137,6 +137,8 @@ Changing a trooper into a full station follows the same capacity rule as the pub
 
 If a station exists, a new trooper signup must select one. If no station is selected, the signup is rejected with a validation message.
 
+An existing signup on a stationed shift cannot clear its station. On the event page this is rejected with a flash message ("A station is required for this shift.") and the roster re-renders unchanged — no session validation errors are used, because every roster row shares the same input name and session errors would render against all of them.
+
 If a station is full, new signups are still stored, but with `STAND_BY` status.
 
 If a station capacity is lowered below the current `GOING` count, overflow `GOING` rows are automatically demoted to `STAND_BY` on the next shift save. Demotion starts with the newest signup.
@@ -153,6 +155,8 @@ If a shift has no stations, all station behavior is bypassed and legacy signup l
 |---|---|
 | Migrations | `database/migrations/2026_07_06_000002_create_event_shift_stations_table.php`, `database/migrations/2026_07_06_000003_add_event_shift_station_id_to_event_troopers_table.php` |
 | Models | `app/Models/EventShiftStation.php`, `app/Models/EventShift.php`, `app/Models/EventTrooper.php` |
+| Capacity decisions | `app/Services/EventRosterCapacityService.php` |
+| Domain commands | `app/Features/Events/Commands/SignUpEventTrooperCommandHandler.php`, `app/Features/Events/Commands/ChangeEventTrooperStationCommandHandler.php`, `app/Features/Events/Commands/PromoteNextInLineEventTrooperCommandHandler.php`, `app/Features/Events/Commands/ReconcileEventRosterCommandHandler.php`, `app/Features/Events/Commands/UpdateEventShiftStationsCommandHandler.php`, `app/Features/Events/Commands/RemoveEventShiftStationCommandHandler.php`, `app/Features/Events/Commands/ReorderEventShiftStationsCommandHandler.php` |
 | Admin shift editor | `resources/views/pages/admin/events/shifts.blade.php`, `app/Http/Controllers/Admin/Events/UpdateShiftsSubmitController.php` |
 | Admin roster editor | `resources/views/pages/admin/events/troopers.blade.php`, `app/Http/Controllers/Admin/Events/UpdateTroopersSubmitController.php` |
 | Public signup/update | `app/Http/Controllers/Events/SignUpHtmxController.php`, `app/Http/Controllers/Events/SignUpUpdateHtmxController.php` |

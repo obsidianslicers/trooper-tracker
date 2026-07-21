@@ -75,12 +75,18 @@ class SignUpUpdateHtmxControllerTest extends TestCase
             ->asGoing()
             ->create();
 
-        $response = $this->actingAs($trooper)->post(
+        $response = $this->actingAs($trooper)->withHeaders(['HX-Request' => 'true'])->post(
             route('events.signup-update-htmx', ['event_trooper' => $event_trooper]),
             ['event_shift_station_id' => ''],
         );
 
-        $response->assertSessionHasErrors(EventTrooper::EVENT_SHIFT_STATION_ID);
+        $response->assertOk();
+        $response->assertHeader('X-Flash-Message');
+        $this->assertStringContainsString(
+            'A station is required for this shift.',
+            $response->headers->get('X-Flash-Message'),
+        );
+        $response->assertSessionDoesntHaveErrors();
         $this->assertSame($station->id, $event_trooper->fresh()->event_shift_station_id);
     }
 

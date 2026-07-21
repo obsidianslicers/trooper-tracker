@@ -22,6 +22,7 @@ use App\Notifications\Events\ManualSelectionApprovedNotification;
 use App\Notifications\Events\ManualSelectionStandByNotification;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Handles HTMX-driven updates to event trooper sign-up details.
@@ -30,7 +31,23 @@ class SignUpUpdateHtmxController extends MagicBusController
 {
     public function __invoke(SignupUpdateHtmxRequest $request, EventTrooper $event_trooper): Response
     {
-        $request->validateInputs();
+        try
+        {
+            $request->validateInputs();
+        }
+        catch (ValidationException $exception)
+        {
+            //  a redirect with session errors would re-render every row's
+            //  identically-named inputs as errored and cleared; re-render the
+            //  shift container as-is and surface the message as a flash
+            return $this->shiftContainerView($event_trooper->event_shift, Auth::user())
+                ->header('X-Flash-Message', json_encode([
+                    'message' => collect($exception->errors())->flatten()->first(),
+                    'type' => 'danger',
+                    'focus' => true,
+                    'fadeOut' => 5000,
+                ]));
+        }
 
         if ($request->has('status'))
         {
