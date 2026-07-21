@@ -360,8 +360,18 @@ class EventTrooper extends BaseEventTrooper
         }
 
         $approved_ids = $this->costume->approvedOrgIdsForTrooper($this->trooper_id);
-        if (!empty($approved_ids)) {
-            return $this->memberOrgsQuery()->whereIn('id', $approved_ids)->get();
+        if (!empty($approved_ids))
+        {
+            $member_orgs = $this->memberOrgsQuery()->get();
+
+            return Organization::findMany($approved_ids)
+                ->filter(function ($approved_org) use ($member_orgs) {
+                    return $member_orgs->contains(function ($member_org) use ($approved_org) {
+                        return str_starts_with($member_org->node_path, $approved_org->node_path)
+                            || str_starts_with($approved_org->node_path, $member_org->node_path);
+                    });
+                })
+                ->values();
         }
 
         return $this->memberOrgsQuery()->get();
@@ -508,23 +518,52 @@ class EventTrooper extends BaseEventTrooper
         if ($costume !== null && !$costume->countsAsHandler())
         {
             $root_ids = $this->rootOrgIdsForCostume($costume->id);
+            $root_ids = $this->filterAccessibleRootOrgIds($root_ids, $allowed_org_ids);
 
             return Organization::whereIn('id', $root_ids)
-                ->when($allowed_org_ids !== null, fn ($q) => $q->whereIn('id', $allowed_org_ids))
                 ->orderBy(Organization::NAME)
                 ->get()
                 ->values();
         }
 
-        return Organization::whereHas('trooper_assignments', fn ($q) =>
+        $root_orgs = Organization::whereHas('trooper_assignments', fn ($q) =>
             $q->where(TrooperAssignment::TROOPER_ID, $this->trooper_id)
                 ->where(TrooperAssignment::IS_MEMBER, true)
         )
             ->get()
             ->map(fn ($org) => $org->getPrimaryClub())
             ->unique('id')
-            ->when($allowed_org_ids !== null, fn ($c) => $c->whereIn('id', $allowed_org_ids))
             ->values();
+
+        $accessible_root_ids = $this->filterAccessibleRootOrgIds(
+            $root_orgs->pluck('id')->all(),
+            $allowed_org_ids
+        );
+
+        return $root_orgs->whereIn('id', $accessible_root_ids)->values();
+    }
+
+    /**
+     * Restrict top-level club IDs to the clubs containing a moderator's scoped organizations.
+     *
+     * @param  array<int>  $root_org_ids
+     * @param  array<int>|null  $allowed_org_ids  Null means no restriction (admin).
+     * @return array<int>
+     */
+    public function filterAccessibleRootOrgIds(array $root_org_ids, ?array $allowed_org_ids): array
+    {
+        if ($allowed_org_ids === null)
+        {
+            return array_values($root_org_ids);
+        }
+
+        $allowed_root_ids = Organization::whereIn(Organization::ID, $allowed_org_ids)
+            ->pluck(Organization::NODE_PATH)
+            ->map(fn ($node_path) => (int) explode(':', $node_path)[0])
+            ->unique()
+            ->all();
+
+        return array_values(array_intersect($root_org_ids, $allowed_root_ids));
     }
 
     /**

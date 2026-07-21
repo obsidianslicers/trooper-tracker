@@ -25,12 +25,13 @@ readonly class GetEventSummaryQuery
      * Create a new query instance.
      *
      * @param  Trooper  $moderator  The moderator whose events to summarize.
-     * @param  int|string|Carbon  $lookback  Days to look back (int), date string, or Carbon date.
+     * @param  int|string|Carbon|null  $lookback  Days to look back (int), date string, Carbon date, or null for all history.
      */
     public function __construct(
         public readonly Trooper $moderator,
-        public readonly int|string|Carbon $lookback,
+        public readonly int|string|Carbon|null $lookback,
         public readonly bool $show_all = false,
         public readonly EventStatus $status = EventStatus::CLOSED,
+        public readonly ?int $page_size = null,
     ) {}
 }

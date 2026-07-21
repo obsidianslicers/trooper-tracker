@@ -5,17 +5,20 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Bus\MagicBus;
+use App\Enums\AchievementType;
 use App\Enums\MembershipRole;
 use App\Features\Troopers\Queries\GetTroopersByRoleQuery;
+use App\Models\Trooper;
 use App\Models\TrooperAchievement;
 use App\Models\TrooperAssignment;
 use App\Notifications\Admin\TrooperMilestoneNotification;
 use App\Policies\TrooperPolicy;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Collection;
 
 /**
- * Sends milestone achievement notifications to admins and moderators in scope.
+ * Sends a daily milestone roundup to admins and moderators in scope.
  *
  * Only notifies recipients who have opted in via the Squads / Clubs selection
  * in their notification settings (should_notify = true for at least one of the
@@ -26,44 +29,38 @@ class SendTrooperMilestoneNotificationsJob implements ShouldQueue
 {
     use Queueable;
 
-    public function __construct(private readonly TrooperAchievement $achievement) {}
-
     public function handle(MagicBus $bus): void
     {
-        $trooper = $this->achievement->trooper;
+        $milestone_types = collect(AchievementType::cases())
+            ->filter(fn (AchievementType $type): bool => $type->isMilestone())
+            ->pluck('value');
 
-        $trooper->load([
-            'trooper_assignments' => function ($query) {
-                $query->where(TrooperAssignment::IS_MEMBER, true)
-                    ->with('organization');
-            },
-        ]);
+        $achievements = TrooperAchievement::query()
+            ->whereNull(TrooperAchievement::NOTIFICATION_SENT_AT)
+            ->whereIn(TrooperAchievement::TYPE, $milestone_types)
+            ->with([
+                'organization',
+                'trooper.trooper_assignments' => function ($query) {
+                    $query->where(TrooperAssignment::IS_MEMBER, true)
+                        ->with('organization');
+                },
+            ])
+            ->orderBy(TrooperAchievement::ACHIEVEMENT_DATE)
+            ->get();
 
-        $trooper_org_ids = $trooper->trooper_assignments
-            ->pluck(TrooperAssignment::ORGANIZATION_ID)
-            ->all();
-
-        if (empty($trooper_org_ids))
+        if ($achievements->isEmpty())
         {
-            //  not a member of any club/organization
-            $this->markNotificationSent();
-
             return;
         }
 
-        $notification = new TrooperMilestoneNotification($this->achievement);
+        /** @var Collection<int, Collection<int, TrooperAchievement>> $roundups */
+        $roundups = collect();
 
         $admins = $bus->send(new GetTroopersByRoleQuery(MembershipRole::ADMINISTRATOR));
 
         foreach ($admins as $admin)
         {
-            if ($admin->trooper_assignments()
-                ->where(TrooperAssignment::SHOULD_NOTIFY, true)
-                ->whereIn(TrooperAssignment::ORGANIZATION_ID, $trooper_org_ids)
-                ->exists())
-            {
-                $admin->notify($notification);
-            }
+            $roundups->put($admin->id, $this->achievementsForRecipient($admin, $achievements));
         }
 
         $moderators = $bus->send(new GetTroopersByRoleQuery(MembershipRole::MODERATOR));
@@ -71,22 +68,53 @@ class SendTrooperMilestoneNotificationsJob implements ShouldQueue
 
         foreach ($moderators as $moderator)
         {
-            if ($policy->moderate($moderator, $trooper)
-                && $moderator->trooper_assignments()
-                    ->where(TrooperAssignment::SHOULD_NOTIFY, true)
-                    ->whereIn(TrooperAssignment::ORGANIZATION_ID, $trooper_org_ids)
-                    ->exists())
+            $eligible = $achievements->filter(function (TrooperAchievement $achievement) use ($moderator, $policy) {
+                return $policy->moderate($moderator, $achievement->trooper)
+                    && $this->recipientSubscribedToTrooper($moderator, $achievement);
+            })->values();
+
+            if ($eligible->isNotEmpty())
             {
-                $moderator->notify($notification);
+                $roundups->put($moderator->id, ($roundups->get($moderator->id, collect()))
+                    ->merge($eligible)->unique('id')->values());
             }
         }
 
-        $this->markNotificationSent();
+        $recipients = $admins->merge($moderators)->keyBy('id');
+
+        foreach ($roundups->filter->isNotEmpty() as $trooper_id => $recipient_achievements)
+        {
+            $recipients->get($trooper_id)?->notify(
+                new TrooperMilestoneNotification($recipient_achievements),
+            );
+        }
+
+        TrooperAchievement::query()
+            ->whereKey($achievements->modelKeys())
+            ->update([TrooperAchievement::NOTIFICATION_SENT_AT => now()]);
     }
 
-    private function markNotificationSent(): void
+    private function achievementsForRecipient(Trooper $recipient, Collection $achievements): Collection
     {
-        $this->achievement->notification_sent_at = now();
-        $this->achievement->save();
+        return $achievements
+            ->filter(fn (TrooperAchievement $achievement): bool => $this->recipientSubscribedToTrooper($recipient, $achievement))
+            ->values();
+    }
+
+    private function recipientSubscribedToTrooper(Trooper $recipient, TrooperAchievement $achievement): bool
+    {
+        $trooper_org_ids = $achievement->trooper->trooper_assignments
+            ->pluck(TrooperAssignment::ORGANIZATION_ID)
+            ->all();
+
+        if (empty($trooper_org_ids))
+        {
+            return false;
+        }
+
+        return $recipient->trooper_assignments()
+            ->where(TrooperAssignment::SHOULD_NOTIFY, true)
+            ->whereIn(TrooperAssignment::ORGANIZATION_ID, $trooper_org_ids)
+            ->exists();
     }
 }

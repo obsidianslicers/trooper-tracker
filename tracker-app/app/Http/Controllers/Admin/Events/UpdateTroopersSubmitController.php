@@ -163,17 +163,16 @@ class UpdateTroopersSubmitController extends MagicBusController
 
         if ($costume->countsAsHandler())
         {
-            $filtered_ids = $allowed_org_ids === null
-                ? $submitted_parent_ids
-                : array_values(array_filter($submitted_parent_ids, fn ($id) => in_array($id, $allowed_org_ids, true)));
+            $filtered_ids = $event_trooper->filterAccessibleRootOrgIds($submitted_parent_ids, $allowed_org_ids);
             $event_trooper->costume_organization_ids = $event_trooper->childOrgIdsForSelectedParents($filtered_ids);
 
             return;
         }
 
-        $filtered_parent_ids = $allowed_org_ids === null
-            ? $submitted_parent_ids
-            : array_values(array_filter($submitted_parent_ids, fn ($id) => in_array($id, $allowed_org_ids, true)));
+        $filtered_parent_ids = $event_trooper->filterAccessibleRootOrgIds(
+            $submitted_parent_ids,
+            $allowed_org_ids
+        );
 
         $event_trooper->costume_organization_ids = $this->costumeChildOrgIdsForParents($event_trooper, $costume, $filtered_parent_ids);
     }
@@ -192,11 +191,14 @@ class UpdateTroopersSubmitController extends MagicBusController
         }
 
         $eligible_parent_ids = $event_trooper->getEligibleCreditParentOrganizations()->pluck('id')->toArray();
+        $accessible_parent_ids = $event_trooper->filterAccessibleRootOrgIds(
+            $eligible_parent_ids,
+            $allowed_org_ids
+        );
 
         $event_trooper->costume_organization_ids = array_values(array_filter(
             $submitted_org_ids,
-            fn ($id) => in_array($id, $eligible_parent_ids, true)
-                && ($allowed_org_ids === null || in_array($id, $allowed_org_ids, true))
+            fn ($id) => in_array($id, $accessible_parent_ids, true)
         ));
     }
 

@@ -182,13 +182,25 @@
         if (!hash || !hash.startsWith('#faq-')) return;
         var collapse = document.querySelector(hash);
         if (!collapse) return;
-        collapse.addEventListener('shown.bs.collapse', function () {
+        var scroll = function () {
             collapse.closest('.card').scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, { once: true });
+        };
+        if (collapse.classList.contains('show')) {
+            scroll();
+            return;
+        }
+        collapse.addEventListener('shown.bs.collapse', scroll, { once: true });
         new bootstrap.Collapse(collapse, { toggle: false }).show();
     }
 
-    openHash(location.hash);
+    // window.bootstrap is set by the deferred Vite bundle, so wait for DOMContentLoaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function () { openHash(location.hash); });
+    } else {
+        openHash(location.hash);
+    }
+
+    window.addEventListener('hashchange', function () { openHash(location.hash); });
 
     // ── Update hash when an FAQ accordion opens ───────────────────────────
     document.querySelectorAll('.faq-section-group .collapse').forEach(function (el) {

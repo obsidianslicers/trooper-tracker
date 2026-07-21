@@ -34,6 +34,21 @@ class UpdateTroopersControllerTest extends TestCase
         $response->assertViewIs('pages.admin.events.troopers');
     }
 
+    public function test_add_trooper_picker_uses_an_event_scoped_to_each_shift(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $event = Event::factory()->create();
+        $first_shift = EventShift::factory()->forEvent($event)->create();
+        $second_shift = EventShift::factory()->forEvent($event)->create();
+
+        $response = $this->actingAs($admin)->get(route('admin.events.troopers', compact('event')));
+
+        $response->assertOk();
+        $response->assertSee("admin-add-trooper-{$first_shift->id}", false);
+        $response->assertSee("admin-add-trooper-{$second_shift->id}", false);
+        $response->assertDontSee('trooper:selected[event.detail.property', false);
+    }
+
     public function test_invoke_shows_all_member_clubs_for_handler_costume(): void
     {
         $admin = Trooper::factory()->asAdministrator()->create();
@@ -108,6 +123,37 @@ class UpdateTroopersControllerTest extends TestCase
         $event_trooper = $response->viewData('event_shifts')->first()->event_troopers->first();
         $this->assertTrue($event_trooper->org_options->contains('id', $org->id));
         $this->assertSame($costume->id, $event_trooper->costume_id);
+    }
+
+    public function test_invoke_child_unit_moderator_sees_parent_club_for_command_staff_credit(): void
+    {
+        $moderator = Trooper::factory()->asModerator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $parent_org = Organization::factory()->create();
+        $child_org = Organization::factory()->withParent($parent_org)->create();
+        $event = Event::factory()->withOrganization($child_org)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $command_staff = Costume::factory()->withName(Costume::COMMAND_STAFF)->create();
+
+        TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($child_org)->asModerator()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($child_org)->asMember()->create();
+
+        EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->withCostume($command_staff)
+            ->withCostumeOrganizationIds([$child_org->id])
+            ->asGoing()
+            ->create();
+
+        $response = $this->actingAs($moderator)
+            ->get(route('admin.events.troopers', ['event' => $event->id]));
+
+        $response->assertOk();
+
+        $event_trooper = $response->viewData('event_shifts')->first()->event_troopers->first();
+        $this->assertSame([$parent_org->id], $event_trooper->org_options->pluck('id')->all());
+        $this->assertSame([$parent_org->id], $event_trooper->credited_checked_ids);
     }
 
     public function test_invoke_shows_regular_costume_org_options_from_assignments_without_trooper_organization_rows(): void

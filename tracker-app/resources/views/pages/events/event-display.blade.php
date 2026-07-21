@@ -56,18 +56,18 @@
                     <div class="row mb-2 border-bottom">
                         <div class="col-12 col-md-6 small text-muted pb-3">
                             <div class="row">
-                                <div class="col-4 col-md-3">
+                                <div class="col-4 col-md-5 col-lg-4 text-nowrap">
                                     Hosted By:
                                 </div>
-                                <div class="col-8 col-md-9">
+                                <div class="col-8 col-md-7 col-lg-8">
                                     {{ $event->organization->name }}
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-4 col-md-3">
+                                <div class="col-4 col-md-5 col-lg-4 text-nowrap">
                                     Status:
                                 </div>
-                                <div class="col-8 col-md-9">
+                                <div class="col-8 col-md-7 col-lg-8">
                                     {{ to_title($event->status->name) }}
                                 </div>
                             </div>

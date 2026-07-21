@@ -84,10 +84,9 @@
                href="{{ $link->webOutlook() }}">
                 <i class="fa fa-brands fa-fw fa-windows"></i>
             </a>
-            <a target="_blank"
-               class="btn btn-sm btn-outline-primary"
+            <a class="btn btn-sm btn-outline-primary"
                title="Download ICS File"
-               href="{{ $link->ics() }}">
+               href="{{ route('events.download-shift-ics', ['event' => $event, 'event_shift' => $event_shift]) }}">
                 <i class="fa fa-fw fa-calendar"></i>
             </a>
         </x-button-group>

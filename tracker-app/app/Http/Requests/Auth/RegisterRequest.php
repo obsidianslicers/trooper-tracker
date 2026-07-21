@@ -166,7 +166,7 @@ class RegisterRequest extends FormRequest
                 $organization_rules = [
                     'nullable',
                     Rule::when(
-                        fn () => $this->account_type === 'member' && $this->input("organizations.{$organization->id}.selected") === '1',
+                        fn () => $this->account_type === 'member' && $this->input("organizations.{$organization->id}.selected") === true,
                         array_merge(
                             ['required'],
                             $base_rules,
@@ -191,9 +191,9 @@ class RegisterRequest extends FormRequest
             {
                 // Require region when organization is selected (visitors skip region/unit)
                 $rules["organizations.{$organization->id}.region_id"] = [
-                    Rule::requiredIf(fn () => $this->account_type !== 'visitor' && $this->input("organizations.{$organization->id}.selected") === '1'),
+                    Rule::requiredIf(fn () => $this->account_type !== 'visitor' && $this->input("organizations.{$organization->id}.selected") === true),
                     Rule::when(
-                        fn () => $this->account_type !== 'visitor' && $this->input("organizations.{$organization->id}.selected") === '1',
+                        fn () => $this->account_type !== 'visitor' && $this->input("organizations.{$organization->id}.selected") === true,
                         Rule::exists(Organization::class, Organization::ID)
                             ->whereIn('id', $regions->pluck('id'))
                     ),
@@ -210,7 +210,7 @@ class RegisterRequest extends FormRequest
                         $rules["organizations.{$organization->id}.unit_id"] = [
                             Rule::requiredIf(fn () => $this->account_type !== 'visitor' && $this->input("organizations.{$organization->id}.region_id") == $region->id),
                             Rule::when(
-                                fn () => $this->account_type !== 'visitor' && $this->input("organizations.{$organization->id}.selected") === '1' && !empty($this->input("organizations.{$organization->id}.unit_id")),
+                                fn () => $this->account_type !== 'visitor' && $this->input("organizations.{$organization->id}.selected") === true && !empty($this->input("organizations.{$organization->id}.unit_id")),
                                 Rule::exists(Organization::class, Organization::ID)
                                     ->whereIn('id', $units->pluck('id'))
                             ),

@@ -7,6 +7,7 @@ namespace App\Features\Reports\Queries;
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Enums\EventTrooperStatus;
 use App\Models\Event;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 /**
@@ -28,7 +29,7 @@ readonly class GetEventSummaryQueryHandler implements QueryHandlerInterface
      * - unique_trooper_count: Unique troopers across all shifts
      *
      * @param  GetEventSummaryQuery  $message  The query containing moderator and lookback criteria.
-     * @return Collection<int, Event> Collection of events with summary data.
+     * @return Collection<int, Event>|LengthAwarePaginator<Event> Events with summary data.
      */
     public function __invoke(object $message): mixed
     {
@@ -52,16 +53,26 @@ readonly class GetEventSummaryQueryHandler implements QueryHandlerInterface
             $q = $q->moderatedBy($message->moderator);
         }
 
-        return $q->where(Event::STATUS, $message->status)
-            ->where(Event::EVENT_START, '>=', $lookback)
-            ->orderByDesc(Event::EVENT_END)
-            ->get()
-            ->each(function (Event $event) {
-                $event->event_shifts_count = $event->event_shifts->count();
-                $event->total_trooper_count = $event->event_shifts->sum(fn ($shift) => $shift->event_troopers->count());
-                $event->unique_trooper_count = $event->event_shifts->flatMap(fn ($shift) => $shift->event_troopers->pluck('trooper_id'))->unique()->count();
-                $event->charity_direct_funds = $event->event_shifts->sum('charity_direct_funds');
-                $event->charity_indirect_funds = $event->event_shifts->sum('charity_indirect_funds');
-            });
+        $q->where(Event::STATUS, $message->status)
+            ->when($lookback, fn ($q) => $q->where(Event::EVENT_START, '>=', $lookback))
+            ->orderByDesc(Event::EVENT_END);
+
+        $events = $message->page_size === null
+            ? $q->get()
+            : $q->paginate($message->page_size)->withQueryString();
+
+        $collection = $events instanceof LengthAwarePaginator
+            ? $events->getCollection()
+            : $events;
+
+        $collection->each(function (Event $event) {
+            $event->event_shifts_count = $event->event_shifts->count();
+            $event->total_trooper_count = $event->event_shifts->sum(fn ($shift) => $shift->event_troopers->count());
+            $event->unique_trooper_count = $event->event_shifts->flatMap(fn ($shift) => $shift->event_troopers->pluck('trooper_id'))->unique()->count();
+            $event->charity_direct_funds = $event->event_shifts->sum('charity_direct_funds');
+            $event->charity_indirect_funds = $event->event_shifts->sum('charity_indirect_funds');
+        });
+
+        return $events;
     }
 }

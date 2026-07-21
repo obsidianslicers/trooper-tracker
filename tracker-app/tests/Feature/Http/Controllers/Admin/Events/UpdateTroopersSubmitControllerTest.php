@@ -537,4 +537,79 @@ class UpdateTroopersSubmitControllerTest extends TestCase
         $event_trooper->refresh();
         $this->assertSame([$allowed_org->id], $event_trooper->costume_organization_ids);
     }
+
+    public function test_invoke_child_unit_moderator_preserves_regular_costume_parent_club_credit(): void
+    {
+        $moderator = Trooper::factory()->asModerator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $parent_org = Organization::factory()->create();
+        $child_org = Organization::factory()->withParent($parent_org)->create();
+        $event = Event::factory()->withOrganization($child_org)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $costume = Costume::factory()->create();
+
+        TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($child_org)->asModerator()->create();
+        $org_costume = OrganizationCostume::factory()
+            ->forOrganization($child_org)
+            ->forCostume($costume)
+            ->create();
+        TrooperCostume::factory()->forTrooper($trooper)->forOrganizationCostume($org_costume)->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->withCostume($costume)
+            ->withCostumeOrganizationIds([$child_org->id])
+            ->asGoing()
+            ->create();
+
+        $this->actingAs($moderator)->post('/admin/events/'.$event->id.'/troopers', [
+            'troopers' => [
+                $event_trooper->id => [
+                    'status' => 'going',
+                    'costume_id' => $costume->id,
+                    'organization_selection' => '1',
+                    'organization_ids' => [$parent_org->id],
+                ],
+            ],
+        ]);
+
+        $event_trooper->refresh();
+        $this->assertSame([$child_org->id], $event_trooper->costume_organization_ids);
+    }
+
+    public function test_invoke_child_unit_moderator_saves_command_staff_parent_club_credit(): void
+    {
+        $moderator = Trooper::factory()->asModerator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $parent_org = Organization::factory()->create();
+        $child_org = Organization::factory()->withParent($parent_org)->create();
+        $event = Event::factory()->withOrganization($child_org)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $command_staff = Costume::factory()->withName(Costume::COMMAND_STAFF)->create();
+
+        TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($child_org)->asModerator()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($child_org)->asMember()->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->withCostume($command_staff)
+            ->asGoing()
+            ->create();
+
+        $this->actingAs($moderator)->post('/admin/events/'.$event->id.'/troopers', [
+            'troopers' => [
+                $event_trooper->id => [
+                    'status' => 'going',
+                    'costume_id' => $command_staff->id,
+                    'organization_selection' => '1',
+                    'organization_ids' => [$parent_org->id],
+                ],
+            ],
+        ]);
+
+        $event_trooper->refresh();
+        $this->assertSame([$child_org->id], $event_trooper->costume_organization_ids);
+    }
 }

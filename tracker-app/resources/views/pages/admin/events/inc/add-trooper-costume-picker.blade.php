@@ -56,7 +56,8 @@
                value="" />
     @endif
     <div class="d-flex gap-2">
-        <button class="btn btn-sm btn-success"
+        <button type="button"
+                class="btn btn-sm btn-success"
                 hx-post="{{ route('admin.events.troopers.add', compact('event', 'event_shift')) }}"
                 hx-vals="js:{trooper_id: document.getElementById('admin-add-trooper-{{ $event_shift->id }}').value, costume_id: document.getElementById('admin-add-costume-{{ $event_shift->id }}').value, organization_id: document.getElementById('admin-add-org-{{ $event_shift->id }}').value, event_shift_station_id: document.getElementById('admin-add-station-{{ $event_shift->id }}').value}"
                 hx-trigger="click">

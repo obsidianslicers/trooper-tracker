@@ -6,26 +6,26 @@
     </p>
 
     <p>
-        Imperial records have been updated. A trooper under your jurisdiction has distinguished
-        themselves through <b>exemplary service to the Empire</b> and has earned a new milestone
-        achievement.
+        Imperial records have been updated. The following troopers under your jurisdiction have
+        distinguished themselves through <b>exemplary service to the Empire</b>.
     </p>
 
-    <p>
-        <strong>Trooper:</strong> {{ $achievement->trooper->legal_name }} ({{ $achievement->trooper->display_name }})<br>
-        <strong>Achievement:</strong> {{ $achievement->display_description }}
-    </p>
+    @foreach ($achievements->groupBy('trooper_id') as $trooper_achievements)
+        @php($trooper = $trooper_achievements->first()->trooper)
+        <h3>
+            <a href="{{ route('admin.troopers.profile', $trooper) }}">
+                {{ $trooper->legal_name }} ({{ $trooper->display_name }})
+            </a>
+        </h3>
+        <p>{{ $trooper->trooper_assignments->pluck('organization.name')->join(', ') }}</p>
+        <ul>
+            @foreach ($trooper_achievements as $achievement)
+                <li>{{ $achievement->display_description }}</li>
+            @endforeach
+        </ul>
+    @endforeach
 
-    <ul>
-        @foreach ($achievement->trooper->trooper_assignments as $assignment)
-            <li>{{ $assignment->organization->name }}</li>
-        @endforeach
-    </ul>
-
-    <p>
-        You may review this trooper's full service record in the
-        <a href="{{ route('admin.troopers.profile', $achievement->trooper) }}">Imperial Personnel Registry</a>.
-    </p>
+    <p><a href="{{ route('service-records.achievements') }}">Review recent achievements</a>.</p>
 
     <p>
         The Empire commends this trooper's dedication. Glory to the Emperor.

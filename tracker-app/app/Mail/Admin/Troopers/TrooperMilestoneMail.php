@@ -13,18 +13,20 @@ use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Collection;
 
 class TrooperMilestoneMail extends Mailable implements ShouldQueue
 {
     use HasRetryPolicy;
     use Queueable, SerializesModels;
 
-    public function __construct(public readonly TrooperAchievement $achievement) {}
+    /** @param Collection<int, TrooperAchievement> $achievements */
+    public function __construct(public readonly Collection $achievements) {}
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Trooper Milestone Achieved',
+            subject: config('mail.prefix').' Daily Trooper Milestones',
         );
     }
 

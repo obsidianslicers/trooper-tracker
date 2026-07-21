@@ -5,6 +5,8 @@ declare(strict_types=1);
 use App\Http\Controllers\Events\CalendarController;
 use App\Http\Controllers\Events\CancelledController;
 use App\Http\Controllers\Events\ClosedController;
+use App\Http\Controllers\Events\DownloadEventIcsController;
+use App\Http\Controllers\Events\DownloadEventShiftIcsController;
 use App\Http\Controllers\Events\DownloadRosterCsvController;
 use App\Http\Controllers\Events\EventDisplayController;
 use App\Http\Controllers\Events\GuestSignUpHtmxController;
@@ -38,6 +40,8 @@ Route::prefix('events')
         Route::get('/details/{event}', EventDisplayController::class)->name('display');
         Route::post('/details/{event}/watch', ToggleEventWatchHtmxController::class)->name('toggle-watch-htmx');
         Route::post('/details/{event}/ack-mission-brief', MissionBriefAcknowledgeController::class)->name('ack-mission-brief');
+        Route::get('/details/{event}/calendar.ics', DownloadEventIcsController::class)->name('download-ics');
+        Route::get('/details/{event}/shifts/{event_shift}/calendar.ics', DownloadEventShiftIcsController::class)->name('download-shift-ics');
         Route::get('/details/{event}/roster-csv', [DownloadRosterCsvController::class, 'allShifts'])->name('download-roster-csv');
         Route::get('/details/{event}/shifts/{event_shift}/roster-csv', [DownloadRosterCsvController::class, 'singleShift'])->name('download-shift-roster-csv');
         Route::post('/upload/{event}', UploadImageController::class)->name('upload-image');
