@@ -62,6 +62,7 @@
                  class="shift-signup-secondary {{ $shift_uses_stations ? 'shift-signup-secondary--station' : '' }}">
             <div class="shift-friend-trigger">
             @if($shift_uses_stations)
+                <span class="shift-signup-secondary__label">Choose friend's station</span>
                 <select id="friend-station-picker-{{ $event_shift->id }}"
                         name="event_shift_station_id"
                         class="form-select form-select-sm">

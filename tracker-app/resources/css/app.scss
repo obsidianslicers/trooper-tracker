@@ -309,8 +309,20 @@ a:hover {
 }
 
 .shift-signup-secondary--station .form-select {
-    flex: 1 1 auto;
-    max-width: none;
+    flex: 0 1 26rem;
+    max-width: 26rem;
+}
+
+.shift-signup-secondary__label {
+    color: var(--bs-secondary-color);
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-right: auto;
+    white-space: nowrap;
+}
+
+.shift-friend-trigger .btn {
+    white-space: nowrap;
 }
 
 .shift-signup-guest {
@@ -360,8 +372,13 @@ a:hover {
         flex-direction: column;
     }
 
+    .shift-signup-secondary__label {
+        display: none;
+    }
+
     .shift-signup-primary .form-select,
     .shift-signup-secondary .form-select {
+        flex: none;
         max-width: none;
         width: 100%;
     }
