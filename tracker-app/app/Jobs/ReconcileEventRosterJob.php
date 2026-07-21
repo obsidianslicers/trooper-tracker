@@ -92,7 +92,11 @@ class ReconcileEventRosterJob implements ShouldQueue
 
             $fits_global = $global_limit === null || $global_going < $global_limit;
             $fits_org = $org_id === null || $org_limit === null || ($org_going[$org_id] ?? 0) < $org_limit;
-            $fits_station = $station_id === null || $station_limit === null || ($station_going[$station_id] ?? 0) < $station_limit;
+
+            //  station limits are never null or unlimited; a missing station record
+            //  means no capacity, mirroring EventShift::stationMaxed()
+            $fits_station = $station_id === null
+                || ($station_limit !== null && ($station_going[$station_id] ?? 0) < $station_limit);
 
             $new_status = ($fits_global && $fits_org && $fits_station)
                 ? EventTrooperStatus::GOING

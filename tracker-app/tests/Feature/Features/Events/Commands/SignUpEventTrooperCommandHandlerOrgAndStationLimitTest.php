@@ -15,6 +15,7 @@ use App\Models\EventShiftStation;
 use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\Trooper;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
@@ -1467,9 +1468,9 @@ class SignUpEventTrooperCommandHandlerOrgAndStationLimitTest extends TestCase
         );
     }
 
-    // ========== UNLIMITED LIMITS ==========
+    // ========== ORG UNLIMITED VS. REQUIRED STATION CAPACITY ==========
 
-    public function test_reconcile_both_limits_unlimited_promotes_all_eligible_standbys(): void
+    public function test_reconcile_org_unlimited_and_station_limit_increased_promotes_eligible_standbys(): void
     {
         $this->eventOrg->update([EventOrganization::TROOPERS_ALLOWED => 1]);
         $this->targetStation->update([EventShiftStation::TROOPERS_ALLOWED => 1]);
@@ -1527,10 +1528,8 @@ class SignUpEventTrooperCommandHandlerOrgAndStationLimitTest extends TestCase
         $standby1SignedUpAt = $standby1Cet->signed_up_at->copy();
         $standby2SignedUpAt = $standby2Cet->signed_up_at->copy();
 
-        //  station limits are schema-required (NOT NULL); a large limit is the closest
-        //  representable equivalent of "unlimited" for the station side
         $this->eventOrg->update([EventOrganization::TROOPERS_ALLOWED => null]);
-        $this->targetStation->update([EventShiftStation::TROOPERS_ALLOWED => 100]);
+        $this->targetStation->update([EventShiftStation::TROOPERS_ALLOWED => 2]);
 
         (new ReconcileEventRosterJob($this->event, Trooper::factory()->create()))->handle();
 
@@ -1538,12 +1537,26 @@ class SignUpEventTrooperCommandHandlerOrgAndStationLimitTest extends TestCase
         $standby2Cet->refresh();
         $cancelledCet->refresh();
 
-        $this->assertSame(EventTrooperStatus::GOING, $standby1Cet->status, 'First standby promoted');
-        $this->assertSame(EventTrooperStatus::GOING, $standby2Cet->status, 'Second standby promoted');
+        $this->assertSame(EventTrooperStatus::GOING, $standby1Cet->status, 'Oldest standby fills the new station spot');
+        $this->assertSame(
+            EventTrooperStatus::STAND_BY,
+            $standby2Cet->status,
+            'Second standby waits: promotion stops at the station numerical capacity'
+        );
         $this->assertSame(EventTrooperStatus::CANCELLED, $cancelledCet->status, 'Cancelled trooper stays cancelled');
 
         $recordCountAfter = EventTrooper::where(EventTrooper::EVENT_SHIFT_ID, $this->shift->id)->count();
         $this->assertSame($recordCountBefore, $recordCountAfter, 'No duplicate records created');
+
+        $stationGoing = EventTrooper::where(EventTrooper::EVENT_SHIFT_STATION_ID, $this->targetStation->id)
+            ->where(EventTrooper::STATUS, EventTrooperStatus::GOING->value)
+            ->count();
+        $this->assertSame(2, $stationGoing, 'Station GOING count equals its limit');
+        $this->assertLessThanOrEqual(
+            $this->targetStation->fresh()->troopers_allowed,
+            $stationGoing,
+            'Station GOING count never exceeds its numerical limit'
+        );
 
         $this->assertTrue(
             $standby1Cet->signed_up_at->equalTo($standby1SignedUpAt),
@@ -1558,12 +1571,25 @@ class SignUpEventTrooperCommandHandlerOrgAndStationLimitTest extends TestCase
     public function test_reconcile_org_unlimited_station_full_standby_remains(): void
     {
         $this->eventOrg->update([EventOrganization::TROOPERS_ALLOWED => null]);
-        $this->targetStation->update([EventShiftStation::TROOPERS_ALLOWED => 1]);
+        $this->targetStation->update([EventShiftStation::TROOPERS_ALLOWED => 2]);
 
-        $going = Trooper::factory()->create();
+        $going1 = Trooper::factory()->create();
         EventTrooper::factory()
             ->forEventShift($this->shift)
-            ->forTrooper($going)
+            ->forTrooper($going1)
+            ->forEventShiftStation($this->targetStation)
+            ->asGoing()
+            ->state([
+                EventTrooper::ORGANIZATION_ID => $this->org->id,
+                EventTrooper::IS_HANDLER => false,
+                EventTrooper::SIGNED_UP_AT => now()->subMinutes(2),
+            ])
+            ->create();
+
+        $going2 = Trooper::factory()->create();
+        EventTrooper::factory()
+            ->forEventShift($this->shift)
+            ->forTrooper($going2)
             ->forEventShiftStation($this->targetStation)
             ->asGoing()
             ->state([
@@ -1591,21 +1617,37 @@ class SignUpEventTrooperCommandHandlerOrgAndStationLimitTest extends TestCase
         $this->assertSame(
             EventTrooperStatus::STAND_BY,
             $standbyCet->status,
-            'Unlimited org does not bypass the full station limit'
+            'Unlimited org and event limits do not bypass the full station limit'
         );
+
+        $stationGoing = EventTrooper::where(EventTrooper::EVENT_SHIFT_STATION_ID, $this->targetStation->id)
+            ->where(EventTrooper::STATUS, EventTrooperStatus::GOING->value)
+            ->count();
+        $this->assertSame(2, $stationGoing, 'Station count remains exactly 2');
     }
 
-    public function test_reconcile_station_unlimited_org_full_standby_remains(): void
+    public function test_reconcile_station_limit_increased_org_full_standby_remains(): void
     {
-        //  station limits are schema-required (NOT NULL); a large limit is the closest
-        //  representable equivalent of "unlimited" for the station side
-        $this->eventOrg->update([EventOrganization::TROOPERS_ALLOWED => 1]);
-        $this->targetStation->update([EventShiftStation::TROOPERS_ALLOWED => 100]);
+        $this->eventOrg->update([EventOrganization::TROOPERS_ALLOWED => 2]);
+        $this->targetStation->update([EventShiftStation::TROOPERS_ALLOWED => 2]);
 
-        $going = Trooper::factory()->create();
+        $going1 = Trooper::factory()->create();
         EventTrooper::factory()
             ->forEventShift($this->shift)
-            ->forTrooper($going)
+            ->forTrooper($going1)
+            ->forEventShiftStation($this->targetStation)
+            ->asGoing()
+            ->state([
+                EventTrooper::ORGANIZATION_ID => $this->org->id,
+                EventTrooper::IS_HANDLER => false,
+                EventTrooper::SIGNED_UP_AT => now()->subMinutes(2),
+            ])
+            ->create();
+
+        $going2 = Trooper::factory()->create();
+        EventTrooper::factory()
+            ->forEventShift($this->shift)
+            ->forTrooper($going2)
             ->forEventShiftStation($this->targetStation)
             ->asGoing()
             ->state([
@@ -1627,14 +1669,45 @@ class SignUpEventTrooperCommandHandlerOrgAndStationLimitTest extends TestCase
                 EventTrooper::SIGNED_UP_AT => now(),
             ]);
 
+        $this->targetStation->update([EventShiftStation::TROOPERS_ALLOWED => 3]);
+
         (new ReconcileEventRosterJob($this->event, Trooper::factory()->create()))->handle();
 
         $standbyCet->refresh();
         $this->assertSame(
             EventTrooperStatus::STAND_BY,
             $standbyCet->status,
-            'Unlimited station does not bypass the full organization limit'
+            'Increased station capacity does not bypass the full organization limit'
         );
+
+        $orgGoing = EventTrooper::where(EventTrooper::ORGANIZATION_ID, $this->org->id)
+            ->where(EventTrooper::STATUS, EventTrooperStatus::GOING->value)
+            ->count();
+        $this->assertSame(2, $orgGoing, 'Organization count remains exactly 2');
+    }
+
+    // ========== STATION CAPACITY INVARIANTS ==========
+
+    public function test_station_always_has_a_positive_numerical_limit(): void
+    {
+        $station = EventShiftStation::factory()
+            ->forEventShift($this->shift)
+            ->create();
+
+        $this->assertIsInt($station->troopers_allowed, 'Station limit is always a number');
+        $this->assertGreaterThan(0, $station->troopers_allowed, 'Station limit is always positive');
+
+        $this->assertNotNull($this->targetStation->fresh()->troopers_allowed);
+        $this->assertNotNull($this->otherStation->fresh()->troopers_allowed);
+    }
+
+    public function test_station_cannot_be_saved_with_null_limit(): void
+    {
+        $this->expectException(QueryException::class);
+
+        EventShiftStation::factory()
+            ->forEventShift($this->shift)
+            ->create([EventShiftStation::TROOPERS_ALLOWED => null]);
     }
 
     // ========== EVENT + ORGANIZATION + STATION LIMITS TOGETHER ==========
