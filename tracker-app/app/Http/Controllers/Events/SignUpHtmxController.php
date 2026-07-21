@@ -58,7 +58,9 @@ class SignUpHtmxController extends MagicBusController
             && $event_shift->event->is_within_grace_period
             && !$event_shift->isSignedUp($trooper);
 
-        if ($can_add_friend && ($event_shift->canSignUp($trooper) || $grace_period_moderator_add))
+        $is_friend_add = $request->has('trooper_id') && $trooper->id !== $auth_trooper->id;
+
+        if ($can_add_friend && ($event_shift->canSignUp($trooper, require_own_mission_brief_ack: !$is_friend_add) || $grace_period_moderator_add))
         {
             $event_shift->loadMissing('event_shift_stations');
 

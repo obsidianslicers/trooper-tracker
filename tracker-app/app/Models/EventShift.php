@@ -386,14 +386,19 @@ class EventShift extends BaseEventShift
      * exceeded the maximum number of shifts they can attend for this event.
      *
      * @param Trooper $trooper The trooper attempting to sign up
+     * @param bool $require_own_mission_brief_ack Whether $trooper must have personally
+     *   acknowledged the mission brief. Set to false when a friend is being added by
+     *   someone who has already acknowledged it on the event.
      * @return bool True if the trooper can sign up
      */
-    public function canSignUp(Trooper $trooper): bool
+    public function canSignUp(Trooper $trooper, bool $require_own_mission_brief_ack = true): bool
     {
         if ($this->is_open)
         {
             // Require mission brief acknowledgement when configured on the event
-            if ($this->event->require_mission_brief_ack && !$this->event->hasMissionBriefAcknowledgementFor($trooper))
+            if ($require_own_mission_brief_ack
+                && $this->event->require_mission_brief_ack
+                && !$this->event->hasMissionBriefAcknowledgementFor($trooper))
             {
                 return false;
             }

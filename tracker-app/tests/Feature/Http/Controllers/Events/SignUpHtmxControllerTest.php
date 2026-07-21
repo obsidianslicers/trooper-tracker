@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\Events;
 
 use App\Models\Event;
+use App\Models\EventMissionAck;
 use App\Models\EventOrganization;
 use App\Models\EventShift;
 use App\Models\EventShiftStation;
@@ -133,6 +134,39 @@ class SignUpHtmxControllerTest extends TestCase
             EventTrooper::TROOPER_ID => $friend->id,
             EventTrooper::EVENT_SHIFT_ID => $event_shift->id,
             EventTrooper::EVENT_SHIFT_STATION_ID => $station->id,
+            EventTrooper::ADDED_BY_TROOPER_ID => $trooper->id,
+        ]);
+    }
+
+    public function test_invoke_signs_up_friend_when_only_auth_trooper_has_acked_mission_brief(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $friend = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $organization = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($friend)->forOrganization($organization)->asMember()->create();
+
+        $event = Event::factory()
+            ->withOrganization($organization)
+            ->state([Event::REQUIRE_MISSION_BRIEF_ACK => true])
+            ->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        EventTrooper::factory()->forEventShift($event_shift)->forTrooper($trooper)->asGoing()->create();
+
+        EventMissionAck::factory()->create([
+            EventMissionAck::EVENT_ID => $event->id,
+            EventMissionAck::TROOPER_ID => $trooper->id,
+        ]);
+
+        $response = $this->actingAs($trooper)->post(
+            route('events.signup-htmx', ['event_shift' => $event_shift->id]),
+            ['trooper_id' => $friend->id]
+        );
+
+        $response->assertOk();
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $friend->id,
+            EventTrooper::EVENT_SHIFT_ID => $event_shift->id,
             EventTrooper::ADDED_BY_TROOPER_ID => $trooper->id,
         ]);
     }
