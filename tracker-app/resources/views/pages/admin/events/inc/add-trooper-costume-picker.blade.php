@@ -60,6 +60,7 @@
                 class="btn btn-sm btn-success"
                 hx-post="{{ route('admin.events.troopers.add', compact('event', 'event_shift')) }}"
                 hx-vals="js:{trooper_id: document.getElementById('admin-add-trooper-{{ $event_shift->id }}').value, costume_id: document.getElementById('admin-add-costume-{{ $event_shift->id }}').value, organization_id: document.getElementById('admin-add-org-{{ $event_shift->id }}').value, event_shift_station_id: document.getElementById('admin-add-station-{{ $event_shift->id }}').value}"
+                hx-params="trooper_id,costume_id,organization_id,event_shift_station_id"
                 hx-trigger="click">
             <i class="fa fa-fw fa-check me-1"></i>Confirm
         </button>
