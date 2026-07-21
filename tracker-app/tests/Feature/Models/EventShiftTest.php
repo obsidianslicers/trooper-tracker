@@ -74,6 +74,39 @@ class EventShiftTest extends TestCase
         $this->assertFalse($subject->is_open);
     }
 
+    public function test_get_is_open_attribute_returns_true_when_event_manual_selection_and_shift_open(): void
+    {
+        $event = Event::factory()->state([Event::STATUS => EventStatus::MANUAL_SELECTION])->create();
+        $subject = EventShift::factory()
+            ->forEvent($event)
+            ->state([EventShift::STATUS => EventStatus::OPEN])
+            ->create();
+
+        $this->assertTrue($subject->is_open);
+    }
+
+    public function test_get_is_open_attribute_returns_true_when_event_manual_selection_and_shift_manual_selection(): void
+    {
+        $event = Event::factory()->state([Event::STATUS => EventStatus::MANUAL_SELECTION])->create();
+        $subject = EventShift::factory()
+            ->forEvent($event)
+            ->state([EventShift::STATUS => EventStatus::MANUAL_SELECTION])
+            ->create();
+
+        $this->assertTrue($subject->is_open);
+    }
+
+    public function test_get_is_open_attribute_returns_false_when_event_open_and_shift_closed(): void
+    {
+        $event = Event::factory()->state([Event::STATUS => EventStatus::OPEN])->create();
+        $subject = EventShift::factory()
+            ->forEvent($event)
+            ->state([EventShift::STATUS => EventStatus::CLOSED, EventShift::SHIFT_ENDS_AT => \Carbon\Carbon::now()->subDay()])
+            ->create();
+
+        $this->assertFalse($subject->is_open);
+    }
+
     public function test_get_is_locked_attribute_returns_true_when_event_locked(): void
     {
         $event = Event::factory()->state([Event::STATUS => EventStatus::SIGN_UP_LOCKED])->create();
@@ -372,6 +405,20 @@ class EventShiftTest extends TestCase
         $result = $subject->canSignUp($trooper);
 
         $this->assertFalse($result);
+    }
+
+    public function test_can_sign_up_returns_true_when_event_manual_selection_and_shift_open(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $event = Event::factory()->state([Event::STATUS => EventStatus::MANUAL_SELECTION])->create();
+        $subject = EventShift::factory()
+            ->forEvent($event)
+            ->state([EventShift::STATUS => EventStatus::OPEN])
+            ->create();
+
+        $result = $subject->canSignUp($trooper);
+
+        $this->assertTrue($result);
     }
 
     public function test_can_sign_up_respects_shifts_allowed_limit(): void
