@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -27,6 +28,16 @@ return new class extends Migration
 
             $table->index(['event_shift_id', 'sequence']);
         });
+
+        //  stations always require a positive limit; SQLite cannot add a check
+        //  constraint after create, so it relies on NOT NULL plus validation
+        if (DB::getDriverName() === 'mysql')
+        {
+            DB::statement(
+                'ALTER TABLE tt_event_shift_stations '
+                .'ADD CONSTRAINT chk_station_troopers_allowed_min CHECK (troopers_allowed >= 1)'
+            );
+        }
     }
 
     public function down(): void
