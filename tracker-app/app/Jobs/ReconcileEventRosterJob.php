@@ -56,7 +56,10 @@ class ReconcileEventRosterJob implements ShouldQueue
         $active = $shift->event_troopers
             ->filter(fn ($et) => $et->is_handler === $is_handler
                 && in_array($et->status, [EventTrooperStatus::GOING, EventTrooperStatus::STAND_BY]))
-            ->sortBy(EventTrooper::SIGNED_UP_AT)
+            ->sortBy([
+                [EventTrooper::SIGNED_UP_AT, 'asc'],
+                [EventTrooper::ID, 'asc'],
+            ])
             ->values();
 
         $global_going = 0;

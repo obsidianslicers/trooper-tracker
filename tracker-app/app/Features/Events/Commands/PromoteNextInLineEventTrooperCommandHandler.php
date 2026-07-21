@@ -38,11 +38,20 @@ readonly class PromoteNextInLineEventTrooperCommandHandler implements CommandHan
 
         if ($message->event_shift_station_id !== null)
         {
+            //  a freed station spot only helps candidates whose own org limit still has room
             $next_in_line = $event_shift->event_troopers()
                 ->where(EventTrooper::STATUS, EventTrooperStatus::STAND_BY)
                 ->where(EventTrooper::EVENT_SHIFT_STATION_ID, $message->event_shift_station_id)
                 ->orderBy(EventTrooper::SIGNED_UP_AT)
-                ->first();
+                ->orderBy(EventTrooper::ID)
+                ->get()
+                ->first(function (EventTrooper $candidate) use ($event_shift) {
+                    $candidate_org_id = $candidate->organization_id
+                        ?? $candidate->effectiveOrgId($event_shift->event);
+
+                    return $candidate_org_id === null
+                        || !$event_shift->orgTroopersMaxed($candidate_org_id, $candidate->is_handler);
+                });
         }
 
         // Prefer the next STAND_BY trooper from the same organization when the
