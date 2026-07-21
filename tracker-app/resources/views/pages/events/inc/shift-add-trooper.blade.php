@@ -1,9 +1,13 @@
 @if($event_shift->canSignUp(Auth::user()) && $has_required_mission_brief_ack)
+    <div class="shift-signup-primary {{ $shift_uses_stations ? 'shift-signup-primary--station' : '' }}">
+        @if($shift_uses_stations)
+            <span class="shift-signup-primary__label">Choose your station</span>
+        @endif
     @if($event_has_org_limits)
         @if($eligible_orgs->count() > 1)
             <select id="org-picker-{{ $event_shift->id }}"
                     name="organization_id"
-                    class="form-select form-select-sm w-auto">
+                    class="form-select form-select-sm">
                 <option value="">-- Select Organization --</option>
                 @foreach($eligible_orgs as $org)
                     <option value="{{ $org->id }}">{{ $org->name }}</option>
@@ -23,7 +27,7 @@
     @if($shift_uses_stations)
         <select id="station-picker-{{ $event_shift->id }}"
                 name="event_shift_station_id"
-                class="form-select form-select-sm w-auto">
+                class="form-select form-select-sm">
             <option value="">-- Select Station --</option>
             @foreach($station_options as $station_id => $station_name)
                 <option value="{{ $station_id }}">{{ $station_name }}</option>
@@ -41,6 +45,7 @@
         <i class="fa fa-fw fa-plus-circle me-2"></i>
         Sign Up
     </button>
+    </div>
 @elseif($requires_mission_brief_ack && !$has_required_mission_brief_ack)
     <span class="d-block small text-warning mb-2">
         <i class="fa fa-fw fa-triangle-exclamation me-1"></i>
@@ -53,10 +58,11 @@
         @if ($can_moderate || $event_shift->isGoing(Auth::user()))
             {{-- if they are a normal user and already signed up - they can sign up a friend --}}
             {{-- or they are a moderator - they can sign up a friend --}}
+            <div class="shift-signup-secondary">
             @if($shift_uses_stations)
                 <select id="friend-station-picker-{{ $event_shift->id }}"
                         name="event_shift_station_id"
-                        class="form-select form-select-sm w-auto">
+                        class="form-select form-select-sm">
                     <option value="">-- Select Friend's Station --</option>
                     @foreach($station_options as $station_id => $station_name)
                         <option value="{{ $station_id }}">{{ $station_name }}</option>
@@ -72,6 +78,7 @@
                 <i class="fa fa-fw fa-plus-circle me-2"></i>
                 Add a Friend
             </button>
+            </div>
             @if($limited_orgs_for_add->isNotEmpty())
                 {{-- Step 2: org confirmation form appears here after trooper is selected --}}
                 <div id="add-trooper-step2-{{ $event_shift->id }}"></div>
@@ -100,7 +107,7 @@
         @if($event_shift->isGoing(Auth::user()) || $can_moderate)
             {{-- if they are a normal user and already signed up - they can sign up a guest --}}
             {{-- or they are a moderator - they can sign up a guest --}}
-            <button class="btn btn-sm btn-outline-info text-start text-md-center"
+            <button class="btn btn-sm btn-outline-info text-start text-md-center shift-signup-guest"
                     data-bs-toggle="modal"
                     data-bs-target="#modal-guest-{{ $event_shift->id }}">
                 <i class="fa fa-fw fa-plus-circle me-2"></i>
