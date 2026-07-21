@@ -15,24 +15,24 @@ use App\Models\Trooper;
 trait HasTrooperPermissionsTrait
 {
     /**
-     * Check if the trooper has administrator role.
+     * Check if the trooper has administrator role and is active.
      *
      * @param  Trooper  $trooper  The trooper to check.
-     * @return bool True if the trooper is an administrator, false otherwise.
+     * @return bool True if the trooper is an active administrator, false otherwise.
      */
     protected function isAdministrator(Trooper $trooper): bool
     {
-        return $trooper->membership_role === MembershipRole::ADMINISTRATOR;
+        return $trooper->is_administrator;
     }
 
     /**
-     * Check if the trooper has moderator role.
+     * Check if the trooper has moderator role and is active.
      *
      * @param  Trooper  $trooper  The trooper to check.
-     * @return bool True if the trooper is a moderator, false otherwise.
+     * @return bool True if the trooper is an active moderator, false otherwise.
      */
     protected function isModerator(Trooper $trooper): bool
     {
-        return $trooper->membership_role === MembershipRole::MODERATOR;
+        return $trooper->is_moderator;
     }
 }
