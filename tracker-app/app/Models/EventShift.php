@@ -65,7 +65,7 @@ class EventShift extends BaseEventShift
         {
             return false;
         }
-        return $this->status === EventStatus::OPEN;
+        return in_array($this->status, [EventStatus::OPEN, EventStatus::MANUAL_SELECTION], true);
     }
 
     /**
