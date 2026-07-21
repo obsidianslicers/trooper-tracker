@@ -37,7 +37,7 @@ class ReconcileEventRosterJob implements ShouldQueue
         $event = $this->event;
 
         $event->refresh();
-        $event->load(['event_organizations', 'event_shifts.event_troopers.trooper']);
+        $event->load(['event_organizations', 'event_shifts.event_troopers.trooper', 'event_shifts.event_shift_stations']);
 
         foreach ($event->event_shifts as $shift)
         {
@@ -61,6 +61,7 @@ class ReconcileEventRosterJob implements ShouldQueue
 
         $global_going = 0;
         $org_going = [];
+        $station_going = [];
 
         foreach ($active as $et)
         {
@@ -75,10 +76,22 @@ class ReconcileEventRosterJob implements ShouldQueue
                 $org_limit = $event_org?->{$limit_field};
             }
 
+            $station_id = $et->event_shift_station_id;
+            $station_limit = null;
+
+            if ($station_id !== null)
+            {
+                $station = $shift->event_shift_stations
+                    ->firstWhere('id', $station_id);
+
+                $station_limit = $station?->troopers_allowed;
+            }
+
             $fits_global = $global_limit === null || $global_going < $global_limit;
             $fits_org = $org_id === null || $org_limit === null || ($org_going[$org_id] ?? 0) < $org_limit;
+            $fits_station = $station_id === null || $station_limit === null || ($station_going[$station_id] ?? 0) < $station_limit;
 
-            $new_status = ($fits_global && $fits_org)
+            $new_status = ($fits_global && $fits_org && $fits_station)
                 ? EventTrooperStatus::GOING
                 : EventTrooperStatus::STAND_BY;
 
@@ -103,6 +116,10 @@ class ReconcileEventRosterJob implements ShouldQueue
                 if ($org_id !== null)
                 {
                     $org_going[$org_id] = ($org_going[$org_id] ?? 0) + 1;
+                }
+                if ($station_id !== null)
+                {
+                    $station_going[$station_id] = ($station_going[$station_id] ?? 0) + 1;
                 }
             }
         }

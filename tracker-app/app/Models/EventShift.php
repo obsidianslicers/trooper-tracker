@@ -116,17 +116,24 @@ class EventShift extends BaseEventShift
         return $this->event_shift_stations->isNotEmpty();
     }
 
-    public function stationMaxed(int $event_shift_station_id, ?int $excluding_event_trooper_id = null): bool
+    public function stationMaxed(int $event_shift_station_id, ?int $excluding_event_trooper_id = null, bool $lock = false): bool
     {
-        $station = $this->event_shift_stations->firstWhere('id', $event_shift_station_id)
-            ?? $this->event_shift_stations()->find($event_shift_station_id);
+        if ($lock)
+        {
+            $station = $this->event_shift_stations()->lockForUpdate()->find($event_shift_station_id);
+        }
+        else
+        {
+            $station = $this->event_shift_stations->firstWhere('id', $event_shift_station_id)
+                ?? $this->event_shift_stations()->find($event_shift_station_id);
+        }
 
         if ($station === null)
         {
             return true;
         }
 
-        return !$station->hasRoom($excluding_event_trooper_id);
+        return !$station->hasRoom($excluding_event_trooper_id, $lock);
     }
 
     /**
@@ -229,13 +236,8 @@ class EventShift extends BaseEventShift
      *
      * @return bool True if the number of signed up troopers meets or exceeds the allowed limit
      */
-    public function troopersMaxed(): bool
+    public function troopersMaxed(bool $lock = false): bool
     {
-        if ($this->usesStations())
-        {
-            return false;
-        }
-
         $troopers_allowed = $this->event->troopers_allowed;
 
         if ($troopers_allowed === null)
@@ -243,7 +245,14 @@ class EventShift extends BaseEventShift
             return false;
         }
 
-        $troopers_signed_up = $this->event_troopers()->troopers()->count();
+        $query = $this->event_troopers()->troopers();
+
+        if ($lock)
+        {
+            $query->lockForUpdate();
+        }
+
+        $troopers_signed_up = $query->count();
 
         return $troopers_signed_up >= $troopers_allowed;
     }
@@ -255,13 +264,8 @@ class EventShift extends BaseEventShift
      * @param bool $is_handler Whether to check handler slots instead of trooper slots
      * @return bool True if the org's count meets or exceeds its allowed limit
      */
-    public function orgTroopersMaxed(int $organization_id, bool $is_handler = false): bool
+    public function orgTroopersMaxed(int $organization_id, bool $is_handler = false, bool $lock = false): bool
     {
-        if ($this->usesStations())
-        {
-            return false;
-        }
-
         $event_org = $this->event->event_organizations
             ->firstWhere(EventOrganization::ORGANIZATION_ID, $organization_id);
 
@@ -277,7 +281,7 @@ class EventShift extends BaseEventShift
             return false;
         }
 
-        $count = $this->event_troopers()
+        $query = $this->event_troopers()
             ->where(EventTrooper::IS_HANDLER, $is_handler)
             ->where(EventTrooper::STATUS, EventTrooperStatus::GOING)
             ->where(function ($q) use ($organization_id)
@@ -288,8 +292,14 @@ class EventShift extends BaseEventShift
                         $q2->whereNull(EventTrooper::ORGANIZATION_ID)
                             ->whereJsonContains(EventTrooper::COSTUME_ORGANIZATION_IDS, $organization_id);
                     });
-            })
-            ->count();
+            });
+
+        if ($lock)
+        {
+            $query->lockForUpdate();
+        }
+
+        $count = $query->count();
 
         return $count >= $limit;
     }
@@ -299,13 +309,8 @@ class EventShift extends BaseEventShift
      *
      * @return bool True if the number of signed up handlers meets or exceeds the allowed limit
      */
-    public function handlersMaxed(): bool
+    public function handlersMaxed(bool $lock = false): bool
     {
-        if ($this->usesStations())
-        {
-            return false;
-        }
-
         $handlers_allowed = $this->event->handlers_allowed;
 
         if ($handlers_allowed === null)
@@ -313,7 +318,14 @@ class EventShift extends BaseEventShift
             return false;
         }
 
-        $handlers_signed_up = $this->event_troopers()->handlers()->count();
+        $query = $this->event_troopers()->handlers();
+
+        if ($lock)
+        {
+            $query->lockForUpdate();
+        }
+
+        $handlers_signed_up = $query->count();
 
         return $handlers_signed_up >= $handlers_allowed;
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Features\Events\Commands;
 
+use App\Bus\Concerns\ShouldBeTransactional;
 use App\Bus\Contracts\CommandHandlerInterface;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
@@ -25,6 +26,7 @@ use App\Notifications\Events\TrooperSignedUpNotification;
  */
 readonly class SignUpEventTrooperCommandHandler implements CommandHandlerInterface
 {
+    use ShouldBeTransactional;
     /**
      * @param  SignUpEventTrooperCommand  $message
      */
@@ -50,36 +52,42 @@ readonly class SignUpEventTrooperCommandHandler implements CommandHandlerInterfa
             $status = EventTrooperStatus::STAND_BY;
         }
 
-        if (
-            $status !== EventTrooperStatus::STAND_BY
-            && $message->event_shift->usesStations()
-            && (
-                $message->event_shift_station_id === null
-                || $message->event_shift->stationMaxed($message->event_shift_station_id)
-            )
-        ) {
-            $status = EventTrooperStatus::STAND_BY;
-        }
-        elseif ($status !== EventTrooperStatus::STAND_BY && $event_trooper->is_handler)
+        if ($status !== EventTrooperStatus::STAND_BY)
         {
-            if ($message->event_shift->handlersMaxed())
+            $station_maxed = false;
+            if ($message->event_shift->usesStations())
+            {
+                if ($message->event_shift_station_id === null || $message->event_shift->stationMaxed($message->event_shift_station_id, lock: true))
+                {
+                    $station_maxed = true;
+                }
+            }
+
+            if ($station_maxed)
             {
                 $status = EventTrooperStatus::STAND_BY;
             }
-            elseif ($message->organization_id !== null && $message->event_shift->orgTroopersMaxed($message->organization_id, true))
+            elseif ($event_trooper->is_handler)
             {
-                $status = EventTrooperStatus::STAND_BY;
+                if ($message->event_shift->handlersMaxed(lock: true))
+                {
+                    $status = EventTrooperStatus::STAND_BY;
+                }
+                elseif ($message->organization_id !== null && $message->event_shift->orgTroopersMaxed($message->organization_id, true, lock: true))
+                {
+                    $status = EventTrooperStatus::STAND_BY;
+                }
             }
-        }
-        elseif ($status !== EventTrooperStatus::STAND_BY)
-        {
-            if ($message->event_shift->troopersMaxed())
+            else
             {
-                $status = EventTrooperStatus::STAND_BY;
-            }
-            elseif ($message->organization_id !== null && $message->event_shift->orgTroopersMaxed($message->organization_id, false))
-            {
-                $status = EventTrooperStatus::STAND_BY;
+                if ($message->event_shift->troopersMaxed(lock: true))
+                {
+                    $status = EventTrooperStatus::STAND_BY;
+                }
+                elseif ($message->organization_id !== null && $message->event_shift->orgTroopersMaxed($message->organization_id, false, lock: true))
+                {
+                    $status = EventTrooperStatus::STAND_BY;
+                }
             }
         }
 

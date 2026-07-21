@@ -33,13 +33,18 @@ class EventShiftStation extends BaseEventShiftStation
         return $this->going_event_troopers()->count();
     }
 
-    public function hasRoom(?int $excluding_event_trooper_id = null): bool
+    public function hasRoom(?int $excluding_event_trooper_id = null, bool $lock = false): bool
     {
         $query = $this->going_event_troopers();
 
         if ($excluding_event_trooper_id !== null)
         {
             $query->where(EventTrooper::ID, '!=', $excluding_event_trooper_id);
+        }
+
+        if ($lock)
+        {
+            $query->lockForUpdate();
         }
 
         return $query->count() < $this->troopers_allowed;
