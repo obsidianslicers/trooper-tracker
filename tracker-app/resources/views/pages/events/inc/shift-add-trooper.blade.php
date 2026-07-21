@@ -84,7 +84,8 @@
             </div>
             @if($limited_orgs_for_add->isNotEmpty())
                 {{-- Step 2: org confirmation form appears here after trooper is selected --}}
-                <div id="add-trooper-step2-{{ $event_shift->id }}"></div>
+                <div id="add-trooper-step2-{{ $event_shift->id }}"
+                     class="friend-signup-step"></div>
             @endif
             </div>
             @if($limited_orgs_for_add->isNotEmpty())
