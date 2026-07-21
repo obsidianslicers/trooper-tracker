@@ -58,7 +58,7 @@
         @if ($can_moderate || $event_shift->isGoing(Auth::user()))
             {{-- if they are a normal user and already signed up - they can sign up a friend --}}
             {{-- or they are a moderator - they can sign up a friend --}}
-            <div class="shift-signup-secondary">
+            <div class="shift-signup-secondary {{ $shift_uses_stations ? 'shift-signup-secondary--station' : '' }}">
             @if($shift_uses_stations)
                 <select id="friend-station-picker-{{ $event_shift->id }}"
                         name="event_shift_station_id"
