@@ -58,17 +58,11 @@ class AddEventTrooperController extends MagicBusController
             ? (int) $request->input('event_shift_station_id')
             : null;
 
-        if ($event_shift->usesStations())
+        if (!$event_shift->isValidStationChoice($event_shift_station_id))
         {
-            $valid_station = $event_shift_station_id !== null
-                && $event_shift->event_shift_stations->contains('id', $event_shift_station_id);
+            $this->flash->danger('Select a station before adding a trooper.');
 
-            if (!$valid_station)
-            {
-                $this->flash->danger('Select a station before adding a trooper.');
-
-                return response()->noContent()->header('HX-Redirect', route('admin.events.troopers', compact('event')));
-            }
+            return response()->noContent()->header('HX-Redirect', route('admin.events.troopers', compact('event')));
         }
 
         $this->bus->send(new SignUpEventTrooperCommand(

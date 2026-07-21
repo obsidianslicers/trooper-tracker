@@ -8,6 +8,7 @@ use App\Bus\Contracts\QueryHandlerInterface;
 use App\Models\Costume;
 use App\Models\EventGuest;
 use App\Models\EventShift;
+use App\Models\EventShiftStation;
 use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\Trooper;
@@ -80,8 +81,8 @@ readonly class GetEventShiftDisplayQueryHandler implements QueryHandlerInterface
             },
             'event_shift_stations' => function ($query) {
                 $query->withCount('going_event_troopers')
-                    ->orderBy('sequence')
-                    ->orderBy('name');
+                    ->orderBy(EventShiftStation::SEQUENCE)
+                    ->orderBy(EventShiftStation::NAME);
             },
             'event_troopers.trooper:'.implode(',', $trooper_columns),
             'event_troopers.trooper.trooper_costumes.organization_costume',

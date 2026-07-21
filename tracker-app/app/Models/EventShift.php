@@ -103,7 +103,9 @@ class EventShift extends BaseEventShift
 
     public function activeStations(): HasMany
     {
-        return $this->event_shift_stations()->orderBy('sequence')->orderBy('name');
+        return $this->event_shift_stations()
+            ->orderBy(EventShiftStation::SEQUENCE)
+            ->orderBy(EventShiftStation::NAME);
     }
 
     public function usesStations(): bool
@@ -116,6 +118,21 @@ class EventShift extends BaseEventShift
         return $this->event_shift_stations->isNotEmpty();
     }
 
+    /**
+     * A station choice is valid when the shift has no stations, or the given
+     * id belongs to one of this shift's stations.
+     */
+    public function isValidStationChoice(?int $event_shift_station_id): bool
+    {
+        if (!$this->usesStations())
+        {
+            return true;
+        }
+
+        return $event_shift_station_id !== null
+            && $this->event_shift_stations->contains(EventShiftStation::ID, $event_shift_station_id);
+    }
+
     public function stationMaxed(int $event_shift_station_id, ?int $excluding_event_trooper_id = null, bool $lock = false): bool
     {
         if ($lock)
@@ -124,7 +141,7 @@ class EventShift extends BaseEventShift
         }
         else
         {
-            $station = $this->event_shift_stations->firstWhere('id', $event_shift_station_id)
+            $station = $this->event_shift_stations->firstWhere(EventShiftStation::ID, $event_shift_station_id)
                 ?? $this->event_shift_stations()->find($event_shift_station_id);
         }
 

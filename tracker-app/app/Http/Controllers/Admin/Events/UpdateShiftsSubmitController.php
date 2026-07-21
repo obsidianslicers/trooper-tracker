@@ -8,6 +8,7 @@ use App\Enums\EventStatus;
 use App\Features\Events\Commands\UpdateEventShiftStationsCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Events\UpdateShiftsRequest;
+use App\Jobs\ReconcileEventRosterJob;
 use App\Models\Event;
 use App\Models\EventShift;
 use Carbon\Carbon;
@@ -65,6 +66,11 @@ class UpdateShiftsSubmitController extends MagicBusController
                 $shift,
                 $input['stations'] ?? [],
             ));
+        }
+
+        if (collect($shifts)->contains(fn (array $input) => !empty($input['stations'])))
+        {
+            dispatch(new ReconcileEventRosterJob($event, $request->user()));
         }
 
         $starts_at = $event->event_shifts()->min(EventShift::SHIFT_STARTS_AT);

@@ -19,9 +19,14 @@ class ReorderShiftStationsSubmitController extends MagicBusController
 
         abort_if($event_shift->event_id !== $event->id, 404);
 
+        $validated = $request->validate([
+            'ids' => ['array'],
+            'ids.*' => ['integer'],
+        ]);
+
         $this->bus->send(new ReorderEventShiftStationsCommand(
             $event_shift,
-            $request->input('ids', []),
+            $validated['ids'] ?? [],
         ));
 
         return response()->json(['success' => true]);

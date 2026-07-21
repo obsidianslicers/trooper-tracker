@@ -7,6 +7,7 @@ namespace App\Features\Events\Queries;
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Models\Costume;
 use App\Models\EventShift;
+use App\Models\EventShiftStation;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\TrooperCostume;
@@ -81,8 +82,8 @@ readonly class GetTroopersForEventAdminQueryHandler implements QueryHandlerInter
         $with = [
             'event_shift_stations' => function ($query) {
                 $query->withCount('going_event_troopers')
-                    ->orderBy('sequence')
-                    ->orderBy('name');
+                    ->orderBy(EventShiftStation::SEQUENCE)
+                    ->orderBy(EventShiftStation::NAME);
             },
             'event_troopers.trooper:'.implode(',', $trooper_columns),
             'event_troopers.updated_by:'.implode(',', $trooper_columns),

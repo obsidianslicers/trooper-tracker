@@ -12,6 +12,7 @@ use App\Mail\Events\TrooperNextInLine;
 use App\Models\Event;
 use App\Models\EventOrganization;
 use App\Models\EventShift;
+use App\Models\EventShiftStation;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
 use App\Services\EventRosterCapacityService;
@@ -22,7 +23,9 @@ use Illuminate\Support\Facades\Mail;
  *
  * Walks every shift and re-assigns GOING / STAND_BY in deterministic queue
  * order (signed_up_at ASC, id ASC) so the roster always reflects the current
- * event, organization, and station limits. Because the walk is oldest-first,
+ * event, organization, and station limits. Event and organization limits are
+ * tracked per role (trooper vs handler); station capacity is role-agnostic,
+ * mirroring EventShiftStation::hasRoom(). Because the walk is oldest-first,
  * reducing a limit demotes the newest GOING troopers first (signed_up_at
  * DESC, id DESC). Troopers promoted to GOING receive a TrooperNextInLine
  * email; troopers demoted to STAND_BY receive a TrooperManualSelectionStandBy
@@ -52,54 +55,34 @@ readonly class ReconcileEventRosterCommandHandler implements CommandHandlerInter
 
         foreach ($event->event_shifts as $shift)
         {
-            foreach ([false, true] as $is_handler)
-            {
-                $this->reconcileGroup($event, $shift, $is_handler, $message->changed_by);
-            }
+            $this->reconcileShift($event, $shift, $message->changed_by);
         }
 
         return null;
     }
 
-    private function reconcileGroup(
-        Event $event,
-        EventShift $shift,
-        bool $is_handler,
-        Trooper $changed_by,
-    ): void {
-        $limit_field = $is_handler ? 'handlers_allowed' : 'troopers_allowed';
-        $global_limit = $event->{$limit_field};
-
+    private function reconcileShift(Event $event, EventShift $shift, Trooper $changed_by): void
+    {
         $active = $shift->event_troopers
-            ->filter(fn (EventTrooper $et) => $et->is_handler === $is_handler
-                && in_array($et->status, [EventTrooperStatus::GOING, EventTrooperStatus::STAND_BY]))
+            ->filter(fn (EventTrooper $et) => in_array(
+                $et->status,
+                [EventTrooperStatus::GOING, EventTrooperStatus::STAND_BY],
+            ))
             ->sortBy([
                 [EventTrooper::SIGNED_UP_AT, 'asc'],
                 [EventTrooper::ID, 'asc'],
             ])
             ->values();
 
-        $global_going = 0;
-        $org_going = [];
-        $station_going = [];
+        $going = [
+            'global' => [0, 0],
+            'org' => [[], []],
+            'station' => [],
+        ];
 
         foreach ($active as $et)
         {
-            $org_id = $et->effectiveOrgId($event);
-            $org_limit = $this->orgLimit($event, $org_id, $limit_field);
-            $station_id = $et->event_shift_station_id;
-            $station_limit = $this->stationLimit($shift, $station_id);
-
-            $fits_global = $this->capacity->limitHasRoom($global_limit, $global_going);
-            $fits_org = $org_id === null
-                || $this->capacity->limitHasRoom($org_limit, $org_going[$org_id] ?? 0);
-
-            //  station limits are never null or unlimited; a missing station record
-            //  means no capacity, mirroring EventShift::stationMaxed()
-            $fits_station = $station_id === null
-                || $this->capacity->stationHasRoom($station_limit, $station_going[$station_id] ?? 0);
-
-            $new_status = ($fits_global && $fits_org && $fits_station)
+            $new_status = $this->fits($event, $shift, $et, $going)
                 ? EventTrooperStatus::GOING
                 : EventTrooperStatus::STAND_BY;
 
@@ -107,16 +90,56 @@ readonly class ReconcileEventRosterCommandHandler implements CommandHandlerInter
 
             if ($new_status === EventTrooperStatus::GOING)
             {
-                $global_going++;
-                if ($org_id !== null)
-                {
-                    $org_going[$org_id] = ($org_going[$org_id] ?? 0) + 1;
-                }
-                if ($station_id !== null)
-                {
-                    $station_going[$station_id] = ($station_going[$station_id] ?? 0) + 1;
-                }
+                $this->countGoing($event, $et, $going);
             }
+        }
+    }
+
+    /**
+     * @param  array{global: array<int, int>, org: array<int, array<int, int>>, station: array<int, int>}  $going
+     */
+    private function fits(Event $event, EventShift $shift, EventTrooper $et, array $going): bool
+    {
+        $role = (int) $et->is_handler;
+        $limit_field = $et->is_handler ? 'handlers_allowed' : 'troopers_allowed';
+        $org_id = $et->effectiveOrgId($event);
+        $station_id = $et->event_shift_station_id;
+
+        $fits_global = $this->capacity->limitHasRoom($event->{$limit_field}, $going['global'][$role]);
+        $fits_org = $org_id === null || $this->capacity->limitHasRoom(
+            $this->orgLimit($event, $org_id, $limit_field),
+            $going['org'][$role][$org_id] ?? 0,
+        );
+
+        //  station limits are never null or unlimited; a missing station record
+        //  means no capacity, mirroring EventShift::stationMaxed()
+        $fits_station = $station_id === null || $this->capacity->stationHasRoom(
+            $this->stationLimit($shift, $station_id),
+            $going['station'][$station_id] ?? 0,
+        );
+
+        return $fits_global && $fits_org && $fits_station;
+    }
+
+    /**
+     * @param  array{global: array<int, int>, org: array<int, array<int, int>>, station: array<int, int>}  $going
+     */
+    private function countGoing(Event $event, EventTrooper $et, array &$going): void
+    {
+        $role = (int) $et->is_handler;
+        $org_id = $et->effectiveOrgId($event);
+        $station_id = $et->event_shift_station_id;
+
+        $going['global'][$role]++;
+
+        if ($org_id !== null)
+        {
+            $going['org'][$role][$org_id] = ($going['org'][$role][$org_id] ?? 0) + 1;
+        }
+
+        if ($station_id !== null)
+        {
+            $going['station'][$station_id] = ($going['station'][$station_id] ?? 0) + 1;
         }
     }
 
@@ -140,7 +163,7 @@ readonly class ReconcileEventRosterCommandHandler implements CommandHandlerInter
             return null;
         }
 
-        $station = $shift->event_shift_stations->firstWhere('id', $station_id);
+        $station = $shift->event_shift_stations->firstWhere(EventShiftStation::ID, $station_id);
 
         return $station?->troopers_allowed;
     }

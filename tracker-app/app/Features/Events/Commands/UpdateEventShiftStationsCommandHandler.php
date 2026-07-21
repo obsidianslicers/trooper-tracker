@@ -6,58 +6,74 @@ namespace App\Features\Events\Commands;
 
 use App\Bus\Concerns\ShouldBeTransactional;
 use App\Bus\Contracts\CommandHandlerInterface;
-use App\Enums\EventTrooperStatus;
 use App\Models\EventShift;
 use App\Models\EventShiftStation;
-use App\Models\EventTrooper;
-use App\Notifications\Events\TrooperPromotedToGoingNotification;
 use InvalidArgumentException;
 
+/**
+ * Handler that creates and updates a shift's stations from form input.
+ *
+ * Persists station names, limits, and ordering only. Roster consequences of
+ * a limit change (promotions / demotions) are handled by dispatching
+ * ReconcileEventRosterCommand afterwards, so capacity rules live in exactly
+ * one place.
+ *
+ * @implements CommandHandlerInterface<UpdateEventShiftStationsCommand>
+ */
 readonly class UpdateEventShiftStationsCommandHandler implements CommandHandlerInterface
 {
     use ShouldBeTransactional;
 
+    /**
+     * @param  UpdateEventShiftStationsCommand  $message
+     */
     public function __invoke(object $message): mixed
     {
         $message->event_shift->loadMissing('event_shift_stations');
 
         foreach ($message->stations as $station_id => $station_input)
         {
-            $name = trim((string) ($station_input['name'] ?? ''));
-            $troopers_allowed = $station_input['troopers_allowed'] ?? null;
-
-            if ($name === '' && empty($troopers_allowed))
-            {
-                continue;
-            }
-
-            //  stations always require a positive numerical limit; request
-            //  validation guards this, so reaching here without one is a bug
-            if (!is_numeric($troopers_allowed) || (int) $troopers_allowed < 1)
-            {
-                throw new InvalidArgumentException(
-                    'Station troopers_allowed must be a positive integer.'
-                );
-            }
-
-            $station = $this->resolveStation($message->event_shift, (int) $station_id);
-
-            if ($station === null)
-            {
-                continue;
-            }
-
-            $station->name = $name;
-            $station->troopers_allowed = (int) $troopers_allowed;
-            $station->sequence = isset($station_input['sequence'])
-                ? (int) $station_input['sequence']
-                : $station->sequence;
-            $station->save();
-
-            $this->reconcileRoster($station);
+            $this->upsertStation($message->event_shift, (int) $station_id, $station_input);
         }
 
         return null;
+    }
+
+    /**
+     * @param  array{name?: string|null, troopers_allowed?: int|string|null, sequence?: int|string|null}  $station_input
+     */
+    private function upsertStation(EventShift $event_shift, int $station_id, array $station_input): void
+    {
+        $name = trim((string) ($station_input['name'] ?? ''));
+        $troopers_allowed = $station_input['troopers_allowed'] ?? null;
+
+        if ($name === '' && empty($troopers_allowed))
+        {
+            return;
+        }
+
+        //  stations always require a positive numerical limit; request
+        //  validation guards this, so reaching here without one is a bug
+        if (!is_numeric($troopers_allowed) || (int) $troopers_allowed < 1)
+        {
+            throw new InvalidArgumentException(
+                'Station troopers_allowed must be a positive integer.'
+            );
+        }
+
+        $station = $this->resolveStation($event_shift, $station_id);
+
+        if ($station === null)
+        {
+            return;
+        }
+
+        $station->name = $name;
+        $station->troopers_allowed = (int) $troopers_allowed;
+        $station->sequence = isset($station_input['sequence'])
+            ? (int) $station_input['sequence']
+            : $station->sequence;
+        $station->save();
     }
 
     private function resolveStation(EventShift $event_shift, int $station_id): ?EventShiftStation
@@ -73,28 +89,5 @@ readonly class UpdateEventShiftStationsCommandHandler implements CommandHandlerI
             ->max(EventShiftStation::SEQUENCE)) + 10;
 
         return $station;
-    }
-
-    private function reconcileRoster(EventShiftStation $station): void
-    {
-        $going = $station->going_event_troopers()
-            ->orderByDesc(EventTrooper::SIGNED_UP_AT)
-            ->get();
-
-        $going->take(max(0, $going->count() - $station->troopers_allowed))
-            ->each(function (EventTrooper $event_trooper): void {
-                $event_trooper->update([EventTrooper::STATUS => EventTrooperStatus::STAND_BY]);
-            });
-
-        $open_slots = $station->troopers_allowed - $station->going_event_troopers()->count();
-        $station->event_troopers()
-            ->where(EventTrooper::STATUS, EventTrooperStatus::STAND_BY)
-            ->orderBy(EventTrooper::SIGNED_UP_AT)
-            ->limit(max(0, $open_slots))
-            ->get()
-            ->each(function (EventTrooper $event_trooper): void {
-                $event_trooper->update([EventTrooper::STATUS => EventTrooperStatus::GOING]);
-                $event_trooper->trooper->notify(new TrooperPromotedToGoingNotification($event_trooper));
-            });
     }
 }

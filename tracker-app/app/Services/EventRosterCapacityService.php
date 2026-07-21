@@ -29,17 +29,9 @@ readonly class EventRosterCapacityService
         bool $is_handler,
         bool $lock = false,
     ): bool {
-        if ($event_shift->usesStations())
+        if (!$this->canGoAtStation($event_shift, $event_shift_station_id, lock: $lock))
         {
-            if ($event_shift_station_id === null)
-            {
-                return false;
-            }
-
-            if ($event_shift->stationMaxed($event_shift_station_id, lock: $lock))
-            {
-                return false;
-            }
+            return false;
         }
 
         $event_full = $is_handler
@@ -58,6 +50,36 @@ readonly class EventRosterCapacityService
         }
 
         return true;
+    }
+
+    /**
+     * Decide whether a trooper may hold a GOING spot at the given station.
+     *
+     * Non-stationed shifts always have room. On a stationed shift a trooper
+     * must occupy a station, and that station must have an open slot
+     * (optionally ignoring the trooper's own current spot).
+     */
+    public function canGoAtStation(
+        EventShift $event_shift,
+        ?int $event_shift_station_id,
+        ?int $excluding_event_trooper_id = null,
+        bool $lock = false,
+    ): bool {
+        if (!$event_shift->usesStations())
+        {
+            return true;
+        }
+
+        if ($event_shift_station_id === null)
+        {
+            return false;
+        }
+
+        return !$event_shift->stationMaxed(
+            $event_shift_station_id,
+            $excluding_event_trooper_id,
+            $lock,
+        );
     }
 
     /**

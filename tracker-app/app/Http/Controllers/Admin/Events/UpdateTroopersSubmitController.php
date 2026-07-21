@@ -17,13 +17,17 @@ use App\Models\Organization;
 use App\Models\Trooper;
 use App\Notifications\Events\ManualSelectionApprovedNotification;
 use App\Notifications\Events\ManualSelectionStandByNotification;
+use App\Services\EventRosterCapacityService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
 
 class UpdateTroopersSubmitController extends MagicBusController
 {
-    public function __invoke(UpdateTroopersRequest $request, Event $event): RedirectResponse
-    {
+    public function __invoke(
+        UpdateTroopersRequest $request,
+        Event $event,
+        EventRosterCapacityService $capacity,
+    ): RedirectResponse {
         $this->authorize('update', $event);
 
         $auth_trooper = $request->user();
@@ -46,7 +50,7 @@ class UpdateTroopersSubmitController extends MagicBusController
 
         foreach ($validated_troopers as $id => $input)
         {
-            $this->processEventTrooper($event_troopers, (int) $id, $input, $allowed_org_ids, $is_manual_selection_event, $auth_trooper, $costumes_by_id);
+            $this->processEventTrooper($event_troopers, (int) $id, $input, $allowed_org_ids, $is_manual_selection_event, $auth_trooper, $costumes_by_id, $capacity);
         }
 
         foreach ($request->validated('guests', []) as $id => $input)
@@ -73,7 +77,8 @@ class UpdateTroopersSubmitController extends MagicBusController
         ?array $allowed_org_ids,
         bool $is_manual_selection_event,
         Trooper $auth_trooper,
-        Collection $costumes_by_id
+        Collection $costumes_by_id,
+        EventRosterCapacityService $capacity
     ): void {
         $event_trooper = $event_troopers->filter(fn ($et) => $et->id === $id)->first();
 
@@ -93,17 +98,14 @@ class UpdateTroopersSubmitController extends MagicBusController
         $event_trooper->status = $new_status;
         $this->applyStationSelection($event_trooper, $input);
 
-        if (
-            $event_trooper->status === EventTrooperStatus::GOING
-            && $event_trooper->event_shift->usesStations()
-            && (
-                $event_trooper->event_shift_station_id === null
-                || $event_trooper->event_shift->stationMaxed(
-                    $event_trooper->event_shift_station_id,
-                    $event_trooper->id,
-                )
-            )
-        ) {
+        $station_has_room = $capacity->canGoAtStation(
+            $event_trooper->event_shift,
+            $event_trooper->event_shift_station_id,
+            $event_trooper->id,
+        );
+
+        if ($event_trooper->status === EventTrooperStatus::GOING && !$station_has_room)
+        {
             $event_trooper->status = EventTrooperStatus::STAND_BY;
         }
 

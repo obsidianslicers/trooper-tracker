@@ -66,21 +66,15 @@ class SignUpHtmxController extends MagicBusController
                 ? (int) $request->input('event_shift_station_id')
                 : null;
 
-            if ($event_shift->usesStations())
+            if (!$event_shift->isValidStationChoice($event_shift_station_id))
             {
-                $valid_station = $event_shift_station_id !== null
-                    && $event_shift->event_shift_stations->contains('id', $event_shift_station_id);
-
-                if (!$valid_station)
-                {
-                    return $this->shiftContainerResponse($event_shift, $auth_trooper, $trooper, $can_moderate)
-                        ->header('X-Flash-Message', json_encode([
-                            'message' => 'Select a station before signing up.',
-                            'type' => 'danger',
-                            'focus' => true,
-                            'fadeOut' => 5000,
-                        ]));
-                }
+                return $this->shiftContainerResponse($event_shift, $auth_trooper, $trooper, $can_moderate)
+                    ->header('X-Flash-Message', json_encode([
+                        'message' => 'Select a station before signing up.',
+                        'type' => 'danger',
+                        'focus' => true,
+                        'fadeOut' => 5000,
+                    ]));
             }
 
             $organization_id = $request->input('organization_id') ? (int) $request->input('organization_id') : null;
