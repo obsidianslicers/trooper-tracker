@@ -5,14 +5,11 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
-use App\Enums\EventTrooperStatus;
+use App\Features\Events\Commands\UpdateEventShiftStationsCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Events\UpdateShiftsRequest;
 use App\Models\Event;
 use App\Models\EventShift;
-use App\Models\EventShiftStation;
-use App\Models\EventTrooper;
-use App\Notifications\Events\TrooperPromotedToGoingNotification;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 
@@ -64,50 +61,10 @@ class UpdateShiftsSubmitController extends MagicBusController
 
             $shift->save();
 
-            foreach ($input['stations'] ?? [] as $station_id => $station_input)
-            {
-                $name = trim((string) ($station_input['name'] ?? ''));
-                $troopers_allowed = $station_input['troopers_allowed'] ?? null;
-
-                if ($name === '' && empty($troopers_allowed))
-                {
-                    continue;
-                }
-
-                if ($id <= 0)
-                {
-                    continue;
-                }
-
-                $station = new EventShiftStation;
-                $station->event_shift_id = $shift->id;
-
-                if ((int) $station_id > 0)
-                {
-                    $station = $shift->event_shift_stations->firstWhere('id', (int) $station_id);
-
-                    if ($station === null)
-                    {
-                        continue;
-                    }
-                }
-
-                $station->name = $name;
-                $station->troopers_allowed = (int) $troopers_allowed;
-
-                if (array_key_exists('sequence', $station_input))
-                {
-                    $station->sequence = (int) $station_input['sequence'];
-                }
-                elseif (!$station->exists)
-                {
-                    $station->sequence = ((int) $shift->event_shift_stations()->max(EventShiftStation::SEQUENCE)) + 10;
-                }
-
-                $station->save();
-
-                $this->reconcileStationRoster($station);
-            }
+            $this->bus->send(new UpdateEventShiftStationsCommand(
+                $shift,
+                $input['stations'] ?? [],
+            ));
         }
 
         $starts_at = $event->event_shifts()->min(EventShift::SHIFT_STARTS_AT);
@@ -127,40 +84,5 @@ class UpdateShiftsSubmitController extends MagicBusController
         $this->flash->updated($event);
 
         return redirect()->route('admin.events.shifts', compact('event'));
-    }
-
-    private function reconcileStationRoster(EventShiftStation $station): void
-    {
-        $going_count = $station->going_event_troopers()->count();
-
-        if ($going_count > $station->troopers_allowed)
-        {
-            $station->going_event_troopers()
-                ->orderByDesc(EventTrooper::SIGNED_UP_AT)
-                ->limit($going_count - $station->troopers_allowed)
-                ->get()
-                ->each(function (EventTrooper $event_trooper): void {
-                    $event_trooper->status = EventTrooperStatus::STAND_BY;
-                    $event_trooper->save();
-                });
-        }
-
-        while ($station->fresh()->hasRoom())
-        {
-            $next_in_line = $station->event_troopers()
-                ->where(EventTrooper::STATUS, EventTrooperStatus::STAND_BY)
-                ->orderBy(EventTrooper::SIGNED_UP_AT)
-                ->first();
-
-            if ($next_in_line === null)
-            {
-                return;
-            }
-
-            $next_in_line->status = EventTrooperStatus::GOING;
-            $next_in_line->save();
-
-            $next_in_line->trooper->notify(new TrooperPromotedToGoingNotification($next_in_line));
-        }
     }
 }

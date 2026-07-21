@@ -106,7 +106,7 @@ class SignupUpdateHtmxRequest extends FormRequest
 
         return [
             EventTrooper::EVENT_SHIFT_STATION_ID => [
-                'nullable',
+                $event_shift->usesStations() ? 'required' : 'nullable',
                 'int',
                 Rule::in($valid_station_ids),
             ],

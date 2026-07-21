@@ -61,6 +61,29 @@ class SignUpUpdateHtmxControllerTest extends TestCase
         $response->assertRedirect(route('auth.login'));
     }
 
+    public function test_invoke_rejects_clearing_station_for_stationed_shift(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $organization = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();
+        $event = Event::factory()->withOrganization($organization)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $station = EventShiftStation::factory()->forEventShift($event_shift)->create();
+        $event_trooper = EventTrooper::factory()
+            ->forEventShiftStation($station)
+            ->forTrooper($trooper)
+            ->asGoing()
+            ->create();
+
+        $response = $this->actingAs($trooper)->post(
+            route('events.signup-update-htmx', ['event_trooper' => $event_trooper]),
+            ['event_shift_station_id' => ''],
+        );
+
+        $response->assertSessionHasErrors(EventTrooper::EVENT_SHIFT_STATION_ID);
+        $this->assertSame($station->id, $event_trooper->fresh()->event_shift_station_id);
+    }
+
     public function test_invoke_updates_organization_id_and_clears_costumes(): void
     {
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();

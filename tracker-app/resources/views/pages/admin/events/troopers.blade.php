@@ -112,7 +112,7 @@
                                             <x-input-select :property="'troopers.' . $event_trooper->id . '.event_shift_station_id'"
                                                             :options="$event_shift->event_shift_stations->pluck('name', 'id')->toArray()"
                                                             :value="$event_trooper->event_shift_station_id"
-                                                            :placeholder="'-- No Station --'"
+                                                            :placeholder="'-- Select Station --'"
                                                             class="form-select-sm" />
                                         @else
                                             <span class="text-muted">-</span>

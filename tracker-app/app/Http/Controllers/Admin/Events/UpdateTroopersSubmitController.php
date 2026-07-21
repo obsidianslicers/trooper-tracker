@@ -93,6 +93,20 @@ class UpdateTroopersSubmitController extends MagicBusController
         $event_trooper->status = $new_status;
         $this->applyStationSelection($event_trooper, $input);
 
+        if (
+            $event_trooper->status === EventTrooperStatus::GOING
+            && $event_trooper->event_shift->usesStations()
+            && (
+                $event_trooper->event_shift_station_id === null
+                || $event_trooper->event_shift->stationMaxed(
+                    $event_trooper->event_shift_station_id,
+                    $event_trooper->id,
+                )
+            )
+        ) {
+            $event_trooper->status = EventTrooperStatus::STAND_BY;
+        }
+
         $this->applyCostumeAndOrgSelection($event_trooper, $input, $allowed_org_ids, $costumes_by_id);
 
         $event_trooper->organization_id = null;
@@ -114,8 +128,6 @@ class UpdateTroopersSubmitController extends MagicBusController
 
         if ($station_id === null)
         {
-            $event_trooper->event_shift_station_id = null;
-
             return;
         }
 
