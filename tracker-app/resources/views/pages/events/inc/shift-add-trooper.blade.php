@@ -58,7 +58,9 @@
         @if ($can_moderate || $event_shift->isGoing(Auth::user()))
             {{-- if they are a normal user and already signed up - they can sign up a friend --}}
             {{-- or they are a moderator - they can sign up a friend --}}
-            <div class="shift-signup-secondary {{ $shift_uses_stations ? 'shift-signup-secondary--station' : '' }}">
+            <div id="friend-signup-action-{{ $event_shift->id }}"
+                 class="shift-signup-secondary {{ $shift_uses_stations ? 'shift-signup-secondary--station' : '' }}">
+            <div class="shift-friend-trigger">
             @if($shift_uses_stations)
                 <select id="friend-station-picker-{{ $event_shift->id }}"
                         name="event_shift_station_id"
@@ -82,6 +84,9 @@
             @if($limited_orgs_for_add->isNotEmpty())
                 {{-- Step 2: org confirmation form appears here after trooper is selected --}}
                 <div id="add-trooper-step2-{{ $event_shift->id }}"></div>
+            @endif
+            </div>
+            @if($limited_orgs_for_add->isNotEmpty())
                 {{-- Fetch the selected trooper's eligible orgs instead of signing up directly --}}
                 <div class="d-none"
                      hx-get="{{ route('events.add-trooper-org-picker', compact('event_shift')) }}"
@@ -89,6 +94,7 @@
                      hx-trigger="trooper:selected[event.detail.property == 'add-shift-friend-{{ $event_shift->id }}'] from:document"
                      hx-target="#add-trooper-step2-{{ $event_shift->id }}"
                      hx-swap="innerHTML"
+                     hx-on::before-request="document.getElementById('friend-signup-action-{{ $event_shift->id }}').classList.add('shift-signup-secondary--confirming'); document.querySelector('#friend-signup-action-{{ $event_shift->id }} .shift-friend-trigger').classList.add('d-none')"
                      hx-indicator="#transmission-bar-shift-{{ $event_shift->id }}"></div>
             @else
                 {{-- No org limits — sign up directly --}}

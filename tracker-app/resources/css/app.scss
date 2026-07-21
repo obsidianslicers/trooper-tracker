@@ -280,12 +280,6 @@ a:hover {
     max-width: 18rem;
 }
 
-.shift-signup-secondary {
-    align-items: center;
-    display: flex;
-    gap: 0.5rem;
-}
-
 .shift-signup-secondary--station {
     background: color-mix(in srgb, var(--bs-info) 7%, var(--bs-card-bg));
     border: 1px solid color-mix(in srgb, var(--bs-info) 30%, var(--bs-border-color));
@@ -293,6 +287,25 @@ a:hover {
     flex: 1 1 28rem;
     justify-content: flex-end;
     padding: 0.75rem;
+}
+
+.shift-friend-trigger {
+    align-items: center;
+    display: flex;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.shift-signup-secondary--confirming {
+    background: color-mix(in srgb, var(--bs-info) 7%, var(--bs-card-bg));
+    border: 1px solid color-mix(in srgb, var(--bs-info) 30%, var(--bs-border-color));
+    border-radius: 0.5rem;
+    flex: 1 1 28rem;
+    padding: 0.75rem;
+}
+
+.friend-signup-confirmation {
+    width: 100%;
 }
 
 .shift-signup-secondary--station .form-select {
@@ -340,6 +353,11 @@ a:hover {
 
     .shift-signup-primary__label {
         margin-right: 0;
+    }
+
+    .shift-friend-trigger {
+        align-items: stretch;
+        flex-direction: column;
     }
 
     .shift-signup-primary .form-select,

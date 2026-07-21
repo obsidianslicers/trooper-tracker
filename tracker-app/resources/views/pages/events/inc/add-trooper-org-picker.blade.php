@@ -1,4 +1,4 @@
-<div class="border rounded p-2 mt-1">
+<div class="friend-signup-confirmation">
     <div class="small fw-semibold mb-2">
         <i class="fa fa-fw fa-user me-1"></i>{{ $trooper->display_name }}
         @if($eligible_orgs->count() > 1)
@@ -31,7 +31,7 @@
         </button>
         <button class="btn btn-sm btn-outline-secondary"
                 type="button"
-                onclick="document.getElementById('add-trooper-step2-{{ $event_shift->id }}').innerHTML=''">
+                onclick="document.getElementById('add-trooper-step2-{{ $event_shift->id }}').innerHTML=''; document.getElementById('friend-signup-action-{{ $event_shift->id }}').classList.remove('shift-signup-secondary--confirming'); document.querySelector('#friend-signup-action-{{ $event_shift->id }} .shift-friend-trigger').classList.remove('d-none')">
             Cancel
         </button>
     </div>
