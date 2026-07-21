@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Policies\Concerns;
 
-use App\Enums\MembershipRole;
 use App\Models\Trooper;
 
 /**
