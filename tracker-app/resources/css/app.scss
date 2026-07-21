@@ -239,6 +239,60 @@ a:hover {
     width: 2rem;
 }
 
+// Attendee-facing station summary (event page)
+.station-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.station-summary__item {
+    align-items: center;
+    background: var(--bs-card-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.5rem;
+    display: inline-flex;
+    font-size: 0.95rem;
+    font-weight: 600;
+    gap: 0.5rem;
+    padding: 0.5rem 0.9rem;
+}
+
+.station-summary__name {
+    color: var(--bs-body-color);
+}
+
+.station-summary__count {
+    white-space: nowrap;
+}
+
+.station-summary__item--full {
+    background: color-mix(in srgb, var(--bs-success) 12%, var(--bs-card-bg));
+    border-color: color-mix(in srgb, var(--bs-success) 45%, var(--bs-border-color));
+
+    .station-summary__count {
+        color: var(--bs-success);
+    }
+}
+
+.station-summary__item--empty {
+    background: color-mix(in srgb, var(--bs-danger) 10%, var(--bs-card-bg));
+    border-color: color-mix(in srgb, var(--bs-danger) 40%, var(--bs-border-color));
+
+    .station-summary__count {
+        color: var(--bs-danger);
+    }
+}
+
+.station-summary__item--open {
+    background: color-mix(in srgb, var(--bs-primary) 8%, var(--bs-card-bg));
+    border-color: color-mix(in srgb, var(--bs-primary) 35%, var(--bs-border-color));
+
+    .station-summary__count {
+        color: var(--bs-primary);
+    }
+}
+
 // Attendee-facing shift signup actions
 .shift-signup-actions {
     align-items: stretch;
