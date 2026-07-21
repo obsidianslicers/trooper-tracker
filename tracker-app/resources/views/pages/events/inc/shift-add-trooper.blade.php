@@ -53,6 +53,16 @@
         @if ($can_moderate || $event_shift->isGoing(Auth::user()))
             {{-- if they are a normal user and already signed up - they can sign up a friend --}}
             {{-- or they are a moderator - they can sign up a friend --}}
+            @if($shift_uses_stations)
+                <select id="friend-station-picker-{{ $event_shift->id }}"
+                        name="event_shift_station_id"
+                        class="form-select form-select-sm w-auto">
+                    <option value="">-- Select Friend's Station --</option>
+                    @foreach($station_options as $station_id => $station_name)
+                        <option value="{{ $station_id }}">{{ $station_name }}</option>
+                    @endforeach
+                </select>
+            @endif
             <button class="btn btn-sm btn-outline-info text-start text-md-center"
                     hx-get="{{ route('pickers.trooper', ['property' => 'add-shift-friend-' . $event_shift->id, 'event' => 'trooper:selected', 'picker_mode' => App\Enums\TrooperPickerMode::FRIENDS->value]) }}"
                     hx-target="#modal-trooper .modal-body"
@@ -77,7 +87,7 @@
                 {{-- No org limits — sign up directly --}}
                 <div class="d-none"
                      hx-post="{{ route('events.signup-htmx', compact('event_shift')) }}"
-                     hx-vals="js:{trooper_id: event.detail.id, event_shift_station_id: (document.getElementById('station-picker-{{ $event_shift->id }}')?.value || '')}"
+                     hx-vals="js:{trooper_id: event.detail.id, event_shift_station_id: (document.getElementById('friend-station-picker-{{ $event_shift->id }}')?.value || '')}"
                      hx-trigger="trooper:selected[event.detail.property == 'add-shift-friend-{{ $event_shift->id }}'] from:document"
                      hx-select="#shift-container-{{ $event_shift->id }}"
                      hx-target="#shift-container-{{ $event_shift->id }}"

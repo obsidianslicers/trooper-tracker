@@ -233,10 +233,11 @@ class SignUpUpdateHtmxControllerTest extends TestCase
 
         $event = Event::factory()->withOrganization($organization)->create();
         $event_shift = EventShift::factory()->forEvent($event)->create();
+        $station = EventShiftStation::factory()->forEventShift($event_shift)->create();
         $handler_costume = Costume::factory()->state(['name' => Costume::HANDLER])->create();
 
         $event_trooper = EventTrooper::factory()
-            ->forEventShift($event_shift)
+            ->forEventShiftStation($station)
             ->forTrooper($trooper)
             ->asGoing()
             ->state([EventTrooper::IS_HANDLER => false])
@@ -250,6 +251,7 @@ class SignUpUpdateHtmxControllerTest extends TestCase
         $response->assertOk();
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::ID => $event_trooper->id,
+            EventTrooper::EVENT_SHIFT_STATION_ID => $station->id,
             EventTrooper::IS_HANDLER => true,
             EventTrooper::COSTUME_ID => $handler_costume->id,
         ]);

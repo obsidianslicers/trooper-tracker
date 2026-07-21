@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Events;
 
-use App\Enums\EventTrooperStatus;
 use App\Models\Event;
 use App\Models\EventOrganization;
 use App\Models\EventShift;
@@ -104,6 +103,37 @@ class SignUpHtmxControllerTest extends TestCase
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::TROOPER_ID => $trooper->id,
             EventTrooper::EVENT_SHIFT_STATION_ID => $station->id,
+        ]);
+    }
+
+    public function test_invoke_signs_up_friend_for_selected_station(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $friend = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $organization = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($friend)->forOrganization($organization)->asMember()->create();
+
+        $event = Event::factory()->withOrganization($organization)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $station = EventShiftStation::factory()->forEventShift($event_shift)->create();
+        EventTrooper::factory()->forEventShift($event_shift)->forTrooper($trooper)->asGoing()->create();
+
+        $response = $this->actingAs($trooper)->post(
+            route('events.signup-htmx', ['event_shift' => $event_shift->id]),
+            [
+                'trooper_id' => $friend->id,
+                'event_shift_station_id' => $station->id,
+            ]
+        );
+
+        $response->assertOk();
+        $response->assertSee("friend-station-picker-{$event_shift->id}", false);
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $friend->id,
+            EventTrooper::EVENT_SHIFT_ID => $event_shift->id,
+            EventTrooper::EVENT_SHIFT_STATION_ID => $station->id,
+            EventTrooper::ADDED_BY_TROOPER_ID => $trooper->id,
         ]);
     }
 
