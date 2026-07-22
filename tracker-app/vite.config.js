@@ -19,6 +19,12 @@ export default defineConfig({
         rollupOptions: {
             output: {
                 manualChunks(id) {
+                    if (id.includes('resources/svelte/lib/components')) {
+                        return 'app-components';
+                    }
+                    if (id.includes('resources/svelte/pages/auth') || id.includes('resources/svelte/domains/auth')) {
+                        return 'pages-auth';
+                    }
                     if (id.includes('node_modules')) {
                         // 1. Core Reactive Frameworks
                         if (id.includes('svelte') || id.includes('@inertiajs')) {
