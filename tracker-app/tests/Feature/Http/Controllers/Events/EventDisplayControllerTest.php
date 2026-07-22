@@ -79,7 +79,7 @@ class EventDisplayControllerTest extends TestCase
         $response = $this->actingAs($viewer)->get(route('events.display', ['event' => $event->id]));
 
         $response->assertOk();
-        $response->assertSeeTextInOrder(['Docking Bay:', '2/3']);
+        $response->assertSeeTextInOrder(['Docking Bay', '2/3']);
     }
 
     public function test_invoke_shows_trooping_as_label_when_trooper_has_single_eligible_org_with_limit(): void
