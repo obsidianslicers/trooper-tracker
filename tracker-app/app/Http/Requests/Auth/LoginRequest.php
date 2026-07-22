@@ -32,6 +32,7 @@ class LoginRequest extends FormRequest
                 Rule::exists(Trooper::class, Trooper::EMAIL),
             ],
             Trooper::PASSWORD => ['required'],
+            'remember_me' => ['boolean'],
         ];
     }
 

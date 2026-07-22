@@ -13,6 +13,16 @@ namespace App\Facades;
 class TroopTracker
 {
     /**
+     * Retrieves the configured name of the XenForo instance.
+     *
+     * @return string The configured name of the XenForo instance.
+     */
+    public function getXenforoOAuthName(): string
+    {
+        return (string) config('services.xenforo.name', '');
+    }
+
+    /**
      * Determine if XenForo OAuth authentication is required.
      *
      * When required, email/password and Google OAuth authentication methods
@@ -57,7 +67,7 @@ class TroopTracker
         $base_url = (string) config('services.xenforo.base_url', '');
         $api_key = config('services.xenforo.api_key');
 
-        return ! empty($base_url) && ! empty($api_key);
+        return !empty($base_url) && !empty($api_key);
     }
 
     /**
