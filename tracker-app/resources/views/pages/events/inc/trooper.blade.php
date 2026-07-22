@@ -54,6 +54,11 @@
                                 hx-target="#shift-container-{{ $event_trooper->event_shift->id }}"
                                 hx-swap="outerHTML"
                                 class="form-select-sm mt-2 mt-md-0" />
+            @elseif($show_org_picker && $eligible_orgs_for_change->count() === 1)
+                <div class="small text-muted">
+                    <i class="fa fa-fw fa-building me-1"></i>
+                    Trooping as {{ $eligible_orgs_for_change->first()->name }}
+                </div>
             @endif
             <x-input-select :property="'costume_id'"
                             :options="$event_trooper->costumes"
