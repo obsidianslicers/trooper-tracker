@@ -95,7 +95,7 @@ class SignupUpdateHtmxRequest extends FormRequest
 
         $organization_ids = $effective_org_id !== null
             ? collect([$effective_org_id])
-            : $event->event_organizations()->pluckCanAttend($event_shift);
+            : $event->event_organizations()->pluckCanAttend($event_shift, $event_trooper->id);
 
         $valid_costume_ids = Costume::forTrooper($event_trooper->trooper_id, $organization_ids)
             ->pluck('id')
