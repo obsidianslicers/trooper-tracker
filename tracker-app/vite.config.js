@@ -19,10 +19,18 @@ export default defineConfig({
         rollupOptions: {
             output: {
                 manualChunks(id) {
-                    if (id.includes('resources/svelte/lib/components')) {
+                    if (
+                        id.includes('resources/svelte/lib/components') ||
+                        id.includes('resources/lib/states') ||
+                        id.includes('resources/lib/constants') ||
+                        id.includes('resources/lib/exceptions') ||
+                        id.includes('resources/lib/index') ||
+                        id.includes('resources/lib/logger') ||
+                        id.includes('resources/lib/utils')
+                    ) {
                         return 'app-components';
                     }
-                    if (id.includes('resources/svelte/pages/auth') || id.includes('resources/svelte/domains/auth')) {
+                    if (id.includes('resources/svelte/pages/auth') || id.includes('resources/svelte/lib/domains/auth')) {
                         return 'pages-auth';
                     }
                     if (id.includes('node_modules')) {
