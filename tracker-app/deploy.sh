@@ -23,6 +23,8 @@ echo "📦 Installing Composer dependencies..."
 $PHP $COMPOSER install --no-interaction --prefer-dist --optimize-autoloader --no-dev
 
 echo "📦 Building Laravel Assets..."
+# Raise Node memory limit for build steps
+export NODE_OPTIONS="--max-old-space-size=2048"
 $NPM install
 $NPM run build
 
