@@ -50,4 +50,38 @@ class HasTrooperPermissionsTraitTest extends TestCase
         $this->assertTrue($policy->checkModerator($moderator));
         $this->assertFalse($policy->checkModerator($administrator));
     }
+
+    public function test_is_administrator_returns_false_when_administrator_is_retired(): void
+    {
+        $policy = new class
+        {
+            use HasTrooperPermissionsTrait;
+
+            public function checkAdministrator(Trooper $trooper): bool
+            {
+                return $this->isAdministrator($trooper);
+            }
+        };
+
+        $retired_administrator = Trooper::factory()->asAdministrator()->asRetired()->create();
+
+        $this->assertFalse($policy->checkAdministrator($retired_administrator));
+    }
+
+    public function test_is_moderator_returns_false_when_moderator_is_retired(): void
+    {
+        $policy = new class
+        {
+            use HasTrooperPermissionsTrait;
+
+            public function checkModerator(Trooper $trooper): bool
+            {
+                return $this->isModerator($trooper);
+            }
+        };
+
+        $retired_moderator = Trooper::factory()->asModerator()->asRetired()->create();
+
+        $this->assertFalse($policy->checkModerator($retired_moderator));
+    }
 }

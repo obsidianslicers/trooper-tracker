@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Generators;
+namespace Fabricator;
 
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Artisan;
@@ -21,11 +22,6 @@ class FactoryGenerator
         $this->typeGuesser = $guesser;
     }
 
-    /**
-     * Generates and writes a factory for the given model class name.
-     *
-     * @param class-string<Model>|string $model
-     */
     public function generate($model): ?string
     {
         if (!$modelClass = $this->modelExists($model))
@@ -35,7 +31,7 @@ class FactoryGenerator
 
         $factoryPath = $this->factoryPath($modelClass);
 
-        $this->modelInstance = new $modelClass();
+        $this->modelInstance = new $modelClass;
 
         $code = Artisan::call('model:show', ['model' => $modelClass, '--json' => true]);
 
@@ -110,7 +106,7 @@ class FactoryGenerator
      * Check if factory already exists.
      *
      * @param  string  $path
-     * @return bool
+     * @return bool|string
      */
     protected function factoryExists($path): bool
     {
@@ -257,9 +253,9 @@ class FactoryGenerator
 
         $modelName = class_basename($modelClass);
 
-        $factoryQualifiedName = \Illuminate\Database\Eloquent\Factories\Factory::resolveFactoryName($modelClass);
+        $factoryQualifiedName = Factory::resolveFactoryName($modelClass);
         $factoryNamespace = Str::beforeLast($factoryQualifiedName, '\\');
-        $contents = File::get(__DIR__ . '/../../stubs/base-factory.stub');
+        $contents = File::get(__DIR__ . '/stubs/base-factory.stub');
         $contents = str_replace('{{ factoryNamespace }}', $factoryNamespace, $contents);
         $contents = str_replace('{{ namespacedModel }}', $modelClass, $contents);
         $contents = str_replace('{{ model }}', $modelName, $contents);
@@ -281,6 +277,7 @@ class FactoryGenerator
                     $line
                 );
             }
+
             return "            {$line},";
         }, $data);
         $contents = str_replace('            //', implode(PHP_EOL, $definitions), $contents);
