@@ -11,6 +11,7 @@ use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Validator;
 use Tests\TestCase;
 
 class UpdateRequestTest extends TestCase
@@ -108,5 +109,62 @@ class UpdateRequestTest extends TestCase
 
         $this->assertArrayHasKey(Event::HANDLERS_ALLOWED . '.required_if', $messages);
         $this->assertStringContainsString('handlers allowed', $messages[Event::HANDLERS_ALLOWED . '.required_if']);
+    }
+
+    public function test_rules_rejects_event_end_before_event_start(): void
+    {
+        $subject = new UpdateRequest;
+        $subject->setUserResolver(fn() => $this->moderator);
+        $this->setupMockedRoute($subject, $this->event);
+
+        $validator = Validator::make(
+            [
+                Event::NAME => 'Updated Event',
+                Event::TYPE => 'other',
+                Event::STATUS => 'open',
+                Event::EVENT_START => '2024-01-15 14:00:00',
+                Event::EVENT_END => '2024-01-15 13:00:00',
+                Event::TENTATIVE_SIGNUPS_ALLOWED => false,
+                Event::SECURE_STAGING_AREA => false,
+                Event::ALLOW_BLASTERS => false,
+                Event::ALLOW_PROPS => false,
+                Event::PARKING_AVAILABLE => false,
+                Event::ACCESSIBLE => false,
+                Event::REQUIRE_MISSION_BRIEF_ACK => false,
+                Event::CREATE_FORUM_THREAD => false,
+            ],
+            $subject->rules()
+        );
+
+        $this->assertTrue($validator->fails());
+        $this->assertArrayHasKey(Event::EVENT_END, $validator->errors()->toArray());
+    }
+
+    public function test_rules_accepts_event_end_after_event_start(): void
+    {
+        $subject = new UpdateRequest;
+        $subject->setUserResolver(fn() => $this->moderator);
+        $this->setupMockedRoute($subject, $this->event);
+
+        $validator = Validator::make(
+            [
+                Event::NAME => 'Updated Event',
+                Event::TYPE => 'other',
+                Event::STATUS => 'open',
+                Event::EVENT_START => '2024-01-15 13:00:00',
+                Event::EVENT_END => '2024-01-15 14:00:00',
+                Event::TENTATIVE_SIGNUPS_ALLOWED => false,
+                Event::SECURE_STAGING_AREA => false,
+                Event::ALLOW_BLASTERS => false,
+                Event::ALLOW_PROPS => false,
+                Event::PARKING_AVAILABLE => false,
+                Event::ACCESSIBLE => false,
+                Event::REQUIRE_MISSION_BRIEF_ACK => false,
+                Event::CREATE_FORUM_THREAD => false,
+            ],
+            $subject->rules()
+        );
+
+        $this->assertFalse($validator->errors()->has(Event::EVENT_END));
     }
 }
