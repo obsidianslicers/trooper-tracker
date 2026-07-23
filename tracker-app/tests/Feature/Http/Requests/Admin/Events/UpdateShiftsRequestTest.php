@@ -245,4 +245,101 @@ class UpdateShiftsRequestTest extends TestCase
 
         $this->assertFalse($validator->fails());
     }
+
+    public function test_with_validator_rejects_ends_at_equal_to_starts_at(): void
+    {
+        $validator = $this->makeValidator([
+            'shifts' => [
+                [
+                    'date' => '2024-01-15',
+                    'starts_at' => '10:00',
+                    'ends_at' => '10:00',
+                    'status' => EventStatus::OPEN->value,
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($validator->fails());
+        $this->assertArrayHasKey('shifts.0.ends_at', $validator->errors()->toArray());
+        $this->assertSame(
+            'End time must be after start time.',
+            $validator->errors()->first('shifts.0.ends_at'),
+        );
+    }
+
+    public function test_with_validator_rejects_ends_at_before_starts_at(): void
+    {
+        $validator = $this->makeValidator([
+            'shifts' => [
+                [
+                    'date' => '2024-01-15',
+                    'starts_at' => '10:00',
+                    'ends_at' => '09:59',
+                    'status' => EventStatus::OPEN->value,
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($validator->fails());
+        $this->assertArrayHasKey('shifts.0.ends_at', $validator->errors()->toArray());
+    }
+
+    public function test_with_validator_accepts_ends_at_after_starts_at(): void
+    {
+        $validator = $this->makeValidator([
+            'shifts' => [
+                [
+                    'date' => '2024-01-15',
+                    'starts_at' => '10:00',
+                    'ends_at' => '10:01',
+                    'status' => EventStatus::OPEN->value,
+                ],
+            ],
+        ]);
+
+        $this->assertFalse($validator->fails());
+    }
+
+    public function test_with_validator_rejects_duplicate_shift_date_and_start_time(): void
+    {
+        $validator = $this->makeValidator([
+            'shifts' => [
+                [
+                    'date' => '2024-01-15',
+                    'starts_at' => '10:00',
+                    'ends_at' => '11:00',
+                    'status' => EventStatus::OPEN->value,
+                ],
+                [
+                    'date' => '2024-01-15',
+                    'starts_at' => '10:00',
+                    'ends_at' => '12:00',
+                    'status' => EventStatus::OPEN->value,
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($validator->fails());
+        $this->assertArrayHasKey('shifts.1.starts_at', $validator->errors()->toArray());
+        $this->assertSame(
+            'Shift date and start time must be unique.',
+            $validator->errors()->first('shifts.1.starts_at'),
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function makeValidator(array $data): \Illuminate\Validation\Validator
+    {
+        $subject = new UpdateShiftsRequest;
+        $subject->setUserResolver(fn() => $this->moderator);
+        $this->setupMockedRoute($subject, $this->event);
+        $subject->merge($data);
+
+        $validator = Validator::make($data, $subject->rules());
+        $subject->withValidator($validator);
+
+        return $validator;
+    }
 }
