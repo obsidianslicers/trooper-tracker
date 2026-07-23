@@ -143,30 +143,29 @@
         </div>
 
     </div>
+</div>
 
-    @if(Auth::check() && Auth::user() != null)
-        <div class="container-fluid border-top mt-3">
-            <div class="row align-items-end small text-muted py-2">
-                <div class="col-12 text-md-end">
-                    Logged in as:
-                    <a href="{{ route('account.profile') }}">
-                        <strong>{{ Auth::user()->display_name }}</strong>
-                    </a>
+@if(Auth::check() && Auth::user() != null)
+    <div class="container-fluid border-top mt-3">
+        <div class="row align-items-end small text-muted py-2">
+            <div class="col-12 text-md-end">
+                Logged in as:
+                <a href="{{ route('account.profile') }}">
+                    <strong>{{ Auth::user()->display_name }}</strong>
+                </a>
+                <span class="text-black-50 d-none d-sm-inline">|</span>
+                Theme:
+                <a href="{{ route('account.profile') }}">
+                    <strong>{{ to_title(Auth::user()->theme->name ?? \App\Enums\TrooperTheme::STORMTROOPER->name) }}</strong>
+                </a>
+                @if(config('app.version'))
                     <span class="text-black-50 d-none d-sm-inline">|</span>
-                    Theme:
-                    <a href="{{ route('account.profile') }}">
-                        <strong>{{ to_title(Auth::user()->theme->name ?? \App\Enums\TrooperTheme::STORMTROOPER->name) }}</strong>
+                    Version:
+                    <a href="https://github.com/obsidianslicers/trooper-tracker">
+                        <strong>{{ config('app.version') ?? 'N/A' }}</strong>
                     </a>
-                    @if(config('app.version'))
-                        <span class="text-black-50 d-none d-sm-inline">|</span>
-                        Version:
-                        <a href="https://github.com/obsidianslicers/trooper-tracker">
-                            <strong>{{ config('app.version') ?? 'N/A' }}</strong>
-                        </a>
-                    @endif
-                </div>
+                @endif
             </div>
         </div>
-    @endif
-
-</div>
+    </div>
+@endif
