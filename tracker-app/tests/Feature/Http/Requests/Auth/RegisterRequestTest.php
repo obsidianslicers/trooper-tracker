@@ -52,7 +52,7 @@ class RegisterRequestTest extends TestCase
                 'legal_name' => 'Test Trooper',
                 'display_name' => 'Tester',
                 'email' => $existing_trooper->email,
-                'account_type' => 'member',
+                'membership_role' => 'member',
             ],
             $subject->rules()
         );
@@ -66,8 +66,8 @@ class RegisterRequestTest extends TestCase
         $subject = new RegisterRequest;
         $rules = $subject->rules();
 
-        $this->assertArrayHasKey('account_type', $rules);
-        $this->assertContains('required', $rules['account_type']);
+        $this->assertArrayHasKey('membership_role', $rules);
+        $this->assertContains('required', $rules['membership_role']);
     }
 
     public function test_rules_validates_account_type_is_member_handler_or_visitor(): void
@@ -79,13 +79,13 @@ class RegisterRequestTest extends TestCase
                 'legal_name' => 'Test Trooper',
                 'display_name' => 'Tester',
                 'email' => 'test@example.com',
-                'account_type' => 'invalid',
+                'membership_role' => 'invalid',
             ],
             $subject->rules()
         );
 
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('account_type', $validator->errors()->toArray());
+        $this->assertArrayHasKey('membership_role', $validator->errors()->toArray());
     }
 
     public function test_rules_allows_visitor_account_type(): void
@@ -97,12 +97,12 @@ class RegisterRequestTest extends TestCase
                 'legal_name' => 'Test Trooper',
                 'display_name' => 'Tester',
                 'email' => 'test@example.com',
-                'account_type' => 'visitor',
+                'membership_role' => 'visitor',
             ],
             $subject->rules()
         );
 
-        $this->assertFalse($validator->errors()->has('account_type'));
+        $this->assertFalse($validator->errors()->has('membership_role'));
     }
 
     public function test_rules_allows_member_account_type(): void
@@ -114,12 +114,12 @@ class RegisterRequestTest extends TestCase
                 'legal_name' => 'Test Trooper',
                 'display_name' => 'Tester',
                 'email' => 'test@example.com',
-                'account_type' => 'member',
+                'membership_role' => 'member',
             ],
             $subject->rules()
         );
 
-        $this->assertFalse($validator->errors()->has('account_type'));
+        $this->assertFalse($validator->errors()->has('membership_role'));
     }
 
     public function test_rules_allows_handler_account_type(): void
@@ -131,12 +131,12 @@ class RegisterRequestTest extends TestCase
                 'legal_name' => 'Test Trooper',
                 'display_name' => 'Tester',
                 'email' => 'test@example.com',
-                'account_type' => 'handler',
+                'membership_role' => 'handler',
             ],
             $subject->rules()
         );
 
-        $this->assertFalse($validator->errors()->has('account_type'));
+        $this->assertFalse($validator->errors()->has('membership_role'));
     }
 
     public function test_rules_does_not_require_password_without_registration_auth(): void
@@ -179,7 +179,7 @@ class RegisterRequestTest extends TestCase
                 'legal_name' => 'Test Trooper',
                 'display_name' => 'Tester',
                 'email' => 'test@example.com',
-                'account_type' => 'member',
+                'membership_role' => 'member',
                 'phone' => '12345678901234567',  // 17 digits, exceeds max of 16
             ],
             $subject->rules()
@@ -198,7 +198,7 @@ class RegisterRequestTest extends TestCase
                 'legal_name' => 'Test Trooper',
                 'display_name' => 'Tester',
                 'email' => 'not-an-email',
-                'account_type' => 'member',
+                'membership_role' => 'member',
             ],
             $subject->rules()
         );
@@ -218,7 +218,7 @@ class RegisterRequestTest extends TestCase
                 'legal_name' => 'Test Trooper',
                 'display_name' => 'Tester',
                 'email' => $long_email,
-                'account_type' => 'member',
+                'membership_role' => 'member',
             ],
             $subject->rules()
         );
@@ -238,7 +238,7 @@ class RegisterRequestTest extends TestCase
             'legal_name' => 'Test Trooper',
             'display_name' => 'Tester',
             'email' => 'test@example.com',
-            'account_type' => 'member',
+            'membership_role' => 'member',
             'date_of_birth' => now()->subYears(16)->format('Y-m-d'),
             'organizations' => [
                 (string) $organization->id => ['selected' => '1'],
@@ -267,7 +267,7 @@ class RegisterRequestTest extends TestCase
             'legal_name' => 'Test Trooper',
             'display_name' => 'Tester',
             'email' => 'test@example.com',
-            'account_type' => 'member',
+            'membership_role' => 'member',
             'date_of_birth' => now()->subYears(16)->format('Y-m-d'),
             'organizations' => [
                 (string) $organization->id => ['selected' => true],
@@ -296,7 +296,7 @@ class RegisterRequestTest extends TestCase
             'legal_name' => 'Test Trooper',
             'display_name' => 'Tester',
             'email' => 'test@example.com',
-            'account_type' => 'member',
+            'membership_role' => 'member',
             'organizations' => [
                 (string) $organization->id => ['selected' => false],
             ],
@@ -324,7 +324,7 @@ class RegisterRequestTest extends TestCase
             'legal_name' => 'Test Trooper',
             'display_name' => 'Tester',
             'email' => 'test@example.com',
-            'account_type' => 'member',
+            'membership_role' => 'member',
             'date_of_birth' => now()->subYears(17)->format('Y-m-d'),
             'organizations' => [
                 (string) $organization->id => ['selected' => '1'],
@@ -352,7 +352,7 @@ class RegisterRequestTest extends TestCase
             'legal_name' => 'Test Trooper',
             'display_name' => 'Tester',
             'email' => 'test@example.com',
-            'account_type' => 'member',
+            'membership_role' => 'member',
             'organizations' => [
                 (string) $organization->id => ['selected' => '1'],
             ],
@@ -377,7 +377,7 @@ class RegisterRequestTest extends TestCase
             'legal_name' => 'Test Trooper',
             'display_name' => 'Tester',
             'email' => 'test@example.com',
-            'account_type' => 'member',
+            'membership_role' => 'member',
             'organizations' => [
                 (string) $organization->id => ['selected' => '1'],
             ],
@@ -401,7 +401,7 @@ class RegisterRequestTest extends TestCase
             'legal_name' => 'Test Trooper',
             'display_name' => 'Tester',
             'email' => 'test@example.com',
-            'account_type' => 'member',
+            'membership_role' => 'member',
             'date_of_birth' => now()->subYears(18)->format('Y-m-d'),
             'organizations' => [
                 (string) $organization->id => ['selected' => '1'],
@@ -427,7 +427,7 @@ class RegisterRequestTest extends TestCase
             'legal_name' => 'Test Trooper',
             'display_name' => 'Tester',
             'email' => 'test@example.com',
-            'account_type' => 'member',
+            'membership_role' => 'member',
             'date_of_birth' => now()->subYears(13)->format('Y-m-d'),
             'organizations' => [
                 (string) $organization->id => ['selected' => '1'],
@@ -458,7 +458,7 @@ class RegisterRequestTest extends TestCase
             'legal_name' => 'Test Trooper',
             'display_name' => 'Tester',
             'email' => 'test@example.com',
-            'account_type' => 'member',
+            'membership_role' => 'member',
             'date_of_birth' => now()->subYears(16)->format('Y-m-d'),
             'guardian_email' => $minor_trooper->email,
             'organizations' => [

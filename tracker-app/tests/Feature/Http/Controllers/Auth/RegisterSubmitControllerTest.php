@@ -38,8 +38,8 @@ class RegisterSubmitControllerTest extends TestCase
                 $organization->id => [
                     'selected' => '1',
                     'identifier' => 'TK-12345',
-                    'region_id' => (string) $region->id,
-                    'unit_id' => (string) $unit->id,
+                    'region_id' => $region->id,
+                    'unit_id' => $unit->id,
                     'should_notify' => '1',
                 ],
             ],
@@ -88,8 +88,8 @@ class RegisterSubmitControllerTest extends TestCase
                 $organization->id => [
                     'selected' => '1',
                     'identifier' => 'TK-12345',
-                    'region_id' => (string) $region->id,
-                    'unit_id' => (string) $unit->id,
+                    'region_id' => $region->id,
+                    'unit_id' => $unit->id,
                     'should_notify' => '1',
                 ],
             ],
@@ -125,8 +125,8 @@ class RegisterSubmitControllerTest extends TestCase
                 $organization->id => [
                     'selected' => '1',
                     'identifier' => 'TK-12345',
-                    'region_id' => (string) $region->id,
-                    'unit_id' => (string) $unit->id,
+                    'region_id' => $region->id,
+                    'unit_id' => $unit->id,
                     'should_notify' => '1',
                 ],
             ],
@@ -153,8 +153,8 @@ class RegisterSubmitControllerTest extends TestCase
                 $organization->id => [
                     'selected' => '1',
                     'identifier' => 'TK-12345',
-                    'region_id' => (string) $region->id,
-                    'unit_id' => (string) $unit->id,
+                    'region_id' => $region->id,
+                    'unit_id' => $unit->id,
                     'should_notify' => '1',
                 ],
             ],
@@ -223,7 +223,7 @@ class RegisterSubmitControllerTest extends TestCase
                 $organization->id => [
                     'selected' => '1',
                     'identifier' => 'TK-12345',
-                    'region_id' => (string) $region->id,
+                    'region_id' => $region->id,
                 ],
             ],
         ]))->assertRedirect(route('auth.thank-you'));
@@ -252,7 +252,7 @@ class RegisterSubmitControllerTest extends TestCase
         [$organization] = $this->createOrganizationHierarchy();
 
         $this->post(route('auth.register'), $this->registrationData([
-            'account_type' => 'visitor',
+            'membership_role' => 'visitor',
             'organizations' => [
                 $organization->id => [
                     'selected' => '1',
@@ -290,8 +290,8 @@ class RegisterSubmitControllerTest extends TestCase
                 $organization->id => [
                     'selected' => '1',
                     'identifier' => 'TK-12345',
-                    'region_id' => (string) $region->id,
-                    'unit_id' => (string) $unit->id,
+                    'region_id' => $region->id,
+                    'unit_id' => $unit->id,
                 ],
             ],
         ]))->assertRedirect(route('auth.thank-you'));
@@ -355,15 +355,12 @@ class RegisterSubmitControllerTest extends TestCase
     private function registrationData(array $overrides = []): array
     {
         return array_replace_recursive([
-            'first_name' => 'John',
-            'last_name' => 'Doe',
             'legal_name' => 'John Doe',
             'display_name' => 'JohnDoe',
             'email' => 'johndoe@example.com',
             'password' => 'SecurePass123!',
             'password_confirmation' => 'SecurePass123!',
-            'account_type' => 'member',
-            'registration_method' => 'email',
+            'membership_role' => 'member',
             'organizations' => [],
         ], $overrides);
     }

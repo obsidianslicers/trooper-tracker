@@ -14,6 +14,7 @@ use App\Models\Casts\LowerCast;
 use App\Models\Concerns\HasAuditTrail;
 use App\Models\Concerns\HasFilter;
 use App\Models\Scopes\HasTrooperScopes;
+use Hyperdrive\Contracts\Actor;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Auth\MustVerifyEmail;
 use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
@@ -39,6 +40,7 @@ use Illuminate\Support\Str;
  * including profile information, preferences, and relationships to events and organizations.
  */
 class Trooper extends BaseTrooper implements
+    Actor,
     AuthenticatableContract,
     AuthorizableContract,
     CanResetPasswordContract,
@@ -151,6 +153,16 @@ class Trooper extends BaseTrooper implements
     }
 
     /**
+     * Check if the trooper's membership role is member.
+     *
+     * @return bool True if the trooper is member, false otherwise.
+     */
+    public function getIsMemberAttribute(): bool
+    {
+        return $this->is_active && $this->membership_role == MembershipRole::MEMBER;
+    }
+
+    /**
      * Check if the trooper's membership status is active.
      *
      * @return bool True if the trooper is active, false otherwise.
@@ -182,7 +194,7 @@ class Trooper extends BaseTrooper implements
 
     public function getVisitorAccessExpiredAttribute(): bool
     {
-        return $this->membership_role === MembershipRole::VISITOR
+        return $this->is_visitor
             && $this->visitor_expires_at !== null
             && $this->visitor_expires_at->isPast();
     }
