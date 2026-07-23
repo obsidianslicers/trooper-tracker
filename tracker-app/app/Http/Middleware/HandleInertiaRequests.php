@@ -60,9 +60,8 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'config' => $config,
             'user' => $actor,
-            'results' => fn() => $request->session()->pull('results'),
-            'flash' => function () use ($request)
-            {
+            'results' => fn () => $request->session()->pull('results'),
+            'flash' => function () use ($request) {
                 $messages = [];
 
                 foreach (['success', 'info', 'warning', 'danger'] as $type)
