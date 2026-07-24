@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Messages\Troopers\Commands\Merge;
 
+use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
+use App\Enums\NotificationFrequency;
 use App\Models\Trooper;
 use Hyperdrive\Message;
 use Illuminate\Support\Facades\DB;
@@ -22,11 +24,13 @@ final class MergeTroopers extends Message
     public function __construct(
         private readonly Trooper $target_trooper,
         private readonly Trooper $source_trooper,
-    ) {}
+    ) {
+    }
 
     public function handle(): void
     {
-        DB::transaction(function () {
+        DB::transaction(function ()
+        {
             /**
              * tt_trooper_organizations
              * tt_trooper_assignments
@@ -135,7 +139,142 @@ final class MergeTroopers extends Message
 
     private function mergeTrooperAccounts(): void
     {
-        $this->source_trooper->membership_status = MembershipStatus::INACTIVE;
+        $this->target_trooper->phone = $this->target_trooper->phone ?? $this->source_trooper->phone;
+        $this->target_trooper->setup_completed_at = $this->target_trooper->setup_completed_at ?? $this->source_trooper->setup_completed_at;
+        $this->target_trooper->membership_status = $this->resolveMembershipStatus();
+        $this->target_trooper->membership_role = $this->resolveMembershipRole();
+        $this->target_trooper->notification_frequency = $this->resolveNotificationFrequency();
+        $this->target_trooper->push_notifications_enabled = $this->target_trooper->push_notifications_enabled || $this->source_trooper->push_notifications_enabled;
+        $this->target_trooper->notification_preferences = $this->mergeNotificationPreferences();
+        $this->target_trooper->display_costume_id = $this->target_trooper->display_costume_id ?? $this->source_trooper->display_costume_id;
+        $this->target_trooper->visitor_expires_at = $this->latestDateTime(
+            $this->target_trooper->visitor_expires_at,
+            $this->source_trooper->visitor_expires_at,
+        );
+        $this->target_trooper->visitor_notified_at = $this->latestDateTime(
+            $this->target_trooper->visitor_notified_at,
+            $this->source_trooper->visitor_notified_at,
+        );
+
+        $this->target_trooper->guardian_id = $this->resolveGuardianId();
+        $this->target_trooper->date_of_birth = $this->target_trooper->date_of_birth ?? $this->source_trooper->date_of_birth;
+        $this->target_trooper->save();
+
+        $this->source_trooper->membership_status = MembershipStatus::INVALID;
+        $this->source_trooper->visitor_expires_at = null;
+        $this->source_trooper->visitor_notified_at = null;
+        $this->source_trooper->deletion_requested_at = null;
         $this->source_trooper->save();
+    }
+
+    private function resolveMembershipStatus(): MembershipStatus
+    {
+        $rankings = [
+            MembershipStatus::INVALID->value => 0,
+            MembershipStatus::DEPARTED->value => 10,
+            MembershipStatus::INACTIVE->value => 20,
+            MembershipStatus::NONE->value => 30,
+            MembershipStatus::DENIED->value => 40,
+            MembershipStatus::PENDING->value => 50,
+            MembershipStatus::RETIRED->value => 60,
+            MembershipStatus::RESERVE->value => 70,
+            MembershipStatus::ACTIVE->value => 80,
+        ];
+
+        $target_status = $this->target_trooper->membership_status;
+        $source_status = $this->source_trooper->membership_status;
+
+        return ($rankings[$source_status->value] ?? -1) > ($rankings[$target_status->value] ?? -1)
+            ? $source_status
+            : $target_status;
+    }
+
+    private function resolveMembershipRole(): MembershipRole
+    {
+        $rankings = [
+            MembershipRole::VISITOR->value => 0,
+            MembershipRole::HANDLER->value => 1,
+            MembershipRole::MEMBER->value => 2,
+            MembershipRole::MODERATOR->value => 3,
+            MembershipRole::ADMINISTRATOR->value => 4,
+        ];
+
+        $target_role = $this->target_trooper->membership_role;
+        $source_role = $this->source_trooper->membership_role;
+
+        return ($rankings[$source_role->value] ?? -1) > ($rankings[$target_role->value] ?? -1)
+            ? $source_role
+            : $target_role;
+    }
+
+    private function resolveNotificationFrequency(): NotificationFrequency
+    {
+        $rankings = [
+            NotificationFrequency::NEVER->value => 0,
+            NotificationFrequency::DAILY->value => 1,
+            NotificationFrequency::INSTANT->value => 2,
+        ];
+
+        $target_frequency = $this->target_trooper->notification_frequency;
+        $source_frequency = $this->source_trooper->notification_frequency;
+
+        return ($rankings[$source_frequency->value] ?? -1) > ($rankings[$target_frequency->value] ?? -1)
+            ? $source_frequency
+            : $target_frequency;
+    }
+
+    /**
+     * @return array<mixed>|null
+     */
+    private function mergeNotificationPreferences(): ?array
+    {
+        $target_preferences = $this->target_trooper->notification_preferences;
+        $source_preferences = $this->source_trooper->notification_preferences;
+
+        if ($target_preferences === null)
+        {
+            return $source_preferences;
+        }
+
+        if ($source_preferences === null)
+        {
+            return $target_preferences;
+        }
+
+        return array_replace_recursive($source_preferences, $target_preferences);
+    }
+
+    private function resolveGuardianId(): ?int
+    {
+        $target_guardian_id = $this->target_trooper->guardian_id;
+
+        if ($target_guardian_id !== null)
+        {
+            return $target_guardian_id;
+        }
+
+        $source_guardian_id = $this->source_trooper->guardian_id;
+
+        if ($source_guardian_id === $this->target_trooper->id)
+        {
+            return null;
+        }
+
+        return $source_guardian_id;
+    }
+
+    private function latestDateTime(mixed $target_value, mixed $source_value): mixed
+    {
+        if ($target_value === null)
+        {
+            return $source_value;
+        }
+
+        if ($source_value === null)
+        {
+            return $target_value;
+        }
+
+        return $source_value->greaterThan($target_value) ? $source_value : $target_value;
     }
 }
