@@ -14,15 +14,13 @@ use Hyperdrive\Message;
  * are transferred to the target trooper, maintaining data integrity and consistency.
  *
  * @method static void call(Trooper $target_trooper, Trooper $source_trooper)
- *
  */
 final class MergeTrooperCostumes extends Message
 {
     public function __construct(
         private readonly Trooper $target_trooper,
         private readonly Trooper $source_trooper,
-    ) {
-    }
+    ) {}
 
     public function handle(): void
     {
@@ -60,43 +58,16 @@ final class MergeTrooperCostumes extends Message
             ->first();
     }
 
-    private function mergeCostumes(
-        TrooperCostume $target_costume,
-        TrooperCostume $source_costume,
-    ): void {
+    private function mergeCostumes(TrooperCostume $target_costume, TrooperCostume $source_costume): void
+    {
         if ($target_costume->trashed() && !$source_costume->trashed())
         {
             $target_costume->restore();
         }
 
-        if (empty($target_costume->image_url_sm) && !empty($source_costume->image_url_sm))
-        {
-            $target_costume->image_url_sm = $source_costume->image_url_sm;
-        }
-
-        if (empty($target_costume->image_url_lg) && !empty($source_costume->image_url_lg))
-        {
-            $target_costume->image_url_lg = $source_costume->image_url_lg;
-        }
-
-        if (
-            empty($target_costume->image_url_bucket_off)
-            && !empty($source_costume->image_url_bucket_off)
-        )
-        {
-            $target_costume->image_url_bucket_off = $source_costume->image_url_bucket_off;
-        }
-
-        if (
-            $target_costume->synchronized_at === null
-            || (
-                $source_costume->synchronized_at !== null
-                && $source_costume->synchronized_at->gt($target_costume->synchronized_at)
-            )
-        )
-        {
-            $target_costume->synchronized_at = $source_costume->synchronized_at;
-        }
+        $target_costume->image_url_sm = $source_costume->image_url_sm;
+        $target_costume->image_url_lg = $source_costume->image_url_lg;
+        $target_costume->image_url_bucket_off = $source_costume->image_url_bucket_off;
 
         $target_costume->save();
         $source_costume->forceDelete();

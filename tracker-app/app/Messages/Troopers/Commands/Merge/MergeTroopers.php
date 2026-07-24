@@ -14,22 +14,19 @@ use Illuminate\Support\Facades\DB;
  * This includes organizations, assignments, costumes, achievements, donations,
  * friends, requests, awards, events, uploads, watches, mission acknowledgments,
  * notifications, shares, mobile devices, model changes, notices, and OAuth logins.
- * 
+ *
  * @method static void call(Trooper $target_trooper, Trooper $source_trooper)
- * 
  */
 final class MergeTroopers extends Message
 {
     public function __construct(
         private readonly Trooper $target_trooper,
         private readonly Trooper $source_trooper,
-    ) {
-    }
+    ) {}
 
     public function handle(): void
     {
-        DB::transaction(function ()
-        {
+        DB::transaction(function () {
             /**
              * tt_trooper_organizations
              * tt_trooper_assignments

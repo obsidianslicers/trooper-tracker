@@ -14,15 +14,13 @@ use Hyperdrive\Message;
  * are transferred to the target trooper, maintaining data integrity and consistency.
  *
  * @method static void call(Trooper $target_trooper, Trooper $source_trooper)
- *
  */
 final class MergeTrooperAssignments extends Message
 {
     public function __construct(
         private readonly Trooper $target_trooper,
         private readonly Trooper $source_trooper,
-    ) {
-    }
+    ) {}
 
     public function handle(): void
     {
@@ -59,7 +57,7 @@ final class MergeTrooperAssignments extends Message
         return $target_assignment;
     }
 
-    private function mergeAssignments(TrooperAssignment $target_assignment, TrooperAssignment $source_assignment, ): void
+    private function mergeAssignments(TrooperAssignment $target_assignment, TrooperAssignment $source_assignment): void
     {
         if ($target_assignment->trashed() && !$source_assignment->trashed())
         {

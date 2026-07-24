@@ -12,17 +12,15 @@ use Hyperdrive\Message;
  * Merges the organizations of two troopers.
  * This command ensures that all organizational affiliations of the source trooper
  * are transferred to the target trooper, maintaining data integrity and consistency.
- * 
+ *
  * @method static void call(Trooper $target_trooper, Trooper $source_trooper)
- * 
  */
 final class MergeTrooperOrganizations extends Message
 {
     public function __construct(
         private readonly Trooper $target_trooper,
         private readonly Trooper $source_trooper,
-    ) {
-    }
+    ) {}
 
     public function handle(): void
     {

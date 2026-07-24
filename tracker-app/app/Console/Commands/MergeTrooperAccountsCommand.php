@@ -38,8 +38,6 @@ class MergeTrooperAccountsCommand extends Command
      * Orchestrates the event closing process by:
      * 1. Dispatching GetEventsToCloseQuery to retrieve active events that have ended
      * 2. Updating each event's status to CLOSED
-     *
-     * @return int
      */
     public function handle(): int
     {
@@ -65,7 +63,6 @@ class MergeTrooperAccountsCommand extends Command
             target_trooper: $target_id,
             source_trooper: $source_id,
         );
-
 
         return self::SUCCESS;
     }
