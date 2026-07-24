@@ -71,10 +71,6 @@ final class MergeTroopers extends Message
             target_trooper: $this->target_trooper,
             source_trooper: $this->source_trooper,
         );
-        // MergeTrooperAchievements::call(
-        //     target_trooper: $this->target_trooper,
-        //     source_trooper: $this->source_trooper,
-        // );
         MergeTrooperDonations::call(
             target_trooper: $this->target_trooper,
             source_trooper: $this->source_trooper,
@@ -83,10 +79,6 @@ final class MergeTroopers extends Message
             target_trooper: $this->target_trooper,
             source_trooper: $this->source_trooper,
         );
-        // MergeTrooperRequests::call(
-        //     target_trooper: $this->target_trooper,
-        //     source_trooper: $this->source_trooper,
-        // );
         MergeAwardTroopers::call(
             target_trooper: $this->target_trooper,
             source_trooper: $this->source_trooper,
@@ -119,22 +111,30 @@ final class MergeTroopers extends Message
             target_trooper: $this->target_trooper,
             source_trooper: $this->source_trooper,
         );
-        MergeMobileDevices::call(
-            target_trooper: $this->target_trooper,
-            source_trooper: $this->source_trooper,
-        );
-        MergeModelChanges::call(
-            target_trooper: $this->target_trooper,
-            source_trooper: $this->source_trooper,
-        );
-        MergeNoticeTroopers::call(
-            target_trooper: $this->target_trooper,
-            source_trooper: $this->source_trooper,
-        );
-        MergeOauthLogins::call(
-            target_trooper: $this->target_trooper,
-            source_trooper: $this->source_trooper,
-        );
+        // MergeTrooperAchievements::call(
+        //     target_trooper: $this->target_trooper,
+        //     source_trooper: $this->source_trooper,
+        // );
+        // MergeTrooperRequests::call(
+        //     target_trooper: $this->target_trooper,
+        //     source_trooper: $this->source_trooper,
+        // );
+        // MergeMobileDevices::call(
+        //     target_trooper: $this->target_trooper,
+        //     source_trooper: $this->source_trooper,
+        // );
+        // MergeModelChanges::call(
+        //     target_trooper: $this->target_trooper,
+        //     source_trooper: $this->source_trooper,
+        // );
+        // MergeNoticeTroopers::call(
+        //     target_trooper: $this->target_trooper,
+        //     source_trooper: $this->source_trooper,
+        // );
+        // MergeOauthLogins::call(
+        //     target_trooper: $this->target_trooper,
+        //     source_trooper: $this->source_trooper,
+        // );
     }
 
     private function mergeTrooperAccounts(): void
