@@ -2,12 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Messages\Troopers\Commands;
+namespace App\Messages\Troopers\Commands\Merge;
 
 use App\Models\Trooper;
 use App\Models\TrooperOrganization;
 use Hyperdrive\Message;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Merges the organizations of two troopers.
@@ -20,8 +19,8 @@ use Illuminate\Support\Facades\DB;
 final class MergeTrooperOrganizations extends Message
 {
     public function __construct(
-        public readonly Trooper $target_trooper,
-        public readonly Trooper $source_trooper,
+        private readonly Trooper $target_trooper,
+        private readonly Trooper $source_trooper,
     ) {
     }
 

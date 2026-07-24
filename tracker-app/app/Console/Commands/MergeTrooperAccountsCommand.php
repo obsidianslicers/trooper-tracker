@@ -4,12 +4,8 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Bus\MagicBus;
-use App\Enums\EventStatus;
-use App\Features\Events\Queries\GetEventsToCloseQuery;
-use App\Services\Forums\XenforoService;
+use App\Messages\Troopers\Commands\Merge\MergeTroopers;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Log;
 
 /**
  * Artisan command to close events that have ended.
@@ -64,6 +60,11 @@ class MergeTrooperAccountsCommand extends Command
 
             return self::FAILURE;
         }
+
+        MergeTroopers::call(
+            target_trooper: $target_id,
+            source_trooper: $source_id,
+        );
 
 
         return self::SUCCESS;
