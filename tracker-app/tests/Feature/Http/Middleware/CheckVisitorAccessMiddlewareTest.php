@@ -33,7 +33,7 @@ class CheckVisitorAccessMiddlewareTest extends TestCase
     public function test_passes_through_visitor_with_unexpired_access(): void
     {
         $trooper = Trooper::factory()->asActive()->create([
-            Trooper::MEMBERSHIP_ROLE   => MembershipRole::VISITOR,
+            Trooper::MEMBERSHIP_ROLE => MembershipRole::VISITOR,
             Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
             Trooper::VISITOR_EXPIRES_AT => now()->addMonths(3),
         ]);
@@ -46,7 +46,7 @@ class CheckVisitorAccessMiddlewareTest extends TestCase
     public function test_redirects_expired_active_visitor(): void
     {
         $trooper = Trooper::factory()->asActive()->create([
-            Trooper::MEMBERSHIP_ROLE   => MembershipRole::VISITOR,
+            Trooper::MEMBERSHIP_ROLE => MembershipRole::VISITOR,
             Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
             Trooper::VISITOR_EXPIRES_AT => now()->subMonth(),
         ]);
@@ -59,7 +59,7 @@ class CheckVisitorAccessMiddlewareTest extends TestCase
     public function test_passes_through_expired_visitor_on_renewal_route(): void
     {
         $trooper = Trooper::factory()->asActive()->create([
-            Trooper::MEMBERSHIP_ROLE   => MembershipRole::VISITOR,
+            Trooper::MEMBERSHIP_ROLE => MembershipRole::VISITOR,
             Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
             Trooper::VISITOR_EXPIRES_AT => now()->subMonth(),
         ]);
@@ -67,5 +67,32 @@ class CheckVisitorAccessMiddlewareTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('account.visitor-renew'));
 
         $response->assertOk();
+    }
+
+    public function test_passes_through_expired_visitor_on_auth_route(): void
+    {
+        $trooper = Trooper::factory()->asActive()->create([
+            Trooper::MEMBERSHIP_ROLE => MembershipRole::VISITOR,
+            Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
+            Trooper::VISITOR_EXPIRES_AT => now()->subMonth(),
+        ]);
+
+        $response = $this->actingAs($trooper)->get(route('auth.logout'));
+
+        $response->assertRedirect(route('auth.login', ['logged_out' => '1']));
+    }
+
+    public function test_passes_through_expired_visitor_on_verification_route(): void
+    {
+        $trooper = Trooper::factory()->asActive()->create([
+            Trooper::MEMBERSHIP_ROLE => MembershipRole::VISITOR,
+            Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
+            Trooper::VISITOR_EXPIRES_AT => now()->subMonth(),
+        ]);
+
+        $response = $this->actingAs($trooper)->get(route('verification.notice'));
+
+        $response->assertOk();
+        $response->assertViewIs('pages.verifications.notice');
     }
 }

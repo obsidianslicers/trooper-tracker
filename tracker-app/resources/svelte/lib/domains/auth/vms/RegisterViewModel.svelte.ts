@@ -1,42 +1,57 @@
-import toastState from "$lib/states/toast-state.svelte";
+import { SubmitableViewModel, type Option } from "$lib/domains/types.svelte";
 import { getRoute } from "$lib/utils";
 import { useForm } from "@inertiajs/svelte";
-import { SubmitableViewModel, type Option } from "../types.svelte";
-import type { AuthConfiguration, Login, LoginPageData, Organization, RegisterPageData, RegistrationInputs } from "./types";
-import { AuthFactory } from "./values";
+import { AuthFactory } from "../factories";
+import type { AuthConfiguration } from "../types";
 
-export class LoginViewModel extends SubmitableViewModel<LoginViewModel, Login> {
-    oauth: AuthConfiguration | null = $state(null);
-
-    constructor(pageData?: LoginPageData) {
-        super();
-        // Initialize Inertia's useForm hook directly inside the instance
-        this.form = useForm<Login>(AuthFactory.login());
-        if (pageData) {
-            this.oauth = pageData.oauth;
-            this.form.defaults();
-        }
-    }
-
-    submit = async (e: Event) => {
-        e.preventDefault();
-
-        const url = getRoute('auth.login');
-
-        this.form.post(url, {
-            preserveScroll: true,
-            preserveUrl: true,
-            onSuccess: () => {
-                // Handle local redirection or toast actions here
-            },
-            onError: (errors) => {
-                this.form.errors = errors;
-            }
-        });
-    };
+export type Organization = {
+    id: number;
+    name: string;
+    identifier_display: string;
+    requires_guardian: boolean;
+    regions: Regions[];
 }
 
-export class RegisterViewModel extends SubmitableViewModel<RegisterViewModel, RegistrationInputs> {
+export type Regions = {
+    id: number;
+    name: string;
+    units: Units[];
+}
+
+export type Units = {
+    id: number;
+    name: string;
+}
+
+export type OrganizationSelectionInput = {
+    selected: boolean;
+    identifier: string | null;
+    region_id: string | number | null;
+    unit_id: string | number | null;
+};
+
+export type Registration = {
+    email: string | null;
+    password: string | null;
+    display_name: string | null;
+    legal_name: string | null;
+    membership_role: "visitor" | "member" | "handler" | null;
+    date_of_birth: string | null;
+    guardian_email: string | null;
+    /**
+     * Keyed by Organization ID: Record<number, OrganizationSelectionInput>
+     * e.g., { 1: { selected: true, identifier: 'TK-1234', region_id: 5, unit_id: 12 } }
+     */
+    organizations: Record<number, OrganizationSelectionInput>;
+};
+
+export type RegisterPageData = {
+    membership_roles: Option[];
+    organizations: Organization[];
+    oauth: AuthConfiguration;
+};
+
+export class RegisterViewModel extends SubmitableViewModel<RegisterViewModel, Registration> {
     #useOAuthEmail = false;
     membership_roles = $state<Option[]>([]);
     organizations = $state<Organization[]>([]);
@@ -44,7 +59,7 @@ export class RegisterViewModel extends SubmitableViewModel<RegisterViewModel, Re
     constructor(pageData?: RegisterPageData) {
         super();
         // Initialize Inertia's useForm hook directly inside the instance
-        this.form = useForm<RegistrationInputs>(AuthFactory.registration());
+        this.form = useForm<Registration>(AuthFactory.registration());
         if (pageData) {
             this.form.email = pageData.oauth?.session?.email || '';
             this.membership_roles = pageData.membership_roles;
@@ -73,15 +88,7 @@ export class RegisterViewModel extends SubmitableViewModel<RegisterViewModel, Re
 
         const url = getRoute('auth.register');
 
-        this.form.post(url, {
-            preserveScroll: true,
-            onSuccess: () => {
-                // Handle local redirection or toast actions here
-            },
-            onError: (errors) => {
-                toastState.danger("Fix Validation Errors before submitting");
-            }
-        });
+        this.form.post(url, {});
     };
 
     /**
@@ -89,7 +96,7 @@ export class RegisterViewModel extends SubmitableViewModel<RegisterViewModel, Re
      * @returns True if a guardian is required, false otherwise
      */
     requiresGuardian(): boolean {
-        if (this.form.account_type !== 'member') {
+        if (this.form.membership_role !== 'member') {
             return false;
         }
         return this.organizations.some(org => {

@@ -29,6 +29,49 @@ class HasEnumHelpersTest extends TestCase
 
         $this->assertSame('alpha_value,middle_value,zeta_value', $result);
     }
+
+    public function test_to_value_labels_accepts_enum_cases_for_exclude(): void
+    {
+        $result = $this->stringifyLabels(
+            HasEnumHelpersFixture::toValueLabels(
+                exclude: [HasEnumHelpersFixture::ALPHA, HasEnumHelpersFixture::ZETA]
+            )
+        );
+
+        $this->assertSame([
+            ['value' => 'middle_value', 'label' => 'Middle'],
+        ], $result);
+    }
+
+    public function test_to_value_labels_accepts_enum_cases_for_include(): void
+    {
+        $result = $this->stringifyLabels(
+            HasEnumHelpersFixture::toValueLabels(
+                include: [HasEnumHelpersFixture::ALPHA, HasEnumHelpersFixture::ZETA]
+            )
+        );
+
+        $this->assertSame([
+            ['value' => 'alpha_value', 'label' => 'Alpha'],
+            ['value' => 'zeta_value', 'label' => 'Zeta'],
+        ], $result);
+    }
+
+    /**
+     * @param array<int, array{value: string, label: mixed}> $labels
+     *
+     * @return array<int, array{value: string, label: string}>
+     */
+    private function stringifyLabels(array $labels): array
+    {
+        return array_map(
+            static fn(array $label): array => [
+                'value' => $label['value'],
+                'label' => (string) $label['label'],
+            ],
+            $labels
+        );
+    }
 }
 
 enum HasEnumHelpersFixture: string

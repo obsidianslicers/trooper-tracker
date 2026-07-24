@@ -16,7 +16,7 @@
 {#if vm.requiresGuardian()}
     <InputContainer>
         <InputDate
-            bind:value={vm.inputs.date_of_birth}
+            bind:value={vm.form.date_of_birth}
             errors={vm.errors.date_of_birth}
             label="Date of Birth"
         />
@@ -28,7 +28,7 @@
     </InputContainer>
     <InputContainer>
         <InputText
-            bind:value={vm.inputs.guardian_email}
+            bind:value={vm.form.guardian_email}
             errors={vm.errors.guardian_email}
             label="Guardian Email"
         />
