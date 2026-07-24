@@ -160,7 +160,7 @@ final class MergeTroopers extends Message
         $this->target_trooper->date_of_birth = $this->target_trooper->date_of_birth ?? $this->source_trooper->date_of_birth;
         $this->target_trooper->save();
 
-        $this->source_trooper->membership_status = MembershipStatus::INVALID;
+        $this->source_trooper->membership_status = MembershipStatus::MERGED;
         $this->source_trooper->visitor_expires_at = null;
         $this->source_trooper->visitor_notified_at = null;
         $this->source_trooper->deletion_requested_at = null;
@@ -170,7 +170,7 @@ final class MergeTroopers extends Message
     private function resolveMembershipStatus(): MembershipStatus
     {
         $rankings = [
-            MembershipStatus::INVALID->value => 0,
+            MembershipStatus::MERGED->value => 0,
             MembershipStatus::DEPARTED->value => 10,
             MembershipStatus::INACTIVE->value => 20,
             MembershipStatus::NONE->value => 30,
