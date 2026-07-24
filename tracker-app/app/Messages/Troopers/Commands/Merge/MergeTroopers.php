@@ -21,6 +21,8 @@ use Illuminate\Support\Facades\DB;
  */
 final class MergeTroopers extends Message
 {
+    use DateConcerns;
+
     public function __construct(
         private readonly Trooper $target_trooper,
         private readonly Trooper $source_trooper,
@@ -111,10 +113,10 @@ final class MergeTroopers extends Message
             target_trooper: $this->target_trooper,
             source_trooper: $this->source_trooper,
         );
-        // MergeTrooperAchievements::call(
-        //     target_trooper: $this->target_trooper,
-        //     source_trooper: $this->source_trooper,
-        // );
+        MergeTrooperAchievements::call(
+            target_trooper: $this->target_trooper,
+            source_trooper: $this->source_trooper,
+        );
         // MergeTrooperRequests::call(
         //     target_trooper: $this->target_trooper,
         //     source_trooper: $this->source_trooper,
@@ -261,20 +263,5 @@ final class MergeTroopers extends Message
         }
 
         return $source_guardian_id;
-    }
-
-    private function latestDateTime(mixed $target_value, mixed $source_value): mixed
-    {
-        if ($target_value === null)
-        {
-            return $source_value;
-        }
-
-        if ($source_value === null)
-        {
-            return $target_value;
-        }
-
-        return $source_value->greaterThan($target_value) ? $source_value : $target_value;
     }
 }

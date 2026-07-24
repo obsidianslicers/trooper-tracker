@@ -17,6 +17,8 @@ use Hyperdrive\Message;
  */
 final class MergeEventNotifications extends Message
 {
+    use DateConcerns;
+
     public function __construct(
         private readonly Trooper $target_trooper,
         private readonly Trooper $source_trooper,
@@ -47,9 +49,8 @@ final class MergeEventNotifications extends Message
         }
     }
 
-    private function getTargetEventNotification(
-        EventNotification $source_event_notification,
-    ): ?EventNotification {
+    private function getTargetEventNotification(EventNotification $source_event_notification, ): ?EventNotification
+    {
         return EventNotification::query()
             ->withTrashed()
             ->where(EventNotification::TROOPER_ID, $this->target_trooper->id)
@@ -57,10 +58,8 @@ final class MergeEventNotifications extends Message
             ->first();
     }
 
-    private function mergeEventNotifications(
-        EventNotification $target_event_notification,
-        EventNotification $source_event_notification,
-    ): void {
+    private function mergeEventNotifications(EventNotification $target_event_notification, EventNotification $source_event_notification, ): void
+    {
         if ($target_event_notification->trashed() && !$source_event_notification->trashed())
         {
             $target_event_notification->restore();
@@ -77,20 +76,5 @@ final class MergeEventNotifications extends Message
         $target_event_notification->save();
 
         $source_event_notification->forceDelete();
-    }
-
-    private function latestDateTime(mixed $target_value, mixed $source_value): mixed
-    {
-        if ($target_value === null)
-        {
-            return $source_value;
-        }
-
-        if ($source_value === null)
-        {
-            return $target_value;
-        }
-
-        return $source_value->greaterThan($target_value) ? $source_value : $target_value;
     }
 }

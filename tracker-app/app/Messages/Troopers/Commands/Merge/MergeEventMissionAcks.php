@@ -17,6 +17,8 @@ use Hyperdrive\Message;
  */
 final class MergeEventMissionAcks extends Message
 {
+    use DateConcerns;
+
     public function __construct(
         private readonly Trooper $target_trooper,
         private readonly Trooper $source_trooper,
@@ -70,20 +72,5 @@ final class MergeEventMissionAcks extends Message
         $target_event_mission_ack->save();
 
         $source_event_mission_ack->forceDelete();
-    }
-
-    private function latestDateTime(mixed $target_value, mixed $source_value): mixed
-    {
-        if ($target_value === null)
-        {
-            return $source_value;
-        }
-
-        if ($source_value === null)
-        {
-            return $target_value;
-        }
-
-        return $source_value->greaterThan($target_value) ? $source_value : $target_value;
     }
 }

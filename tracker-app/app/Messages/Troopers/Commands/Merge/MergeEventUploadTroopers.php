@@ -29,7 +29,6 @@ final class MergeEventUploadTroopers extends Message
             ->orderBy(EventUploadTrooper::ID)
             ->get();
 
-        /** @var EventUploadTrooper $source_event_upload_trooper */
         foreach ($source_event_upload_troopers as $source_event_upload_trooper)
         {
             $target_event_upload_trooper = $this->getTargetEventUploadTrooper($source_event_upload_trooper);

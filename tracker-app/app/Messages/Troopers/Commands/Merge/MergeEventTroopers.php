@@ -16,6 +16,8 @@ use Hyperdrive\Message;
  */
 final class MergeEventTroopers extends Message
 {
+    use DateConcerns;
+
     public function __construct(
         private readonly Trooper $target_trooper,
         private readonly Trooper $source_trooper,
@@ -139,20 +141,5 @@ final class MergeEventTroopers extends Message
         }
 
         return is_string($status) ? $status : null;
-    }
-
-    private function earliestDateTime(mixed $target_value, mixed $source_value): mixed
-    {
-        if ($target_value === null)
-        {
-            return $source_value;
-        }
-
-        if ($source_value === null)
-        {
-            return $target_value;
-        }
-
-        return $source_value->lessThan($target_value) ? $source_value : $target_value;
     }
 }
