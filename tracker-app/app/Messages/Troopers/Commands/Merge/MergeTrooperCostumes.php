@@ -20,7 +20,8 @@ final class MergeTrooperCostumes extends Message
     public function __construct(
         private readonly Trooper $target_trooper,
         private readonly Trooper $source_trooper,
-    ) {}
+    ) {
+    }
 
     public function handle(): void
     {
@@ -65,11 +66,31 @@ final class MergeTrooperCostumes extends Message
             $target_costume->restore();
         }
 
+        $source_costume->forceDelete();
+
         $target_costume->image_url_sm = $source_costume->image_url_sm;
         $target_costume->image_url_lg = $source_costume->image_url_lg;
         $target_costume->image_url_bucket_off = $source_costume->image_url_bucket_off;
+        $target_costume->synchronized_at = $this->latestDateTime(
+            $target_costume->synchronized_at,
+            $source_costume->synchronized_at,
+        );
 
         $target_costume->save();
-        $source_costume->forceDelete();
+    }
+
+    private function latestDateTime(mixed $target_value, mixed $source_value): mixed
+    {
+        if ($target_value === null)
+        {
+            return $source_value;
+        }
+
+        if ($source_value === null)
+        {
+            return $target_value;
+        }
+
+        return $source_value->greaterThan($target_value) ? $source_value : $target_value;
     }
 }

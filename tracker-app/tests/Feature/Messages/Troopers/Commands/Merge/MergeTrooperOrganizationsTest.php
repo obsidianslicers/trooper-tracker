@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Messages\Troopers\Commands;
+namespace Tests\Feature\Messages\Troopers\Commands\Merge;
 
-use App\Messages\Troopers\Commands\MergeTrooperOrganizations;
+use App\Messages\Troopers\Commands\Merge\MergeTrooperOrganizations;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperOrganization;

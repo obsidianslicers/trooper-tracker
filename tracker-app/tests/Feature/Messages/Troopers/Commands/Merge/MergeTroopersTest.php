@@ -2,13 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Messages\Troopers\Commands;
+namespace Tests\Feature\Messages\Troopers\Commands\Merge;
 
 use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
 use App\Enums\NotificationFrequency;
+use App\Messages\Troopers\Commands\Merge\MergeTrooperFriends;
 use App\Messages\Troopers\Commands\Merge\MergeTroopers;
 use App\Models\Trooper;
+use App\Models\TrooperFriend;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use ReflectionMethod;
@@ -104,5 +106,98 @@ class MergeTroopersTest extends TestCase
         $this->assertNull($source_trooper->{Trooper::VISITOR_EXPIRES_AT});
         $this->assertNull($source_trooper->{Trooper::VISITOR_NOTIFIED_AT});
         $this->assertNull($source_trooper->{Trooper::DELETION_REQUESTED_AT});
+    }
+
+    public function test_merge_trooper_friends_moves_source_friendships_to_target_and_updates_inverse_rows(): void
+    {
+        $target_trooper = Trooper::factory()->asActive()->create();
+        $source_trooper = Trooper::factory()->asActive()->create();
+        $shared_friend = Trooper::factory()->asActive()->create();
+        $moved_friend = Trooper::factory()->asActive()->create();
+
+        TrooperFriend::factory()
+            ->forTrooper($target_trooper)
+            ->forFriend($shared_friend)
+            ->create();
+
+        TrooperFriend::factory()
+            ->forTrooper($shared_friend)
+            ->forFriend($target_trooper)
+            ->create();
+
+        TrooperFriend::factory()
+            ->forTrooper($source_trooper)
+            ->forFriend($shared_friend)
+            ->create();
+
+        TrooperFriend::factory()
+            ->forTrooper($shared_friend)
+            ->forFriend($source_trooper)
+            ->create();
+
+        TrooperFriend::factory()
+            ->forTrooper($source_trooper)
+            ->forFriend($moved_friend)
+            ->create();
+
+        TrooperFriend::factory()
+            ->forTrooper($moved_friend)
+            ->forFriend($source_trooper)
+            ->create();
+
+        TrooperFriend::factory()
+            ->forTrooper($source_trooper)
+            ->forFriend($target_trooper)
+            ->create();
+
+        TrooperFriend::factory()
+            ->forTrooper($target_trooper)
+            ->forFriend($source_trooper)
+            ->create();
+
+        $subject = new MergeTrooperFriends($target_trooper, $source_trooper);
+        $subject->handle();
+
+        $this->assertDatabaseHas('tt_trooper_friends', [
+            TrooperFriend::TROOPER_ID => $target_trooper->{Trooper::ID},
+            TrooperFriend::FRIEND_ID => $shared_friend->{Trooper::ID},
+        ]);
+        $this->assertDatabaseHas('tt_trooper_friends', [
+            TrooperFriend::TROOPER_ID => $shared_friend->{Trooper::ID},
+            TrooperFriend::FRIEND_ID => $target_trooper->{Trooper::ID},
+        ]);
+        $this->assertDatabaseHas('tt_trooper_friends', [
+            TrooperFriend::TROOPER_ID => $target_trooper->{Trooper::ID},
+            TrooperFriend::FRIEND_ID => $moved_friend->{Trooper::ID},
+        ]);
+        $this->assertDatabaseHas('tt_trooper_friends', [
+            TrooperFriend::TROOPER_ID => $moved_friend->{Trooper::ID},
+            TrooperFriend::FRIEND_ID => $target_trooper->{Trooper::ID},
+        ]);
+        $this->assertDatabaseMissing('tt_trooper_friends', [
+            TrooperFriend::TROOPER_ID => $source_trooper->{Trooper::ID},
+            TrooperFriend::FRIEND_ID => $shared_friend->{Trooper::ID},
+        ]);
+        $this->assertDatabaseMissing('tt_trooper_friends', [
+            TrooperFriend::TROOPER_ID => $shared_friend->{Trooper::ID},
+            TrooperFriend::FRIEND_ID => $source_trooper->{Trooper::ID},
+        ]);
+        $this->assertDatabaseMissing('tt_trooper_friends', [
+            TrooperFriend::TROOPER_ID => $source_trooper->{Trooper::ID},
+            TrooperFriend::FRIEND_ID => $moved_friend->{Trooper::ID},
+        ]);
+        $this->assertDatabaseMissing('tt_trooper_friends', [
+            TrooperFriend::TROOPER_ID => $moved_friend->{Trooper::ID},
+            TrooperFriend::FRIEND_ID => $source_trooper->{Trooper::ID},
+        ]);
+        $this->assertDatabaseMissing('tt_trooper_friends', [
+            TrooperFriend::TROOPER_ID => $target_trooper->{Trooper::ID},
+            TrooperFriend::FRIEND_ID => $source_trooper->{Trooper::ID},
+        ]);
+        $this->assertDatabaseMissing('tt_trooper_friends', [
+            TrooperFriend::TROOPER_ID => $source_trooper->{Trooper::ID},
+            TrooperFriend::FRIEND_ID => $target_trooper->{Trooper::ID},
+        ]);
+        $this->assertSame(4, TrooperFriend::query()->count());
     }
 }

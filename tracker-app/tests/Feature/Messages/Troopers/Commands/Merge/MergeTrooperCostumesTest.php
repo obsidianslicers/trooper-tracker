@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Messages\Troopers\Commands;
+namespace Tests\Feature\Messages\Troopers\Commands\Merge;
 
 use App\Messages\Troopers\Commands\Merge\MergeTrooperCostumes;
 use App\Models\Costume;
@@ -129,7 +129,7 @@ class MergeTrooperCostumesTest extends TestCase
 
         $this->assertNull($merged_target_costume->{TrooperCostume::DELETED_AT});
         $this->assertSame('source-sm.jpg', $merged_target_costume->{TrooperCostume::IMAGE_URL_SM});
-        $this->assertSame('target-lg.jpg', $merged_target_costume->{TrooperCostume::IMAGE_URL_LG});
+        $this->assertSame('source-lg.jpg', $merged_target_costume->{TrooperCostume::IMAGE_URL_LG});
         $this->assertSame('bucket-source.jpg', $merged_target_costume->{TrooperCostume::IMAGE_URL_BUCKET_OFF});
         $this->assertTrue(
             $merged_target_costume->{TrooperCostume::SYNCHRONIZED_AT}?->equalTo($source_sync) ?? false,

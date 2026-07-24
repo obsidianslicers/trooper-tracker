@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Messages\Troopers\Commands;
+namespace Tests\Feature\Messages\Troopers\Commands\Merge;
 
 use App\Messages\Troopers\Commands\Merge\MergeTrooperAssignments;
 use App\Models\Organization;

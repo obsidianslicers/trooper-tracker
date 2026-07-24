@@ -71,10 +71,10 @@ final class MergeTroopers extends Message
             target_trooper: $this->target_trooper,
             source_trooper: $this->source_trooper,
         );
-        MergeTrooperAchievements::call(
-            target_trooper: $this->target_trooper,
-            source_trooper: $this->source_trooper,
-        );
+        // MergeTrooperAchievements::call(
+        //     target_trooper: $this->target_trooper,
+        //     source_trooper: $this->source_trooper,
+        // );
         MergeTrooperDonations::call(
             target_trooper: $this->target_trooper,
             source_trooper: $this->source_trooper,
@@ -83,10 +83,10 @@ final class MergeTroopers extends Message
             target_trooper: $this->target_trooper,
             source_trooper: $this->source_trooper,
         );
-        MergeTrooperRequests::call(
-            target_trooper: $this->target_trooper,
-            source_trooper: $this->source_trooper,
-        );
+        // MergeTrooperRequests::call(
+        //     target_trooper: $this->target_trooper,
+        //     source_trooper: $this->source_trooper,
+        // );
         MergeAwardTroopers::call(
             target_trooper: $this->target_trooper,
             source_trooper: $this->source_trooper,

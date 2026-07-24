@@ -20,7 +20,8 @@ final class MergeTrooperAssignments extends Message
     public function __construct(
         private readonly Trooper $target_trooper,
         private readonly Trooper $source_trooper,
-    ) {}
+    ) {
+    }
 
     public function handle(): void
     {
@@ -64,11 +65,11 @@ final class MergeTrooperAssignments extends Message
             $target_assignment->restore();
         }
 
+        $source_assignment->forceDelete();
+
         $target_assignment->should_notify = $target_assignment->should_notify || $source_assignment->should_notify;
         $target_assignment->is_member = $target_assignment->is_member || $source_assignment->is_member;
         $target_assignment->is_moderator = $target_assignment->is_moderator || $source_assignment->is_moderator;
         $target_assignment->save();
-
-        $source_assignment->forceDelete();
     }
 }
