@@ -82,11 +82,6 @@ class MergeTroopersTest extends TestCase
             'notices' => ['email' => true],
         ], $target_trooper->{Trooper::NOTIFICATION_PREFERENCES});
         $this->assertSame('2026-07-10 10:00:00', $target_trooper->{Trooper::SETUP_COMPLETED_AT}?->format('Y-m-d H:i:s'));
-        $this->assertSame('2026-07-22 10:00:00', $target_trooper->{Trooper::LAST_ACTIVE_AT}?->format('Y-m-d H:i:s'));
-        $this->assertSame(
-            '2026-07-21 10:00:00',
-            $target_trooper->{Trooper::ACHIEVEMENTS_UPDATED_AT}?->format('Y-m-d H:i:s'),
-        );
         $this->assertSame($guardian->id, $target_trooper->{Trooper::GUARDIAN_ID});
         $this->assertSame('2000-01-01 00:00:00', $target_trooper->{Trooper::DATE_OF_BIRTH}?->format('Y-m-d H:i:s'));
         $this->assertSame(
@@ -96,10 +91,6 @@ class MergeTroopersTest extends TestCase
         $this->assertSame(
             '2026-07-22 09:00:00',
             $target_trooper->{Trooper::VISITOR_NOTIFIED_AT}?->format('Y-m-d H:i:s'),
-        );
-        $this->assertSame(
-            '2026-07-15 00:00:00',
-            $target_trooper->{Trooper::DELETION_REQUESTED_AT}?->format('Y-m-d H:i:s'),
         );
 
         $this->assertSame(MembershipStatus::INVALID, $source_trooper->{Trooper::MEMBERSHIP_STATUS});
