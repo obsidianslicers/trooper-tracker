@@ -13,9 +13,9 @@
     let { vm }: PageProps = $props();
 
     // Derived visibility states driven by the viewmodel data
-    const isVisitor = $derived(vm.form.account_type === "visitor");
-    const isHandler = $derived(vm.form.account_type === "handler");
-    const isMember = $derived(vm.form.account_type === "member");
+    const isVisitor = $derived(vm.form.membership_role === "visitor");
+    const isHandler = $derived(vm.form.membership_role === "handler");
+    const isMember = $derived(vm.form.membership_role === "member");
 </script>
 
 <p>Select your associated organizations below.</p>
@@ -34,7 +34,7 @@
 
         {#if vm.isOrganizationSelected(organization.id)}
             <div class="ps-4 border-start">
-                {#if isMember}
+                {#if isMember || isVisitor}
                     <InputContainer>
                         <InputText
                             bind:value={

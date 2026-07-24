@@ -44,9 +44,6 @@ Alpine.plugin(persist);
 Alpine.plugin(intersect);
 Alpine.plugin(mask);
 
-import AuthPlugin from './auth/index.js';
-Alpine.plugin(AuthPlugin);
-
 import AccountPlugin from './account/index.js';
 Alpine.plugin(AccountPlugin);
 

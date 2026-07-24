@@ -45,6 +45,42 @@ abstract class Message
             $params = $args;
         }
 
+        $params = self::normalizeParams($params);
+
         return app(MessageDispatcher::class)->handle(static::class, $request, $params);
+    }
+
+    /**
+     * Normalize variadic inputs to constructor-parameter keyed payloads.
+     */
+    private static function normalizeParams(array $params): array
+    {
+        if (!array_is_list($params))
+        {
+            return $params;
+        }
+
+        $constructor = (new \ReflectionClass(static::class))->getConstructor();
+
+        if ($constructor === null)
+        {
+            return $params;
+        }
+
+        $normalized = [];
+        $index = 0;
+
+        foreach ($constructor->getParameters() as $parameter)
+        {
+            if (!array_key_exists($index, $params))
+            {
+                break;
+            }
+
+            $normalized[$parameter->getName()] = $params[$index];
+            $index++;
+        }
+
+        return $normalized;
     }
 }

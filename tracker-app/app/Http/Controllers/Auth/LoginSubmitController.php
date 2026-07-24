@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
-use App\Enums\MembershipStatus;
 use App\Facades\TroopTracker;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
-use App\Models\Trooper;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
+use App\Messages\Auth\Commands\Login;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 /**
  * Handles the submission of the login form, authenticates troopers, and manages sessions.
@@ -22,14 +21,11 @@ use Illuminate\Support\Facades\Hash;
  * - Creating authenticated sessions with optional "remember me" functionality
  * - Providing appropriate error messages for various failure scenarios
  */
-class LoginSubmitController extends MagicBusController
+class LoginSubmitController extends Controller
 {
-    private TroopTracker $troop_tracker;
-
-    protected function initialized(): void
-    {
-        $this->troop_tracker = app(TroopTracker::class);
-    }
+    public function __construct(
+        private readonly TroopTracker $troop_tracker
+    ) {}
 
     /**
      * Handles the incoming login request and authenticates the trooper.
@@ -42,67 +38,24 @@ class LoginSubmitController extends MagicBusController
      * 5. Logs in the trooper and redirects to the intended page
      *
      * @param  LoginRequest  $request  The validated login form request containing email and password
-     * @return RedirectResponse A redirect to the events list on success, or back with errors on failure
+     * @return InertiaResponse|SymfonyResponse A redirect to the events list on success, or back with errors on failure
      */
-    public function __invoke(LoginRequest $request): RedirectResponse
+    public function __invoke(LoginRequest $request): InertiaResponse|SymfonyResponse
     {
         if ($this->troop_tracker->isXenforoOAuthRequired())
         {
-            $this->flash->warning('Email/password login is disabled. Please log in with XenForo.');
-
-            return redirect()
-                ->route('auth.login')
-                ->withErrors(['oauth' => 'Email/password login is disabled. Please log in with XenForo.']);
+            return back()->withDanger('Email/Password login is disabled. Please log in with XenForo.');
         }
 
-        $email = $request->validated('email');
-        $password = $request->validated('password');
+        $trooper = Login::call($request);
 
-        //  trooper existance is checked via LoginRequest
-        $trooper = Trooper::query()->byEmail($email)->first();
-
-        if ($trooper->membership_status === MembershipStatus::DENIED)
+        if ($trooper)
         {
-            if (!Hash::check($password, $trooper->password))
-            {
-                return back()
-                    ->withInput(request()->except('password'))
-                    ->withErrors(['email' => 'Invalid email and password.']);
-            }
+            $intended_url = redirect()->intended(route('events.list'))->getTargetUrl();
 
-            Auth::login($trooper, $request->remember_me);
-
-            return redirect()->route('account.denied');
+            return Inertia::location($intended_url);
         }
 
-        if ($trooper->membership_status === MembershipStatus::PENDING)
-        {
-            $this->flash->warning('Your access has not been approved yet. Please refer to command staff for additional information.');
-
-            return back()
-                ->withInput(request()->except('password'))
-                ->withErrors(['email' => 'Refer to command staff']);
-        }
-
-        if ($trooper->membership_status !== MembershipStatus::ACTIVE)
-        {
-            //  retired
-            $this->flash->danger('You cannot access this account. Please refer to command staff for additional information (retired).');
-
-            return back()
-                ->withInput(request()->except('password'))
-                ->withErrors(['email' => 'You cannot access this account.']);
-        }
-
-        if (Hash::check($password, $trooper->password))
-        {
-            Auth::login($trooper, $request->remember_me);
-
-            return redirect()->intended(route('events.list'));
-        }
-
-        return back()
-            ->withInput(request()->except('password'))
-            ->withErrors(['email' => 'Invalid email and password.']);
+        return back()->withDanger('Invalid email or password.');
     }
 }

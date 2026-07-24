@@ -4,20 +4,23 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
-use App\Features\Troopers\Commands\RegisterTrooperCommand;
-use App\Features\Troopers\Commands\SubmitTrooperRequestCommand;
-use App\Features\Troopers\Exceptions\DuplicateOrganizationIdentifierException;
-use App\Http\Controllers\MagicBusController;
+use App\Enums\MembershipRole;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Jobs\SendTrooperRegisteredNotificationsJob;
 use App\Mail\Auth\GuardianAwareness;
 use App\Mail\Auth\TrooperRegistered;
+use App\Messages\Troopers\Commands\CreateTrooper;
+use App\Messages\Troopers\Commands\CreateTrooperRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
-use Illuminate\Http\RedirectResponse;
+use App\Services\FlashMessageService;
+use Exception;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 use Mail;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 /**
  * Handles the submission of the trooper registration form.
@@ -29,8 +32,10 @@ use Mail;
  * - Sending confirmation email
  * - Redirecting to the thank you page
  */
-class RegisterSubmitController extends MagicBusController
+class RegisterSubmitController extends Controller
 {
+    public function __construct(private readonly FlashMessageService $flash) {}
+
     /**
      * Handle the incoming registration request.
      *
@@ -39,118 +44,88 @@ class RegisterSubmitController extends MagicBusController
      * The newly created trooper will have PENDING status until approved by an admin.
      *
      * @param  RegisterRequest  $request  The validated registration form request
-     * @return RedirectResponse A redirect to the thank you page after successful registration
+     * @return InertiaResponse|SymfonyResponse A redirect to the thank you page after successful registration
      */
-    public function __invoke(RegisterRequest $request): RedirectResponse
+    public function __invoke(RegisterRequest $request): InertiaResponse|SymfonyResponse
     {
-        $register_cmd = new RegisterTrooperCommand($request->validated());
-
         try
         {
-            $trooper = DB::transaction(function () use ($request, $register_cmd): Trooper {
-                $trooper = $this->bus->send($register_cmd);
+            $trooper = $this->registerTrooper($request);
 
-                $organizations = $request->validated('organizations', []);
-                $this->submitJoinRequests($trooper, $organizations, $request->validated('account_type'));
+            Mail::to($trooper->email)->queue(new TrooperRegistered);
 
-                return $trooper;
-            });
+            if ($trooper->is_minor)
+            {
+                Mail::to($trooper->guardian->email)->queue(new GuardianAwareness);
+            }
+
+            dispatch(new SendTrooperRegisteredNotificationsJob($trooper));
+
+            $this->flash->success('Request submitted successfully! You will receive an e-mail when your request is approved or denied.');
+
+            return Inertia::location(route('auth.thank-you'));
         }
-        catch (DuplicateOrganizationIdentifierException $exception)
+        catch (Exception $e)
         {
-            throw ValidationException::withMessages([
-                'organizations' => $exception->flashMessage(),
-            ]);
+            return back()->withDanger($e->getMessage());
         }
-
-        Mail::to($trooper->email)->queue(new TrooperRegistered);
-
-        if ($trooper->is_minor)
-        {
-            Mail::to($trooper->guardian_email)->queue(new GuardianAwareness);
-        }
-
-        dispatch(new SendTrooperRegisteredNotificationsJob($trooper));
-
-        $this->flash->success('Request submitted successfully! You will receive an e-mail when your request is approved or denied.');
-
-        return redirect()->route('auth.thank-you');
     }
 
-    /**
-     * Submit pending join requests from the organizations selected during registration.
-     *
-     * @param  array<int, array<string, mixed>>  $organizations  The organizations data from the registration form
-     */
-    private function submitJoinRequests(Trooper $trooper, array $organizations, string $account_type): void
+    private function registerTrooper(RegisterRequest $request): Trooper
     {
-        if ($account_type === 'handler')
-        {
-            return;
-        }
+        return DB::transaction(function () use ($request) {
+            $trooper = CreateTrooper::call($request);
 
-        foreach ($organizations as $organization_id => $data)
-        {
-            if (empty($data['selected']))
+            if ($trooper->membership_role != MembershipRole::HANDLER)
             {
-                continue;
+                $this->registerTrooperOrganizations($trooper, $request);
             }
 
-            $organization = Organization::find($organization_id);
+            return $trooper;
+        });
+    }
 
-            if (!$organization)
+    private function registerTrooperOrganizations(Trooper $trooper, RegisterRequest $request): void
+    {
+        $organizations = $request->validated('organizations', []);
+
+        foreach ($organizations as $primary_organization_id => $data)
+        {
+            $identifier = $data['identifier'] ?? null;
+            $selected = $data['selected'] ?? false;
+            $region_id = $data['region_id'] ?? null;
+            $unit_id = $data['unit_id'] ?? null;
+
+            if ($selected)
             {
-                continue;
-            }
+                //  start with the primary organization as the default assignment
+                //  if visitor we keep the primary organization as the assignment
+                //  otherwise we resolve the organization based on region and unit
+                $organization = Organization::findOrFail($primary_organization_id);
 
-            $requested_organization = $this->resolveJoinRequestOrganization($data, $organization, $account_type);
+                if ($trooper->membership_role == MembershipRole::MEMBER)
+                {
+                    $organization = $this->resolveOrganization($organization, $region_id, $unit_id);
+                }
 
-            if ($requested_organization !== null)
-            {
-                $identifier = isset($data['identifier']) ? trim((string) $data['identifier']) : null;
-
-                $this->bus->send(new SubmitTrooperRequestCommand(
-                    $trooper,
-                    $requested_organization,
-                    $identifier === '' ? null : $identifier
-                ));
+                CreateTrooperRequest::call($trooper, $organization, $identifier);
             }
         }
     }
 
-    private function resolveJoinRequestOrganization(array $data, Organization $organization, string $account_type): ?Organization
+    private function resolveOrganization(Organization $organization, ?int $region_id, ?int $unit_id): Organization
     {
-        if ($account_type === 'visitor')
-        {
-            return $organization;
-        }
-
-        if (!isset($data['region_id']))
-        {
-            return null;
-        }
-
         $region = $organization->organizations()
             ->ofTypeRegions()
-            ->firstWhere(Organization::ID, $data['region_id']);
-
-        if (!$region)
-        {
-            return null;
-        }
+            ->firstWhere(Organization::ID, $region_id);
 
         if ($region->organizations()->count() == 0)
         {
             return $region;
         }
 
-        if (!isset($data['unit_id']))
-        {
-            return null;
-        }
-
         return $region->organizations()
             ->ofTypeUnits()
-            ->firstWhere(Organization::ID, $data['unit_id']);
+            ->firstWhere(Organization::ID, $unit_id);
     }
 }

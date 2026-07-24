@@ -6,7 +6,6 @@ namespace App\Messages\Auth\PageData;
 
 use App\Messages\Auth\Queries\GetAuthConfig;
 use Hyperdrive\Message;
-use Illuminate\Support\Facades\Session;
 
 /**
  * Retrieves application configuration including authentication provider status and feature toggles.
@@ -15,7 +14,7 @@ use Illuminate\Support\Facades\Session;
  * Google OAuth, email/password authentication), application metadata, and feature/localization settings.
  * Used by frontend clients to determine available authentication methods and application capabilities.
  *
- * @method static void call()
+ * @method static array<string, mixed> call()
  */
 final class LoginPageData extends Message
 {
@@ -26,7 +25,6 @@ final class LoginPageData extends Message
      */
     public function handle(): array
     {
-        //  oauth should be configuration values + session data for the current registration flow
         $data = [
             'oauth' => GetAuthConfig::call(),
         ];

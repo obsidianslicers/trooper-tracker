@@ -52,25 +52,25 @@ class RegisterRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'legal_name' => ['required', 'string', 'max:255'],
-            'display_name' => ['required', 'string', 'max:255'],
-            'email' => [
+            Trooper::LEGAL_NAME => ['required', 'string', 'max:255'],
+            Trooper::DISPLAY_NAME => ['required', 'string', 'max:255'],
+            Trooper::EMAIL => [
                 'required',
                 'string',
                 'email',
                 'max:256',
                 Rule::unique(Trooper::class, Trooper::EMAIL),
             ],
-            'phone' => [
+            Trooper::PHONE => [
                 'nullable',
                 'string',
                 'max:16',
             ],
-            'account_type' => [
+            Trooper::MEMBERSHIP_ROLE => [
                 'required',
                 'in:member,handler,visitor',
             ],
-            'date_of_birth' => [
+            Trooper::DATE_OF_BIRTH => [
                 Rule::requiredIf(fn (): bool => $this->requiresGuardianForSelectedOrganizations()),
                 'nullable',
                 'date',
@@ -108,19 +108,19 @@ class RegisterRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
-        if ($this->has('phone') && !empty($this->input('phone')))
+        if ($this->has(Trooper::PHONE) && !empty($this->input(Trooper::PHONE)))
         {
-            $phone = $this->normalizePhoneInput($this->input('phone'));
+            $phone = $this->normalizePhoneInput($this->input(Trooper::PHONE));
 
-            $this->merge(['phone' => $phone]);
+            $this->merge([Trooper::PHONE => $phone]);
         }
 
         $registration_auth = Session::get('registration_auth');
 
-        if ($registration_auth && $registration_auth['email'] != null)
+        if ($registration_auth && $registration_auth[Trooper::EMAIL] != null)
         {
             $this->merge([
-                'email' => trim($registration_auth['email']),
+                Trooper::EMAIL => trim($registration_auth[Trooper::EMAIL]),
             ]);
         }
 
@@ -146,7 +146,13 @@ class RegisterRequest extends FormRequest
     private function getOrganizationValidationRules(): array
     {
         $rules = [
-            'organizations' => ['array', new AtLeastOneOrganizationSelectedRule],
+            'organizations' => [
+                'array',
+                Rule::when(
+                    fn () => $this->membership_role !== 'handler',
+                    [new AtLeastOneOrganizationSelectedRule]
+                ),
+            ],
             'organizations.*.selected' => ['nullable', 'boolean'],
         ];
 
@@ -166,7 +172,7 @@ class RegisterRequest extends FormRequest
                 $organization_rules = [
                     'nullable',
                     Rule::when(
-                        fn () => $this->account_type === 'member' && $this->input("organizations.{$organization->id}.selected") === true,
+                        fn () => $this->membership_role === 'member' && $this->input("organizations.{$organization->id}.selected") === true,
                         array_merge(
                             ['required'],
                             $base_rules,
@@ -174,7 +180,7 @@ class RegisterRequest extends FormRequest
                         )
                     ),
                     Rule::when(
-                        fn () => $this->account_type === 'visitor' && !empty($this->input("organizations.{$organization->id}.identifier")),
+                        fn () => $this->membership_role === 'visitor' && !empty($this->input("organizations.{$organization->id}.identifier")),
                         array_merge(
                             $base_rules,
                             [new UniqueOrganizationIdentifierRule($organization)]
@@ -191,9 +197,9 @@ class RegisterRequest extends FormRequest
             {
                 // Require region when organization is selected (visitors skip region/unit)
                 $rules["organizations.{$organization->id}.region_id"] = [
-                    Rule::requiredIf(fn () => $this->account_type !== 'visitor' && $this->input("organizations.{$organization->id}.selected") === true),
+                    Rule::requiredIf(fn () => $this->membership_role !== 'visitor' && $this->input("organizations.{$organization->id}.selected") === true),
                     Rule::when(
-                        fn () => $this->account_type !== 'visitor' && $this->input("organizations.{$organization->id}.selected") === true,
+                        fn () => $this->membership_role !== 'visitor' && $this->input("organizations.{$organization->id}.selected") === true,
                         Rule::exists(Organization::class, Organization::ID)
                             ->whereIn('id', $regions->pluck('id'))
                     ),
@@ -208,9 +214,9 @@ class RegisterRequest extends FormRequest
                     {
                         // Require unit when this specific region is selected (visitors skip)
                         $rules["organizations.{$organization->id}.unit_id"] = [
-                            Rule::requiredIf(fn () => $this->account_type !== 'visitor' && $this->input("organizations.{$organization->id}.region_id") == $region->id),
+                            Rule::requiredIf(fn () => $this->membership_role !== 'visitor' && $this->input("organizations.{$organization->id}.region_id") == $region->id),
                             Rule::when(
-                                fn () => $this->account_type !== 'visitor' && $this->input("organizations.{$organization->id}.selected") === true && !empty($this->input("organizations.{$organization->id}.unit_id")),
+                                fn () => $this->membership_role !== 'visitor' && $this->input("organizations.{$organization->id}.selected") === true && !empty($this->input("organizations.{$organization->id}.unit_id")),
                                 Rule::exists(Organization::class, Organization::ID)
                                     ->whereIn('id', $units->pluck('id'))
                             ),

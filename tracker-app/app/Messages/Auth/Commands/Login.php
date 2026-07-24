@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Messages\Auth\Commands;
 
-use App\Enums\MembershipStatus;
 use App\Models\Trooper;
 use Hyperdrive\Message;
 use Illuminate\Support\Facades\Auth;
@@ -16,7 +15,7 @@ use Illuminate\Support\Facades\Hash;
  * This command message processes login requests, typically involving authentication
  * via various providers (XenForo OAuth, Google OAuth, email/password).
  *
- * @method static void call(string $email, string $password, bool $remember_me)
+ * @method static Trooper|null call(string $email, string $password, bool $remember_me)
  */
 final class Login extends Message
 {
@@ -28,38 +27,20 @@ final class Login extends Message
     /**
      * Handles the login process for the application.
      */
-    public function handle(): void
+    public function handle(): ?Trooper
     {
         $trooper = Trooper::query()->byEmail($this->email)->first();
 
-        if ($trooper->membership_status === MembershipStatus::PENDING)
+        if ($trooper)
         {
-            // $this->flash->warning('Your access has not been approved yet. Please refer to command staff for additional information.');
+            if (Hash::check($this->password, $trooper->password))
+            {
+                Auth::login($trooper, $this->remember_me);
 
-            // return back()
-            //     ->withInput(request()->except('password'))
-            //     ->withErrors(['email' => 'Refer to command staff']);
+                return $trooper;
+            }
         }
 
-        // if ($trooper->membership_status !== MembershipStatus::ACTIVE)
-        // {
-        //     //  retired
-        //     $this->flash->danger('You cannot access this account. Please refer to command staff for additional information (retired).');
-
-        //     return back()
-        //         ->withInput(request()->except('password'))
-        //         ->withErrors(['email' => 'You cannot access this account.']);
-        // }
-
-        // if (Hash::check($password, $trooper->password))
-        // {
-        //     Auth::login($trooper, $request->remember_me);
-
-        //     return redirect()->intended(route('events.list'));
-        // }
-
-        // return back()
-        //     ->withInput(request()->except('password'))
-        //     ->withErrors(['email' => 'Invalid email and password.']);
+        return null;
     }
 }
