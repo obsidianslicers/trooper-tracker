@@ -93,7 +93,7 @@ class MergeTroopersTest extends TestCase
             $target_trooper->{Trooper::VISITOR_NOTIFIED_AT}?->format('Y-m-d H:i:s'),
         );
 
-        $this->assertSame(MembershipStatus::INVALID, $source_trooper->{Trooper::MEMBERSHIP_STATUS});
+        $this->assertSame(MembershipStatus::MERGED, $source_trooper->{Trooper::MEMBERSHIP_STATUS});
         $this->assertNull($source_trooper->{Trooper::VISITOR_EXPIRES_AT});
         $this->assertNull($source_trooper->{Trooper::VISITOR_NOTIFIED_AT});
         $this->assertNull($source_trooper->{Trooper::DELETION_REQUESTED_AT});
