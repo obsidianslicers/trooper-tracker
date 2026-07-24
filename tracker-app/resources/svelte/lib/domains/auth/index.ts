@@ -1,5 +1,5 @@
 
+export * from './factories';
 export type * from './types';
-export * from './values';
-export * from './vms.svelte';
+export * from './vms';
 

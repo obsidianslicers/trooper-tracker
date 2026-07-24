@@ -52,7 +52,7 @@ flowchart TD
 
 ### MEMBER
 
-The default role. Assigned automatically on registration unless `account_type` is specified.
+The default role. Assigned automatically on registration unless `membership_role` is specified.
 
 **Can:**
 - Sign up for events with costume selection
@@ -84,7 +84,7 @@ For troopers who accompany costumed members but do not wear a costume themselves
 - Create or manage events
 - Access admin functions
 
-**Assigned by:** Registration with `account_type=handler`, or admin via authority panel  
+**Assigned by:** Registration with `membership_role=handler`, or admin via authority panel  
 **Changed by:** Admin via authority panel (clears visitor timestamps if previously VISITOR)
 
 ---
@@ -102,7 +102,7 @@ A time-limited role for prospective members or guests. Access renews in 6-month 
 - Moderate or administrate anything
 - Access beyond expiry without renewal
 
-**Assigned by:** Registration with `account_type=visitor`, or admin via authority panel  
+**Assigned by:** Registration with `membership_role=visitor`, or admin via authority panel  
 **Expiry:** `visitor_expires_at` is set to `now() + 6 months` on approval. After expiry, `CheckVisitorAccessMiddleware` redirects all requests to `/account/visitor-renew`. See [Visitor Lifecycle](#visitor-lifecycle) below.
 
 ---

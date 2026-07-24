@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
-use App\Features\Organizations\Queries\GetOrganizationHierarchyQuery;
 use App\Http\Controllers\MagicBusController;
-use Illuminate\Contracts\View\View;
+use App\Messages\Auth\PageData\RegisterPageData;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Session;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 /**
  * Displays the user registration page.
@@ -27,31 +28,12 @@ class RegisterController extends MagicBusController
      * registration data includes the email and method (OAuth provider or manual).
      *
      * @param  Request  $request  The incoming HTTP request
-     * @return View The rendered registration page view with organizations and registration data
+     * @return InertiaResponse|SymfonyResponse The rendered registration page view with organizations and registration data
      */
-    public function __invoke(Request $request): View
+    public function __invoke(Request $request): InertiaResponse|SymfonyResponse
     {
-        $registration_auth = Session::get('registration_auth');
+        $data = RegisterPageData::call();
 
-        $email = old('email', $registration_auth['email'] ?? null);
-
-        $account_type = old('account_type', $request->input('account_type', 'member'));
-
-        $registration_method = old('registration_method', $registration_auth['method'] ?? 'email');
-
-        $hierarchy_query = new GetOrganizationHierarchyQuery;
-
-        $organization_hierarchy = $this->bus->send($hierarchy_query)->map(fn (array $org) => (object) $org);
-
-        foreach ($organization_hierarchy as $organization)
-        {
-            $organization->selected = old("organizations.{$organization->id}.selected") === '1';
-            $organization->region_id = old("organizations.{$organization->id}.region_id");
-            $organization->unit_id = old("organizations.{$organization->id}.unit_id");
-        }
-
-        $data = compact('organization_hierarchy', 'email', 'registration_method', 'account_type');
-
-        return view('pages.auth.register', $data);
+        return Inertia::render('auth/Register', $data);
     }
 }

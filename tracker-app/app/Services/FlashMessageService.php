@@ -137,9 +137,7 @@ class FlashMessageService
      */
     public function getMessages(): array
     {
-        $messages = Session::get(self::FLASH_KEY, []);
-
-        Session::remove(self::FLASH_KEY);
+        $messages = Session::pull(self::FLASH_KEY, []);
 
         return $messages;
     }

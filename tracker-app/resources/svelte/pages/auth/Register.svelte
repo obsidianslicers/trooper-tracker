@@ -9,10 +9,10 @@
     } from "$lib/domains/auth";
     import pageState from "$lib/states/page-state.svelte";
     import { usePage } from "@inertiajs/svelte";
-    import Identity from "./components/Identity.svelte";
-    import MembershipRole from "./components/MembershipRole.svelte";
-    import Organizations from "./components/Organizations.svelte";
-    import RequiresGuardian from "./components/RequiresGuardian.svelte";
+    import Identity from "./components/register/Identity.svelte";
+    import MembershipRole from "./components/register/MembershipRole.svelte";
+    import Organizations from "./components/register/Organizations.svelte";
+    import RequiresGuardian from "./components/register/RequiresGuardian.svelte";
 
     const page = usePage<RegisterPageData>();
 
@@ -40,15 +40,17 @@
         <Identity {vm} />
         <MembershipRole {vm} />
 
-        {#if vm.form.account_type != null}
+        {#if vm.form.membership_role != null && vm.form.membership_role != "handler"}
             <Organizations {vm} />
             <RequiresGuardian {vm} {appName} />
         {/if}
 
-        {#if vm.dirty}
-            <SubmitButtonContainer>
-                <SubmitButton label="Register" submitting={vm.submitting} />
-            </SubmitButtonContainer>
-        {/if}
+        <SubmitButtonContainer>
+            <SubmitButton
+                label="Register"
+                submitting={vm.submitting}
+                disabled={!vm.dirty}
+            />
+        </SubmitButtonContainer>
     </form>
 </SlimCard>

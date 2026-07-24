@@ -6,6 +6,7 @@ namespace App\Http\Middleware;
 
 use App\Messages\App\Queries\GetConfig;
 use App\Models\Trooper;
+use App\Services\FlashMessageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Middleware;
@@ -15,7 +16,7 @@ class HandleInertiaRequests extends Middleware
     /**
      * The root template loaded on the first Inertia page visit.
      */
-    protected $rootView = 'layouts.app';
+    protected $rootView = 'layouts.inertia';
 
     /**
      * Determine the current asset version.
@@ -59,14 +60,32 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'config' => $config,
             'user' => $actor,
-            'results' => fn () => $request->session()->get('results'),
-            // Lazy-load flash: only evaluated if the frontend specifically requests 'flash'
-            'flash' => [
-                'success' => fn () => $request->session()->get('success'),
-                'info' => fn () => $request->session()->get('info'),
-                'warning' => fn () => $request->session()->get('warning'),
-                'danger' => fn () => $request->session()->get('danger'),
-            ],
+            'results' => fn () => $request->session()->pull('results'),
+            'flash' => function () use ($request) {
+                $messages = [];
+
+                foreach (['success', 'info', 'warning', 'danger'] as $type)
+                {
+                    $msg = $request->session()->pull($type);
+
+                    if ($msg)
+                    {
+                        $messages[$type][] = $msg;
+                    }
+                }
+
+                $custom_messages = app(FlashMessageService::class)->getMessages();
+
+                foreach ($custom_messages as $type => $type_messages)
+                {
+                    foreach ($type_messages as $text)
+                    {
+                        $messages[$type][] = $text;
+                    }
+                }
+
+                return $messages;
+            },
         ];
     }
 }

@@ -9,7 +9,6 @@ use App\Messages\Auth\Queries\GetAuthConfig;
 use App\Messages\Organizations\Queries\GetOrganizationHierarchy;
 use App\Models\Organization;
 use Hyperdrive\Message;
-use Illuminate\Support\Facades\Session;
 
 /**
  * Retrieves application configuration including authentication provider status and feature toggles.
@@ -27,7 +26,6 @@ final class RegisterPageData extends Message
      */
     public function handle(): array
     {
-        //  oauth should be configuration values + session data for the current registration flow
         $data = [
             'oauth' => GetAuthConfig::call(),
             'organizations' => $this->getOrganizationHierarchy(),
@@ -60,6 +58,6 @@ final class RegisterPageData extends Message
     {
         $exclude = [MembershipRole::MODERATOR, MembershipRole::ADMINISTRATOR];
 
-        return MembershipRole::toValueLabels($exclude);
+        return MembershipRole::toValueLabels(exclude: $exclude);
     }
 }

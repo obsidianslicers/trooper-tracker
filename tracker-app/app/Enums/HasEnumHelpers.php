@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Enums;
 
+use BackedEnum;
+
 /**
  * Provides common helper methods for backed enums.
  *
@@ -34,6 +36,59 @@ trait HasEnumHelpers
         }
 
         return $pairs;
+    }
+
+    /**
+     * Return an associative array of enum case value => name.
+     *
+     * Values are sorted alphabetically by case name and formatted using to_title().
+     *
+     * @return array<string, string> Array with enum values as keys and formatted names as values
+     */
+    public static function toValueLabels(?array $exclude = null, ?array $include = null): array
+    {
+        $cases = self::cases();
+        $exclude_values = self::normalizeCaseFilters($exclude);
+        $include_values = self::normalizeCaseFilters($include);
+
+        // Sort by case->name
+        usort($cases, fn ($a, $b) => strcmp($a->name, $b->name));
+
+        $pairs = [];
+
+        foreach ($cases as $case)
+        {
+            if ($exclude_values && in_array($case->value, $exclude_values, true))
+            {
+                continue;
+            }
+
+            if ($include_values && !in_array($case->value, $include_values, true))
+            {
+                continue;
+            }
+
+            $pairs[] = ['value' => $case->value, 'label' => to_title($case->name)->toString()];
+        }
+
+        return $pairs;
+    }
+
+    /**
+     * @param  array<int, BackedEnum|string>|null  $filters
+     * @return array<int, string>|null
+     */
+    private static function normalizeCaseFilters(?array $filters): ?array
+    {
+        if ($filters === null)
+        {
+            return null;
+        }
+
+        return array_map(
+            static fn (BackedEnum|string $filter): string => $filter instanceof BackedEnum ? (string) $filter->value : $filter,
+            $filters
+        );
     }
 
     /**

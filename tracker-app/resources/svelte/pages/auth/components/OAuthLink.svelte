@@ -1,16 +1,25 @@
 <script lang="ts">
+    import { getRoute } from "$lib/utils";
+
     interface Props {
+        prefix?: string;
         configured: boolean;
-        url: string;
+        provider: "xenforo" | "google";
         name: string;
         imageUrl: string;
     }
-    let { configured, url, name, imageUrl }: Props = $props();
+    let {
+        prefix = "Login",
+        configured,
+        provider,
+        name,
+        imageUrl,
+    }: Props = $props();
 </script>
 
 {#if configured}
     <a
-        href={url}
+        href={getRoute("auth.oauth-redirect", { provider })}
         class="btn btn-outline-secondary w-100 d-flex justify-content-center align-items-center gap-2"
     >
         <img
@@ -19,6 +28,6 @@
             style="width: 18px; height: 18px;"
             class="me-3"
         />
-        <span>Login with {name}</span>
+        <span>{prefix} with {name}</span>
     </a>
 {/if}

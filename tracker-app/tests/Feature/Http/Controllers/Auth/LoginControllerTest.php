@@ -17,15 +17,14 @@ class LoginControllerTest extends TestCase
         $response = $this->get(route('auth.login'));
 
         $response->assertOk();
-        $response->assertViewIs('pages.auth.login');
     }
 
-    public function test_invoke_redirects_authenticated_trooper_to_home(): void
+    public function test_invoke_redirects_authenticated_trooper_to_events_list(): void
     {
         $trooper = Trooper::factory()->asActive()->create();
 
         $response = $this->actingAs($trooper)->get(route('auth.login'));
 
-        $response->assertRedirect(route('home'));
+        $response->assertRedirect(route('events.list'));
     }
 }

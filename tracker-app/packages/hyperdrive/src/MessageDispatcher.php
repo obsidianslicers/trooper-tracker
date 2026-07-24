@@ -2,10 +2,10 @@
 
 namespace Hyperdrive;
 
+use Hyperdrive\Contracts\Actor;
 use Exception;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
-use App\Models\Actor;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
@@ -246,11 +246,18 @@ final class MessageDispatcher
     {
         $type = $parameter->getType();
 
-        if (!$type instanceof ReflectionNamedType)
+        if (!$type instanceof ReflectionNamedType || $type->isBuiltin())
         {
             return false;
         }
 
-        return $type->getName() === Actor::class;
+        // Direct equality check: Is the parameter exact type-hinted as the Interface?
+        if ($type->getName() === Actor::class)
+        {
+            // Optional double-check: verify that Actor::class is indeed an interface
+            return interface_exists($type->getName());
+        }
+
+        return false;
     }
 }

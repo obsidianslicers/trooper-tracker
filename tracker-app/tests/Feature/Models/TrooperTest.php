@@ -11,10 +11,13 @@ use App\Enums\NotificationFrequency;
 use App\Enums\TrooperTheme;
 use App\Models\Event;
 use App\Models\EventOrganization;
+use App\Models\EventWatch;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAchievement;
 use App\Models\TrooperAssignment;
+use App\Models\TrooperOrganization;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -90,6 +93,23 @@ class TrooperTest extends TestCase
         $this->assertFalse($subject->is_handler);
     }
 
+    public function test_get_is_member_attribute_returns_true_when_active_and_member(): void
+    {
+        $subject = Trooper::factory()->asMember()->create();
+
+        $this->assertTrue($subject->is_member);
+    }
+
+    public function test_get_is_member_attribute_returns_false_when_not_active(): void
+    {
+        $subject = Trooper::factory()
+            ->asRetired()
+            ->state([Trooper::MEMBERSHIP_ROLE => MembershipRole::MEMBER])
+            ->create();
+
+        $this->assertFalse($subject->is_member);
+    }
+
     public function test_get_is_active_attribute_returns_true_when_status_active(): void
     {
         $subject = Trooper::factory()->asActive()->create();
@@ -120,6 +140,47 @@ class TrooperTest extends TestCase
         $this->assertFalse($subject->is_denied);
     }
 
+    public function test_get_is_pending_attribute_returns_true_when_status_pending(): void
+    {
+        $subject = Trooper::factory()->asPending()->create();
+
+        $this->assertTrue($subject->is_pending);
+    }
+
+    public function test_get_is_visitor_attribute_returns_true_when_role_visitor(): void
+    {
+        $subject = Trooper::factory()->asVisitor()->create();
+
+        $this->assertTrue($subject->is_visitor);
+    }
+
+    public function test_get_is_visitor_attribute_returns_false_when_role_not_visitor(): void
+    {
+        $subject = Trooper::factory()->asMember()->create();
+
+        $this->assertFalse($subject->is_visitor);
+    }
+
+    public function test_get_visitor_access_expired_attribute_returns_true_for_expired_visitor(): void
+    {
+        $subject = Trooper::factory()
+            ->asVisitor()
+            ->state([Trooper::VISITOR_EXPIRES_AT => now()->subDay()])
+            ->create();
+
+        $this->assertTrue($subject->visitor_access_expired);
+    }
+
+    public function test_get_visitor_access_expired_attribute_returns_false_when_not_expired(): void
+    {
+        $subject = Trooper::factory()
+            ->asVisitor()
+            ->state([Trooper::VISITOR_EXPIRES_AT => now()->addDay()])
+            ->create();
+
+        $this->assertFalse($subject->visitor_access_expired);
+    }
+
     public function test_get_is_minor_attribute_returns_true_when_trooper_is_under_eighteen(): void
     {
         $subject = Trooper::factory()
@@ -136,6 +197,24 @@ class TrooperTest extends TestCase
             ->create();
 
         $this->assertFalse($subject->is_minor);
+    }
+
+    public function test_get_is_adult_attribute_returns_true_when_not_minor(): void
+    {
+        $subject = Trooper::factory()
+            ->state([Trooper::DATE_OF_BIRTH => now()->subYears(20)])
+            ->create();
+
+        $this->assertTrue($subject->is_adult);
+    }
+
+    public function test_get_is_adult_attribute_returns_false_when_minor(): void
+    {
+        $subject = Trooper::factory()
+            ->state([Trooper::DATE_OF_BIRTH => now()->subYears(16)])
+            ->create();
+
+        $this->assertFalse($subject->is_adult);
     }
 
     public function test_get_audit_label_returns_formatted_string(): void
@@ -241,6 +320,42 @@ class TrooperTest extends TestCase
         $this->assertFalse($result);
     }
 
+    public function test_resolve_moderator_org_ids_returns_null_for_administrator(): void
+    {
+        $subject = Trooper::factory()->asAdministrator()->create();
+
+        $result = $subject->resolveModeratorOrgIds();
+
+        $this->assertNull($result);
+    }
+
+    public function test_resolve_moderator_org_ids_returns_assignment_org_ids_for_moderator(): void
+    {
+        $subject = Trooper::factory()->asModerator()->create();
+        $organization_a = Organization::factory()->create();
+        $organization_b = Organization::factory()->create();
+
+        TrooperAssignment::factory()
+            ->forTrooper($subject)
+            ->forOrganization($organization_a)
+            ->asModerator()
+            ->create();
+
+        TrooperAssignment::factory()
+            ->forTrooper($subject)
+            ->forOrganization($organization_b)
+            ->asModerator()
+            ->create();
+
+        $result = $subject->resolveModeratorOrgIds();
+
+        $this->assertNotNull($result);
+        $this->assertEqualsCanonicalizing([
+            $organization_a->{Organization::ID},
+            $organization_b->{Organization::ID},
+        ], $result);
+    }
+
     public function test_email_appears_valid_returns_true_for_valid_email(): void
     {
         $subject = Trooper::factory()->withEmail('valid@example.com')->create();
@@ -255,6 +370,32 @@ class TrooperTest extends TestCase
         $subject = Trooper::factory()->withInvalidEmail()->create();
 
         $result = $subject->emailAppearsValid();
+
+        $this->assertFalse($result);
+    }
+
+    public function test_wants_notification_returns_true_when_preference_is_missing(): void
+    {
+        $subject = Trooper::factory()->create();
+
+        $result = $subject->wantsNotification('events', 'mail');
+
+        $this->assertTrue($result);
+    }
+
+    public function test_wants_notification_returns_false_when_channel_is_disabled(): void
+    {
+        $subject = Trooper::factory()
+            ->state([
+                Trooper::NOTIFICATION_PREFERENCES => [
+                    'events' => [
+                        'mail' => false,
+                    ],
+                ],
+            ])
+            ->create();
+
+        $result = $subject->wantsNotification('events', 'mail');
 
         $this->assertFalse($result);
     }
@@ -401,6 +542,44 @@ class TrooperTest extends TestCase
         $result = $subject->getTitleByTrooperRank();
 
         $this->assertSame('Captain', $result);
+    }
+
+    public function test_get_title_by_trooper_rank_returns_cadet_for_clone_theme_without_shifts(): void
+    {
+        $subject = Trooper::factory()
+            ->state([Trooper::THEME => TrooperTheme::CLONE])
+            ->create();
+
+        $result = $subject->getTitleByTrooperRank();
+
+        $this->assertSame('Cadet', $result);
+    }
+
+    public function test_get_title_by_trooper_rank_returns_supreme_commander_for_clone_rank_one(): void
+    {
+        $subject = Trooper::factory()
+            ->state([Trooper::THEME => TrooperTheme::CLONE])
+            ->create();
+
+        TrooperAchievement::factory()
+            ->state([
+                TrooperAchievement::TROOPER_ID => $subject->{Trooper::ID},
+                TrooperAchievement::TYPE => AchievementType::TROOPER_SHIFTS,
+                TrooperAchievement::VALUE => 10,
+            ])
+            ->create();
+
+        TrooperAchievement::factory()
+            ->state([
+                TrooperAchievement::TROOPER_ID => $subject->{Trooper::ID},
+                TrooperAchievement::TYPE => AchievementType::TROOPER_RANK,
+                TrooperAchievement::VALUE => 1,
+            ])
+            ->create();
+
+        $result = $subject->getTitleByTrooperRank();
+
+        $this->assertSame('Supreme Commander', $result);
     }
 
     public function test_get_rank_theme_returns_danger_for_command_ranks(): void
@@ -595,6 +774,117 @@ class TrooperTest extends TestCase
         $result = $subject->eligibleOrgsForEvent($event);
 
         $this->assertCount(0, $result);
+    }
+
+    public function test_eligible_orgs_for_event_returns_empty_when_trooper_has_no_assignments(): void
+    {
+        $subject = Trooper::factory()->create();
+        $organization = Organization::factory()->create();
+        $event = Event::factory()->withOrganization($organization)->create();
+
+        EventOrganization::factory()
+            ->state([
+                EventOrganization::EVENT_ID => $event->id,
+                EventOrganization::ORGANIZATION_ID => $organization->id,
+                EventOrganization::CAN_ATTEND => true,
+            ])
+            ->create();
+
+        $result = $subject->eligibleOrgsForEvent($event);
+
+        $this->assertCount(0, $result);
+    }
+
+    public function test_event_watches_relation_returns_trooper_event_watches(): void
+    {
+        $subject = Trooper::factory()->create();
+        $event = Event::factory()->create();
+
+        EventWatch::factory()->forTrooper($subject)->forEvent($event)->create();
+
+        $result = $subject->event_watches()->get();
+
+        $this->assertCount(1, $result);
+    }
+
+    public function test_guardian_alias_returns_guardian_relationship(): void
+    {
+        $guardian = Trooper::factory()->create();
+        $subject = Trooper::factory()->withGuardian($guardian)->create();
+
+        $result = $subject->guardian()->first();
+
+        $this->assertNotNull($result);
+        $this->assertSame($guardian->{Trooper::ID}, $result->{Trooper::ID});
+    }
+
+    public function test_minors_alias_returns_children_relationship(): void
+    {
+        $guardian = Trooper::factory()->create();
+        $minor = Trooper::factory()->withGuardian($guardian)->create();
+
+        $result = $guardian->minors()->pluck(Trooper::ID)->all();
+
+        $this->assertContains($minor->{Trooper::ID}, $result);
+    }
+
+    public function test_notifications_relation_is_morph_many_with_latest_order(): void
+    {
+        $subject = Trooper::factory()->create();
+
+        $relation = $subject->notifications();
+        $query = $relation->getQuery()->toBase();
+        $orders = $query->orders ?? [];
+
+        $this->assertInstanceOf(MorphMany::class, $relation);
+        $this->assertSame('desc', $orders[0]['direction'] ?? null);
+    }
+
+    public function test_unread_notifications_relation_filters_by_null_read_at(): void
+    {
+        $subject = Trooper::factory()->create();
+
+        $relation = $subject->unreadNotifications();
+        $query = $relation->getQuery()->toBase();
+        $wheres = $query->wheres ?? [];
+
+        $has_null_read_at = collect($wheres)->contains(
+            fn(array $where): bool => ($where['type'] ?? null) === 'Null'
+            && ($where['column'] ?? null) === 'read_at'
+        );
+
+        $this->assertInstanceOf(MorphMany::class, $relation);
+        $this->assertTrue($has_null_read_at);
+    }
+
+    public function test_get_has_guardian_required_membership_attribute_returns_true_when_org_requires_guardian(): void
+    {
+        $subject = Trooper::factory()->create();
+        $organization = Organization::factory()
+            ->state([Organization::REQUIRES_GUARDIAN => true])
+            ->create();
+
+        TrooperOrganization::factory()
+            ->forTrooper($subject)
+            ->forOrganization($organization)
+            ->create();
+
+        $this->assertTrue($subject->has_guardian_required_membership);
+    }
+
+    public function test_get_has_guardian_required_membership_attribute_returns_false_when_no_required_org(): void
+    {
+        $subject = Trooper::factory()->create();
+        $organization = Organization::factory()
+            ->state([Organization::REQUIRES_GUARDIAN => false])
+            ->create();
+
+        TrooperOrganization::factory()
+            ->forTrooper($subject)
+            ->forOrganization($organization)
+            ->create();
+
+        $this->assertFalse($subject->has_guardian_required_membership);
     }
 
     public function test_theme_cast_works(): void
