@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Events;
 
+use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Models\Costume;
 use App\Models\Event;
@@ -663,7 +664,7 @@ class SignUpUpdateHtmxControllerTest extends TestCase
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::ID => $event_trooper->id,
             EventTrooper::STATUS => EventTrooperStatus::GOING->value,
-            EventTrooper::ATTENDING_WITHOUT_COSTUME => true,
+            EventTrooper::IS_ATTENDING_WITHOUT_COSTUME => true,
             EventTrooper::COSTUME_ID => null,
         ]);
     }
@@ -683,7 +684,7 @@ class SignUpUpdateHtmxControllerTest extends TestCase
             ->asGoing()
             ->state([
                 EventTrooper::IS_HANDLER => false,
-                EventTrooper::ATTENDING_WITHOUT_COSTUME => true,
+                EventTrooper::IS_ATTENDING_WITHOUT_COSTUME => true,
                 EventTrooper::COSTUME_ID => null,
             ])
             ->create();
@@ -697,7 +698,110 @@ class SignUpUpdateHtmxControllerTest extends TestCase
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::ID => $event_trooper->id,
             EventTrooper::STATUS => EventTrooperStatus::PENDING->value,
-            EventTrooper::ATTENDING_WITHOUT_COSTUME => false,
+            EventTrooper::IS_ATTENDING_WITHOUT_COSTUME => false,
+        ]);
+    }
+
+    public function test_invoke_manual_approval_blocked_when_trooper_needs_costume_decision(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->withVerifiedEmail()->create();
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $organization = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();
+
+        $event = Event::factory()->withOrganization($organization)->state([Event::STATUS => EventStatus::MANUAL_SELECTION])->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->state([
+                EventTrooper::STATUS => EventTrooperStatus::STAND_BY,
+                EventTrooper::IS_HANDLER => false,
+                EventTrooper::COSTUME_ID => null,
+                EventTrooper::IS_ATTENDING_WITHOUT_COSTUME => false,
+            ])
+            ->create();
+
+        $response = $this->actingAs($admin)->post(
+            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            ['status' => EventTrooperStatus::GOING->value]
+        );
+
+        $response->assertStatus(409);
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::ID => $event_trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::STAND_BY->value,
+        ]);
+    }
+
+    public function test_invoke_manual_approval_succeeds_once_costume_decided(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->withVerifiedEmail()->create();
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $organization = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();
+
+        $event = Event::factory()->withOrganization($organization)->state([Event::STATUS => EventStatus::MANUAL_SELECTION])->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        $costume = Costume::factory()->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->state([
+                EventTrooper::STATUS => EventTrooperStatus::STAND_BY,
+                EventTrooper::IS_HANDLER => false,
+                EventTrooper::COSTUME_ID => $costume->id,
+                EventTrooper::IS_ATTENDING_WITHOUT_COSTUME => false,
+            ])
+            ->create();
+
+        $response = $this->actingAs($admin)->post(
+            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            ['status' => EventTrooperStatus::GOING->value]
+        );
+
+        $response->assertOk();
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::ID => $event_trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::GOING->value,
+        ]);
+    }
+
+    public function test_invoke_costume_decision_on_manual_selection_event_returns_to_standby_not_going(): void
+    {
+        // Only a moderator can act on a manual-selection event trooper (per
+        // SignupUpdateHtmxRequest::authorize()), and the costume_id branch also
+        // requires ownership — so this is a moderator signed up for their own spot.
+        $admin = Trooper::factory()->asAdministrator()->withVerifiedEmail()->create();
+        $organization = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($admin)->forOrganization($organization)->asMember()->create();
+
+        $event = Event::factory()->withOrganization($organization)->state([Event::STATUS => EventStatus::MANUAL_SELECTION])->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($admin)
+            ->state([
+                EventTrooper::STATUS => EventTrooperStatus::PENDING,
+                EventTrooper::IS_HANDLER => false,
+                EventTrooper::COSTUME_ID => null,
+            ])
+            ->create();
+
+        $response = $this->actingAs($admin)->post(
+            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            ['costume_id' => 'none']
+        );
+
+        $response->assertOk();
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::ID => $event_trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::STAND_BY->value,
+            EventTrooper::IS_ATTENDING_WITHOUT_COSTUME => true,
         ]);
     }
 }

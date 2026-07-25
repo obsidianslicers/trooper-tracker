@@ -118,42 +118,54 @@
                     && $event_shift->is_open
                     && in_array($event_trooper->status, [\App\Enums\EventTrooperStatus::STAND_BY, \App\Enums\EventTrooperStatus::GOING], true)
                 )
-                <div class="d-flex gap-1 justify-content-end">
-                    @if($event_trooper->status === \App\Enums\EventTrooperStatus::STAND_BY)
-                        <form hx-post="{{ route('events.signup-update-htmx', compact('event_trooper')) }}"
-                              hx-indicator="#transmission-bar-shift-{{ $event_trooper->event_shift->id }}"
-                              hx-select="#shift-container-{{ $event_trooper->event_shift->id }}"
-                              hx-target="#shift-container-{{ $event_trooper->event_shift->id }}"
-                              hx-swap="outerHTML">
-                            @csrf
-                            <input type="hidden"
-                                   name="status"
-                                   value="{{ \App\Enums\EventTrooperStatus::GOING->value }}" />
-                            <button type="submit"
-                                    class="btn btn-sm btn-success">
-                                <i class="fa fa-fw fa-check me-1"></i>
-                                Approve
-                            </button>
-                        </form>
-                    @endif
-                    @if($event_trooper->status === \App\Enums\EventTrooperStatus::GOING)
-                        <form hx-post="{{ route('events.signup-update-htmx', compact('event_trooper')) }}"
-                              hx-indicator="#transmission-bar-shift-{{ $event_trooper->event_shift->id }}"
-                              hx-select="#shift-container-{{ $event_trooper->event_shift->id }}"
-                              hx-target="#shift-container-{{ $event_trooper->event_shift->id }}"
-                              hx-swap="outerHTML">
-                            @csrf
-                            <input type="hidden"
-                                   name="status"
-                                   value="{{ \App\Enums\EventTrooperStatus::STAND_BY->value }}" />
-                            <button type="submit"
-                                    class="btn btn-sm btn-outline-danger">
-                                <i class="fa fa-fw fa-ban me-1"></i>
-                                Reject
-                            </button>
-                        </form>
-                    @endif
-                </div>
+                @if($event_trooper->status === \App\Enums\EventTrooperStatus::STAND_BY && $event_trooper->needsCostumeBeforeGoing())
+                    <span class="{{ \App\Enums\EventTrooperStatus::PENDING->color() }} d-block mb-1">
+                        {{ to_title(\App\Enums\EventTrooperStatus::PENDING->name) }}
+                        <span class="d-none d-md-inline">
+                            {!! \App\Enums\EventTrooperStatus::PENDING->iconTag() !!}
+                        </span>
+                    </span>
+                    <i class="small text-muted">
+                        Select a costume, or mark attending without one, to confirm your spot.
+                    </i>
+                @else
+                    <div class="d-flex gap-1 justify-content-end">
+                        @if($event_trooper->status === \App\Enums\EventTrooperStatus::STAND_BY)
+                            <form hx-post="{{ route('events.signup-update-htmx', compact('event_trooper')) }}"
+                                  hx-indicator="#transmission-bar-shift-{{ $event_trooper->event_shift->id }}"
+                                  hx-select="#shift-container-{{ $event_trooper->event_shift->id }}"
+                                  hx-target="#shift-container-{{ $event_trooper->event_shift->id }}"
+                                  hx-swap="outerHTML">
+                                @csrf
+                                <input type="hidden"
+                                       name="status"
+                                       value="{{ \App\Enums\EventTrooperStatus::GOING->value }}" />
+                                <button type="submit"
+                                        class="btn btn-sm btn-success">
+                                    <i class="fa fa-fw fa-check me-1"></i>
+                                    Approve
+                                </button>
+                            </form>
+                        @endif
+                        @if($event_trooper->status === \App\Enums\EventTrooperStatus::GOING)
+                            <form hx-post="{{ route('events.signup-update-htmx', compact('event_trooper')) }}"
+                                  hx-indicator="#transmission-bar-shift-{{ $event_trooper->event_shift->id }}"
+                                  hx-select="#shift-container-{{ $event_trooper->event_shift->id }}"
+                                  hx-target="#shift-container-{{ $event_trooper->event_shift->id }}"
+                                  hx-swap="outerHTML">
+                                @csrf
+                                <input type="hidden"
+                                       name="status"
+                                       value="{{ \App\Enums\EventTrooperStatus::STAND_BY->value }}" />
+                                <button type="submit"
+                                        class="btn btn-sm btn-outline-danger">
+                                    <i class="fa fa-fw fa-ban me-1"></i>
+                                    Reject
+                                </button>
+                            </form>
+                        @endif
+                    </div>
+                @endif
             @elseif($event_shift->is_open && $event_trooper->status !== \App\Enums\EventTrooperStatus::PENDING && $event_trooper->canUpdateStatus(Auth::user()))
                 <x-input-select :property="'status'"
                                 :options="\App\Enums\EventTrooperStatus::toSignUpArray($event->tentative_signups_allowed, $event->hasLimits())"

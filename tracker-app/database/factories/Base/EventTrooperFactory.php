@@ -21,7 +21,7 @@ class EventTrooperFactory extends Factory
             EventTrooper::TROOPER_ID => \App\Models\Trooper::factory(),
             EventTrooper::ORGANIZATION_ID => \App\Models\Organization::factory(),
             EventTrooper::COSTUME_ID => \App\Models\Costume::factory(),
-            EventTrooper::ATTENDING_WITHOUT_COSTUME => $this->faker->randomNumber(1),
+            EventTrooper::IS_ATTENDING_WITHOUT_COSTUME => $this->faker->randomNumber(1),
             EventTrooper::BACKUP_COSTUME_ID => \App\Models\Costume::factory(),
             EventTrooper::ADDED_BY_TROOPER_ID => \App\Models\Trooper::factory(),
             EventTrooper::IS_HANDLER => $this->faker->randomNumber(1),

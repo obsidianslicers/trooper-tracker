@@ -91,6 +91,11 @@ class SignUpUpdateHtmxController extends MagicBusController
                 return response('Forbidden', 403);
             }
 
+            if ($isManualApproval && $event_trooper->needsCostumeBeforeGoing())
+            {
+                return response('Trooper must select a costume before being approved', 409);
+            }
+
             if ($requestedStatus === EventTrooperStatus::GOING && $event_trooper->needsCostumeBeforeGoing())
             {
                 $requestedStatus = EventTrooperStatus::PENDING;
@@ -282,7 +287,7 @@ class SignUpUpdateHtmxController extends MagicBusController
                 EventTrooper::COSTUME_ID => $costume_id,
                 EventTrooper::IS_HANDLER => $is_handler,
                 EventTrooper::COSTUME_ORGANIZATION_IDS => !empty($org_ids) ? $org_ids : null,
-                EventTrooper::ATTENDING_WITHOUT_COSTUME => $attending_without_costume,
+                EventTrooper::IS_ATTENDING_WITHOUT_COSTUME => $attending_without_costume,
             ];
 
             $this->bus->send(new UpdateEventTrooperCommand($event_trooper, $valid_data));
@@ -330,6 +335,10 @@ class SignUpUpdateHtmxController extends MagicBusController
      * Promotes a PENDING trooper who just made their decision into GOING (or
      * STAND_BY if capacity is gone), and demotes a GOING trooper who lost
      * their decision (e.g. cleared their costume) back to PENDING.
+     *
+     * On manual-selection events, a decided trooper always lands on STAND_BY
+     * instead of GOING — moderator approval is required and must never be
+     * bypassed just by making a costume decision.
      */
     private function resolveCostumeDecision(
         EventTrooper $event_trooper,
@@ -340,6 +349,14 @@ class SignUpUpdateHtmxController extends MagicBusController
 
         if ($previous_status === EventTrooperStatus::PENDING && !$event_trooper->needsCostumeBeforeGoing())
         {
+            if ($event_shift->event->status === EventStatus::MANUAL_SELECTION)
+            {
+                $event_trooper->status = EventTrooperStatus::STAND_BY;
+                $event_trooper->save();
+
+                return;
+            }
+
             $effective_org_id = $event_trooper->organization_id
                 ?? $event_trooper->effectiveOrgId($event_shift->event);
 

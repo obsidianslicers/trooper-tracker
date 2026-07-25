@@ -57,7 +57,7 @@ class EventTrooper extends Model
     const TROOPER_ID = 'trooper_id';
     const ORGANIZATION_ID = 'organization_id';
     const COSTUME_ID = 'costume_id';
-    const ATTENDING_WITHOUT_COSTUME = 'is_attending_without_costume';
+    const IS_ATTENDING_WITHOUT_COSTUME = 'is_attending_without_costume';
     const COSTUME_ORGANIZATION_IDS = 'costume_organization_ids';
     const BACKUP_COSTUME_ID = 'backup_costume_id';
     const BACKUP_COSTUME_ORGANIZATION_IDS = 'backup_costume_organization_ids';
@@ -80,7 +80,7 @@ class EventTrooper extends Model
         self::TROOPER_ID => 'int',
         self::ORGANIZATION_ID => 'int',
         self::COSTUME_ID => 'int',
-        self::ATTENDING_WITHOUT_COSTUME => 'bool',
+        self::IS_ATTENDING_WITHOUT_COSTUME => 'bool',
         self::COSTUME_ORGANIZATION_IDS => 'json',
         self::BACKUP_COSTUME_ID => 'int',
         self::BACKUP_COSTUME_ORGANIZATION_IDS => 'json',
@@ -100,7 +100,7 @@ class EventTrooper extends Model
         self::TROOPER_ID,
         self::ORGANIZATION_ID,
         self::COSTUME_ID,
-        self::ATTENDING_WITHOUT_COSTUME,
+        self::IS_ATTENDING_WITHOUT_COSTUME,
         self::COSTUME_ORGANIZATION_IDS,
         self::BACKUP_COSTUME_ID,
         self::BACKUP_COSTUME_ORGANIZATION_IDS,

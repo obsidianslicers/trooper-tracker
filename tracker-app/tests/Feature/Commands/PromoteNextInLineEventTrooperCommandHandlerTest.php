@@ -71,7 +71,7 @@ class PromoteNextInLineEventTrooperCommandHandlerTest extends TestCase
                 // These tests are about pool/ordering selection, not the costume
                 // gate — mark the costume decision as already made so a candidate
                 // isn't skipped by needsCostumeBeforeGoing().
-                EventTrooper::ATTENDING_WITHOUT_COSTUME  => true,
+                EventTrooper::IS_ATTENDING_WITHOUT_COSTUME  => true,
             ]);
     }
 
@@ -188,7 +188,7 @@ class PromoteNextInLineEventTrooperCommandHandlerTest extends TestCase
                 EventTrooper::ORGANIZATION_ID => $this->org->id,
                 EventTrooper::IS_HANDLER => false,
                 EventTrooper::COSTUME_ID => null,
-                EventTrooper::ATTENDING_WITHOUT_COSTUME => false,
+                EventTrooper::IS_ATTENDING_WITHOUT_COSTUME => false,
             ]);
 
         $decided = $this->makeTrooper(EventTrooperStatus::STAND_BY, now()->subMinute(), $this->org->id);
