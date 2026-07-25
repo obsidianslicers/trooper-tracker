@@ -6,15 +6,13 @@ namespace App\Messages\Troopers\Queries;
 
 use App\Enums\TrooperPickerMode;
 use App\Models\Filters\TrooperFilter;
-use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperFriend;
-use App\Models\TrooperOrganization;
 use Hyperdrive\Message;
 use Illuminate\Support\Collection;
 
 /**
- * @method static Collection call()
+ * @method static Collection call(Trooper $trooper, TrooperFilter $filter, int|null $organization_id = null, bool $moderated_only = false, TrooperPickerMode $picker_mode = TrooperPickerMode::NONE)
  */
 final class SearchTroopers extends Message
 {
