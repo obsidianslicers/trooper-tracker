@@ -11,6 +11,7 @@ use App\Mail\Events\TrooperNextInLine;
 use App\Models\Event;
 use App\Models\EventOrganization;
 use App\Models\EventShift;
+use App\Models\EventShiftStation;
 use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\Trooper;
@@ -53,7 +54,7 @@ class ReconcileEventRosterJobTest extends TestCase
         $this->changed_by = Trooper::factory()->create();
     }
 
-    private function makeTrooper(EventTrooperStatus $status, Carbon $signed_up_at, ?int $org_id = null): EventTrooper
+    private function makeTrooper(EventTrooperStatus $status, Carbon $signed_up_at, ?int $org_id = null, ?EventShiftStation $station = null): EventTrooper
     {
         $trooper = Trooper::factory()->create();
 
@@ -67,6 +68,7 @@ class ReconcileEventRosterJobTest extends TestCase
                 EventTrooper::IS_HANDLER      => false,
                 EventTrooper::COSTUME_ID      => null,
                 EventTrooper::BACKUP_COSTUME_ID => null,
+                EventTrooper::EVENT_SHIFT_STATION_ID => $station?->id,
             ]);
     }
 
@@ -79,7 +81,7 @@ class ReconcileEventRosterJobTest extends TestCase
         $t3 = $this->makeTrooper(EventTrooperStatus::GOING, $base->copy()->addMinutes(2), $this->org->id);
         $t4 = $this->makeTrooper(EventTrooperStatus::GOING, $base->copy()->addMinutes(3), $this->org->id);
 
-        (new ReconcileEventRosterJob($this->event, $this->changed_by))->handle();
+        (new ReconcileEventRosterJob($this->event, $this->changed_by))->handle(app(\App\Bus\MagicBus::class));
 
         $this->assertSame(EventTrooperStatus::GOING,    $t1->fresh()->status);
         $this->assertSame(EventTrooperStatus::GOING,    $t2->fresh()->status);
@@ -97,7 +99,7 @@ class ReconcileEventRosterJobTest extends TestCase
         $t1 = $this->makeTrooper(EventTrooperStatus::GOING,    $base,                     $this->org->id);
         $t2 = $this->makeTrooper(EventTrooperStatus::STAND_BY, $base->copy()->addMinute(), $this->org->id);
 
-        (new ReconcileEventRosterJob($this->event, $this->changed_by))->handle();
+        (new ReconcileEventRosterJob($this->event, $this->changed_by))->handle(app(\App\Bus\MagicBus::class));
 
         $this->assertSame(EventTrooperStatus::GOING, $t1->fresh()->status);
         $this->assertSame(EventTrooperStatus::GOING, $t2->fresh()->status);
@@ -114,7 +116,7 @@ class ReconcileEventRosterJobTest extends TestCase
         $t2 = $this->makeTrooper(EventTrooperStatus::GOING,    $base->copy()->addMinute(), $this->org->id);
         $t3 = $this->makeTrooper(EventTrooperStatus::STAND_BY, $base->copy()->addMinutes(2), $this->org->id);
 
-        (new ReconcileEventRosterJob($this->event, $this->changed_by))->handle();
+        (new ReconcileEventRosterJob($this->event, $this->changed_by))->handle(app(\App\Bus\MagicBus::class));
 
         $this->assertSame(EventTrooperStatus::GOING,    $t1->fresh()->status);
         $this->assertSame(EventTrooperStatus::GOING,    $t2->fresh()->status);
@@ -141,7 +143,7 @@ class ReconcileEventRosterJobTest extends TestCase
         $t2 = $this->makeTrooper(EventTrooperStatus::GOING, $base->copy()->addMinute(), $other_org->id);
         $t3 = $this->makeTrooper(EventTrooperStatus::GOING, $base->copy()->addMinutes(2), $other_org->id);
 
-        (new ReconcileEventRosterJob($this->event, $this->changed_by))->handle();
+        (new ReconcileEventRosterJob($this->event, $this->changed_by))->handle(app(\App\Bus\MagicBus::class));
 
         $this->assertSame(EventTrooperStatus::GOING,    $t1->fresh()->status);
         $this->assertSame(EventTrooperStatus::GOING,    $t2->fresh()->status);
@@ -161,7 +163,7 @@ class ReconcileEventRosterJobTest extends TestCase
         // Trooper with no org: should not be counted against the org limit
         $t_no_org = $this->makeTrooper(EventTrooperStatus::GOING, $base->copy()->addMinutes(2), null);
 
-        (new ReconcileEventRosterJob($this->event, $this->changed_by))->handle();
+        (new ReconcileEventRosterJob($this->event, $this->changed_by))->handle(app(\App\Bus\MagicBus::class));
 
         // The no-org trooper should remain GOING since there is no global limit
         $this->assertSame(EventTrooperStatus::GOING, $t_no_org->fresh()->status);
@@ -203,11 +205,58 @@ class ReconcileEventRosterJobTest extends TestCase
                 ->update(['costume_organization_ids' => json_encode([$this->org->id])]);
         }
 
-        (new ReconcileEventRosterJob($this->event, $this->changed_by))->handle();
+        (new ReconcileEventRosterJob($this->event, $this->changed_by))->handle(app(\App\Bus\MagicBus::class));
 
         $this->assertSame(EventTrooperStatus::GOING,    $t1->fresh()->status);
         $this->assertSame(EventTrooperStatus::GOING,    $t2->fresh()->status);
         $this->assertSame(EventTrooperStatus::STAND_BY, $t3->fresh()->status);
+
+        Mail::assertQueued(TrooperManualSelectionStandBy::class, 1);
+    }
+
+    public function test_reconciles_station_capacity_demotes_newest_when_station_capacity_exceeded(): void
+    {
+        $base = now()->subMinutes(10);
+
+        $station = EventShiftStation::factory()
+            ->forEventShift($this->shift)
+            ->state([EventShiftStation::TROOPERS_ALLOWED => 1])
+            ->create();
+
+        $t1 = $this->makeTrooper(EventTrooperStatus::GOING, $base, $this->org->id, $station);
+        $t2 = $this->makeTrooper(EventTrooperStatus::GOING, $base->copy()->addMinute(), $this->org->id, $station);
+
+        (new ReconcileEventRosterJob($this->event, $this->changed_by))->handle(app(\App\Bus\MagicBus::class));
+
+        $this->assertSame(EventTrooperStatus::GOING,    $t1->fresh()->status);
+        $this->assertSame(EventTrooperStatus::STAND_BY, $t2->fresh()->status);
+
+        Mail::assertQueued(TrooperManualSelectionStandBy::class, 1);
+    }
+
+    public function test_reconciles_global_and_station_limits_combined(): void
+    {
+        $this->event->update([Event::TROOPERS_ALLOWED => 1]);
+
+        $base = now()->subMinutes(10);
+
+        $station1 = EventShiftStation::factory()
+            ->forEventShift($this->shift)
+            ->state([EventShiftStation::TROOPERS_ALLOWED => 2])
+            ->create();
+
+        $station2 = EventShiftStation::factory()
+            ->forEventShift($this->shift)
+            ->state([EventShiftStation::TROOPERS_ALLOWED => 2])
+            ->create();
+
+        $t1 = $this->makeTrooper(EventTrooperStatus::GOING, $base, null, $station1);
+        $t2 = $this->makeTrooper(EventTrooperStatus::GOING, $base->copy()->addMinute(), null, $station2);
+
+        (new ReconcileEventRosterJob($this->event, $this->changed_by))->handle(app(\App\Bus\MagicBus::class));
+
+        $this->assertSame(EventTrooperStatus::GOING,    $t1->fresh()->status);
+        $this->assertSame(EventTrooperStatus::STAND_BY, $t2->fresh()->status);
 
         Mail::assertQueued(TrooperManualSelectionStandBy::class, 1);
     }

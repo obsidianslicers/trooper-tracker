@@ -52,6 +52,7 @@ class DownloadRosterCsvController extends MagicBusController
             'event_shifts.event_troopers.added_by_trooper:id,display_name,legal_name',
             'event_shifts.event_troopers.costume:id,name',
             'event_shifts.event_troopers.backup_costume:id,name',
+            'event_shifts.event_troopers.event_shift_station:id,name',
             'event_shifts.event_guests' => function ($query) {
                 $query->orderBy('name', 'asc');
             },
@@ -64,7 +65,7 @@ class DownloadRosterCsvController extends MagicBusController
         return response()->streamDownload(function () use ($event, $eventShifts) {
             $handle = fopen('php://output', 'w');
 
-            $columnCount = 9;
+            $columnCount = 10;
             $titleRow = array_fill(0, $columnCount, '');
             $titleRow[(int) floor($columnCount / 2)] = $event->name;
             fputcsv($handle, $titleRow);
@@ -78,6 +79,7 @@ class DownloadRosterCsvController extends MagicBusController
                 'Guest Name',
                 'Costume',
                 'Back Up Costume',
+                'Station',
                 'Status',
                 'Added By',
             ]);
@@ -105,6 +107,7 @@ class DownloadRosterCsvController extends MagicBusController
                         '',
                         $eventTrooper->costume?->name ?? '',
                         $eventTrooper->backup_costume?->name ?? '',
+                        $eventTrooper->event_shift_station?->name ?? '',
                         to_title($eventTrooper->status->name),
                         $eventTrooper->added_by_trooper?->legal_name ?? '',
                     ]);
@@ -118,6 +121,7 @@ class DownloadRosterCsvController extends MagicBusController
                         $eventShift->short_time_display,
                         '',
                         $eventGuest->name,
+                        '',
                         '',
                         '',
                         to_title($eventGuest->status->name),

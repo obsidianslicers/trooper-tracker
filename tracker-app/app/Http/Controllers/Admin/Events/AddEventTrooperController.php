@@ -26,6 +26,7 @@ class AddEventTrooperController extends MagicBusController
         $trooper = Trooper::active()->findOrFail($trooper_id);
 
         $auth_trooper = $request->user();
+        $event_shift->loadMissing('event_shift_stations');
 
         if ($event_shift->isSignedUp($trooper))
         {
@@ -53,12 +54,24 @@ class AddEventTrooperController extends MagicBusController
             }
         }
 
+        $event_shift_station_id = $request->input('event_shift_station_id')
+            ? (int) $request->input('event_shift_station_id')
+            : null;
+
+        if (!$event_shift->isValidStationChoice($event_shift_station_id))
+        {
+            $this->flash->danger('Select a station before adding a trooper.');
+
+            return response()->noContent()->header('HX-Redirect', route('admin.events.troopers', compact('event')));
+        }
+
         $this->bus->send(new SignUpEventTrooperCommand(
             $event_shift,
             $trooper,
             $auth_trooper,
             organization_id: $organization_id,
             costume_id: $costume_id,
+            event_shift_station_id: $event_shift_station_id,
         ));
 
         $this->flash->success("{$trooper->display_name} was added to the shift.");

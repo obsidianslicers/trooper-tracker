@@ -47,6 +47,8 @@ The code uses different capacity checks depending on the type of signup:
 3. Non-handler signups use the trooper capacity for the shift.
 4. If an organization is selected, the signup is also limited by the organization-specific capacity for that shift.
 
+If a shift has stations, a station is also required and its capacity is checked alongside the limits above — a stationed signup must fit the station, event, and organization limits at the same time. See [Station Signups](STATION_SIGNUPS.md) for the station-specific rules, display behavior, and standby promotion flow.
+
 When a signup cannot be completed because the trooper has reached the event’s shift limit, `SignUpHtmxController` returns the normal shift container plus an `X-Flash-Message` explaining that the maximum number of shift signups has been reached.
 
 The actual status assigned after a successful submit is decided by `SignUpEventTrooperCommandHandler` in [`tracker-app/app/Features/Events/Commands/SignUpEventTrooperCommandHandler.php`](../tracker-app/app/Features/Events/Commands/SignUpEventTrooperCommandHandler.php):
@@ -55,6 +57,7 @@ The actual status assigned after a successful submit is decided by `SignUpEventT
 2. Handler signups fall back to stand-by when handler capacity is full.
 3. Non-handler signups fall back to stand-by when trooper capacity is full.
 4. If an organization is selected, organization capacity can also force stand-by.
+5. A non-handler signup that hasn't decided on a costume (no costume picked, and "attending without a costume" not selected) is downgraded from GOING to PENDING, even when capacity has room. See [Costume Decision Requirement](EVENTS.md#costume-decision-requirement) in `docs/EVENTS.md`.
 
 ## Signing Up Another Trooper
 

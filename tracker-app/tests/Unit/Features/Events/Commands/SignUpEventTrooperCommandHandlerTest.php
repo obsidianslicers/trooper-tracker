@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Features\Events\Commands;
+namespace Tests\Unit\Features\Events\Commands;
 
 use App\Enums\EventTrooperStatus;
 use App\Features\Events\Commands\SignUpEventTrooperCommand;
@@ -12,6 +12,7 @@ use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventOrganization;
 use App\Models\EventShift;
+use App\Models\EventShiftStation;
 use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
@@ -31,7 +32,7 @@ class SignUpEventTrooperCommandHandlerTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_invoke_creates_event_trooper_with_going_status(): void
+    public function test_invoke_creates_event_trooper_with_pending_status_when_no_costume_decision(): void
     {
         Notification::fake();
 
@@ -51,7 +52,86 @@ class SignUpEventTrooperCommandHandlerTest extends TestCase
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::EVENT_SHIFT_ID => $event_shift->id,
             EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::PENDING->value,
+        ]);
+    }
+
+    public function test_invoke_creates_event_trooper_with_going_status_when_handler(): void
+    {
+        Notification::fake();
+
+        $event_shift = EventShift::factory()->create();
+        $trooper = Trooper::factory()->create();
+
+        $command = new SignUpEventTrooperCommand(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+            is_handler: true,
+        );
+        $handler = app(SignUpEventTrooperCommandHandler::class);
+
+        $handler($command);
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::EVENT_SHIFT_ID => $event_shift->id,
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::IS_HANDLER => true,
             EventTrooper::STATUS => EventTrooperStatus::GOING->value,
+        ]);
+    }
+
+    public function test_invoke_saves_station_and_assigns_pending_when_station_has_room_but_no_costume(): void
+    {
+        Notification::fake();
+
+        $event_shift = EventShift::factory()->create();
+        $station = EventShiftStation::factory()
+            ->forEventShift($event_shift)
+            ->withTroopersAllowed(2)
+            ->create();
+        $trooper = Trooper::factory()->create();
+
+        app(SignUpEventTrooperCommandHandler::class)(new SignUpEventTrooperCommand(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+            event_shift_station_id: $station->id,
+        ));
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::EVENT_SHIFT_STATION_ID => $station->id,
+            EventTrooper::STATUS => EventTrooperStatus::PENDING->value,
+        ]);
+    }
+
+    public function test_invoke_assigns_standby_when_station_is_full(): void
+    {
+        Notification::fake();
+
+        $event_shift = EventShift::factory()->create();
+        $station = EventShiftStation::factory()
+            ->forEventShift($event_shift)
+            ->withTroopersAllowed(1)
+            ->create();
+        EventTrooper::factory()
+            ->forEventShiftStation($station)
+            ->asGoing()
+            ->create();
+        $trooper = Trooper::factory()->create();
+
+        app(SignUpEventTrooperCommandHandler::class)(new SignUpEventTrooperCommand(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+            event_shift_station_id: $station->id,
+        ));
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::EVENT_SHIFT_STATION_ID => $station->id,
+            EventTrooper::STATUS => EventTrooperStatus::STAND_BY->value,
         ]);
     }
 
@@ -410,7 +490,7 @@ class SignUpEventTrooperCommandHandlerTest extends TestCase
         ]);
     }
 
-    public function test_invoke_assigns_going_when_org_limit_not_reached(): void
+    public function test_invoke_assigns_pending_when_org_limit_not_reached_but_no_costume(): void
     {
         Mail::fake();
 
@@ -445,7 +525,7 @@ class SignUpEventTrooperCommandHandlerTest extends TestCase
 
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::TROOPER_ID => $trooper->id,
-            EventTrooper::STATUS => EventTrooperStatus::GOING->value,
+            EventTrooper::STATUS => EventTrooperStatus::PENDING->value,
         ]);
     }
 
@@ -484,7 +564,91 @@ class SignUpEventTrooperCommandHandlerTest extends TestCase
 
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::TROOPER_ID => $trooper->id,
-            EventTrooper::STATUS => EventTrooperStatus::GOING->value,
+            EventTrooper::STATUS => EventTrooperStatus::PENDING->value,
         ]);
+    }
+
+    public function test_invoke_assigns_stand_by_when_station_has_room_but_global_limit_maxed(): void
+    {
+        $event = Event::factory()
+            ->state([Event::TROOPERS_ALLOWED => 1])
+            ->create();
+        $event_shift = EventShift::factory()
+            ->forEvent($event)
+            ->create();
+        $station = EventShiftStation::factory()
+            ->forEventShift($event_shift)
+            ->state([EventShiftStation::TROOPERS_ALLOWED => 5])
+            ->create();
+
+        EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->asGoing()
+            ->forEventShiftStation($station)
+            ->state([EventTrooper::IS_HANDLER => false])
+            ->create();
+
+        $trooper = Trooper::factory()->create();
+        $command = new SignUpEventTrooperCommand(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+            event_shift_station_id: $station->id
+        );
+        $handler = app(SignUpEventTrooperCommandHandler::class);
+
+        $handler($command);
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::STAND_BY->value,
+        ]);
+    }
+
+    public function test_invoke_assigns_stand_by_when_global_has_room_but_station_maxed(): void
+    {
+        $event = Event::factory()
+            ->state([Event::TROOPERS_ALLOWED => 5])
+            ->create();
+        $event_shift = EventShift::factory()
+            ->forEvent($event)
+            ->create();
+        $station = EventShiftStation::factory()
+            ->forEventShift($event_shift)
+            ->state([EventShiftStation::TROOPERS_ALLOWED => 1])
+            ->create();
+
+        EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->asGoing()
+            ->forEventShiftStation($station)
+            ->state([EventTrooper::IS_HANDLER => false])
+            ->create();
+
+        $trooper = Trooper::factory()->create();
+        $command = new SignUpEventTrooperCommand(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+            event_shift_station_id: $station->id
+        );
+        $handler = app(SignUpEventTrooperCommandHandler::class);
+
+        $handler($command);
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::STAND_BY->value,
+        ]);
+    }
+
+    public function test_handler_uses_should_be_transactional_trait(): void
+    {
+        $this->assertTrue(
+            in_array(
+                'App\Bus\Concerns\ShouldBeTransactional',
+                class_uses_recursive(SignUpEventTrooperCommandHandler::class)
+            )
+        );
     }
 }

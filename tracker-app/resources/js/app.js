@@ -82,6 +82,7 @@ import './custom/htmx-date-picker.js';
 import './custom/htmx-easymde.js';
 import './custom/htmx-flash.js';
 import './custom/htmx-pickers.js';
+import './custom/htmx-scroll-preserve.js';
 import './custom/htmx-typeahead.js';
 import './custom/htmx-upload.js';
 

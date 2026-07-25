@@ -36,7 +36,9 @@ enum EventTrooperStatus: string
      */
     case CANCELLED = 'cancelled';
     /**
-     * Trooper's attendance is pending approval.
+     * Trooper signed up but hasn't yet decided on a costume (picked a real
+     * costume or explicitly chosen to attend without one). Not counted as
+     * GOING until that decision is made.
      */
     case PENDING = 'pending';
     /**

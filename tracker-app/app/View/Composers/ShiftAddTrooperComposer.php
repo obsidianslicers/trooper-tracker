@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\View\Composers;
 
+use App\Models\EventShiftStation;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
@@ -12,6 +13,7 @@ class ShiftAddTrooperComposer
     public function compose(View $view): void
     {
         $event = $view->getData()['event'];
+        $event_shift = $view->getData()['event_shift'];
 
         $eligible_orgs = Auth::user()->eligibleOrgsForEvent($event);
 
@@ -31,6 +33,14 @@ class ShiftAddTrooperComposer
                 ->filter(fn ($o) => $o->pivot->can_attend && ($o->pivot->troopers_allowed !== null || $o->pivot->handlers_allowed !== null))
                 ->values(),
             'event_allows_handlers'          => $event->handlers_allowed !== 0,
+            'station_options'                => $event_shift->event_shift_stations
+                ->sortBy([
+                    [EventShiftStation::SEQUENCE, 'asc'],
+                    [EventShiftStation::NAME, 'asc'],
+                ])
+                ->pluck(EventShiftStation::NAME, EventShiftStation::ID)
+                ->toArray(),
+            'shift_uses_stations'            => $event_shift->usesStations(),
         ]);
     }
 }

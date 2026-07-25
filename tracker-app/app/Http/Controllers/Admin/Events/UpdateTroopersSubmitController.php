@@ -11,25 +11,30 @@ use App\Http\Requests\Admin\Events\UpdateTroopersRequest;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventGuest;
+use App\Models\EventShiftStation;
 use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Notifications\Events\ManualSelectionApprovedNotification;
 use App\Notifications\Events\ManualSelectionStandByNotification;
+use App\Services\EventRosterCapacityService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
 
 class UpdateTroopersSubmitController extends MagicBusController
 {
-    public function __invoke(UpdateTroopersRequest $request, Event $event): RedirectResponse
-    {
+    public function __invoke(
+        UpdateTroopersRequest $request,
+        Event $event,
+        EventRosterCapacityService $capacity,
+    ): RedirectResponse {
         $this->authorize('update', $event);
 
         $auth_trooper = $request->user();
         $is_manual_selection_event = $event->status === EventStatus::MANUAL_SELECTION;
         $allowed_org_ids = $auth_trooper->resolveModeratorOrgIds();
 
-        $event_troopers = $event->troopers()->with('trooper.organizations')->get();
+        $event_troopers = $event->troopers()->with('event_shift.event_shift_stations', 'trooper.organizations')->get();
         $event_guests = $this->resolveEventGuests($event);
 
         $validated_troopers = $request->validated('troopers', []);
@@ -45,7 +50,7 @@ class UpdateTroopersSubmitController extends MagicBusController
 
         foreach ($validated_troopers as $id => $input)
         {
-            $this->processEventTrooper($event_troopers, (int) $id, $input, $allowed_org_ids, $is_manual_selection_event, $auth_trooper, $costumes_by_id);
+            $this->processEventTrooper($event_troopers, (int) $id, $input, $allowed_org_ids, $is_manual_selection_event, $auth_trooper, $costumes_by_id, $capacity);
         }
 
         foreach ($request->validated('guests', []) as $id => $input)
@@ -72,7 +77,8 @@ class UpdateTroopersSubmitController extends MagicBusController
         ?array $allowed_org_ids,
         bool $is_manual_selection_event,
         Trooper $auth_trooper,
-        Collection $costumes_by_id
+        Collection $costumes_by_id,
+        EventRosterCapacityService $capacity
     ): void {
         $event_trooper = $event_troopers->filter(fn ($et) => $et->id === $id)->first();
 
@@ -90,6 +96,18 @@ class UpdateTroopersSubmitController extends MagicBusController
 
         $old_status = $event_trooper->status;
         $event_trooper->status = $new_status;
+        $this->applyStationSelection($event_trooper, $input);
+
+        $station_has_room = $capacity->canGoAtStation(
+            $event_trooper->event_shift,
+            $event_trooper->event_shift_station_id,
+            $event_trooper->id,
+        );
+
+        if ($event_trooper->status === EventTrooperStatus::GOING && !$station_has_room)
+        {
+            $event_trooper->status = EventTrooperStatus::STAND_BY;
+        }
 
         $this->applyCostumeAndOrgSelection($event_trooper, $input, $allowed_org_ids, $costumes_by_id);
 
@@ -97,6 +115,30 @@ class UpdateTroopersSubmitController extends MagicBusController
         $event_trooper->save();
 
         $this->dispatchManualSelectionNotifications($event_trooper, $old_status, $is_manual_selection_event, $auth_trooper);
+    }
+
+    private function applyStationSelection(EventTrooper $event_trooper, array $input): void
+    {
+        if (!array_key_exists('event_shift_station_id', $input))
+        {
+            return;
+        }
+
+        $station_id = $input['event_shift_station_id'] !== '' && $input['event_shift_station_id'] !== null
+            ? (int) $input['event_shift_station_id']
+            : null;
+
+        if ($station_id === null)
+        {
+            return;
+        }
+
+        $valid_station_ids = $event_trooper->event_shift->event_shift_stations->pluck(EventShiftStation::ID)->all();
+
+        if (in_array($station_id, $valid_station_ids, true))
+        {
+            $event_trooper->event_shift_station_id = $station_id;
+        }
     }
 
     private function applyCostumeAndOrgSelection(EventTrooper $event_trooper, array $input, ?array $allowed_org_ids, Collection $costumes_by_id): void

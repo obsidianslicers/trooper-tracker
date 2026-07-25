@@ -1,9 +1,13 @@
 @if($event_shift->canSignUp(Auth::user()) && $has_required_mission_brief_ack)
+    <div class="shift-signup-primary {{ $shift_uses_stations ? 'shift-signup-primary--station' : '' }}">
+        @if($shift_uses_stations)
+            <span class="shift-signup-primary__label">Choose your station</span>
+        @endif
     @if($event_has_org_limits)
         @if($eligible_orgs->count() > 1)
             <select id="org-picker-{{ $event_shift->id }}"
                     name="organization_id"
-                    class="form-select form-select-sm w-auto">
+                    class="form-select form-select-sm">
                 <option value="">-- Select Organization --</option>
                 @foreach($eligible_orgs as $org)
                     <option value="{{ $org->id }}">{{ $org->name }}</option>
@@ -20,17 +24,28 @@
             </div>
         @endif
     @endif
+    @if($shift_uses_stations)
+        <select id="station-picker-{{ $event_shift->id }}"
+                name="event_shift_station_id"
+                class="form-select form-select-sm">
+            <option value="">-- Select Station --</option>
+            @foreach($station_options as $station_id => $station_name)
+                <option value="{{ $station_id }}">{{ $station_name }}</option>
+            @endforeach
+        </select>
+    @endif
     <button class="btn btn-sm btn-outline-success text-start text-md-center htmx-disable"
             hx-post="{{ route('events.signup-htmx', compact('event_shift')) }}"
             hx-select="#shift-container-{{ $event_shift->id }}"
             hx-target="#shift-container-{{ $event_shift->id }}"
             hx-swap="outerHTML"
             hx-trigger="click"
-            hx-include="#org-picker-{{ $event_shift->id }}"
+            hx-include="#org-picker-{{ $event_shift->id }}, #station-picker-{{ $event_shift->id }}"
             hx-indicator="#transmission-bar-shift-{{ $event_shift->id }}, closest .btn">
         <i class="fa fa-fw fa-plus-circle me-2"></i>
         Sign Up
     </button>
+    </div>
 @elseif($requires_mission_brief_ack && !$has_required_mission_brief_ack)
     <span class="d-block small text-warning mb-2">
         <i class="fa fa-fw fa-triangle-exclamation me-1"></i>
@@ -43,6 +58,20 @@
         @if ($can_moderate || $event_shift->isGoing(Auth::user()))
             {{-- if they are a normal user and already signed up - they can sign up a friend --}}
             {{-- or they are a moderator - they can sign up a friend --}}
+            <div id="friend-signup-action-{{ $event_shift->id }}"
+                 class="shift-signup-secondary {{ $shift_uses_stations ? 'shift-signup-secondary--station' : '' }}">
+            <div class="shift-friend-trigger">
+            @if($shift_uses_stations)
+                <span class="shift-signup-secondary__label">Choose friend's station</span>
+                <select id="friend-station-picker-{{ $event_shift->id }}"
+                        name="event_shift_station_id"
+                        class="form-select form-select-sm">
+                    <option value="">-- Select Friend's Station --</option>
+                    @foreach($station_options as $station_id => $station_name)
+                        <option value="{{ $station_id }}">{{ $station_name }}</option>
+                    @endforeach
+                </select>
+            @endif
             <button class="btn btn-sm btn-outline-info text-start text-md-center"
                     hx-get="{{ route('pickers.trooper', ['property' => 'add-shift-friend-' . $event_shift->id, 'event' => 'trooper:selected', 'picker_mode' => App\Enums\TrooperPickerMode::FRIENDS->value]) }}"
                     hx-target="#modal-trooper .modal-body"
@@ -52,9 +81,14 @@
                 <i class="fa fa-fw fa-plus-circle me-2"></i>
                 Add a Friend
             </button>
+            </div>
             @if($limited_orgs_for_add->isNotEmpty())
                 {{-- Step 2: org confirmation form appears here after trooper is selected --}}
-                <div id="add-trooper-step2-{{ $event_shift->id }}"></div>
+                <div id="add-trooper-step2-{{ $event_shift->id }}"
+                     class="friend-signup-step"></div>
+            @endif
+            </div>
+            @if($limited_orgs_for_add->isNotEmpty())
                 {{-- Fetch the selected trooper's eligible orgs instead of signing up directly --}}
                 <div class="d-none"
                      hx-get="{{ route('events.add-trooper-org-picker', compact('event_shift')) }}"
@@ -62,12 +96,13 @@
                      hx-trigger="trooper:selected[event.detail.property == 'add-shift-friend-{{ $event_shift->id }}'] from:document"
                      hx-target="#add-trooper-step2-{{ $event_shift->id }}"
                      hx-swap="innerHTML"
+                     hx-on::before-request="document.getElementById('friend-signup-action-{{ $event_shift->id }}').classList.add('shift-signup-secondary--confirming'); document.querySelector('#friend-signup-action-{{ $event_shift->id }} .shift-friend-trigger').classList.add('d-none')"
                      hx-indicator="#transmission-bar-shift-{{ $event_shift->id }}"></div>
             @else
                 {{-- No org limits — sign up directly --}}
                 <div class="d-none"
                      hx-post="{{ route('events.signup-htmx', compact('event_shift')) }}"
-                     hx-vals="js:{trooper_id: event.detail.id}"
+                     hx-vals="js:{trooper_id: event.detail.id, event_shift_station_id: (document.getElementById('friend-station-picker-{{ $event_shift->id }}')?.value || '')}"
                      hx-trigger="trooper:selected[event.detail.property == 'add-shift-friend-{{ $event_shift->id }}'] from:document"
                      hx-select="#shift-container-{{ $event_shift->id }}"
                      hx-target="#shift-container-{{ $event_shift->id }}"
@@ -80,7 +115,7 @@
         @if($event_shift->isGoing(Auth::user()) || $can_moderate)
             {{-- if they are a normal user and already signed up - they can sign up a guest --}}
             {{-- or they are a moderator - they can sign up a guest --}}
-            <button class="btn btn-sm btn-outline-info text-start text-md-center"
+            <button class="btn btn-sm btn-outline-info text-start text-md-center shift-signup-guest"
                     data-bs-toggle="modal"
                     data-bs-target="#modal-guest-{{ $event_shift->id }}">
                 <i class="fa fa-fw fa-plus-circle me-2"></i>

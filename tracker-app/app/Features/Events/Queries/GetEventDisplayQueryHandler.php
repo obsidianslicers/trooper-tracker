@@ -9,6 +9,7 @@ use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventGuest;
 use App\Models\EventShift;
+use App\Models\EventShiftStation;
 use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\Trooper;
@@ -85,6 +86,11 @@ readonly class GetEventDisplayQueryHandler implements QueryHandlerInterface
             'event_shifts' => function ($query) {
                 $query->orderBy(EventShift::SHIFT_STARTS_AT, 'asc');
             },
+            'event_shifts.event_shift_stations' => function ($query) {
+                $query->withCount('going_event_troopers')
+                    ->orderBy(EventShiftStation::SEQUENCE)
+                    ->orderBy(EventShiftStation::NAME);
+            },
             'event_shifts.event_guests.added_by_trooper:'.implode(',', $trooper_columns),
             'event_shifts.event_guests.updated_by:'.implode(',', $trooper_columns),
             'event_shifts.event_guests' => function ($query) {
@@ -98,6 +104,7 @@ readonly class GetEventDisplayQueryHandler implements QueryHandlerInterface
             'event_shifts.event_troopers.updated_by:'.implode(',', $trooper_columns),
             'event_shifts.event_troopers.costume:'.implode(',', $costume_columns),
             'event_shifts.event_troopers.backup_costume:'.implode(',', $costume_columns),
+            'event_shifts.event_troopers.event_shift_station',
             'event_shifts.event_troopers' => function ($query) {
                 $query->orderBy(EventTrooper::SIGNED_UP_AT, 'asc');
             },

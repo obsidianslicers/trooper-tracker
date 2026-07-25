@@ -95,15 +95,24 @@ class SignupUpdateHtmxRequest extends FormRequest
 
         $organization_ids = $effective_org_id !== null
             ? collect([$effective_org_id])
-            : $event->event_organizations()->pluckCanAttend($event_shift);
+            : $event->event_organizations()->pluckCanAttend($event_shift, $event_trooper->id);
 
         $valid_costume_ids = Costume::forTrooper($event_trooper->trooper_id, $organization_ids)
             ->pluck('id')
             ->toArray();
 
         $eligible_org_ids = $event_trooper->trooper->eligibleOrgsForEvent($event)->pluck('id')->toArray();
+        $valid_station_ids = $event_shift->event_shift_stations()->pluck('id')->toArray();
 
         return [
+            EventTrooper::EVENT_SHIFT_STATION_ID => [
+                Rule::requiredIf(
+                    $event_shift->usesStations()
+                    && $this->exists(EventTrooper::EVENT_SHIFT_STATION_ID)
+                ),
+                'int',
+                Rule::in($valid_station_ids),
+            ],
             EventTrooper::ORGANIZATION_ID => [
                 'nullable',
                 'int',
@@ -117,8 +126,7 @@ class SignupUpdateHtmxRequest extends FormRequest
             ],
             EventTrooper::COSTUME_ID => [
                 'nullable',
-                'int',
-                Rule::in($valid_costume_ids),
+                Rule::in(array_merge($valid_costume_ids, ['none'])),
             ],
             EventTrooper::BACKUP_COSTUME_ID => [
                 'nullable',
@@ -126,6 +134,17 @@ class SignupUpdateHtmxRequest extends FormRequest
                 Rule::in($valid_costume_ids),
             ],
             'resign_up' => ['nullable', 'boolean'],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            EventTrooper::EVENT_SHIFT_STATION_ID.'.required' => 'A station is required for this shift.',
+            EventTrooper::EVENT_SHIFT_STATION_ID.'.in' => 'Select a valid station for this shift.',
         ];
     }
 }

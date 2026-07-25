@@ -66,7 +66,7 @@ trait HtmxValidation
      */
     public function validateInputs(): array
     {
-        $validator = Validator::make($this->all(), $this->rules());
+        $validator = Validator::make($this->all(), $this->rules(), $this->messages(), $this->attributes());
 
         if ($validator->fails())
         {

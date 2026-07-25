@@ -19,7 +19,8 @@ class TrooperAchievementFactory extends BaseTrooperAchievementFactory
     public function definition(): array
     {
         return array_merge(parent::definition(), [
-            TrooperAchievement::TYPE => AchievementType::FIRST_TROOP
+            TrooperAchievement::TYPE => AchievementType::FIRST_TROOP,
+            TrooperAchievement::ORGANIZATION_ID => null,
         ]);
     }
 

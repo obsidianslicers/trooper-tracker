@@ -7,6 +7,8 @@
     @include('pages.admin.events.tabs', compact('event'))
 
     <x-slim-container>
+        @php($has_station_shifts = $event_shifts->contains(fn($shift) => $shift->usesStations()))
+        @php($trooper_colspan = ($event->status === \App\Enums\EventStatus::MANUAL_SELECTION ? 7 : 5) + ($has_station_shifts ? 1 : 0))
 
         <x-card>
             <form method="POST"
@@ -49,6 +51,11 @@
                             <th>
                                 Status
                             </th>
+                            @if($has_station_shifts)
+                                <th>
+                                    Station
+                                </th>
+                            @endif
                             <th>
                                 Credited Org
                             </th>
@@ -65,7 +72,7 @@
                     </thead>
                     @foreach ($event_shifts as $event_shift)
                         <tr>
-                            <td colspan="{{ $event->status === \App\Enums\EventStatus::MANUAL_SELECTION ? '7' : '5' }}">
+                            <td colspan="{{ $trooper_colspan }}">
                                 {{ $event_shift->time_display }}
                             </td>
                         </tr>
@@ -99,6 +106,19 @@
                                                     :value="$event_trooper->status->value"
                                                     class="form-select-sm" />
                                 </td>
+                                @if($has_station_shifts)
+                                    <td>
+                                        @if($event_shift->usesStations())
+                                            <x-input-select :property="'troopers.' . $event_trooper->id . '.event_shift_station_id'"
+                                                            :options="$event_shift->event_shift_stations->pluck('name', 'id')->toArray()"
+                                                            :value="$event_trooper->event_shift_station_id"
+                                                            :placeholder="'-- Select Station --'"
+                                                            class="form-select-sm" />
+                                        @else
+                                            <span class="text-muted">-</span>
+                                        @endif
+                                    </td>
+                                @endif
                                 <td>
                                     <div id="org-options-{{ $event_trooper->id }}">
                                         @include('pages.admin.events.inc.trooper-org-options', [
@@ -137,14 +157,14 @@
                                 </td>
                             </tr>
                         @empty
-                            <x-table-empty :colspan="$event->status === \App\Enums\EventStatus::MANUAL_SELECTION ? 7 : 5">
+                            <x-table-empty :colspan="$trooper_colspan">
                                 No troopers assigned to this shift.
                             </x-table-empty>
                         @endforelse
 
                         @if($event_shift->event_guests->isNotEmpty())
                             <tr>
-                                <td colspan="{{ $event->status === \App\Enums\EventStatus::MANUAL_SELECTION ? '7' : '5' }}"
+                                <td colspan="{{ $trooper_colspan }}"
                                     class="ps-4 text-muted small">
                                     Guests
                                 </td>
@@ -172,6 +192,9 @@
                                                     :value="$event_guest->status->value"
                                                     class="form-select-sm" />
                                 </td>
+                                @if($has_station_shifts)
+                                    <td></td>
+                                @endif
                                 <td></td>
                                 @if($event->status === \App\Enums\EventStatus::MANUAL_SELECTION)
                                     <td>
@@ -195,7 +218,7 @@
 
                         @if(Auth::user()->is_administrator || Auth::user()->isModeratorForOrganization($event->organization))
                             <tr>
-                                <td colspan="{{ $event->status === \App\Enums\EventStatus::MANUAL_SELECTION ? '7' : '5' }}"
+                                <td colspan="{{ $trooper_colspan }}"
                                     class="ps-4 py-2">
                                     <button type="button"
                                             class="btn btn-sm btn-outline-primary"
