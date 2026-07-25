@@ -12,7 +12,7 @@
             @auth
                 @if(Auth::user()->membership_status?->value === 'active')
                     <form method="GET"
-                          action="{{ route('search') }}"
+                          action="{{ route('search.all') }}"
                           class="d-flex ms-2 me-auto my-1 my-md-0"
                           role="search">
                         <div class="input-group input-group-sm flex-nowrap">
@@ -37,25 +37,26 @@
                 @auth
                 @include('partials.inc.navbar-account')
                 @unless(Auth::user()->is_denied || Auth::user()->is_pending)
-                    @include('partials.inc.navbar-notifications')
-                    @if(App\Facades\TroopTrackerFacade::isXenforoIntegrationConfigured())
-                        <x-nav-link :url="config('services.xenforo.base_url')">
-                            Forum
-                        </x-nav-link>
-                    @endif
-                    @role(['administrator', 'moderator'])
-                        <x-nav-link :url="route('admin.display')"
-                                    :active="request()->routeIs('admin.*')">
-                            <span class="text-warning">
-                                Command Staff
-                            </span>
-                        </x-nav-link>
+                @include('partials.inc.navbar-notifications')
+                @if(App\Facades\TroopTrackerFacade::isXenforoIntegrationConfigured())
+                    <x-nav-link :url="config('services.xenforo.base_url')">
+                        Forum
+                    </x-nav-link>
+                @endif
+                @role(['administrator', 'moderator'])
+                    <x-nav-link :url="route('admin.display')"
+                                :active="request()->routeIs('admin.*')">
+                        <span class="text-warning">
+                            Command Staff
+                        </span>
+                    </x-nav-link>
                     @endrole
-                @endunless
+                    @endunless
                 @else
                 @include('partials.inc.navbar-auth')
                 @endauth
-                <x-nav-link :url="route('faq')" :active="request()->routeIs('faq')">
+                <x-nav-link :url="route('faq')"
+                            :active="request()->routeIs('faq')">
                     Help
                 </x-nav-link>
             </ul>

@@ -38,14 +38,6 @@
 
     const vm = new TrooperPickerViewModel();
 
-    const selected_display_value = $derived(
-        selected ? vm.getDisplayName(selected) : vm.options.placeholder,
-    );
-
-    const selected_subtitle = $derived(
-        selected ? vm.getSubtitle(selected) : "",
-    );
-
     const floating_label = $derived(vm.options.label ?? "Trooper");
 
     $effect(() => {
@@ -69,71 +61,19 @@
             return;
         }
 
-        const query = vm.search_query.trim();
+        const query = vm.term.trim();
 
         if (query.length === 0) {
             vm.resetSearchForEmptyQuery();
             return;
         }
 
-        vm.scheduleSearch(query, searchTroopersStub);
+        vm.scheduleSearch(query);
 
         return () => {
             vm.clearPendingSearch();
         };
     });
-
-    // TODO: Replace this stub with a real API call when backend endpoint is ready.
-    async function searchTroopersStub(query: string): Promise<Trooper[]> {
-        const delay_ms = 260;
-        await new Promise((resolve) => setTimeout(resolve, delay_ms));
-
-        const sample_troopers: Trooper[] = [
-            {
-                id: 1,
-                tk_id: "TK-421",
-                display_name: "Finn FN-2187",
-                email: "fn2187@firstorder.example",
-                membership_status: "active",
-            },
-            {
-                id: 2,
-                tk_id: "TI-182",
-                display_name: "Iden Versio",
-                email: "iden@inferno.example",
-                membership_status: "active",
-            },
-            {
-                id: 3,
-                tk_id: "BH-2049",
-                display_name: "Din Djarin",
-                email: "din@mandalore.example",
-                membership_status: "pending",
-            },
-            {
-                id: 4,
-                tk_id: "SL-001",
-                display_name: "Leia Organa",
-                email: "leia@alliance.example",
-                membership_status: "active",
-            },
-        ];
-
-        const lookup = query.toLowerCase();
-
-        return sample_troopers.filter((trooper) => {
-            const haystack = [
-                String(trooper.id),
-                String(trooper.tk_id ?? ""),
-                String(trooper.display_name ?? trooper.name ?? ""),
-                String(trooper.email ?? ""),
-            ]
-                .join(" ")
-                .toLowerCase();
-
-            return haystack.includes(lookup);
-        });
-    }
 </script>
 
 <div>
@@ -146,7 +86,8 @@
                     "form-control pointer",
                     vm.options.errors.length > 0 ? "is-invalid" : "",
                 ]}
-                value={selected_display_value}
+                value={vm.selected_trooper?.display_name ??
+                    vm.options.placeholder}
                 placeholder={vm.options.placeholder}
                 readonly
                 disabled={vm.options.disabled}
@@ -173,10 +114,6 @@
         {/if}
     </div>
 
-    {#if selected_subtitle.length > 0}
-        <div class="form-text px-2">{selected_subtitle}</div>
-    {/if}
-
     <InputError errors={vm.options.errors} />
 </div>
 
@@ -193,7 +130,7 @@
                 type="text"
                 class="form-control"
                 placeholder={vm.options.search_placeholder}
-                bind:value={vm.search_query}
+                bind:value={vm.term}
                 autocomplete="off"
             />
         </div>
@@ -208,26 +145,21 @@
             </div>
         {/if}
 
-        {#if !vm.is_loading && vm.search_query.trim().length > 0 && vm.search_results.length === 0}
+        {#if !vm.is_loading && vm.term.trim().length > 0 && vm.troopers.length === 0}
             <p class="text-muted mb-0">No troopers matched your search.</p>
         {/if}
 
-        {#if vm.search_results.length > 0}
+        {#if vm.troopers.length > 0}
             <div class="list-group">
-                {#each vm.search_results as trooper (trooper.id)}
+                {#each vm.troopers as trooper (trooper.id)}
                     <button
                         type="button"
                         class="list-group-item list-group-item-action text-start"
                         onclick={() => (selected = vm.selectTrooper(trooper))}
                     >
                         <div class="fw-semibold">
-                            {vm.getDisplayName(trooper)}
+                            {trooper.display_name}
                         </div>
-                        {#if vm.getSubtitle(trooper).length > 0}
-                            <small class="text-muted"
-                                >{vm.getSubtitle(trooper)}</small
-                            >
-                        {/if}
                     </button>
                 {/each}
             </div>
@@ -244,3 +176,4 @@
         </div>
     </div>
 </Modal>
+trooperstrooperstroopers

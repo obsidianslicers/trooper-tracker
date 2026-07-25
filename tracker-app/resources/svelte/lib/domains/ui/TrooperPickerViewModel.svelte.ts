@@ -1,19 +1,16 @@
-import { SubmitableViewModel } from "$lib/domains/types.svelte";
+import { ViewModel } from "$lib/domains/types.svelte";
+import { getRoute } from "$lib/utils";
 import { useForm, type InertiaForm } from "@inertiajs/svelte";
 
 export type Trooper = {
     id: string | number;
-    [key: string]: unknown;
+    display_name: string;
 };
 
 type TrooperPicker = {
 };
 
-type TrooperSearch = (query: string) => Promise<Trooper[]>;
-
-function createTrooperPickerForm(
-    options: Partial<TrooperPicker> = {},
-): InertiaForm<TrooperPicker> {
+function createTrooperPickerForm(options: Partial<TrooperPicker> = {}): InertiaForm<TrooperPicker> {
     const data = {
         ...options,
     };
@@ -52,14 +49,12 @@ function createTrooperPickerOptions(
     };
 }
 
-export class TrooperPickerViewModel extends SubmitableViewModel<
-    TrooperPickerViewModel,
-    TrooperPicker
-> {
+export class TrooperPickerViewModel extends ViewModel {
     options: TrooperPickerOptions = $state(createTrooperPickerOptions());
     show_modal = $state(false);
-    search_query = $state("");
-    search_results = $state<Trooper[]>([]);
+    term = $state("");
+    selected_trooper = $state<Trooper | null>(null);
+    troopers = $state<Trooper[]>([]);
     is_loading = $state(false);
     error_message = $state("");
     request_sequence = $state(0);
@@ -68,7 +63,6 @@ export class TrooperPickerViewModel extends SubmitableViewModel<
 
     constructor(options: Partial<TrooperPickerOptions> = {}) {
         super();
-        this.form = createTrooperPickerForm();
         this.setOptions(options);
     }
 
@@ -83,8 +77,8 @@ export class TrooperPickerViewModel extends SubmitableViewModel<
 
     closeModal(): void {
         this.show_modal = false;
-        this.search_query = "";
-        this.search_results = [];
+        this.term = "";
+        this.troopers = [];
         this.is_loading = false;
         this.error_message = "";
         this.request_sequence += 1;
@@ -92,6 +86,7 @@ export class TrooperPickerViewModel extends SubmitableViewModel<
     }
 
     selectTrooper(trooper: Trooper): Trooper {
+        this.selected_trooper = trooper;
         this.options.onSelect?.(trooper);
         this.closeModal();
 
@@ -99,41 +94,8 @@ export class TrooperPickerViewModel extends SubmitableViewModel<
     }
 
     clearSelection(): null {
+        this.selected_trooper = null;
         return null;
-    }
-
-    getDisplayName(trooper: Trooper): string {
-        const by_display_name = trooper.display_name;
-        if (typeof by_display_name === "string" && by_display_name.length > 0) {
-            return by_display_name;
-        }
-
-        const by_name = trooper.name;
-        if (typeof by_name === "string" && by_name.length > 0) {
-            return by_name;
-        }
-
-        const first_name = trooper.first_name;
-        const last_name = trooper.last_name;
-        if (typeof first_name === "string" || typeof last_name === "string") {
-            return `${String(first_name ?? "")} ${String(last_name ?? "")}`.trim();
-        }
-
-        return `Trooper #${String(trooper.id)}`;
-    }
-
-    getSubtitle(trooper: Trooper): string {
-        const tk_id = trooper.tk_id;
-        if (typeof tk_id === "string" && tk_id.length > 0) {
-            return tk_id;
-        }
-
-        const email = trooper.email;
-        if (typeof email === "string" && email.length > 0) {
-            return email;
-        }
-
-        return "";
     }
 
     clearPendingSearch(): void {
@@ -157,8 +119,8 @@ export class TrooperPickerViewModel extends SubmitableViewModel<
             this.error_message = "";
         }
 
-        if (this.search_results.length > 0) {
-            this.search_results = [];
+        if (this.troopers.length > 0) {
+            this.troopers = [];
         }
 
         if (had_pending_timer || had_loading) {
@@ -166,32 +128,33 @@ export class TrooperPickerViewModel extends SubmitableViewModel<
         }
     }
 
-    scheduleSearch(query: string, search_troopers: TrooperSearch): void {
+    scheduleSearch(query: string): void {
         this.clearPendingSearch();
 
         this.debounce_timer = setTimeout(() => {
-            void this.runSearch(query, search_troopers);
+            void this.runSearch(query);
         }, this.options.debounce_ms);
     }
 
-    async runSearch(query: string, search_troopers: TrooperSearch): Promise<void> {
+    async runSearch(query: string): Promise<void> {
         const current_sequence = ++this.request_sequence;
         this.is_loading = true;
         this.error_message = "";
 
         try {
-            const rows = await search_troopers(query);
+            const url = `${getRoute('search.all')}?query=${encodeURIComponent(query)}`;
+            const rows = await fetch(url).then(res => res.json());
             if (current_sequence !== this.request_sequence) {
                 return;
             }
 
-            this.search_results = rows;
+            this.troopers = rows;
         } catch {
             if (current_sequence !== this.request_sequence) {
                 return;
             }
 
-            this.search_results = [];
+            this.troopers = [];
             this.error_message = "Unable to search troopers right now.";
         } finally {
             if (current_sequence === this.request_sequence) {
