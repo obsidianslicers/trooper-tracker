@@ -39,12 +39,12 @@ class SearchTroopersTest extends TestCase
         $member_inside = Trooper::factory()
             ->asMember()
             ->withSetupCompleted()
-            ->withDisplayName('Inside Member')
+            ->withLegalName('Inside Member')
             ->create();
         $member_outside = Trooper::factory()
             ->asMember()
             ->withSetupCompleted()
-            ->withDisplayName('Outside Member')
+            ->withLegalName('Outside Member')
             ->create();
 
         TrooperOrganization::factory()
@@ -62,13 +62,13 @@ class SearchTroopersTest extends TestCase
         $result = $subject->handle();
 
         $this->assertCount(1, $result);
-        $this->assertSame('Inside Member', $result->first()->display_name);
+        $this->assertSame('Inside Member', $result->first()->legal_name);
     }
 
     public function test_handle_filters_by_search_term(): void
     {
-        Trooper::factory()->asMember()->withSetupCompleted()->withDisplayName('Alpha Trooper')->create();
-        Trooper::factory()->asMember()->withSetupCompleted()->withDisplayName('Zeta Squad')->create();
+        Trooper::factory()->asMember()->withSetupCompleted()->withLegalName('Alpha Trooper')->create();
+        Trooper::factory()->asMember()->withSetupCompleted()->withLegalName('Zeta Squad')->create();
 
         $trooper = Trooper::factory()->asMember()->create();
         $subject = new SearchTroopers($trooper, 'Alpha');
@@ -76,13 +76,13 @@ class SearchTroopersTest extends TestCase
         $result = $subject->handle();
 
         $this->assertCount(1, $result);
-        $this->assertSame('Alpha Trooper', $result->first()->display_name);
+        $this->assertSame('Alpha Trooper', $result->first()->legal_name);
     }
 
     public function test_handle_excludes_troopers_without_setup_completed(): void
     {
-        Trooper::factory()->asMember()->withSetupIncomplete()->withDisplayName('Incomplete Setup')->create();
-        Trooper::factory()->asMember()->withSetupCompleted()->withDisplayName('Complete Setup')->create();
+        Trooper::factory()->asMember()->withSetupIncomplete()->withLegalName('Incomplete Setup')->create();
+        Trooper::factory()->asMember()->withSetupCompleted()->withLegalName('Complete Setup')->create();
 
         $trooper = Trooper::factory()->asMember()->create();
         $subject = new SearchTroopers($trooper, 'Setup');
@@ -90,7 +90,7 @@ class SearchTroopersTest extends TestCase
         $result = $subject->handle();
 
         $this->assertCount(1, $result);
-        $this->assertSame('Complete Setup', $result->first()->display_name);
+        $this->assertSame('Complete Setup', $result->first()->legal_name);
     }
 
     public function test_handle_includes_minor_when_requesting_trooper_is_guardian(): void
@@ -100,7 +100,7 @@ class SearchTroopersTest extends TestCase
         Trooper::factory()
             ->asMember()
             ->withSetupCompleted()
-            ->withDisplayName('Guardian Minor')
+            ->withLegalName('Guardian Minor')
             ->withGuardian($guardian)
             ->create();
 
@@ -109,7 +109,7 @@ class SearchTroopersTest extends TestCase
         $result = $subject->handle();
 
         $this->assertCount(1, $result);
-        $this->assertSame('Guardian Minor', $result->first()->display_name);
+        $this->assertSame('Guardian Minor', $result->first()->legal_name);
     }
 
     public function test_handle_excludes_minor_when_requesting_trooper_is_not_guardian(): void
@@ -120,7 +120,7 @@ class SearchTroopersTest extends TestCase
         Trooper::factory()
             ->asMember()
             ->withSetupCompleted()
-            ->withDisplayName('Hidden Minor')
+            ->withLegalName('Hidden Minor')
             ->withGuardian($guardian)
             ->create();
 
@@ -146,12 +146,12 @@ class SearchTroopersTest extends TestCase
         $moderated_trooper = Trooper::factory()
             ->asMember()
             ->withSetupCompleted()
-            ->withDisplayName('Moderated Trooper')
+            ->withLegalName('Moderated Trooper')
             ->create();
         Trooper::factory()
             ->asMember()
             ->withSetupCompleted()
-            ->withDisplayName('Outside Trooper')
+            ->withLegalName('Outside Trooper')
             ->create();
 
         TrooperAssignment::factory()
@@ -165,14 +165,14 @@ class SearchTroopersTest extends TestCase
         $result = $subject->handle();
 
         $this->assertCount(1, $result);
-        $this->assertSame('Moderated Trooper', $result->first()->display_name);
+        $this->assertSame('Moderated Trooper', $result->first()->legal_name);
     }
 
     public function test_handle_returns_results_sorted_by_display_name(): void
     {
-        Trooper::factory()->asMember()->withDisplayName('Zulu Trooper')->create();
-        Trooper::factory()->asMember()->withDisplayName('Alpha Trooper')->create();
-        Trooper::factory()->asMember()->withDisplayName('Bravo Trooper')->create();
+        Trooper::factory()->asMember()->withLegalName('Zulu Trooper')->create();
+        Trooper::factory()->asMember()->withLegalName('Alpha Trooper')->create();
+        Trooper::factory()->asMember()->withLegalName('Bravo Trooper')->create();
 
         $trooper = Trooper::factory()->asMember()->create();
 
@@ -182,16 +182,16 @@ class SearchTroopersTest extends TestCase
 
         $this->assertSame(
             ['Alpha Trooper', 'Bravo Trooper', 'Zulu Trooper'],
-            $result->pluck(Trooper::DISPLAY_NAME)->all(),
+            $result->pluck(Trooper::LEGAL_NAME)->all(),
         );
     }
 
     public function test_handle_with_friends_picker_mode_returns_results_without_filter_criteria(): void
     {
         $requesting_trooper = Trooper::factory()->asMember()->create();
-        $friend_alpha = Trooper::factory()->asMember()->withDisplayName('Alpha Friend')->create();
-        $friend_bravo = Trooper::factory()->asMember()->withDisplayName('Bravo Friend')->create();
-        Trooper::factory()->asMember()->withDisplayName('Non Friend')->create();
+        $friend_alpha = Trooper::factory()->asMember()->withLegalName('Alpha Friend')->create();
+        $friend_bravo = Trooper::factory()->asMember()->withLegalName('Bravo Friend')->create();
+        Trooper::factory()->asMember()->withLegalName('Non Friend')->create();
 
         TrooperFriend::factory()->forTrooper($requesting_trooper)->forFriend($friend_alpha)->create();
         TrooperFriend::factory()->forTrooper($requesting_trooper)->forFriend($friend_bravo)->create();
@@ -206,13 +206,13 @@ class SearchTroopersTest extends TestCase
 
         $result = $subject->handle();
 
-        $this->assertSame(['Alpha Friend', 'Bravo Friend'], $result->pluck(Trooper::DISPLAY_NAME)->all());
+        $this->assertSame(['Alpha Friend', 'Bravo Friend'], $result->pluck(Trooper::LEGAL_NAME)->all());
     }
 
     public function test_handle_returns_empty_collection_when_friends_picker_mode_has_no_friends(): void
     {
         $requesting_trooper = Trooper::factory()->asMember()->create();
-        Trooper::factory()->asMember()->withDisplayName('Unrelated Trooper')->create();
+        Trooper::factory()->asMember()->withLegalName('Unrelated Trooper')->create();
 
         $subject = new SearchTroopers(
             $requesting_trooper,

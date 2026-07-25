@@ -86,7 +86,7 @@
                     "form-control pointer",
                     vm.options.errors.length > 0 ? "is-invalid" : "",
                 ]}
-                value={vm.selected_trooper?.display_name ??
+                value={vm.selected_trooper?.legal_name ??
                     vm.options.placeholder}
                 placeholder={vm.options.placeholder}
                 readonly
@@ -146,7 +146,7 @@
         {/if}
 
         {#if !vm.is_loading && vm.term.trim().length > 0 && vm.troopers.length === 0}
-            <p class="text-muted mb-0">No troopers matched your search.</p>
+            <p class="text-danger mb-0">No troopers matched your search.</p>
         {/if}
 
         {#if vm.troopers.length > 0}
@@ -158,7 +158,7 @@
                         onclick={() => (selected = vm.selectTrooper(trooper))}
                     >
                         <div class="fw-semibold">
-                            {trooper.display_name}
+                            {trooper.legal_name}
                         </div>
                     </button>
                 {/each}

@@ -25,12 +25,12 @@ class SearchTroopersPageDataTest extends TestCase
 
         $first_trooper = Trooper::factory()->asMember()->make([
             Trooper::ID => 101,
-            Trooper::DISPLAY_NAME => 'Alpha Trooper',
+            Trooper::LEGAL_NAME => 'Alpha Trooper',
         ]);
 
         $second_trooper = Trooper::factory()->asMember()->make([
             Trooper::ID => 202,
-            Trooper::DISPLAY_NAME => 'Bravo Trooper',
+            Trooper::LEGAL_NAME => 'Bravo Trooper',
         ]);
 
         Mockery::mock('alias:' . SearchTroopers::class)
@@ -59,11 +59,11 @@ class SearchTroopersPageDataTest extends TestCase
         $this->assertSame([
             [
                 Trooper::ID => 101,
-                Trooper::DISPLAY_NAME => 'Alpha Trooper',
+                Trooper::LEGAL_NAME => 'Alpha Trooper',
             ],
             [
                 Trooper::ID => 202,
-                Trooper::DISPLAY_NAME => 'Bravo Trooper',
+                Trooper::LEGAL_NAME => 'Bravo Trooper',
             ],
         ], $result);
     }

@@ -43,7 +43,7 @@ final class SearchTroopers extends Message
                 $q->whereNull(Trooper::GUARDIAN_ID)
                     ->orWhere(Trooper::GUARDIAN_ID, $this->actor->id);
             })
-            ->orderBy(Trooper::DISPLAY_NAME);
+            ->orderBy(Trooper::LEGAL_NAME);
 
         if ($this->organization_id)
         {

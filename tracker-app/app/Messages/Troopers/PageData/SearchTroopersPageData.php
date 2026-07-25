@@ -54,6 +54,7 @@ final class SearchTroopersPageData extends Message
 
         $data = $troopers->map(fn(Trooper $trooper) => [
             Trooper::ID => $trooper->id,
+            Trooper::LEGAL_NAME => $trooper->legal_name,
             Trooper::DISPLAY_NAME => $trooper->display_name,
         ])->toArray();
 

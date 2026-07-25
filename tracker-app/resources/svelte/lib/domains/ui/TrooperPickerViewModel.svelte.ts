@@ -1,22 +1,11 @@
 import { ViewModel } from "$lib/domains/types.svelte";
 import { getRoute } from "$lib/utils";
-import { useForm, type InertiaForm } from "@inertiajs/svelte";
 
 export type Trooper = {
     id: string | number;
+    legal_name: string;
     display_name: string;
 };
-
-type TrooperPicker = {
-};
-
-function createTrooperPickerForm(options: Partial<TrooperPicker> = {}): InertiaForm<TrooperPicker> {
-    const data = {
-        ...options,
-    };
-
-    return useForm<TrooperPicker>(data);
-}
 
 export interface TrooperPickerOptions {
     label: string | null;
@@ -137,6 +126,10 @@ export class TrooperPickerViewModel extends ViewModel {
     }
 
     async runSearch(query: string): Promise<void> {
+        if (query.trim().length < 3) {
+            return;
+        }
+
         const current_sequence = ++this.request_sequence;
         this.is_loading = true;
         this.error_message = "";
