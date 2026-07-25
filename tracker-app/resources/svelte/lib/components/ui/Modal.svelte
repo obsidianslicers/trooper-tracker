@@ -1,9 +1,9 @@
 <script lang="ts">
-    import { Modal as BoostrapModel } from 'bootstrap';
-    import { onDestroy, onMount } from 'svelte';
+    import { Modal as BoostrapModel } from "bootstrap";
+    import { onDestroy, onMount } from "svelte";
 
     let {
-        show = false,
+        show = $bindable(false),
         children,
         fullscreen = false,
         title,
@@ -35,23 +35,23 @@
     });
 </script>
 
-<div bind:this={modalElement} class="modal" tabindex="-1" role="dialog">
-    <div
-        class={['modal-dialog', { 'modal-fullscreen': fullscreen }]}
-        role="document"
-    >
+<div
+    bind:this={modalElement}
+    class="modal fade"
+    tabindex="-1"
+    aria-hidden="true"
+>
+    <div class={["modal-dialog", { "modal-fullscreen": fullscreen }]}>
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">{title}</h5>
                 {#if canClose}
                     <button
                         type="button"
-                        class="close"
+                        class="btn-close"
                         aria-label="Close"
                         onclick={canClose}
-                    >
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    ></button>
                 {/if}
             </div>
             <div class="modal-body">
