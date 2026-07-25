@@ -56,6 +56,11 @@ final class MergeTroopers extends Message
              */
             $this->mergeRelationships();
             $this->mergeTrooperAccounts();
+
+            //  TODO notification of completion
+            //  source - MERGED notice
+            //  target - MERGED notice
+            //  admins - source & target
         });
     }
 

@@ -1,4 +1,5 @@
 import { SubmitableViewModel } from "$lib/domains/types.svelte";
+import { getRoute } from "$lib/utils";
 import { useForm, type InertiaForm } from "@inertiajs/svelte";
 
 function createMergeTroopersForm(options: Partial<MergeTroopersFormData> = {},): InertiaForm<MergeTroopersFormData> {
@@ -53,16 +54,11 @@ export class MergeTroopersViewModel extends SubmitableViewModel<MergeTroopersVie
     submit = async (e: Event) => {
         e.preventDefault();
 
-        // const url = getRoute('auth.login');
+        const url = getRoute('admin.troopers.merge');
 
-        // const toast = toastStateSvelte.info('Logging in...', { delay: 4000 });
-
-        // this.form.post(url, {
-        //     preserveScroll: true,
-        //     onError: () => {
-        //         // Dismiss the loading toast if validation fails on backend
-        //         toastStateSvelte.dismiss(toast);
-        //     }
-        // });
+        this.form.post(url, {
+            preserveState: true,
+            preserveScroll: true,
+        });
     };
 }
