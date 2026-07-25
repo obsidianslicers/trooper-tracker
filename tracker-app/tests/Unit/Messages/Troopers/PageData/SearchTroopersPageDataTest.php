@@ -33,15 +33,13 @@ class SearchTroopersPageDataTest extends TestCase
             Trooper::DISPLAY_NAME => 'Bravo Trooper',
         ]);
 
-        $filter = new TrooperFilter(new Request(['search_term' => 'Trooper']));
-
         Mockery::mock('alias:' . SearchTroopers::class)
             ->shouldReceive('call')
             ->once()
-            ->withArgs(function (Trooper $trooper, TrooperFilter $given_filter, ?int $organization_id, bool $moderated_only, TrooperPickerMode $picker_mode, ) use ($requesting_trooper, $filter): bool
+            ->withArgs(function (Trooper $trooper, string $search_term, ?int $organization_id, bool $moderated_only, TrooperPickerMode $picker_mode, ) use ($requesting_trooper): bool
             {
                 return $trooper === $requesting_trooper
-                    && $given_filter === $filter
+                    && $search_term === 'Trooper'
                     && $organization_id === 42
                     && $moderated_only === true
                     && $picker_mode === TrooperPickerMode::FRIENDS;
@@ -49,8 +47,8 @@ class SearchTroopersPageDataTest extends TestCase
             ->andReturn(collect([$first_trooper, $second_trooper]));
 
         $subject = new SearchTroopersPageData(
-            trooper: $requesting_trooper,
-            filter: $filter,
+            actor: $requesting_trooper,
+            search_term: 'Trooper',
             organization_id: 42,
             moderated_only: true,
             picker_mode: TrooperPickerMode::FRIENDS,
@@ -77,16 +75,14 @@ class SearchTroopersPageDataTest extends TestCase
             Trooper::ID => 10,
         ]);
 
-        $filter = new TrooperFilter(new Request());
-
         Mockery::mock('alias:' . SearchTroopers::class)
             ->shouldReceive('call')
             ->once()
             ->andReturn(collect());
 
         $subject = new SearchTroopersPageData(
-            trooper: $requesting_trooper,
-            filter: $filter,
+            actor: $requesting_trooper,
+            search_term: '',
         );
 
         $result = $subject->handle();

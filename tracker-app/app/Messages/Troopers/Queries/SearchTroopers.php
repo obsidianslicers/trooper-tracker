@@ -5,20 +5,28 @@ declare(strict_types=1);
 namespace App\Messages\Troopers\Queries;
 
 use App\Enums\TrooperPickerMode;
-use App\Models\Filters\TrooperFilter;
 use App\Models\Trooper;
 use App\Models\TrooperFriend;
+use Hyperdrive\Contracts\Actor;
 use Hyperdrive\Message;
 use Illuminate\Support\Collection;
 
 /**
- * @method static Collection call(Trooper $trooper, TrooperFilter $filter, int|null $organization_id = null, bool $moderated_only = false, TrooperPickerMode $picker_mode = TrooperPickerMode::NONE)
+ * @method static Collection call(Actor $actor, string $search_term, int|null $organization_id = null, bool $moderated_only = false, TrooperPickerMode $picker_mode = TrooperPickerMode::NONE)
  */
 final class SearchTroopers extends Message
 {
+    /**
+     * Summary of __construct
+     * @param Actor&Trooper $actor
+     * @param string $search_term
+     * @param int|null $organization_id
+     * @param bool $moderated_only
+     * @param TrooperPickerMode $picker_mode
+     */
     public function __construct(
-        private readonly Trooper $trooper,
-        private readonly TrooperFilter $filter,
+        private readonly Actor $actor,
+        private readonly string $search_term,
         private readonly int|null $organization_id = null,
         private readonly bool $moderated_only = false,
         private readonly TrooperPickerMode $picker_mode = TrooperPickerMode::NONE)
@@ -27,12 +35,13 @@ final class SearchTroopers extends Message
 
     public function handle(): Collection
     {
+        $search_term = trim($this->search_term);
         $query = Trooper::active()
             ->whereNotNull(Trooper::SETUP_COMPLETED_AT)
             ->where(function ($q)
             {
                 $q->whereNull(Trooper::GUARDIAN_ID)
-                    ->orWhere(Trooper::GUARDIAN_ID, $this->trooper->id);
+                    ->orWhere(Trooper::GUARDIAN_ID, $this->actor->id);
             })
             ->orderBy(Trooper::DISPLAY_NAME);
 
@@ -46,11 +55,11 @@ final class SearchTroopers extends Message
 
         if ($this->moderated_only)
         {
-            $query = $query->moderatedBy($this->trooper);
+            $query = $query->moderatedBy($this->actor);
         }
 
         $execute_query = false;
-        $has_filter = $this->filter->hasFilter();
+        $has_filter = $search_term !== '';
 
         if ($this->picker_mode == TrooperPickerMode::FRIENDS)
         {
@@ -58,7 +67,7 @@ final class SearchTroopers extends Message
             {
                 $q = TrooperFriend::query()
                     ->select(TrooperFriend::FRIEND_ID)
-                    ->where(TrooperFriend::TROOPER_ID, $this->trooper->id);
+                    ->where(TrooperFriend::TROOPER_ID, $this->actor->id);
 
                 $query = $query->whereIn(Trooper::ID, $q);
             }
@@ -68,7 +77,7 @@ final class SearchTroopers extends Message
 
         if ($has_filter)
         {
-            $query = $query->filterWith($this->filter);
+            $query = $query->searchFor($search_term);
 
             $execute_query = true;
         }

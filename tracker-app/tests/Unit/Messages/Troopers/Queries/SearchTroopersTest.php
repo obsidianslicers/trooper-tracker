@@ -6,14 +6,12 @@ namespace Tests\Unit\Messages\Troopers\Queries;
 
 use App\Enums\TrooperPickerMode;
 use App\Messages\Troopers\Queries\SearchTroopers;
-use App\Models\Filters\TrooperFilter;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperFriend;
 use App\Models\TrooperOrganization;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\Request;
 use Tests\TestCase;
 
 class SearchTroopersTest extends TestCase
@@ -23,9 +21,8 @@ class SearchTroopersTest extends TestCase
     public function test_handle_returns_empty_collection_when_filter_has_no_criteria(): void
     {
         $trooper = Trooper::factory()->asMember()->create();
-        $filter = new TrooperFilter(new Request());
 
-        $subject = new SearchTroopers($trooper, $filter);
+        $subject = new SearchTroopers($trooper, '');
 
         $result = $subject->handle();
 
@@ -60,9 +57,7 @@ class SearchTroopersTest extends TestCase
             ->forOrganization($org_excluded)
             ->create();
 
-        $filter = new TrooperFilter(new Request(['search_term' => 'Member']));
-
-        $subject = new SearchTroopers($trooper, $filter, $org_included->id);
+        $subject = new SearchTroopers($trooper, 'Member', $org_included->id);
 
         $result = $subject->handle();
 
@@ -76,9 +71,7 @@ class SearchTroopersTest extends TestCase
         Trooper::factory()->asMember()->withSetupCompleted()->withDisplayName('Zeta Squad')->create();
 
         $trooper = Trooper::factory()->asMember()->create();
-        $filter = new TrooperFilter(new Request(['search_term' => 'Alpha']));
-
-        $subject = new SearchTroopers($trooper, $filter);
+        $subject = new SearchTroopers($trooper, 'Alpha');
 
         $result = $subject->handle();
 
@@ -92,9 +85,7 @@ class SearchTroopersTest extends TestCase
         Trooper::factory()->asMember()->withSetupCompleted()->withDisplayName('Complete Setup')->create();
 
         $trooper = Trooper::factory()->asMember()->create();
-        $filter = new TrooperFilter(new Request(['search_term' => 'Setup']));
-
-        $subject = new SearchTroopers($trooper, $filter);
+        $subject = new SearchTroopers($trooper, 'Setup');
 
         $result = $subject->handle();
 
@@ -113,9 +104,7 @@ class SearchTroopersTest extends TestCase
             ->withGuardian($guardian)
             ->create();
 
-        $filter = new TrooperFilter(new Request(['search_term' => 'Guardian Minor']));
-
-        $subject = new SearchTroopers($guardian, $filter);
+        $subject = new SearchTroopers($guardian, 'Guardian Minor');
 
         $result = $subject->handle();
 
@@ -135,9 +124,7 @@ class SearchTroopersTest extends TestCase
             ->withGuardian($guardian)
             ->create();
 
-        $filter = new TrooperFilter(new Request(['search_term' => 'Hidden Minor']));
-
-        $subject = new SearchTroopers($requesting_trooper, $filter);
+        $subject = new SearchTroopers($requesting_trooper, 'Hidden Minor');
 
         $result = $subject->handle();
 
@@ -173,9 +160,7 @@ class SearchTroopersTest extends TestCase
             ->asMember()
             ->create();
 
-        $filter = new TrooperFilter(new Request(['search_term' => 'Trooper']));
-
-        $subject = new SearchTroopers($moderator, $filter, null, true);
+        $subject = new SearchTroopers($moderator, 'Trooper', null, true);
 
         $result = $subject->handle();
 
@@ -190,9 +175,8 @@ class SearchTroopersTest extends TestCase
         Trooper::factory()->asMember()->withDisplayName('Bravo Trooper')->create();
 
         $trooper = Trooper::factory()->asMember()->create();
-        $filter = new TrooperFilter(new Request(['search_term' => 'Trooper']));
 
-        $subject = new SearchTroopers($trooper, $filter);
+        $subject = new SearchTroopers($trooper, 'Trooper');
 
         $result = $subject->handle();
 
@@ -212,11 +196,9 @@ class SearchTroopersTest extends TestCase
         TrooperFriend::factory()->forTrooper($requesting_trooper)->forFriend($friend_alpha)->create();
         TrooperFriend::factory()->forTrooper($requesting_trooper)->forFriend($friend_bravo)->create();
 
-        $filter = new TrooperFilter(new Request());
-
         $subject = new SearchTroopers(
             $requesting_trooper,
-            $filter,
+            '',
             null,
             false,
             TrooperPickerMode::FRIENDS,
@@ -232,11 +214,9 @@ class SearchTroopersTest extends TestCase
         $requesting_trooper = Trooper::factory()->asMember()->create();
         Trooper::factory()->asMember()->withDisplayName('Unrelated Trooper')->create();
 
-        $filter = new TrooperFilter(new Request());
-
         $subject = new SearchTroopers(
             $requesting_trooper,
-            $filter,
+            '',
             null,
             false,
             TrooperPickerMode::FRIENDS,

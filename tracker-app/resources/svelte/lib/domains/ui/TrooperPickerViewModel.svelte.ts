@@ -142,14 +142,14 @@ export class TrooperPickerViewModel extends ViewModel {
         this.error_message = "";
 
         try {
-            const url = `${getRoute('search.all')}?query=${encodeURIComponent(query)}`;
+            const url = `${getRoute('search.troopers')}?search_term=${encodeURIComponent(query)}`;
             const rows = await fetch(url).then(res => res.json());
             if (current_sequence !== this.request_sequence) {
                 return;
             }
 
             this.troopers = rows;
-        } catch {
+        } catch (e) {
             if (current_sequence !== this.request_sequence) {
                 return;
             }

@@ -32,7 +32,7 @@ class SearchControllerTest extends TestCase
             $mock->shouldReceive('send')->never();
         });
 
-        $response = $this->actingAs($trooper)->get(route('search', [
+        $response = $this->actingAs($trooper)->get(route('search.all', [
             'q' => 'a',
             'type' => 'invalid',
         ]));
@@ -64,7 +64,7 @@ class SearchControllerTest extends TestCase
                 ->andReturn($payload);
         });
 
-        $response = $this->actingAs($trooper)->get(route('search', [
+        $response = $this->actingAs($trooper)->get(route('search.all', [
             'q' => 'Vader',
             'type' => 'troopers',
         ]));
@@ -101,7 +101,7 @@ class SearchControllerTest extends TestCase
                 ->andReturn($payload);
         });
 
-        $response = $this->actingAs($trooper)->get(route('search', [
+        $response = $this->actingAs($trooper)->get(route('search.all', [
             'q' => 'Legion',
             'type' => 'unknown',
         ]));

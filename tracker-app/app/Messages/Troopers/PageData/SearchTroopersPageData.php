@@ -5,28 +5,32 @@ declare(strict_types=1);
 namespace App\Messages\Troopers\PageData;
 
 use App\Messages\Auth\Queries\GetAuthConfig;
+use Hyperdrive\Contracts\Actor;
 use Hyperdrive\Message;
 use App\Enums\TrooperPickerMode;
-use App\Models\Filters\TrooperFilter;
 use App\Models\Trooper;
-use App\Models\TrooperFriend;
-use Illuminate\Support\Collection;
 use App\Messages\Troopers\Queries\SearchTroopers;
 
 /**
- * Retrieves application configuration including authentication provider status and feature toggles.
+ * Retrieves search results for troopers based on the provided search term, organization, and other filters.
  *
- * This query message responds with configuration data for authorization providers (XenForo OAuth,
- * Google OAuth, email/password authentication), application metadata, and feature/localization settings.
- * Used by frontend clients to determine available authentication methods and application capabilities.
+ * This page data message responds with a list of troopers matching the search criteria, formatted for frontend consumption.
  *
- * @method static array call(Request $request)
+ * @method static array call(Actor $actor, string $search_term, int|null $organization_id = null, bool $moderated_only = false, TrooperPickerMode $picker_mode = TrooperPickerMode::NONE)
  */
 final class SearchTroopersPageData extends Message
 {
+    /**
+     * Summary of __construct
+     * @param Actor&Trooper $actor
+     * @param string $search_term
+     * @param int|null $organization_id
+     * @param bool $moderated_only
+     * @param TrooperPickerMode $picker_mode
+     */
     public function __construct(
-        private readonly Trooper $trooper,
-        private readonly TrooperFilter $filter,
+        private readonly Actor $actor,
+        private readonly string $search_term,
         private readonly int|null $organization_id = null,
         private readonly bool $moderated_only = false,
         private readonly TrooperPickerMode $picker_mode = TrooperPickerMode::NONE)
@@ -41,8 +45,8 @@ final class SearchTroopersPageData extends Message
     public function handle(): array
     {
         $troopers = SearchTroopers::call(
-            trooper: $this->trooper,
-            filter: $this->filter,
+            trooper: $this->actor,
+            search_term: $this->search_term,
             organization_id: $this->organization_id,
             moderated_only: $this->moderated_only,
             picker_mode: $this->picker_mode
