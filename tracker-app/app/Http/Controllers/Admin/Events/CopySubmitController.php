@@ -8,6 +8,7 @@ use App\Enums\EventStatus;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Events\CopyRequest;
 use App\Models\Event;
+use App\Models\EventShiftStation;
 use App\Models\Trooper;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
@@ -63,6 +64,8 @@ class CopySubmitController extends MagicBusController
         $event_copy->status = EventStatus::DRAFT;
         $event_copy->push();
 
+        $event->loadMissing('event_shifts.event_shift_stations');
+
         foreach ($event->event_shifts as $shift)
         {
             $shift_copy = $shift->replicate();
@@ -71,6 +74,14 @@ class CopySubmitController extends MagicBusController
             $shift_copy->shift_ends_at = $shift->shift_ends_at->add($diff);
             $shift_copy->status = EventStatus::OPEN;
             $shift_copy->save();
+
+            foreach ($shift->event_shift_stations as $station)
+            {
+                /** @var EventShiftStation $station_copy */
+                $station_copy = $station->replicate();
+                $station_copy->event_shift_id = $shift_copy->id;
+                $station_copy->save();
+            }
         }
 
         foreach ($event->event_organizations as $organization)

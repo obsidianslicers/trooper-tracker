@@ -39,7 +39,10 @@ class UpdateShiftsController extends MagicBusController
     {
         $this->authorize('update', $event);
 
-        $shifts = $event->event_shifts()->orderBy(EventShift::SHIFT_STARTS_AT)->get();
+        $shifts = $event->event_shifts()
+            ->with('event_shift_stations')
+            ->orderBy(EventShift::SHIFT_STARTS_AT)
+            ->get();
 
         $data = compact('event', 'shifts');
 

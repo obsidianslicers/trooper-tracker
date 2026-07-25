@@ -102,13 +102,18 @@ flowchart TD
     I -- Yes --> SB
     I -- No --> G
 
-    SB --> J[Save EventTrooper record]
-    G --> J
+    G --> N{Handler OR\ncostume decided?}
+    N -- Yes --> J[Save EventTrooper record]
+    N -- No --> P[Status = PENDING]
+    P --> J
+    SB --> J
     J --> K{Added by\nanother trooper?}
     K -- Yes --> L[Dispatch CreateTrooperFriendshipJob]
     K -- No --> M([Send TrooperSignedUpNotification])
     L --> M
 ```
+
+A costume decision means the trooper either picked a real costume or explicitly selected "attending without a costume" from the costume dropdown — see [Costume Decision Requirement](#costume-decision-requirement). The initial sign-up form itself never collects a costume; `PENDING` troopers make this decision afterward from their roster row.
 
 **Source:** `app/Features/Events/Commands/SignUpEventTrooperCommandHandler.php`
 
@@ -140,6 +145,8 @@ flowchart TD
 
 **Org priority:** When a trooper held an org-limited slot, the system first offers that slot to the next STAND_BY from the same org (by `organization_id` or by costume org inference). Only if no same-org STAND_BY exists — or if global capacity was also full — does it consider troopers from any org.
 
+**Costume decision required:** A `STAND_BY` candidate is only eligible for promotion if they're a handler or have already decided on a costume (`EventTrooper::needsCostumeBeforeGoing()` is `false`). Candidates who haven't made that decision are skipped in favor of the next eligible candidate in the same pool — they remain on `STAND_BY` and can be promoted later once they decide, or picked up by a subsequent promotion run.
+
 **Source:** `app/Features/Events/Commands/PromoteNextInLineEventTrooperCommandHandler.php`
 
 ---
@@ -154,7 +161,7 @@ Once signed up, a trooper's attendance is tracked by `EventTrooperStatus`.
 | `GOING` | `going` | System / Trooper | Confirmed attendance |
 | `STAND_BY` | `standby` | System | Waitlisted; promoted when a slot opens |
 | `TENTATIVE` | `tentative` | Trooper | Trooper is unsure; only available on non-limited events |
-| `PENDING` | `pending` | System | Pending admin approval (MANUAL_SELECTION events) |
+| `PENDING` | `pending` | System | Signed up, but a non-handler trooper hasn't yet decided on a costume — see [Costume Decision Requirement](#costume-decision-requirement) |
 | `ATTENDED` | `attended` | Admin | Trooper showed up and attended |
 | `CANCELLED` | `cancelled` | Trooper / System | Trooper withdrew or event was cancelled |
 | `NOT_PICKED` | `notpicked` | Admin | Not selected for a limited/manual-selection event |
@@ -162,6 +169,39 @@ Once signed up, a trooper's attendance is tracked by `EventTrooperStatus`.
 | `UNABLE_TO_ATTEND` | `unabletoattend` | Admin | Could not attend for external reasons |
 
 **Source:** `app/Enums/EventTrooperStatus.php`
+
+---
+
+## Costume Decision Requirement
+
+A non-handler trooper cannot hold `GOING` status until they've decided on a costume. Handlers (`is_handler = true`, from a handler-type costume or the trooper's membership role) are exempt and skip this entirely.
+
+`EventTrooper::needsCostumeBeforeGoing()` is the single rule:
+
+```php
+return !$this->is_handler && $this->costume_id === null && !$this->attending_without_costume;
+```
+
+A costume decision is one of two mutually exclusive choices, made from the costume dropdown on the trooper's roster row:
+
+- Pick a real costume (`costume_id` set, `attending_without_costume = false`).
+- Select "Attending without a costume" from the dropdown (`costume_id = null`, `attending_without_costume = true`) — for roles that are legitimately costume-less without being a Handler-type costume.
+
+Leaving both undecided is what keeps (or puts) a trooper on `PENDING` instead of `GOING`.
+
+**Where it's enforced:**
+
+| Path | Behavior |
+|---|---|
+| Initial sign-up (`SignUpEventTrooperCommandHandler`) | Would-be `GOING` is downgraded to `PENDING` when undecided. Capacity-driven `STAND_BY` is unaffected. |
+| Status change / manual-selection approval (`SignUpUpdateHtmxController`, `status` branch) | Requesting `GOING` while undecided is silently saved as `PENDING` instead. |
+| Re-sign-up (`SignUpUpdateHtmxController`, `resign_up` branch) | Same downgrade as initial sign-up. |
+| Stand-by promotion (`PromoteNextInLineEventTrooperCommandHandler`) | Undecided candidates are skipped — see [Standby Promotion Flow](#standby-promotion-flow). |
+| Costume dropdown submit (`SignUpUpdateHtmxController`, `costume_id` branch, via `resolveCostumeDecision()`) | Deciding while `PENDING` promotes to `GOING` (or `STAND_BY` if capacity is now full); clearing the decision while `GOING` demotes back to `PENDING`. |
+
+**UI:** The costume `<select>` on `resources/views/pages/events/inc/trooper.blade.php` includes a `none` sentinel option ("Attending without a costume") ahead of the real costume list. A `PENDING` trooper sees a hint prompting them to make a choice instead of the normal status dropdown.
+
+**Source:** `app/Models/EventTrooper.php` (`needsCostumeBeforeGoing()`), `app/Http/Controllers/Events/SignUpUpdateHtmxController.php` (`resolveCostumeDecision()`), `database/migrations/2026_07_24_160615_add_attending_without_costume_to_event_troopers_table.php`
 
 ---
 

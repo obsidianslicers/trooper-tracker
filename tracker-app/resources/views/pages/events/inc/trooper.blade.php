@@ -15,6 +15,25 @@
         @endif
     </div>
     <div class="col-12 col-md-5 order-3 order-md-2">
+        @if($event_shift->usesStations())
+            @if($event_trooper->canUpdateCostume(Auth::user()))
+                <x-input-select :property="'event_shift_station_id'"
+                                :options="$event_shift->event_shift_stations->pluck('name', 'id')->toArray()"
+                                :value="$event_trooper->event_shift_station_id"
+                                :placeholder="'-- Select Station --'"
+                                hx-post="{{ route('events.signup-update-htmx', compact('event_trooper')) }}"
+                                hx-indicator="#transmission-bar-shift-{{ $event_trooper->event_shift->id }}"
+                                hx-select="#shift-container-{{ $event_trooper->event_shift->id }}"
+                                hx-target="#shift-container-{{ $event_trooper->event_shift->id }}"
+                                hx-swap="outerHTML"
+                                class="form-select-sm mt-2 mt-md-0 mb-2" />
+            @elseif($event_trooper->event_shift_station)
+                <div class="small text-muted mb-1">
+                    <i class="fa fa-fw fa-location-dot me-1"></i>
+                    {{ $event_trooper->event_shift_station->name }}
+                </div>
+            @endif
+        @endif
         @if($event_trooper->canUpdateCostume(Auth::user()))
             @php
                 $eligible_orgs_for_change = $event_trooper->trooper->eligibleOrgsForEvent($event);
@@ -35,10 +54,18 @@
                                 hx-target="#shift-container-{{ $event_trooper->event_shift->id }}"
                                 hx-swap="outerHTML"
                                 class="form-select-sm mt-2 mt-md-0" />
+            @elseif($show_org_picker && $eligible_orgs_for_change->count() === 1)
+                <div class="small text-muted">
+                    <i class="fa fa-fw fa-building me-1"></i>
+                    Trooping as {{ $eligible_orgs_for_change->first()->name }}
+                </div>
             @endif
+            @php
+                $costume_options = ['none' => 'Attending without a costume'] + $event_trooper->costumes;
+            @endphp
             <x-input-select :property="'costume_id'"
-                            :options="$event_trooper->costumes"
-                            :value="$event_trooper->costume_id"
+                            :options="$costume_options"
+                            :value="$event_trooper->is_attending_without_costume ? 'none' : $event_trooper->costume_id"
                             :placeholder="'-- Select Costume --'"
                             hx-post="{{ route('events.signup-update-htmx', compact('event_trooper')) }}"
                             hx-indicator="#transmission-bar-shift-{{ $event_trooper->event_shift->id }}"
@@ -91,43 +118,55 @@
                     && $event_shift->is_open
                     && in_array($event_trooper->status, [\App\Enums\EventTrooperStatus::STAND_BY, \App\Enums\EventTrooperStatus::GOING], true)
                 )
-                <div class="d-flex gap-1 justify-content-end">
-                    @if($event_trooper->status === \App\Enums\EventTrooperStatus::STAND_BY)
-                        <form hx-post="{{ route('events.signup-update-htmx', compact('event_trooper')) }}"
-                              hx-indicator="#transmission-bar-shift-{{ $event_trooper->event_shift->id }}"
-                              hx-select="#shift-container-{{ $event_trooper->event_shift->id }}"
-                              hx-target="#shift-container-{{ $event_trooper->event_shift->id }}"
-                              hx-swap="outerHTML">
-                            @csrf
-                            <input type="hidden"
-                                   name="status"
-                                   value="{{ \App\Enums\EventTrooperStatus::GOING->value }}" />
-                            <button type="submit"
-                                    class="btn btn-sm btn-success">
-                                <i class="fa fa-fw fa-check me-1"></i>
-                                Approve
-                            </button>
-                        </form>
-                    @endif
-                    @if($event_trooper->status === \App\Enums\EventTrooperStatus::GOING)
-                        <form hx-post="{{ route('events.signup-update-htmx', compact('event_trooper')) }}"
-                              hx-indicator="#transmission-bar-shift-{{ $event_trooper->event_shift->id }}"
-                              hx-select="#shift-container-{{ $event_trooper->event_shift->id }}"
-                              hx-target="#shift-container-{{ $event_trooper->event_shift->id }}"
-                              hx-swap="outerHTML">
-                            @csrf
-                            <input type="hidden"
-                                   name="status"
-                                   value="{{ \App\Enums\EventTrooperStatus::STAND_BY->value }}" />
-                            <button type="submit"
-                                    class="btn btn-sm btn-outline-danger">
-                                <i class="fa fa-fw fa-ban me-1"></i>
-                                Reject
-                            </button>
-                        </form>
-                    @endif
-                </div>
-            @elseif($event_shift->is_open && $event_trooper->canUpdateStatus(Auth::user()))
+                @if($event_trooper->status === \App\Enums\EventTrooperStatus::STAND_BY && $event_trooper->needsCostumeBeforeGoing())
+                    <span class="{{ \App\Enums\EventTrooperStatus::PENDING->color() }} d-block mb-1">
+                        {{ to_title(\App\Enums\EventTrooperStatus::PENDING->name) }}
+                        <span class="d-none d-md-inline">
+                            {!! \App\Enums\EventTrooperStatus::PENDING->iconTag() !!}
+                        </span>
+                    </span>
+                    <i class="small text-muted">
+                        Select a costume, or mark attending without one, to confirm your spot.
+                    </i>
+                @else
+                    <div class="d-flex gap-1 justify-content-end">
+                        @if($event_trooper->status === \App\Enums\EventTrooperStatus::STAND_BY)
+                            <form hx-post="{{ route('events.signup-update-htmx', compact('event_trooper')) }}"
+                                  hx-indicator="#transmission-bar-shift-{{ $event_trooper->event_shift->id }}"
+                                  hx-select="#shift-container-{{ $event_trooper->event_shift->id }}"
+                                  hx-target="#shift-container-{{ $event_trooper->event_shift->id }}"
+                                  hx-swap="outerHTML">
+                                @csrf
+                                <input type="hidden"
+                                       name="status"
+                                       value="{{ \App\Enums\EventTrooperStatus::GOING->value }}" />
+                                <button type="submit"
+                                        class="btn btn-sm btn-success">
+                                    <i class="fa fa-fw fa-check me-1"></i>
+                                    Approve
+                                </button>
+                            </form>
+                        @endif
+                        @if($event_trooper->status === \App\Enums\EventTrooperStatus::GOING)
+                            <form hx-post="{{ route('events.signup-update-htmx', compact('event_trooper')) }}"
+                                  hx-indicator="#transmission-bar-shift-{{ $event_trooper->event_shift->id }}"
+                                  hx-select="#shift-container-{{ $event_trooper->event_shift->id }}"
+                                  hx-target="#shift-container-{{ $event_trooper->event_shift->id }}"
+                                  hx-swap="outerHTML">
+                                @csrf
+                                <input type="hidden"
+                                       name="status"
+                                       value="{{ \App\Enums\EventTrooperStatus::STAND_BY->value }}" />
+                                <button type="submit"
+                                        class="btn btn-sm btn-outline-danger">
+                                    <i class="fa fa-fw fa-ban me-1"></i>
+                                    Reject
+                                </button>
+                            </form>
+                        @endif
+                    </div>
+                @endif
+            @elseif($event_shift->is_open && $event_trooper->status !== \App\Enums\EventTrooperStatus::PENDING && $event_trooper->canUpdateStatus(Auth::user()))
                 <x-input-select :property="'status'"
                                 :options="\App\Enums\EventTrooperStatus::toSignUpArray($event->tentative_signups_allowed, $event->hasLimits())"
                                 :value="$event_trooper->status->value"
@@ -196,6 +235,12 @@
                         {!! $event_trooper->status->iconTag() !!}
                     </span>
                 </span>
+                @if($event_trooper->status === \App\Enums\EventTrooperStatus::PENDING)
+                    <br />
+                    <i class="small text-muted">
+                        Select a costume, or mark attending without one, to confirm your spot.
+                    </i>
+                @endif
             @endif
 
             @if(

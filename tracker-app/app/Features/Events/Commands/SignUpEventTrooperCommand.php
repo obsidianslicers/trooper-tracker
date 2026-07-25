@@ -33,5 +33,6 @@ readonly class SignUpEventTrooperCommand
         public readonly ?int $organization_id = null,
         public readonly bool $is_handler = false,
         public readonly ?int $costume_id = null,
+        public readonly ?int $event_shift_station_id = null,
     ) {}
 }

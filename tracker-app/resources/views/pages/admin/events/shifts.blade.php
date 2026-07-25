@@ -45,6 +45,9 @@
                     </thead>
                     <tbody>
                         @foreach($shifts as $shift)
+                            @php
+                                $hasStationRows = $shift->event_shift_stations->isNotEmpty() || !empty(old('shifts.' . $shift->id . '.stations'));
+                            @endphp
                             <tr>
                                 <td>
                                     {{ $shift->shift_starts_at->format('D') }}
@@ -73,7 +76,117 @@
                                                     :value="$shift->status->value"
                                                     :disabled="!$event->is_active"
                                                     class="form-select-sm" />
+                                    @if($event->is_active && !$hasStationRows)
+                                        <button type="button"
+                                                id="station-toggle-{{ $shift->id }}"
+                                                class="btn btn-sm btn-link text-muted px-0 mt-1"
+                                                aria-controls="station-editor-row-{{ $shift->id }}"
+                                                aria-expanded="false"
+                                                onclick="toggleStationEditor({{ $shift->id }}, true)">
+                                            <i class="fa fa-fw fa-plus me-1"></i>
+                                            Stations
+                                        </button>
+                                    @endif
                                 </td>
+                            </tr>
+                            <tr id="station-editor-row-{{ $shift->id }}"
+                                class="{{ $hasStationRows ? '' : 'd-none' }}">
+                                    <td colspan="5" class="pt-2 pb-3 border-top-0">
+                                        <div class="station-editor ms-md-5">
+                                            <div class="station-editor__header">
+                                                <div class="d-flex align-items-start gap-2">
+                                                    <span class="station-editor__icon" aria-hidden="true">
+                                                        <i class="fa fa-fw fa-map-marker"></i>
+                                                    </span>
+                                                    <div>
+                                                        <div class="fw-semibold">Stations</div>
+                                                    @if($hasStationRows)
+                                                            <div class="text-muted small mt-1">
+                                                                <i class="fa fa-fw fa-grip-vertical me-1"></i>
+                                                                Drag stations to change their display order.
+                                                            </div>
+                                                    @endif
+                                                    </div>
+                                                </div>
+                                                @if($event->is_active)
+                                                    <button type="button"
+                                                            class="btn btn-sm btn-outline-success flex-shrink-0"
+                                                            onclick="addStationRow({{ $shift->id }})">
+                                                        <i class="fa fa-fw fa-plus me-1"></i>
+                                                        Add Station
+                                                    </button>
+                                                @endif
+                                            </div>
+                                            <div class="station-list station-sortable-tbody"
+                                                 id="stations-{{ $shift->id }}"
+                                                 data-reorder-url="{{ route('admin.events.shifts.stations.reorder', ['event' => $event, 'event_shift' => $shift]) }}">
+                                                    @foreach($shift->event_shift_stations->sortBy([['sequence', 'asc'], ['name', 'asc']]) as $station)
+                                                        <div data-id="{{ $station->id }}" class="station-item">
+                                                            <button type="button" class="station-drag-handle" title="Drag to reorder" aria-label="Drag to reorder">
+                                                                <i class="fa fa-fw fa-grip-vertical"></i>
+                                                            </button>
+                                                            <div class="station-field station-field--name">
+                                                                <label class="form-label small mb-1" for="shifts.{{ $shift->id }}.stations.{{ $station->id }}.name">Station name</label>
+                                                                <x-input-text :property="'shifts.' . $shift->id . '.stations.' . $station->id . '.name'"
+                                                                              :value="$station->name"
+                                                                              :disabled="!$event->is_active"
+                                                                              class="form-control-sm" />
+                                                            </div>
+                                                            <div class="station-field station-field--capacity">
+                                                                <label class="form-label small mb-1" for="shifts.{{ $shift->id }}.stations.{{ $station->id }}.troopers_allowed">Capacity</label>
+                                                                <x-input-text :property="'shifts.' . $shift->id . '.stations.' . $station->id . '.troopers_allowed'"
+                                                                              :value="$station->troopers_allowed"
+                                                                              :disabled="!$event->is_active"
+                                                                              class="form-control-sm" />
+                                                            </div>
+                                                            <div class="station-item__action">
+                                                                @if($event->is_active)
+                                                                    <button type="button"
+                                                                            class="btn btn-sm btn-outline-danger station-remove"
+                                                                            hx-post="{{ route('admin.events.shifts.stations.remove', ['event' => $event, 'event_shift' => $shift, 'event_shift_station' => $station]) }}"
+                                                                            hx-confirm="Remove station {{ $station->name }}?"
+                                                                            hx-trigger="click"
+                                                                            title="Remove station">
+                                                                        <i class="fa fa-fw fa-trash"></i>
+                                                                        <span class="visually-hidden">Remove {{ $station->name }}</span>
+                                                                    </button>
+                                                                @endif
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
+                                                    @if(old('shifts.' . $shift->id . '.stations'))
+                                                        @foreach(old('shifts.' . $shift->id . '.stations') as $key => $data)
+                                                            @if($key < 0)
+                                                                <div class="station-item">
+                                                                    <span class="station-drag-placeholder"></span>
+                                                                    <div class="station-field station-field--name">
+                                                                        <label class="form-label small mb-1" for="shifts.{{ $shift->id }}.stations.{{ $key }}.name">Station name</label>
+                                                                        <x-input-text :property="'shifts.' . $shift->id . '.stations.' . $key . '.name'"
+                                                                                      :value="$data['name'] ?? ''"
+                                                                                      class="form-control-sm" />
+                                                                    </div>
+                                                                    <div class="station-field station-field--capacity">
+                                                                        <label class="form-label small mb-1" for="shifts.{{ $shift->id }}.stations.{{ $key }}.troopers_allowed">Capacity</label>
+                                                                        <x-input-text :property="'shifts.' . $shift->id . '.stations.' . $key . '.troopers_allowed'"
+                                                                                     :value="$data['troopers_allowed'] ?? ''"
+                                                                                     class="form-control-sm" />
+                                                                    </div>
+                                                                    <div class="station-item__action">
+                                                                        <button type="button"
+                                                                                class="btn btn-sm btn-outline-danger station-remove"
+                                                                                onclick="this.closest('.station-item').remove()"
+                                                                                title="Remove station">
+                                                                            <i class="fa fa-fw fa-trash"></i>
+                                                                            <span class="visually-hidden">Remove station</span>
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            @endif
+                                                        @endforeach
+                                                    @endif
+                                            </div>
+                                        </div>
+                                    </td>
                             </tr>
                         @endforeach
 
@@ -200,5 +313,90 @@
 
             document.body.dispatchEvent(new Event('tracker:date-picker:added'));
         }
+
+        function addStationRow(shiftId) {
+            const stationList = document.querySelector(`#stations-${shiftId}`);
+            if (!stationList) return;
+
+            const existingNegRows = [...stationList.querySelectorAll("input")]
+                .map(input => input.name.match(/stations\]\[(\-?\d+)\]/))
+                .filter(Boolean)
+                .map(match => parseInt(match[1], 10))
+                .filter(n => n < 0);
+
+            let minNeg = existingNegRows.length ? Math.min(...existingNegRows) : 0;
+            const newIndex = minNeg - 1;
+
+            const stationItem = document.createElement("div");
+            stationItem.className = "station-item";
+            stationItem.innerHTML = `
+                <span class="station-drag-placeholder"></span>
+                <div class="station-field station-field--name">
+                    <label class="form-label small mb-1" for="shifts.${shiftId}.stations.${newIndex}.name">Station name</label>
+                    <input type="text"
+                           name="shifts[${shiftId}][stations][${newIndex}][name]"
+                           id="shifts.${shiftId}.stations.${newIndex}.name"
+                           class="form-control form-control-sm">
+                </div>
+                <div class="station-field station-field--capacity">
+                    <label class="form-label small mb-1" for="shifts.${shiftId}.stations.${newIndex}.troopers_allowed">Capacity</label>
+                    <input type="text"
+                           name="shifts[${shiftId}][stations][${newIndex}][troopers_allowed]"
+                           id="shifts.${shiftId}.stations.${newIndex}.troopers_allowed"
+                           class="form-control form-control-sm">
+                </div>
+                <div class="station-item__action">
+                    <button type="button"
+                            class="btn btn-sm btn-outline-danger station-remove"
+                            onclick="this.closest('.station-item').remove()"
+                            title="Remove station">
+                        <i class="fa fa-fw fa-trash"></i>
+                        <span class="visually-hidden">Remove station</span>
+                    </button>
+                </div>`;
+
+            stationList.appendChild(stationItem);
+            stationItem.querySelector('input')?.focus();
+        }
+
+        function toggleStationEditor(shiftId, addInitialRow = false) {
+            const row = document.querySelector(`#station-editor-row-${shiftId}`);
+            if (!row) return;
+
+            const willShow = row.classList.contains('d-none');
+            row.classList.toggle('d-none', !willShow);
+
+            const toggle = document.querySelector(`#station-toggle-${shiftId}`);
+            toggle?.setAttribute('aria-expanded', willShow ? 'true' : 'false');
+
+            const stationList = document.querySelector(`#stations-${shiftId}`);
+            if (willShow && addInitialRow && stationList && stationList.querySelectorAll('.station-item').length === 0) {
+                addStationRow(shiftId);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            if (typeof Sortable === 'undefined') return;
+
+            document.querySelectorAll('.station-sortable-tbody').forEach(function (stationList) {
+                Sortable.create(stationList, {
+                    handle: '.station-drag-handle',
+                    animation: 150,
+                    onEnd: function () {
+                        var ordered_ids = Array.from(stationList.querySelectorAll('.station-item[data-id]'))
+                            .map(function (row) { return row.dataset.id; });
+
+                        fetch(stationList.dataset.reorderUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            },
+                            body: JSON.stringify({ ids: ordered_ids }),
+                        });
+                    },
+                });
+            });
+        });
     </script>
 @endsection

@@ -131,7 +131,7 @@ class EventTrooper extends BaseEventTrooper
 
         $organization_ids = $this->organization_id !== null
             ? collect([$this->organization_id])
-            : $this->event_shift->event->event_organizations()->pluckCanAttend($event_shift);
+            : $this->event_shift->event->event_organizations()->pluckCanAttend($event_shift, $this->id);
 
         return Costume::forTrooper($this->trooper->id, $organization_ids)
             ->pluck('name', 'id')
@@ -164,6 +164,21 @@ class EventTrooper extends BaseEventTrooper
     public function isEligibleForAttendance(): bool
     {
         return $this->status !== EventTrooperStatus::CANCELLED;
+    }
+
+    /**
+     * Determines whether this assignment still needs a costume decision before
+     * it can hold a GOING spot.
+     *
+     * Handlers never need a costume. Everyone else must either pick a real
+     * costume or explicitly mark themselves as attending without one — leaving
+     * both undecided is what keeps an assignment in PENDING.
+     *
+     * @return bool True when a costume decision is still required.
+     */
+    public function needsCostumeBeforeGoing(): bool
+    {
+        return !$this->is_handler && $this->costume_id === null && !$this->is_attending_without_costume;
     }
 
     /**
@@ -222,6 +237,13 @@ class EventTrooper extends BaseEventTrooper
                             return false;
                         }
                     }
+                }
+
+                if (
+                    $this->event_shift_station_id !== null
+                    && $this->event_shift->stationMaxed($this->event_shift_station_id, $this->id)
+                ) {
+                    return false;
                 }
 
                 if ($this->is_handler)

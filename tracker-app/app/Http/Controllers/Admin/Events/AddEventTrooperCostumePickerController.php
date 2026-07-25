@@ -21,6 +21,7 @@ class AddEventTrooperCostumePickerController extends MagicBusController
         abort_if($event_shift->event_id !== $event->id, 404);
 
         $trooper = Trooper::active()->findOrFail((int) $request->input('trooper_id'));
+        $event_shift->loadMissing('event_shift_stations');
 
         $costumes = Costume::forTrooper($trooper->id)->pluck('name', 'id')->toArray();
         $eligible_orgs = $trooper->eligibleOrgsForEvent($event);

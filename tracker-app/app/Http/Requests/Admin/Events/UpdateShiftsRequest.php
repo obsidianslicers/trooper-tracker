@@ -46,6 +46,9 @@ class UpdateShiftsRequest extends FormRequest
             'shifts.*.starts_at' => ['required', 'date_format:H:i'],
             'shifts.*.ends_at' => ['required', 'date_format:H:i'],
             'shifts.*.status' => ['nullable', 'in:'.EventStatus::toValidator()],
+            'shifts.*.stations.*.name' => ['nullable', 'string', 'max:128'],
+            'shifts.*.stations.*.troopers_allowed' => ['nullable', 'integer', 'min:1', 'max:999'],
+            'shifts.*.stations.*.sequence' => ['nullable', 'integer', 'min:0', 'max:9999'],
 
         ];
 
@@ -59,6 +62,20 @@ class UpdateShiftsRequest extends FormRequest
 
             foreach ($this->input('shifts', []) as $key => $shift)
             {
+                foreach ($shift['stations'] ?? [] as $station_key => $station)
+                {
+                    $has_name = !empty(trim((string) ($station['name'] ?? '')));
+                    $has_count = !empty($station['troopers_allowed'] ?? null);
+
+                    if ($has_name xor $has_count)
+                    {
+                        $validator->errors()->add(
+                            "shifts.{$key}.stations.{$station_key}.name",
+                            'Station name and requested count are both required.',
+                        );
+                    }
+                }
+
                 $this->validateShiftTimes($validator, $shift, $key);
                 $this->validateClosedShiftStatus($validator, $shift, $key);
             }

@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Admin\Events;
 
+use App\Enums\EventTrooperStatus;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventOrganization;
 use App\Models\EventShift;
+use App\Models\EventShiftStation;
 use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
@@ -86,6 +88,116 @@ class UpdateTroopersSubmitControllerTest extends TestCase
 
         $event_trooper->refresh();
         $this->assertSame([$org1->id], $event_trooper->costume_organization_ids);
+    }
+
+    public function test_invoke_saves_submitted_station_selection(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $event = Event::factory()->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $station = EventShiftStation::factory()->forEventShift($event_shift)->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->asGoing()
+            ->create();
+
+        $this->actingAs($admin)->post('/admin/events/'.$event->id.'/troopers', [
+            'troopers' => [
+                $event_trooper->id => [
+                    'status' => 'going',
+                    'event_shift_station_id' => $station->id,
+                ],
+            ],
+        ]);
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::ID => $event_trooper->id,
+            EventTrooper::EVENT_SHIFT_STATION_ID => $station->id,
+        ]);
+    }
+
+    public function test_invoke_moves_trooper_to_standby_when_selected_station_is_full(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $event = Event::factory()->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $station = EventShiftStation::factory()
+            ->forEventShift($event_shift)
+            ->withTroopersAllowed(1)
+            ->create();
+        EventTrooper::factory()->forEventShiftStation($station)->asGoing()->create();
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->create([EventTrooper::STATUS => EventTrooperStatus::STAND_BY]);
+
+        $this->actingAs($admin)->post('/admin/events/'.$event->id.'/troopers', [
+            'troopers' => [
+                $event_trooper->id => [
+                    'status' => EventTrooperStatus::GOING->value,
+                    'event_shift_station_id' => $station->id,
+                ],
+            ],
+        ]);
+
+        $this->assertSame(EventTrooperStatus::STAND_BY, $event_trooper->fresh()->status);
+        $this->assertSame($station->id, $event_trooper->fresh()->event_shift_station_id);
+    }
+
+    public function test_invoke_does_not_clear_station_for_stationed_shift(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $event = Event::factory()->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $station = EventShiftStation::factory()->forEventShift($event_shift)->create();
+        $event_trooper = EventTrooper::factory()
+            ->forEventShiftStation($station)
+            ->asGoing()
+            ->create();
+
+        $this->actingAs($admin)->post('/admin/events/'.$event->id.'/troopers', [
+            'troopers' => [
+                $event_trooper->id => [
+                    'status' => EventTrooperStatus::GOING->value,
+                    'event_shift_station_id' => '',
+                ],
+            ],
+        ]);
+
+        $this->assertSame($station->id, $event_trooper->fresh()->event_shift_station_id);
+    }
+
+    public function test_invoke_ignores_station_selection_from_another_shift(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $event = Event::factory()->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $other_shift = EventShift::factory()->forEvent($event)->create();
+        $station = EventShiftStation::factory()->forEventShift($event_shift)->create();
+        $other_station = EventShiftStation::factory()->forEventShift($other_shift)->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShiftStation($station)
+            ->forTrooper($trooper)
+            ->asGoing()
+            ->create();
+
+        $this->actingAs($admin)->post('/admin/events/'.$event->id.'/troopers', [
+            'troopers' => [
+                $event_trooper->id => [
+                    'status' => 'going',
+                    'event_shift_station_id' => $other_station->id,
+                ],
+            ],
+        ]);
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::ID => $event_trooper->id,
+            EventTrooper::EVENT_SHIFT_STATION_ID => $station->id,
+        ]);
     }
 
     public function test_invoke_saves_regular_costume_org_selection_without_trooper_organization_rows(): void

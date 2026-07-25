@@ -38,6 +38,34 @@
         </div>
     </div>
 @endif
+@if($event_shift->usesStations())
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="station-summary">
+                @foreach($event_shift->event_shift_stations as $station)
+                    <?php
+                        $station_count = $event_shift->event_troopers
+                            ->filter(fn ($event_trooper) => $event_trooper->event_shift_station_id === $station->id)
+                            ->filter(fn ($event_trooper) => $event_trooper->status === \App\Enums\EventTrooperStatus::GOING)
+                            ->count();
+                        $is_full = $station->troopers_allowed !== null && $station_count >= $station->troopers_allowed;
+                        $is_empty = $station_count === 0;
+                        $modifier = $is_full ? 'station-summary__item--full' : ($is_empty ? 'station-summary__item--empty' : 'station-summary__item--open');
+                    ?>
+                    <div class="station-summary__item {{ $modifier }}">
+                        <span class="station-summary__name">{{ $station->name }}</span>
+                        <span class="station-summary__count">
+                            {{ $station_count }}/{{ $station->troopers_allowed }}
+                            @if($is_full)
+                                <i class="fa fa-fw fa-check-circle ms-1"></i>
+                            @endif
+                        </span>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+@endif
 @if($event_shift->isSignedUp(Auth::user()))
 <div class="row mb-3">
     <div class="col-12 text-end">

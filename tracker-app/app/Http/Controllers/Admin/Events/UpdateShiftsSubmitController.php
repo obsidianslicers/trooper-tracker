@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
+use App\Features\Events\Commands\UpdateEventShiftStationsCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Events\UpdateShiftsRequest;
+use App\Jobs\ReconcileEventRosterJob;
 use App\Models\Event;
 use App\Models\EventShift;
 use Carbon\Carbon;
@@ -35,6 +37,8 @@ class UpdateShiftsSubmitController extends MagicBusController
     {
         $this->authorize('update', $event);
 
+        $event->load('event_shifts.event_shift_stations');
+
         $shifts = $request->validated('shifts', []);
 
         foreach ($shifts as $id => $input)
@@ -57,6 +61,16 @@ class UpdateShiftsSubmitController extends MagicBusController
             }
 
             $shift->save();
+
+            $this->bus->send(new UpdateEventShiftStationsCommand(
+                $shift,
+                $input['stations'] ?? [],
+            ));
+        }
+
+        if (collect($shifts)->contains(fn (array $input) => !empty($input['stations'])))
+        {
+            dispatch(new ReconcileEventRosterJob($event, $request->user()));
         }
 
         $starts_at = $event->event_shifts()->min(EventShift::SHIFT_STARTS_AT);

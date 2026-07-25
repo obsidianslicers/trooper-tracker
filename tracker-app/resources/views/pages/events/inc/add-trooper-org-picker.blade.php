@@ -1,4 +1,4 @@
-<div class="border rounded p-2 mt-1">
+<div class="friend-signup-confirmation">
     <div class="small fw-semibold mb-2">
         <i class="fa fa-fw fa-user me-1"></i>{{ $trooper->display_name }}
         @if($eligible_orgs->count() > 1)
@@ -22,7 +22,7 @@
     <div class="d-flex gap-2">
         <button class="btn btn-sm btn-success"
                 hx-post="{{ route('events.signup-htmx', compact('event_shift')) }}"
-                hx-vals="js:{trooper_id: '{{ $trooper->id }}', organization_id: (document.getElementById('add-org-confirm-{{ $event_shift->id }}')?.value || ''), is_handler: {{ $is_handler ? 1 : 0 }}}"
+                hx-vals="js:{trooper_id: '{{ $trooper->id }}', organization_id: (document.getElementById('add-org-confirm-{{ $event_shift->id }}')?.value || ''), is_handler: {{ $is_handler ? 1 : 0 }}, event_shift_station_id: (document.getElementById('friend-station-picker-{{ $event_shift->id }}')?.value || '')}"
                 hx-select="#shift-container-{{ $event_shift->id }}"
                 hx-target="#shift-container-{{ $event_shift->id }}"
                 hx-swap="outerHTML"
@@ -31,7 +31,7 @@
         </button>
         <button class="btn btn-sm btn-outline-secondary"
                 type="button"
-                onclick="document.getElementById('add-trooper-step2-{{ $event_shift->id }}').innerHTML=''">
+                onclick="document.getElementById('add-trooper-step2-{{ $event_shift->id }}').innerHTML=''; document.getElementById('friend-signup-action-{{ $event_shift->id }}').classList.remove('shift-signup-secondary--confirming'); document.querySelector('#friend-signup-action-{{ $event_shift->id }} .shift-friend-trigger').classList.remove('d-none')">
             Cancel
         </button>
     </div>

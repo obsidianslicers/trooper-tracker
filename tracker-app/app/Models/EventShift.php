@@ -14,6 +14,7 @@ use App\Models\Concerns\HasObserver;
 use App\Models\Concerns\HasTrooperStamps;
 use App\Models\Scopes\HasEventShiftScopes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\CalendarLinks\Link;
 
 /**
@@ -98,6 +99,58 @@ class EventShift extends BaseEventShift
             return true;
         }
         return $this->status === EventStatus::SIGN_UP_LOCKED;
+    }
+
+    public function activeStations(): HasMany
+    {
+        return $this->event_shift_stations()
+            ->orderBy(EventShiftStation::SEQUENCE)
+            ->orderBy(EventShiftStation::NAME);
+    }
+
+    public function usesStations(): bool
+    {
+        if (!$this->relationLoaded('event_shift_stations'))
+        {
+            return $this->event_shift_stations()->exists();
+        }
+
+        return $this->event_shift_stations->isNotEmpty();
+    }
+
+    /**
+     * A station choice is valid when the shift has no stations, or the given
+     * id belongs to one of this shift's stations.
+     */
+    public function isValidStationChoice(?int $event_shift_station_id): bool
+    {
+        if (!$this->usesStations())
+        {
+            return true;
+        }
+
+        return $event_shift_station_id !== null
+            && $this->event_shift_stations->contains(EventShiftStation::ID, $event_shift_station_id);
+    }
+
+    public function stationMaxed(int $event_shift_station_id, ?int $excluding_event_trooper_id = null, bool $lock = false): bool
+    {
+        if ($lock)
+        {
+            $station = $this->event_shift_stations()->lockForUpdate()->find($event_shift_station_id);
+        }
+        else
+        {
+            $station = $this->event_shift_stations->firstWhere(EventShiftStation::ID, $event_shift_station_id)
+                ?? $this->event_shift_stations()->find($event_shift_station_id);
+        }
+
+        if ($station === null)
+        {
+            return true;
+        }
+
+        return !$station->hasRoom($excluding_event_trooper_id, $lock);
     }
 
     /**
@@ -200,7 +253,7 @@ class EventShift extends BaseEventShift
      *
      * @return bool True if the number of signed up troopers meets or exceeds the allowed limit
      */
-    public function troopersMaxed(): bool
+    public function troopersMaxed(bool $lock = false): bool
     {
         $troopers_allowed = $this->event->troopers_allowed;
 
@@ -209,7 +262,14 @@ class EventShift extends BaseEventShift
             return false;
         }
 
-        $troopers_signed_up = $this->event_troopers()->troopers()->count();
+        $query = $this->event_troopers()->troopers();
+
+        if ($lock)
+        {
+            $query->lockForUpdate();
+        }
+
+        $troopers_signed_up = $query->count();
 
         return $troopers_signed_up >= $troopers_allowed;
     }
@@ -221,7 +281,7 @@ class EventShift extends BaseEventShift
      * @param bool $is_handler Whether to check handler slots instead of trooper slots
      * @return bool True if the org's count meets or exceeds its allowed limit
      */
-    public function orgTroopersMaxed(int $organization_id, bool $is_handler = false): bool
+    public function orgTroopersMaxed(int $organization_id, bool $is_handler = false, bool $lock = false): bool
     {
         $event_org = $this->event->event_organizations
             ->firstWhere(EventOrganization::ORGANIZATION_ID, $organization_id);
@@ -238,7 +298,7 @@ class EventShift extends BaseEventShift
             return false;
         }
 
-        $count = $this->event_troopers()
+        $query = $this->event_troopers()
             ->where(EventTrooper::IS_HANDLER, $is_handler)
             ->where(EventTrooper::STATUS, EventTrooperStatus::GOING)
             ->where(function ($q) use ($organization_id)
@@ -249,8 +309,14 @@ class EventShift extends BaseEventShift
                         $q2->whereNull(EventTrooper::ORGANIZATION_ID)
                             ->whereJsonContains(EventTrooper::COSTUME_ORGANIZATION_IDS, $organization_id);
                     });
-            })
-            ->count();
+            });
+
+        if ($lock)
+        {
+            $query->lockForUpdate();
+        }
+
+        $count = $query->count();
 
         return $count >= $limit;
     }
@@ -260,7 +326,7 @@ class EventShift extends BaseEventShift
      *
      * @return bool True if the number of signed up handlers meets or exceeds the allowed limit
      */
-    public function handlersMaxed(): bool
+    public function handlersMaxed(bool $lock = false): bool
     {
         $handlers_allowed = $this->event->handlers_allowed;
 
@@ -269,7 +335,14 @@ class EventShift extends BaseEventShift
             return false;
         }
 
-        $handlers_signed_up = $this->event_troopers()->handlers()->count();
+        $query = $this->event_troopers()->handlers();
+
+        if ($lock)
+        {
+            $query->lockForUpdate();
+        }
+
+        $handlers_signed_up = $query->count();
 
         return $handlers_signed_up >= $handlers_allowed;
     }
@@ -313,14 +386,19 @@ class EventShift extends BaseEventShift
      * exceeded the maximum number of shifts they can attend for this event.
      *
      * @param Trooper $trooper The trooper attempting to sign up
+     * @param bool $require_own_mission_brief_ack Whether $trooper must have personally
+     *   acknowledged the mission brief. Set to false when a friend is being added by
+     *   someone who has already acknowledged it on the event.
      * @return bool True if the trooper can sign up
      */
-    public function canSignUp(Trooper $trooper): bool
+    public function canSignUp(Trooper $trooper, bool $require_own_mission_brief_ack = true): bool
     {
         if ($this->is_open)
         {
             // Require mission brief acknowledgement when configured on the event
-            if ($this->event->require_mission_brief_ack && !$this->event->hasMissionBriefAcknowledgementFor($trooper))
+            if ($require_own_mission_brief_ack
+                && $this->event->require_mission_brief_ack
+                && !$this->event->hasMissionBriefAcknowledgementFor($trooper))
             {
                 return false;
             }

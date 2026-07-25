@@ -183,14 +183,18 @@ class SignupUpdateHtmxRequestTest extends TestCase
         $this->assertContains('nullable', $rules[EventTrooper::BACKUP_COSTUME_ID]);
     }
 
-    public function test_rules_validates_costume_id_is_integer(): void
+    public function test_rules_accepts_none_sentinel_for_attending_without_costume(): void
     {
         $subject = new SignupUpdateHtmxRequest;
         $subject->setUserResolver(fn() => $this->trooper);
         $this->setupMockedRoute($subject, $this->event_trooper);
-        $rules = $subject->rules();
 
-        $this->assertContains('int', $rules[EventTrooper::COSTUME_ID]);
+        $validator = \Illuminate\Support\Facades\Validator::make(
+            [EventTrooper::COSTUME_ID => 'none'],
+            $subject->rules()
+        );
+
+        $this->assertFalse($validator->errors()->has(EventTrooper::COSTUME_ID));
     }
 
     public function test_rules_restricts_costumes_to_allowed_organizations(): void

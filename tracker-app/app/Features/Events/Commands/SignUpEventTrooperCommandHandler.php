@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Features\Events\Commands;
 
+use App\Bus\Concerns\ShouldBeTransactional;
 use App\Bus\Contracts\CommandHandlerInterface;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
@@ -14,6 +15,7 @@ use App\Jobs\SendEventRosterActivityNotificationsJob;
 use App\Models\Costume;
 use App\Models\EventTrooper;
 use App\Notifications\Events\TrooperSignedUpNotification;
+use App\Services\EventRosterCapacityService;
 
 /**
  * Handler for signing up a trooper for an event shift.
@@ -25,16 +27,23 @@ use App\Notifications\Events\TrooperSignedUpNotification;
  */
 readonly class SignUpEventTrooperCommandHandler implements CommandHandlerInterface
 {
+    use ShouldBeTransactional;
+
+    public function __construct(private EventRosterCapacityService $capacity) {}
+
     /**
      * @param  SignUpEventTrooperCommand  $message
      */
     public function __invoke(object $message): mixed
     {
+        $message->event_shift->loadMissing('event_shift_stations');
+
         $event_trooper = new EventTrooper;
 
         $costume = $message->costume_id !== null ? Costume::find($message->costume_id) : null;
 
         $event_trooper->event_shift_id = $message->event_shift->id;
+        $event_trooper->event_shift_station_id = $message->event_shift_station_id;
         $event_trooper->trooper_id = $message->trooper->id;
         $event_trooper->organization_id = $message->organization_id;
         $event_trooper->is_handler = $costume !== null ? $costume->countsAsHandler() : $message->is_handler;
@@ -47,30 +56,21 @@ readonly class SignUpEventTrooperCommandHandler implements CommandHandlerInterfa
             $status = EventTrooperStatus::STAND_BY;
         }
 
-        if ($status !== EventTrooperStatus::STAND_BY && $event_trooper->is_handler)
+        if ($status !== EventTrooperStatus::STAND_BY)
         {
-            if ($message->event_shift->handlersMaxed())
-            {
-                $status = EventTrooperStatus::STAND_BY;
-            }
-            elseif ($message->organization_id !== null && $message->event_shift->orgTroopersMaxed($message->organization_id, true))
-            {
-                $status = EventTrooperStatus::STAND_BY;
-            }
-        }
-        elseif ($status !== EventTrooperStatus::STAND_BY)
-        {
-            if ($message->event_shift->troopersMaxed())
-            {
-                $status = EventTrooperStatus::STAND_BY;
-            }
-            elseif ($message->organization_id !== null && $message->event_shift->orgTroopersMaxed($message->organization_id, false))
-            {
-                $status = EventTrooperStatus::STAND_BY;
-            }
-        }
+            $can_go = $this->capacity->canGo(
+                $message->event_shift,
+                $message->organization_id,
+                $message->event_shift_station_id,
+                $event_trooper->is_handler,
+                lock: true,
+            );
 
-        $event_trooper->status = $status;
+            if (!$can_go)
+            {
+                $status = EventTrooperStatus::STAND_BY;
+            }
+        }
 
         if ($costume !== null)
         {
@@ -78,6 +78,13 @@ readonly class SignUpEventTrooperCommandHandler implements CommandHandlerInterfa
             $org_ids = $costume->approvedOrgIdsForTrooper($message->trooper->id);
             $event_trooper->costume_organization_ids = !empty($org_ids) ? $org_ids : null;
         }
+
+        if ($status === EventTrooperStatus::GOING && $event_trooper->needsCostumeBeforeGoing())
+        {
+            $status = EventTrooperStatus::PENDING;
+        }
+
+        $event_trooper->status = $status;
 
         $event_trooper->save();
 
