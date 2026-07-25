@@ -61,7 +61,7 @@ When a station is selected, `EventRosterCapacityService::canGo()` decides the st
 2. The event-wide trooper or handler limit (`null` = unlimited).
 3. The organization limit, when an organization applies (`null` = unlimited).
 
-If any of those limits is full, the signup becomes `STAND_BY`.
+If any of those limits is full, the signup becomes `STAND_BY`. A non-handler signup that clears all capacity limits still lands on `PENDING`, not `GOING`, until it has a costume decision — see [Costume Decision Requirement](EVENTS.md#costume-decision-requirement) in `docs/EVENTS.md`.
 
 While a shift is open, signup owners can switch their own station from the event page. The switch is handled by `ChangeEventTrooperStationCommand`: moving into a full station demotes a `GOING` signup to `STAND_BY`, and vacating a full station promotes the earliest standby from that station's queue. Admins can also edit station assignments from the admin roster backend.
 

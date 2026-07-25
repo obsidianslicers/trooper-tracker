@@ -57,6 +57,7 @@ The actual status assigned after a successful submit is decided by `SignUpEventT
 2. Handler signups fall back to stand-by when handler capacity is full.
 3. Non-handler signups fall back to stand-by when trooper capacity is full.
 4. If an organization is selected, organization capacity can also force stand-by.
+5. A non-handler signup that hasn't decided on a costume (no costume picked, and "attending without a costume" not selected) is downgraded from GOING to PENDING, even when capacity has room. See [Costume Decision Requirement](EVENTS.md#costume-decision-requirement) in `docs/EVENTS.md`.
 
 ## Signing Up Another Trooper
 

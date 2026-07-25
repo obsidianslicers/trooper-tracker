@@ -167,6 +167,21 @@ class EventTrooper extends BaseEventTrooper
     }
 
     /**
+     * Determines whether this assignment still needs a costume decision before
+     * it can hold a GOING spot.
+     *
+     * Handlers never need a costume. Everyone else must either pick a real
+     * costume or explicitly mark themselves as attending without one — leaving
+     * both undecided is what keeps an assignment in PENDING.
+     *
+     * @return bool True when a costume decision is still required.
+     */
+    public function needsCostumeBeforeGoing(): bool
+    {
+        return !$this->is_handler && $this->costume_id === null && !$this->is_attending_without_costume;
+    }
+
+    /**
      * Determines whether attendance can be marked for this assignment.
      *
      * Attendance can be marked only when the shift is closed, the event allows

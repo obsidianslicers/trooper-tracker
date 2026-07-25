@@ -23,6 +23,10 @@ class EventTrooperFactory extends BaseEventTrooperFactory
     {
         return array_merge(parent::definition(), [
             EventTrooper::STATUS => EventTrooperStatus::NONE,
+            EventTrooper::ATTENDING_WITHOUT_COSTUME => false,
+            // A random unrelated station (mismatched with the event_shift set via
+            // forEventShift()) is never meaningful; tests opt in via forEventShiftStation().
+            EventTrooper::EVENT_SHIFT_STATION_ID => null,
         ]);
     }
 

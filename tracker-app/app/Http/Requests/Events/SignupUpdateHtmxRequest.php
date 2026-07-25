@@ -126,8 +126,7 @@ class SignupUpdateHtmxRequest extends FormRequest
             ],
             EventTrooper::COSTUME_ID => [
                 'nullable',
-                'int',
-                Rule::in($valid_costume_ids),
+                Rule::in(array_merge($valid_costume_ids, ['none'])),
             ],
             EventTrooper::BACKUP_COSTUME_ID => [
                 'nullable',

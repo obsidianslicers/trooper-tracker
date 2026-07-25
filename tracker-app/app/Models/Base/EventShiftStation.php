@@ -17,7 +17,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Class EventShiftStation
- *
+ * 
  * @property int $id
  * @property int $event_shift_id
  * @property string $name
@@ -29,7 +29,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $created_id
  * @property int|null $updated_id
  * @property int|null $deleted_id
- *
+ * 
  * @property EventShift $event_shift
  * @property Collection|EventTrooper[] $event_troopers
  *
@@ -38,7 +38,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class EventShiftStation extends Model
 {
     use SoftDeletes;
-
     const ID = 'id';
     const EVENT_SHIFT_ID = 'event_shift_id';
     const NAME = 'name';
@@ -50,7 +49,6 @@ class EventShiftStation extends Model
     const CREATED_ID = 'created_id';
     const UPDATED_ID = 'updated_id';
     const DELETED_ID = 'deleted_id';
-
     protected $table = 'tt_event_shift_stations';
 
     protected $casts = [
@@ -62,14 +60,14 @@ class EventShiftStation extends Model
         self::UPDATED_AT => 'datetime',
         self::CREATED_ID => 'int',
         self::UPDATED_ID => 'int',
-        self::DELETED_ID => 'int',
+        self::DELETED_ID => 'int'
     ];
 
     protected $fillable = [
         self::EVENT_SHIFT_ID,
         self::NAME,
         self::TROOPERS_ALLOWED,
-        self::SEQUENCE,
+        self::SEQUENCE
     ];
 
     public function event_shift(): BelongsTo

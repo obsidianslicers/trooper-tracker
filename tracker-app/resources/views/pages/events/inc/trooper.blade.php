@@ -60,9 +60,12 @@
                     Trooping as {{ $eligible_orgs_for_change->first()->name }}
                 </div>
             @endif
+            @php
+                $costume_options = ['none' => 'Attending without a costume'] + $event_trooper->costumes;
+            @endphp
             <x-input-select :property="'costume_id'"
-                            :options="$event_trooper->costumes"
-                            :value="$event_trooper->costume_id"
+                            :options="$costume_options"
+                            :value="$event_trooper->is_attending_without_costume ? 'none' : $event_trooper->costume_id"
                             :placeholder="'-- Select Costume --'"
                             hx-post="{{ route('events.signup-update-htmx', compact('event_trooper')) }}"
                             hx-indicator="#transmission-bar-shift-{{ $event_trooper->event_shift->id }}"
@@ -151,7 +154,7 @@
                         </form>
                     @endif
                 </div>
-            @elseif($event_shift->is_open && $event_trooper->canUpdateStatus(Auth::user()))
+            @elseif($event_shift->is_open && $event_trooper->status !== \App\Enums\EventTrooperStatus::PENDING && $event_trooper->canUpdateStatus(Auth::user()))
                 <x-input-select :property="'status'"
                                 :options="\App\Enums\EventTrooperStatus::toSignUpArray($event->tentative_signups_allowed, $event->hasLimits())"
                                 :value="$event_trooper->status->value"
@@ -220,6 +223,12 @@
                         {!! $event_trooper->status->iconTag() !!}
                     </span>
                 </span>
+                @if($event_trooper->status === \App\Enums\EventTrooperStatus::PENDING)
+                    <br />
+                    <i class="small text-muted">
+                        Select a costume, or mark attending without one, to confirm your spot.
+                    </i>
+                @endif
             @endif
 
             @if(

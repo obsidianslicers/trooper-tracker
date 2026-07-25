@@ -839,6 +839,7 @@ Purpose: Trooper signups per event shift.
 | trooper_id | bigint unsigned | no | FK -> tt_troopers.id, cascadeOnDelete |
 | organization_id | bigint unsigned | yes | FK -> tt_organizations.id, nullOnDelete |
 | costume_id | bigint unsigned | yes | FK -> tt_costumes.id, cascadeOnDelete |
+| attending_without_costume | boolean | no | default false |
 | costume_organization_ids | json | yes |  |
 | backup_costume_id | bigint unsigned | yes | FK -> tt_costumes.id, cascadeOnDelete |
 | backup_costume_organization_ids | json | yes |  |

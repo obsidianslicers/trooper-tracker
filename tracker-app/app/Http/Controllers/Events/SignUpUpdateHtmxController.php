@@ -20,6 +20,7 @@ use App\Models\EventTrooper;
 use App\Models\Trooper;
 use App\Notifications\Events\ManualSelectionApprovedNotification;
 use App\Notifications\Events\ManualSelectionStandByNotification;
+use App\Services\EventRosterCapacityService;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -29,8 +30,11 @@ use Illuminate\Validation\ValidationException;
  */
 class SignUpUpdateHtmxController extends MagicBusController
 {
-    public function __invoke(SignupUpdateHtmxRequest $request, EventTrooper $event_trooper): Response
-    {
+    public function __invoke(
+        SignupUpdateHtmxRequest $request,
+        EventTrooper $event_trooper,
+        EventRosterCapacityService $capacity,
+    ): Response {
         try
         {
             $request->validateInputs();
@@ -85,6 +89,11 @@ class SignUpUpdateHtmxController extends MagicBusController
             if (!$event_trooper->canUpdateStatus($authTrooper) && !$isManualApproval && !$isManualRejection && !$isCancelFromStandBy)
             {
                 return response('Forbidden', 403);
+            }
+
+            if ($requestedStatus === EventTrooperStatus::GOING && $event_trooper->needsCostumeBeforeGoing())
+            {
+                $requestedStatus = EventTrooperStatus::PENDING;
             }
 
             $previous_status = $event_trooper->status;
@@ -218,6 +227,11 @@ class SignUpUpdateHtmxController extends MagicBusController
                 ? EventTrooperStatus::STAND_BY
                 : EventTrooperStatus::GOING;
 
+            if ($new_status === EventTrooperStatus::GOING && $event_trooper->needsCostumeBeforeGoing())
+            {
+                $new_status = EventTrooperStatus::PENDING;
+            }
+
             $valid_data = [
                 EventTrooper::STATUS => $new_status,
                 EventTrooper::SIGNED_UP_AT => now(),
@@ -231,8 +245,19 @@ class SignUpUpdateHtmxController extends MagicBusController
         }
         elseif ($request->has('costume_id'))
         {
-            $costume_id = $request->validated('costume_id');
+            $auth_trooper = Auth::user();
+
+            if (!$event_trooper->canUpdateCostume($auth_trooper))
+            {
+                return response('Forbidden', 403);
+            }
+
+            $raw_costume_id = $request->validated('costume_id');
+            $attending_without_costume = $raw_costume_id === 'none';
+            $costume_id = ($raw_costume_id !== null && !$attending_without_costume) ? (int) $raw_costume_id : null;
+
             $previous_is_handler = $event_trooper->is_handler;
+            $previous_status = $event_trooper->status;
             $was_going = $event_trooper->intendsToGo();
             $event_shift = $event_trooper->event_shift;
             $effective_org_id = $event_trooper->organization_id
@@ -253,11 +278,14 @@ class SignUpUpdateHtmxController extends MagicBusController
                 ? $costume->approvedOrgIdsForTrooper($event_trooper->trooper_id)
                 : null;
 
-            $this->bus->send(new UpdateEventTrooperCommand($event_trooper, [
+            $valid_data = [
                 EventTrooper::COSTUME_ID => $costume_id,
                 EventTrooper::IS_HANDLER => $is_handler,
                 EventTrooper::COSTUME_ORGANIZATION_IDS => !empty($org_ids) ? $org_ids : null,
-            ]));
+                EventTrooper::ATTENDING_WITHOUT_COSTUME => $attending_without_costume,
+            ];
+
+            $this->bus->send(new UpdateEventTrooperCommand($event_trooper, $valid_data));
 
             if ($handler_changed && $was_going)
             {
@@ -278,7 +306,9 @@ class SignUpUpdateHtmxController extends MagicBusController
                 }
             }
 
-            return $this->shiftContainerView($event_shift, Auth::user());
+            $this->resolveCostumeDecision($event_trooper, $previous_status, $capacity);
+
+            return $this->shiftContainerView($event_shift, $auth_trooper);
         }
         elseif ($request->has('backup_costume_id'))
         {
@@ -291,6 +321,46 @@ class SignUpUpdateHtmxController extends MagicBusController
         }
 
         return response('ok', 200);
+    }
+
+    /**
+     * Reconciles GOING status against the costume decision after a costume
+     * or "attending without costume" change.
+     *
+     * Promotes a PENDING trooper who just made their decision into GOING (or
+     * STAND_BY if capacity is gone), and demotes a GOING trooper who lost
+     * their decision (e.g. cleared their costume) back to PENDING.
+     */
+    private function resolveCostumeDecision(
+        EventTrooper $event_trooper,
+        EventTrooperStatus $previous_status,
+        EventRosterCapacityService $capacity,
+    ): void {
+        $event_shift = $event_trooper->event_shift;
+
+        if ($previous_status === EventTrooperStatus::PENDING && !$event_trooper->needsCostumeBeforeGoing())
+        {
+            $effective_org_id = $event_trooper->organization_id
+                ?? $event_trooper->effectiveOrgId($event_shift->event);
+
+            $can_go = $capacity->canGo(
+                $event_shift,
+                $effective_org_id,
+                $event_trooper->event_shift_station_id,
+                $event_trooper->is_handler,
+            );
+
+            $event_trooper->status = $can_go ? EventTrooperStatus::GOING : EventTrooperStatus::STAND_BY;
+            $event_trooper->save();
+
+            return;
+        }
+
+        if ($previous_status === EventTrooperStatus::GOING && $event_trooper->needsCostumeBeforeGoing())
+        {
+            $event_trooper->status = EventTrooperStatus::PENDING;
+            $event_trooper->save();
+        }
     }
 
     /**

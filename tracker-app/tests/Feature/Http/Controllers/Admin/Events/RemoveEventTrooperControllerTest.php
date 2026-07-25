@@ -79,6 +79,7 @@ class RemoveEventTrooperControllerTest extends TestCase
                 EventTrooper::IS_HANDLER => false,
                 EventTrooper::COSTUME_ID => null,
                 EventTrooper::BACKUP_COSTUME_ID => null,
+                EventTrooper::ATTENDING_WITHOUT_COSTUME => true,
             ]);
 
         $this->actingAs($admin)->post(

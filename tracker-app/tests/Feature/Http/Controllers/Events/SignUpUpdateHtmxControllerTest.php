@@ -469,4 +469,235 @@ class SignUpUpdateHtmxControllerTest extends TestCase
             EventTrooper::STATUS => EventTrooperStatus::STAND_BY->value,
         ]);
     }
+
+    public function test_invoke_status_update_to_going_without_costume_becomes_pending(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $organization = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();
+
+        $event = Event::factory()->withOrganization($organization)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->asTentative()
+            ->state([
+                EventTrooper::IS_HANDLER => false,
+                EventTrooper::COSTUME_ID => null,
+                EventTrooper::EVENT_SHIFT_STATION_ID => null,
+            ])
+            ->create();
+
+        $response = $this->actingAs($trooper)->post(
+            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            ['status' => EventTrooperStatus::GOING->value]
+        );
+
+        $response->assertOk();
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::ID => $event_trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::PENDING->value,
+        ]);
+    }
+
+    public function test_invoke_resign_up_without_costume_becomes_pending(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $organization = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();
+
+        $event = Event::factory()->withOrganization($organization)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->state([
+                EventTrooper::STATUS => EventTrooperStatus::CANCELLED,
+                EventTrooper::IS_HANDLER => false,
+                EventTrooper::COSTUME_ID => null,
+                EventTrooper::EVENT_SHIFT_STATION_ID => null,
+                EventTrooper::ORGANIZATION_ID => null,
+            ])
+            ->create();
+
+        $response = $this->actingAs($trooper)->post(
+            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            ['resign_up' => 1]
+        );
+
+        $response->assertOk();
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::ID => $event_trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::PENDING->value,
+        ]);
+    }
+
+    public function test_invoke_costume_update_promotes_pending_trooper_to_going(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $organization = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();
+
+        $event = Event::factory()->withOrganization($organization)->create();
+        EventOrganization::factory()
+            ->state([
+                EventOrganization::EVENT_ID => $event->id,
+                EventOrganization::ORGANIZATION_ID => $organization->id,
+                EventOrganization::CAN_ATTEND => true,
+                EventOrganization::TROOPERS_ALLOWED => null,
+            ])
+            ->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        $costume = Costume::factory()->create();
+        $oc = OrganizationCostume::factory()
+            ->state([OrganizationCostume::ORGANIZATION_ID => $organization->id, OrganizationCostume::COSTUME_ID => $costume->id])
+            ->create();
+        TrooperCostume::factory()
+            ->state([TrooperCostume::TROOPER_ID => $trooper->id, TrooperCostume::ORGANIZATION_COSTUME_ID => $oc->id])
+            ->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->state([
+                EventTrooper::STATUS => EventTrooperStatus::PENDING,
+                EventTrooper::IS_HANDLER => false,
+                EventTrooper::COSTUME_ID => null,
+                EventTrooper::ORGANIZATION_ID => $organization->id,
+            ])
+            ->create();
+
+        $response = $this->actingAs($trooper)->post(
+            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            ['costume_id' => $costume->id]
+        );
+
+        $response->assertOk();
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::ID => $event_trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::GOING->value,
+            EventTrooper::COSTUME_ID => $costume->id,
+        ]);
+    }
+
+    public function test_invoke_costume_update_promotes_pending_trooper_to_standby_when_full(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $organization = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();
+
+        $event = Event::factory()
+            ->withOrganization($organization)
+            ->state([Event::TROOPERS_ALLOWED => 1])
+            ->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        // Fill the trooper pool
+        EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->asGoing()
+            ->state([EventTrooper::IS_HANDLER => false])
+            ->create();
+
+        $costume = Costume::factory()->create();
+        $oc = OrganizationCostume::factory()
+            ->state([OrganizationCostume::ORGANIZATION_ID => $organization->id, OrganizationCostume::COSTUME_ID => $costume->id])
+            ->create();
+        TrooperCostume::factory()
+            ->state([TrooperCostume::TROOPER_ID => $trooper->id, TrooperCostume::ORGANIZATION_COSTUME_ID => $oc->id])
+            ->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->state([
+                EventTrooper::STATUS => EventTrooperStatus::PENDING,
+                EventTrooper::IS_HANDLER => false,
+                EventTrooper::COSTUME_ID => null,
+                EventTrooper::ORGANIZATION_ID => $organization->id,
+            ])
+            ->create();
+
+        $response = $this->actingAs($trooper)->post(
+            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            ['costume_id' => $costume->id]
+        );
+
+        $response->assertOk();
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::ID => $event_trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::STAND_BY->value,
+            EventTrooper::COSTUME_ID => $costume->id,
+        ]);
+    }
+
+    public function test_invoke_attending_without_costume_promotes_pending_trooper_to_going(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $organization = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();
+
+        $event = Event::factory()->withOrganization($organization)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->state([
+                EventTrooper::STATUS => EventTrooperStatus::PENDING,
+                EventTrooper::IS_HANDLER => false,
+                EventTrooper::COSTUME_ID => null,
+            ])
+            ->create();
+
+        $response = $this->actingAs($trooper)->post(
+            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            ['costume_id' => 'none']
+        );
+
+        $response->assertOk();
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::ID => $event_trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::GOING->value,
+            EventTrooper::ATTENDING_WITHOUT_COSTUME => true,
+            EventTrooper::COSTUME_ID => null,
+        ]);
+    }
+
+    public function test_invoke_clearing_attending_without_costume_demotes_going_trooper_to_pending(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $organization = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->asMember()->create();
+
+        $event = Event::factory()->withOrganization($organization)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->asGoing()
+            ->state([
+                EventTrooper::IS_HANDLER => false,
+                EventTrooper::ATTENDING_WITHOUT_COSTUME => true,
+                EventTrooper::COSTUME_ID => null,
+            ])
+            ->create();
+
+        $response = $this->actingAs($trooper)->post(
+            route('events.signup-update-htmx', ['event_trooper' => $event_trooper->id]),
+            ['costume_id' => '']
+        );
+
+        $response->assertOk();
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::ID => $event_trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::PENDING->value,
+            EventTrooper::ATTENDING_WITHOUT_COSTUME => false,
+        ]);
+    }
 }

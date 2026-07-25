@@ -7,6 +7,7 @@ namespace Tests\Unit\Features\Events\Commands;
 use App\Enums\EventTrooperStatus;
 use App\Features\Events\Commands\SignUpEventTrooperCommand;
 use App\Features\Events\Commands\SignUpEventTrooperCommandHandler;
+use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventOrganization;
 use App\Models\EventShift;
@@ -39,12 +40,15 @@ class SignUpEventTrooperCombinedLimitTest extends TestCase
     private EventShiftStation $target_station;
     private EventShiftStation $other_station;
     private EventOrganization $event_org;
+    private Costume $costume;
 
     protected function setUp(): void
     {
         parent::setUp();
 
         Notification::fake();
+
+        $this->costume = Costume::factory()->create();
 
         $this->org = Organization::factory()->create();
         $this->other_org = Organization::factory()->create();
@@ -92,6 +96,7 @@ class SignUpEventTrooperCombinedLimitTest extends TestCase
             added_by_trooper: $trooper,
             organization_id: $this->org->id,
             event_shift_station_id: $station->id,
+            costume_id: $this->costume->id,
         ));
     }
 

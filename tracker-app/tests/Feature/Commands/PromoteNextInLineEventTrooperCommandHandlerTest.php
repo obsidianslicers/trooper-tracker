@@ -63,11 +63,15 @@ class PromoteNextInLineEventTrooperCommandHandlerTest extends TestCase
             ->forTrooper($trooper)
             ->withSignedUpAt($signed_up_at)
             ->create([
-                EventTrooper::STATUS            => $status,
-                EventTrooper::ORGANIZATION_ID   => $org_id,
-                EventTrooper::IS_HANDLER        => false,
-                EventTrooper::COSTUME_ID        => null,
-                EventTrooper::BACKUP_COSTUME_ID => null,
+                EventTrooper::STATUS                     => $status,
+                EventTrooper::ORGANIZATION_ID            => $org_id,
+                EventTrooper::IS_HANDLER                 => false,
+                EventTrooper::COSTUME_ID                 => null,
+                EventTrooper::BACKUP_COSTUME_ID          => null,
+                // These tests are about pool/ordering selection, not the costume
+                // gate — mark the costume decision as already made so a candidate
+                // isn't skipped by needsCostumeBeforeGoing().
+                EventTrooper::ATTENDING_WITHOUT_COSTUME  => true,
             ]);
     }
 
@@ -169,6 +173,32 @@ class PromoteNextInLineEventTrooperCommandHandlerTest extends TestCase
         $this->assertSame(EventTrooperStatus::STAND_BY, $other_station_standby->fresh()->status);
 
         Notification::assertSentTo($same_station_standby->trooper, TrooperPromotedToGoingNotification::class);
+    }
+
+    public function test_skips_standby_candidate_who_has_not_decided_on_a_costume(): void
+    {
+        $going = $this->makeTrooper(EventTrooperStatus::GOING, now()->subMinutes(3), $this->org->id);
+
+        $undecided = EventTrooper::factory()
+            ->forEventShift($this->shift)
+            ->forTrooper(Trooper::factory()->create())
+            ->withSignedUpAt(now()->subMinutes(2))
+            ->create([
+                EventTrooper::STATUS => EventTrooperStatus::STAND_BY,
+                EventTrooper::ORGANIZATION_ID => $this->org->id,
+                EventTrooper::IS_HANDLER => false,
+                EventTrooper::COSTUME_ID => null,
+                EventTrooper::ATTENDING_WITHOUT_COSTUME => false,
+            ]);
+
+        $decided = $this->makeTrooper(EventTrooperStatus::STAND_BY, now()->subMinute(), $this->org->id);
+
+        ($this->handler)(new PromoteNextInLineEventTrooperCommand($going, false, $this->org->id));
+
+        $this->assertSame(EventTrooperStatus::STAND_BY, $undecided->fresh()->status);
+        $this->assertSame(EventTrooperStatus::GOING, $decided->fresh()->status);
+
+        Notification::assertSentTo($decided->trooper, TrooperPromotedToGoingNotification::class);
     }
 
     public function test_promotes_via_costume_org_ids_when_organization_id_is_null(): void

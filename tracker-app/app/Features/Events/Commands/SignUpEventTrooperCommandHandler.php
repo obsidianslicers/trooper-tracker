@@ -72,14 +72,19 @@ readonly class SignUpEventTrooperCommandHandler implements CommandHandlerInterfa
             }
         }
 
-        $event_trooper->status = $status;
-
         if ($costume !== null)
         {
             $event_trooper->costume_id = $costume->id;
             $org_ids = $costume->approvedOrgIdsForTrooper($message->trooper->id);
             $event_trooper->costume_organization_ids = !empty($org_ids) ? $org_ids : null;
         }
+
+        if ($status === EventTrooperStatus::GOING && $event_trooper->needsCostumeBeforeGoing())
+        {
+            $status = EventTrooperStatus::PENDING;
+        }
+
+        $event_trooper->status = $status;
 
         $event_trooper->save();
 

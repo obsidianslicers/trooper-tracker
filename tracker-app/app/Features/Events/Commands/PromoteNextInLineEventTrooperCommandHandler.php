@@ -95,6 +95,11 @@ readonly class PromoteNextInLineEventTrooperCommandHandler implements CommandHan
     private function firstEligible(EventShift $event_shift, Collection $candidates): ?EventTrooper
     {
         return $candidates->first(function (EventTrooper $candidate) use ($event_shift) {
+            if ($candidate->needsCostumeBeforeGoing())
+            {
+                return false;
+            }
+
             $candidate_org_id = $candidate->organization_id
                 ?? $candidate->effectiveOrgId($event_shift->event);
 

@@ -32,7 +32,7 @@ class SignUpEventTrooperCommandHandlerTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_invoke_creates_event_trooper_with_going_status(): void
+    public function test_invoke_creates_event_trooper_with_pending_status_when_no_costume_decision(): void
     {
         Notification::fake();
 
@@ -52,11 +52,36 @@ class SignUpEventTrooperCommandHandlerTest extends TestCase
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::EVENT_SHIFT_ID => $event_shift->id,
             EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::STATUS => EventTrooperStatus::PENDING->value,
+        ]);
+    }
+
+    public function test_invoke_creates_event_trooper_with_going_status_when_handler(): void
+    {
+        Notification::fake();
+
+        $event_shift = EventShift::factory()->create();
+        $trooper = Trooper::factory()->create();
+
+        $command = new SignUpEventTrooperCommand(
+            event_shift: $event_shift,
+            trooper: $trooper,
+            added_by_trooper: $trooper,
+            is_handler: true,
+        );
+        $handler = app(SignUpEventTrooperCommandHandler::class);
+
+        $handler($command);
+
+        $this->assertDatabaseHas('tt_event_troopers', [
+            EventTrooper::EVENT_SHIFT_ID => $event_shift->id,
+            EventTrooper::TROOPER_ID => $trooper->id,
+            EventTrooper::IS_HANDLER => true,
             EventTrooper::STATUS => EventTrooperStatus::GOING->value,
         ]);
     }
 
-    public function test_invoke_saves_station_and_assigns_going_when_station_has_room(): void
+    public function test_invoke_saves_station_and_assigns_pending_when_station_has_room_but_no_costume(): void
     {
         Notification::fake();
 
@@ -77,7 +102,7 @@ class SignUpEventTrooperCommandHandlerTest extends TestCase
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::TROOPER_ID => $trooper->id,
             EventTrooper::EVENT_SHIFT_STATION_ID => $station->id,
-            EventTrooper::STATUS => EventTrooperStatus::GOING->value,
+            EventTrooper::STATUS => EventTrooperStatus::PENDING->value,
         ]);
     }
 
@@ -465,7 +490,7 @@ class SignUpEventTrooperCommandHandlerTest extends TestCase
         ]);
     }
 
-    public function test_invoke_assigns_going_when_org_limit_not_reached(): void
+    public function test_invoke_assigns_pending_when_org_limit_not_reached_but_no_costume(): void
     {
         Mail::fake();
 
@@ -500,7 +525,7 @@ class SignUpEventTrooperCommandHandlerTest extends TestCase
 
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::TROOPER_ID => $trooper->id,
-            EventTrooper::STATUS => EventTrooperStatus::GOING->value,
+            EventTrooper::STATUS => EventTrooperStatus::PENDING->value,
         ]);
     }
 
@@ -539,7 +564,7 @@ class SignUpEventTrooperCommandHandlerTest extends TestCase
 
         $this->assertDatabaseHas('tt_event_troopers', [
             EventTrooper::TROOPER_ID => $trooper->id,
-            EventTrooper::STATUS => EventTrooperStatus::GOING->value,
+            EventTrooper::STATUS => EventTrooperStatus::PENDING->value,
         ]);
     }
 

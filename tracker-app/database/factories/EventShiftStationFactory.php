@@ -10,6 +10,19 @@ use Database\Factories\Base\EventShiftStationFactory as BaseEventShiftStationFac
 
 class EventShiftStationFactory extends BaseEventShiftStationFactory
 {
+    /**
+     * Define the model's default state.
+     *
+     * @return array<string, mixed>
+     */
+    public function definition(): array
+    {
+        return array_merge(parent::definition(), [
+            EventShiftStation::TROOPERS_ALLOWED => $this->faker->numberBetween(1, 10),
+            EventShiftStation::SEQUENCE => $this->faker->numberBetween(1, 10),
+        ]);
+    }
+
     public function forEventShift(EventShift $event_shift): static
     {
         return $this->state(fn (array $attributes): array => [
