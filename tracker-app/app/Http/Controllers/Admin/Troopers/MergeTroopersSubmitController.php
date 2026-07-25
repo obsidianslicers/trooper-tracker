@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Admin\Troopers;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Troopers\MergeTroopersRequest;
-use App\Messages\Troopers\Commands\Merge\MergeTroopers;
+use App\Jobs\MergeTroopersJob;
 use App\Models\Trooper;
 use App\Services\FlashMessageService;
 use Inertia\Inertia;
@@ -35,15 +35,10 @@ class MergeTroopersSubmitController extends Controller
      */
     public function __invoke(MergeTroopersRequest $request): InertiaResponse|SymfonyResponse
     {
-        $dispatch = function () use ($request)
-        {
-            MergeTroopers::call(
-                source_trooper: Trooper::findorfail($request->validated('source_trooper_id')),
-                target_trooper: Trooper::findorfail($request->validated('target_trooper_id'))
-            );
-        };
+        $source_trooper = Trooper::findorfail($request->validated('source_trooper_id'));
+        $target_trooper = Trooper::findorfail($request->validated('target_trooper_id'));
 
-        dispatch($dispatch)->afterResponse();
+        dispatch(new MergeTroopersJob($source_trooper, $target_trooper));
 
         $this->flash->success('Troopers are currently being merged.');
 

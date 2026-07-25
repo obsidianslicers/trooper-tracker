@@ -43,6 +43,7 @@ class MergeTroopersRequest extends FormRequest
             ],
             'target_trooper_id' => [
                 'required',
+                'different:source_trooper_id',
                 Rule::exists(Trooper::class, Trooper::ID)
                     ->where(Trooper::MEMBERSHIP_STATUS, MembershipStatus::ACTIVE),
             ],
@@ -58,6 +59,7 @@ class MergeTroopersRequest extends FormRequest
             'source_trooper_id.required' => 'Source trooper is required.',
             'source_trooper_id.exists' => 'The selected source trooper does not exist (or is not active).',
             'target_trooper_id.required' => 'Target trooper is required.',
+            'target_trooper_id.different' => 'Target trooper must be different from the source trooper.',
             'target_trooper_id.exists' => 'The selected target trooper does not exist (or is not active).',
         ];
     }

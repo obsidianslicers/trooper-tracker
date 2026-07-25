@@ -15,19 +15,19 @@
 
     pageState.title = "Merge Troopers";
 
-    const vm = $derived(new MergeTroopersViewModel());
-
-    $effect(() => {
-        vm.form.source_trooper_id = vm.source_trooper?.id ?? null;
-        vm.form.target_trooper_id = vm.target_trooper?.id ?? null;
-    });
+    const vm = new MergeTroopersViewModel();
 </script>
 
 <SlimCard>
+    <h4 class="text-danger text-center mb-3">
+        <i class="fa fa-fw fa-exclamation-triangle"></i>
+        This operation cannot be undone or reversed.
+    </h4>
     <InputContainer>
         <TrooperPicker
             bind:selected={vm.source_trooper}
             onSelect={(t) => (vm.source_trooper = t)}
+            errors={vm.errors.source_trooper_id}
             label="Source Trooper"
         />
         <InputHelp>
@@ -39,6 +39,7 @@
         <TrooperPicker
             bind:selected={vm.target_trooper}
             onSelect={(t) => (vm.target_trooper = t)}
+            errors={vm.errors.target_trooper_id}
             label="Target Trooper"
         />
         <InputHelp>Select the trooper you want to merge into.</InputHelp>
