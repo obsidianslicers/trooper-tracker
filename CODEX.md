@@ -70,6 +70,73 @@ commands or queries rather than contain domain logic.
 
 ---
 
+## Svelte and Frontend Architecture
+
+Core principle: decompose into small, single units of work. This reduces
+cognitive load, isolates bugs, and keeps testing and support fast.
+
+### When to use Svelte vs Blade
+
+- Blade: static, low-interaction, or server-rendered content (legal terms,
+  email-confirmation landers, simple static messages).
+- Svelte: views that genuinely benefit from client-side reactivity, complex
+  state, or rich UI interaction.
+- Do not migrate views to Svelte for stack purity. Replacing a 10-line static
+  Blade template with a Svelte page, API route, and TypeScript VM layer adds
+  unnecessary overhead.
+- Start new or refactored features with a small, simple page rather than a
+  large one.
+
+### Message decomposition (PageData)
+
+Alongside Commands and Queries, page-facing endpoints get a PageData message:
+
+- Commands and Queries stay strictly separate. Neither should be overloaded to
+  also supply multi-query page view data.
+- PageData aggregates multiple queries into a single response payload tailored
+  to a specific page. Example: `GetAllOrganizationsQuery` returns full
+  records/columns; `RegistrationPageData` pulls from that query and trims the
+  payload to only the JSON fields the registration UI needs.
+- Location: `app/Messages/[Feature]/PageData/[Name]PageData.php` (see
+  `app/Messages/Auth/PageData/LoginPageData.php` for reference).
+
+Calling conventions:
+
+- Page requests: `PageData::call($request)`. It hydrates constructor
+  parameters from request inputs, query strings, route parameters, and route
+  model bindings.
+- Everywhere else: explicit named arguments (e.g.
+  `Query::call(organization_id: 123)`) to keep dependencies clear and
+  refactoring safe.
+- Keep PHPDoc annotations on static `::call()` methods to preserve constructor
+  autocomplete.
+- For messages that need the authenticated user, inject `Actor $actor` in the
+  constructor. This distinguishes the active session user from target user
+  records fetched via lookup.
+
+### Svelte directory structure
+
+```text
+resources/svelte/
+├── lib/domains/[feature]/
+│   └── vms/
+│       └── [PageViewModel].svelte.ts   # One file per VM; page logic, state, types
+└── pages/[feature]/
+    ├── components/                     # Single-responsibility, reusable UI components
+    │   └── ComponentName.svelte
+    └── PageName.svelte
+```
+
+- `lib/domains/[feature]/vms/`: each ViewModel handles a single unit of work
+  supporting one specific page. Keep helpers, types, and logic in its VM file.
+- `pages/[feature]/`: presentation layer only. Components and pages delegate
+  business and state logic to their VM. Simple pages may not need a VM; use
+  judgment.
+- Reference implementation: the auth/Login module
+  (`resources/svelte/lib/domains/auth/vms/LoginViewModel.svelte.ts`).
+
+---
+
 ## Key Directory Map
 
 ```text
