@@ -39,7 +39,7 @@ export class MergeTroopersViewModel extends SubmitableViewModel<MergeTroopersVie
 
     set source_trooper(trooper: Trooper | null) {
         this.#source_trooper = trooper;
-        this.form.target_trooper_id = trooper?.id ?? null;
+        this.form.source_trooper_id = trooper?.id ?? null;
     }
 
     get target_trooper(): Trooper | null {
@@ -48,7 +48,7 @@ export class MergeTroopersViewModel extends SubmitableViewModel<MergeTroopersVie
 
     set target_trooper(trooper: Trooper | null) {
         this.#target_trooper = trooper;
-        this.form.source_trooper_id = trooper?.id ?? null;
+        this.form.target_trooper_id = trooper?.id ?? null;
     }
 
     submit = async (e: Event) => {
@@ -56,9 +56,6 @@ export class MergeTroopersViewModel extends SubmitableViewModel<MergeTroopersVie
 
         const url = getRoute('admin.troopers.merge');
 
-        this.form.post(url, {
-            preserveState: true,
-            preserveScroll: true,
-        });
+        this.form.post(url, {});
     };
 }

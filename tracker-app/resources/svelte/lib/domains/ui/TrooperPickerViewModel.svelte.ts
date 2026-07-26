@@ -157,20 +157,4 @@ export class TrooperPickerViewModel extends ViewModel {
             }
         }
     }
-
-    submit = async (e: Event) => {
-        e.preventDefault();
-
-        // const url = getRoute('auth.login');
-
-        // const toast = toastStateSvelte.info('Logging in...', { delay: 4000 });
-
-        // this.form.post(url, {
-        //     preserveScroll: true,
-        //     onError: () => {
-        //         // Dismiss the loading toast if validation fails on backend
-        //         toastStateSvelte.dismiss(toast);
-        //     }
-        // });
-    };
 }

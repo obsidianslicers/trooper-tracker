@@ -21,10 +21,6 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
  */
 class MergeTroopersSubmitController extends Controller
 {
-    public function __construct(private readonly FlashMessageService $flash)
-    {
-    }
-
     /**
      * Handle the incoming request to submit the merge troopers form.
      *
@@ -40,8 +36,6 @@ class MergeTroopersSubmitController extends Controller
 
         dispatch(new MergeTroopersJob($source_trooper, $target_trooper));
 
-        $this->flash->success('Troopers are currently being merged.');
-
-        return Inertia::location(route('admin.troopers.merge'));
+        return redirect()->route('admin.troopers.merge')->withSuccess('Troopers are currently being merged.');
     }
 }

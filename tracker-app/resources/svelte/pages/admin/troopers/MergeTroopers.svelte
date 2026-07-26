@@ -23,35 +23,37 @@
         <i class="fa fa-fw fa-exclamation-triangle"></i>
         This operation cannot be undone or reversed.
     </h4>
-    <InputContainer>
-        <TrooperPicker
-            bind:selected={vm.source_trooper}
-            onSelect={(t) => (vm.source_trooper = t)}
-            errors={vm.errors.source_trooper_id}
-            mode="admin"
-            label="Source Trooper"
-        />
-        <InputHelp>
-            Select the trooper you want to merge from. This account will be set
-            to MERGED and will be unavailable for further use.
-        </InputHelp>
-    </InputContainer>
-    <InputContainer>
-        <TrooperPicker
-            bind:selected={vm.target_trooper}
-            onSelect={(t) => (vm.target_trooper = t)}
-            errors={vm.errors.target_trooper_id}
-            mode="admin"
-            label="Target Trooper"
-        />
-        <InputHelp>Select the trooper you want to merge into.</InputHelp>
-    </InputContainer>
+    <form onsubmit={vm.submit}>
+        <InputContainer>
+            <TrooperPicker
+                bind:selected={vm.source_trooper}
+                onSelect={(t) => (vm.source_trooper = t)}
+                errors={vm.errors.source_trooper_id}
+                mode="admin"
+                label="Source Trooper"
+            />
+            <InputHelp>
+                Select the trooper you want to merge from. This account will be
+                set to MERGED and will be unavailable for further use.
+            </InputHelp>
+        </InputContainer>
+        <InputContainer>
+            <TrooperPicker
+                bind:selected={vm.target_trooper}
+                onSelect={(t) => (vm.target_trooper = t)}
+                errors={vm.errors.target_trooper_id}
+                mode="admin"
+                label="Target Trooper"
+            />
+            <InputHelp>Select the trooper you want to merge into.</InputHelp>
+        </InputContainer>
 
-    <SubmitButtonContainer>
-        <SubmitButton
-            label="Merge Troopers"
-            submitting={vm.submitting}
-            disabled={!vm.dirty}
-        />
-    </SubmitButtonContainer>
+        <SubmitButtonContainer>
+            <SubmitButton
+                label="Merge Troopers"
+                submitting={vm.submitting}
+                disabled={!vm.dirty}
+            />
+        </SubmitButtonContainer>
+    </form>
 </SlimCard>

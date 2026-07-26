@@ -6,7 +6,6 @@ namespace App\Http\Requests\Admin\Troopers;
 
 use App\Enums\MembershipStatus;
 use App\Models\Trooper;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -18,13 +17,6 @@ class MergeTroopersRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        $trooper = $this->route('trooper');
-
-        if ($trooper === null)
-        {
-            throw new AuthorizationException('Trooper not found or unauthorized.');
-        }
-
         return $this->user()->is_administrator;
     }
 
@@ -38,8 +30,7 @@ class MergeTroopersRequest extends FormRequest
         return [
             'source_trooper_id' => [
                 'required',
-                Rule::exists(Trooper::class, Trooper::ID)
-                    ->where(Trooper::MEMBERSHIP_STATUS, MembershipStatus::ACTIVE),
+                Rule::exists(Trooper::class, Trooper::ID),
             ],
             'target_trooper_id' => [
                 'required',
