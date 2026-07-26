@@ -17,7 +17,6 @@ readonly class GlobalSearchQueryHandler implements QueryHandlerInterface
     public function __invoke(object $message): mixed
     {
         $term = trim($message->term);
-        $like = '%'.$term.'%';
 
         $troopers = collect();
         $events = collect();
@@ -29,25 +28,39 @@ readonly class GlobalSearchQueryHandler implements QueryHandlerInterface
 
         if (in_array($message->type, ['all', 'troopers']))
         {
-            $troopers = $this->findTroopers($term, loose: false);
-
-            if ($troopers->isEmpty() && str_contains($term, ' '))
-            {
-                $troopers = $this->findTroopers($term, loose: true);
-            }
+            $troopers = $this->findMatchingTroopers($term);
         }
 
         if (in_array($message->type, ['all', 'events']))
         {
             $events = Event::query()
                 ->with('organization:id,name')
-                ->where(Event::NAME, 'like', $like)
+                ->where(Event::NAME, 'like', '%'.$term.'%')
                 ->orderByDesc(Event::EVENT_START)
                 ->limit(25)
                 ->get();
         }
 
         return compact('troopers', 'events');
+    }
+
+    /**
+     * Find troopers matching the term, falling back to a loose (any-word) match if a
+     * multi-word search comes back empty.
+     *
+     * @param  string  $term  The search term.
+     * @return Collection<int, Trooper>
+     */
+    private function findMatchingTroopers(string $term): Collection
+    {
+        $troopers = $this->findTroopers($term, loose: false);
+
+        if ($troopers->isEmpty() && str_contains($term, ' '))
+        {
+            $troopers = $this->findTroopers($term, loose: true);
+        }
+
+        return $troopers;
     }
 
     /**

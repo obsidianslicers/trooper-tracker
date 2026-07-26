@@ -36,15 +36,25 @@ class TrooperFilterTest extends TestCase
         $this->assertSame($base, $filtered);
     }
 
-    public function test_has_multi_word_search_term_requires_two_or_more_words(): void
+    public function test_has_multi_word_search_term_is_false_for_single_word(): void
     {
-        $single = new TrooperFilter(Request::create('/', 'GET', ['search_term' => 'Matthew']));
-        $multi = new TrooperFilter(Request::create('/', 'GET', ['search_term' => 'Matthew Drennan']));
-        $none = new TrooperFilter(Request::create('/', 'GET'));
+        $subject = new TrooperFilter(Request::create('/', 'GET', ['search_term' => 'Matthew']));
 
-        $this->assertFalse($single->hasMultiWordSearchTerm());
-        $this->assertTrue($multi->hasMultiWordSearchTerm());
-        $this->assertFalse($none->hasMultiWordSearchTerm());
+        $this->assertFalse($subject->hasMultiWordSearchTerm());
+    }
+
+    public function test_has_multi_word_search_term_is_true_for_two_words(): void
+    {
+        $subject = new TrooperFilter(Request::create('/', 'GET', ['search_term' => 'Matthew Drennan']));
+
+        $this->assertTrue($subject->hasMultiWordSearchTerm());
+    }
+
+    public function test_has_multi_word_search_term_is_false_when_absent(): void
+    {
+        $subject = new TrooperFilter(Request::create('/', 'GET'));
+
+        $this->assertFalse($subject->hasMultiWordSearchTerm());
     }
 
     public function test_use_loose_search_applies_any_token_matching(): void
