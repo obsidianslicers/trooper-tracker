@@ -24,9 +24,9 @@ class GetTroopersForPickerQueryHandlerTest extends TestCase
     public function test_invoke_returns_empty_collection_when_filter_has_no_criteria(): void
     {
         $trooper = Trooper::factory()->asMember()->create();
-        $filter = new TrooperFilter(new Request());
+        $filter = new TrooperFilter(new Request);
 
-        $subject = new GetTroopersForPickerQueryHandler();
+        $subject = new GetTroopersForPickerQueryHandler;
 
         $result = $subject(new GetTroopersForPickerQuery($trooper, $filter, []));
 
@@ -63,7 +63,7 @@ class GetTroopersForPickerQueryHandlerTest extends TestCase
 
         $filter = new TrooperFilter(new Request(['search_term' => 'Member']));
 
-        $subject = new GetTroopersForPickerQueryHandler();
+        $subject = new GetTroopersForPickerQueryHandler;
 
         $result = $subject(new GetTroopersForPickerQuery($trooper, $filter, [
             'organization_id' => $org_included->id,
@@ -81,12 +81,66 @@ class GetTroopersForPickerQueryHandlerTest extends TestCase
         $trooper = Trooper::factory()->asMember()->create();
         $filter = new TrooperFilter(new Request(['search_term' => 'Alpha']));
 
-        $subject = new GetTroopersForPickerQueryHandler();
+        $subject = new GetTroopersForPickerQueryHandler;
 
         $result = $subject(new GetTroopersForPickerQuery($trooper, $filter, []));
 
         $this->assertCount(1, $result);
         $this->assertSame('Alpha Trooper', $result->first()->display_name);
+    }
+
+    public function test_invoke_filters_by_organization_identifier(): void
+    {
+        $trooper = Trooper::factory()->asMember()->withSetupCompleted()->withDisplayName('Identifier Match')->create();
+        Trooper::factory()->asMember()->withSetupCompleted()->withDisplayName('No Identifier')->create();
+
+        TrooperOrganization::factory()
+            ->forTrooper($trooper)
+            ->forOrganization(Organization::factory()->create())
+            ->withIdentifier('TK-421')
+            ->create();
+
+        $requesting_trooper = Trooper::factory()->asMember()->create();
+        $filter = new TrooperFilter(new Request(['search_term' => 'TK-421']));
+
+        $subject = new GetTroopersForPickerQueryHandler;
+
+        $result = $subject(new GetTroopersForPickerQuery($requesting_trooper, $filter, []));
+
+        $this->assertSame(['Identifier Match'], $result->pluck(Trooper::DISPLAY_NAME)->all());
+    }
+
+    public function test_invoke_orders_by_relevance_when_search_term_present(): void
+    {
+        Trooper::factory()->asMember()->withSetupCompleted()->withDisplayName('Anakin Skywalker')->create();
+        Trooper::factory()->asMember()->withSetupCompleted()->withDisplayName('Skywalker Ranch')->create();
+
+        $trooper = Trooper::factory()->asMember()->create();
+        $filter = new TrooperFilter(new Request(['search_term' => 'Skywalker']));
+
+        $subject = new GetTroopersForPickerQueryHandler;
+
+        $result = $subject(new GetTroopersForPickerQuery($trooper, $filter, []));
+
+        $this->assertSame(
+            ['Skywalker Ranch', 'Anakin Skywalker'],
+            $result->pluck(Trooper::DISPLAY_NAME)->all()
+        );
+    }
+
+    public function test_invoke_falls_back_to_loose_search_when_full_search_finds_nothing(): void
+    {
+        Trooper::factory()->asMember()->withSetupCompleted()->withDisplayName('Matthew Drennan')->create();
+        Trooper::factory()->asMember()->withSetupCompleted()->withDisplayName('Other Trooper')->create();
+
+        $trooper = Trooper::factory()->asMember()->create();
+        $filter = new TrooperFilter(new Request(['search_term' => 'Matthew Smith']));
+
+        $subject = new GetTroopersForPickerQueryHandler;
+
+        $result = $subject(new GetTroopersForPickerQuery($trooper, $filter, []));
+
+        $this->assertSame(['Matthew Drennan'], $result->pluck(Trooper::DISPLAY_NAME)->all());
     }
 
     public function test_invoke_excludes_troopers_without_setup_completed(): void
@@ -97,7 +151,7 @@ class GetTroopersForPickerQueryHandlerTest extends TestCase
         $trooper = Trooper::factory()->asMember()->create();
         $filter = new TrooperFilter(new Request(['search_term' => 'Setup']));
 
-        $subject = new GetTroopersForPickerQueryHandler();
+        $subject = new GetTroopersForPickerQueryHandler;
 
         $result = $subject(new GetTroopersForPickerQuery($trooper, $filter, []));
 
@@ -118,7 +172,7 @@ class GetTroopersForPickerQueryHandlerTest extends TestCase
 
         $filter = new TrooperFilter(new Request(['search_term' => 'Guardian Minor']));
 
-        $subject = new GetTroopersForPickerQueryHandler();
+        $subject = new GetTroopersForPickerQueryHandler;
 
         $result = $subject(new GetTroopersForPickerQuery($guardian, $filter, []));
 
@@ -140,7 +194,7 @@ class GetTroopersForPickerQueryHandlerTest extends TestCase
 
         $filter = new TrooperFilter(new Request(['search_term' => 'Hidden Minor']));
 
-        $subject = new GetTroopersForPickerQueryHandler();
+        $subject = new GetTroopersForPickerQueryHandler;
 
         $result = $subject(new GetTroopersForPickerQuery($requesting_trooper, $filter, []));
 
@@ -178,7 +232,7 @@ class GetTroopersForPickerQueryHandlerTest extends TestCase
 
         $filter = new TrooperFilter(new Request(['search_term' => 'Trooper']));
 
-        $subject = new GetTroopersForPickerQueryHandler();
+        $subject = new GetTroopersForPickerQueryHandler;
 
         $result = $subject(new GetTroopersForPickerQuery($moderator, $filter, [
             'moderated_only' => true,
@@ -196,7 +250,7 @@ class GetTroopersForPickerQueryHandlerTest extends TestCase
         $trooper = Trooper::factory()->asMember()->create();
         $filter = new TrooperFilter(new Request(['search_term' => 'Trooper']));
 
-        $subject = new GetTroopersForPickerQueryHandler();
+        $subject = new GetTroopersForPickerQueryHandler;
 
         $result = $subject(new GetTroopersForPickerQuery($trooper, $filter, []));
 
@@ -212,7 +266,7 @@ class GetTroopersForPickerQueryHandlerTest extends TestCase
         $trooper = Trooper::factory()->asMember()->create();
         $filter = new TrooperFilter(new Request(['search_term' => 'Trooper']));
 
-        $subject = new GetTroopersForPickerQueryHandler();
+        $subject = new GetTroopersForPickerQueryHandler;
 
         $result = $subject(new GetTroopersForPickerQuery($trooper, $filter, []));
 
@@ -238,7 +292,7 @@ class GetTroopersForPickerQueryHandlerTest extends TestCase
 
         $filter = new TrooperFilter(new Request(['search_term' => 'Friend Target']));
 
-        $subject = new GetTroopersForPickerQueryHandler();
+        $subject = new GetTroopersForPickerQueryHandler;
 
         $result = $subject(new GetTroopersForPickerQuery($requesting_trooper, $filter, [
             'picker_mode' => TrooperSearchMode::FRIENDS->value,
@@ -257,9 +311,9 @@ class GetTroopersForPickerQueryHandlerTest extends TestCase
         TrooperFriend::factory()->forTrooper($requesting_trooper)->forFriend($friend_alpha)->create();
         TrooperFriend::factory()->forTrooper($requesting_trooper)->forFriend($friend_bravo)->create();
 
-        $filter = new TrooperFilter(new Request());
+        $filter = new TrooperFilter(new Request);
 
-        $subject = new GetTroopersForPickerQueryHandler();
+        $subject = new GetTroopersForPickerQueryHandler;
 
         $result = $subject(new GetTroopersForPickerQuery($requesting_trooper, $filter, [
             'picker_mode' => TrooperSearchMode::FRIENDS->value,
@@ -273,9 +327,9 @@ class GetTroopersForPickerQueryHandlerTest extends TestCase
         $requesting_trooper = Trooper::factory()->asMember()->create();
         Trooper::factory()->asMember()->withDisplayName('Unrelated Trooper')->create();
 
-        $filter = new TrooperFilter(new Request());
+        $filter = new TrooperFilter(new Request);
 
-        $subject = new GetTroopersForPickerQueryHandler();
+        $subject = new GetTroopersForPickerQueryHandler;
 
         $result = $subject(new GetTroopersForPickerQuery($requesting_trooper, $filter, [
             'picker_mode' => TrooperSearchMode::FRIENDS->value,
@@ -313,7 +367,7 @@ class GetTroopersForPickerQueryHandlerTest extends TestCase
 
         $filter = new TrooperFilter(new Request(['search_term' => 'Goodall']));
 
-        $subject = new GetTroopersForPickerQueryHandler();
+        $subject = new GetTroopersForPickerQueryHandler;
 
         $result = $subject(new GetTroopersForPickerQuery($requesting_trooper, $filter, [
             'picker_mode' => TrooperSearchMode::FRIENDS->value,
