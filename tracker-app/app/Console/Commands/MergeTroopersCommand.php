@@ -6,13 +6,13 @@ namespace App\Console\Commands;
 
 use App\Models\Trooper;
 use Illuminate\Console\Command;
-use App\Messages\Troopers\Commands\Merge\MergeTroopers;
+use App\Jobs\MergeTroopersJob;
+
 /**
- * Artisan command to close events that have ended.
+ * Artisan command to merge troopers.
  *
- * This command orchestrates the process of identifying and closing events
- * whose end date has passed. It delegates the query logic to GetEventsToCloseQuery
- * service and updates each event's status to CLOSED.
+ * This command orchestrates the process of merging two trooper accounts.
+ * It delegates the merging logic to the MergeTroopers command.
  */
 class MergeTroopersCommand extends Command
 {
@@ -22,8 +22,8 @@ class MergeTroopersCommand extends Command
      * @var string
      */
     protected $signature = 'tracker:merge-troopers
-        {target_trooper_id : ID of the trooper whose permissions will be changed}
-        {source_trooper_id : ID of the trooper whose permissions will be copied}';
+        {source_trooper_id : ID of the trooper whose account will be merged from}
+        {target_trooper_id : ID of the trooper whose account will be merged into}';
 
     /**
      * The console command description.
@@ -42,9 +42,14 @@ class MergeTroopersCommand extends Command
      */
     public function handle(): void
     {
-        MergeTroopers::call(
-            source_trooper: Trooper::findOrFail($this->argument('source_trooper_id')),
-            target_trooper: Trooper::findOrFail($this->argument('target_trooper_id')),
+        $source_trooper = Trooper::findOrFail($this->argument('source_trooper_id'));
+        $target_trooper = Trooper::findOrFail($this->argument('target_trooper_id'));
+
+        $job = new MergeTroopersJob(
+            source_trooper: $source_trooper,
+            target_trooper: $target_trooper
         );
+
+        $job->handle();
     }
 }

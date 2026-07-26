@@ -22,6 +22,11 @@ enum AdministrativeNotifications: string
     case TROOPER_REGISTRATIONS = 'trooper_registrations';
 
     /**
+     * Sent when troopers are merged.
+     */
+    case TROOPERS_MERGED = 'troopers_merged';
+
+    /**
      * Sent to command staff when a trooper flags a forum post for their attention.
      */
     case FORUM_POST_COMMAND_STAFF = 'forum_post_command_staff';
