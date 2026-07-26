@@ -16,6 +16,7 @@ use Hyperdrive\Message;
  */
 final class MergeEventTroopers extends Message
 {
+    //  todo - merge org ids'
     use DateConcerns;
 
     public function __construct(
@@ -71,9 +72,15 @@ final class MergeEventTroopers extends Message
 
         $target_event_trooper->organization_id = $source_event_trooper->organization_id ?? $target_event_trooper->organization_id;
         $target_event_trooper->costume_id = $source_event_trooper->costume_id ?? $target_event_trooper->costume_id;
-        $target_event_trooper->costume_organization_ids = $source_event_trooper->costume_organization_ids ?? $target_event_trooper->costume_organization_ids;
+        $target_event_trooper->costume_organization_ids = array_merge(
+            $source_event_trooper->costume_organization_ids ?? [],
+            $target_event_trooper->costume_organization_ids ?? []
+        );
         $target_event_trooper->backup_costume_id = $source_event_trooper->backup_costume_id ?? $target_event_trooper->backup_costume_id;
-        $target_event_trooper->backup_costume_organization_ids = $source_event_trooper->backup_costume_organization_ids ?? $target_event_trooper->backup_costume_organization_ids;
+        $target_event_trooper->backup_costume_organization_ids = array_merge(
+            $source_event_trooper->backup_costume_organization_ids ?? [],
+            $target_event_trooper->backup_costume_organization_ids ?? []
+        );
         $target_event_trooper->added_by_trooper_id = $this->resolveAddedByTrooperId(
             $source_event_trooper->added_by_trooper_id
             ?? $target_event_trooper->added_by_trooper_id,

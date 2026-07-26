@@ -75,12 +75,16 @@ class MergeEventTroopersTest extends TestCase
 
         $event_shift = EventShift::factory()->create();
         $organization = Organization::factory()->asOrganization()->create();
+        $target_costume_org = Organization::factory()->asOrganization()->create();
+        $target_backup_costume_org = Organization::factory()->asOrganization()->create();
 
         $target_event_trooper = EventTrooper::factory()
             ->forEventShift($event_shift)
             ->forTrooper($target_trooper)
             ->create([
                 EventTrooper::ORGANIZATION_ID => null,
+                EventTrooper::COSTUME_ORGANIZATION_IDS => [$target_costume_org->id],
+                EventTrooper::BACKUP_COSTUME_ORGANIZATION_IDS => [$target_backup_costume_org->id],
                 EventTrooper::STATUS => EventTrooperStatus::NONE,
                 EventTrooper::IS_HANDLER => false,
                 EventTrooper::SIGNED_UP_AT => Carbon::parse('2026-07-21 10:00:00'),
@@ -92,6 +96,8 @@ class MergeEventTroopersTest extends TestCase
             ->forTrooper($source_trooper)
             ->create([
                 EventTrooper::ORGANIZATION_ID => $organization->id,
+                EventTrooper::COSTUME_ORGANIZATION_IDS => [$organization->id],
+                EventTrooper::BACKUP_COSTUME_ORGANIZATION_IDS => [$organization->id],
                 EventTrooper::STATUS => EventTrooperStatus::GOING,
                 EventTrooper::IS_HANDLER => true,
                 EventTrooper::SIGNED_UP_AT => Carbon::parse('2026-07-20 10:00:00'),
@@ -118,6 +124,17 @@ class MergeEventTroopersTest extends TestCase
             EventTrooper::ID => $source_event_trooper->id,
             EventTrooper::TROOPER_ID => $source_trooper->id,
         ]);
+
+        $fresh_target_event_trooper = $target_event_trooper->fresh();
+
+        $this->assertSame(
+            [$organization->id, $target_costume_org->id],
+            $fresh_target_event_trooper?->costume_organization_ids,
+        );
+        $this->assertSame(
+            [$organization->id, $target_backup_costume_org->id],
+            $fresh_target_event_trooper?->backup_costume_organization_ids,
+        );
 
         $this->assertSame(
             1,
