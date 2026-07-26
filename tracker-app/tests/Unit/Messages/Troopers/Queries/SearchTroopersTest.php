@@ -186,6 +186,89 @@ class SearchTroopersTest extends TestCase
         );
     }
 
+    public function test_handle_with_admin_picker_mode_allows_administrator_to_search_all_troopers(): void
+    {
+        $administrator = Trooper::factory()->asAdministrator()->create();
+        $guardian = Trooper::factory()->asMember()->create();
+
+        Trooper::factory()
+            ->asMember()
+            ->asRetired()
+            ->withLegalName('Admin Search Retired')
+            ->create();
+
+        Trooper::factory()
+            ->asMember()
+            ->withSetupIncomplete()
+            ->withLegalName('Admin Search Incomplete')
+            ->create();
+
+        Trooper::factory()
+            ->asMember()
+            ->withSetupCompleted()
+            ->withLegalName('Admin Search Minor')
+            ->withGuardian($guardian)
+            ->create();
+
+        $subject = new SearchTroopers(
+            $administrator,
+            'Admin Search',
+            null,
+            false,
+            TrooperPickerMode::ADMIN,
+        );
+
+        $result = $subject->handle();
+
+        $this->assertSame(
+            ['Admin Search Incomplete', 'Admin Search Minor', 'Admin Search Retired'],
+            $result->pluck(Trooper::LEGAL_NAME)->all(),
+        );
+    }
+
+    public function test_handle_with_admin_picker_mode_still_restricts_non_administrator(): void
+    {
+        $requesting_trooper = Trooper::factory()->asMember()->create();
+        $guardian = Trooper::factory()->asMember()->create();
+
+        Trooper::factory()
+            ->asMember()
+            ->withSetupCompleted()
+            ->withLegalName('Admin Gate Adult')
+            ->create();
+
+        Trooper::factory()
+            ->asMember()
+            ->asRetired()
+            ->withLegalName('Admin Gate Retired')
+            ->create();
+
+        Trooper::factory()
+            ->asMember()
+            ->withSetupIncomplete()
+            ->withLegalName('Admin Gate Incomplete')
+            ->create();
+
+        Trooper::factory()
+            ->asMember()
+            ->withSetupCompleted()
+            ->withLegalName('Admin Gate Minor')
+            ->withGuardian($guardian)
+            ->create();
+
+        $subject = new SearchTroopers(
+            $requesting_trooper,
+            'Admin Gate',
+            null,
+            false,
+            TrooperPickerMode::ADMIN,
+        );
+
+        $result = $subject->handle();
+
+        $this->assertSame(['Admin Gate Adult'], $result->pluck(Trooper::LEGAL_NAME)->all());
+    }
+
     public function test_handle_with_friends_picker_mode_returns_results_without_filter_criteria(): void
     {
         $requesting_trooper = Trooper::factory()->asMember()->create();

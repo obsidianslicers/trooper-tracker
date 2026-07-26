@@ -28,6 +28,7 @@
             bind:selected={vm.source_trooper}
             onSelect={(t) => (vm.source_trooper = t)}
             errors={vm.errors.source_trooper_id}
+            mode="admin"
             label="Source Trooper"
         />
         <InputHelp>
@@ -40,6 +41,7 @@
             bind:selected={vm.target_trooper}
             onSelect={(t) => (vm.target_trooper = t)}
             errors={vm.errors.target_trooper_id}
+            mode="admin"
             label="Target Trooper"
         />
         <InputHelp>Select the trooper you want to merge into.</InputHelp>

@@ -37,6 +37,11 @@ enum MembershipStatus: string
     case INACTIVE = 'inactive';
 
     /**
+     * Invalid member of the organization.
+     */
+    case INVALID = 'invalid';
+
+    /**
      * A member on reserve status.
      */
     case RESERVE = 'reserve';

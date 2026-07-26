@@ -17,6 +17,7 @@
         disabled?: boolean;
         errors?: string | string[];
         clearable?: boolean;
+        mode?: "admin" | null;
         onSelect?: ((trooper: Trooper) => void) | null;
     }
 
@@ -33,6 +34,7 @@
         disabled = false,
         errors = [],
         clearable = true,
+        mode = null,
         onSelect = null,
     }: Props = $props();
 
@@ -51,6 +53,7 @@
             disabled,
             errors,
             clearable,
+            mode,
             onSelect,
         });
     });
@@ -159,6 +162,10 @@
                     >
                         <div class="fw-semibold">
                             {trooper.legal_name}
+                            <br />
+                            <div class="small text-muted">
+                                ({trooper.display_name})
+                            </div>
                         </div>
                     </button>
                 {/each}

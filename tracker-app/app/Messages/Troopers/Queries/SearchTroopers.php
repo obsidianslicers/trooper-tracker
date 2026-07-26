@@ -36,14 +36,23 @@ final class SearchTroopers extends Message
     public function handle(): Collection
     {
         $search_term = trim($this->search_term);
-        $query = Trooper::active()
-            ->whereNotNull(Trooper::SETUP_COMPLETED_AT)
-            ->where(function ($q)
-            {
-                $q->whereNull(Trooper::GUARDIAN_ID)
-                    ->orWhere(Trooper::GUARDIAN_ID, $this->actor->id);
-            })
-            ->orderBy(Trooper::LEGAL_NAME);
+        $query = Trooper::query();
+
+        $admin_mode = ($this->picker_mode == TrooperPickerMode::ADMIN && $this->actor->is_administrator);
+
+        if (!$admin_mode)
+        {
+            //  not an admin - so don't allow the search of ALL
+            $query = $query->active()
+                ->whereNotNull(Trooper::SETUP_COMPLETED_AT)
+                ->where(function ($q)
+                {
+                    $q->whereNull(Trooper::GUARDIAN_ID)
+                        ->orWhere(Trooper::GUARDIAN_ID, $this->actor->id);
+                });
+        }
+
+        $query = $query->orderBy(Trooper::LEGAL_NAME);
 
         if ($this->organization_id)
         {

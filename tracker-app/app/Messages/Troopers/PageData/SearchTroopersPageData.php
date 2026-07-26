@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Messages\Troopers\PageData;
 
-use App\Messages\Auth\Queries\GetAuthConfig;
 use Hyperdrive\Contracts\Actor;
 use Hyperdrive\Message;
 use App\Enums\TrooperPickerMode;

@@ -22,4 +22,9 @@ enum TrooperPickerMode: string
      * Defaults to a recent list of friends who they have added as friends in the system.
      */
     case FRIENDS = 'friends';
+
+    /**
+     * Wide open mode for administrative selection of troopers.
+     */
+    case ADMIN = 'admin';
 }
