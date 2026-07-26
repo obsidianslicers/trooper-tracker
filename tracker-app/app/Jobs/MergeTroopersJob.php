@@ -18,9 +18,7 @@ class MergeTroopersJob implements ShouldBeUnique, ShouldQueue
 
     public function __construct(
         public readonly Trooper $source_trooper,
-        public readonly Trooper $target_trooper)
-    {
-    }
+        public readonly Trooper $target_trooper) {}
 
     public function handle(): void
     {
@@ -33,7 +31,7 @@ class MergeTroopersJob implements ShouldBeUnique, ShouldQueue
 
         foreach ($admins as $admin)
         {
-            $admin->notify(new TroopersMergedNotification());
+            $admin->notify(new TroopersMergedNotification);
         }
     }
 }

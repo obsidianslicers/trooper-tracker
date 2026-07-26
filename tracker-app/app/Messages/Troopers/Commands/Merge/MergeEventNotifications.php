@@ -22,8 +22,7 @@ final class MergeEventNotifications extends Message
     public function __construct(
         private readonly Trooper $target_trooper,
         private readonly Trooper $source_trooper,
-    ) {
-    }
+    ) {}
 
     public function handle(): void
     {
@@ -49,7 +48,7 @@ final class MergeEventNotifications extends Message
         }
     }
 
-    private function getTargetEventNotification(EventNotification $source_event_notification, ): ?EventNotification
+    private function getTargetEventNotification(EventNotification $source_event_notification): ?EventNotification
     {
         return EventNotification::query()
             ->withTrashed()
@@ -58,7 +57,7 @@ final class MergeEventNotifications extends Message
             ->first();
     }
 
-    private function mergeEventNotifications(EventNotification $target_event_notification, EventNotification $source_event_notification, ): void
+    private function mergeEventNotifications(EventNotification $target_event_notification, EventNotification $source_event_notification): void
     {
         if ($target_event_notification->trashed() && !$source_event_notification->trashed())
         {

@@ -8,9 +8,9 @@ use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
 use App\Enums\NotificationFrequency;
 use App\Models\Trooper;
+use Exception;
 use Hyperdrive\Message;
 use Illuminate\Support\Facades\DB;
-use Exception;
 
 /**
  * Merges all relationships of the source trooper into the target trooper.
@@ -27,15 +27,13 @@ final class MergeTroopers extends Message
     public function __construct(
         private readonly Trooper $target_trooper,
         private readonly Trooper $source_trooper,
-    ) {
-    }
+    ) {}
 
     public function handle(): void
     {
         try
         {
-            DB::transaction(function ()
-            {
+            DB::transaction(function () {
                 /**
                  * tt_trooper_organizations
                  * tt_trooper_assignments

@@ -22,8 +22,7 @@ final class MergeEventMissionAcks extends Message
     public function __construct(
         private readonly Trooper $target_trooper,
         private readonly Trooper $source_trooper,
-    ) {
-    }
+    ) {}
 
     public function handle(): void
     {
@@ -58,7 +57,7 @@ final class MergeEventMissionAcks extends Message
             ->first();
     }
 
-    private function mergeEventMissionAcks(EventMissionAck $target_event_mission_ack, EventMissionAck $source_event_mission_ack, ): void
+    private function mergeEventMissionAcks(EventMissionAck $target_event_mission_ack, EventMissionAck $source_event_mission_ack): void
     {
         if ($target_event_mission_ack->trashed() && !$source_event_mission_ack->trashed())
         {

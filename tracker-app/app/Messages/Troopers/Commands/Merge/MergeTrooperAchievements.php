@@ -22,8 +22,7 @@ final class MergeTrooperAchievements extends Message
     public function __construct(
         private readonly Trooper $target_trooper,
         private readonly Trooper $source_trooper,
-    ) {
-    }
+    ) {}
 
     public function handle(): void
     {
@@ -49,7 +48,7 @@ final class MergeTrooperAchievements extends Message
         }
     }
 
-    private function getTargetAchievement(TrooperAchievement $source_achievement, ): ?TrooperAchievement
+    private function getTargetAchievement(TrooperAchievement $source_achievement): ?TrooperAchievement
     {
         return TrooperAchievement::query()
             ->withTrashed()
@@ -62,7 +61,7 @@ final class MergeTrooperAchievements extends Message
             ->first();
     }
 
-    private function mergeAchievements(TrooperAchievement $target_achievement, TrooperAchievement $source_achievement, ): void
+    private function mergeAchievements(TrooperAchievement $target_achievement, TrooperAchievement $source_achievement): void
     {
         if ($target_achievement->trashed() && !$source_achievement->trashed())
         {

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Jobs\MergeTroopersJob;
 use App\Models\Trooper;
 use Illuminate\Console\Command;
-use App\Jobs\MergeTroopersJob;
 
 /**
  * Artisan command to merge troopers.
@@ -38,7 +38,6 @@ class MergeTroopersCommand extends Command
      * Orchestrates the trooper merging process by:
      * 1. Identifying the source and target troopers
      * 2. Merging all relationships from the source trooper into the target trooper
-     *
      */
     public function handle(): void
     {

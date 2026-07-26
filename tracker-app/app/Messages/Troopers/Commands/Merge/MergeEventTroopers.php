@@ -22,8 +22,7 @@ final class MergeEventTroopers extends Message
     public function __construct(
         private readonly Trooper $target_trooper,
         private readonly Trooper $source_trooper,
-    ) {
-    }
+    ) {}
 
     public function handle(): void
     {
@@ -61,7 +60,7 @@ final class MergeEventTroopers extends Message
             ->first();
     }
 
-    private function mergeEventTroopers(EventTrooper $target_event_trooper, EventTrooper $source_event_trooper, ): void
+    private function mergeEventTroopers(EventTrooper $target_event_trooper, EventTrooper $source_event_trooper): void
     {
         if ($target_event_trooper->trashed() && !$source_event_trooper->trashed())
         {

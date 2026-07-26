@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Messages\Troopers\PageData;
 
+use App\Enums\TrooperPickerMode;
+use App\Messages\Troopers\Queries\SearchTroopers;
+use App\Models\Trooper;
 use Hyperdrive\Contracts\Actor;
 use Hyperdrive\Message;
-use App\Enums\TrooperPickerMode;
-use App\Models\Trooper;
-use App\Messages\Troopers\Queries\SearchTroopers;
 
 /**
  * Retrieves search results for troopers based on the provided search term, organization, and other filters.
@@ -21,20 +21,15 @@ final class SearchTroopersPageData extends Message
 {
     /**
      * Summary of __construct
-     * @param Actor&Trooper $actor
-     * @param string $search_term
-     * @param int|null $organization_id
-     * @param bool $moderated_only
-     * @param TrooperPickerMode $picker_mode
+     *
+     * @param  Actor&Trooper  $actor
      */
     public function __construct(
         private readonly Actor $actor,
         private readonly string $search_term,
-        private readonly int|null $organization_id = null,
+        private readonly ?int $organization_id = null,
         private readonly bool $moderated_only = false,
-        private readonly TrooperPickerMode $picker_mode = TrooperPickerMode::NONE)
-    {
-    }
+        private readonly TrooperPickerMode $picker_mode = TrooperPickerMode::NONE) {}
 
     /**
      * Retrieves application configuration as a nested associative array.
@@ -51,7 +46,7 @@ final class SearchTroopersPageData extends Message
             picker_mode: $this->picker_mode
         );
 
-        $data = $troopers->map(fn(Trooper $trooper) => [
+        $data = $troopers->map(fn (Trooper $trooper) => [
             Trooper::ID => $trooper->id,
             Trooper::LEGAL_NAME => $trooper->legal_name,
             Trooper::DISPLAY_NAME => $trooper->display_name,

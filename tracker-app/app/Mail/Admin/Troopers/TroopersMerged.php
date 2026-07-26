@@ -20,14 +20,12 @@ class TroopersMerged extends Mailable implements ShouldQueue
 
     public function __construct(
         public readonly Trooper $source_trooper,
-        public readonly Trooper $target_trooper)
-    {
-    }
+        public readonly Trooper $target_trooper) {}
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix') . ' Troopers Merged',
+            subject: config('mail.prefix').' Troopers Merged',
         );
     }
 

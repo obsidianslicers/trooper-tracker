@@ -14,9 +14,7 @@ use Illuminate\Support\Collection;
  */
 final class GetAdministrators extends Message
 {
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 
     public function handle(): Collection
     {

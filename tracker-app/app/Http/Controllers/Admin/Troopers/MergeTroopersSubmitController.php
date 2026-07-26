@@ -8,8 +8,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Troopers\MergeTroopersRequest;
 use App\Jobs\MergeTroopersJob;
 use App\Models\Trooper;
-use App\Services\FlashMessageService;
-use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
