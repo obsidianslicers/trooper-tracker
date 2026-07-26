@@ -33,6 +33,18 @@
             data-is-visitor="{{ $trooper->is_visitor ? '1' : '0' }}"
             data-event="{{ $event_name }}">
             {{ $trooper->display_name }}
+            @if(!empty($trooper->legal_name) && $trooper->legal_name !== $trooper->display_name)
+                <div class="text-muted small">
+                    {{ $trooper->legal_name }}
+                </div>
+            @endif
+            @foreach($trooper->organizations as $org)
+                @if($org->pivot->identifier)
+                    <span class="badge bg-secondary me-1" title="{{ $org->name }}">
+                        {{ $org->identifier_display ?? $org->name }}: {{ $org->pivot->identifier }}
+                    </span>
+                @endif
+            @endforeach
         </li>
     @empty
         <li class="list-group-item">

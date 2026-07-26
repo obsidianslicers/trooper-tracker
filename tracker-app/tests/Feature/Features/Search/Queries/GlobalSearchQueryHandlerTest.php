@@ -23,7 +23,7 @@ class GlobalSearchQueryHandlerTest extends TestCase
         Trooper::factory()->withDisplayName('Visible Trooper')->create();
         Event::factory()->create();
 
-        $subject = new GlobalSearchQueryHandler();
+        $subject = new GlobalSearchQueryHandler;
 
         $result = $subject(new GlobalSearchQuery('a', 'all'));
 
@@ -42,13 +42,52 @@ class GlobalSearchQueryHandlerTest extends TestCase
             ->withEmail('clone@example.test')
             ->create();
 
-        $subject = new GlobalSearchQueryHandler();
+        $subject = new GlobalSearchQueryHandler;
 
         $by_name = $subject(new GlobalSearchQuery('Darth', 'troopers'));
         $by_email = $subject(new GlobalSearchQuery('finder@example', 'troopers'));
 
         $this->assertSame(['Darth Finder'], $by_name['troopers']->pluck(Trooper::DISPLAY_NAME)->all());
         $this->assertSame(['Darth Finder'], $by_email['troopers']->pluck(Trooper::DISPLAY_NAME)->all());
+    }
+
+    public function test_invoke_finds_troopers_regardless_of_word_order(): void
+    {
+        Trooper::factory()->withDisplayName('Matthew Drennan')->create();
+        Trooper::factory()->withDisplayName('Other Trooper')->create();
+
+        $subject = new GlobalSearchQueryHandler;
+
+        $result = $subject(new GlobalSearchQuery('drennan matthew', 'troopers'));
+
+        $this->assertSame(['Matthew Drennan'], $result['troopers']->pluck(Trooper::DISPLAY_NAME)->all());
+    }
+
+    public function test_invoke_orders_troopers_by_relevance(): void
+    {
+        Trooper::factory()->withDisplayName('Anakin Skywalker')->create();
+        Trooper::factory()->withDisplayName('Skywalker Ranch')->create();
+
+        $subject = new GlobalSearchQueryHandler;
+
+        $result = $subject(new GlobalSearchQuery('Skywalker', 'troopers'));
+
+        $this->assertSame(
+            ['Skywalker Ranch', 'Anakin Skywalker'],
+            $result['troopers']->pluck(Trooper::DISPLAY_NAME)->all()
+        );
+    }
+
+    public function test_invoke_falls_back_to_any_token_match_when_full_search_finds_nothing(): void
+    {
+        Trooper::factory()->withDisplayName('Matthew Drennan')->create();
+        Trooper::factory()->withDisplayName('Other Trooper')->create();
+
+        $subject = new GlobalSearchQueryHandler;
+
+        $result = $subject(new GlobalSearchQuery('Matthew Smith', 'troopers'));
+
+        $this->assertSame(['Matthew Drennan'], $result['troopers']->pluck(Trooper::DISPLAY_NAME)->all());
     }
 
     public function test_invoke_finds_troopers_by_legal_name(): void
@@ -62,7 +101,7 @@ class GlobalSearchQueryHandlerTest extends TestCase
             ->withLegalName('CT-7567 Rex')
             ->create();
 
-        $subject = new GlobalSearchQueryHandler();
+        $subject = new GlobalSearchQueryHandler;
 
         $result = $subject(new GlobalSearchQuery('Skywalker', 'troopers'));
 
@@ -90,7 +129,7 @@ class GlobalSearchQueryHandlerTest extends TestCase
             ->create();
         $deleted_membership->delete();
 
-        $subject = new GlobalSearchQueryHandler();
+        $subject = new GlobalSearchQueryHandler;
 
         $result = $subject(new GlobalSearchQuery('TK-421', 'troopers'));
 
@@ -102,7 +141,7 @@ class GlobalSearchQueryHandlerTest extends TestCase
         Trooper::factory()->withDisplayName('Dual Match Trooper')->create();
         Event::factory()->state([Event::NAME => 'Dual Match Event'])->create();
 
-        $subject = new GlobalSearchQueryHandler();
+        $subject = new GlobalSearchQueryHandler;
 
         $result = $subject(new GlobalSearchQuery('Dual Match', 'all'));
 
@@ -115,7 +154,7 @@ class GlobalSearchQueryHandlerTest extends TestCase
         Trooper::factory()->withDisplayName('Trooper Only Match')->create();
         Event::factory()->state([Event::NAME => 'Trooper Only Match Event'])->create();
 
-        $subject = new GlobalSearchQueryHandler();
+        $subject = new GlobalSearchQueryHandler;
 
         $result = $subject(new GlobalSearchQuery('Trooper Only Match', 'troopers'));
 
@@ -128,7 +167,7 @@ class GlobalSearchQueryHandlerTest extends TestCase
         Trooper::factory()->withDisplayName('Event Only Match Trooper')->create();
         Event::factory()->state([Event::NAME => 'Event Only Match'])->create();
 
-        $subject = new GlobalSearchQueryHandler();
+        $subject = new GlobalSearchQueryHandler;
 
         $result = $subject(new GlobalSearchQuery('Event Only Match', 'events'));
 
@@ -138,11 +177,12 @@ class GlobalSearchQueryHandlerTest extends TestCase
 
     public function test_invoke_limits_trooper_results_to_twenty_five_sorted_by_display_name(): void
     {
-        for ($i = 1; $i <= 30; $i++) {
+        for ($i = 1; $i <= 30; $i++)
+        {
             Trooper::factory()->withDisplayName(sprintf('Search Trooper %02d', $i))->create();
         }
 
-        $subject = new GlobalSearchQueryHandler();
+        $subject = new GlobalSearchQueryHandler;
 
         $result = $subject(new GlobalSearchQuery('Search Trooper', 'troopers'));
 
@@ -153,14 +193,15 @@ class GlobalSearchQueryHandlerTest extends TestCase
 
     public function test_invoke_limits_event_results_to_twenty_five_sorted_by_event_start_desc(): void
     {
-        for ($i = 1; $i <= 30; $i++) {
+        for ($i = 1; $i <= 30; $i++)
+        {
             Event::factory()->state([
                 Event::NAME => 'Search Event',
                 Event::EVENT_START => Carbon::create(2026, 1, 1, 12, 0, 0)->addDays($i),
             ])->create();
         }
 
-        $subject = new GlobalSearchQueryHandler();
+        $subject = new GlobalSearchQueryHandler;
 
         $result = $subject(new GlobalSearchQuery('Search Event', 'events'));
 

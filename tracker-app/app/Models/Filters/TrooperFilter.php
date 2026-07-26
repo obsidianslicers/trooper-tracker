@@ -18,6 +18,60 @@ use Illuminate\Support\Facades\DB;
  */
 class TrooperFilter extends QueryFilter
 {
+    private bool $loose_search = false;
+
+    /**
+     * Clone this filter with loose (any-token) search matching enabled.
+     *
+     * Used as a fallback when an all-tokens-required search returns no results.
+     *
+     * @return static A cloned filter with loose search enabled.
+     */
+    public function useLooseSearch(): static
+    {
+        $clone = clone $this;
+        $clone->loose_search = true;
+
+        return $clone;
+    }
+
+    /**
+     * Determine whether the request has a search term of two or more words.
+     *
+     * A loose-search fallback is only meaningful for multi-word terms, since a single
+     * word matches identically whether all tokens or any token are required.
+     *
+     * @return bool True if the search term has two or more whitespace-separated words.
+     */
+    public function hasMultiWordSearchTerm(): bool
+    {
+        if (!$this->request->filled('search_term'))
+        {
+            return false;
+        }
+
+        $tokens = array_filter(preg_split('/\s+/', trim($this->request->input('search_term'))));
+
+        return count($tokens) > 1;
+    }
+
+    /**
+     * Get the search term if it's long enough to have actually been applied as a filter.
+     *
+     * @return string|null The trimmed search term, or null if absent or too short to search on.
+     */
+    public function searchTermValue(): ?string
+    {
+        if (!$this->request->filled('search_term'))
+        {
+            return null;
+        }
+
+        $value = trim($this->request->input('search_term'));
+
+        return strlen($value) >= 3 ? $value : null;
+    }
+
     protected function filters(): array
     {
         return [
@@ -82,7 +136,7 @@ class TrooperFilter extends QueryFilter
     {
         if (strlen($value) >= 3)
         {
-            return $query->searchFor($value);
+            return $this->loose_search ? $query->searchForAny($value) : $query->searchFor($value);
         }
 
         return $query;

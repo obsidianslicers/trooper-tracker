@@ -8,6 +8,7 @@ use App\Bus\Contracts\QueryHandlerInterface;
 use App\Enums\TrooperPickerMode;
 use App\Models\Trooper;
 use App\Models\TrooperFriend;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 /**
@@ -18,7 +19,7 @@ use Illuminate\Support\Collection;
  * - Guardian/minor rule: Minors can only be returned for their assigned guardian
  * - Filter criteria: Applies search term and role filtering via TrooperFilter
  *
- * All results are ordered by trooper name for consistent UI display.
+ * Results are ordered by relevance when a search term is present, otherwise by name.
  *
  * @implements QueryHandlerInterface<GetTroopersForPickerQuery>
  */
@@ -41,13 +42,68 @@ readonly class GetTroopersForPickerQueryHandler implements QueryHandlerInterface
      */
     public function __invoke(object $message): mixed
     {
+        $query = $this->buildBaseQuery($message);
+        $has_filter = $message->filter->hasFilter();
+        $is_friends_mode = $message->picker_mode == TrooperPickerMode::FRIENDS;
+
+        if ($is_friends_mode && !$has_filter)
+        {
+            $query = $this->scopeToFriends($query, $message->trooper);
+        }
+
+        if ($has_filter)
+        {
+            $query = $query->filterWith($message->filter);
+        }
+
+        if (!$is_friends_mode && !$has_filter)
+        {
+            return collect([]);
+        }
+
+        $order_term = $message->filter->searchTermValue();
+        $results = $this->resolveOrder($query, $order_term)->get();
+
+        if ($results->isEmpty() && $has_filter && $message->filter->hasMultiWordSearchTerm())
+        {
+            $query = $this->buildBaseQuery($message)->filterWith($message->filter->useLooseSearch());
+            $results = $this->resolveOrder($query, $order_term)->get();
+        }
+
+        return $results;
+    }
+
+    /**
+     * Scope the query to only the requesting trooper's friends.
+     *
+     * @param  Builder<Trooper>  $query  The query to scope.
+     * @param  Trooper  $trooper  The requesting trooper.
+     * @return Builder<Trooper>
+     */
+    private function scopeToFriends(Builder $query, Trooper $trooper): Builder
+    {
+        $friend_ids = TrooperFriend::query()
+            ->select(TrooperFriend::FRIEND_ID)
+            ->where(TrooperFriend::TROOPER_ID, $trooper->id);
+
+        return $query->whereIn(Trooper::ID, $friend_ids);
+    }
+
+    /**
+     * Build the base trooper query shared by every branch of __invoke().
+     *
+     * @param  GetTroopersForPickerQuery  $message  The query containing filter and scope criteria
+     * @return Builder<Trooper>
+     */
+    private function buildBaseQuery(object $message): Builder
+    {
         $query = Trooper::active()
             ->whereNotNull(Trooper::SETUP_COMPLETED_AT)
             ->where(function ($q) use ($message) {
                 $q->whereNull(Trooper::GUARDIAN_ID)
                     ->orWhere(Trooper::GUARDIAN_ID, $message->trooper->id);
             })
-            ->orderBy(Trooper::DISPLAY_NAME);
+            ->with('organizations');
 
         if ($message->organization_id)
         {
@@ -61,35 +117,18 @@ readonly class GetTroopersForPickerQueryHandler implements QueryHandlerInterface
             $query = $query->moderatedBy($message->trooper);
         }
 
-        $execute_query = false;
-        $has_filter = $message->filter->hasFilter();
+        return $query;
+    }
 
-        if ($message->picker_mode == TrooperPickerMode::FRIENDS)
-        {
-            if (!$has_filter)
-            {
-                $q = TrooperFriend::query()
-                    ->select(TrooperFriend::FRIEND_ID)
-                    ->where(TrooperFriend::TROOPER_ID, $message->trooper->id);
-
-                $query = $query->whereIn(Trooper::ID, $q);
-            }
-
-            $execute_query = true;
-        }
-
-        if ($has_filter)
-        {
-            $query = $query->filterWith($message->filter);
-
-            $execute_query = true;
-        }
-
-        if ($execute_query)
-        {
-            return $query->get();
-        }
-
-        return collect([]);
+    /**
+     * Order results by relevance to the search term, or by name when there isn't one.
+     *
+     * @param  Builder<Trooper>  $query  The query to order.
+     * @param  string|null  $order_term  The search term to rank against, if any.
+     * @return Builder<Trooper>
+     */
+    private function resolveOrder(Builder $query, ?string $order_term): Builder
+    {
+        return $order_term ? $query->orderByRelevance($order_term) : $query->orderBy(Trooper::DISPLAY_NAME);
     }
 }
