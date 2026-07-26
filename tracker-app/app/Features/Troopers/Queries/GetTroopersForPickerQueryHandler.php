@@ -41,26 +41,30 @@ readonly class GetTroopersForPickerQueryHandler implements QueryHandlerInterface
      */
     public function __invoke(object $message): mixed
     {
-        $query = Trooper::active()
-            ->whereNotNull(Trooper::SETUP_COMPLETED_AT)
-            ->where(function ($q) use ($message) {
-                $q->whereNull(Trooper::GUARDIAN_ID)
-                    ->orWhere(Trooper::GUARDIAN_ID, $message->trooper->id);
-            })
-            ->orderBy(Trooper::DISPLAY_NAME);
+        $build_base = function () use ($message) {
+            $query = Trooper::active()
+                ->whereNotNull(Trooper::SETUP_COMPLETED_AT)
+                ->where(function ($q) use ($message) {
+                    $q->whereNull(Trooper::GUARDIAN_ID)
+                        ->orWhere(Trooper::GUARDIAN_ID, $message->trooper->id);
+                });
 
-        if ($message->organization_id)
-        {
-            $query = $query->whereHas('organizations', function ($q) use ($message) {
-                $q->where('tt_organizations.id', $message->organization_id);
-            });
-        }
+            if ($message->organization_id)
+            {
+                $query = $query->whereHas('organizations', function ($q) use ($message) {
+                    $q->where('tt_organizations.id', $message->organization_id);
+                });
+            }
 
-        if ($message->moderated_only)
-        {
-            $query = $query->moderatedBy($message->trooper);
-        }
+            if ($message->moderated_only)
+            {
+                $query = $query->moderatedBy($message->trooper);
+            }
 
+            return $query;
+        };
+
+        $query = $build_base();
         $execute_query = false;
         $has_filter = $message->filter->hasFilter();
 
@@ -85,11 +89,22 @@ readonly class GetTroopersForPickerQueryHandler implements QueryHandlerInterface
             $execute_query = true;
         }
 
-        if ($execute_query)
+        if (!$execute_query)
         {
-            return $query->get();
+            return collect([]);
         }
 
-        return collect([]);
+        $order_term = $message->filter->searchTermValue();
+        $order = fn ($query) => $order_term ? $query->orderByRelevance($order_term) : $query->orderBy(Trooper::DISPLAY_NAME);
+
+        $results = $order($query)->get();
+
+        if ($results->isEmpty() && $has_filter && $message->filter->hasMultiWordSearchTerm())
+        {
+            $query = $build_base()->filterWith($message->filter->useLooseSearch());
+            $results = $order($query)->get();
+        }
+
+        return $results;
     }
 }

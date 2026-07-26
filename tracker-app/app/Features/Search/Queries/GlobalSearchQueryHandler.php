@@ -7,7 +7,7 @@ namespace App\Features\Search\Queries;
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Models\Event;
 use App\Models\Trooper;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Collection;
 
 /**
  * @implements QueryHandlerInterface<GlobalSearchQuery>
@@ -29,23 +29,12 @@ readonly class GlobalSearchQueryHandler implements QueryHandlerInterface
 
         if (in_array($message->type, ['all', 'troopers']))
         {
-            $troopers = Trooper::query()
-                ->where(function ($q) use ($like) {
-                    $q->where(Trooper::DISPLAY_NAME, 'like', $like)
-                        ->orWhere(Trooper::EMAIL, 'like', $like)
-                        ->orWhere(Trooper::LEGAL_NAME, 'like', $like)
-                        ->orWhereExists(function ($q) use ($like) {
-                            $q->select(DB::raw(1))
-                                ->from('tt_trooper_organizations')
-                                ->whereColumn('tt_trooper_organizations.trooper_id', 'tt_troopers.id')
-                                ->whereNull('tt_trooper_organizations.deleted_at')
-                                ->where('tt_trooper_organizations.identifier', 'like', $like);
-                        });
-                })
-                ->with('organizations')
-                ->orderBy(Trooper::DISPLAY_NAME)
-                ->limit(25)
-                ->get();
+            $troopers = $this->findTroopers($term, loose: false);
+
+            if ($troopers->isEmpty() && str_contains($term, ' '))
+            {
+                $troopers = $this->findTroopers($term, loose: true);
+            }
         }
 
         if (in_array($message->type, ['all', 'events']))
@@ -59,5 +48,25 @@ readonly class GlobalSearchQueryHandler implements QueryHandlerInterface
         }
 
         return compact('troopers', 'events');
+    }
+
+    /**
+     * Find troopers matching the given term.
+     *
+     * @param  string  $term  The search term.
+     * @param  bool  $loose  When true, match troopers that contain any word of the term
+     *                       rather than requiring every word (used as a fallback so a
+     *                       multi-word search never dead-ends with zero results).
+     * @return Collection<int, Trooper>
+     */
+    private function findTroopers(string $term, bool $loose): Collection
+    {
+        $query = $loose ? Trooper::query()->searchForAny($term) : Trooper::query()->searchFor($term);
+
+        return $query
+            ->with('organizations')
+            ->orderByRelevance($term)
+            ->limit(25)
+            ->get();
     }
 }

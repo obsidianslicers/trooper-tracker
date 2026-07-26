@@ -89,11 +89,18 @@ class ListController extends MagicBusController
     ): LengthAwarePaginator {
         $trooper = $request->user();
 
-        $q = Trooper::moderatedBy($trooper)
+        $build = fn () => Trooper::moderatedBy($trooper)
             ->when(! $trooper->is_administrator, fn ($q) => $q->where(Trooper::MEMBERSHIP_STATUS, '!=', MembershipStatus::INVALID->value))
             ->orderBy($sort_col, $sort_dir);
 
-        return $q->filterWith($filter)->paginate(15)->withQueryString();
+        $troopers = $build()->filterWith($filter)->paginate(15)->withQueryString();
+
+        if ($troopers->isEmpty() && $filter->hasMultiWordSearchTerm())
+        {
+            $troopers = $build()->filterWith($filter->useLooseSearch())->paginate(15)->withQueryString();
+        }
+
+        return $troopers;
     }
 
     /**
