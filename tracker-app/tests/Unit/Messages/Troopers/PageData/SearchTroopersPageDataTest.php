@@ -7,9 +7,7 @@ namespace Tests\Unit\Messages\Troopers\PageData;
 use App\Enums\TrooperPickerMode;
 use App\Messages\Troopers\PageData\SearchTroopersPageData;
 use App\Messages\Troopers\Queries\SearchTroopers;
-use App\Models\Filters\TrooperFilter;
 use App\Models\Trooper;
-use Illuminate\Http\Request;
 use Mockery;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use Tests\TestCase;
@@ -19,18 +17,20 @@ class SearchTroopersPageDataTest extends TestCase
     #[RunInSeparateProcess]
     public function test_handle_returns_mapped_trooper_data(): void
     {
-        $requesting_trooper = Trooper::factory()->asMember()->make([
+        $requesting_trooper = Trooper::factory()->asMember()->asActive()->make([
             Trooper::ID => 10,
         ]);
 
-        $first_trooper = Trooper::factory()->asMember()->make([
+        $first_trooper = Trooper::factory()->asMember()->asActive()->make([
             Trooper::ID => 101,
             Trooper::LEGAL_NAME => 'Alpha Trooper',
+            Trooper::DISPLAY_NAME => 'Alpha',
         ]);
 
-        $second_trooper = Trooper::factory()->asMember()->make([
+        $second_trooper = Trooper::factory()->asMember()->asActive()->make([
             Trooper::ID => 202,
             Trooper::LEGAL_NAME => 'Bravo Trooper',
+            Trooper::DISPLAY_NAME => 'Bravo',
         ]);
 
         Mockery::mock('alias:' . SearchTroopers::class)
@@ -60,10 +60,12 @@ class SearchTroopersPageDataTest extends TestCase
             [
                 Trooper::ID => 101,
                 Trooper::LEGAL_NAME => 'Alpha Trooper',
+                Trooper::DISPLAY_NAME => 'Alpha',
             ],
             [
                 Trooper::ID => 202,
                 Trooper::LEGAL_NAME => 'Bravo Trooper',
+                Trooper::DISPLAY_NAME => 'Bravo',
             ],
         ], $result);
     }
@@ -71,7 +73,7 @@ class SearchTroopersPageDataTest extends TestCase
     #[RunInSeparateProcess]
     public function test_handle_returns_empty_array_when_query_returns_no_troopers(): void
     {
-        $requesting_trooper = Trooper::factory()->asMember()->make([
+        $requesting_trooper = Trooper::factory()->asMember()->asActive()->make([
             Trooper::ID => 10,
         ]);
 
