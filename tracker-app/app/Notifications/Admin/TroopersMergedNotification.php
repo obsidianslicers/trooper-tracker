@@ -5,12 +5,17 @@ declare(strict_types=1);
 namespace App\Notifications\Admin;
 
 use App\Channels\FcmChannel;
-use App\Mail\Admin\Troopers\TrooperAwaitingApproval;
+use App\Mail\Admin\Troopers\TroopersMerged;
 use App\Models\Trooper;
 use Illuminate\Notifications\Notification;
 
 class TroopersMergedNotification extends Notification
 {
+    public function __construct(
+        private readonly Trooper $source_trooper,
+        private readonly Trooper $target_trooper,
+    ) {}
+
     public function via(Trooper $notifiable): array
     {
         $channels = [];
@@ -35,17 +40,17 @@ class TroopersMergedNotification extends Notification
         return $channels;
     }
 
-    public function toMail(Trooper $notifiable): TrooperAwaitingApproval
+    public function toMail(Trooper $notifiable): TroopersMerged
     {
-        return (new TrooperAwaitingApproval())->to($notifiable->email);
+        return (new TroopersMerged($this->source_trooper, $this->target_trooper))->to($notifiable->email);
     }
 
     public function toArray(Trooper $notifiable): array
     {
         return [
-            'title' => 'New Trooper Registration',
-            'body' => 'A new trooper is awaiting approval.',
-            'url' => '/admin/troopers/approvals',
+            'title' => 'Troopers Merged',
+            'body' => "{$this->source_trooper->legal_name} (#{$this->source_trooper->id}) was merged into {$this->target_trooper->legal_name} (#{$this->target_trooper->id}).",
+            'url' => "/admin/troopers/{$this->target_trooper->id}",
         ];
     }
 

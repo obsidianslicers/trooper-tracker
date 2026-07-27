@@ -10,7 +10,7 @@
 </p>
 
 <p>
-    Source Trooper: {{ $source_trooper->legal_name }}
+    Source Trooper: {{ $source_trooper->legal_name }} (#{{ $source_trooper->id }})
     <br />
     {{ $source_trooper->display_name }}
     <br />
@@ -18,7 +18,7 @@
 </p>
 
 <p>
-    Target Trooper: {{ $target_trooper->legal_name }}
+    Target Trooper: {{ $target_trooper->legal_name }} (#{{ $target_trooper->id }})
     <br />
     {{ $target_trooper->display_name }}
     <br />

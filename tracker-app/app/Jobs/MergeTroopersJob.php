@@ -31,7 +31,7 @@ class MergeTroopersJob implements ShouldBeUnique, ShouldQueue
 
         foreach ($admins as $admin)
         {
-            $admin->notify(new TroopersMergedNotification);
+            $admin->notify(new TroopersMergedNotification($this->source_trooper, $this->target_trooper));
         }
     }
 }
