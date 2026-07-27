@@ -84,6 +84,28 @@ php artisan tracker:fix-trooper-assignment-hierarchy
 
 ---
 
+### `tracker:merge-troopers`
+
+Merges two trooper accounts, reassigning the source trooper's organizations, assignments, costumes, donations, friends, awards, event sign-ups/uploads/watches/mission-acks/notifications/shares, and achievements onto the target trooper. Account-level fields (phone, date of birth, membership status/role, notification settings, etc.) are reconciled onto the target, and the source trooper's `membership_status` is set to `MERGED`. Runs inside a database transaction; notifies all administrators when complete.
+
+```bash
+php artisan tracker:merge-troopers {source_trooper_id} {target_trooper_id}
+```
+
+| Argument | Required | Description |
+|---|---|---|
+| `source_trooper_id` | Yes | ID of the trooper whose account will be merged from (marked `MERGED` afterward) |
+| `target_trooper_id` | Yes | ID of the trooper whose account will be merged into |
+
+**Example:**
+```bash
+php artisan tracker:merge-troopers 42 1
+```
+
+> **Note:** This runs the same merge logic synchronously as the admin "Merge Troopers" UI, which instead queues it via `MergeTroopersJob`.
+
+---
+
 ### `tracker:process-account-deletions`
 
 Permanently anonymizes and soft-deletes trooper accounts that have been pending deletion for 30 or more days. Picks up any account where `deletion_requested_at` is set and the 30-day grace period has elapsed.
