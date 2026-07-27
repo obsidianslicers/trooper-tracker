@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Messages\Troopers\PageData;
 
-use App\Enums\TrooperPickerMode;
+use App\Enums\TrooperSearchMode;
 use App\Messages\Troopers\PageData\SearchTroopersPageData;
 use App\Messages\Troopers\Queries\SearchTroopers;
 use App\Models\Trooper;
@@ -36,13 +36,12 @@ class SearchTroopersPageDataTest extends TestCase
         Mockery::mock('alias:' . SearchTroopers::class)
             ->shouldReceive('call')
             ->once()
-            ->withArgs(function (Trooper $trooper, string $search_term, ?int $organization_id, bool $moderated_only, TrooperPickerMode $picker_mode, ) use ($requesting_trooper): bool
+            ->withArgs(function (Trooper $trooper, string $search_term, ?int $organization_id, TrooperSearchMode $search_mode, ) use ($requesting_trooper): bool
             {
                 return $trooper === $requesting_trooper
                     && $search_term === 'Trooper'
                     && $organization_id === 42
-                    && $moderated_only === true
-                    && $picker_mode === TrooperPickerMode::FRIENDS;
+                    && $search_mode === TrooperSearchMode::MODERATED;
             })
             ->andReturn(collect([$first_trooper, $second_trooper]));
 
@@ -50,8 +49,7 @@ class SearchTroopersPageDataTest extends TestCase
             actor: $requesting_trooper,
             search_term: 'Trooper',
             organization_id: 42,
-            moderated_only: true,
-            picker_mode: TrooperPickerMode::FRIENDS,
+            search_mode: TrooperSearchMode::MODERATED,
         );
 
         $result = $subject->handle();

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Messages\Troopers\PageData;
 
-use App\Enums\TrooperPickerMode;
+use App\Enums\TrooperSearchMode;
 use App\Messages\Troopers\Queries\SearchTroopers;
 use App\Models\Trooper;
 use Hyperdrive\Contracts\Actor;
@@ -15,7 +15,7 @@ use Hyperdrive\Message;
  *
  * This page data message responds with a list of troopers matching the search criteria, formatted for frontend consumption.
  *
- * @method static array call(Actor $actor, string $search_term, int|null $organization_id = null, bool $moderated_only = false, TrooperPickerMode $picker_mode = TrooperPickerMode::NONE)
+ * @method static array call(Actor $actor, string $search_term, int|null $organization_id = null, bool $moderated_only = false, TrooperSearchMode $search_mode = TrooperSearchMode::NONE)
  */
 final class SearchTroopersPageData extends Message
 {
@@ -28,8 +28,9 @@ final class SearchTroopersPageData extends Message
         private readonly Actor $actor,
         private readonly string $search_term,
         private readonly ?int $organization_id = null,
-        private readonly bool $moderated_only = false,
-        private readonly TrooperPickerMode $picker_mode = TrooperPickerMode::NONE) {}
+        private readonly TrooperSearchMode $search_mode = TrooperSearchMode::NONE)
+    {
+    }
 
     /**
      * Retrieves application configuration as a nested associative array.
@@ -42,11 +43,10 @@ final class SearchTroopersPageData extends Message
             trooper: $this->actor,
             search_term: $this->search_term,
             organization_id: $this->organization_id,
-            moderated_only: $this->moderated_only,
-            picker_mode: $this->picker_mode
+            search_mode: $this->search_mode
         );
 
-        $data = $troopers->map(fn (Trooper $trooper) => [
+        $data = $troopers->map(fn(Trooper $trooper) => [
             Trooper::ID => $trooper->id,
             Trooper::LEGAL_NAME => $trooper->legal_name,
             Trooper::DISPLAY_NAME => $trooper->display_name,

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Messages\Troopers\Queries;
 
-use App\Enums\TrooperPickerMode;
+use App\Enums\TrooperSearchMode;
 use App\Models\Trooper;
 use App\Models\TrooperFriend;
 use Hyperdrive\Contracts\Actor;
@@ -12,7 +12,7 @@ use Hyperdrive\Message;
 use Illuminate\Support\Collection;
 
 /**
- * @method static Collection call(Actor $actor, string $search_term, int|null $organization_id = null, bool $moderated_only = false, TrooperPickerMode $picker_mode = TrooperPickerMode::NONE)
+ * @method static Collection call(Actor $actor, string $search_term, int|null $organization_id = null, bool $moderated_only = false, TrooperSearchMode $search_mode = TrooperSearchMode::NONE)
  */
 final class SearchTroopers extends Message
 {
@@ -25,22 +25,24 @@ final class SearchTroopers extends Message
         private readonly Actor $actor,
         private readonly string $search_term,
         private readonly ?int $organization_id = null,
-        private readonly bool $moderated_only = false,
-        private readonly TrooperPickerMode $picker_mode = TrooperPickerMode::NONE) {}
+        private readonly TrooperSearchMode $search_mode = TrooperSearchMode::NONE)
+    {
+    }
 
     public function handle(): Collection
     {
         $search_term = trim($this->search_term);
         $query = Trooper::query();
 
-        $admin_mode = ($this->picker_mode == TrooperPickerMode::ADMIN && $this->actor->is_administrator);
+        $admin_mode = ($this->search_mode == TrooperSearchMode::ADMIN && $this->actor->is_administrator);
 
         if (!$admin_mode)
         {
             //  not an admin - so don't allow the search of ALL
             $query = $query->active()
                 ->whereNotNull(Trooper::SETUP_COMPLETED_AT)
-                ->where(function ($q) {
+                ->where(function ($q)
+                {
                     $q->whereNull(Trooper::GUARDIAN_ID)
                         ->orWhere(Trooper::GUARDIAN_ID, $this->actor->id);
                 });
@@ -50,12 +52,13 @@ final class SearchTroopers extends Message
 
         if ($this->organization_id)
         {
-            $query = $query->whereHas('organizations', function ($q) {
+            $query = $query->whereHas('organizations', function ($q)
+            {
                 $q->where('tt_organizations.id', $this->organization_id);
             });
         }
 
-        if ($this->moderated_only)
+        if ($this->search_mode == TrooperSearchMode::MODERATED)
         {
             $query = $query->moderatedBy($this->actor);
         }
@@ -63,7 +66,7 @@ final class SearchTroopers extends Message
         $execute_query = false;
         $has_filter = $search_term !== '';
 
-        if ($this->picker_mode == TrooperPickerMode::FRIENDS)
+        if ($this->search_mode == TrooperSearchMode::FRIENDS)
         {
             if (!$has_filter)
             {

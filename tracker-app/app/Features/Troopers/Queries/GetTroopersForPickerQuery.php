@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Features\Troopers\Queries;
 
-use App\Enums\TrooperPickerMode;
+use App\Enums\TrooperSearchMode;
 use App\Models\Filters\TrooperFilter;
 use App\Models\Trooper;
 
@@ -35,7 +35,7 @@ readonly class GetTroopersForPickerQuery
     /**
      * Optional picker mode to adjust filtering logic.
      */
-    public readonly ?TrooperPickerMode $picker_mode;
+    public readonly ?TrooperSearchMode $picker_mode;
 
     /**
      * Create a new query instance.
@@ -54,6 +54,6 @@ readonly class GetTroopersForPickerQuery
     {
         $this->moderated_only = filter_var($data['moderated_only'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $this->organization_id = empty($data['organization_id']) ? null : intval($data['organization_id']);
-        $this->picker_mode = isset($data['picker_mode']) ? TrooperPickerMode::from($data['picker_mode']) : null;
+        $this->picker_mode = isset($data['picker_mode']) ? TrooperSearchMode::from($data['picker_mode']) : null;
     }
 }

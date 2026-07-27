@@ -107,6 +107,14 @@ trait HasTrooperScopes
      */
     public function scopeSearchFor(Builder $query, string $search_term): Builder
     {
+        $search_term = trim($search_term);
+
+        if (strpos($search_term, ' ') !== false)
+        {
+            //  replace multi spaces with a wildcard for SQL LIKE queries
+            $search_term = preg_replace('/\s+/', '%', $search_term);
+        }
+
         if (!str_starts_with($search_term, '%'))
         {
             $search_term = '%' . $search_term;

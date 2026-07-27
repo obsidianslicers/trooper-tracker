@@ -137,7 +137,7 @@ export class TrooperPickerViewModel extends ViewModel {
         this.error_message = "";
 
         try {
-            const url = `${getRoute('search.troopers')}?search_term=${encodeURIComponent(query)}&picker_mode=${this.options.mode ?? 'none'}`;
+            const url = `${getRoute('search.troopers')}?search_term=${encodeURIComponent(query)}&search_mode=${this.options.mode ?? 'none'}`;
             const rows = await fetch(url).then(res => res.json());
             if (current_sequence !== this.request_sequence) {
                 return;

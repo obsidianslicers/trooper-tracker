@@ -3,48 +3,48 @@
         @if($shift_uses_stations)
             <span class="shift-signup-primary__label">Choose your station</span>
         @endif
-    @if($event_has_org_limits)
-        @if($eligible_orgs->count() > 1)
-            <select id="org-picker-{{ $event_shift->id }}"
-                    name="organization_id"
+        @if($event_has_org_limits)
+            @if($eligible_orgs->count() > 1)
+                <select id="org-picker-{{ $event_shift->id }}"
+                        name="organization_id"
+                        class="form-select form-select-sm">
+                    <option value="">-- Select Organization --</option>
+                    @foreach($eligible_orgs as $org)
+                        <option value="{{ $org->id }}">{{ $org->name }}</option>
+                    @endforeach
+                </select>
+            @elseif($eligible_orgs->count() === 1)
+                <input type="hidden"
+                       id="org-picker-{{ $event_shift->id }}"
+                       name="organization_id"
+                       value="{{ $eligible_orgs->first()->id }}" />
+                <div class="small text-muted">
+                    <i class="fa fa-fw fa-building me-1"></i>
+                    Trooping as {{ $eligible_orgs->first()->name }}
+                </div>
+            @endif
+        @endif
+        @if($shift_uses_stations)
+            <select id="station-picker-{{ $event_shift->id }}"
+                    name="event_shift_station_id"
                     class="form-select form-select-sm">
-                <option value="">-- Select Organization --</option>
-                @foreach($eligible_orgs as $org)
-                    <option value="{{ $org->id }}">{{ $org->name }}</option>
+                <option value="">-- Select Station --</option>
+                @foreach($station_options as $station_id => $station_name)
+                    <option value="{{ $station_id }}">{{ $station_name }}</option>
                 @endforeach
             </select>
-        @elseif($eligible_orgs->count() === 1)
-            <input type="hidden"
-                   id="org-picker-{{ $event_shift->id }}"
-                   name="organization_id"
-                   value="{{ $eligible_orgs->first()->id }}" />
-            <div class="small text-muted">
-                <i class="fa fa-fw fa-building me-1"></i>
-                Trooping as {{ $eligible_orgs->first()->name }}
-            </div>
         @endif
-    @endif
-    @if($shift_uses_stations)
-        <select id="station-picker-{{ $event_shift->id }}"
-                name="event_shift_station_id"
-                class="form-select form-select-sm">
-            <option value="">-- Select Station --</option>
-            @foreach($station_options as $station_id => $station_name)
-                <option value="{{ $station_id }}">{{ $station_name }}</option>
-            @endforeach
-        </select>
-    @endif
-    <button class="btn btn-sm btn-outline-success text-start text-md-center htmx-disable"
-            hx-post="{{ route('events.signup-htmx', compact('event_shift')) }}"
-            hx-select="#shift-container-{{ $event_shift->id }}"
-            hx-target="#shift-container-{{ $event_shift->id }}"
-            hx-swap="outerHTML"
-            hx-trigger="click"
-            hx-include="#org-picker-{{ $event_shift->id }}, #station-picker-{{ $event_shift->id }}"
-            hx-indicator="#transmission-bar-shift-{{ $event_shift->id }}, closest .btn">
-        <i class="fa fa-fw fa-plus-circle me-2"></i>
-        Sign Up
-    </button>
+        <button class="btn btn-sm btn-outline-success text-start text-md-center htmx-disable"
+                hx-post="{{ route('events.signup-htmx', compact('event_shift')) }}"
+                hx-select="#shift-container-{{ $event_shift->id }}"
+                hx-target="#shift-container-{{ $event_shift->id }}"
+                hx-swap="outerHTML"
+                hx-trigger="click"
+                hx-include="#org-picker-{{ $event_shift->id }}, #station-picker-{{ $event_shift->id }}"
+                hx-indicator="#transmission-bar-shift-{{ $event_shift->id }}, closest .btn">
+            <i class="fa fa-fw fa-plus-circle me-2"></i>
+            Sign Up
+        </button>
     </div>
 @elseif($requires_mission_brief_ack && !$has_required_mission_brief_ack)
     <span class="d-block small text-warning mb-2">
@@ -60,33 +60,33 @@
             {{-- or they are a moderator - they can sign up a friend --}}
             <div id="friend-signup-action-{{ $event_shift->id }}"
                  class="shift-signup-secondary {{ $shift_uses_stations ? 'shift-signup-secondary--station' : '' }}">
-            <div class="shift-friend-trigger">
-            @if($shift_uses_stations)
-                <span class="shift-signup-secondary__label">Choose friend's station</span>
-                <select id="friend-station-picker-{{ $event_shift->id }}"
-                        name="event_shift_station_id"
-                        class="form-select form-select-sm">
-                    <option value="">-- Select Friend's Station --</option>
-                    @foreach($station_options as $station_id => $station_name)
-                        <option value="{{ $station_id }}">{{ $station_name }}</option>
-                    @endforeach
-                </select>
-            @endif
-            <button class="btn btn-sm btn-outline-info text-start text-md-center"
-                    hx-get="{{ route('pickers.trooper', ['property' => 'add-shift-friend-' . $event_shift->id, 'event' => 'trooper:selected', 'picker_mode' => App\Enums\TrooperPickerMode::FRIENDS->value]) }}"
-                    hx-target="#modal-trooper .modal-body"
-                    hx-trigger="click"
-                    data-bs-toggle="modal"
-                    data-bs-target="#modal-trooper">
-                <i class="fa fa-fw fa-plus-circle me-2"></i>
-                Add a Friend
-            </button>
-            </div>
-            @if($limited_orgs_for_add->isNotEmpty())
-                {{-- Step 2: org confirmation form appears here after trooper is selected --}}
-                <div id="add-trooper-step2-{{ $event_shift->id }}"
-                     class="friend-signup-step"></div>
-            @endif
+                <div class="shift-friend-trigger">
+                    @if($shift_uses_stations)
+                        <span class="shift-signup-secondary__label">Choose friend's station</span>
+                        <select id="friend-station-picker-{{ $event_shift->id }}"
+                                name="event_shift_station_id"
+                                class="form-select form-select-sm">
+                            <option value="">-- Select Friend's Station --</option>
+                            @foreach($station_options as $station_id => $station_name)
+                                <option value="{{ $station_id }}">{{ $station_name }}</option>
+                            @endforeach
+                        </select>
+                    @endif
+                    <button class="btn btn-sm btn-outline-info text-start text-md-center"
+                            hx-get="{{ route('pickers.trooper', ['property' => 'add-shift-friend-' . $event_shift->id, 'event' => 'trooper:selected', 'picker_mode' => App\Enums\TrooperSearchMode::FRIENDS->value]) }}"
+                            hx-target="#modal-trooper .modal-body"
+                            hx-trigger="click"
+                            data-bs-toggle="modal"
+                            data-bs-target="#modal-trooper">
+                        <i class="fa fa-fw fa-plus-circle me-2"></i>
+                        Add a Friend
+                    </button>
+                </div>
+                @if($limited_orgs_for_add->isNotEmpty())
+                    {{-- Step 2: org confirmation form appears here after trooper is selected --}}
+                    <div id="add-trooper-step2-{{ $event_shift->id }}"
+                         class="friend-signup-step"></div>
+                @endif
             </div>
             @if($limited_orgs_for_add->isNotEmpty())
                 {{-- Fetch the selected trooper's eligible orgs instead of signing up directly --}}

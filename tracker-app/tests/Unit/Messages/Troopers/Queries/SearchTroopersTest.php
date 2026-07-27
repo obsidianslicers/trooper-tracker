@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Messages\Troopers\Queries;
 
-use App\Enums\TrooperPickerMode;
+use App\Enums\TrooperSearchMode;
 use App\Messages\Troopers\Queries\SearchTroopers;
 use App\Models\Organization;
 use App\Models\Trooper;
@@ -160,7 +160,7 @@ class SearchTroopersTest extends TestCase
             ->asMember()
             ->create();
 
-        $subject = new SearchTroopers($moderator, 'Trooper', null, true);
+        $subject = new SearchTroopers($moderator, 'Trooper', null, TrooperSearchMode::MODERATED);
 
         $result = $subject->handle();
 
@@ -186,7 +186,7 @@ class SearchTroopersTest extends TestCase
         );
     }
 
-    public function test_handle_with_admin_picker_mode_allows_administrator_to_search_all_troopers(): void
+    public function test_handle_with_admin_search_mode_allows_administrator_to_search_all_troopers(): void
     {
         $administrator = Trooper::factory()->asAdministrator()->create();
         $guardian = Trooper::factory()->asMember()->create();
@@ -214,8 +214,7 @@ class SearchTroopersTest extends TestCase
             $administrator,
             'Admin Search',
             null,
-            false,
-            TrooperPickerMode::ADMIN,
+            TrooperSearchMode::ADMIN,
         );
 
         $result = $subject->handle();
@@ -226,7 +225,7 @@ class SearchTroopersTest extends TestCase
         );
     }
 
-    public function test_handle_with_admin_picker_mode_still_restricts_non_administrator(): void
+    public function test_handle_with_admin_search_mode_still_restricts_non_administrator(): void
     {
         $requesting_trooper = Trooper::factory()->asMember()->create();
         $guardian = Trooper::factory()->asMember()->create();
@@ -260,8 +259,7 @@ class SearchTroopersTest extends TestCase
             $requesting_trooper,
             'Admin Gate',
             null,
-            false,
-            TrooperPickerMode::ADMIN,
+            TrooperSearchMode::ADMIN,
         );
 
         $result = $subject->handle();
@@ -269,7 +267,7 @@ class SearchTroopersTest extends TestCase
         $this->assertSame(['Admin Gate Adult'], $result->pluck(Trooper::LEGAL_NAME)->all());
     }
 
-    public function test_handle_with_friends_picker_mode_returns_results_without_filter_criteria(): void
+    public function test_handle_with_friends_search_mode_returns_results_without_filter_criteria(): void
     {
         $requesting_trooper = Trooper::factory()->asMember()->create();
         $friend_alpha = Trooper::factory()->asMember()->withLegalName('Alpha Friend')->create();
@@ -283,8 +281,7 @@ class SearchTroopersTest extends TestCase
             $requesting_trooper,
             '',
             null,
-            false,
-            TrooperPickerMode::FRIENDS,
+            TrooperSearchMode::FRIENDS,
         );
 
         $result = $subject->handle();
@@ -292,7 +289,7 @@ class SearchTroopersTest extends TestCase
         $this->assertSame(['Alpha Friend', 'Bravo Friend'], $result->pluck(Trooper::LEGAL_NAME)->all());
     }
 
-    public function test_handle_returns_empty_collection_when_friends_picker_mode_has_no_friends(): void
+    public function test_handle_returns_empty_collection_when_friends_search_mode_has_no_friends(): void
     {
         $requesting_trooper = Trooper::factory()->asMember()->create();
         Trooper::factory()->asMember()->withLegalName('Unrelated Trooper')->create();
@@ -301,8 +298,7 @@ class SearchTroopersTest extends TestCase
             $requesting_trooper,
             '',
             null,
-            false,
-            TrooperPickerMode::FRIENDS,
+            TrooperSearchMode::FRIENDS,
         );
 
         $result = $subject->handle();
