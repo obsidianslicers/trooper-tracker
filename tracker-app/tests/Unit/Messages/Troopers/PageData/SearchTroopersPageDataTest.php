@@ -25,12 +25,14 @@ class SearchTroopersPageDataTest extends TestCase
             Trooper::ID => 101,
             Trooper::LEGAL_NAME => 'Alpha Trooper',
             Trooper::DISPLAY_NAME => 'Alpha',
+            Trooper::EMAIL => 'alpha@example.com',
         ]);
 
         $second_trooper = Trooper::factory()->asMember()->asActive()->make([
             Trooper::ID => 202,
             Trooper::LEGAL_NAME => 'Bravo Trooper',
             Trooper::DISPLAY_NAME => 'Bravo',
+            Trooper::EMAIL => 'bravo@example.com',
         ]);
 
         Mockery::mock('alias:' . SearchTroopers::class)
@@ -59,11 +61,13 @@ class SearchTroopersPageDataTest extends TestCase
                 Trooper::ID => 101,
                 Trooper::LEGAL_NAME => 'Alpha Trooper',
                 Trooper::DISPLAY_NAME => 'Alpha',
+                Trooper::EMAIL => 'alpha@example.com',
             ],
             [
                 Trooper::ID => 202,
                 Trooper::LEGAL_NAME => 'Bravo Trooper',
                 Trooper::DISPLAY_NAME => 'Bravo',
+                Trooper::EMAIL => 'bravo@example.com',
             ],
         ], $result);
     }

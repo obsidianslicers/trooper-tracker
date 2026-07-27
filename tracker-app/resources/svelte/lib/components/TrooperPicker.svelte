@@ -164,7 +164,8 @@
                             {trooper.legal_name}
                             <br />
                             <div class="small text-muted">
-                                ({trooper.display_name})
+                                <!-- ID and email are shown so admins can tell apart same-named troopers when merging; only merge uses this component today -->
+                                ({trooper.display_name}) &middot; ID: {trooper.id} &middot; {trooper.email}
                             </div>
                         </div>
                     </button>

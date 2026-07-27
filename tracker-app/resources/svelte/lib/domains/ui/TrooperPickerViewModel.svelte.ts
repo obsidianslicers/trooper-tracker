@@ -5,6 +5,7 @@ export type Trooper = {
     id: string | number;
     legal_name: string;
     display_name: string;
+    email: string;
 };
 
 export interface TrooperPickerOptions {

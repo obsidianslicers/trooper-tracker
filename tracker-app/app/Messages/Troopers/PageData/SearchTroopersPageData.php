@@ -50,6 +50,7 @@ final class SearchTroopersPageData extends Message
             Trooper::ID => $trooper->id,
             Trooper::LEGAL_NAME => $trooper->legal_name,
             Trooper::DISPLAY_NAME => $trooper->display_name,
+            Trooper::EMAIL => $trooper->email,
         ])->toArray();
 
         return $data;
