@@ -95,21 +95,26 @@
                 @endif
             @endforeach
 
-            @if(config('app.contact_email'))
+            @php
+                $support_href = config('app.support_url')
+                    ?: (config('app.contact_email') ? 'mailto:'.config('app.contact_email') : null);
+            @endphp
+
+            @if($support_href)
                 <div id="faq-contact" class="text-center mt-5 pt-4 border-top border-secondary">
                     <p class="text-muted mb-2">Still have questions?</p>
-                    <a href="mailto:{{ config('app.contact_email') }}" class="btn btn-outline-secondary">
-                        <i class="fa fa-fw fa-envelope me-1"></i> Contact
+                    <a href="{{ $support_href }}" class="btn btn-outline-secondary" target="_blank" rel="noopener">
+                        <i class="fa fa-fw fa-life-ring me-1"></i> Contact
                     </a>
                 </div>
             @endif
 
             <div id="faq-no-results" class="text-muted text-center py-5" style="display:none;">
                 No questions match your search.
-                @if(config('app.contact_email'))
+                @if($support_href)
                     <div class="mt-3">
-                        <a href="mailto:{{ config('app.contact_email') }}" class="btn btn-sm btn-outline-secondary">
-                            <i class="fa fa-fw fa-envelope me-1"></i> Contact
+                        <a href="{{ $support_href }}" class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener">
+                            <i class="fa fa-fw fa-life-ring me-1"></i> Contact
                         </a>
                     </div>
                 @endif
