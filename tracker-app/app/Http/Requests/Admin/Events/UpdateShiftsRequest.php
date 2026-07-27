@@ -62,17 +62,34 @@ class UpdateShiftsRequest extends FormRequest
 
             foreach ($this->input('shifts', []) as $key => $shift)
             {
-                foreach ($shift['stations'] ?? [] as $station_key => $station)
+                if (!is_array($shift))
                 {
-                    $has_name = !empty(trim((string) ($station['name'] ?? '')));
-                    $has_count = !empty($station['troopers_allowed'] ?? null);
+                    continue;
+                }
 
-                    if ($has_name xor $has_count)
+                $stations = $shift['stations'] ?? [];
+
+                if (!is_array($stations))
+                {
+                    $validator->errors()->add(
+                        "shifts.{$key}.stations",
+                        'Stations must be a list of station entries.',
+                    );
+                }
+                else
+                {
+                    foreach ($stations as $station_key => $station)
                     {
-                        $validator->errors()->add(
-                            "shifts.{$key}.stations.{$station_key}.name",
-                            'Station name and requested count are both required.',
-                        );
+                        $has_name = !empty(trim((string) ($station['name'] ?? '')));
+                        $has_count = !empty($station['troopers_allowed'] ?? null);
+
+                        if ($has_name xor $has_count)
+                        {
+                            $validator->errors()->add(
+                                "shifts.{$key}.stations.{$station_key}.name",
+                                'Station name and requested count are both required.',
+                            );
+                        }
                     }
                 }
 
