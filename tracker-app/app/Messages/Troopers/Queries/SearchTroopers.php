@@ -25,9 +25,7 @@ final class SearchTroopers extends Message
         private readonly Actor $actor,
         private readonly string $search_term,
         private readonly ?int $organization_id = null,
-        private readonly TrooperSearchMode $search_mode = TrooperSearchMode::NONE)
-    {
-    }
+        private readonly TrooperSearchMode $search_mode = TrooperSearchMode::NONE) {}
 
     public function handle(): Collection
     {
@@ -41,8 +39,7 @@ final class SearchTroopers extends Message
             //  not an admin - so don't allow the search of ALL
             $query = $query->active()
                 ->whereNotNull(Trooper::SETUP_COMPLETED_AT)
-                ->where(function ($q)
-                {
+                ->where(function ($q) {
                     $q->whereNull(Trooper::GUARDIAN_ID)
                         ->orWhere(Trooper::GUARDIAN_ID, $this->actor->id);
                 });
@@ -52,8 +49,7 @@ final class SearchTroopers extends Message
 
         if ($this->organization_id)
         {
-            $query = $query->whereHas('organizations', function ($q)
-            {
+            $query = $query->whereHas('organizations', function ($q) {
                 $q->where('tt_organizations.id', $this->organization_id);
             });
         }

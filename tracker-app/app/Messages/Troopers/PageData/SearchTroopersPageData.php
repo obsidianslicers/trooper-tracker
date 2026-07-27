@@ -28,9 +28,7 @@ final class SearchTroopersPageData extends Message
         private readonly Actor $actor,
         private readonly string $search_term,
         private readonly ?int $organization_id = null,
-        private readonly TrooperSearchMode $search_mode = TrooperSearchMode::NONE)
-    {
-    }
+        private readonly TrooperSearchMode $search_mode = TrooperSearchMode::NONE) {}
 
     /**
      * Retrieves application configuration as a nested associative array.
@@ -46,7 +44,7 @@ final class SearchTroopersPageData extends Message
             search_mode: $this->search_mode
         );
 
-        $data = $troopers->map(fn(Trooper $trooper) => [
+        $data = $troopers->map(fn (Trooper $trooper) => [
             Trooper::ID => $trooper->id,
             Trooper::LEGAL_NAME => $trooper->legal_name,
             Trooper::DISPLAY_NAME => $trooper->display_name,
