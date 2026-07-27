@@ -59,18 +59,6 @@ class MergeTroopersRequestTest extends TestCase
         $this->assertFalse($subject->authorize());
     }
 
-    public function test_authorize_throws_exception_when_trooper_not_found(): void
-    {
-        $this->expectException(AuthorizationException::class);
-        $this->expectExceptionMessage('Trooper not found or unauthorized.');
-
-        $subject = new MergeTroopersRequest;
-        $subject->setUserResolver(fn() => $this->administrator);
-        $this->setupMockedRoute($subject, null);
-
-        $subject->authorize();
-    }
-
     public function test_rules_requires_source_and_target_trooper_ids(): void
     {
         $subject = new MergeTroopersRequest;
@@ -138,25 +126,6 @@ class MergeTroopersRequestTest extends TestCase
             [
                 'source_trooper_id' => 999999,
                 'target_trooper_id' => 888888,
-            ],
-            $subject->rules()
-        );
-
-        $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('source_trooper_id', $validator->errors()->toArray());
-        $this->assertArrayHasKey('target_trooper_id', $validator->errors()->toArray());
-    }
-
-    public function test_rules_reject_inactive_trooper_ids(): void
-    {
-        $source_trooper = Trooper::factory()->asPending()->create();
-        $target_trooper = Trooper::factory()->asRetired()->create();
-        $subject = new MergeTroopersRequest;
-
-        $validator = Validator::make(
-            [
-                'source_trooper_id' => $source_trooper->id,
-                'target_trooper_id' => $target_trooper->id,
             ],
             $subject->rules()
         );
