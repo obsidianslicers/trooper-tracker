@@ -187,6 +187,11 @@ trait HasEventDisplayAssembler
      * 3. Intersecting with potential_orgs IDs to show only approved + eligible organizations
      * 4. Resolving organization names via $this->organizations keyed collection
      *
+     * If the trooper explicitly chose an org slot at signup (event_trooper->organization_id,
+     * set when the event has per-org capacity limits), that single org is shown instead of the
+     * broader approved-org set — it reflects an actual trooper decision rather than every org
+     * their costume happens to be approved for.
+     *
      * Rendering:
      * - Multiple orgs: prepends "(*) " indicator
      * - No matches: shows "(unattached)"
@@ -205,6 +210,11 @@ trait HasEventDisplayAssembler
             ->pluck('organization_costume.organization_id')
             ->unique()
             ?? collect();
+
+        if ($event_trooper->organization_id !== null && $approved_orgs->contains($event_trooper->organization_id))
+        {
+            return $this->organizations[$event_trooper->organization_id] ?? '??';
+        }
 
         $final_orgs = $potential_orgs->isEmpty()
             ? $approved_orgs

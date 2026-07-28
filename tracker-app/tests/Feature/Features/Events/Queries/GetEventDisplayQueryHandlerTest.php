@@ -9,6 +9,7 @@ use App\Features\Events\Queries\GetEventDisplayQueryHandler;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventGuest;
+use App\Models\EventOrganization;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Organization;
@@ -37,7 +38,7 @@ class GetEventDisplayQueryHandlerTest extends TestCase
         EventTrooper::factory()->forEventShift($shift)->forTrooper($later)->withSignedUpAt(Carbon::parse('2026-03-10 11:00:00'))->create();
         EventTrooper::factory()->forEventShift($shift)->forTrooper($earlier)->withSignedUpAt(Carbon::parse('2026-03-10 10:00:00'))->create();
 
-        $subject = new GetEventDisplayQueryHandler();
+        $subject = new GetEventDisplayQueryHandler;
 
         $result = $subject(new GetEventDisplayQuery($event, $viewer));
 
@@ -67,7 +68,7 @@ class GetEventDisplayQueryHandlerTest extends TestCase
             ->withName('Ahsoka Guest')
             ->create();
 
-        $subject = new GetEventDisplayQueryHandler();
+        $subject = new GetEventDisplayQueryHandler;
 
         $result = $subject(new GetEventDisplayQuery($event, $viewer));
 
@@ -112,7 +113,7 @@ class GetEventDisplayQueryHandlerTest extends TestCase
             ->withBackupCostume($backup_costume)
             ->create();
 
-        $subject = new GetEventDisplayQueryHandler();
+        $subject = new GetEventDisplayQueryHandler;
 
         $result = $subject(new GetEventDisplayQuery($event, $viewer));
 
@@ -120,6 +121,40 @@ class GetEventDisplayQueryHandlerTest extends TestCase
 
         $this->assertSame('(*) Alpha Outpost, Beta Base', $event_trooper->costume_organizations);
         $this->assertSame('Beta Base', $event_trooper->backup_costume_organizations);
+    }
+
+    public function test_invoke_prefers_signup_organization_id_over_full_approved_org_set(): void
+    {
+        $alpha = $this->create_organization('Alpha Outpost');
+        $beta = $this->create_organization('Beta Base');
+
+        $event = Event::factory()->withOrganization($alpha)->create();
+        $shift = EventShift::factory()->forEvent($event)->create();
+        $viewer = Trooper::factory()->asMember()->create();
+        $trooper = Trooper::factory()->asMember()->create();
+        $costume = Costume::factory()->withName('TK Armor')->create();
+
+        $this->allow_organization_for_event($event, $alpha);
+        $this->allow_organization_for_event($event, $beta);
+
+        $this->approve_costume_for_organization($trooper, $alpha, $costume);
+        $this->approve_costume_for_organization($trooper, $beta, $costume);
+
+        EventTrooper::factory()
+            ->forEventShift($shift)
+            ->forTrooper($trooper)
+            ->withCostume($costume)
+            ->state([EventTrooper::ORGANIZATION_ID => $alpha->id])
+            ->create();
+
+        $subject = new GetEventDisplayQueryHandler;
+
+        $result = $subject(new GetEventDisplayQuery($event, $viewer));
+
+        $this->assertSame(
+            'Alpha Outpost',
+            $result->event_shifts->first()->event_troopers->first()->costume_organizations
+        );
     }
 
     public function test_invoke_marks_costume_as_unattached_when_no_approved_organizations_match(): void
@@ -139,7 +174,7 @@ class GetEventDisplayQueryHandlerTest extends TestCase
             ->withCostume($costume)
             ->create();
 
-        $subject = new GetEventDisplayQueryHandler();
+        $subject = new GetEventDisplayQueryHandler;
 
         $result = $subject(new GetEventDisplayQuery($event, $viewer));
 
@@ -158,7 +193,7 @@ class GetEventDisplayQueryHandlerTest extends TestCase
         return Organization::factory()
             ->asOrganization()
             ->withName($name)
-            ->withNodePath($sequence . '.')
+            ->withNodePath($sequence.'.')
             ->create();
     }
 
@@ -180,7 +215,7 @@ class GetEventDisplayQueryHandlerTest extends TestCase
 
     private function allow_organization_for_event(Event $event, Organization $organization): void
     {
-        \App\Models\EventOrganization::factory()
+        EventOrganization::factory()
             ->forEvent($event)
             ->forOrganization($organization)
             ->canAttend()
