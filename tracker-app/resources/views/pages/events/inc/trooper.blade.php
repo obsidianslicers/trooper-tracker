@@ -103,10 +103,7 @@
                 <i class="small text-muted">
                     <i class="fa fa-fw fa-box-archive"></i>
                     {{ $event_trooper->backup_costume->name }}
-                    <br />
                 </i>
-                <x-planned-org-credit :organizations="$event_trooper->backup_costume_organizations"
-                                       :planned="false" />
             @endif
         @endif
     </div>

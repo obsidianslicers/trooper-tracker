@@ -16,6 +16,7 @@ use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\TrooperCostume;
+use App\Models\TrooperOrganization;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -102,6 +103,9 @@ class GetEventDisplayQueryHandlerTest extends TestCase
         $this->allow_organization_for_event($event, $beta);
         $this->allow_organization_for_event($event, $gamma);
 
+        $this->join_organization($trooper, $alpha);
+        $this->join_organization($trooper, $beta);
+
         $this->approve_costume_for_organization($trooper, $alpha, $primary_costume);
         $this->approve_costume_for_organization($trooper, $beta, $primary_costume);
         $this->approve_costume_for_organization($trooper, $beta, $backup_costume);
@@ -137,6 +141,9 @@ class GetEventDisplayQueryHandlerTest extends TestCase
         $this->allow_organization_for_event($event, $alpha);
         $this->allow_organization_for_event($event, $beta);
 
+        $this->join_organization($trooper, $alpha);
+        $this->join_organization($trooper, $beta);
+
         $this->approve_costume_for_organization($trooper, $alpha, $costume);
         $this->approve_costume_for_organization($trooper, $beta, $costume);
 
@@ -145,6 +152,41 @@ class GetEventDisplayQueryHandlerTest extends TestCase
             ->forTrooper($trooper)
             ->withCostume($costume)
             ->state([EventTrooper::ORGANIZATION_ID => $alpha->id])
+            ->create();
+
+        $subject = new GetEventDisplayQueryHandler;
+
+        $result = $subject(new GetEventDisplayQuery($event, $viewer));
+
+        $this->assertSame(
+            'Alpha Outpost',
+            $result->event_shifts->first()->event_troopers->first()->costume_organizations
+        );
+    }
+
+    public function test_invoke_excludes_approved_orgs_the_trooper_never_joined(): void
+    {
+        $alpha = $this->create_organization('Alpha Outpost');
+        $beta = $this->create_organization('Beta Base');
+
+        $event = Event::factory()->withOrganization($alpha)->create();
+        $shift = EventShift::factory()->forEvent($event)->create();
+        $viewer = Trooper::factory()->asMember()->create();
+        $trooper = Trooper::factory()->asMember()->create();
+        $costume = Costume::factory()->withName('Command Staff')->create();
+
+        $this->allow_organization_for_event($event, $alpha);
+        $this->allow_organization_for_event($event, $beta);
+
+        $this->join_organization($trooper, $alpha);
+        // Approved to wear this costume for Beta despite never having joined Beta.
+        $this->approve_costume_for_organization($trooper, $alpha, $costume);
+        $this->approve_costume_for_organization($trooper, $beta, $costume);
+
+        EventTrooper::factory()
+            ->forEventShift($shift)
+            ->forTrooper($trooper)
+            ->withCostume($costume)
             ->create();
 
         $subject = new GetEventDisplayQueryHandler;
@@ -194,6 +236,14 @@ class GetEventDisplayQueryHandlerTest extends TestCase
             ->asOrganization()
             ->withName($name)
             ->withNodePath($sequence.'.')
+            ->create();
+    }
+
+    private function join_organization(Trooper $trooper, Organization $organization): void
+    {
+        TrooperOrganization::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($organization)
             ->create();
     }
 
