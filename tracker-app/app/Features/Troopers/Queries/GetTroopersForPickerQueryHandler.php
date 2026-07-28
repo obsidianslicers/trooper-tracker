@@ -44,7 +44,7 @@ readonly class GetTroopersForPickerQueryHandler implements QueryHandlerInterface
     {
         $query = $this->buildBaseQuery($message);
         $has_filter = $message->filter->hasFilter();
-        $is_friends_mode = $message->picker_mode == TrooperPickerMode::FRIENDS;
+        $is_friends_mode = $message->picker_mode == TrooperSearchMode::FRIENDS;
 
         if ($is_friends_mode && !$has_filter)
         {
