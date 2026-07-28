@@ -54,10 +54,6 @@ trait CommonRules
 
             Event::VENUE => ['nullable', 'string', 'max:256'],
             Event::VENUE_ADDRESS => ['nullable', 'string', 'max:256'],
-            Event::VENUE_CITY => ['nullable', 'string', 'max:128'],
-            Event::VENUE_STATE => ['nullable', 'string', 'max:128'],
-            Event::VENUE_ZIP => ['nullable', 'string', 'max:128'],
-            Event::VENUE_COUNTRY => ['nullable', 'string', 'max:128'],
 
             Event::EVENT_START => ['required', 'date'],
             Event::EVENT_END => ['required', 'date', 'after:'.Event::EVENT_START],

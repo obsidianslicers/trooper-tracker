@@ -53,10 +53,6 @@ class Event extends BaseEvent
             self::CONTACT_EMAIL => SanitizeHtmlCast::class,
             self::VENUE => SanitizeHtmlCast::class,
             self::VENUE_ADDRESS => SanitizeHtmlCast::class,
-            self::VENUE_CITY => SanitizeHtmlCast::class,
-            self::VENUE_STATE => SanitizeHtmlCast::class,
-            self::VENUE_ZIP => SanitizeHtmlCast::class,
-            self::VENUE_COUNTRY => SanitizeHtmlCast::class,
             self::EVENT_WEBSITE => SanitizeHtmlCast::class,
             self::REQUESTED_CHARACTER_TYPES => SanitizeHtmlCast::class,
         ]);

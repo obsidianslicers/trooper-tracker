@@ -581,7 +581,7 @@ Custom Artisan commands automate maintenance tasks and scheduled operations.
   - Scheduled based on integration needs
 
 **Development:**
-- **GenerateFactoriesCommand** (`tracker:generate-factories`)
+- **GenerateFactoriesCommand** (`fabricator:generate-factories`)
   - Generates factory classes from base models
   - Run after database schema changes
 

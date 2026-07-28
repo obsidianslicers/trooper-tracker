@@ -254,7 +254,7 @@ Key configuration files:
 php artisan code:models
 
 # Generate factories from base models
-php artisan tracker:generate-factories
+php artisan fabricator:generate-factories
 
 # Create new controllers, policies, rules
 php artisan make:controller NameController --invokable

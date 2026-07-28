@@ -194,7 +194,7 @@ php artisan test
 ```bash
 # Generate base models after schema changes
 php artisan code:models
-php artisan tracker:generate-factories
+php artisan fabricator:generate-factories
 
 # Run scheduled tasks manually
 php artisan tracker:send-daily-event-notifications

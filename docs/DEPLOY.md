@@ -181,7 +181,7 @@ php artisan migrate --force
 # IMPORTANT: Generate base models after migrations
 # DEVELOPMENT ONLY
 php artisan code:models
-php artisan tracker:generate-factories
+php artisan fabricator:generate-factories
 
 # Seed database (if needed)
 php artisan db:seed --force

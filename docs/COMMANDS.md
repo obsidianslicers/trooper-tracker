@@ -118,12 +118,12 @@ php artisan tracker:process-account-deletions
 
 ---
 
-### `tracker:generate-factories`
+### `fabricator:generate-factories`
 
 Generates Eloquent model factories for all models in the models directory that don't already have one. Useful during development when new models are added.
 
 ```bash
-php artisan tracker:generate-factories
+php artisan fabricator:generate-factories
 ```
 
 ---

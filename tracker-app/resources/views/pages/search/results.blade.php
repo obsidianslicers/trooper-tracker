@@ -121,8 +121,8 @@
                                             <a href="{{ route('events.display', $event) }}" class="fw-bold text-decoration-none">
                                                 {{ $event->name }}
                                             </a>
-                                            @if ($event->venue_city)
-                                                <br /><span class="text-muted small">{{ $event->venue_city }}@if($event->venue_state), {{ $event->venue_state }}@endif</span>
+                                            @if ($event->venue_address)
+                                                <br /><span class="text-muted small">{{ $event->venue_address }}</span>
                                             @endif
                                         </td>
                                         <td class="text-muted small">{{ $event->organization->name ?? '—' }}</td>

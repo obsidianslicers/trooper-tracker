@@ -18,8 +18,8 @@ class EventShiftStationFactory extends Factory
         return [
             EventShiftStation::EVENT_SHIFT_ID => \App\Models\EventShift::factory(),
             EventShiftStation::NAME => $this->faker->name(),
-            EventShiftStation::TROOPERS_ALLOWED => $this->faker->randomNumber(),
-            EventShiftStation::SEQUENCE => $this->faker->randomNumber(),
+            EventShiftStation::TROOPERS_ALLOWED => $this->faker->word(),
+            EventShiftStation::SEQUENCE => $this->faker->word(),
         ];
     }
 }

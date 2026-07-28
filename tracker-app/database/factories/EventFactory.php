@@ -41,11 +41,11 @@ class EventFactory extends BaseEventFactory
             Event::CONTACT_EMAIL => $this->faker->safeEmail(),
 
             Event::VENUE => $this->faker->company(),
-            Event::VENUE_ADDRESS => $this->faker->streetAddress(),
-            Event::VENUE_CITY => $this->faker->city(),
-            Event::VENUE_STATE => $this->faker->stateAbbr(),
-            Event::VENUE_ZIP => $this->faker->postcode(),
-            Event::VENUE_COUNTRY => $this->faker->country(),
+            Event::VENUE_ADDRESS => $this->faker->streetAddress()
+                . ' ' . $this->faker->city()
+                . ', ' . $this->faker->stateAbbr()
+                . ' ' . $this->faker->postcode()
+                . ' ' . $this->faker->country(),
 
             Event::EVENT_WEBSITE => $this->faker->url(),
 
