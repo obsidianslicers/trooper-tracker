@@ -57,13 +57,13 @@ class UpdateShiftsRequestTest extends TestCase
         $mock_route->shouldReceive('parameter')
             ->with('event', \Mockery::any())
             ->andReturn($event);
-        $request->setRouteResolver(fn() => $mock_route);
+        $request->setRouteResolver(fn () => $mock_route);
     }
 
     public function test_authorize_returns_true_for_moderator(): void
     {
         $subject = new UpdateShiftsRequest;
-        $subject->setUserResolver(fn() => $this->moderator);
+        $subject->setUserResolver(fn () => $this->moderator);
         $this->setupMockedRoute($subject, $this->event);
 
         $this->assertTrue($subject->authorize());
@@ -75,7 +75,7 @@ class UpdateShiftsRequestTest extends TestCase
         $this->expectExceptionMessage('Event not found or unauthorized.');
 
         $subject = new UpdateShiftsRequest;
-        $subject->setUserResolver(fn() => $this->moderator);
+        $subject->setUserResolver(fn () => $this->moderator);
         $this->setupMockedRoute($subject, null);
 
         $subject->authorize();
@@ -327,13 +327,35 @@ class UpdateShiftsRequestTest extends TestCase
         );
     }
 
+    public function test_with_validator_rejects_non_array_stations(): void
+    {
+        $validator = $this->makeValidator([
+            'shifts' => [
+                [
+                    'date' => '2024-01-15',
+                    'starts_at' => '10:00',
+                    'ends_at' => '11:00',
+                    'status' => EventStatus::OPEN->value,
+                    'stations' => '2',
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($validator->fails());
+        $this->assertArrayHasKey('shifts.0.stations', $validator->errors()->toArray());
+        $this->assertSame(
+            'Stations must be a list of station entries.',
+            $validator->errors()->first('shifts.0.stations'),
+        );
+    }
+
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     private function makeValidator(array $data): \Illuminate\Validation\Validator
     {
         $subject = new UpdateShiftsRequest;
-        $subject->setUserResolver(fn() => $this->moderator);
+        $subject->setUserResolver(fn () => $this->moderator);
         $this->setupMockedRoute($subject, $this->event);
         $subject->merge($data);
 
