@@ -95,17 +95,14 @@
                     {{ $event_trooper->costume->name }}
                 </b>
                 <br />
-                <i class="small text-muted">
-                    {{ $event_trooper->costume_organizations }}
-                </i>
+                <x-planned-org-credit :organizations="$event_trooper->costume_organizations"
+                                       :planned="$event->status !== \App\Enums\EventStatus::CLOSED" />
             @endif
             @if($event_trooper->backup_costume != null)
                 <br />
                 <i class="small text-muted">
                     <i class="fa fa-fw fa-box-archive"></i>
                     {{ $event_trooper->backup_costume->name }}
-                    <br />
-                    {{ $event_trooper->backup_costume_organizations }}
                 </i>
             @endif
         @endif

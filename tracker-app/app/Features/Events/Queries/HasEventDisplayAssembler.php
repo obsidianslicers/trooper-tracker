@@ -9,6 +9,7 @@ use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\Trooper;
+use App\Models\TrooperOrganization;
 use Illuminate\Support\Collection;
 
 /**
@@ -37,6 +38,16 @@ trait HasEventDisplayAssembler
     private readonly Collection $organizations;
 
     /**
+     * Per-trooper cache of active membership organization IDs, keyed by trooper ID.
+     * Populated lazily by memberOrgIds() to avoid re-querying for the same trooper.
+     * Held as a Collection (mutated in place via put()) so it stays compatible with
+     * readonly-class handlers that use this trait — only the reference is readonly.
+     *
+     * @var Collection<int, Collection<int, int>>
+     */
+    private readonly Collection $member_org_ids_cache;
+
+    /**
      * Initializes the assembler by loading all "ofTypeOrganizations" into a keyed collection.
      *
      * Must be called from the parent class constructor to populate $this->organizations
@@ -45,6 +56,33 @@ trait HasEventDisplayAssembler
     private function bootHasEventDisplayAssembler(): void
     {
         $this->organizations = Organization::ofTypeOrganizations()->pluck('name', 'id');
+        $this->member_org_ids_cache = collect();
+    }
+
+    /**
+     * Resolves the organization IDs the trooper currently belongs to (active membership only).
+     *
+     * A trooper can hold a costume approval for an org they've since left, or for an org
+     * offering a shared/command-staff costume they were never a member of — this scopes
+     * display down to orgs they actually belong to, cached per trooper to avoid N+1 queries.
+     *
+     * @param  Trooper  $trooper  The trooper whose active memberships to resolve
+     * @return Collection<int, int> Organization IDs the trooper is an active member of
+     */
+    private function memberOrgIds(Trooper $trooper): Collection
+    {
+        if (!$this->member_org_ids_cache->has($trooper->id))
+        {
+            $this->member_org_ids_cache->put(
+                $trooper->id,
+                $trooper->organizations()
+                    ->wherePivotNull(TrooperOrganization::DELETED_AT)
+                    ->get()
+                    ->pluck(Organization::ID)
+            );
+        }
+
+        return $this->member_org_ids_cache->get($trooper->id);
     }
 
     /**
@@ -184,8 +222,16 @@ trait HasEventDisplayAssembler
      * Validates costume approval by:
      * 1. Finding trooper_costumes where organization_costume relationship matches the event_trooper's costume_id (or backup_costume_id)
      * 2. Extracting organization_ids from approved costumes
-     * 3. Intersecting with potential_orgs IDs to show only approved + eligible organizations
-     * 4. Resolving organization names via $this->organizations keyed collection
+     * 3. Narrowing to orgs the trooper is an active member of (memberOrgIds()) — a costume
+     *    approval row can exist for an org the trooper never joined (e.g. a shared/command-staff
+     *    costume approved across multiple orgs), which should not surface as a credit target
+     * 4. Intersecting with potential_orgs IDs to show only approved + eligible organizations
+     * 5. Resolving organization names via $this->organizations keyed collection
+     *
+     * If the trooper explicitly chose an org slot at signup (event_trooper->organization_id,
+     * set when the event has per-org capacity limits), that single org is shown instead of the
+     * broader approved-org set — it reflects an actual trooper decision rather than every org
+     * their costume happens to be approved for.
      *
      * Rendering:
      * - Multiple orgs: prepends "(*) " indicator
@@ -205,6 +251,16 @@ trait HasEventDisplayAssembler
             ->pluck('organization_costume.organization_id')
             ->unique()
             ?? collect();
+
+        if ($event_trooper->trooper !== null)
+        {
+            $approved_orgs = $approved_orgs->intersect($this->memberOrgIds($event_trooper->trooper));
+        }
+
+        if ($event_trooper->organization_id !== null && $approved_orgs->contains($event_trooper->organization_id))
+        {
+            return $this->organizations[$event_trooper->organization_id] ?? '??';
+        }
 
         $final_orgs = $potential_orgs->isEmpty()
             ? $approved_orgs

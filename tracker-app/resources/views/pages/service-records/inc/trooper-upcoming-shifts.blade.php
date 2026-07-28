@@ -40,7 +40,9 @@
                                 <small class="text-muted d-block">Planned Costume</small>
                                 @if($shift->event_trooper->costume)
                                     <p class="mb-0"><strong>{{ $shift->event_trooper->costume->name }}</strong></p>
-                                    <p class="small text-muted mb-0">{{ $shift->event_trooper->costume_organizations }}</p>
+                                    <p class="small text-muted mb-0">
+                                        <x-planned-org-credit :organizations="$shift->event_trooper->costume_organizations" />
+                                    </p>
                                 @elseif($shift->event_trooper->is_handler)
                                     <p class="mb-0">Handler</p>
                                 @endif
@@ -96,9 +98,7 @@
                                     {{ $shift->event_trooper->costume->name }}
                                 </b>
                                 <br />
-                                <i class="small text-muted">
-                                    {{ $shift->event_trooper->costume_organizations }}
-                                </i>
+                                <x-planned-org-credit :organizations="$shift->event_trooper->costume_organizations" />
                             @elseif($shift->event_trooper->is_handler)
                                 Handler
                             @endif
