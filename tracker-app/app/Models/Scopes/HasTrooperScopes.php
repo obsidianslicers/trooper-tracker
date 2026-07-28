@@ -37,13 +37,11 @@ trait HasTrooperScopes
     public function scopePendingApprovals(Builder $query): Builder
     {
         $with = [
-            'trooper_requests' => function ($q)
-            {
+            'trooper_requests' => function ($q) {
                 $q->pending()
                     ->with(['organization.parent', 'primaryOrganization']);
             },
-            'trooper_assignments' => function ($q)
-            {
+            'trooper_assignments' => function ($q) {
                 $q->where(TrooperAssignment::IS_MEMBER, true)
                     ->with('organization.parent');
             },
@@ -69,24 +67,20 @@ trait HasTrooperScopes
             return $query;
         }
 
-        return $query->whereExists(function ($sub) use ($trooper)
-        {
+        return $query->whereExists(function ($sub) use ($trooper) {
             $sub->select(DB::raw(1))
                 ->from('tt_trooper_assignments as ta_moderator')
                 ->join('tt_organizations as org_moderator', 'ta_moderator.organization_id', '=', 'org_moderator.id')
                 ->where('ta_moderator.trooper_id', $trooper->id)
                 ->where('ta_moderator.is_moderator', true)
-                ->where(function ($query): void
-                {
-                    $query->whereExists(function ($candidate_assignment): void
-                    {
+                ->where(function ($query): void {
+                    $query->whereExists(function ($candidate_assignment): void {
                         $candidate_assignment->select(DB::raw(1))
                             ->from('tt_trooper_assignments as ta_candidate')
                             ->join('tt_organizations as org_candidate', 'ta_candidate.organization_id', '=', 'org_candidate.id')
                             ->whereColumn('ta_candidate.trooper_id', 'tt_troopers.id')
                             ->whereRaw('org_candidate.node_path LIKE CONCAT(org_moderator.node_path, "%")');
-                    })->orWhereExists(function ($trooper_request): void
-                    {
+                    })->orWhereExists(function ($trooper_request): void {
                         $trooper_request->select(DB::raw(1))
                             ->from('tt_trooper_requests as tr_candidate')
                             ->join('tt_organizations as org_request', 'tr_candidate.organization_id', '=', 'org_request.id')
@@ -115,21 +109,18 @@ trait HasTrooperScopes
     {
         $tokens = array_filter(preg_split('/\s+/', trim($search_term)));
 
-        return $query->where(function ($query) use ($tokens)
-        {
+        return $query->where(function ($query) use ($tokens) {
             foreach ([self::EMAIL, self::DISPLAY_NAME, self::LEGAL_NAME] as $field)
             {
-                $query->orWhere(function ($query) use ($field, $tokens)
-                {
+                $query->orWhere(function ($query) use ($field, $tokens) {
                     foreach ($tokens as $token)
                     {
-                        $query->where($field, 'like', '%' . $token . '%');
+                        $query->where($field, 'like', '%'.$token.'%');
                     }
                 });
             }
 
-            $query->orWhereExists(function ($sub) use ($tokens)
-            {
+            $query->orWhereExists(function ($sub) use ($tokens) {
                 $sub->select(DB::raw(1))
                     ->from('tt_trooper_organizations')
                     ->whereColumn('tt_trooper_organizations.trooper_id', 'tt_troopers.id')
@@ -137,7 +128,7 @@ trait HasTrooperScopes
 
                 foreach ($tokens as $token)
                 {
-                    $sub->where('tt_trooper_organizations.identifier', 'like', '%' . $token . '%');
+                    $sub->where('tt_trooper_organizations.identifier', 'like', '%'.$token.'%');
                 }
             });
         });
@@ -159,22 +150,20 @@ trait HasTrooperScopes
     {
         $tokens = array_filter(preg_split('/\s+/', trim($search_term)));
 
-        return $query->where(function ($query) use ($tokens)
-        {
+        return $query->where(function ($query) use ($tokens) {
             foreach ($tokens as $token)
             {
                 foreach ([self::EMAIL, self::DISPLAY_NAME, self::LEGAL_NAME] as $field)
                 {
-                    $query->orWhere($field, 'like', '%' . $token . '%');
+                    $query->orWhere($field, 'like', '%'.$token.'%');
                 }
 
-                $query->orWhereExists(function ($sub) use ($token)
-                {
+                $query->orWhereExists(function ($sub) use ($token) {
                     $sub->select(DB::raw(1))
                         ->from('tt_trooper_organizations')
                         ->whereColumn('tt_trooper_organizations.trooper_id', 'tt_troopers.id')
                         ->whereNull('tt_trooper_organizations.deleted_at')
-                        ->where('tt_trooper_organizations.identifier', 'like', '%' . $token . '%');
+                        ->where('tt_trooper_organizations.identifier', 'like', '%'.$token.'%');
                 });
             }
         });
@@ -194,16 +183,16 @@ trait HasTrooperScopes
     public function scopeOrderByRelevance(Builder $query, string $search_term): Builder
     {
         $term = trim($search_term);
-        $starts_with = $term . '%';
-        $contains = '%' . $term . '%';
+        $starts_with = $term.'%';
+        $contains = '%'.$term.'%';
 
         return $query->selectRaw(
             'tt_troopers.*, CASE '
-            . 'WHEN ' . self::DISPLAY_NAME . ' LIKE ? THEN 0 '
-            . 'WHEN ' . self::DISPLAY_NAME . ' LIKE ? THEN 1 '
-            . 'WHEN ' . self::LEGAL_NAME . ' LIKE ? THEN 2 '
-            . 'WHEN ' . self::EMAIL . ' LIKE ? THEN 3 '
-            . 'ELSE 4 END AS search_relevance',
+                .'WHEN '.self::DISPLAY_NAME.' LIKE ? THEN 0 '
+                .'WHEN '.self::DISPLAY_NAME.' LIKE ? THEN 1 '
+                .'WHEN '.self::LEGAL_NAME.' LIKE ? THEN 2 '
+                .'WHEN '.self::EMAIL.' LIKE ? THEN 3 '
+                .'ELSE 4 END AS search_relevance',
             [$starts_with, $contains, $contains, $contains]
         )
             ->orderBy('search_relevance')
