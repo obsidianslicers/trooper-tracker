@@ -99,20 +99,24 @@ readonly class GetTroopersForPickerQueryHandler implements QueryHandlerInterface
     {
         $query = Trooper::active()
             ->whereNotNull(Trooper::SETUP_COMPLETED_AT)
-            ->where(function ($q) use ($message) {
+            ->where(function ($q) use ($message)
+            {
                 $q->whereNull(Trooper::GUARDIAN_ID)
                     ->orWhere(Trooper::GUARDIAN_ID, $message->trooper->id);
             })
             ->with('organizations');
 
-        if ($is_friends_mode && !$has_filter)
+        if ($message->organization_id)
         {
-            $query = $this->scopeToFriends($query, $message->trooper);
+            $query = $query->whereHas('organizations', function ($q) use ($message)
+            {
+                $q->where('tt_organizations.id', $message->organization_id);
+            });
         }
 
-        if ($has_filter)
+        if ($message->moderated_only)
         {
-            $query = $query->filterWith($message->filter);
+            $query = $query->moderatedBy($message->trooper);
         }
 
         return $query;
