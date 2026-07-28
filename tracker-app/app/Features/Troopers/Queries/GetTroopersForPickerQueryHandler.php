@@ -99,7 +99,8 @@ readonly class GetTroopersForPickerQueryHandler implements QueryHandlerInterface
     {
         $query = Trooper::active()
             ->whereNotNull(Trooper::SETUP_COMPLETED_AT)
-            ->where(function ($q) use ($message) {
+            ->where(function ($q) use ($message)
+            {
                 $q->whereNull(Trooper::GUARDIAN_ID)
                     ->orWhere(Trooper::GUARDIAN_ID, $message->trooper->id);
             })
@@ -107,7 +108,8 @@ readonly class GetTroopersForPickerQueryHandler implements QueryHandlerInterface
 
         if ($message->organization_id)
         {
-            $query = $query->whereHas('organizations', function ($q) use ($message) {
+            $query = $query->whereHas('organizations', function ($q) use ($message)
+            {
                 $q->where('tt_organizations.id', $message->organization_id);
             });
         }
@@ -120,35 +122,6 @@ readonly class GetTroopersForPickerQueryHandler implements QueryHandlerInterface
         return $query;
     }
 
-<<<<<<< HEAD
-        if ($message->picker_mode == TrooperSearchMode::FRIENDS)
-        {
-            if (!$has_filter)
-            {
-                $q = TrooperFriend::query()
-                    ->select(TrooperFriend::FRIEND_ID)
-                    ->where(TrooperFriend::TROOPER_ID, $message->trooper->id);
-
-                $query = $query->whereIn(Trooper::ID, $q);
-            }
-
-            $execute_query = true;
-        }
-
-        if ($has_filter)
-        {
-            $query = $query->filterWith($message->filter);
-
-            $execute_query = true;
-        }
-
-        if ($execute_query)
-        {
-            return $query->get();
-        }
-
-        return collect([]);
-=======
     /**
      * Order results by relevance to the search term, or by name when there isn't one.
      *
@@ -159,6 +132,5 @@ readonly class GetTroopersForPickerQueryHandler implements QueryHandlerInterface
     private function resolveOrder(Builder $query, ?string $order_term): Builder
     {
         return $order_term ? $query->orderByRelevance($order_term) : $query->orderBy(Trooper::DISPLAY_NAME);
->>>>>>> fe555c4 (feature: improved search and results (#366))
     }
 }
