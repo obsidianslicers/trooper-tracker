@@ -18,7 +18,7 @@
         errors?: string | string[];
         clearable?: boolean;
         mode?: "admin" | null;
-        onSelect?: ((trooper: Trooper) => void) | null;
+        onSelected?: ((trooper: Trooper) => void) | null;
     }
 
     const id = "id-" + crypto.randomUUID();
@@ -35,28 +35,24 @@
         errors = [],
         clearable = true,
         mode = null,
-        onSelect = null,
+        onSelected = null,
     }: Props = $props();
 
-    const vm = new TrooperPickerViewModel();
+    const vm = new TrooperPickerViewModel({
+        label,
+        placeholder,
+        button_label,
+        modal_title,
+        search_placeholder,
+        debounce_ms,
+        disabled,
+        errors,
+        clearable,
+        mode,
+        onSelected,
+    });
 
     const floating_label = $derived(vm.options.label ?? "Trooper");
-
-    $effect(() => {
-        vm.setOptions({
-            label,
-            placeholder: placeholder ?? "No trooper selected",
-            button_label,
-            modal_title,
-            search_placeholder,
-            debounce_ms,
-            disabled,
-            errors,
-            clearable,
-            mode,
-            onSelect,
-        });
-    });
 
     $effect(() => {
         if (!vm.show_modal) {
@@ -139,7 +135,10 @@
         </div>
 
         {#if vm.is_loading}
-            <p class="text-muted mb-3">Searching troopers...</p>
+            <p class="text-muted mb-3">
+                <i class="fa fa-fw fa-spinner fa-spin"></i>
+                Scanning Troopers...
+            </p>
         {/if}
 
         {#if vm.error_message.length > 0}
@@ -165,9 +164,11 @@
                             <br />
                             <div class="small text-muted">
                                 {#if mode == "admin"}
-                                    ({trooper.display_name})
+                                    {trooper.display_name}<br />
+                                    {trooper.email}<br />
+                                    ID: {trooper.id}
                                 {:else}
-                                    ({trooper.display_name} &middot; ID: {trooper.id})
+                                    ({trooper.display_name})
                                 {/if}
                             </div>
                         </div>
