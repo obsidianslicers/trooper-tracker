@@ -106,7 +106,7 @@
                     <br />
                 </i>
                 <x-planned-org-credit :organizations="$event_trooper->backup_costume_organizations"
-                                       :planned="$event->status !== \App\Enums\EventStatus::CLOSED" />
+                                       :planned="false" />
             @endif
         @endif
     </div>
