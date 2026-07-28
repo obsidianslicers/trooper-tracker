@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Features\Troopers\Queries;
 
 use App\Bus\Contracts\QueryHandlerInterface;
-use App\Enums\TrooperPickerMode;
+use App\Enums\TrooperSearchMode;
 use App\Models\Trooper;
 use App\Models\TrooperFriend;
 use Illuminate\Database\Eloquent\Builder;
@@ -44,7 +44,7 @@ readonly class GetTroopersForPickerQueryHandler implements QueryHandlerInterface
     {
         $query = $this->buildBaseQuery($message);
         $has_filter = $message->filter->hasFilter();
-        $is_friends_mode = $message->picker_mode == TrooperPickerMode::FRIENDS;
+        $is_friends_mode = $message->picker_mode == TrooperSearchMode::FRIENDS;
 
         if ($is_friends_mode && !$has_filter)
         {

@@ -18,7 +18,7 @@ class SearchControllerTest extends TestCase
 
     public function test_invoke_requires_authentication(): void
     {
-        $response = $this->get(route('search'));
+        $response = $this->get(route('search.all'));
 
         $response->assertRedirect(route('auth.login'));
     }
@@ -27,11 +27,12 @@ class SearchControllerTest extends TestCase
     {
         $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
 
-        $this->mock(MagicBus::class, function (MockInterface $mock): void {
+        $this->mock(MagicBus::class, function (MockInterface $mock): void
+        {
             $mock->shouldReceive('send')->never();
         });
 
-        $response = $this->actingAs($trooper)->get(route('search', [
+        $response = $this->actingAs($trooper)->get(route('search.all', [
             'q' => 'a',
             'type' => 'invalid',
         ]));
@@ -52,16 +53,18 @@ class SearchControllerTest extends TestCase
             'events' => collect(),
         ];
 
-        $this->mock(MagicBus::class, function (MockInterface $mock) use ($payload): void {
+        $this->mock(MagicBus::class, function (MockInterface $mock) use ($payload): void
+        {
             $mock->shouldReceive('send')
                 ->once()
-                ->withArgs(function (GlobalSearchQuery $query): bool {
+                ->withArgs(function (GlobalSearchQuery $query): bool
+                {
                     return $query->term === 'Vader' && $query->type === 'troopers';
                 })
                 ->andReturn($payload);
         });
 
-        $response = $this->actingAs($trooper)->get(route('search', [
+        $response = $this->actingAs($trooper)->get(route('search.all', [
             'q' => 'Vader',
             'type' => 'troopers',
         ]));
@@ -70,7 +73,8 @@ class SearchControllerTest extends TestCase
         $response->assertViewIs('pages.search.results');
         $response->assertViewHas('term', 'Vader');
         $response->assertViewHas('type', 'troopers');
-        $response->assertViewHas('results', function (array $results): bool {
+        $response->assertViewHas('results', function (array $results): bool
+        {
             return $results['troopers'] instanceof Collection
                 && $results['events'] instanceof Collection
                 && $results['troopers']->pluck(Trooper::DISPLAY_NAME)->all() === ['Matched Trooper'];
@@ -86,16 +90,18 @@ class SearchControllerTest extends TestCase
             'events' => collect(),
         ];
 
-        $this->mock(MagicBus::class, function (MockInterface $mock) use ($payload): void {
+        $this->mock(MagicBus::class, function (MockInterface $mock) use ($payload): void
+        {
             $mock->shouldReceive('send')
                 ->once()
-                ->withArgs(function (GlobalSearchQuery $query): bool {
+                ->withArgs(function (GlobalSearchQuery $query): bool
+                {
                     return $query->term === 'Legion' && $query->type === 'all';
                 })
                 ->andReturn($payload);
         });
 
-        $response = $this->actingAs($trooper)->get(route('search', [
+        $response = $this->actingAs($trooper)->get(route('search.all', [
             'q' => 'Legion',
             'type' => 'unknown',
         ]));

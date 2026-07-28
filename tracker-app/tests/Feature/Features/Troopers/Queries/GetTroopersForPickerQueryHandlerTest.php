@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Features\Troopers\Queries;
 
-use App\Enums\TrooperPickerMode;
+use App\Enums\TrooperSearchMode;
 use App\Features\Troopers\Queries\GetTroopersForPickerQuery;
 use App\Features\Troopers\Queries\GetTroopersForPickerQueryHandler;
 use App\Models\Filters\TrooperFilter;
@@ -295,7 +295,7 @@ class GetTroopersForPickerQueryHandlerTest extends TestCase
         $subject = new GetTroopersForPickerQueryHandler;
 
         $result = $subject(new GetTroopersForPickerQuery($requesting_trooper, $filter, [
-            'picker_mode' => TrooperPickerMode::FRIENDS->value,
+            'picker_mode' => TrooperSearchMode::FRIENDS->value,
         ]));
 
         $this->assertSame(['Friend Target'], $result->pluck(Trooper::DISPLAY_NAME)->all());
@@ -316,7 +316,7 @@ class GetTroopersForPickerQueryHandlerTest extends TestCase
         $subject = new GetTroopersForPickerQueryHandler;
 
         $result = $subject(new GetTroopersForPickerQuery($requesting_trooper, $filter, [
-            'picker_mode' => TrooperPickerMode::FRIENDS->value,
+            'picker_mode' => TrooperSearchMode::FRIENDS->value,
         ]));
 
         $this->assertSame(['Alpha Friend', 'Bravo Friend'], $result->pluck(Trooper::DISPLAY_NAME)->all());
@@ -332,7 +332,7 @@ class GetTroopersForPickerQueryHandlerTest extends TestCase
         $subject = new GetTroopersForPickerQueryHandler;
 
         $result = $subject(new GetTroopersForPickerQuery($requesting_trooper, $filter, [
-            'picker_mode' => TrooperPickerMode::FRIENDS->value,
+            'picker_mode' => TrooperSearchMode::FRIENDS->value,
         ]));
 
         $this->assertEmpty($result);
@@ -370,7 +370,7 @@ class GetTroopersForPickerQueryHandlerTest extends TestCase
         $subject = new GetTroopersForPickerQueryHandler;
 
         $result = $subject(new GetTroopersForPickerQuery($requesting_trooper, $filter, [
-            'picker_mode' => TrooperPickerMode::FRIENDS->value,
+            'picker_mode' => TrooperSearchMode::FRIENDS->value,
         ]));
 
         $this->assertSame(

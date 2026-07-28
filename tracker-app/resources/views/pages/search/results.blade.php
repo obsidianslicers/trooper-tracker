@@ -6,7 +6,7 @@
 
     <div class="row mb-4">
         <div class="col-12">
-            <form method="GET" action="{{ route('search') }}" class="d-flex gap-2">
+            <form method="GET" action="{{ route('search.all') }}" class="d-flex gap-2">
                 <input type="text"
                        name="q"
                        value="{{ $term }}"
@@ -86,7 +86,7 @@
                     @if ($results['troopers']->count() === 25)
                         <div class="card-footer text-muted small">
                             Showing first 25 results &mdash;
-                            <a href="{{ route('search', ['q' => $term, 'type' => 'troopers']) }}">search troopers only</a> for more.
+                            <a href="{{ route('search.all', ['q' => $term, 'type' => 'troopers']) }}">search troopers only</a> for more.
                         </div>
                     @endif
                 @endif
@@ -146,7 +146,7 @@
                     @if ($results['events']->count() === 25)
                         <div class="card-footer text-muted small">
                             Showing first 25 results &mdash;
-                            <a href="{{ route('search', ['q' => $term, 'type' => 'events']) }}">search events only</a> for more.
+                            <a href="{{ route('search.all', ['q' => $term, 'type' => 'events']) }}">search events only</a> for more.
                         </div>
                     @endif
                 @endif

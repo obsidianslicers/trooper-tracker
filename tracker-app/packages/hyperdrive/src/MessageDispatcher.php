@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 use BackedEnum;
+use InvalidArgumentException;
 use ReflectionClass;
 use ReflectionNamedType;
 use ReflectionParameter;
@@ -67,6 +68,14 @@ final class MessageDispatcher
 
             return app()->call([$message, 'handle']);
         }
+        catch (ValidationException $e)
+        {
+            throw new InvalidArgumentException("Invalid message parameters: " . json_encode($e->errors()));
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
         finally
         {
             array_pop($this->processing);
@@ -123,14 +132,14 @@ final class MessageDispatcher
 
                 if (!$parameter->isOptional() && !$parameter->allowsNull())
                 {
-                    $validation_errors[$name] = ["The Hyperdrive input-parameter [{$base_name}:{$name}] is required."];
+                    $validation_errors[$name] = ["The Hyperdrive input-parameter `{$base_name}:{$name}` is required."];
                     continue;
                 }
             }
 
             if ($value === null && !$parameter->allowsNull())
             {
-                $validation_errors[$name] = ["The Hyperdrive parameter [{$base_name}:{$name}] is required."];
+                $validation_errors[$name] = ["The Hyperdrive parameter `{$base_name}:{$name}` is required."];
                 continue;
             }
 
@@ -144,13 +153,13 @@ final class MessageDispatcher
             }
             catch (ModelNotFoundException)
             {
-                $validation_errors[$name] = ["The selected model [{$base_name}:{$name}] is invalid or does not exist."];
+                $validation_errors[$name] = ["The selected model `{$base_name}:{$name}` is invalid or does not exist."];
             }
         }
 
         if ($validation_errors !== [])
         {
-            throw ValidationException::withMessages($validation_errors);
+            throw new InvalidArgumentException("Invalid message parameters: " . json_encode($validation_errors));
         }
 
         return $reflection->newInstanceArgs($resolved_params);
@@ -238,7 +247,7 @@ final class MessageDispatcher
         }
 
         throw ValidationException::withMessages([
-            $parameter->getName() => ["The {$parameter->getName()} parameter is invalid."],
+            $parameter->getName() => ["The `{$parameter->getName()}` parameter is invalid."],
         ]);
     }
 
