@@ -125,5 +125,7 @@ return [
 
     'contact_email' => env('CONTACT_EMAIL', null),
 
+    'support_url' => env('SUPPORT_URL', null),
+
     'version' => env('APP_VERSION', null),
 ];
