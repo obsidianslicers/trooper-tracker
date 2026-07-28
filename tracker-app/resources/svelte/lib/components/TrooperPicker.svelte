@@ -164,8 +164,11 @@
                             {trooper.legal_name}
                             <br />
                             <div class="small text-muted">
-                                <!-- ID and email are shown so admins can tell apart same-named troopers when merging; only merge uses this component today -->
-                                ({trooper.display_name}) &middot; ID: {trooper.id} &middot; {trooper.email}
+                                {#if mode == "admin"}
+                                    ({trooper.display_name})
+                                {:else}
+                                    ({trooper.display_name} &middot; ID: {trooper.id})
+                                {/if}
                             </div>
                         </div>
                     </button>
