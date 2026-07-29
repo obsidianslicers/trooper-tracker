@@ -1,6 +1,6 @@
 # Troop Tracker
 
-**Troop Tracker** is the Empire’s official operations dashboard, engineered to impose order upon trooper assignments, moderation workflows, and hierarchical communications across organizations, regions, and units. Forged with Laravel, Blade, Bootstrap 5, HTMX, and Alpine‑driven JavaScript, it delivers the precision, discipline, and ruthless efficiency expected of any system operating under Imperial authority.
+**Troop Tracker** is the Empire's official operations dashboard, engineered to impose order upon trooper assignments, moderation workflows, and hierarchical communications across organizations, regions, and units. Forged with Laravel, Blade, Bootstrap 5, HTMX, and Alpine‑driven JavaScript, it delivers the precision, discipline, and ruthless efficiency expected of any system operating under Imperial authority.
 
 
 <!--
@@ -34,20 +34,22 @@ This project remains under active development, which is to say it currently exis
 
 Progress continues at a pace deemed acceptable by the Empire. New features, refinements, and the occasional miracle will be deployed as they reach a state worthy of consumption. Garrison Liasons are encouraged to return in approximately one month to witness the next phase of sanctioned advancement. Until then, patience is not only advised — it is expected.
 
-Update Feb 18th: Despite rumors to the contrary, progress has not stalled. In fact, the project currently stands at an estimated 85% operational readiness, supported by a test suite now exceeding 2,000 trials of loyalty. Minor rebellions within the codebase are being suppressed with appropriate vigor. Observers may take this as a sign that stability is approaching, though only the Empire may determine when "approaching" becomes "arrived." Sensible personnel are advised to check back in roughly one month for the next sanctioned update, assuming the system has not evolved beyond the need for such courtesies.
+**Update Feb 18th**: Despite rumors to the contrary, progress has not stalled. In fact, the project currently stands at an estimated 85% operational readiness, supported by a test suite now exceeding 2,000 trials of loyalty. Minor rebellions within the codebase are being suppressed with appropriate vigor. Observers may take this as a sign that stability is approaching, though only the Empire may determine when "approaching" becomes "arrived." Sensible personnel are advised to check back in roughly one month for the next sanctioned update, assuming the system has not evolved beyond the need for such courtesies.
 
-Update Mar 8th: Troop Tracker edges ever closer to UAT, with performance‑rebellious tests being rewritten, optimized, and reminded of their place in the hierarchy; work continues on the configurable XenForo integration, ensuring it can ultimately operate either as a seamless Imperial fusion or a proudly isolationist standalone deployment; and the visual command interfaces have been refreshed with updated Stormtrooper, Bounty Hunter, Rebel, Clone, and Sith themes, each calibrated for maximum intimidation, usability, or in the case of Rebels, remedial hand‑holding — overall, stability is rising, features are aligning, and the system marches toward UAT with the slow, inevitable certainty of an Imperial Star Destroyer entering orbit.
+**Update Mar 8th**: Troop Tracker edges ever closer to UAT, with performance‑rebellious tests being rewritten, optimized, and reminded of their place in the hierarchy; work continues on the configurable XenForo integration, ensuring it can ultimately operate either as a seamless Imperial fusion or a proudly isolationist standalone deployment; and the visual command interfaces have been refreshed with updated Stormtrooper, Bounty Hunter, Rebel, Clone, and Sith themes, each calibrated for maximum intimidation, usability, or in the case of Rebels, remedial hand‑holding — overall, stability is rising, features are aligning, and the system marches toward UAT with the slow, inevitable certainty of an Imperial Star Destroyer entering orbit.
 
-Update Apr 13th: The waiting is over. Troop Tracker has officially entered UAT, and the Empire has invited brave volunteers to click every button, break every edge case, and report their findings before Lord QA starts force-choking random merge requests. Core systems are stable, workflows are operational, and most remaining issues now live in the category of "annoying but survivable." If you spot defects, file them with precision and without panic. If you do not spot defects, click harder. UAT is live, and yes, this is the part where we pretend everything was always under control. 
+**Update Apr 13th**: The waiting is over. Troop Tracker has officially entered UAT, and the Empire has invited brave volunteers to click every button, break every edge case, and report their findings before Lord QA starts force-choking random merge requests. Core systems are stable, workflows are operational, and most remaining issues now live in the category of "annoying but survivable." If you spot defects, file them with precision and without panic. If you do not spot defects, click harder. UAT is live, and yes, this is the part where we pretend everything was always under control. 
 
-**Update May29th Troop Tracker Is Live — Kneel or Be Logged** 
+**Update May 29th Troop Tracker Is Live — Kneel or Be Logged** 
 
-The day has arrived. Troop Tracker has officially gone LIVE, meaning the restraining bolts have been removed, the excuses have expired, and every button you click now counts. The Empire assures you the system is "ready," which is the closest thing to a guarantee you’re ever going to get. Welcome to production. Try not to break anything important.
+The day has arrived. Troop Tracker has officially gone LIVE, meaning the restraining bolts have been removed, the excuses have expired, and every button you click now counts. The Empire assures you the system is "ready," which is the closest thing to a guarantee you're ever going to get. Welcome to production. Try not to break anything important.
 
 Core systems are deployed, workflows are operational, and all known defects have been either resolved, documented, or strategically ignored for future generations to discover. From this point forward, any issues you encounter are no longer "feedback" — they are real problems, with real consequences, and real opportunities for the Obsidian Slicers to sigh loudly in your direction.
 
 Use the system boldly. Report issues responsibly. Pretend everything is stable.
 Troop Tracker is live, the Empire ascends, we will now act like this was the plan all along.
+
+**Update July 28th**: The Imperial Desk Duty Clerks submit the following condensed summary for your reluctant enlightenment: over the past cycle, the Obsidian Slicers have been busily patching your self‑inflicted mishaps — achievements now announce themselves properly, organizations receive their  recognition, guests have been prevented from detonating the system, and forum quotes function for those who insist on narrating their lives. Milestone emails now include your legal name so we may address reprimands accurately, events close when they're actually finished, rosters sync without collapsing, costume selections behave, handlers and guests are counted, and trooper requests can be dismissed until you inevitably bother us again. Appeals exist for those who enjoy paperwork, milestones notify as intended, costume credit goes to the correct club, right‑clicking events is now officially tolerated, approvals verify your allegiance, invalid accounts are cataloged, moderators have been reminded they do in fact possess authority, charity math has been corrected, OAuth has stopped screaming, timezones have been subdued, and XenForo has been dragged into compliance. In short: the system works, mostly, and the Empire politely requests fewer panicked messages from personnel who clearly did not read this report.
 
 ---
 
@@ -194,7 +196,7 @@ php artisan test
 ```bash
 # Generate base models after schema changes
 php artisan code:models
-php artisan tracker:generate-factories
+php artisan fabricator:generate-factories
 
 # Run scheduled tasks manually
 php artisan tracker:send-daily-event-notifications

@@ -83,7 +83,7 @@
             "@php artisan migrate:rollback --force",
             "@php artisan migrate",
             "@php artisan code:model",
-            "@php artisan tracker:generate-factories"
+            "@php artisan fabricator:generate-factories"
         ],
         "setup": [
             "composer install",

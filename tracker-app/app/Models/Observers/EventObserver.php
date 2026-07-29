@@ -59,7 +59,7 @@ class EventObserver
      */
     public function updated(Event $event): void
     {
-        $attributes = ['venue_address', 'venue_city', 'venue_state', 'venue_zip', 'venue_country'];
+        $attributes = [Event::VENUE_ADDRESS];
 
         if ($event->wasChanged($attributes))
         {
@@ -77,9 +77,6 @@ class EventObserver
             Event::EVENT_END,
             Event::VENUE,
             Event::VENUE_ADDRESS,
-            Event::VENUE_CITY,
-            Event::VENUE_STATE,
-            Event::VENUE_ZIP,
             Event::COMMENTS,
         ];
 
@@ -160,53 +157,6 @@ class EventObserver
         {
             report($e);
         }
-    }
-
-    /**
-     * Build a comma-separated geocoding address string from event venue fields.
-     *
-     * Constructs an address by combining venue address, city, state, zip, and country fields.
-     * Avoids duplicating address components that are already included in the base address.
-     *
-     * @param  Event  $event  The event instance to build the address from.
-     * @return string The formatted address string suitable for geocoding services.
-     */
-    private function buildGeocodeAddress(Event $event): string
-    {
-        $parts = [];
-
-        // Normalize the base address for duplicate detection
-        $base = strtolower($event->venue_address ?? '');
-
-        // Always start with the raw address field
-        $parts[] = trim($event->venue_address ?? '');
-
-        // Append city if not already included
-        if (!empty($event->venue_city) && !str_contains($base, strtolower($event->venue_city)))
-        {
-            $parts[] = $event->venue_city;
-        }
-
-        // Append state if not already included
-        if (!empty($event->venue_state) && !str_contains($base, strtolower($event->venue_state)))
-        {
-            $parts[] = $event->venue_state;
-        }
-
-        // Append ZIP if not already included
-        if (!empty($event->venue_zip) && !str_contains($base, strtolower($event->venue_zip)))
-        {
-            $parts[] = $event->venue_zip;
-        }
-
-        // Append country if not already included
-        if (!empty($event->venue_country) && !str_contains($base, strtolower($event->venue_country)))
-        {
-            $parts[] = $event->venue_country;
-        }
-
-        // Join with commas for Nominatim
-        return implode(', ', array_filter($parts));
     }
 
     private function shouldQueueForumThreadSync(Event $event): bool

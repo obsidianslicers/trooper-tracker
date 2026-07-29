@@ -224,7 +224,7 @@ After schema changes, regenerate base models and factories:
 
 ```bash
 php artisan code:models
-php artisan tracker:generate-factories
+php artisan fabricator:generate-factories
 ```
 
 Never edit `app/Models/Base/`; it is overwritten on regeneration.
@@ -280,7 +280,7 @@ php artisan test --filter=TestClassName
 
 # Schema changes, after migrations
 php artisan code:models
-php artisan tracker:generate-factories
+php artisan fabricator:generate-factories
 
 # Make scaffolding
 php artisan make:controller NameController --invokable

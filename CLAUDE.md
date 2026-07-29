@@ -239,7 +239,7 @@ Route::post('/admin/events/{event}/update', MagicBusController::class)
 After any schema change, regenerate base models:
 ```bash
 php artisan code:models
-php artisan tracker:generate-factories
+php artisan fabricator:generate-factories
 ```
 
 Do not edit anything in `app/Models/Base/` — it is overwritten on regeneration.
@@ -307,7 +307,7 @@ php artisan test --filter=TestClassName
 
 # Schema changes (after running migrations)
 php artisan code:models                   # Regenerate base models
-php artisan tracker:generate-factories    # Regenerate factories
+php artisan fabricator:generate-factories    # Regenerate factories
 
 # Make scaffolding
 php artisan make:controller NameController --invokable

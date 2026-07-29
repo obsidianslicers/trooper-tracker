@@ -49,10 +49,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $contact_email
  * @property string|null $venue
  * @property string|null $venue_address
- * @property string|null $venue_city
- * @property string|null $venue_state
- * @property string|null $venue_zip
- * @property string|null $venue_country
  * @property Carbon|null $event_start
  * @property Carbon|null $event_end
  * @property string|null $event_website
@@ -114,10 +110,6 @@ class Event extends Model
     const CONTACT_EMAIL = 'contact_email';
     const VENUE = 'venue';
     const VENUE_ADDRESS = 'venue_address';
-    const VENUE_CITY = 'venue_city';
-    const VENUE_STATE = 'venue_state';
-    const VENUE_ZIP = 'venue_zip';
-    const VENUE_COUNTRY = 'venue_country';
     const EVENT_START = 'event_start';
     const EVENT_END = 'event_end';
     const EVENT_WEBSITE = 'event_website';
@@ -200,10 +192,6 @@ class Event extends Model
         self::CONTACT_EMAIL,
         self::VENUE,
         self::VENUE_ADDRESS,
-        self::VENUE_CITY,
-        self::VENUE_STATE,
-        self::VENUE_ZIP,
-        self::VENUE_COUNTRY,
         self::EVENT_START,
         self::EVENT_END,
         self::EVENT_WEBSITE,

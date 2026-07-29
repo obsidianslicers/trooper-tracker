@@ -21,7 +21,7 @@ Scaffold new classes with `make` commands:
 | `php artisan make:test TrooperRepositoryTest --unit` | Creates a new unit test file in `tests/Unit`. |
 | `php artisan code:models --table=units` | (From `reliese/laravel`) Generates a model from an existing `units` table. |
 | `php artisan code:models` | (From `reliese/laravel`) Generates all class models. |
-| `php artisan tracker:generate-factories` | Generates all base factory classes. |
+| `php artisan fabricator:generate-factories` | Generates all base factory classes. |
 
 ## Custom Application Commands
 
@@ -35,7 +35,7 @@ Troop Tracker includes several custom Artisan commands for maintenance and autom
 | `php artisan tracker:calculate-trooper-achievements` | Recalculates trooper stats and achievement badges. |
 | `php artisan tracker:calculate-trooper-achievements --without-notifications` | Recalculates achievements for large backfills without milestone notification jobs. |
 | `php artisan tracker:synchronize-organizations` | Syncs with external organization systems. |
-| `php artisan tracker:generate-factories` | Generates factory classes from base models. |
+| `php artisan fabricator:generate-factories` | Generates factory classes from base models. |
 
 ## Database Migrations & Seeding
 

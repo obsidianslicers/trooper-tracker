@@ -19,10 +19,9 @@
         {{ $event->time_display }}
     </p>
 
-    @if(array_intersect($changed_fields, ['venue', 'venue_address', 'venue_city', 'venue_state', 'venue_zip']))
+    @if(array_intersect($changed_fields, ['venue', 'venue_address']))
         <p>
-            <b>Updated Location:</b>
-            {{ implode(', ', array_filter([$event->venue_address, $event->venue_city, $event->venue_state, $event->venue_zip])) }}
+            <b>Updated Location:</b>{{ $event->venue_address }}
         </p>
     @endif
 
