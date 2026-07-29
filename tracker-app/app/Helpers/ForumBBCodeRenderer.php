@@ -19,6 +19,14 @@ final class ForumBBCodeRenderer
     {
         $bbcode = str_replace(["\r\n", "\r"], "\n", $bbcode);
 
+        // Strip unsupported attributes (e.g. unfurl="true") from [url] tags so the
+        // core href/label matching below isn't broken by extra attributes.
+        $bbcode = preg_replace(
+            '~\[url(=[^\]]*?)?((?:\s+[a-zA-Z_][\w:-]*=(?:"[^"]*"|\'[^\']*\'))+)\]~i',
+            '[url$1]',
+            $bbcode
+        ) ?? $bbcode;
+
         $codeBlocks = [];
         $bbcode = preg_replace_callback(
             '~\[code\](.*?)\[/code\]~si',
@@ -120,6 +128,50 @@ final class ForumBBCodeRenderer
             $html
         ) ?? $html;
 
+        // Email links.
+        $html = preg_replace_callback(
+            '~\[email(?:=(?:"|&quot;|\'|&\#039;)?([^\]]+?)(?:"|&quot;|\'|&\#039;)?)?\](.*?)\[/email\]~si',
+            static function (array $matches): string {
+                $addressRaw = $matches[1] !== '' ? $matches[1] : $matches[2];
+                $address = self::sanitizeEmail(html_entity_decode($addressRaw, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
+
+                if ($address === null)
+                {
+                    return $matches[2];
+                }
+
+                return '<a href="mailto:'.e($address).'">'.$matches[2].'</a>';
+            },
+            $html
+        ) ?? $html;
+
+        // Color.
+        $html = preg_replace_callback(
+            '~\[color=(?:"|&quot;|\'|&\#039;)?([^\]]+?)(?:"|&quot;|\'|&\#039;)?\](.*?)\[/color\]~si',
+            static function (array $matches): string {
+                $color = self::sanitizeColor(html_entity_decode($matches[1], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
+
+                return $color === null
+                    ? $matches[2]
+                    : '<span style="color:'.e($color).'">'.$matches[2].'</span>';
+            },
+            $html
+        ) ?? $html;
+
+        // Size.
+        $html = preg_replace_callback(
+            '~\[size=(\d+)\](.*?)\[/size\]~si',
+            static function (array $matches): string {
+                $em = self::sizeToEm((int) $matches[1]);
+
+                return '<span style="font-size:'.$em.'em">'.$matches[2].'</span>';
+            },
+            $html
+        ) ?? $html;
+
+        // Horizontal rule.
+        $html = preg_replace('~\[hr\](?:\[/hr\])?~i', '<hr>', $html) ?? $html;
+
         // Images.
         $html = preg_replace_callback(
             '~\[img\](.*?)\[/img\]~si',
@@ -200,6 +252,31 @@ final class ForumBBCodeRenderer
         }
 
         return filter_var($url, FILTER_VALIDATE_URL) ? $url : null;
+    }
+
+    private static function sanitizeColor(string $color): ?string
+    {
+        $color = trim($color);
+
+        $isHex = (bool) preg_match('~^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$~', $color);
+        $isRgb = (bool) preg_match('~^rgb\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*\)$~i', $color);
+        $isNamed = (bool) preg_match('~^[a-zA-Z]{3,20}$~', $color);
+
+        return ($isHex || $isRgb || $isNamed) ? $color : null;
+    }
+
+    private static function sanitizeEmail(string $address): ?string
+    {
+        $address = trim($address);
+
+        return filter_var($address, FILTER_VALIDATE_EMAIL) ?: null;
+    }
+
+    private static function sizeToEm(int $size): float
+    {
+        $scale = [1 => 0.7, 2 => 0.8, 3 => 0.9, 4 => 1.0, 5 => 1.2, 6 => 1.5, 7 => 2.0];
+
+        return $scale[$size] ?? 1.0;
     }
 
     private static function quoteAttribution(string $attribution): ?string

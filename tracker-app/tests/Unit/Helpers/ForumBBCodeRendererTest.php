@@ -80,4 +80,45 @@ class ForumBBCodeRendererTest extends TestCase
         $this->assertStringContainsString('&lt;script&gt;alert(1)&lt;/script&gt; said:', $html);
         $this->assertStringNotContainsString('<script>alert(1)</script>', $html);
     }
+
+    public function test_renders_color_and_size_tags(): void
+    {
+        $html = ForumBBCodeRenderer::toHtml(
+            '[COLOR=rgb(84, 172, 210)][SIZE=7]Requested Costumes[/SIZE][/COLOR]'
+        );
+
+        $this->assertStringContainsString('<span style="color:rgb(84, 172, 210)">', $html);
+        $this->assertStringContainsString('<span style="font-size:2em">Requested Costumes</span>', $html);
+    }
+
+    public function test_color_tag_rejects_unsafe_values(): void
+    {
+        $html = ForumBBCodeRenderer::toHtml('[COLOR=javascript:alert(1)]text[/COLOR]');
+
+        $this->assertStringNotContainsString('<span', $html);
+        $this->assertStringContainsString('text', $html);
+    }
+
+    public function test_url_tag_with_extra_attributes_still_renders_link(): void
+    {
+        $html = ForumBBCodeRenderer::toHtml(
+            '[URL unfurl="true"]https://www.example.com/thread/123[/URL]'
+        );
+
+        $this->assertStringContainsString('<a href="https://www.example.com/thread/123"', $html);
+    }
+
+    public function test_renders_email_tag(): void
+    {
+        $html = ForumBBCodeRenderer::toHtml("[EMAIL='someone@example.com']someone@example.com[/EMAIL]");
+
+        $this->assertStringContainsString('<a href="mailto:someone@example.com">someone@example.com</a>', $html);
+    }
+
+    public function test_renders_hr_tag(): void
+    {
+        $html = ForumBBCodeRenderer::toHtml('Before[HR][/HR]After');
+
+        $this->assertStringContainsString('<hr>', $html);
+    }
 }
