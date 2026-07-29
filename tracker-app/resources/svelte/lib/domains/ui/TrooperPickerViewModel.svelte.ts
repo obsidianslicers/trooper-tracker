@@ -10,7 +10,7 @@ export type Trooper = {
 
 export interface TrooperPickerOptions {
     label: string | null;
-    placeholder: string;
+    placeholder: string | null;
     button_label: string;
     modal_title: string;
     search_placeholder: string;
@@ -19,7 +19,7 @@ export interface TrooperPickerOptions {
     errors: string | string[];
     clearable: boolean;
     mode: "admin" | null;
-    onSelect: ((trooper: Trooper) => void) | null;
+    onSelected: ((trooper: Trooper) => void) | null;
 }
 
 function createTrooperPickerOptions(
@@ -27,7 +27,7 @@ function createTrooperPickerOptions(
 ): TrooperPickerOptions {
     return {
         label: null,
-        placeholder: "",
+        placeholder: "Trooper",
         button_label: "Pick Trooper",
         modal_title: "Select Trooper",
         search_placeholder: "Search troopers by name, TK ID, or email",
@@ -36,13 +36,13 @@ function createTrooperPickerOptions(
         errors: [],
         clearable: true,
         mode: null,
-        onSelect: null,
+        onSelected: null,
         ...options,
     };
 }
 
 export class TrooperPickerViewModel extends ViewModel {
-    options: TrooperPickerOptions = $state(createTrooperPickerOptions());
+    #options: TrooperPickerOptions = $state(createTrooperPickerOptions());
     show_modal = $state(false);
     term = $state("");
     selected_trooper = $state<Trooper | null>(null);
@@ -55,11 +55,11 @@ export class TrooperPickerViewModel extends ViewModel {
 
     constructor(options: Partial<TrooperPickerOptions> = {}) {
         super();
-        this.setOptions(options);
+        this.#options = createTrooperPickerOptions(options);
     }
 
-    setOptions(options: Partial<TrooperPickerOptions> = {}): void {
-        this.options = createTrooperPickerOptions(options);
+    get options(): TrooperPickerOptions {
+        return this.#options;
     }
 
     openModal(): void {
@@ -79,8 +79,8 @@ export class TrooperPickerViewModel extends ViewModel {
 
     selectTrooper(trooper: Trooper): Trooper {
         this.selected_trooper = trooper;
-        this.options.onSelect?.(trooper);
         this.closeModal();
+        this.options.onSelected?.(trooper);
 
         return trooper;
     }

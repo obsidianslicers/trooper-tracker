@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Modal as BoostrapModel } from "bootstrap";
+    import { Modal as BoostrapModal } from "bootstrap";
     import { onDestroy, onMount } from "svelte";
 
     let {
@@ -11,13 +11,28 @@
     } = $props();
 
     let modalElement: HTMLDivElement;
-    let modalInstance: BoostrapModel;
+    let modalInstance: BoostrapModal;
 
     onMount(() => {
-        modalInstance = new BoostrapModel(modalElement);
+        modalInstance = new BoostrapModal(modalElement);
+
+        // 1. Listen for Bootstrap's hide event (backdrop click, ESC key, etc.)
+        const handleHidden = () => {
+            if (show) {
+                show = false; // Sync state back to Svelte
+                canClose?.(); // Call cleanup (e.g. vm.closeModal())
+            }
+        };
+
+        modalElement.addEventListener("hidden.bs.modal", handleHidden);
+
         if (show) {
             modalInstance.show();
         }
+
+        return () => {
+            modalElement.removeEventListener("hidden.bs.modal", handleHidden);
+        };
     });
 
     onDestroy(() => {
@@ -27,9 +42,13 @@
     });
 
     $effect(() => {
-        if (show && modalInstance) {
+        if (!modalInstance) {
+            return;
+        }
+
+        if (show) {
             modalInstance.show();
-        } else if (modalInstance) {
+        } else {
             modalInstance.hide();
         }
     });
