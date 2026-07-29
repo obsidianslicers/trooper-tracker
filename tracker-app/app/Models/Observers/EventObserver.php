@@ -127,7 +127,7 @@ class EventObserver
 
         try
         {
-            $address = $this->buildGeocodeAddress($event);
+            $address = $event->venue_address;
 
             if (empty(trim($address)))
             {
