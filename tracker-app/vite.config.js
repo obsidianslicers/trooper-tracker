@@ -34,6 +34,12 @@ export default defineConfig({
                         if (id.includes('pages/auth') || id.includes('lib/domains/auth')) {
                             return 'pages-auth';
                         }
+                        if (id.includes('pages/account') || id.includes('lib/domains/account')) {
+                            return 'pages-account';
+                        }
+                        if (id.includes('pages/admin') || id.includes('lib/domains/admin')) {
+                            return 'pages-admin';
+                        }
                     }
                     if (id.includes('node_modules')) {
                         // 1. Core Reactive Frameworks

@@ -10,6 +10,7 @@ use App\Http\Controllers\Account\DeletionRequestController;
 use App\Http\Controllers\Account\CostumesController;
 use App\Http\Controllers\Account\CostumesDeleteHtmxController;
 use App\Http\Controllers\Account\CostumesSubmitHtmxController;
+use App\Http\Controllers\Account\FriendsController;
 use App\Http\Controllers\Account\MinorsController;
 use App\Http\Controllers\Account\NoticesController;
 use App\Http\Controllers\Account\NoticesSubmitHtmxController;
@@ -58,6 +59,7 @@ Route::prefix('account')
         Route::get('/club-memberships', ClubMembershipsController::class)->name('club-memberships');
         Route::post('/club-memberships-htmx', ClubMembershipsSubmitHtmxController::class)->name('club-memberships-htmx');
         Route::get('/minors', MinorsController::class)->name('minors');
+        Route::get('/friends', FriendsController::class)->name('friends');
 
         Route::get('/costumes', CostumesController::class)->name('costumes');
         Route::post('/costumes-htmx', CostumesSubmitHtmxController::class)->name('costumes-htmx');

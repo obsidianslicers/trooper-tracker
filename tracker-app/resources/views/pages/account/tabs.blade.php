@@ -13,6 +13,9 @@
     <x-tab :label="'Club Memberships'"
            :target="route('account.club-memberships')"
            :active="request()->routeIs('account.club-memberships')" />
+    <x-tab :label="'Friends'"
+           :target="route('account.friends')"
+           :active="request()->routeIs('account.friends')" />
     @if(Auth::user()->minors()->exists())
         <x-tab :label="'Cadets'"
                :target="route('account.minors')"
