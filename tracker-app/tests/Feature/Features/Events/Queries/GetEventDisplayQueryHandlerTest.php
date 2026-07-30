@@ -226,6 +226,19 @@ class GetEventDisplayQueryHandlerTest extends TestCase
         );
     }
 
+    public function test_invoke_loads_organization_node_path_for_moderator_checks(): void
+    {
+        $organization = $this->create_organization('Alpha Outpost');
+        $event = Event::factory()->withOrganization($organization)->create();
+        $viewer = Trooper::factory()->asMember()->create();
+
+        $subject = new GetEventDisplayQueryHandler;
+
+        $result = $subject(new GetEventDisplayQuery($event, $viewer));
+
+        $this->assertSame($organization->node_path, $result->organization->node_path);
+    }
+
     private function create_organization(string $name): Organization
     {
         $sequence = str_pad((string) $this->organization_sequence, 3, '0', STR_PAD_LEFT);
