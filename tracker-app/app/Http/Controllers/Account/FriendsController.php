@@ -12,7 +12,9 @@ class FriendsController extends MagicBusController
 {
     public function __invoke(Request $request): View
     {
-        $friends = $request->user()->trooper_friends()->with('friend')->get();
+        $friends = $request->user()->trooper_friends()->with('friend')->get()
+            ->filter(fn ($trooper_friend) => $trooper_friend->friend !== null)
+            ->values();
 
         return view('pages.account.friends', compact('friends'));
     }
