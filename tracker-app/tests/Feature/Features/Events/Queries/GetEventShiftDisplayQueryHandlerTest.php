@@ -10,6 +10,7 @@ use App\Models\Event;
 use App\Models\EventGuest;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
+use App\Models\Organization;
 use App\Models\Trooper;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -93,5 +94,20 @@ class GetEventShiftDisplayQueryHandlerTest extends TestCase
         $this->assertSame(['Ahsoka Guest', 'Zed Guest'], $guest_names);
         $this->assertTrue($result->event_guests->first()->relationLoaded('added_by_trooper'));
         $this->assertSame('Alpha Submitter', $result->event_guests->first()->added_by_trooper->display_name);
+    }
+
+    public function test_invoke_loads_organization_node_path_for_moderator_checks(): void
+    {
+        $organization = Organization::factory()->asOrganization()->withNodePath('001.')->create();
+        $event = Event::factory()->withOrganization($organization)->create();
+        $shift = EventShift::factory()->forEvent($event)->create();
+
+        $viewer = Trooper::factory()->asMember()->create();
+
+        $subject = new GetEventShiftDisplayQueryHandler();
+
+        $result = $subject(new GetEventShiftDisplayQuery($shift, $viewer));
+
+        $this->assertSame($organization->node_path, $result->event->organization->node_path);
     }
 }
