@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Enums\MembershipRole;
 use App\Models\Base\EventTrooper as BaseEventTrooper;
@@ -283,14 +284,22 @@ class EventTrooper extends BaseEventTrooper
     /**
      * Determines whether the costume can be updated for this assignment.
      *
-     * Costume updates are allowed when the shift is open and the caller has ownership,
-     * or during grace period when the shift is closed and status is GOING.
+     * On manual-selection events, once a trooper has been approved (status GOING),
+     * only a moderator may change their costume — self-service updates are locked.
+     * Otherwise, costume updates are allowed when the shift is open and the caller
+     * has ownership, or during grace period when the shift is closed and status is GOING.
      *
      * @param Trooper $actor The trooper attempting the update
      * @return bool True if the costume can be updated
      */
     public function canUpdateCostume(Trooper $actor): bool
     {
+        if ($this->event_shift->event->status === EventStatus::MANUAL_SELECTION
+            && $this->status === EventTrooperStatus::GOING)
+        {
+            return false;
+        }
+
         if ($this->event_shift->is_open)
         {
             return $this->hasOwnership($actor);

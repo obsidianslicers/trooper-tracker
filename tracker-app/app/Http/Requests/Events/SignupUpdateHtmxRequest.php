@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Events;
 
-use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Http\Requests\HtmxValidation;
 use App\Models\Costume;
@@ -42,11 +41,6 @@ class SignupUpdateHtmxRequest extends FormRequest
         }
 
         $event = $event_trooper->event_shift->event;
-
-        if ($event->status === EventStatus::MANUAL_SELECTION)
-        {
-            return $this->user()->can('update', $event);
-        }
 
         if ($event_trooper->canUpdateCostume($this->user()))
         {
