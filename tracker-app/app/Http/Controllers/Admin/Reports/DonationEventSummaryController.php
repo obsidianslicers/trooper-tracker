@@ -61,8 +61,7 @@ class DonationEventSummaryController extends BaseReportsController
             $selected_org_ids = $organizations->filter(function ($org) use ($node_paths) {
                 foreach ($node_paths as $path)
                 {
-                    if ($org->node_path === $path
-                        || str_starts_with($org->node_path, $path.Organization::NODE_PATH_SEP))
+                    if (str_starts_with($org->node_path, $path))
                     {
                         return true;
                     }
