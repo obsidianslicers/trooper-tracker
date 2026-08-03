@@ -3,14 +3,17 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Admin\AdminDisplayController;
+use App\Http\Controllers\Admin\System\SystemCheckController;
 use Illuminate\Support\Facades\Route;
-
 
 //  ADMIN
 Route::prefix('admin')
     ->name('admin.')
     ->middleware(['auth', 'check.role:moderator,administrator'])
-    ->group(function ()
-    {
+    ->group(function () {
         Route::get('/', AdminDisplayController::class)->name('display');
+
+        Route::get('/system-check', SystemCheckController::class)
+            ->name('system-check')
+            ->middleware('check.role:administrator');
     });
