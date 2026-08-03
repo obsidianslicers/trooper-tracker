@@ -31,6 +31,7 @@ trait HandlesEventImageUploadResponses
             'images.min' => 'Please choose at least one image to upload.',
             'images.*.mimes' => 'Only JPG, PNG, WEBP, and HEIC images can be uploaded.',
             'images.*.max' => 'Each image must be 12MB or smaller.',
+            'images.*.uploaded' => 'That image failed to upload. Please try a smaller photo or check your connection.',
         ];
     }
 

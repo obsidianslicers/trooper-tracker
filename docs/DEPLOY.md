@@ -32,6 +32,26 @@ Required extensions:
 - GD or Imagick (for image processing via intervention/image)
 - Imagick with libheif support (for converting HEIC/HEIF phone photos on event uploads)
 
+### PHP Upload Limits
+
+Event photo uploads are validated by the app up to 12MB per image, but PHP's own
+defaults (`upload_max_filesize=2M`, `post_max_size=8M`) are smaller than that and
+will silently reject files before the app ever sees them, regardless of the
+`client_max_body_size` set in nginx below. Set these in `/etc/php/8.2/fpm/php.ini`
+to match or exceed the app's limit, then restart PHP-FPM:
+
+```ini
+upload_max_filesize = 15M
+post_max_size = 60M
+```
+
+`post_max_size` must cover the whole request (all images in one upload), not just
+a single file, so it should be sized well above `upload_max_filesize`.
+
+```bash
+sudo systemctl restart php8.2-fpm
+```
+
 ## Pre-Deployment Setup
 
 ### 1. Server Preparation

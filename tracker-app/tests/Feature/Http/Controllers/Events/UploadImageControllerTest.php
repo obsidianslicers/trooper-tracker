@@ -89,6 +89,38 @@ class UploadImageControllerTest extends TestCase
         $this->assertSame(0, EventUpload::query()->count());
     }
 
+    public function test_php_level_upload_failure_returns_friendly_error(): void
+    {
+        Storage::fake('public');
+
+        $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
+        $event = Event::factory()->create();
+
+        // Simulates a file PHP rejected for exceeding upload_max_filesize before
+        // Laravel's own validation rules ever run against its content.
+        $file = new UploadedFile(
+            UploadedFile::fake()->image('too-big-for-php.jpg')->getPathname(),
+            'too-big-for-php.jpg',
+            'image/jpeg',
+            UPLOAD_ERR_INI_SIZE,
+            true
+        );
+
+        $response = $this->actingAs($trooper)
+            ->withSession(['_token' => 'test-token'])
+            ->withHeader('HX-Request', 'true')
+            ->withHeader('X-CSRF-TOKEN', 'test-token')
+            ->post(route('events.upload-image', $event), [
+                'images' => [$file],
+            ]);
+
+        $response->assertUnprocessable();
+        $response->assertHeader('X-Flash-Message');
+        $this->assertStringContainsString('failed to upload', (string) $response->headers->get('X-Flash-Message'));
+        $this->assertStringNotContainsString('images.0', (string) $response->headers->get('X-Flash-Message'));
+        $this->assertSame(0, EventUpload::query()->count());
+    }
+
     public function test_heic_extension_passes_validation(): void
     {
         Storage::fake('public');
