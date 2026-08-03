@@ -16,14 +16,23 @@ trait HasOrgAttributionQuery
     ): void {
         if ($org)
         {
-            $org_id = $org->id;
-            $q->where(function ($q) use ($org_id) {
-                $q->where(function ($q) use ($org_id) {
-                    $this->whereJsonArrayContainsOrganization($q, $org_id);
+            $org_ids = Organization::query()
+                ->where(Organization::NODE_PATH, 'like', $org->node_path.'%')
+                ->pluck('id')
+                ->all();
+
+            $q->where(function ($q) use ($org_ids) {
+                $q->where(function ($q) use ($org_ids) {
+                    foreach ($org_ids as $org_id)
+                    {
+                        $q->orWhere(function ($q) use ($org_id) {
+                            $this->whereJsonArrayContainsOrganization($q, (int) $org_id);
+                        });
+                    }
                 })
-                    ->orWhere(function ($q) use ($org_id) {
+                    ->orWhere(function ($q) use ($org_ids) {
                         $this->whereNoCostumeOrganizationCredit($q);
-                        $q->where('tt_event_troopers.organization_id', $org_id);
+                        $q->whereIn('tt_event_troopers.organization_id', $org_ids);
                     });
             });
         }
