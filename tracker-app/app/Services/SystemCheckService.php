@@ -150,9 +150,9 @@ class SystemCheckService
             return new SystemCheckResult("Queue driver ({$connection})", SystemCheckStatus::PASS);
         }
 
-        $status = Schema::hasTable('jobs') ? SystemCheckStatus::PASS : SystemCheckStatus::FAIL;
+        $status = Schema::hasTable('tt_jobs') ? SystemCheckStatus::PASS : SystemCheckStatus::FAIL;
 
-        return new SystemCheckResult('Queue driver (database)', $status, 'jobs table missing');
+        return new SystemCheckResult('Queue driver (database)', $status, 'tt_jobs table missing');
     }
 
     private function checkStorageAndAssets(): Collection
