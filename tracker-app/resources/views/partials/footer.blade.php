@@ -122,7 +122,7 @@
                     </a>
                 </li>
                 <li class="my-2">
-                    <a href="https://gh-pages.501st.com/member/51399/">
+                    <a href="https://www.501st.com/member/51399/">
                         Stu Ellerbusch <span class="text-muted">(BH51399)</span>
                     </a>
                 </li>
