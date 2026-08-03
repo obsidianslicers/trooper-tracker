@@ -121,6 +121,13 @@
                       :url="route('admin.reports.display')">
         View Reports &amp; Statistics
     </x-dashboard-card>
+    @role(['administrator'])
+    <x-dashboard-card :label="'System Check'"
+                      :icon="'fa-heart-pulse'"
+                      :url="route('admin.system-check')">
+        Verify PHP, server, and integration settings
+    </x-dashboard-card>
+    @endrole
 </x-dashboard-cards>
 
 @endsection
