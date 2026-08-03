@@ -12,6 +12,7 @@ use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\Trooper;
+use App\Models\TrooperAssignment;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
@@ -110,11 +111,16 @@ class GetLeaderboardMetricsQueryHandlerTest extends TestCase
 
     public function test_invoke_club_filter_includes_direct_and_costume_credit(): void
     {
+        $this->skipIfSqlite();
         $club = Organization::factory()->asOrganization()->create();
         $other_club = Organization::factory()->asOrganization()->create();
         $direct_trooper = Trooper::factory()->asMember()->create();
         $costume_credit_trooper = Trooper::factory()->asMember()->create();
         $other_trooper = Trooper::factory()->asMember()->create();
+
+        TrooperAssignment::factory()->forTrooper($direct_trooper)->forOrganization($club)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($costume_credit_trooper)->forOrganization($club)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($other_trooper)->forOrganization($other_club)->asMember()->create();
 
         $this->createAttendance($direct_trooper, now()->subDays(5), $club);
         $this->createAttendance($costume_credit_trooper, now()->subDays(5), null, [$club->id]);
@@ -131,8 +137,10 @@ class GetLeaderboardMetricsQueryHandlerTest extends TestCase
 
     public function test_invoke_club_filter_uses_organization_id_when_costume_credit_is_empty_array(): void
     {
+        $this->skipIfSqlite();
         $club = Organization::factory()->asOrganization()->create();
         $trooper = Trooper::factory()->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($club)->asMember()->create();
         $event_trooper = $this->createAttendance($trooper, now()->subDays(5), $club);
 
         DB::table('tt_event_troopers')
@@ -147,9 +155,11 @@ class GetLeaderboardMetricsQueryHandlerTest extends TestCase
 
     public function test_invoke_club_filter_ignores_organization_id_when_costume_credit_points_elsewhere(): void
     {
+        $this->skipIfSqlite();
         $club = Organization::factory()->asOrganization()->create();
         $other_club = Organization::factory()->asOrganization()->create();
         $trooper = Trooper::factory()->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($club)->asMember()->create();
         $event_trooper = $this->createAttendance($trooper, now()->subDays(5), $club);
 
         DB::table('tt_event_troopers')

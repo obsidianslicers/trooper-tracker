@@ -8,7 +8,7 @@ use App\Bus\Contracts\QueryHandlerInterface;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Enums\MembershipStatus;
-use App\Features\Events\Queries\HasOrgAttributionQuery;
+use App\Features\Events\Queries\HasTrooperOrgCreditQuery;
 use App\Models\Event;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\DB;
  */
 readonly class GetCostumeTrooperLeaderboardQueryHandler implements QueryHandlerInterface
 {
-    use HasOrgAttributionQuery;
+    use HasTrooperOrgCreditQuery;
 
     public function __invoke(object $message): array
     {
@@ -48,7 +48,7 @@ readonly class GetCostumeTrooperLeaderboardQueryHandler implements QueryHandlerI
             ->with(['trooper' => fn ($q) => $q->select(Trooper::ID, Trooper::DISPLAY_NAME)])
             ->groupBy(EventTrooper::TROOPER_ID);
 
-        $this->applyOrgAttribution($query, $message->organization, []);
+        $this->applyTrooperOrgCredit($query, $this->resolveOrgSubtreeIds($message->organization), []);
 
         return $query
             ->orderByDesc('troop_count')
