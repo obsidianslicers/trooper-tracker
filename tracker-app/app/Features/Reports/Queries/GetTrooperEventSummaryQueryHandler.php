@@ -7,7 +7,7 @@ namespace App\Features\Reports\Queries;
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
-use App\Features\Events\Queries\HasOrgAttributionQuery;
+use App\Features\Events\Queries\HasTrooperOrgCreditQuery;
 use App\Models\Event;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
@@ -19,19 +19,21 @@ use Illuminate\Support\Facades\DB;
  */
 readonly class GetTrooperEventSummaryQueryHandler implements QueryHandlerInterface
 {
-    use HasOrgAttributionQuery;
+    use HasTrooperOrgCreditQuery;
 
     public function __invoke(object $message): mixed
     {
-        $shiftCountSub = $this->buildShiftCountSubquery($message);
-        $eventCountSub = $this->buildEventCountSubquery($message);
+        $roster_org_ids = $this->resolveOrgSubtreeIds($message->organization);
+
+        $shiftCountSub = $this->buildShiftCountSubquery($message, $roster_org_ids);
+        $eventCountSub = $this->buildEventCountSubquery($message, $roster_org_ids);
 
         $query = Trooper::query()
             ->select('tt_troopers.*')
             ->selectSub($shiftCountSub, 'event_shifts_count')
             ->selectSub($eventCountSub, 'events_count')
             ->moderatedBy($message->moderator)
-            ->whereHas('event_troopers', function ($q) use ($message) {
+            ->whereHas('event_troopers', function ($q) use ($message, $roster_org_ids) {
                 $q->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED)
                     ->whereHas('event_shift.event', function ($q) use ($message) {
                         $q->where(Event::STATUS, EventStatus::CLOSED);
@@ -45,7 +47,7 @@ readonly class GetTrooperEventSummaryQueryHandler implements QueryHandlerInterfa
                         }
                     });
 
-                $this->applyOrgAttribution($q, $message->organization, $message->accessible_org_ids);
+                $this->applyTrooperOrgCredit($q, $roster_org_ids, $message->accessible_org_ids);
             });
 
         if ($message->active_only)
@@ -60,7 +62,7 @@ readonly class GetTrooperEventSummaryQueryHandler implements QueryHandlerInterfa
         return $query->orderBy($sort, $dir)->paginate($message->page_size)->withQueryString();
     }
 
-    private function buildShiftCountSubquery(GetTrooperEventSummaryQuery $message): Builder
+    private function buildShiftCountSubquery(GetTrooperEventSummaryQuery $message, array $roster_org_ids): Builder
     {
         $sub = DB::table('tt_event_troopers')
             ->selectRaw('COUNT(*)')
@@ -72,12 +74,12 @@ readonly class GetTrooperEventSummaryQueryHandler implements QueryHandlerInterfa
             ->when($message->date_start, fn ($q) => $q->where('tt_events.event_start', '>=', $message->date_start))
             ->when($message->date_end, fn ($q) => $q->where('tt_events.event_start', '<=', $message->date_end));
 
-        $this->applyOrgAttribution($sub, $message->organization, $message->accessible_org_ids);
+        $this->applyTrooperOrgCredit($sub, $roster_org_ids, $message->accessible_org_ids);
 
         return $sub;
     }
 
-    private function buildEventCountSubquery(GetTrooperEventSummaryQuery $message): Builder
+    private function buildEventCountSubquery(GetTrooperEventSummaryQuery $message, array $roster_org_ids): Builder
     {
         $sub = DB::table('tt_event_troopers')
             ->selectRaw('COUNT(DISTINCT tt_event_shifts.event_id)')
@@ -89,7 +91,7 @@ readonly class GetTrooperEventSummaryQueryHandler implements QueryHandlerInterfa
             ->when($message->date_start, fn ($q) => $q->where('tt_events.event_start', '>=', $message->date_start))
             ->when($message->date_end, fn ($q) => $q->where('tt_events.event_start', '<=', $message->date_end));
 
-        $this->applyOrgAttribution($sub, $message->organization, $message->accessible_org_ids);
+        $this->applyTrooperOrgCredit($sub, $roster_org_ids, $message->accessible_org_ids);
 
         return $sub;
     }

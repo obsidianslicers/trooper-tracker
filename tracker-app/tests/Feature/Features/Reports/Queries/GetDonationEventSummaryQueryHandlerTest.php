@@ -33,7 +33,7 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         $closed = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(5))->create();
         Event::factory()->withOrganization($org)->withEventStart(now()->subDays(5))->create(); // open
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator));
 
@@ -49,7 +49,7 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
 
         Event::factory()->withOrganization($org)->withEventStart(now()->subDays(5))->create();
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator));
 
@@ -65,7 +65,7 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         $visible = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(5))->create();
         Event::factory()->asClosed()->withEventStart(now()->subDays(5))->create(); // different org
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator));
 
@@ -87,7 +87,7 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         $shift = EventShift::factory()->forEvent($event)->create();
         EventTrooper::factory()->forEventShift($shift)->asAttended()->count(3)->create();
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator));
 
@@ -102,14 +102,14 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($org)->asModerator()->create();
 
         $trooper = Trooper::factory()->asMember()->create();
-        $event   = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(5))->create();
-        $shift1  = EventShift::factory()->forEvent($event)->create();
-        $shift2  = EventShift::factory()->forEvent($event)->create();
+        $event = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(5))->create();
+        $shift1 = EventShift::factory()->forEvent($event)->create();
+        $shift2 = EventShift::factory()->forEvent($event)->create();
 
         EventTrooper::factory()->forEventShift($shift1)->forTrooper($trooper)->asAttended()->create();
         EventTrooper::factory()->forEventShift($shift2)->forTrooper($trooper)->asAttended()->create();
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator));
 
@@ -127,7 +127,7 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         EventTrooper::factory()->forEventShift($shift)->asAttended()->create();
         EventTrooper::factory()->forEventShift($shift)->create(); // going status
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator));
 
@@ -143,7 +143,7 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         $event = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(5))->create();
         EventShift::factory()->forEvent($event)->create();
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator));
 
@@ -160,11 +160,11 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         $org = Organization::factory()->create();
         TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($org)->asModerator()->create();
 
-        $event  = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(5))->create();
+        $event = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(5))->create();
         $shift1 = EventShift::factory()->forEvent($event)->withCharityData(direct_funds: 300)->create();
         $shift2 = EventShift::factory()->forEvent($event)->withCharityData(direct_funds: 200)->create();
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator));
 
@@ -181,7 +181,7 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         EventShift::factory()->forEvent($event)->withCharityData(indirect_funds: 150)->create();
         EventShift::factory()->forEvent($event)->withCharityData(indirect_funds: 350)->create();
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator));
 
@@ -204,7 +204,7 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
             ->withCharityData(charity_name: 'Second Charity')
             ->create();
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator));
 
@@ -222,7 +222,7 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         EventShift::factory()->forEvent($event)->create([EventShift::CHARITY_HOURS => 2]);
         EventShift::factory()->forEvent($event)->create([EventShift::CHARITY_HOURS => 3]);
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator));
 
@@ -243,7 +243,7 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
             ->withShiftStartsAt(now()->subDays(5)->setTime(14, 0))
             ->create([EventShift::CHARITY_NOTES => 'Second note']);
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator));
 
@@ -261,10 +261,10 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         $org = Organization::factory()->create();
         TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($org)->asModerator()->create();
 
-        $after  = Event::factory()->asClosed()->withOrganization($org)->withEventStart(Carbon::parse('2026-02-15'))->create();
+        $after = Event::factory()->asClosed()->withOrganization($org)->withEventStart(Carbon::parse('2026-02-15'))->create();
         Event::factory()->asClosed()->withOrganization($org)->withEventStart(Carbon::parse('2026-01-15'))->create();
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator, date_start: Carbon::parse('2026-02-01')->startOfDay()));
 
@@ -281,7 +281,7 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         $before = Event::factory()->asClosed()->withOrganization($org)->withEventStart(Carbon::parse('2026-01-15'))->create();
         Event::factory()->asClosed()->withOrganization($org)->withEventStart(Carbon::parse('2026-03-15'))->create();
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator, date_end: Carbon::parse('2026-02-01')->endOfDay()));
 
@@ -299,7 +299,7 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         $in = Event::factory()->asClosed()->withOrganization($org)->withEventStart(Carbon::parse('2026-01-15'))->create();
         Event::factory()->asClosed()->withOrganization($org)->withEventStart(Carbon::parse('2026-05-01'))->create();
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery(
             $moderator,
@@ -327,7 +327,7 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         $without = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(3))->create();
         EventShift::factory()->forEvent($without)->create();
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator, charity_only: true));
 
@@ -347,7 +347,7 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         $without = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(3))->create();
         EventShift::factory()->forEvent($without)->create();
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator, charity_only: true));
 
@@ -367,7 +367,7 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         $without = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(3))->create();
         EventShift::factory()->forEvent($without)->create();
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator, charity_only: true));
 
@@ -387,7 +387,7 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         $without = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(3))->create();
         EventShift::factory()->forEvent($without)->create();
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator, charity_only: true));
 
@@ -407,7 +407,7 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         $without = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(3))->create();
         EventShift::factory()->forEvent($without)->create();
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator, charity_only: true));
 
@@ -424,7 +424,7 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         $event = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(5))->create();
         EventShift::factory()->forEvent($event)->create();
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator, charity_only: true));
 
@@ -443,7 +443,7 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         $with = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(3))->create();
         EventShift::factory()->forEvent($with)->withCharityData(direct_funds: 100)->create();
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator, charity_only: false));
 
@@ -463,7 +463,7 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         $older = Event::factory()->asClosed()->withOrganization($org)->withEventStart(Carbon::parse('2026-01-01'))->create();
         $newer = Event::factory()->asClosed()->withOrganization($org)->withEventStart(Carbon::parse('2026-03-01'))->create();
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator));
 
@@ -480,7 +480,7 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         $older = Event::factory()->asClosed()->withOrganization($org)->withEventStart(Carbon::parse('2026-01-01'))->create();
         $newer = Event::factory()->asClosed()->withOrganization($org)->withEventStart(Carbon::parse('2026-03-01'))->create();
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator, sort: 'event_start', dir: 'asc'));
 
@@ -499,7 +499,7 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         $a = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(3))
             ->create([Event::NAME => 'Alpha Event']);
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator, sort: 'name', dir: 'asc'));
 
@@ -516,7 +516,7 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         $event = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(5))->create();
         $shift = EventShift::factory()->forEvent($event)->withCharityData(charity_name: 'Test Charity')->create();
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator));
 
@@ -537,7 +537,7 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         $high = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(3))->create();
         EventShift::factory()->forEvent($high)->withCharityData(direct_funds: 900)->create();
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator, sort: 'charity_direct_funds', dir: 'desc'));
 
@@ -557,7 +557,7 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         $high = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(3))->create();
         EventShift::factory()->forEvent($high)->withCharityData(indirect_funds: 800)->create();
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator, sort: 'charity_indirect_funds', dir: 'desc'));
 
@@ -577,7 +577,7 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         $high = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(3))->create();
         EventShift::factory()->forEvent($high)->create([EventShift::CHARITY_HOURS => 8]);
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator, sort: 'charity_hours', dir: 'desc'));
 
@@ -591,16 +591,16 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         $org = Organization::factory()->create();
         TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($org)->asModerator()->create();
 
-        $few  = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(5))->create();
+        $few = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(5))->create();
         $many = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(3))->create();
 
-        $shiftFew  = EventShift::factory()->forEvent($few)->create();
+        $shiftFew = EventShift::factory()->forEvent($few)->create();
         $shiftMany = EventShift::factory()->forEvent($many)->create();
 
         EventTrooper::factory()->forEventShift($shiftFew)->asAttended()->create();
         EventTrooper::factory()->forEventShift($shiftMany)->asAttended()->count(5)->create();
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator, sort: 'attendees_count', dir: 'desc'));
 
@@ -617,7 +617,7 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         $older = Event::factory()->asClosed()->withOrganization($org)->withEventStart(Carbon::parse('2026-01-01'))->create();
         $newer = Event::factory()->asClosed()->withOrganization($org)->withEventStart(Carbon::parse('2026-03-01'))->create();
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator, sort: 'injected_column', dir: 'desc'));
 
@@ -634,7 +634,7 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         $older = Event::factory()->asClosed()->withOrganization($org)->withEventStart(Carbon::parse('2026-01-01'))->create();
         $newer = Event::factory()->asClosed()->withOrganization($org)->withEventStart(Carbon::parse('2026-03-01'))->create();
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator, sort: 'event_start', dir: 'DROP TABLE'));
 
@@ -654,7 +654,7 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
 
         Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(5))->count(5)->create();
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator, page_size: 2));
 
@@ -673,7 +673,7 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         Event::factory()->asClosed()->withOrganization($org)->withEventStart(Carbon::parse('2026-01-02'))->create();
         $third = Event::factory()->asClosed()->withOrganization($org)->withEventStart(Carbon::parse('2026-01-03'))->create();
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator, page_size: 2, sort: 'event_start', dir: 'asc', page: 2));
 
@@ -689,20 +689,27 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
 
     public function test_invoke_org_filter_counts_attendees_attributed_via_organization_id(): void
     {
+        $this->skipIfSqlite();
         $moderator = Trooper::factory()->asModerator()->create();
         $org = Organization::factory()->create();
+        $other_org = Organization::factory()->create();
         TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($org)->asModerator()->create();
+
+        $trooper_in_org = Trooper::factory()->asMember()->create();
+        $trooper_other = Trooper::factory()->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper_in_org)->forOrganization($org)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper_other)->forOrganization($other_org)->asMember()->create();
 
         $event = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(5))->create();
         $shift = EventShift::factory()->forEvent($event)->create();
 
-        EventTrooper::factory()->forEventShift($shift)->asAttended()
+        EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper_in_org)->asAttended()
             ->create([EventTrooper::ORGANIZATION_ID => $org->id]);
 
-        EventTrooper::factory()->forEventShift($shift)->asAttended()
-            ->create([EventTrooper::ORGANIZATION_ID => Organization::factory()->create()->id]);
+        EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper_other)->asAttended()
+            ->create([EventTrooper::ORGANIZATION_ID => $other_org->id]);
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator, selected_org_ids: [$org->id]));
 
@@ -715,20 +722,26 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         $this->skipIfSqlite();
         $moderator = Trooper::factory()->asModerator()->create();
         $org = Organization::factory()->create();
+        $other_org = Organization::factory()->create();
         TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($org)->asModerator()->create();
+
+        $trooper_in_org = Trooper::factory()->asMember()->create();
+        $trooper_other = Trooper::factory()->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper_in_org)->forOrganization($org)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper_other)->forOrganization($other_org)->asMember()->create();
 
         $event = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(5))->create();
         $shift = EventShift::factory()->forEvent($event)->create();
 
-        EventTrooper::factory()->forEventShift($shift)->asAttended()
+        EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper_in_org)->asAttended()
             ->withCostumeOrganizationIds([$org->id])
             ->create([EventTrooper::ORGANIZATION_ID => null]);
 
-        EventTrooper::factory()->forEventShift($shift)->asAttended()
-            ->withCostumeOrganizationIds([Organization::factory()->create()->id])
+        EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper_other)->asAttended()
+            ->withCostumeOrganizationIds([$other_org->id])
             ->create([EventTrooper::ORGANIZATION_ID => null]);
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator, selected_org_ids: [$org->id]));
 
@@ -742,20 +755,26 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         $moderator = Trooper::factory()->asModerator()->create();
         $capacity_org = Organization::factory()->create();
         $credit_org = Organization::factory()->create();
+        $unrelated_org = Organization::factory()->create();
         TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($credit_org)->asModerator()->create();
+
+        $trooper_credited = Trooper::factory()->asMember()->create();
+        $trooper_misdirected = Trooper::factory()->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper_credited)->forOrganization($credit_org)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper_misdirected)->forOrganization($credit_org)->asMember()->create();
 
         $event = Event::factory()->asClosed()->withOrganization($credit_org)->withEventStart(now()->subDays(5))->create();
         $shift = EventShift::factory()->forEvent($event)->create();
 
-        EventTrooper::factory()->forEventShift($shift)->asAttended()
+        EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper_credited)->asAttended()
             ->withCostumeOrganizationIds([$credit_org->id])
             ->create([EventTrooper::ORGANIZATION_ID => $capacity_org->id]);
 
-        EventTrooper::factory()->forEventShift($shift)->asAttended()
-            ->withCostumeOrganizationIds([Organization::factory()->create()->id])
+        EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper_misdirected)->asAttended()
+            ->withCostumeOrganizationIds([$unrelated_org->id])
             ->create([EventTrooper::ORGANIZATION_ID => $credit_org->id]);
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator, selected_org_ids: [$credit_org->id]));
 
@@ -765,6 +784,7 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
 
     public function test_invoke_org_filter_excludes_unattributed_attendees(): void
     {
+        $this->skipIfSqlite();
         $moderator = Trooper::factory()->asModerator()->create();
         $org = Organization::factory()->create();
         TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($org)->asModerator()->create();
@@ -774,7 +794,7 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
 
         EventTrooper::factory()->forEventShift($shift)->asAttended()->count(2)->create();
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator, selected_org_ids: [$org->id]));
 
@@ -784,22 +804,31 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
 
     public function test_invoke_org_filter_counts_attendees_from_multiple_selected_orgs(): void
     {
+        $this->skipIfSqlite();
         $moderator = Trooper::factory()->asModerator()->create();
         $org_a = Organization::factory()->create();
         $org_b = Organization::factory()->create();
+        $org_c = Organization::factory()->create();
         TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($org_a)->asModerator()->create();
+
+        $trooper_a = Trooper::factory()->asMember()->create();
+        $trooper_b = Trooper::factory()->asMember()->create();
+        $trooper_c = Trooper::factory()->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper_a)->forOrganization($org_a)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper_b)->forOrganization($org_b)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper_c)->forOrganization($org_c)->asMember()->create();
 
         $event = Event::factory()->asClosed()->withOrganization($org_a)->withEventStart(now()->subDays(5))->create();
         $shift = EventShift::factory()->forEvent($event)->create();
 
-        EventTrooper::factory()->forEventShift($shift)->asAttended()
+        EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper_a)->asAttended()
             ->create([EventTrooper::ORGANIZATION_ID => $org_a->id]);
-        EventTrooper::factory()->forEventShift($shift)->asAttended()
+        EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper_b)->asAttended()
             ->create([EventTrooper::ORGANIZATION_ID => $org_b->id]);
-        EventTrooper::factory()->forEventShift($shift)->asAttended()
-            ->create([EventTrooper::ORGANIZATION_ID => Organization::factory()->create()->id]);
+        EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper_c)->asAttended()
+            ->create([EventTrooper::ORGANIZATION_ID => $org_c->id]);
 
-        $subject = new GetDonationEventSummaryQueryHandler();
+        $subject = new GetDonationEventSummaryQueryHandler;
 
         $result = $subject(new GetDonationEventSummaryQuery($moderator, selected_org_ids: [$org_a->id, $org_b->id]));
 

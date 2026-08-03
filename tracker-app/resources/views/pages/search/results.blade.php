@@ -6,7 +6,7 @@
 
     <div class="row mb-4">
         <div class="col-12">
-            <form method="GET" action="{{ route('search.all') }}" class="d-flex gap-2">
+            <form method="GET" action="{{ route('search.all') }}" class="d-flex gap-2 allow-enter-keypress">
                 <input type="text"
                        name="q"
                        value="{{ $term }}"

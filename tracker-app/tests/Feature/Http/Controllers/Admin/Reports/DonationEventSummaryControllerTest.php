@@ -28,6 +28,7 @@ class DonationEventSummaryControllerTest extends TestCase
 
     public function test_invoke_streams_donation_event_summary_csv(): void
     {
+        $this->skipIfSqlite();
         $trooper = Trooper::factory()->asAdministrator()->create();
         $organization = Organization::factory()->create(['name' => 'Florida Garrison']);
         Organization::factory()->create(['name' => 'Makaze Squad']);

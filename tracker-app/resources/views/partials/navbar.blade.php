@@ -13,7 +13,7 @@
                 @if(Auth::user()->membership_status?->value === 'active')
                     <form method="GET"
                           action="{{ route('search.all') }}"
-                          class="d-flex ms-2 me-auto my-1 my-md-0"
+                          class="d-flex ms-2 me-auto my-1 my-md-0 allow-enter-keypress"
                           role="search">
                         <div class="input-group input-group-sm flex-nowrap">
                             <input type="search"
