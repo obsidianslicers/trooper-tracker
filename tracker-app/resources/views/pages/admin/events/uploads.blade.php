@@ -37,10 +37,10 @@
                    name="images[]"
                    class="image-input d-none"
                    multiple
-                   accept=".jpg,.jpeg,.png,.webp" />
+                   accept=".jpg,.jpeg,.png,.webp,.heic,.heif" />
             <div id="upload-label"
                  class="text-muted">
-                Drag & drop JPG, PNG, or WEBP images here, or click to upload
+                Drag & drop JPG, PNG, WEBP, or HEIC images here, or click to upload
             </div>
         </div>
 

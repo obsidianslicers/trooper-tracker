@@ -16,7 +16,7 @@ trait HandlesEventImageUploadResponses
     {
         return [
             'images' => ['required', 'array', 'min:1'],
-            'images.*' => ['required', 'image', 'mimes:png,jpg,jpeg,webp', 'max:12288'],
+            'images.*' => ['required', 'mimes:png,jpg,jpeg,webp,heic,heif', 'max:12288'],
         ];
     }
 
@@ -29,9 +29,9 @@ trait HandlesEventImageUploadResponses
             'images.required' => 'Please choose at least one image to upload.',
             'images.array' => 'Please choose at least one image to upload.',
             'images.min' => 'Please choose at least one image to upload.',
-            'images.*.image' => 'Only JPG, PNG, and WEBP images can be uploaded. HEIC photos are not supported yet.',
-            'images.*.mimes' => 'HEIC photos are not supported yet. Please upload JPG, PNG, or WEBP.',
+            'images.*.mimes' => 'Only JPG, PNG, WEBP, and HEIC images can be uploaded.',
             'images.*.max' => 'Each image must be 12MB or smaller.',
+            'images.*.uploaded' => 'That image failed to upload. Please try a smaller photo or check your connection.',
         ];
     }
 
@@ -39,14 +39,14 @@ trait HandlesEventImageUploadResponses
     {
         $messages = $e->validator->errors()->all();
 
-        return $messages[0] ?? 'Please upload JPG, PNG, or WEBP images that are 12MB or smaller.';
+        return $messages[0] ?? 'Please upload JPG, PNG, WEBP, or HEIC images that are 12MB or smaller.';
     }
 
     private function eventImageUploadSuccessMessage(EventImageUploadResult $result): string
     {
         if (! $result->hasUploads())
         {
-            return 'No images were uploaded. Please try JPG, PNG, or WEBP images that are 12MB or smaller.';
+            return 'No images were uploaded. Please try JPG, PNG, WEBP, or HEIC images that are 12MB or smaller.';
         }
 
         $uploaded = $result->uploads === 1 ? '1 image uploaded' : "{$result->uploads} images uploaded";
