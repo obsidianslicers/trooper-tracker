@@ -89,7 +89,7 @@ class UploadImageControllerTest extends TestCase
         $this->assertSame(0, EventUpload::query()->count());
     }
 
-    public function test_heic_upload_returns_visible_htmx_error(): void
+    public function test_heic_extension_passes_validation(): void
     {
         Storage::fake('public');
 
@@ -105,9 +105,12 @@ class UploadImageControllerTest extends TestCase
                 'images' => [$file],
             ]);
 
+        // The fake file's bytes are not a real HEIC image, so conversion fails
+        // gracefully after passing validation rather than being rejected as an
+        // unsupported format up front.
         $response->assertUnprocessable();
         $response->assertHeader('X-Flash-Message');
-        $this->assertStringContainsString('HEIC', (string) $response->headers->get('X-Flash-Message'));
+        $this->assertStringContainsString('No images were uploaded', (string) $response->headers->get('X-Flash-Message'));
         $this->assertSame(0, EventUpload::query()->count());
     }
 
