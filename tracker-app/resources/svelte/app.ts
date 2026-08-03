@@ -2,6 +2,8 @@ import flashState from '$lib/states/flash-state.svelte';
 import toastState from '$lib/states/toast-state.svelte';
 import { setupProgress } from '@inertiajs/core';
 import { createInertiaApp, router } from '@inertiajs/svelte';
+import 'bootstrap';
+import { Collapse } from 'bootstrap';
 import type { Component } from 'svelte';
 import { mount } from 'svelte';
 import RootApp from './RootApp.svelte';
@@ -33,6 +35,14 @@ function to_messages(value: FlashPropValue): string[] {
 router.on('navigate', (event) => {
     flashState.clear();
     toastState.clear();
+
+    const openNavbars = document.querySelectorAll('.navbar-collapse.show');
+    openNavbars.forEach(nav => {
+        const collapseInstance = Collapse.getInstance(nav);
+        if (collapseInstance) {
+            collapseInstance.hide();
+        }
+    });
 });
 
 router.on('success', (event) => {

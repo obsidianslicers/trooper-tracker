@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Enums\OauthProvider;
+use App\Http\Controllers\Account\IndexController;
 use App\Http\Controllers\Account\ClubMembershipsController;
 use App\Http\Controllers\Account\ClubMembershipsSubmitHtmxController;
 use App\Http\Controllers\Account\DeletionCancelController;
@@ -50,6 +51,10 @@ Route::prefix('account')
     ->middleware(['auth', 'redirect.denied', 'redirect.pending'])
     ->group(function ()
     {
+        Route::get('/', IndexController::class)->name('index');
+
+
+
         Route::get('/profile', ProfileController::class)->name('profile');
         Route::post('/profile', ProfileSubmitController::class);
         Route::get('/notifications', NotificationsController::class)->name('notifications');
