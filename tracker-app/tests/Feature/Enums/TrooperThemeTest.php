@@ -29,6 +29,6 @@ class TrooperThemeTest extends TestCase
         $actual_array = array_map(static fn($label): string => (string) $label, TrooperTheme::toArray());
 
         $this->assertSame($expected_array, $actual_array);
-        $this->assertSame(implode(',', $expected_values), TrooperTheme::toValidator());
+        $this->assertSame('in:' . implode(',', $expected_values), TrooperTheme::toValidator());
     }
 }

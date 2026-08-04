@@ -42,7 +42,7 @@ class ProfileRequest extends FormRequest
             Trooper::LEGAL_NAME => ['required', 'string', 'max:256'],
             Trooper::DISPLAY_NAME => ['required', 'string', 'max:256'],
             Trooper::PHONE => ['nullable', 'string', 'max:16'],
-            Trooper::THEME => ['required', 'string', 'max:16', 'in:'.TrooperTheme::toValidator()],
+            Trooper::THEME => ['required', 'string', 'max:16', TrooperTheme::toValidator()],
             Trooper::DISPLAY_COSTUME_ID => [
                 'nullable',
                 'integer',

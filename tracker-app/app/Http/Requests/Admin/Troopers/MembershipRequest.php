@@ -136,7 +136,7 @@ class MembershipRequest extends FormRequest
             $rules["organizations.{$organization->id}.membership_status"] = [
                 'nullable',
                 'string',
-                'in:'.MembershipStatus::toValidator(),
+                MembershipStatus::toValidator(),
             ];
         }
 

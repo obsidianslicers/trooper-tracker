@@ -27,7 +27,7 @@ class HasEnumHelpersTest extends TestCase
     {
         $result = HasEnumHelpersFixture::toValidator();
 
-        $this->assertSame('alpha_value,middle_value,zeta_value', $result);
+        $this->assertSame('in:alpha_value,middle_value,zeta_value', $result);
     }
 
     public function test_to_value_labels_accepts_enum_cases_for_exclude(): void
