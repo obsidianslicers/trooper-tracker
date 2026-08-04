@@ -9,7 +9,7 @@ use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
 use App\Enums\MembershipStatus;
 use App\Enums\OrganizationType;
-use App\Features\Events\Queries\HasOrgAttributionQuery;
+use App\Features\Events\Queries\HasTrooperOrgCreditQuery;
 use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventTrooper;
@@ -27,7 +27,7 @@ use Illuminate\Support\Collection;
  */
 readonly class GetLeaderboardMetricsQueryHandler implements QueryHandlerInterface
 {
-    use HasOrgAttributionQuery;
+    use HasTrooperOrgCreditQuery;
 
     /**
      * Build the full dashboard metrics payload for the given lookback period.
@@ -106,7 +106,7 @@ readonly class GetLeaderboardMetricsQueryHandler implements QueryHandlerInterfac
             ->with(['trooper' => fn ($q) => $q->select(Trooper::ID, Trooper::DISPLAY_NAME)])
             ->groupBy(EventTrooper::TROOPER_ID);
 
-        $this->applyOrgAttribution($query, $message->organization, []);
+        $this->applyTrooperOrgCredit($query, $this->resolveOrgSubtreeIds($message->organization), []);
 
         return $query
             ->orderByDesc('troop_count')

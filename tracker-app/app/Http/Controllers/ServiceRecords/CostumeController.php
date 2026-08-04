@@ -25,6 +25,7 @@ class CostumeController extends MagicBusController
                 Organization::NAME,
                 Organization::IMAGE_PATH_SM,
                 Organization::IMAGE_PATH_LG,
+                Organization::NODE_PATH,
             ]);
 
         $organization_id = $request->integer('organization_id') ?: null;

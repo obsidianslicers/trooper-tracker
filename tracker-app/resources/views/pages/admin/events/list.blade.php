@@ -9,7 +9,7 @@
 
         <form method="GET"
               action="{{ route('admin.events.list', ['organization_id' => $organization_id]) }}"
-              class="input-group">
+              class="input-group allow-enter-keypress">
             @foreach (qs() as $key => $value)
                 <x-input-hidden :property="$key"
                                 :value="$value" />

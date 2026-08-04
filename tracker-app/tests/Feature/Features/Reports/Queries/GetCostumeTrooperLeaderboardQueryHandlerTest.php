@@ -12,6 +12,7 @@ use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\Trooper;
+use App\Models\TrooperAssignment;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
@@ -229,11 +230,15 @@ class GetCostumeTrooperLeaderboardQueryHandlerTest extends TestCase
 
     public function test_invoke_org_filter_excludes_other_org_attendance(): void
     {
+        $this->skipIfSqlite();
         $costume = Costume::factory()->create();
         $org = Organization::factory()->asOrganization()->create();
         $other_org = Organization::factory()->asOrganization()->create();
         $my_trooper = Trooper::factory()->asMember()->create();
         $other_trooper = Trooper::factory()->asMember()->create();
+
+        TrooperAssignment::factory()->forTrooper($my_trooper)->forOrganization($org)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($other_trooper)->forOrganization($other_org)->asMember()->create();
 
         $this->createAttendance($my_trooper, $costume, now()->subDays(3), $org);
         $this->createAttendance($other_trooper, $costume, now()->subDays(4), $other_org);

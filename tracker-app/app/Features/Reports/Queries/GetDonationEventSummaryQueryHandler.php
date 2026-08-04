@@ -7,7 +7,7 @@ namespace App\Features\Reports\Queries;
 use App\Bus\Contracts\QueryHandlerInterface;
 use App\Enums\EventStatus;
 use App\Enums\EventTrooperStatus;
-use App\Features\Events\Queries\HasOrgAttributionQuery;
+use App\Features\Events\Queries\HasTrooperOrgCreditQuery;
 use App\Models\Event;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\DB;
  */
 readonly class GetDonationEventSummaryQueryHandler implements QueryHandlerInterface
 {
-    use HasOrgAttributionQuery;
+    use HasTrooperOrgCreditQuery;
 
     /**
      * @param  GetDonationEventSummaryQuery  $message
@@ -92,32 +92,7 @@ readonly class GetDonationEventSummaryQueryHandler implements QueryHandlerInterf
 
     private function applyAttribution(mixed $q, GetDonationEventSummaryQuery $message): void
     {
-        if (!empty($message->selected_org_ids))
-        {
-            $this->applySelectedOrgs($q, $message->selected_org_ids);
-        }
-        else
-        {
-            $this->applyOrgAttribution($q, null, $message->accessible_org_ids);
-        }
-    }
-
-    private function applySelectedOrgs(mixed $q, array $org_ids): void
-    {
-        $q->where(function ($q) use ($org_ids) {
-            $q->whereIn('tt_event_troopers.organization_id', $org_ids)
-                ->orWhere(function ($q) use ($org_ids) {
-                    $q->whereNull('tt_event_troopers.organization_id')
-                        ->where(function ($q) use ($org_ids) {
-                            foreach ($org_ids as $id)
-                            {
-                                $q->orWhere(function ($q) use ($id) {
-                                    $this->whereJsonArrayContainsOrganization($q, (int) $id);
-                                });
-                            }
-                        });
-                });
-        });
+        $this->applyTrooperOrgCredit($q, $message->selected_org_ids, $message->accessible_org_ids);
     }
 
     private function diffInHoursSql(string $start_col, string $end_col): string

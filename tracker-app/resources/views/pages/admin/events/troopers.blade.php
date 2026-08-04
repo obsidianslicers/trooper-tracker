@@ -82,6 +82,12 @@
                                     <a href="{{ route('admin.troopers.profile', ['trooper' => $event_trooper->trooper_id]) }}">
                                         {{ $event_trooper->trooper->display_name }}
                                     </a>
+                                    @if($event_trooper->trooper->legal_name)
+                                        <br />
+                                        <i class="small text-muted">
+                                            {{ $event_trooper->trooper->legal_name }}
+                                        </i>
+                                    @endif
                                 </td>
                                 <td>
                                     <x-input-select :property="'troopers.' . $event_trooper->id . '.costume_id'"

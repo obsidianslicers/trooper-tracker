@@ -60,6 +60,7 @@ readonly class GetTroopersForEventAdminQueryHandler implements QueryHandlerInter
         $trooper_columns = [
             Trooper::ID,
             Trooper::DISPLAY_NAME,
+            Trooper::LEGAL_NAME,
         ];
 
         $trooper_costume_columns = [
