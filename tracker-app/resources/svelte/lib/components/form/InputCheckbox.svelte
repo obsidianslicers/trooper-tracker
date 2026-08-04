@@ -24,7 +24,10 @@
 <div class="form-check">
     <input
         type="checkbox"
-        class={["form-check-input", errors.length > 0 ? "is-invalid" : ""]}
+        class={[
+            "form-check-input",
+            errors && errors.length > 0 ? "is-invalid" : "",
+        ]}
         {value}
         {disabled}
         {id}

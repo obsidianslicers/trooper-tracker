@@ -11,6 +11,7 @@
     } from "$lib/domains/account/vms/AccountViewModel.svelte";
     import pageState from "$lib/states/page-state.svelte";
     import { usePage } from "@inertiajs/svelte";
+    import Details from "./components/Details.svelte";
 
     const page = usePage<AccountPageData>();
 
@@ -29,7 +30,9 @@
             <Tab id="friends">Friends</Tab>
         </TabHeader>
         <TabContent>
-            <TabPanel id="profile">Details</TabPanel>
+            <TabPanel id="profile">
+                <Details details={vm.pageData?.details} />
+            </TabPanel>
             <TabPanel id="notifications">Notifications</TabPanel>
             <TabPanel id="costumes">Costumes</TabPanel>
             <TabPanel id="memberships">Memberships</TabPanel>

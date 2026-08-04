@@ -1,15 +1,16 @@
-import { SubmitableViewModel } from "$lib/domains/types.svelte";
+import { SubmitableViewModel, type Option } from "$lib/domains/types.svelte";
 import { useForm, type InertiaForm } from "@inertiajs/svelte";
 
 function createDetailsForm(options: Partial<Details> = {}): InertiaForm<Details> {
     const data = {
         id: 0,
-        email: '',
-        displayName: '',
-        legalName: '',
-        membershipStatus: '',
+        display_name: '',
+        legal_name: '',
+        display_costume_id: null,
+        display_costumes: [],
         phone: '',
         theme: '',
+        themes: [],
         ...options
     };
 
@@ -18,12 +19,13 @@ function createDetailsForm(options: Partial<Details> = {}): InertiaForm<Details>
 
 export type Details = {
     id: number;
-    email: string;
-    displayName: string;
-    legalName: string;
-    membershipStatus: string;
+    display_name: string;
+    legal_name: string;
     phone: string;
+    display_costume_id: number | null;
+    display_costumes: Option[];
     theme: string;
+    themes: Option[];
 };
 
 export class DetailsViewModel extends SubmitableViewModel<DetailsViewModel, Details> {

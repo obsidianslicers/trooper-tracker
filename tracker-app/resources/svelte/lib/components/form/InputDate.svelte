@@ -75,7 +75,10 @@
 
 <div class="form-floating">
     <input
-        class={["form-control", errors.length > 0 ? "is-invalid" : ""]}
+        class={[
+            "form-control",
+            errors && errors.length > 0 ? "is-invalid" : "",
+        ]}
         {id}
         bind:this={input_element}
         type="text"

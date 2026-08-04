@@ -30,7 +30,7 @@
         {id}
         class={[
             "form-select",
-            errors.length > 0 ? "is-invalid border-danger" : "",
+            errors && errors.length > 0 ? "is-invalid border-danger" : "",
         ]}
         {disabled}
         bind:value
