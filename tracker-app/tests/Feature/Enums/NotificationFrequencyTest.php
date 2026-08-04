@@ -29,6 +29,6 @@ class NotificationFrequencyTest extends TestCase
         $actual_array = array_map(static fn($label): string => (string) $label, NotificationFrequency::toArray());
 
         $this->assertSame($expected_array, $actual_array);
-        $this->assertSame(implode(',', $expected_values), NotificationFrequency::toValidator());
+        $this->assertSame('in:' . implode(',', $expected_values), NotificationFrequency::toValidator());
     }
 }
