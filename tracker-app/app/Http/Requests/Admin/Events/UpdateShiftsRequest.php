@@ -45,7 +45,7 @@ class UpdateShiftsRequest extends FormRequest
             'shifts.*.date' => ['required', 'date'],
             'shifts.*.starts_at' => ['required', 'date_format:H:i'],
             'shifts.*.ends_at' => ['required', 'date_format:H:i'],
-            'shifts.*.status' => ['nullable', 'in:'.EventStatus::toValidator()],
+            'shifts.*.status' => ['nullable', EventStatus::toValidator()],
             'shifts.*.stations.*.name' => ['nullable', 'string', 'max:128'],
             'shifts.*.stations.*.troopers_allowed' => ['nullable', 'integer', 'min:1', 'max:999'],
             'shifts.*.stations.*.sequence' => ['nullable', 'integer', 'min:0', 'max:9999'],

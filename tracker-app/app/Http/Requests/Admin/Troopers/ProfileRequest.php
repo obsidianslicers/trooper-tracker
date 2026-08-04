@@ -63,7 +63,7 @@ class ProfileRequest extends FormRequest
                 'nullable',
                 'string',
                 'max:16',
-                'in:'.MembershipStatus::toValidator(),
+                MembershipStatus::toValidator(),
             ],
         ];
 

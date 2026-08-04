@@ -41,7 +41,7 @@ class UpdateTroopersRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'troopers.*.status' => ['nullable', 'in:'.EventTrooperStatus::toValidator()],
+            'troopers.*.status' => ['nullable', EventTrooperStatus::toValidator()],
             'troopers.*.event_shift_station_id' => ['nullable', 'integer', 'exists:tt_event_shift_stations,id'],
             'troopers.*.costume_id' => ['nullable', 'integer', 'exists:tt_costumes,id'],
             'troopers.*.organization_selection' => ['nullable', 'boolean'],

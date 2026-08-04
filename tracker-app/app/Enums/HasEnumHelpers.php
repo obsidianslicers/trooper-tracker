@@ -110,6 +110,6 @@ trait HasEnumHelpers
             $values[] = $case->value;
         }
 
-        return implode(',', $values);
+        return 'in:'.implode(',', $values);
     }
 }
