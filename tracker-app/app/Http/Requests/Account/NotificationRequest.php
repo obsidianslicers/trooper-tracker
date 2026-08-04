@@ -46,7 +46,7 @@ class NotificationRequest extends FormRequest
         $rules = [
             Trooper::NOTIFICATION_FREQUENCY => [
                 'required',
-                'in:'.NotificationFrequency::toValidator(),
+                NotificationFrequency::toValidator(),
             ],
             Trooper::PUSH_NOTIFICATIONS_ENABLED => ['boolean'],
             'organizations.*.'.TrooperAssignment::SHOULD_NOTIFY => ['boolean'],
@@ -76,8 +76,8 @@ class NotificationRequest extends FormRequest
         $raw_prefs = $this->input(Trooper::NOTIFICATION_PREFERENCES, []);
         $preferences = array_map(
             fn ($category) => is_array($category)
-                ? array_map(fn ($v) => filter_var($v, FILTER_VALIDATE_BOOLEAN), $category)
-                : filter_var($category, FILTER_VALIDATE_BOOLEAN),
+            ? array_map(fn ($v) => filter_var($v, FILTER_VALIDATE_BOOLEAN), $category)
+            : filter_var($category, FILTER_VALIDATE_BOOLEAN),
             $raw_prefs
         );
 

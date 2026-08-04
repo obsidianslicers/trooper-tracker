@@ -44,7 +44,7 @@ class SetupRequest extends FormRequest
                 'required',
                 'string',
                 'max:16',
-                'in:'.TrooperTheme::toValidator(),
+                TrooperTheme::toValidator(),
             ],
             Trooper::NOTIFICATION_FREQUENCY => [
                 'required',

@@ -64,7 +64,7 @@ class UpdateRequest extends FormRequest
                 'required',
                 'string',
                 'max:16',
-                'in:'.NoticeType::toValidator(),
+                NoticeType::toValidator(),
             ],
             Notice::STARTS_AT => ['required', 'date'],
             Notice::ENDS_AT => ['required', 'date', 'after:starts_at'],
