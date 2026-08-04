@@ -50,7 +50,7 @@ class SetupRequest extends FormRequest
                 'required',
                 'string',
                 'max:16',
-                'in:'.NotificationFrequency::toValidator(),
+                NotificationFrequency::toValidator(),
             ],
         ];
     }
