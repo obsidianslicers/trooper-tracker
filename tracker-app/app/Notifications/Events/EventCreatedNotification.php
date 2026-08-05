@@ -6,40 +6,44 @@ namespace App\Notifications\Events;
 
 use App\Channels\DailyDigestChannel;
 use App\Channels\FcmChannel;
+use App\Enums\AdministrativeNotifications;
 use App\Enums\NotificationFrequency;
+use App\Enums\TrooperNotifications;
 use App\Mail\Events\InstantEventNotification;
 use App\Models\Event;
 use App\Models\EventNotification;
 use App\Models\Trooper;
-use Illuminate\Notifications\Notification;
+use App\Notifications\BaseNotification;
 
-class EventCreatedNotification extends Notification
+class EventCreatedNotification extends BaseNotification
 {
+    protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category = 'event_created';
+
     public function __construct(private readonly Event $event) {}
 
     public function via(Trooper $notifiable): array
     {
         $channels = [];
 
-        if ($notifiable->wantsNotification('event_created', 'database'))
+        if ($notifiable->wantsNotification($this->notification_category, 'database'))
         {
             $channels[] = 'database';
         }
 
         if ($notifiable->push_notifications_enabled
-            && $notifiable->wantsNotification('event_created', 'fcm'))
+            && $notifiable->wantsNotification($this->notification_category, 'fcm'))
         {
             $channels[] = FcmChannel::class;
         }
 
         if ($notifiable->notification_frequency === NotificationFrequency::INSTANT
             && $notifiable->emailAppearsValid()
-            && $notifiable->wantsNotification('event_created', 'mail'))
+            && $notifiable->wantsNotification($this->notification_category, 'mail'))
         {
             $channels[] = 'mail';
         }
         elseif ($notifiable->notification_frequency === NotificationFrequency::DAILY
-            && $notifiable->wantsNotification('event_created', 'mail'))
+            && $notifiable->wantsNotification($this->notification_category, 'mail'))
         {
             $channels[] = DailyDigestChannel::class;
         }
@@ -51,7 +55,7 @@ class EventCreatedNotification extends Notification
     {
         $notification = EventNotification::firstOrCreate(
             [
-                EventNotification::EVENT_ID   => $this->event->id,
+                EventNotification::EVENT_ID => $this->event->id,
                 EventNotification::TROOPER_ID => $notifiable->id,
             ],
             [EventNotification::PROCESSED_AT => now()],
@@ -67,8 +71,8 @@ class EventCreatedNotification extends Notification
     {
         return [
             'title' => 'New Event: '.$this->event->name,
-            'body'  => $this->event->venue ?? 'See Troop Tracker for details',
-            'url'   => '/events/details/'.$this->event->id,
+            'body' => $this->event->venue ?? 'See Troop Tracker for details',
+            'url' => '/events/details/'.$this->event->id,
         ];
     }
 

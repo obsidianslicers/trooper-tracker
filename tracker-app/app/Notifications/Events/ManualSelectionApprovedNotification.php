@@ -4,42 +4,21 @@ declare(strict_types=1);
 
 namespace App\Notifications\Events;
 
-use App\Channels\FcmChannel;
+use App\Enums\AdministrativeNotifications;
+use App\Enums\TrooperNotifications;
 use App\Mail\Events\TrooperManualSelectionApproved;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
-use Illuminate\Notifications\Notification;
+use App\Notifications\BaseNotification;
 
-class ManualSelectionApprovedNotification extends Notification
+class ManualSelectionApprovedNotification extends BaseNotification
 {
+    protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category = 'manual_selection_approved';
+
     public function __construct(
         private readonly EventTrooper $event_trooper,
         private readonly Trooper $approved_by,
     ) {}
-
-    public function via(Trooper $notifiable): array
-    {
-        $channels = [];
-
-        if ($notifiable->wantsNotification('manual_selection_approved', 'database'))
-        {
-            $channels[] = 'database';
-        }
-
-        if ($notifiable->push_notifications_enabled
-            && $notifiable->wantsNotification('manual_selection_approved', 'fcm'))
-        {
-            $channels[] = FcmChannel::class;
-        }
-
-        if ($notifiable->emailAppearsValid()
-            && $notifiable->wantsNotification('manual_selection_approved', 'mail'))
-        {
-            $channels[] = 'mail';
-        }
-
-        return $channels;
-    }
 
     public function toMail(Trooper $notifiable): TrooperManualSelectionApproved
     {
@@ -52,8 +31,8 @@ class ManualSelectionApprovedNotification extends Notification
 
         return [
             'title' => "You're Now Going!",
-            'body'  => $event->name,
-            'url'   => '/events/details/'.$event->id,
+            'body' => $event->name,
+            'url' => '/events/details/'.$event->id,
         ];
     }
 

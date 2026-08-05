@@ -4,38 +4,17 @@ declare(strict_types=1);
 
 namespace App\Notifications\Admin;
 
-use App\Channels\FcmChannel;
+use App\Enums\AdministrativeNotifications;
+use App\Enums\TrooperNotifications;
 use App\Mail\Admin\Troopers\TrooperResubmitted;
 use App\Models\Trooper;
-use Illuminate\Notifications\Notification;
+use App\Notifications\BaseNotification;
 
-class TrooperResubmittedNotification extends Notification
+class TrooperResubmittedNotification extends BaseNotification
 {
+    protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category = 'trooper_registrations';
+
     public function __construct(private readonly Trooper $trooper) {}
-
-    public function via(Trooper $notifiable): array
-    {
-        $channels = [];
-
-        if ($notifiable->wantsNotification('trooper_registrations', 'database'))
-        {
-            $channels[] = 'database';
-        }
-
-        if ($notifiable->push_notifications_enabled
-            && $notifiable->wantsNotification('trooper_registrations', 'fcm'))
-        {
-            $channels[] = FcmChannel::class;
-        }
-
-        if ($notifiable->emailAppearsValid()
-            && $notifiable->wantsNotification('trooper_registrations', 'mail'))
-        {
-            $channels[] = 'mail';
-        }
-
-        return $channels;
-    }
 
     public function toMail(Trooper $notifiable): TrooperResubmitted
     {
@@ -46,8 +25,8 @@ class TrooperResubmittedNotification extends Notification
     {
         return [
             'title' => 'Trooper Resubmitted Application',
-            'body'  => "{$this->trooper->display_name} has resubmitted their application after a denial.",
-            'url'   => '/admin/troopers/approvals',
+            'body' => "{$this->trooper->display_name} has resubmitted their application after a denial.",
+            'url' => '/admin/troopers/approvals',
         ];
     }
 

@@ -4,39 +4,18 @@ declare(strict_types=1);
 
 namespace App\Notifications\Events;
 
-use App\Channels\FcmChannel;
+use App\Enums\AdministrativeNotifications;
+use App\Enums\TrooperNotifications;
 use App\Mail\Events\TrooperNextInLine;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
-use Illuminate\Notifications\Notification;
+use App\Notifications\BaseNotification;
 
-class TrooperPromotedToGoingNotification extends Notification
+class TrooperPromotedToGoingNotification extends BaseNotification
 {
+    protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category = 'trooper_promoted_to_going';
+
     public function __construct(private readonly EventTrooper $event_trooper) {}
-
-    public function via(Trooper $notifiable): array
-    {
-        $channels = [];
-
-        if ($notifiable->wantsNotification('trooper_promoted_to_going', 'database'))
-        {
-            $channels[] = 'database';
-        }
-
-        if ($notifiable->push_notifications_enabled
-            && $notifiable->wantsNotification('trooper_promoted_to_going', 'fcm'))
-        {
-            $channels[] = FcmChannel::class;
-        }
-
-        if ($notifiable->emailAppearsValid()
-            && $notifiable->wantsNotification('trooper_promoted_to_going', 'mail'))
-        {
-            $channels[] = 'mail';
-        }
-
-        return $channels;
-    }
 
     public function toMail(Trooper $notifiable): TrooperNextInLine
     {
@@ -49,8 +28,8 @@ class TrooperPromotedToGoingNotification extends Notification
 
         return [
             'title' => "You're Now Going!",
-            'body'  => $event->name,
-            'url'   => '/events/details/'.$event->id,
+            'body' => $event->name,
+            'url' => '/events/details/'.$event->id,
         ];
     }
 

@@ -4,39 +4,18 @@ declare(strict_types=1);
 
 namespace App\Notifications\Events;
 
-use App\Channels\FcmChannel;
+use App\Enums\AdministrativeNotifications;
+use App\Enums\TrooperNotifications;
 use App\Mail\Events\TentativeStatusReminderMail;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
-use Illuminate\Notifications\Notification;
+use App\Notifications\BaseNotification;
 
-class TentativeStatusReminderNotification extends Notification
+class TentativeStatusReminderNotification extends BaseNotification
 {
+    protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category = 'tentative_reminder';
+
     public function __construct(private readonly EventTrooper $event_trooper) {}
-
-    public function via(Trooper $notifiable): array
-    {
-        $channels = [];
-
-        if ($notifiable->wantsNotification('tentative_reminder', 'database'))
-        {
-            $channels[] = 'database';
-        }
-
-        if ($notifiable->push_notifications_enabled
-            && $notifiable->wantsNotification('tentative_reminder', 'fcm'))
-        {
-            $channels[] = FcmChannel::class;
-        }
-
-        if ($notifiable->emailAppearsValid()
-            && $notifiable->wantsNotification('tentative_reminder', 'mail'))
-        {
-            $channels[] = 'mail';
-        }
-
-        return $channels;
-    }
 
     public function toMail(Trooper $notifiable): TentativeStatusReminderMail
     {
@@ -50,8 +29,8 @@ class TentativeStatusReminderNotification extends Notification
 
         return [
             'title' => 'Update Your Tentative Status: '.$event->name,
-            'body'  => "You have {$days_until} day(s) to confirm or cancel your tentative status.",
-            'url'   => '/events/details/'.$event->id,
+            'body' => "You have {$days_until} day(s) to confirm or cancel your tentative status.",
+            'url' => '/events/details/'.$event->id,
         ];
     }
 

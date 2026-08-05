@@ -17,7 +17,7 @@ final class DailyDigestChannel
     /**
      * Persists a pending daily-digest notification record for later processing.
      *
-     * @param object $notifiable Trooper-like notifiable entity with an id.
+     * @param  object  $notifiable  Trooper-like notifiable entity with an id.
      */
     public function send(object $notifiable, Notification $notification): void
     {
