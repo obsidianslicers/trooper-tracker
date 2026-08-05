@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Notifications\Troopers;
 
+use App\Enums\AdministrativeNotifications;
+use App\Enums\TrooperNotifications;
 use App\Mail\Admin\Troopers\VisitorAccessExpired;
 use App\Models\Trooper;
 use App\Notifications\BaseNotification;
-use App\Enums\AdministrativeNotifications;
-use App\Enums\TrooperNotifications;
 
 class VisitorAccessExpiredNotification extends BaseNotification
 {

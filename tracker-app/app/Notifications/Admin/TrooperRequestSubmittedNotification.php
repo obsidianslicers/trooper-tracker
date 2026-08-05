@@ -4,20 +4,18 @@ declare(strict_types=1);
 
 namespace App\Notifications\Admin;
 
-use App\Mail\Admin\Troopers\TrooperRequestSubmitted;
-use App\Models\TrooperRequest;
-use App\Models\Trooper;
 use App\Enums\AdministrativeNotifications;
 use App\Enums\TrooperNotifications;
+use App\Mail\Admin\Troopers\TrooperRequestSubmitted;
+use App\Models\Trooper;
+use App\Models\TrooperRequest;
 use App\Notifications\BaseNotification;
 
 class TrooperRequestSubmittedNotification extends BaseNotification
 {
     protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category = 'trooper_requests';
 
-    public function __construct(private readonly TrooperRequest $trooper_request)
-    {
-    }
+    public function __construct(private readonly TrooperRequest $trooper_request) {}
 
     public function toMail(Trooper $notifiable): TrooperRequestSubmitted
     {

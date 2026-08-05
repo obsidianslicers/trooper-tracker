@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Notifications\Admin;
 
+use App\Enums\AdministrativeNotifications;
 use App\Enums\RosterAction;
+use App\Enums\TrooperNotifications;
 use App\Mail\Admin\Events\EventRosterActivityMail;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
-use App\Enums\AdministrativeNotifications;
-use App\Enums\TrooperNotifications;
 use App\Notifications\QueueableNotification;
 
 class EventRosterActivityNotification extends QueueableNotification
@@ -19,8 +19,7 @@ class EventRosterActivityNotification extends QueueableNotification
     public function __construct(
         private readonly EventTrooper $event_trooper,
         private readonly RosterAction $action,
-    ) {
-    }
+    ) {}
 
     public function toMail(Trooper $notifiable): EventRosterActivityMail
     {
@@ -41,9 +40,9 @@ class EventRosterActivityNotification extends QueueableNotification
         };
 
         return [
-            'title' => 'Roster Update: ' . $event->name,
-            'body' => $trooper->display_name . ' has ' . $verb . ' this event.',
-            'url' => '/events/details/' . $event->id,
+            'title' => 'Roster Update: '.$event->name,
+            'body' => $trooper->display_name.' has '.$verb.' this event.',
+            'url' => '/events/details/'.$event->id,
         ];
     }
 

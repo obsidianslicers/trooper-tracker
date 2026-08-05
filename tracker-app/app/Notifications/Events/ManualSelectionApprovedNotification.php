@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace App\Notifications\Events;
 
-use App\Channels\FcmChannel;
+use App\Enums\AdministrativeNotifications;
+use App\Enums\TrooperNotifications;
 use App\Mail\Events\TrooperManualSelectionApproved;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
-use App\Enums\AdministrativeNotifications;
-use App\Enums\TrooperNotifications;
 use App\Notifications\BaseNotification;
 
 class ManualSelectionApprovedNotification extends BaseNotification
@@ -19,8 +18,7 @@ class ManualSelectionApprovedNotification extends BaseNotification
     public function __construct(
         private readonly EventTrooper $event_trooper,
         private readonly Trooper $approved_by,
-    ) {
-    }
+    ) {}
 
     public function toMail(Trooper $notifiable): TrooperManualSelectionApproved
     {
@@ -34,7 +32,7 @@ class ManualSelectionApprovedNotification extends BaseNotification
         return [
             'title' => "You're Now Going!",
             'body' => $event->name,
-            'url' => '/events/details/' . $event->id,
+            'url' => '/events/details/'.$event->id,
         ];
     }
 

@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace App\Notifications\Events;
 
-use App\Channels\FcmChannel;
+use App\Enums\AdministrativeNotifications;
+use App\Enums\TrooperNotifications;
 use App\Mail\Events\EventUpdatedMail;
 use App\Models\Event;
 use App\Models\Trooper;
-use App\Enums\AdministrativeNotifications;
-use App\Enums\TrooperNotifications;
 use App\Notifications\BaseNotification;
 
 class EventUpdatedNotification extends BaseNotification
@@ -19,8 +18,7 @@ class EventUpdatedNotification extends BaseNotification
     public function __construct(
         private readonly Event $event,
         private readonly array $changed_fields,
-    ) {
-    }
+    ) {}
 
     public function toMail(Trooper $notifiable): EventUpdatedMail
     {
@@ -31,9 +29,9 @@ class EventUpdatedNotification extends BaseNotification
     public function toArray(Trooper $notifiable): array
     {
         return [
-            'title' => 'Event Updated: ' . $this->event->name,
+            'title' => 'Event Updated: '.$this->event->name,
             'body' => 'Details for this event have changed. Please review.',
-            'url' => '/events/details/' . $this->event->id,
+            'url' => '/events/details/'.$this->event->id,
         ];
     }
 

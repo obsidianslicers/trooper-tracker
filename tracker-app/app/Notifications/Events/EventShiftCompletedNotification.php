@@ -4,24 +4,21 @@ declare(strict_types=1);
 
 namespace App\Notifications\Events;
 
+use App\Enums\AdministrativeNotifications;
+use App\Enums\TrooperNotifications;
 use App\Mail\Events\EventShiftComplete;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
-use App\Enums\AdministrativeNotifications;
-use App\Enums\TrooperNotifications;
 use App\Notifications\BaseNotification;
 
 class EventShiftCompletedNotification extends BaseNotification
 {
     protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category = 'event_shift_completed';
 
-    public function __construct(private readonly EventTrooper $event_trooper)
-    {
-    }
+    public function __construct(private readonly EventTrooper $event_trooper) {}
 
     public function toMail(Trooper $notifiable): EventShiftComplete
     {
-
         return (new EventShiftComplete($this->event_trooper))->to($notifiable->email);
     }
 

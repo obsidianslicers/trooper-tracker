@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Notifications\Troopers;
 
+use App\Enums\AdministrativeNotifications;
+use App\Enums\TrooperNotifications;
 use App\Mail\Admin\Troopers\TrooperDenied;
 use App\Models\Trooper;
 use App\Notifications\BaseNotification;
-use App\Enums\AdministrativeNotifications;
-use App\Enums\TrooperNotifications;
 
 /**
  * Notifies a trooper their tracker registration was denied.
@@ -17,9 +17,7 @@ class TrooperDeniedNotification extends BaseNotification
 {
     protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category = 'trooper_denied';
 
-    public function __construct(private readonly ?string $denial_reason = null)
-    {
-    }
+    public function __construct(private readonly ?string $denial_reason = null) {}
 
     public function toMail(Trooper $notifiable): TrooperDenied
     {

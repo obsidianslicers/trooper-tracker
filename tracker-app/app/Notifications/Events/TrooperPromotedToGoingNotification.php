@@ -4,20 +4,18 @@ declare(strict_types=1);
 
 namespace App\Notifications\Events;
 
+use App\Enums\AdministrativeNotifications;
+use App\Enums\TrooperNotifications;
 use App\Mail\Events\TrooperNextInLine;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
-use App\Enums\AdministrativeNotifications;
-use App\Enums\TrooperNotifications;
 use App\Notifications\BaseNotification;
 
 class TrooperPromotedToGoingNotification extends BaseNotification
 {
     protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category = 'trooper_promoted_to_going';
 
-    public function __construct(private readonly EventTrooper $event_trooper)
-    {
-    }
+    public function __construct(private readonly EventTrooper $event_trooper) {}
 
     public function toMail(Trooper $notifiable): TrooperNextInLine
     {
@@ -31,7 +29,7 @@ class TrooperPromotedToGoingNotification extends BaseNotification
         return [
             'title' => "You're Now Going!",
             'body' => $event->name,
-            'url' => '/events/details/' . $event->id,
+            'url' => '/events/details/'.$event->id,
         ];
     }
 

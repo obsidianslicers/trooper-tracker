@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Notifications\Troopers;
 
-use App\Mail\Admin\Troopers\TrooperRequestDenied;
-use App\Models\TrooperRequest;
-use App\Models\Trooper;
-use App\Notifications\BaseNotification;
 use App\Enums\AdministrativeNotifications;
 use App\Enums\TrooperNotifications;
+use App\Mail\Admin\Troopers\TrooperRequestDenied;
+use App\Models\Trooper;
+use App\Models\TrooperRequest;
+use App\Notifications\BaseNotification;
 
 /**
  * Notifies a trooper their club join request was denied.
@@ -18,9 +18,7 @@ class TrooperRequestDeniedNotification extends BaseNotification
 {
     protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category = 'join_request_denied';
 
-    public function __construct(private readonly TrooperRequest $trooper_request)
-    {
-    }
+    public function __construct(private readonly TrooperRequest $trooper_request) {}
 
     public function toMail(Trooper $notifiable): TrooperRequestDenied
     {

@@ -8,8 +8,8 @@ use App\Channels\FcmChannel;
 use App\Enums\AdministrativeNotifications;
 use App\Enums\TrooperNotifications;
 use App\Models\Trooper;
-use Illuminate\Notifications\Notification;
 use Exception;
+use Illuminate\Notifications\Notification;
 
 class BaseNotification extends Notification
 {
@@ -19,7 +19,7 @@ class BaseNotification extends Notification
     {
         if ($this->notification_category === null)
         {
-            throw new Exception('Notification category [' . get_class($this) . '] is not set.');
+            throw new Exception('Notification category ['.get_class($this).'] is not set.');
         }
 
         if (is_string($this->notification_category))

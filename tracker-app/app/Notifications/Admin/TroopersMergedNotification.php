@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Notifications\Admin;
 
-use App\Mail\Admin\Troopers\TroopersMerged;
-use App\Models\Trooper;
 use App\Enums\AdministrativeNotifications;
 use App\Enums\TrooperNotifications;
+use App\Mail\Admin\Troopers\TroopersMerged;
+use App\Models\Trooper;
 use App\Notifications\BaseNotification;
 
 class TroopersMergedNotification extends BaseNotification
@@ -17,8 +17,7 @@ class TroopersMergedNotification extends BaseNotification
     public function __construct(
         private readonly Trooper $source_trooper,
         private readonly Trooper $target_trooper,
-    ) {
-    }
+    ) {}
 
     public function toMail(Trooper $notifiable): TroopersMerged
     {

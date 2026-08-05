@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Notifications\Events;
 
+use App\Enums\AdministrativeNotifications;
+use App\Enums\TrooperNotifications;
 use App\Mail\Events\TrooperManualSelectionStandBy;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
-use App\Enums\AdministrativeNotifications;
-use App\Enums\TrooperNotifications;
 use App\Notifications\BaseNotification;
 
 class ManualSelectionStandByNotification extends BaseNotification
@@ -18,8 +18,7 @@ class ManualSelectionStandByNotification extends BaseNotification
     public function __construct(
         private readonly EventTrooper $event_trooper,
         private readonly Trooper $changed_by,
-    ) {
-    }
+    ) {}
 
     public function toMail(Trooper $notifiable): TrooperManualSelectionStandBy
     {
@@ -33,7 +32,7 @@ class ManualSelectionStandByNotification extends BaseNotification
         return [
             'title' => 'Moved to Stand By',
             'body' => $event->name,
-            'url' => '/events/details/' . $event->id,
+            'url' => '/events/details/'.$event->id,
         ];
     }
 

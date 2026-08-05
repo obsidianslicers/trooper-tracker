@@ -4,20 +4,18 @@ declare(strict_types=1);
 
 namespace App\Notifications\Events;
 
+use App\Enums\AdministrativeNotifications;
+use App\Enums\TrooperNotifications;
 use App\Mail\Events\CancelledEventNotification;
 use App\Models\Event;
 use App\Models\Trooper;
-use App\Enums\AdministrativeNotifications;
-use App\Enums\TrooperNotifications;
 use App\Notifications\BaseNotification;
 
 class EventCancelledNotification extends BaseNotification
 {
     protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category = 'event_cancelled';
 
-    public function __construct(private readonly Event $event)
-    {
-    }
+    public function __construct(private readonly Event $event) {}
 
     public function toMail(Trooper $notifiable): CancelledEventNotification
     {
@@ -27,7 +25,7 @@ class EventCancelledNotification extends BaseNotification
     public function toArray(Trooper $notifiable): array
     {
         return [
-            'title' => 'Event Cancelled: ' . $this->event->name,
+            'title' => 'Event Cancelled: '.$this->event->name,
             'body' => 'This event has been cancelled.',
             'url' => '/events/cancelled',
         ];

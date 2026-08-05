@@ -6,22 +6,20 @@ namespace App\Notifications\Events;
 
 use App\Channels\DailyDigestChannel;
 use App\Channels\FcmChannel;
+use App\Enums\AdministrativeNotifications;
 use App\Enums\NotificationFrequency;
+use App\Enums\TrooperNotifications;
 use App\Mail\Events\InstantEventNotification;
 use App\Models\Event;
 use App\Models\EventNotification;
 use App\Models\Trooper;
-use App\Enums\AdministrativeNotifications;
-use App\Enums\TrooperNotifications;
 use App\Notifications\BaseNotification;
 
 class EventCreatedNotification extends BaseNotification
 {
     protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category = 'event_created';
 
-    public function __construct(private readonly Event $event)
-    {
-    }
+    public function __construct(private readonly Event $event) {}
 
     public function via(Trooper $notifiable): array
     {
@@ -72,9 +70,9 @@ class EventCreatedNotification extends BaseNotification
     public function toArray(Trooper $notifiable): array
     {
         return [
-            'title' => 'New Event: ' . $this->event->name,
+            'title' => 'New Event: '.$this->event->name,
             'body' => $this->event->venue ?? 'See Troop Tracker for details',
-            'url' => '/events/details/' . $this->event->id,
+            'url' => '/events/details/'.$this->event->id,
         ];
     }
 
