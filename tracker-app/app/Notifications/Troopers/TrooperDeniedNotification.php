@@ -4,40 +4,21 @@ declare(strict_types=1);
 
 namespace App\Notifications\Troopers;
 
-use App\Channels\FcmChannel;
 use App\Mail\Admin\Troopers\TrooperDenied;
 use App\Models\Trooper;
-use Illuminate\Notifications\Notification;
+use App\Notifications\BaseNotification;
+use App\Enums\AdministrativeNotifications;
+use App\Enums\TrooperNotifications;
 
 /**
  * Notifies a trooper their tracker registration was denied.
  */
-class TrooperDeniedNotification extends Notification
+class TrooperDeniedNotification extends BaseNotification
 {
-    public function __construct(private readonly ?string $denial_reason = null) {}
+    protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category = 'trooper_denied';
 
-    public function via(Trooper $notifiable): array
+    public function __construct(private readonly ?string $denial_reason = null)
     {
-        $channels = [];
-
-        if ($notifiable->wantsNotification('trooper_denied', 'database'))
-        {
-            $channels[] = 'database';
-        }
-
-        if ($notifiable->push_notifications_enabled
-            && $notifiable->wantsNotification('trooper_denied', 'fcm'))
-        {
-            $channels[] = FcmChannel::class;
-        }
-
-        if ($notifiable->emailAppearsValid()
-            && $notifiable->wantsNotification('trooper_denied', 'mail'))
-        {
-            $channels[] = 'mail';
-        }
-
-        return $channels;
     }
 
     public function toMail(Trooper $notifiable): TrooperDenied
@@ -56,8 +37,8 @@ class TrooperDeniedNotification extends Notification
 
         return [
             'title' => 'Registration Not Approved',
-            'body'  => $body,
-            'url'   => '/account',
+            'body' => $body,
+            'url' => '/account',
         ];
     }
 

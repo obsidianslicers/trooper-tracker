@@ -4,38 +4,19 @@ declare(strict_types=1);
 
 namespace App\Notifications\Events;
 
-use App\Channels\FcmChannel;
 use App\Mail\Events\CancelledEventNotification;
 use App\Models\Event;
 use App\Models\Trooper;
-use Illuminate\Notifications\Notification;
+use App\Enums\AdministrativeNotifications;
+use App\Enums\TrooperNotifications;
+use App\Notifications\BaseNotification;
 
-class EventCancelledNotification extends Notification
+class EventCancelledNotification extends BaseNotification
 {
-    public function __construct(private readonly Event $event) {}
+    protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category = 'event_cancelled';
 
-    public function via(Trooper $notifiable): array
+    public function __construct(private readonly Event $event)
     {
-        $channels = [];
-
-        if ($notifiable->wantsNotification('event_cancelled', 'database'))
-        {
-            $channels[] = 'database';
-        }
-
-        if ($notifiable->push_notifications_enabled
-            && $notifiable->wantsNotification('event_cancelled', 'fcm'))
-        {
-            $channels[] = FcmChannel::class;
-        }
-
-        if ($notifiable->emailAppearsValid()
-            && $notifiable->wantsNotification('event_cancelled', 'mail'))
-        {
-            $channels[] = 'mail';
-        }
-
-        return $channels;
     }
 
     public function toMail(Trooper $notifiable): CancelledEventNotification
@@ -46,9 +27,9 @@ class EventCancelledNotification extends Notification
     public function toArray(Trooper $notifiable): array
     {
         return [
-            'title' => 'Event Cancelled: '.$this->event->name,
-            'body'  => 'This event has been cancelled.',
-            'url'   => '/events/cancelled',
+            'title' => 'Event Cancelled: ' . $this->event->name,
+            'body' => 'This event has been cancelled.',
+            'url' => '/events/cancelled',
         ];
     }
 

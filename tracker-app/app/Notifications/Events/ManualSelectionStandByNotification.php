@@ -4,41 +4,21 @@ declare(strict_types=1);
 
 namespace App\Notifications\Events;
 
-use App\Channels\FcmChannel;
 use App\Mail\Events\TrooperManualSelectionStandBy;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
-use Illuminate\Notifications\Notification;
+use App\Enums\AdministrativeNotifications;
+use App\Enums\TrooperNotifications;
+use App\Notifications\BaseNotification;
 
-class ManualSelectionStandByNotification extends Notification
+class ManualSelectionStandByNotification extends BaseNotification
 {
+    protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category = 'manual_selection_stand_by';
+
     public function __construct(
         private readonly EventTrooper $event_trooper,
         private readonly Trooper $changed_by,
-    ) {}
-
-    public function via(Trooper $notifiable): array
-    {
-        $channels = [];
-
-        if ($notifiable->wantsNotification('manual_selection_stand_by', 'database'))
-        {
-            $channels[] = 'database';
-        }
-
-        if ($notifiable->push_notifications_enabled
-            && $notifiable->wantsNotification('manual_selection_stand_by', 'fcm'))
-        {
-            $channels[] = FcmChannel::class;
-        }
-
-        if ($notifiable->emailAppearsValid()
-            && $notifiable->wantsNotification('manual_selection_stand_by', 'mail'))
-        {
-            $channels[] = 'mail';
-        }
-
-        return $channels;
+    ) {
     }
 
     public function toMail(Trooper $notifiable): TrooperManualSelectionStandBy
@@ -52,8 +32,8 @@ class ManualSelectionStandByNotification extends Notification
 
         return [
             'title' => 'Moved to Stand By',
-            'body'  => $event->name,
-            'url'   => '/events/details/'.$event->id,
+            'body' => $event->name,
+            'url' => '/events/details/' . $event->id,
         ];
     }
 

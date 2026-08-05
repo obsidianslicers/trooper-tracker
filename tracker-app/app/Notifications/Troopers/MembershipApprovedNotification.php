@@ -4,36 +4,15 @@ declare(strict_types=1);
 
 namespace App\Notifications\Troopers;
 
-use App\Channels\FcmChannel;
 use App\Mail\Admin\Troopers\TrooperApproved;
 use App\Models\Trooper;
-use Illuminate\Notifications\Notification;
+use App\Notifications\BaseNotification;
+use App\Enums\AdministrativeNotifications;
+use App\Enums\TrooperNotifications;
 
-class MembershipApprovedNotification extends Notification
+class MembershipApprovedNotification extends BaseNotification
 {
-    public function via(Trooper $notifiable): array
-    {
-        $channels = [];
-
-        if ($notifiable->wantsNotification('membership_approved', 'database'))
-        {
-            $channels[] = 'database';
-        }
-
-        if ($notifiable->push_notifications_enabled
-            && $notifiable->wantsNotification('membership_approved', 'fcm'))
-        {
-            $channels[] = FcmChannel::class;
-        }
-
-        if ($notifiable->emailAppearsValid()
-            && $notifiable->wantsNotification('membership_approved', 'mail'))
-        {
-            $channels[] = 'mail';
-        }
-
-        return $channels;
-    }
+    protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category = 'membership_approved';
 
     public function toMail(Trooper $notifiable): TrooperApproved
     {
@@ -44,8 +23,8 @@ class MembershipApprovedNotification extends Notification
     {
         return [
             'title' => 'Membership Approved',
-            'body'  => 'Welcome, Trooper!',
-            'url'   => '/account/profile',
+            'body' => 'Welcome, Trooper!',
+            'url' => '/account/profile',
         ];
     }
 

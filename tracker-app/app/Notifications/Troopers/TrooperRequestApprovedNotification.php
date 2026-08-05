@@ -4,43 +4,22 @@ declare(strict_types=1);
 
 namespace App\Notifications\Troopers;
 
-use App\Channels\FcmChannel;
 use App\Mail\Admin\Troopers\TrooperRequestApproved;
 use App\Models\TrooperRequest;
 use App\Models\Trooper;
-use Illuminate\Notifications\Notification;
+use App\Notifications\BaseNotification;
+use App\Enums\AdministrativeNotifications;
+use App\Enums\TrooperNotifications;
 
 /**
  * Notifies a trooper their club join request was approved.
  */
-class TrooperRequestApprovedNotification extends Notification
+class TrooperRequestApprovedNotification extends BaseNotification
 {
+    protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category = 'join_request_approved';
+
     public function __construct(private readonly TrooperRequest $trooper_request)
     {
-    }
-
-    public function via(Trooper $notifiable): array
-    {
-        $channels = [];
-
-        if ($notifiable->wantsNotification('join_request_approved', 'database'))
-        {
-            $channels[] = 'database';
-        }
-
-        if ($notifiable->push_notifications_enabled
-            && $notifiable->wantsNotification('join_request_approved', 'fcm'))
-        {
-            $channels[] = FcmChannel::class;
-        }
-
-        if ($notifiable->emailAppearsValid()
-            && $notifiable->wantsNotification('join_request_approved', 'mail'))
-        {
-            $channels[] = 'mail';
-        }
-
-        return $channels;
     }
 
     public function toMail(Trooper $notifiable): TrooperRequestApproved

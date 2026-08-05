@@ -4,40 +4,20 @@ declare(strict_types=1);
 
 namespace App\Notifications\Admin;
 
-use App\Channels\FcmChannel;
 use App\Mail\Admin\Troopers\TroopersMerged;
 use App\Models\Trooper;
-use Illuminate\Notifications\Notification;
+use App\Enums\AdministrativeNotifications;
+use App\Enums\TrooperNotifications;
+use App\Notifications\BaseNotification;
 
-class TroopersMergedNotification extends Notification
+class TroopersMergedNotification extends BaseNotification
 {
+    protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category = 'troopers_merged';
+
     public function __construct(
         private readonly Trooper $source_trooper,
         private readonly Trooper $target_trooper,
-    ) {}
-
-    public function via(Trooper $notifiable): array
-    {
-        $channels = [];
-
-        if ($notifiable->wantsNotification('troopers_merged', 'database'))
-        {
-            $channels[] = 'database';
-        }
-
-        if ($notifiable->push_notifications_enabled
-            && $notifiable->wantsNotification('troopers_merged', 'fcm'))
-        {
-            $channels[] = FcmChannel::class;
-        }
-
-        if ($notifiable->emailAppearsValid()
-            && $notifiable->wantsNotification('troopers_merged', 'mail'))
-        {
-            $channels[] = 'mail';
-        }
-
-        return $channels;
+    ) {
     }
 
     public function toMail(Trooper $notifiable): TroopersMerged

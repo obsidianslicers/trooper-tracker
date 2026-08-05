@@ -8,37 +8,18 @@ use App\Channels\FcmChannel;
 use App\Mail\Events\EventUpdatedMail;
 use App\Models\Event;
 use App\Models\Trooper;
-use Illuminate\Notifications\Notification;
+use App\Enums\AdministrativeNotifications;
+use App\Enums\TrooperNotifications;
+use App\Notifications\BaseNotification;
 
-class EventUpdatedNotification extends Notification
+class EventUpdatedNotification extends BaseNotification
 {
+    protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category = 'event_updated';
+
     public function __construct(
         private readonly Event $event,
         private readonly array $changed_fields,
-    ) {}
-
-    public function via(Trooper $notifiable): array
-    {
-        $channels = [];
-
-        if ($notifiable->wantsNotification('event_updated', 'database'))
-        {
-            $channels[] = 'database';
-        }
-
-        if ($notifiable->push_notifications_enabled
-            && $notifiable->wantsNotification('event_updated', 'fcm'))
-        {
-            $channels[] = FcmChannel::class;
-        }
-
-        if ($notifiable->emailAppearsValid()
-            && $notifiable->wantsNotification('event_updated', 'mail'))
-        {
-            $channels[] = 'mail';
-        }
-
-        return $channels;
+    ) {
     }
 
     public function toMail(Trooper $notifiable): EventUpdatedMail
@@ -50,9 +31,9 @@ class EventUpdatedNotification extends Notification
     public function toArray(Trooper $notifiable): array
     {
         return [
-            'title' => 'Event Updated: '.$this->event->name,
-            'body'  => 'Details for this event have changed. Please review.',
-            'url'   => '/events/details/'.$this->event->id,
+            'title' => 'Event Updated: ' . $this->event->name,
+            'body' => 'Details for this event have changed. Please review.',
+            'url' => '/events/details/' . $this->event->id,
         ];
     }
 

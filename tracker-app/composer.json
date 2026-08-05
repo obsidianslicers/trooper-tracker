@@ -55,6 +55,7 @@
         "pint:format": [
             "pint app/helpers.php",
             "pint app/Bus",
+            "pint app/Channels",
             "pint app/Console",
             "pint app/Contracts",
             "pint app/Enums",
@@ -69,6 +70,7 @@
             "pint app/Models/Concerns",
             "pint app/Models/Filters",
             "pint app/Models/Observers",
+            "pint app/Notifications",
             "pint app/Policies",
             "pint app/Providers",
             "pint app/Rules",
