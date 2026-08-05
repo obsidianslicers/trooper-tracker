@@ -76,7 +76,7 @@
             <InputSelect
                 label="Theme"
                 bind:value={vm.form.theme}
-                options={vm.form.themes}
+                options={vm.form.theme_enums}
                 errors={vm.errors.theme}
             />
             <InputHelp>

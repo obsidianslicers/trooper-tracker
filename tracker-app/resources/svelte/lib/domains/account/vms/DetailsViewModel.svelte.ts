@@ -10,7 +10,7 @@ function createDetailsForm(options: Partial<Details> = {}): InertiaForm<Details>
         display_costumes: [],
         phone: '',
         theme: '',
-        themes: [],
+        theme_enums: [],
         ...options
     };
 
@@ -25,7 +25,7 @@ export type Details = {
     display_costume_id: number | null;
     display_costumes: Option[];
     theme: string;
-    themes: Option[];
+    theme_enums: Option[];
 };
 
 export class DetailsViewModel extends SubmitableViewModel<DetailsViewModel, Details> {

@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace App\Messages\Account\PageData;
 
+use App\Enums\TrooperNotifications;
+use App\Enums\AdministrativeNotifications;
 use App\Enums\TrooperTheme;
 use App\Messages\Account\Queries\GetCostumesWithPrefixes;
+use App\Messages\Account\Queries\GetOrganizationNotifications;
+use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperCostume;
 use Hyperdrive\Message;
@@ -40,14 +44,15 @@ final class AccountPageData extends Message
     public function handle(): array
     {
         $data = [
-            'details' => $this->getAccountDetails(),
+            'email' => $this->actor->email,
+            'details' => $this->getDetails(),
             'notifications' => $this->getNotifications()
         ];
 
         return $data;
     }
 
-    private function getAccountDetails(): array
+    private function getDetails(): array
     {
         return [
             Trooper::LEGAL_NAME => $this->actor->legal_name,
@@ -56,7 +61,7 @@ final class AccountPageData extends Message
             Trooper::THEME => $this->actor->theme,
             Trooper::DISPLAY_COSTUME_ID => $this->actor->display_costume_id,
             'display_costumes' => $this->getDisplayCostumes(),
-            'themes' => TrooperTheme::toValueLabels(),
+            'theme_enums' => TrooperTheme::toValueLabels(),
         ];
     }
 
@@ -86,9 +91,32 @@ final class AccountPageData extends Message
     private function getNotifications(): array
     {
         return [
-            'trooper_notifications' => $this->actor->notification_preferences ?? [],
+            'trooper_notification_enums' => TrooperNotifications::toArray(),
+            'administrative_notification_enums' => AdministrativeNotifications::toArray(),
             'notification_frequency' => $this->actor->notification_frequency,
             'push_notifications_enabled' => $this->actor->push_notifications_enabled,
+            'notification_preferences' => $this->actor->notification_preferences ?? [],
+            'organization_notifications' => $this->getOrganizationNotifications(),
         ];
+    }
+
+    private function getOrganizationNotifications(): array
+    {
+        return GetOrganizationNotifications::call(trooper: $this->actor)
+            ->map(fn(Organization $org) => [
+                'id' => $org->id,
+                'name' => $org->name,
+                'selected' => $org->selected,
+                'regions' => $org->organizations->map(fn($region) => [
+                    'id' => $region->id,
+                    'name' => $region->name,
+                    'selected' => $region->selected,
+                    'units' => $region->organizations->map(fn($unit) => [
+                        'id' => $unit->id,
+                        'name' => $unit->name,
+                        'selected' => $unit->selected,
+                    ]),
+                ]),
+            ])->toArray();
     }
 }

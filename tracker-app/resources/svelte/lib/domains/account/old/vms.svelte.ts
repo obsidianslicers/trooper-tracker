@@ -1,7 +1,7 @@
 import { RevertibleViewModel, ViewModel } from '../types.svelte';
 import { updateDetails } from './commands';
 import { getAccount } from './queries';
-import type { Details, NotificationSettings } from './types';
+import type { Details } from './types';
 import { AccountFactory } from './values';
 
 
@@ -48,25 +48,3 @@ export class DetailsViewModel extends RevertibleViewModel<DetailsViewModel, Deta
     };
 }
 
-
-export class NotificationsViewModel extends RevertibleViewModel<NotificationsViewModel, NotificationSettings> {
-    notifications = $state(AccountFactory.defaultNotificationSettings());
-
-    protected get source(): NotificationSettings {
-        return this.notifications;
-    }
-
-    protected set source(value: NotificationSettings) {
-        this.notifications = value;
-    }
-
-    load(): Promise<NotificationsViewModel>;
-    load(notifications: NotificationSettings): Promise<NotificationsViewModel>;
-    async load(notifications?: NotificationSettings): Promise<NotificationsViewModel> {
-        if (notifications) {
-            this.notifications = notifications;
-            this.original = notifications;
-        }
-        return this;
-    }
-}

@@ -45,20 +45,5 @@ final class GetCostumesWithPrefixes extends Message
                 $query->whereNotNull(OrganizationCostume::PREFIX);
             })
             ->get();
-
-        // ->mapWithKeys(function (TrooperCostume $tc)
-        // {
-        //     $organization_costume = $tc->organization_costume;
-        //     $trooper_organization = $this->trooper->organizations->firstWhere('id', $organization_costume->organization_id);
-
-        //     $identifier = ($organization_costume->prefix ?? '') . ($trooper_organization?->pivot?->identifier ?? '');
-        //     $costume_name = $organization_costume->costume?->name ?? '';
-        //     $organization_name = $organization_costume->organization?->name ?? '';
-
-        //     $label = "$identifier — $costume_name ($organization_name)";
-
-        //     return [$tc->id => $label];
-        // })
-        // ->toArray();
     }
 }

@@ -1,5 +1,4 @@
 <script lang="ts">
-    import SlimCard from "$lib/components/ui/SlimCard.svelte";
     import Tab from "$lib/components/ui/tabs/Tab.svelte";
     import TabContent from "$lib/components/ui/tabs/TabContent.svelte";
     import TabHeader from "$lib/components/ui/tabs/TabHeader.svelte";
@@ -20,23 +19,21 @@
     let vm = new AccountViewModel(page.props);
 </script>
 
-<SlimCard>
-    <Tabs defaultTab="profile">
-        <TabHeader>
-            <Tab id="profile">Profile</Tab>
-            <Tab id="notifications">Notifications</Tab>
-            <Tab id="costumes">Costumes</Tab>
-            <Tab id="memberships">Memberships</Tab>
-            <Tab id="friends">Friends</Tab>
-        </TabHeader>
-        <TabContent>
-            <TabPanel id="profile">
-                <Details details={vm.pageData?.details} />
-            </TabPanel>
-            <TabPanel id="notifications">Notifications</TabPanel>
-            <TabPanel id="costumes">Costumes</TabPanel>
-            <TabPanel id="memberships">Memberships</TabPanel>
-            <TabPanel id="friends">Friends</TabPanel>
-        </TabContent>
-    </Tabs>
-</SlimCard>
+<Tabs defaultTab="profile">
+    <TabHeader>
+        <Tab id="profile">Profile</Tab>
+        <Tab id="notifications">Notifications</Tab>
+        <Tab id="costumes">Costumes</Tab>
+        <Tab id="memberships">Memberships</Tab>
+        <Tab id="friends">Friends</Tab>
+    </TabHeader>
+    <TabContent>
+        <TabPanel id="profile">
+            <Details details={vm.pageData?.details} />
+        </TabPanel>
+        <TabPanel id="notifications">Notifications</TabPanel>
+        <TabPanel id="costumes">Costumes</TabPanel>
+        <TabPanel id="memberships">Memberships</TabPanel>
+        <TabPanel id="friends">Friends</TabPanel>
+    </TabContent>
+</Tabs>
