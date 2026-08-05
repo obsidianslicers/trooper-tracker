@@ -32,8 +32,8 @@ class TestPushNotification extends Notification
     {
         return [
             'title' => $this->title,
-            'body'  => $this->body,
-            'url'   => $this->url,
+            'body' => $this->body,
+            'url' => $this->url,
         ];
     }
 

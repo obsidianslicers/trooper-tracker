@@ -4,47 +4,21 @@ declare(strict_types=1);
 
 namespace App\Notifications\Events;
 
-use App\Channels\FcmChannel;
-use App\Mail\Events\CancelledEventNotification;
+use App\Enums\AdministrativeNotifications;
+use App\Enums\TrooperNotifications;
 use App\Mail\Events\EventShiftComplete;
-use App\Models\Event;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
-use Illuminate\Notifications\Notification;
+use App\Notifications\BaseNotification;
 
-class EventShiftCompletedNotification extends Notification
+class EventShiftCompletedNotification extends BaseNotification
 {
-    public function __construct(private readonly EventTrooper $event_trooper)
-    {
-    }
+    protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category = 'event_shift_completed';
 
-    public function via(Trooper $notifiable): array
-    {
-        $channels = [];
-
-        if ($notifiable->wantsNotification('event_shift_completed', 'database'))
-        {
-            $channels[] = 'database';
-        }
-
-        if ($notifiable->push_notifications_enabled
-            && $notifiable->wantsNotification('event_shift_completed', 'fcm'))
-        {
-            $channels[] = FcmChannel::class;
-        }
-
-        if ($notifiable->emailAppearsValid()
-            && $notifiable->wantsNotification('event_shift_completed', 'mail'))
-        {
-            $channels[] = 'mail';
-        }
-
-        return $channels;
-    }
+    public function __construct(private readonly EventTrooper $event_trooper) {}
 
     public function toMail(Trooper $notifiable): EventShiftComplete
     {
-
         return (new EventShiftComplete($this->event_trooper))->to($notifiable->email);
     }
 

@@ -4,41 +4,20 @@ declare(strict_types=1);
 
 namespace App\Notifications\Admin;
 
-use App\Channels\FcmChannel;
+use App\Enums\AdministrativeNotifications;
+use App\Enums\TrooperNotifications;
 use App\Mail\Admin\Troopers\TrooperMilestoneMail;
 use App\Models\Trooper;
 use App\Models\TrooperAchievement;
-use Illuminate\Notifications\Notification;
+use App\Notifications\BaseNotification;
 use Illuminate\Support\Collection;
 
-class TrooperMilestoneNotification extends Notification
+class TrooperMilestoneNotification extends BaseNotification
 {
+    protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category = 'trooper_milestones';
+
     /** @param Collection<int, TrooperAchievement> $achievements */
     public function __construct(private readonly Collection $achievements) {}
-
-    public function via(Trooper $notifiable): array
-    {
-        $channels = [];
-
-        if ($notifiable->wantsNotification('trooper_milestones', 'database'))
-        {
-            $channels[] = 'database';
-        }
-
-        if ($notifiable->push_notifications_enabled
-            && $notifiable->wantsNotification('trooper_milestones', 'fcm'))
-        {
-            $channels[] = FcmChannel::class;
-        }
-
-        if ($notifiable->emailAppearsValid()
-            && $notifiable->wantsNotification('trooper_milestones', 'mail'))
-        {
-            $channels[] = 'mail';
-        }
-
-        return $channels;
-    }
 
     public function toMail(Trooper $notifiable): TrooperMilestoneMail
     {
