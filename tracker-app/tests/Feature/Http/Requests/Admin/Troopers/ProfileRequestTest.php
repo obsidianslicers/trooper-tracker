@@ -251,4 +251,46 @@ class ProfileRequestTest extends TestCase
 
         $this->assertFalse($validator->fails());
     }
+
+    public function test_rules_allows_unchanged_legacy_placeholder_email(): void
+    {
+        $trooper = Trooper::factory()->asMember()->withEmail('^' . uniqid())->create();
+
+        $subject = new ProfileRequest;
+        $this->setupMockedRoute($subject, $trooper);
+        $subject->merge([Trooper::EMAIL => $trooper->email]);
+
+        $validator = Validator::make(
+            [
+                Trooper::LEGAL_NAME => 'Test Trooper',
+                Trooper::DISPLAY_NAME => 'Tester',
+                Trooper::EMAIL => $trooper->email,
+                Trooper::MEMBERSHIP_STATUS => MembershipStatus::RETIRED->value,
+            ],
+            $subject->rules()
+        );
+
+        $this->assertFalse($validator->fails());
+    }
+
+    public function test_rules_still_validates_format_when_placeholder_email_is_changed(): void
+    {
+        $trooper = Trooper::factory()->asMember()->withEmail('^' . uniqid())->create();
+
+        $subject = new ProfileRequest;
+        $this->setupMockedRoute($subject, $trooper);
+        $subject->merge([Trooper::EMAIL => 'still-not-an-email']);
+
+        $validator = Validator::make(
+            [
+                Trooper::LEGAL_NAME => 'Test Trooper',
+                Trooper::DISPLAY_NAME => 'Tester',
+                Trooper::EMAIL => 'still-not-an-email',
+            ],
+            $subject->rules()
+        );
+
+        $this->assertTrue($validator->fails());
+        $this->assertArrayHasKey(Trooper::EMAIL, $validator->errors()->toArray());
+    }
 }

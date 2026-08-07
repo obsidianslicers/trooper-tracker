@@ -55,17 +55,12 @@ class ProfileRequest extends FormRequest
      */
     public function rules(): array
     {
+        $trooper = $this->route('trooper');
+
         $rules = [
             Trooper::LEGAL_NAME => ['required', 'string', 'max:256'],
             Trooper::DISPLAY_NAME => ['required', 'string', 'max:256'],
-            Trooper::EMAIL => [
-                'required',
-                'string',
-                'email',
-                'max:256',
-                Rule::unique(Trooper::class, Trooper::EMAIL)
-                    ->ignore($this->route('trooper')?->id, Trooper::ID),
-            ],
+            Trooper::EMAIL => $this->emailRules($trooper),
             Trooper::PHONE => ['nullable', 'string', 'max:16'],
             Trooper::MEMBERSHIP_STATUS => [
                 'nullable',
@@ -74,6 +69,31 @@ class ProfileRequest extends FormRequest
                 MembershipStatus::toValidator(),
             ],
         ];
+
+        return $rules;
+    }
+
+    /**
+     * Build the email validation rules.
+     *
+     * Legacy troopers imported without a real email address were assigned a placeholder
+     * value that never passes email-format validation. Skip the format check when the
+     * submitted email is unchanged from the trooper's current value, so admins can still
+     * edit other profile fields without being forced to fix a legacy placeholder first.
+     */
+    private function emailRules(?Trooper $trooper): array
+    {
+        $rules = ['required', 'string', 'max:256'];
+
+        $email_unchanged = $trooper !== null && $this->input(Trooper::EMAIL) === $trooper->email;
+
+        if (!$email_unchanged)
+        {
+            $rules[] = 'email';
+        }
+
+        $rules[] = Rule::unique(Trooper::class, Trooper::EMAIL)
+            ->ignore($trooper?->id, Trooper::ID);
 
         return $rules;
     }
