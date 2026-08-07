@@ -7,6 +7,7 @@ namespace Tests\Feature\Http\Requests\Admin\Troopers;
 use App\Enums\MembershipStatus;
 use App\Http\Requests\Admin\Troopers\ProfileRequest;
 use App\Models\Trooper;
+use App\Rules\Admin\Troopers\ValidTrooperEmailRule;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Validator;
@@ -93,7 +94,19 @@ class ProfileRequestTest extends TestCase
 
         $this->assertArrayHasKey(Trooper::EMAIL, $rules);
         $this->assertContains('required', $rules[Trooper::EMAIL]);
-        $this->assertContains('email', $rules[Trooper::EMAIL]);
+    }
+
+    public function test_rules_validates_email_with_valid_trooper_email_rule(): void
+    {
+        $subject = new ProfileRequest;
+        $rules = $subject->rules();
+
+        $email_rules = array_filter(
+            $rules[Trooper::EMAIL],
+            fn($rule) => $rule instanceof ValidTrooperEmailRule
+        );
+
+        $this->assertNotEmpty($email_rules);
     }
 
     public function test_rules_phone_is_nullable(): void
