@@ -16,6 +16,29 @@ class CheckSupervisorHealthCommandTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Tests default QUEUE_CONNECTION to "sync"; these tests exercise the
+        // async-worker path, so force a driver that requires a real worker.
+        config(['queue.default' => 'database']);
+    }
+
+    public function test_sends_no_email_when_queue_driver_is_sync(): void
+    {
+        config([
+            'tracker.supervisor_check.email_enabled' => true,
+            'queue.default' => 'sync',
+        ]);
+        Trooper::factory()->asAdministrator()->create();
+        Mail::fake();
+
+        $this->artisan('tracker:check-supervisor-health')->assertExitCode(0);
+
+        Mail::assertNothingSent();
+    }
+
     public function test_sends_no_email_when_feature_disabled(): void
     {
         config(['tracker.supervisor_check.email_enabled' => false]);

@@ -128,6 +128,7 @@ Configuration reference for all `.env` variables in Troop Tracker.
 - **Values**: `true`, `false`
 - **When to change**: Set to `true` in production if you want admins emailed when Supervisor stops keeping the queue worker alive
 - **Note**: The System Check page shows worker health regardless of this setting; this only toggles the email alerts
+- **Note**: Both the check and the emails are automatically skipped when `QUEUE_CONNECTION=sync`, since jobs run inline and there's no background worker for Supervisor to keep alive
 
 ### CONTACT_EMAIL
 - **Purpose**: Email address shown as a contact fallback on the FAQ page

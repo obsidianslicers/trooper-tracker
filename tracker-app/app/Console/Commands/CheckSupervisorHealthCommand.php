@@ -36,6 +36,11 @@ class CheckSupervisorHealthCommand extends Command
             return Command::SUCCESS;
         }
 
+        if ((string) config('queue.default') === 'sync')
+        {
+            return Command::SUCCESS;
+        }
+
         $minutes_since_last_heartbeat = $heartbeat->minutesSinceLastHeartbeat();
         $down_threshold = (int) config('tracker.supervisor_check.heartbeat_down_minutes', 10);
         $is_down = $minutes_since_last_heartbeat === null || $minutes_since_last_heartbeat >= $down_threshold;

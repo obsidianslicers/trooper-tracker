@@ -160,6 +160,15 @@ class SystemCheckService
 
     private function checkQueueWorkerHeartbeat(): SystemCheckResult
     {
+        if ((string) config('queue.default') === 'sync')
+        {
+            return new SystemCheckResult(
+                'Queue worker heartbeat',
+                SystemCheckStatus::PASS,
+                'Queue driver is sync; jobs run inline, no background worker required',
+            );
+        }
+
         $minutes_since_last_heartbeat = $this->queue_worker_heartbeat->minutesSinceLastHeartbeat();
 
         if ($minutes_since_last_heartbeat === null)

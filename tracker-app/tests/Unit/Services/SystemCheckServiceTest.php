@@ -13,11 +13,29 @@ use Tests\TestCase;
 
 class SystemCheckServiceTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Tests default QUEUE_CONNECTION to "sync"; these tests exercise the
+        // async-worker path, so force a driver that requires a real worker.
+        config(['queue.default' => 'database']);
+    }
+
     public function test_returns_fail_when_no_heartbeat_has_been_recorded(): void
     {
         $result = $this->checkQueueWorkerHeartbeat();
 
         $this->assertSame(SystemCheckStatus::FAIL, $result->status);
+    }
+
+    public function test_returns_pass_when_queue_driver_is_sync_regardless_of_heartbeat(): void
+    {
+        config(['queue.default' => 'sync']);
+
+        $result = $this->checkQueueWorkerHeartbeat();
+
+        $this->assertSame(SystemCheckStatus::PASS, $result->status);
     }
 
     public function test_returns_pass_when_heartbeat_is_recent(): void
