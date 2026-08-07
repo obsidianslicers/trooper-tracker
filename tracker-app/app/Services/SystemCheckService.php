@@ -20,7 +20,9 @@ class SystemCheckService
         'pdo_mysql', 'mbstring', 'openssl', 'curl', 'zip', 'bcmath', 'intl',
     ];
 
-    public function __construct(private readonly TroopTracker $troop_tracker) {}
+    public function __construct(
+        private readonly TroopTracker $troop_tracker,
+        private readonly QueueWorkerHeartbeatService $queue_worker_heartbeat) {}
 
     /**
      * @return Collection<string, Collection<int, SystemCheckResult>>
@@ -115,6 +117,7 @@ class SystemCheckService
             $this->checkDatabaseConnection(),
             $this->checkCacheRoundTrip(),
             $this->checkQueueTable(),
+            $this->checkQueueWorkerHeartbeat(),
         ]);
     }
 
@@ -153,6 +156,36 @@ class SystemCheckService
         $status = Schema::hasTable('tt_jobs') ? SystemCheckStatus::PASS : SystemCheckStatus::FAIL;
 
         return new SystemCheckResult('Queue driver (database)', $status, 'tt_jobs table missing');
+    }
+
+    private function checkQueueWorkerHeartbeat(): SystemCheckResult
+    {
+        $minutes_since_last_heartbeat = $this->queue_worker_heartbeat->minutesSinceLastHeartbeat();
+
+        if ($minutes_since_last_heartbeat === null)
+        {
+            return new SystemCheckResult(
+                'Queue worker heartbeat',
+                SystemCheckStatus::FAIL,
+                'No heartbeat recorded yet - run `php artisan tracker:dispatch-queue-heartbeat`',
+            );
+        }
+
+        $warn_minutes = (int) config('tracker.supervisor_check.heartbeat_warn_minutes', 3);
+        $down_minutes = (int) config('tracker.supervisor_check.heartbeat_down_minutes', 10);
+        $detail = "Last seen {$minutes_since_last_heartbeat} minute(s) ago";
+
+        if ($minutes_since_last_heartbeat >= $down_minutes)
+        {
+            return new SystemCheckResult('Queue worker heartbeat', SystemCheckStatus::FAIL, $detail);
+        }
+
+        if ($minutes_since_last_heartbeat >= $warn_minutes)
+        {
+            return new SystemCheckResult('Queue worker heartbeat', SystemCheckStatus::WARN, $detail);
+        }
+
+        return new SystemCheckResult('Queue worker heartbeat', SystemCheckStatus::PASS, $detail);
     }
 
     private function checkStorageAndAssets(): Collection

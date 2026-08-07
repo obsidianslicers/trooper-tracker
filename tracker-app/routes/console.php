@@ -1,11 +1,14 @@
 <?php
 
-use App\Jobs\UpdateEventForumThreadJob;
 use Illuminate\Support\Facades\Schedule;
 
 $timezone = config('tracker.calendar.timezone');
 
 Schedule::command('auth:clear-resets')->everyFifteenMinutes();
+
+Schedule::command('tracker:dispatch-queue-heartbeat')->everyMinute();
+
+Schedule::command('tracker:check-supervisor-health')->everyFiveMinutes();
 
 Schedule::command('tracker:synchronize-xenforo-users')->hourly();
 
