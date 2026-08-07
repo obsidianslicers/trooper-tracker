@@ -51,6 +51,8 @@ readonly class UpdateTrooperNotificationsCommandHandler implements CommandHandle
             {
                 if ($assignment->trashed())
                 {
+                    $assignment->is_member = false;
+                    $assignment->is_moderator = false;
                     $assignment->restore();
                 }
                 $assignment->should_notify = $should_notify;
