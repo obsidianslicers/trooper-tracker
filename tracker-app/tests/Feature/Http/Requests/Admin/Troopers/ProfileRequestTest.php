@@ -216,4 +216,39 @@ class ProfileRequestTest extends TestCase
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey(Trooper::EMAIL, $validator->errors()->toArray());
     }
+
+    public function test_rules_rejects_email_already_used_by_another_trooper(): void
+    {
+        $subject = new ProfileRequest;
+        $this->setupMockedRoute($subject, $this->target_trooper);
+
+        $validator = Validator::make(
+            [
+                Trooper::LEGAL_NAME => 'Test Trooper',
+                Trooper::DISPLAY_NAME => 'Tester',
+                Trooper::EMAIL => $this->admin->email,
+            ],
+            $subject->rules()
+        );
+
+        $this->assertTrue($validator->fails());
+        $this->assertArrayHasKey(Trooper::EMAIL, $validator->errors()->toArray());
+    }
+
+    public function test_rules_accepts_troopers_own_unchanged_email(): void
+    {
+        $subject = new ProfileRequest;
+        $this->setupMockedRoute($subject, $this->target_trooper);
+
+        $validator = Validator::make(
+            [
+                Trooper::LEGAL_NAME => 'Test Trooper',
+                Trooper::DISPLAY_NAME => 'Tester',
+                Trooper::EMAIL => $this->target_trooper->email,
+            ],
+            $subject->rules()
+        );
+
+        $this->assertFalse($validator->fails());
+    }
 }

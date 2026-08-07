@@ -9,6 +9,7 @@ use App\Http\Requests\Concerns\HasNormalizers;
 use App\Models\Trooper;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * Handles the validation for updating a trooper's profile by an administrator.
@@ -57,7 +58,14 @@ class ProfileRequest extends FormRequest
         $rules = [
             Trooper::LEGAL_NAME => ['required', 'string', 'max:256'],
             Trooper::DISPLAY_NAME => ['required', 'string', 'max:256'],
-            Trooper::EMAIL => ['required', 'string', 'email', 'max:256'],
+            Trooper::EMAIL => [
+                'required',
+                'string',
+                'email',
+                'max:256',
+                Rule::unique(Trooper::class, Trooper::EMAIL)
+                    ->ignore($this->route('trooper')?->id, Trooper::ID),
+            ],
             Trooper::PHONE => ['nullable', 'string', 'max:16'],
             Trooper::MEMBERSHIP_STATUS => [
                 'nullable',
