@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Enums\OauthProvider;
 use App\Http\Controllers\Account\IndexController;
+use App\Http\Controllers\Account\UpdateProfileController;
 use App\Http\Controllers\Account\ClubMembershipsController;
 use App\Http\Controllers\Account\ClubMembershipsSubmitHtmxController;
 use App\Http\Controllers\Account\DeletionCancelController;
@@ -52,6 +53,7 @@ Route::prefix('account')
     ->group(function ()
     {
         Route::get('/', IndexController::class)->name('index');
+        Route::get('/update/profile', UpdateProfileController::class)->name('update-profile');
 
 
 

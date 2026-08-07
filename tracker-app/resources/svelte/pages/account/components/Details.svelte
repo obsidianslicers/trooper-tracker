@@ -15,6 +15,34 @@
     let { details }: Props = $props();
 
     let vm = new DetailsViewModel(details);
+
+    let currentThemeClass = vm.form.theme
+        ? `theme-${vm.form.theme}`
+        : "theme-stormtrooper";
+
+    $effect(() => {
+        // SSR Check
+        if (typeof document === "undefined") return;
+
+        const newTheme = vm.form.theme;
+        const newThemeClass = newTheme ? `theme-${newTheme}` : "";
+
+        // If a theme class was previously applied, remove it
+        if (currentThemeClass) {
+            document.body.classList.remove(currentThemeClass);
+        } else {
+            // Fallback: Remove any pre-existing theme classes dynamically
+            Array.from(document.body.classList)
+                .filter((cls) => cls.startsWith("theme-"))
+                .forEach((cls) => document.body.classList.remove(cls));
+        }
+
+        // Add the newly selected theme class
+        if (newThemeClass) {
+            document.body.classList.add(newThemeClass);
+            currentThemeClass = newThemeClass;
+        }
+    });
 </script>
 
 <SlimView>
