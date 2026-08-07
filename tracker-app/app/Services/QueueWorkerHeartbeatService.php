@@ -50,4 +50,36 @@ class QueueWorkerHeartbeatService
 
         return $value instanceof CarbonImmutable ? $value : null;
     }
+
+    public function isDown(): bool
+    {
+        $minutes_since_last_heartbeat = $this->minutesSinceLastHeartbeat();
+        $down_minutes = (int) config('tracker.supervisor_check.heartbeat_down_minutes', 10);
+
+        return $minutes_since_last_heartbeat === null || $minutes_since_last_heartbeat >= $down_minutes;
+    }
+
+    public function shouldSendDownAlert(): bool
+    {
+        if (!$this->isDown())
+        {
+            return false;
+        }
+
+        $down_notified_at = $this->downNotifiedAt();
+
+        if ($down_notified_at === null)
+        {
+            return true;
+        }
+
+        $renotify_after_minutes = (int) config('tracker.supervisor_check.renotify_after_minutes', 60);
+
+        return $down_notified_at->diffInMinutes(CarbonImmutable::now()) >= $renotify_after_minutes;
+    }
+
+    public function shouldSendRecoveryAlert(): bool
+    {
+        return !$this->isDown() && $this->downNotifiedAt() !== null;
+    }
 }

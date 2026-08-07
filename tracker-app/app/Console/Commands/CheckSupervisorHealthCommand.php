@@ -10,8 +10,8 @@ use App\Features\Troopers\Queries\GetTroopersByRoleQuery;
 use App\Mail\Admin\System\SupervisorDown;
 use App\Mail\Admin\System\SupervisorRecovered;
 use App\Services\QueueWorkerHeartbeatService;
-use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Mail;
 
 /**
@@ -41,19 +41,14 @@ class CheckSupervisorHealthCommand extends Command
             return Command::SUCCESS;
         }
 
-        $minutes_since_last_heartbeat = $heartbeat->minutesSinceLastHeartbeat();
-        $down_threshold = (int) config('tracker.supervisor_check.heartbeat_down_minutes', 10);
-        $is_down = $minutes_since_last_heartbeat === null || $minutes_since_last_heartbeat >= $down_threshold;
-        $down_notified_at = $heartbeat->downNotifiedAt();
-
-        if ($is_down)
+        if ($heartbeat->shouldSendDownAlert())
         {
-            $this->notifyDown($bus, $heartbeat, $down_notified_at, $minutes_since_last_heartbeat ?? $down_threshold);
+            $this->notifyDown($bus, $heartbeat);
 
             return Command::SUCCESS;
         }
 
-        if ($down_notified_at !== null)
+        if ($heartbeat->shouldSendRecoveryAlert())
         {
             $this->notifyRecovered($bus, $heartbeat);
         }
@@ -61,19 +56,10 @@ class CheckSupervisorHealthCommand extends Command
         return Command::SUCCESS;
     }
 
-    private function notifyDown(
-        MagicBus $bus,
-        QueueWorkerHeartbeatService $heartbeat,
-        ?CarbonImmutable $down_notified_at,
-        int $minutes_since_last_heartbeat): void
+    private function notifyDown(MagicBus $bus, QueueWorkerHeartbeatService $heartbeat): void
     {
-        $renotify_after_minutes = (int) config('tracker.supervisor_check.renotify_after_minutes', 60);
-
-        if ($down_notified_at !== null
-            && $down_notified_at->diffInMinutes(CarbonImmutable::now()) < $renotify_after_minutes)
-        {
-            return;
-        }
+        $down_threshold = (int) config('tracker.supervisor_check.heartbeat_down_minutes', 10);
+        $minutes_since_last_heartbeat = $heartbeat->minutesSinceLastHeartbeat() ?? $down_threshold;
 
         foreach ($this->getAdmins($bus) as $admin)
         {
@@ -97,7 +83,7 @@ class CheckSupervisorHealthCommand extends Command
         $this->info('Notified admins: queue worker heartbeat has recovered.');
     }
 
-    private function getAdmins(MagicBus $bus): iterable
+    private function getAdmins(MagicBus $bus): Collection
     {
         return $bus->send(new GetTroopersByRoleQuery(MembershipRole::ADMINISTRATOR));
     }
