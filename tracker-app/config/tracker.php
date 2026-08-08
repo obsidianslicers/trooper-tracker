@@ -1,5 +1,7 @@
 <?php
 
+use Intervention\Image\Drivers\Imagick\Driver;
+
 return [
 
     /*
@@ -63,7 +65,7 @@ return [
         'driver' => env(
             'TRACKER_IMAGE_DRIVER',
             extension_loaded('imagick')
-            ? Intervention\Image\Drivers\Imagick\Driver::class
+            ? Driver::class
             : Intervention\Image\Drivers\Gd\Driver::class
         ),
     ],
@@ -95,6 +97,25 @@ return [
 
     'exception_notifications' => [
         'enabled' => env('TRACKER_EXCEPTION_EMAIL_ENABLED', false),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Supervisor / Queue Worker Health Check
+    |--------------------------------------------------------------------------
+    |
+    | Controls the staleness thresholds used to detect whether the queue
+    | worker process (kept alive by Supervisor in production) is still
+    | consuming jobs, and whether admins should be emailed when it goes
+    | down for longer than the configured threshold.
+    |
+    */
+
+    'supervisor_check' => [
+        'heartbeat_warn_minutes' => (int) env('TRACKER_SUPERVISOR_WARN_MINUTES', 3),
+        'heartbeat_down_minutes' => (int) env('TRACKER_SUPERVISOR_DOWN_MINUTES', 10),
+        'email_enabled' => env('TRACKER_SUPERVISOR_EMAIL_ENABLED', false),
+        'renotify_after_minutes' => (int) env('TRACKER_SUPERVISOR_RENOTIFY_MINUTES', 60),
     ],
 
 ];
