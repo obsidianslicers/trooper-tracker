@@ -96,6 +96,21 @@ Records where `approvedOrgIdsForTrooper` returns empty are skipped (the costume 
 
 ---
 
+## Fix394
+
+**Issue:** Troopers without a valid email address cannot be contacted or recover access to their
+account, and should not be counted as active members.
+
+**What it does:** Finds every trooper whose email fails `Trooper::emailAppearsValid()` (missing or
+not a real email address) and sets their global `membership_status` to `retired`. For each of those
+troopers, also retires every non-deleted `TrooperOrganization` membership row (sets
+`membership_status` to `retired` in every organization they belong to).
+
+**When to run:** Once, against any environment where troopers with invalid/missing emails have
+accumulated. Safe to re-run — already-retired records are excluded from both updates.
+
+---
+
 ## Adding a New Fix
 
 1. Create `database/seeders/Issues/Fix<issue-number>.php` with namespace `Database\Seeders\Issues`.
