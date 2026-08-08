@@ -127,7 +127,7 @@ class EventObserver
 
         try
         {
-            $address = $event->venue_address;
+            $address = $event->venue_address ?? '';
 
             if (empty(trim($address)))
             {
