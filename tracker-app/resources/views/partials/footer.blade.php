@@ -72,6 +72,17 @@
                         Saber Guild
                     </a>
                 </li>
+                <li class="my-2">
+                    <a href="https://www.galactic-academy.net"
+                       target="_blank"
+                       rel="noopener">
+                        <img class="me-2 rounded-circle overflow-hidden"
+                             src="{{ url('img/icons/galactic-academy-128x128.png') }}"
+                             height="32px"
+                             width="32px" />
+                        Galactic Academy
+                    </a>
+                </li>
             </ul>
         </div>
 
