@@ -137,6 +137,44 @@ class UpdateTrooperNotificationsCommandHandlerTest extends TestCase
         ]);
     }
 
+    public function test_invoke_restores_soft_deleted_assignment_without_reviving_membership(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $parent = Organization::factory()->asOrganization()->create();
+        $child = Organization::factory()->asRegion()->withParent($parent)->create();
+
+        $assignment = TrooperAssignment::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($child)
+            ->asMember()
+            ->asModerator()
+            ->create();
+        $assignment->delete();
+
+        TrooperAssignment::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($parent)
+            ->asMember()
+            ->create();
+
+        $command = new UpdateTrooperNotificationsCommand(
+            trooper: $trooper,
+            valid_data: [$child->id => ['should_notify' => true]]
+        );
+        $handler = app(UpdateTrooperNotificationsCommandHandler::class);
+
+        $handler($command);
+
+        $this->assertDatabaseHas('tt_trooper_assignments', [
+            TrooperAssignment::TROOPER_ID => $trooper->id,
+            TrooperAssignment::ORGANIZATION_ID => $child->id,
+            TrooperAssignment::SHOULD_NOTIFY => true,
+            TrooperAssignment::IS_MEMBER => false,
+            TrooperAssignment::IS_MODERATOR => false,
+            'deleted_at' => null,
+        ]);
+    }
+
     public function test_invoke_handles_multiple_organizations(): void
     {
         $trooper = Trooper::factory()->create();
