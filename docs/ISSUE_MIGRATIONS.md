@@ -111,40 +111,6 @@ accumulated. Safe to re-run — already-retired records are excluded from both u
 
 ---
 
-## Fix406
-
-**Issue:** Before the admin roster-update controller was fixed (#262), every admin roster save
-unconditionally cleared both `costume_organization_ids` and `organization_id` on a row whenever
-org-selection data wasn't submitted for it — silently destroying any existing troop credit,
-including the `organization_id` legacy fallback. `EventTrooper` only audits the `status` column,
-so the original values cannot be recovered from an audit trail. A residual gap left `organization_id`
-being nulled unconditionally on every save even after #262 landed; that live bug is fixed alongside
-this seeder.
-
-**What it does:** Scans `EventTrooper` records with `status = attended`, `organization_id IS NULL`,
-and `costume_organization_ids` null or empty — i.e. rows with no credit source at all. For each,
-re-derives credit from current costume approvals / membership via
-`EventTrooper::getEligibleCreditOrganizations()` (the same resolver the self-service attendance
-flow uses):
-
-- **One eligible top-level club** — unambiguous; populate `costume_organization_ids` with that
-  club's eligible org IDs.
-- **More than one eligible top-level club** — ambiguous (the self-service flow would have asked
-  the trooper to choose); rather than guess, all eligible clubs are credited and counted
-  separately (`resolved_multi_club`) so they can be audited afterward.
-- **No eligible club** — cannot determine, skipped and requires manual review.
-
-Outputs counts for scanned/resolved (single + multi club)/skipped records. If any records were
-skipped, queues a `Fix406OutstandingCredit` email (`app/Mail/Fix406OutstandingCredit.php`) to
-every administrator trooper, listing each skipped record's trooper, event, costume, and
-`EventTrooper` ID so they can be reviewed manually. No email is sent if nothing was skipped.
-
-**When to run:** Once, against any environment running before the `organization_id`-nulling fix
-in `UpdateTroopersSubmitController` (the forward fix ships alongside this seeder). Run on
-production before reloading affected service record pages.
-
----
-
 ## Adding a New Fix
 
 1. Create `database/seeders/Issues/Fix<issue-number>.php` with namespace `Database\Seeders\Issues`.
