@@ -1,16 +1,16 @@
 import { ViewModel } from "$lib/domains/types.svelte";
-import type { Details } from "./DetailsViewModel.svelte";
+import type { DetailsPageData } from "./DetailsViewModel.svelte";
 
 function constructAccountPageData() {
     return {
         email: "",
-        details: {} as Details
+        details: {} as DetailsPageData
     };
 }
 
 export type AccountPageData = {
     email: string;
-    details: Details;
+    details: DetailsPageData;
 };
 
 export class AccountViewModel extends ViewModel {

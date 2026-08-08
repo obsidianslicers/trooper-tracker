@@ -85,12 +85,12 @@
                 <i> (i.e. 555-555-5555) </i>
             </InputHelp>
         </InputContainer>
-        {#if vm.form.display_costumes && vm.form.display_costumes.length > 0}
+        {#if vm.display_costumes && vm.display_costumes.length > 0}
             <InputContainer>
                 <InputSelect
                     label="Preferred 501st Display Format"
                     bind:value={vm.form.display_costume_id}
-                    options={vm.form.display_costumes}
+                    options={vm.display_costumes}
                     errors={vm.errors.display_costume_id}
                 />
                 <InputHelp>
@@ -104,7 +104,7 @@
             <InputSelect
                 label="Theme"
                 bind:value={vm.form.theme}
-                options={vm.form.theme_enums}
+                options={vm.theme_enums}
                 errors={vm.errors.theme}
             />
             <InputHelp>

@@ -53,7 +53,7 @@ Route::prefix('account')
     ->group(function ()
     {
         Route::get('/', IndexController::class)->name('index');
-        Route::get('/update/profile', UpdateProfileController::class)->name('update-profile');
+        Route::post('/update/profile', UpdateProfileController::class)->name('update-profile');
 
 
 

@@ -1,4 +1,5 @@
 import { SubmitableViewModel, type Option } from "$lib/domains/types.svelte";
+import { getRoute } from "$lib/utils";
 import { useForm, type InertiaForm } from "@inertiajs/svelte";
 
 function createDetailsForm(options: Partial<Details> = {}): InertiaForm<Details> {
@@ -7,17 +8,15 @@ function createDetailsForm(options: Partial<Details> = {}): InertiaForm<Details>
         display_name: '',
         legal_name: '',
         display_costume_id: null,
-        display_costumes: [],
         phone: '',
         theme: '',
-        theme_enums: [],
         ...options
     };
 
     return useForm<Details>(data);
 }
 
-export type Details = {
+export type DetailsPageData = {
     id: number;
     display_name: string;
     legal_name: string;
@@ -28,27 +27,49 @@ export type Details = {
     theme_enums: Option[];
 };
 
-export class DetailsViewModel extends SubmitableViewModel<DetailsViewModel, Details> {
+export type Details = {
+    display_name: string;
+    legal_name: string;
+    phone: string;
+    display_costume_id: number | null;
+    theme: string;
+};
 
-    constructor(pageData?: Details) {
+export class DetailsViewModel extends SubmitableViewModel<DetailsViewModel, Details> {
+    display_costumes: Option[] = $state([]);
+    theme_enums: Option[] = $state([]);
+
+    constructor(pageData?: DetailsPageData) {
         super();
         // Initialize Inertia's useForm hook directly inside the instance
         this.form = createDetailsForm(pageData);
+        this.display_costumes = pageData?.display_costumes || [];
+        this.theme_enums = pageData?.theme_enums || [];
     }
 
     submit = async (e: Event) => {
         e.preventDefault();
 
-        // const url = getRoute('auth.login');
+        const url = getRoute('account.update-profile');
 
-        // const toast = toastStateSvelte.info('Logging in...', { delay: 4000 });
+        const options =
+        {
+            preserveUrl: true,     // Keeps the current URL intact
+            preserveState: true,  // Keeps current local form/scroll states intact
+            preserveScroll: true, // Prevents page from jumping
+            only: ['results'],
 
-        // this.form.post(url, {
-        //     preserveScroll: true,
-        //     onError: () => {
-        //         // Dismiss the loading toast if validation fails on backend
-        //         toastStateSvelte.dismiss(toast);
-        //     }
-        // });
+            onSuccess: (page: any) => {
+                // Access the direct data return value mapped to page props
+                const results = page.props.results;
+
+                this.form.defaults();
+
+                if (results) {
+                }
+            }
+        };
+
+        this.form.post(url, options);
     };
 }
