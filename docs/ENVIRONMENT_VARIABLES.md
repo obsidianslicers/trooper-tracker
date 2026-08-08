@@ -103,6 +103,33 @@ Configuration reference for all `.env` variables in Troop Tracker.
 - **When to change**: Set to `true` in production when you want admins emailed on server errors
 - **Note**: This toggles sending only; throttle behavior remains unchanged
 
+### TRACKER_SUPERVISOR_WARN_MINUTES
+- **Purpose**: Minutes since the last queue worker heartbeat before the System Check page shows a WARN status
+- **Required**: No
+- **Default**: `3`
+- **When to change**: Raise if your queue has bursty, low-frequency traffic and false WARNs are noisy
+
+### TRACKER_SUPERVISOR_DOWN_MINUTES
+- **Purpose**: Minutes since the last queue worker heartbeat before it's considered down — drives both the System Check FAIL status and the admin down-alert email
+- **Required**: No
+- **Default**: `10`
+- **When to change**: Tune to how quickly you want to be alerted vs. tolerating brief worker restarts/deploys
+
+### TRACKER_SUPERVISOR_RENOTIFY_MINUTES
+- **Purpose**: Minimum minutes between repeat down-alert emails while the outage continues
+- **Required**: No
+- **Default**: `60`
+- **When to change**: Lower to be reminded more often during a prolonged outage
+
+### TRACKER_SUPERVISOR_EMAIL_ENABLED
+- **Purpose**: Enable or disable admin email alerts when the queue worker/Supervisor process goes down (and recovery emails when it comes back)
+- **Required**: No
+- **Default**: `false`
+- **Values**: `true`, `false`
+- **When to change**: Set to `true` in production if you want admins emailed when Supervisor stops keeping the queue worker alive
+- **Note**: The System Check page shows worker health regardless of this setting; this only toggles the email alerts
+- **Note**: Both the check and the emails are automatically skipped when `QUEUE_CONNECTION=sync`, since jobs run inline and there's no background worker for Supervisor to keep alive
+
 ### CONTACT_EMAIL
 - **Purpose**: Email address shown as a contact fallback on the FAQ page
 - **Required**: No
