@@ -7,6 +7,7 @@ namespace Tests\Feature\Http\Requests\Admin\Troopers;
 use App\Enums\MembershipStatus;
 use App\Http\Requests\Admin\Troopers\ProfileRequest;
 use App\Models\Trooper;
+use App\Rules\Admin\Troopers\ValidTrooperEmailRule;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Validator;
@@ -93,7 +94,19 @@ class ProfileRequestTest extends TestCase
 
         $this->assertArrayHasKey(Trooper::EMAIL, $rules);
         $this->assertContains('required', $rules[Trooper::EMAIL]);
-        $this->assertContains('email', $rules[Trooper::EMAIL]);
+    }
+
+    public function test_rules_validates_email_with_valid_trooper_email_rule(): void
+    {
+        $subject = new ProfileRequest;
+        $rules = $subject->rules();
+
+        $email_rules = array_filter(
+            $rules[Trooper::EMAIL],
+            fn($rule) => $rule instanceof ValidTrooperEmailRule
+        );
+
+        $this->assertNotEmpty($email_rules);
     }
 
     public function test_rules_phone_is_nullable(): void
@@ -209,6 +222,83 @@ class ProfileRequestTest extends TestCase
                 Trooper::LEGAL_NAME => 'Test Trooper',
                 Trooper::DISPLAY_NAME => 'Tester',
                 Trooper::EMAIL => 'not-an-email',
+            ],
+            $subject->rules()
+        );
+
+        $this->assertTrue($validator->fails());
+        $this->assertArrayHasKey(Trooper::EMAIL, $validator->errors()->toArray());
+    }
+
+    public function test_rules_rejects_email_already_used_by_another_trooper(): void
+    {
+        $subject = new ProfileRequest;
+        $this->setupMockedRoute($subject, $this->target_trooper);
+
+        $validator = Validator::make(
+            [
+                Trooper::LEGAL_NAME => 'Test Trooper',
+                Trooper::DISPLAY_NAME => 'Tester',
+                Trooper::EMAIL => $this->admin->email,
+            ],
+            $subject->rules()
+        );
+
+        $this->assertTrue($validator->fails());
+        $this->assertArrayHasKey(Trooper::EMAIL, $validator->errors()->toArray());
+    }
+
+    public function test_rules_accepts_troopers_own_unchanged_email(): void
+    {
+        $subject = new ProfileRequest;
+        $this->setupMockedRoute($subject, $this->target_trooper);
+
+        $validator = Validator::make(
+            [
+                Trooper::LEGAL_NAME => 'Test Trooper',
+                Trooper::DISPLAY_NAME => 'Tester',
+                Trooper::EMAIL => $this->target_trooper->email,
+            ],
+            $subject->rules()
+        );
+
+        $this->assertFalse($validator->fails());
+    }
+
+    public function test_rules_allows_unchanged_legacy_placeholder_email(): void
+    {
+        $trooper = Trooper::factory()->asMember()->withEmail('^' . uniqid())->create();
+
+        $subject = new ProfileRequest;
+        $this->setupMockedRoute($subject, $trooper);
+        $subject->merge([Trooper::EMAIL => $trooper->email]);
+
+        $validator = Validator::make(
+            [
+                Trooper::LEGAL_NAME => 'Test Trooper',
+                Trooper::DISPLAY_NAME => 'Tester',
+                Trooper::EMAIL => $trooper->email,
+                Trooper::MEMBERSHIP_STATUS => MembershipStatus::RETIRED->value,
+            ],
+            $subject->rules()
+        );
+
+        $this->assertFalse($validator->fails());
+    }
+
+    public function test_rules_still_validates_format_when_placeholder_email_is_changed(): void
+    {
+        $trooper = Trooper::factory()->asMember()->withEmail('^' . uniqid())->create();
+
+        $subject = new ProfileRequest;
+        $this->setupMockedRoute($subject, $trooper);
+        $subject->merge([Trooper::EMAIL => 'still-not-an-email']);
+
+        $validator = Validator::make(
+            [
+                Trooper::LEGAL_NAME => 'Test Trooper',
+                Trooper::DISPLAY_NAME => 'Tester',
+                Trooper::EMAIL => 'still-not-an-email',
             ],
             $subject->rules()
         );

@@ -507,6 +507,10 @@ Custom validation rules provide reusable validation logic organized by feature a
 - **UniqueCostumeNameRule:** Ensures costume names are unique within an organization
 - **UniqueNameRule:** Ensures organization names are unique among siblings
 
+**Admin/Troopers Rules:**
+- **ValidTrooperEmailRule:** Requires a valid email format, except when the value is unchanged
+  from the trooper's current stored email (grandfathers legacy placeholder emails)
+
 **Usage in Requests:**
 ```php
 public function rules(): array

@@ -7,8 +7,10 @@ namespace App\Http\Requests\Admin\Troopers;
 use App\Enums\MembershipStatus;
 use App\Http\Requests\Concerns\HasNormalizers;
 use App\Models\Trooper;
+use App\Rules\Admin\Troopers\ValidTrooperEmailRule;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * Handles the validation for updating a trooper's profile by an administrator.
@@ -54,10 +56,19 @@ class ProfileRequest extends FormRequest
      */
     public function rules(): array
     {
+        $trooper = $this->route('trooper');
+
         $rules = [
             Trooper::LEGAL_NAME => ['required', 'string', 'max:256'],
             Trooper::DISPLAY_NAME => ['required', 'string', 'max:256'],
-            Trooper::EMAIL => ['required', 'string', 'email', 'max:256'],
+            Trooper::EMAIL => [
+                'required',
+                'string',
+                'max:256',
+                new ValidTrooperEmailRule($trooper),
+                Rule::unique(Trooper::class, Trooper::EMAIL)
+                    ->ignore($trooper?->id, Trooper::ID),
+            ],
             Trooper::PHONE => ['nullable', 'string', 'max:16'],
             Trooper::MEMBERSHIP_STATUS => [
                 'nullable',
