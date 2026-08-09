@@ -6,7 +6,7 @@ namespace App\Services;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Str;
+use Hyperdrive\CommsHelper;
 
 /**
  * Manages flash messages stored in the session.
@@ -28,7 +28,9 @@ class FlashMessageService
      */
     public function created(Model $model): void
     {
-        $this->addModelMessage($model, 'created');
+        $message = CommsHelper::created($model);
+
+        $this->addMessage('success', $message);
     }
 
     /**
@@ -38,7 +40,8 @@ class FlashMessageService
      */
     public function updated(Model $model): void
     {
-        $this->addModelMessage($model, 'updated');
+        $message = CommsHelper::updated($model);
+        $this->addMessage('warning', $message);
     }
 
     /**
@@ -48,39 +51,8 @@ class FlashMessageService
      */
     public function deleted(Model $model): void
     {
-        $this->addModelMessage($model, 'deleted');
-    }
-
-    /**
-     * Builds and adds a flash message for a model action (created, updated, deleted).
-     *
-     * @param  Model  $model  The model instance for which to create the message.
-     * @param  string  $action  The action performed on the model (e.g., 'created').
-     */
-    private function addModelMessage(Model $model, string $action): void
-    {
-        // Get the base class name (e.g. "Organization")
-        $object_name = Str::headline(class_basename($model));
-
-        // Build the message
-        $message = $object_name;
-
-        // If the model has a "name" attribute, include it
-        $display_name = $model->getAttribute('name');
-        $display_title = $model->getAttribute('title');
-
-        if (!empty($display_name))
-        {
-            $message .= " \"{$display_name}\"";
-        }
-        elseif (!empty($display_title))
-        {
-            $message .= " \"{$display_title}\"";
-        }
-
-        $message .= " was {$action} successfully.";
-
-        $this->addMessage('success', $message);
+        $message = CommsHelper::deleted($model);
+        $this->addMessage('danger', $message);
     }
 
     /**
