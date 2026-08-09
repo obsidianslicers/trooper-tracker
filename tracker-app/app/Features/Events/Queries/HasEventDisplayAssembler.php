@@ -241,6 +241,11 @@ trait HasEventDisplayAssembler
      * broader approved-org set — it reflects an actual trooper decision rather than every org
      * their costume happens to be approved for.
      *
+     * Once attendance is confirmed (status ATTENDED), the stored organization_id/potential_orgs
+     * IS the credited record — it is shown as-is rather than re-filtered against current
+     * approved_orgs, which reflects live eligibility and can have shifted since the event
+     * (e.g. the trooper later left the credited club).
+     *
      * Rendering:
      * - Multiple orgs: prepends "(*) " indicator
      * - No matches: shows "(unattached)"
@@ -280,14 +285,18 @@ trait HasEventDisplayAssembler
             $approved_orgs = $approved_orgs->intersect($this->memberOrgIds($event_trooper->trooper));
         }
 
-        if ($event_trooper->organization_id !== null && $approved_orgs->contains($event_trooper->organization_id))
+        if ($event_trooper->organization_id !== null
+            && ($event_trooper->attended || $approved_orgs->contains($event_trooper->organization_id)))
         {
             return $this->organizations[$event_trooper->organization_id] ?? '??';
         }
 
-        $final_orgs = $potential_orgs->isEmpty()
-            ? $approved_orgs
-            : $potential_orgs->intersect($approved_orgs);
+        $final_orgs = match (true)
+        {
+            $event_trooper->attended && $potential_orgs->isNotEmpty() => $potential_orgs,
+            $potential_orgs->isEmpty() => $approved_orgs,
+            default => $potential_orgs->intersect($approved_orgs),
+        };
 
         $names = $final_orgs->map(fn ($id) => $this->organizations[$id] ?? '??')->sort();
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Features\Events\Queries;
 
+use App\Enums\EventTrooperStatus;
 use App\Features\Events\Queries\GetEventDisplayQuery;
 use App\Features\Events\Queries\GetEventDisplayQueryHandler;
 use App\Models\Costume;
@@ -321,6 +322,81 @@ class GetEventDisplayQueryHandlerTest extends TestCase
             // Stored snapshot at sub-unit granularity, as EventTrooper::getEligibleCreditOrganizations()
             // can produce for handler costumes — must still resolve to the primary club.
             ->state([EventTrooper::COSTUME_ORGANIZATION_IDS => [$alpha_squad->id]])
+            ->create();
+
+        $subject = new GetEventDisplayQueryHandler;
+
+        $result = $subject(new GetEventDisplayQuery($event, $viewer));
+
+        $this->assertSame(
+            'Alpha Outpost',
+            $result->event_shifts->first()->event_troopers->first()->costume_organizations
+        );
+    }
+
+    public function test_invoke_shows_only_the_selected_club_after_multi_club_credit_select(): void
+    {
+        $alpha = $this->create_organization('Alpha Outpost');
+        $beta = $this->create_organization('Beta Base');
+
+        $event = Event::factory()->withOrganization($alpha)->create();
+        $shift = EventShift::factory()->forEvent($event)->create();
+        $viewer = Trooper::factory()->asMember()->create();
+        $trooper = Trooper::factory()->asMember()->create();
+        $costume = Costume::factory()->withName('Command Staff')->create();
+
+        $this->allow_organization_for_event($event, $alpha);
+        $this->allow_organization_for_event($event, $beta);
+
+        // Trooper is an active member of both clubs...
+        $this->assign_membership($trooper, $alpha);
+        $this->assign_membership($trooper, $beta);
+
+        EventTrooper::factory()
+            ->forEventShift($shift)
+            ->forTrooper($trooper)
+            ->withCostume($costume)
+            ->state([
+                EventTrooper::STATUS => EventTrooperStatus::ATTENDED,
+                EventTrooper::ORGANIZATION_ID => null,
+                // ...but the post-attendance club-select flow narrowed credit to only Alpha
+                // (see ShiftCompleteClubController::childOrgIdsForSelectedParents()).
+                EventTrooper::COSTUME_ORGANIZATION_IDS => [$alpha->id],
+            ])
+            ->create();
+
+        $subject = new GetEventDisplayQueryHandler;
+
+        $result = $subject(new GetEventDisplayQuery($event, $viewer));
+
+        $this->assertSame(
+            'Alpha Outpost',
+            $result->event_shifts->first()->event_troopers->first()->costume_organizations
+        );
+    }
+
+    public function test_invoke_shows_credited_club_for_attended_trooper_even_after_leaving_it(): void
+    {
+        $alpha = $this->create_organization('Alpha Outpost');
+
+        $event = Event::factory()->withOrganization($alpha)->create();
+        $shift = EventShift::factory()->forEvent($event)->create();
+        $viewer = Trooper::factory()->asMember()->create();
+        $trooper = Trooper::factory()->asMember()->create();
+        $costume = Costume::factory()->withName('Command Staff')->create();
+
+        $this->allow_organization_for_event($event, $alpha);
+
+        // No active membership at all now — the trooper left Alpha after the event.
+        EventTrooper::factory()
+            ->forEventShift($shift)
+            ->forTrooper($trooper)
+            ->withCostume($costume)
+            ->state([
+                EventTrooper::STATUS => EventTrooperStatus::ATTENDED,
+                EventTrooper::ORGANIZATION_ID => null,
+                EventTrooper::COSTUME_ORGANIZATION_IDS => [$alpha->id],
+            ])
             ->create();
 
         $subject = new GetEventDisplayQueryHandler;
