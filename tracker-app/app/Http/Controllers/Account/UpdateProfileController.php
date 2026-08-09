@@ -43,6 +43,7 @@ class UpdateProfileController extends MagicBusController
         if ($orginal_theme != $request->validated('theme'))
         {
             $data['flash'] = [
+                'success' => 'Profile updated successfully.',
                 'warning' => $this->getThemeMessage(TrooperTheme::from($request->validated('theme'))),
             ];
         }

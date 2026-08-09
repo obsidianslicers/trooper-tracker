@@ -54,10 +54,10 @@ export class DetailsViewModel extends SubmitableViewModel<DetailsViewModel, Deta
 
         const options =
         {
+            // preserveScroll: true, // Prevents page from jumping
             preserveUrl: true,     // Keeps the current URL intact
             preserveState: true,  // Keeps current local form/scroll states intact
-            preserveScroll: true, // Prevents page from jumping
-            only: ['results'],
+            only: ['flash', 'results'],
 
             onSuccess: (page: any) => {
                 // Access the direct data return value mapped to page props
