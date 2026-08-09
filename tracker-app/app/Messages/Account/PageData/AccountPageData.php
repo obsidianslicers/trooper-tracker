@@ -92,6 +92,7 @@ final class AccountPageData extends Message
     private function getNotifications(): array
     {
         return [
+            'is_administrator' => $this->actor->is_administrator,
             'trooper_notification_enums' => TrooperNotifications::toValueLabels(),
             'administrative_notification_enums' => AdministrativeNotifications::toValueLabels(),
             'notification_frequency_enums' => NotificationFrequency::toValueLabels(),
