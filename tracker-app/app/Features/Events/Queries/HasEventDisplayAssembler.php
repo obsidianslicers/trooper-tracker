@@ -208,11 +208,11 @@ trait HasEventDisplayAssembler
     {
         $potential_orgs = collect($event_trooper->costume_organization_ids ?? []);
 
-        $event_trooper->costume_organizations = $this->buildDisplayOrganizations($event_trooper, $potential_orgs, $event_trooper->costume_id, $event_trooper->costume);
+        $event_trooper->costume_organizations = $this->buildDisplayOrganizations($event_trooper, $potential_orgs, $event_trooper->costume);
 
         $potential_orgs = collect($event_trooper->backup_costume_organization_ids ?? []);
 
-        $event_trooper->backup_costume_organizations = $this->buildDisplayOrganizations($event_trooper, $potential_orgs, $event_trooper->backup_costume_id, $event_trooper->backup_costume);
+        $event_trooper->backup_costume_organizations = $this->buildDisplayOrganizations($event_trooper, $potential_orgs, $event_trooper->backup_costume);
 
         return $event_trooper;
     }
@@ -235,16 +235,15 @@ trait HasEventDisplayAssembler
      * - No matches: shows "(unattached)"
      * - Otherwise: comma-separated, sorted organization names
      *
-     * @param  EventTrooper  $event_trooper  The trooper assignment (provides access to costume_id and approved costumes)
+     * @param  EventTrooper  $event_trooper  The trooper assignment (provides access to approved costumes)
      * @param  Collection<int, int|string>  $potential_orgs  Organization IDs that were potentially selected for this costume
-     * @param  int|null  $costume_id  The costume ID to use for filtering approved organizations
-     * @param  Costume|null  $costume  The costume model matching $costume_id, used to detect handler/Command-Staff costumes
+     * @param  Costume|null  $costume  The costume worn (primary or backup); null means no costume selected
      * @return string Display string ready for view rendering
      */
-    private function buildDisplayOrganizations(EventTrooper $event_trooper, Collection $potential_orgs, ?int $costume_id, ?Costume $costume): string
+    private function buildDisplayOrganizations(EventTrooper $event_trooper, Collection $potential_orgs, ?Costume $costume): string
     {
-        $approved_orgs = $this->resolveApprovedOrganizations($event_trooper, $costume_id, $costume);
-        $potential_orgs = $this->normalizePotentialOrganizations($potential_orgs, $costume_id, $costume);
+        $approved_orgs = $this->resolveApprovedOrganizations($event_trooper, $costume);
+        $potential_orgs = $this->normalizePotentialOrganizations($potential_orgs, $costume);
 
         if ($event_trooper->organization_id !== null
             && ($event_trooper->attended || $approved_orgs->contains($event_trooper->organization_id)))
@@ -285,20 +284,20 @@ trait HasEventDisplayAssembler
      *
      * @return Collection<int, int>
      */
-    private function resolveApprovedOrganizations(EventTrooper $event_trooper, ?int $costume_id, ?Costume $costume): Collection
+    private function resolveApprovedOrganizations(EventTrooper $event_trooper, ?Costume $costume): Collection
     {
         if ($event_trooper->trooper === null)
         {
             return collect();
         }
 
-        if ($costume_id === null || $costume?->countsAsHandler())
+        if ($costume === null || $costume->countsAsHandler())
         {
             return $event_trooper->trooper->activeAssignmentPrimaryClubIds();
         }
 
         $approved_orgs = $event_trooper->trooper->trooper_costumes
-            ->filter(fn ($tc) => optional($tc->organization_costume)->costume_id == $costume_id)
+            ->filter(fn ($tc) => optional($tc->organization_costume)->costume_id == $costume->id)
             ->pluck('organization_costume.organization_id')
             ->unique();
 
@@ -314,9 +313,9 @@ trait HasEventDisplayAssembler
      * @param  Collection<int, int|string>  $potential_orgs
      * @return Collection<int, int|string>
      */
-    private function normalizePotentialOrganizations(Collection $potential_orgs, ?int $costume_id, ?Costume $costume): Collection
+    private function normalizePotentialOrganizations(Collection $potential_orgs, ?Costume $costume): Collection
     {
-        if ($costume_id === null || $costume?->countsAsHandler())
+        if ($costume === null || $costume->countsAsHandler())
         {
             return Organization::rootIdsFor($potential_orgs);
         }
