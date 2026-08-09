@@ -1,6 +1,6 @@
 import { useForm } from "@inertiajs/svelte";
 
-export type Option = { value: string | number | object, label: string };
+export type Option = { value: string | number | boolean | object, label: string };
 
 export abstract class ViewModel {
 }
