@@ -6,6 +6,7 @@ use App\Enums\OauthProvider;
 use App\Http\Controllers\Account\IndexController;
 use App\Http\Controllers\Account\UpdateProfileController;
 use App\Http\Controllers\Account\UpdateNotificationFrequencyController;
+use App\Http\Controllers\Account\UpdatePushNotificationsController;
 use App\Http\Controllers\Account\ClubMembershipsController;
 use App\Http\Controllers\Account\ClubMembershipsSubmitHtmxController;
 use App\Http\Controllers\Account\DeletionCancelController;
@@ -56,6 +57,7 @@ Route::prefix('account')
         Route::get('/', IndexController::class)->name('index');
         Route::post('/update/profile', UpdateProfileController::class)->name('update-profile');
         Route::post('/update/notifications/frequency', UpdateNotificationFrequencyController::class)->name('update-notification-frequency');
+        Route::post('/update/notifications/push', UpdatePushNotificationsController::class)->name('update-push-notifications');
 
 
 
