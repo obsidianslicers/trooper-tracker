@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Account;
 
 use App\Enums\TrooperTheme;
-use App\Features\Troopers\Commands\UpdateTrooperCommand;
-use App\Http\Controllers\MagicBusController;
+use App\Messages\Troopers\Commands\UpdateTrooperProfile;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\Account\UpdateProfileRequest;
+use Hyperdrive\CommsHelper;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
@@ -16,9 +17,9 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
  * Handles form submission for updating the authenticated trooper's profile.
  *
  * This controller validates profile data via UpdateProfileRequest, dispatches
- * UpdateTrooperCommand to persist changes, and redirects back to the update profile page.
+ * UpdateTrooperProfile to persist changes, and redirects back to the update profile page.
  */
-class UpdateProfileController extends MagicBusController
+class UpdateProfileController extends Controller
 {
     /**
      * Handle the incoming request to update the trooper's profile.
@@ -32,20 +33,24 @@ class UpdateProfileController extends MagicBusController
 
         $orginal_theme = $trooper->theme->value;
 
-        $update_cmd = new UpdateTrooperCommand($trooper, $request->validated());
+        UpdateTrooperProfile::call(
+            trooper: $trooper,
+            legal_name: $request->validated('legal_name'),
+            display_name: $request->validated('display_name'),
+            theme: TrooperTheme::from($request->validated('theme')),
+            phone: $request->validated('phone'),
+            display_costume_id: $request->validated('display_costume_id')
+        );
 
-        $this->bus->send($update_cmd);
-
-        $this->flash->updated($trooper);
-
-        $data = [];
+        $data = [
+            'flash' => [
+                'success' => CommsHelper::updated($trooper),
+            ],
+        ];
 
         if ($orginal_theme != $request->validated('theme'))
         {
-            $data['flash'] = [
-                'success' => 'Profile updated successfully.',
-                'warning' => $this->getThemeMessage(TrooperTheme::from($request->validated('theme'))),
-            ];
+            $data['flash']['warning'] = $this->getThemeMessage(TrooperTheme::from($request->validated('theme')));
         }
 
         $current_route = 'account/Index';
