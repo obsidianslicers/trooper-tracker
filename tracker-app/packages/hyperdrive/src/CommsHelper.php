@@ -56,11 +56,11 @@ class CommsHelper
         // Grab 'name' or fallback to 'title'
         $identifier = $model->getAttribute('name') ?? $model->getAttribute('title');
 
-        if (!empty($identifier))
+        if (empty($identifier))
         {
-            return "{$objectName} \"{$identifier}\" was {$action} successfully.";
+            return "{$objectName} was {$action} successfully.";
         }
 
-        return "{$objectName} was {$action} successfully.";
+        return "{$objectName} \"{$identifier}\" was {$action} successfully.";
     }
 }

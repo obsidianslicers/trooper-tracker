@@ -58,7 +58,7 @@
                 coordinators for safety and accountability reasons. This will
                 not be displayed publicly (anonymous viewers).
                 <br />
-                <i> (i.e. Clark Kent) </i>
+                <i> (i.e. Emperor Palpatine) </i>
             </InputHelp>
         </InputContainer>
         <InputContainer>
@@ -70,7 +70,7 @@
             <InputHelp>
                 The name that will be shown publicly (anonymous viewers).
                 <br />
-                <i> (i.e. Superman) </i>
+                <i> (i.e. Darth Sidious) </i>
             </InputHelp>
         </InputContainer>
         <InputContainer>
