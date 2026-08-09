@@ -20,6 +20,10 @@
         ? `theme-${vm.form.theme}`
         : "theme-stormtrooper";
 
+    const initialTheme = vm.form.theme;
+
+    let previewingTheme = $derived(vm.form.theme !== initialTheme);
+
     $effect(() => {
         // SSR Check
         if (typeof document === "undefined") return;
@@ -111,6 +115,11 @@
                 Customize the look and feel of the Tracker. This will change the
                 color scheme and fonts of the interface.
             </InputHelp>
+            {#if previewingTheme}
+                <InputHelp>
+                    <h4>Previewing Theme</h4>
+                </InputHelp>
+            {/if}
         </InputContainer>
         <SubmitButtonContainer>
             <SubmitButton
