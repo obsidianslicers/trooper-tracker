@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Features\Events\Queries;
 
+use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
@@ -207,11 +208,11 @@ trait HasEventDisplayAssembler
     {
         $potential_orgs = collect($event_trooper->costume_organization_ids ?? []);
 
-        $event_trooper->costume_organizations = $this->buildDisplayOrganizations($event_trooper, $potential_orgs, $event_trooper->costume_id);
+        $event_trooper->costume_organizations = $this->buildDisplayOrganizations($event_trooper, $potential_orgs, $event_trooper->costume_id, $event_trooper->costume);
 
         $potential_orgs = collect($event_trooper->backup_costume_organization_ids ?? []);
 
-        $event_trooper->backup_costume_organizations = $this->buildDisplayOrganizations($event_trooper, $potential_orgs, $event_trooper->backup_costume_id);
+        $event_trooper->backup_costume_organizations = $this->buildDisplayOrganizations($event_trooper, $potential_orgs, $event_trooper->backup_costume_id, $event_trooper->backup_costume);
 
         return $event_trooper;
     }
@@ -219,7 +220,14 @@ trait HasEventDisplayAssembler
     /**
      * Builds a display-friendly organization listing for a trooper's costume in an event.
      *
-     * Validates costume approval by:
+     * For handler/Command-Staff costumes (or no costume selected), credit derives from
+     * membership rather than costume approvals — see Costume::countsAsHandler() and
+     * EventTrooper::getEligibleCreditOrganizations(), which resolves the same way. In that
+     * case approved_orgs is the trooper's active trooper_assignments membership, rolled up
+     * to primary-club IDs (Trooper::activeAssignmentPrimaryClubIds()) to match the top-level
+     * clubs $this->organizations is keyed by.
+     *
+     * Otherwise, validates costume approval by:
      * 1. Finding trooper_costumes where organization_costume relationship matches the event_trooper's costume_id (or backup_costume_id)
      * 2. Extracting organization_ids from approved costumes
      * 3. Narrowing to orgs the trooper is an active member of (memberOrgIds()) — a costume
@@ -241,19 +249,34 @@ trait HasEventDisplayAssembler
      * @param  EventTrooper  $event_trooper  The trooper assignment (provides access to costume_id and approved costumes)
      * @param  Collection<int, int|string>  $potential_orgs  Organization IDs that were potentially selected for this costume
      * @param  int|null  $costume_id  The costume ID to use for filtering approved organizations
+     * @param  Costume|null  $costume  The costume model matching $costume_id, used to detect handler/Command-Staff costumes
      * @return string Display string ready for view rendering
      */
-    private function buildDisplayOrganizations(EventTrooper $event_trooper, Collection $potential_orgs, $costume_id): string
+    private function buildDisplayOrganizations(EventTrooper $event_trooper, Collection $potential_orgs, $costume_id, ?Costume $costume): string
     {
-        // Filter actual approvals by reaching through to the organization_costume
-        $approved_orgs = $event_trooper->trooper?->trooper_costumes
-            ->filter(fn ($tc) => optional($tc->organization_costume)->costume_id == $costume_id)
-            ->pluck('organization_costume.organization_id')
-            ->unique()
-            ?? collect();
-
-        if ($event_trooper->trooper !== null)
+        if ($event_trooper->trooper === null)
         {
+            $approved_orgs = collect();
+        }
+        elseif ($costume_id === null || $costume?->countsAsHandler())
+        {
+            // $this->organizations only holds top-level clubs (see bootHasEventDisplayAssembler()),
+            // so assignment org IDs must be rolled up to their primary club before lookup — an
+            // assignment can be at a region/unit level (e.g. a squad under a legion). The stored
+            // potential_orgs snapshot can likewise hold sub-org IDs from a prior handler-costume
+            // save (see EventTrooper::getEligibleCreditOrganizations()), so it needs the same
+            // rollup to stay comparable.
+            $approved_orgs = $event_trooper->trooper->activeAssignmentPrimaryClubIds();
+            $potential_orgs = Organization::rootIdsFor($potential_orgs);
+        }
+        else
+        {
+            // Filter actual approvals by reaching through to the organization_costume
+            $approved_orgs = $event_trooper->trooper->trooper_costumes
+                ->filter(fn ($tc) => optional($tc->organization_costume)->costume_id == $costume_id)
+                ->pluck('organization_costume.organization_id')
+                ->unique();
+
             $approved_orgs = $approved_orgs->intersect($this->memberOrgIds($event_trooper->trooper));
         }
 
