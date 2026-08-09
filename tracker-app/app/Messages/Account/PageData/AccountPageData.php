@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Messages\Account\PageData;
 
+use App\Enums\NotificationFrequency;
 use App\Enums\TrooperNotifications;
 use App\Enums\AdministrativeNotifications;
 use App\Enums\TrooperTheme;
@@ -91,8 +92,9 @@ final class AccountPageData extends Message
     private function getNotifications(): array
     {
         return [
-            'trooper_notification_enums' => TrooperNotifications::toArray(),
-            'administrative_notification_enums' => AdministrativeNotifications::toArray(),
+            'trooper_notification_enums' => TrooperNotifications::toValueLabels(),
+            'administrative_notification_enums' => AdministrativeNotifications::toValueLabels(),
+            'notification_frequency_enums' => NotificationFrequency::toValueLabels(),
             'notification_frequency' => $this->actor->notification_frequency,
             'push_notifications_enabled' => $this->actor->push_notifications_enabled,
             'notification_preferences' => $this->actor->notification_preferences ?? [],

@@ -37,7 +37,7 @@ class UpdateProfileController extends Controller
             trooper: $trooper,
             legal_name: $request->validated('legal_name'),
             display_name: $request->validated('display_name'),
-            theme: TrooperTheme::from($request->validated('theme')),
+            theme: $request->validated('theme'),
             phone: $request->validated('phone'),
             display_costume_id: $request->validated('display_costume_id')
         );

@@ -56,6 +56,14 @@ router.on('success', (event) => {
         to_messages(flash.warning).forEach((m) => flashState.warning(m));
         to_messages(flash.info).forEach((m) => flashState.info(m));
     }
+    else if (pg.props.toast) {
+        const toast = pg.props.toast as InertiaFlashProps;
+
+        to_messages(toast.success).forEach((m) => toastState.success(m));
+        to_messages(toast.danger).forEach((m) => toastState.danger(m));
+        to_messages(toast.warning).forEach((m) => toastState.warning(m));
+        to_messages(toast.info).forEach((m) => toastState.info(m));
+    }
     else if (pg.props.errors && Object.keys(pg.props.errors).length > 0) {
         toastState.danger('Validation errors .. data submission cancelled.');
     }

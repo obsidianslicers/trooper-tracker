@@ -11,9 +11,9 @@ use Hyperdrive\Message;
 /**
  * Command message for updating a trooper's profile information.
  * 
- * @method static void call()
+ * @method static void call(Trooper $trooper, string $legal_name, string $display_name, TrooperTheme $theme, string|null $phone, int|null $display_costume_id)
  */
-readonly class UpdateTrooperProfile extends Message
+final class UpdateTrooperProfile extends Message
 {
     public function __construct(
         private readonly Trooper $trooper,
@@ -30,7 +30,7 @@ readonly class UpdateTrooperProfile extends Message
      *
      * @return null
      */
-    public function __invoke(): void
+    public function handle(): void
     {
         $this->trooper->legal_name = $this->legal_name;
         $this->trooper->display_name = $this->display_name;

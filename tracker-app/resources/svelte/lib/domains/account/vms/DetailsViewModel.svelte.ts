@@ -1,8 +1,8 @@
 import { SubmitableViewModel, type Option } from "$lib/domains/types.svelte";
-import { getRoute } from "$lib/utils";
+import { getRoute, propertyRemover } from "$lib/utils";
 import { useForm, type InertiaForm } from "@inertiajs/svelte";
 
-function createDetailsForm(options: Partial<Details> = {}): InertiaForm<Details> {
+function createDetailsForm(options: Partial<DetailsForm> = {}): InertiaForm<DetailsForm> {
     const data = {
         id: 0,
         display_name: '',
@@ -13,29 +13,25 @@ function createDetailsForm(options: Partial<Details> = {}): InertiaForm<Details>
         ...options
     };
 
-    return useForm<Details>(data);
+    propertyRemover(data, ['display_costumes', 'theme_enums']);
+
+    return useForm<DetailsForm>(data);
 }
 
-export type DetailsPageData = {
-    id: number;
+export type DetailsForm = {
     display_name: string;
     legal_name: string;
     phone: string;
     display_costume_id: number | null;
-    display_costumes: Option[];
     theme: string;
+};
+
+export type DetailsPageData = DetailsForm & {
+    display_costumes: Option[];
     theme_enums: Option[];
 };
 
-export type Details = {
-    display_name: string;
-    legal_name: string;
-    phone: string;
-    display_costume_id: number | null;
-    theme: string;
-};
-
-export class DetailsViewModel extends SubmitableViewModel<DetailsViewModel, Details> {
+export class DetailsViewModel extends SubmitableViewModel<DetailsViewModel, DetailsForm> {
     display_costumes: Option[] = $state([]);
     theme_enums: Option[] = $state([]);
 

@@ -1,29 +1,31 @@
 <script lang="ts">
+    import InputContainer from "$lib/components/form/InputContainer.svelte";
+    import InputHelp from "$lib/components/form/InputHelp.svelte";
     import InputSelect from "$lib/components/form/InputSelect.svelte";
     import SlimView from "$lib/components/ui/SlimView.svelte";
-    import {
-        type NotificationSettings,
-        NotificationsViewModel,
-    } from "$lib/domains/account";
-    import { onMount } from "svelte";
+    import type { NotificationsPageData } from "$lib/domains/account";
+    import { NotificationsViewModel } from "$lib/domains/account";
 
     interface Props {
-        notifications: NotificationSettings;
+        notifications: NotificationsPageData;
     }
     let { notifications }: Props = $props();
 
-    let vm = new NotificationsViewModel();
-
-    onMount(() => {
-        vm.load(notifications);
-    });
+    let vm = new NotificationsViewModel(notifications);
 </script>
 
 <SlimView>
-    <InputSelect
-        label="Notification Frequency"
-        bind:value={vm.notifications.notificationFrequency}
-        options={configStateSvelte.getEnumOptions("notificationFrequency")}
-        errors={vm.errors.notificationFrequency}
-    />
+    <InputContainer>
+        <InputSelect
+            label="Notification Frequency"
+            bind:value={vm.form.notification_frequency}
+            options={vm.notification_frequency_enums}
+            errors={vm.errors.notification_frequency}
+            change={() => vm.updateNotificationFrequency()}
+        />
+        <InputHelp>
+            How often you want to receive notifications about events added to
+            the Trooper Tracker system.
+        </InputHelp>
+    </InputContainer>
 </SlimView>

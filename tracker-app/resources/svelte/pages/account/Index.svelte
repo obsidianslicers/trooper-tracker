@@ -11,6 +11,7 @@
     import pageState from "$lib/states/page-state.svelte";
     import { usePage } from "@inertiajs/svelte";
     import Details from "./components/Details.svelte";
+    import Notifications from "./components/Notifications.svelte";
 
     const page = usePage<AccountPageData>();
 
@@ -31,7 +32,9 @@
         <TabPanel id="profile">
             <Details details={vm.pageData?.details} />
         </TabPanel>
-        <TabPanel id="notifications">Notifications</TabPanel>
+        <TabPanel id="notifications">
+            <Notifications notifications={vm.pageData?.notifications} />
+        </TabPanel>
         <TabPanel id="costumes">Costumes</TabPanel>
         <TabPanel id="memberships">Memberships</TabPanel>
         <TabPanel id="friends">Friends</TabPanel>

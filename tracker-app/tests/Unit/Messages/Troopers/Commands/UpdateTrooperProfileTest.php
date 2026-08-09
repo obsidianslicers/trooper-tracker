@@ -37,7 +37,7 @@ class UpdateTrooperProfileTest extends TestCase
             display_costume_id: $updated_display_costume->id,
         );
 
-        $subject->__invoke();
+        $subject->handle();
 
         $trooper->refresh();
 
@@ -75,7 +75,7 @@ class UpdateTrooperProfileTest extends TestCase
             display_costume_id: null,
         );
 
-        $subject->__invoke();
+        $subject->handle();
 
         $this->assertDatabaseHas('tt_troopers', [
             Trooper::ID => $trooper->id,
