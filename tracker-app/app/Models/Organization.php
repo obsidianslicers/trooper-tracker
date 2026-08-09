@@ -11,7 +11,9 @@ use App\Models\Concerns\HasTrooperStamps;
 use App\Models\Scopes\HasOrganizationScopes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 /**
  * Represents an organization within the trooping community hierarchy.
@@ -26,9 +28,9 @@ use Illuminate\Support\Collection;
  */
 class Organization extends BaseOrganization
 {
+    use HasFactory;
     use HasObserver;
     use HasOrganizationScopes;
-    use HasFactory;
     use HasTrooperStamps;
 
     const NODE_PATH_SEP = ':';
@@ -47,8 +49,8 @@ class Organization extends BaseOrganization
 
     /**
      * Alias for organization()
-     * 
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<Organization, Organization>
+     *
+     * @return BelongsTo<Organization, Organization>
      */
     public function parent(): BelongsTo
     {
@@ -58,7 +60,7 @@ class Organization extends BaseOrganization
     /**
      * Get all event organizations associated with this organization.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany<EventOrganization>
+     * @return HasMany<EventOrganization>
      */
     public function event_organizations()
     {
@@ -84,7 +86,7 @@ class Organization extends BaseOrganization
             $organization = $organization->parent;
         }
 
-        return str_repeat(' - ', $level) . $this->name;
+        return str_repeat(' - ', $level).$this->name;
     }
 
     /**
@@ -104,6 +106,30 @@ class Organization extends BaseOrganization
         }
 
         return $organization;
+    }
+
+    /**
+     * Resolve the root (primary-club) organization IDs for a set of organization IDs.
+     *
+     * Uses node_path (format "rootId:childId:...:") for a single-query lookup rather than
+     * per-org parent traversal — see getPrimaryClub() for the traversal-based equivalent.
+     *
+     * @param  Collection<int, int>  $organization_ids
+     * @return Collection<int, int>
+     */
+    public static function rootIdsFor(Collection $organization_ids): Collection
+    {
+        if ($organization_ids->isEmpty())
+        {
+            return collect();
+        }
+
+        return static::whereIn(self::ID, $organization_ids)
+            ->pluck(self::NODE_PATH)
+            ->map(fn ($path) => (int) Str::before($path, self::NODE_PATH_SEP))
+            ->filter()
+            ->unique()
+            ->values();
     }
 
     public static function buildPathLabels(Collection $orgs, string $separator = ' › '): array
@@ -132,7 +158,7 @@ class Organization extends BaseOrganization
 
         foreach ($orgs as $org)
         {
-            $ids   = $parse($org->node_path);
+            $ids = $parse($org->node_path);
             $names = array_filter(array_map(fn (int $id) => $ancestors[$id]?->name, $ids));
             $paths[$org->id] = implode($separator, $names) ?: $org->name;
         }

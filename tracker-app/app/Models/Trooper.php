@@ -17,11 +17,11 @@ use App\Models\Scopes\HasTrooperScopes;
 use Hyperdrive\Contracts\Actor;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Auth\MustVerifyEmail;
-use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
 use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
+use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -73,7 +73,7 @@ class Trooper extends BaseTrooper implements
      */
     public function getAuditLabel(): string
     {
-        return $this->display_name . ' (' . $this->email . ')';
+        return $this->display_name.' ('.$this->email.')';
     }
 
     /**
@@ -109,8 +109,6 @@ class Trooper extends BaseTrooper implements
 
     /**
      * Alias for trooper
-     *
-     * @return BelongsTo
      */
     public function guardian(): BelongsTo
     {
@@ -249,6 +247,31 @@ class Trooper extends BaseTrooper implements
     }
 
     /**
+     * Get the organization IDs the trooper currently holds an active membership assignment for.
+     *
+     * @return Collection<int, int>
+     */
+    public function activeAssignmentOrganizationIds(): Collection
+    {
+        return $this->trooper_assignments()
+            ->where(TrooperAssignment::IS_MEMBER, true)
+            ->pluck(TrooperAssignment::ORGANIZATION_ID);
+    }
+
+    /**
+     * Get the primary-club (root) organization IDs for the trooper's active assignments.
+     *
+     * Assignments can be at any hierarchy depth (region, unit, etc.), but callers that
+     * display or match against top-level clubs need the root of each assignment's org.
+     *
+     * @return Collection<int, int>
+     */
+    public function activeAssignmentPrimaryClubIds(): Collection
+    {
+        return Organization::rootIdsFor($this->activeAssignmentOrganizationIds());
+    }
+
+    /**
      * Determine if the trooper is a moderator for the given organization.
      *
      * Administrators are always considered moderators for all organizations.
@@ -298,7 +321,6 @@ class Trooper extends BaseTrooper implements
      *
      * Returns an empty collection when the event has no can_attend restrictions.
      *
-     * @param  Event  $event
      * @return Collection<int, Organization>
      */
     public function eligibleOrgsForEvent(Event $event): Collection
@@ -324,10 +346,10 @@ class Trooper extends BaseTrooper implements
         // Extract the root org ID from each assigned org's node_path (format: "rootId:childId:…:")
         $root_org_ids = Organization::whereIn('id', $assignment_org_ids)
             ->pluck(Organization::NODE_PATH)
-            ->map(fn($path) => (int) Str::before($path, Organization::NODE_PATH_SEP))
+            ->map(fn ($path) => (int) Str::before($path, Organization::NODE_PATH_SEP))
             ->filter()
             ->unique()
-            ->filter(fn($id) => $can_attend_ids->contains($id));
+            ->filter(fn ($id) => $can_attend_ids->contains($id));
 
         return Organization::whereIn('id', $root_org_ids)->get();
     }
@@ -357,7 +379,7 @@ class Trooper extends BaseTrooper implements
     /**
      * Get the trooper achievement for a specific achievement type.
      *
-     * @param AchievementType $type The type of achievement to retrieve
+     * @param  AchievementType  $type  The type of achievement to retrieve
      * @return TrooperAchievement|null The trooper achievement if found, or null if not found
      */
     public function getTrooperAchievement(AchievementType $type, ?int $organization_id = null): ?TrooperAchievement
@@ -371,7 +393,7 @@ class Trooper extends BaseTrooper implements
     /**
      * Get the trooper achievement for a specific achievement type.
      *
-     * @param AchievementType $type The type of achievement to retrieve
+     * @param  AchievementType  $type  The type of achievement to retrieve
      * @return mixed|null The value of the trooper achievement if found, or null if not found
      */
     public function getAchievementValue(AchievementType $type, ?int $organization_id = null): mixed
@@ -388,6 +410,7 @@ class Trooper extends BaseTrooper implements
 
     /**
      * Resolve an Imperial Title based on leaderboard position using powers of two.
+     *
      * @return string The Imperial Title.
      */
     public function getTitleByTrooperRank(): string
@@ -398,7 +421,7 @@ class Trooper extends BaseTrooper implements
         {
             return match ($this->theme->value)
             {
-                TrooperTheme::CLONE ->value => 'Cadet',
+                TrooperTheme::CLONE->value => 'Cadet',
                 TrooperTheme::BOUNTY_HUNTER->value => 'Foundling',
                 TrooperTheme::REBEL->value => 'Outcast',
                 TrooperTheme::SITH->value => 'Initiate',
@@ -411,96 +434,96 @@ class Trooper extends BaseTrooper implements
 
         return match ($this->theme->value)
         {
-            TrooperTheme::CLONE ->value => match (true)
-                {
-                    $rank === 1 => 'Supreme Commander',
-                    $rank <= 3 => 'Marshal Commander',
-                    $rank <= 7 => 'Senior Commander',
-                    $rank <= 15 => 'Regimental Commander',
-                    $rank <= 31 => 'Battalion Commander',
-                    $rank <= 63 => 'Captain',
-                    $rank <= 127 => 'Lieutenant',
-                    $rank <= 255 => 'Sergeant Major',
-                    $rank <= 511 => 'Sergeant',
-                    $rank <= 1023 => 'Corporal',
-                    $rank <= 2047 => 'Trooper',
-                    default => 'Cadet',
-                },
+            TrooperTheme::CLONE->value => match (true)
+            {
+                $rank === 1 => 'Supreme Commander',
+                $rank <= 3 => 'Marshal Commander',
+                $rank <= 7 => 'Senior Commander',
+                $rank <= 15 => 'Regimental Commander',
+                $rank <= 31 => 'Battalion Commander',
+                $rank <= 63 => 'Captain',
+                $rank <= 127 => 'Lieutenant',
+                $rank <= 255 => 'Sergeant Major',
+                $rank <= 511 => 'Sergeant',
+                $rank <= 1023 => 'Corporal',
+                $rank <= 2047 => 'Trooper',
+                default => 'Cadet',
+            },
             TrooperTheme::BOUNTY_HUNTER->value => match (true)
-                {
-                    $rank === 1 => 'Guild Master',
-                    $rank <= 3 => 'Apex Predator',
-                    $rank <= 7 => 'Legendary Hunter',
-                    $rank <= 15 => 'Elite Enforcer',
-                    $rank <= 31 => 'Veteran Tracker',
-                    $rank <= 63 => 'Guild Contractor',
-                    $rank <= 127 => 'Huntsman',
-                    $rank <= 255 => 'Tracker',
-                    $rank <= 511 => 'Specialist',
-                    $rank <= 1023 => 'Hireling',
-                    $rank <= 2047 => 'Fledgling',
-                    default => 'Foundling',
-                },
+            {
+                $rank === 1 => 'Guild Master',
+                $rank <= 3 => 'Apex Predator',
+                $rank <= 7 => 'Legendary Hunter',
+                $rank <= 15 => 'Elite Enforcer',
+                $rank <= 31 => 'Veteran Tracker',
+                $rank <= 63 => 'Guild Contractor',
+                $rank <= 127 => 'Huntsman',
+                $rank <= 255 => 'Tracker',
+                $rank <= 511 => 'Specialist',
+                $rank <= 1023 => 'Hireling',
+                $rank <= 2047 => 'Fledgling',
+                default => 'Foundling',
+            },
             TrooperTheme::REBEL->value => match (true)
-                {
-                    $rank === 1 => 'Supreme Commander',
-                    $rank <= 3 => 'General',
-                    $rank <= 7 => 'Commander',
-                    $rank <= 15 => 'Captain',
-                    $rank <= 31 => 'Major',
-                    $rank <= 63 => 'Lieutenant',
-                    $rank <= 127 => 'Vanguard',
-                    $rank <= 255 => 'Sergeant',
-                    $rank <= 511 => 'Corporal',
-                    $rank <= 1023 => 'Private',
-                    $rank <= 2047 => 'Recruit',
-                    default => 'Outcast',
-                },
+            {
+                $rank === 1 => 'Supreme Commander',
+                $rank <= 3 => 'General',
+                $rank <= 7 => 'Commander',
+                $rank <= 15 => 'Captain',
+                $rank <= 31 => 'Major',
+                $rank <= 63 => 'Lieutenant',
+                $rank <= 127 => 'Vanguard',
+                $rank <= 255 => 'Sergeant',
+                $rank <= 511 => 'Corporal',
+                $rank <= 1023 => 'Private',
+                $rank <= 2047 => 'Recruit',
+                default => 'Outcast',
+            },
             TrooperTheme::SITH->value => match (true)
-                {
-                    $rank === 1 => 'Sith Emperor',
-                    $rank <= 3 => 'Sith Lord',
-                    $rank <= 7 => 'Sith Master',
-                    $rank <= 15 => 'Inquisitor',
-                    $rank <= 31 => 'Marauder',
-                    $rank <= 63 => 'Assassin',
-                    $rank <= 127 => 'Overseer',
-                    $rank <= 255 => 'Apprentice',
-                    $rank <= 511 => 'Acolyte',
-                    $rank <= 1023 => 'Neophyte',
-                    $rank <= 2047 => 'Adept',
-                    default => 'Initiate',
-                },
+            {
+                $rank === 1 => 'Sith Emperor',
+                $rank <= 3 => 'Sith Lord',
+                $rank <= 7 => 'Sith Master',
+                $rank <= 15 => 'Inquisitor',
+                $rank <= 31 => 'Marauder',
+                $rank <= 63 => 'Assassin',
+                $rank <= 127 => 'Overseer',
+                $rank <= 255 => 'Apprentice',
+                $rank <= 511 => 'Acolyte',
+                $rank <= 1023 => 'Neophyte',
+                $rank <= 2047 => 'Adept',
+                default => 'Initiate',
+            },
             TrooperTheme::STORMTROOPER->value => match (true)
-                {
-                    $rank === 1 => 'Grand Moff',
-                    $rank <= 3 => 'Moff',
-                    $rank <= 7 => 'General',
-                    $rank <= 15 => 'Colonel',
-                    $rank <= 31 => 'Major',
-                    $rank <= 63 => 'Captain',
-                    $rank <= 127 => 'Lieutenant',
-                    $rank <= 255 => 'Sergeant Major',
-                    $rank <= 511 => 'Sergeant',
-                    $rank <= 1023 => 'Corporal',
-                    $rank <= 2047 => 'Trooper',
-                    default => 'Recruit',
-                },
+            {
+                $rank === 1 => 'Grand Moff',
+                $rank <= 3 => 'Moff',
+                $rank <= 7 => 'General',
+                $rank <= 15 => 'Colonel',
+                $rank <= 31 => 'Major',
+                $rank <= 63 => 'Captain',
+                $rank <= 127 => 'Lieutenant',
+                $rank <= 255 => 'Sergeant Major',
+                $rank <= 511 => 'Sergeant',
+                $rank <= 1023 => 'Corporal',
+                $rank <= 2047 => 'Trooper',
+                default => 'Recruit',
+            },
             default => match (true)
-                {
-                    $rank === 1 => 'Grand Moff',
-                    $rank <= 3 => 'Moff',
-                    $rank <= 7 => 'General',
-                    $rank <= 15 => 'Colonel',
-                    $rank <= 31 => 'Major',
-                    $rank <= 63 => 'Captain',
-                    $rank <= 127 => 'Lieutenant',
-                    $rank <= 255 => 'Sergeant Major',
-                    $rank <= 511 => 'Sergeant',
-                    $rank <= 1023 => 'Corporal',
-                    $rank <= 2047 => 'Trooper',
-                    default => 'Recruit',
-                },
+            {
+                $rank === 1 => 'Grand Moff',
+                $rank <= 3 => 'Moff',
+                $rank <= 7 => 'General',
+                $rank <= 15 => 'Colonel',
+                $rank <= 31 => 'Major',
+                $rank <= 63 => 'Captain',
+                $rank <= 127 => 'Lieutenant',
+                $rank <= 255 => 'Sergeant Major',
+                $rank <= 511 => 'Sergeant',
+                $rank <= 1023 => 'Corporal',
+                $rank <= 2047 => 'Trooper',
+                default => 'Recruit',
+            },
         };
     }
 

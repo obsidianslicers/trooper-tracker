@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Features\Events\Queries;
 
+use App\Models\Costume;
 use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
@@ -207,11 +208,11 @@ trait HasEventDisplayAssembler
     {
         $potential_orgs = collect($event_trooper->costume_organization_ids ?? []);
 
-        $event_trooper->costume_organizations = $this->buildDisplayOrganizations($event_trooper, $potential_orgs, $event_trooper->costume_id);
+        $event_trooper->costume_organizations = $this->buildDisplayOrganizations($event_trooper, $potential_orgs, $event_trooper->costume);
 
         $potential_orgs = collect($event_trooper->backup_costume_organization_ids ?? []);
 
-        $event_trooper->backup_costume_organizations = $this->buildDisplayOrganizations($event_trooper, $potential_orgs, $event_trooper->backup_costume_id);
+        $event_trooper->backup_costume_organizations = $this->buildDisplayOrganizations($event_trooper, $potential_orgs, $event_trooper->backup_costume);
 
         return $event_trooper;
     }
@@ -219,52 +220,43 @@ trait HasEventDisplayAssembler
     /**
      * Builds a display-friendly organization listing for a trooper's costume in an event.
      *
-     * Validates costume approval by:
-     * 1. Finding trooper_costumes where organization_costume relationship matches the event_trooper's costume_id (or backup_costume_id)
-     * 2. Extracting organization_ids from approved costumes
-     * 3. Narrowing to orgs the trooper is an active member of (memberOrgIds()) — a costume
-     *    approval row can exist for an org the trooper never joined (e.g. a shared/command-staff
-     *    costume approved across multiple orgs), which should not surface as a credit target
-     * 4. Intersecting with potential_orgs IDs to show only approved + eligible organizations
-     * 5. Resolving organization names via $this->organizations keyed collection
-     *
-     * If the trooper explicitly chose an org slot at signup (event_trooper->organization_id,
-     * set when the event has per-org capacity limits), that single org is shown instead of the
-     * broader approved-org set — it reflects an actual trooper decision rather than every org
-     * their costume happens to be approved for.
+     * Eligibility is resolved by resolveApprovedOrganizations() (costume approvals or, for
+     * handler/Command-Staff costumes, live membership) and narrowed by potential_orgs. Two
+     * cases override that eligibility narrowing with a specific, already-decided value:
+     * - An explicit org slot (event_trooper->organization_id, set when the event has per-org
+     *   capacity limits) reflects an actual trooper decision, so it is shown directly.
+     * - Once attendance is confirmed (status ATTENDED), organization_id/potential_orgs IS the
+     *   credited record — it is shown as-is rather than re-filtered against current
+     *   approved_orgs, which reflects live eligibility and can have shifted since the event
+     *   (e.g. the trooper later left the credited club).
      *
      * Rendering:
      * - Multiple orgs: prepends "(*) " indicator
      * - No matches: shows "(unattached)"
      * - Otherwise: comma-separated, sorted organization names
      *
-     * @param  EventTrooper  $event_trooper  The trooper assignment (provides access to costume_id and approved costumes)
+     * @param  EventTrooper  $event_trooper  The trooper assignment (provides access to approved costumes)
      * @param  Collection<int, int|string>  $potential_orgs  Organization IDs that were potentially selected for this costume
-     * @param  int|null  $costume_id  The costume ID to use for filtering approved organizations
+     * @param  Costume|null  $costume  The costume worn (primary or backup); null means no costume selected
      * @return string Display string ready for view rendering
      */
-    private function buildDisplayOrganizations(EventTrooper $event_trooper, Collection $potential_orgs, $costume_id): string
+    private function buildDisplayOrganizations(EventTrooper $event_trooper, Collection $potential_orgs, ?Costume $costume): string
     {
-        // Filter actual approvals by reaching through to the organization_costume
-        $approved_orgs = $event_trooper->trooper?->trooper_costumes
-            ->filter(fn ($tc) => optional($tc->organization_costume)->costume_id == $costume_id)
-            ->pluck('organization_costume.organization_id')
-            ->unique()
-            ?? collect();
+        $approved_orgs = $this->resolveApprovedOrganizations($event_trooper, $costume);
+        $potential_orgs = $this->normalizePotentialOrganizations($potential_orgs, $costume);
 
-        if ($event_trooper->trooper !== null)
-        {
-            $approved_orgs = $approved_orgs->intersect($this->memberOrgIds($event_trooper->trooper));
-        }
-
-        if ($event_trooper->organization_id !== null && $approved_orgs->contains($event_trooper->organization_id))
+        if ($event_trooper->organization_id !== null
+            && ($event_trooper->attended || $approved_orgs->contains($event_trooper->organization_id)))
         {
             return $this->organizations[$event_trooper->organization_id] ?? '??';
         }
 
-        $final_orgs = $potential_orgs->isEmpty()
-            ? $approved_orgs
-            : $potential_orgs->intersect($approved_orgs);
+        $final_orgs = match (true)
+        {
+            $event_trooper->attended && $potential_orgs->isNotEmpty() => $potential_orgs,
+            $potential_orgs->isEmpty() => $approved_orgs,
+            default => $potential_orgs->intersect($approved_orgs),
+        };
 
         $names = $final_orgs->map(fn ($id) => $this->organizations[$id] ?? '??')->sort();
 
@@ -272,5 +264,62 @@ trait HasEventDisplayAssembler
         $name_list = $names->isEmpty() ? '(unattached)' : $names->implode(', ');
 
         return "{$prefix}{$name_list}";
+    }
+
+    /**
+     * Resolves the organization IDs the trooper is eligible for, given the costume worn.
+     *
+     * For handler/Command-Staff costumes (or no costume selected), credit derives from
+     * membership rather than costume approvals — see Costume::countsAsHandler() and
+     * EventTrooper::getEligibleCreditOrganizations(), which resolves the same way. In that
+     * case the result is the trooper's active trooper_assignments membership, rolled up to
+     * primary-club IDs (Trooper::activeAssignmentPrimaryClubIds()) to match the top-level
+     * clubs $this->organizations is keyed by.
+     *
+     * Otherwise, validates costume approval by finding trooper_costumes where the
+     * organization_costume relationship matches costume_id, narrowed to orgs the trooper is
+     * an active member of (memberOrgIds()) — a costume approval row can exist for an org the
+     * trooper never joined (e.g. a shared/command-staff costume approved across multiple
+     * orgs), which should not surface as a credit target.
+     *
+     * @return Collection<int, int>
+     */
+    private function resolveApprovedOrganizations(EventTrooper $event_trooper, ?Costume $costume): Collection
+    {
+        if ($event_trooper->trooper === null)
+        {
+            return collect();
+        }
+
+        if ($costume === null || $costume->countsAsHandler())
+        {
+            return $event_trooper->trooper->activeAssignmentPrimaryClubIds();
+        }
+
+        $approved_orgs = $event_trooper->trooper->trooper_costumes
+            ->filter(fn ($tc) => optional($tc->organization_costume)->costume_id == $costume->id)
+            ->pluck('organization_costume.organization_id')
+            ->unique();
+
+        return $approved_orgs->intersect($this->memberOrgIds($event_trooper->trooper));
+    }
+
+    /**
+     * Rolls up a stored potential_orgs snapshot to primary-club IDs for handler/Command-Staff
+     * costumes, since it can hold sub-org IDs from a prior save (see
+     * EventTrooper::getEligibleCreditOrganizations()) that won't match $this->organizations,
+     * which is keyed by top-level clubs only.
+     *
+     * @param  Collection<int, int|string>  $potential_orgs
+     * @return Collection<int, int|string>
+     */
+    private function normalizePotentialOrganizations(Collection $potential_orgs, ?Costume $costume): Collection
+    {
+        if ($costume === null || $costume->countsAsHandler())
+        {
+            return Organization::rootIdsFor($potential_orgs);
+        }
+
+        return $potential_orgs;
     }
 }

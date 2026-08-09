@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Features\Events\Queries;
 
+use App\Enums\EventTrooperStatus;
 use App\Features\Events\Queries\GetEventDisplayQuery;
 use App\Features\Events\Queries\GetEventDisplayQueryHandler;
 use App\Models\Costume;
@@ -15,6 +16,7 @@ use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
+use App\Models\TrooperAssignment;
 use App\Models\TrooperCostume;
 use App\Models\TrooperOrganization;
 use Carbon\Carbon;
@@ -173,7 +175,7 @@ class GetEventDisplayQueryHandlerTest extends TestCase
         $shift = EventShift::factory()->forEvent($event)->create();
         $viewer = Trooper::factory()->asMember()->create();
         $trooper = Trooper::factory()->asMember()->create();
-        $costume = Costume::factory()->withName('Command Staff')->create();
+        $costume = Costume::factory()->withName('TK Armor')->create();
 
         $this->allow_organization_for_event($event, $alpha);
         $this->allow_organization_for_event($event, $beta);
@@ -226,6 +228,214 @@ class GetEventDisplayQueryHandlerTest extends TestCase
         );
     }
 
+    public function test_invoke_resolves_command_staff_organization_from_membership_without_costume_approval(): void
+    {
+        $alpha = $this->create_organization('Alpha Outpost');
+        $event = Event::factory()->withOrganization($alpha)->create();
+        $shift = EventShift::factory()->forEvent($event)->create();
+        $viewer = Trooper::factory()->asMember()->create();
+        $trooper = Trooper::factory()->asMember()->create();
+        $costume = Costume::factory()->withName('Command Staff')->create();
+
+        $this->allow_organization_for_event($event, $alpha);
+
+        $this->assign_membership($trooper, $alpha);
+
+        EventTrooper::factory()
+            ->forEventShift($shift)
+            ->forTrooper($trooper)
+            ->withCostume($costume)
+            ->create();
+
+        $subject = new GetEventDisplayQueryHandler;
+
+        $result = $subject(new GetEventDisplayQuery($event, $viewer));
+
+        $this->assertSame(
+            'Alpha Outpost',
+            $result->event_shifts->first()->event_troopers->first()->costume_organizations
+        );
+    }
+
+    public function test_invoke_resolves_command_staff_organization_to_primary_club_for_sub_unit_membership(): void
+    {
+        $alpha = $this->create_organization('Alpha Outpost');
+        $alpha_squad = Organization::factory()
+            ->asUnit()
+            ->withName('Alpha Squad')
+            ->withParent($alpha)
+            ->withNodePath($alpha->node_path.'99:')
+            ->create();
+
+        $event = Event::factory()->withOrganization($alpha)->create();
+        $shift = EventShift::factory()->forEvent($event)->create();
+        $viewer = Trooper::factory()->asMember()->create();
+        $trooper = Trooper::factory()->asMember()->create();
+        $costume = Costume::factory()->withName('Command Staff')->create();
+
+        $this->allow_organization_for_event($event, $alpha);
+
+        // Membership is at the sub-unit level, not the top-level club directly.
+        $this->assign_membership($trooper, $alpha_squad);
+
+        EventTrooper::factory()
+            ->forEventShift($shift)
+            ->forTrooper($trooper)
+            ->withCostume($costume)
+            ->state([EventTrooper::COSTUME_ORGANIZATION_IDS => [$alpha->id]])
+            ->create();
+
+        $subject = new GetEventDisplayQueryHandler;
+
+        $result = $subject(new GetEventDisplayQuery($event, $viewer));
+
+        $this->assertSame(
+            'Alpha Outpost',
+            $result->event_shifts->first()->event_troopers->first()->costume_organizations
+        );
+    }
+
+    public function test_invoke_resolves_command_staff_organization_when_snapshot_stores_sub_unit_id(): void
+    {
+        $alpha = $this->create_organization('Alpha Outpost');
+        $alpha_squad = Organization::factory()
+            ->asUnit()
+            ->withName('Alpha Squad')
+            ->withParent($alpha)
+            ->withNodePath($alpha->node_path.'99:')
+            ->create();
+
+        $event = Event::factory()->withOrganization($alpha)->create();
+        $shift = EventShift::factory()->forEvent($event)->create();
+        $viewer = Trooper::factory()->asMember()->create();
+        $trooper = Trooper::factory()->asMember()->create();
+        $costume = Costume::factory()->withName('Command Staff')->create();
+
+        $this->allow_organization_for_event($event, $alpha);
+
+        $this->assign_membership($trooper, $alpha_squad);
+
+        EventTrooper::factory()
+            ->forEventShift($shift)
+            ->forTrooper($trooper)
+            ->withCostume($costume)
+            // Stored snapshot at sub-unit granularity, as EventTrooper::getEligibleCreditOrganizations()
+            // can produce for handler costumes — must still resolve to the primary club.
+            ->state([EventTrooper::COSTUME_ORGANIZATION_IDS => [$alpha_squad->id]])
+            ->create();
+
+        $subject = new GetEventDisplayQueryHandler;
+
+        $result = $subject(new GetEventDisplayQuery($event, $viewer));
+
+        $this->assertSame(
+            'Alpha Outpost',
+            $result->event_shifts->first()->event_troopers->first()->costume_organizations
+        );
+    }
+
+    public function test_invoke_shows_only_the_selected_club_after_multi_club_credit_select(): void
+    {
+        $alpha = $this->create_organization('Alpha Outpost');
+        $beta = $this->create_organization('Beta Base');
+
+        $event = Event::factory()->withOrganization($alpha)->create();
+        $shift = EventShift::factory()->forEvent($event)->create();
+        $viewer = Trooper::factory()->asMember()->create();
+        $trooper = Trooper::factory()->asMember()->create();
+        $costume = Costume::factory()->withName('Command Staff')->create();
+
+        $this->allow_organization_for_event($event, $alpha);
+        $this->allow_organization_for_event($event, $beta);
+
+        // Trooper is an active member of both clubs...
+        $this->assign_membership($trooper, $alpha);
+        $this->assign_membership($trooper, $beta);
+
+        EventTrooper::factory()
+            ->forEventShift($shift)
+            ->forTrooper($trooper)
+            ->withCostume($costume)
+            ->state([
+                EventTrooper::STATUS => EventTrooperStatus::ATTENDED,
+                EventTrooper::ORGANIZATION_ID => null,
+                // ...but the post-attendance club-select flow narrowed credit to only Alpha
+                // (see ShiftCompleteClubController::childOrgIdsForSelectedParents()).
+                EventTrooper::COSTUME_ORGANIZATION_IDS => [$alpha->id],
+            ])
+            ->create();
+
+        $subject = new GetEventDisplayQueryHandler;
+
+        $result = $subject(new GetEventDisplayQuery($event, $viewer));
+
+        $this->assertSame(
+            'Alpha Outpost',
+            $result->event_shifts->first()->event_troopers->first()->costume_organizations
+        );
+    }
+
+    public function test_invoke_shows_credited_club_for_attended_trooper_even_after_leaving_it(): void
+    {
+        $alpha = $this->create_organization('Alpha Outpost');
+
+        $event = Event::factory()->withOrganization($alpha)->create();
+        $shift = EventShift::factory()->forEvent($event)->create();
+        $viewer = Trooper::factory()->asMember()->create();
+        $trooper = Trooper::factory()->asMember()->create();
+        $costume = Costume::factory()->withName('Command Staff')->create();
+
+        $this->allow_organization_for_event($event, $alpha);
+
+        // No active membership at all now — the trooper left Alpha after the event.
+        EventTrooper::factory()
+            ->forEventShift($shift)
+            ->forTrooper($trooper)
+            ->withCostume($costume)
+            ->state([
+                EventTrooper::STATUS => EventTrooperStatus::ATTENDED,
+                EventTrooper::ORGANIZATION_ID => null,
+                EventTrooper::COSTUME_ORGANIZATION_IDS => [$alpha->id],
+            ])
+            ->create();
+
+        $subject = new GetEventDisplayQueryHandler;
+
+        $result = $subject(new GetEventDisplayQuery($event, $viewer));
+
+        $this->assertSame(
+            'Alpha Outpost',
+            $result->event_shifts->first()->event_troopers->first()->costume_organizations
+        );
+    }
+
+    public function test_invoke_marks_command_staff_unattached_when_trooper_has_no_membership(): void
+    {
+        $alpha = $this->create_organization('Alpha Outpost');
+        $event = Event::factory()->withOrganization($alpha)->create();
+        $shift = EventShift::factory()->forEvent($event)->create();
+        $viewer = Trooper::factory()->asMember()->create();
+        $trooper = Trooper::factory()->asMember()->create();
+        $costume = Costume::factory()->withName('Command Staff')->create();
+
+        $this->allow_organization_for_event($event, $alpha);
+
+        EventTrooper::factory()
+            ->forEventShift($shift)
+            ->forTrooper($trooper)
+            ->withCostume($costume)
+            ->create();
+
+        $subject = new GetEventDisplayQueryHandler;
+
+        $result = $subject(new GetEventDisplayQuery($event, $viewer));
+
+        $this->assertSame(
+            '(unattached)',
+            $result->event_shifts->first()->event_troopers->first()->costume_organizations
+        );
+    }
+
     public function test_invoke_loads_organization_node_path_for_moderator_checks(): void
     {
         $organization = $this->create_organization('Alpha Outpost');
@@ -257,6 +467,15 @@ class GetEventDisplayQueryHandlerTest extends TestCase
         TrooperOrganization::factory()
             ->forTrooper($trooper)
             ->forOrganization($organization)
+            ->create();
+    }
+
+    private function assign_membership(Trooper $trooper, Organization $organization): void
+    {
+        TrooperAssignment::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($organization)
+            ->asMember()
             ->create();
     }
 
