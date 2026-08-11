@@ -13,6 +13,7 @@ use BackedEnum;
 use InvalidArgumentException;
 use ReflectionClass;
 use ReflectionNamedType;
+use ReflectionUnionType;
 use ReflectionParameter;
 use UnitEnum;
 
@@ -66,6 +67,11 @@ final class MessageDispatcher
             /** @var Message $message */
             $message = $this->resolveMessage($message_class, $all_params);
 
+            if (!method_exists($message, 'handle'))
+            {
+                throw new Exception("Message class `{$message_class}` does not have a `handle()` method.");
+            }
+
             return app()->call([$message, 'handle']);
         }
         catch (ValidationException $e)
@@ -105,12 +111,12 @@ final class MessageDispatcher
         }
 
         $resolved_params = [];
-        $validation_errors = [];
+        $parameter_errors = [];
 
         foreach ($constructor->getParameters() as $parameter)
         {
             $name = $parameter->getName();
-            $has_input = isset($params[$name]);
+            $has_input = array_key_exists($name, $params);
             $value = null;
 
             if (self::isParameterActor($parameter))
@@ -132,14 +138,14 @@ final class MessageDispatcher
 
                 if (!$parameter->isOptional() && !$parameter->allowsNull())
                 {
-                    $validation_errors[$name] = ["The Hyperdrive input-parameter `{$base_name}:{$name}` is required."];
+                    $parameter_errors[$name] = ["The Hyperdrive input-parameter `{$base_name}:{$name}` is required."];
                     continue;
                 }
             }
 
             if ($value === null && !$parameter->allowsNull())
             {
-                $validation_errors[$name] = ["The Hyperdrive parameter `{$base_name}:{$name}` is required."];
+                $parameter_errors[$name] = ["The Hyperdrive parameter `{$base_name}:{$name}` is required."];
                 continue;
             }
 
@@ -149,17 +155,17 @@ final class MessageDispatcher
             }
             catch (ValidationException $e)
             {
-                $validation_errors = array_merge($validation_errors, $e->errors());
+                $parameter_errors = array_merge($parameter_errors, $e->errors());
             }
             catch (ModelNotFoundException)
             {
-                $validation_errors[$name] = ["The selected model `{$base_name}:{$name}` is invalid or does not exist."];
+                $parameter_errors[$name] = ["The selected model `{$base_name}:{$name}` is invalid or does not exist."];
             }
         }
 
-        if ($validation_errors !== [])
+        if ($parameter_errors !== [])
         {
-            throw new InvalidArgumentException("Invalid message parameters: " . json_encode($validation_errors));
+            throw new InvalidArgumentException("Invalid message parameters: " . json_encode($parameter_errors));
         }
 
         return $reflection->newInstanceArgs($resolved_params);
@@ -175,18 +181,80 @@ final class MessageDispatcher
      */
     private function resolveParameterValue(ReflectionParameter $parameter, mixed $value): mixed
     {
-        $type = $parameter->getType();
-
-        if (!$type instanceof ReflectionNamedType)
-        {
-            return $value;
-        }
-
         if ($value === null)
         {
             return null;
         }
 
+        $type = $parameter->getType();
+
+        if ($type instanceof ReflectionNamedType)
+        {
+            return $this->resolveNamedTypeValue($parameter, $type, $value);
+        }
+
+        if ($type instanceof ReflectionUnionType)
+        {
+            //  only supporting enums right now
+            //return $this->resolveNamedTypeValue($parameter, $type, $value);
+            $non_null_types = array_filter(
+                $type->getTypes(),
+                fn(ReflectionNamedType $t) => $t->getName() !== 'null'
+            );
+
+            // If it's a simple nullable union like string|null, extract the primary type
+            if (count($non_null_types) === 1)
+            {
+                $primary_type = reset($non_null_types);
+
+                if ($primary_type instanceof ReflectionNamedType)
+                {
+                    return $this->resolveNamedTypeValue($parameter, $primary_type, $value);
+                }
+            }
+
+            // 2. Validate that EVERY non-null type in this union is an Enum
+            $all_enums = array_reduce(
+                $non_null_types,
+                fn(bool $carry, ReflectionNamedType $t) => $carry && enum_exists($t->getName()),
+                true
+            );
+
+            if ($all_enums)
+            {
+                return $this->resolveEnumUnion($parameter, $non_null_types, $value);
+            }
+        }
+
+        return $value;
+    }
+
+    private function resolveEnumUnion(ReflectionParameter $parameter, array $types, mixed $value): BackedEnum|UnitEnum
+    {
+        foreach ($types as $type)
+        {
+            $type_name = $type->getName();
+
+            if (enum_exists($type_name))
+            {
+                try
+                {
+                    return $this->resolveEnum($parameter, $type_name, $value);
+                }
+                catch (ValidationException)
+                {
+                    // Continue to the next type in the union
+                }
+            }
+        }
+
+        throw ValidationException::withMessages([
+            $parameter->getName() => ["The `{$parameter->getName()}={$value}` parameter is invalid for all enum types in the union."],
+        ]);
+    }
+
+    private function resolveNamedTypeValue(ReflectionParameter $parameter, ReflectionNamedType $type, mixed $value): mixed
+    {
         $type_name = $type->getName();
 
         if (!$type->isBuiltin() && enum_exists($type_name))

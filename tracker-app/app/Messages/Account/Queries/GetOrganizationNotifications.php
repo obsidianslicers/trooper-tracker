@@ -29,7 +29,7 @@ final class GetOrganizationNotifications extends Message
     /**
      * Retrieves the details of an account.
      *
-     * @return Collection Organizations with selected flags
+     * @return Collection Organizations with enabled flags
      */
     public function handle(): Collection
     {
@@ -42,15 +42,15 @@ final class GetOrganizationNotifications extends Message
 
         foreach ($organizations as $organization)
         {
-            $organization->selected = in_array($organization->id, $trooper_assignments);
+            $organization->enabled = in_array($organization->id, $trooper_assignments);
 
             foreach ($organization->organizations as $region)
             {
-                $region->selected = in_array($region->id, $trooper_assignments);
+                $region->enabled = in_array($region->id, $trooper_assignments);
 
                 foreach ($region->organizations as $unit)
                 {
-                    $unit->selected = in_array($unit->id, $trooper_assignments);
+                    $unit->enabled = in_array($unit->id, $trooper_assignments);
                 }
             }
         }

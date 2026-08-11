@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use App\Enums\OauthProvider;
+use App\Http\Controllers\Account\UpdateOrganizationNotificationsController;
+use App\Http\Controllers\Account\UpdateNotificationPreferenceController;
 use App\Http\Controllers\Account\IndexController;
 use App\Http\Controllers\Account\UpdateProfileController;
 use App\Http\Controllers\Account\UpdateNotificationFrequencyController;
@@ -58,6 +60,8 @@ Route::prefix('account')
         Route::post('/update/profile', UpdateProfileController::class)->name('update-profile');
         Route::post('/update/notifications/frequency', UpdateNotificationFrequencyController::class)->name('update-notification-frequency');
         Route::post('/update/notifications/push', UpdatePushNotificationsController::class)->name('update-push-notifications');
+        Route::post('/update/notifications/organization', UpdateOrganizationNotificationsController::class)->name('update-organization-notifications');
+        Route::post('/update/notifications/preference', UpdateNotificationPreferenceController::class)->name('update-notification-preference');
 
 
 

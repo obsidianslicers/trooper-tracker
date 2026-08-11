@@ -4,17 +4,20 @@ declare(strict_types=1);
 
 namespace App\Messages\Account\PageData;
 
+use App\Enums\NotificationChannels;
 use App\Enums\NotificationFrequency;
 use App\Enums\TrooperNotifications;
 use App\Enums\AdministrativeNotifications;
 use App\Enums\TrooperTheme;
 use App\Messages\Account\Queries\GetCostumesWithPrefixes;
 use App\Messages\Account\Queries\GetOrganizationNotifications;
+use App\Messages\Troopers\Queries\GetTrooperMinors;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperCostume;
 use Hyperdrive\Message;
 use Hyperdrive\Contracts\Actor;
+use App\Messages\Troopers\Queries\GetTrooperFriends;
 
 /**
  * Retrieves application configuration including authentication provider status and feature toggles.
@@ -47,7 +50,9 @@ final class AccountPageData extends Message
         $data = [
             'email' => $this->actor->email,
             'details' => $this->getDetails(),
-            'notifications' => $this->getNotifications()
+            'notifications' => $this->getNotifications(),
+            'friends' => $this->getFriends(),
+            'minors' => $this->getMinors(),
         ];
 
         return $data;
@@ -98,9 +103,28 @@ final class AccountPageData extends Message
             'notification_frequency_enums' => NotificationFrequency::toValueLabels(),
             'notification_frequency' => $this->actor->notification_frequency,
             'push_notifications_enabled' => $this->actor->push_notifications_enabled,
-            'notification_preferences' => $this->actor->notification_preferences ?? [],
+            'notification_preferences' => $this->actor->notification_preferences ?? $this->defaultNotificationPreferences(),
             'organization_notifications' => $this->getOrganizationNotifications(),
         ];
+    }
+
+    private function defaultNotificationPreferences(): array
+    {
+        $channels = array_keys(NotificationChannels::toArray());
+
+        $preferences = [];
+
+        foreach (TrooperNotifications::toArray() as $key => $label)
+        {
+            $preferences[$key] = array_fill_keys($channels, true);
+        }
+
+        foreach (AdministrativeNotifications::toArray() as $key => $label)
+        {
+            $preferences[$key] = array_fill_keys($channels, true);
+        }
+
+        return $preferences;
     }
 
     private function getOrganizationNotifications(): array
@@ -109,17 +133,38 @@ final class AccountPageData extends Message
             ->map(fn(Organization $org) => [
                 'id' => $org->id,
                 'name' => $org->name,
-                'selected' => $org->selected,
+                'enabled' => $org->enabled,
                 'regions' => $org->organizations->map(fn($region) => [
                     'id' => $region->id,
                     'name' => $region->name,
-                    'selected' => $region->selected,
+                    'enabled' => $region->enabled,
                     'units' => $region->organizations->map(fn($unit) => [
                         'id' => $unit->id,
                         'name' => $unit->name,
-                        'selected' => $unit->selected,
+                        'enabled' => $unit->enabled,
                     ]),
                 ]),
+            ])->toArray();
+    }
+
+    private function getFriends(): array
+    {
+        return GetTrooperFriends::call(trooper: $this->actor)
+            ->map(fn(Trooper $friend) => [
+                Trooper::ID => $friend->id,
+                Trooper::LEGAL_NAME => $friend->legal_name,
+                Trooper::DISPLAY_NAME => $friend->display_name,
+            ])->toArray();
+    }
+
+    private function getMinors(): array
+    {
+        return GetTrooperMinors::call(trooper: $this->actor)
+            ->map(fn(Trooper $minor) => [
+                Trooper::ID => $minor->id,
+                Trooper::LEGAL_NAME => $minor->legal_name,
+                Trooper::DISPLAY_NAME => $minor->display_name,
+                Trooper::DATE_OF_BIRTH => $minor->date_of_birth,
             ])->toArray();
     }
 }

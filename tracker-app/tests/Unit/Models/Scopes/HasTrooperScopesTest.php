@@ -7,6 +7,7 @@ namespace Tests\Unit\Models\Scopes;
 use App\Enums\MembershipStatus;
 use App\Models\Organization;
 use App\Models\Trooper;
+use App\Models\TrooperFriend;
 use App\Models\TrooperOrganization;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -29,6 +30,24 @@ class HasTrooperScopesTest extends TestCase
 
         $this->assertStringContainsString('"membership_status" = ?', $query->toBase()->toSql());
         $this->assertSame([MembershipStatus::ACTIVE->value], $query->getBindings());
+    }
+
+    public function test_friends_filters_to_direct_friends_for_trooper(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $friend_alpha = Trooper::factory()->create();
+        $friend_bravo = Trooper::factory()->create();
+        $non_friend = Trooper::factory()->create();
+
+        TrooperFriend::factory()->forTrooper($trooper)->forFriend($friend_alpha)->create();
+        TrooperFriend::factory()->forTrooper($trooper)->forFriend($friend_bravo)->create();
+        TrooperFriend::factory()->forTrooper($non_friend)->forFriend($trooper)->create();
+
+        $result = Trooper::query()->friendsOf($trooper)->get();
+
+        $this->assertTrue($result->contains(fn(Trooper $candidate): bool => $candidate->is($friend_alpha)));
+        $this->assertTrue($result->contains(fn(Trooper $candidate): bool => $candidate->is($friend_bravo)));
+        $this->assertFalse($result->contains(fn(Trooper $candidate): bool => $candidate->is($non_friend)));
     }
 
     public function test_search_for_wraps_term_with_wildcards(): void

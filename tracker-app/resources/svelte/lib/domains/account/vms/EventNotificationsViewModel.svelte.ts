@@ -13,7 +13,7 @@ export type EventNotificationsForm = {
 export type OrganizationNotification = {
     id: number;
     name: string;
-    selected: boolean;
+    enabled: boolean;
 }
 
 export type OrganizationNotifications = OrganizationNotification & {
@@ -94,17 +94,53 @@ export class EventNotificationsViewModel extends ViewModel {
     }
 
     cascadeOrganizationNotification = (organization_notification: OrganizationNotifications) => {
-        // Cascade the selection state to all regions and units under this organization
+        const organization_ids = [
+            organization_notification.id,
+            ...organization_notification.regions.flatMap(region => region.units.map(unit => unit.id))
+        ];
+        this.fireOrganizationNotification(organization_ids, organization_notification.enabled);
         organization_notification.regions.forEach(region => {
-            region.selected = organization_notification.selected;
+            region.enabled = organization_notification.enabled;
             this.cascadeRegionNotification(region);
         });
     }
 
     cascadeRegionNotification = (region_notification: RegionNotification) => {
-        // Cascade the selection state to all units under this region
+        const organization_ids = [
+            region_notification.id,
+            ...region_notification.units.map(unit => unit.id)
+        ];
+        this.fireOrganizationNotification(organization_ids, region_notification.enabled);
         region_notification.units.forEach(unit => {
-            unit.selected = region_notification.selected;
+            unit.enabled = region_notification.enabled;
         });
+    }
+
+    cascadeUnitNotification = (unit_notification: UnitNotification) => {
+        this.fireOrganizationNotification([unit_notification.id], unit_notification.enabled);
+    }
+
+    private fireOrganizationNotification(organization_ids: number[], enabled: boolean): void {
+        // FIRE & FORGET POST
+        const url = getRoute('account.update-organization-notifications');
+
+        const options =
+        {
+            preserveUrl: true,    // Keeps the current URL intact
+            preserveState: true,  // Keeps current local form/scroll states intact
+            preserveScroll: true, // Prevents page from jumping
+
+            onSuccess: (page: any) => {
+                toastStateSvelte.success("Organization notifications updated successfully.");
+            }
+        };
+
+
+        const data = {
+            organization_ids,
+            enabled,
+        };
+
+        router.post(url, data, options);
     }
 }

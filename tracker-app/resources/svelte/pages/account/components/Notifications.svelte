@@ -3,7 +3,9 @@
     import SlimView from "$lib/components/ui/SlimView.svelte";
     import type { NotificationsPageData } from "$lib/domains/account";
     import { NotificationsViewModel } from "$lib/domains/account";
+    import AdministrativeNotifications from "./AdministrativeNotifications.svelte";
     import EventNotifications from "./EventNotifications.svelte";
+    import TrooperNotifications from "./TrooperNotifications.svelte";
 
     interface Props {
         notifications: NotificationsPageData;
@@ -18,17 +20,11 @@
         <EventNotifications notifications={vm.page_data} />
     </AccordionPanel>
     <AccordionPanel label="Notification Preferences">
-        <p>
-            Control which channels you receive notifications on. Website
-            notifications appear in your notification inbox.
-        </p>
+        <TrooperNotifications notifications={vm.page_data} />
     </AccordionPanel>
     {#if vm.page_data.is_administrator}
         <AccordionPanel label="Administrative Preferences">
-            <p>
-                Control which channels you receive administrative notifications
-                on.
-            </p>
+            <AdministrativeNotifications notifications={vm.page_data} />
         </AccordionPanel>
     {/if}
 </SlimView>

@@ -21,7 +21,7 @@
     }: Props = $props();
 </script>
 
-<div class="form-check">
+{#snippet checkbox()}
     <input
         type="checkbox"
         class={[
@@ -34,10 +34,16 @@
         bind:checked
         onchange={change}
     />
-    {#if label && label.length > 0}
+{/snippet}
+
+{#if label && label.length > 0}
+    <div class="form-check">
+        {@render checkbox()}
         <label class="form-check-label" for={id}>
             {label}
         </label>
-    {/if}
-</div>
+    </div>
+{:else}
+    {@render checkbox()}
+{/if}
 <InputError {errors} />

@@ -11,6 +11,8 @@
     import pageState from "$lib/states/page-state.svelte";
     import { usePage } from "@inertiajs/svelte";
     import Details from "./components/Details.svelte";
+    import Friends from "./components/Friends.svelte";
+    import Minors from "./components/Minors.svelte";
     import Notifications from "./components/Notifications.svelte";
 
     const page = usePage<AccountPageData>();
@@ -27,6 +29,7 @@
         <Tab id="costumes">Costumes</Tab>
         <Tab id="memberships">Memberships</Tab>
         <Tab id="friends">Friends</Tab>
+        <Tab id="minors">Cadets</Tab>
     </TabHeader>
     <TabContent>
         <TabPanel id="profile">
@@ -37,6 +40,11 @@
         </TabPanel>
         <TabPanel id="costumes">Costumes</TabPanel>
         <TabPanel id="memberships">Memberships</TabPanel>
-        <TabPanel id="friends">Friends</TabPanel>
+        <TabPanel id="friends">
+            <Friends friends={vm.pageData?.friends} />
+        </TabPanel>
+        <TabPanel id="minors">
+            <Minors minors={vm.pageData?.minors} />
+        </TabPanel>
     </TabContent>
 </Tabs>

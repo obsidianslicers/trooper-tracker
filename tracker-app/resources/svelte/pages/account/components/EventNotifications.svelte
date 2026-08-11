@@ -45,7 +45,7 @@
 {#each vm.organization_notifications as organization_notification}
     <InputContainer>
         <InputCheckbox
-            bind:checked={organization_notification.selected}
+            bind:checked={organization_notification.enabled}
             label={organization_notification.name}
             change={() =>
                 vm.cascadeOrganizationNotification(organization_notification)}
@@ -54,7 +54,7 @@
             <InputContainer>
                 <div class="ms-2 ps-4 border-start border-2">
                     <InputCheckbox
-                        bind:checked={region_notification.selected}
+                        bind:checked={region_notification.enabled}
                         label={region_notification.name}
                         change={() =>
                             vm.cascadeRegionNotification(region_notification)}
@@ -63,8 +63,12 @@
                         <InputContainer>
                             <div class="ms-4 ps-4">
                                 <InputCheckbox
-                                    bind:checked={unit_notification.selected}
+                                    bind:checked={unit_notification.enabled}
                                     label={unit_notification.name}
+                                    change={() =>
+                                        vm.cascadeUnitNotification(
+                                            unit_notification,
+                                        )}
                                 />
                             </div>
                         </InputContainer>

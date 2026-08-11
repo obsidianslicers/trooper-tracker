@@ -1,0 +1,41 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers\Account;
+
+use App\Messages\Troopers\Commands\UpdateNotificationPreference;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Account\UpdateNotificationPreferenceRequest;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
+
+/**
+ * Handles form submission for updating the authenticated trooper's notification preferences.
+ *
+ * This controller validates notification preference data via UpdateNotificationPreferenceRequest, dispatches
+ * UpdateNotificationPreference to persist changes, and redirects back to the update profile page.
+ */
+class UpdateNotificationPreferenceController extends Controller
+{
+    /**
+     * Handle the incoming request to update the trooper's notification preferences.
+     *
+     * @param  UpdateNotificationPreferenceRequest  $request  The validated notification preference update request
+     * @return  InertiaResponse|SymfonyResponse Redirect to the update notification preferences page with success message
+     */
+    public function __invoke(UpdateNotificationPreferenceRequest $request): InertiaResponse|SymfonyResponse
+    {
+        $trooper = $request->user();
+
+        UpdateNotificationPreference::call(
+            trooper: $trooper,
+            notification: $request->validated('notification'),
+            channel: $request->validated('channel'),
+            enabled: $request->validated('enabled'),
+        );
+
+        return Inertia::render('account/Index');
+    }
+}
