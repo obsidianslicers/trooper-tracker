@@ -129,6 +129,48 @@ class Fix406Test extends TestCase
         Mail::assertNothingQueued();
     }
 
+    public function test_resolves_every_row_in_a_single_run_across_multiple_chunks(): void
+    {
+        $trooper = Trooper::factory()->asActive()->create();
+        $org = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org)->asMember()->create();
+
+        $event = Event::factory()->create();
+        $row_count = 250;
+
+        for ($i = 0; $i < $row_count; $i++)
+        {
+            $event_shift = EventShift::factory()->forEvent($event)->create([
+                EventShift::SHIFT_STARTS_AT => now()->addMinutes($i),
+                EventShift::SHIFT_ENDS_AT => now()->addMinutes($i)->addHour(),
+            ]);
+
+            EventTrooper::factory()
+                ->forEventShift($event_shift)
+                ->forTrooper($trooper)
+                ->create([
+                    EventTrooper::STATUS => EventTrooperStatus::ATTENDED,
+                    EventTrooper::COSTUME_ID => null,
+                    EventTrooper::COSTUME_ORGANIZATION_IDS => null,
+                    EventTrooper::ORGANIZATION_ID => null,
+                ]);
+        }
+
+        $subject = new Fix406;
+        $subject->run(app(MagicBus::class));
+
+        $remaining = EventTrooper::query()
+            ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED->value)
+            ->whereNull(EventTrooper::ORGANIZATION_ID)
+            ->where(function ($query): void {
+                $query->whereNull(EventTrooper::COSTUME_ORGANIZATION_IDS)
+                    ->orWhere(EventTrooper::COSTUME_ORGANIZATION_IDS, '[]');
+            })
+            ->count();
+
+        $this->assertSame(0, $remaining);
+    }
+
     public function test_emails_administrators_with_outstanding_rows_when_no_eligible_org(): void
     {
         $admin = Trooper::factory()->asAdministrator()->create();

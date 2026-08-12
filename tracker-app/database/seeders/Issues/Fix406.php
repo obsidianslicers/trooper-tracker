@@ -56,7 +56,11 @@ class Fix406 extends Seeder
                         ->orWhere(EventTrooper::COSTUME_ORGANIZATION_IDS, '[]');
                 })
                 ->with(['trooper.trooper_costumes.organization_costume', 'trooper.trooper_assignments', 'costume', 'event_shift.event'])
-                ->chunk(200, function ($event_troopers) use (&$counts, &$outstanding_rows): void {
+                // chunkById (not chunk) because resolved rows are saved with a non-null
+                // costume_organization_ids inside the loop, which is also the column being
+                // filtered on above — chunk()'s offset-based paging would skip unprocessed
+                // rows as the matching result set shrinks mid-iteration.
+                ->chunkById(200, function ($event_troopers) use (&$counts, &$outstanding_rows): void {
                     foreach ($event_troopers as $event_trooper)
                     {
                         $counts['scanned']++;
