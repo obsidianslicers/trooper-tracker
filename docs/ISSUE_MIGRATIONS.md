@@ -134,7 +134,10 @@ flow uses):
   separately (`resolved_multi_club`) so they can be audited afterward.
 - **No eligible club** — cannot determine, skipped and requires manual review.
 
-Outputs counts for scanned/resolved (single + multi club)/skipped records.
+Outputs counts for scanned/resolved (single + multi club)/skipped records. If any records were
+skipped, queues a `Fix406OutstandingCredit` email (`app/Mail/Fix406OutstandingCredit.php`) to
+every administrator trooper, listing each skipped record's trooper, event, costume, and
+`EventTrooper` ID so they can be reviewed manually. No email is sent if nothing was skipped.
 
 **When to run:** Once, against any environment running before the `organization_id`-nulling fix
 in `UpdateTroopersSubmitController` (the forward fix ships alongside this seeder). Run on

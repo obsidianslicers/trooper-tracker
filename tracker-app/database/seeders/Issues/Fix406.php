@@ -4,10 +4,15 @@ declare(strict_types=1);
 
 namespace Database\Seeders\Issues;
 
+use App\Bus\MagicBus;
 use App\Enums\EventTrooperStatus;
+use App\Enums\MembershipRole;
+use App\Features\Troopers\Queries\GetTroopersByRoleQuery;
+use App\Mail\Fix406OutstandingCredit;
 use App\Models\EventTrooper;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 /**
  * Backfills credit for event_trooper records left with no credit source at all.
@@ -26,13 +31,16 @@ use Illuminate\Support\Facades\DB;
  *   - More than one eligible top-level club → ambiguous (the self-service flow would have
  *     asked the trooper to choose); rather than guess, credit all eligible clubs and track
  *     these separately so they can be audited afterward.
- *   - No eligible club → cannot determine, skipped and requires manual review.
+ *   - No eligible club → cannot determine, skipped and requires manual review. These are
+ *     emailed to administrators via Fix406OutstandingCredit once the run completes.
  */
 class Fix406 extends Seeder
 {
-    public function run(): void
+    public function run(MagicBus $bus): void
     {
-        DB::transaction(function (): void {
+        $outstanding_rows = [];
+
+        DB::transaction(function () use (&$outstanding_rows): void {
             $counts = [
                 'scanned' => 0,
                 'resolved_single_club' => 0,
@@ -47,8 +55,8 @@ class Fix406 extends Seeder
                     $query->whereNull(EventTrooper::COSTUME_ORGANIZATION_IDS)
                         ->orWhere(EventTrooper::COSTUME_ORGANIZATION_IDS, '[]');
                 })
-                ->with(['trooper.trooper_costumes.organization_costume', 'trooper.trooper_assignments', 'costume'])
-                ->chunk(200, function ($event_troopers) use (&$counts): void {
+                ->with(['trooper.trooper_costumes.organization_costume', 'trooper.trooper_assignments', 'costume', 'event_shift.event'])
+                ->chunk(200, function ($event_troopers) use (&$counts, &$outstanding_rows): void {
                     foreach ($event_troopers as $event_trooper)
                     {
                         $counts['scanned']++;
@@ -58,6 +66,13 @@ class Fix406 extends Seeder
                         if ($eligible_parent_orgs->isEmpty())
                         {
                             $counts['skipped_no_eligible_org']++;
+                            $outstanding_rows[] = [
+                                'event_trooper_id' => $event_trooper->id,
+                                'trooper_name' => $event_trooper->trooper->display_name,
+                                'event_name' => $event_trooper->event_shift->event->name,
+                                'event_id' => $event_trooper->event_shift->event->id,
+                                'costume_name' => $event_trooper->costume?->name,
+                            ];
 
                             continue;
                         }
@@ -87,5 +102,22 @@ class Fix406 extends Seeder
             $this->command?->info("  Resolved (multiple clubs):     {$counts['resolved_multi_club']}");
             $this->command?->info("  Skipped (no eligible org):     {$counts['skipped_no_eligible_org']}");
         });
+
+        $this->emailOutstandingRowsToAdministrators($bus, $outstanding_rows);
+    }
+
+    private function emailOutstandingRowsToAdministrators(MagicBus $bus, array $outstanding_rows): void
+    {
+        if (empty($outstanding_rows))
+        {
+            return;
+        }
+
+        $admins = $bus->send(new GetTroopersByRoleQuery(MembershipRole::ADMINISTRATOR));
+
+        foreach ($admins as $admin)
+        {
+            Mail::to($admin->email)->queue(new Fix406OutstandingCredit($admin, $outstanding_rows));
+        }
     }
 }
