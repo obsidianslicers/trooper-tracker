@@ -6,7 +6,7 @@
         checked?: boolean;
         errors?: string | string[];
         disabled?: boolean;
-        change?: (() => void) | null;
+        onchange?: (() => void) | null;
     }
 
     const id = "id-" + crypto.randomUUID();
@@ -17,7 +17,7 @@
         checked = $bindable(false),
         errors = [],
         disabled = false,
-        change = null,
+        onchange = null,
     }: Props = $props();
 </script>
 
@@ -31,8 +31,8 @@
         {value}
         {disabled}
         {id}
+        {onchange}
         bind:checked
-        onchange={change}
     />
 {/snippet}
 

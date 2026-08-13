@@ -20,9 +20,11 @@ final class GetTrooperFriends extends Message
 
     public function handle(): Collection
     {
-        return $this->trooper->trooper_friends()->with('friend')->get()
+        return $this->trooper->trooper_friends()->with('friend')
+            ->get()
             ->filter(fn($trooper_friend) => $trooper_friend->friend !== null)
             ->map(fn($trooper_friend) => $trooper_friend->friend)
+            ->sort(fn(Trooper $a, Trooper $b): int => strcasecmp($a->display_name, $b->display_name))
             ->values();
     }
 }

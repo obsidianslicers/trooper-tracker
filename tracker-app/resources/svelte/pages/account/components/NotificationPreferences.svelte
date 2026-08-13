@@ -28,7 +28,7 @@
                                 notification.value as string
                             ].mail
                         }
-                        change={() =>
+                        onchange={() =>
                             vm.updateMailNotificationPreference(
                                 notification.value as string,
                             )}
@@ -41,7 +41,7 @@
                                 notification.value as string
                             ].fcm
                         }
-                        change={() =>
+                        onchange={() =>
                             vm.updateFcmNotificationPreference(
                                 notification.value as string,
                             )}
@@ -54,7 +54,7 @@
                                 notification.value as string
                             ].database
                         }
-                        change={() =>
+                        onchange={() =>
                             vm.updateDatabaseNotificationPreference(
                                 notification.value as string,
                             )}

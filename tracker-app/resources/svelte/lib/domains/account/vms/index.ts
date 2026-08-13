@@ -1,6 +1,7 @@
 
 export * from './AccountViewModel.svelte';
 export * from './AdministrativeNotificationsViewModel.svelte';
+export * from './CostumesViewModel.svelte';
 export * from './DetailsViewModel.svelte';
 export * from './EventNotificationsViewModel.svelte';
 export * from './FriendsViewModel.svelte';

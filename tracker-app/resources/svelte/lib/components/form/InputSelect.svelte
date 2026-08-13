@@ -9,7 +9,7 @@
         errors?: string | string[];
         disabled?: boolean;
         options: Option[];
-        change?: (() => void) | null;
+        onchange?: (() => void) | null;
     }
 
     const id = "id-" + crypto.randomUUID();
@@ -21,7 +21,7 @@
         options = [],
         errors = [],
         disabled = false,
-        change = null,
+        onchange = null,
     }: Props = $props();
 </script>
 
@@ -34,7 +34,7 @@
         ]}
         {disabled}
         bind:value
-        onchange={change}
+        {onchange}
     >
         {#if placeholder && placeholder.length > 0}
             <option value={null} disabled>-- {placeholder} --</option>

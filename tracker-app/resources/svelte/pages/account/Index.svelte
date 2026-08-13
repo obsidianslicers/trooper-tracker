@@ -10,6 +10,7 @@
     } from "$lib/domains/account/vms/AccountViewModel.svelte";
     import pageState from "$lib/states/page-state.svelte";
     import { usePage } from "@inertiajs/svelte";
+    import Costumes from "./components/Costumes.svelte";
     import Details from "./components/Details.svelte";
     import Friends from "./components/Friends.svelte";
     import Minors from "./components/Minors.svelte";
@@ -38,7 +39,9 @@
         <TabPanel id="notifications">
             <Notifications notifications={vm.pageData?.notifications} />
         </TabPanel>
-        <TabPanel id="costumes">Costumes</TabPanel>
+        <TabPanel id="costumes">
+            <Costumes costumes={vm.pageData?.costumes} />
+        </TabPanel>
         <TabPanel id="memberships">Memberships</TabPanel>
         <TabPanel id="friends">
             <Friends friends={vm.pageData?.friends} />

@@ -19,7 +19,7 @@
         label="Notification Frequency"
         bind:value={vm.notification_frequency}
         options={vm.notification_frequency_enums}
-        change={() => vm.updateNotificationFrequency()}
+        onchange={() => vm.updateNotificationFrequency()}
     />
     <InputHelp>
         How often you want to receive notifications about events added to the
@@ -31,7 +31,7 @@
         label="Allow Push Notifications"
         bind:value={vm.push_notifications_enabled}
         options={vm.push_notification_options}
-        change={() => vm.updatePushNotifications()}
+        onchange={() => vm.updatePushNotifications()}
     />
     <InputHelp>
         If you have installed the tracker app on your mobile device, do you wish
@@ -47,7 +47,7 @@
         <InputCheckbox
             bind:checked={organization_notification.enabled}
             label={organization_notification.name}
-            change={() =>
+            onchange={() =>
                 vm.cascadeOrganizationNotification(organization_notification)}
         />
         {#each organization_notification.regions as region_notification}
@@ -56,22 +56,22 @@
                     <InputCheckbox
                         bind:checked={region_notification.enabled}
                         label={region_notification.name}
-                        change={() =>
+                        onchange={() =>
                             vm.cascadeRegionNotification(region_notification)}
                     />
                     {#each region_notification.units as unit_notification}
-                        <InputContainer>
+                        <div>
                             <div class="ms-4 ps-4">
                                 <InputCheckbox
                                     bind:checked={unit_notification.enabled}
                                     label={unit_notification.name}
-                                    change={() =>
+                                    onchange={() =>
                                         vm.cascadeUnitNotification(
                                             unit_notification,
                                         )}
                                 />
                             </div>
-                        </InputContainer>
+                        </div>
                     {/each}
                 </div>
             </InputContainer>

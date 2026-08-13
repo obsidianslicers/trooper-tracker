@@ -7,6 +7,7 @@ namespace App\Models\Scopes;
 use App\Models\Costume;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
+use App\Models\TrooperCostume;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
@@ -64,10 +65,10 @@ trait HasCostumeScopes
                 {
                     $query->whereHas('trooper_costumes', function ($q) use ($trooper_id)
                     {
-                        $q->where('trooper_id', $trooper_id);
+                        $q->where(TrooperCostume::TROOPER_ID, $trooper_id);
                     });
 
-                    if ($organization_ids !== null)
+                    if (!empty($organization_ids))
                     {
                         $query->whereIn(OrganizationCostume::ORGANIZATION_ID, $organization_ids);
                     }
@@ -81,7 +82,7 @@ trait HasCostumeScopes
                 $query->with($with)
                     ->whereHas('trooper_costumes', function ($q) use ($trooper_id)
                     {
-                        $q->where('trooper_id', $trooper_id);
+                        $q->where(TrooperCostume::TROOPER_ID, $trooper_id);
                     });
 
                 if ($organization_ids !== null)

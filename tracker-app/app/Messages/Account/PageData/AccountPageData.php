@@ -11,10 +11,14 @@ use App\Enums\AdministrativeNotifications;
 use App\Enums\TrooperTheme;
 use App\Messages\Account\Queries\GetCostumesWithPrefixes;
 use App\Messages\Account\Queries\GetOrganizationNotifications;
+use App\Messages\Costumes\Queries\GetCostumes;
+use App\Messages\Troopers\Queries\GetTrooperCostumes;
 use App\Messages\Troopers\Queries\GetTrooperMinors;
+use App\Models\Costume;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperCostume;
+use App\Models\TrooperOrganization;
 use Hyperdrive\Message;
 use Hyperdrive\Contracts\Actor;
 use App\Messages\Troopers\Queries\GetTrooperFriends;
@@ -48,9 +52,12 @@ final class AccountPageData extends Message
     public function handle(): array
     {
         $data = [
+            'trooper_id' => $this->actor->id,
             'email' => $this->actor->email,
             'details' => $this->getDetails(),
             'notifications' => $this->getNotifications(),
+            'costumes' => $this->getCostumes(),
+            'memberships' => $this->getMemberships(),
             'friends' => $this->getFriends(),
             'minors' => $this->getMinors(),
         ];
@@ -166,5 +173,24 @@ final class AccountPageData extends Message
                 Trooper::DISPLAY_NAME => $minor->display_name,
                 Trooper::DATE_OF_BIRTH => $minor->date_of_birth,
             ])->toArray();
+    }
+
+    private function getCostumes(): array
+    {
+        $trooper_costumes = GetTrooperCostumes::call(trooper: $this->actor)
+            ->map(fn(Costume $costume) => [
+                Costume::ID => $costume->id,
+                Costume::NAME => $costume->name,
+                'costume_organizations' => $costume->costume_organizations ?? '',
+            ])->toArray();
+
+        return [
+            'trooper_costumes' => $trooper_costumes,
+        ];
+    }
+
+    private function getMemberships(): array
+    {
+        return [];
     }
 }

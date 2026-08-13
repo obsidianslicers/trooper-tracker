@@ -1,4 +1,5 @@
 import { ViewModel } from "$lib/domains/types.svelte";
+import type { CostumesPageData } from "./CostumesViewModel.svelte";
 import type { DetailsPageData } from "./DetailsViewModel.svelte";
 import type { Friend } from "./FriendsViewModel.svelte";
 import type { Minor } from "./MinorsViewModel.svelte";
@@ -9,6 +10,7 @@ function constructAccountPageData() {
         email: "",
         details: {} as DetailsPageData,
         notifications: {} as NotificationsPageData,
+        costumes: {} as CostumesPageData,
         friends: [] as Friend[],
         minors: [] as Minor[],
     };
@@ -18,6 +20,7 @@ export type AccountPageData = {
     email: string;
     details: DetailsPageData;
     notifications: NotificationsPageData;
+    costumes: CostumesPageData;
     friends: Friend[];
     minors: Minor[];
 };
