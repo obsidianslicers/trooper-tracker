@@ -221,7 +221,13 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
                 OrganizationCostume::ID, OrganizationCostume::COSTUME_ID, OrganizationCostume::ORGANIZATION_ID,
             ]),
             'event_troopers.costume:'.implode(',', [Costume::ID, Costume::NAME]),
+            'event_troopers.costume.organization_costumes:'.implode(',', [
+                OrganizationCostume::ID, OrganizationCostume::COSTUME_ID, OrganizationCostume::ORGANIZATION_ID,
+            ]),
             'event_troopers.backup_costume:'.implode(',', [Costume::ID, Costume::NAME]),
+            'event_troopers.backup_costume.organization_costumes:'.implode(',', [
+                OrganizationCostume::ID, OrganizationCostume::COSTUME_ID, OrganizationCostume::ORGANIZATION_ID,
+            ]),
         ];
     }
 }
