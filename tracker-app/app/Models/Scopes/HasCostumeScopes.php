@@ -68,7 +68,7 @@ trait HasCostumeScopes
                         $q->where(TrooperCostume::TROOPER_ID, $trooper_id);
                     });
 
-                    if (!empty($organization_ids))
+                    if ($organization_ids != null)
                     {
                         $query->whereIn(OrganizationCostume::ORGANIZATION_ID, $organization_ids);
                     }

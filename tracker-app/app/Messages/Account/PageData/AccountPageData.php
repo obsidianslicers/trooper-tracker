@@ -12,16 +12,21 @@ use App\Enums\TrooperTheme;
 use App\Messages\Account\Queries\GetCostumesWithPrefixes;
 use App\Messages\Account\Queries\GetOrganizationNotifications;
 use App\Messages\Costumes\Queries\GetCostumes;
+use App\Messages\Troopers\Queries\GetTrooperAssignments;
 use App\Messages\Troopers\Queries\GetTrooperCostumes;
+use App\Messages\Troopers\Queries\GetTrooperMemberships;
 use App\Messages\Troopers\Queries\GetTrooperMinors;
+use App\Messages\Troopers\Queries\GetTrooperOrganizations;
 use App\Models\Costume;
 use App\Models\Organization;
 use App\Models\Trooper;
+use App\Models\TrooperAssignment;
 use App\Models\TrooperCostume;
 use App\Models\TrooperOrganization;
 use Hyperdrive\Message;
 use Hyperdrive\Contracts\Actor;
 use App\Messages\Troopers\Queries\GetTrooperFriends;
+use Illuminate\Support\Collection;
 
 /**
  * Retrieves application configuration including authentication provider status and feature toggles.
@@ -191,6 +196,19 @@ final class AccountPageData extends Message
 
     private function getMemberships(): array
     {
-        return [];
+        return [
+            'organization_memberships' => $this->getOrganizationMemberships()
+        ];
+    }
+
+    private function getOrganizationMemberships(): array
+    {
+        $memberships = GetTrooperMemberships::call(trooper: $this->actor);
+
+        return $memberships->map(fn(TrooperAssignment $trooper_assignment) => [
+            'membership_path' => $trooper_assignment->membership_path,
+            'identifier' => $trooper_assignment->organization_membership->identifier,
+            'membership_status' => $trooper_assignment->organization_membership->membership_status
+        ])->toArray();
     }
 }
