@@ -10,6 +10,7 @@ use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
+use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\TrooperOrganization;
 use Illuminate\Support\Collection;
@@ -271,17 +272,17 @@ trait HasEventDisplayAssembler
      * Resolves the organization IDs the trooper is eligible for, given the costume worn.
      *
      * For handler/Command-Staff costumes (or no costume selected), credit derives from
-     * membership rather than costume approvals — see Costume::countsAsHandler() and
-     * EventTrooper::getEligibleCreditOrganizations(), which resolves the same way. In that
+     * membership rather than costume offerings — see Costume::countsAsHandler(). In that
      * case the result is the trooper's active trooper_assignments membership, rolled up to
      * primary-club IDs (Trooper::activeAssignmentPrimaryClubIds()) to match the top-level
      * clubs $this->organizations is keyed by.
      *
-     * Otherwise, validates costume approval by finding trooper_costumes where the
-     * organization_costume relationship matches costume_id, narrowed to orgs the trooper is
-     * an active member of (memberOrgIds()) — a costume approval row can exist for an org the
-     * trooper never joined (e.g. a shared/command-staff costume approved across multiple
-     * orgs), which should not surface as a credit target.
+     * Otherwise, credit is membership-driven rather than requiring a personal costume
+     * approval record: it's the orgs that offer this costume (Costume::organization_costumes,
+     * i.e. the org's costume catalog) intersected with orgs the trooper is an active member
+     * of (memberOrgIds()) — a trooper who belongs to a club that offers this costume type
+     * should show as attached to it even if no individual trooper_costume approval row was
+     * ever recorded for them.
      *
      * @return Collection<int, int>
      */
@@ -297,12 +298,11 @@ trait HasEventDisplayAssembler
             return $event_trooper->trooper->activeAssignmentPrimaryClubIds();
         }
 
-        $approved_orgs = $event_trooper->trooper->trooper_costumes
-            ->filter(fn($tc) => optional($tc->organization_costume)->costume_id == $costume->id)
-            ->pluck('organization_costume.organization_id')
+        $costume_org_ids = $costume->organization_costumes
+            ->pluck(OrganizationCostume::ORGANIZATION_ID)
             ->unique();
 
-        return $approved_orgs->intersect($this->memberOrgIds($event_trooper->trooper));
+        return $costume_org_ids->intersect($this->memberOrgIds($event_trooper->trooper));
     }
 
     /**
