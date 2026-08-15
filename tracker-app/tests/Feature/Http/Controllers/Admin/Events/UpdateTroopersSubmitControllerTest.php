@@ -17,6 +17,7 @@ use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperCostume;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class UpdateTroopersSubmitControllerTest extends TestCase
@@ -88,6 +89,71 @@ class UpdateTroopersSubmitControllerTest extends TestCase
 
         $event_trooper->refresh();
         $this->assertSame([$org1->id], $event_trooper->costume_organization_ids);
+    }
+
+    public function test_invoke_preserves_legacy_organization_id_when_org_selection_not_submitted(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $org = Organization::factory()->create();
+        $event = Event::factory()->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->asGoing()
+            ->create([
+                EventTrooper::COSTUME_ID => null,
+                EventTrooper::COSTUME_ORGANIZATION_IDS => null,
+                EventTrooper::ORGANIZATION_ID => $org->id,
+            ]);
+
+        $this->actingAs($admin)->post('/admin/events/'.$event->id.'/troopers', [
+            'troopers' => [
+                $event_trooper->id => [
+                    'status' => 'going',
+                ],
+            ],
+        ]);
+
+        $event_trooper->refresh();
+        $this->assertSame($org->id, $event_trooper->organization_id);
+    }
+
+    public function test_invoke_clears_organization_id_when_org_selection_submitted(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $org = Organization::factory()->create();
+        $event = Event::factory()->withOrganization($org)->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org)->asMember()->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->asGoing()
+            ->create([
+                EventTrooper::COSTUME_ID => null,
+                EventTrooper::COSTUME_ORGANIZATION_IDS => null,
+                EventTrooper::ORGANIZATION_ID => $org->id,
+            ]);
+
+        $this->actingAs($admin)->post('/admin/events/'.$event->id.'/troopers', [
+            'troopers' => [
+                $event_trooper->id => [
+                    'status' => 'going',
+                    'costume_id' => '',
+                    'organization_ids' => [$org->id],
+                ],
+            ],
+        ]);
+
+        $event_trooper->refresh();
+        $this->assertNull($event_trooper->organization_id);
+        $this->assertSame([$org->id], $event_trooper->costume_organization_ids);
     }
 
     public function test_invoke_saves_submitted_station_selection(): void
@@ -243,7 +309,7 @@ class UpdateTroopersSubmitControllerTest extends TestCase
         $trooper = Trooper::factory()->asActive()->create();
         $parent_org = Organization::factory()->create();
         $child_org = Organization::factory()->withParent($parent_org)->create();
-        \Illuminate\Support\Facades\DB::table('tt_organizations')
+        DB::table('tt_organizations')
             ->where('id', $child_org->id)
             ->update([
                 Organization::PARENT_ID => $parent_org->id,
