@@ -109,9 +109,13 @@ class UpdateTroopersSubmitController extends MagicBusController
             $event_trooper->status = EventTrooperStatus::STAND_BY;
         }
 
-        $this->applyCostumeAndOrgSelection($event_trooper, $input, $allowed_org_ids, $costumes_by_id);
+        $has_submitted_org_selection = $this->applyCostumeAndOrgSelection($event_trooper, $input, $allowed_org_ids, $costumes_by_id);
 
-        $event_trooper->organization_id = null;
+        if ($has_submitted_org_selection)
+        {
+            $event_trooper->organization_id = null;
+        }
+
         $event_trooper->save();
 
         $this->dispatchManualSelectionNotifications($event_trooper, $old_status, $is_manual_selection_event, $auth_trooper);
@@ -141,7 +145,7 @@ class UpdateTroopersSubmitController extends MagicBusController
         }
     }
 
-    private function applyCostumeAndOrgSelection(EventTrooper $event_trooper, array $input, ?array $allowed_org_ids, Collection $costumes_by_id): void
+    private function applyCostumeAndOrgSelection(EventTrooper $event_trooper, array $input, ?array $allowed_org_ids, Collection $costumes_by_id): bool
     {
         $submitted_costume_id = isset($input['costume_id']) && $input['costume_id'] !== '' ? (int) $input['costume_id'] : null;
         $costume = $submitted_costume_id !== null ? $costumes_by_id->get($submitted_costume_id) : null;
@@ -158,6 +162,8 @@ class UpdateTroopersSubmitController extends MagicBusController
             $submitted_org_ids = array_map('intval', $input['organization_ids'] ?? []);
             $this->applyWithoutCostume($event_trooper, $submitted_org_ids, $allowed_org_ids, $has_submitted_org_selection);
         }
+
+        return $has_submitted_org_selection;
     }
 
     private function applyWithCostume(
