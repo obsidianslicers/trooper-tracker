@@ -65,7 +65,7 @@ final class GetTrooperCostumes extends Message
             //  from the initial migration we may have some unapproved organizations
             //  where the member has a costume, but the relationship is not approved.
             //  or someone subsequently retired
-            $name_list = '(unattached)';
+            $name_list = '(inactive)';
         }
         else
         {

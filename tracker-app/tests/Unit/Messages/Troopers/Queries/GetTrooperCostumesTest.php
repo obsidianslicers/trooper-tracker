@@ -19,6 +19,21 @@ class GetTrooperCostumesTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_get_organization_names_returns_inactive_when_no_active_organization_matches(): void
+    {
+        $trooper = Trooper::factory()->create();
+        $subject = new GetTrooperCostumes($trooper);
+        $costume = new Costume([
+            Costume::NAME => 'Alpha Boots',
+        ]);
+        $costume->setRelation('organization_costumes', collect());
+
+        $method = new \ReflectionMethod(GetTrooperCostumes::class, 'getOrganizationNames');
+        $method->setAccessible(true);
+
+        $this->assertSame('(inactive)', $method->invoke($subject, $costume));
+    }
+
     public function test_handle_returns_costumes_for_active_organizations_and_calculates_metadata(): void
     {
         $trooper = Trooper::factory()->create();

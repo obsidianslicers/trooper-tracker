@@ -211,7 +211,7 @@ final class AccountPageData extends Message
             'membership_status' => $trooper_assignment->organization_membership->membership_status,
             'image_url' => map_image_url(
                 path: $trooper_assignment->organization_membership->organization?->image_path_sm,
-                default: 'img/icons/organization-128x128.png'// DEFAULT_ORGANIZATION_IMAGE_URL ?? ''
+                default: DEFAULT_ORGANIZATION_IMAGE_URL
             ),
         ])->toArray();
     }
