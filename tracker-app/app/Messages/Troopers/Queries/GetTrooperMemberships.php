@@ -45,7 +45,7 @@ final class GetTrooperMemberships extends Message
             $assignment->organization_membership = $organizations[$primary_organization->id] ?? null;
         }
 
-        return $assignments->filter(fn(TrooperAssignment $trooper_assignment) => $trooper_assignment->organization_memberhip != null);
+        return $assignments->filter(fn(TrooperAssignment $trooper_assignment) => $trooper_assignment->organization_membership != null);
     }
 
     private function getMembershipPath(TrooperAssignment $trooper_assignment): string
@@ -61,7 +61,7 @@ final class GetTrooperMemberships extends Message
             $organization = $organization->parent;
         }
 
-        rsort($names);
+        $names = array_reverse($names);
 
         return implode(' - ', $names);
     }

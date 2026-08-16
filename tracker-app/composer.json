@@ -43,7 +43,8 @@
             "Fabricator\\": "packages/fabricator/src/"
         },
         "files": [
-            "app/helpers.php"
+            "app/helpers.php",
+            "app/constants.php"
         ]
     },
     "autoload-dev": {

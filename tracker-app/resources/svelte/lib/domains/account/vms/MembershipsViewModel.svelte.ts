@@ -4,6 +4,7 @@ export type OrganizationMembership = {
     membership_path: string;
     membership_status: string;
     identifier: string;
+    image_url: string;
 }
 
 export type MembershipsPageData = {

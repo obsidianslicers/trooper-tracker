@@ -4,7 +4,7 @@ import { getRoute } from "$lib/utils";
 export type Costume = {
     id: number;
     name: string;
-    organizations: { id: number, name: string }[];
+    organizations: { id: number, name: string, selected: boolean }[];
 };
 
 export type TrooperCostume = {
@@ -19,6 +19,8 @@ export type CostumesPageData = {
 
 export class CostumesViewModel extends ViewModel {
     trooper_costumes: TrooperCostume[] = $state([]);
+    selected_costume: Costume | null = $state(null);
+    submitting: boolean = $state(false);
     show_results: boolean = $state(false);
     search_term: string = $state("");
     searching: boolean = $state(false);
@@ -44,12 +46,21 @@ export class CostumesViewModel extends ViewModel {
         }
     }
 
-    // function selectCostume(costume) {
-    //     selectedCostume = costume;
-    //     search = costume.name;
-    //     this.show_results = false;
-    //     form.organization_costume_ids = [];
-    // }
+    selectCostume = (costume: Costume) => {
+        this.selected_costume = costume;
+        this.selected_costume.organizations.forEach((org) => {
+            org.selected = false;
+        });
+        this.search_term = costume.name;
+        this.show_results = false;
+    }
+
+    hasOrganizationsSelected = (): boolean => {
+        if (!this.selected_costume) {
+            return false;
+        }
+        return this.selected_costume.organizations.some((org) => org.selected);
+    }
 
     // async function handleSubmit(e: Event) {
     //     e.preventDefault();

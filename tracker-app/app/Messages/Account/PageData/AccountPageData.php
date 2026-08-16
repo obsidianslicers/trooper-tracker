@@ -208,7 +208,11 @@ final class AccountPageData extends Message
         return $memberships->map(fn(TrooperAssignment $trooper_assignment) => [
             'membership_path' => $trooper_assignment->membership_path,
             'identifier' => $trooper_assignment->organization_membership->identifier,
-            'membership_status' => $trooper_assignment->organization_membership->membership_status
+            'membership_status' => $trooper_assignment->organization_membership->membership_status,
+            'image_url' => map_image_url(
+                path: $trooper_assignment->organization_membership->organization?->image_path_sm,
+                default: 'img/icons/organization-128x128.png'// DEFAULT_ORGANIZATION_IMAGE_URL ?? ''
+            ),
         ])->toArray();
     }
 }

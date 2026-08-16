@@ -28,9 +28,9 @@
                                     {friend.legal_name}
                                 </a>
                             </div>
-                            <small class="text-muted"
-                                >{friend.display_name}</small
-                            >
+                            <small class="text-muted">
+                                {friend.display_name}
+                            </small>
                         </td>
                     </tr>
                 {/each}

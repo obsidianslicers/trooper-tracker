@@ -1,5 +1,7 @@
 <script lang="ts">
     import InputText from "$lib/components/form/InputText.svelte";
+    import SubmitButtonContainer from "$lib/components/form/SubmitButtonContainer.svelte";
+    import SubmitButton from "$lib/components/ui/buttons/SubmitButton.svelte";
     import type { CostumesViewModel } from "$lib/domains/account/vms/CostumesViewModel.svelte.ts";
 
     // // Props received from Laravel Controller
@@ -50,6 +52,41 @@
         {/if}
     </div>
 
+    {#if vm.selected_costume}
+        <div class="mb-4">
+            <p>Select Approved Organizations</p>
+
+            {#if vm.selected_costume.organizations?.length === 0}
+                <div class="text-danger small">
+                    No organizations found for this costume type.
+                </div>
+            {:else}
+                <div class="list-group">
+                    {#each vm.selected_costume.organizations as org (org.id)}
+                        <label
+                            class="list-group-item d-flex align-items-center py-3 pointer"
+                        >
+                            <input
+                                type="checkbox"
+                                class="form-check-input me-3"
+                                bind:checked={org.selected}
+                            />
+                            <div>
+                                <span class="d-block">{org.name}</span>
+                            </div>
+                        </label>
+                    {/each}
+                </div>
+                <SubmitButtonContainer>
+                    <SubmitButton
+                        label="Add to Armory"
+                        submitting={vm.submitting}
+                        disabled={!vm.hasOrganizationsSelected()}
+                    />
+                </SubmitButtonContainer>
+            {/if}
+        </div>
+    {/if}
     <!-- Organization Selection
         {#if selectedCostume}
             <div class="mb-4">
@@ -85,18 +122,5 @@
             </div>
         {/if}
     // Submit Button
-    <div class="row">
-        <div class="col text-end">
-            <button
-                type="submit"
-                class="btn btn-primary"
-                disabled={!selectedCostume ||
-                    form.organization_costume_ids.length === 0 ||
-                    form.processing}
-            >
-                {form.processing ? "Saving..." : "Add to Armory"}
-            </button>
-        </div>
-    </div>
          -->
 </div>

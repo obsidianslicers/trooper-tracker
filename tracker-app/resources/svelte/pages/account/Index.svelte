@@ -13,6 +13,7 @@
     import Costumes from "./components/Costumes.svelte";
     import Details from "./components/Details.svelte";
     import Friends from "./components/Friends.svelte";
+    import Memberships from "./components/Memberships.svelte";
     import Minors from "./components/Minors.svelte";
     import Notifications from "./components/Notifications.svelte";
 
@@ -42,7 +43,9 @@
         <TabPanel id="costumes">
             <Costumes costumes={vm.pageData?.costumes} />
         </TabPanel>
-        <TabPanel id="memberships">Memberships</TabPanel>
+        <TabPanel id="memberships">
+            <Memberships memberships={vm.pageData?.memberships} />
+        </TabPanel>
         <TabPanel id="friends">
             <Friends friends={vm.pageData?.friends} />
         </TabPanel>
