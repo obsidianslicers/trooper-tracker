@@ -8,25 +8,21 @@ use App\Enums\NotificationChannels;
 use App\Enums\NotificationFrequency;
 use App\Enums\TrooperNotifications;
 use App\Enums\AdministrativeNotifications;
-use App\Enums\TrooperTheme;
-use App\Messages\Account\Queries\GetCostumesWithPrefixes;
+use App\Messages\Account\Resources\OrganizationNotificationCollection;
+use App\Messages\Account\Resources\TrooperDetails;
 use App\Messages\Account\Queries\GetOrganizationNotifications;
-use App\Messages\Costumes\Queries\GetCostumes;
-use App\Messages\Troopers\Queries\GetTrooperAssignments;
+use App\Messages\Account\Resources\TrooperMembershipCollection;
+use App\Messages\Account\Resources\TrooperMinorCollection;
+use App\Messages\Account\Resources\TrooperFriendCollection;
+use App\Messages\Account\Resources\TrooperCostumeCollection;
 use App\Messages\Troopers\Queries\GetTrooperCostumes;
 use App\Messages\Troopers\Queries\GetTrooperMemberships;
 use App\Messages\Troopers\Queries\GetTrooperMinors;
-use App\Messages\Troopers\Queries\GetTrooperOrganizations;
-use App\Models\Costume;
-use App\Models\Organization;
 use App\Models\Trooper;
-use App\Models\TrooperAssignment;
-use App\Models\TrooperCostume;
-use App\Models\TrooperOrganization;
 use Hyperdrive\Message;
 use Hyperdrive\Contracts\Actor;
 use App\Messages\Troopers\Queries\GetTrooperFriends;
-use Illuminate\Support\Collection;
+use Illuminate\Http\Resources\Json\ResourceCollection;
 
 /**
  * Retrieves application configuration including authentication provider status and feature toggles.
@@ -70,40 +66,9 @@ final class AccountPageData extends Message
         return $data;
     }
 
-    private function getDetails(): array
+    private function getDetails(): TrooperDetails
     {
-        return [
-            Trooper::LEGAL_NAME => $this->actor->legal_name,
-            Trooper::DISPLAY_NAME => $this->actor->display_name,
-            Trooper::PHONE => $this->actor->phone,
-            Trooper::THEME => $this->actor->theme,
-            Trooper::DISPLAY_COSTUME_ID => $this->actor->display_costume_id,
-            'display_costumes' => $this->getDisplayCostumes(),
-            'theme_enums' => TrooperTheme::toValueLabels(),
-        ];
-    }
-
-    private function getDisplayCostumes(): array
-    {
-        $this->actor->loadMissing('organizations');
-
-        $trooper_costumes = GetCostumesWithPrefixes::call(trooper: $this->actor);
-
-        return $trooper_costumes
-            ->mapWithKeys(function (TrooperCostume $tc)
-            {
-                $organization_costume = $tc->organization_costume;
-                $trooper_organization = $this->actor->organizations->firstWhere('id', $organization_costume->organization_id);
-
-                $identifier = ($organization_costume->prefix ?? '') . ($trooper_organization?->pivot?->identifier ?? '');
-                $costume_name = $organization_costume->costume?->name ?? '';
-                $organization_name = $organization_costume->organization?->name ?? '';
-
-                $label = "$identifier — $costume_name ($organization_name)";
-
-                return [$tc->id => $label];
-            })
-            ->toArray();
+        return $this->actor->toResource(TrooperDetails::class);
     }
 
     private function getNotifications(): array
@@ -139,80 +104,46 @@ final class AccountPageData extends Message
         return $preferences;
     }
 
-    private function getOrganizationNotifications(): array
+    private function getOrganizationNotifications(): OrganizationNotificationCollection
     {
-        return GetOrganizationNotifications::call(trooper: $this->actor)
-            ->map(fn(Organization $org) => [
-                'id' => $org->id,
-                'name' => $org->name,
-                'enabled' => $org->enabled,
-                'regions' => $org->organizations->map(fn($region) => [
-                    'id' => $region->id,
-                    'name' => $region->name,
-                    'enabled' => $region->enabled,
-                    'units' => $region->organizations->map(fn($unit) => [
-                        'id' => $unit->id,
-                        'name' => $unit->name,
-                        'enabled' => $unit->enabled,
-                    ]),
-                ]),
-            ])->toArray();
+        $collection = GetOrganizationNotifications::call(trooper: $this->actor);
+
+        return new OrganizationNotificationCollection($collection);
     }
 
-    private function getFriends(): array
+    private function getFriends(): TrooperFriendCollection
     {
-        return GetTrooperFriends::call(trooper: $this->actor)
-            ->map(fn(Trooper $friend) => [
-                Trooper::ID => $friend->id,
-                Trooper::LEGAL_NAME => $friend->legal_name,
-                Trooper::DISPLAY_NAME => $friend->display_name,
-            ])->toArray();
+        $collection = GetTrooperFriends::call(trooper: $this->actor);
+
+        return new TrooperFriendCollection($collection);
     }
 
-    private function getMinors(): array
+    private function getMinors(): TrooperMinorCollection
     {
-        return GetTrooperMinors::call(trooper: $this->actor)
-            ->map(fn(Trooper $minor) => [
-                Trooper::ID => $minor->id,
-                Trooper::LEGAL_NAME => $minor->legal_name,
-                Trooper::DISPLAY_NAME => $minor->display_name,
-                Trooper::DATE_OF_BIRTH => $minor->date_of_birth,
-            ])->toArray();
+        $collection = GetTrooperMinors::call(trooper: $this->actor);
+
+        return new TrooperMinorCollection($collection);
     }
 
-    private function getCostumes(): array
+    private function getCostumes(): TrooperCostumeCollection
     {
-        $trooper_costumes = GetTrooperCostumes::call(trooper: $this->actor)
-            ->map(fn(Costume $costume) => [
-                Costume::ID => $costume->id,
-                Costume::NAME => $costume->name,
-                'costume_organizations' => $costume->costume_organizations ?? '',
-            ])->toArray();
+        $collection = GetTrooperCostumes::call(trooper: $this->actor);
 
-        return [
-            'trooper_costumes' => $trooper_costumes,
-        ];
+        return new TrooperCostumeCollection($collection);
     }
 
     private function getMemberships(): array
     {
         return [
-            'organization_memberships' => $this->getOrganizationMemberships()
+            'organization_memberships' => $this->getOrganizationMemberships(),
+            'denied' => ['data' => []]
         ];
     }
 
-    private function getOrganizationMemberships(): array
+    private function getOrganizationMemberships(): TrooperMembershipCollection
     {
-        $memberships = GetTrooperMemberships::call(trooper: $this->actor);
+        $collection = GetTrooperMemberships::call(trooper: $this->actor);
 
-        return $memberships->map(fn(TrooperAssignment $trooper_assignment) => [
-            'membership_path' => $trooper_assignment->membership_path,
-            'identifier' => $trooper_assignment->organization_membership->identifier,
-            'membership_status' => $trooper_assignment->organization_membership->membership_status,
-            'image_url' => map_image_url(
-                path: $trooper_assignment->organization_membership->organization?->image_path_sm,
-                default: DEFAULT_ORGANIZATION_IMAGE_URL
-            ),
-        ])->toArray();
+        return new TrooperMembershipCollection($collection);
     }
 }

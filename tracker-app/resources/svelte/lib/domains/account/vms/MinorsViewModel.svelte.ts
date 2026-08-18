@@ -7,10 +7,12 @@ export type Minor = {
     display_name: string;
 };
 
+export type MinorsPageData = Minor[];
+
 export class MinorsViewModel extends ViewModel {
     minors: Minor[] = $state([]);
 
-    constructor(pageData?: Minor[]) {
+    constructor(pageData?: MinorsPageData) {
         super();
         this.minors = pageData?.length ? pageData : [];
     }

@@ -7,10 +7,12 @@ export type Friend = {
     display_name: string;
 };
 
+export type FriendsPageData = Friend[];
+
 export class FriendsViewModel extends ViewModel {
     friends: Friend[] = $state([]);
 
-    constructor(pageData?: Friend[]) {
+    constructor(pageData?: FriendsPageData) {
         super();
         this.friends = pageData?.length ? pageData : [];
     }

@@ -1,5 +1,6 @@
 <script lang="ts">
     import Alert from "$lib/components/ui/Alert.svelte";
+    import DeleteButton from "$lib/components/ui/buttons/DeleteButton.svelte";
     import { CostumesViewModel } from "$lib/domains/account";
 
     interface Props {
@@ -29,7 +30,13 @@
                             {trooper_costume.costume_organizations}
                         </span>
                     </td>
-                    <td></td>
+                    <td class="text-end">
+                        <DeleteButton
+                            label={null}
+                            submitting={trooper_costume.submitting}
+                            click={() => vm.removeCostume(trooper_costume)}
+                        />
+                    </td>
                 </tr>
             {/each}
         </tbody>

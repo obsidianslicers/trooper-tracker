@@ -23,6 +23,8 @@ use App\Http\Controllers\Account\NoticesSubmitHtmxController;
 use App\Http\Controllers\Account\NotificationsController;
 use App\Http\Controllers\Account\NotificationsSubmitController;
 use App\Http\Controllers\Account\ProfileController;
+use App\Http\Controllers\Account\RemoveCostumeController;
+use App\Http\Controllers\Account\AddCostumeController;
 use App\Http\Controllers\Account\PushNotificationClearController;
 use App\Http\Controllers\Account\PushNotificationInboxController;
 use App\Http\Controllers\Account\PushNotificationReadController;
@@ -62,6 +64,8 @@ Route::prefix('account')
         Route::post('/update/notifications/push', UpdatePushNotificationsController::class)->name('update-push-notifications');
         Route::post('/update/notifications/organization', UpdateOrganizationNotificationsController::class)->name('update-organization-notifications');
         Route::post('/update/notifications/preference', UpdateNotificationPreferenceController::class)->name('update-notification-preference');
+        Route::post('/update/costumes/add', AddCostumeController::class)->name('add-costume');
+        Route::post('/update/costumes/remove', RemoveCostumeController::class)->name('remove-costume');
 
 
 

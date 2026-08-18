@@ -31,7 +31,7 @@ class GetTrooperCostumesTest extends TestCase
         $method = new \ReflectionMethod(GetTrooperCostumes::class, 'getOrganizationNames');
         $method->setAccessible(true);
 
-        $this->assertSame('(inactive)', $method->invoke($subject, $costume));
+        $this->assertSame('(inactive membership)', $method->invoke($subject, $costume));
     }
 
     public function test_handle_returns_costumes_for_active_organizations_and_calculates_metadata(): void

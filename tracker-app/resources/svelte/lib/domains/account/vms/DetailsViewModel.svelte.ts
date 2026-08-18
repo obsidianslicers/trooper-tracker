@@ -29,7 +29,7 @@ export type DetailsForm = {
 export type DetailsPageData = DetailsForm & {
     display_costumes: Option[];
     theme_enums: Option[];
-};
+}
 
 export class DetailsViewModel extends SubmitableViewModel<DetailsViewModel, DetailsForm> {
     display_costumes: Option[] = $state([]);

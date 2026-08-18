@@ -81,7 +81,8 @@
                     <SubmitButton
                         label="Add to Armory"
                         submitting={vm.submitting}
-                        disabled={!vm.hasOrganizationsSelected()}
+                        disabled={!vm.canAddCostume()}
+                        click={vm.addCostume}
                     />
                 </SubmitButtonContainer>
             {/if}

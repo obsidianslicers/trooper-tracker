@@ -1,5 +1,7 @@
 import { ViewModel } from "$lib/domains/types.svelte";
+import toastStateSvelte from "$lib/states/toast-state.svelte";
 import { getRoute } from "$lib/utils";
+import { router } from "@inertiajs/svelte";
 
 export type Costume = {
     id: number;
@@ -8,14 +10,13 @@ export type Costume = {
 };
 
 export type TrooperCostume = {
-    id: number;
+    costume_id: number;
     name: string;
     costume_organizations: string;
+    submitting: boolean;
 };
 
-export type CostumesPageData = {
-    trooper_costumes: TrooperCostume[];
-};
+export type CostumesPageData = TrooperCostume[];
 
 export class CostumesViewModel extends ViewModel {
     trooper_costumes: TrooperCostume[] = $state([]);
@@ -30,7 +31,7 @@ export class CostumesViewModel extends ViewModel {
 
     constructor(pageData?: CostumesPageData) {
         super();
-        this.trooper_costumes = pageData?.trooper_costumes?.length ? pageData.trooper_costumes : [];
+        this.trooper_costumes = pageData?.length ? pageData : [];
     }
 
     searchCostumes = () => {
@@ -55,17 +56,79 @@ export class CostumesViewModel extends ViewModel {
         this.show_results = false;
     }
 
-    hasOrganizationsSelected = (): boolean => {
+    removeCostume = (trooper_costume: TrooperCostume) => {
+        trooper_costume.submitting = true;
+        const url = getRoute('account.remove-costume');
+
+        //  fire & forget the request, but we want to preserve the current URL and state
+        const options =
+        {
+            preserveUrl: true,    // Keeps the current URL intact
+            preserveState: true,  // Keeps current local form/scroll states intact
+            preserveScroll: true, // Prevents page from jumping
+
+            onSuccess: (page: any) => {
+                toastStateSvelte.success(`${trooper_costume.name} removed successfully.`);
+                trooper_costume.submitting = false;
+            }
+        };
+
+        const data = {
+            costume_id: trooper_costume.costume_id,
+        };
+
+        router.post(url, data, options);
+    }
+
+    addCostume = () => {
+        const url = getRoute('account.add-costume');
+
+        //  fire & forget the request, but we want to preserve the current URL and state
+        const options =
+        {
+            preserveUrl: true,    // Keeps the current URL intact
+            preserveState: true,  // Keeps current local form/scroll states intact
+            preserveScroll: true, // Prevents page from jumping
+
+            onSuccess: (page: any) => {
+                toastStateSvelte.success(`${this.selected_costume?.name} added successfully.`);
+                this.addCostumeToTrooperCostumes(this.selected_costume!);
+                this.selected_costume = null;
+                this.submitting = false;
+            }
+        };
+
+        const organization_ids = this.selected_costume?.organizations.filter((org) => org.selected).map((org) => org.id);
+
+        const data = {
+            costume_id: this.selected_costume?.id,
+            organization_ids: organization_ids,
+        };
+
+        router.post(url, data, options);
+    }
+
+    private addCostumeToTrooperCostumes = (costume: Costume) => {
+        const names = costume.organizations
+            .filter((org) => org.selected)
+            .map((org) => org.name);
+
+        const costume_organizations = (names.length > 1 ? '(*) ' : '') + names.join(", ");
+
+        this.trooper_costumes.push({
+            costume_id: costume.id,
+            name: costume.name,
+            costume_organizations: costume_organizations,
+            submitting: false,
+        });
+    }
+
+    canAddCostume = (): boolean => {
         if (!this.selected_costume) {
             return false;
         }
         return this.selected_costume.organizations.some((org) => org.selected);
     }
-
-    // async function handleSubmit(e: Event) {
-    //     e.preventDefault();
-    //     toastStateSvelte.info("Submitting costume selection...");
-    // }
 
     hideSearchResults = () => {
         setTimeout(() => (this.show_results = false), 150);

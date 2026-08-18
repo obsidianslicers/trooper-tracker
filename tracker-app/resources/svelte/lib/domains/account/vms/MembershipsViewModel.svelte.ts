@@ -8,7 +8,7 @@ export type OrganizationMembership = {
 }
 
 export type MembershipsPageData = {
-    organization_memberships: OrganizationMembership[]
+    organization_memberships: OrganizationMembership[];
 };
 
 export class MembershipsViewModel extends ViewModel {
