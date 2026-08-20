@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Messages\Troopers\Queries;
 
 use App\Enums\MembershipStatus;
-use App\Messages\Troopers\Queries\GetTrooperCostumes;
+use App\Messages\Troopers\Queries\Costumes\GetTrooperCostumes;
 use App\Models\Costume;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
