@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Messages\Troopers\Queries;
+namespace App\Messages\Troopers\Queries\Costumes;
 
-use App\Messages\Troopers\Queries\TrooperMembership\GetTrooperOrganizations;
+use App\Messages\Troopers\Queries\Membership\GetTrooperOrganizations;
 use App\Models\Costume;
 use App\Models\Trooper;
 use App\Models\TrooperOrganization;
@@ -18,8 +18,7 @@ final class GetTrooperCostumes extends Message
 {
     public function __construct(
         private readonly Trooper $trooper
-    ) {
-    }
+    ) {}
 
     public function handle(): Collection
     {
@@ -29,7 +28,7 @@ final class GetTrooperCostumes extends Message
 
         $relations = [
             'organization_costumes.organization',
-            'organization_costumes.trooper_costumes'
+            'organization_costumes.trooper_costumes',
         ];
 
         $costumes = Costume::query()
@@ -40,8 +39,7 @@ final class GetTrooperCostumes extends Message
             ->get();
 
         // Transform for the final output
-        $results = $costumes->each(function (Costume $costume)
-        {
+        $results = $costumes->each(function (Costume $costume) {
             $costume->costume_organizations = $this->getOrganizationNames($costume);
             $costume->image_urls = $this->getImageUrls($costume);
         });
@@ -52,7 +50,7 @@ final class GetTrooperCostumes extends Message
     private function getOrganizationNames(Costume $costume): string
     {
         $organization_names = $costume->organization_costumes
-            ->map(fn($oc) => $oc->organization->name)
+            ->map(fn ($oc) => $oc->organization->name)
             ->sort()
             ->values();
 
@@ -72,6 +70,7 @@ final class GetTrooperCostumes extends Message
         {
             $name_list = $organization_names->implode(', ');
         }
+
         return "{$prefix}{$name_list}";
     }
 
@@ -79,12 +78,11 @@ final class GetTrooperCostumes extends Message
     {
         // Attach all costume image URLs for this trooper when available
         $trooper_costumes = $costume->organization_costumes
-            ->flatMap(fn($oc) => $oc->trooper_costumes)
+            ->flatMap(fn ($oc) => $oc->trooper_costumes)
             ->where('trooper_id', $this->trooper->id);
 
         return $trooper_costumes
-            ->flatMap(function ($tc)
-            {
+            ->flatMap(function ($tc) {
                 return [
                     $tc->image_url_sm,
                     $tc->image_url_lg,

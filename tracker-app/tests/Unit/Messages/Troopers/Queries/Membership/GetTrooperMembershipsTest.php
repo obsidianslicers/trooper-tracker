@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\Messages\Troopers\Queries\TrooperMembership;
+namespace Tests\Unit\Messages\Troopers\Queries\Membership;
 
 use App\Enums\MembershipStatus;
-use App\Messages\Troopers\Queries\TrooperMembership\GetTrooperMemberships;
+use App\Messages\Troopers\Queries\Membership\GetTrooperMemberships;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;

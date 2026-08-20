@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
-use Illuminate\Http\Resources\Json\JsonResource;
 use App\Channels\FcmChannel;
 use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
@@ -21,6 +20,7 @@ use Illuminate\Database\Migrations\DatabaseMigrationRepository;
 use Illuminate\Database\Migrations\MigrationRepositoryInterface;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Mail\MailManager;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Auth;
@@ -43,13 +43,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->scoped(BreadCrumbService::class, function (): BreadCrumbService
-        {
+        $this->app->scoped(BreadCrumbService::class, function (): BreadCrumbService {
             return new BreadCrumbService;
         });
 
-        $this->app->bind(FcmChannel::class, function (Application $app): FcmChannel
-        {
+        $this->app->bind(FcmChannel::class, function (Application $app): FcmChannel {
             try
             {
                 $messaging = $app->make(Messaging::class);
@@ -86,8 +84,7 @@ class AppServiceProvider extends ServiceProvider
         //  more than 10 seconds have elapsed since the last message, preventing
         //  "451 4.4.2 Timeout" failures on idle connections in long-running workers.
         //
-        $this->app->afterResolving('mail.manager', function (MailManager $manager): void
-        {
+        $this->app->afterResolving('mail.manager', function (MailManager $manager): void {
             $mailer = $manager->mailer();
             $transport = $mailer->getSymfonyTransport();
             if ($transport instanceof EsmtpTransport)
@@ -98,8 +95,7 @@ class AppServiceProvider extends ServiceProvider
 
         Paginator::useBootstrapFive();
 
-        VerifyEmail::toMailUsing(function (object $notifiable, string $url): VerifyTrooperEmail
-        {
+        VerifyEmail::toMailUsing(function (object $notifiable, string $url): VerifyTrooperEmail {
             return (new VerifyTrooperEmail($url))
                 ->to($notifiable->email);
         });
@@ -107,16 +103,14 @@ class AppServiceProvider extends ServiceProvider
         //
         //  HTMX REQUEST MACRO
         //
-        Request::macro('isHtmx', function (): bool
-        {
+        Request::macro('isHtmx', function (): bool {
             return $this->headers->has('HX-Request');
         });
 
         //
         //  SOCIALITE CUSTOM PROVIDERS
         //
-        Socialite::extend(OauthProvider::XENFORO->value, function (Application $app): XenforoProvider
-        {
+        Socialite::extend(OauthProvider::XENFORO->value, function (Application $app): XenforoProvider {
             $config = $app['config']['services.xenforo'];
 
             return Socialite::buildProvider(XenforoProvider::class, $config);
@@ -125,8 +119,7 @@ class AppServiceProvider extends ServiceProvider
         //
         //  MIGRATION
         //
-        $this->app->extend(MigrationRepositoryInterface::class, function (MigrationRepositoryInterface $repository, Application $app): MigrationRepositoryInterface
-        {
+        $this->app->extend(MigrationRepositoryInterface::class, function (MigrationRepositoryInterface $repository, Application $app): MigrationRepositoryInterface {
             return new DatabaseMigrationRepository(
                 $app['db'],
                 'tt_migrations'
@@ -136,8 +129,7 @@ class AppServiceProvider extends ServiceProvider
         //
         //  DATABASE MIGRATION MACRO
         //
-        Blueprint::macro('trooperstamps', function (): void
-        {
+        Blueprint::macro('trooperstamps', function (): void {
             $this->unsignedBigInteger('created_id')->nullable();
             $this->unsignedBigInteger('updated_id')->nullable();
             $this->unsignedBigInteger('deleted_id')->nullable();
@@ -151,8 +143,7 @@ class AppServiceProvider extends ServiceProvider
         //
         //  BLADE BOOTS
         //
-        Blade::if('role', function (MembershipRole|string|array $roles): bool
-        {
+        Blade::if('role', function (MembershipRole|string|array $roles): bool {
             if (!Auth::check())
             {
                 return false;
@@ -171,8 +162,7 @@ class AppServiceProvider extends ServiceProvider
                 $roles = array_map('trim', explode(',', $roles));
             }
 
-            $normalized = collect($roles)->map(function (MembershipRole|string $role): MembershipRole
-            {
+            $normalized = collect($roles)->map(function (MembershipRole|string $role): MembershipRole {
                 if ($role instanceof MembershipRole)
                 {
                     return $role;

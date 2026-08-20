@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Account;
 
-use App\Messages\Account\Resources\TrooperCostumeCollection;
-use App\Messages\Troopers\Queries\GetTrooperCostumes;
-use App\Messages\Troopers\Commands\RemoveCostumeFromTrooper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Account\RemoveCostumeRequest;
+use App\Messages\Account\Resources\TrooperCostumeCollection;
+use App\Messages\Troopers\Commands\Costumes\RemoveCostumeFromTrooper;
+use App\Messages\Troopers\Queries\Costumes\GetTrooperCostumes;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
@@ -25,7 +25,7 @@ class RemoveCostumeController extends Controller
      * Handle the incoming request to delete a costume from the trooper's profile.
      *
      * @param  RemoveCostumeRequest  $request  The validated request to delete a costume
-     * @return  InertiaResponse|SymfonyResponse Redirect to the update profile page with success message
+     * @return InertiaResponse|SymfonyResponse Redirect to the update profile page with success message
      */
     public function __invoke(RemoveCostumeRequest $request): InertiaResponse|SymfonyResponse
     {

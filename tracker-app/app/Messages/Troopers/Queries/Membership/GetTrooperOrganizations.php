@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Messages\Troopers\Queries\TrooperMembership;
+namespace App\Messages\Troopers\Queries\Membership;
 
+use App\Enums\MembershipStatus;
 use App\Models\Trooper;
+use App\Models\TrooperOrganization;
 use Hyperdrive\Message;
 use Illuminate\Support\Collection;
-use App\Models\TrooperOrganization;
-use App\Enums\MembershipStatus;
 
 /**
  * @method static Collection call(Trooper $trooper)
@@ -17,8 +17,7 @@ final class GetTrooperOrganizations extends Message
 {
     public function __construct(
         private readonly Trooper $trooper
-    ) {
-    }
+    ) {}
 
     public function handle(): Collection
     {

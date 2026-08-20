@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Messages\Troopers\Commands\TrooperMemberships;
+namespace App\Messages\Troopers\Commands\Membership;
 
 use App\Enums\TrooperRequestStatus;
 use App\Models\Organization;
@@ -20,8 +20,7 @@ final class DeleteTrooperRequests extends Message
     public function __construct(
         private readonly Trooper $trooper,
         private readonly Organization $primary_organization
-    ) {
-    }
+    ) {}
 
     public function handle(): void
     {

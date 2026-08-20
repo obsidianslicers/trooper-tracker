@@ -9,7 +9,7 @@ use Hyperdrive\Message;
 
 /**
  * Command message for updating a trooper's push notifications setting.
- * 
+ *
  * @method static void call(Trooper $trooper, bool $push_notifications_enabled)
  */
 final class UpdateTrooperPushNotifications extends Message
@@ -17,8 +17,7 @@ final class UpdateTrooperPushNotifications extends Message
     public function __construct(
         private readonly Trooper $trooper,
         private readonly bool $push_notifications_enabled,
-    ) {
-    }
+    ) {}
 
     /**
      * Execute the command to update trooper push notifications setting.

@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Messages\Costumes\PageData;
 
 use App\Messages\Costumes\Queries\SearchCostumes;
-use App\Models\Trooper;
 use App\Models\Costume;
 use App\Models\Organization;
+use App\Models\Trooper;
 use Hyperdrive\Message;
 
 /**
@@ -21,14 +21,11 @@ final class SearchCostumesPageData extends Message
 {
     /**
      * Summary of __construct
-     *
-     * @param  Trooper  $trooper
      */
     public function __construct(
         private readonly string $search_term,
-        private readonly Trooper|null $trooper,
-    ) {
-    }
+        private readonly ?Trooper $trooper,
+    ) {}
 
     /**
      * Retrieves application configuration as a nested associative array.
@@ -42,10 +39,10 @@ final class SearchCostumesPageData extends Message
             trooper: $this->trooper,
         );
 
-        $data = $costumes->map(fn(Costume $costume) => [
+        $data = $costumes->map(fn (Costume $costume) => [
             Costume::ID => $costume->id,
             Costume::NAME => $costume->name,
-            'organizations' => $costume->organization_costumes->map(fn($organization_costume) => [
+            'organizations' => $costume->organization_costumes->map(fn ($organization_costume) => [
                 Organization::ID => $organization_costume->organization->id,
                 Organization::NAME => $organization_costume->organization->name,
             ])->toArray(),

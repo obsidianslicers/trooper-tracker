@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Messages\Troopers\Queries\TrooperMembership;
+namespace App\Messages\Troopers\Queries\Membership;
 
 use App\Models\Organization;
 use App\Models\TrooperOrganization;
@@ -18,8 +18,7 @@ final class DoesTrooperOrganizationExist extends Message
         private readonly ?string $identifier,
         private readonly ?int $ignore_trooper_id = null,
         private readonly ?int $ignore_trooper_organization_id = null,
-    ) {
-    }
+    ) {}
 
     public function handle(): bool
     {

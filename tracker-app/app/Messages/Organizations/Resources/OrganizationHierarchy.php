@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Messages\Account\Resources;
+namespace App\Messages\Organizations\Resources;
 
 use App\Models\Organization;
 use Illuminate\Http\Request;
@@ -16,17 +16,21 @@ class OrganizationHierarchy extends ResourceCollection
     public function toArray(Request $request): array
     {
         return $this->collection
-            ->map(fn(Organization $org) => [
+            ->map(fn (Organization $org) => [
                 'id' => $org->id,
                 'name' => $org->name,
                 'identifier_display' => $org->identifier_display,
                 'identifier_validation' => $org->identifier_validation,
-                'regions' => $org->organizations->map(fn($region) => [
+                'regions' => $org->organizations->map(fn ($region) => [
                     'id' => $region->id,
                     'name' => $region->name,
-                    'units' => $region->organizations->map(fn($unit) => [
+                    'parent_id' => $region->parent_id,
+                    'primary_organization_id' => $org->id,
+                    'units' => $region->organizations->map(fn ($unit) => [
                         'id' => $unit->id,
                         'name' => $unit->name,
+                        'parent_id' => $unit->parent_id,
+                        'primary_organization_id' => $org->id,
                     ]),
                 ]),
             ])->toArray();

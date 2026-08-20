@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Account;
 
-use App\Enums\NotificationChannels;
 use App\Enums\AdministrativeNotifications;
+use App\Enums\NotificationChannels;
 use App\Enums\TrooperNotifications;
-use App\Enums\NotificationFrequency;
 use App\Http\Requests\Concerns\HasNormalizers;
 use App\Models\Trooper;
 use Illuminate\Foundation\Http\FormRequest;
@@ -40,11 +39,11 @@ class UpdateNotificationPreferenceRequest extends FormRequest
      */
     public function rules(): array
     {
-        $notifications = AdministrativeNotifications::toValidator() . ',' . TrooperNotifications::toValidator();
+        $notifications = AdministrativeNotifications::toValidator().','.TrooperNotifications::toValidator();
 
         $notifications = str_replace('in:', '', $notifications);
 
-        $notifications = 'in:' . $notifications;
+        $notifications = 'in:'.$notifications;
 
         $rules = [
             'notification' => [

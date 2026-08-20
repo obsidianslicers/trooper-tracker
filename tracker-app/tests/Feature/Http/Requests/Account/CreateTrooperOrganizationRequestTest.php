@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Requests\Account;
 
-use App\Http\Requests\Account\AddTrooperOrganizationRequest;
+use App\Http\Requests\Account\CreateTrooperOrganizationRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperOrganization;
@@ -13,13 +13,13 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Validator;
 use Tests\TestCase;
 
-class AddTrooperOrganizationRequestTest extends TestCase
+class CreateTrooperOrganizationRequestTest extends TestCase
 {
     use RefreshDatabase;
 
     public function test_authorize_returns_true(): void
     {
-        $subject = new AddTrooperOrganizationRequest;
+        $subject = new CreateTrooperOrganizationRequest;
 
         $this->assertTrue($subject->authorize());
     }
@@ -182,9 +182,9 @@ class AddTrooperOrganizationRequestTest extends TestCase
         $this->assertArrayHasKey('identifier', $validator->errors()->toArray());
     }
 
-    private function makeRequest(Trooper $trooper, array $payload = []): AddTrooperOrganizationRequest
+    private function makeRequest(Trooper $trooper, array $payload = []): CreateTrooperOrganizationRequest
     {
-        $subject = new AddTrooperOrganizationRequest;
+        $subject = new CreateTrooperOrganizationRequest;
         $subject->setUserResolver(fn() => $trooper);
         $subject->merge($payload);
 

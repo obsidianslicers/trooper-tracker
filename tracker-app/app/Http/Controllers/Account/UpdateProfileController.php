@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Account;
 
 use App\Enums\TrooperTheme;
-use App\Messages\Troopers\Commands\UpdateTrooperProfile;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Account\UpdateProfileRequest;
+use App\Messages\Troopers\Commands\UpdateTrooperProfile;
 use Hyperdrive\CommsHelper;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
@@ -25,7 +25,7 @@ class UpdateProfileController extends Controller
      * Handle the incoming request to update the trooper's profile.
      *
      * @param  UpdateProfileRequest  $request  The validated profile update request
-     * @return  InertiaResponse|SymfonyResponse Redirect to the update profile page with success message
+     * @return InertiaResponse|SymfonyResponse Redirect to the update profile page with success message
      */
     public function __invoke(UpdateProfileRequest $request): InertiaResponse|SymfonyResponse
     {

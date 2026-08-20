@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Messages\Troopers\Queries\TrooperMembership;
+namespace App\Messages\Troopers\Queries\Membership;
 
 use App\Enums\TrooperRequestStatus;
 use App\Models\Organization;
@@ -19,8 +19,7 @@ final class IsOrganizationIdentifierAvailable extends Message
         private readonly ?int $ignore_trooper_id = null,
         private readonly ?int $ignore_trooper_request_id = null,
         private readonly ?int $ignore_trooper_organization_id = null,
-    ) {
-    }
+    ) {}
 
     public function handle(): bool
     {

@@ -35,7 +35,7 @@ class RemoveCostumeRequest extends FormRequest
         $rules = [
             'costume_id' => [
                 'integer',
-                Rule::exists(Costume::class, Costume::ID)
+                Rule::exists(Costume::class, Costume::ID),
             ],
         ];
 

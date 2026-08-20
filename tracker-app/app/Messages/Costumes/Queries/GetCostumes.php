@@ -20,13 +20,13 @@ use Illuminate\Support\Collection;
 final class GetCostumes extends Message
 {
     public function __construct(
-        private readonly array|null $organization_ids
-    ) {
-    }
+        private readonly ?array $organization_ids
+    ) {}
 
     /**
      * Retrieves all costumes.
 
+     *
      * @return Collection A collection representing the costumes, including costume IDs and names
      */
     public function handle(): Collection
@@ -35,9 +35,8 @@ final class GetCostumes extends Message
 
         if ($this->organization_ids !== null)
         {
-            $with['organization_costumes'] = function ($query)
-            {
-                $query->whereHas('organization', fn($q) => $q->whereIn(Organization::ID, $this->organization_ids));
+            $with['organization_costumes'] = function ($query) {
+                $query->whereHas('organization', fn ($q) => $q->whereIn(Organization::ID, $this->organization_ids));
             };
         }
 

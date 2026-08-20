@@ -10,7 +10,7 @@ use Hyperdrive\Message;
 
 /**
  * Command message for updating a trooper's notification frequency.
- * 
+ *
  * @method static void call(Trooper $trooper, NotificationFrequency $notification_frequency)
  */
 final class UpdateTrooperNotificationFrequency extends Message
@@ -18,8 +18,7 @@ final class UpdateTrooperNotificationFrequency extends Message
     public function __construct(
         private readonly Trooper $trooper,
         private readonly NotificationFrequency $notification_frequency,
-    ) {
-    }
+    ) {}
 
     /**
      * Execute the command to update trooper notification frequency.

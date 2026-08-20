@@ -16,7 +16,7 @@ class TrooperCostumeCollection extends ResourceCollection
     public function toArray(Request $request): array
     {
         return $this->collection
-            ->map(fn(Costume $costume) => [
+            ->map(fn (Costume $costume) => [
                 'costume_id' => $costume->id,
                 'name' => $costume->name,
                 'costume_organizations' => $costume->costume_organizations ?? '',

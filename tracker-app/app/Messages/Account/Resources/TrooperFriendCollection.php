@@ -16,7 +16,7 @@ class TrooperFriendCollection extends ResourceCollection
     public function toArray(Request $request): array
     {
         return $this->collection
-            ->map(fn(Trooper $friend) => [
+            ->map(fn (Trooper $friend) => [
                 Trooper::ID => $friend->id,
                 Trooper::LEGAL_NAME => $friend->legal_name,
                 Trooper::DISPLAY_NAME => $friend->display_name,

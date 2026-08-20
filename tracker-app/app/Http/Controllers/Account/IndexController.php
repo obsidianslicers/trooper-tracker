@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 namespace App\Http\Controllers\Account;
+
 use App\Http\Controllers\Controller;
 use App\Messages\Account\PageData\AccountPageData;
 use Illuminate\Http\Request;

@@ -8,7 +8,6 @@ use App\Models\Costume;
 use App\Models\OrganizationCostume;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use App\Models\Organization;
 
 /**
  * Handles the validation for the add costume form.

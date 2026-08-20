@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Messages\Troopers\Commands;
 
 use App\Models\Trooper;
-use Hyperdrive\Message;
 use App\Models\TrooperAssignment;
+use Hyperdrive\Message;
 
 /**
  * Command message for updating a trooper's organization notifications setting.
- * 
+ *
  * @method static void call(Trooper $trooper, bool $enabled)
  */
 final class UpdateOrganizationNotifications extends Message
@@ -19,8 +19,7 @@ final class UpdateOrganizationNotifications extends Message
         private readonly Trooper $trooper,
         private readonly array $organization_ids,
         private readonly bool $enabled,
-    ) {
-    }
+    ) {}
 
     /**
      * Execute the command to update trooper organization notifications setting.
@@ -47,7 +46,7 @@ final class UpdateOrganizationNotifications extends Message
         }
         else
         {
-            $trooper_assignment = new TrooperAssignment();
+            $trooper_assignment = new TrooperAssignment;
             $trooper_assignment->trooper_id = $this->trooper->id;
             $trooper_assignment->organization_id = $organization_id;
             $trooper_assignment->should_notify = $this->enabled;

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\Messages\Troopers\Commands;
+namespace Tests\Unit\Messages\Troopers\Commands\Costumes;
 
-use App\Messages\Troopers\Commands\AddCostumeToTrooper;
+use App\Messages\Troopers\Commands\Costumes\AddCostumeToTrooper;
 use App\Models\Costume;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;

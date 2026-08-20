@@ -26,7 +26,7 @@ final class GetOrganizationHierarchy extends Message
     public function handle(): Collection
     {
         //  TODO rename fullyLoaded to hierarchical
-        $getter = fn() => Organization::query()->fullyLoaded()->get();
+        $getter = fn () => Organization::query()->fullyLoaded()->get();
 
         $organizations = once($getter);
 

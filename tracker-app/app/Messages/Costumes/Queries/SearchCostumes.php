@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Messages\Costumes\Queries;
 
-use App\Messages\Troopers\Queries\TrooperMembership\GetTrooperOrganizations;
+use App\Messages\Troopers\Queries\Membership\GetTrooperOrganizations;
 use App\Models\Costume;
 use App\Models\Trooper;
 use App\Models\TrooperOrganization;
@@ -18,13 +18,10 @@ final class SearchCostumes extends Message
 {
     /**
      * Summary of __construct
-     *
      */
     public function __construct(
         private readonly string $search_term,
-        private readonly Trooper|null $trooper, )
-    {
-    }
+        private readonly ?Trooper $trooper, ) {}
 
     public function handle(): Collection
     {
@@ -39,13 +36,12 @@ final class SearchCostumes extends Message
                 ->pluck(TrooperOrganization::ORGANIZATION_ID)
                 ->all();
 
-            $query->whereHas('organization_costumes', function ($q) use ($organization_ids)
-            {
+            $query->whereHas('organization_costumes', function ($q) use ($organization_ids) {
                 $q->whereIn('organization_id', $organization_ids);
             });
 
             $query->with([
-                'organization_costumes' => fn($q) => $q->whereIn('organization_id', $organization_ids),
+                'organization_costumes' => fn ($q) => $q->whereIn('organization_id', $organization_ids),
                 'organization_costumes.organization',
             ]);
         }

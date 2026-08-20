@@ -6,8 +6,8 @@ namespace App\Http\Requests\Account;
 
 use App\Http\Requests\Concerns\HasNormalizers;
 use App\Models\Organization;
-use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * Handles the validation for the update organization notifications form.

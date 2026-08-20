@@ -16,7 +16,7 @@ class TrooperMinorCollection extends ResourceCollection
     public function toArray(Request $request): array
     {
         return $this->collection
-            ->map(fn(Trooper $minor) => [
+            ->map(fn (Trooper $minor) => [
                 Trooper::ID => $minor->id,
                 Trooper::LEGAL_NAME => $minor->legal_name,
                 Trooper::DISPLAY_NAME => $minor->display_name,

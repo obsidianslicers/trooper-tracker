@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Messages\Troopers\Queries\TrooperMembership;
+namespace App\Messages\Troopers\Queries\Membership;
 
 use App\Enums\TrooperRequestStatus;
 use App\Models\Organization;
@@ -20,8 +20,7 @@ final class DoesTrooperRequestExist extends Message
         private readonly ?int $ignore_trooper_id = null,
         private readonly ?int $ignore_trooper_request_id = null,
         private readonly TrooperRequestStatus $status = TrooperRequestStatus::PENDING,
-    ) {
-    }
+    ) {}
 
     public function handle(): bool
     {

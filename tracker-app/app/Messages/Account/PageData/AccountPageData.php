@@ -4,27 +4,30 @@ declare(strict_types=1);
 
 namespace App\Messages\Account\PageData;
 
-use App\Messages\Account\Resources\OrganizationHierarchy;
-use App\Messages\Troopers\Queries\TrooperMembership\GetTrooperRequests;
+use App\Enums\AdministrativeNotifications;
 use App\Enums\NotificationChannels;
 use App\Enums\NotificationFrequency;
+use App\Enums\OrganizationType;
 use App\Enums\TrooperNotifications;
-use App\Enums\AdministrativeNotifications;
-use App\Messages\Account\Resources\OrganizationNotificationCollection;
-use App\Messages\Account\Resources\TrooperDetails;
 use App\Messages\Account\Queries\GetOrganizationNotifications;
-use App\Messages\Account\Resources\TrooperMembershipCollection;
-use App\Messages\Account\Resources\TrooperRequestCollection;
-use App\Messages\Account\Resources\TrooperMinorCollection;
-use App\Messages\Account\Resources\TrooperFriendCollection;
+use App\Messages\Account\Resources\OrganizationNotificationCollection;
 use App\Messages\Account\Resources\TrooperCostumeCollection;
-use App\Messages\Troopers\Queries\GetTrooperCostumes;
-use App\Messages\Troopers\Queries\TrooperMembership\GetTrooperMemberships;
-use App\Messages\Troopers\Queries\GetTrooperMinors;
-use App\Models\Trooper;
-use Hyperdrive\Message;
-use Hyperdrive\Contracts\Actor;
+use App\Messages\Account\Resources\TrooperDetails;
+use App\Messages\Account\Resources\TrooperFriendCollection;
+use App\Messages\Account\Resources\TrooperMembershipCollection;
+use App\Messages\Account\Resources\TrooperMinorCollection;
+use App\Messages\Account\Resources\TrooperRequestCollection;
+use App\Messages\Organizations\Queries\GetOrganizationHierarchy;
+use App\Messages\Organizations\Resources\OrganizationHierarchy;
+use App\Messages\Organizations\Resources\OrganizationOptions;
+use App\Messages\Troopers\Queries\Costumes\GetTrooperCostumes;
 use App\Messages\Troopers\Queries\GetTrooperFriends;
+use App\Messages\Troopers\Queries\GetTrooperMinors;
+use App\Messages\Troopers\Queries\Membership\GetTrooperMemberships;
+use App\Messages\Troopers\Queries\Membership\GetTrooperRequests;
+use App\Models\Trooper;
+use Hyperdrive\Contracts\Actor;
+use Hyperdrive\Message;
 
 /**
  * Retrieves application configuration including authentication provider status and feature toggles.
@@ -40,12 +43,11 @@ final class AccountPageData extends Message
     /**
      * Constructs the AccountPageData message.
      *
-     * @param Actor&Trooper $actor The actor representing the current user
+     * @param  Actor&Trooper  $actor  The actor representing the current user
      */
     public function __construct(
         public readonly Actor $actor
-    ) {
-    }
+    ) {}
 
     /**
      * Retrieves application configuration as a nested associative array.
@@ -139,6 +141,7 @@ final class AccountPageData extends Message
     {
         return [
             'organizations' => $this->getOrganizationHierarchy(),
+            'organization_options' => $this->getOrganizationOptions(),
             'organization_memberships' => $this->getOrganizationMemberships(),
             'organization_requests' => $this->getTrooperRequests(),
         ];
@@ -157,10 +160,25 @@ final class AccountPageData extends Message
 
         return new TrooperRequestCollection($collection);
     }
+
     private function getOrganizationHierarchy(): OrganizationHierarchy
     {
         $collection = GetOrganizationHierarchy::call();
 
         return new OrganizationHierarchy($collection);
+    }
+
+    private function getOrganizationOptions(): OrganizationOptions
+    {
+        $collection = GetOrganizationHierarchy::call();
+
+        $organization_type = OrganizationType::UNIT;
+
+        if ($this->actor->is_visitor)
+        {
+            $organization_type = OrganizationType::ORGANIZATION;
+        }
+
+        return new OrganizationOptions($collection, $organization_type);
     }
 }

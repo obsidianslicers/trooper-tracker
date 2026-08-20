@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Account;
 
-use App\Enums\NotificationFrequency;
 use App\Http\Requests\Concerns\HasNormalizers;
 use App\Models\Trooper;
 use Illuminate\Foundation\Http\FormRequest;

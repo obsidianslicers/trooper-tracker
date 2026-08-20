@@ -15,8 +15,7 @@ final class GetTrooperMinors extends Message
 {
     public function __construct(
         private readonly Trooper $trooper
-    ) {
-    }
+    ) {}
 
     public function handle(): Collection
     {

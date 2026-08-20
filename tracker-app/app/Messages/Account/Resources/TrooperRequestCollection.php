@@ -16,7 +16,7 @@ class TrooperRequestCollection extends ResourceCollection
     public function toArray(Request $request): array
     {
         return $this->collection
-            ->map(fn(TrooperRequest $trooper_request) => [
+            ->map(fn (TrooperRequest $trooper_request) => [
                 'membership_path' => $trooper_request->membership_path,
                 'identifier' => $trooper_request->identifier,
                 'status' => $trooper_request->status,

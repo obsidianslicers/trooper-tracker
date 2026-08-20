@@ -16,15 +16,15 @@ class OrganizationNotificationCollection extends ResourceCollection
     public function toArray(Request $request): array
     {
         return $this->collection
-            ->map(fn(Organization $org) => [
+            ->map(fn (Organization $org) => [
                 'id' => $org->id,
                 'name' => $org->name,
                 'enabled' => $org->enabled,
-                'regions' => $org->organizations->map(fn($region) => [
+                'regions' => $org->organizations->map(fn ($region) => [
                     'id' => $region->id,
                     'name' => $region->name,
                     'enabled' => $region->enabled,
-                    'units' => $region->organizations->map(fn($unit) => [
+                    'units' => $region->organizations->map(fn ($unit) => [
                         'id' => $unit->id,
                         'name' => $unit->name,
                         'enabled' => $unit->enabled,

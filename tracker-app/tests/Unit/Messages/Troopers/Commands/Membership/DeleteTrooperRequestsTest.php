@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\Messages\Troopers\Commands\TrooperMemberships;
+namespace Tests\Unit\Messages\Troopers\Commands\Membership;
 
 use App\Enums\TrooperRequestStatus;
-use App\Messages\Troopers\Commands\TrooperMemberships\DeleteTrooperRequests;
+use App\Messages\Troopers\Commands\Membership\DeleteTrooperRequests;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperRequest;

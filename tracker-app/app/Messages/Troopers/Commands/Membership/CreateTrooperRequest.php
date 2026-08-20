@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Messages\Troopers\Commands\TrooperMemberships;
+namespace App\Messages\Troopers\Commands\Membership;
 
 use App\Enums\TrooperRequestStatus;
 use App\Jobs\SendTrooperRequestNotificationsJob;
-use App\Messages\Troopers\Queries\TrooperMembership\IsOrganizationIdentifierAvailable;
+use App\Messages\Troopers\Queries\Membership\IsOrganizationIdentifierAvailable;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperRequest;
@@ -25,7 +25,7 @@ final class CreateTrooperRequest extends Message
     public function __construct(
         private readonly Trooper $trooper,
         private readonly Organization $organization,
-        private readonly string|null $identifier = null
+        private readonly ?string $identifier = null
     ) {
         $this->primary_organization = $organization->getPrimaryClub();
     }

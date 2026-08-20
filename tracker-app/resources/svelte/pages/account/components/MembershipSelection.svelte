@@ -1,4 +1,8 @@
 <script lang="ts">
+    import InputContainer from "$lib/components/form/InputContainer.svelte";
+    import InputHelp from "$lib/components/form/InputHelp.svelte";
+    import InputSelect from "$lib/components/form/InputSelect.svelte";
+    import InputText from "$lib/components/form/InputText.svelte";
     import SubmitButtonContainer from "$lib/components/form/SubmitButtonContainer.svelte";
     import SubmitButton from "$lib/components/ui/buttons/SubmitButton.svelte";
     import { MembershipsViewModel } from "$lib/domains/account";
@@ -19,7 +23,7 @@
             profile.
 
             {#if vm.is_visitor}
-                Choose the most specific unit you are visiting.
+                Choose the organization you are visiting.
             {:else}
                 Choose the most specific unit you belong to, typically based on
                 your geographic location.
@@ -30,7 +34,31 @@
             different unit within the same organization, your previous
             assignment or pending request will be updated.
         </p>
-        <!-- 
+        <InputContainer>
+            <InputSelect
+                label="Organization to Join"
+                options={vm.organization_options}
+                errors={vm.errors.organization_id}
+                bind:value={vm.form.organization_id}
+            />
+        </InputContainer>
+        {#if vm.form.organization_id && vm.form.organization_id > 0}
+            {#if vm.selected_primary_organization}
+                {#if vm.selected_primary_organization.identifier_validation.length > 0}
+                    <InputContainer>
+                        <InputText
+                            label={vm.selected_identifier_label}
+                            errors={vm.errors.identifier}
+                            bind:value={vm.form.identifier}
+                        />
+                        <InputHelp>
+                            Enter your member ID for this organization if you
+                            have one. Leave blank if unknown.
+                        </InputHelp>
+                    </InputContainer>
+                {/if}
+            {/if}
+            <!-- 
         <x-input-container>
             <x-label>Club / Organization:</x-label>
             <select
@@ -84,34 +112,13 @@
             </x-input-container>
         </div> -->
 
-        <SubmitButtonContainer>
-            <SubmitButton
-                label="Request Access"
-                submitting={vm.form.processing}
-                disabled={!vm.dirty}
-            />
-        </SubmitButtonContainer>
+            <SubmitButtonContainer>
+                <SubmitButton
+                    label="Request Access"
+                    submitting={vm.form.processing}
+                    disabled={!vm.dirty}
+                />
+            </SubmitButtonContainer>
+        {/if}
     </form>
 </div>
-
-<pre>
-    orgs: Js::from($available_clubs_data),
-    orgMap: Js::from($ancestor_map_data),
-    selectedId: @js((string) old('organization_id', '')),
-    get selectedOrg() 
-        const id = parseInt(this.selectedId);
-        return this.orgs.find(o => o.id === id) ?? null;
-    
-    get selectedChain() 
-        if (!this.selectedOrg?.node_path) return [];
-        return this.selectedOrg.node_path
-            .split(':')
-            .filter(id => id !== '')
-            .map(id => this.orgMap[parseInt(id)])
-            .filter(Boolean);
-    
-    get isIdentifierRequired() 
-        if (!this.selectedOrg?.identifier_validation) return false;
-        return this.selectedOrg.identifier_validation.split('|').includes('required');
-                        
-</pre>

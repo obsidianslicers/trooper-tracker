@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Messages\Account\Queries;
 
-use App\Models\Trooper;
-use Hyperdrive\Message;
-use App\Models\TrooperCostume;
 use App\Models\OrganizationCostume;
+use App\Models\Trooper;
+use App\Models\TrooperCostume;
+use Hyperdrive\Message;
 use Illuminate\Support\Collection;
 
 /**
@@ -22,8 +22,7 @@ final class GetCostumesWithPrefixes extends Message
 {
     public function __construct(
         public readonly Trooper $trooper
-    ) {
-    }
+    ) {}
 
     /**
      * Retrieves the details of an account.
@@ -40,8 +39,7 @@ final class GetCostumesWithPrefixes extends Message
         return TrooperCostume::query()
             ->with($with)
             ->where(TrooperCostume::TROOPER_ID, $this->trooper->id)
-            ->whereHas('organization_costume', function ($query)
-            {
+            ->whereHas('organization_costume', function ($query) {
                 $query->whereNotNull(OrganizationCostume::PREFIX);
             })
             ->get();

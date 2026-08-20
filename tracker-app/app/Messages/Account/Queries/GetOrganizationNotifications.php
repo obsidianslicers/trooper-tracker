@@ -6,10 +6,9 @@ namespace App\Messages\Account\Queries;
 
 use App\Messages\Organizations\Queries\GetOrganizationHierarchy;
 use App\Models\Trooper;
+use App\Models\TrooperAssignment;
 use Hyperdrive\Message;
 use Illuminate\Support\Collection;
-use App\Models\Organization;
-use App\Models\TrooperAssignment;
 
 /**
  * Retrieves the details of an account.
@@ -23,8 +22,7 @@ final class GetOrganizationNotifications extends Message
 {
     public function __construct(
         public readonly Trooper $trooper
-    ) {
-    }
+    ) {}
 
     /**
      * Retrieves the details of an account.

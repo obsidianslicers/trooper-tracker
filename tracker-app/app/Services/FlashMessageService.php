@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use Hyperdrive\CommsHelper;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Session;
-use Hyperdrive\CommsHelper;
 
 /**
  * Manages flash messages stored in the session.

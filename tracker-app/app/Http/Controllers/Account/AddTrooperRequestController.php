@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Account;
 
-use App\Messages\Troopers\Commands\TrooperMemberships\CreateTrooperRequest;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Account\AddTrooperOrganizationRequest;
-use App\Messages\Troopers\Queries\TrooperMembership\GetTrooperRequests;
+use App\Http\Requests\Account\CreateTrooperOrganizationRequest;
 use App\Messages\Account\Resources\TrooperRequestCollection;
+use App\Messages\Troopers\Commands\Membership\CreateTrooperRequest;
+use App\Messages\Troopers\Queries\Membership\GetTrooperRequests;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
@@ -22,10 +22,10 @@ class AddTrooperRequestController extends Controller
 {
     /**
      * Summary of __invoke
-     * @param AddTrooperOrganizationRequest $request
+     *
      * @return void
      */
-    public function __invoke(AddTrooperOrganizationRequest $request): InertiaResponse|SymfonyResponse
+    public function __invoke(CreateTrooperOrganizationRequest $request): InertiaResponse|SymfonyResponse
     {
         $trooper = $request->user();
 
@@ -41,8 +41,8 @@ class AddTrooperRequestController extends Controller
 
         $data = [
             'results' => [
-                'organization_requests' => new TrooperRequestCollection($collection)
-            ]
+                'organization_requests' => new TrooperRequestCollection($collection),
+            ],
         ];
 
         return Inertia::render('account/Index', $data);

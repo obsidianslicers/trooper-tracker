@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\Messages\Troopers\Commands\TrooperMemberships;
+namespace Tests\Unit\Messages\Troopers\Commands\Membership;
 
 use App\Enums\TrooperRequestStatus;
 use App\Jobs\SendTrooperRequestNotificationsJob;
-use App\Messages\Troopers\Commands\TrooperMemberships\CreateTrooperRequest;
+use App\Messages\Troopers\Commands\Membership\CreateTrooperRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperOrganization;

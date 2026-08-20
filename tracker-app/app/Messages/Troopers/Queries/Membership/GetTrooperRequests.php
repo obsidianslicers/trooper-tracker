@@ -2,18 +2,17 @@
 
 declare(strict_types=1);
 
-namespace App\Messages\Troopers\Queries\TrooperMembership;
+namespace App\Messages\Troopers\Queries\Membership;
 
 use App\Models\Trooper;
 use App\Models\TrooperRequest;
-use Hyperdrive\Message;
 use Carbon\Carbon;
+use Hyperdrive\Message;
 use Illuminate\Support\Collection;
-use App\Models\TrooperAssignment;
 
 /**
  * Returns the trooper requests for the given trooper
- * 
+ *
  * @method static Collection call(Trooper $trooper)
  */
 final class GetTrooperRequests extends Message
@@ -37,8 +36,7 @@ final class GetTrooperRequests extends Message
             ->orderBy(TrooperRequest::CREATED_AT, 'desc')
             ->get();
 
-        $requests->each(function (TrooperRequest $trooper_request)
-        {
+        $requests->each(function (TrooperRequest $trooper_request) {
             $trooper_request->membership_path = $this->getMembershipPath($trooper_request);
         });
 

@@ -8,11 +8,12 @@ use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperRequest;
 use App\Rules\Auth\UniqueOrganizationIdentifierRule;
+use App\Rules\Troopers\MemberOrganizationRule;
 use App\Rules\Troopers\VisitorOrganizationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class AddTrooperOrganizationRequest extends FormRequest
+class CreateTrooperOrganizationRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -49,7 +50,11 @@ class AddTrooperOrganizationRequest extends FormRequest
                 'required',
                 'integer',
                 Rule::exists(Organization::class, Organization::ID),
-                new VisitorOrganizationRule($trooper),
+                Rule::when(
+                    $trooper->is_visitor,
+                    [new VisitorOrganizationRule($trooper)],
+                    [new MemberOrganizationRule($trooper)],
+                ),
             ],
             TrooperRequest::IDENTIFIER => $identifier_rules,
         ];
