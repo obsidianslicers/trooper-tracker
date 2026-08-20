@@ -188,7 +188,7 @@ trait HasEventDisplayAssembler
      */
     private function transformEventShift(EventShift $event_shift): void
     {
-        $event_shift->event_troopers->transform(fn($et) => $this->transformEventTrooper($et));
+        $event_shift->event_troopers->transform(fn ($et) => $this->transformEventTrooper($et));
     }
 
     /**
@@ -259,7 +259,7 @@ trait HasEventDisplayAssembler
             default => $potential_orgs->intersect($approved_orgs),
         };
 
-        $names = $final_orgs->map(fn($id) => $this->organizations[$id] ?? '??')->sort();
+        $names = $final_orgs->map(fn ($id) => $this->organizations[$id] ?? '??')->sort();
 
         $prefix = $names->count() > 1 ? '(*) ' : '';
         $name_list = $names->isEmpty() ? '(unattached)' : $names->implode(', ');
