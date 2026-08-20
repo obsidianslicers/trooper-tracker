@@ -29,7 +29,13 @@ class TrooperRequest extends BaseTrooperRequest
         return $this->belongsTo(Organization::class, self::ORGANIZATION_ID);
     }
 
+    //  TODO remove for convention casing reasons
     public function primaryOrganization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class, self::PRIMARY_ORGANIZATION_ID);
+    }
+
+    public function primary_organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class, self::PRIMARY_ORGANIZATION_ID);
     }

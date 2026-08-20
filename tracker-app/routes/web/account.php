@@ -36,6 +36,7 @@ use App\Http\Controllers\Account\SetupController;
 use App\Http\Controllers\Account\SetupSubmitController;
 use App\Http\Controllers\Account\VisitorRenewController;
 use App\Http\Controllers\Account\VisitorRenewSubmitController;
+use App\Http\Controllers\Account\AddTrooperRequestController;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -64,8 +65,9 @@ Route::prefix('account')
         Route::post('/update/notifications/push', UpdatePushNotificationsController::class)->name('update-push-notifications');
         Route::post('/update/notifications/organization', UpdateOrganizationNotificationsController::class)->name('update-organization-notifications');
         Route::post('/update/notifications/preference', UpdateNotificationPreferenceController::class)->name('update-notification-preference');
-        Route::post('/update/costumes/add', AddCostumeController::class)->name('add-costume');
-        Route::post('/update/costumes/remove', RemoveCostumeController::class)->name('remove-costume');
+        Route::post('/add/costumes', AddCostumeController::class)->name('add-costume');
+        Route::post('/remove/costumes', RemoveCostumeController::class)->name('remove-costume');
+        Route::post('/add/trooper/request', AddTrooperRequestController::class)->name('add-trooper-request');
 
 
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Messages\Costumes\Queries;
 
-use App\Messages\Troopers\Queries\GetTrooperOrganizations;
+use App\Messages\Troopers\Queries\TrooperMembership\GetTrooperOrganizations;
 use App\Models\Costume;
 use App\Models\Trooper;
 use App\Models\TrooperOrganization;

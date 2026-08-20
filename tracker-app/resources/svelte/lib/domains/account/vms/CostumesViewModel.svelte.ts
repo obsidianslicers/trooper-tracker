@@ -58,6 +58,7 @@ export class CostumesViewModel extends ViewModel {
 
     removeCostume = (trooper_costume: TrooperCostume) => {
         trooper_costume.submitting = true;
+
         const url = getRoute('account.remove-costume');
 
         //  fire & forget the request, but we want to preserve the current URL and state
@@ -66,10 +67,12 @@ export class CostumesViewModel extends ViewModel {
             preserveUrl: true,    // Keeps the current URL intact
             preserveState: true,  // Keeps current local form/scroll states intact
             preserveScroll: true, // Prevents page from jumping
+            only: ['flash', 'results'],
 
             onSuccess: (page: any) => {
                 toastStateSvelte.success(`${trooper_costume.name} removed successfully.`);
                 trooper_costume.submitting = false;
+                this.trooper_costumes = page.props.results.trooper_costumes ?? [];
             }
         };
 
@@ -81,6 +84,8 @@ export class CostumesViewModel extends ViewModel {
     }
 
     addCostume = () => {
+        this.submitting = true;
+
         const url = getRoute('account.add-costume');
 
         //  fire & forget the request, but we want to preserve the current URL and state
@@ -89,12 +94,13 @@ export class CostumesViewModel extends ViewModel {
             preserveUrl: true,    // Keeps the current URL intact
             preserveState: true,  // Keeps current local form/scroll states intact
             preserveScroll: true, // Prevents page from jumping
+            only: ['flash', 'results'],
 
             onSuccess: (page: any) => {
                 toastStateSvelte.success(`${this.selected_costume?.name} added successfully.`);
-                this.addCostumeToTrooperCostumes(this.selected_costume!);
                 this.selected_costume = null;
                 this.submitting = false;
+                this.trooper_costumes = page.props.results.trooper_costumes ?? [];
             }
         };
 
@@ -106,21 +112,6 @@ export class CostumesViewModel extends ViewModel {
         };
 
         router.post(url, data, options);
-    }
-
-    private addCostumeToTrooperCostumes = (costume: Costume) => {
-        const names = costume.organizations
-            .filter((org) => org.selected)
-            .map((org) => org.name);
-
-        const costume_organizations = (names.length > 1 ? '(*) ' : '') + names.join(", ");
-
-        this.trooper_costumes.push({
-            costume_id: costume.id,
-            name: costume.name,
-            costume_organizations: costume_organizations,
-            submitting: false,
-        });
     }
 
     canAddCostume = (): boolean => {

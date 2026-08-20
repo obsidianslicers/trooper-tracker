@@ -11,7 +11,7 @@ use App\Jobs\SendTrooperRegisteredNotificationsJob;
 use App\Mail\Auth\GuardianAwareness;
 use App\Mail\Auth\TrooperRegistered;
 use App\Messages\Troopers\Commands\CreateTrooper;
-use App\Messages\Troopers\Commands\CreateTrooperRequest;
+use App\Messages\Troopers\Commands\TrooperMemberships\CreateTrooperRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Services\FlashMessageService;
@@ -34,7 +34,9 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
  */
 class RegisterSubmitController extends Controller
 {
-    public function __construct(private readonly FlashMessageService $flash) {}
+    public function __construct(private readonly FlashMessageService $flash)
+    {
+    }
 
     /**
      * Handle the incoming registration request.
@@ -73,7 +75,8 @@ class RegisterSubmitController extends Controller
 
     private function registerTrooper(RegisterRequest $request): Trooper
     {
-        return DB::transaction(function () use ($request) {
+        return DB::transaction(function () use ($request)
+        {
             $trooper = CreateTrooper::call($request);
 
             if ($trooper->membership_role != MembershipRole::HANDLER)

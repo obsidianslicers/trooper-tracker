@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Account;
 
+use App\Messages\Account\Resources\TrooperCostumeCollection;
+use App\Messages\Troopers\Queries\GetTrooperCostumes;
 use App\Messages\Troopers\Commands\RemoveCostumeFromTrooper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Account\RemoveCostumeRequest;
@@ -27,11 +29,21 @@ class RemoveCostumeController extends Controller
      */
     public function __invoke(RemoveCostumeRequest $request): InertiaResponse|SymfonyResponse
     {
+        $trooper = $request->user();
+
         RemoveCostumeFromTrooper::call(
-            trooper: $request->user(),
+            trooper: $trooper,
             costume_id: $request->validated('costume_id')
         );
 
-        return Inertia::render('account/Index');
+        $trooper_costumes = GetTrooperCostumes::call(trooper: $trooper);
+
+        $data = [
+            'results' => [
+                'trooper_costumes' => new TrooperCostumeCollection($trooper_costumes),
+            ],
+        ];
+
+        return Inertia::render('account/Index', $data);
     }
 }

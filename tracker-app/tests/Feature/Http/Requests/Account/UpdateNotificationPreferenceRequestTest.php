@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Requests\Account;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use App\Enums\AdministrativeNotifications;
 use App\Enums\NotificationChannels;
 use App\Enums\TrooperNotifications;
@@ -31,9 +32,7 @@ class UpdateNotificationPreferenceRequestTest extends TestCase
         $this->assertTrue($subject->authorize());
     }
 
-    /**
-     * @dataProvider notification_enum_cases
-     */
+    #[DataProvider('notification_enum_cases')]
     public function test_rules_accepts_values_from_both_notification_enums(string $notification): void
     {
         $subject = new UpdateNotificationPreferenceRequest;

@@ -42,4 +42,11 @@ class TrooperOrganizationFactory extends BaseTrooperOrganizationFactory
             TrooperOrganization::IDENTIFIER => $identifier,
         ]);
     }
+
+    public function withMembershipStatus(MembershipStatus $status): static
+    {
+        return $this->state(fn(array $attributes): array => [
+            TrooperOrganization::MEMBERSHIP_STATUS => $status,
+        ]);
+    }
 }

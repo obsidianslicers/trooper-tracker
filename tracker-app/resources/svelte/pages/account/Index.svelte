@@ -44,7 +44,10 @@
             <Costumes costumes={vm.pageData?.costumes} />
         </TabPanel>
         <TabPanel id="memberships">
-            <Memberships memberships={vm.pageData?.memberships} />
+            <Memberships
+                is_visitor={vm.pageData?.is_visitor}
+                memberships={vm.pageData?.memberships}
+            />
         </TabPanel>
         <TabPanel id="friends">
             <Friends friends={vm.pageData?.friends} />

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Messages\Account\PageData;
 
+use App\Messages\Account\Resources\OrganizationHierarchy;
+use App\Messages\Troopers\Queries\TrooperMembership\GetTrooperRequests;
 use App\Enums\NotificationChannels;
 use App\Enums\NotificationFrequency;
 use App\Enums\TrooperNotifications;
@@ -12,17 +14,17 @@ use App\Messages\Account\Resources\OrganizationNotificationCollection;
 use App\Messages\Account\Resources\TrooperDetails;
 use App\Messages\Account\Queries\GetOrganizationNotifications;
 use App\Messages\Account\Resources\TrooperMembershipCollection;
+use App\Messages\Account\Resources\TrooperRequestCollection;
 use App\Messages\Account\Resources\TrooperMinorCollection;
 use App\Messages\Account\Resources\TrooperFriendCollection;
 use App\Messages\Account\Resources\TrooperCostumeCollection;
 use App\Messages\Troopers\Queries\GetTrooperCostumes;
-use App\Messages\Troopers\Queries\GetTrooperMemberships;
+use App\Messages\Troopers\Queries\TrooperMembership\GetTrooperMemberships;
 use App\Messages\Troopers\Queries\GetTrooperMinors;
 use App\Models\Trooper;
 use Hyperdrive\Message;
 use Hyperdrive\Contracts\Actor;
 use App\Messages\Troopers\Queries\GetTrooperFriends;
-use Illuminate\Http\Resources\Json\ResourceCollection;
 
 /**
  * Retrieves application configuration including authentication provider status and feature toggles.
@@ -54,6 +56,7 @@ final class AccountPageData extends Message
     {
         $data = [
             'trooper_id' => $this->actor->id,
+            'is_visitor' => $this->actor->is_visitor,
             'email' => $this->actor->email,
             'details' => $this->getDetails(),
             'notifications' => $this->getNotifications(),
@@ -135,8 +138,9 @@ final class AccountPageData extends Message
     private function getMemberships(): array
     {
         return [
+            'organizations' => $this->getOrganizationHierarchy(),
             'organization_memberships' => $this->getOrganizationMemberships(),
-            'denied' => ['data' => []]
+            'organization_requests' => $this->getTrooperRequests(),
         ];
     }
 
@@ -145,5 +149,18 @@ final class AccountPageData extends Message
         $collection = GetTrooperMemberships::call(trooper: $this->actor);
 
         return new TrooperMembershipCollection($collection);
+    }
+
+    private function getTrooperRequests(): TrooperRequestCollection
+    {
+        $collection = GetTrooperRequests::call(trooper: $this->actor);
+
+        return new TrooperRequestCollection($collection);
+    }
+    private function getOrganizationHierarchy(): OrganizationHierarchy
+    {
+        $collection = GetOrganizationHierarchy::call();
+
+        return new OrganizationHierarchy($collection);
     }
 }

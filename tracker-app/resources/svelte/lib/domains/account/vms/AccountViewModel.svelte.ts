@@ -9,6 +9,7 @@ import type { NotificationsPageData } from "./NotificationsViewModel.svelte";
 function constructAccountPageData() {
     return {
         trooper_id: 0,
+        is_visitor: false,
         email: "",
         details: {} as DetailsPageData,
         notifications: {} as NotificationsPageData,
@@ -21,6 +22,7 @@ function constructAccountPageData() {
 
 export type AccountPageData = {
     trooper_id: number;
+    is_visitor: boolean;
     email: string;
     details: DetailsPageData;
     notifications: NotificationsPageData;

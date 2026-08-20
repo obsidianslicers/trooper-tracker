@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Account;
 
+use App\Messages\Account\Resources\TrooperCostumeCollection;
 use App\Messages\Troopers\Commands\AddCostumeToTrooper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Account\AddCostumeRequest;
@@ -28,13 +29,22 @@ class AddCostumeController extends Controller
      */
     public function __invoke(AddCostumeRequest $request): InertiaResponse|SymfonyResponse
     {
+        $trooper = $request->user();
+
         AddCostumeToTrooper::call(
-            trooper: $request->user(),
+            trooper: $trooper,
             costume_id: $request->validated('costume_id'),
             organization_ids: $request->validated('organization_ids')
         );
 
+        $trooper_costumes = GetTrooperCostumes::call(trooper: $trooper);
 
-        return Inertia::render('account/Index');
+        $data = [
+            'results' => [
+                'trooper_costumes' => new TrooperCostumeCollection($trooper_costumes),
+            ],
+        ];
+
+        return Inertia::render('account/Index', $data);
     }
 }

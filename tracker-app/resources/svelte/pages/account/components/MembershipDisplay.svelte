@@ -8,6 +8,8 @@
     let { vm }: Props = $props();
 </script>
 
+<h6 class="mb-3">Organization Memberships</h6>
+
 {#if vm.organization_memberships.length === 0}
     <Alert>No organization memberships are currently linked to you.</Alert>
 {:else}
