@@ -1,195 +1,147 @@
 # Hyperdrive Message Architecture
 
-Hyperdrive is a streamlined, single-file architecture pattern for Laravel that merges the benefits of **CQRS (Command Query Responsibility Segregation)**, **Data Transfer Objects (DTOs)**, and **Action Classes** into unified, self-contained **Messages**.
+Hyperdrive is a small Laravel message-dispatch layer that keeps HTTP concerns out of application logic while making message inputs predictable and strongly typed. The package is centered on `Message` and `MessageDispatcher`, which hydrate constructor arguments from a request, route data, auth context, and explicit overrides, then resolve the message's `handle()` method through Laravel's container.
 
-It eliminates boilerplate, ensures strong runtime type coercion, natively resolves controller dependencies, protects against circular loops, and provides flawless IDE type-hinting and autocomplete.
-
-## Architecture: HTTP vs. Application Layer Separation
-
-The Message bus architecture strictly decoupling Controllers from Page Data classes ensures a clean separation between the HTTP layer (handling routing, middleware, and authorization) and the Application layer (handling data orchestration and payload preparation). By offloading data aggregation to a dedicated Page Data message, controllers remain lightweight and single-responsibility, while the data layer can automatically resolve route parameters, safely sanitize model attributes (->only()), and keep frontend payloads minimal. This prevents the "Fat Controller" anti-pattern, guarantees that UI data-fetching logic is highly testable and decoupled from HTTP state, and maintains a predictable, repeatable contract across the entire application ecosystem.
+This project uses Hyperdrive to support single-file messages that behave like commands, queries, and page-data fetchers without requiring a separate handler class for every action.
 
 ---
 
-## The Core Concept
+## Core behavior
 
-Traditional CQRS architecture forces you to create separate files for a `Message/Command` (dumb data) and a `Handler` (logic). Hyperdrive unifies them into a single, cohesive file.
+`MessageDispatcher` performs five important steps:
 
-```
-┌──────────────────────────────────────────────┐
-│                  Controller                  │
-└──────────────────────┬───────────────────────┘
-                       │  UsersPageData::call($request)
-                       ▼
-┌──────────────────────────────────────────────┐
-│                  Hyperdrive                  │
-│ 1. Sniffs FormRequest / Request Payload      │
-│ 2. Merges Route Parameters & Auth Actor      │
-│ 3. Hydrates & type-coerces into constructor  │
-└──────────────────────┬───────────────────────┘
-                       │
-                       ▼
-┌──────────────────────────────────────────────┐
-│             Single-File Message              │
-│  __construct( public Type $data ) { ... }    │
-│  handle( Dependency $service )    { ... }    │
-└──────────────────────────────────────────────┘
+1. Detects circular message chains using a processing stack.
+2. Collects request payloads and route parameters.
+3. Adds the authenticated actor as `['actor' => auth()->user()]` when applicable.
+4. Resolves constructor arguments by name and type.
+5. Executes the message's `handle()` method through Laravel's dependency injection container.
 
-```
+A message is considered invalid if a required constructor parameter is missing or if a value cannot be coerced to the declared type.
 
 ---
 
-## Features
-
-* **Single-File Content:** Input properties, hydration guardrails, and business logic live in the exact same class.
-* **Automatic Hydration Extraction:** Intelligently intercepts custom `FormRequest` instances to extract only safe `validated()` parameters, falling back seamlessly to `input()` profiles for raw payloads.
-* **Smart Parameter Aggregation:** Automatically marries incoming request bodies with URL route parameters and the globally authenticated user scope.
-* **Type Coercion Engine:** Implicitly handles primitives (`int`, `bool`, `string`, `float`), auto-resolves primary keys directly to Eloquent Models via `findOrFail()`, and parses Backed/Unit PHP Enums.
-* **Perfect IDE Return Type Inference:** Full static autocomplete out-of-the-box using standard PHPDoc annotations.
-* **Infinite Nesting Support:** Isolates internal message calls by tracking parameter signatures, allowing explicit array values or manual named arguments to override global state cleanly.
-* **Loop Guardrails:** Features a stateful tracking stack that throws an exception if a circular chain of messages is mistakenly introduced (`ClassA -> ClassB -> ClassA`).
-
----
-
-## Core Component Overview
-
-### The Base Message
-
-Every application action (Command or Query) extends the abstract `Message` base class.
-
-* Use the class-level `@method static ReturnType call(...$args)` docblock so your IDE tracks output accurately.
-* Define input parameters in the `__construct()`.
-* Typehint infrastructure or domain dependencies in the execution `handle()` method, which is resolved via Laravel's service container.
-
----
-
-## Example Implementation
-
-### 1. Creating a Service/Action Message
+## Message execution flow
 
 ```php
-namespace App\Architecture\Messages;
+$users = UsersPageData::call($request);
+```
 
-use App\Models\User;
-use App\Models\Plan;
-use App\Models\Actor;
-use App\Services\PaymentGateway;
+Under the hood, `MessageDispatcher::handle()` does the following:
+
+- Uses `$request->validated()` for `FormRequest` payloads.
+- Falls back to `$request->query()` for standard `Request` objects.
+- Merges `$request->route()->parameters()` into the input set.
+- Adds the active auth user under the `actor` key when available.
+- Merges explicit `::call([...])` arguments last so they override earlier values.
+- Resolves the message instance and calls `handle()`.
+
+The processing stack prevents recursive loops such as `A -> B -> A` by throwing an exception.
+
+---
+
+## Parameter precedence
+
+The merge order is deliberate and matches the current implementation:
+
+```text
+request validated payload
+  + route parameters
+  + auth actor
+  + explicit call arguments
+```
+
+That means a value supplied through `::call(['id' => 42])` wins over a matching value from the request or route.
+
+---
+
+## Supported coercions
+
+`MessageDispatcher` resolves constructor parameters via reflection and supports the following behavior in this implementation:
+
+- `int` => cast with `(int) $value`
+- `float` => cast with `(float) $value`
+- `bool` => uses `filter_var($value, FILTER_VALIDATE_BOOLEAN)`
+- `string` => trims and casts to string
+- Eloquent model type => if the value is already an instance, it is used directly; otherwise it calls `Model::findOrFail($value)`
+- Backed enum types => resolve via `EnumType::tryFrom($value)`
+- Unit enum types => match by case name against the string value
+- Nullable unions such as `string|null` or `FooEnum|null` resolve to the non-null type before applying the coercion rules
+- Enum unions such as `StatusA|StatusB` are attempted in order until one matches
+
+If any required argument is missing or invalid, `MessageDispatcher` throws an `InvalidArgumentException` with a structured validation payload.
+
+---
+
+## Actor injection
+
+The dispatcher supports auto-binding the authenticated actor when a constructor parameter is type-hinted as `Hyperdrive\Contracts\Actor`.
+
+```php
+public function __construct(
+    public readonly Actor $actor,
+)
+```
+
+This is not a generic user lookup; it is a direct match against the interface type and uses the active auth user.
+
+---
+
+## Required constructor rules
+
+The dispatcher checks each constructor parameter in order:
+
+- If a parameter name exists in the merged input array, it is used.
+- If the parameter is `actor`, it uses the auth user automatically.
+- If the value is missing and the parameter is optional, it is skipped.
+- If the value is missing and the parameter is required, an `InvalidArgumentException` is thrown.
+- If the value is present but null for a non-nullable parameter, it is also rejected.
+
+This keeps validation at the transport layer lightweight while preserving message-level validation for business rules.
+
+---
+
+## Example message
+
+```php
+namespace App\Messages\Troopers;
+
 use Hyperdrive\Message;
+use Hyperdrive\Contracts\Actor;
+use App\Models\Trooper;
 
 /**
- * @method static User call(...$args)
+ * @method static Trooper call(...$args)
  */
-final class RegisterUserAndSubscribe extends Message
+final class GetTrooperProfile extends Message
 {
-    // 1. Data Contract: Automatically populated from FormRequest/Route input
     public function __construct(
-        public readonly string $name,
-        public readonly string $email,
-        public readonly string $password,
-        public readonly Plan $plan,   // Automatically resolved via Model matching and findOrFail!
-        public readonly Actor $actor, // Bound automatically to the authenticated user profile!
+        public readonly int $trooper_id,
+        public readonly Actor $actor,
     ) {}
 
-    // 2. Business Logic: Deep Container Injection supported on handle execution
-    public function handle(PaymentGateway $gateway): User
+    public function handle(): Trooper
     {
-        $user = User::create([
-            'name' => $this->name,
-            'email' => $this->email,
-            'password' => bcrypt($this->password),
-        ]);
-
-        $gateway->subscribeToPlan($user, $this->plan);
-
-        return $user;
+        return Trooper::findOrFail($this->trooper_id);
     }
 }
-
 ```
 
-### 2. Executing from a Controller
-
-Your controllers are left entirely unburdened by boilerplate. Pass the type-hinted Request instance straight into the `call()` framework:
+This message can be called directly from a controller or nested from another message:
 
 ```php
-namespace App\Http\Controllers;
-
-use App\Http\Requests\RegisterUserRequest;
-use App\Architecture\Messages\RegisterUserAndSubscribe;
-
-class RegistrationController extends Controller
-{
-    public function __invoke(RegisterUserRequest $request)
-    {
-        // 1. Fully Typehinted for your IDE 
-        // 2. Intercepts the custom FormRequest and extracts $request->validated() data only
-        // 3. Merges route params and routes execution to the internal handler
-        $user = RegisterUserAndSubscribe::call($request);
-
-        return response()->json($user, 201);
-    }
-}
-
+$trooper = GetTrooperProfile::call($request);
 ```
 
-### 3. Nesting Queries (Isolated Sub-calls)
-
-If you need a compound dataset for a view or dashboard, you can cleanly nest messages. When explicit parameters or arrays are passed into `call()`, Hyperdrive isolates the execution context from the global HTTP state.
-
-```php
-namespace App\Architecture\Messages;
-
-use Hyperdrive\Message;
-
-/**
- * @method static array call(...$args)
- */
-final class UsersPageData extends Message
-{
-    public function handle(): array
-    {
-        return [
-            // Explicit parameters bypass global request payloads completely
-            'users' => GetUsers::call(['role_id' => 8]),
-            'roles' => GetRoles::call(),
-        ];
-    }
-}
-
-```
+When the request contains `trooper_id`, route data, or auth context, the dispatcher hydrates that constructor automatically.
 
 ---
 
-## Deep-Dive: Parameter Prioritization Matrix
+## Important implementation notes
 
-When a Message passes through the `MessageDispatcher`, parameters are extracted and layered dynamically. Arrays are merged from left to right, meaning **later keys overwrite matching previous keys** if a naming collision occurs:
+- Form requests are treated as safe sources of validated data; `validated()` is used instead of raw request input.
+- Standard requests use `query()` as the request payload source.
+- The dispatcher is intentionally strict: invalid input causes exceptions rather than silently coercing to a misleading value.
+- Message recursion is guarded to prevent accidental circular dispatches.
+- `handle()` remains the execution hook; message classes are expected to implement their own domain logic there.
 
-```
-┌──────────────────────────────────────────────────────────────────┐
-│ 1. Request Payload Source                                        │
-│    ├── FormRequest Instance  ──>  $request->validated()          │
-│    └── Standard Request      ──>  $request->input()              │
-└────────────────────────────────┬─────────────────────────────────┘
-                                 │
-                                 ▼ (Merged Over Payload)
-┌──────────────────────────────────────────────────────────────────┐
-│ 2. URL Route Placeholders    ──>  $request->route()->parameters()│
-└────────────────────────────────┬─────────────────────────────────┘
-                                 │
-                                 ▼ (Merged Over Route Parameters)
-┌──────────────────────────────────────────────────────────────────┐
-│ 3. Authenticated Context     ──>  ['actor' => auth()->user()]    │
-└────────────────────────────────┬─────────────────────────────────┘
-                                 │
-                                 ▼ (Final Overrides Take Precedence)
-┌──────────────────────────────────────────────────────────────────┐
-│ 4. Explicit Method Calls     ──>  ::call(['key' => 'value'])     │
-└──────────────────────────────────────────────────────────────────┘
-
-```
-
-### Coercion Specifications
-
-The pipeline maps the merged dictionary against the Message's constructor rules via reflection:
-
-* **Eloquent Models**: Looks for an incoming parameter key named after the parameter variable. If a primitive ID is found, it performs a strict `Model::findOrFail($value)` lookup. If an instance of that Model is already provided, it bypasses database querying entirely.
-* **PHP Enums**: Backed enums are verified through `tryFrom($value)`. Unit enums are string-matched directly against `$case->name`. Failed lookups instantly generate a structured `ValidationException`.
+This README reflects the actual behavior of the current `MessageDispatcher` implementation in this repository and may differ from more permissive or idealized documentation in other frameworks or examples.
