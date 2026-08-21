@@ -177,7 +177,7 @@
             var icon = btn.querySelector('i');
             navigator.clipboard.writeText(url).then(function () {
                 icon.className = 'fa fa-fw fa-check text-success';
-                setTimeout(function () { icon.className = 'fa fa-fw fa-link'; }, 1500);
+                setTimeout(function () { icon.className = 'fa fa-fw fa-copy'; }, 1500);
             });
         });
     });
