@@ -34,9 +34,7 @@ class TrooperAssignmentObserver
                 throw new Exception('Visitors can only join top-level organizations.');
             }
         }
-
-        // Membership is allowed at any organizational level (org, region, or unit).
-
+        
         if (!$trooper_assignment->is_member)
         {
             return;
