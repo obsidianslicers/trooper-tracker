@@ -45,7 +45,7 @@ class DeniedController extends MagicBusController
         $org_paths = Organization::buildPathLabels($specific_orgs);
 
         $organization_hierarchy = $this->bus->send(new GetOrganizationHierarchyQuery)
-            ->map(fn(array $org) => (object) $org);
+            ->map(fn (array $org) => (object) $org);
 
         $request_by_primary = $denied_requests->keyBy(TrooperRequest::PRIMARY_ORGANIZATION_ID);
 
