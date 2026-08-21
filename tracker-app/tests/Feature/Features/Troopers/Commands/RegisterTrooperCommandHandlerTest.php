@@ -25,7 +25,7 @@ class RegisterTrooperCommandHandlerTest extends TestCase
             'legal_name' => 'Jane Smith',
             'display_name' => 'Jane S',
             'email' => 'jane@example.com',
-            'phone' => '555-9876',
+            'phone' => '404-555-9876',
             'password' => 'password123',
             'account_type' => 'member',
         ];
@@ -40,7 +40,7 @@ class RegisterTrooperCommandHandlerTest extends TestCase
             Trooper::LEGAL_NAME => 'Jane Smith',
             Trooper::DISPLAY_NAME => 'Jane S',
             Trooper::EMAIL => 'jane@example.com',
-            Trooper::PHONE => '555-9876',
+            Trooper::PHONE => '404-555-9876',
             Trooper::MEMBERSHIP_ROLE => MembershipRole::MEMBER->value,
         ]);
         $this->assertNotNull($result->setup_completed_at);

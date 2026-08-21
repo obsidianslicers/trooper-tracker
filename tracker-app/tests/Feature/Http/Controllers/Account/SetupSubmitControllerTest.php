@@ -30,7 +30,7 @@ class SetupSubmitControllerTest extends TestCase
             ],
         ]);
 
-        $response->assertRedirect(route('account.costumes'));
+        $response->assertRedirect(route('account.index'));
     }
 
     public function test_invoke_requires_authentication(): void

@@ -69,7 +69,7 @@ class MergeTroopersTest extends TestCase
         $target_trooper->refresh();
         $source_trooper->refresh();
 
-        $this->assertSame('555-1212', $target_trooper->{Trooper::PHONE});
+        $this->assertSame('404-555-1212', $target_trooper->{Trooper::PHONE});
         $this->assertSame(MembershipStatus::ACTIVE, $target_trooper->{Trooper::MEMBERSHIP_STATUS});
         $this->assertSame(MembershipRole::ADMINISTRATOR, $target_trooper->{Trooper::MEMBERSHIP_ROLE});
         $this->assertSame(

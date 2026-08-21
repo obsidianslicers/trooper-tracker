@@ -44,7 +44,7 @@ class UpdateTrooperProfileTest extends TestCase
         $this->assertSame('New Legal', $trooper->legal_name);
         $this->assertSame('New Display', $trooper->display_name);
         $this->assertSame(TrooperTheme::REBEL, $trooper->theme);
-        $this->assertSame('222-2222', $trooper->phone);
+        $this->assertSame('404-555-2222', $trooper->phone);
         $this->assertSame($updated_display_costume->id, $trooper->display_costume_id);
 
         $this->assertDatabaseHas('tt_troopers', [
@@ -52,7 +52,7 @@ class UpdateTrooperProfileTest extends TestCase
             Trooper::LEGAL_NAME => 'New Legal',
             Trooper::DISPLAY_NAME => 'New Display',
             Trooper::THEME => TrooperTheme::REBEL->value,
-            Trooper::PHONE => '222-2222',
+            Trooper::PHONE => '404-555-2222',
             Trooper::DISPLAY_COSTUME_ID => $updated_display_costume->id,
         ]);
     }

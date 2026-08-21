@@ -35,7 +35,7 @@ class ProfileSubmitControllerTest extends TestCase
         $this->assertSame('TK-11111 New Legal Name', $subject->{Trooper::LEGAL_NAME});
         $this->assertSame('TK New Display', $subject->{Trooper::DISPLAY_NAME});
         $this->assertSame('trooper.updated@example.com', $subject->{Trooper::EMAIL});
-        $this->assertSame('5551234567', $subject->{Trooper::PHONE});
+        $this->assertSame('555-123-4567', $subject->{Trooper::PHONE});
     }
 
     public function test_invoke_requires_authentication(): void
