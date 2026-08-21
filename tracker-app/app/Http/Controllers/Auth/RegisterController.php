@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\Controller;
 use App\Messages\Auth\PageData\RegisterPageData;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -18,7 +18,7 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
  * organizations and pre-fills data from the OAuth session if the trooper
  * is registering via an OAuth provider.
  */
-class RegisterController extends MagicBusController
+class RegisterController extends Controller
 {
     /**
      * Handle the incoming request to display the registration form.

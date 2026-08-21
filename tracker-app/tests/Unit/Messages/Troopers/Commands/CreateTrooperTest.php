@@ -27,7 +27,7 @@ class CreateTrooperTest extends TestCase
             email: 'jane@example.com',
             membership_role: MembershipRole::MEMBER,
             password: 'secret123',
-            phone: '555-1111',
+            phone: '404-555-1111',
             date_of_birth: '2000-01-01',
             guardian_email: 'guardian@example.com',
         );

@@ -33,7 +33,7 @@ class UpdateTrooperProfileTest extends TestCase
             legal_name: 'New Legal',
             display_name: 'New Display',
             theme: TrooperTheme::REBEL,
-            phone: '222-2222',
+            phone: '404-555-2222',
             display_costume_id: $updated_display_costume->id,
         );
 
@@ -52,7 +52,7 @@ class UpdateTrooperProfileTest extends TestCase
             Trooper::LEGAL_NAME => 'New Legal',
             Trooper::DISPLAY_NAME => 'New Display',
             Trooper::THEME => TrooperTheme::REBEL->value,
-            Trooper::PHONE => '404-555-2222',
+            Trooper::PHONE => '4045552222',
             Trooper::DISPLAY_COSTUME_ID => $updated_display_costume->id,
         ]);
     }

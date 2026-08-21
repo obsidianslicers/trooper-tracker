@@ -44,7 +44,7 @@ class MergeTroopersTest extends TestCase
             ->asAdministrator()
             ->withNotificationFrequency(NotificationFrequency::INSTANT)
             ->create([
-                Trooper::PHONE => '555-1212',
+                Trooper::PHONE => '404-555-1212',
                 Trooper::PUSH_NOTIFICATIONS_ENABLED => true,
                 Trooper::NOTIFICATION_PREFERENCES => [
                     'events' => ['daily' => true],
