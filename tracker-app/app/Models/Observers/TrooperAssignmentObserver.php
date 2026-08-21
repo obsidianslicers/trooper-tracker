@@ -34,7 +34,7 @@ class TrooperAssignmentObserver
                 throw new Exception('Visitors can only join top-level organizations.');
             }
         }
-        
+
         if (!$trooper_assignment->is_member)
         {
             return;
