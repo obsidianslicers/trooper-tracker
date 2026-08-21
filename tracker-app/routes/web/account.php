@@ -9,26 +9,15 @@ use App\Http\Controllers\Account\IndexController;
 use App\Http\Controllers\Account\UpdateProfileController;
 use App\Http\Controllers\Account\UpdateNotificationFrequencyController;
 use App\Http\Controllers\Account\UpdatePushNotificationsController;
-use App\Http\Controllers\Account\ClubMembershipsController;
-use App\Http\Controllers\Account\ClubMembershipsSubmitHtmxController;
 use App\Http\Controllers\Account\DeletionCancelController;
 use App\Http\Controllers\Account\DeletionRequestController;
-use App\Http\Controllers\Account\CostumesController;
-use App\Http\Controllers\Account\CostumesDeleteHtmxController;
-use App\Http\Controllers\Account\CostumesSubmitHtmxController;
-use App\Http\Controllers\Account\FriendsController;
-use App\Http\Controllers\Account\MinorsController;
 use App\Http\Controllers\Account\NoticesController;
 use App\Http\Controllers\Account\NoticesSubmitHtmxController;
-use App\Http\Controllers\Account\NotificationsController;
-use App\Http\Controllers\Account\NotificationsSubmitController;
-use App\Http\Controllers\Account\ProfileController;
 use App\Http\Controllers\Account\RemoveCostumeController;
 use App\Http\Controllers\Account\AddCostumeController;
 use App\Http\Controllers\Account\PushNotificationClearController;
 use App\Http\Controllers\Account\PushNotificationInboxController;
 use App\Http\Controllers\Account\PushNotificationReadController;
-use App\Http\Controllers\Account\ProfileSubmitController;
 use App\Http\Controllers\Account\DeniedController;
 use App\Http\Controllers\Account\DeniedResubmitController;
 use App\Http\Controllers\Account\PendingController;
@@ -71,20 +60,9 @@ Route::prefix('account')
 
 
 
-        Route::get('/profile', ProfileController::class)->name('profile');
-        Route::post('/profile', ProfileSubmitController::class);
-        Route::get('/notifications', NotificationsController::class)->name('notifications');
-        Route::post('/notifications', NotificationsSubmitController::class);
         Route::get('/notices', NoticesController::class)->name('notices');
         Route::post('/notices-htmx/{notice}', NoticesSubmitHtmxController::class)->name('notices-htmx');
-        Route::get('/club-memberships', ClubMembershipsController::class)->name('club-memberships');
-        Route::post('/club-memberships-htmx', ClubMembershipsSubmitHtmxController::class)->name('club-memberships-htmx');
-        Route::get('/minors', MinorsController::class)->name('minors');
-        Route::get('/friends', FriendsController::class)->name('friends');
 
-        Route::get('/costumes', CostumesController::class)->name('costumes');
-        Route::post('/costumes-htmx', CostumesSubmitHtmxController::class)->name('costumes-htmx');
-        Route::delete('/costumes-htmx', CostumesDeleteHtmxController::class);
 
         //  needed a post name to get the middleware to work properly
         Route::get('/push-notifications', PushNotificationInboxController::class)->name('push-notifications');

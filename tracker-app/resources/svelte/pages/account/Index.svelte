@@ -24,14 +24,26 @@
     let vm = new AccountViewModel(page.props);
 </script>
 
+<!--
+No Cadets Hide Tab
+No Friends Hide Tab
+Is Handler Hide Tab
+-->
+
 <Tabs defaultTab="profile">
     <TabHeader>
         <Tab id="profile">Profile</Tab>
         <Tab id="notifications">Notifications</Tab>
-        <Tab id="costumes">Costumes</Tab>
+        {#if !vm.is_handler}
+            <Tab id="costumes">Costumes</Tab>
+        {/if}
         <Tab id="memberships">Memberships</Tab>
-        <Tab id="friends">Friends</Tab>
-        <Tab id="minors">Cadets</Tab>
+        {#if vm.has_friends}
+            <Tab id="friends">Friends</Tab>
+        {/if}
+        {#if vm.has_minors}
+            <Tab id="minors">Cadets</Tab>
+        {/if}
     </TabHeader>
     <TabContent>
         <TabPanel id="profile">

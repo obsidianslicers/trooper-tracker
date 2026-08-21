@@ -33,7 +33,7 @@ class TrooperController extends MagicBusController
     {
         if ($trooper->id == Auth::user()->id)
         {
-            $this->crumbs->addRoute('Profile', 'account.profile');
+            $this->crumbs->addRoute('Profile', 'account.index');
         }
 
         $service_record_query = new GetTrooperServiceRecordQuery($trooper->id);
@@ -44,7 +44,7 @@ class TrooperController extends MagicBusController
 
         $trooper_costumes = $this->bus->send($trooper_costumes_query);
 
-        $trooper_costumes = $trooper_costumes->filter(fn ($c) => !in_array($c->name, [Costume::COMMAND_STAFF, Costume::HANDLER]));
+        $trooper_costumes = $trooper_costumes->filter(fn($c) => !in_array($c->name, [Costume::COMMAND_STAFF, Costume::HANDLER]));
 
         $data['trooper_costumes'] = $trooper_costumes;
         $data['xenforo_group_banners'] = collect();
@@ -59,7 +59,7 @@ class TrooperController extends MagicBusController
 
             if ($xenforo_user_id !== null)
             {
-                $data['xenforo_profile_url'] = config('services.xenforo.base_url').'/members/'.$xenforo_user_id.'/';
+                $data['xenforo_profile_url'] = config('services.xenforo.base_url') . '/members/' . $xenforo_user_id . '/';
 
                 $group_data = $xenforo->get_user_groups($xenforo_user_id);
                 $data['xenforo_group_banners'] = $this->extractXenforoGroupBanners($group_data);
@@ -77,8 +77,8 @@ class TrooperController extends MagicBusController
         $xenforo_total = (float) collect($data['xenforo_donations'])->sum('total_amount');
 
         $local_months = $data['all_donations']
-            ->filter(fn ($d) => $d->created_at !== null)
-            ->mapWithKeys(fn ($d) => [$d->created_at->format('Y-m') => true])
+            ->filter(fn($d) => $d->created_at !== null)
+            ->mapWithKeys(fn($d) => [$d->created_at->format('Y-m') => true])
             ->all();
         $xenforo_months = XenforoUpgradeHelper::monthKeysFromUpgrades($data['xenforo_donations'], []);
 
@@ -95,10 +95,12 @@ class TrooperController extends MagicBusController
     private function extractXenforoGroupBanners(?array $group_data): Collection
     {
         return collect($group_data['userGroups'] ?? [])
-            ->filter(function (mixed $group): bool {
+            ->filter(function (mixed $group): bool
+            {
                 return is_array($group) && !empty($group['bannerText']);
             })
-            ->map(function (array $group): array {
+            ->map(function (array $group): array
+            {
                 return [
                     'title' => (string) ($group['title'] ?? ''),
                     'banner_text' => (string) ($group['bannerText'] ?? ''),
@@ -106,7 +108,8 @@ class TrooperController extends MagicBusController
                     'order' => (int) ($group['order'] ?? PHP_INT_MAX),
                 ];
             })
-            ->sortBy(function (array $group): string {
+            ->sortBy(function (array $group): string
+            {
                 return sprintf(
                     '%d-%010d-%s',
                     $group['is_primary'] ? 0 : 1,

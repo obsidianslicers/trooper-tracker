@@ -10,7 +10,7 @@
 
         <!-- Profile Information -->
         <x-card :label="'Profile Information'">
-            @include('pages.account.profile', $trooper->only('name', 'email', 'phone'))
+            @include('pages.account.index', $trooper->only('name', 'email', 'phone'))
         </x-card>
 
         <!-- Notification Settings -->

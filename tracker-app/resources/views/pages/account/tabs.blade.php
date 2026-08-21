@@ -1,7 +1,7 @@
 <x-tabs>
     <x-tab :label="'Profile'"
-           :target="route('account.profile')"
-           :active="request()->routeIs('account.profile')" />
+           :target="route('account.index')"
+           :active="request()->routeIs('account.index')" />
     <x-tab :label="'Notifications'"
            :target="route('account.notifications')"
            :active="request()->routeIs('account.notifications')" />

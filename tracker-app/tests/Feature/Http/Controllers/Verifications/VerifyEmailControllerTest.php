@@ -23,7 +23,7 @@ class VerifyEmailControllerTest extends TestCase
         $response = $this->actingAs($trooper)
             ->get($this->verification_url_for_trooper($trooper));
 
-        $response->assertRedirect(route('account.profile'));
+        $response->assertRedirect(route('account.index'));
         $this->assertTrue($trooper->fresh()->hasVerifiedEmail());
     }
 
@@ -68,7 +68,7 @@ class VerifyEmailControllerTest extends TestCase
         $response = $this->actingAs($trooper)
             ->get($this->verification_url_for_trooper($trooper));
 
-        $response->assertRedirect(route('account.profile'));
+        $response->assertRedirect(route('account.index'));
         $this->assertTrue($trooper->fresh()->hasVerifiedEmail());
         $this->assertTrue($trooper->fresh()->email_verified_at?->eq($verified_at));
     }

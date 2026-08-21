@@ -17,7 +17,7 @@ class PendingController extends MagicBusController
 
         if (!$trooper->is_pending)
         {
-            return redirect()->route('account.profile');
+            return redirect()->route('account.index');
         }
 
         return view('pages.account.pending', ['trooper' => $trooper]);
