@@ -19,6 +19,12 @@ export function getRoute<T extends RouteName>(
     return ziggyRoute(name, params, absolute, config);
 }
 
+export function propertyRemover(data: any, propertiesToRemove: string[]): void {
+    for (const key of propertiesToRemove) {
+        if (data[key]) delete data[key];
+    }
+}
+
 // import { page } from '$app/state';
 
 // export function getQueryParam(url: URL, key: string): string | null {

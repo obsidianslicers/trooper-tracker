@@ -52,6 +52,12 @@ class ToastState {
             allow_dismiss: options.allowDismiss ?? this.#defaults.allowDismiss,
         };
 
+        for (const existingToast of this.#messages) {
+            if (existingToast.text === toast.text && existingToast.type === toast.type) {
+                return existingToast;
+            }
+        }
+
         this.#messages.push(toast);
 
         if (toast.delay > 0) {

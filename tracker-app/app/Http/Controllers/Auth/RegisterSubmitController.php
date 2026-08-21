@@ -11,7 +11,7 @@ use App\Jobs\SendTrooperRegisteredNotificationsJob;
 use App\Mail\Auth\GuardianAwareness;
 use App\Mail\Auth\TrooperRegistered;
 use App\Messages\Troopers\Commands\CreateTrooper;
-use App\Messages\Troopers\Commands\CreateTrooperRequest;
+use App\Messages\Troopers\Commands\Membership\CreateTrooperRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Services\FlashMessageService;

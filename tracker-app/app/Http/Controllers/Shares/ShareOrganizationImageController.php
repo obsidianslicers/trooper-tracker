@@ -34,7 +34,7 @@ class ShareOrganizationImageController extends MagicBusController
      */
     public function __invoke(Request $request, Organization $organization): Response
     {
-        $path = public_path('img/icons/organization-128x128.png');
+        $path = public_path(DEFAULT_ORGANIZATION_IMAGE_URL);
 
         if ($organization->image_path_lg && Storage::disk('public')->exists($organization->image_path_lg))
         {

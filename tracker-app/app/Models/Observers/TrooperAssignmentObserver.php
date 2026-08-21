@@ -35,8 +35,6 @@ class TrooperAssignmentObserver
             }
         }
 
-        // Membership is allowed at any organizational level (org, region, or unit).
-
         if (!$trooper_assignment->is_member)
         {
             return;

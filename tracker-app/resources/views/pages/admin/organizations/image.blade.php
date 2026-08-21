@@ -11,7 +11,7 @@
           hx-indicator="#transmission-bar-image"
           enctype="multipart/form-data">
 
-        <img src="{{ map_image_url($organization->image_path_lg, 'img/icons/organization-128x128.png') }}"
+        <img src="{{ map_image_url($organization->image_path_lg, DEFAULT_ORGANIZATION_IMAGE_URL) }}"
              alt="Organization Logo"
              class="img-fluid m-3 pointer"
              width="128"

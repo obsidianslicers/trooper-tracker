@@ -54,7 +54,7 @@ class LoginRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'remember_me' => $this->input('remember_me') === 'Y',
+            'remember_me' => $this->boolean('remember_me') || $this->input('remember_me') === 'Y',
         ]);
     }
 }

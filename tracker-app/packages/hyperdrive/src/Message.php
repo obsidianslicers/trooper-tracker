@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Hyperdrive;
 
+use ReflectionClass;
 use Illuminate\Http\Request;
 
 /**
@@ -60,7 +61,7 @@ abstract class Message
             return $params;
         }
 
-        $constructor = (new \ReflectionClass(static::class))->getConstructor();
+        $constructor = (new ReflectionClass(static::class))->getConstructor();
 
         if ($constructor === null)
         {

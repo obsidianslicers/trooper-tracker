@@ -25,4 +25,19 @@ enum OrganizationType: string
      * A local subdivision of a region, like a 'Squad'.
      */
     case UNIT = 'unit';
+
+    public function isOrganization(): bool
+    {
+        return $this === self::ORGANIZATION;
+    }
+
+    public function isRegion(): bool
+    {
+        return $this === self::REGION;
+    }
+
+    public function isUnit(): bool
+    {
+        return $this === self::UNIT;
+    }
 }

@@ -1,26 +1,5 @@
-export type Details = {
-    id: number;
-    email: string;
-    displayName: string;
-    legalName: string;
-    membershipStatus: string;
-    phone: string;
-    theme: string;
-};
+export type Account = {};
 
-export type NotificationSettings = {
-    notificationFrequency: string;
-    organizationNotifications: number[];
-};
+export type NotificationChannels = { mail: boolean; fcm: boolean; database: boolean };
 
-export type AttachedCostume = {
-    id: number;
-    name: string;
-    description: string;
-};
-
-export type Account = {
-    details: Details;
-    notifications: NotificationSettings;
-    costumes: AttachedCostume[];
-}
+export type NotificationPreferences = Record<string, Record<string, boolean> | NotificationChannels>;

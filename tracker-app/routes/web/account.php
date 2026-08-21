@@ -3,6 +3,12 @@
 declare(strict_types=1);
 
 use App\Enums\OauthProvider;
+use App\Http\Controllers\Account\UpdateOrganizationNotificationsController;
+use App\Http\Controllers\Account\UpdateNotificationPreferenceController;
+use App\Http\Controllers\Account\IndexController;
+use App\Http\Controllers\Account\UpdateProfileController;
+use App\Http\Controllers\Account\UpdateNotificationFrequencyController;
+use App\Http\Controllers\Account\UpdatePushNotificationsController;
 use App\Http\Controllers\Account\ClubMembershipsController;
 use App\Http\Controllers\Account\ClubMembershipsSubmitHtmxController;
 use App\Http\Controllers\Account\DeletionCancelController;
@@ -17,6 +23,8 @@ use App\Http\Controllers\Account\NoticesSubmitHtmxController;
 use App\Http\Controllers\Account\NotificationsController;
 use App\Http\Controllers\Account\NotificationsSubmitController;
 use App\Http\Controllers\Account\ProfileController;
+use App\Http\Controllers\Account\RemoveCostumeController;
+use App\Http\Controllers\Account\AddCostumeController;
 use App\Http\Controllers\Account\PushNotificationClearController;
 use App\Http\Controllers\Account\PushNotificationInboxController;
 use App\Http\Controllers\Account\PushNotificationReadController;
@@ -28,6 +36,7 @@ use App\Http\Controllers\Account\SetupController;
 use App\Http\Controllers\Account\SetupSubmitController;
 use App\Http\Controllers\Account\VisitorRenewController;
 use App\Http\Controllers\Account\VisitorRenewSubmitController;
+use App\Http\Controllers\Account\AddTrooperRequestController;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -50,6 +59,18 @@ Route::prefix('account')
     ->middleware(['auth', 'redirect.denied', 'redirect.pending'])
     ->group(function ()
     {
+        Route::get('/', IndexController::class)->name('index');
+        Route::post('/update/profile', UpdateProfileController::class)->name('update-profile');
+        Route::post('/update/notifications/frequency', UpdateNotificationFrequencyController::class)->name('update-notification-frequency');
+        Route::post('/update/notifications/push', UpdatePushNotificationsController::class)->name('update-push-notifications');
+        Route::post('/update/notifications/organization', UpdateOrganizationNotificationsController::class)->name('update-organization-notifications');
+        Route::post('/update/notifications/preference', UpdateNotificationPreferenceController::class)->name('update-notification-preference');
+        Route::post('/add/costumes', AddCostumeController::class)->name('add-costume');
+        Route::post('/remove/costumes', RemoveCostumeController::class)->name('remove-costume');
+        Route::post('/add/trooper/request', AddTrooperRequestController::class)->name('add-trooper-request');
+
+
+
         Route::get('/profile', ProfileController::class)->name('profile');
         Route::post('/profile', ProfileSubmitController::class);
         Route::get('/notifications', NotificationsController::class)->name('notifications');

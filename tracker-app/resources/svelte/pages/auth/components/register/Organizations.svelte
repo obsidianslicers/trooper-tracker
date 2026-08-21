@@ -28,7 +28,7 @@
             <InputCheckbox
                 label={organization.name}
                 bind:checked={vm.form.organizations[organization.id].selected}
-                change={() => vm.toggleOrganization(organization.id)}
+                onchange={() => vm.toggleOrganization(organization.id)}
             />
         </div>
 
@@ -58,7 +58,7 @@
                                     vm.form.organizations[organization.id]
                                         .region_id
                                 }
-                                change={() =>
+                                onchange={() =>
                                     vm.resetOnRegionChange(organization.id)}
                                 options={vm.getRegions(organization.id)}
                                 errors={vm.getErrors(

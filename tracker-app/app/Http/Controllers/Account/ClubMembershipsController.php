@@ -113,7 +113,7 @@ class ClubMembershipsController extends MagicBusController
                 'parent_id' => $org->parent_id,
                 'depth' => $org->depth,
                 'node_path' => $org->node_path,
-                'image_url' => map_image_url($org->image_path_sm, 'img/icons/organization-128x128.png'),
+                'image_url' => map_image_url($org->image_path_sm, DEFAULT_ORGANIZATION_IMAGE_URL),
                 'identifier_display' => $org->identifier_display ?? $root?->identifier_display,
                 'identifier_validation' => $org->identifier_validation ?? $root?->identifier_validation,
             ];
@@ -131,7 +131,7 @@ class ClubMembershipsController extends MagicBusController
             ->mapWithKeys(fn ($org) => [
                 $org->id => [
                     'name' => $org->name,
-                    'image_url' => map_image_url($org->image_path_sm, 'img/icons/organization-128x128.png'),
+                    'image_url' => map_image_url($org->image_path_sm, DEFAULT_ORGANIZATION_IMAGE_URL),
                 ],
             ])
             ->all();

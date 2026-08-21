@@ -6,7 +6,6 @@ namespace App\Messages\Troopers\Queries;
 
 use App\Enums\TrooperSearchMode;
 use App\Models\Trooper;
-use App\Models\TrooperFriend;
 use Hyperdrive\Contracts\Actor;
 use Hyperdrive\Message;
 use Illuminate\Support\Collection;
@@ -66,11 +65,7 @@ final class SearchTroopers extends Message
         {
             if (!$has_filter)
             {
-                $q = TrooperFriend::query()
-                    ->select(TrooperFriend::FRIEND_ID)
-                    ->where(TrooperFriend::TROOPER_ID, $this->actor->id);
-
-                $query = $query->whereIn(Trooper::ID, $q);
+                $query = $query->friendsOf($this->actor);
             }
 
             $execute_query = true;
