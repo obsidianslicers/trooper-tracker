@@ -27,7 +27,7 @@ class CreateTrooperTest extends TestCase
             email: 'jane@example.com',
             membership_role: MembershipRole::MEMBER,
             password: 'secret123',
-            phone: '555-1111',
+            phone: '404-555-1111',
             date_of_birth: '2000-01-01',
             guardian_email: 'guardian@example.com',
         );
@@ -38,7 +38,7 @@ class CreateTrooperTest extends TestCase
         $this->assertSame('Jane Doe', $result->legal_name);
         $this->assertSame('Jane', $result->display_name);
         $this->assertSame('jane@example.com', $result->email);
-        $this->assertSame('555-1111', $result->phone);
+        $this->assertSame('404-555-1111', $result->phone);
         $this->assertSame(MembershipRole::MEMBER, $result->membership_role);
         $this->assertSame($guardian->id, $result->guardian_id);
         $this->assertNotNull($result->setup_completed_at);
@@ -48,7 +48,7 @@ class CreateTrooperTest extends TestCase
             Trooper::LEGAL_NAME => 'Jane Doe',
             Trooper::DISPLAY_NAME => 'Jane',
             Trooper::EMAIL => 'jane@example.com',
-            Trooper::PHONE => '555-1111',
+            Trooper::PHONE => '4045551111',
             Trooper::MEMBERSHIP_ROLE => MembershipRole::MEMBER->value,
             Trooper::GUARDIAN_ID => $guardian->id,
             Trooper::DATE_OF_BIRTH => '2000-01-01 00:00:00',

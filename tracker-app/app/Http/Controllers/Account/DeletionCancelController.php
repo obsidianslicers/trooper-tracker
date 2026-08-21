@@ -22,6 +22,6 @@ class DeletionCancelController extends MagicBusController
 
         $this->flash->success('Account deletion cancelled. Your account is no longer scheduled for deletion.');
 
-        return redirect()->route('account.profile');
+        return redirect()->route('account.index');
     }
 }

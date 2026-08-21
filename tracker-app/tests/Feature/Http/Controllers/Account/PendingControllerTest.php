@@ -33,7 +33,7 @@ class PendingControllerTest extends TestCase
 
         $response = $this->actingAs($trooper)->get(route('account.pending'));
 
-        $response->assertRedirect(route('account.profile'));
+        $response->assertRedirect(route('account.index'));
     }
 
     public function test_invoke_redirects_guest_to_login(): void

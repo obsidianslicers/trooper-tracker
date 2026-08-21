@@ -46,7 +46,7 @@ class UpdateProfileControllerTest extends TestCase
         $this->assertSame('Updated Legal Name', $trooper->legal_name);
         $this->assertSame('Updated Display Name', $trooper->display_name);
         $this->assertSame(TrooperTheme::STORMTROOPER, $trooper->theme);
-        $this->assertSame('5551234567', $trooper->phone);
+        $this->assertSame('555-123-4567', $trooper->phone);
         $this->assertNull($trooper->display_costume_id);
     }
 

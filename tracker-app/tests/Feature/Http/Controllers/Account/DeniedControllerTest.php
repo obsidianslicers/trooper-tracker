@@ -46,7 +46,7 @@ class DeniedControllerTest extends TestCase
 
         $response = $this->actingAs($trooper)->get(route('account.denied'));
 
-        $response->assertRedirect(route('account.profile'));
+        $response->assertRedirect(route('account.index'));
     }
 
     public function test_invoke_redirects_pending_trooper_to_pending(): void

@@ -37,8 +37,11 @@ export default defineConfig({
                         if (id.includes('pages/account') || id.includes('lib/domains/account')) {
                             return 'pages-account';
                         }
-                        if (id.includes('pages/admin') || id.includes('lib/domains/admin')) {
-                            return 'pages-admin';
+                        if (id.includes('pages/admin/troopers') || id.includes('lib/domains/admin/troopers')) {
+                            return 'pages-admin-trooper';
+                        }
+                        if (id.includes('pages/admin/events') || id.includes('lib/domains/admin/events')) {
+                            return 'pages-admin-events';
                         }
                     }
                     if (id.includes('node_modules')) {

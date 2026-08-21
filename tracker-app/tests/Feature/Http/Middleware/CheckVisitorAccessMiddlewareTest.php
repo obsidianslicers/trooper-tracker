@@ -16,7 +16,7 @@ class CheckVisitorAccessMiddlewareTest extends TestCase
 
     public function test_passes_through_unauthenticated_request(): void
     {
-        $response = $this->get(route('account.profile'));
+        $response = $this->get(route('account.index'));
 
         $response->assertRedirect(route('auth.login'));
     }
@@ -25,7 +25,7 @@ class CheckVisitorAccessMiddlewareTest extends TestCase
     {
         $trooper = Trooper::factory()->asActive()->create();
 
-        $response = $this->actingAs($trooper)->get(route('account.profile'));
+        $response = $this->actingAs($trooper)->get(route('account.index'));
 
         $response->assertOk();
     }
@@ -38,7 +38,7 @@ class CheckVisitorAccessMiddlewareTest extends TestCase
             Trooper::VISITOR_EXPIRES_AT => now()->addMonths(3),
         ]);
 
-        $response = $this->actingAs($trooper)->get(route('account.profile'));
+        $response = $this->actingAs($trooper)->get(route('account.index'));
 
         $response->assertOk();
     }
@@ -51,7 +51,7 @@ class CheckVisitorAccessMiddlewareTest extends TestCase
             Trooper::VISITOR_EXPIRES_AT => now()->subMonth(),
         ]);
 
-        $response = $this->actingAs($trooper)->get(route('account.profile'));
+        $response = $this->actingAs($trooper)->get(route('account.index'));
 
         $response->assertRedirect(route('account.visitor-renew'));
     }

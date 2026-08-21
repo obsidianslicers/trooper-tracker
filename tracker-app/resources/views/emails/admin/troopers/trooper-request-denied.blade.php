@@ -16,7 +16,8 @@
 
     <p>
         You may submit a new request at any time by visiting your
-        <a href="{{ route('account.club-memberships') }}">club memberships</a> page.
+        <a href="{{ route('account.index') }}">account settings</a>
+        and selecting the memberships tab.
     </p>
 
     @include('emails.inc.signature')

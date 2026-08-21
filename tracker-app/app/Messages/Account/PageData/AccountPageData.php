@@ -59,6 +59,7 @@ final class AccountPageData extends Message
         $data = [
             'trooper_id' => $this->actor->id,
             'is_visitor' => $this->actor->is_visitor,
+            'is_handler' => $this->actor->is_handler,
             'email' => $this->actor->email,
             'details' => $this->getDetails(),
             'notifications' => $this->getNotifications(),

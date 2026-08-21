@@ -161,12 +161,12 @@
         <div class="row align-items-end small text-muted py-2">
             <div class="col-12 text-md-end">
                 Logged in as:
-                <a href="{{ route('account.profile') }}">
+                <a href="{{ route('account.index') }}">
                     <strong>{{ Auth::user()->display_name }}</strong>
                 </a>
                 <span class="text-black-50 d-none d-sm-inline">|</span>
                 Theme:
-                <a href="{{ route('account.profile') }}">
+                <a href="{{ route('account.index') }}">
                     <strong>{{ to_title(Auth::user()->theme->name ?? \App\Enums\TrooperTheme::STORMTROOPER->name) }}</strong>
                 </a>
                 @if(config('app.version'))

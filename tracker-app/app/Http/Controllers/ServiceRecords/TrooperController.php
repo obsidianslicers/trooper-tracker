@@ -33,7 +33,7 @@ class TrooperController extends MagicBusController
     {
         if ($trooper->id == Auth::user()->id)
         {
-            $this->crumbs->addRoute('Profile', 'account.profile');
+            $this->crumbs->addRoute('Profile', 'account.index');
         }
 
         $service_record_query = new GetTrooperServiceRecordQuery($trooper->id);

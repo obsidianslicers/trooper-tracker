@@ -44,7 +44,7 @@ class MergeTroopersTest extends TestCase
             ->asAdministrator()
             ->withNotificationFrequency(NotificationFrequency::INSTANT)
             ->create([
-                Trooper::PHONE => '555-1212',
+                Trooper::PHONE => '404-555-1212',
                 Trooper::PUSH_NOTIFICATIONS_ENABLED => true,
                 Trooper::NOTIFICATION_PREFERENCES => [
                     'events' => ['daily' => true],
@@ -69,7 +69,7 @@ class MergeTroopersTest extends TestCase
         $target_trooper->refresh();
         $source_trooper->refresh();
 
-        $this->assertSame('555-1212', $target_trooper->{Trooper::PHONE});
+        $this->assertSame('404-555-1212', $target_trooper->{Trooper::PHONE});
         $this->assertSame(MembershipStatus::ACTIVE, $target_trooper->{Trooper::MEMBERSHIP_STATUS});
         $this->assertSame(MembershipRole::ADMINISTRATOR, $target_trooper->{Trooper::MEMBERSHIP_ROLE});
         $this->assertSame(

@@ -9,27 +9,10 @@
 
         <ul class="dropdown-menu">
             @unless(Auth::user()->is_denied || Auth::user()->is_pending)
-                <x-nav-link :url="route('account.profile')"
+                <x-nav-link :url="route('account.index')"
                             :active="request()->routeIs('account.*') && !request()->routeIs('account.push-notifications')">
                     Profile
                 </x-nav-link>
-                <x-nav-link :url="route('account.notifications')">
-                    Notifications
-                </x-nav-link>
-                <x-nav-link :url="route('account.costumes')">
-                    Costumes
-                </x-nav-link>
-                <x-nav-link :url="route('account.club-memberships')">
-                    Club Memberships
-                </x-nav-link>
-                <x-nav-link :url="route('account.friends')">
-                    Friends
-                </x-nav-link>
-                @if(Auth::user()->minors()->exists())
-                    <x-nav-link :url="route('account.minors')">
-                        Cadets
-                    </x-nav-link>
-                @endif
             @endunless
             <x-nav-link :url="route('auth.logout')">
                 Logout

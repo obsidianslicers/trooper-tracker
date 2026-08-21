@@ -30,6 +30,6 @@ class SetupSubmitController extends MagicBusController
 
         $this->bus->send(new UpdateTrooperCommand($trooper, $request->validated(), true));
 
-        return redirect()->route('account.costumes');
+        return redirect()->route('account.index');
     }
 }

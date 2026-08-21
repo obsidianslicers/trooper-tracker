@@ -31,6 +31,6 @@ class VerifyEmailController extends MagicBusController
 
         $this->flash->success('Thank you for verifying your email!');
 
-        return redirect()->route('account.profile');
+        return redirect()->route('account.index');
     }
 }

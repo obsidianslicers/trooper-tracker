@@ -57,7 +57,7 @@ class DeletionRequestControllerTest extends TestCase
 
         $response = $this->actingAs($trooper)->delete(route('account.delete.cancel'));
 
-        $response->assertRedirect(route('account.profile'));
+        $response->assertRedirect(route('account.index'));
         $this->assertNull($trooper->fresh()->deletion_requested_at);
     }
 }

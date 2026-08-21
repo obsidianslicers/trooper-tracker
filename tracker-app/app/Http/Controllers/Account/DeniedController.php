@@ -25,7 +25,7 @@ class DeniedController extends MagicBusController
 
         if (!$trooper->is_denied)
         {
-            return redirect()->route($trooper->is_pending ? 'account.pending' : 'account.profile');
+            return redirect()->route($trooper->is_pending ? 'account.pending' : 'account.index');
         }
 
         $denied_requests = TrooperRequest::query()
@@ -55,7 +55,7 @@ class DeniedController extends MagicBusController
             $specific = $denied ? ($specific_orgs[$denied->organization_id] ?? null) : null;
 
             $org->selected = old("organizations.{$org->id}.selected") === '1'
-                               || ($denied !== null && !old('organizations'));
+                || ($denied !== null && !old('organizations'));
             $org->identifier = old("organizations.{$org->id}.identifier", $denied?->identifier);
             $org->region_id = old("organizations.{$org->id}.region_id", $this->resolveRegionId($specific));
             $org->unit_id = old("organizations.{$org->id}.unit_id", $this->resolveUnitId($specific));

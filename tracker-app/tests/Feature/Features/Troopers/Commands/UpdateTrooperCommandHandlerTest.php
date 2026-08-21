@@ -26,7 +26,7 @@ class UpdateTrooperCommandHandlerTest extends TestCase
 
         $valid_data = [
             'display_name' => 'New Name',
-            'phone' => '555-9999',
+            'phone' => '404-555-9999',
         ];
 
         $command = new UpdateTrooperCommand(
@@ -40,7 +40,7 @@ class UpdateTrooperCommandHandlerTest extends TestCase
 
         $trooper->refresh();
         $this->assertEquals('New Name', $trooper->display_name);
-        $this->assertEquals('555-9999', $trooper->phone);
+        $this->assertEquals('404-555-9999', $trooper->phone);
     }
 
     public function test_invoke_marks_setup_complete_when_flag_is_true(): void
