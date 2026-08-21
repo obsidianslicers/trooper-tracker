@@ -48,7 +48,7 @@ class CreateTrooperTest extends TestCase
             Trooper::LEGAL_NAME => 'Jane Doe',
             Trooper::DISPLAY_NAME => 'Jane',
             Trooper::EMAIL => 'jane@example.com',
-            Trooper::PHONE => '404-555-1111',
+            Trooper::PHONE => '4045551111',
             Trooper::MEMBERSHIP_ROLE => MembershipRole::MEMBER->value,
             Trooper::GUARDIAN_ID => $guardian->id,
             Trooper::DATE_OF_BIRTH => '2000-01-01 00:00:00',
