@@ -458,7 +458,7 @@
                                 <td class="aligncenter content-block">
                                     If you wish to modify your notification subscription,
                                     you may do so using your
-                                    <a href="{{ route('account.notifications') }}">
+                                    <a href="{{ route('account.index') }}">
                                         Imperial control panel
                                     </a>.
                                 </td>

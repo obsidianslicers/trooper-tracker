@@ -10,7 +10,8 @@
     </p>
     <p>
         You can view your club memberships at any time from your
-        <a href="{{ route('account.club-memberships') }}">account settings</a>.
+        <a href="{{ route('account.index') }}">account settings</a>
+        and selecting the memberships tab.
     </p>
 
     @include('emails.inc.signature')

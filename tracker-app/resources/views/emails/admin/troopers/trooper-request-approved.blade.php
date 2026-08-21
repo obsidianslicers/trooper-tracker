@@ -17,8 +17,8 @@
 
     <p>
         You may review your status at any time by visiting your
-        <a href="{{ route('account.club-memberships') }}">club memberships</a>.
-        Try not to break anything.
+        <a href="{{ route('account.index') }}">account settings</a>
+        and selecting the memberships tab. Try not to break anything.
     </p>
 
     @include('emails.inc.signature')
