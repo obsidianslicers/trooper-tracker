@@ -2,11 +2,17 @@
 
 **Troop Tracker** is the Empire's official operations dashboard, engineered to impose order upon trooper assignments, moderation workflows, and hierarchical communications across organizations, regions, and units. Forged with Laravel, Blade, Bootstrap 5, HTMX, and Alpine‑driven JavaScript, it delivers the precision, discipline, and ruthless efficiency expected of any system operating under Imperial authority.
 
+Currently Used By:
+* Florida Star Wars Clubs
+  * [501st Legion, Florida Garrison](https://www.facebook.com/FloridaGarrison501st/)
+  * [Mandaloria Mercs, House Buurenaar Verda](https://www.facebook.com/BuurenaarVerda/)
+  * [Rebel Legion, Ra Kura Base](https://www.facebook.com/rakurabase/)
+  * [Saber Guild, Takodana Temple](https://www.facebook.com/takodanatemple/)
+  * [Saber Guild, Dagobah Temple](https://www.facebook.com/dagobahtemple/)
+  * [Dark Empire, Spire of the Storm](https://www.facebook.com/SpireoftheStormTDE/)
+  * [Galactic Academy, Dagobah School](https://www.facebook.com/DagobahGalacticAcademyFlorida/)
 
-<!--
-[![Laravel Tests](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/laravel-tests.yml/badge.svg)](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/laravel-tests.yml)
 
--->
 [![Laravel Style](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/pint.yml/badge.svg)](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/pint.yml)
 
 [![Laravel Tests](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/tests.yml/badge.svg)](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/tests.yml)
@@ -16,10 +22,8 @@
 ## TL;DR for Collaborators
 
 - Troop Tracker is a Laravel 12 application platform for Star Wars costuming clubs, focused on trooper profiles, event/troop coordination, organization hierarchy, notices, and approvals.
-- Architecture is ADR plus MagicBus command/query separation: controllers orchestrate, handlers in `app/Features/` contain business logic.
-- Domain-first structure: most feature work happens in `tracker-app/app/Features/`, with thin actions in `tracker-app/app/Http/Controllers/`.
-- Data model convention: never edit generated files in `tracker-app/app/Models/Base/`; extend behavior in `tracker-app/app/Models/`.
-- Frontend is server-rendered Blade enhanced with HTMX and Alpine for interactive updates without full-page reloads.
+- Backend is a Laravel 12 application built around organized domain features, role-based access control, and structured event/member workflows.
+- Frontend is server-rendered Blade with HTMX and Alpine, with an ongoing migration toward Inertia + Svelte 5 for richer interactivity.
 - Authentication supports Email, Google OAuth, and XenForo OAuth; all new accounts go through pending/admin approval.
 - Local development basics: install with Composer/NPM, migrate and seed, then run `composer dev` from `tracker-app/`.
 - Contribution gates before PR: run tests (`php artisan test`), and formatting (`composer pint:format`)
@@ -34,11 +38,11 @@ This project remains under active development, which is to say it currently exis
 
 Progress continues at a pace deemed acceptable by the Empire. New features, refinements, and the occasional miracle will be deployed as they reach a state worthy of consumption. Garrison Liasons are encouraged to return in approximately one month to witness the next phase of sanctioned advancement. Until then, patience is not only advised — it is expected.
 
-**Update Feb 18th**: Despite rumors to the contrary, progress has not stalled. In fact, the project currently stands at an estimated 85% operational readiness, supported by a test suite now exceeding 2,000 trials of loyalty. Minor rebellions within the codebase are being suppressed with appropriate vigor. Observers may take this as a sign that stability is approaching, though only the Empire may determine when "approaching" becomes "arrived." Sensible personnel are advised to check back in roughly one month for the next sanctioned update, assuming the system has not evolved beyond the need for such courtesies.
+**Update February 18th**: Despite rumors to the contrary, progress has not stalled. In fact, the project currently stands at an estimated 85% operational readiness, supported by a test suite now exceeding 2,000 trials of loyalty. Minor rebellions within the codebase are being suppressed with appropriate vigor. Observers may take this as a sign that stability is approaching, though only the Empire may determine when "approaching" becomes "arrived." Sensible personnel are advised to check back in roughly one month for the next sanctioned update, assuming the system has not evolved beyond the need for such courtesies.
 
-**Update Mar 8th**: Troop Tracker edges ever closer to UAT, with performance‑rebellious tests being rewritten, optimized, and reminded of their place in the hierarchy; work continues on the configurable XenForo integration, ensuring it can ultimately operate either as a seamless Imperial fusion or a proudly isolationist standalone deployment; and the visual command interfaces have been refreshed with updated Stormtrooper, Bounty Hunter, Rebel, Clone, and Sith themes, each calibrated for maximum intimidation, usability, or in the case of Rebels, remedial hand‑holding — overall, stability is rising, features are aligning, and the system marches toward UAT with the slow, inevitable certainty of an Imperial Star Destroyer entering orbit.
+**Update March 8th**: Troop Tracker edges ever closer to UAT, with performance‑rebellious tests being rewritten, optimized, and reminded of their place in the hierarchy; work continues on the configurable XenForo integration, ensuring it can ultimately operate either as a seamless Imperial fusion or a proudly isolationist standalone deployment; and the visual command interfaces have been refreshed with updated Stormtrooper, Bounty Hunter, Rebel, Clone, and Sith themes, each calibrated for maximum intimidation, usability, or in the case of Rebels, remedial hand‑holding — overall, stability is rising, features are aligning, and the system marches toward UAT with the slow, inevitable certainty of an Imperial Star Destroyer entering orbit.
 
-**Update Apr 13th**: The waiting is over. Troop Tracker has officially entered UAT, and the Empire has invited brave volunteers to click every button, break every edge case, and report their findings before Lord QA starts force-choking random merge requests. Core systems are stable, workflows are operational, and most remaining issues now live in the category of "annoying but survivable." If you spot defects, file them with precision and without panic. If you do not spot defects, click harder. UAT is live, and yes, this is the part where we pretend everything was always under control. 
+**Update April 13th**: The waiting is over. Troop Tracker has officially entered UAT, and the Empire has invited brave volunteers to click every button, break every edge case, and report their findings before Lord QA starts force-choking random merge requests. Core systems are stable, workflows are operational, and most remaining issues now live in the category of "annoying but survivable." If you spot defects, file them with precision and without panic. If you do not spot defects, click harder. UAT is live, and yes, this is the part where we pretend everything was always under control. 
 
 **Update May 29th Troop Tracker Is Live — Kneel or Be Logged** 
 
@@ -51,36 +55,26 @@ Troop Tracker is live, the Empire ascends, we will now act like this was the pla
 
 **Update July 28th**: The Imperial Desk Duty Clerks submit the following condensed summary for your reluctant enlightenment: over the past cycle, the Obsidian Slicers have been busily patching your self‑inflicted mishaps — achievements now announce themselves properly, organizations receive their  recognition, guests have been prevented from detonating the system, and forum quotes function for those who insist on narrating their lives. Milestone emails now include your legal name so we may address reprimands accurately, events close when they're actually finished, rosters sync without collapsing, costume selections behave, handlers and guests are counted, and trooper requests can be dismissed until you inevitably bother us again. Appeals exist for those who enjoy paperwork, milestones notify as intended, costume credit goes to the correct club, right‑clicking events is now officially tolerated, approvals verify your allegiance, invalid accounts are cataloged, moderators have been reminded they do in fact possess authority, charity math has been corrected, OAuth has stopped screaming, timezones have been subdued, and XenForo has been dragged into compliance. In short: the system works, mostly, and the Empire politely requests fewer panicked messages from personnel who clearly did not read this report.
 
+**Update August 22nd**: The Imperial Desk Duty Clerks submit its latest report as the final holdouts of the legacy interface are being marched, one page at a time, toward the brighter and considerably less temperamental future of Svelte. A few troublesome screens have already been migrated to the new front-end framework, where they are expected to behave with improved responsiveness, cleaner structure, and fewer dramatic episodes of unexpected chaos. The remaining pages are being refactored into smaller components and more disciplined state handling, because apparently even the Empire has learned that a dashboard should not be a hostage situation. In short: the migration continues, the old pages are being politely decommissioned, and the system is gradually becoming faster, cleaner, and less likely to explode in a shower of JavaScript indignity.
+
 ---
 
 ## Architecture
 
-Troop Tracker follows **Action-Domain-Responder (ADR)** with **Command/Query Separation** via **MagicBus**. Controllers orchestrate, handlers execute business logic, responses render results.
+Troop Tracker follows the ADR pattern with command/query separation via MagicBus: controllers orchestrate, domain logic lives in handlers, and responses render the result. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full system overview. Note: the MagicBus is being migrated to [Hyperdrive Messages](tracker-app/packages/hyperdrive/README.md).
 
-**Key Patterns:**
-- **MagicBus**: Convention-based dispatcher routes Commands (writes) and Queries (reads) to handlers
-- **Feature Organization**: Business logic grouped by domain in `app/Features/` (Events, Troopers, Organizations, Reports, Notices, Changes)
-- **Auto-Generated Models**: Base models in `app/Models/Base/` (never edit), extended in `app/Models/`
-- **HTMX + Alpine**: Progressive enhancement for dynamic UI without full page reloads
-- **Queue Processing**: Background jobs orchestrate handlers via MagicBus
-
-**[Read full architecture documentation →](docs/ARCHITECTURE.md)**
+Key references:
+- [docs/CODING_CONVENTIONS.md](docs/CODING_CONVENTIONS.md) for standards and conventions
+- [docs/PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md) for the repo layout
+- [docs/DATABASE.md](docs/DATABASE.md) for schema and relationships
 
 ---
 
 ## Repository Structure
 
-### Top-Level Folders
-
-**`tracker-app/`** - The Laravel application (run all commands from here)
-- Complete Laravel 12.x source, tests, and dependencies
-- See [Project Structure](docs/PROJECT_STRUCTURE.md) for internal organization
-
-**`docs/`** - Project documentation
-- Architecture, database schema, authentication flows, coding conventions
-- See [Documentation Guide](#documentation-guide) for reading order
-
-**Root Files** - `README.md`, `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, GitHub Actions
+- [tracker-app/](tracker-app/) — Laravel application and runtime code
+- [docs/](docs/) — architecture, database, auth, and contributor documentation
+- [README.md](README.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), [CONTRIBUTING.md](CONTRIBUTING.md) — root project documents
 
 ---
 
@@ -99,10 +93,9 @@ Troop Tracker follows **Action-Domain-Responder (ADR)** with **Command/Query Sep
 
 ### Developer Experience
 
-*   **MagicBus Command/Query Pattern**: Automatic handler resolution, Commands for writes, Queries for reads
 *   **Feature-Organized Code**: Domain logic grouped by business area
 *   **Component-Driven Blade**: PHP 8.2+ with server-rendered templates
-*   **Progressive Enhancement**: Bootstrap 5.2x + HTMX 2.x + Alpine 3.x
+*   **Progressive Enhancement**: Bootstrap 5.2x + HTMX 2.x + Alpine 3.x; new interactive work is increasingly moving to Inertia + Svelte
 *   **Auto-Generated Models**: MySQL with Reliese Laravel base model generation
 *   **Comprehensive Testing**: Feature tests (Controllers/Jobs/Commands), Unit tests (Handlers/Services)
 *   **Policy-Based Authorization**: Scoped access control for all resources

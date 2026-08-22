@@ -6,7 +6,6 @@ namespace App\Http\Requests\Account;
 
 use App\Models\Costume;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 /**
  * Handles the validation for the delete costume form.

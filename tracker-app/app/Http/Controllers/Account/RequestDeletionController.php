@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Account;
 
-use App\Messages\Troopers\Commands\RequestTrooperDeletion;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Account\RequestDeletionRequest;
+use App\Messages\Troopers\Commands\RequestTrooperDeletion;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
@@ -28,7 +28,7 @@ class RequestDeletionController extends MagicBusController
         RequestTrooperDeletion::call(trooper: $trooper);
 
         $this->flash->warning(
-            'Your account has been scheduled for permanent deletion. ' .
+            'Your account has been scheduled for permanent deletion. '.
             'You may log back in within 30 days to cancel.'
         );
 

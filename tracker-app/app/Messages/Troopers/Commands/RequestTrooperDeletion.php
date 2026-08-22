@@ -18,9 +18,7 @@ use Illuminate\Support\Facades\Mail;
  */
 final class RequestTrooperDeletion extends Message
 {
-    public function __construct(private readonly Trooper $trooper)
-    {
-    }
+    public function __construct(private readonly Trooper $trooper) {}
 
     public function handle(): void
     {
