@@ -50,6 +50,7 @@
         </InputContainer>
         <SubmitButtonContainer>
             <SubmitButton
+                label="Delete"
                 danger={true}
                 disabled={vm.confirm !== "DELETE"}
                 submitting={vm.submitting}
