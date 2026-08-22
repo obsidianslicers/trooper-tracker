@@ -2,7 +2,7 @@
     import InputContainer from "$lib/components/form/InputContainer.svelte";
     import InputHelp from "$lib/components/form/InputHelp.svelte";
     import InputSelect from "$lib/components/form/InputSelect.svelte";
-    import type { RegisterViewModel } from "$lib/domains/auth";
+    import type { RegisterViewModel } from "../../models";
 
     interface PageProps {
         vm: RegisterViewModel;

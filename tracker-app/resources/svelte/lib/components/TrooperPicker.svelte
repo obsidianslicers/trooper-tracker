@@ -1,10 +1,12 @@
 <script lang="ts">
     import InputError from "$lib/components/form/InputError.svelte";
-    import Modal from "$lib/components/ui/Modal.svelte";
+    import SubmitButtonContainer from "$lib/components/form/SubmitButtonContainer.svelte";
     import {
         TrooperPickerViewModel,
         type Trooper,
-    } from "$lib/domains/ui/TrooperPickerViewModel.svelte";
+    } from "$lib/components/models/TrooperPickerViewModel.svelte";
+    import CancelButton from "$lib/components/ui/buttons/CancelButton.svelte";
+    import Modal from "$lib/components/ui/Modal.svelte";
 
     interface Props {
         selected?: Trooper | null;
@@ -176,15 +178,8 @@
                 {/each}
             </div>
         {/if}
-
-        <div class="d-flex justify-content-end mt-3">
-            <button
-                type="button"
-                class="btn btn-secondary"
-                onclick={() => vm.closeModal()}
-            >
-                Cancel
-            </button>
-        </div>
+        <SubmitButtonContainer>
+            <CancelButton click={() => vm.closeModal()} />
+        </SubmitButtonContainer>
     </div>
 </Modal>

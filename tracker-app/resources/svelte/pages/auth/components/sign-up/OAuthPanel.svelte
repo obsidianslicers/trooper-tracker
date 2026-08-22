@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { SignUpViewModel } from "$lib/domains/auth";
+    import { SignUpViewModel } from "../../models";
     import OAuthGoogleLink from "../OAuthGoogleLink.svelte";
     import OAuthXenforoLink from "../OAuthXenforoLink.svelte";
 

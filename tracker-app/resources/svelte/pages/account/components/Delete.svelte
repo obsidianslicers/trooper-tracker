@@ -1,5 +1,9 @@
 <script lang="ts">
+    import InputContainer from "$lib/components/form/InputContainer.svelte";
+    import InputText from "$lib/components/form/InputText.svelte";
     import SubmitButtonContainer from "$lib/components/form/SubmitButtonContainer.svelte";
+    import CancelButton from "$lib/components/ui/buttons/CancelButton.svelte";
+    import DeleteButton from "$lib/components/ui/buttons/DeleteButton.svelte";
     import Modal from "$lib/components/ui/Modal.svelte";
     import SlimView from "$lib/components/ui/SlimView.svelte";
     import { DeleteViewModel } from "../models";
@@ -17,13 +21,11 @@
     </p>
 
     <SubmitButtonContainer>
-        <button
-            type="button"
-            class="btn btn-outline-danger"
-            onclick={() => (vm.show_modal = true)}
-        >
-            Delete Account
-        </button>
+        <DeleteButton
+            outline={true}
+            click={() => (vm.show_modal = true)}
+            label="Delete Account"
+        />
     </SubmitButtonContainer>
 </SlimView>
 
@@ -41,16 +43,16 @@
         <li>Event participation records are kept in anonymized form.</li>
         <li>This action is irreversible after 30 days.</li>
     </ul>
-    <div class="mt-3">
-        <label class="form-label" for="delete-confirm-input">
-            Type <strong>DELETE</strong> to confirm:
-        </label>
-        <input
-            id="delete-confirm-input"
-            type="text"
-            class="form-control"
-            autocomplete="off"
-            data-model="input"
+    <InputContainer>
+        <InputText label="Type DELETE to confirm" bind:value={vm.confirm} />
+    </InputContainer>
+    <SubmitButtonContainer>
+        <DeleteButton
+            click={() => vm.delete()}
+            outline={false}
+            disabled={vm.confirm !== "DELETE"}
+            submitting={vm.submitting}
         />
-    </div>
+        <CancelButton click={() => (vm.show_modal = false)} />
+    </SubmitButtonContainer>
 </Modal>

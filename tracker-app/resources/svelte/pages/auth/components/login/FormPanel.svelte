@@ -5,7 +5,7 @@
     import InputText from "$lib/components/form/InputText.svelte";
     import SubmitButtonContainer from "$lib/components/form/SubmitButtonContainer.svelte";
     import SubmitButton from "$lib/components/ui/buttons/SubmitButton.svelte";
-    import { LoginViewModel } from "$lib/domains/auth";
+    import { LoginViewModel } from "../../models";
 
     interface Props {
         vm: LoginViewModel;

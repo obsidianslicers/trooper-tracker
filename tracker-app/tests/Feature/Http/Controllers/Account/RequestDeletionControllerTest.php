@@ -10,7 +10,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
-class DeletionRequestControllerTest extends TestCase
+class RequestDeletionControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -20,16 +20,21 @@ class DeletionRequestControllerTest extends TestCase
 
         $trooper = Trooper::factory()->asActive()->create();
 
-        $response = $this->actingAs($trooper)->delete(route('account.delete'));
+        $response = $this->actingAs($trooper)->post(route('account.request-deletion'));
 
         $response->assertRedirect(route('auth.login'));
         $this->assertNotNull($trooper->fresh()->deletion_requested_at);
         $this->assertGuest();
+
+        Mail::assertQueued(AccountDeletionRequestedMail::class, function (AccountDeletionRequestedMail $mail) use ($trooper): bool
+        {
+            return $mail->trooper->id === $trooper->id;
+        });
     }
 
     public function test_guest_is_redirected_to_login(): void
     {
-        $response = $this->delete(route('account.delete'));
+        $response = $this->post(route('account.request-deletion'));
 
         $response->assertRedirect(route('auth.login'));
     }
@@ -39,25 +44,11 @@ class DeletionRequestControllerTest extends TestCase
         Mail::fake();
 
         $trooper = Trooper::factory()->asActive()->create([
-            Trooper::DELETION_REQUESTED_AT => now()->subDays(1),
+            Trooper::DELETION_REQUESTED_AT => now()->subDay(),
         ]);
 
-        $response = $this->actingAs($trooper)->delete(route('account.delete'));
+        $response = $this->actingAs($trooper)->post(route('account.request-deletion'));
 
         $response->assertForbidden();
-    }
-
-    public function test_cancel_clears_deletion_request(): void
-    {
-        Mail::fake();
-
-        $trooper = Trooper::factory()->asActive()->create([
-            Trooper::DELETION_REQUESTED_AT => now()->subDays(5),
-        ]);
-
-        $response = $this->actingAs($trooper)->delete(route('account.delete.cancel'));
-
-        $response->assertRedirect(route('account.index'));
-        $this->assertNull($trooper->fresh()->deletion_requested_at);
     }
 }
