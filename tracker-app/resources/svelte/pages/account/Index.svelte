@@ -6,6 +6,7 @@
     import Tabs from "$lib/components/ui/tabs/Tabs.svelte";
     import pageState from "$lib/states/page-state.svelte";
     import { usePage } from "@inertiajs/svelte";
+    import CancelDeletion from "./components/CancelDeletion.svelte";
     import Costumes from "./components/Costumes.svelte";
     import Details from "./components/Details.svelte";
     import Friends from "./components/Friends.svelte";
@@ -22,8 +23,12 @@
 
     pageState.title = "Trooper Account";
 
-    let vm = new AccountViewModel(page.props);
+    let vm = $derived(new AccountViewModel(page.props));
 </script>
+
+{#if vm.has_deletion_request}
+    <CancelDeletion deletionDate={vm.deletion_date} />
+{/if}
 
 <Tabs defaultTab="profile">
     <TabHeader>
