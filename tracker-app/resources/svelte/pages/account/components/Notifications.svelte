@@ -1,8 +1,8 @@
 <script lang="ts">
     import AccordionPanel from "$lib/components/AccordionPanel.svelte";
     import SlimView from "$lib/components/ui/SlimView.svelte";
-    import type { NotificationsPageData } from "$lib/domains/account";
-    import { NotificationsViewModel } from "$lib/domains/account";
+    import type { NotificationsPageData } from "../models";
+    import { NotificationsViewModel } from "../models";
     import AdministrativeNotifications from "./AdministrativeNotifications.svelte";
     import EventNotifications from "./EventNotifications.svelte";
     import TrooperNotifications from "./TrooperNotifications.svelte";

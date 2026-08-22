@@ -3,8 +3,8 @@
     import InputContainer from "$lib/components/form/InputContainer.svelte";
     import InputHelp from "$lib/components/form/InputHelp.svelte";
     import InputSelect from "$lib/components/form/InputSelect.svelte";
-    import type { EventNotificationsPageData } from "$lib/domains/account";
-    import { EventNotificationsViewModel } from "$lib/domains/account";
+    import type { EventNotificationsPageData } from "../models";
+    import { EventNotificationsViewModel } from "../models";
 
     interface Props {
         notifications: EventNotificationsPageData;

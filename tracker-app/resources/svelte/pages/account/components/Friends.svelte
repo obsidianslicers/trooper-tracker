@@ -1,8 +1,8 @@
 <script lang="ts">
     import Alert from "$lib/components/ui/Alert.svelte";
     import SlimView from "$lib/components/ui/SlimView.svelte";
-    import type { Friend } from "$lib/domains/account";
-    import { FriendsViewModel } from "$lib/domains/account";
+    import type { Friend } from "../models";
+    import { FriendsViewModel } from "../models";
 
     interface Props {
         friends: Friend[];

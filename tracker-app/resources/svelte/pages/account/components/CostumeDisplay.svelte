@@ -1,7 +1,7 @@
 <script lang="ts">
     import Alert from "$lib/components/ui/Alert.svelte";
     import DeleteButton from "$lib/components/ui/buttons/DeleteButton.svelte";
-    import { CostumesViewModel } from "$lib/domains/account";
+    import { CostumesViewModel } from "../models";
 
     interface Props {
         vm: CostumesViewModel;

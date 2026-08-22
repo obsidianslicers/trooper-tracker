@@ -1,6 +1,6 @@
 <script lang="ts">
     import Alert from "$lib/components/ui/Alert.svelte";
-    import { MembershipsViewModel } from "$lib/domains/account";
+    import { MembershipsViewModel } from "../models";
 
     interface Props {
         vm: MembershipsViewModel;

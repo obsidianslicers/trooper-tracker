@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { MembershipsViewModel } from "$lib/domains/account";
+    import { MembershipsViewModel } from "../models";
 
     interface Props {
         vm: MembershipsViewModel;

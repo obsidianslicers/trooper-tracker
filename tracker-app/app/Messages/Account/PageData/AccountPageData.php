@@ -47,7 +47,8 @@ final class AccountPageData extends Message
      */
     public function __construct(
         public readonly Actor $actor
-    ) {}
+    ) {
+    }
 
     /**
      * Retrieves application configuration as a nested associative array.
@@ -60,6 +61,7 @@ final class AccountPageData extends Message
             'trooper_id' => $this->actor->id,
             'is_visitor' => $this->actor->is_visitor,
             'is_handler' => $this->actor->is_handler,
+            'deletion_requested_at' => $this->actor->deletion_requested_at,
             'email' => $this->actor->email,
             'details' => $this->getDetails(),
             'notifications' => $this->getNotifications(),

@@ -4,18 +4,19 @@
     import TabHeader from "$lib/components/ui/tabs/TabHeader.svelte";
     import TabPanel from "$lib/components/ui/tabs/TabPanel.svelte";
     import Tabs from "$lib/components/ui/tabs/Tabs.svelte";
-    import {
-        AccountViewModel,
-        type AccountPageData,
-    } from "$lib/domains/account/vms/AccountViewModel.svelte";
     import pageState from "$lib/states/page-state.svelte";
     import { usePage } from "@inertiajs/svelte";
     import Costumes from "./components/Costumes.svelte";
+    import Delete from "./components/Delete.svelte";
     import Details from "./components/Details.svelte";
     import Friends from "./components/Friends.svelte";
     import Memberships from "./components/Memberships.svelte";
     import Minors from "./components/Minors.svelte";
     import Notifications from "./components/Notifications.svelte";
+    import {
+        AccountViewModel,
+        type AccountPageData,
+    } from "./models/vms/AccountViewModel.svelte";
 
     const page = usePage<AccountPageData>();
 
@@ -23,12 +24,6 @@
 
     let vm = new AccountViewModel(page.props);
 </script>
-
-<!--
-No Cadets Hide Tab
-No Friends Hide Tab
-Is Handler Hide Tab
--->
 
 <Tabs defaultTab="profile">
     <TabHeader>
@@ -43,6 +38,9 @@ Is Handler Hide Tab
         {/if}
         {#if vm.has_minors}
             <Tab id="minors">Cadets</Tab>
+        {/if}
+        {#if !vm.has_deletion_request}
+            <Tab id="delete">Delete Account</Tab>
         {/if}
     </TabHeader>
     <TabContent>
@@ -66,6 +64,9 @@ Is Handler Hide Tab
         </TabPanel>
         <TabPanel id="minors">
             <Minors minors={vm.pageData?.minors} />
+        </TabPanel>
+        <TabPanel id="delete">
+            <Delete />
         </TabPanel>
     </TabContent>
 </Tabs>
