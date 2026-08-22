@@ -32,20 +32,9 @@ function to_messages(value: FlashPropValue): string[] {
     return [];
 }
 
-router.on('navigate', (event) => {
-    flashState.clear();
-    toastState.clear();
+function handleMessages(event: CustomEvent): void {
 
-    const openNavbars = document.querySelectorAll('.navbar-collapse.show');
-    openNavbars.forEach(nav => {
-        const collapseInstance = Collapse.getInstance(nav);
-        if (collapseInstance) {
-            collapseInstance.hide();
-        }
-    });
-});
-
-router.on('success', (event) => {
+    //  ie. form submission success, or page navigation success
     const pg = event.detail.page;
 
     if (pg.props.flash) {
@@ -67,6 +56,22 @@ router.on('success', (event) => {
     else if (pg.props.errors && Object.keys(pg.props.errors).length > 0) {
         toastState.danger('Validation errors .. data submission cancelled.');
     }
+}
+
+router.on('navigate', (event) => {
+    const openNavbars = document.querySelectorAll('.navbar-collapse.show');
+    openNavbars.forEach(nav => {
+        const collapseInstance = Collapse.getInstance(nav);
+        if (collapseInstance) {
+            collapseInstance.hide();
+        }
+    });
+
+    handleMessages(event);
+});
+
+router.on('success', (event) => {
+    handleMessages(event);
 });
 
 router.on('error', (event) => {

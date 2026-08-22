@@ -3,7 +3,7 @@ import { getRoute } from "$lib/utils";
 import { router } from "@inertiajs/svelte";
 
 
-export class DeleteViewModel extends ViewModel {
+export class RequestDeletionViewModel extends ViewModel {
     show_modal: boolean = $state(false);
     confirm: string = $state("");
     submitting: boolean = $state(false);
@@ -12,7 +12,8 @@ export class DeleteViewModel extends ViewModel {
         super();
     }
 
-    delete = () => {
+    delete = (e: Event) => {
+        e.preventDefault();
         this.submitting = true;
         const url = getRoute("account.request-deletion");
 

@@ -4,11 +4,12 @@
     import SubmitButtonContainer from "$lib/components/form/SubmitButtonContainer.svelte";
     import CancelButton from "$lib/components/ui/buttons/CancelButton.svelte";
     import DeleteButton from "$lib/components/ui/buttons/DeleteButton.svelte";
+    import SubmitButton from "$lib/components/ui/buttons/SubmitButton.svelte";
     import Modal from "$lib/components/ui/Modal.svelte";
     import SlimView from "$lib/components/ui/SlimView.svelte";
-    import { DeleteViewModel } from "../models";
+    import { RequestDeletionViewModel } from "../models";
 
-    let vm = new DeleteViewModel();
+    let vm = new RequestDeletionViewModel();
 </script>
 
 <SlimView>
@@ -43,16 +44,17 @@
         <li>Event participation records are kept in anonymized form.</li>
         <li>This action is irreversible after 30 days.</li>
     </ul>
-    <InputContainer>
-        <InputText label="Type DELETE to confirm" bind:value={vm.confirm} />
-    </InputContainer>
-    <SubmitButtonContainer>
-        <DeleteButton
-            click={() => vm.delete()}
-            outline={false}
-            disabled={vm.confirm !== "DELETE"}
-            submitting={vm.submitting}
-        />
-        <CancelButton click={() => (vm.show_modal = false)} />
-    </SubmitButtonContainer>
+    <form onsubmit={vm.delete}>
+        <InputContainer>
+            <InputText label="Type DELETE to confirm" bind:value={vm.confirm} />
+        </InputContainer>
+        <SubmitButtonContainer>
+            <SubmitButton
+                danger={true}
+                disabled={vm.confirm !== "DELETE"}
+                submitting={vm.submitting}
+            />
+            <CancelButton click={() => (vm.show_modal = false)} />
+        </SubmitButtonContainer>
+    </form>
 </Modal>

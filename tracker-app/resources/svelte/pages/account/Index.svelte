@@ -7,12 +7,12 @@
     import pageState from "$lib/states/page-state.svelte";
     import { usePage } from "@inertiajs/svelte";
     import Costumes from "./components/Costumes.svelte";
-    import Delete from "./components/Delete.svelte";
     import Details from "./components/Details.svelte";
     import Friends from "./components/Friends.svelte";
     import Memberships from "./components/Memberships.svelte";
     import Minors from "./components/Minors.svelte";
     import Notifications from "./components/Notifications.svelte";
+    import Delete from "./components/RequestDeletion.svelte";
     import {
         AccountViewModel,
         type AccountPageData,
