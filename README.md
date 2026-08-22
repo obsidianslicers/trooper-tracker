@@ -1,5 +1,7 @@
 # Troop Tracker
 
+[![Laravel Style](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/pint.yml/badge.svg)](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/pint.yml) [![Laravel Tests](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/tests.yml/badge.svg)](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/tests.yml)
+
 **Troop Tracker** is the Empire's official operations dashboard, engineered to impose order upon trooper assignments, moderation workflows, and hierarchical communications across organizations, regions, and units. Forged with Laravel, Blade, Bootstrap 5, HTMX, and Alpine‑driven JavaScript, it delivers the precision, discipline, and ruthless efficiency expected of any system operating under Imperial authority.
 
 Currently Used By:
@@ -11,11 +13,6 @@ Currently Used By:
   * [Saber Guild, Dagobah Temple](https://www.facebook.com/dagobahtemple/)
   * [Dark Empire, Spire of the Storm](https://www.facebook.com/SpireoftheStormTDE/)
   * [Galactic Academy, Dagobah School](https://www.facebook.com/DagobahGalacticAcademyFlorida/)
-
-
-[![Laravel Style](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/pint.yml/badge.svg)](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/pint.yml)
-
-[![Laravel Tests](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/tests.yml/badge.svg)](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/tests.yml)
 
 ---
 
