@@ -21,26 +21,20 @@ export default defineConfig({
                 manualChunks(id) {
                     if (id.includes('resources/svelte')) {
                         if (
-                            id.includes('lib/components') ||
-                            id.includes('lib/states') ||
-                            id.includes('lib/constants') ||
-                            id.includes('lib/exceptions') ||
-                            id.includes('lib/index') ||
-                            id.includes('lib/logger') ||
-                            id.includes('lib/utils')
+                            id.includes('lib')
                         ) {
-                            return 'app-components';
+                            return 'app-lib';
                         }
-                        if (id.includes('pages/auth') || id.includes('lib/domains/auth')) {
+                        if (id.includes('pages/auth')) {
                             return 'pages-auth';
                         }
-                        if (id.includes('pages/account') || id.includes('lib/domains/account')) {
+                        if (id.includes('pages/account')) {
                             return 'pages-account';
                         }
-                        if (id.includes('pages/admin/troopers') || id.includes('lib/domains/admin/troopers')) {
+                        if (id.includes('pages/admin/troopers')) {
                             return 'pages-admin-trooper';
                         }
-                        if (id.includes('pages/admin/events') || id.includes('lib/domains/admin/events')) {
+                        if (id.includes('pages/admin/events')) {
                             return 'pages-admin-events';
                         }
                     }

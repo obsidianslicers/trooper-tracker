@@ -92,7 +92,7 @@ A feature's name is `[Verb] [Object] [optional details]` (e.g. `RequestDeletion`
 When adding a sibling action to an existing feature (e.g. a "cancel" counterpart
 to "request"), name it the same way -- verb first, object second, matching
 object noun -- rather than reusing an unrelated noun or reversing the order
-(avoid e.g. `DeletionCancelController`; prefer `CancelDeletionController`).
+(avoid e.g. `CancelDeletionController`; prefer `CancelDeletionController`).
 
 ---
 

@@ -112,7 +112,7 @@ A feature's name is `[Verb] [Object] [optional details]` (e.g. `RequestDeletion`
    The message layer may swap in a more specific object noun (e.g. `Trooper` instead of the `Account` namespace it's called from) when that object is shared across multiple entry points — e.g. `RequestTrooperDeletion` lives outside the `Account` namespace because both `Account` and `Admin` can trigger it. That's the one deliberate exception to rule 1; don't let unrelated layers drift in name otherwise.
 2. **Higher-intent (UI/HTTP) layers can be terser than lower-intent (message/domain) layers**, as long as the verb+object pair still matches: UI/HTTP say `UpdateProfile` / `RequestDeletion`; the message layer says `UpdateTrooperProfile` / `RequestTrooperDeletion`. The extra specificity is added, not changed.
 
-When adding a sibling action to an existing feature (e.g. a "cancel" counterpart to "request"), name it the same way — verb first, object second, matching object noun — rather than reusing an unrelated noun or reversing the order (avoid e.g. `DeletionCancelController`; prefer `CancelDeletionController`).
+When adding a sibling action to an existing feature (e.g. a "cancel" counterpart to "request"), name it the same way — verb first, object second, matching object noun — rather than reusing an unrelated noun or reversing the order (avoid e.g. `CancelDeletionController`; prefer `CancelDeletionController`).
 
 ---
 

@@ -9,7 +9,7 @@ use App\Http\Controllers\Account\IndexController;
 use App\Http\Controllers\Account\UpdateProfileController;
 use App\Http\Controllers\Account\UpdateNotificationFrequencyController;
 use App\Http\Controllers\Account\UpdatePushNotificationsController;
-use App\Http\Controllers\Account\DeletionCancelController;
+use App\Http\Controllers\Account\CancelDeletionController;
 use App\Http\Controllers\Account\DeletionRequestController;
 use App\Http\Controllers\Account\NoticesController;
 use App\Http\Controllers\Account\NoticesSubmitHtmxController;
@@ -77,7 +77,7 @@ Route::prefix('account')
         Route::get('/visitor-renew', VisitorRenewController::class)->name('visitor-renew');
         Route::post('/visitor-renew', VisitorRenewSubmitController::class)->name('visitor-renew-submit');
 
-        Route::delete('/cancel/deletion', DeletionCancelController::class)->name('delete.cancel');
+        Route::delete('/cancel/deletion', CancelDeletionController::class)->name('delete.cancel');
 
         // XenForo linking required page
         Route::get('/xenforo/required', function (): View
