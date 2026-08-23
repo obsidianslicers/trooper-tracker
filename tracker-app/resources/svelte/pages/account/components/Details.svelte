@@ -6,8 +6,8 @@
     import SubmitButtonContainer from "$lib/components/form/SubmitButtonContainer.svelte";
     import SubmitButton from "$lib/components/ui/buttons/SubmitButton.svelte";
     import SlimView from "$lib/components/ui/SlimView.svelte";
-    import type { DetailsPageData } from "$lib/domains/account";
-    import { DetailsViewModel } from "$lib/domains/account";
+    import type { DetailsPageData } from "../models";
+    import { DetailsViewModel } from "../models";
 
     interface Props {
         details: DetailsPageData;

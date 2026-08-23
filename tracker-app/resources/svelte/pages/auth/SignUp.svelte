@@ -1,12 +1,12 @@
 <script lang="ts">
     import Alert from "$lib/components/ui/Alert.svelte";
     import SlimCard from "$lib/components/ui/SlimCard.svelte";
-    import { SignUpViewModel, type SignUpPageData } from "$lib/domains/auth";
     import pageState from "$lib/states/page-state.svelte";
     import { usePage } from "@inertiajs/svelte";
     import OAuthXenforoLink from "./components/OAuthXenforoLink.svelte";
     import EmailLink from "./components/sign-up/EmailLink.svelte";
     import OAuthPanel from "./components/sign-up/OAuthPanel.svelte";
+    import { SignUpViewModel, type SignUpPageData } from "./models";
 
     const page = usePage<SignUpPageData>();
 

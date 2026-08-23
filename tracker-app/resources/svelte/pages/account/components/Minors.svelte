@@ -1,8 +1,8 @@
 <script lang="ts">
     import Alert from "$lib/components/ui/Alert.svelte";
     import SlimView from "$lib/components/ui/SlimView.svelte";
-    import type { Minor } from "$lib/domains/account";
-    import { MinorsViewModel } from "$lib/domains/account";
+    import type { Minor } from "../models";
+    import { MinorsViewModel } from "../models";
 
     interface Props {
         minors: Minor[];

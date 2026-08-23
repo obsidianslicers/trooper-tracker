@@ -27,7 +27,7 @@ class FlashState {
 
     readonly #defaults: FlashDefaults = {
         type: 'info',
-        delay: 4000,
+        delay: 7500,
         allowDismiss: true,
     };
 

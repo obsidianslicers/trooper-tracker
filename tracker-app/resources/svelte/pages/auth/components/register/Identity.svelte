@@ -3,7 +3,7 @@
     import InputHelp from "$lib/components/form/InputHelp.svelte";
     import InputPassword from "$lib/components/form/InputPassword.svelte";
     import InputText from "$lib/components/form/InputText.svelte";
-    import type { RegisterViewModel } from "$lib/domains/auth";
+    import type { RegisterViewModel } from "../../models";
 
     interface PageProps {
         vm: RegisterViewModel;

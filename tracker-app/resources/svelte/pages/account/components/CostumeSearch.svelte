@@ -2,17 +2,7 @@
     import InputText from "$lib/components/form/InputText.svelte";
     import SubmitButtonContainer from "$lib/components/form/SubmitButtonContainer.svelte";
     import SubmitButton from "$lib/components/ui/buttons/SubmitButton.svelte";
-    import type { CostumesViewModel } from "$lib/domains/account/vms/CostumesViewModel.svelte.ts";
-
-    // // Props received from Laravel Controller
-    // let { search_results = [] } = $props();
-
-    // // Local UI state
-
-    // // Inertia Form for submission
-    // const form = useForm({
-    //     organization_costume_ids: [],
-    // });
+    import type { CostumesViewModel } from "../models";
 
     interface Props {
         vm: CostumesViewModel;

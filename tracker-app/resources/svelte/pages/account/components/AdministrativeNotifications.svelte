@@ -1,6 +1,6 @@
 <script lang="ts">
-    import type { AdministrativeNotificationsPageData } from "$lib/domains/account";
-    import { AdministrativeNotificationsViewModel } from "$lib/domains/account";
+    import type { AdministrativeNotificationsPageData } from "../models";
+    import { AdministrativeNotificationsViewModel } from "../models";
     import NotificationPreferences from "./NotificationPreferences.svelte";
 
     interface Props {

@@ -4,7 +4,7 @@
     import InputError from "$lib/components/form/InputError.svelte";
     import InputSelect from "$lib/components/form/InputSelect.svelte";
     import InputText from "$lib/components/form/InputText.svelte";
-    import type { RegisterViewModel } from "$lib/domains/auth";
+    import type { RegisterViewModel } from "../../models";
 
     interface PageProps {
         vm: RegisterViewModel;

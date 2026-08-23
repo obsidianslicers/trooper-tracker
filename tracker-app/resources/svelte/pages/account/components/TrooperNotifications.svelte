@@ -1,6 +1,6 @@
 <script lang="ts">
-    import type { TrooperNotificationsPageData } from "$lib/domains/account";
-    import { TrooperNotificationsViewModel } from "$lib/domains/account";
+    import type { TrooperNotificationsPageData } from "../models";
+    import { TrooperNotificationsViewModel } from "../models";
     import NotificationPreferences from "./NotificationPreferences.svelte";
     interface Props {
         notifications: TrooperNotificationsPageData;

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { LoginViewModel } from "$lib/domains/auth";
+    import { LoginViewModel } from "../../models";
     import OAuthGoogleLink from "../OAuthGoogleLink.svelte";
     import OAuthXenforoLink from "../OAuthXenforoLink.svelte";
 

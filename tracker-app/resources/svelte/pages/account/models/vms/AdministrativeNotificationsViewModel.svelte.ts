@@ -1,5 +1,5 @@
-import type { NotificationPreferences } from "$lib/domains/account/types";
 import type { Option } from "$lib/domains/types.svelte";
+import type { NotificationPreferences } from "../types";
 import { NotificationPreferenceViewModel } from "./NotificationPreferenceViewModel.svelte";
 
 export type AdministrativeNotificationsPageData = {

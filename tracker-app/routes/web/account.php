@@ -26,6 +26,7 @@ use App\Http\Controllers\Account\SetupSubmitController;
 use App\Http\Controllers\Account\VisitorRenewController;
 use App\Http\Controllers\Account\VisitorRenewSubmitController;
 use App\Http\Controllers\Account\AddTrooperRequestController;
+use App\Http\Controllers\Account\RequestDeletionController;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -57,6 +58,7 @@ Route::prefix('account')
         Route::post('/add/costumes', AddCostumeController::class)->name('add-costume');
         Route::post('/remove/costumes', RemoveCostumeController::class)->name('remove-costume');
         Route::post('/add/trooper/request', AddTrooperRequestController::class)->name('add-trooper-request');
+        Route::post('/request/deletion', RequestDeletionController::class)->name('request-deletion');
 
 
 
@@ -75,8 +77,7 @@ Route::prefix('account')
         Route::get('/visitor-renew', VisitorRenewController::class)->name('visitor-renew');
         Route::post('/visitor-renew', VisitorRenewSubmitController::class)->name('visitor-renew-submit');
 
-        Route::delete('/delete', DeletionRequestController::class)->name('delete');
-        Route::delete('/delete/cancel', DeletionCancelController::class)->name('delete.cancel');
+        Route::delete('/cancel/deletion', DeletionCancelController::class)->name('delete.cancel');
 
         // XenForo linking required page
         Route::get('/xenforo/required', function (): View

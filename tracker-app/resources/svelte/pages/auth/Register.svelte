@@ -3,16 +3,13 @@
     import Alert from "$lib/components/ui/Alert.svelte";
     import SubmitButton from "$lib/components/ui/buttons/SubmitButton.svelte";
     import SlimCard from "$lib/components/ui/SlimCard.svelte";
-    import {
-        type RegisterPageData,
-        RegisterViewModel,
-    } from "$lib/domains/auth";
     import pageState from "$lib/states/page-state.svelte";
     import { usePage } from "@inertiajs/svelte";
     import Identity from "./components/register/Identity.svelte";
     import MembershipRole from "./components/register/MembershipRole.svelte";
     import Organizations from "./components/register/Organizations.svelte";
     import RequiresGuardian from "./components/register/RequiresGuardian.svelte";
+    import { type RegisterPageData, RegisterViewModel } from "./models";
 
     const page = usePage<RegisterPageData>();
 

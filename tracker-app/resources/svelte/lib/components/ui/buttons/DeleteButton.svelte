@@ -5,20 +5,24 @@
         href?: string | null;
         label?: string | null;
         submitting?: boolean | null;
+        outline?: boolean | null;
+        disabled?: boolean | null;
         click?: (() => void) | null;
     }
     let {
         href = null,
         click = null,
         label = "Delete",
+        outline = true,
         submitting = false,
+        disabled = false,
     }: Props = $props();
 </script>
 
 <Button
-    btnclass="btn-outline-danger"
+    btnclass={outline ? "btn-outline-danger" : "btn-danger"}
     icon={submitting ? "fa-solid fa-spinner fa-spin" : "fa-trash"}
-    disabled={submitting}
+    disabled={submitting || disabled}
     {href}
     {click}
     {label}

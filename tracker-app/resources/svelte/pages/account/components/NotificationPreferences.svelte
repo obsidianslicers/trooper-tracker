@@ -1,6 +1,6 @@
 <script lang="ts">
     import InputCheckbox from "$lib/components/form/InputCheckbox.svelte";
-    import type { NotificationPreferenceViewModel } from "$lib/domains/account/vms/NotificationPreferenceViewModel.svelte";
+    import type { NotificationPreferenceViewModel } from "../models";
 
     interface Props {
         vm: NotificationPreferenceViewModel;

@@ -1,7 +1,7 @@
 <script lang="ts">
     import SlimView from "$lib/components/ui/SlimView.svelte";
-    import type { MembershipsPageData } from "$lib/domains/account";
-    import { MembershipsViewModel } from "$lib/domains/account";
+    import type { MembershipsPageData } from "../models";
+    import { MembershipsViewModel } from "../models";
     import MembershipDisplay from "./MembershipDisplay.svelte";
     import MembershipRequests from "./MembershipRequests.svelte";
     import MembershipSelection from "./MembershipSelection.svelte";

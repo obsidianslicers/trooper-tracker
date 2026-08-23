@@ -1,9 +1,6 @@
 <script lang="ts">
     import SlimView from "$lib/components/ui/SlimView.svelte";
-    import {
-        CostumesViewModel,
-        type CostumesPageData,
-    } from "$lib/domains/account";
+    import { CostumesViewModel, type CostumesPageData } from "../models";
     import CostumeDisplay from "./CostumeDisplay.svelte";
     import CostumeSearch from "./CostumeSearch.svelte";
 

@@ -5,8 +5,8 @@
     import TrooperPicker from "$lib/components/TrooperPicker.svelte";
     import SubmitButton from "$lib/components/ui/buttons/SubmitButton.svelte";
     import SlimCard from "$lib/components/ui/SlimCard.svelte";
-    import { MergeTroopersViewModel } from "$lib/domains/troopers/vms/MergeTroopersViewModel.svelte";
     import pageState from "$lib/states/page-state.svelte";
+    import { MergeTroopersViewModel } from "./models";
 
     type Trooper = {
         id: string | number;
