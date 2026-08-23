@@ -13,6 +13,7 @@
 
 <body class="bg-black d-flex flex-column min-vh-100 theme-{{ Auth::user()->theme ?? 'stormtrooper' }}">
     @include('partials.navbar')
+    @include('partials.bread-crumbs')
 
     @inertia
 
