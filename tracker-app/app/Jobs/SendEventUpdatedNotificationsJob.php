@@ -12,6 +12,7 @@ use Illuminate\Foundation\Queue\Queueable;
 
 class SendEventUpdatedNotificationsJob implements ShouldQueue
 {
+    use HasRetryPolicy;
     use Queueable;
 
     public function __construct(

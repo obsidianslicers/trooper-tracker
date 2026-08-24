@@ -6,9 +6,11 @@ namespace App\Channels;
 
 use App\Models\MobileDevice;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Facades\Log;
 use Kreait\Firebase\Contract\Messaging;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Kreait\Firebase\Messaging\Notification as FcmNotification;
+use Throwable;
 
 final class FcmChannel
 {
@@ -51,7 +53,19 @@ final class FcmChannel
                 'payload' => ['aps' => ['badge' => $unreadCount]],
             ]);
 
-        $report = $this->messaging->sendMulticast($message, $tokens);
+        try
+        {
+            $report = $this->messaging->sendMulticast($message, $tokens);
+        }
+        catch (Throwable $exception)
+        {
+            Log::warning('FCM sendMulticast failed', [
+                'trooper_id' => $notifiable->id,
+                'exception' => $exception->getMessage(),
+            ]);
+
+            throw $exception;
+        }
 
         foreach ($report->failures()->getItems() as $failure)
         {
