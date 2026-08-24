@@ -70,10 +70,6 @@ router.on('navigate', (event) => {
     handleMessages(event);
 });
 
-router.on('success', (event) => {
-    handleMessages(event);
-});
-
 router.on('error', (event) => {
     if (event.detail.errors) {
         const errors = event.detail.errors;
