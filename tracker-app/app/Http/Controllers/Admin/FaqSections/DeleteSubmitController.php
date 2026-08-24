@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\FaqSections;
 
+use App\Features\Faq\Commands\DeleteFaqSectionCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Models\FaqSection;
 use Illuminate\Http\RedirectResponse;
@@ -24,7 +25,7 @@ class DeleteSubmitController extends MagicBusController
 
         $label = $section->label;
 
-        $section->delete();
+        $this->bus->send(new DeleteFaqSectionCommand($section));
 
         $this->flash->success("Deleted section \"{$label}\"");
 

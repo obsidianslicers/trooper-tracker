@@ -7,6 +7,7 @@ namespace Tests\Feature\Http\Controllers\Admin\Faq;
 use App\Models\Faq;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class UpdateControllerTest extends TestCase
@@ -21,7 +22,10 @@ class UpdateControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('admin.faq.update', ['faq' => $faq->id]));
 
         $response->assertOk();
-        $response->assertViewIs('pages.admin.faq.update');
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('admin/faq/Update')
+            ->where('faq.id', $faq->id)
+        );
     }
 
     public function test_invoke_requires_authentication(): void

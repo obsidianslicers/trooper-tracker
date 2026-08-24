@@ -5,28 +5,28 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Faq;
 
 use App\Http\Controllers\MagicBusController;
-use App\Models\Faq;
 use App\Models\FaqSection;
-use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 class CreateController extends MagicBusController
 {
-    protected function initialized(): void
+    public function __invoke(Request $request): InertiaResponse
     {
-        $this->crumbs->addRoute('Command Staff', 'admin.display');
-        $this->crumbs->addRoute('FAQ', 'admin.faq.list');
+        $section_id = $request->query('section_id') ? (int) $request->query('section_id') : null;
+
+        return Inertia::render('admin/faq/Create', [
+            'section_id' => $section_id,
+            'sections' => $this->sectionOptions(),
+        ]);
     }
 
-    public function __invoke(Request $request): View
+    private function sectionOptions(): array
     {
-        $faq = new Faq;
-        $faq->sort_order = 0;
-        $faq->section_id = $request->query('section_id') ? (int) $request->query('section_id') : null;
-
-        return view('pages.admin.faq.create', [
-            'faq' => $faq,
-            'sections' => FaqSection::orderBy(FaqSection::SORT_ORDER)->pluck(FaqSection::LABEL, FaqSection::ID),
-        ]);
+        return FaqSection::orderBy(FaqSection::SORT_ORDER)
+            ->get()
+            ->map(fn (FaqSection $section) => ['value' => $section->id, 'label' => $section->label])
+            ->all();
     }
 }

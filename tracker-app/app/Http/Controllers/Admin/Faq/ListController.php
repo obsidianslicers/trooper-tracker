@@ -7,17 +7,13 @@ namespace App\Http\Controllers\Admin\Faq;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Faq;
 use App\Models\FaqSection;
-use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 class ListController extends MagicBusController
 {
-    protected function initialized(): void
-    {
-        $this->crumbs->addRoute('Command Staff', 'admin.display');
-    }
-
-    public function __invoke(Request $request): View
+    public function __invoke(Request $request): InertiaResponse
     {
         $section_id = $request->query('section_id') ? (int) $request->query('section_id') : null;
 
@@ -31,7 +27,7 @@ class ListController extends MagicBusController
         $sortable = $section_id !== null;
         $items = $sortable ? $query->get() : $query->paginate(20)->withQueryString();
 
-        return view('pages.admin.faq.list', [
+        return Inertia::render('admin/faq/List', [
             'items' => $items,
             'sections' => FaqSection::orderBy(FaqSection::SORT_ORDER)->get(),
             'section_id' => $section_id,

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Faq;
 
+use App\Features\Faq\Commands\UpdateFaqCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Faq\UpdateRequest;
 use App\Models\Faq;
@@ -13,12 +14,13 @@ class UpdateSubmitController extends MagicBusController
 {
     public function __invoke(UpdateRequest $request, Faq $faq): RedirectResponse
     {
-        $faq->section_id = $request->validated('section_id');
-        $faq->title = $request->validated('title');
-        $faq->description = $request->validated('description');
-        $faq->video_url = $request->validated('video_url');
-
-        $faq->save();
+        $faq = $this->bus->send(new UpdateFaqCommand(
+            faq: $faq,
+            section_id: (int) $request->validated('section_id'),
+            title: $request->validated('title'),
+            description: $request->validated('description'),
+            video_url: $request->validated('video_url'),
+        ));
 
         $this->flash->updated($faq);
 

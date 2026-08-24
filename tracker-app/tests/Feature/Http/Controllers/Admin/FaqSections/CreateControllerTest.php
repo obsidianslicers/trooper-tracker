@@ -6,6 +6,7 @@ namespace Tests\Feature\Http\Controllers\Admin\FaqSections;
 
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class CreateControllerTest extends TestCase
@@ -19,7 +20,7 @@ class CreateControllerTest extends TestCase
         $response = $this->actingAs($trooper)->get(route('admin.faq.sections.create'));
 
         $response->assertOk();
-        $response->assertViewIs('pages.admin.faq.sections.create');
+        $response->assertInertia(fn (Assert $page) => $page->component('admin/faq/sections/Create'));
     }
 
     public function test_invoke_requires_authentication(): void

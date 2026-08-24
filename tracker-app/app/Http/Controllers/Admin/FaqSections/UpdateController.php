@@ -6,20 +6,16 @@ namespace App\Http\Controllers\Admin\FaqSections;
 
 use App\Http\Controllers\MagicBusController;
 use App\Models\FaqSection;
-use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 class UpdateController extends MagicBusController
 {
-    protected function initialized(): void
+    public function __invoke(Request $request, FaqSection $section): InertiaResponse
     {
-        $this->crumbs->addRoute('Command Staff', 'admin.display');
-        $this->crumbs->addRoute('FAQ', 'admin.faq.list');
-        $this->crumbs->addRoute('Sections', 'admin.faq.sections.list');
-    }
-
-    public function __invoke(Request $request, FaqSection $section): View
-    {
-        return view('pages.admin.faq.sections.update', compact('section'));
+        return Inertia::render('admin/faq/sections/Update', [
+            'section' => $section->load(['created_by', 'updated_by']),
+        ]);
     }
 }
