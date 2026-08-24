@@ -35,7 +35,7 @@
     </div>
     <div class="col-sm-12 col-md-4 text-end mt-2 mt-md-0">
         <Link href={getRoute("admin.faq.sections.create")} class="btn btn-sm btn-outline-success">
-            <i class="fa fa-fw fa-add"></i>
+            <i class="fa fa-fw fa-add me-1"></i>
             Section
         </Link>
     </div>

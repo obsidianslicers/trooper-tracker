@@ -11,7 +11,7 @@
     let { sections, section_id }: Props = $props();
 </script>
 
-<div class="d-flex flex-wrap gap-2">
+<div class="d-flex flex-wrap align-items-center gap-2">
     <Link
         href={getRoute("admin.faq.list")}
         class="btn btn-sm {section_id === null ? 'btn-secondary' : 'btn-outline-secondary'}"

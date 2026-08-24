@@ -38,7 +38,7 @@
     <div class="col-sm-12 col-md-8">
         <SectionFilterPills sections={page.props.sections} section_id={page.props.section_id} />
     </div>
-    <div class="col-sm-12 col-md-4 text-end mt-2 mt-md-0 d-flex gap-2 justify-content-end">
+    <div class="col-sm-12 col-md-4 text-end mt-2 mt-md-0 d-flex align-items-center gap-2 justify-content-end">
         <Link href={getRoute("admin.faq.sections.list")} class="btn btn-sm btn-outline-secondary">
             <i class="fa fa-fw fa-folder me-1"></i>
             Sections
@@ -47,7 +47,7 @@
             href={getRoute("admin.faq.create", page.props.section_id ? { section_id: page.props.section_id } : {})}
             class="btn btn-sm btn-outline-success"
         >
-            <i class="fa fa-fw fa-add"></i>
+            <i class="fa fa-fw fa-add me-1"></i>
             FAQ Item
         </Link>
     </div>
@@ -69,9 +69,6 @@
                 {/if}
                 <th>Section</th>
                 <th>Title</th>
-                {#if !vm.sortable}
-                    <th style="width: 60px;">Order</th>
-                {/if}
                 <th style="width: 40px;"></th>
             </tr>
         </thead>
