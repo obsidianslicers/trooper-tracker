@@ -86,7 +86,7 @@
             </tbody>
             <tfoot>
                 <tr>
-                    <td colspan="4">
+                    <td colspan="3">
                         <div class="d-flex gap-1 flex-wrap">
                             {#each links as link (link.label)}
                                 {#if link.url}

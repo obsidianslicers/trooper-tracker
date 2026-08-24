@@ -26,9 +26,6 @@
         {/if}
     </td>
     <td>{item.title}</td>
-    {#if !sortable}
-        <td class="text-muted small">{item.sort_order}</td>
-    {/if}
     <td>
         <div class="dropdown float-end">
             <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
