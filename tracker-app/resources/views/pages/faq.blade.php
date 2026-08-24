@@ -14,9 +14,6 @@
             @auth
                 @if(Auth::user()->is_administrator)
                     <div class="d-flex gap-2 justify-content-end mb-3">
-                        <a href="{{ route('admin.faq.create') }}" class="btn btn-sm btn-outline-warning">
-                            <i class="fa fa-fw fa-plus me-1"></i> Add Item
-                        </a>
                         <a href="{{ route('admin.faq.list') }}" class="btn btn-sm btn-outline-warning">
                             <i class="fa fa-fw fa-gear me-1"></i> Manage FAQ
                         </a>
