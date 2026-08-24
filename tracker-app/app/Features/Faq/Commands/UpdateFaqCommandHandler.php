@@ -7,6 +7,9 @@ namespace App\Features\Faq\Commands;
 use App\Bus\Contracts\CommandHandlerInterface;
 use App\Models\Faq;
 
+/**
+ * @implements CommandHandlerInterface<UpdateFaqCommand>
+ */
 readonly class UpdateFaqCommandHandler implements CommandHandlerInterface
 {
     public function __invoke(object $message): Faq

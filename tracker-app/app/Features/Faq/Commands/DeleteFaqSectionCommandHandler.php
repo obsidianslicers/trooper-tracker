@@ -6,6 +6,9 @@ namespace App\Features\Faq\Commands;
 
 use App\Bus\Contracts\CommandHandlerInterface;
 
+/**
+ * @implements CommandHandlerInterface<DeleteFaqSectionCommand>
+ */
 readonly class DeleteFaqSectionCommandHandler implements CommandHandlerInterface
 {
     public function __invoke(object $message): mixed

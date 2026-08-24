@@ -8,6 +8,9 @@ use App\Bus\Concerns\ShouldBeTransactional;
 use App\Bus\Contracts\CommandHandlerInterface;
 use App\Models\FaqSection;
 
+/**
+ * @implements CommandHandlerInterface<ReorderFaqSectionsCommand>
+ */
 readonly class ReorderFaqSectionsCommandHandler implements CommandHandlerInterface
 {
     use ShouldBeTransactional;
