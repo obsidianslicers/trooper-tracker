@@ -1,5 +1,6 @@
 <script lang="ts">
     import EasyMDE from "easymde";
+    import { untrack } from "svelte";
     import InputError from "./InputError.svelte";
     import InputLabel from "./InputLabel.svelte";
 
@@ -21,7 +22,7 @@
     let textarea: HTMLTextAreaElement;
 
     $effect(() => {
-        const editor = new EasyMDE({ element: textarea, initialValue: value ?? "" });
+        const editor = new EasyMDE({ element: textarea, initialValue: untrack(() => value) ?? "" });
 
         editor.codemirror.on("change", () => {
             value = editor.value();
