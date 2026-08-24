@@ -20,11 +20,11 @@ class ReorderSubmitControllerTest extends TestCase
         $faq_b   = Faq::factory()->create([Faq::SORT_ORDER => 2]);
         $faq_c   = Faq::factory()->create([Faq::SORT_ORDER => 3]);
 
-        $response = $this->actingAs($trooper)->postJson(route('admin.faq.reorder'), [
+        $response = $this->actingAs($trooper)->post(route('admin.faq.reorder'), [
             'ids' => [$faq_c->id, $faq_a->id, $faq_b->id],
         ]);
 
-        $response->assertOk();
+        $response->assertRedirect();
         $this->assertDatabaseHas('tt_faq', [Faq::ID => $faq_c->id, Faq::SORT_ORDER => 1]);
         $this->assertDatabaseHas('tt_faq', [Faq::ID => $faq_a->id, Faq::SORT_ORDER => 2]);
         $this->assertDatabaseHas('tt_faq', [Faq::ID => $faq_b->id, Faq::SORT_ORDER => 3]);
