@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin\FaqSections;
 use App\Http\Controllers\Controller;
 use App\Messages\Faq\Commands\Sections\DeleteFaqSection;
 use App\Models\FaqSection;
+use Hyperdrive\CommsHelper;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -23,12 +24,12 @@ class DeleteSubmitController extends Controller
                 ->with('danger', "Cannot delete \"{$section->label}\" — it has {$faq_count} FAQ item(s). Move or delete them first.");
         }
 
-        $label = $section->label;
+        $message = CommsHelper::deleted($section);
 
         DeleteFaqSection::call(section: $section);
 
         return redirect()
             ->route('admin.faq.sections.list')
-            ->with('success', "Deleted section \"{$label}\"");
+            ->with('success', $message);
     }
 }
