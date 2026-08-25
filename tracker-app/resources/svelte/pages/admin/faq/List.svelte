@@ -3,7 +3,6 @@
     import CancelButton from "$lib/components/ui/buttons/CancelButton.svelte";
     import SubmitButton from "$lib/components/ui/buttons/SubmitButton.svelte";
     import Modal from "$lib/components/ui/Modal.svelte";
-    import breadCrumbState from "$lib/states/bread-crumb-state.svelte";
     import pageState from "$lib/states/page-state.svelte";
     import { getRoute } from "$lib/utils";
     import { Link, usePage } from "@inertiajs/svelte";
@@ -17,19 +16,11 @@
         sections: FaqSection[];
         section_id: number | null;
         sortable: boolean;
-        breadcrumbs: { title: string; url: string }[];
     }
 
     const page = usePage<PageData>();
 
     pageState.title = "FAQ Items";
-    page.props.breadcrumbs.forEach((crumb, index) => {
-        if (index === 0) {
-            breadCrumbState.home(crumb.title, crumb.url);
-        } else {
-            breadCrumbState.add(crumb.title, crumb.url);
-        }
-    });
 
     let vm = $derived(new FaqListViewModel(page.props.section_id, page.props.sortable));
 

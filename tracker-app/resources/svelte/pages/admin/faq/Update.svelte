@@ -1,5 +1,4 @@
 <script lang="ts">
-    import breadCrumbState from "$lib/states/bread-crumb-state.svelte";
     import pageState from "$lib/states/page-state.svelte";
     import { usePage } from "@inertiajs/svelte";
     import Form from "./components/Form.svelte";
@@ -14,19 +13,11 @@
             updated_by?: { legal_name: string } | null;
         };
         sections: FaqSectionOption[];
-        breadcrumbs: { title: string; url: string }[];
     }
 
     const page = usePage<PageData>();
 
     pageState.title = "Update FAQ Item";
-    page.props.breadcrumbs.forEach((crumb, index) => {
-        if (index === 0) {
-            breadCrumbState.home(crumb.title, crumb.url);
-        } else {
-            breadCrumbState.add(crumb.title, crumb.url);
-        }
-    });
 
     let vm = $derived(new FaqFormViewModel("update", page.props.faq));
 </script>
