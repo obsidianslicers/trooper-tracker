@@ -4,34 +4,25 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Faq;
 
-use App\Http\Controllers\MagicBusController;
-use App\Models\Faq;
-use App\Models\FaqSection;
+use App\Http\Controllers\Controller;
+use App\Messages\Faq\PageData\ListFaqPageData;
+use App\Services\BreadCrumbService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
-class ListController extends MagicBusController
+class ListController extends Controller
 {
+    public function __construct(private readonly BreadCrumbService $crumbs)
+    {
+        $this->crumbs->addRoute('Command Staff', 'admin.display');
+        $this->crumbs->addRoute('FAQ', 'admin.faq.list');
+    }
+
     public function __invoke(Request $request): InertiaResponse
     {
-        $section_id = $request->query('section_id') ? (int) $request->query('section_id') : null;
+        $data = ListFaqPageData::call($request);
 
-        $query = Faq::query()->with('faq_section')->orderBy(Faq::SORT_ORDER)->orderBy(Faq::ID);
-
-        if ($section_id)
-        {
-            $query->where(Faq::SECTION_ID, $section_id);
-        }
-
-        $sortable = $section_id !== null;
-        $items = $sortable ? $query->get() : $query->paginate(20)->withQueryString();
-
-        return Inertia::render('admin/faq/List', [
-            'items' => $items,
-            'sections' => FaqSection::orderBy(FaqSection::SORT_ORDER)->get(),
-            'section_id' => $section_id,
-            'sortable' => $sortable,
-        ]);
+        return Inertia::render('admin/faq/List', $data);
     }
 }

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\FaqSections;
 
-use App\Features\Faq\Commands\DeleteFaqSectionCommand;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\Controller;
+use App\Messages\Faq\Commands\Sections\DeleteFaqSection;
 use App\Models\FaqSection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
-class DeleteSubmitController extends MagicBusController
+class DeleteSubmitController extends Controller
 {
     public function __invoke(Request $request, FaqSection $section): RedirectResponse
     {
@@ -18,17 +18,17 @@ class DeleteSubmitController extends MagicBusController
 
         if ($faq_count > 0)
         {
-            $this->flash->danger("Cannot delete \"{$section->label}\" — it has {$faq_count} FAQ item(s). Move or delete them first.");
-
-            return redirect()->route('admin.faq.sections.list');
+            return redirect()
+                ->route('admin.faq.sections.list')
+                ->with('danger', "Cannot delete \"{$section->label}\" — it has {$faq_count} FAQ item(s). Move or delete them first.");
         }
 
         $label = $section->label;
 
-        $this->bus->send(new DeleteFaqSectionCommand($section));
+        DeleteFaqSection::call(section: $section);
 
-        $this->flash->success("Deleted section \"{$label}\"");
-
-        return redirect()->route('admin.faq.sections.list');
+        return redirect()
+            ->route('admin.faq.sections.list')
+            ->with('success', "Deleted section \"{$label}\"");
     }
 }

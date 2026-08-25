@@ -4,28 +4,26 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Faq;
 
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\Controller;
+use App\Messages\Faq\PageData\UpdateFaqPageData;
 use App\Models\Faq;
-use App\Models\FaqSection;
+use App\Services\BreadCrumbService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
-class UpdateController extends MagicBusController
+class UpdateController extends Controller
 {
-    public function __invoke(Request $request, Faq $faq): InertiaResponse
+    public function __construct(private readonly BreadCrumbService $crumbs)
     {
-        return Inertia::render('admin/faq/Update', [
-            'faq' => $faq->load(['created_by', 'updated_by']),
-            'sections' => $this->sectionOptions(),
-        ]);
+        $this->crumbs->addRoute('Command Staff', 'admin.display');
+        $this->crumbs->addRoute('FAQ', 'admin.faq.list');
     }
 
-    private function sectionOptions(): array
+    public function __invoke(Request $request, Faq $faq): InertiaResponse
     {
-        return FaqSection::orderBy(FaqSection::SORT_ORDER)
-            ->get()
-            ->map(fn (FaqSection $section) => ['value' => $section->id, 'label' => $section->label])
-            ->all();
+        $data = UpdateFaqPageData::call($request);
+
+        return Inertia::render('admin/faq/Update', $data);
     }
 }

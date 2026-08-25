@@ -17,12 +17,19 @@
         sections: FaqSection[];
         section_id: number | null;
         sortable: boolean;
+        breadcrumbs: { title: string; url: string }[];
     }
 
     const page = usePage<PageData>();
 
     pageState.title = "FAQ Items";
-    breadCrumbState.home("Command Staff", getRoute("admin.display")).add("FAQ", getRoute("admin.faq.list"));
+    page.props.breadcrumbs.forEach((crumb, index) => {
+        if (index === 0) {
+            breadCrumbState.home(crumb.title, crumb.url);
+        } else {
+            breadCrumbState.add(crumb.title, crumb.url);
+        }
+    });
 
     let vm = $derived(new FaqListViewModel(page.props.section_id, page.props.sortable));
 

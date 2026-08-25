@@ -4,24 +4,21 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\FaqSections;
 
-use App\Features\Faq\Commands\UpdateFaqSectionCommand;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\FaqSections\UpdateRequest;
+use App\Messages\Faq\Commands\Sections\UpdateFaqSection;
 use App\Models\FaqSection;
+use Hyperdrive\CommsHelper;
 use Illuminate\Http\RedirectResponse;
 
-class UpdateSubmitController extends MagicBusController
+class UpdateSubmitController extends Controller
 {
     public function __invoke(UpdateRequest $request, FaqSection $section): RedirectResponse
     {
-        $section = $this->bus->send(new UpdateFaqSectionCommand(
-            section: $section,
-            label: $request->validated('label'),
-            icon: $request->validated('icon'),
-        ));
+        $section = UpdateFaqSection::call($request);
 
-        $this->flash->updated($section);
-
-        return redirect()->route('admin.faq.sections.update', compact('section'));
+        return redirect()
+            ->route('admin.faq.sections.update', compact('section'))
+            ->with('success', CommsHelper::updated($section));
     }
 }

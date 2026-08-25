@@ -4,22 +4,22 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Faq;
 
-use App\Features\Faq\Commands\DeleteFaqCommand;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\Controller;
+use App\Messages\Faq\Commands\DeleteFaqItem;
 use App\Models\Faq;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
-class DeleteSubmitController extends MagicBusController
+class DeleteSubmitController extends Controller
 {
     public function __invoke(Request $request, Faq $faq): RedirectResponse
     {
         $title = $faq->title;
 
-        $this->bus->send(new DeleteFaqCommand($faq));
+        DeleteFaqItem::call(faq: $faq);
 
-        $this->flash->success("Deleted FAQ item \"{$title}\"");
-
-        return redirect()->route('admin.faq.list');
+        return redirect()
+            ->route('admin.faq.list')
+            ->with('success', "Deleted FAQ item \"{$title}\"");
     }
 }

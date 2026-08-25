@@ -2,35 +2,26 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\Features\Faq\Commands;
+namespace Tests\Unit\Messages\Faq\Commands\Sections;
 
-use App\Features\Faq\Commands\UpdateFaqSectionCommand;
-use App\Features\Faq\Commands\UpdateFaqSectionCommandHandler;
+use App\Messages\Faq\Commands\Sections\UpdateFaqSection;
 use App\Models\FaqSection;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class UpdateFaqSectionCommandHandlerTest extends TestCase
+class UpdateFaqSectionTest extends TestCase
 {
     use RefreshDatabase;
 
-    private UpdateFaqSectionCommandHandler $subject;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->subject = new UpdateFaqSectionCommandHandler;
-    }
-
-    public function test_invoke_updates_section_fields(): void
+    public function test_handle_updates_section_fields(): void
     {
         $section = FaqSection::factory()->create();
 
-        ($this->subject)(new UpdateFaqSectionCommand(
+        (new UpdateFaqSection(
             section: $section,
             label: 'Updated Label',
             icon: 'fa-solid fa-star',
-        ));
+        ))->handle();
 
         $this->assertDatabaseHas('tt_faq_sections', [
             FaqSection::ID => $section->id,

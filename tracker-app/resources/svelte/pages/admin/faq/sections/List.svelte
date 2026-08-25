@@ -13,15 +13,19 @@
 
     interface PageData {
         sections: FaqSection[];
+        breadcrumbs: { title: string; url: string }[];
     }
 
     const page = usePage<PageData>();
 
     pageState.title = "FAQ Sections";
-    breadCrumbState
-        .home("Command Staff", getRoute("admin.display"))
-        .add("FAQ", getRoute("admin.faq.list"))
-        .add("Sections", getRoute("admin.faq.sections.list"));
+    page.props.breadcrumbs.forEach((crumb, index) => {
+        if (index === 0) {
+            breadCrumbState.home(crumb.title, crumb.url);
+        } else {
+            breadCrumbState.add(crumb.title, crumb.url);
+        }
+    });
 
     let vm = new FaqSectionListViewModel();
 </script>
