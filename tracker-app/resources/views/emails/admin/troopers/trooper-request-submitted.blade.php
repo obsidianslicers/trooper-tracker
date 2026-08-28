@@ -16,7 +16,7 @@
     <p>
         When you have a moment between enforcing order and pretending the galaxy isn't on fire,
         please review this request on the
-        <a href="{{ route('admin.troopers.approvals') }}">Approvals page</a>
+        <a href="{{ route('admin.troopers.membership.approvals') }}">Approvals page</a>
         and decide their fate accordingly.
     </p>
 

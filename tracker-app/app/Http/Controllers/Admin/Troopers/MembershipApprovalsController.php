@@ -5,27 +5,19 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Troopers;
 
 use App\Http\Controllers\Controller;
-use App\Services\BreadCrumbService;
 use Illuminate\Http\Request;
-use App\Messages\Admin\PageData\Troopers\ListApprovalsPageData;
+use App\Messages\Troopers\PageData\Membership\MembershipApprovalsPageData;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 /**
- * Class ListApprovalsController
+ * Class MembershipApprovalsController
  *
  * Handles the display of troopers pending approval.
  */
-class ListApprovalsController extends Controller
+class MembershipApprovalsController extends Controller
 {
-    public function __construct(
-        private readonly BreadCrumbService $crumbs, )
-    {
-        $this->crumbs->addRoute('Command Staff', 'admin.display');
-        $this->crumbs->addRoute('Troopers', 'admin.troopers.list');
-    }
-
     /**
      * Handle the request to display the trooper approvals page
      *
@@ -37,8 +29,8 @@ class ListApprovalsController extends Controller
      */
     public function __invoke(Request $request): InertiaResponse|SymfonyResponse
     {
-        $data = ListApprovalsPageData::call($request);
+        $data = MembershipApprovalsPageData::call($request);
 
-        return Inertia::render('admin/troopers/ListApprovals', $data);
+        return Inertia::render('admin/troopers/MembershipApprovals', $data);
     }
 }

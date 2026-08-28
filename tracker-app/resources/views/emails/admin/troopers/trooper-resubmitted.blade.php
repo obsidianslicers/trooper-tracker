@@ -13,7 +13,7 @@
 
     <p>
         You may review their resubmission in the
-        <a href="{{ route('admin.troopers.approvals') }}">Approval Chamber</a>.
+        <a href="{{ route('admin.troopers.membership.approvals') }}">Approval Chamber</a>.
     </p>
 
     @include('emails.inc.signature')

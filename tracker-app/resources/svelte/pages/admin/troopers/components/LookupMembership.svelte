@@ -1,3 +1,7 @@
+<script lang="ts">
+</script>
+
+<!-- 
 @if($identifier === null)
     {{-- No identifier provided; nothing to look up --}}
 @elseif($duplicate !== null)
@@ -60,4 +64,4 @@
             @if($org_name) was found in {{ $org_name }}.@else was found.@endif
         </div>
     </div>
-@endif
+@endif -->

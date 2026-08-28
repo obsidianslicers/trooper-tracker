@@ -75,7 +75,7 @@ class CreateTrooperRequestState extends Seeder
 
     private function printHelp(Trooper $trooper, Organization $organization): void
     {
-        $review_url = route('admin.troopers.approvals');
+        $review_url = route('admin.troopers.membership.approvals');
 
         $cmd = $this->command;
 

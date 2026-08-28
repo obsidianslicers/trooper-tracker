@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Messages\Admin\PageData\Troopers;
+namespace App\Messages\Troopers\PageData\Membership;
 
 use App\Messages\Troopers\Resources\PendingTrooperApprovalsCollection;
 use App\Models\Trooper;
@@ -13,17 +13,17 @@ use Hyperdrive\Contracts\Actor;
 use Hyperdrive\Message;
 
 /**
- * Retrieves data for the trooper approvals page.
+ * Retrieves data for the trooper membership approvals page.
 
  * This query message responds with the necessary data for displaying troopers pending approval,
  * including their details, notifications, costumes, memberships, friends, and minors.
  *
  * @method static array<string, mixed> call()
  */
-final class ListApprovalsPageData extends Message
+final class MembershipApprovalsPageData extends Message
 {
     /**
-     * Constructs the ListApprovalsPageData message.
+     * Constructs the MembershipApprovalsPageData message.
      * 
      * @param  Actor&Trooper  $actor  The actor (moderator/administrator) requesting the data
      */

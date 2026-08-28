@@ -16,7 +16,7 @@
     <p>
         When your schedule allows (preferably before the next galactic cycle),
         you may proceed to the official
-        <a href="{{ route('admin.troopers.approvals') }}">Approval Chamber</a>.
+        <a href="{{ route('admin.troopers.membership.approvals') }}">Approval Chamber</a>.
         There you will find this trooper's credentials awaiting your expert scrutiny.
     </p>
 

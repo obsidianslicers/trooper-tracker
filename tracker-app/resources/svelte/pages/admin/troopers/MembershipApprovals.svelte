@@ -3,14 +3,14 @@
     import { usePage } from "@inertiajs/svelte";
     import TrooperApprovals from "./components/TrooperApprovals.svelte";
     import TrooperRequests from "./components/TrooperRequests.svelte";
-    import type { ListApprovalsPageData } from "./models";
-    import { ListApprovalsViewModel } from "./models";
+    import type { MembershipApprovalsPageData } from "./models";
+    import { MembershipApprovalsViewModel } from "./models";
 
     pageState.title = "Trooper Approvals";
 
-    const page = usePage<ListApprovalsPageData>();
+    const page = usePage<MembershipApprovalsPageData>();
 
-    let vm = $derived(new ListApprovalsViewModel(page.props));
+    let vm = $derived(new MembershipApprovalsViewModel(page.props));
 </script>
 
 <TrooperApprovals {vm} />

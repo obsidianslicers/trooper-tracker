@@ -60,7 +60,7 @@
                    x-on:click="navigate">
     <x-dashboard-card :label="'Trooper Approvals'"
                       :icon="'fa-user-check'"
-                      :url="route('admin.troopers.approvals')">
+                      :url="route('admin.troopers.membership.approvals')">
         @if($not_approved > 0)
             <p class="text-warning">
                 {{ $not_approved }} awaiting approval
