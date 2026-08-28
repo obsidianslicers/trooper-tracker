@@ -28,6 +28,7 @@ class PendingTrooperApprovalsCollection extends ResourceCollection
                 'email' => $trooper->email,
                 'phone' => $trooper->phone,
                 'visitor_expires_at' => $trooper->visitor_expires_at,
+                'visitor_expires_diff_for_humans' => $trooper->visitor_expires_at?->diffForHumans(),
                 'membership_role' => $trooper->membership_role,
                 'is_minor' => $trooper->is_minor,
                 'guardian' => $this->getGuardian($trooper),

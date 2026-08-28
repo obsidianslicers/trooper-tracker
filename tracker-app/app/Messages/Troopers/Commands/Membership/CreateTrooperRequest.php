@@ -25,7 +25,7 @@ final class CreateTrooperRequest extends Message
     public function __construct(
         private readonly Trooper $trooper,
         private readonly Organization $organization,
-        private readonly ?string $identifier = null
+        private readonly string|null $identifier = null
     ) {
         $this->primary_organization = $organization->getPrimaryClub();
     }
@@ -45,7 +45,7 @@ final class CreateTrooperRequest extends Message
             $msg = "{$this->organization->name} {$label} {$this->identifier} is already assigned to another trooper.";
 
             //  both organizations & organization_id are used in the validation error
-            //  display, so we need to set both dpending on whether registration or
+            //  display, so we need to set both depending on whether registration or
             //  account management.
             throw ValidationException::withMessages([
                 'organizations' => $msg,

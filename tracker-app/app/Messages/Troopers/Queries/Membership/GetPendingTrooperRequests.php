@@ -22,7 +22,13 @@ final class GetPendingTrooperRequests extends Message
 
     public function handle(): Collection
     {
-        return TrooperRequest::with(['trooper', 'organization', 'primary_organization'])
+        $relations = [
+            'trooper',
+            'organization',
+            'primary_organization'
+        ];
+
+        return TrooperRequest::with($relations)
             ->pending()
             ->whereHas('trooper', function ($query): void
             {

@@ -22,14 +22,25 @@ class PendingTrooperRequestsCollection extends ResourceCollection
                 'identifier' => $trooper_request->identifier,
                 'status' => $trooper_request->status,
                 'denial_reason' => $trooper_request->denial_reason,
+                'organization' => $this->getOrganization($trooper_request),
                 'primary_organization' => $this->getPrimaryOrganization($trooper_request),
                 'trooper' => $this->getTrooper($trooper_request),
             ])->toArray();
     }
 
+    private function getOrganization(TrooperRequest $trooper_request): array
+    {
+        return [
+            'id' => $trooper_request->organization->id,
+            'name' => $trooper_request->organization->name,
+            'parent_name' => $trooper_request->organization->parent?->name,
+        ];
+    }
+
     private function getPrimaryOrganization(TrooperRequest $trooper_request): array
     {
         return [
+            'id' => $trooper_request->primary_organization->id,
             'name' => $trooper_request->primary_organization->name,
             'parent_name' => $trooper_request->primary_organization->parent?->name,
         ];

@@ -65,7 +65,7 @@ trait HasTrooperScopes
      */
     public function scopePendingApprovals(Builder $query): Builder
     {
-        $with = [
+        $relations = [
             'trooper_requests' => function ($q)
             {
                 $q->pending()
@@ -79,7 +79,7 @@ trait HasTrooperScopes
         ];
 
         return $query
-            ->with($with)
+            ->with($relations)
             ->where(self::MEMBERSHIP_STATUS, MembershipStatus::PENDING)
             ->orderBy(self::DISPLAY_NAME);
     }

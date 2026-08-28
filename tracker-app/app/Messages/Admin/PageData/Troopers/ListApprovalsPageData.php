@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Messages\Troopers\PageData;
+namespace App\Messages\Admin\PageData\Troopers;
 
 use App\Messages\Troopers\Resources\PendingTrooperApprovalsCollection;
 use App\Models\Trooper;

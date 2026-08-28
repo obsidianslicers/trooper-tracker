@@ -7,12 +7,14 @@
         submitting?: boolean | null;
         outline?: boolean | null;
         disabled?: boolean | null;
+        icon?: string | null;
         click?: (() => void) | null;
     }
     let {
         href = null,
         click = null,
         label = "Delete",
+        icon = "fa-trash",
         outline = true,
         submitting = false,
         disabled = false,
@@ -21,7 +23,7 @@
 
 <Button
     btnclass={outline ? "btn-outline-danger" : "btn-danger"}
-    icon={submitting ? "fa-solid fa-spinner fa-spin" : "fa-trash"}
+    icon={submitting ? "fa-solid fa-spinner fa-spin" : icon}
     disabled={submitting || disabled}
     {href}
     {click}

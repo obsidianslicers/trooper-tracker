@@ -102,6 +102,7 @@ return Application::configure(basePath: dirname(__DIR__))
                     'url' => request()->fullUrl(),
                     'method' => request()->method(),
                     'user_id' => optional(auth()->user())->id,
+                    'user_name' => optional(auth()->user())->legal_name,
                     'ip' => request()->ip(),
                     'input' => request()->except(['password', 'password_confirmation', '_token']),
                 ];

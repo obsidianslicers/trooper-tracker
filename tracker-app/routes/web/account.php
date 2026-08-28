@@ -10,7 +10,6 @@ use App\Http\Controllers\Account\UpdateProfileController;
 use App\Http\Controllers\Account\UpdateNotificationFrequencyController;
 use App\Http\Controllers\Account\UpdatePushNotificationsController;
 use App\Http\Controllers\Account\CancelDeletionController;
-use App\Http\Controllers\Account\DeletionRequestController;
 use App\Http\Controllers\Account\NoticesController;
 use App\Http\Controllers\Account\NoticesSubmitHtmxController;
 use App\Http\Controllers\Account\RemoveCostumeController;

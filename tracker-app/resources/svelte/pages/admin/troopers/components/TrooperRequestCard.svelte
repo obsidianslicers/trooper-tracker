@@ -1,33 +1,56 @@
-<div id="join-request-{{ $trooper_request->id }}"
-     class="card h-100 shadow-sm">
-    <div class="card-header text-uppercase">
-        {{ $trooper_request->trooper->display_name }}
+<script lang="ts">
+    import CreateButton from "$lib/components/ui/buttons/CreateButton.svelte";
+    import DeleteButton from "$lib/components/ui/buttons/DeleteButton.svelte";
+    import type { TrooperRequest } from "../models/vms";
+    import { PendingTrooperRequestViewModel } from "../models/vms";
+
+    interface Props {
+        request: TrooperRequest;
+    }
+
+    let { request }: Props = $props();
+
+    let vm = new PendingTrooperRequestViewModel(request);
+</script>
+
+<div class="card h-100">
+    <div class="card-header text-uppercase d-flex justify-content-between">
+        {vm.request.trooper.legal_name}
+        <span class="badge bg-secondary ms-2">
+            {vm.request.primary_organization.name}
+        </span>
     </div>
     <div class="card-body">
         <dl class="row mb-0">
             <dt class="col-4">Legal Name:</dt>
-            <dd class="col-8">{{ $trooper_request->trooper->legal_name }}</dd>
+            <dd class="col-8">{vm.request.trooper.legal_name}</dd>
             <dt class="col-4">Display Name:</dt>
-            <dd class="col-8">{{ $trooper_request->trooper->display_name }}</dd>
+            <dd class="col-8">{vm.request.trooper.display_name}</dd>
             <dt class="col-4">Email:</dt>
-            <dd class="col-8">{{ $trooper_request->trooper->email }}</dd>
+            <dd class="col-8">{vm.request.trooper.email}</dd>
             <dt class="col-4">Phone:</dt>
-            <dd class="col-8">{{ $trooper_request->trooper->phone ?? 'n/a' }}</dd>
-            <dt class="col-4">Primary Club:</dt>
-            <dd class="col-8">{{ $trooper_request->primaryOrganization->name }}</dd>
-            <dt class="col-4">Requested Unit:</dt>
-            <dd class="col-8">
-                {{ $trooper_request->organization->parent?->name ? $trooper_request->organization->parent->name . ' — ' : '' }}{{ $trooper_request->organization->name }}
-            </dd>
-            @if($trooper_request->identifier)
+            <dd class="col-8">{vm.request.trooper.phone ?? "n/a"}</dd>
+            <dt class="col-4">Primary Organization:</dt>
+            <dd class="col-8">{vm.request.primary_organization.name}</dd>
+            {#if vm.request.organization.id !== vm.request.primary_organization.id}
+                <dt class="col-4">Requested Unit:</dt>
+                <dd class="col-8">
+                    {#if vm.request.organization.parent_name}
+                        {vm.request.organization.parent_name} —
+                    {/if}
+                    {vm.request.organization.name}
+                </dd>
+            {/if}
+            {#if vm.request.identifier}
                 <dt class="col-4">Identifier:</dt>
-                <dd class="col-8">{{ $trooper_request->identifier }}</dd>
-            @endif
-            @if($trooper_request->denial_reason)
+                <dd class="col-8">{vm.request.identifier}</dd>
+            {/if}
+            {#if vm.request.denial_reason}
                 <dt class="col-4">Denial Reason:</dt>
-                <dd class="col-8">{{ $trooper_request->denial_reason }}</dd>
-            @endif
+                <dd class="col-8">{vm.request.denial_reason}</dd>
+            {/if}
         </dl>
+        <!--
         <div hx-get="{{ route('admin.troopers.trooper-requests.member-lookup', $trooper_request) }}"
              hx-trigger="load"
              hx-swap="outerHTML">
@@ -35,25 +58,28 @@
                 <i class="fa-solid fa-spinner fa-spin me-1"></i> Checking member status&hellip;
             </div>
         </div>
+    -->
     </div>
     <div class="card-footer d-flex justify-content-between">
-        @if($trooper_request->status === \App\Enums\TrooperRequestStatus::APPROVED)
-            <div class="alert alert-success d-flex align-items-center gap-2 mb-0 py-2 px-3 w-100">
-                <i class="fa-solid fa-circle-check"></i>
-                <div>
-                    <div class="fw-semibold">Approved</div>
-                    <div class="small">Membership request is active.</div>
+        <div class="w-100">
+            {#if !vm.denying}
+                <div class="d-flex justify-content-between">
+                    <DeleteButton
+                        label="Deny"
+                        outline={false}
+                        icon={null}
+                        click={() => (vm.denying = true)}
+                    />
+                    <CreateButton
+                        label="Approve"
+                        outline={false}
+                        icon={null}
+                        click={() => (vm.denying = true)}
+                    />
                 </div>
-            </div>
-        @elseif($trooper_request->status === \App\Enums\TrooperRequestStatus::DENIED)
-            <div class="alert alert-danger d-flex align-items-center gap-2 mb-0 py-2 px-3 w-100">
-                <i class="fa-solid fa-circle-xmark"></i>
-                <div>
-                    <div class="fw-semibold">Denied</div>
-                    <div class="small">Membership request was not approved.</div>
-                </div>
-            </div>
-        @else
+            {/if}
+        </div>
+        <!--
             <div x-data="{ denying: false }"
                  class="w-100">
                 <div x-show="!denying"
@@ -100,5 +126,7 @@
                 </form>
             </div>
         @endif
+        
+        -->
     </div>
 </div>
