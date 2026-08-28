@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\MemberLookup;
 
 use App\Contracts\MemberLookupInterface;
+use App\Exceptions\GoogleSheetsUnavailableException;
 use App\Models\Organization;
 use App\Services\GoogleService;
 use Illuminate\Support\Facades\Cache;
@@ -24,11 +25,29 @@ class GoogleSheetsMemberLookupService implements MemberLookupInterface
     {
         $cache_key = "tracker:member-lookup:sheet:{$this->organization->id}:{$identifier}";
 
-        $result = Cache::remember($cache_key, 3600, function () use ($identifier) {
-            return $this->fetchFromSheet($identifier) ?? false;
-        });
+        if (Cache::has($cache_key))
+        {
+            $cached = Cache::get($cache_key);
 
-        return $result === false ? null : $result;
+            return $cached === false ? null : $cached;
+        }
+
+        try
+        {
+            $result = $this->fetchFromSheet($identifier);
+        }
+        catch (GoogleSheetsUnavailableException $exception)
+        {
+            // Google is temporarily down; report it but don't cache the miss so
+            // the next lookup retries instead of failing silently for an hour.
+            report($exception);
+
+            return null;
+        }
+
+        Cache::put($cache_key, $result ?? false, 3600);
+
+        return $result;
     }
 
     private function fetchFromSheet(string $identifier): ?array
