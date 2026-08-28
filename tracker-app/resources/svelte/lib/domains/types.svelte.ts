@@ -2,6 +2,11 @@ import { router, useForm } from "@inertiajs/svelte";
 
 export type Option = { value: string | number | boolean | object, label: string };
 
+export type Paginated<T> = {
+    data: T[];
+    links: { url: string | null; label: string; active: boolean }[];
+};
+
 export abstract class ViewModel {
 }
 

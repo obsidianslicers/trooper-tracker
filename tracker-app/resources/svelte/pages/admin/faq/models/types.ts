@@ -20,11 +20,6 @@ export type FaqSection = {
     faqs_count?: number;
 };
 
-export type Paginated<T> = {
-    data: T[];
-    links: { url: string | null; label: string; active: boolean }[];
-};
-
 export type FaqFormData = {
     section_id: number | null;
     title: string;

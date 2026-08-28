@@ -1,7 +1,14 @@
-import { DeletableListViewModel } from "$lib/domains/types.svelte";
+import { DeletableListViewModel, type Paginated } from "$lib/domains/types.svelte";
 import { getRoute } from "$lib/utils";
 import { router } from "@inertiajs/svelte";
-import type { FaqItem } from "../types";
+import type { FaqItem, FaqSection } from "../types";
+
+export type FaqListPageData = {
+    items: FaqItem[] | Paginated<FaqItem>;
+    sections: FaqSection[];
+    section_id: number | null;
+    sortable: boolean;
+}
 
 export class FaqListViewModel extends DeletableListViewModel<FaqItem> {
     section_id: number | null;

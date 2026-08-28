@@ -8,24 +8,21 @@
     import { Link, usePage } from "@inertiajs/svelte";
     import ItemRow from "./components/ItemRow.svelte";
     import SectionFilterPills from "./components/SectionFilterPills.svelte";
+    import type { FaqListPageData } from "./models";
     import { FaqListViewModel } from "./models";
-    import type { FaqItem, FaqSection, Paginated } from "./models/types";
 
-    interface PageData {
-        items: FaqItem[] | Paginated<FaqItem>;
-        sections: FaqSection[];
-        section_id: number | null;
-        sortable: boolean;
-    }
-
-    const page = usePage<PageData>();
+    const page = usePage<FaqListPageData>();
 
     pageState.title = "FAQ Items";
 
-    let vm = $derived(new FaqListViewModel(page.props.section_id, page.props.sortable));
+    let vm = $derived(
+        new FaqListViewModel(page.props.section_id, page.props.sortable),
+    );
 
     let rows = $derived(
-        Array.isArray(page.props.items) ? page.props.items : page.props.items.data,
+        Array.isArray(page.props.items)
+            ? page.props.items
+            : page.props.items.data,
     );
     let links = $derived(
         Array.isArray(page.props.items) ? [] : page.props.items.links,
@@ -34,15 +31,28 @@
 
 <div class="row mb-3">
     <div class="col-sm-12 col-md-8">
-        <SectionFilterPills sections={page.props.sections} section_id={page.props.section_id} />
+        <SectionFilterPills
+            sections={page.props.sections}
+            section_id={page.props.section_id}
+        />
     </div>
-    <div class="col-sm-12 col-md-4 text-end mt-2 mt-md-0 d-flex align-items-center gap-2 justify-content-end">
-        <Link href={getRoute("admin.faq.sections.list")} class="btn btn-sm btn-outline-secondary">
+    <div
+        class="col-sm-12 col-md-4 text-end mt-2 mt-md-0 d-flex align-items-center gap-2 justify-content-end"
+    >
+        <Link
+            href={getRoute("admin.faq.sections.list")}
+            class="btn btn-sm btn-outline-secondary"
+        >
             <i class="fa fa-fw fa-folder me-1"></i>
             Sections
         </Link>
         <Link
-            href={getRoute("admin.faq.create", page.props.section_id ? { section_id: page.props.section_id } : {})}
+            href={getRoute(
+                "admin.faq.create",
+                page.props.section_id
+                    ? { section_id: page.props.section_id }
+                    : {},
+            )}
             class="btn btn-sm btn-outline-success"
         >
             <i class="fa fa-fw fa-add me-1"></i>
@@ -71,15 +81,28 @@
             </tr>
         </thead>
         {#if vm.sortable}
-            <tbody use:sortable={{ handle: ".faq-drag-handle", onReorder: vm.reorder }}>
+            <tbody
+                use:sortable={{
+                    handle: ".faq-drag-handle",
+                    onReorder: vm.reorder,
+                }}
+            >
                 {#each rows as item (item.id)}
-                    <ItemRow {item} sortable={true} onDelete={vm.confirmDelete} />
+                    <ItemRow
+                        {item}
+                        sortable={true}
+                        onDelete={vm.confirmDelete}
+                    />
                 {/each}
             </tbody>
         {:else}
             <tbody>
                 {#each rows as item (item.id)}
-                    <ItemRow {item} sortable={false} onDelete={vm.confirmDelete} />
+                    <ItemRow
+                        {item}
+                        sortable={false}
+                        onDelete={vm.confirmDelete}
+                    />
                 {/each}
             </tbody>
             <tfoot>
@@ -88,11 +111,19 @@
                         <div class="d-flex gap-1 flex-wrap">
                             {#each links as link (link.label)}
                                 {#if link.url}
-                                    <Link href={link.url} class="btn btn-sm {link.active ? 'btn-secondary' : 'btn-outline-secondary'}">
+                                    <Link
+                                        href={link.url}
+                                        class="btn btn-sm {link.active
+                                            ? 'btn-secondary'
+                                            : 'btn-outline-secondary'}"
+                                    >
                                         {@html link.label}
                                     </Link>
                                 {:else}
-                                    <span class="btn btn-sm btn-outline-secondary disabled">{@html link.label}</span>
+                                    <span
+                                        class="btn btn-sm btn-outline-secondary disabled"
+                                        >{@html link.label}</span
+                                    >
                                 {/if}
                             {/each}
                         </div>
@@ -103,16 +134,16 @@
     </table>
 </div>
 
-<Modal
-    bind:show={vm.show}
-    title="Delete FAQ Item"
-    canClose={vm.cancelDelete}
->
+<Modal bind:show={vm.show} title="Delete FAQ Item" canClose={vm.cancelDelete}>
     <p>Delete "{vm.deleting?.title}"? This cannot be undone.</p>
     <form onsubmit={vm.delete}>
         <div class="row mt-4">
             <div class="col text-end">
-                <SubmitButton label="Delete" danger={true} submitting={vm.submitting} />
+                <SubmitButton
+                    label="Delete"
+                    danger={true}
+                    submitting={vm.submitting}
+                />
                 <CancelButton click={vm.cancelDelete} />
             </div>
         </div>
