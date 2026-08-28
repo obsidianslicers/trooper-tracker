@@ -13,7 +13,6 @@ use Illuminate\Foundation\Queue\Queueable;
 
 class SendEventRosterActivityNotificationsJob implements ShouldQueue
 {
-    use HasRetryPolicy;
     use Queueable;
 
     public function __construct(
