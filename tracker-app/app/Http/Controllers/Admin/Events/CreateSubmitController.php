@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
+use App\Features\Events\Commands\GrantHostClubAttendanceCommand;
 use App\Features\Events\Commands\UpdateEventCommand;
 use App\Features\Events\Commands\UpdateEventOrganizationsCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Events\CreateRequest;
 use App\Jobs\SendEventCreatedNotificationsJob;
 use App\Models\Event;
-use App\Models\EventOrganization;
 use App\Models\EventShift;
 use App\Models\Organization;
 use Illuminate\Http\RedirectResponse;
@@ -44,8 +44,6 @@ class CreateSubmitController extends MagicBusController
     {
         $organization = Organization::findOrFail($request->validated('organization_id'));
 
-        $costume_club = $organization->getPrimaryClub();
-
         $event = new Event;
 
         $event->organization_id = $organization->id;
@@ -60,11 +58,7 @@ class CreateSubmitController extends MagicBusController
             dispatch(new SendEventCreatedNotificationsJob($event));
         }
 
-        $event_organization = new EventOrganization;
-        $event_organization->event_id = $event->id;
-        $event_organization->organization_id = $costume_club->id;
-        $event_organization->can_attend = true;
-        $event_organization->save();
+        $this->bus->send(new GrantHostClubAttendanceCommand($event));
 
         $event_shift = new EventShift;
         $event_shift->event_id = $event->id;

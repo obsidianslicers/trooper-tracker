@@ -16,9 +16,15 @@
 
                 <x-input-container>
                     <x-label>Hosting Organization:</x-label>
-                    <x-input-text :property="'organization_name'"
-                                  :disabled="true"
-                                  :value="$event->organization->name ?? 'Everyone'" />
+                    <x-input-picker :property="'organization_id'"
+                                    :route="'pickers.organization'"
+                                    :params="['moderated_only' => true]"
+                                    :text="$event->organization->name ?? 'Select a Host'"
+                                    :value="$event->organization_id" />
+                    <x-input-help>
+                        Changing the host reassigns the event. If you moderate only the
+                        current host, you will lose access to this event after saving.
+                    </x-input-help>
                 </x-input-container>
 
                 @include('pages.admin.events.inc.header')
@@ -46,5 +52,7 @@
             </form>
         </x-card>
     </x-slim-container>
+
+    <x-modal-picker :label="'Select an Organization'" />
 
 @endsection

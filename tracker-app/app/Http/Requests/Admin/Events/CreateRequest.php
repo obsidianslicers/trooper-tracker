@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Admin\Events;
 
 use App\Models\Event;
-use App\Models\Organization;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 /**
  * Validates and authorizes event creation requests for administrators and moderators.
@@ -56,12 +54,9 @@ class CreateRequest extends FormRequest
     /**
      * Get the validation rules for event creation
      *
-     * Retrieves common validation rules from the CommonRules trait and adds
-     * organization_id validation to ensure the user can only create events for
-     * organizations they moderate.
-     *
-     * For administrators: Can select any organization
-     * For moderators: Can only select organizations they moderate (filtered by moderatedBy scope)
+     * Retrieves common validation rules from the CommonRules trait. The shared
+     * organization_id rule restricts selection to organizations the user
+     * moderates (administrators may select any).
      *
      * @return array<string, mixed> The validation rules for creating an event
      */
@@ -69,15 +64,7 @@ class CreateRequest extends FormRequest
     {
         $rules = $this->getCommonRules();
 
-        $trooper = $this->user();
-
         $rules['source'] = ['nullable', 'string'];
-
-        $rules[Event::ORGANIZATION_ID] = [
-            'required',
-            Rule::exists(Organization::class, Organization::ID)
-                ->whereIn('id', Organization::moderatedBy($trooper)->pluck('id')),
-        ];
 
         return $rules;
     }

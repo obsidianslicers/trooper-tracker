@@ -58,9 +58,7 @@ class UpdateRequest extends FormRequest
      */
     public function rules(): array
     {
-        $rules = $this->getCommonRules();
-
-        return $rules;
+        return $this->getCommonRules();
     }
 
     /**
