@@ -21,10 +21,6 @@
                                     :params="['moderated_only' => true]"
                                     :text="$event->organization->name ?? 'Select a Host'"
                                     :value="$event->organization_id" />
-                    <x-input-help>
-                        Changing the host reassigns the event. If you moderate only the
-                        current host, you will lose access to this event after saving.
-                    </x-input-help>
                 </x-input-container>
 
                 @include('pages.admin.events.inc.header')
