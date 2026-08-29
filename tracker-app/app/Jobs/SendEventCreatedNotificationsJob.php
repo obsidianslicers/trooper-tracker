@@ -54,9 +54,14 @@ class SendEventCreatedNotificationsJob implements ShouldQueue
         ForumThreadMessageService $forumThreadMessageService,
         XenforoService $xenforo
     ): void {
-        // Trooper notifications: only send if not already sent
+        // Trooper notifications: only send if not already sent. Mark sent before
+        // the loop so a job retry short-circuits here rather than re-dispatching
+        // to every trooper already notified.
         if ($this->event->create_notifications_sent_at === null)
         {
+            $this->event->create_notifications_sent_at = now();
+            $this->event->save();
+
             $troopers_query = new GetTroopersForEventCreatedQuery($this->event);
             $troopers = $bus->send($troopers_query);
             foreach ($troopers as $trooper)
@@ -64,8 +69,6 @@ class SendEventCreatedNotificationsJob implements ShouldQueue
                 $send_notification_command = new SendEventCreatedNotificationCommand($this->event, $trooper);
                 $bus->send($send_notification_command);
             }
-            $this->event->create_notifications_sent_at = now();
-            $this->event->save();
         }
 
         // Forum posting / notifications

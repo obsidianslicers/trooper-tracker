@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Mail\Admin\Troopers;
 
-use App\Mail\HasRetryPolicy;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Bus\Queueable;
@@ -19,7 +18,6 @@ use Illuminate\Queue\SerializesModels;
  */
 class DirectlyAddedToClub extends Mailable implements ShouldQueue
 {
-    use HasRetryPolicy;
     use Queueable, SerializesModels;
 
     /**

@@ -9,9 +9,9 @@ use App\Enums\TrooperNotifications;
 use App\Mail\Events\EventForumPostMail;
 use App\Models\Event;
 use App\Models\Trooper;
-use App\Notifications\QueueableNotification;
+use App\Notifications\BaseNotification;
 
-class EventForumPostNotification extends QueueableNotification
+class EventForumPostNotification extends BaseNotification
 {
     protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category = 'event_forum_post';
 
