@@ -4,6 +4,7 @@
     import ActionMenu from "$lib/components/ui/actionmenus/ActionMenu.svelte";
     import ActionMenuDelete from "$lib/components/ui/actionmenus/ActionMenuDelete.svelte";
     import ActionMenuUpdate from "$lib/components/ui/actionmenus/ActionMenuUpdate.svelte";
+    import CreateLink from "$lib/components/ui/links/CreateLink.svelte";
     import pageState from "$lib/states/page-state.svelte";
     import { getRoute } from "$lib/utils";
     import { Link, usePage } from "@inertiajs/svelte";
@@ -26,15 +27,6 @@
             FAQ Items
         </Link>
     </div>
-    <div class="col-sm-12 col-md-4 text-end mt-2 mt-md-0">
-        <Link
-            href={getRoute("admin.faq.sections.create")}
-            class="btn btn-sm btn-outline-success"
-        >
-            <i class="fa fa-fw fa-add me-1"></i>
-            Section
-        </Link>
-    </div>
 </div>
 
 <p class="text-muted small mb-2">
@@ -50,7 +42,12 @@
                 <th style="width: 40px;"></th>
                 <th>Label</th>
                 <th style="width: 80px;">Items</th>
-                <th style="width: 40px;"></th>
+                <th class="text-end">
+                    <CreateLink
+                        href={getRoute("admin.faq.sections.create")}
+                        label="Add Section"
+                    />
+                </th>
             </tr>
         </thead>
         <tbody {@attach sortable({ onReorderComplete: vm.reorder })}>

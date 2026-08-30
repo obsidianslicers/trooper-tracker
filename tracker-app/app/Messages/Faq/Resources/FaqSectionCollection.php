@@ -23,6 +23,7 @@ class FaqSectionCollection extends ResourceCollection
                 FaqSection::LABEL => $section->label,
                 FaqSection::ICON => $section->icon,
                 FaqSection::SORT_ORDER => $section->sort_order,
+                'faqs_count' => $section->faqs_count
             ])
             ->toArray();
     }
