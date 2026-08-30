@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Messages\Faq\PageData\Sections;
 
 use App\Messages\Faq\Queries\GetFaqSections;
+use App\Messages\Faq\Resources\FaqSectionCollection;
 use Hyperdrive\Message;
 
 /**
@@ -15,7 +16,14 @@ final class ListFaqSectionsPageData extends Message
     public function handle(): array
     {
         return [
-            'sections' => GetFaqSections::call()
+            'sections' => $this->getSections()
         ];
+    }
+
+    private function getSections(): FaqSectionCollection
+    {
+        $collection = GetFaqSections::call();
+
+        return new FaqSectionCollection($collection);
     }
 }

@@ -72,7 +72,7 @@
     title="Delete Section"
     canClose={vm.cancelDelete}
 >
-    <p>Delete section "{vm.selected_section?.label}"? This cannot be undone.</p>
+    <p>Delete section "{vm.deleted_section?.label}"? This cannot be undone.</p>
     <form onsubmit={vm.delete}>
         <SubmitButtonContainer>
             <SubmitButton
@@ -80,7 +80,7 @@
                 danger={true}
                 submitting={vm.deleting}
             />
-            <CancelButton click={() => (vm.selected_section = null)} />
+            <CancelButton click={() => (vm.deleted_section = null)} />
         </SubmitButtonContainer>
     </form>
 </Modal>

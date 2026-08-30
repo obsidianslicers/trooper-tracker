@@ -17,7 +17,7 @@ export type ListSectionsPageData = {
 
 export class ListSectionsViewModel extends ViewModel {
     deleting: boolean = $state(false);
-    selected_section: FaqSection | null = $state(null);
+    deleted_section: FaqSection | null = $state(null);
     sections: FaqSection[] = $state([]);
 
     constructor(public pageData: ListSectionsPageData) {
@@ -31,7 +31,7 @@ export class ListSectionsViewModel extends ViewModel {
         }
     }
 
-    get show_delete_confirmation(): boolean { return this.selected_section !== null; }
+    get show_delete_confirmation(): boolean { return this.deleted_section !== null; }
 
     reorder = (ordered_ids: string[]) => {
         const url = getRoute("admin.faq.sections.reorder");
@@ -49,11 +49,11 @@ export class ListSectionsViewModel extends ViewModel {
 
 
     confirmDelete = (item: FaqSection) => {
-        this.selected_section = item;
+        this.deleted_section = item;
     };
 
     cancelDelete = () => {
-        this.selected_section = null;
+        this.deleted_section = null;
     };
 
     delete = (e: Event) => {
@@ -76,6 +76,6 @@ export class ListSectionsViewModel extends ViewModel {
         //             },
         //         );
 
-        this.selected_section = null;
+        this.deleted_section = null;
     };
 }

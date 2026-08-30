@@ -24,7 +24,7 @@
     <td>
         <ActionMenu>
             <ActionMenuUpdate href={section.update_route} />
-            <ActionMenuDelete click={() => (vm.selected_section = section)} />
+            <ActionMenuDelete click={() => (vm.deleted_section = section)} />
         </ActionMenu>
     </td>
 </tr>
