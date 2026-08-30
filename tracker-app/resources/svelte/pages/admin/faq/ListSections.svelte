@@ -4,7 +4,7 @@
     import ActionMenu from "$lib/components/ui/actionmenus/ActionMenu.svelte";
     import ActionMenuDelete from "$lib/components/ui/actionmenus/ActionMenuDelete.svelte";
     import ActionMenuUpdate from "$lib/components/ui/actionmenus/ActionMenuUpdate.svelte";
-    import CreateLink from "$lib/components/ui/links/CreateLink.svelte";
+    import CreateButton from "$lib/components/ui/buttons/CreateButton.svelte";
     import pageState from "$lib/states/page-state.svelte";
     import { getRoute } from "$lib/utils";
     import { Link, usePage } from "@inertiajs/svelte";
@@ -43,9 +43,8 @@
                 <th>Label</th>
                 <th style="width: 80px;">Items</th>
                 <th class="text-end">
-                    <CreateLink
+                    <CreateButton
                         href={getRoute("admin.faq.sections.create")}
-                        label="Add Section"
                     />
                 </th>
             </tr>
