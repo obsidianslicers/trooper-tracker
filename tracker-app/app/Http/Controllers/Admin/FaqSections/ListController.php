@@ -24,6 +24,6 @@ class ListController extends Controller
     {
         $data = ListFaqSectionsPageData::call($request);
 
-        return Inertia::render('admin/faq/sections/List', $data);
+        return Inertia::render('admin/faq/ListSections', $data);
     }
 }

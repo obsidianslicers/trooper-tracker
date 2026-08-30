@@ -12,14 +12,6 @@ export type FaqItem = {
     faq_section?: { id: number; label: string; icon: string } | null;
 };
 
-export type FaqSection = {
-    id: number;
-    label: string;
-    icon: string;
-    sort_order: number;
-    faqs_count?: number;
-};
-
 export type FaqFormData = {
     section_id: number | null;
     title: string;

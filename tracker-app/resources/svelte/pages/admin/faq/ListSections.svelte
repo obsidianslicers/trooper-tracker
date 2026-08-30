@@ -1,35 +1,37 @@
 <script lang="ts">
     import { sortable } from "$lib/actions/sortable";
+    import SubmitButtonContainer from "$lib/components/form/SubmitButtonContainer.svelte";
     import CancelButton from "$lib/components/ui/buttons/CancelButton.svelte";
     import SubmitButton from "$lib/components/ui/buttons/SubmitButton.svelte";
     import Modal from "$lib/components/ui/Modal.svelte";
     import pageState from "$lib/states/page-state.svelte";
     import { getRoute } from "$lib/utils";
     import { Link, usePage } from "@inertiajs/svelte";
-    import { FaqSectionListViewModel } from "../models";
-    import type { FaqSection } from "../models/types";
     import SectionRow from "./components/SectionRow.svelte";
+    import { ListSectionsViewModel, type ListSectionsPageData } from "./models";
 
-    interface PageData {
-        sections: FaqSection[];
-    }
-
-    const page = usePage<PageData>();
+    const page = usePage<ListSectionsPageData>();
 
     pageState.title = "FAQ Sections";
 
-    let vm = new FaqSectionListViewModel();
+    let vm = new ListSectionsViewModel(page.props);
 </script>
 
 <div class="row mb-3">
     <div class="col-sm-12 col-md-8">
-        <Link href={getRoute("admin.faq.list")} class="btn btn-sm btn-outline-secondary">
+        <Link
+            href={getRoute("admin.faq.list")}
+            class="btn btn-sm btn-outline-secondary"
+        >
             <i class="fa fa-fw fa-arrow-left me-1"></i>
             FAQ Items
         </Link>
     </div>
     <div class="col-sm-12 col-md-4 text-end mt-2 mt-md-0">
-        <Link href={getRoute("admin.faq.sections.create")} class="btn btn-sm btn-outline-success">
+        <Link
+            href={getRoute("admin.faq.sections.create")}
+            class="btn btn-sm btn-outline-success"
+        >
             <i class="fa fa-fw fa-add me-1"></i>
             Section
         </Link>
@@ -52,26 +54,33 @@
                 <th style="width: 40px;"></th>
             </tr>
         </thead>
-        <tbody use:sortable={{ handle: ".faq-section-drag-handle", onReorder: vm.reorder }}>
-            {#each page.props.sections as section (section.id)}
-                <SectionRow {section} onDelete={vm.confirmDelete} />
+        <tbody
+            use:sortable={{
+                handle: ".faq-section-drag-handle",
+                onReorder: vm.reorder,
+            }}
+        >
+            {#each vm.sections as section (section.id)}
+                <SectionRow {vm} {section} />
             {/each}
         </tbody>
     </table>
 </div>
 
 <Modal
-    bind:show={vm.show}
+    bind:show={vm.show_delete_confirmation}
     title="Delete Section"
     canClose={vm.cancelDelete}
 >
-    <p>Delete section "{vm.deleting?.label}"? This cannot be undone.</p>
+    <p>Delete section "{vm.selected_section?.label}"? This cannot be undone.</p>
     <form onsubmit={vm.delete}>
-        <div class="row mt-4">
-            <div class="col text-end">
-                <SubmitButton label="Delete" danger={true} submitting={vm.submitting} />
-                <CancelButton click={vm.cancelDelete} />
-            </div>
-        </div>
+        <SubmitButtonContainer>
+            <SubmitButton
+                label="Delete"
+                danger={true}
+                submitting={vm.deleting}
+            />
+            <CancelButton click={() => (vm.selected_section = null)} />
+        </SubmitButtonContainer>
     </form>
 </Modal>
