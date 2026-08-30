@@ -1,12 +1,9 @@
 <script lang="ts">
     import { sortable } from "$lib/actions/sortable";
-    import SubmitButtonContainer from "$lib/components/form/SubmitButtonContainer.svelte";
+    import DeleteConfirmationModal from "$lib/components/DeleteConfirmationModal.svelte";
     import ActionMenu from "$lib/components/ui/actionmenus/ActionMenu.svelte";
     import ActionMenuDelete from "$lib/components/ui/actionmenus/ActionMenuDelete.svelte";
     import ActionMenuUpdate from "$lib/components/ui/actionmenus/ActionMenuUpdate.svelte";
-    import CancelButton from "$lib/components/ui/buttons/CancelButton.svelte";
-    import SubmitButton from "$lib/components/ui/buttons/SubmitButton.svelte";
-    import Modal from "$lib/components/ui/Modal.svelte";
     import pageState from "$lib/states/page-state.svelte";
     import { getRoute } from "$lib/utils";
     import { Link, usePage } from "@inertiajs/svelte";
@@ -72,7 +69,7 @@
                         <ActionMenu>
                             <ActionMenuUpdate href={section.update_route} />
                             <ActionMenuDelete
-                                click={() => (vm.deleted_section = section)}
+                                click={() => (vm.delete_section = section)}
                             />
                         </ActionMenu>
                     </td>
@@ -82,20 +79,10 @@
     </table>
 </div>
 
-<Modal
-    bind:show={vm.show_delete_confirmation}
-    title="Delete Section"
-    canClose={vm.cancelDelete}
->
-    <p>Delete section "{vm.deleted_section?.label}"? This cannot be undone.</p>
-    <form onsubmit={vm.delete}>
-        <SubmitButtonContainer>
-            <SubmitButton
-                label="Delete"
-                danger={true}
-                submitting={vm.deleting}
-            />
-            <CancelButton click={() => (vm.deleted_section = null)} />
-        </SubmitButtonContainer>
-    </form>
-</Modal>
+<DeleteConfirmationModal
+    show={vm.show_delete_confirmation}
+    label={vm.delete_section?.label}
+    deleting={vm.deleting}
+    onDelete={vm.delete}
+    onCancel={() => (vm.delete_section = null)}
+/>
