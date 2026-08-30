@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { sortable } from "$lib/actions/sortable";
     import SubmitButtonContainer from "$lib/components/form/SubmitButtonContainer.svelte";
     import ActionMenu from "$lib/components/ui/actionmenus/ActionMenu.svelte";
     import ActionMenuDelete from "$lib/components/ui/actionmenus/ActionMenuDelete.svelte";
@@ -9,8 +10,6 @@
     import pageState from "$lib/states/page-state.svelte";
     import { getRoute } from "$lib/utils";
     import { Link, usePage } from "@inertiajs/svelte";
-    import Sortable from "sortablejs";
-    import { onMount } from "svelte";
     import { ListSectionsViewModel, type ListSectionsPageData } from "./models";
 
     const page = usePage<ListSectionsPageData>();
@@ -18,39 +17,6 @@
     pageState.title = "FAQ Sections";
 
     let vm = new ListSectionsViewModel(page.props);
-
-    let sortable_container: HTMLDivElement | null = null;
-
-    onMount(() => {
-        if (!sortable_container) {
-            return;
-        }
-
-        const sortable = Sortable.create(sortable_container, {
-            handle: ".move-handle",
-            ghostClass: "sortable-ghost",
-            onEnd: () => {
-                if (!sortable_container) {
-                    return;
-                }
-
-                const elements =
-                    sortable_container.querySelectorAll<HTMLElement>(
-                        "[data-id]",
-                    );
-
-                const sections_ids = Array.from(elements)
-                    .map((el) => Number(el.getAttribute("data-id")))
-                    .filter((id) => !Number.isNaN(id));
-
-                vm.reorder(sections_ids);
-            },
-        });
-
-        return () => {
-            sortable.destroy();
-        };
-    });
 </script>
 
 <div class="row mb-3">
@@ -90,7 +56,7 @@
                 <th style="width: 40px;"></th>
             </tr>
         </thead>
-        <tbody bind:this={sortable_container}>
+        <tbody {@attach sortable({ onReorderComplete: vm.reorder })}>
             {#each vm.sections as section (section.id)}
                 <tr data-id={section.id}>
                     <td class="text-muted">

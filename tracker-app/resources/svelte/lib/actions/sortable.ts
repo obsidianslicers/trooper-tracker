@@ -1,24 +1,26 @@
-import Sortable from 'sortablejs';
-import type { Action } from 'svelte/action';
+import Sortable from "sortablejs";
 
-interface SortableActionOptions {
-    handle: string;
-    onReorder: (orderedIds: string[]) => void;
-}
-
-export const sortable: Action<HTMLElement, SortableActionOptions> = (node, options) => {
-    const instance = Sortable.create(node, {
-        handle: options.handle,
-        animation: 150,
-        onEnd: () => {
-            const ids = Array.from(node.querySelectorAll<HTMLElement>('[data-id]'))
-                .map((el) => el.dataset.id!);
-
-            options.onReorder(ids);
-        },
-    });
-
-    return {
-        destroy: () => instance.destroy(),
-    };
+type SortableOptions = {
+    onReorderComplete: (ordered_ids: number[]) => void;
 };
+
+export function sortable(options: SortableOptions) {
+    return (node: HTMLElement) => {
+        const instance = Sortable.create(node, {
+            handle: ".move-handle",
+            ghostClass: "sortable-ghost",
+            animation: 150,
+            onEnd: () => {
+                const nodes = node.querySelectorAll<HTMLElement>("[data-id]");
+
+                const ordered_ids = Array.from(nodes)
+                    .map((element) => Number(element.dataset.id))
+                    .filter((id) => !Number.isNaN(id));
+
+                options.onReorderComplete(ordered_ids);
+            },
+        });
+
+        return () => instance.destroy();
+    };
+}
