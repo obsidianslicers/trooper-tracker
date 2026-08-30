@@ -1,13 +1,16 @@
 <script lang="ts">
-    import { sortable } from "$lib/actions/sortable";
     import SubmitButtonContainer from "$lib/components/form/SubmitButtonContainer.svelte";
+    import ActionMenu from "$lib/components/ui/actionmenus/ActionMenu.svelte";
+    import ActionMenuDelete from "$lib/components/ui/actionmenus/ActionMenuDelete.svelte";
+    import ActionMenuUpdate from "$lib/components/ui/actionmenus/ActionMenuUpdate.svelte";
     import CancelButton from "$lib/components/ui/buttons/CancelButton.svelte";
     import SubmitButton from "$lib/components/ui/buttons/SubmitButton.svelte";
     import Modal from "$lib/components/ui/Modal.svelte";
     import pageState from "$lib/states/page-state.svelte";
     import { getRoute } from "$lib/utils";
     import { Link, usePage } from "@inertiajs/svelte";
-    import SectionRow from "./components/SectionRow.svelte";
+    import Sortable from "sortablejs";
+    import { onMount } from "svelte";
     import { ListSectionsViewModel, type ListSectionsPageData } from "./models";
 
     const page = usePage<ListSectionsPageData>();
@@ -15,6 +18,39 @@
     pageState.title = "FAQ Sections";
 
     let vm = new ListSectionsViewModel(page.props);
+
+    let sortable_container: HTMLDivElement | null = null;
+
+    onMount(() => {
+        if (!sortable_container) {
+            return;
+        }
+
+        const sortable = Sortable.create(sortable_container, {
+            handle: ".move-handle",
+            ghostClass: "sortable-ghost",
+            onEnd: () => {
+                if (!sortable_container) {
+                    return;
+                }
+
+                const elements =
+                    sortable_container.querySelectorAll<HTMLElement>(
+                        "[data-id]",
+                    );
+
+                const sections_ids = Array.from(elements)
+                    .map((el) => Number(el.getAttribute("data-id")))
+                    .filter((id) => !Number.isNaN(id));
+
+                vm.reorder(sections_ids);
+            },
+        });
+
+        return () => {
+            sortable.destroy();
+        };
+    });
 </script>
 
 <div class="row mb-3">
@@ -54,14 +90,27 @@
                 <th style="width: 40px;"></th>
             </tr>
         </thead>
-        <tbody
-            use:sortable={{
-                handle: ".faq-section-drag-handle",
-                onReorder: vm.reorder,
-            }}
-        >
+        <tbody bind:this={sortable_container}>
             {#each vm.sections as section (section.id)}
-                <SectionRow {vm} {section} />
+                <tr data-id={section.id}>
+                    <td class="text-muted">
+                        <i class="fa fa-fw fa-grip-vertical move-handle grab"
+                        ></i>
+                    </td>
+                    <td class="text-center">
+                        <i class="fa fa-fw {section.icon} text-muted"></i>
+                    </td>
+                    <td>{section.label}</td>
+                    <td class="text-muted small">{section.faqs_count}</td>
+                    <td>
+                        <ActionMenu>
+                            <ActionMenuUpdate href={section.update_route} />
+                            <ActionMenuDelete
+                                click={() => (vm.deleted_section = section)}
+                            />
+                        </ActionMenu>
+                    </td>
+                </tr>
             {/each}
         </tbody>
     </table>

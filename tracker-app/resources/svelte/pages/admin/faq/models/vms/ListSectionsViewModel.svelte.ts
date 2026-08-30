@@ -33,7 +33,7 @@ export class ListSectionsViewModel extends ViewModel {
 
     get show_delete_confirmation(): boolean { return this.deleted_section !== null; }
 
-    reorder = (ordered_ids: string[]) => {
+    reorder = (ordered_ids: number[]) => {
         const url = getRoute("admin.faq.sections.reorder");
 
         const data = { ids: ordered_ids };
