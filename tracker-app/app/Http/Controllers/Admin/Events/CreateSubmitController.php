@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
-use App\Features\Events\Commands\GrantHostClubAttendanceCommand;
 use App\Features\Events\Commands\UpdateEventCommand;
 use App\Features\Events\Commands\UpdateEventOrganizationsCommand;
 use App\Http\Controllers\MagicBusController;
@@ -20,10 +19,9 @@ use Illuminate\Http\RedirectResponse;
  * Processes event creation form submissions.
  *
  * Handles the creation of new events from form submissions. Creates the event record
- * along with an initial EventOrganization record for the source club, a default
- * EventShift matching the event times, and any additional organization associations
- * from the form. Dispatches notification jobs for events created in OPEN or
- * SIGN_UP_LOCKED status.
+ * along with a default EventShift matching the event times, and any organization
+ * associations from the form. Dispatches notification jobs for events created in
+ * OPEN or SIGN_UP_LOCKED status.
  */
 class CreateSubmitController extends MagicBusController
 {
@@ -31,10 +29,9 @@ class CreateSubmitController extends MagicBusController
      * Creates a new event from validated form submission
      *
      * Validates the request, creates a new event with the provided data,
-     * creates an EventOrganization record for the source club, creates an
-     * initial EventShift matching the event times, updates organization
-     * associations, and dispatches notifications if the event is published.
-     * Redirects to the event's update page with a success message.
+     * creates an initial EventShift matching the event times, updates
+     * organization associations, and dispatches notifications if the event
+     * is published. Redirects to the event's update page with a success message.
      *
      * @param  CreateRequest  $request  The validated request containing the event data
      * @return RedirectResponse Redirect to the new event's update page
@@ -57,8 +54,6 @@ class CreateSubmitController extends MagicBusController
         ) {
             dispatch(new SendEventCreatedNotificationsJob($event));
         }
-
-        $this->bus->send(new GrantHostClubAttendanceCommand($event));
 
         $event_shift = new EventShift;
         $event_shift->event_id = $event->id;

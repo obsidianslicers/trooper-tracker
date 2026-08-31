@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
-use App\Features\Events\Commands\GrantHostClubAttendanceCommand;
 use App\Features\Events\Commands\UpdateEventCommand;
 use App\Features\Events\Commands\UpdateEventOrganizationsCommand;
 use App\Http\Controllers\MagicBusController;
@@ -43,15 +42,9 @@ class UpdateSubmitController extends MagicBusController
     {
         $current_status = $event->status;
         $updated_status = EventStatus::from($request->validated('status'));
-        $previous_organization_id = $event->organization_id;
 
         $this->bus->send(new UpdateEventCommand($event, $request->validated()));
         $this->bus->send(new UpdateEventOrganizationsCommand($event, $request->validated('organizations') ?? []));
-
-        if ($event->organization_id !== $previous_organization_id)
-        {
-            $this->bus->send(new GrantHostClubAttendanceCommand($event));
-        }
 
         dispatch(new ReconcileEventRosterJob($event, Auth::user()));
 

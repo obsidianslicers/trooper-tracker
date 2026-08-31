@@ -178,12 +178,6 @@ class UpdateSubmitControllerTest extends TestCase
             'organization_id' => $new_host->id,
             'primary_organization_id' => $new_host->getPrimaryClub()->id,
         ]);
-
-        $this->assertDatabaseHas('tt_event_organizations', [
-            'event_id' => $event->id,
-            'organization_id' => $new_host->getPrimaryClub()->id,
-            'can_attend' => true,
-        ]);
     }
 
     public function test_invoke_rejects_hosting_organization_not_moderated_by_user(): void
