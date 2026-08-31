@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace App\Messages\Faq\Commands;
 
-use App\Models\Faq;
+use App\Models\FaqSection;
 use Hyperdrive\Message;
 
 /**
- * @method static void call(Faq $faq)
+ * @method static void call(FaqSection $section)
  */
-final class DeleteFaqItem extends Message
+final class DeleteFaqSection extends Message
 {
     public function __construct(
-        public readonly Faq $faq,
+        public readonly FaqSection $section,
     ) {
     }
 
     public function handle(): void
     {
-        $this->faq->delete();
+        $this->section->delete();
     }
 }

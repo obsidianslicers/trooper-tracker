@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\Messages\Faq\Commands\Sections;
+namespace Tests\Unit\Messages\Faq\Commands;
 
-use App\Messages\Faq\Commands\Sections\UpdateFaqSection;
+use App\Messages\Faq\Commands\UpdateFaqSection;
 use App\Models\FaqSection;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;

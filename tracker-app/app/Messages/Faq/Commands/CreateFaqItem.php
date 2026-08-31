@@ -8,16 +8,17 @@ use App\Models\Faq;
 use Hyperdrive\Message;
 
 /**
- * @method static Faq call(...$args)
+ * @method static Faq call(int $section_id, string $title, string|null $description, string|null $video_url)
  */
 final class CreateFaqItem extends Message
 {
     public function __construct(
         public readonly int $section_id,
         public readonly string $title,
-        public readonly ?string $description,
-        public readonly ?string $video_url,
-    ) {}
+        public readonly string|null $description,
+        public readonly string|null $video_url,
+    ) {
+    }
 
     public function handle(): Faq
     {

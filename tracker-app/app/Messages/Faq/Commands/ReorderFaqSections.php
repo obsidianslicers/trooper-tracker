@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Messages\Faq\Commands;
 
-use App\Models\Faq;
+use App\Models\FaqSection;
 use Hyperdrive\Message;
 use Illuminate\Support\Facades\DB;
 
 /**
  * @method static void call(array $ordered_ids)
  */
-final class ReorderFaqItems extends Message
+final class ReorderFaqSections extends Message
 {
     public function __construct(
         public readonly array $ordered_ids,
@@ -24,7 +24,7 @@ final class ReorderFaqItems extends Message
         {
             foreach ($this->ordered_ids as $position => $id)
             {
-                Faq::where(Faq::ID, (int) $id)->update([Faq::SORT_ORDER => $position + 1]);
+                FaqSection::where(FaqSection::ID, (int) $id)->update([FaqSection::SORT_ORDER => $position + 1]);
             }
         });
     }

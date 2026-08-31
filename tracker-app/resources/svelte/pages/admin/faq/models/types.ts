@@ -2,6 +2,11 @@ import type { Option } from "$lib/domains/types.svelte";
 
 export type FaqSectionOption = Option;
 
+export interface ISectionForm {
+    label: string;
+    icon: string;
+}
+
 export type FaqItem = {
     id: number;
     section_id: number;

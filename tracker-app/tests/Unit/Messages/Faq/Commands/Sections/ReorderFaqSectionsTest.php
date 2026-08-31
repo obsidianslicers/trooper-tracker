@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\Messages\Faq\Commands\Sections;
+namespace Tests\Unit\Messages\Faq\Commands;
 
-use App\Messages\Faq\Commands\Sections\ReorderFaqSections;
+use App\Messages\Faq\Commands\ReorderFaqSections;
 use App\Models\FaqSection;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;

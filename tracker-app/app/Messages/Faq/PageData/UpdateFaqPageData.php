@@ -16,7 +16,8 @@ final class UpdateFaqPageData extends Message
 {
     public function __construct(
         public readonly Faq $faq,
-    ) {}
+    ) {
+    }
 
     public function handle(): array
     {
