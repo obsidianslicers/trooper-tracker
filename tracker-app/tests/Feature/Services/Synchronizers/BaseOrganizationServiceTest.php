@@ -6,6 +6,7 @@ namespace Tests\Feature\Services\Synchronizers;
 
 use App\Contracts\MemberLookupInterface;
 use App\Enums\MembershipStatus;
+use App\Exceptions\GoogleSheetsUnavailableException;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
@@ -72,6 +73,32 @@ class BaseOrganizationServiceTest extends TestCase
         $result = $subject->publicGetSheetRows('Troopers');
 
         $this->assertSame([['row1_a', 'row1_b']], $result);
+    }
+
+    public function test_get_sheet_rows_rethrows_and_leaves_sync_timestamp_stale_when_google_unavailable(): void
+    {
+        $organization = Organization::factory()->create([
+            Organization::SYNC_SHEET_ID => 'sheet-123',
+        ]);
+
+        $google = Mockery::mock(GoogleService::class);
+        $google->shouldReceive('getSheet')
+            ->once()
+            ->andThrow(new GoogleSheetsUnavailableException('Google Sheets is unavailable.'));
+
+        $subject = new BaseOrganizationServiceHarness($organization, $google);
+
+        $this->expectException(GoogleSheetsUnavailableException::class);
+
+        try
+        {
+            $subject->publicGetSheetRows('Troopers');
+        }
+        finally
+        {
+            $organization->refresh();
+            $this->assertNull($organization->{Organization::SYNCHRONIZED_AT});
+        }
     }
 
     public function test_get_or_create_organization_costume_returns_cached_instance(): void
