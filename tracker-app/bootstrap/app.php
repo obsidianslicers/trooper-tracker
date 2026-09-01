@@ -8,6 +8,7 @@ use Illuminate\Http\Exceptions\PostTooLargeException;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Exceptions\InvalidSignatureException;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Illuminate\Support\Facades\RateLimiter;
 
@@ -72,13 +73,8 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void
     {
-        $exceptions->reportable(function (Throwable $e): void
+        $exceptions->reportable(function (Throwable $e)
         {
-            if (!app()->environment('production', 'prod', 'prd'))
-            {
-                return;
-            }
-
             $status_code = $e instanceof HttpExceptionInterface
                 ? $e->getStatusCode()
                 : 500;
@@ -88,28 +84,31 @@ return Application::configure(basePath: dirname(__DIR__))
                 return;
             }
 
-            if (!(bool) config('tracker.exception_notifications.enabled', true))
+            $context = [
+                'status_code' => $status_code,
+                'url' => request()->fullUrl(),
+                'method' => request()->method(),
+                'user_id' => optional(auth()->user())->id,
+                'ip' => request()->ip(),
+                'input' => request()->except(['password', 'password_confirmation', '_token']),
+            ];
+
+            Log::error($e->getMessage(), $context + ['exception' => $e]);
+
+            $should_email = app()->environment('production', 'prod', 'prd')
+                && (bool) config('tracker.exception_notifications.enabled', true);
+
+            if ($should_email)
             {
-                return;
+                RateLimiter::attempt(
+                    'exception-email',
+                    1,
+                    fn () => dispatch(new SendExceptionNotificationJob($e, $context)),
+                    60,
+                );
             }
 
-            $max_attempts = 1;
-            $delay = 60;
-            $callback = function () use ($e, $status_code)
-            {
-                $context = [
-                    'status_code' => $status_code,
-                    'url' => request()->fullUrl(),
-                    'method' => request()->method(),
-                    'user_id' => optional(auth()->user())->id,
-                    'ip' => request()->ip(),
-                    'input' => request()->except(['password', 'password_confirmation', '_token']),
-                ];
-
-                dispatch(new SendExceptionNotificationJob($e, $context));
-            };
-
-            RateLimiter::attempt('exception-email', $max_attempts, $callback, $delay);
+            return false;
         });
 
         $exceptions->render(function (InvalidSignatureException $e, Request $request)
