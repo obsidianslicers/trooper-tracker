@@ -31,11 +31,21 @@ class EventObserver
      */
     public function creating(Event $event): void
     {
-        if ($event->organization_id !== null)
-        {
-            $organization = Organization::findOrFail($event->organization_id);
+        $this->syncPrimaryOrganization($event);
+    }
 
-            $event->primary_organization_id = $organization->getPrimaryClub()->id;
+    /**
+     * Handle the Event "updating" event.
+     *
+     * Re-derives primary_organization_id when the hosting organization changes.
+     *
+     * @param  Event  $event  The event instance being updated.
+     */
+    public function updating(Event $event): void
+    {
+        if ($event->isDirty(Event::ORGANIZATION_ID))
+        {
+            $this->syncPrimaryOrganization($event);
         }
     }
 
@@ -107,6 +117,23 @@ class EventObserver
         }
 
         dispatch(new DeleteEventForumThreadJob((int) $event->id, (int) $event->thread_id))->afterCommit();
+    }
+
+    /**
+     * Derive primary_organization_id from the hosting organization's primary club.
+     *
+     * @param  Event  $event  The event instance being persisted.
+     */
+    private function syncPrimaryOrganization(Event $event): void
+    {
+        if ($event->organization_id === null)
+        {
+            return;
+        }
+
+        $organization = Organization::findOrFail($event->organization_id);
+
+        $event->primary_organization_id = $organization->getPrimaryClub()->id;
     }
 
     /**
