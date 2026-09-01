@@ -9,14 +9,14 @@
     import ItemRow from "./components/ItemRow.svelte";
     import SectionFilterPills from "./components/SectionFilterPills.svelte";
     import type { FaqListPageData } from "./models";
-    import { FaqListViewModel } from "./models";
+    import { ListItemsViewModel } from "./models";
 
     const page = usePage<FaqListPageData>();
 
     pageState.title = "FAQ Items";
 
     let vm = $derived(
-        new FaqListViewModel(page.props.section_id, page.props.sortable),
+        new ListItemsViewModel(page.props.section_id, page.props.sortable),
     );
 
     let rows = $derived(

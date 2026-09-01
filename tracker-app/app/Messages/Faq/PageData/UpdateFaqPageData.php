@@ -15,7 +15,7 @@ use Hyperdrive\Message;
 final class UpdateFaqPageData extends Message
 {
     public function __construct(
-        public readonly Faq $faq,
+        private readonly Faq $faq,
     ) {
     }
 

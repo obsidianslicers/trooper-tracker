@@ -14,8 +14,9 @@ use Hyperdrive\Message;
 final class CreateFaqPageData extends Message
 {
     public function __construct(
-        public readonly ?int $section_id,
-    ) {}
+        private readonly ?int $section_id,
+    ) {
+    }
 
     public function handle(): array
     {

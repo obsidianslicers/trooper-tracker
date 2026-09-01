@@ -13,10 +13,10 @@ use Hyperdrive\Message;
 final class CreateFaqItem extends Message
 {
     public function __construct(
-        public readonly int $section_id,
-        public readonly string $title,
-        public readonly string|null $description,
-        public readonly string|null $video_url,
+        private readonly int $section_id,
+        private readonly string $title,
+        private readonly string|null $description,
+        private readonly string|null $video_url,
     ) {
     }
 

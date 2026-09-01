@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\DB;
 final class ReorderFaqItems extends Message
 {
     public function __construct(
-        public readonly array $ordered_ids,
+        private readonly array $ordered_ids,
     ) {
     }
 
@@ -24,7 +24,9 @@ final class ReorderFaqItems extends Message
         {
             foreach ($this->ordered_ids as $position => $id)
             {
-                Faq::where(Faq::ID, (int) $id)->update([Faq::SORT_ORDER => $position + 1]);
+                Faq::query()
+                    ->where(Faq::ID, (int) $id)
+                    ->update([Faq::SORT_ORDER => $position + 1]);
             }
         });
     }

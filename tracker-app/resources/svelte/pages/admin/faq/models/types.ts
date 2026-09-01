@@ -28,3 +28,4 @@ export type FaqSectionFormData = {
     label: string;
     icon: string;
 };
+

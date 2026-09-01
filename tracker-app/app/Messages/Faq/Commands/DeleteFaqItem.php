@@ -13,7 +13,7 @@ use Hyperdrive\Message;
 final class DeleteFaqItem extends Message
 {
     public function __construct(
-        public readonly Faq $faq,
+        private readonly Faq $faq,
     ) {
     }
 

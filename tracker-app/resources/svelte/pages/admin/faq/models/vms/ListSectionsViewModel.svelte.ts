@@ -2,7 +2,7 @@ import { ViewModel } from "$lib/domains/types.svelte";
 import { getRoute } from "$lib/utils";
 import { router } from "@inertiajs/svelte";
 
-export type FaqSection = {
+type FaqSection = {
     id: number;
     label: string;
     icon: string;
@@ -47,7 +47,6 @@ export class ListSectionsViewModel extends ViewModel {
         router.post(url, data, options);
     };
 
-
     confirmDelete = (item: FaqSection) => {
         this.delete_section = item;
     };
@@ -59,23 +58,27 @@ export class ListSectionsViewModel extends ViewModel {
     delete = (e: Event) => {
         e.preventDefault();
 
-        //         if (!this.deleting) {
-        //             return;
-        //         }
+        if (!this.show_delete_confirmation || !this.delete_section) {
+            return;
+        }
 
-        //         this.submitting = true;
+        this.deleting = true;
 
-        //         router.post(
-        //             this.deleteRoute(this.deleting),
-        //             {},
-        //             {
-        //                 onFinish: () => {
-        //                     this.submitting = false;
-        //                     this.deleting = null;
-        //                 },
-        //             },
-        //         );
+        const url = getRoute("admin.faq.sections.delete", { section: this.delete_section.id });
 
-        this.delete_section = null;
+        const data = {};
+
+        const options = {
+            preserveUrl: true,
+            preserveState: true,
+            preserveScroll: true,
+            only: ['flash', 'results'],
+            onFinish: () => {
+                this.deleting = false;
+                this.delete_section = null;
+            },
+        };
+
+        router.post(url, data, options);
     };
 }

@@ -20,15 +20,16 @@ use Illuminate\Support\Facades\Hash;
 final class CreateTrooper extends Message
 {
     public function __construct(
-        public readonly string $legal_name,
-        public readonly string $display_name,
-        public readonly string $email,
-        public readonly MembershipRole $membership_role,
-        public readonly ?string $password = null,
-        public readonly ?string $phone = null,
-        public readonly ?string $date_of_birth = null,
-        public readonly ?string $guardian_email = null,
-    ) {}
+        private readonly string $legal_name,
+        private readonly string $display_name,
+        private readonly string $email,
+        private readonly MembershipRole $membership_role,
+        private readonly ?string $password = null,
+        private readonly ?string $phone = null,
+        private readonly ?string $date_of_birth = null,
+        private readonly ?string $guardian_email = null,
+    ) {
+    }
 
     public function handle(): Trooper
     {

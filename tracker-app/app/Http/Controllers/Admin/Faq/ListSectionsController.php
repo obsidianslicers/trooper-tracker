@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Faq;
 
 use App\Http\Controllers\Controller;
-use App\Messages\Faq\PageData\Sections\ListFaqSectionsPageData;
+use App\Messages\Faq\PageData\ListFaqSectionsPageData;
 use App\Services\BreadCrumbService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

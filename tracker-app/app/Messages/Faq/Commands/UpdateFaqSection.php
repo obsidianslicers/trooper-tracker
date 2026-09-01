@@ -13,9 +13,9 @@ use Hyperdrive\Message;
 final class UpdateFaqSection extends Message
 {
     public function __construct(
-        public readonly FaqSection $section,
-        public readonly string $label,
-        public readonly string $icon,
+        private readonly FaqSection $section,
+        private readonly string $label,
+        private readonly string $icon,
     ) {
     }
 

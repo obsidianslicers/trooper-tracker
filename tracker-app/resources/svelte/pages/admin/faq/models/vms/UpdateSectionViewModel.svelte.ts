@@ -15,7 +15,7 @@ function createUpdateForm(options: Partial<UpdateSectionForm>): InertiaForm<Upda
     return useForm<UpdateSectionForm>(data);
 }
 
-export type UpdateSectionForm = ISectionForm & {
+type UpdateSectionForm = ISectionForm & {
     label: string;
     icon: string;
 };

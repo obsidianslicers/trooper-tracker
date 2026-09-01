@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Messages\Faq\PageData\Sections;
+namespace App\Messages\Faq\PageData;
 
 use App\Messages\Faq\Queries\GetFaqSections;
 use App\Messages\Faq\Resources\FaqSectionCollection;

@@ -13,8 +13,8 @@ use Hyperdrive\Message;
 final class CreateFaqSection extends Message
 {
     public function __construct(
-        public readonly string $label,
-        public readonly string $icon,
+        private readonly string $label,
+        private readonly string $icon,
     ) {
     }
 

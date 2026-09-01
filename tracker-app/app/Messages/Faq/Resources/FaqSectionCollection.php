@@ -11,6 +11,17 @@ use Illuminate\Http\Resources\Json\ResourceCollection;
 class FaqSectionCollection extends ResourceCollection
 {
     /**
+     * Disable the automagic resolution of the resource class for the collection.
+     * This prevents Laravel from automatically resolving the resource class for
+     * each item in the collection.
+     * @return null
+     */
+    protected function collects(): ?string
+    {
+        return null;
+    }
+
+    /**
      * Transform the resource collection into an array.
      *
      * @return array<int|string, mixed>

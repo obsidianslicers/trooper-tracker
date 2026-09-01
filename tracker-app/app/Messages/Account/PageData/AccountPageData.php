@@ -46,8 +46,9 @@ final class AccountPageData extends Message
      * @param  Actor&Trooper  $actor  The actor representing the current user
      */
     public function __construct(
-        public readonly Actor $actor
-    ) {}
+        private readonly Actor $actor
+    ) {
+    }
 
     /**
      * Retrieves application configuration as a nested associative array.

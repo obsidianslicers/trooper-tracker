@@ -3,7 +3,7 @@ import { getRoute } from "$lib/utils";
 import { useForm } from "@inertiajs/svelte";
 import type { ISectionForm } from "../types";
 
-export type CreateSectionForm = ISectionForm & {
+type CreateSectionForm = ISectionForm & {
     label: string;
     icon: string;
 };

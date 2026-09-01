@@ -14,7 +14,7 @@ use Hyperdrive\Message;
 final class UpdateSectionPageData extends Message
 {
     public function __construct(
-        public readonly FaqSection $section,
+        private readonly FaqSection $section,
     ) {
     }
 
