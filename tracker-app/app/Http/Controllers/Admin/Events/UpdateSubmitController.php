@@ -45,6 +45,7 @@ class UpdateSubmitController extends MagicBusController
 
         $this->bus->send(new UpdateEventCommand($event, $request->validated()));
         $this->bus->send(new UpdateEventOrganizationsCommand($event, $request->validated('organizations') ?? []));
+
         dispatch(new ReconcileEventRosterJob($event, Auth::user()));
 
         if ($current_status != $updated_status)
