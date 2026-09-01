@@ -37,11 +37,11 @@
 
     <div class="card mb-3">
         <div class="card-header">
-            Recent Errors
+            Errors (last 30 days)
         </div>
         @if($recent_errors->isEmpty())
             <div class="card-body text-muted">
-                No recent error-level log entries found.
+                No error-level log entries in the last 30 days.
             </div>
         @else
             <ul class="list-group list-group-flush">
