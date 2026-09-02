@@ -41,7 +41,7 @@ trait CommonRules
         return [
             Event::NAME => ['required', 'string', 'max:128'],
             Event::TYPE => ['required', 'string', 'max:32', EventType::toValidator()],
-            Event::STATUS => ['required', 'string', 'max:16', 'in:'.EventStatus::toValidator()],
+            Event::STATUS => ['required', 'string', 'max:16', EventStatus::toValidator()],
             Event::SHIFTS_ALLOWED => ['nullable', 'integer', 'between:1,99999'],
             Event::TROOPERS_ALLOWED => ['nullable', 'integer', 'between:1,99999'],
             Event::HANDLERS_ALLOWED => ['nullable', 'integer', 'between:0,99999'],
@@ -56,7 +56,7 @@ trait CommonRules
             Event::VENUE_ADDRESS => ['nullable', 'string', 'max:256'],
 
             Event::EVENT_START => ['required', 'date'],
-            Event::EVENT_END => ['required', 'date', 'after:'.Event::EVENT_START],
+            Event::EVENT_END => ['required', 'date', 'after:' . Event::EVENT_START],
             Event::EVENT_WEBSITE => ['nullable', 'string', 'max:512'],
 
             Event::EXPECTED_ATTENDEES => ['nullable', 'integer', 'min:0'],
@@ -80,9 +80,9 @@ trait CommonRules
             Event::LATITUDE => ['nullable', 'numeric', 'between:-90,90'],
             Event::LONGITUDE => ['nullable', 'numeric', 'between:-180,180'],
 
-            'organizations.*.'.EventOrganization::CAN_ATTEND => ['boolean'],
-            'organizations.*.'.EventOrganization::TROOPERS_ALLOWED => ['nullable', 'integer', 'between:1,99999'],
-            'organizations.*.'.EventOrganization::HANDLERS_ALLOWED => ['nullable', 'integer', 'between:1,99999'],
+            'organizations.*.' . EventOrganization::CAN_ATTEND => ['boolean'],
+            'organizations.*.' . EventOrganization::TROOPERS_ALLOWED => ['nullable', 'integer', 'between:1,99999'],
+            'organizations.*.' . EventOrganization::HANDLERS_ALLOWED => ['nullable', 'integer', 'between:1,99999'],
         ];
     }
 }
