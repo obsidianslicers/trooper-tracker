@@ -1,12 +1,13 @@
 import { SubmitableViewModel, type ISubmitableViewModel } from "$lib/domains/types.svelte";
 import { getRoute } from "$lib/utils";
-import { useForm } from "@inertiajs/svelte";
+import { useForm, type InertiaForm } from "@inertiajs/svelte";
 import type { ISectionForm } from "../types";
 
-type CreateSectionForm = ISectionForm & {
-    label: string;
-    icon: string;
-};
+function generateForm(): InertiaForm<CreateSectionForm> {
+    return useForm<CreateSectionForm>({ label: "", icon: "", });
+}
+
+type CreateSectionForm = ISectionForm & {};
 
 export class CreateSectionViewModel
     extends SubmitableViewModel<CreateSectionViewModel, CreateSectionForm>
@@ -15,7 +16,7 @@ export class CreateSectionViewModel
     constructor() {
         super();
 
-        this.form = useForm<CreateSectionForm>({ label: "", icon: "" });
+        this.form = generateForm();
     }
 
     submit = (e: Event) => {

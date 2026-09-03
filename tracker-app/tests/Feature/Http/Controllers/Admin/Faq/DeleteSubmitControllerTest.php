@@ -20,7 +20,7 @@ class DeleteSubmitControllerTest extends TestCase
 
         $response = $this->actingAs($trooper)->post(route('admin.faq.delete', ['faq' => $faq->id]));
 
-        $response->assertRedirect(route('admin.faq.list'));
+        $response->assertRedirect(route('admin.faq.index'));
         $this->assertSoftDeleted('tt_faq', [Faq::ID => $faq->id]);
     }
 

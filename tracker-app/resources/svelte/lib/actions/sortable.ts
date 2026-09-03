@@ -9,6 +9,7 @@ export function sortable(options: SortableOptions) {
         const instance = Sortable.create(node, {
             handle: ".move-handle",
             ghostClass: "sortable-ghost",
+            draggable: ".draggable",
             animation: 150,
             onEnd: () => {
                 const nodes = node.querySelectorAll<HTMLElement>("[data-id]");

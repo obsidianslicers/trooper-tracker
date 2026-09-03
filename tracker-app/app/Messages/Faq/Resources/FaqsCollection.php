@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Messages\Faq\Resources;
 
+use App\Models\Faq;
 use App\Models\FaqSection;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 
-class FaqSectionCollection extends ResourceCollection
+class FaqsCollection extends ResourceCollection
 {
     /**
      * Disable the automagic resolution of the resource class for the collection.
@@ -34,7 +35,18 @@ class FaqSectionCollection extends ResourceCollection
                 FaqSection::LABEL => $section->label,
                 FaqSection::ICON => $section->icon,
                 FaqSection::SORT_ORDER => $section->sort_order,
-                'faqs_count' => $section->faqs_count
+                'faqs' => $this->getQuestions($section),
+            ])
+            ->toArray();
+    }
+    private function getQuestions(FaqSection $section): array
+    {
+        return $section->faqs
+            ->map(fn($faq) => [
+                Faq::ID => $faq->id,
+                Faq::TITLE => $faq->title,
+                Faq::SORT_ORDER => $faq->sort_order,
+                'has_video' => $faq->has_video,
             ])
             ->toArray();
     }

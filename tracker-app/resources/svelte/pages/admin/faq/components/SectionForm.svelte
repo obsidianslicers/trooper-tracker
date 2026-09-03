@@ -39,6 +39,6 @@
 
     <SubmitButtonContainer>
         <SubmitButton {label} submitting={vm.submitting} disabled={!vm.dirty} />
-        <CancelButton href={getRoute("admin.faq.sections.list")} />
+        <CancelButton href={getRoute("admin.faq.index")} />
     </SubmitButtonContainer>
 </form>

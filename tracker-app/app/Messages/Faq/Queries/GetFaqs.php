@@ -7,17 +7,22 @@ namespace App\Messages\Faq\Queries;
 use App\Models\FaqSection;
 use Hyperdrive\Message;
 use Illuminate\Support\Collection;
+use App\Models\Faq;
 
 /**
- * Retrieves all FAQ sections.
+ * Retrieves all FAQs.
 
  * This query message responds with the FAQ sections data, which can be used by frontend clients
  * to display the available FAQ sections and manage FAQ assignments.
  *
  * @method static Collection call()
  */
-final class GetFaqSections extends Message
+final class GetFaqs extends Message
 {
+    public function __construct()
+    {
+    }
+
     /**
      * Retrieves all FAQ sections.
 
@@ -25,7 +30,13 @@ final class GetFaqSections extends Message
      */
     public function handle(): Collection
     {
-        return FaqSection::withCount('faqs')
+        $relations = ['faqs' => function ($query)
+        {
+            $query->orderBy(Faq::SORT_ORDER)->orderBy(Faq::ID);
+        }];
+
+        return FaqSection::query()
+            ->with($relations)
             ->orderBy(FaqSection::SORT_ORDER)
             ->orderBy(FaqSection::ID)
             ->get();

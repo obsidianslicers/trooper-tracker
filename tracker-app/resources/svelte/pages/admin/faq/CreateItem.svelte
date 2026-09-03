@@ -1,20 +1,14 @@
 <script lang="ts">
+    import SlimView from "$lib/components/ui/SlimView.svelte";
     import pageState from "$lib/states/page-state.svelte";
-    import { usePage } from "@inertiajs/svelte";
-    import Form from "./components/Form.svelte";
-    import { FaqFormViewModel } from "./models";
-    import type { FaqSectionOption } from "./models/types";
-
-    interface PageData {
-        section_id: number | null;
-        sections: FaqSectionOption[];
-    }
-
-    const page = usePage<PageData>();
+    import ItemForm from "./components/ItemForm.svelte";
+    import { CreateItemViewModel } from "./models";
 
     pageState.title = "Create FAQ Item";
 
-    let vm = $derived(new FaqFormViewModel("create", null, page.props.section_id));
+    let vm = new CreateItemViewModel();
 </script>
 
-<Form {vm} sections={page.props.sections} />
+<SlimView>
+    <ItemForm {vm} label="Create" />
+</SlimView>

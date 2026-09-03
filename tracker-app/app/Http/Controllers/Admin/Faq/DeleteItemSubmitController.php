@@ -22,7 +22,7 @@ class DeleteItemSubmitController extends Controller
 
         DeleteFaqItem::call(faq: $faq);
 
-        $url = route('admin.faq.list');
+        $url = route('admin.faq.index');
 
         FlashType::success($message);
 

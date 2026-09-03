@@ -20,10 +20,10 @@ class ListControllerTest extends TestCase
         $trooper = Trooper::factory()->asAdministrator()->create();
         Faq::factory()->count(2)->create();
 
-        $response = $this->actingAs($trooper)->get(route('admin.faq.list'));
+        $response = $this->actingAs($trooper)->get(route('admin.faq.index'));
 
         $response->assertOk();
-        $response->assertInertia(fn (Assert $page) => $page
+        $response->assertInertia(fn(Assert $page) => $page
             ->component('admin/faq/List')
             ->where('sortable', false)
         );
@@ -35,10 +35,10 @@ class ListControllerTest extends TestCase
         $section = FaqSection::factory()->create();
         Faq::factory()->withSection($section)->count(2)->create();
 
-        $response = $this->actingAs($trooper)->get(route('admin.faq.list', ['section_id' => $section->id]));
+        $response = $this->actingAs($trooper)->get(route('admin.faq.index', ['section_id' => $section->id]));
 
         $response->assertOk();
-        $response->assertInertia(fn (Assert $page) => $page
+        $response->assertInertia(fn(Assert $page) => $page
             ->component('admin/faq/List')
             ->where('sortable', true)
             ->where('section_id', $section->id)
@@ -47,7 +47,7 @@ class ListControllerTest extends TestCase
 
     public function test_invoke_requires_authentication(): void
     {
-        $response = $this->get(route('admin.faq.list'));
+        $response = $this->get(route('admin.faq.index'));
 
         $response->assertRedirect(route('auth.login'));
     }

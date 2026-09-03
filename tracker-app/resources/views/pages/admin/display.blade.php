@@ -124,7 +124,7 @@
     @role(['administrator'])
     <x-dashboard-card :label="'FAQ & Help'"
                       :icon="'fa-question'"
-                      :url="route('admin.faq.list')">
+                      :url="route('admin.faq.index')">
         View Frequently Asked Questions and Help
     </x-dashboard-card>
     <x-dashboard-card :label="'System Check'"

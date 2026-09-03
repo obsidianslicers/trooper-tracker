@@ -40,13 +40,13 @@ export class EventNotificationsViewModel extends ViewModel {
     notification_frequency: string = $state("never");
     organization_notifications: OrganizationNotifications[] = $state([]);
 
-    constructor(pageData?: EventNotificationsPageData) {
+    constructor(pageData: EventNotificationsPageData) {
         super();
         this.push_notification_options = YES_NO_OPTIONS;
-        this.push_notifications_enabled = pageData?.push_notifications_enabled || false;
-        this.notification_frequency = pageData?.notification_frequency || "never";
-        this.notification_frequency_enums = pageData?.notification_frequency_enums || [];
-        this.organization_notifications = pageData?.organization_notifications || [];
+        this.push_notifications_enabled = pageData.push_notifications_enabled;
+        this.notification_frequency = pageData.notification_frequency;
+        this.notification_frequency_enums = pageData.notification_frequency_enums;
+        this.organization_notifications = pageData.organization_notifications;
     }
 
     updateNotificationFrequency = async () => {

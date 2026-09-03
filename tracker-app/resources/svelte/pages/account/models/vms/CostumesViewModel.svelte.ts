@@ -29,9 +29,9 @@ export class CostumesViewModel extends ViewModel {
     search_timeout: any = null;
     search_controller: AbortController | null = null;
 
-    constructor(pageData?: CostumesPageData) {
+    constructor(pageData: CostumesPageData) {
         super();
-        this.trooper_costumes = pageData?.length ? pageData : [];
+        this.trooper_costumes = pageData;
     }
 
     searchCostumes = () => {

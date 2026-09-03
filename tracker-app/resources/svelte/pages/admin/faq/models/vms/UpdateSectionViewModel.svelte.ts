@@ -3,7 +3,7 @@ import { getRoute, propertyRemover } from "$lib/utils";
 import { useForm, type InertiaForm } from "@inertiajs/svelte";
 import type { ISectionForm } from "../types";
 
-function createUpdateForm(options: Partial<UpdateSectionForm>): InertiaForm<UpdateSectionForm> {
+function generateForm(options: Partial<UpdateSectionForm>): InertiaForm<UpdateSectionForm> {
     const data = {
         label: '',
         icon: '',
@@ -39,7 +39,7 @@ export class UpdateSectionViewModel
 
         this.section_id = pageData.section.id;
         this.trooper_stamps = pageData.section.trooper_stamps;
-        this.form = createUpdateForm(pageData.section);
+        this.form = generateForm(pageData.section);
     }
 
     submit = (e: Event) => {
