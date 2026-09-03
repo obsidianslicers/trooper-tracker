@@ -1,8 +1,8 @@
-import type { NotificationPreferences } from "$lib/domains/account/types";
 import { ViewModel, type Option } from "$lib/domains/types.svelte";
 import toastStateSvelte from "$lib/states/toast-state.svelte";
 import { getRoute } from "$lib/utils";
 import { router } from "@inertiajs/svelte";
+import type { NotificationPreferences } from "../types";
 
 export type NotificationSubsection = "Administrative" | "Trooper" | "";
 
@@ -54,6 +54,7 @@ export class NotificationPreferenceViewModel extends ViewModel {
             preserveUrl: true,    // Keeps the current URL intact
             preserveState: true,  // Keeps current local form/scroll states intact
             preserveScroll: true, // Prevents page from jumping
+            only: ['flash', 'results'],
 
             onSuccess: (page: any) => {
                 toastStateSvelte.success(`${this.subsection} Notification Preference updated successfully.`);

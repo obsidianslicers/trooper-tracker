@@ -58,7 +58,7 @@ export class EventNotificationsViewModel extends ViewModel {
             preserveUrl: true,    // Keeps the current URL intact
             preserveState: true,  // Keeps current local form/scroll states intact
             preserveScroll: true, // Prevents page from jumping
-
+            only: ['flash', 'results'],
             onSuccess: (page: any) => {
                 toastStateSvelte.success("Notification frequency updated successfully.");
             }
@@ -80,6 +80,7 @@ export class EventNotificationsViewModel extends ViewModel {
             preserveUrl: true,    // Keeps the current URL intact
             preserveState: true,  // Keeps current local form/scroll states intact
             preserveScroll: true, // Prevents page from jumping
+            only: ['flash', 'results'],
 
             onSuccess: (page: any) => {
                 toastStateSvelte.success("Push notifications updated successfully.");
@@ -129,6 +130,7 @@ export class EventNotificationsViewModel extends ViewModel {
             preserveUrl: true,    // Keeps the current URL intact
             preserveState: true,  // Keeps current local form/scroll states intact
             preserveScroll: true, // Prevents page from jumping
+            only: ['flash', 'results'],
 
             onSuccess: (page: any) => {
                 toastStateSvelte.success("Organization notifications updated successfully.");
