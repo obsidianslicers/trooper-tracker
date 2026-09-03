@@ -40,13 +40,13 @@ export class EventNotificationsViewModel extends ViewModel {
     notification_frequency: string = $state("never");
     organization_notifications: OrganizationNotifications[] = $state([]);
 
-    constructor(pageData: EventNotificationsPageData) {
+    constructor(pageData?: EventNotificationsPageData) {
         super();
         this.push_notification_options = YES_NO_OPTIONS;
-        this.push_notifications_enabled = pageData.push_notifications_enabled;
-        this.notification_frequency = pageData.notification_frequency;
-        this.notification_frequency_enums = pageData.notification_frequency_enums;
-        this.organization_notifications = pageData.organization_notifications;
+        this.push_notifications_enabled = pageData?.push_notifications_enabled || false;
+        this.notification_frequency = pageData?.notification_frequency || "never";
+        this.notification_frequency_enums = pageData?.notification_frequency_enums || [];
+        this.organization_notifications = pageData?.organization_notifications || [];
     }
 
     updateNotificationFrequency = async () => {
@@ -58,7 +58,7 @@ export class EventNotificationsViewModel extends ViewModel {
             preserveUrl: true,    // Keeps the current URL intact
             preserveState: true,  // Keeps current local form/scroll states intact
             preserveScroll: true, // Prevents page from jumping
-
+            only: ['flash', 'results'],
             onSuccess: (page: any) => {
                 toastStateSvelte.success("Notification frequency updated successfully.");
             }
@@ -80,6 +80,7 @@ export class EventNotificationsViewModel extends ViewModel {
             preserveUrl: true,    // Keeps the current URL intact
             preserveState: true,  // Keeps current local form/scroll states intact
             preserveScroll: true, // Prevents page from jumping
+            only: ['flash', 'results'],
 
             onSuccess: (page: any) => {
                 toastStateSvelte.success("Push notifications updated successfully.");
@@ -129,6 +130,7 @@ export class EventNotificationsViewModel extends ViewModel {
             preserveUrl: true,    // Keeps the current URL intact
             preserveState: true,  // Keeps current local form/scroll states intact
             preserveScroll: true, // Prevents page from jumping
+            only: ['flash', 'results'],
 
             onSuccess: (page: any) => {
                 toastStateSvelte.success("Organization notifications updated successfully.");

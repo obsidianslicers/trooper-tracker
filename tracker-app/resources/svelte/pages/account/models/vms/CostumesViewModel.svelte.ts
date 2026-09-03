@@ -31,7 +31,7 @@ export class CostumesViewModel extends ViewModel {
 
     constructor(pageData: CostumesPageData) {
         super();
-        this.trooper_costumes = pageData;
+        this.trooper_costumes = pageData || [];
     }
 
     searchCostumes = () => {

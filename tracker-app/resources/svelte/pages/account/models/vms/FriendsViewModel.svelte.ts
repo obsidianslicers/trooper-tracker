@@ -14,7 +14,7 @@ export class FriendsViewModel extends ViewModel {
 
     constructor(pageData: FriendsPageData) {
         super();
-        this.friends = pageData;
+        this.friends = pageData || [];
     }
 
     getServiceRecordUrl = (friend: Friend): string => {

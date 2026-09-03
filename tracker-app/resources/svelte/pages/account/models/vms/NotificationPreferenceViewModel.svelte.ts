@@ -54,6 +54,7 @@ export class NotificationPreferenceViewModel extends ViewModel {
             preserveUrl: true,    // Keeps the current URL intact
             preserveState: true,  // Keeps current local form/scroll states intact
             preserveScroll: true, // Prevents page from jumping
+            only: ['flash', 'results'],
 
             onSuccess: (page: any) => {
                 toastStateSvelte.success(`${this.subsection} Notification Preference updated successfully.`);

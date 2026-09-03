@@ -14,7 +14,7 @@ export class MinorsViewModel extends ViewModel {
 
     constructor(pageData: MinorsPageData) {
         super();
-        this.minors = pageData;
+        this.minors = pageData || [];
     }
 
     getServiceRecordUrl = (minor: Minor): string => {

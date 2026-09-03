@@ -23,7 +23,7 @@
 
     pageState.title = "Trooper Account";
 
-    let vm = $derived(new AccountViewModel(page.props));
+    let vm = new AccountViewModel(page.props);
 </script>
 
 {#if vm.has_deletion_request}

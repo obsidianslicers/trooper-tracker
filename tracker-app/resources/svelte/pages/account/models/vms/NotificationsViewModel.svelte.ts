@@ -14,6 +14,6 @@ export class NotificationsViewModel extends ViewModel {
 
     constructor(pageData: NotificationsPageData) {
         super();
-        this.page_data = pageData;
+        this.page_data = pageData || {} as NotificationsPageData;
     }
 }

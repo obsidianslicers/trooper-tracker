@@ -63,10 +63,10 @@ export class MembershipsViewModel extends SubmitableViewModel<MembershipsViewMod
     constructor(is_visitor: boolean, pageData: MembershipsPageData) {
         super();
         this.is_visitor = is_visitor;
-        this.organizations = pageData.organizations;
-        this.organization_options = pageData.organization_options;
-        this.organization_memberships = pageData.organization_memberships;
-        this.organization_requests = pageData.organization_requests;
+        this.organizations = pageData?.organizations || [];
+        this.organization_options = pageData.organization_options || [];
+        this.organization_memberships = pageData.organization_memberships || [];
+        this.organization_requests = pageData.organization_requests || [];
         this.form = useForm<AddTrooperRequestForm>({
             organization_id: null,
             identifier: null
