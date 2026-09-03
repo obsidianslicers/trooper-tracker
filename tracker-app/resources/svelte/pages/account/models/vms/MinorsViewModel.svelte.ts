@@ -12,9 +12,9 @@ export type MinorsPageData = Minor[];
 export class MinorsViewModel extends ViewModel {
     minors: Minor[] = $state([]);
 
-    constructor(pageData?: MinorsPageData) {
+    constructor(pageData: MinorsPageData) {
         super();
-        this.minors = pageData?.length ? pageData : [];
+        this.minors = pageData || [];
     }
 
     getServiceRecordUrl = (minor: Minor): string => {

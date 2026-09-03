@@ -2,7 +2,7 @@ import { SubmitableViewModel, type Option } from "$lib/domains/types.svelte";
 import { getRoute, propertyRemover } from "$lib/utils";
 import { useForm, type InertiaForm } from "@inertiajs/svelte";
 
-function createDetailsForm(options: Partial<DetailsForm> = {}): InertiaForm<DetailsForm> {
+function generatorForm(options: Partial<DetailsForm> = {}): InertiaForm<DetailsForm> {
     const data = {
         id: 0,
         display_name: '',
@@ -35,12 +35,12 @@ export class DetailsViewModel extends SubmitableViewModel<DetailsViewModel, Deta
     display_costumes: Option[] = $state([]);
     theme_enums: Option[] = $state([]);
 
-    constructor(pageData?: DetailsPageData) {
+    constructor(pageData: DetailsPageData) {
         super();
         // Initialize Inertia's useForm hook directly inside the instance
-        this.form = createDetailsForm(pageData);
-        this.display_costumes = pageData?.display_costumes || [];
-        this.theme_enums = pageData?.theme_enums || [];
+        this.form = generatorForm(pageData);
+        this.display_costumes = pageData.display_costumes || [];
+        this.theme_enums = pageData.theme_enums || [];
     }
 
     submit = async (e: Event) => {
