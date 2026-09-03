@@ -639,7 +639,7 @@ class GetTrooperEventSummaryQueryHandlerTest extends TestCase
         $shift = EventShift::factory()->forEvent($event)->create();
 
         EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asAttended()
-            ->state(fn () => [EventTrooper::ORGANIZATION_ID => $org->id])->create();
+            ->state(fn() => [EventTrooper::ORGANIZATION_ID => $org->id])->create();
 
         $subject = new GetTrooperEventSummaryQueryHandler;
         $result = $subject(new GetTrooperEventSummaryQuery($moderator, organization: $org));
@@ -662,7 +662,7 @@ class GetTrooperEventSummaryQueryHandlerTest extends TestCase
         $shift = EventShift::factory()->forEvent($event)->create();
 
         EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asAttended()
-            ->state(fn () => [EventTrooper::ORGANIZATION_ID => $other_org->id])->create();
+            ->state(fn() => [EventTrooper::ORGANIZATION_ID => $other_org->id])->create();
 
         $subject = new GetTrooperEventSummaryQueryHandler;
         $result = $subject(new GetTrooperEventSummaryQuery($moderator, organization: $target_org));
@@ -679,7 +679,7 @@ class GetTrooperEventSummaryQueryHandlerTest extends TestCase
 
         TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org)->asMember()->create();
         TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($org)
-            ->state(fn () => [TrooperOrganization::JOIN_DATE => Carbon::parse('2026-06-01')])
+            ->state(fn() => [TrooperOrganization::JOIN_DATE => Carbon::parse('2026-06-01')])
             ->create();
 
         $event = Event::factory()->asClosed()->withEventStart(Carbon::parse('2026-01-01'))->create();
@@ -708,7 +708,10 @@ class GetTrooperEventSummaryQueryHandlerTest extends TestCase
         foreach (range(1, 5) as $i)
         {
             $trooper = Trooper::factory()->asMember()->create();
-            $shift = EventShift::factory()->forEvent($event)->create();
+            // Distinct start times avoid the unique (event_id, shift_starts_at) constraint colliding.
+            $shift = EventShift::factory()->forEvent($event)
+                ->withShiftStartsAt(now()->subDays(5)->addMinutes($i))
+                ->create();
             EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asAttended()->create();
         }
 
