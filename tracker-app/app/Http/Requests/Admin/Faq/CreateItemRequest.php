@@ -19,24 +19,26 @@ class CreateItemRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'section_id' => [
+            Faq::SECTION_ID => [
                 'required',
                 'integer',
                 Rule::exists(FaqSection::class, FaqSection::ID)
             ],
-            'title' => [
+            Faq::TITLE => [
                 'required',
                 'string'
             ],
-            'description' => [
+            Faq::DESCRIPTION => [
                 'nullable',
-                'string'
+                'string',
+                'required_without:' . Faq::VIDEO_URL,
             ],
-            'video_url' => [
+            Faq::VIDEO_URL => [
                 'nullable',
                 'string',
                 'url',
-                'max:512'
+                'max:512',
+                'required_without:' . Faq::DESCRIPTION,
             ],
         ];
     }

@@ -19,7 +19,7 @@ class CreateSectionSubmitController extends Controller
     {
         $section = CreateFaqSection::call($request);
 
-        $url = route('admin.faq.sections.update', compact('section'));
+        $url = route('admin.faq.section.update', compact('section'));
 
         FlashType::success(CommsHelper::created($section));
 

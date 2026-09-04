@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Admin\FaqSections;
+namespace Tests\Feature\Http\Controllers\Admin\Faq;
 
 use App\Models\FaqSection;
 use App\Models\Trooper;
@@ -10,7 +10,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
-class UpdateControllerTest extends TestCase
+class UpdateSectionControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -19,11 +19,13 @@ class UpdateControllerTest extends TestCase
         $trooper = Trooper::factory()->asAdministrator()->create();
         $section = FaqSection::factory()->create();
 
-        $response = $this->actingAs($trooper)->get(route('admin.faq.sections.update', ['section' => $section->id]));
+        $response = $this->actingAs($trooper)->get(
+            route('admin.faq.sections.update', ['section' => $section->id])
+        );
 
         $response->assertOk();
-        $response->assertInertia(fn (Assert $page) => $page
-            ->component('admin/faq/sections/Update')
+        $response->assertInertia(fn(Assert $page) => $page
+            ->component('admin/faq/UpdateSection')
             ->where('section.id', $section->id)
         );
     }

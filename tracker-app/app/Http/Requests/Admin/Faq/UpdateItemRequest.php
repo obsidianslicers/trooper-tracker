@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin\Faq;
 
+use App\Models\Faq;
 use App\Models\FaqSection;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -12,32 +13,34 @@ class UpdateItemRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $faq = $this->route('faq');
+        $item = $this->route('item');
 
-        return $this->user()->can('update', $faq);
+        return $this->user()->can('update', $item);
     }
 
     public function rules(): array
     {
         return [
-            'section_id' => [
+            Faq::SECTION_ID => [
                 'required',
                 'integer',
                 Rule::exists(FaqSection::class, FaqSection::ID)
             ],
-            'title' => [
+            Faq::TITLE => [
                 'required',
                 'string'
             ],
-            'description' => [
+            Faq::DESCRIPTION => [
                 'nullable',
-                'string'
+                'string',
+                'required_without:' . Faq::VIDEO_URL,
             ],
-            'video_url' => [
+            Faq::VIDEO_URL => [
                 'nullable',
                 'string',
                 'url',
-                'max:512'
+                'max:512',
+                'required_without:' . Faq::DESCRIPTION,
             ],
         ];
     }

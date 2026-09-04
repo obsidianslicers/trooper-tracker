@@ -1,12 +1,11 @@
-import { SubmitableViewModel, type ISubmitableViewModel } from "$lib/domains/types.svelte";
+import { SubmitableViewModel, type ISubmitableViewModel, type Option } from "$lib/domains/types.svelte";
 import { getRoute } from "$lib/utils";
 import { useForm, type InertiaForm } from "@inertiajs/svelte";
-
 import type { IItemForm } from "../types";
 
-function generateForm(): InertiaForm<CreateItemForm> {
+function generateForm(section_id: number | null): InertiaForm<CreateItemForm> {
     const data = {
-        section_id: null,
+        section_id: section_id,
         title: "",
         description: null,
         video_url: null,
@@ -16,14 +15,21 @@ function generateForm(): InertiaForm<CreateItemForm> {
 
 type CreateItemForm = IItemForm & {};
 
+export type CreateItemPageData = {
+    section_id: number | null;
+    section_options: Option[];
+};
+
 export class CreateItemViewModel
     extends SubmitableViewModel<CreateItemViewModel, CreateItemForm>
     implements ISubmitableViewModel<IItemForm> {
+    section_options: Option[] = $state([]);
 
-    constructor() {
+    constructor(pageData: CreateItemPageData) {
         super();
 
-        this.form = generateForm();
+        this.form = generateForm(pageData.section_id);
+        this.section_options = pageData.section_options;
     }
 
     submit = (e: Event) => {

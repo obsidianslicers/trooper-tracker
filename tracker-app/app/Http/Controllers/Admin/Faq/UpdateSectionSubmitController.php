@@ -20,7 +20,7 @@ class UpdateSectionSubmitController extends Controller
     {
         $section = UpdateFaqSection::call($request);
 
-        $url = route('admin.faq.sections.update', compact('section'));
+        $url = route('admin.faq.index');
 
         FlashType::success(CommsHelper::updated($section));
 

@@ -16,13 +16,13 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class UpdateItemSubmitController extends Controller
 {
-    public function __invoke(UpdateItemRequest $request, Faq $faq): InertiaResponse|SymfonyResponse
+    public function __invoke(UpdateItemRequest $request, Faq $item): InertiaResponse|SymfonyResponse
     {
-        $faq = UpdateFaqItem::call($request);
+        $item = UpdateFaqItem::call($request);
 
-        $url = route('admin.faq.update', compact('faq'));
+        $url = route('admin.faq.index');
 
-        FlashType::warning(CommsHelper::updated($faq));
+        FlashType::warning(CommsHelper::updated($item));
 
         return Inertia::location($url);
     }

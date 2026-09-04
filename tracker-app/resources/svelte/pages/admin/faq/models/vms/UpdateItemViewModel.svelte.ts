@@ -30,13 +30,14 @@ export type UpdateItemPageData = {
 export class UpdateItemViewModel
     extends SubmitableViewModel<UpdateItemViewModel, UpdateItemForm>
     implements ISubmitableViewModel<IItemForm> {
-
+    section_options: Option[] = $state([]);
     item_id: number = $state(0);
     trooper_stamps: ITrooperStamps | null = $state(null);
 
     constructor(pageData: UpdateItemPageData) {
         super();
 
+        this.section_options = pageData.section_options;
         this.item_id = pageData.item.id;
         this.trooper_stamps = pageData.item.trooper_stamps;
         this.form = generateForm(pageData.item);

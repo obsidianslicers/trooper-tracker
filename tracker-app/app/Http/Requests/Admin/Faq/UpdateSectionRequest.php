@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin\Faq;
 
+use App\Models\FaqSection;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateSectionRequest extends FormRequest
@@ -18,11 +19,11 @@ class UpdateSectionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'label' => [
+            FaqSection::LABEL => [
                 'required',
                 'string'
             ],
-            'icon' => [
+            FaqSection::ICON => [
                 'required',
                 'string',
                 'max:64'

@@ -100,7 +100,23 @@ class UpdateItemRequestTest extends TestCase
         $this->assertArrayHasKey(Faq::SECTION_ID, $validator->errors()->toArray());
     }
 
-    public function test_rules_accept_valid_item_data(): void
+    public function test_rules_require_description_or_video_url(): void
+    {
+        $subject = new UpdateItemRequest;
+        $validator = Validator::make(
+            [
+                Faq::SECTION_ID => 1,
+                Faq::TITLE => 'Updated FAQ',
+            ],
+            $subject->rules()
+        );
+
+        $this->assertTrue($validator->fails());
+        $this->assertArrayHasKey(Faq::DESCRIPTION, $validator->errors()->toArray());
+        $this->assertArrayHasKey(Faq::VIDEO_URL, $validator->errors()->toArray());
+    }
+
+    public function test_rules_accept_valid_item_data_with_description_only(): void
     {
         $section = FaqSection::factory()->create();
         $subject = new UpdateItemRequest;
@@ -110,6 +126,22 @@ class UpdateItemRequestTest extends TestCase
                 Faq::SECTION_ID => $section->id,
                 Faq::TITLE => 'Updated question',
                 Faq::DESCRIPTION => 'Updated answer',
+            ],
+            $subject->rules()
+        );
+
+        $this->assertFalse($validator->fails());
+    }
+
+    public function test_rules_accept_valid_item_data_with_video_url_only(): void
+    {
+        $section = FaqSection::factory()->create();
+        $subject = new UpdateItemRequest;
+
+        $validator = Validator::make(
+            [
+                Faq::SECTION_ID => $section->id,
+                Faq::TITLE => 'Updated question',
                 Faq::VIDEO_URL => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
             ],
             $subject->rules()

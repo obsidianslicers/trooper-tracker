@@ -9,6 +9,8 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class TrooperStampsResource extends JsonResource
 {
+    public const string TROOPER_STAMPS = 'trooper_stamps';
+
     /**
      * Transform the resource collection into an array.
      *

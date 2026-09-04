@@ -13,7 +13,7 @@
 
     pageState.title = "Update FAQ Section";
 
-    let vm = $derived(new UpdateSectionViewModel(page.props));
+    let vm = new UpdateSectionViewModel(page.props);
 </script>
 
 <SlimView>

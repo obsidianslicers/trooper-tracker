@@ -24,17 +24,6 @@ Route::prefix('admin/faq')
     {
         Route::get('/index', IndexController::class)->name('index');
 
-
-
-
-
-        Route::get('/create', CreateItemController::class)->name('create');
-        Route::post('/create', CreateItemSubmitController::class);
-        Route::post('/reorder', ReorderItemsSubmitController::class)->name('reorder');
-        Route::get('/{faq}/update', UpdateItemController::class)->name('update');
-        Route::post('/{faq}/update', UpdateItemSubmitController::class);
-        Route::post('/{faq}/delete', DeleteItemSubmitController::class)->name('delete');
-
         Route::prefix('sections')
             ->name('sections.')
             ->group(function ()

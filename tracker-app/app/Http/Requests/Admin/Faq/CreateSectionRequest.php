@@ -17,11 +17,11 @@ class CreateSectionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'label' => [
+            FaqSection::LABEL => [
                 'required',
                 'string'
             ],
-            'icon' => [
+            FaqSection::ICON => [
                 'required',
                 'string',
                 'max:64'

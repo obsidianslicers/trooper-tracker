@@ -9,16 +9,18 @@ use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class DeleteSubmitControllerTest extends TestCase
+class DeleteItemSubmitControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_invoke_soft_deletes_faq_and_redirects(): void
+    public function test_invoke_soft_deletes_faq_item_for_admin(): void
     {
         $trooper = Trooper::factory()->asAdministrator()->create();
         $faq = Faq::factory()->create();
 
-        $response = $this->actingAs($trooper)->post(route('admin.faq.delete', ['faq' => $faq->id]));
+        $response = $this->actingAs($trooper)->post(
+            route('admin.faq.items.delete', ['item' => $faq->id])
+        );
 
         $response->assertRedirect(route('admin.faq.index'));
         $this->assertSoftDeleted('tt_faq', [Faq::ID => $faq->id]);
@@ -28,7 +30,7 @@ class DeleteSubmitControllerTest extends TestCase
     {
         $faq = Faq::factory()->create();
 
-        $response = $this->post(route('admin.faq.delete', ['faq' => $faq->id]));
+        $response = $this->post(route('admin.faq.items.delete', ['item' => $faq->id]));
 
         $response->assertRedirect(route('auth.login'));
     }

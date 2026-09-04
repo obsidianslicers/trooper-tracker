@@ -19,7 +19,7 @@ class UpdateSectionController extends Controller
     {
         $this->crumbs->addRoute('Command Staff', 'admin.display');
         $this->crumbs->addRoute('FAQ', 'admin.faq.index');
-        $this->crumbs->addRoute('Sections', 'admin.faq.sections.list');
+        $this->crumbs->addRoute('Sections', 'admin.faq.index');
     }
 
     public function __invoke(Request $request, FaqSection $section): InertiaResponse|SymfonyResponse

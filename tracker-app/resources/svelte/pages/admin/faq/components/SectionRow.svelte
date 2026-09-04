@@ -16,12 +16,12 @@
         data-id={section.id}
         class={vm.showing_sections ? "draggable" : "table-primary"}
     >
-        <td class="text-muted">
+        <td>
             {#if vm.showing_sections}
                 <i class="fa fa-fw fa-grip-vertical move-handle grab"></i>
             {/if}
         </td>
-        <td class="text-muted">
+        <td>
             <i
                 class={[
                     "fa fa-fw",
@@ -32,7 +32,7 @@
             ></i>
         </td>
         <td class="text-center">
-            <i class="fa fa-fw {section.icon} text-muted"></i>
+            <i class="fa fa-fw {section.icon}"></i>
         </td>
         <td>
             <div

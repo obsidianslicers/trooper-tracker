@@ -9,7 +9,7 @@ use App\Models\FaqSection;
 use Hyperdrive\Message;
 
 /**
- * @method static array call(...$args)
+ * @method static array call(FaqSection $section)
  */
 final class UpdateSectionPageData extends Message
 {

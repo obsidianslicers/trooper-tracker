@@ -18,6 +18,7 @@ export type FaqSection = {
     sort_order: number;
     faqs: FaqItem[];
     update_route?: string;
+    create_item_route?: string;
 };
 
 export type IndexPageData = {
@@ -35,19 +36,25 @@ export class IndexViewModel extends ViewModel {
         super();
         if (pageData.sections.length > 0) {
             this.sections = pageData.sections;
-
-            this.sections.forEach((s) => {
-                s.update_route = getRoute("admin.faq.sections.update", { section: s.id });
-
-                s.faqs.forEach((f) => {
-                    f.update_route = getRoute("admin.faq.items.update", { item: f.id });
-                });
-            });
+            this.buildSections();
         }
     }
 
     get showing_sections(): boolean { return this.expand_section_id === null; }
     get showing_items(): boolean { return this.expand_section_id !== null; }
+
+    private buildSections() {
+        this.sections.forEach((s) => {
+            s.update_route = getRoute("admin.faq.sections.update", { section: s.id });
+            s.create_item_route = getRoute("admin.faq.items.create", {
+                section_id: s.id,
+            });
+
+            s.faqs.forEach((f) => {
+                f.update_route = getRoute("admin.faq.items.update", { item: f.id });
+            });
+        });
+    }
 
     toggleSection = (section_id: number) => {
         if (this.showing_sections) {

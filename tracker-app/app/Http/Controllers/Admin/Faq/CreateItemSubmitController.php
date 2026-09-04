@@ -17,11 +17,11 @@ class CreateItemSubmitController extends Controller
 {
     public function __invoke(CreateItemRequest $request): InertiaResponse|SymfonyResponse
     {
-        $faq = CreateFaqItem::call($request);
+        $item = CreateFaqItem::call($request);
 
-        $url = route('admin.faq.update', compact('faq'));
+        $url = route('admin.faq.items.update', compact('item'));
 
-        FlashType::success(CommsHelper::created($faq));
+        FlashType::success(CommsHelper::created($item));
 
         return Inertia::location($url);
     }

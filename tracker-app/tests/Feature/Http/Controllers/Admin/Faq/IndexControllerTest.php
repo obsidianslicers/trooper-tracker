@@ -9,23 +9,23 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
-class CreateControllerTest extends TestCase
+class IndexControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_invoke_displays_create_faq_page_for_admin(): void
+    public function test_invoke_displays_faq_index_for_admin(): void
     {
         $trooper = Trooper::factory()->asAdministrator()->create();
 
-        $response = $this->actingAs($trooper)->get(route('admin.faq.create'));
+        $response = $this->actingAs($trooper)->get(route('admin.faq.index'));
 
         $response->assertOk();
-        $response->assertInertia(fn (Assert $page) => $page->component('admin/faq/Create'));
+        $response->assertInertia(fn(Assert $page) => $page->component('admin/faq/Index'));
     }
 
     public function test_invoke_requires_authentication(): void
     {
-        $response = $this->get(route('admin.faq.create'));
+        $response = $this->get(route('admin.faq.index'));
 
         $response->assertRedirect(route('auth.login'));
     }

@@ -56,7 +56,7 @@
                             <CreateButton
                                 label="Item"
                                 small={true}
-                                href={getRoute("admin.faq.items.create")}
+                                href={section.create_item_route}
                             />
                         </th>
                     </tr>

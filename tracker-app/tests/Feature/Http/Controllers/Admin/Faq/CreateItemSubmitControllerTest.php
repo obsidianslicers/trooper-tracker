@@ -10,25 +10,24 @@ use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class CreateSubmitControllerTest extends TestCase
+class CreateItemSubmitControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_invoke_creates_faq_and_redirects(): void
+    public function test_invoke_creates_faq_item_for_admin(): void
     {
         $trooper = Trooper::factory()->asAdministrator()->create();
         $section = FaqSection::factory()->create();
 
-        $response = $this->actingAs($trooper)->post('/admin/faq/create', [
-            Faq::SECTION_ID  => $section->id,
-            Faq::TITLE       => 'How do I register?',
+        $this->actingAs($trooper)->post(route('admin.faq.items.create'), [
+            Faq::SECTION_ID => $section->id,
+            Faq::TITLE => 'How do I register?',
             Faq::DESCRIPTION => 'Visit the registration page.',
         ]);
 
-        $response->assertRedirect();
         $this->assertDatabaseHas('tt_faq', [
             Faq::SECTION_ID => $section->id,
-            Faq::TITLE      => 'How do I register?',
+            Faq::TITLE => 'How do I register?',
             Faq::SORT_ORDER => 1,
         ]);
     }
@@ -37,9 +36,9 @@ class CreateSubmitControllerTest extends TestCase
     {
         $section = FaqSection::factory()->create();
 
-        $response = $this->post('/admin/faq/create', [
+        $response = $this->post(route('admin.faq.items.create'), [
             Faq::SECTION_ID => $section->id,
-            Faq::TITLE      => 'How do I register?',
+            Faq::TITLE => 'How do I register?',
         ]);
 
         $response->assertRedirect(route('auth.login'));

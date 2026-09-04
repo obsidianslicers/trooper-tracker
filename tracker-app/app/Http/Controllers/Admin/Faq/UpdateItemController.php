@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Faq;
 
 use App\Http\Controllers\Controller;
-use App\Messages\Faq\PageData\UpdateFaqPageData;
+use App\Messages\Faq\PageData\UpdateItemPageData;
 use App\Models\Faq;
 use App\Services\BreadCrumbService;
 use Illuminate\Http\Request;
@@ -23,7 +23,7 @@ class UpdateItemController extends Controller
 
     public function __invoke(Request $request, Faq $faq): InertiaResponse|SymfonyResponse
     {
-        $data = UpdateFaqPageData::call($request);
+        $data = UpdateItemPageData::call($request);
 
         return Inertia::render('admin/faq/UpdateItem', $data);
     }

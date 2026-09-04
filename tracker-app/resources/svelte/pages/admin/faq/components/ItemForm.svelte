@@ -7,16 +7,20 @@
     import SubmitButtonContainer from "$lib/components/form/SubmitButtonContainer.svelte";
     import CancelButton from "$lib/components/ui/buttons/CancelButton.svelte";
     import SubmitButton from "$lib/components/ui/buttons/SubmitButton.svelte";
-    import type { ISubmitableViewModel } from "$lib/domains/types.svelte";
+    import type {
+        ISubmitableViewModel,
+        Option,
+    } from "$lib/domains/types.svelte";
     import { getRoute } from "$lib/utils";
     import type { IItemForm } from "../models/types";
 
     interface Props {
         vm: ISubmitableViewModel<IItemForm>;
         label: string;
+        section_options: Option[];
     }
 
-    let { vm, label }: Props = $props();
+    let { vm, label, section_options }: Props = $props();
 </script>
 
 <form onsubmit={vm.submit}>
@@ -24,7 +28,7 @@
         <InputSelect
             label="Section"
             bind:value={vm.form.section_id}
-            options={vm.sections}
+            options={section_options}
             errors={vm.errors.section_id}
         />
     </InputContainer>

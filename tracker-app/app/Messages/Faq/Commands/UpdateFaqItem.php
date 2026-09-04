@@ -8,12 +8,12 @@ use App\Models\Faq;
 use Hyperdrive\Message;
 
 /**
- * @method static Faq call(Faq $faq, int $section_id, string $title, string|null $description, string|null $video_url)
+ * @method static Faq call(Faq $item, int $section_id, string $title, string|null $description, string|null $video_url)
  */
 final class UpdateFaqItem extends Message
 {
     public function __construct(
-        private readonly Faq $faq,
+        private readonly Faq $item,
         private readonly int $section_id,
         private readonly string $title,
         private readonly string|null $description,
@@ -23,13 +23,13 @@ final class UpdateFaqItem extends Message
 
     public function handle(): Faq
     {
-        $this->faq->section_id = $this->section_id;
-        $this->faq->title = $this->title;
-        $this->faq->description = $this->description;
-        $this->faq->video_url = $this->video_url;
+        $this->item->section_id = $this->section_id;
+        $this->item->title = $this->title;
+        $this->item->description = $this->description;
+        $this->item->video_url = $this->video_url;
 
-        $this->faq->save();
+        $this->item->save();
 
-        return $this->faq;
+        return $this->item;
     }
 }

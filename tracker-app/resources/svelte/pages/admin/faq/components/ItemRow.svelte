@@ -16,7 +16,7 @@
         <i class="fa fa-fw fa-grip-vertical move-handle grab"></i>
     </td>
     <td></td>
-    <td>
+    <td class="text-center">
         {#if item.has_video}
             <i class="fa fa-fw fa-circle-play text-info ms-1"></i>
         {/if}
