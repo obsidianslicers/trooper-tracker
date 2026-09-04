@@ -11,6 +11,7 @@
         "@tailwindcss/vite": "^4.0.0",
         "@tsconfig/svelte": "^5.0.8",
         "@types/bootstrap": "^5.2.11",
+        "@types/sortablejs": "^1.15.9",
         "axios": "^1.11.0",
         "concurrently": "^9.0.1",
         "laravel-vite-plugin": "^2.0.0",

@@ -1,3 +1,4 @@
+import breadCrumbState from '$lib/states/bread-crumb-state.svelte';
 import flashState from '$lib/states/flash-state.svelte';
 import toastState from '$lib/states/toast-state.svelte';
 import { setupProgress } from '@inertiajs/core';
@@ -30,6 +31,26 @@ function to_messages(value: FlashPropValue): string[] {
     }
 
     return [];
+}
+
+interface InertiaBreadcrumb {
+    title: string;
+    url: string;
+}
+
+function handleBreadcrumbs(event: CustomEvent): void {
+    const pg = event.detail.page;
+    const crumbs = (pg.props.breadcrumbs as InertiaBreadcrumb[] | undefined) ?? [];
+
+    breadCrumbState.clear();
+
+    crumbs.forEach((crumb, index) => {
+        if (index === 0) {
+            breadCrumbState.home(crumb.title, crumb.url);
+        } else {
+            breadCrumbState.add(crumb.title, crumb.url);
+        }
+    });
 }
 
 function handleMessages(event: CustomEvent): void {
@@ -68,10 +89,7 @@ router.on('navigate', (event) => {
     });
 
     handleMessages(event);
-});
-
-router.on('success', (event) => {
-    handleMessages(event);
+    handleBreadcrumbs(event);
 });
 
 router.on('error', (event) => {

@@ -3,6 +3,14 @@
 @import "flatpickr/dist/flatpickr.min.css";
 @import "easymde/dist/easymde.min.css";
 
+:global(.sortable-ghost) {
+    opacity: 0.6;
+}
+
+:global(.move-handle) {
+    cursor: move;
+}
+
 // Static Styles
 [x-cloak] {
     display: none !important;
@@ -10,6 +18,10 @@
 
 .pointer {
     cursor: pointer;
+}
+
+.grab {
+    cursor: grab;
 }
 
 .btn.htmx-disable.htmx-request {

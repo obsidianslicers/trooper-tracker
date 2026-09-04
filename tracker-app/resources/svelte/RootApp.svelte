@@ -1,4 +1,5 @@
 <script lang="ts">
+    import Breadcrumbs from "$lib/components/Breadcrumbs.svelte";
     import FlashMessages from "$lib/components/FlashMessages.svelte";
     import PageTitle from "$lib/components/PageTitle.svelte";
     import ToastMessages from "$lib/components/ToastMessages.svelte";
@@ -20,6 +21,7 @@
 </svelte:head>
 
 <ToastMessages />
+<Breadcrumbs />
 <PageTitle />
 
 <div class="container rounded-3 shadow-sm p-4 mb-5 main-content">

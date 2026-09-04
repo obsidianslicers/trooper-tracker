@@ -92,7 +92,7 @@ Both route groups are protected by `auth` and `check.role:administrator` middlew
 
 | Method | Path | Controller | Name |
 |---|---|---|---|
-| GET | `/admin/faq/sections` | `SectionListController` | `admin.faq.sections.list` |
+| GET | `/admin/faq/sections` | `SectionListController` | `admin.faq.index` |
 | GET | `/admin/faq/sections/create` | `SectionCreateController` | `admin.faq.sections.create` |
 | POST | `/admin/faq/sections/create` | `SectionCreateSubmitController` | — |
 | GET | `/admin/faq/sections/{section}/update` | `SectionUpdateController` | `admin.faq.sections.update` |

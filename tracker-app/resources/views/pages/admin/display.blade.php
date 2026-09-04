@@ -122,6 +122,11 @@
         View Reports &amp; Statistics
     </x-dashboard-card>
     @role(['administrator'])
+    <x-dashboard-card :label="'FAQ & Help'"
+                      :icon="'fa-question'"
+                      :url="route('admin.faq.index')">
+        View Frequently Asked Questions and Help
+    </x-dashboard-card>
     <x-dashboard-card :label="'System Check'"
                       :icon="'fa-heart-pulse'"
                       :url="route('admin.system-check')">
