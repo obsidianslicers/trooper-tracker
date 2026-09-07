@@ -24,7 +24,7 @@ class DeleteSectionSubmitController extends Controller
         {
             FlashType::danger("Cannot delete \"{$section->label}\" — it has {$faq_count} FAQ item(s). Move or delete them first.");
 
-            return Inertia::render('admin/faq/ListSections');
+            return Inertia::render('admin/faq/Index');
         }
 
         $message = CommsHelper::deleted($section);
@@ -33,6 +33,6 @@ class DeleteSectionSubmitController extends Controller
 
         FlashType::success($message);
 
-        return Inertia::render('admin/faq/ListSections');
+        return Inertia::render('admin/faq/Index');
     }
 }

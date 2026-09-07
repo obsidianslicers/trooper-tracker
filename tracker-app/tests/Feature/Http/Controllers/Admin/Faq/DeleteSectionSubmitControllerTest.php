@@ -24,7 +24,7 @@ class DeleteSectionSubmitControllerTest extends TestCase
         );
 
         $response->assertOk();
-        $response->assertInertia(fn($page) => $page->component('admin/faq/ListSections'));
+        $response->assertInertia(fn($page) => $page->component('admin/faq/Index'));
         $this->assertSoftDeleted('tt_faq_sections', [FaqSection::ID => $section->id]);
     }
 
@@ -38,8 +38,9 @@ class DeleteSectionSubmitControllerTest extends TestCase
             route('admin.faq.sections.delete', ['section' => $section->id])
         );
 
-        $response->assertSessionHasErrors('section');
-        $this->assertDatabaseHas('tt_faq_sections', [FaqSection::ID => $section->id]);
+        $response->assertOk();
+        $response->assertInertia(fn($page) => $page->component('admin/faq/Index'));
+        $this->assertNotSoftDeleted('tt_faq_sections', [FaqSection::ID => $section->id]);
     }
 
     public function test_invoke_requires_authentication(): void

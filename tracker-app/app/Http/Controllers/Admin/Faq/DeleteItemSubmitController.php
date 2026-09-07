@@ -6,26 +6,24 @@ namespace App\Http\Controllers\Admin\Faq;
 
 use App\Enums\FlashType;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\Faq\DeleteItemRequest;
 use App\Messages\Faq\Commands\DeleteFaqItem;
 use App\Models\Faq;
 use Hyperdrive\CommsHelper;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
-use Illuminate\Http\Request;
 
 class DeleteItemSubmitController extends Controller
 {
-    public function __invoke(Request $request, Faq $faq): InertiaResponse|SymfonyResponse
+    public function __invoke(DeleteItemRequest $request, Faq $item): InertiaResponse|SymfonyResponse
     {
-        $message = CommsHelper::deleted($faq);
+        $message = CommsHelper::deleted($item);
 
-        DeleteFaqItem::call(faq: $faq);
-
-        $url = route('admin.faq.index');
+        DeleteFaqItem::call(faq: $item);
 
         FlashType::success($message);
 
-        return Inertia::location($url);
+        return Inertia::render('admin/faq/Index');
     }
 }

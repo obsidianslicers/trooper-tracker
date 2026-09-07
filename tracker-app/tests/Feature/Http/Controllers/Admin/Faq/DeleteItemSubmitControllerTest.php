@@ -22,7 +22,8 @@ class DeleteItemSubmitControllerTest extends TestCase
             route('admin.faq.items.delete', ['item' => $faq->id])
         );
 
-        $response->assertRedirect(route('admin.faq.index'));
+        $response->assertOk();
+        $response->assertInertia(fn($page) => $page->component('admin/faq/Index'));
         $this->assertSoftDeleted('tt_faq', [Faq::ID => $faq->id]);
     }
 

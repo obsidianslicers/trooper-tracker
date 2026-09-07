@@ -17,11 +17,11 @@ class UpdateFaqItemTest extends TestCase
     public function test_handle_updates_faq_fields(): void
     {
         $section = FaqSection::factory()->create();
-        $faq = Faq::factory()->withSection($section)->create();
+        $item = Faq::factory()->withSection($section)->create();
         $new_section = FaqSection::factory()->create();
 
         (new UpdateFaqItem(
-            faq: $faq,
+            item: $item,
             section_id: $new_section->id,
             title: 'Updated Title',
             description: 'Updated description.',
@@ -29,7 +29,7 @@ class UpdateFaqItemTest extends TestCase
         ))->handle();
 
         $this->assertDatabaseHas('tt_faq', [
-            Faq::ID => $faq->id,
+            Faq::ID => $item->id,
             Faq::SECTION_ID => $new_section->id,
             Faq::TITLE => 'Updated Title',
             Faq::DESCRIPTION => 'Updated description.',
