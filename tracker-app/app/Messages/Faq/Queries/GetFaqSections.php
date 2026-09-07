@@ -21,6 +21,7 @@ final class GetFaqSections extends Message
     /**
      * Retrieves all FAQ sections.
 
+     *
      * @return Collection A collection representing the FAQ sections, including section IDs and names
      */
     public function handle(): Collection

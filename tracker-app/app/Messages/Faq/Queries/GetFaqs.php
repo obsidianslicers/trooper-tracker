@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Messages\Faq\Queries;
 
+use App\Models\Faq;
 use App\Models\FaqSection;
 use Hyperdrive\Message;
 use Illuminate\Support\Collection;
-use App\Models\Faq;
 
 /**
  * Retrieves all FAQs.
@@ -19,19 +19,17 @@ use App\Models\Faq;
  */
 final class GetFaqs extends Message
 {
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 
     /**
      * Retrieves all FAQ sections.
 
+     *
      * @return Collection A collection representing the FAQ sections, including section IDs and names
      */
     public function handle(): Collection
     {
-        $relations = ['faqs' => function ($query)
-        {
+        $relations = ['faqs' => function ($query) {
             $query->orderBy(Faq::SORT_ORDER)->orderBy(Faq::ID);
         }];
 

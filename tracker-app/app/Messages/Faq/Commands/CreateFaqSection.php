@@ -15,8 +15,7 @@ final class CreateFaqSection extends Message
     public function __construct(
         private readonly string $label,
         private readonly string $icon,
-    ) {
-    }
+    ) {}
 
     public function handle(): FaqSection
     {

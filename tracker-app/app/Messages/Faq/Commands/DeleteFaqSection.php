@@ -14,8 +14,7 @@ final class DeleteFaqSection extends Message
 {
     public function __construct(
         private readonly FaqSection $section,
-    ) {
-    }
+    ) {}
 
     public function handle(): void
     {

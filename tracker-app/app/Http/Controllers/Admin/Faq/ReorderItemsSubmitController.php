@@ -6,10 +6,9 @@ namespace App\Http\Controllers\Admin\Faq;
 
 use App\Http\Controllers\Controller;
 use App\Messages\Faq\Commands\ReorderFaqItems;
-use Inertia\Inertia;
+use Illuminate\Http\Request;
 use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
-use Illuminate\Http\Request;
 
 class ReorderItemsSubmitController extends Controller
 {

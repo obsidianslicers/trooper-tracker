@@ -15,13 +15,11 @@ final class ReorderFaqItems extends Message
 {
     public function __construct(
         private readonly array $ordered_ids,
-    ) {
-    }
+    ) {}
 
     public function handle(): void
     {
-        DB::transaction(function ()
-        {
+        DB::transaction(function () {
             foreach ($this->ordered_ids as $position => $id)
             {
                 Faq::query()

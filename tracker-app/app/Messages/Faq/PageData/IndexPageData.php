@@ -16,7 +16,7 @@ final class IndexPageData extends Message
     public function handle(): array
     {
         return [
-            'sections' => $this->getSections()
+            'sections' => $this->getSections(),
         ];
     }
 

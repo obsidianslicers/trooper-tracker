@@ -15,10 +15,9 @@ final class CreateFaqItem extends Message
     public function __construct(
         private readonly int $section_id,
         private readonly string $title,
-        private readonly string|null $description,
-        private readonly string|null $video_url,
-    ) {
-    }
+        private readonly ?string $description,
+        private readonly ?string $video_url,
+    ) {}
 
     public function handle(): Faq
     {

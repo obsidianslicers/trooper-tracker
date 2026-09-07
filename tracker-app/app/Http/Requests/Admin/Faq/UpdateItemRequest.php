@@ -24,23 +24,23 @@ class UpdateItemRequest extends FormRequest
             Faq::SECTION_ID => [
                 'required',
                 'integer',
-                Rule::exists(FaqSection::class, FaqSection::ID)
+                Rule::exists(FaqSection::class, FaqSection::ID),
             ],
             Faq::TITLE => [
                 'required',
-                'string'
+                'string',
             ],
             Faq::DESCRIPTION => [
                 'nullable',
                 'string',
-                'required_without:' . Faq::VIDEO_URL,
+                'required_without:'.Faq::VIDEO_URL,
             ],
             Faq::VIDEO_URL => [
                 'nullable',
                 'string',
                 'url',
                 'max:512',
-                'required_without:' . Faq::DESCRIPTION,
+                'required_without:'.Faq::DESCRIPTION,
             ],
         ];
     }

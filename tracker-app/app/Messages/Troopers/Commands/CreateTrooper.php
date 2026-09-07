@@ -28,8 +28,7 @@ final class CreateTrooper extends Message
         private readonly ?string $phone = null,
         private readonly ?string $date_of_birth = null,
         private readonly ?string $guardian_email = null,
-    ) {
-    }
+    ) {}
 
     public function handle(): Trooper
     {

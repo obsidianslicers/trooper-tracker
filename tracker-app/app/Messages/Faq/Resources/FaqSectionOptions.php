@@ -18,9 +18,9 @@ class FaqSectionOptions extends ResourceCollection
     public function toArray(Request $request): array
     {
         return $this->collection
-            ->map(fn(FaqSection $section) => [
+            ->map(fn (FaqSection $section) => [
                 'value' => $section->id,
-                'label' => $section->label
+                'label' => $section->label,
             ])
             ->toArray();
     }

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin\Faq;
 
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 
 class DeleteSectionRequest extends FormRequest
 {
@@ -25,8 +25,7 @@ class DeleteSectionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            function (Validator $validator): void
-            {
+            function (Validator $validator): void {
                 $section = $this->route('section');
 
                 if ($section->faqs()->exists())

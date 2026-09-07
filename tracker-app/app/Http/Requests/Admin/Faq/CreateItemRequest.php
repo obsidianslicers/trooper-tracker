@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin\Faq;
 
-use App\Models\FaqSection;
 use App\Models\Faq;
+use App\Models\FaqSection;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -22,23 +22,23 @@ class CreateItemRequest extends FormRequest
             Faq::SECTION_ID => [
                 'required',
                 'integer',
-                Rule::exists(FaqSection::class, FaqSection::ID)
+                Rule::exists(FaqSection::class, FaqSection::ID),
             ],
             Faq::TITLE => [
                 'required',
-                'string'
+                'string',
             ],
             Faq::DESCRIPTION => [
                 'nullable',
                 'string',
-                'required_without:' . Faq::VIDEO_URL,
+                'required_without:'.Faq::VIDEO_URL,
             ],
             Faq::VIDEO_URL => [
                 'nullable',
                 'string',
                 'url',
                 'max:512',
-                'required_without:' . Faq::DESCRIPTION,
+                'required_without:'.Faq::DESCRIPTION,
             ],
         ];
     }

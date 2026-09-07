@@ -22,8 +22,7 @@ final class GetOrganizationNotifications extends Message
 {
     public function __construct(
         private readonly Trooper $trooper
-    ) {
-    }
+    ) {}
 
     /**
      * Retrieves the details of an account.

@@ -15,6 +15,7 @@ class FaqsCollection extends ResourceCollection
      * Disable the automagic resolution of the resource class for the collection.
      * This prevents Laravel from automatically resolving the resource class for
      * each item in the collection.
+     *
      * @return null
      */
     protected function collects(): ?string
@@ -30,7 +31,7 @@ class FaqsCollection extends ResourceCollection
     public function toArray(Request $request): array
     {
         return $this->collection
-            ->map(fn(FaqSection $section) => [
+            ->map(fn (FaqSection $section) => [
                 FaqSection::ID => $section->id,
                 FaqSection::LABEL => $section->label,
                 FaqSection::ICON => $section->icon,
@@ -39,10 +40,11 @@ class FaqsCollection extends ResourceCollection
             ])
             ->toArray();
     }
+
     private function getQuestions(FaqSection $section): array
     {
         return $section->faqs
-            ->map(fn($faq) => [
+            ->map(fn ($faq) => [
                 Faq::ID => $faq->id,
                 Faq::TITLE => $faq->title,
                 Faq::SORT_ORDER => $faq->sort_order,

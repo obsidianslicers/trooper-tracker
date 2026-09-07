@@ -19,12 +19,12 @@ class CreateSectionRequest extends FormRequest
         return [
             FaqSection::LABEL => [
                 'required',
-                'string'
+                'string',
             ],
             FaqSection::ICON => [
                 'required',
                 'string',
-                'max:64'
+                'max:64',
             ],
         ];
     }

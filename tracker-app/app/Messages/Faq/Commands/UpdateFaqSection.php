@@ -16,8 +16,7 @@ final class UpdateFaqSection extends Message
         private readonly FaqSection $section,
         private readonly string $label,
         private readonly string $icon,
-    ) {
-    }
+    ) {}
 
     public function handle(): FaqSection
     {

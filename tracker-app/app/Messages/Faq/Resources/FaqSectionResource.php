@@ -22,7 +22,7 @@ class FaqSectionResource extends JsonResource
             FaqSection::ID => $this->id,
             FaqSection::LABEL => $this->label,
             FaqSection::ICON => $this->icon,
-            TrooperStampsResource::TROOPER_STAMPS => new TrooperStampsResource($this)
+            TrooperStampsResource::TROOPER_STAMPS => new TrooperStampsResource($this),
         ];
     }
 }

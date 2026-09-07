@@ -17,14 +17,13 @@ final class UpdateItemPageData extends Message
 {
     public function __construct(
         private readonly Faq $item,
-    ) {
-    }
+    ) {}
 
     public function handle(): array
     {
         return [
             'item' => $this->getFaqItem(),
-            'section_options' => $this->getSectionOptions()
+            'section_options' => $this->getSectionOptions(),
         ];
     }
 

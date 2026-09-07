@@ -47,8 +47,7 @@ final class AccountPageData extends Message
      */
     public function __construct(
         private readonly Actor $actor
-    ) {
-    }
+    ) {}
 
     /**
      * Retrieves application configuration as a nested associative array.

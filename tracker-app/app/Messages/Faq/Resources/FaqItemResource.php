@@ -24,7 +24,7 @@ class FaqItemResource extends JsonResource
             Faq::TITLE => $this->title,
             Faq::DESCRIPTION => $this->description,
             Faq::VIDEO_URL => $this->video_url,
-            TrooperStampsResource::TROOPER_STAMPS => new TrooperStampsResource($this)
+            TrooperStampsResource::TROOPER_STAMPS => new TrooperStampsResource($this),
         ];
     }
 }

@@ -14,8 +14,7 @@ final class DeleteFaqItem extends Message
 {
     public function __construct(
         private readonly Faq $faq,
-    ) {
-    }
+    ) {}
 
     public function handle(): void
     {

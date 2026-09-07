@@ -14,15 +14,14 @@ use Hyperdrive\Message;
 final class CreateItemPageData extends Message
 {
     public function __construct(
-        private readonly int|null $section_id = null,
-    ) {
-    }
+        private readonly ?int $section_id = null,
+    ) {}
 
     public function handle(): array
     {
         return [
             'section_id' => $this->section_id,
-            'section_options' => $this->getSectionOptions()
+            'section_options' => $this->getSectionOptions(),
         ];
     }
 

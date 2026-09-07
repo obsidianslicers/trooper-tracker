@@ -9,7 +9,7 @@ namespace App\Enums;
  *
  * This is typically used for flash messages or alerts to convey information
  * with a certain level of importance or context (e.g., success, error).
- * 
+ *
  * Wired into the naming conventions of the Bootstrap alert classes for consistent styling.
  */
 enum FlashType: string
@@ -35,9 +35,8 @@ enum FlashType: string
 
     /**
      * Adds to the built-in flash session collection
-     * 
-     * @param mixed $message
-     * @return void
+     *
+     * @param  mixed  $message
      */
     public function flash($message): void
     {
@@ -46,9 +45,8 @@ enum FlashType: string
 
     /**
      * Adds to the built-in flash session collection
-     * 
-     * @param mixed $message
-     * @return void
+     *
+     * @param  mixed  $message
      */
     public static function info($message): void
     {
@@ -57,9 +55,8 @@ enum FlashType: string
 
     /**
      * Adds to the built-in flash session collection
-     * 
-     * @param mixed $message
-     * @return void
+     *
+     * @param  mixed  $message
      */
     public static function success($message): void
     {
@@ -68,9 +65,8 @@ enum FlashType: string
 
     /**
      * Adds to the built-in flash session collection
-     * 
-     * @param mixed $message
-     * @return void
+     *
+     * @param  mixed  $message
      */
     public static function warning($message): void
     {
@@ -79,9 +75,8 @@ enum FlashType: string
 
     /**
      * Adds to the built-in flash session collection
-     * 
-     * @param mixed $message
-     * @return void
+     *
+     * @param  mixed  $message
      */
     public static function danger($message): void
     {

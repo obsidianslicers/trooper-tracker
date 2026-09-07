@@ -22,8 +22,7 @@ final class GetCostumesWithPrefixes extends Message
 {
     public function __construct(
         private readonly Trooper $trooper
-    ) {
-    }
+    ) {}
 
     /**
      * Retrieves the details of an account.
@@ -40,8 +39,7 @@ final class GetCostumesWithPrefixes extends Message
         return TrooperCostume::query()
             ->with($with)
             ->where(TrooperCostume::TROOPER_ID, $this->trooper->id)
-            ->whereHas('organization_costume', function ($query)
-            {
+            ->whereHas('organization_costume', function ($query) {
                 $query->whereNotNull(OrganizationCostume::PREFIX);
             })
             ->get();
