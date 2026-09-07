@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Mail\Events;
 
-use App\Mail\HasRetryPolicy;
 use App\Models\EventTrooper;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -22,7 +21,6 @@ use Illuminate\Queue\SerializesModels;
  */
 class TrooperSignUp extends Mailable implements ShouldQueue
 {
-    use HasRetryPolicy;
     use Queueable, SerializesModels;
 
     /**

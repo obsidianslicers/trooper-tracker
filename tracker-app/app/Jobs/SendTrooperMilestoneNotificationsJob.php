@@ -53,6 +53,13 @@ class SendTrooperMilestoneNotificationsJob implements ShouldQueue
             return;
         }
 
+        // Mark sent before fanning out. Each notify() below only enqueues a
+        // per-recipient job, so marking first makes this at-most-once: a job
+        // retry will not re-email every admin and moderator already notified.
+        TrooperAchievement::query()
+            ->whereKey($achievements->modelKeys())
+            ->update([TrooperAchievement::NOTIFICATION_SENT_AT => now()]);
+
         /** @var Collection<int, Collection<int, TrooperAchievement>> $roundups */
         $roundups = collect();
 
@@ -88,10 +95,6 @@ class SendTrooperMilestoneNotificationsJob implements ShouldQueue
                 new TrooperMilestoneNotification($recipient_achievements),
             );
         }
-
-        TrooperAchievement::query()
-            ->whereKey($achievements->modelKeys())
-            ->update([TrooperAchievement::NOTIFICATION_SENT_AT => now()]);
     }
 
     private function achievementsForRecipient(Trooper $recipient, Collection $achievements): Collection
