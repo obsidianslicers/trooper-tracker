@@ -77,3 +77,11 @@
     onDelete={vm.deleteSection}
     onCancel={vm.cancelDelete}
 />
+
+<DeleteConfirmationModal
+    show={vm.show_delete_item}
+    label={vm.delete_item?.title}
+    deleting={vm.deleting}
+    onDelete={vm.deleteItem}
+    onCancel={vm.cancelDelete}
+/>

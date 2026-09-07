@@ -33,7 +33,13 @@
             errors={vm.errors.icon}
         />
         <InputHelp>
-            Font Awesome class, e.g. <code>fa-user-plus</code>
+            <a
+                href="https://fontawesome.com/search?ic=free-collection"
+                target="_blank"
+            >
+                Font Awesome class, e.g.
+            </a>
+            <code>fa-user-plus</code>
         </InputHelp>
     </InputContainer>
 

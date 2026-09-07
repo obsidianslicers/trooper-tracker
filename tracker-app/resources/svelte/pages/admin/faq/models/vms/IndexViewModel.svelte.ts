@@ -117,4 +117,32 @@ export class IndexViewModel extends ViewModel {
 
         router.post(url, data, options);
     };
+
+    deleteItem = (e: Event) => {
+        e.preventDefault();
+
+        if (!this.show_delete_item || !this.delete_item) {
+            return;
+        }
+
+        this.deleting = true;
+
+        const item_id = this.delete_item.id;
+
+        const url = getRoute("admin.faq.items.delete", { item: this.delete_item.id });
+
+        const data = {};
+
+        const options = createPartialReloadOptions({
+            onFinish: () => {
+                this.deleting = false;
+                this.delete_item = null;
+                this.sections.forEach((s) => {
+                    s.faqs = s.faqs.filter((f) => f.id !== item_id);
+                });
+            },
+        });
+
+        router.post(url, data, options);
+    };
 }
