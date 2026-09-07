@@ -49,7 +49,7 @@ export class LoginViewModel extends SubmitableViewModel<LoginViewModel, Login> {
             preserveScroll: true,
             onError: () => {
                 // Dismiss the loading toast if validation fails on backend
-                toastStateSvelte.dismiss(toast);
+                toastStateSvelte.dismiss(toast.id);
             }
         });
     };

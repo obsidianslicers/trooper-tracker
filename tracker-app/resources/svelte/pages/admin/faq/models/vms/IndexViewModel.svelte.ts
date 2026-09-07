@@ -1,6 +1,6 @@
 import { ViewModel } from "$lib/domains/types.svelte";
 import toastStateSvelte from "$lib/states/toast-state.svelte";
-import { getRoute } from "$lib/utils";
+import { createPartialReloadOptions, getRoute } from "$lib/utils";
 import { router } from "@inertiajs/svelte";
 
 export type FaqItem = {
@@ -26,7 +26,7 @@ export type IndexPageData = {
 };
 
 export class IndexViewModel extends ViewModel {
-    // deleting: boolean = $state(false);
+    deleting: boolean = $state(false);
     delete_section: FaqSection | null = $state(null);
     delete_item: FaqItem | null = $state(null);
     sections: FaqSection[] = $state([]);
@@ -43,6 +43,9 @@ export class IndexViewModel extends ViewModel {
     get showing_sections(): boolean { return this.expand_section_id === null; }
     get showing_items(): boolean { return this.expand_section_id !== null; }
 
+    get show_delete_section(): boolean { return this.delete_section !== null; }
+    get show_delete_item(): boolean { return this.delete_item !== null; }
+
     private buildSections() {
         this.sections.forEach((s) => {
             s.update_route = getRoute("admin.faq.sections.update", { section: s.id });
@@ -56,15 +59,18 @@ export class IndexViewModel extends ViewModel {
         });
     }
 
+    cancelDelete = () => {
+        this.delete_section = null;
+        this.delete_item = null;
+    };
+
     toggleSection = (section_id: number) => {
         if (this.showing_sections) {
             this.expand_section_id = section_id;
         } else {
             this.expand_section_id = null;
         }
-    }
-
-    // get show_delete_confirmation(): boolean { return this.delete_section !== null; }
+    };
 
     reorder = (ordered_ids: number[]) => {
         const url = this.showing_sections
@@ -73,11 +79,7 @@ export class IndexViewModel extends ViewModel {
 
         const data = { ids: ordered_ids };
 
-        const options = {
-            preserveUrl: true,
-            preserveState: true,
-            preserveScroll: true,
-            only: ['flash', 'results'],
+        const options = createPartialReloadOptions({
             onSuccess: () => {
                 const message = this.showing_sections
                     ? "Sections reordered successfully."
@@ -85,46 +87,34 @@ export class IndexViewModel extends ViewModel {
 
                 toastStateSvelte.success(message);
             }
-        };
+        });
 
         router.post(url, data, options);
     };
 
-    // confirmDelete = (item: FaqSection) => {
-    //     this.delete_section = item;
-    // };
+    deleteSection = (e: Event) => {
+        e.preventDefault();
 
-    // cancelDelete = () => {
-    //     this.delete_section = null;
-    // };
+        if (!this.show_delete_section || !this.delete_section) {
+            return;
+        }
 
-    // delete = (e: Event) => {
-    //     e.preventDefault();
+        this.deleting = true;
 
-    //     if (!this.show_delete_confirmation || !this.delete_section) {
-    //         return;
-    //     }
+        const section_id = this.delete_section.id;
 
-    //     this.deleting = true;
+        const url = getRoute("admin.faq.sections.delete", { section: this.delete_section.id });
 
-    //     const section_id = this.delete_section.id;
+        const data = {};
 
-    //     const url = getRoute("admin.faq.sections.delete", { section: this.delete_section.id });
+        const options = createPartialReloadOptions({
+            onFinish: () => {
+                this.deleting = false;
+                this.delete_section = null;
+                this.sections = this.sections.filter((s) => s.id !== section_id);
+            },
+        });
 
-    //     const data = {};
-
-    //     const options = {
-    //         preserveUrl: true,
-    //         preserveState: true,
-    //         preserveScroll: true,
-    //         only: ['flash', 'results'],
-    //         onFinish: () => {
-    //             this.deleting = false;
-    //             this.delete_section = null;
-    //             this.sections = this.sections.filter((s) => s.id !== section_id);
-    //         },
-    //     };
-
-    //     router.post(url, data, options);
-    // };
+        router.post(url, data, options);
+    };
 }

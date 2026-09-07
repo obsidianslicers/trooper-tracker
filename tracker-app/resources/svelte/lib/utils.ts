@@ -1,3 +1,4 @@
+import type { VisitOptions } from '@inertiajs/core';
 import type { Config, RouteName, RouteParams } from 'ziggy-js';
 import { route as ziggyRoute } from 'ziggy-js';
 
@@ -23,6 +24,16 @@ export function propertyRemover(data: any, propertiesToRemove: string[]): void {
     for (const key of propertiesToRemove) {
         if (data[key]) delete data[key];
     }
+}
+
+export function createPartialReloadOptions(overrides: Partial<VisitOptions> = {}): VisitOptions {
+    return {
+        preserveUrl: true,
+        preserveState: true,
+        preserveScroll: true,
+        only: ['flash', 'results'],
+        ...overrides,
+    };
 }
 
 // import { page } from '$app/state';

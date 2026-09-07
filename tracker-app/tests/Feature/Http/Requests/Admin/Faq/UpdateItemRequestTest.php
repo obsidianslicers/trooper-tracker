@@ -39,7 +39,7 @@ class UpdateItemRequestTest extends TestCase
 
                 public function parameter(string $key, mixed $default = null): mixed
                 {
-                    return $key === 'faq' ? $this->faq : $default;
+                    return $key === 'item' ? $this->faq : $default;
                 }
             });
 
@@ -60,7 +60,7 @@ class UpdateItemRequestTest extends TestCase
 
                 public function parameter(string $key, mixed $default = null): mixed
                 {
-                    return $key === 'faq' ? $this->faq : $default;
+                    return $key === 'item' ? $this->faq : $default;
                 }
             });
 

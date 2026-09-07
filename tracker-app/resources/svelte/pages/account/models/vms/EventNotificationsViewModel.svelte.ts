@@ -1,7 +1,7 @@
 import { YES_NO_OPTIONS } from "$lib/constants";
 import { ViewModel, type Option } from "$lib/domains/types.svelte";
 import toastStateSvelte from "$lib/states/toast-state.svelte";
-import { getRoute } from "$lib/utils";
+import { createPartialReloadOptions, getRoute } from "$lib/utils";
 import { router } from "@inertiajs/svelte";
 
 export type EventNotificationsForm = {
@@ -53,16 +53,11 @@ export class EventNotificationsViewModel extends ViewModel {
         const url = getRoute('account.update-notification-frequency');
 
         //  fire & forget the request, but we want to preserve the current URL and state
-        const options =
-        {
-            preserveUrl: true,    // Keeps the current URL intact
-            preserveState: true,  // Keeps current local form/scroll states intact
-            preserveScroll: true, // Prevents page from jumping
-            only: ['flash', 'results'],
+        const options = createPartialReloadOptions({
             onSuccess: (page: any) => {
                 toastStateSvelte.success("Notification frequency updated successfully.");
             }
-        };
+        });
 
         const data = {
             notification_frequency: this.notification_frequency,
@@ -75,17 +70,11 @@ export class EventNotificationsViewModel extends ViewModel {
         const url = getRoute('account.update-push-notifications');
 
         //  fire & forget the request, but we want to preserve the current URL and state
-        const options =
-        {
-            preserveUrl: true,    // Keeps the current URL intact
-            preserveState: true,  // Keeps current local form/scroll states intact
-            preserveScroll: true, // Prevents page from jumping
-            only: ['flash', 'results'],
-
+        const options = createPartialReloadOptions({
             onSuccess: (page: any) => {
                 toastStateSvelte.success("Push notifications updated successfully.");
             }
-        };
+        });
 
         const data = {
             push_notifications_enabled: this.push_notifications_enabled,
@@ -125,17 +114,11 @@ export class EventNotificationsViewModel extends ViewModel {
         // FIRE & FORGET POST
         const url = getRoute('account.update-organization-notifications');
 
-        const options =
-        {
-            preserveUrl: true,    // Keeps the current URL intact
-            preserveState: true,  // Keeps current local form/scroll states intact
-            preserveScroll: true, // Prevents page from jumping
-            only: ['flash', 'results'],
-
+        const options = createPartialReloadOptions({
             onSuccess: (page: any) => {
                 toastStateSvelte.success("Organization notifications updated successfully.");
             }
-        };
+        });
 
 
         const data = {

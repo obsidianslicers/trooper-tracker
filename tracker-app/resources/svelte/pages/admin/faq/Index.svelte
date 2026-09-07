@@ -1,5 +1,6 @@
 <script lang="ts">
     import { sortable } from "$lib/actions/sortable";
+    import DeleteConfirmationModal from "$lib/components/DeleteConfirmationModal.svelte";
     import CreateButton from "$lib/components/ui/buttons/CreateButton.svelte";
     import pageState from "$lib/states/page-state.svelte";
     import { getRoute } from "$lib/utils";
@@ -69,10 +70,10 @@
     </table>
 </div>
 
-<!-- <DeleteConfirmationModal
-    show={vm.show_delete_confirmation}
+<DeleteConfirmationModal
+    show={vm.show_delete_section}
     label={vm.delete_section?.label}
     deleting={vm.deleting}
-    onDelete={vm.delete}
-    onCancel={() => (vm.delete_section = null)}
-/> -->
+    onDelete={vm.deleteSection}
+    onCancel={vm.cancelDelete}
+/>
