@@ -46,7 +46,7 @@
                             <span><i class="fa fa-fw {{ $section->icon }} me-2"></i> {{ $section->label }}</span>
                             @auth
                                 @if(Auth::user()->is_administrator)
-                                    <a href="{{ route('admin.faq.create') }}?section_id={{ $section->id }}"
+                                    <a href="{{ route('admin.faq.items.create') }}?section_id={{ $section->id }}"
                                        class="btn btn-sm btn-outline-warning ms-auto"
                                        title="Add item to this section">
                                         <i class="fa fa-fw fa-plus"></i>
