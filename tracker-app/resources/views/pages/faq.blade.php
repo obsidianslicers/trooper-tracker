@@ -77,7 +77,7 @@
                                 @auth
                                     @if(Auth::user()->is_administrator)
                                         <div class="mt-2 pt-2 border-top border-secondary d-flex justify-content-end">
-                                            <a href="{{ route('admin.faq.update', $item) }}"
+                                            <a href="{{ route('admin.faq.items.update', $item) }}"
                                                class="btn btn-sm btn-outline-warning">
                                                 <i class="fa fa-fw fa-edit me-1"></i> Edit
                                             </a>
