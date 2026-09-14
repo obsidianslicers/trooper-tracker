@@ -1,6 +1,6 @@
 import { ViewModel, type Option } from "$lib/domains/types.svelte";
 import toastStateSvelte from "$lib/states/toast-state.svelte";
-import { getRoute } from "$lib/utils";
+import { createPartialReloadOptions, getRoute } from "$lib/utils";
 import { router } from "@inertiajs/svelte";
 import type { NotificationPreferences } from "../types";
 
@@ -49,17 +49,11 @@ export class NotificationPreferenceViewModel extends ViewModel {
         const url = getRoute('account.update-notification-preference');
 
         //  fire & forget the request, but we want to preserve the current URL and state
-        const options =
-        {
-            preserveUrl: true,    // Keeps the current URL intact
-            preserveState: true,  // Keeps current local form/scroll states intact
-            preserveScroll: true, // Prevents page from jumping
-            only: ['flash', 'results'],
-
+        const options = createPartialReloadOptions({
             onSuccess: (page: any) => {
                 toastStateSvelte.success(`${this.subsection} Notification Preference updated successfully.`);
             }
-        };
+        });
 
         const data = {
             notification: notification,

@@ -1,12 +1,7 @@
-import { browser } from '$app/environment';
-import { Preferences } from '@capacitor/preferences';
 
 /**
- * Cross-platform async storage wrapper.
+ * storage wrapper.
  *
- * Uses Capacitor `Preferences` as the primary backend and mirrors values to
- * `localStorage` as a web/dev fallback to keep behavior consistent across
- * native and browser runtimes.
  */
 class Storage {
     /**
@@ -19,13 +14,7 @@ class Storage {
      * @returns The stored value, or `null` when not found or not in browser.
      */
     async get(key: string): Promise<string | null> {
-        if (!browser) return null;
-
-        // Capacitor Preferences is the primary source for Native
-        const { value } = await Preferences.get({ key });
-
-        // Fallback to localStorage if Preferences is empty (common during web-dev)
-        return value ?? localStorage.getItem(key);
+        return localStorage.getItem(key);
     }
 
     /**
@@ -38,14 +27,11 @@ class Storage {
      * @param value Value to persist.
      */
     async set(key: string, value: string | object): Promise<void> {
-        if (!browser) return;
-
         if (typeof value === 'object') {
             value = JSON.stringify(value);
         }
 
         // Persist to both for maximum compatibility
-        await Preferences.set({ key, value });
         localStorage.setItem(key, value);
     }
 
@@ -57,9 +43,6 @@ class Storage {
      * @param key Storage key to remove.
      */
     async remove(key: string): Promise<void> {
-        if (!browser) return;
-
-        await Preferences.remove({ key });
         localStorage.removeItem(key);
     }
 };

@@ -1,5 +1,5 @@
 import { SubmitableViewModel, type Option } from "$lib/domains/types.svelte";
-import { getRoute, propertyRemover } from "$lib/utils";
+import { createPartialReloadOptions, getRoute, propertyRemover } from "$lib/utils";
 import { useForm, type InertiaForm } from "@inertiajs/svelte";
 
 function generatorForm(options: Partial<DetailsForm> = {}): InertiaForm<DetailsForm> {
@@ -48,13 +48,8 @@ export class DetailsViewModel extends SubmitableViewModel<DetailsViewModel, Deta
 
         const url = getRoute('account.update-profile');
 
-        const options =
-        {
-            // preserveScroll: true, // Prevents page from jumping
-            preserveUrl: true,     // Keeps the current URL intact
-            preserveState: true,  // Keeps current local form/scroll states intact
-            only: ['flash', 'results'],
-
+        const options = createPartialReloadOptions({
+            preserveScroll: false,
             onSuccess: (page: any) => {
                 // Access the direct data return value mapped to page props
                 const results = page.props.results;
@@ -64,7 +59,7 @@ export class DetailsViewModel extends SubmitableViewModel<DetailsViewModel, Deta
                 if (results) {
                 }
             }
-        };
+        });
 
         this.form.post(url, options);
     };

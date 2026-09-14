@@ -40,4 +40,20 @@ class FaqTest extends TestCase
 
         $this->assertSame('https://vimeo.com/123456789', $faq->embedUrl());
     }
+
+    public function test_has_video_attribute_is_true_when_video_url_is_present(): void
+    {
+        $faq = new Faq;
+        $faq->{Faq::VIDEO_URL} = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+
+        $this->assertTrue($faq->has_video);
+    }
+
+    public function test_has_video_attribute_is_false_when_video_url_is_empty(): void
+    {
+        $faq = new Faq;
+        $faq->{Faq::VIDEO_URL} = null;
+
+        $this->assertFalse($faq->has_video);
+    }
 }

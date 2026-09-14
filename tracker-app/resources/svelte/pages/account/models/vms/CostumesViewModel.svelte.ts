@@ -1,6 +1,6 @@
 import { ViewModel } from "$lib/domains/types.svelte";
 import toastStateSvelte from "$lib/states/toast-state.svelte";
-import { getRoute } from "$lib/utils";
+import { createPartialReloadOptions, getRoute } from "$lib/utils";
 import { router } from "@inertiajs/svelte";
 
 export type Costume = {
@@ -62,19 +62,13 @@ export class CostumesViewModel extends ViewModel {
         const url = getRoute('account.remove-costume');
 
         //  fire & forget the request, but we want to preserve the current URL and state
-        const options =
-        {
-            preserveUrl: true,    // Keeps the current URL intact
-            preserveState: true,  // Keeps current local form/scroll states intact
-            preserveScroll: true, // Prevents page from jumping
-            only: ['flash', 'results'],
-
+        const options = createPartialReloadOptions({
             onSuccess: (page: any) => {
                 toastStateSvelte.success(`${trooper_costume.name} removed successfully.`);
                 trooper_costume.submitting = false;
                 this.trooper_costumes = page.props.results.trooper_costumes ?? [];
             }
-        };
+        });
 
         const data = {
             costume_id: trooper_costume.costume_id,
@@ -89,20 +83,14 @@ export class CostumesViewModel extends ViewModel {
         const url = getRoute('account.add-costume');
 
         //  fire & forget the request, but we want to preserve the current URL and state
-        const options =
-        {
-            preserveUrl: true,    // Keeps the current URL intact
-            preserveState: true,  // Keeps current local form/scroll states intact
-            preserveScroll: true, // Prevents page from jumping
-            only: ['flash', 'results'],
-
+        const options = createPartialReloadOptions({
             onSuccess: (page: any) => {
                 toastStateSvelte.success(`${this.selected_costume?.name} added successfully.`);
                 this.selected_costume = null;
                 this.submitting = false;
                 this.trooper_costumes = page.props.results.trooper_costumes ?? [];
             }
-        };
+        });
 
         const organization_ids = this.selected_costume?.organizations.filter((org) => org.selected).map((org) => org.id);
 
