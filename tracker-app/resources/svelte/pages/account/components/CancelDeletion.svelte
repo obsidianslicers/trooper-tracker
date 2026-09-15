@@ -15,7 +15,7 @@
     function cancel() {
         if (submitting) return;
         submitting = true;
-        router.delete(getRoute("account.delete.cancel"), {
+        router.delete(getRoute("account.cancel-deletion"), {
             onFinish: () => {
                 submitting = false;
             },
@@ -23,7 +23,10 @@
     }
 </script>
 
-<Alert type="danger" classes="d-flex align-items-center justify-content-between gap-3 mb-4">
+<Alert
+    type="danger"
+    classes="d-flex align-items-center justify-content-between gap-3 mb-4"
+>
     <div>
         <strong>Account deletion scheduled.</strong>
         Your account will be permanently deleted on
