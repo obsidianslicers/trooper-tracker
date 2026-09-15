@@ -7,7 +7,7 @@
                 <strong>{{ auth()->user()->deletion_requested_at->addDays(30)->toFormattedDateString() }}</strong>.
             </div>
             <form method="POST"
-                  action="{{ route('account.delete.cancel') }}"
+                  action="{{ route('account.cancel-deletion') }}"
                   class="mb-0">
                 @csrf
                 @method('DELETE')
