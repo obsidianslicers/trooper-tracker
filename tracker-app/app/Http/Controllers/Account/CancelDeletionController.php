@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Account;
 
 use App\Enums\FlashType;
-use App\Messages\Troopers\Commands\CancelTrooperDeletion;
 use App\Http\Controllers\Controller;
+use App\Messages\Troopers\Commands\CancelTrooperDeletion;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
