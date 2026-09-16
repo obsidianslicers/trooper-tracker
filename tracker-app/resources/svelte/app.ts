@@ -114,6 +114,11 @@ if (inertia_root) {
         },
         setup({ el, App, props }) {
             if (!el) return;
+            const splash = document.getElementById('app-loading');
+
+            if (splash) {
+                splash.remove();
+            }
 
             mount(RootApp, {
                 target: el,

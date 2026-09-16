@@ -14,6 +14,10 @@
 <body class="bg-black d-flex flex-column min-vh-100 theme-{{ Auth::user()->theme ?? 'stormtrooper' }}">
     @include('partials.navbar')
 
+    <div id="app-loading">
+        <x-loading />
+    </div>
+
     @inertia
 
     @include('partials.footer')

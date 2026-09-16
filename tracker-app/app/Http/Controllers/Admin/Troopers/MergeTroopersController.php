@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Troopers;
 
 use App\Http\Controllers\Controller;
+use App\Services\BreadCrumbService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
@@ -18,6 +19,11 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
  */
 class MergeTroopersController extends Controller
 {
+    public function __construct(private readonly BreadCrumbService $crumbs)
+    {
+        $this->crumbs->addRoute('Command Staff', 'admin.display');
+    }
+
     /**
      * Handle the incoming request to display the merge troopers view.
      *
