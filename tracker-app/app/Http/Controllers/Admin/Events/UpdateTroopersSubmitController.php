@@ -116,7 +116,10 @@ class UpdateTroopersSubmitController extends MagicBusController
             $event_trooper->organization_id = null;
         }
 
-        $event_trooper->save();
+        if ($event_trooper->isDirty())
+        {
+            $event_trooper->save();
+        }
 
         $this->dispatchManualSelectionNotifications($event_trooper, $old_status, $is_manual_selection_event, $auth_trooper);
     }

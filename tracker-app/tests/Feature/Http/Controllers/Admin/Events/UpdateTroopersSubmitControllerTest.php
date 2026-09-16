@@ -695,6 +695,36 @@ class UpdateTroopersSubmitControllerTest extends TestCase
         $this->assertSame([$child_org->id], $event_trooper->costume_organization_ids);
     }
 
+    public function test_invoke_does_not_touch_row_or_create_model_change_when_resubmitting_unchanged_status(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $event = Event::factory()->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->asGoing()
+            ->create([EventTrooper::COSTUME_ID => null]);
+
+        $original_updated_at = $event_trooper->updated_at;
+        $original_updated_id = $event_trooper->updated_id;
+
+        $this->actingAs($admin)->post('/admin/events/'.$event->id.'/troopers', [
+            'troopers' => [
+                $event_trooper->id => [
+                    'status' => 'going',
+                ],
+            ],
+        ]);
+
+        $event_trooper->refresh();
+        $this->assertTrue($original_updated_at->equalTo($event_trooper->updated_at));
+        $this->assertSame($original_updated_id, $event_trooper->updated_id);
+        $this->assertDatabaseCount('tt_model_changes', 0);
+    }
+
     public function test_invoke_child_unit_moderator_saves_command_staff_parent_club_credit(): void
     {
         $moderator = Trooper::factory()->asModerator()->create();
