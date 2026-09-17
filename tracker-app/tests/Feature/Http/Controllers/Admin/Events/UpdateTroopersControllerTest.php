@@ -351,6 +351,59 @@ class UpdateTroopersControllerTest extends TestCase
         $this->assertFalse($event_trooper->org_options->contains('id', $blocked_org->id));
     }
 
+    public function test_invoke_preserves_stale_costume_no_longer_approved(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $event = Event::factory()->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $costume = Costume::factory()->create();
+
+        // No TrooperCostume row is created, so the trooper is no longer approved for $costume
+        // even though it's what they wore (and were credited for) at the event.
+        EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->withCostume($costume)
+            ->asAttended()
+            ->create();
+
+        $response = $this->actingAs($admin)->get(route('admin.events.troopers', ['event' => $event->id]));
+
+        $response->assertOk();
+
+        $event_trooper = $response->viewData('event_shifts')->first()->event_troopers->first();
+        $this->assertArrayHasKey($costume->id, $event_trooper->costume_options);
+        $this->assertSame($costume->id, $event_trooper->costume_id);
+    }
+
+    public function test_invoke_preserves_stale_credited_org_no_longer_a_member(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $org = Organization::factory()->create();
+        $org->update([Organization::NODE_PATH => (string) $org->id]);
+        $event = Event::factory()->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        // No TrooperAssignment/TrooperOrganization row is created, so the trooper is no longer a
+        // member of $org even though it's what they were credited toward at the event.
+        EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->withCostumeOrganizationIds([$org->id])
+            ->asAttended()
+            ->create([EventTrooper::COSTUME_ID => null]);
+
+        $response = $this->actingAs($admin)->get(route('admin.events.troopers', ['event' => $event->id]));
+
+        $response->assertOk();
+
+        $event_trooper = $response->viewData('event_shifts')->first()->event_troopers->first();
+        $this->assertTrue($event_trooper->org_options->contains('id', $org->id));
+        $this->assertContains($org->id, $event_trooper->credited_checked_ids);
+    }
+
     public function test_invoke_requires_authentication(): void
     {
         $event = Event::factory()->create();

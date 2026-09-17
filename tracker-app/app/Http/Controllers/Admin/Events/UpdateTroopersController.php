@@ -8,6 +8,8 @@ use App\Features\Events\Queries\GetTroopersForEventAdminQuery;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Costume;
 use App\Models\Event;
+use App\Models\EventTrooper;
+use App\Models\Organization;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -80,11 +82,56 @@ class UpdateTroopersController extends MagicBusController
         {
             foreach ($shift->event_troopers as $event_trooper)
             {
-                $event_trooper->costume_options = $costume_options_by_trooper->get($event_trooper->trooper_id, []);
+                $costume_options = $costume_options_by_trooper->get($event_trooper->trooper_id, []);
+                $event_trooper->costume_options = $this->includeStoredCostumeOption($event_trooper, $costume_options, $costumes_by_id);
+
                 $costume = $costumes_by_id->get($event_trooper->costume_id);
-                $event_trooper->org_options = $event_trooper->eligibleRootOrgsForAdmin($allowed_org_ids, $costume);
-                $event_trooper->credited_checked_ids = $event_trooper->creditedRootOrgIds();
+                $org_options = $event_trooper->eligibleRootOrgsForAdmin($allowed_org_ids, $costume);
+                $credited_ids = $event_trooper->creditedRootOrgIds();
+                $event_trooper->org_options = $this->includeCreditedOrgOptions($org_options, $credited_ids);
+                $event_trooper->credited_checked_ids = $credited_ids;
             }
         }
+    }
+
+    /**
+     * Ensure the trooper's currently stored costume is always a selectable option, even when it
+     * is no longer part of their live-approved costumes. Otherwise the <select> silently resets
+     * to blank on save, wiping the costume for a row the admin never touched.
+     */
+    private function includeStoredCostumeOption(EventTrooper $event_trooper, array $costume_options, Collection $costumes_by_id): array
+    {
+        if ($event_trooper->costume_id === null || array_key_exists($event_trooper->costume_id, $costume_options))
+        {
+            return $costume_options;
+        }
+
+        $stored_costume = $costumes_by_id->get($event_trooper->costume_id);
+
+        if ($stored_costume === null)
+        {
+            return $costume_options;
+        }
+
+        return $costume_options + [$stored_costume->id => $stored_costume->name];
+    }
+
+    /**
+     * Ensure every currently-credited root org is always a selectable checkbox, even when the
+     * trooper's live membership/costume-approval no longer includes it. Otherwise the checkbox
+     * silently disappears on save, dropping that org's credit for a row the admin never touched.
+     */
+    private function includeCreditedOrgOptions(Collection $org_options, array $credited_ids): Collection
+    {
+        $missing_ids = array_diff($credited_ids, $org_options->pluck('id')->all());
+
+        if (empty($missing_ids))
+        {
+            return $org_options;
+        }
+
+        $missing_orgs = Organization::findMany($missing_ids);
+
+        return $org_options->concat($missing_orgs)->sortBy(Organization::NAME)->values();
     }
 }
