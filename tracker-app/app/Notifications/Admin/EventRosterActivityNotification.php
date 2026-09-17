@@ -10,9 +10,9 @@ use App\Enums\TrooperNotifications;
 use App\Mail\Admin\Events\EventRosterActivityMail;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
-use App\Notifications\QueueableNotification;
+use App\Notifications\BaseNotification;
 
-class EventRosterActivityNotification extends QueueableNotification
+class EventRosterActivityNotification extends BaseNotification
 {
     protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category = 'event_roster_activity';
 

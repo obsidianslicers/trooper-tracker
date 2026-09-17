@@ -30,7 +30,7 @@ class EventUpdatedNotification extends BaseNotification
     {
         return [
             'title' => 'Event Updated: '.$this->event->name,
-            'body' => 'Details for this event have changed. Please review.',
+            'body' => 'This event has important updates. Please check the event for details.',
             'url' => '/events/details/'.$this->event->id,
         ];
     }

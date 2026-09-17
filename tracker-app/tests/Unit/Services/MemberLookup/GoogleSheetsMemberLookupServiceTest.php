@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\MemberLookup;
 
+use App\Exceptions\GoogleSheetsUnavailableException;
 use App\Models\Organization;
 use App\Services\GoogleService;
 use App\Services\MemberLookup\GoogleSheetsMemberLookupService;
@@ -17,6 +18,7 @@ class GoogleSheetsMemberLookupServiceTest extends TestCase
     use RefreshDatabase;
 
     private GoogleService $google;
+
     private Organization $organization;
 
     protected function setUp(): void
@@ -210,6 +212,18 @@ class GoogleSheetsMemberLookupServiceTest extends TestCase
 
         $this->assertNull($first);
         $this->assertNull($second);
+    }
+
+    public function test_lookup_returns_null_without_caching_when_google_unavailable(): void
+    {
+        $this->google->shouldReceive('getSheet')
+            ->twice()
+            ->andThrow(new GoogleSheetsUnavailableException('Google Sheets is unavailable.'));
+
+        $subject = $this->makeSubject('ID', 'Name');
+
+        $this->assertNull($subject->lookup('1234'));
+        $this->assertNull($subject->lookup('1234'));
     }
 
     public function test_lookup_trims_whitespace_from_header_names(): void
