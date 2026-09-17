@@ -11,8 +11,8 @@ use Carbon\Carbon;
 /**
  * Query to retrieve event trooper status change log.
  *
- * Returns EventTrooper records that were marked as ATTENDED within the
- * lookback period, excluding self-updates.
+ * Returns ModelChange audit records for genuine EventTrooper status
+ * transitions to ATTENDED within the lookback period, excluding self-updates.
  *
  * @see GetStatusChangeLogQueryHandler
  */
