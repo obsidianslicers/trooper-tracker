@@ -57,11 +57,23 @@ trait HasAuditTrail
                         ModelChange::AUDITABLE_ID => $model->id,
                         ModelChange::TROOPER_ID => auth()->id(),
                         ModelChange::FIELD_NAME => $field,
-                        ModelChange::OLD_VALUE => $old_value,
-                        ModelChange::NEW_VALUE => $new_value,
+                        ModelChange::OLD_VALUE => static::normalizeAuditValue($old_value),
+                        ModelChange::NEW_VALUE => static::normalizeAuditValue($new_value),
                     ]);
                 }
             }
         });
+    }
+
+    /**
+     * getOriginal() re-applies attribute casts, so a json/array-cast field's old value
+     * comes back as a PHP array rather than the raw JSON string getDirty() reports for
+     * the new value. Encode arrays back to JSON so both sides fit the text-based
+     * old/new value columns; every other value (including backed enums, which the
+     * query grammar already knows how to bind) is left untouched.
+     */
+    private static function normalizeAuditValue(mixed $value): mixed
+    {
+        return is_array($value) ? json_encode($value) : $value;
     }
 }

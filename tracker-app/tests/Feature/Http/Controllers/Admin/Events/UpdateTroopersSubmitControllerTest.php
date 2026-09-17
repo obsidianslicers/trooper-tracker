@@ -725,6 +725,53 @@ class UpdateTroopersSubmitControllerTest extends TestCase
         $this->assertDatabaseCount('tt_model_changes', 0);
     }
 
+    public function test_invoke_preserves_stale_credit_for_untouched_attended_trooper_when_another_row_is_saved(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $stale_trooper = Trooper::factory()->asActive()->create();
+        $other_trooper = Trooper::factory()->asActive()->create();
+        $org = Organization::factory()->create();
+        $org->update([Organization::NODE_PATH => (string) $org->id]);
+        $event = Event::factory()->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        // $stale_trooper attended and was credited to $org, but is no longer a member of it by
+        // the time an admin edits this roster (e.g. to add/change $other_trooper).
+        $stale_event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($stale_trooper)
+            ->withCostumeOrganizationIds([$org->id])
+            ->asAttended()
+            ->create([EventTrooper::COSTUME_ID => null]);
+
+        $other_event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($other_trooper)
+            ->asGoing()
+            ->create([EventTrooper::COSTUME_ID => null]);
+
+        // This mirrors what the fixed admin page actually renders/submits for both rows: the
+        // stale trooper's row round-trips its preserved credited org untouched (per
+        // UpdateTroopersControllerTest::test_invoke_preserves_stale_credited_org_no_longer_a_member),
+        // while the admin only intends to change the other trooper's status.
+        $this->actingAs($admin)->post('/admin/events/'.$event->id.'/troopers', [
+            'troopers' => [
+                $stale_event_trooper->id => [
+                    'status' => 'attended',
+                    'costume_id' => '',
+                    'organization_selection' => '1',
+                    'organization_ids' => [$org->id],
+                ],
+                $other_event_trooper->id => [
+                    'status' => 'going',
+                ],
+            ],
+        ]);
+
+        $stale_event_trooper->refresh();
+        $this->assertSame([$org->id], $stale_event_trooper->costume_organization_ids);
+    }
+
     public function test_invoke_child_unit_moderator_saves_command_staff_parent_club_credit(): void
     {
         $moderator = Trooper::factory()->asModerator()->create();

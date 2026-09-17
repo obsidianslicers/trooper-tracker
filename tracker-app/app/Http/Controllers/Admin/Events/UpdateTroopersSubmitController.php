@@ -109,11 +109,22 @@ class UpdateTroopersSubmitController extends MagicBusController
             $event_trooper->status = EventTrooperStatus::STAND_BY;
         }
 
+        $original_costume_id = $event_trooper->costume_id;
+        $original_costume_organization_ids = $event_trooper->costume_organization_ids;
+        $original_organization_id = $event_trooper->organization_id;
+        $original_credited_root_ids = $event_trooper->creditedRootOrgIds();
+
         $has_submitted_org_selection = $this->applyCostumeAndOrgSelection($event_trooper, $input, $allowed_org_ids, $costumes_by_id);
 
         if ($has_submitted_org_selection)
         {
             $event_trooper->organization_id = null;
+        }
+
+        if ($this->creditSelectionUnchanged($old_status, $input, $original_costume_id, $original_credited_root_ids))
+        {
+            $event_trooper->costume_organization_ids = $original_costume_organization_ids;
+            $event_trooper->organization_id = $original_organization_id;
         }
 
         if ($event_trooper->isDirty())
@@ -122,6 +133,39 @@ class UpdateTroopersSubmitController extends MagicBusController
         }
 
         $this->dispatchManualSelectionNotifications($event_trooper, $old_status, $is_manual_selection_event, $auth_trooper);
+    }
+
+    /**
+     * An ATTENDED row's costume/org credit is the historical record (see
+     * HasEventDisplayAssembler::buildDisplayOrganizations()). The costume dropdown and org
+     * checkboxes are still built from the trooper's current live eligibility, so re-deriving
+     * costume_organization_ids from that live data below can silently drop credit that's still
+     * checked but no longer "live eligible" (e.g. the trooper switched clubs since attending).
+     * When the submission doesn't actually request a different costume/credit for this row,
+     * leave the stored values untouched instead of trusting that live re-derivation.
+     */
+    private function creditSelectionUnchanged(
+        EventTrooperStatus $original_status,
+        array $input,
+        ?int $original_costume_id,
+        array $original_credited_root_ids
+    ): bool {
+        if ($original_status !== EventTrooperStatus::ATTENDED)
+        {
+            return false;
+        }
+
+        $submitted_costume_id = isset($input['costume_id']) && $input['costume_id'] !== '' ? (int) $input['costume_id'] : null;
+
+        if ($submitted_costume_id !== $original_costume_id)
+        {
+            return false;
+        }
+
+        $submitted_root_ids = array_map('intval', $input['organization_ids'] ?? []);
+
+        return empty(array_diff($submitted_root_ids, $original_credited_root_ids))
+            && empty(array_diff($original_credited_root_ids, $submitted_root_ids));
     }
 
     private function applyStationSelection(EventTrooper $event_trooper, array $input): void
