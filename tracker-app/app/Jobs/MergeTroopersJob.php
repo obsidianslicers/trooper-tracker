@@ -24,8 +24,10 @@ class MergeTroopersJob implements ShouldBeUnique, ShouldQueue
     {
         // NOTE: if this job is retried after MergeTroopers::call() throws, the
         // merge runs again — idempotency is MergeTroopers' responsibility. The
-        // admin loop below only enqueues per-recipient notifications, so a retry
-        // does not re-email admins already notified.
+        // admin loop below has no sent-marker guard (unlike the event/milestone
+        // notification jobs), so a retry that reaches this point again will
+        // re-notify every admin, including any already notified on a prior
+        // attempt.
         MergeTroopers::call(
             source_trooper: $this->source_trooper,
             target_trooper: $this->target_trooper
