@@ -23,23 +23,23 @@
             @forelse ($changes as $change)
                 <tr>
                     <td class="text-nowrap">
-                        {{ $change->updated_at->format('D - M d, Y g:ia') }}
+                        {{ $change->created_at->format('D - M d, Y g:ia') }}
                     </td>
                     <td>
-                        <a href="{{ route('admin.events.update', $change->event_shift->event) }}">
-                            {{ $change->event_shift->event->name }}
+                        <a href="{{ route('admin.events.update', $change->auditable->event_shift->event) }}">
+                            {{ $change->auditable->event_shift->event->name }}
                         </a>
                     </td>
                     <td>
-                        {{ $change->event_shift->time_display }}
+                        {{ $change->auditable->event_shift->time_display }}
                     </td>
                     <td>
-                        <a href="{{ route('admin.troopers.changes', $change->trooper) }}">
-                            {{ $change->trooper->display_name }}
+                        <a href="{{ route('admin.troopers.changes', $change->auditable->trooper) }}">
+                            {{ $change->auditable->trooper->display_name }}
                         </a>
                     </td>
                     <td>
-                        {{ $change->updated_by->display_name }}
+                        {{ $change->trooper->display_name ?? 'System' }}
                     </td>
                 </tr>
             @empty
