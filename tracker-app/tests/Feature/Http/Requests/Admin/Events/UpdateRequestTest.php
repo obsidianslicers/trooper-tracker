@@ -56,13 +56,13 @@ class UpdateRequestTest extends TestCase
         $mock_route->shouldReceive('parameter')
             ->with('event', \Mockery::any())
             ->andReturn($event);
-        $request->setRouteResolver(fn() => $mock_route);
+        $request->setRouteResolver(fn () => $mock_route);
     }
 
     public function test_authorize_returns_true_for_moderator(): void
     {
         $subject = new UpdateRequest;
-        $subject->setUserResolver(fn() => $this->moderator);
+        $subject->setUserResolver(fn () => $this->moderator);
         $this->setupMockedRoute($subject, $this->event);
 
         $this->assertTrue($subject->authorize());
@@ -74,7 +74,7 @@ class UpdateRequestTest extends TestCase
         $this->expectExceptionMessage('Event not found or unauthorized.');
 
         $subject = new UpdateRequest;
-        $subject->setUserResolver(fn() => $this->moderator);
+        $subject->setUserResolver(fn () => $this->moderator);
         $this->setupMockedRoute($subject, null);
 
         $subject->authorize();
@@ -83,6 +83,7 @@ class UpdateRequestTest extends TestCase
     public function test_rules_returns_common_rules(): void
     {
         $subject = new UpdateRequest;
+        $subject->setUserResolver(fn () => $this->moderator);
         $this->setupMockedRoute($subject, $this->event);
         $rules = $subject->rules();
 
@@ -97,8 +98,8 @@ class UpdateRequestTest extends TestCase
         $this->setupMockedRoute($subject, $this->event);
         $messages = $subject->messages();
 
-        $this->assertArrayHasKey(Event::TROOPERS_ALLOWED . '.required_if', $messages);
-        $this->assertStringContainsString('troopers allowed', $messages[Event::TROOPERS_ALLOWED . '.required_if']);
+        $this->assertArrayHasKey(Event::TROOPERS_ALLOWED.'.required_if', $messages);
+        $this->assertStringContainsString('troopers allowed', $messages[Event::TROOPERS_ALLOWED.'.required_if']);
     }
 
     public function test_messages_provides_custom_error_for_handlers_allowed(): void
@@ -107,14 +108,14 @@ class UpdateRequestTest extends TestCase
         $this->setupMockedRoute($subject, $this->event);
         $messages = $subject->messages();
 
-        $this->assertArrayHasKey(Event::HANDLERS_ALLOWED . '.required_if', $messages);
-        $this->assertStringContainsString('handlers allowed', $messages[Event::HANDLERS_ALLOWED . '.required_if']);
+        $this->assertArrayHasKey(Event::HANDLERS_ALLOWED.'.required_if', $messages);
+        $this->assertStringContainsString('handlers allowed', $messages[Event::HANDLERS_ALLOWED.'.required_if']);
     }
 
     public function test_rules_rejects_event_end_before_event_start(): void
     {
         $subject = new UpdateRequest;
-        $subject->setUserResolver(fn() => $this->moderator);
+        $subject->setUserResolver(fn () => $this->moderator);
         $this->setupMockedRoute($subject, $this->event);
 
         $validator = Validator::make(
@@ -143,7 +144,7 @@ class UpdateRequestTest extends TestCase
     public function test_rules_accepts_event_end_after_event_start(): void
     {
         $subject = new UpdateRequest;
-        $subject->setUserResolver(fn() => $this->moderator);
+        $subject->setUserResolver(fn () => $this->moderator);
         $this->setupMockedRoute($subject, $this->event);
 
         $validator = Validator::make(

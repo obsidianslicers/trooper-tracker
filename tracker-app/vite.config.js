@@ -43,6 +43,9 @@ export default defineConfig({
                         if (id.includes('pages/admin/events') || id.includes('lib/domains/admin/events')) {
                             return 'pages-admin-events';
                         }
+                        if (id.includes('pages/admin/faq')) {
+                            return 'pages-admin-faq';
+                        }
                     }
                     if (id.includes('node_modules')) {
                         // 1. Core Reactive Frameworks

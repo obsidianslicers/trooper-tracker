@@ -6,21 +6,31 @@
         label?: string | null;
         submitting?: boolean | null;
         outline?: boolean | null;
+        small?: boolean | null;
         disabled?: boolean | null;
         click?: (() => void) | null;
     }
     let {
         href = null,
-        click = null,
         label = "Delete",
-        outline = true,
         submitting = false,
+        outline = true,
+        small = false,
         disabled = false,
+        click = null,
     }: Props = $props();
+
+    let buttonClass = $derived(() => {
+        let classes = outline ? "btn-outline-danger" : "btn-danger";
+        if (small) {
+            classes += " btn-sm";
+        }
+        return classes;
+    });
 </script>
 
 <Button
-    btnclass={outline ? "btn-outline-danger" : "btn-danger"}
+    btnclass={buttonClass()}
     icon={submitting ? "fa-solid fa-spinner fa-spin" : "fa-trash"}
     disabled={submitting || disabled}
     {href}

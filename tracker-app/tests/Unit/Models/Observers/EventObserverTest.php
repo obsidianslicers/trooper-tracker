@@ -22,10 +22,39 @@ class EventObserverTest extends TestCase
         $club = Organization::factory()->asOrganization()->create();
         $region = Organization::factory()->asRegion()->withParent($club)->create();
 
-        $subject = new EventObserver();
+        $subject = new EventObserver;
         $event = Event::factory()->withOrganization($region)->make();
 
         $subject->creating($event);
+
+        $this->assertSame($club->id, $event->primary_organization_id);
+    }
+
+    public function test_updating_re_derives_primary_organization_when_hosting_organization_changes(): void
+    {
+        $original_club = Organization::factory()->asOrganization()->create();
+        $new_club = Organization::factory()->asOrganization()->create();
+        $new_region = Organization::factory()->asRegion()->withParent($new_club)->create();
+
+        $event = Event::factory()->withOrganization($original_club)->create();
+
+        $event->organization_id = $new_region->id;
+
+        $subject = new EventObserver;
+        $subject->updating($event);
+
+        $this->assertSame($new_club->id, $event->primary_organization_id);
+    }
+
+    public function test_updating_leaves_primary_organization_untouched_when_hosting_organization_unchanged(): void
+    {
+        $club = Organization::factory()->asOrganization()->create();
+        $event = Event::factory()->withOrganization($club)->create();
+
+        $event->name = 'Renamed Event';
+
+        $subject = new EventObserver;
+        $subject->updating($event);
 
         $this->assertSame($club->id, $event->primary_organization_id);
     }
@@ -115,7 +144,7 @@ class EventObserverTest extends TestCase
                 Event::POST_ID => 654,
             ]);
 
-        $subject = new EventObserver();
+        $subject = new EventObserver;
 
         $subject->deleted($event);
 

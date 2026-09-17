@@ -14,10 +14,7 @@
             @auth
                 @if(Auth::user()->is_administrator)
                     <div class="d-flex gap-2 justify-content-end mb-3">
-                        <a href="{{ route('admin.faq.create') }}" class="btn btn-sm btn-outline-warning">
-                            <i class="fa fa-fw fa-plus me-1"></i> Add Item
-                        </a>
-                        <a href="{{ route('admin.faq.list') }}" class="btn btn-sm btn-outline-warning">
+                        <a href="{{ route('admin.faq.index') }}" class="btn btn-sm btn-outline-warning">
                             <i class="fa fa-fw fa-gear me-1"></i> Manage FAQ
                         </a>
                     </div>
@@ -49,7 +46,7 @@
                             <span><i class="fa fa-fw {{ $section->icon }} me-2"></i> {{ $section->label }}</span>
                             @auth
                                 @if(Auth::user()->is_administrator)
-                                    <a href="{{ route('admin.faq.create') }}?section_id={{ $section->id }}"
+                                    <a href="{{ route('admin.faq.items.create') }}?section_id={{ $section->id }}"
                                        class="btn btn-sm btn-outline-warning ms-auto"
                                        title="Add item to this section">
                                         <i class="fa fa-fw fa-plus"></i>
@@ -80,7 +77,7 @@
                                 @auth
                                     @if(Auth::user()->is_administrator)
                                         <div class="mt-2 pt-2 border-top border-secondary d-flex justify-content-end">
-                                            <a href="{{ route('admin.faq.update', $item) }}"
+                                            <a href="{{ route('admin.faq.items.update', $item) }}"
                                                class="btn btn-sm btn-outline-warning">
                                                 <i class="fa fa-fw fa-edit me-1"></i> Edit
                                             </a>

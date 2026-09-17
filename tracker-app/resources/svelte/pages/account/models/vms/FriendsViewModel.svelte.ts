@@ -12,9 +12,9 @@ export type FriendsPageData = Friend[];
 export class FriendsViewModel extends ViewModel {
     friends: Friend[] = $state([]);
 
-    constructor(pageData?: FriendsPageData) {
+    constructor(pageData: FriendsPageData) {
         super();
-        this.friends = pageData?.length ? pageData : [];
+        this.friends = pageData || [];
     }
 
     getServiceRecordUrl = (friend: Friend): string => {

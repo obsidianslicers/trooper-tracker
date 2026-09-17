@@ -8,7 +8,7 @@ export type AdministrativeNotificationsPageData = {
 };
 
 export class AdministrativeNotificationsViewModel extends NotificationPreferenceViewModel {
-    constructor(pageData?: AdministrativeNotificationsPageData) {
-        super("Administrative", pageData?.administrative_notification_enums || [], pageData?.notification_preferences || {});
+    constructor(pageData: AdministrativeNotificationsPageData) {
+        super("Administrative", pageData.administrative_notification_enums, pageData.notification_preferences);
     }
 }

@@ -12,7 +12,7 @@ export type NotificationsPageData = EventNotificationsPageData & {
 export class NotificationsViewModel extends ViewModel {
     page_data: NotificationsPageData = {} as NotificationsPageData;
 
-    constructor(pageData?: NotificationsPageData) {
+    constructor(pageData: NotificationsPageData) {
         super();
         this.page_data = pageData || {} as NotificationsPageData;
     }

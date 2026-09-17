@@ -6,22 +6,6 @@ import type { MembershipsPageData } from "./MembershipsViewModel.svelte";
 import type { MinorsPageData } from "./MinorsViewModel.svelte";
 import type { NotificationsPageData } from "./NotificationsViewModel.svelte";
 
-function constructAccountPageData() {
-    return {
-        trooper_id: 0,
-        is_visitor: false,
-        is_handler: false,
-        deletion_requested_at: null,
-        email: "",
-        details: {} as DetailsPageData,
-        notifications: {} as NotificationsPageData,
-        memberships: {} as MembershipsPageData,
-        costumes: {} as CostumesPageData,
-        friends: {} as FriendsPageData,
-        minors: {} as MinorsPageData,
-    };
-}
-
 export type AccountPageData = {
     trooper_id: number;
     is_visitor: boolean;
@@ -39,9 +23,9 @@ export type AccountPageData = {
 export class AccountViewModel extends ViewModel {
     pageData: AccountPageData;
 
-    constructor(pageData?: AccountPageData) {
+    constructor(pageData: AccountPageData) {
         super();
-        this.pageData = pageData || constructAccountPageData();
+        this.pageData = pageData;
     }
 
     get has_deletion_request(): boolean { return this.pageData.deletion_requested_at !== null; }

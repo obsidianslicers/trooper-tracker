@@ -15,7 +15,7 @@ class Faq extends BaseFaq
 
     public function embedUrl(): ?string
     {
-        if (! $this->video_url)
+        if (!$this->video_url)
         {
             return null;
         }
@@ -26,5 +26,10 @@ class Faq extends BaseFaq
         }
 
         return $this->video_url;
+    }
+
+    public function getHasVideoAttribute(): bool
+    {
+        return !empty($this->video_url);
     }
 }

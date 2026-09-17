@@ -21,7 +21,7 @@ use Illuminate\Support\Collection;
 final class GetOrganizationNotifications extends Message
 {
     public function __construct(
-        public readonly Trooper $trooper
+        private readonly Trooper $trooper
     ) {}
 
     /**

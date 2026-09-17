@@ -8,6 +8,8 @@ use App\Enums\EventStatus;
 use App\Enums\EventType;
 use App\Models\Event;
 use App\Models\EventOrganization;
+use App\Models\Organization;
+use Illuminate\Validation\Rule;
 
 /**
  * Shared validation rules for Event creation and updates.
@@ -39,9 +41,14 @@ trait CommonRules
     protected function getCommonRules(): array
     {
         return [
+            Event::ORGANIZATION_ID => [
+                'required',
+                Rule::exists(Organization::class, Organization::ID)
+                    ->whereIn('id', Organization::moderatedBy($this->user())->pluck('id')),
+            ],
             Event::NAME => ['required', 'string', 'max:128'],
             Event::TYPE => ['required', 'string', 'max:32', EventType::toValidator()],
-            Event::STATUS => ['required', 'string', 'max:16', 'in:'.EventStatus::toValidator()],
+            Event::STATUS => ['required', 'string', 'max:16', EventStatus::toValidator()],
             Event::SHIFTS_ALLOWED => ['nullable', 'integer', 'between:1,99999'],
             Event::TROOPERS_ALLOWED => ['nullable', 'integer', 'between:1,99999'],
             Event::HANDLERS_ALLOWED => ['nullable', 'integer', 'between:0,99999'],
