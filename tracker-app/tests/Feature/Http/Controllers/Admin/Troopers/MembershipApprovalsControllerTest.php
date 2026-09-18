@@ -20,7 +20,7 @@ class MembershipApprovalsControllerTest extends TestCase
     {
         $moderator = Trooper::factory()->asModerator()->create();
 
-        $response = $this->actingAs($moderator)->get(route('admin.troopers.approvals'));
+        $response = $this->actingAs($moderator)->get(route('admin.troopers.approvals.index'));
 
         $response->assertOk();
         $response->assertInertia(fn(Assert $page) => $page->component('admin/troopers/MembershipApprovals'));
@@ -28,7 +28,7 @@ class MembershipApprovalsControllerTest extends TestCase
 
     public function test_invoke_requires_authentication(): void
     {
-        $response = $this->get(route('admin.troopers.approvals'));
+        $response = $this->get(route('admin.troopers.approvals.index'));
 
         $response->assertRedirect(route('auth.login'));
     }

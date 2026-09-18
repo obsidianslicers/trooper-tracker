@@ -34,6 +34,11 @@ final class CreateOrUpdateOrganizationMembership extends Message
      */
     public function handle(): void
     {
+        ClearOrganizationAssignments::call(
+            trooper_id: $this->trooper_id,
+            primary_organization: $this->primary_organization_id,
+        );
+
         CreateOrUpdateOrganizationAssignment::call(
             trooper_id: $this->trooper_id,
             organization_id: $this->organization_id,

@@ -12,7 +12,6 @@ use App\Models\TrooperRequest;
 use App\Notifications\Troopers\TrooperRequestApprovedNotification;
 use Exception;
 use Hyperdrive\Message;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Handler for approving a trooper's membership.
@@ -35,11 +34,6 @@ final class ApproveTrooperRequest extends Message
         $requested_org = $trooper_request->organization;
 
         $this->ensureIdentifierIsAvailable($primary_organization, $trooper_request);
-
-        ClearOrganizationAssignments::call(
-            trooper_id: $trooper_request->trooper_id,
-            primary_organization: $primary_organization,
-        );
 
         CreateOrUpdateOrganizationMembership::call(
             trooper_id: $trooper_request->trooper_id,
@@ -73,14 +67,9 @@ final class ApproveTrooperRequest extends Message
 
             $msg = "{$primary_organization->name} {$label} {$trooper_request->identifier} is already assigned to another trooper.";
 
-            //  both organizations & organization_id are used in the validation error
-            //  display, so we need to set both dpending on whether registration or
-            //  account management.
             throw new Exception($msg);
         }
     }
-
-
 
     private function createOrUpdateNotifications(Organization $primary_organization, Organization $requested_org, int $trooper_id): void
     {

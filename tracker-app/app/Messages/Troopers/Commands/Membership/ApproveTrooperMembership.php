@@ -25,7 +25,7 @@ final class ApproveTrooperMembership extends Message
 
     public function handle(): void
     {
-        DB::transaction(function () use ($this): void
+        DB::transaction(function (): void
         {
             $this->trooper->membership_status = MembershipStatus::ACTIVE;
 

@@ -199,6 +199,18 @@ class TrooperPolicy
     }
 
     /**
+     * Determine whether the user can deny a trooper.
+     *
+     * @param  Trooper  $trooper  The authenticated user performing the action.
+     * @param  Trooper  $subject  The trooper being denied.
+     * @return bool True if the user can moderate the subject, false otherwise.
+     */
+    public function deny(Trooper $trooper, Trooper $subject): bool
+    {
+        return $this->canModerate($trooper, $subject);
+    }
+
+    /**
      * Check if a user can moderate a subject trooper.
      * An admin can moderate any trooper. A moderator can moderate troopers within their assigned scope.
      *

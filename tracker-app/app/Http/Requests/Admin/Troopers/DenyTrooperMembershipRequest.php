@@ -9,7 +9,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * Handles the validation for updating a trooper's organization memberships.
+ * Handles the validation for denying a trooper's membership.
  *
  * This class defines validation rules for managing a trooper's organization memberships
  * using a popup picker to select specific organizations. The validation ensures:
@@ -20,7 +20,7 @@ use Illuminate\Foundation\Http\FormRequest;
  * Administrators and moderators can modify trooper membership settings.
  *
  */
-class ApproveTrooperMembershipRequest extends FormRequest
+class DenyTrooperMembershipRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request
@@ -41,7 +41,7 @@ class ApproveTrooperMembershipRequest extends FormRequest
             throw new AuthorizationException('Trooper not found or unauthorized.');
         }
 
-        return $this->user()->can('approve', $trooper);
+        return $this->user()->can('deny', $trooper);
     }
 
     /**
