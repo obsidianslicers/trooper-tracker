@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Admin\Troopers\ApprovalListController;
+use App\Http\Controllers\Admin\Troopers\MembershipApprovalsController;
 use App\Http\Controllers\Admin\Troopers\ApprovalSubmitHtmxController;
 use App\Http\Controllers\Admin\Troopers\AuthorityController;
 use App\Http\Controllers\Admin\Troopers\AuthoritySubmitController;
@@ -39,7 +39,7 @@ Route::prefix('admin/troopers')
     ->group(function ()
     {
         Route::get('/', ListController::class)->name('list');
-        Route::get('/approvals', ApprovalListController::class)->name('approvals');
+        Route::get('/approvals', MembershipApprovalsController::class)->name('approvals');
         Route::post('/approvals/{trooper}/approve', ApprovalSubmitHtmxController::class)->name('approve-htmx');
         Route::post('/approvals/{trooper}/deny', DenialSubmitHtmxController::class)->name('deny-htmx');
 

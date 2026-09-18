@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Messages\Troopers\Commands;
+namespace App\Messages\Troopers\Commands\Notifications;
 
 use App\Models\Trooper;
 use Hyperdrive\Message;
@@ -17,7 +17,8 @@ final class UpdateTrooperPushNotifications extends Message
     public function __construct(
         private readonly Trooper $trooper,
         private readonly bool $push_notifications_enabled,
-    ) {}
+    ) {
+    }
 
     /**
      * Execute the command to update trooper push notifications setting.

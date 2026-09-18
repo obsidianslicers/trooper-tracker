@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Messages\Troopers\Commands;
+namespace App\Messages\Troopers\Commands\Notifications;
 
 use App\Enums\NotificationFrequency;
 use App\Models\Trooper;
@@ -18,7 +18,8 @@ final class UpdateTrooperNotificationFrequency extends Message
     public function __construct(
         private readonly Trooper $trooper,
         private readonly NotificationFrequency $notification_frequency,
-    ) {}
+    ) {
+    }
 
     /**
      * Execute the command to update trooper notification frequency.

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Messages\Troopers\Commands;
+namespace App\Messages\Troopers\Commands\Notifications;
 
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
@@ -19,7 +19,8 @@ final class UpdateOrganizationNotifications extends Message
         private readonly Trooper $trooper,
         private readonly array $organization_ids,
         private readonly bool $enabled,
-    ) {}
+    ) {
+    }
 
     /**
      * Execute the command to update trooper organization notifications setting.

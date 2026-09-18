@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Account;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Account\UpdateOrganizationNotificationsRequest;
-use App\Messages\Troopers\Commands\UpdateOrganizationNotifications;
+use App\Messages\Troopers\Commands\Notifications\UpdateOrganizationNotifications;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;

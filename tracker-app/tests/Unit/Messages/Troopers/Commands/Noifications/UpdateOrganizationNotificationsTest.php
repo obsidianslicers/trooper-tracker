@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\Messages\Troopers\Commands;
+namespace Tests\Unit\Messages\Troopers\Commands\Notifications;
 
-use App\Messages\Troopers\Commands\UpdateOrganizationNotifications;
+use App\Messages\Troopers\Commands\Notifications\UpdateOrganizationNotifications;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;

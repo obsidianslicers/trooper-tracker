@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\Messages\Troopers\Commands;
+namespace Tests\Unit\Messages\Troopers\Commands\Notifications;
 
 use App\Enums\NotificationFrequency;
-use App\Messages\Troopers\Commands\UpdateTrooperNotificationFrequency;
+use App\Messages\Troopers\Commands\Notifications\UpdateTrooperNotificationFrequency;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;

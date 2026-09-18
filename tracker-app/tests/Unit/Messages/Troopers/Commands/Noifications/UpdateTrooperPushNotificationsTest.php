@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\Messages\Troopers\Commands;
+namespace Tests\Unit\Messages\Troopers\Commands\Notifications;
 
-use App\Messages\Troopers\Commands\UpdateTrooperPushNotifications;
+use App\Messages\Troopers\Commands\Notifications\UpdateTrooperPushNotifications;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
