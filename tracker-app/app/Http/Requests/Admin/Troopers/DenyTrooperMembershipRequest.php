@@ -54,6 +54,10 @@ class DenyTrooperMembershipRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'denial_reason' => [
+                'nullable',
+                'string'
+            ],
             'trooper' => [
                 function ($attribute, $value, $fail)
                 {

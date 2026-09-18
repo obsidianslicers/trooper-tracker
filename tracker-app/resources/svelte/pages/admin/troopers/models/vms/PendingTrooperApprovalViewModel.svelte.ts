@@ -1,4 +1,6 @@
 import { ViewModel } from "$lib/domains/types.svelte";
+import { createPartialReloadOptions, getRoute } from "$lib/utils";
+import { router } from "@inertiajs/svelte";
 
 export type TrooperApproval = {
     id: number;
@@ -45,6 +47,7 @@ type PrimaryOrganization = {
 export class PendingTrooperApprovalViewModel extends ViewModel {
     //  already has $state from the parent
     submitting: boolean = $state(false);
+    submitted: boolean = $state(false);
     denying: boolean = $state(false);
     denial_reason: string | null = $state(null);
     approval: TrooperApproval;
@@ -58,5 +61,43 @@ export class PendingTrooperApprovalViewModel extends ViewModel {
         return this.approval.is_visitor &&
             this.approval.visitor_expires_at !== null &&
             new Date(this.approval.visitor_expires_at) < new Date();
+    }
+
+    deny = (e: Event) => {
+        e.preventDefault();
+
+        this.submitting = true;
+
+        const parms = { trooper: this.approval.trooper_id };
+        const url = getRoute('admin.troopers.approvals.deny', parms);
+
+        const options = createPartialReloadOptions({
+            onFinish: () => {
+                this.submitted = true;
+            }
+        });
+
+        const data = {
+            denial_reason: this.denial_reason,
+        };
+
+        router.post(url, data, options);
+    }
+
+    approve = () => {
+        this.submitting = true;
+
+        const parms = { trooper: this.approval.trooper_id };
+        const url = getRoute('admin.troopers.approvals.approve', parms);
+
+        const options = createPartialReloadOptions({
+            onFinish: () => {
+                this.submitted = true;
+            }
+        });
+
+        const data = {};
+
+        router.post(url, data, options);
     }
 }

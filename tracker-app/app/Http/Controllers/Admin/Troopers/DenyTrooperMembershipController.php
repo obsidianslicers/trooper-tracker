@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Troopers;
 
+use App\Enums\FlashType;
 use App\Messages\Troopers\Commands\Membership\DenyTrooperMembership;
 use App\Http\Controllers\Controller;
 use App\Models\Trooper;
@@ -36,12 +37,8 @@ class DenyTrooperMembershipController extends Controller
     {
         DenyTrooperMembership::call($request);
 
-        $data = [
-            'results' => [
-                'message' => 'Trooper membership denied successfully.'
-            ]
-        ];
+        FlashType::success('Trooper membership denied successfully.');
 
-        return Inertia::render('admin/troopers/MembershipApprovals', $data);
+        return Inertia::render('admin/troopers/MembershipApprovals');
     }
 }

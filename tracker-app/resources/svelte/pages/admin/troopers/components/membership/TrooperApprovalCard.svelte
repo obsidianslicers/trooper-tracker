@@ -1,6 +1,5 @@
 <script lang="ts">
     import InputContainer from "$lib/components/form/InputContainer.svelte";
-    import InputHelp from "$lib/components/form/InputHelp.svelte";
     import InputText from "$lib/components/form/InputText.svelte";
     import SubmitButtonContainer from "$lib/components/form/SubmitButtonContainer.svelte";
     import Alert from "$lib/components/ui/Alert.svelte";
@@ -116,35 +115,45 @@
             </Alert>
         {/if}
     </div>
-    <div class="card-footer d-flex justify-content-between">
-        <div class="w-100">
-            {#if vm.denying}
-                <form>
-                    <InputContainer>
-                        <InputText multiline={true} value={vm.denial_reason} />
-                        <InputHelp>Reason for denial (optional).</InputHelp>
-                    </InputContainer>
-                    <SubmitButtonContainer>
-                        <SubmitButton label="Confirm Denial" danger={true} />
-                        <CancelButton click={() => (vm.denying = false)} />
-                    </SubmitButtonContainer>
-                </form>
-            {:else}
-                <div class="d-flex justify-content-between">
-                    <DeleteButton
-                        label="Deny"
-                        outline={false}
-                        icon={null}
-                        click={() => (vm.denying = true)}
-                    />
-                    <CreateButton
-                        label="Approve"
-                        outline={false}
-                        icon={null}
-                        click={() => (vm.denying = true)}
-                    />
-                </div>
-            {/if}
+    {#if !vm.submitted}
+        <div class="card-footer d-flex justify-content-between">
+            <div class="w-100">
+                {#if vm.denying}
+                    <form onsubmit={vm.deny}>
+                        <InputContainer>
+                            <InputText
+                                label="Denial Reason (optional)"
+                                multiline={true}
+                                value={vm.denial_reason}
+                            />
+                        </InputContainer>
+                        <SubmitButtonContainer>
+                            <SubmitButton
+                                label="Confirm Denial"
+                                danger={true}
+                                submitting={vm.submitting}
+                            />
+                            <CancelButton click={() => (vm.denying = false)} />
+                        </SubmitButtonContainer>
+                    </form>
+                {:else}
+                    <div class="d-flex justify-content-between">
+                        <DeleteButton
+                            label="Deny"
+                            outline={false}
+                            icon={null}
+                            click={() => (vm.denying = true)}
+                        />
+                        <CreateButton
+                            label="Approve"
+                            outline={false}
+                            icon={null}
+                            submitting={vm.submitting}
+                            click={() => vm.approve()}
+                        />
+                    </div>
+                {/if}
+            </div>
         </div>
-    </div>
+    {/if}
 </div>

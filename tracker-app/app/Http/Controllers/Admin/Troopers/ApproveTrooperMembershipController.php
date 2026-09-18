@@ -37,12 +37,8 @@ class ApproveTrooperMembershipController extends Controller
     {
         ApproveTrooperMembership::call($request);
 
-        $data = [
-            'results' => [
-                'message' => 'Trooper membership approved successfully.'
-            ]
-        ];
+        FlashType::success('Trooper membership approved successfully.');
 
-        return Inertia::render('admin/troopers/MembershipApprovals', $data);
+        return Inertia::render('admin/troopers/MembershipApprovals');
     }
 }

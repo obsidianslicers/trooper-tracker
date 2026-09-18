@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Troopers;
 
 use App\Http\Controllers\Controller;
+use App\Services\BreadCrumbService;
 use Illuminate\Http\Request;
 use App\Messages\Troopers\PageData\Membership\MembershipApprovalsPageData;
 use Inertia\Inertia;
@@ -18,6 +19,11 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
  */
 class MembershipApprovalsController extends Controller
 {
+    public function __construct(private readonly BreadCrumbService $crumbs)
+    {
+        $this->crumbs->addRoute('Command Staff', 'admin.display');
+    }
+
     /**
      * Handle the request to display the trooper approvals page
      *
