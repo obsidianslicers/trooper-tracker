@@ -10,6 +10,7 @@ use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
+use App\Models\TrooperOrganization;
 use App\Models\TrooperRequest;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -65,9 +66,13 @@ class AssignCreditControllerTest extends TestCase
         // A pending join request (not yet an actual TrooperAssignment) is enough to put the
         // trooper within the moderator's authorize() scope (Trooper::moderatedBy), while leaving
         // getEligibleCreditOrganizations() empty (no real assignment) — the normal (non-override)
-        // path would silently drop a submission for a trooper like this.
+        // path would silently drop a submission for a trooper like this. The trooper still needs
+        // a genuine tt_trooper_organizations row for $org, though — that's the separate check the
+        // override path also enforces (credit can only ever display for a club the trooper is
+        // actually currently listed under).
         $trooper = Trooper::factory()->asActive()->create();
         TrooperRequest::factory()->forTrooper($trooper)->forOrganization($org)->create();
+        TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($org)->create();
 
         $event_trooper = $this->makeAttendedEventTrooper($trooper);
 

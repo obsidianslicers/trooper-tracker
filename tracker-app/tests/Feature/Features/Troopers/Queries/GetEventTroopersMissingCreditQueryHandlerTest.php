@@ -88,6 +88,45 @@ class GetEventTroopersMissingCreditQueryHandlerTest extends TestCase
         $this->assertCount(0, $result);
     }
 
+    public function test_invoke_flags_trooper_with_no_club_membership_at_all(): void
+    {
+        // Real-world case: a trooper with zero non-deleted tt_trooper_organizations rows can
+        // never show a "Credited To" badge, no matter what gets assigned — HasOrgCreditAnnotation
+        // has nothing to match a credited org against. The UI needs this flag to explain why
+        // assigning credit here won't visibly change anything until that's fixed separately.
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $event_trooper = $this->makeAttendedEventTrooper($trooper);
+        $event_trooper->updateQuietly([
+            EventTrooper::ORGANIZATION_ID => null,
+            EventTrooper::COSTUME_ORGANIZATION_IDS => null,
+        ]);
+
+        $subject = new GetEventTroopersMissingCreditQueryHandler;
+        $result = $subject(new GetEventTroopersMissingCreditQuery(actor: $admin));
+
+        $this->assertTrue($result->first()['trooper_has_no_club_membership']);
+    }
+
+    public function test_invoke_does_not_flag_trooper_with_some_club_membership(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $org = $this->makeRootOrganization();
+        TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($org)->create();
+
+        $event_trooper = $this->makeAttendedEventTrooper($trooper);
+        $event_trooper->updateQuietly([
+            EventTrooper::ORGANIZATION_ID => null,
+            EventTrooper::COSTUME_ORGANIZATION_IDS => null,
+        ]);
+
+        $subject = new GetEventTroopersMissingCreditQueryHandler;
+        $result = $subject(new GetEventTroopersMissingCreditQuery(actor: $admin));
+
+        $this->assertFalse($result->first()['trooper_has_no_club_membership']);
+    }
+
     public function test_invoke_scopes_results_to_moderator_authority(): void
     {
         $moderator = Trooper::factory()->asModerator()->create();
@@ -124,18 +163,23 @@ class GetEventTroopersMissingCreditQueryHandlerTest extends TestCase
         $this->assertSame([$row_two->id], $result->pluck('event_trooper_id')->all());
     }
 
-    public function test_invoke_exposes_fallback_org_options_scoped_to_actor_authority_when_nothing_eligible(): void
+    public function test_invoke_exposes_fallback_org_options_scoped_to_trooper_membership_and_actor_authority(): void
     {
         $admin = Trooper::factory()->asAdministrator()->create();
         $root_org = $this->makeRootOrganization();
+        $other_org = $this->makeRootOrganization();
 
         $authorized_moderator = Trooper::factory()->asModerator()->create();
         TrooperAssignment::factory()->forTrooper($authorized_moderator)->forOrganization($root_org)->asModerator()->create();
 
         $unauthorized_moderator = Trooper::factory()->asModerator()->create();
+        TrooperAssignment::factory()->forTrooper($unauthorized_moderator)->forOrganization($other_org)->asModerator()->create();
 
-        // Trooper has no org membership at all, so getEligibleCreditOrganizations() is empty.
+        // Trooper is currently a member of root_org (so credit assigned there CAN display), but
+        // has no TrooperAssignment at all, so getEligibleCreditOrganizations() (org_options) is
+        // empty — this is what makes the fallback picker appear in the first place.
         $trooper = Trooper::factory()->asActive()->create();
+        TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($root_org)->create();
         $this->makeAttendedEventTrooper($trooper);
 
         $subject = new GetEventTroopersMissingCreditQueryHandler;
@@ -145,20 +189,43 @@ class GetEventTroopersMissingCreditQueryHandlerTest extends TestCase
         $unauthorized_result = $subject(new GetEventTroopersMissingCreditQuery(actor: $unauthorized_moderator, trooper_id: $trooper->id));
 
         $this->assertFalse($admin_result->first()['has_eligible_options']);
-        $this->assertTrue(collect($admin_result->first()['fallback_org_options'])->contains('id', $root_org->id));
+        $this->assertSame([$root_org->id], collect($admin_result->first()['fallback_org_options'])->pluck('id')->all());
 
-        $this->assertFalse($authorized_result->first()['has_eligible_options']);
         $this->assertSame([$root_org->id], collect($authorized_result->first()['fallback_org_options'])->pluck('id')->all());
 
-        $this->assertFalse($unauthorized_result->first()['has_eligible_options']);
+        // Moderator is authorized elsewhere, but not over the club the trooper actually belongs
+        // to, so there's nothing they can correctly offer — same as the true dead-end case.
         $this->assertSame([], $unauthorized_result->first()['fallback_org_options']);
     }
 
-    public function test_invoke_fallback_org_options_never_includes_sub_organizations(): void
+    public function test_invoke_fallback_org_options_never_offers_a_club_the_trooper_is_not_in(): void
     {
-        // Regression test: the fallback list must only ever offer root/primary clubs (credit is
-        // always attributed at that level) — a moderator whose authority is scoped to a
-        // sub-org/unit, not its root club, gets no fallback rather than being offered that unit.
+        // Directly guards the bug reported live: picking a club from the fallback list that the
+        // trooper doesn't actually belong to writes fine but never displays, because
+        // HasOrgCreditAnnotation can only resolve credit against the trooper's *current*
+        // tt_trooper_organizations rows. The fallback list must never offer such a club at all.
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper_org = $this->makeRootOrganization();
+        $other_org = $this->makeRootOrganization();
+
+        $trooper = Trooper::factory()->asActive()->create();
+        TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($trooper_org)->create();
+        $this->makeAttendedEventTrooper($trooper);
+
+        $subject = new GetEventTroopersMissingCreditQueryHandler;
+        $result = $subject(new GetEventTroopersMissingCreditQuery(actor: $admin, trooper_id: $trooper->id));
+
+        $ids = collect($result->first()['fallback_org_options'])->pluck('id')->all();
+        $this->assertContains($trooper_org->id, $ids);
+        $this->assertNotContains($other_org->id, $ids);
+    }
+
+    public function test_invoke_fallback_org_options_requires_actor_authority_over_trooper_root_club(): void
+    {
+        // tt_trooper_organizations only ever stores root/primary-club membership (enforced by
+        // TrooperOrganizationObserver), so a trooper's fallback options are already root-level by
+        // construction — this just confirms actor authority is still the gating factor when the
+        // moderator's own authority is scoped to a sub-org/unit under that same club.
         $root_org = Organization::factory()->asOrganization()->withNodePath('100:')->create();
         $child_org = Organization::factory()->asUnit()->withParent($root_org)->withNodePath('100:200:')->create();
 
@@ -166,6 +233,7 @@ class GetEventTroopersMissingCreditQueryHandlerTest extends TestCase
         TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($child_org)->asModerator()->create();
 
         $trooper = Trooper::factory()->asActive()->create();
+        TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($root_org)->create();
         $this->makeAttendedEventTrooper($trooper);
 
         $subject = new GetEventTroopersMissingCreditQueryHandler;

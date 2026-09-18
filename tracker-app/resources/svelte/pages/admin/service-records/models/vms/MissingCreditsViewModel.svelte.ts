@@ -21,6 +21,7 @@ export type MissingCreditRow = {
     has_eligible_options: boolean;
     has_orphaned_db_value: boolean;
     fallback_org_options: OrgOption[];
+    trooper_has_no_club_membership: boolean;
 };
 
 export type FilteredTrooper = {
@@ -96,6 +97,10 @@ export class MissingCreditsViewModel extends ViewModel {
             onSuccess: () => {
                 toastStateSvelte.success(`Credit assigned for ${row.trooper_name}.`);
                 this.rows = this.rows.filter((r) => r.event_trooper_id !== row.event_trooper_id);
+            },
+            onError: (errors) => {
+                const message = Object.values(errors)[0] ?? "Couldn't assign credit — please try again.";
+                toastStateSvelte.danger(Array.isArray(message) ? message[0] : message);
             },
             onFinish: () => {
                 this.assigning_id = null;

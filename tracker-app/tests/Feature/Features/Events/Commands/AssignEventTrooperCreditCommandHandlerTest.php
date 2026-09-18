@@ -13,6 +13,7 @@ use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
+use App\Models\TrooperOrganization;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -102,6 +103,7 @@ class AssignEventTrooperCreditCommandHandlerTest extends TestCase
         $admin = Trooper::factory()->asAdministrator()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $org = $this->makeRootOrganization();
+        TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($org)->create();
 
         $event_trooper = $this->makeAttendedEventTrooper($trooper, null);
 
@@ -125,7 +127,11 @@ class AssignEventTrooperCreditCommandHandlerTest extends TestCase
 
         TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($moderator_org)->asModerator()->create();
 
+        // Trooper is a genuine member of both clubs, so only the actor's own authority should be
+        // the thing that filters unauthorized_org out below.
         $trooper = Trooper::factory()->asActive()->create();
+        TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($moderator_org)->create();
+        TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($unauthorized_org)->create();
         $event_trooper = $this->makeAttendedEventTrooper($trooper, null);
 
         $subject = new AssignEventTrooperCreditCommandHandler;
@@ -138,6 +144,32 @@ class AssignEventTrooperCreditCommandHandlerTest extends TestCase
 
         $event_trooper->refresh();
         $this->assertSame([$moderator_org->id], $event_trooper->costume_organization_ids);
+    }
+
+    public function test_invoke_override_never_credits_a_club_the_trooper_is_not_in(): void
+    {
+        // Directly guards the bug reported live: even an administrator (unrestricted authority)
+        // selecting a club the trooper doesn't actually belong to must not write it — it would
+        // save but never display, since HasOrgCreditAnnotation only resolves credit against the
+        // trooper's current tt_trooper_organizations rows.
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $trooper_org = $this->makeRootOrganization();
+        $other_org = $this->makeRootOrganization();
+        TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($trooper_org)->create();
+
+        $event_trooper = $this->makeAttendedEventTrooper($trooper, null);
+
+        $subject = new AssignEventTrooperCreditCommandHandler;
+        $subject(new AssignEventTrooperCreditCommand(
+            event_trooper: $event_trooper,
+            organization_ids: [$other_org->id],
+            actor: $admin,
+            is_override: true,
+        ));
+
+        $event_trooper->refresh();
+        $this->assertSame([], $event_trooper->costume_organization_ids);
     }
 
     public function test_invoke_does_not_change_costume(): void

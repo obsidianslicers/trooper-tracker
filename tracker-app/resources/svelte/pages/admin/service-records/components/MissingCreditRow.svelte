@@ -27,12 +27,14 @@
     <td>{row.shift_label}</td>
     <td>{row.costume_name ?? "N/A"}</td>
     <td>
-        {#if options.length === 0}
+        {#if row.trooper_has_no_club_membership}
+            <span class="text-muted small">Not a member of any club — add them to a club first.</span>
+        {:else if options.length === 0}
             <span class="text-muted small">No eligible club found &mdash; contact a system administrator.</span>
         {:else}
             {#if isFallback}
                 <span class="badge bg-warning text-dark mb-1 d-block">
-                    No club matched automatically — showing every club you're able to credit. Double-check before assigning.
+                    No club matched automatically — showing {row.trooper_name}'s current club membership(s) instead.
                 </span>
             {/if}
             {#each options as option (option.id)}
@@ -52,7 +54,7 @@
         {/if}
     </td>
     <td class="text-end">
-        {#if options.length > 0}
+        {#if !row.trooper_has_no_club_membership && options.length > 0}
             <button
                 type="button"
                 class="btn btn-sm btn-warning"
