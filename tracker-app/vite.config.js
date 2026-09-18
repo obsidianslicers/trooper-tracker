@@ -46,6 +46,9 @@ export default defineConfig({
                         if (id.includes('pages/admin/faq')) {
                             return 'pages-admin-faq';
                         }
+                        if (id.includes('pages/admin/service-records')) {
+                            return 'pages-admin-service-records';
+                        }
                     }
                     if (id.includes('node_modules')) {
                         // 1. Core Reactive Frameworks

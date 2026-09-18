@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\ServiceRecords;
 
 use App\Bus\MagicBus;
+use App\Features\Troopers\Queries\GetEventTroopersMissingCreditQuery;
 use App\Features\Troopers\Queries\GetTrooperCostumesQuery;
 use App\Features\Troopers\Queries\GetTrooperServiceRecordQuery;
 use App\Models\Costume;
@@ -45,20 +46,17 @@ class TrooperControllerTest extends TestCase
             Costume::factory()->withName(Costume::HANDLER)->make(),
         ]);
 
-        $this->mock(MagicBus::class, function (MockInterface $mock) use ($data, $trooper_costumes, $target_trooper)
-        {
+        $this->mock(MagicBus::class, function (MockInterface $mock) use ($data, $trooper_costumes, $target_trooper) {
             $mock->shouldReceive('send')
                 ->once()
-                ->withArgs(function (GetTrooperServiceRecordQuery $query) use ($target_trooper): bool
-                {
+                ->withArgs(function (GetTrooperServiceRecordQuery $query) use ($target_trooper): bool {
                     return $query->trooper_id === $target_trooper->id;
                 })
                 ->andReturn($data);
 
             $mock->shouldReceive('send')
                 ->once()
-                ->withArgs(function (GetTrooperCostumesQuery $query) use ($target_trooper): bool
-                {
+                ->withArgs(function (GetTrooperCostumesQuery $query) use ($target_trooper): bool {
                     return $query->trooper->id === $target_trooper->id;
                 })
                 ->andReturn($trooper_costumes);
@@ -69,8 +67,7 @@ class TrooperControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertViewIs('pages.service-records.trooper');
-        $response->assertViewHas('trooper_costumes', function (Collection $result): bool
-        {
+        $response->assertViewHas('trooper_costumes', function (Collection $result): bool {
             return $result->pluck(Costume::NAME)->values()->all() === ['TK Classic'];
         });
     }
@@ -79,8 +76,7 @@ class TrooperControllerTest extends TestCase
     {
         $trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
 
-        $this->mock(BreadCrumbService::class, function (MockInterface $mock): void
-        {
+        $this->mock(BreadCrumbService::class, function (MockInterface $mock): void {
             $mock->shouldIgnoreMissing();
 
             $mock->shouldReceive('addRoute')
@@ -88,20 +84,17 @@ class TrooperControllerTest extends TestCase
                 ->with('Profile', 'account.index');
         });
 
-        $this->mock(MagicBus::class, function (MockInterface $mock) use ($trooper): void
-        {
+        $this->mock(MagicBus::class, function (MockInterface $mock) use ($trooper): void {
             $mock->shouldReceive('send')
                 ->once()
-                ->withArgs(function (GetTrooperServiceRecordQuery $query) use ($trooper): bool
-                {
+                ->withArgs(function (GetTrooperServiceRecordQuery $query) use ($trooper): bool {
                     return $query->trooper_id === $trooper->id;
                 })
                 ->andReturn($this->makeServiceRecordData($trooper));
 
             $mock->shouldReceive('send')
                 ->once()
-                ->withArgs(function (GetTrooperCostumesQuery $query) use ($trooper): bool
-                {
+                ->withArgs(function (GetTrooperCostumesQuery $query) use ($trooper): bool {
                     return $query->trooper->id === $trooper->id;
                 })
                 ->andReturn(collect());
@@ -123,27 +116,23 @@ class TrooperControllerTest extends TestCase
         $auth_trooper = Trooper::factory()->asMember()->withVerifiedEmail()->create();
         $target_trooper = Trooper::factory()->asMember()->create();
 
-        $this->mock(MagicBus::class, function (MockInterface $mock) use ($target_trooper): void
-        {
+        $this->mock(MagicBus::class, function (MockInterface $mock) use ($target_trooper): void {
             $mock->shouldReceive('send')
                 ->once()
-                ->withArgs(function (GetTrooperServiceRecordQuery $query) use ($target_trooper): bool
-                {
+                ->withArgs(function (GetTrooperServiceRecordQuery $query) use ($target_trooper): bool {
                     return $query->trooper_id === $target_trooper->id;
                 })
                 ->andReturn($this->makeServiceRecordData($target_trooper));
 
             $mock->shouldReceive('send')
                 ->once()
-                ->withArgs(function (GetTrooperCostumesQuery $query) use ($target_trooper): bool
-                {
+                ->withArgs(function (GetTrooperCostumesQuery $query) use ($target_trooper): bool {
                     return $query->trooper->id === $target_trooper->id;
                 })
                 ->andReturn(collect());
         });
 
-        $this->mock(XenforoService::class, function (MockInterface $mock) use ($target_trooper): void
-        {
+        $this->mock(XenforoService::class, function (MockInterface $mock) use ($target_trooper): void {
             $mock->shouldReceive('resolve_user_id_for_trooper')
                 ->once()
                 ->with($target_trooper->id)
@@ -188,8 +177,7 @@ class TrooperControllerTest extends TestCase
             ->get(route('service-records.trooper', ['trooper' => $target_trooper]));
 
         $response->assertOk();
-        $response->assertViewHas('xenforo_group_banners', function (Collection $banners): bool
-        {
+        $response->assertViewHas('xenforo_group_banners', function (Collection $banners): bool {
             return $banners->pluck('banner_text')->all() === [
                 '<span class="userBanner userBanner--primary">Primary</span>',
                 '<span class="userBanner userBanner--reserve">Reserve</span>',
@@ -288,21 +276,26 @@ class TrooperControllerTest extends TestCase
 
     private function mockServiceRecordQueries(Trooper $trooper): void
     {
-        $this->mock(MagicBus::class, function (MockInterface $mock) use ($trooper): void
-        {
+        $this->mock(MagicBus::class, function (MockInterface $mock) use ($trooper): void {
             $mock->shouldReceive('send')
                 ->once()
-                ->withArgs(function (GetTrooperServiceRecordQuery $query) use ($trooper): bool
-                {
+                ->withArgs(function (GetTrooperServiceRecordQuery $query) use ($trooper): bool {
                     return $query->trooper_id === $trooper->id;
                 })
                 ->andReturn($this->makeServiceRecordData($trooper));
 
             $mock->shouldReceive('send')
                 ->once()
-                ->withArgs(function (GetTrooperCostumesQuery $query) use ($trooper): bool
-                {
+                ->withArgs(function (GetTrooperCostumesQuery $query) use ($trooper): bool {
                     return $query->trooper->id === $trooper->id;
+                })
+                ->andReturn(collect());
+
+            // Only sent when the authenticated actor can update the target trooper (see
+            // TrooperController::__invoke's has_missing_credit flag) — any call count is fine here.
+            $mock->shouldReceive('send')
+                ->withArgs(function (GetEventTroopersMissingCreditQuery $query) use ($trooper): bool {
+                    return $query->trooper_id === $trooper->id;
                 })
                 ->andReturn(collect());
         });

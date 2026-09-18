@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\ServiceRecords;
 
 use App\Facades\TroopTrackerFacade;
+use App\Features\Troopers\Queries\GetEventTroopersMissingCreditQuery;
 use App\Features\Troopers\Queries\GetTrooperCostumesQuery;
 use App\Features\Troopers\Queries\GetTrooperServiceRecordQuery;
 use App\Http\Controllers\MagicBusController;
@@ -47,6 +48,8 @@ class TrooperController extends MagicBusController
         $trooper_costumes = $trooper_costumes->filter(fn ($c) => !in_array($c->name, [Costume::COMMAND_STAFF, Costume::HANDLER]));
 
         $data['trooper_costumes'] = $trooper_costumes;
+        $data['has_missing_credit'] = Auth::user()->can('update', $trooper)
+            && $this->bus->send(new GetEventTroopersMissingCreditQuery(actor: Auth::user(), trooper_id: $trooper->id))->isNotEmpty();
         $data['xenforo_group_banners'] = collect();
         $data['is_active_donor'] = false;
         $data['xenforo_donations'] = [];
