@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Account;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Account\UpdateOrganizationNotificationsRequest;
-use App\Messages\Troopers\Commands\Notifications\UpdateOrganizationNotifications;
+use App\Messages\Troopers\Commands\Notifications\CreateOrUpdateOrganizationNotifications;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
@@ -15,7 +15,7 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
  * Handles form submission for updating the authenticated trooper's organization notifications.
  *
  * This controller validates organization notifications data via UpdateOrganizationNotificationsRequest, dispatches
- * UpdateOrganizationNotifications to persist changes, and redirects back to the update profile page.
+ * CreateOrUpdateOrganizationNotifications to persist changes, and redirects back to the update profile page.
  */
 class UpdateOrganizationNotificationsController extends Controller
 {
@@ -29,7 +29,7 @@ class UpdateOrganizationNotificationsController extends Controller
     {
         $trooper = $request->user();
 
-        UpdateOrganizationNotifications::call(
+        CreateOrUpdateOrganizationNotifications::call(
             trooper: $trooper,
             organization_ids: $request->validated('organization_ids'),
             enabled: $request->validated('enabled'),

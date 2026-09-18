@@ -14,7 +14,7 @@ use App\Models\TrooperRequest;
  *
  * @see ApproveTrooperRequestCommandHandler
  */
-readonly class ApproveTrooperRequestCommand
+readonly class ApproveTrooperRequestCommandX
 {
     /**
      * @param  TrooperRequest  $trooper_request  The pending TrooperRequest to approve
@@ -23,5 +23,6 @@ readonly class ApproveTrooperRequestCommand
     public function __construct(
         public TrooperRequest $trooper_request,
         public bool $suppress_notification = false,
-    ) {}
+    ) {
+    }
 }

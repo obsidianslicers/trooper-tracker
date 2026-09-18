@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Messages\Troopers\Commands\Notifications;
 
-use App\Messages\Troopers\Commands\Notifications\UpdateOrganizationNotifications;
+use App\Messages\Troopers\Commands\Notifications\CreateOrUpdateOrganizationNotifications;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class UpdateOrganizationNotificationsTest extends TestCase
+class CreateOrUpdateOrganizationNotificationsTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -27,7 +27,7 @@ class UpdateOrganizationNotificationsTest extends TestCase
             ->withShouldNotify(false)
             ->create();
 
-        $subject = new UpdateOrganizationNotifications(
+        $subject = new CreateOrUpdateOrganizationNotifications(
             trooper: $trooper,
             organization_ids: [
                 $organization_one->{Organization::ID},
@@ -62,7 +62,7 @@ class UpdateOrganizationNotificationsTest extends TestCase
             ->withShouldNotify(true)
             ->create();
 
-        $subject = new UpdateOrganizationNotifications(
+        $subject = new CreateOrUpdateOrganizationNotifications(
             trooper: $trooper,
             organization_ids: [$organization->{Organization::ID}],
             enabled: false,
@@ -74,6 +74,34 @@ class UpdateOrganizationNotificationsTest extends TestCase
             TrooperAssignment::TROOPER_ID => $trooper->{Trooper::ID},
             TrooperAssignment::ORGANIZATION_ID => $organization->{Organization::ID},
             TrooperAssignment::SHOULD_NOTIFY => false,
+        ]);
+    }
+
+    public function test_handle_restores_trashed_assignment_through_integer_trooper_id(): void
+    {
+        $trooper = Trooper::factory()->asActive()->create();
+        $organization = Organization::factory()->create();
+
+        $assignment = TrooperAssignment::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($organization)
+            ->withShouldNotify(false)
+            ->create();
+        $assignment->delete();
+
+        $subject = new CreateOrUpdateOrganizationNotifications(
+            trooper: $trooper,
+            organization_ids: [$organization->{Organization::ID}],
+            enabled: true,
+        );
+
+        $subject->handle();
+
+        $this->assertDatabaseHas('tt_trooper_assignments', [
+            TrooperAssignment::TROOPER_ID => $trooper->{Trooper::ID},
+            TrooperAssignment::ORGANIZATION_ID => $organization->{Organization::ID},
+            TrooperAssignment::SHOULD_NOTIFY => true,
+            TrooperAssignment::DELETED_AT => null,
         ]);
     }
 }

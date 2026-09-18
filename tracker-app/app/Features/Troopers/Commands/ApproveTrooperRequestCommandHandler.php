@@ -19,9 +19,11 @@ use App\Notifications\Troopers\TrooperRequestApprovedNotification;
  *
  * @implements CommandHandlerInterface<ApproveTrooperRequestCommand>
  */
-readonly class ApproveTrooperRequestCommandHandler implements CommandHandlerInterface
+readonly class ApproveTrooperRequestCommandHandlerX implements CommandHandlerInterface
 {
-    public function __construct(private OrganizationIdentifierAvailability $identifier_availability) {}
+    public function __construct(private OrganizationIdentifierAvailability $identifier_availability)
+    {
+    }
 
     /**
      * @param  ApproveTrooperRequestCommand  $message
@@ -65,9 +67,10 @@ readonly class ApproveTrooperRequestCommandHandler implements CommandHandlerInte
         $ids = TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $trooper_request->trooper_id)
             ->where(TrooperAssignment::IS_MEMBER, true)
             ->where(TrooperAssignment::ORGANIZATION_ID, '!=', $trooper_request->organization_id)
-            ->whereHas('organization', function ($q) use ($primary_club): void {
-                $q->where(Organization::NODE_PATH, 'like', $primary_club->node_path.'%')
-                    ->orWhereRaw('? LIKE CONCAT('.Organization::NODE_PATH.', "%")', [$primary_club->node_path]);
+            ->whereHas('organization', function ($q) use ($primary_club): void
+            {
+                $q->where(Organization::NODE_PATH, 'like', $primary_club->node_path . '%')
+                    ->orWhereRaw('? LIKE CONCAT(' . Organization::NODE_PATH . ', "%")', [$primary_club->node_path]);
             })
             ->pluck(TrooperAssignment::ID);
 
@@ -176,7 +179,7 @@ readonly class ApproveTrooperRequestCommandHandler implements CommandHandlerInte
     }
 
     private function createOrUpdateNotificationAssignment(int $organization_id, int $trooper_id): void
-    {
+    {\
         $assignment = TrooperAssignment::withTrashed()
             ->where(TrooperAssignment::TROOPER_ID, $trooper_id)
             ->where(TrooperAssignment::ORGANIZATION_ID, $organization_id)

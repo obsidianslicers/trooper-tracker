@@ -4,20 +4,19 @@ declare(strict_types=1);
 
 namespace App\Messages\Troopers\Commands\Notifications;
 
-use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use Hyperdrive\Message;
 
 /**
  * Command message for updating a trooper's organization notifications setting.
  *
- * @method static void call(Trooper $trooper, bool $enabled)
+ * @method static void call(int $trooper_id, int $organization_id, bool $enabled)
  */
-final class UpdateOrganizationNotifications extends Message
+final class CreateOrUpdateOrganizationNotification extends Message
 {
     public function __construct(
-        private readonly Trooper $trooper,
-        private readonly array $organization_ids,
+        private readonly int $trooper_id,
+        private readonly int $organization_id,
         private readonly bool $enabled,
     ) {
     }
@@ -29,27 +28,26 @@ final class UpdateOrganizationNotifications extends Message
      */
     public function handle(): void
     {
-        foreach ($this->organization_ids as $organization_id)
-        {
-            $this->updateAssignment($organization_id);
-        }
-    }
-
-    private function updateAssignment(int $organization_id): void
-    {
-        $trooper_assignment = $this->trooper->trooper_assignments()
-            ->where(TrooperAssignment::ORGANIZATION_ID, $organization_id)
+        $trooper_assignment = TrooperAssignment::query()
+            ->withTrashed()
+            ->where(TrooperAssignment::TROOPER_ID, $this->trooper_id)
+            ->where(TrooperAssignment::ORGANIZATION_ID, $this->organization_id)
             ->first();
 
         if ($trooper_assignment)
         {
+            if ($trooper_assignment->trashed())
+            {
+                $trooper_assignment->restore();
+            }
+
             $trooper_assignment->should_notify = $this->enabled;
         }
         else
         {
             $trooper_assignment = new TrooperAssignment;
-            $trooper_assignment->trooper_id = $this->trooper->id;
-            $trooper_assignment->organization_id = $organization_id;
+            $trooper_assignment->trooper_id = $this->trooper_id;
+            $trooper_assignment->organization_id = $this->organization_id;
             $trooper_assignment->should_notify = $this->enabled;
         }
 
