@@ -39,13 +39,13 @@ class ApproveTrooperMembershipRequestTest extends TestCase
             ->with('trooper', \Mockery::any())
             ->andReturn($trooper);
 
-        $request->setRouteResolver(fn () => $mock_route);
+        $request->setRouteResolver(fn() => $mock_route);
     }
 
     public function test_authorize_returns_true_for_administrator(): void
     {
         $subject = new ApproveTrooperMembershipRequest;
-        $subject->setUserResolver(fn () => $this->admin);
+        $subject->setUserResolver(fn() => $this->admin);
         $this->setupMockedRoute($subject, $this->pending_trooper);
 
         $this->assertTrue($subject->authorize());
@@ -57,12 +57,12 @@ class ApproveTrooperMembershipRequestTest extends TestCase
         $this->expectExceptionMessage('Trooper not found or unauthorized.');
 
         $subject = new ApproveTrooperMembershipRequest;
-        $subject->setUserResolver(fn () => $this->admin);
+        $subject->setUserResolver(fn() => $this->admin);
 
         $mock_route = \Mockery::mock();
         $mock_route->shouldReceive('parameter')->with('trooper')->andReturn(null);
         $mock_route->shouldReceive('parameter')->with('trooper', \Mockery::any())->andReturn(null);
-        $subject->setRouteResolver(fn () => $mock_route);
+        $subject->setRouteResolver(fn() => $mock_route);
 
         $subject->authorize();
     }
@@ -71,7 +71,7 @@ class ApproveTrooperMembershipRequestTest extends TestCase
     {
         $not_pending = Trooper::factory()->asActive()->create();
         $subject = new ApproveTrooperMembershipRequest;
-        $subject->setUserResolver(fn () => $this->admin);
+        $subject->setUserResolver(fn() => $this->admin);
         $this->setupMockedRoute($subject, $not_pending);
 
         $validator = Validator::make(
@@ -90,7 +90,7 @@ class ApproveTrooperMembershipRequestTest extends TestCase
     public function test_rules_passes_when_trooper_is_pending(): void
     {
         $subject = new ApproveTrooperMembershipRequest;
-        $subject->setUserResolver(fn () => $this->admin);
+        $subject->setUserResolver(fn() => $this->admin);
         $this->setupMockedRoute($subject, $this->pending_trooper);
 
         $validator = Validator::make(
