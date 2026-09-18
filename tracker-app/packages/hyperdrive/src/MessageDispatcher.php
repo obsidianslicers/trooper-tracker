@@ -3,11 +3,13 @@
 namespace Hyperdrive;
 
 use Hyperdrive\Contracts\Actor;
+use Hyperdrive\Concerns\ShouldBeTransactional;
 use Exception;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use BackedEnum;
 use InvalidArgumentException;
@@ -72,7 +74,14 @@ final class MessageDispatcher
                 throw new Exception("Message class `{$message_class}` does not have a `handle()` method.");
             }
 
-            return app()->call([$message, 'handle']);
+            $execute = fn(): mixed => app()->call([$message, 'handle']);
+
+            if (in_array(ShouldBeTransactional::class, class_uses_recursive($message_class), true))
+            {
+                return DB::transaction($execute);
+            }
+
+            return $execute();
         }
         catch (ValidationException $e)
         {
