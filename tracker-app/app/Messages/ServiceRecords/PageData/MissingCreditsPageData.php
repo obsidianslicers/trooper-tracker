@@ -36,7 +36,6 @@ final class MissingCreditsPageData extends Message
 
         return [
             'rows' => $rows->values()->all(),
-            'is_administrator' => $this->actor->is_administrator,
             'filtered_trooper' => $this->getFilteredTrooper(),
         ];
     }

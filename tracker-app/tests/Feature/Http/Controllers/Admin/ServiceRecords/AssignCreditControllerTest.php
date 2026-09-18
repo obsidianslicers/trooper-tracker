@@ -10,6 +10,7 @@ use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
+use App\Models\TrooperRequest;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -49,6 +50,30 @@ class AssignCreditControllerTest extends TestCase
         $response = $this->actingAs($moderator)->post(
             route('admin.service-records.missing-credits.assign', ['event_trooper' => $event_trooper]),
             ['organization_ids' => [$org->id]]
+        );
+
+        $response->assertRedirect();
+        $this->assertSame([$org->id], $event_trooper->fresh()->costume_organization_ids);
+    }
+
+    public function test_invoke_assigns_credit_via_override_when_trooper_has_no_eligible_orgs(): void
+    {
+        $moderator = Trooper::factory()->asModerator()->create();
+        $org = $this->makeRootOrganization();
+        TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($org)->asModerator()->create();
+
+        // A pending join request (not yet an actual TrooperAssignment) is enough to put the
+        // trooper within the moderator's authorize() scope (Trooper::moderatedBy), while leaving
+        // getEligibleCreditOrganizations() empty (no real assignment) — the normal (non-override)
+        // path would silently drop a submission for a trooper like this.
+        $trooper = Trooper::factory()->asActive()->create();
+        TrooperRequest::factory()->forTrooper($trooper)->forOrganization($org)->create();
+
+        $event_trooper = $this->makeAttendedEventTrooper($trooper);
+
+        $response = $this->actingAs($moderator)->post(
+            route('admin.service-records.missing-credits.assign', ['event_trooper' => $event_trooper]),
+            ['organization_ids' => [$org->id], 'is_override' => true]
         );
 
         $response->assertRedirect();

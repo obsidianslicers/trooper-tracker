@@ -8,7 +8,7 @@
     let { vm, row }: Props = $props();
 
     let options = $derived(vm.optionsFor(row));
-    let is_override = $derived(vm.isManualOverride(row));
+    let is_fallback = $derived(vm.isFallback(row));
 </script>
 
 <tr>
@@ -30,8 +30,10 @@
         {#if options.length === 0}
             <span class="text-muted small">No eligible club found &mdash; contact a system administrator.</span>
         {:else}
-            {#if is_override}
-                <span class="badge bg-warning text-dark mb-1 d-block">Manual override (no club eligible)</span>
+            {#if is_fallback}
+                <span class="badge bg-warning text-dark mb-1 d-block">
+                    No club matched automatically — showing every club you're able to credit. Double-check before assigning.
+                </span>
             {/if}
             {#each options as option (option.id)}
                 <div class="form-check form-check-inline">

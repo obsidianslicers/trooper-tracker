@@ -15,7 +15,7 @@
     <p class="text-muted small mb-3">
         Showing missing-credit shifts for
         <a href={vm.trooperServiceRecordRoute(vm.filtered_trooper.id)}>{vm.filtered_trooper.display_name}</a>.
-        <a href={vm.clear_filter_route}>Show all in scope</a>
+        <a href={vm.clear_filter_route}>View all missing credit</a>
     </p>
 {/if}
 

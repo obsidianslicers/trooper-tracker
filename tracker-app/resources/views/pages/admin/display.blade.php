@@ -82,6 +82,11 @@
                       :url="route('admin.troopers.list')">
         Manage Trooper's profile, authority, and memberships.
     </x-dashboard-card>
+    <x-dashboard-card :label="'Missing Credit'"
+                      :icon="'fa-triangle-exclamation'"
+                      :url="route('admin.service-records.missing-credits')">
+        Fix shifts missing a "Credited To" club
+    </x-dashboard-card>
     @role(['administrator'])
     <x-dashboard-card :label="'Merge Troopers'"
                       :icon="'fa-user-group'"

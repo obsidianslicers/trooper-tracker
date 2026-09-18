@@ -20,6 +20,7 @@ class AssignCreditController extends Controller
             event_trooper: $event_trooper,
             organization_ids: $request->validated('organization_ids'),
             actor: $request->user(),
+            is_override: $request->boolean('is_override'),
         ));
 
         FlashType::success('Credit assigned.');

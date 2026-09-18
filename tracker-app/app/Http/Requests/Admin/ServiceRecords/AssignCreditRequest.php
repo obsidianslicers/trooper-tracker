@@ -34,6 +34,7 @@ class AssignCreditRequest extends FormRequest
         return [
             'organization_ids' => ['required', 'array', 'min:1'],
             'organization_ids.*' => ['integer', Rule::exists(Organization::class, Organization::ID)],
+            'is_override' => ['sometimes', 'boolean'],
         ];
     }
 }

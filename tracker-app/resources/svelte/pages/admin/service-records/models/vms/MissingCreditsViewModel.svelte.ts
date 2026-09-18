@@ -20,7 +20,7 @@ export type MissingCreditRow = {
     org_options: OrgOption[];
     has_eligible_options: boolean;
     has_orphaned_db_value: boolean;
-    all_org_options: OrgOption[] | null;
+    fallback_org_options: OrgOption[];
 };
 
 export type FilteredTrooper = {
@@ -30,13 +30,11 @@ export type FilteredTrooper = {
 
 export type MissingCreditsPageData = {
     rows: MissingCreditRow[];
-    is_administrator: boolean;
     filtered_trooper: FilteredTrooper | null;
 };
 
 export class MissingCreditsViewModel extends ViewModel {
     rows: MissingCreditRow[] = $state([]);
-    is_administrator: boolean = $state(false);
     filtered_trooper: FilteredTrooper | null = $state(null);
     assigning_id: number | null = $state(null);
     selected: Record<number, number[]> = $state({});
@@ -44,7 +42,6 @@ export class MissingCreditsViewModel extends ViewModel {
     constructor(public pageData: MissingCreditsPageData) {
         super();
         this.rows = pageData.rows;
-        this.is_administrator = pageData.is_administrator;
         this.filtered_trooper = pageData.filtered_trooper;
 
         this.rows.forEach((row) => {
@@ -61,11 +58,11 @@ export class MissingCreditsViewModel extends ViewModel {
     };
 
     optionsFor = (row: MissingCreditRow): OrgOption[] => {
-        return row.org_options.length > 0 ? row.org_options : (row.all_org_options ?? []);
+        return row.org_options.length > 0 ? row.org_options : row.fallback_org_options;
     };
 
-    isManualOverride = (row: MissingCreditRow): boolean => {
-        return row.org_options.length === 0 && (row.all_org_options?.length ?? 0) > 0;
+    isFallback = (row: MissingCreditRow): boolean => {
+        return row.org_options.length === 0 && row.fallback_org_options.length > 0;
     };
 
     isSelected = (row: MissingCreditRow, org_id: number): boolean => {
@@ -105,6 +102,6 @@ export class MissingCreditsViewModel extends ViewModel {
             },
         });
 
-        router.post(url, { organization_ids }, options);
+        router.post(url, { organization_ids, is_override: this.isFallback(row) }, options);
     };
 }
