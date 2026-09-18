@@ -8,7 +8,7 @@
     let { vm, row }: Props = $props();
 
     let options = $derived(vm.optionsFor(row));
-    let is_fallback = $derived(vm.isFallback(row));
+    let isFallback = $derived(vm.isFallback(row));
 </script>
 
 <tr>
@@ -30,7 +30,7 @@
         {#if options.length === 0}
             <span class="text-muted small">No eligible club found &mdash; contact a system administrator.</span>
         {:else}
-            {#if is_fallback}
+            {#if isFallback}
                 <span class="badge bg-warning text-dark mb-1 d-block">
                     No club matched automatically — showing every club you're able to credit. Double-check before assigning.
                 </span>
