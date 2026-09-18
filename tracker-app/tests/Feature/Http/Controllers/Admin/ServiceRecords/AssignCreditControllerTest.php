@@ -13,6 +13,7 @@ use App\Models\TrooperAssignment;
 use App\Models\TrooperOrganization;
 use App\Models\TrooperRequest;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class AssignCreditControllerTest extends TestCase
@@ -33,7 +34,8 @@ class AssignCreditControllerTest extends TestCase
             ['organization_ids' => [$org->id]]
         );
 
-        $response->assertRedirect();
+        $response->assertOk();
+        $response->assertInertia(fn (Assert $page) => $page->component('admin/service-records/MissingCredits'));
         $this->assertSame([$org->id], $event_trooper->fresh()->costume_organization_ids);
     }
 
@@ -53,7 +55,8 @@ class AssignCreditControllerTest extends TestCase
             ['organization_ids' => [$org->id]]
         );
 
-        $response->assertRedirect();
+        $response->assertOk();
+        $response->assertInertia(fn (Assert $page) => $page->component('admin/service-records/MissingCredits'));
         $this->assertSame([$org->id], $event_trooper->fresh()->costume_organization_ids);
     }
 
@@ -81,7 +84,8 @@ class AssignCreditControllerTest extends TestCase
             ['organization_ids' => [$org->id], 'is_override' => true]
         );
 
-        $response->assertRedirect();
+        $response->assertOk();
+        $response->assertInertia(fn (Assert $page) => $page->component('admin/service-records/MissingCredits'));
         $this->assertSame([$org->id], $event_trooper->fresh()->costume_organization_ids);
     }
 

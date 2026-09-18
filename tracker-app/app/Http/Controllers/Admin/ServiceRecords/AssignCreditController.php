@@ -10,11 +10,12 @@ use App\Features\Events\Commands\AssignEventTrooperCreditCommand;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ServiceRecords\AssignCreditRequest;
 use App\Models\EventTrooper;
-use Illuminate\Http\RedirectResponse;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 class AssignCreditController extends Controller
 {
-    public function __invoke(AssignCreditRequest $request, EventTrooper $event_trooper, MagicBus $bus): RedirectResponse
+    public function __invoke(AssignCreditRequest $request, EventTrooper $event_trooper, MagicBus $bus): InertiaResponse
     {
         $bus->send(new AssignEventTrooperCreditCommand(
             event_trooper: $event_trooper,
@@ -25,6 +26,9 @@ class AssignCreditController extends Controller
 
         FlashType::success('Credit assigned.');
 
-        return back();
+        // Render the page directly (no redirect) so the frontend's `only: ['flash']` partial
+        // reload is honored in a single round trip — the rows/filtered_trooper props are already
+        // updated optimistically client-side, so there's nothing else to send back.
+        return Inertia::render('admin/service-records/MissingCredits');
     }
 }
