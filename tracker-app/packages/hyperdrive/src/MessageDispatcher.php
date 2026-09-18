@@ -2,21 +2,21 @@
 
 namespace Hyperdrive;
 
-use Hyperdrive\Contracts\Actor;
-use Hyperdrive\Concerns\ShouldBeTransactional;
+use BackedEnum;
 use Exception;
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Request;
+use Hyperdrive\Concerns\ShouldBeTransactional;
+use Hyperdrive\Contracts\Actor;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
-use BackedEnum;
 use InvalidArgumentException;
 use ReflectionClass;
 use ReflectionNamedType;
-use ReflectionUnionType;
 use ReflectionParameter;
+use ReflectionUnionType;
 use UnitEnum;
 
 final class MessageDispatcher
@@ -30,7 +30,7 @@ final class MessageDispatcher
     {
         if (in_array($message_class, $this->processing, true))
         {
-            $cycle = implode(' -> ', $this->processing) . ' -> ' . $message_class;
+            $cycle = implode(' -> ', $this->processing).' -> '.$message_class;
 
             throw new Exception("Circular message call detected: [{$cycle}]");
         }
@@ -63,7 +63,7 @@ final class MessageDispatcher
                 ...$request_params,
                 ...$route_params,
                 ...$auth_params,
-                ...$params
+                ...$params,
             ];
 
             /** @var Message $message */
@@ -74,7 +74,7 @@ final class MessageDispatcher
                 throw new Exception("Message class `{$message_class}` does not have a `handle()` method.");
             }
 
-            $execute = fn(): mixed => app()->call([$message, 'handle']);
+            $execute = fn (): mixed => app()->call([$message, 'handle']);
 
             if (in_array(ShouldBeTransactional::class, class_uses_recursive($message_class), true))
             {
@@ -85,7 +85,7 @@ final class MessageDispatcher
         }
         catch (ValidationException $e)
         {
-            throw new InvalidArgumentException("Invalid message parameters: " . json_encode($e->errors()));
+            throw new InvalidArgumentException('Invalid message parameters: '.json_encode($e->errors()));
         }
         catch (Exception $e)
         {
@@ -103,7 +103,7 @@ final class MessageDispatcher
      * This performs lightweight transport coercion and required-parameter checks so
      * semantic validation remains in message-level validation rules.
      *
-     * @param  array $params Optional additional parameters to use for hydration, such as route parameters.
+     * @param  array  $params  Optional additional parameters to use for hydration, such as route parameters.
      * @return static
      *
      * @throws ValidationException If a required constructor argument is omitted or null.
@@ -133,7 +133,7 @@ final class MessageDispatcher
                 $value = $params['actor'] ?? null;
                 $has_input = $value !== null;
             }
-            else if ($has_input)
+            elseif ($has_input)
             {
                 $value = $params[$name];
             }
@@ -148,6 +148,7 @@ final class MessageDispatcher
                 if (!$parameter->isOptional() && !$parameter->allowsNull())
                 {
                     $parameter_errors[$name] = ["The Hyperdrive input-parameter `{$base_name}:{$name}` is required."];
+
                     continue;
                 }
             }
@@ -155,6 +156,7 @@ final class MessageDispatcher
             if ($value === null && !$parameter->allowsNull())
             {
                 $parameter_errors[$name] = ["The Hyperdrive parameter `{$base_name}:{$name}` is required."];
+
                 continue;
             }
 
@@ -174,7 +176,7 @@ final class MessageDispatcher
 
         if ($parameter_errors !== [])
         {
-            throw new InvalidArgumentException("Invalid message parameters: " . json_encode($parameter_errors));
+            throw new InvalidArgumentException('Invalid message parameters: '.json_encode($parameter_errors));
         }
 
         return $reflection->newInstanceArgs($resolved_params);
@@ -183,9 +185,6 @@ final class MessageDispatcher
     /**
      * Resolve and coerce a constructor parameter value from payload input.
      *
-     * @param  ReflectionParameter  $parameter
-     * @param  mixed  $value
-     * @return mixed
      * * @throws ValidationException|ModelNotFoundException
      */
     private function resolveParameterValue(ReflectionParameter $parameter, mixed $value): mixed
@@ -205,10 +204,10 @@ final class MessageDispatcher
         if ($type instanceof ReflectionUnionType)
         {
             //  only supporting enums right now
-            //return $this->resolveNamedTypeValue($parameter, $type, $value);
+            // return $this->resolveNamedTypeValue($parameter, $type, $value);
             $non_null_types = array_filter(
                 $type->getTypes(),
-                fn(ReflectionNamedType $t) => $t->getName() !== 'null'
+                fn (ReflectionNamedType $t) => $t->getName() !== 'null'
             );
 
             // If it's a simple nullable union like string|null, extract the primary type
@@ -225,7 +224,7 @@ final class MessageDispatcher
             // 2. Validate that EVERY non-null type in this union is an Enum
             $all_enums = array_reduce(
                 $non_null_types,
-                fn(bool $carry, ReflectionNamedType $t) => $carry && enum_exists($t->getName()),
+                fn (bool $carry, ReflectionNamedType $t) => $carry && enum_exists($t->getName()),
                 true
             );
 

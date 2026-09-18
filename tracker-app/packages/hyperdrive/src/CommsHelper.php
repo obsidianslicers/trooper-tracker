@@ -11,9 +11,6 @@ class CommsHelper
 {
     /**
      * Returns a formatted flash message for an updated model.
-     *
-     * @param Model $model
-     * @return string
      */
     public static function updated(Model $model): string
     {
@@ -22,9 +19,6 @@ class CommsHelper
 
     /**
      * Returns a formatted flash message for a created model.
-     * 
-     * @param Model $model
-     * @return string
      */
     public static function created(Model $model): string
     {
@@ -33,9 +27,6 @@ class CommsHelper
 
     /**
      * Returns a formatted flash message for a deleted model.
-     * 
-     * @param Model $model
-     * @return string
      */
     public static function deleted(Model $model): string
     {
@@ -44,10 +35,6 @@ class CommsHelper
 
     /**
      * Formats a flash message string for a model action.
-     *
-     * @param  Model  $model
-     * @param  string $action
-     * @return string
      */
     private static function formatModelAction(Model $model, string $action): string
     {
