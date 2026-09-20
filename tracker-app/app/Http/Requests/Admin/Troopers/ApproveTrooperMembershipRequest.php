@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin\Troopers;
 
-use App\Enums\MembershipStatus;
 use Illuminate\Auth\Access\AuthorizationException;
+use App\Rules\Admin\Troopers\PendingTrooperMembership;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -55,15 +55,7 @@ class ApproveTrooperMembershipRequest extends FormRequest
     {
         return [
             'trooper' => [
-                function ($attribute, $value, $fail)
-                {
-                    $trooper = $this->route('trooper');
-
-                    if ($trooper->membership_status !== MembershipStatus::PENDING)
-                    {
-                        $fail('The trooper must have a pending membership status.');
-                    }
-                },
+                new PendingTrooperMembership()
             ],
         ];
     }

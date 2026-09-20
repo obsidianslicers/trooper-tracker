@@ -12,6 +12,7 @@ use App\Models\TrooperRequest;
 use App\Notifications\Troopers\TrooperRequestApprovedNotification;
 use Exception;
 use Hyperdrive\Message;
+use Hyperdrive\Concerns\ShouldBeTransactional;
 
 /**
  * Handler for approving a trooper's membership.
@@ -20,6 +21,8 @@ use Hyperdrive\Message;
  */
 final class ApproveTrooperRequest extends Message
 {
+    use ShouldBeTransactional;
+
     public function __construct(
         private readonly TrooperRequest $trooper_request,
         private readonly bool $suppress_notification = false,

@@ -23,7 +23,7 @@ final class ApproveTrooperMembershipControllerTest extends TestCase
         $trooper = Trooper::factory()->asPending()->create();
 
         $response = $this->actingAs($admin)
-            ->post(route('admin.troopers.approvals.approve', $trooper));
+            ->post(route('admin.troopers.approvals.approve-membership', $trooper));
 
         $response->assertOk();
         $response->assertInertia(fn($page) => $page
@@ -38,7 +38,7 @@ final class ApproveTrooperMembershipControllerTest extends TestCase
     {
         $trooper = Trooper::factory()->asPending()->create();
 
-        $response = $this->post(route('admin.troopers.approvals.approve', $trooper));
+        $response = $this->post(route('admin.troopers.approvals.approve-membership', $trooper));
 
         $response->assertRedirect(route('auth.login'));
     }
@@ -49,7 +49,7 @@ final class ApproveTrooperMembershipControllerTest extends TestCase
         $trooper = Trooper::factory()->asActive()->create();
 
         $response = $this->actingAs($admin)
-            ->post(route('admin.troopers.approvals.approve', $trooper));
+            ->post(route('admin.troopers.approvals.approve-membership', $trooper));
 
         $response->assertRedirect();
         $response->assertSessionHasErrors('trooper');

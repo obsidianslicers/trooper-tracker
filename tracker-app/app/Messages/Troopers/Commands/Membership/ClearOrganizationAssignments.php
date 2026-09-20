@@ -7,6 +7,7 @@ namespace App\Messages\Troopers\Commands\Membership;
 use App\Models\Organization;
 use App\Models\TrooperAssignment;
 use Hyperdrive\Message;
+use Hyperdrive\Concerns\ShouldBeTransactional;
 
 /**
  * Command message for updating a trooper's organization assignment setting.
@@ -15,6 +16,8 @@ use Hyperdrive\Message;
  */
 final class ClearOrganizationAssignments extends Message
 {
+    use ShouldBeTransactional;
+
     public function __construct(
         private readonly int $trooper_id,
         private readonly Organization $primary_organization

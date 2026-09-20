@@ -1,14 +1,7 @@
 <script lang="ts">
-    import InputContainer from "$lib/components/form/InputContainer.svelte";
-    import InputHelp from "$lib/components/form/InputHelp.svelte";
-    import InputText from "$lib/components/form/InputText.svelte";
-    import SubmitButtonContainer from "$lib/components/form/SubmitButtonContainer.svelte";
-    import CancelButton from "$lib/components/ui/buttons/CancelButton.svelte";
-    import CreateButton from "$lib/components/ui/buttons/CreateButton.svelte";
-    import DeleteButton from "$lib/components/ui/buttons/DeleteButton.svelte";
-    import SubmitButton from "$lib/components/ui/buttons/SubmitButton.svelte";
     import type { TrooperRequest } from "../../models/vms";
     import { PendingTrooperRequestViewModel } from "../../models/vms";
+    import TrooperRequestCardFooter from "./TrooperRequestCardFooter.svelte";
 
     interface Props {
         request: TrooperRequest;
@@ -66,35 +59,5 @@
         </div>
     -->
     </div>
-    <div class="card-footer d-flex justify-content-between">
-        <div class="w-100">
-            {#if vm.denying}
-                <form>
-                    <InputContainer>
-                        <InputText multiline={true} value={vm.denial_reason} />
-                        <InputHelp>Reason for denial (optional).</InputHelp>
-                    </InputContainer>
-                    <SubmitButtonContainer>
-                        <SubmitButton label="Confirm Denial" danger={true} />
-                        <CancelButton click={() => (vm.denying = false)} />
-                    </SubmitButtonContainer>
-                </form>
-            {:else}
-                <div class="d-flex justify-content-between">
-                    <DeleteButton
-                        label="Deny"
-                        outline={false}
-                        icon={null}
-                        click={() => (vm.denying = true)}
-                    />
-                    <CreateButton
-                        label="Approve"
-                        outline={false}
-                        icon={null}
-                        click={() => (vm.denying = true)}
-                    />
-                </div>
-            {/if}
-        </div>
-    </div>
+    <TrooperRequestCardFooter {vm} />
 </div>

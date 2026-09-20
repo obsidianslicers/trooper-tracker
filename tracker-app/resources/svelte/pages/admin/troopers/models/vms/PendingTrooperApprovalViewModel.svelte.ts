@@ -69,7 +69,7 @@ export class PendingTrooperApprovalViewModel extends ViewModel {
         this.submitting = true;
 
         const parms = { trooper: this.approval.trooper_id };
-        const url = getRoute('admin.troopers.approvals.deny', parms);
+        const url = getRoute('admin.troopers.approvals.deny-membership', parms);
 
         const options = createPartialReloadOptions({
             onFinish: () => {
@@ -88,7 +88,7 @@ export class PendingTrooperApprovalViewModel extends ViewModel {
         this.submitting = true;
 
         const parms = { trooper: this.approval.trooper_id };
-        const url = getRoute('admin.troopers.approvals.approve', parms);
+        const url = getRoute('admin.troopers.approvals.approve-membership', parms);
 
         const options = createPartialReloadOptions({
             onFinish: () => {

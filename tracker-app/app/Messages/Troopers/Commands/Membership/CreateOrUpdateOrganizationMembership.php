@@ -7,6 +7,7 @@ namespace App\Messages\Troopers\Commands\Membership;
 use App\Enums\MembershipStatus;
 use App\Models\TrooperOrganization;
 use Hyperdrive\Message;
+use Hyperdrive\Concerns\ShouldBeTransactional;
 
 /**
  * Activates a trooper's membership in an organization and its primary organization.
@@ -19,6 +20,8 @@ use Hyperdrive\Message;
  */
 final class CreateOrUpdateOrganizationMembership extends Message
 {
+    use ShouldBeTransactional;
+
     public function __construct(
         private readonly int $trooper_id,
         private readonly int $primary_organization_id,

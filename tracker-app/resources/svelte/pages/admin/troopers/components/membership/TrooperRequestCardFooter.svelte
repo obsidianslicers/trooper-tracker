@@ -7,10 +7,10 @@
     import CreateButton from "$lib/components/ui/buttons/CreateButton.svelte";
     import DeleteButton from "$lib/components/ui/buttons/DeleteButton.svelte";
     import SubmitButton from "$lib/components/ui/buttons/SubmitButton.svelte";
-    import { PendingTrooperApprovalViewModel } from "../../models/vms";
+    import { PendingTrooperRequestViewModel } from "../../models/vms";
 
     interface Props {
-        vm: PendingTrooperApprovalViewModel;
+        vm: PendingTrooperRequestViewModel;
     }
 
     let { vm }: Props = $props();

@@ -8,6 +8,7 @@ use App\Enums\MembershipStatus;
 use App\Models\Trooper;
 use App\Models\TrooperRequest;
 use App\Notifications\Troopers\MembershipApprovedNotification;
+use Hyperdrive\Concerns\ShouldBeTransactional;
 use Hyperdrive\Message;
 use Illuminate\Support\Facades\DB;
 
@@ -18,6 +19,8 @@ use Illuminate\Support\Facades\DB;
  */
 final class ApproveTrooperMembership extends Message
 {
+    use ShouldBeTransactional;
+
     public function __construct(
         private readonly Trooper $trooper,
     ) {
