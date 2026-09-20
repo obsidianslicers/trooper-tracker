@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Hyperdrive;
 
-use ReflectionClass;
 use Illuminate\Http\Request;
+use ReflectionClass;
 
 /**
  * Base transport message used by the message bus.
@@ -17,8 +17,8 @@ abstract class Message
 {
     /**
      * Boot the command from request data and handle it, otherwise use the provided arguments.
-     * @param mixed ...$args
-     * @return mixed
+     *
+     * @param  mixed  ...$args
      */
     public static function call(...$args): mixed
     {
