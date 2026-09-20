@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Rules\Auth;
 
-use App\Features\Troopers\Support\OrganizationIdentifierAvailability;
+use App\Messages\Troopers\Queries\Membership\IsOrganizationIdentifierAvailable;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Closure;
@@ -27,7 +27,9 @@ class UniqueOrganizationIdentifierRule implements ValidationRule
      */
     public function __construct(
         private readonly Organization $organization,
-        private readonly ?Trooper $trooper = null) {}
+        private readonly ?Trooper $trooper = null)
+    {
+    }
 
     /**
      * Run the validation rule.
@@ -39,12 +41,12 @@ class UniqueOrganizationIdentifierRule implements ValidationRule
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        if (! empty($value))
+        if (!empty($value))
         {
-            $available = app(OrganizationIdentifierAvailability::class)->isAvailable(
-                $this->organization,
-                (string) $value,
-                $this->trooper?->id
+            $available = IsOrganizationIdentifierAvailable::call(
+                primary_organization: $this->organization,
+                identifier: (string) $value,
+                ignore_trooper_id: $this->trooper?->id
             );
 
             if (!$available)
