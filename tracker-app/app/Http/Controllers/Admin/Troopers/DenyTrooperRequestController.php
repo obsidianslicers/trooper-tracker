@@ -16,21 +16,21 @@ use App\Http\Requests\Admin\Troopers\DenyTrooperRequestRequest;
 /**
  * Class DenyTrooperRequestController
  *
- * Handles the submission of a trooper's membership denial via an HTMX request.
+ * Handles the submission of a trooper's request denial via an HTMX request.
  * This controller updates the trooper's status to 'Denied', sends a denial email,
  * and returns a view fragment with a flash message in the response headers for HTMX to process.
  */
 class DenyTrooperRequestController extends Controller
 {
     /**
-     * Handle the incoming request to deny a trooper's membership
+     * Handle the incoming request to deny a trooper's request
      *
      * This method authorizes the action, updates the trooper's status to 'Denied',
      * saves the model, and dispatches a denial email. It returns a view
      * with a custom 'X-Flash-Message' header for HTMX to display a success message.
      *
      * @param  DenyTrooperRequestRequest  $request  The incoming HTTP request
-     * @param  Trooper  $trooper  The trooper pending denial
+     * @param  TrooperRequest  $trooper_request  The trooper request pending denial
      * @return InertiaResponse|SymfonyResponse A response object containing the view and a custom header
      */
     public function __invoke(
@@ -42,7 +42,7 @@ class DenyTrooperRequestController extends Controller
             $request->validated('denial_reason'),
         );
 
-        FlashType::success('Trooper membership denied successfully.');
+        FlashType::success('Trooper request denied successfully.');
 
         return Inertia::render('admin/troopers/MembershipApprovals');
     }
