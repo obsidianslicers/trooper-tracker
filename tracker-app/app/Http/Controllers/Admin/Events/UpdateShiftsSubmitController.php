@@ -59,6 +59,13 @@ class UpdateShiftsSubmitController extends MagicBusController
             {
                 $shift->status = EventStatus::from($input['status']);
             }
+            else
+            {
+                if ($event->status === EventStatus::OPEN)
+                {
+                    $shift->status = EventStatus::OPEN;
+                }
+            }
 
             $shift->save();
 
