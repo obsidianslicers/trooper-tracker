@@ -2,6 +2,7 @@
     import Alert from "$lib/components/ui/Alert.svelte";
     import type { TrooperApproval } from "../../models/vms";
     import { PendingTrooperApprovalViewModel } from "../../models/vms";
+    import MembershipLookup from "./MembershipLookup.svelte";
     import TrooperApprovalCardFooter from "./TrooperApprovalCardFooter.svelte";
 
     interface Props {
@@ -84,6 +85,7 @@
                             {request.identifier || "n/a"}
                         </dd>
                     </dl>
+                    <MembershipLookup />
                     <!--
                 <div class="border rounded p-2 mb-2">
                     <div hx-get="{{ route('admin.troopers.trooper-requests.member-lookup', $trooper_request) }}"

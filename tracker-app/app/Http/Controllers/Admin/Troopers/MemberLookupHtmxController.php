@@ -16,7 +16,7 @@ class MemberLookupHtmxController extends MagicBusController
     public function __invoke(TrooperRequest $trooper_request, MemberLookupResolver $resolver): View
     {
         $identifier = $trooper_request->identifier;
-        $primary_org = $trooper_request->primaryOrganization;
+        $primary_org = $trooper_request->primary_organization;
 
         $service = $primary_org ? $resolver->resolve($primary_org) : null;
 
@@ -63,10 +63,11 @@ class MemberLookupHtmxController extends MagicBusController
 
         $existing_org = TrooperOrganization::where(TrooperOrganization::IDENTIFIER, $identifier)
             ->where(TrooperOrganization::TROOPER_ID, '!=', $requesting_trooper_id)
-            ->whereHas('organization', function ($q) use ($primary_org_id) {
+            ->whereHas('organization', function ($q) use ($primary_org_id)
+            {
                 $q->where('id', $primary_org_id)
                     ->orWhere('parent_id', $primary_org_id)
-                    ->orWhereHas('parent', fn ($q2) => $q2->where('parent_id', $primary_org_id));
+                    ->orWhereHas('parent', fn($q2) => $q2->where('parent_id', $primary_org_id));
             })
             ->with('trooper')
             ->first();

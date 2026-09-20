@@ -6,7 +6,7 @@ namespace App\Messages\Troopers\Commands\Membership;
 
 use App\Enums\TrooperRequestStatus;
 use App\Messages\Troopers\Commands\Notifications\CreateOrUpdateOrganizationNotification;
-use App\Messages\Troopers\Queries\Membership\IsOrganizationIdentifierAvailable;
+use App\Messages\Troopers\Queries\Membership\AssertOrganizationIdentifierAvailable;
 use App\Models\Organization;
 use App\Models\TrooperRequest;
 use App\Notifications\Troopers\TrooperRequestApprovedNotification;
@@ -36,7 +36,11 @@ final class ApproveTrooperRequest extends Message
         $primary_organization = $trooper_request->primary_organization;
         $requested_org = $trooper_request->organization;
 
-        $this->ensureIdentifierIsAvailable($primary_organization, $trooper_request);
+        AssertOrganizationIdentifierAvailable::call(
+            primary_organization: $primary_organization,
+            identifier: $trooper_request->identifier,
+            ignore_trooper_id: $trooper_request->trooper_id
+        );
 
         CreateOrUpdateOrganizationMembership::call(
             trooper_id: $trooper_request->trooper_id,
@@ -53,24 +57,6 @@ final class ApproveTrooperRequest extends Message
         if (!$this->suppress_notification)
         {
             $trooper->notify(new TrooperRequestApprovedNotification($trooper_request));
-        }
-    }
-
-    private function ensureIdentifierIsAvailable(Organization $primary_organization, TrooperRequest $trooper_request): void
-    {
-        $identifier_available = IsOrganizationIdentifierAvailable::call(
-            primary_organization: $primary_organization,
-            identifier: $trooper_request->identifier,
-            ignore_trooper_id: $trooper_request->trooper_id
-        );
-
-        if (!$identifier_available)
-        {
-            $label = $primary_organization->identifier_display ?? 'identifier';
-
-            $msg = "{$primary_organization->name} {$label} {$trooper_request->identifier} is already assigned to another trooper.";
-
-            throw new Exception($msg);
         }
     }
 

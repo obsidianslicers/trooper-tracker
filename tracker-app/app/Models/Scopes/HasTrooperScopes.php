@@ -69,7 +69,7 @@ trait HasTrooperScopes
             'trooper_requests' => function ($q)
             {
                 $q->pending()
-                    ->with(['organization.parent', 'primaryOrganization']);
+                    ->with(['organization.parent', 'primary_organization']);
             },
             'trooper_assignments' => function ($q)
             {

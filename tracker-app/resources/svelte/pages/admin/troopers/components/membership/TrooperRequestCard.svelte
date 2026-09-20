@@ -1,6 +1,7 @@
 <script lang="ts">
     import type { TrooperRequest } from "../../models/vms";
     import { PendingTrooperRequestViewModel } from "../../models/vms";
+    import MembershipLookup from "./MembershipLookup.svelte";
     import TrooperRequestCardFooter from "./TrooperRequestCardFooter.svelte";
 
     interface Props {
@@ -49,6 +50,7 @@
                 <dd class="col-8">{vm.request.denial_reason}</dd>
             {/if}
         </dl>
+        <MembershipLookup />
         <!--
         <div hx-get="{{ route('admin.troopers.trooper-requests.member-lookup', $trooper_request) }}"
              hx-trigger="load"

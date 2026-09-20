@@ -100,7 +100,7 @@ sequenceDiagram
 
 ```
 __invoke()
-├── Resolve primary_club = trooper_request->primaryOrganization  (denormalized; no tree traversal needed)
+├── Resolve primary_club = trooper_request->primary_organization  (denormalized; no tree traversal needed)
 ├── clearExistingAssignments(primary_club, trooper_request)
 ├── createOrUpdateMembership(primary_club, trooper_request)   → TrooperOrganization at primary club, status = ACTIVE
 ├── createOrUpdateAssignment(requested_org.id, trooper.id) → TrooperAssignment at the requested org
