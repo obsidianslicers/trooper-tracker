@@ -45,8 +45,8 @@ Route::prefix('admin/troopers')
             ->group(function ()
             {
                 Route::get('/index', MembershipApprovalsController::class)->name('index');
-                Route::post('/approve/{trooper}', ApproveTrooperMembershipController::class)->name('approve');
-                Route::post('/deny/{trooper}', DenyTrooperMembershipController::class)->name('deny');
+                Route::post('/approve/{trooper}', ApproveTrooperMembershipController::class)->name('approve-membership');
+                Route::post('/deny/{trooper}', DenyTrooperMembershipController::class)->name('deny-membership');
                 Route::post('/approve/{trooper_request}/request', ApproveTrooperRequestController::class)->name('approve-request');
                 Route::post('/deny/{trooper_request}/request', DenyTrooperRequestController::class)->name('deny-request');
             });
