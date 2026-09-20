@@ -1,8 +1,8 @@
 # Hyperdrive Message Architecture
 
-Hyperdrive is a small Laravel message-dispatch layer that keeps HTTP concerns out of application logic while making message inputs predictable and strongly typed. The package is centered on `Message` and `MessageDispatcher`, which hydrate constructor arguments from a request, route data, auth context, and explicit overrides, then resolve the message's `handle()` method through Laravel's container.
+Hyperdrive is a small Laravel message-dispatch layer that keeps HTTP concerns out of application logic while making message inputs predictable and strongly typed. The package is centered on `Message` and `MessageDispatcher`, which hydrate constructor arguments from a validated form payload, route data, the authenticated actor, and explicit overrides, then resolve the message's `handle()` method through Laravel's container.
 
-This project uses Hyperdrive to support single-file messages that behave like commands, queries, and page-data fetchers without requiring a separate handler class for every action.
+This project uses Hyperdrive to support single-file messages that behave like commands, queries, and page-data fetchers without requiring a separate handler class for every action. The package is intentionally strict: it reads a narrow, explicit set of transport inputs rather than trying to infer arbitrary request data.
 
 ---
 
@@ -74,7 +74,7 @@ If any required argument is missing or invalid, `MessageDispatcher` throws an `I
 
 ## Actor injection
 
-The dispatcher supports auto-binding the authenticated actor when a constructor parameter is type-hinted as `Hyperdrive\Contracts\Actor`.
+The dispatcher supports auto-binding the authenticated actor only when a constructor parameter is exactly type-hinted as `Hyperdrive\Contracts\Actor`.
 
 ```php
 public function __construct(
@@ -82,7 +82,7 @@ public function __construct(
 )
 ```
 
-This is not a generic user lookup; it is a direct match against the interface type and uses the active auth user.
+This is not a generic user lookup and it does not match broader parent types or alternate auth abstractions; it is an exact interface match against the active authenticated user.
 
 ---
 
