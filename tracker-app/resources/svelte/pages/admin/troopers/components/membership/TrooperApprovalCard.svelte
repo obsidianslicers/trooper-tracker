@@ -1,14 +1,8 @@
 <script lang="ts">
-    import InputContainer from "$lib/components/form/InputContainer.svelte";
-    import InputText from "$lib/components/form/InputText.svelte";
-    import SubmitButtonContainer from "$lib/components/form/SubmitButtonContainer.svelte";
     import Alert from "$lib/components/ui/Alert.svelte";
-    import CancelButton from "$lib/components/ui/buttons/CancelButton.svelte";
-    import CreateButton from "$lib/components/ui/buttons/CreateButton.svelte";
-    import DeleteButton from "$lib/components/ui/buttons/DeleteButton.svelte";
-    import SubmitButton from "$lib/components/ui/buttons/SubmitButton.svelte";
     import type { TrooperApproval } from "../../models/vms";
     import { PendingTrooperApprovalViewModel } from "../../models/vms";
+    import TrooperApprovalCardFooter from "./TrooperApprovalCardFooter.svelte";
 
     interface Props {
         approval: TrooperApproval;
@@ -115,45 +109,5 @@
             </Alert>
         {/if}
     </div>
-    {#if !vm.submitted}
-        <div class="card-footer d-flex justify-content-between">
-            <div class="w-100">
-                {#if vm.denying}
-                    <form onsubmit={vm.deny}>
-                        <InputContainer>
-                            <InputText
-                                label="Denial Reason (optional)"
-                                multiline={true}
-                                value={vm.denial_reason}
-                            />
-                        </InputContainer>
-                        <SubmitButtonContainer>
-                            <SubmitButton
-                                label="Confirm Denial"
-                                danger={true}
-                                submitting={vm.submitting}
-                            />
-                            <CancelButton click={() => (vm.denying = false)} />
-                        </SubmitButtonContainer>
-                    </form>
-                {:else}
-                    <div class="d-flex justify-content-between">
-                        <DeleteButton
-                            label="Deny"
-                            outline={false}
-                            icon={null}
-                            click={() => (vm.denying = true)}
-                        />
-                        <CreateButton
-                            label="Approve"
-                            outline={false}
-                            icon={null}
-                            submitting={vm.submitting}
-                            click={() => vm.approve()}
-                        />
-                    </div>
-                {/if}
-            </div>
-        </div>
-    {/if}
+    <TrooperApprovalCardFooter {vm} />
 </div>
