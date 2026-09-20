@@ -49,11 +49,11 @@ class UpdateShiftsSubmitController extends MagicBusController
 
             if ($id > 0)
             {
-                $shift = $event->event_shifts->filter(fn($s) => $s->id === $id)->first();
+                $shift = $event->event_shifts->filter(fn ($s) => $s->id === $id)->first();
             }
 
-            $shift->shift_starts_at = Carbon::parse($input['date'] . ' ' . $input['starts_at']);
-            $shift->shift_ends_at = Carbon::parse($input['date'] . ' ' . $input['ends_at']);
+            $shift->shift_starts_at = Carbon::parse($input['date'].' '.$input['starts_at']);
+            $shift->shift_ends_at = Carbon::parse($input['date'].' '.$input['ends_at']);
 
             if (isset($input['status']))
             {
@@ -75,7 +75,7 @@ class UpdateShiftsSubmitController extends MagicBusController
             ));
         }
 
-        if (collect($shifts)->contains(fn(array $input) => !empty($input['stations'])))
+        if (collect($shifts)->contains(fn (array $input) => !empty($input['stations'])))
         {
             dispatch(new ReconcileEventRosterJob($event, $request->user()));
         }
