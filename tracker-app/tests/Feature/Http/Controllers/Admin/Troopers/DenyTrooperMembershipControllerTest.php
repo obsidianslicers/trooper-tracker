@@ -28,7 +28,7 @@ final class DenyTrooperMembershipControllerTest extends TestCase
         $response->assertOk();
         $response->assertInertia(fn($page) => $page
             ->component('admin/troopers/MembershipApprovals')
-            ->where('results.message', 'Trooper membership denied successfully.'));
+            ->where('flash.success.0', 'Trooper membership denied successfully.'));
 
         $this->assertSame(MembershipStatus::DENIED, $trooper->fresh()->membership_status);
         Notification::assertSentTo($trooper, TrooperDeniedNotification::class);
