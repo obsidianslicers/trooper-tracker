@@ -34,7 +34,9 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
  */
 class RegisterSubmitController extends Controller
 {
-    public function __construct(private readonly FlashMessageService $flash) {}
+    public function __construct(private readonly FlashMessageService $flash)
+    {
+    }
 
     /**
      * Handle the incoming registration request.
@@ -73,7 +75,8 @@ class RegisterSubmitController extends Controller
 
     private function registerTrooper(RegisterRequest $request): Trooper
     {
-        return DB::transaction(function () use ($request) {
+        return DB::transaction(function () use ($request)
+        {
             $trooper = CreateTrooper::call($request);
 
             if ($trooper->membership_role != MembershipRole::HANDLER)
@@ -113,7 +116,7 @@ class RegisterSubmitController extends Controller
         }
     }
 
-    private function resolveOrganization(Organization $organization, ?int $region_id, ?int $unit_id): Organization
+    private function resolveOrganization(Organization $organization, int|null $region_id, int|null $unit_id): Organization
     {
         $region = $organization->organizations()
             ->ofTypeRegions()
