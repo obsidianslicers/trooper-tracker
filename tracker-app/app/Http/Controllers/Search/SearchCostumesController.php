@@ -14,7 +14,7 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class SearchCostumesController extends Controller
 {
-    public function __invoke(Request $request, ?Trooper $trooper = null): InertiaResponse|SymfonyResponse|JsonResponse
+    public function __invoke(Request $request, Trooper|null $trooper = null): InertiaResponse|SymfonyResponse|JsonResponse
     {
         $data = SearchCostumesPageData::call($request);
 
