@@ -34,7 +34,7 @@ class GetEventTroopersMissingCreditQueryHandlerTest extends TestCase
         ]);
 
         $subject = new GetEventTroopersMissingCreditQueryHandler;
-        $result = $subject(new GetEventTroopersMissingCreditQuery(actor: $admin));
+        ['rows' => $result] = $subject(new GetEventTroopersMissingCreditQuery(actor: $admin));
 
         $this->assertSame([$event_trooper->id], $result->pluck('event_trooper_id')->all());
         $this->assertFalse($result->first()['has_orphaned_db_value']);
@@ -62,7 +62,7 @@ class GetEventTroopersMissingCreditQueryHandlerTest extends TestCase
         ]);
 
         $subject = new GetEventTroopersMissingCreditQueryHandler;
-        $result = $subject(new GetEventTroopersMissingCreditQuery(actor: $admin));
+        ['rows' => $result] = $subject(new GetEventTroopersMissingCreditQuery(actor: $admin));
 
         $this->assertSame([$event_trooper->id], $result->pluck('event_trooper_id')->all());
         $this->assertTrue($result->first()['has_orphaned_db_value']);
@@ -83,9 +83,10 @@ class GetEventTroopersMissingCreditQueryHandlerTest extends TestCase
         ]);
 
         $subject = new GetEventTroopersMissingCreditQueryHandler;
-        $result = $subject(new GetEventTroopersMissingCreditQuery(actor: $admin));
+        ['rows' => $result, 'total' => $total] = $subject(new GetEventTroopersMissingCreditQuery(actor: $admin));
 
         $this->assertCount(0, $result);
+        $this->assertSame(0, $total);
     }
 
     public function test_invoke_flags_trooper_with_no_club_membership_at_all(): void
@@ -103,7 +104,7 @@ class GetEventTroopersMissingCreditQueryHandlerTest extends TestCase
         ]);
 
         $subject = new GetEventTroopersMissingCreditQueryHandler;
-        $result = $subject(new GetEventTroopersMissingCreditQuery(actor: $admin));
+        ['rows' => $result] = $subject(new GetEventTroopersMissingCreditQuery(actor: $admin));
 
         $this->assertTrue($result->first()['trooper_has_no_club_membership']);
     }
@@ -122,7 +123,7 @@ class GetEventTroopersMissingCreditQueryHandlerTest extends TestCase
         ]);
 
         $subject = new GetEventTroopersMissingCreditQueryHandler;
-        $result = $subject(new GetEventTroopersMissingCreditQuery(actor: $admin));
+        ['rows' => $result] = $subject(new GetEventTroopersMissingCreditQuery(actor: $admin));
 
         $this->assertFalse($result->first()['trooper_has_no_club_membership']);
     }
@@ -144,7 +145,7 @@ class GetEventTroopersMissingCreditQueryHandlerTest extends TestCase
         $this->makeAttendedEventTrooper($out_of_scope_trooper);
 
         $subject = new GetEventTroopersMissingCreditQueryHandler;
-        $result = $subject(new GetEventTroopersMissingCreditQuery(actor: $moderator));
+        ['rows' => $result] = $subject(new GetEventTroopersMissingCreditQuery(actor: $moderator));
 
         $this->assertSame([$in_scope_row->id], $result->pluck('event_trooper_id')->all());
     }
@@ -158,7 +159,7 @@ class GetEventTroopersMissingCreditQueryHandlerTest extends TestCase
         $row_two = $this->makeAttendedEventTrooper($trooper_two);
 
         $subject = new GetEventTroopersMissingCreditQueryHandler;
-        $result = $subject(new GetEventTroopersMissingCreditQuery(actor: $admin, trooper_id: $trooper_two->id));
+        ['rows' => $result] = $subject(new GetEventTroopersMissingCreditQuery(actor: $admin, trooper_id: $trooper_two->id));
 
         $this->assertSame([$row_two->id], $result->pluck('event_trooper_id')->all());
     }
@@ -184,9 +185,9 @@ class GetEventTroopersMissingCreditQueryHandlerTest extends TestCase
 
         $subject = new GetEventTroopersMissingCreditQueryHandler;
 
-        $admin_result = $subject(new GetEventTroopersMissingCreditQuery(actor: $admin, trooper_id: $trooper->id));
-        $authorized_result = $subject(new GetEventTroopersMissingCreditQuery(actor: $authorized_moderator, trooper_id: $trooper->id));
-        $unauthorized_result = $subject(new GetEventTroopersMissingCreditQuery(actor: $unauthorized_moderator, trooper_id: $trooper->id));
+        ['rows' => $admin_result] = $subject(new GetEventTroopersMissingCreditQuery(actor: $admin, trooper_id: $trooper->id));
+        ['rows' => $authorized_result] = $subject(new GetEventTroopersMissingCreditQuery(actor: $authorized_moderator, trooper_id: $trooper->id));
+        ['rows' => $unauthorized_result] = $subject(new GetEventTroopersMissingCreditQuery(actor: $unauthorized_moderator, trooper_id: $trooper->id));
 
         $this->assertFalse($admin_result->first()['has_eligible_options']);
         $this->assertSame([$root_org->id], collect($admin_result->first()['fallback_org_options'])->pluck('id')->all());
@@ -213,7 +214,7 @@ class GetEventTroopersMissingCreditQueryHandlerTest extends TestCase
         $this->makeAttendedEventTrooper($trooper);
 
         $subject = new GetEventTroopersMissingCreditQueryHandler;
-        $result = $subject(new GetEventTroopersMissingCreditQuery(actor: $admin, trooper_id: $trooper->id));
+        ['rows' => $result] = $subject(new GetEventTroopersMissingCreditQuery(actor: $admin, trooper_id: $trooper->id));
 
         $ids = collect($result->first()['fallback_org_options'])->pluck('id')->all();
         $this->assertContains($trooper_org->id, $ids);
@@ -237,9 +238,59 @@ class GetEventTroopersMissingCreditQueryHandlerTest extends TestCase
         $this->makeAttendedEventTrooper($trooper);
 
         $subject = new GetEventTroopersMissingCreditQueryHandler;
-        $result = $subject(new GetEventTroopersMissingCreditQuery(actor: $moderator, trooper_id: $trooper->id));
+        ['rows' => $result] = $subject(new GetEventTroopersMissingCreditQuery(actor: $moderator, trooper_id: $trooper->id));
 
         $this->assertSame([], $result->first()['fallback_org_options']);
+    }
+
+    public function test_invoke_paginates_results_and_reports_total(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+
+        $event_trooper_ids = collect(range(1, 3))
+            ->map(fn () => $this->makeAttendedEventTrooper($trooper)->id)
+            ->sort()
+            ->values()
+            ->all();
+
+        $subject = new GetEventTroopersMissingCreditQueryHandler;
+
+        $first_page = $subject(new GetEventTroopersMissingCreditQuery(actor: $admin, offset: 0));
+        $second_page = $subject(new GetEventTroopersMissingCreditQuery(actor: $admin, offset: 1));
+
+        // total reflects the full unsliced count regardless of which page is requested.
+        $this->assertSame(3, $first_page['total']);
+        $this->assertSame(3, $second_page['total']);
+
+        $this->assertCount(3, $first_page['rows']);
+        $this->assertCount(2, $second_page['rows']);
+
+        // Skipping 1 via offset should land on rows [1, 2] of the full ordered set.
+        $this->assertSame(
+            $first_page['rows']->pluck('event_trooper_id')->slice(1)->values()->all(),
+            $second_page['rows']->pluck('event_trooper_id')->values()->all()
+        );
+
+        $this->assertSame(
+            $event_trooper_ids,
+            $first_page['rows']->pluck('event_trooper_id')->sort()->values()->all()
+        );
+    }
+
+    public function test_invoke_caps_page_size(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+
+        collect(range(1, GetEventTroopersMissingCreditQueryHandler::PAGE_SIZE + 5))
+            ->each(fn () => $this->makeAttendedEventTrooper($trooper));
+
+        $subject = new GetEventTroopersMissingCreditQueryHandler;
+        $result = $subject(new GetEventTroopersMissingCreditQuery(actor: $admin));
+
+        $this->assertSame(GetEventTroopersMissingCreditQueryHandler::PAGE_SIZE + 5, $result['total']);
+        $this->assertCount(GetEventTroopersMissingCreditQueryHandler::PAGE_SIZE, $result['rows']);
     }
 
     private function makeRootOrganization(): Organization

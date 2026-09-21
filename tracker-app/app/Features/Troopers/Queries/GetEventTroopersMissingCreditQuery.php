@@ -21,9 +21,11 @@ final readonly class GetEventTroopersMissingCreditQuery
     /**
      * @param  Trooper  $actor  The moderator/administrator running the search.
      * @param  int|null  $trooper_id  Restrict results to a single trooper, when given.
+     * @param  int  $offset  How many matching rows to skip, for "load more" pagination.
      */
     public function __construct(
         public Trooper $actor,
         public ?int $trooper_id = null,
+        public int $offset = 0,
     ) {}
 }

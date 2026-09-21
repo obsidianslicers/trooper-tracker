@@ -19,11 +19,122 @@ readonly class GetEventTroopersMissingCreditQueryHandler implements QueryHandler
 {
     use HasOrgCreditAnnotation;
 
-    public function __invoke(object $message): Collection
+    public const int PAGE_SIZE = 50;
+
+    /**
+     * Detecting which shifts are missing credit requires resolving every candidate trooper's
+     * current credit (same cost regardless of pagination — there's no way to know who's missing
+     * credit without checking). Building a row's display fields and options is comparatively
+     * expensive (eligibleRootOrgsForAdmin() queries costume approvals per shift), so that part is
+     * deferred until after slicing to the requested page — only rows actually being returned pay
+     * that cost.
+     *
+     * @return array{rows: Collection<int, array>, total: int}
+     */
+    public function __invoke(object $message): array
     {
-        return $this->resolveCandidateTroopers($message->actor, $message->trooper_id)
-            ->flatMap(fn (Trooper $trooper) => $this->missingCreditRowsForTrooper($trooper, $message->actor))
+        $pairs = $this->resolveCandidateTroopers($message->actor, $message->trooper_id)
+            ->flatMap(fn (Trooper $trooper) => $this->missingPairsForTrooper($trooper))
             ->values();
+
+        $total = $pairs->count();
+        $page = $pairs->slice($message->offset, self::PAGE_SIZE)->values();
+
+        $rows = $page
+            ->groupBy(fn (array $pair) => $pair['trooper']->id)
+            ->flatMap(fn (Collection $group) => $this->buildRowsForTrooper(
+                $group->first()['trooper'],
+                $group->map(fn (array $pair) => $pair['event_trooper']->id)->all(),
+                $message->actor
+            ))
+            ->values();
+
+        return ['rows' => $rows, 'total' => $total];
+    }
+
+    private function resolveCandidateTroopers(Trooper $actor, ?int $trooper_id): Collection
+    {
+        if ($trooper_id !== null)
+        {
+            return Trooper::where(Trooper::ID, $trooper_id)->get();
+        }
+
+        $query = Trooper::query()
+            ->whereHas('event_troopers', fn ($q) => $q->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED->value));
+
+        if (!$actor->is_administrator)
+        {
+            $query = $query->moderatedBy($actor);
+        }
+
+        return $query->orderBy(Trooper::DISPLAY_NAME)->get();
+    }
+
+    /**
+     * Cheaply identifies which of a trooper's shifts are missing credit — no eager-loaded display
+     * relations, no per-row eligibility queries. Just enough to know which event_trooper ids
+     * belong on the final list.
+     *
+     * @return Collection<int, array{trooper: Trooper, event_trooper: EventTrooper}>
+     */
+    private function missingPairsForTrooper(Trooper $trooper): Collection
+    {
+        $event_troopers = EventTrooper::query()
+            ->where(EventTrooper::TROOPER_ID, $trooper->id)
+            ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED->value)
+            ->get();
+
+        if ($event_troopers->isEmpty())
+        {
+            return collect();
+        }
+
+        $organizations = $this->resolveTrooperOrganizations($trooper);
+
+        $recent_shifts = $event_troopers->map(fn (EventTrooper $et) => (object) [
+            'id' => $et->id,
+            'event_trooper' => $et,
+        ]);
+
+        $candidate_orgs = $this->loadCandidateOrgs($recent_shifts);
+        ['credited_ids_by_shift' => $credited_ids_by_shift] = $this->computeTroopCounts($recent_shifts, $organizations, $candidate_orgs);
+
+        return $event_troopers
+            ->filter(fn (EventTrooper $et) => empty($credited_ids_by_shift[$et->id] ?? []))
+            ->map(fn (EventTrooper $et) => ['trooper' => $trooper, 'event_trooper' => $et])
+            ->values();
+    }
+
+    /**
+     * Builds full display rows for one trooper's slice of event_trooper ids — only called for
+     * troopers represented in the current page.
+     *
+     * @param  array<int, int>  $event_trooper_ids
+     * @return Collection<int, array>
+     */
+    private function buildRowsForTrooper(Trooper $trooper, array $event_trooper_ids, Trooper $actor): Collection
+    {
+        $event_troopers = EventTrooper::with(['event_shift.event', 'costume'])
+            ->whereIn(EventTrooper::ID, $event_trooper_ids)
+            ->get();
+
+        $organizations = $this->resolveTrooperOrganizations($trooper);
+        $allowed_org_ids = $actor->resolveModeratorOrgIds();
+        $trooper_has_no_club_membership = $organizations->isEmpty();
+        $fallback_org_options = $this->resolveFallbackOrgOptions($organizations, $actor);
+
+        return $event_troopers
+            ->map(fn (EventTrooper $et) => $this->buildRow($et, $trooper, $allowed_org_ids, $fallback_org_options, $trooper_has_no_club_membership))
+            ->values();
+    }
+
+    /** @return Collection<int, Organization> */
+    private function resolveTrooperOrganizations(Trooper $trooper): Collection
+    {
+        return $trooper->organizations()
+            ->wherePivotNull(TrooperOrganization::DELETED_AT)
+            ->orderBy(Organization::NAME)
+            ->get();
     }
 
     /**
@@ -57,60 +168,6 @@ readonly class GetEventTroopersMissingCreditQueryHandler implements QueryHandler
             ->get();
 
         return $this->mapOrgOptions($fallback_orgs);
-    }
-
-    private function resolveCandidateTroopers(Trooper $actor, ?int $trooper_id): Collection
-    {
-        if ($trooper_id !== null)
-        {
-            return Trooper::where(Trooper::ID, $trooper_id)->get();
-        }
-
-        $query = Trooper::query()
-            ->whereHas('event_troopers', fn ($q) => $q->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED->value));
-
-        if (!$actor->is_administrator)
-        {
-            $query = $query->moderatedBy($actor);
-        }
-
-        return $query->orderBy(Trooper::DISPLAY_NAME)->get();
-    }
-
-    private function missingCreditRowsForTrooper(Trooper $trooper, Trooper $actor): Collection
-    {
-        $event_troopers = EventTrooper::query()
-            ->where(EventTrooper::TROOPER_ID, $trooper->id)
-            ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED->value)
-            ->with(['event_shift.event', 'costume'])
-            ->get();
-
-        if ($event_troopers->isEmpty())
-        {
-            return collect();
-        }
-
-        $organizations = $trooper->organizations()
-            ->wherePivotNull(TrooperOrganization::DELETED_AT)
-            ->orderBy(Organization::NAME)
-            ->get();
-
-        $recent_shifts = $event_troopers->map(fn (EventTrooper $et) => (object) [
-            'id' => $et->id,
-            'event_trooper' => $et,
-        ]);
-
-        $candidate_orgs = $this->loadCandidateOrgs($recent_shifts);
-        ['credited_ids_by_shift' => $credited_ids_by_shift] = $this->computeTroopCounts($recent_shifts, $organizations, $candidate_orgs);
-
-        $allowed_org_ids = $actor->resolveModeratorOrgIds();
-        $trooper_has_no_club_membership = $organizations->isEmpty();
-        $fallback_org_options = $this->resolveFallbackOrgOptions($organizations, $actor);
-
-        return $event_troopers
-            ->filter(fn (EventTrooper $et) => empty($credited_ids_by_shift[$et->id] ?? []))
-            ->map(fn (EventTrooper $et) => $this->buildRow($et, $trooper, $allowed_org_ids, $fallback_org_options, $trooper_has_no_club_membership))
-            ->values();
     }
 
     private function buildRow(

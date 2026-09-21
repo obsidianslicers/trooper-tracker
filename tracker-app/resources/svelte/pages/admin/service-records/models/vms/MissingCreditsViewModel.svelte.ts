@@ -31,18 +31,28 @@ export type FilteredTrooper = {
 
 export type MissingCreditsPageData = {
     rows: MissingCreditRow[];
+    total: number;
+    next_offset: number;
+    has_more: boolean;
     filtered_trooper: FilteredTrooper | null;
 };
 
 export class MissingCreditsViewModel extends ViewModel {
     rows: MissingCreditRow[] = $state([]);
+    total: number = $state(0);
+    next_offset: number = $state(0);
+    has_more: boolean = $state(false);
     filtered_trooper: FilteredTrooper | null = $state(null);
     assigning_id: number | null = $state(null);
+    loading_more: boolean = $state(false);
     selected: Record<number, number[]> = $state({});
 
     constructor(public pageData: MissingCreditsPageData) {
         super();
         this.rows = pageData.rows;
+        this.total = pageData.total;
+        this.next_offset = pageData.next_offset;
+        this.has_more = pageData.has_more;
         this.filtered_trooper = pageData.filtered_trooper;
 
         this.rows.forEach((row) => {
@@ -97,6 +107,7 @@ export class MissingCreditsViewModel extends ViewModel {
             onSuccess: () => {
                 toastStateSvelte.success(`Credit assigned for ${row.trooper_name}.`);
                 this.rows = this.rows.filter((r) => r.event_trooper_id !== row.event_trooper_id);
+                this.total = Math.max(0, this.total - 1);
             },
             onError: (errors) => {
                 const message = Object.values(errors)[0] ?? "Couldn't assign credit — please try again.";
@@ -108,5 +119,44 @@ export class MissingCreditsViewModel extends ViewModel {
         });
 
         router.post(url, { organization_ids, is_override: this.isFallback(row) }, options);
+    };
+
+    loadMore = () => {
+        if (this.loading_more || !this.has_more) {
+            return;
+        }
+
+        this.loading_more = true;
+
+        const url = getRoute("admin.service-records.missing-credits");
+        const data: Record<string, number> = { offset: this.next_offset };
+
+        if (this.filtered_trooper) {
+            data.trooper_id = this.filtered_trooper.id;
+        }
+
+        const options = createPartialReloadOptions({
+            only: ["rows", "total", "next_offset", "has_more"],
+            onSuccess: (page) => {
+                const props = page.props as unknown as MissingCreditsPageData;
+
+                props.rows.forEach((row) => {
+                    this.selected[row.event_trooper_id] = [];
+                });
+
+                this.rows = [...this.rows, ...props.rows];
+                this.total = props.total;
+                this.next_offset = props.next_offset;
+                this.has_more = props.has_more;
+            },
+            onError: () => {
+                toastStateSvelte.danger("Couldn't load more — please try again.");
+            },
+            onFinish: () => {
+                this.loading_more = false;
+            },
+        });
+
+        router.get(url, data, options);
     };
 }

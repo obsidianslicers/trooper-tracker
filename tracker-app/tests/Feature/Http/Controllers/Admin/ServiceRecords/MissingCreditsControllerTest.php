@@ -54,6 +54,25 @@ class MissingCreditsControllerTest extends TestCase
         );
     }
 
+    public function test_invoke_honors_offset_and_reports_pagination_fields(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+
+        collect(range(1, 3))->each(fn () => $this->makeAttendedEventTrooper($trooper));
+
+        $response = $this->actingAs($admin)->get(route('admin.service-records.missing-credits', ['offset' => 1]));
+
+        $response->assertOk();
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('admin/service-records/MissingCredits')
+            ->where('total', 3)
+            ->where('next_offset', 3)
+            ->where('has_more', false)
+            ->has('rows', 2)
+        );
+    }
+
     public function test_invoke_forbids_plain_member(): void
     {
         $member = Trooper::factory()->asActive()->create();
