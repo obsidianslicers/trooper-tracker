@@ -9,6 +9,10 @@
 
     let options = $derived(vm.optionsFor(row));
     let isFallback = $derived(vm.isFallback(row));
+
+    const ORPHANED_CREDIT_TOOLTIP =
+        "This shift already has a stored credit value that isn't resolving to a visible " +
+        "club — likely a membership sync mismatch.";
 </script>
 
 <tr>
@@ -18,23 +22,25 @@
     <td>
         {row.event_name}
         {#if row.has_orphaned_db_value}
-            <i
-                class="fa fa-fw fa-circle-info text-muted ms-1"
-                title="This shift already has a stored credit value that isn't resolving to a visible club — likely a membership sync mismatch."
-            ></i>
+            <i class="fa fa-fw fa-circle-info text-muted ms-1" title={ORPHANED_CREDIT_TOOLTIP}></i>
         {/if}
     </td>
     <td>{row.shift_label}</td>
     <td>{row.costume_name ?? "N/A"}</td>
     <td>
         {#if row.trooper_has_no_club_membership}
-            <span class="text-muted small">Not a member of any club — add them to a club first.</span>
+            <span class="text-muted small">
+                Not a member of any club — add them to a club first.
+            </span>
         {:else if options.length === 0}
-            <span class="text-muted small">No eligible club found &mdash; contact a system administrator.</span>
+            <span class="text-muted small">
+                No eligible club found &mdash; contact a system administrator.
+            </span>
         {:else}
             {#if isFallback}
                 <span class="badge bg-warning text-dark mb-1 d-block">
-                    No club matched automatically — showing {row.trooper_name}'s current club membership(s) instead.
+                    No club matched automatically — showing {row.trooper_name}'s current club
+                    membership(s) instead.
                 </span>
             {/if}
             {#each options as option (option.id)}
@@ -46,7 +52,10 @@
                         checked={vm.isSelected(row, option.id)}
                         onchange={(e) => vm.toggleOrg(row, option.id, e.currentTarget.checked)}
                     />
-                    <label class="form-check-label small" for={`org-${row.event_trooper_id}-${option.id}`}>
+                    <label
+                        class="form-check-label small"
+                        for={`org-${row.event_trooper_id}-${option.id}`}
+                    >
                         {option.name}
                     </label>
                 </div>

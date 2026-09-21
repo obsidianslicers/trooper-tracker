@@ -110,7 +110,8 @@ export class MissingCreditsViewModel extends ViewModel {
                 this.total = Math.max(0, this.total - 1);
             },
             onError: (errors) => {
-                const message = Object.values(errors)[0] ?? "Couldn't assign credit — please try again.";
+                const message =
+                    Object.values(errors)[0] ?? "Couldn't assign credit — please try again.";
                 toastStateSvelte.danger(Array.isArray(message) ? message[0] : message);
             },
             onFinish: () => {

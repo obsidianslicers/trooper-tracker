@@ -60,7 +60,10 @@ readonly class GetEventTroopersMissingCreditQueryHandler implements QueryHandler
         }
 
         $query = Trooper::query()
-            ->whereHas('event_troopers', fn ($q) => $q->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED->value));
+            ->whereHas(
+                'event_troopers',
+                fn ($q) => $q->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED->value)
+            );
 
         if (!$actor->is_administrator)
         {
@@ -97,7 +100,11 @@ readonly class GetEventTroopersMissingCreditQueryHandler implements QueryHandler
         ]);
 
         $candidate_orgs = $this->loadCandidateOrgs($recent_shifts);
-        ['credited_ids_by_shift' => $credited_ids_by_shift] = $this->computeTroopCounts($recent_shifts, $organizations, $candidate_orgs);
+        ['credited_ids_by_shift' => $credited_ids_by_shift] = $this->computeTroopCounts(
+            $recent_shifts,
+            $organizations,
+            $candidate_orgs
+        );
 
         return $event_troopers
             ->filter(fn (EventTrooper $et) => empty($credited_ids_by_shift[$et->id] ?? []))
@@ -112,8 +119,11 @@ readonly class GetEventTroopersMissingCreditQueryHandler implements QueryHandler
      * @param  array<int, int>  $event_trooper_ids
      * @return Collection<int, array>
      */
-    private function buildRowsForTrooper(Trooper $trooper, array $event_trooper_ids, Trooper $actor): Collection
-    {
+    private function buildRowsForTrooper(
+        Trooper $trooper,
+        array $event_trooper_ids,
+        Trooper $actor
+    ): Collection {
         $event_troopers = EventTrooper::with(['event_shift.event', 'costume'])
             ->whereIn(EventTrooper::ID, $event_trooper_ids)
             ->get();
@@ -124,7 +134,13 @@ readonly class GetEventTroopersMissingCreditQueryHandler implements QueryHandler
         $fallback_org_options = $this->resolveFallbackOrgOptions($organizations, $actor);
 
         return $event_troopers
-            ->map(fn (EventTrooper $et) => $this->buildRow($et, $trooper, $allowed_org_ids, $fallback_org_options, $trooper_has_no_club_membership))
+            ->map(fn (EventTrooper $et) => $this->buildRow(
+                $et,
+                $trooper,
+                $allowed_org_ids,
+                $fallback_org_options,
+                $trooper_has_no_club_membership
+            ))
             ->values();
     }
 
@@ -146,7 +162,7 @@ readonly class GetEventTroopersMissingCreditQueryHandler implements QueryHandler
      * exact failure mode this tool exists to fix. Also bounded by the acting mod/admin's own
      * authority via Organization::moderatedBy, same as everywhere else in this feature.
      *
-     * @param  Collection<int, Organization>  $organizations  The trooper's current club memberships.
+     * @param  Collection<int, Organization>  $organizations  The trooper's current clubs.
      * @return array<int, array{id: int, name: string}>
      */
     private function resolveFallbackOrgOptions(Collection $organizations, Trooper $actor): array
@@ -177,8 +193,12 @@ readonly class GetEventTroopersMissingCreditQueryHandler implements QueryHandler
         array $fallback_org_options,
         bool $trooper_has_no_club_membership
     ): array {
-        $org_options = $event_trooper->eligibleRootOrgsForAdmin($allowed_org_ids, $event_trooper->costume);
-        $has_orphaned_db_value = $event_trooper->organization_id !== null || !empty($event_trooper->costume_organization_ids);
+        $org_options = $event_trooper->eligibleRootOrgsForAdmin(
+            $allowed_org_ids,
+            $event_trooper->costume
+        );
+        $has_orphaned_db_value = $event_trooper->organization_id !== null
+            || !empty($event_trooper->costume_organization_ids);
 
         return [
             'event_trooper_id' => $event_trooper->id,

@@ -9,12 +9,20 @@
     pageState.title = "Missing Credit";
 
     let vm = new MissingCreditsViewModel(page.props);
+
+    let emptyStateMessage = $derived(
+        vm.filtered_trooper
+            ? "Job well done! No missing-credit shifts found for this trooper."
+            : "Job well done! No missing-credit shifts found."
+    );
 </script>
 
 {#if vm.filtered_trooper}
     <p class="text-muted small mb-3">
         Showing missing-credit shifts for
-        <a href={vm.trooperServiceRecordRoute(vm.filtered_trooper.id)}>{vm.filtered_trooper.display_name}</a>.
+        <a href={vm.trooperServiceRecordRoute(vm.filtered_trooper.id)}>
+            {vm.filtered_trooper.display_name}
+        </a>.
         <a href={vm.clear_filter_route}>View all missing credit</a>
     </p>
 {/if}
@@ -22,7 +30,7 @@
 {#if vm.rows.length === 0 && !vm.has_more}
     <div class="alert alert-success">
         <i class="fa fa-fw fa-circle-check me-1"></i>
-        Job well done! No missing-credit shifts found{vm.filtered_trooper ? " for this trooper" : ""}.
+        {emptyStateMessage}
     </div>
 {:else}
     {#if vm.total > 0}
@@ -53,7 +61,12 @@
 
     {#if vm.has_more}
         <div class="text-center mt-3">
-            <button type="button" class="btn btn-outline-secondary" disabled={vm.loading_more} onclick={() => vm.loadMore()}>
+            <button
+                type="button"
+                class="btn btn-outline-secondary"
+                disabled={vm.loading_more}
+                onclick={() => vm.loadMore()}
+            >
                 {vm.loading_more ? "Loading…" : "Load More"}
             </button>
         </div>
