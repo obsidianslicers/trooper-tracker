@@ -18,8 +18,7 @@ final class CreateOrUpdateOrganizationNotification extends Message
         private readonly int $trooper_id,
         private readonly int $organization_id,
         private readonly bool $enabled,
-    ) {
-    }
+    ) {}
 
     /**
      * Execute the command to update trooper organization notifications setting.

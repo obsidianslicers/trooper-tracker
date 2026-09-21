@@ -23,14 +23,12 @@ final class LookupMembershipPageData extends Message
 {
     /**
      * Constructs the LookupMembershipPageData message.
-     * 
+     *
      * @param  TrooperRequest  $trooper_request  The trooper request being looked up
      */
     public function __construct(
         private readonly MemberLookupResolver $resolver,
-        private readonly TrooperRequest $trooper_request)
-    {
-    }
+        private readonly TrooperRequest $trooper_request) {}
 
     /**
      * Retrieves trooper approvals as a nested associative array.
@@ -52,7 +50,7 @@ final class LookupMembershipPageData extends Message
         return $data;
     }
 
-    private function getServiceName(object|null $service): string|null
+    private function getServiceName(?object $service): ?string
     {
         if ($service === null)
         {
@@ -75,7 +73,7 @@ final class LookupMembershipPageData extends Message
             ->only($columns);
     }
 
-    private function findExistingTrooperMembership(): array|null
+    private function findExistingTrooperMembership(): ?array
     {
         $existing_trooper = FindExistingTrooperMembership::call(
             identifier: $this->trooper_request->identifier,
@@ -89,7 +87,7 @@ final class LookupMembershipPageData extends Message
                 Trooper::ID,
                 Trooper::LEGAL_NAME,
                 Trooper::DISPLAY_NAME,
-                Trooper::MEMBERSHIP_STATUS
+                Trooper::MEMBERSHIP_STATUS,
             ];
 
             return $existing_trooper->only($columns);

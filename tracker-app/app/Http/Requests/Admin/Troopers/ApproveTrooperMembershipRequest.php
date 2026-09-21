@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin\Troopers;
 
-use Illuminate\Auth\Access\AuthorizationException;
 use App\Rules\Admin\Troopers\PendingTrooperMembership;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -18,7 +18,6 @@ use Illuminate\Foundation\Http\FormRequest;
  * - Identifiers follow organization-specific validation rules when provided
  *
  * Administrators and moderators can modify trooper membership settings.
- *
  */
 class ApproveTrooperMembershipRequest extends FormRequest
 {
@@ -55,7 +54,7 @@ class ApproveTrooperMembershipRequest extends FormRequest
     {
         return [
             'trooper' => [
-                new PendingTrooperMembership()
+                new PendingTrooperMembership,
             ],
         ];
     }

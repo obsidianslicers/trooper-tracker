@@ -17,8 +17,7 @@ final class UpdateTrooperPushNotifications extends Message
     public function __construct(
         private readonly Trooper $trooper,
         private readonly bool $push_notifications_enabled,
-    ) {
-    }
+    ) {}
 
     /**
      * Execute the command to update trooper push notifications setting.

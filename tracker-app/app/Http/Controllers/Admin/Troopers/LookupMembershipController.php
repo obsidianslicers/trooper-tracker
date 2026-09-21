@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Troopers;
 
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Messages\Troopers\PageData\Membership\LookupMembershipPageData;
 use App\Models\TrooperRequest;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
-use Illuminate\Http\JsonResponse;
 
 class LookupMembershipController extends Controller
 {

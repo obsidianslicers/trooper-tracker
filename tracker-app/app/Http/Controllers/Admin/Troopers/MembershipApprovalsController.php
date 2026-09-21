@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Troopers;
 
 use App\Http\Controllers\Controller;
+use App\Messages\Troopers\PageData\Membership\MembershipApprovalsPageData;
 use App\Services\BreadCrumbService;
 use Illuminate\Http\Request;
-use App\Messages\Troopers\PageData\Membership\MembershipApprovalsPageData;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;

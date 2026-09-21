@@ -8,7 +8,6 @@ use App\Features\Troopers\Commands\ResubmitDeniedTrooperCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Account\ResubmitDeniedRequest;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Validation\ValidationException;
 
 class DeniedResubmitController extends MagicBusController
 {

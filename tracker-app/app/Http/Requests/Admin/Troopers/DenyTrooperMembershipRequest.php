@@ -18,7 +18,6 @@ use Illuminate\Foundation\Http\FormRequest;
  * - Identifiers follow organization-specific validation rules when provided
  *
  * Administrators and moderators can modify trooper membership settings.
- *
  */
 class DenyTrooperMembershipRequest extends FormRequest
 {
@@ -56,11 +55,11 @@ class DenyTrooperMembershipRequest extends FormRequest
         return [
             'denial_reason' => [
                 'nullable',
-                'string'
+                'string',
             ],
             'trooper' => [
-                new PendingTrooperMembership()
-            ]
+                new PendingTrooperMembership,
+            ],
         ];
     }
 

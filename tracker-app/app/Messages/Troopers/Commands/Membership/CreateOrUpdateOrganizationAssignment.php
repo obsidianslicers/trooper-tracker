@@ -18,8 +18,7 @@ final class CreateOrUpdateOrganizationAssignment extends Message
         private readonly int $trooper_id,
         private readonly int $organization_id,
         private readonly bool $is_member,
-    ) {
-    }
+    ) {}
 
     /**
      * Execute the command to update trooper organization assignment setting.

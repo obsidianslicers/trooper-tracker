@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace App\Messages\Troopers\Queries\Membership;
 
-use App\Enums\TrooperRequestStatus;
 use App\Models\Organization;
-use Hyperdrive\Message;
-
 use Exception;
+use Hyperdrive\Message;
 
 /**
  * @method static bool call(Organization $primary_organization, string|null $identifier = null, int|null $ignore_trooper_id = null, int|null $ignore_trooper_request_id = null, int|null $ignore_trooper_organization_id = null)
@@ -21,8 +19,7 @@ final class AssertOrganizationIdentifierAvailable extends Message
         private readonly ?int $ignore_trooper_id = null,
         private readonly ?int $ignore_trooper_request_id = null,
         private readonly ?int $ignore_trooper_organization_id = null,
-    ) {
-    }
+    ) {}
 
     public function handle(): void
     {

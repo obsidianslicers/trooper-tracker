@@ -14,7 +14,6 @@ use Illuminate\Foundation\Http\FormRequest;
  * This class defines validation rules for denying a trooper request.
  *
  * Administrators and moderators can deny trooper requests.
- *
  */
 class DenyTrooperRequestRequest extends FormRequest
 {
@@ -52,11 +51,11 @@ class DenyTrooperRequestRequest extends FormRequest
         return [
             'denial_reason' => [
                 'nullable',
-                'string'
+                'string',
             ],
             'trooper_request' => [
-                new PendingTrooperRequest()
-            ]
+                new PendingTrooperRequest,
+            ],
         ];
     }
 

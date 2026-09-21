@@ -23,13 +23,11 @@ final class ApproveTrooperMembership extends Message
 
     public function __construct(
         private readonly Trooper $trooper,
-    ) {
-    }
+    ) {}
 
     public function handle(): void
     {
-        DB::transaction(function (): void
-        {
+        DB::transaction(function (): void {
             $this->trooper->membership_status = MembershipStatus::ACTIVE;
 
             if ($this->trooper->is_visitor)
@@ -43,12 +41,11 @@ final class ApproveTrooperMembership extends Message
             $this->trooper->trooper_requests()
                 ->pending()
                 ->get()
-                ->each(function (TrooperRequest $trooper_request): void
-                {
+                ->each(function (TrooperRequest $trooper_request): void {
                     // $this->bus->send(new ApproveTrooperRequestCommanD($trooper_request, suppress_notification: true));
                 });
         });
 
-        $this->trooper->notify(new MembershipApprovedNotification());
+        $this->trooper->notify(new MembershipApprovedNotification);
     }
 }

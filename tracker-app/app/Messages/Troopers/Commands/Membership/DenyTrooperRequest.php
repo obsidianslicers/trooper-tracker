@@ -18,10 +18,9 @@ final class DenyTrooperRequest extends Message
 {
     public function __construct(
         private readonly TrooperRequest $trooper_request,
-        private readonly string|null $denial_reason = null,
+        private readonly ?string $denial_reason = null,
         private readonly bool $suppress_notification = false,
-    ) {
-    }
+    ) {}
 
     public function handle(): void
     {

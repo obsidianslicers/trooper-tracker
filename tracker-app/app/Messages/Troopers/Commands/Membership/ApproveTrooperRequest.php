@@ -10,9 +10,8 @@ use App\Messages\Troopers\Queries\Membership\AssertOrganizationIdentifierAvailab
 use App\Models\Organization;
 use App\Models\TrooperRequest;
 use App\Notifications\Troopers\TrooperRequestApprovedNotification;
-use Exception;
-use Hyperdrive\Message;
 use Hyperdrive\Concerns\ShouldBeTransactional;
+use Hyperdrive\Message;
 
 /**
  * Handler for approving a trooper's membership.
@@ -26,8 +25,7 @@ final class ApproveTrooperRequest extends Message
     public function __construct(
         private readonly TrooperRequest $trooper_request,
         private readonly bool $suppress_notification = false,
-    ) {
-    }
+    ) {}
 
     public function handle(): void
     {

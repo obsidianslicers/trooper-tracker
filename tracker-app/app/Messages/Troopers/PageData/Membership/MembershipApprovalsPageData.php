@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Messages\Troopers\PageData\Membership;
 
-use App\Messages\Troopers\Resources\PendingTrooperApprovalsCollection;
-use App\Models\Trooper;
 use App\Messages\Troopers\Queries\Membership\GetPendingTrooperApprovals;
 use App\Messages\Troopers\Queries\Membership\GetPendingTrooperRequests;
+use App\Messages\Troopers\Resources\PendingTrooperApprovalsCollection;
 use App\Messages\Troopers\Resources\PendingTrooperRequestsCollection;
+use App\Models\Trooper;
 use Hyperdrive\Contracts\Actor;
 use Hyperdrive\Message;
 
@@ -24,12 +24,10 @@ final class MembershipApprovalsPageData extends Message
 {
     /**
      * Constructs the MembershipApprovalsPageData message.
-     * 
+     *
      * @param  Actor&Trooper  $actor  The actor (moderator/administrator) requesting the data
      */
-    public function __construct(private readonly Actor $actor)
-    {
-    }
+    public function __construct(private readonly Actor $actor) {}
 
     /**
      * Retrieves trooper approvals as a nested associative array.

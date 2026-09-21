@@ -27,9 +27,7 @@ class UniqueOrganizationIdentifierRule implements ValidationRule
      */
     public function __construct(
         private readonly Organization $organization,
-        private readonly ?Trooper $trooper = null)
-    {
-    }
+        private readonly ?Trooper $trooper = null) {}
 
     /**
      * Run the validation rule.

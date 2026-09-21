@@ -18,8 +18,7 @@ final class UpdateTrooperNotificationFrequency extends Message
     public function __construct(
         private readonly Trooper $trooper,
         private readonly NotificationFrequency $notification_frequency,
-    ) {
-    }
+    ) {}
 
     /**
      * Execute the command to update trooper notification frequency.

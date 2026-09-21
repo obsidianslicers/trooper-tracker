@@ -25,8 +25,7 @@ readonly class GetPendingTrooperRequestsQueryHandler implements QueryHandlerInte
     {
         return TrooperRequest::with(['trooper', 'organization', 'primary_organization'])
             ->pending()
-            ->whereHas('trooper', function ($query): void
-            {
+            ->whereHas('trooper', function ($query): void {
                 $query->where(Trooper::MEMBERSHIP_STATUS, MembershipStatus::ACTIVE);
             })
             ->forModerator($message->moderator)

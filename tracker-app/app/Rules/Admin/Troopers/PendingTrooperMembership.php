@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Rules\Admin\Troopers;
 
 use App\Enums\MembershipStatus;
+use App\Models\Trooper;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
-use App\Models\Trooper;
 use Illuminate\Translation\PotentiallyTranslatedString;
 
 /**

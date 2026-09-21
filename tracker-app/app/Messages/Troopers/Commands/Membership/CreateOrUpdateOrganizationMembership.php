@@ -6,8 +6,8 @@ namespace App\Messages\Troopers\Commands\Membership;
 
 use App\Enums\MembershipStatus;
 use App\Models\TrooperOrganization;
-use Hyperdrive\Message;
 use Hyperdrive\Concerns\ShouldBeTransactional;
+use Hyperdrive\Message;
 
 /**
  * Activates a trooper's membership in an organization and its primary organization.
@@ -26,9 +26,8 @@ final class CreateOrUpdateOrganizationMembership extends Message
         private readonly int $trooper_id,
         private readonly int $primary_organization_id,
         private readonly int $organization_id,
-        private readonly string|null $identifier,
-    ) {
-    }
+        private readonly ?string $identifier,
+    ) {}
 
     /**
      * Execute the command to update trooper organization membership setting.
@@ -56,7 +55,7 @@ final class CreateOrUpdateOrganizationMembership extends Message
 
         if ($trooper_organization === null)
         {
-            $trooper_organization = new TrooperOrganization();
+            $trooper_organization = new TrooperOrganization;
             $trooper_organization->trooper_id = $this->trooper_id;
             $trooper_organization->organization_id = $this->primary_organization_id;
         }

@@ -15,8 +15,7 @@ final class GetPendingTrooperApprovals extends Message
 {
     public function __construct(
         private readonly Trooper $moderator,
-    ) {
-    }
+    ) {}
 
     public function handle(): Collection
     {

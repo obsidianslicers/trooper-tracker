@@ -17,7 +17,7 @@ class PendingTrooperApprovalsCollection extends ResourceCollection
     public function toArray(Request $request): array
     {
         return $this->collection
-            ->map(fn(Trooper $trooper) => [
+            ->map(fn (Trooper $trooper) => [
                 'id' => $trooper->id,
                 'is_visitor' => $trooper->is_visitor,
                 'is_denied' => $trooper->is_denied,
@@ -61,7 +61,7 @@ class PendingTrooperApprovalsCollection extends ResourceCollection
 
     private function getTrooperRequests(Trooper $trooper): array
     {
-        return $trooper->trooper_requests->map(fn(TrooperRequest $request) => [
+        return $trooper->trooper_requests->map(fn (TrooperRequest $request) => [
             'id' => $request->id,
             'identifier' => $request->identifier,
             'organization' => [
@@ -71,7 +71,7 @@ class PendingTrooperApprovalsCollection extends ResourceCollection
             'primary_organization' => [
                 'requires_guardian' => $request->primary_organization->requires_guardian,
                 'name' => $request->primary_organization->name,
-            ]
+            ],
         ])->toArray();
     }
 }

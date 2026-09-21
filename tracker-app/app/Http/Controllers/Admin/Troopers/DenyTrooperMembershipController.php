@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Troopers;
 
 use App\Enums\FlashType;
-use App\Messages\Troopers\Commands\Membership\DenyTrooperMembership;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\Troopers\DenyTrooperMembershipRequest;
+use App\Messages\Troopers\Commands\Membership\DenyTrooperMembership;
 use App\Models\Trooper;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
-use App\Http\Requests\Admin\Troopers\DenyTrooperMembershipRequest;
 
 /**
  * Class DenyTrooperMembershipController

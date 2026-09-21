@@ -2,7 +2,6 @@
 
 namespace App\Messages\Troopers\Resources;
 
-use App\Models\Trooper;
 use App\Models\TrooperRequest;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
@@ -17,7 +16,7 @@ class PendingTrooperRequestsCollection extends ResourceCollection
     public function toArray(Request $request): array
     {
         return $this->collection
-            ->map(fn(TrooperRequest $trooper_request) => [
+            ->map(fn (TrooperRequest $trooper_request) => [
                 'id' => $trooper_request->id,
                 'identifier' => $trooper_request->identifier,
                 'status' => $trooper_request->status,

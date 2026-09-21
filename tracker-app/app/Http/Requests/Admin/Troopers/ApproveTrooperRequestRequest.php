@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin\Troopers;
 
-use Illuminate\Auth\Access\AuthorizationException;
 use App\Rules\Admin\Troopers\PendingTrooperRequest;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -14,7 +14,6 @@ use Illuminate\Foundation\Http\FormRequest;
  * This class defines validation rules for approving a trooper request.
  *
  * Administrators and moderators can approve trooper requests.
- *
  */
 class ApproveTrooperRequestRequest extends FormRequest
 {
@@ -51,7 +50,7 @@ class ApproveTrooperRequestRequest extends FormRequest
     {
         return [
             'trooper_request' => [
-                new PendingTrooperRequest()
+                new PendingTrooperRequest,
             ],
         ];
     }

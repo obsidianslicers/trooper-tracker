@@ -22,8 +22,7 @@ final class UpdateNotificationPreference extends Message
         private readonly AdministrativeNotifications|TrooperNotifications $notification,
         private readonly NotificationChannels $channel,
         private readonly bool $enabled,
-    ) {
-    }
+    ) {}
 
     /**
      * Execute the command to update trooper notification preferences.

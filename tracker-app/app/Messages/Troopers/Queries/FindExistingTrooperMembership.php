@@ -19,10 +19,9 @@ final class FindExistingTrooperMembership extends Message
         private readonly string $identifier,
         private readonly Organization $primary_organization,
         private readonly Trooper $ignore_trooper
-    ) {
-    }
+    ) {}
 
-    public function handle(): Trooper|null
+    public function handle(): ?Trooper
     {
         $existing_request = TrooperRequest::query()
             ->where(TrooperRequest::PRIMARY_ORGANIZATION_ID, $this->primary_organization->id)
@@ -41,7 +40,6 @@ final class FindExistingTrooperMembership extends Message
             ->where(TrooperOrganization::TROOPER_ID, '!=', $this->ignore_trooper->id)
             ->with('trooper')
             ->first();
-
 
         if ($existing_trooper !== null)
         {
