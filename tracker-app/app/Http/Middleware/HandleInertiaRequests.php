@@ -7,7 +7,6 @@ namespace App\Http\Middleware;
 use App\Messages\App\Queries\GetConfig;
 use App\Models\Trooper;
 use App\Services\BreadCrumbService;
-use App\Services\FlashMessageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Middleware;
@@ -73,16 +72,6 @@ class HandleInertiaRequests extends Middleware
                     if ($msg)
                     {
                         $messages[$type][] = $msg;
-                    }
-                }
-
-                $custom_messages = app(FlashMessageService::class)->getMessages();
-
-                foreach ($custom_messages as $type => $type_messages)
-                {
-                    foreach ($type_messages as $text)
-                    {
-                        $messages[$type][] = $text;
                     }
                 }
 

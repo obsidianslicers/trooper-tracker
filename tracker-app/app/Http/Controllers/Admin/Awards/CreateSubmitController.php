@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Awards;
 
+use App\Enums\FlashType;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Awards\CreateRequest;
 use App\Models\Award;
@@ -33,7 +34,7 @@ class CreateSubmitController extends MagicBusController
 
         $award->save();
 
-        $this->flash->created($award);
+        FlashType::created($award);
 
         $data = compact('award');
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\FlashType;
 use App\Facades\TroopTracker;
 use App\Http\Controllers\MagicBusController;
 use Illuminate\Http\RedirectResponse;
@@ -42,7 +43,7 @@ class SignUpEmailController extends MagicBusController
         {
             Session::forget('registration_auth');
 
-            $this->flash->warning('Email sign up is disabled. Please sign up with XenForo.');
+            FlashType::warning('Email sign up is disabled. Please sign up with XenForo.');
 
             return redirect()->route('auth.signup');
         }

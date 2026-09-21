@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Account;
 
+use App\Enums\FlashType;
 use App\Features\Troopers\Commands\ResubmitDeniedTrooperCommand;
 use App\Features\Troopers\Exceptions\DuplicateOrganizationIdentifierException;
 use App\Http\Controllers\MagicBusController;
@@ -31,7 +32,7 @@ class DeniedResubmitController extends MagicBusController
             ]);
         }
 
-        $this->flash->success('Your application has been resubmitted. You will receive an email when a decision is made.');
+        FlashType::success('Your application has been resubmitted. You will receive an email when a decision is made.');
 
         return redirect()->route('account.pending');
     }

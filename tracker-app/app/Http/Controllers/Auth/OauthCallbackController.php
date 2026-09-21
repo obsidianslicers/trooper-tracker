@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\FlashType;
 use App\Enums\OauthProvider;
 use App\Facades\TroopTracker;
 use App\Http\Controllers\MagicBusController;
@@ -56,14 +57,14 @@ class OauthCallbackController extends MagicBusController
     {
         if ($this->troop_tracker->isXenforoOAuthRequired() && $provider !== OauthProvider::XENFORO->value)
         {
-            $this->flash->warning('Troop Tracker is configured to use XenForo for login.');
+            FlashType::warning('Troop Tracker is configured to use XenForo for login.');
 
             return redirect()->route('auth.login');
         }
 
         if ($request->has('error'))
         {
-            $this->flash->warning('Login was cancelled or access was denied.');
+            FlashType::warning('Login was cancelled or access was denied.');
 
             return redirect()->route('auth.login');
         }
@@ -74,7 +75,7 @@ class OauthCallbackController extends MagicBusController
         }
         catch (InvalidStateException)
         {
-            $this->flash->warning('Your login session expired. Please try again.');
+            FlashType::warning('Your login session expired. Please try again.');
 
             return redirect()->route('auth.login');
         }
@@ -98,7 +99,7 @@ class OauthCallbackController extends MagicBusController
 
             if ($is_banned)
             {
-                $this->flash->error('You are currently banned. Please refer to command staff for additional information.');
+                FlashType::danger('You are currently banned. Please refer to command staff for additional information.');
 
                 return redirect()->route('auth.login');
             }

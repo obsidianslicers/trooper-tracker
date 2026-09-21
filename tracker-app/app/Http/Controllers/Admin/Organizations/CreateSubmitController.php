@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Organizations;
 
+use App\Enums\FlashType;
 use App\Enums\OrganizationType;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Organizations\CreateRequest;
@@ -54,7 +55,7 @@ class CreateSubmitController extends MagicBusController
 
         Organization::resequenceAll();
 
-        $this->flash->created($organization);
+        FlashType::created($organization);
 
         return redirect()->route('admin.organizations.update', compact('organization'));
     }

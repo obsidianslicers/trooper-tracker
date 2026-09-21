@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\FlashType;
 use App\Enums\MembershipRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\RegisterRequest;
@@ -14,7 +15,6 @@ use App\Messages\Troopers\Commands\CreateTrooper;
 use App\Messages\Troopers\Commands\Membership\CreateTrooperRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
-use App\Services\FlashMessageService;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -34,8 +34,6 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
  */
 class RegisterSubmitController extends Controller
 {
-    public function __construct(private readonly FlashMessageService $flash) {}
-
     /**
      * Handle the incoming registration request.
      *
@@ -61,7 +59,7 @@ class RegisterSubmitController extends Controller
 
             dispatch(new SendTrooperRegisteredNotificationsJob($trooper));
 
-            $this->flash->success('Request submitted successfully! You will receive an e-mail when your request is approved or denied.');
+            FlashType::success('Request submitted successfully! You will receive an e-mail when your request is approved or denied.');
 
             return Inertia::location(route('auth.thank-you'));
         }

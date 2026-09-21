@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Account;
 
+use App\Enums\FlashType;
 use App\Enums\TrooperTheme;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Account\UpdateProfileRequest;
 use App\Messages\Troopers\Commands\UpdateTrooperProfile;
-use Hyperdrive\CommsHelper;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
@@ -42,20 +42,18 @@ class UpdateProfileController extends Controller
             display_costume_id: $request->validated('display_costume_id')
         );
 
-        $data = [
-            'flash' => [
-                'success' => CommsHelper::updated($trooper),
-            ],
-        ];
+        FlashType::updated($trooper);
 
         if ($orginal_theme != $request->validated('theme'))
         {
-            $data['flash']['warning'] = $this->getThemeMessage(TrooperTheme::from($request->validated('theme')));
+            $msg = $this->getThemeMessage(TrooperTheme::from($request->validated('theme')));
+
+            FlashType::warning($msg);
         }
 
         $current_route = 'account/Index';
 
-        return Inertia::render($current_route, $data);
+        return Inertia::render($current_route);
     }
 
     private function getThemeMessage(TrooperTheme $theme): string

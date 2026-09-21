@@ -51,7 +51,6 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,
-            \App\Http\Middleware\FlashMessageMiddleware::class,
             \App\Http\Middleware\PushNotificationCountMiddleware::class,
             \App\Http\Middleware\HtmxDispatchHeaderMiddleware::class,
             \App\Http\Middleware\UpdateLastActiveMiddleware::class,
@@ -103,7 +102,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 RateLimiter::attempt(
                     'exception-email',
                     1,
-                    fn () => dispatch(new SendExceptionNotificationJob($e, $context)),
+                    fn() => dispatch(new SendExceptionNotificationJob($e, $context)),
                     60,
                 );
             }

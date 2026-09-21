@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
+use App\Enums\FlashType;
 use App\Features\Events\Commands\UpdateEventRosterCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Events\UpdateTroopersRequest;
@@ -24,7 +25,7 @@ class UpdateTroopersSubmitController extends MagicBusController
             allowed_org_ids: $request->user()->resolveModeratorOrgIds(),
         ));
 
-        $this->flash->updated($event);
+        FlashType::updated($event);
 
         return redirect()->route('admin.events.troopers', compact('event'));
     }
