@@ -85,19 +85,7 @@
                             {request.identifier || "n/a"}
                         </dd>
                     </dl>
-                    <MembershipLookup />
-                    <!--
-                <div class="border rounded p-2 mb-2">
-                    <div hx-get="{{ route('admin.troopers.trooper-requests.member-lookup', $trooper_request) }}"
-                         hx-trigger="load"
-                         hx-swap="outerHTML">
-                        <div class="text-center text-muted py-1 small">
-                            <i class="fa-solid fa-spinner fa-spin me-1"></i>
-                            Checking member status&hellip;
-                        </div>
-                    </div>
-                </div>
-                    -->
+                    <MembershipLookup trooper_request_id={request.id} />
                 </div>
             {/each}
         {:else if vm.approval.membership_role === "handler"}

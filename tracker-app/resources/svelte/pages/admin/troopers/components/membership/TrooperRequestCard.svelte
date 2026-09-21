@@ -50,16 +50,7 @@
                 <dd class="col-8">{vm.request.denial_reason}</dd>
             {/if}
         </dl>
-        <MembershipLookup />
-        <!--
-        <div hx-get="{{ route('admin.troopers.trooper-requests.member-lookup', $trooper_request) }}"
-             hx-trigger="load"
-             hx-swap="outerHTML">
-            <div class="text-center text-muted py-1 small">
-                <i class="fa-solid fa-spinner fa-spin me-1"></i> Checking member status&hellip;
-            </div>
-        </div>
-    -->
+        <MembershipLookup trooper_request_id={vm.request.id} />
     </div>
     <TrooperRequestCardFooter {vm} />
 </div>

@@ -29,6 +29,7 @@ type Guardian = {
 };
 
 type TrooperRequest = {
+    id: number;
     identifier: string;
     organization: Organization;
     primary_organization: PrimaryOrganization;

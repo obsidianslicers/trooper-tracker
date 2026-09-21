@@ -62,6 +62,7 @@ class PendingTrooperApprovalsCollection extends ResourceCollection
     private function getTrooperRequests(Trooper $trooper): array
     {
         return $trooper->trooper_requests->map(fn(TrooperRequest $request) => [
+            'id' => $request->id,
             'identifier' => $request->identifier,
             'organization' => [
                 'name' => $request->organization->name,
