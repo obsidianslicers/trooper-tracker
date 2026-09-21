@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
+namespace Chaincode;
+
 use Chaincode\Commands\TraceCommand;
 use Illuminate\Support\ServiceProvider;
 
-class ChainCodeServiceProvider extends ServiceProvider
+class ChaincodeServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
