@@ -8,6 +8,7 @@ use App\Facades\TroopTrackerFacade;
 use App\Models\Event;
 use App\Models\EventWatch;
 use App\Models\Trooper;
+use App\Enums\FlashType;
 use App\Services\Forums\XenforoService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -28,7 +29,7 @@ class ToggleEventWatchHtmxController
 
         if ($existing)
         {
-            if (!$this->syncXenforoWatch($event, $trooper, false, $xenforo, $flash))
+            if (!$this->syncXenforoWatch($event, $trooper, false, $xenforo))
             {
                 return response()->view('pages.events.inc.watch-toggle', ['event' => $event, 'is_watching' => true]);
             }
@@ -38,7 +39,7 @@ class ToggleEventWatchHtmxController
         }
         else
         {
-            if (!$this->syncXenforoWatch($event, $trooper, true, $xenforo, $flash))
+            if (!$this->syncXenforoWatch($event, $trooper, true, $xenforo))
             {
                 return response()->view('pages.events.inc.watch-toggle', ['event' => $event, 'is_watching' => false]);
             }
@@ -79,7 +80,7 @@ class ToggleEventWatchHtmxController
 
         if ($status < 200 || $status >= 300)
         {
-            $flash->danger('Unable to update your forum thread subscription. Please try again.');
+            FlashType::danger('Unable to update your forum thread subscription. Please try again.');
 
             return false;
         }
