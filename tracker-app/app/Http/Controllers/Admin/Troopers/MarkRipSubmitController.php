@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Troopers;
 
+use App\Enums\FlashType;
 use App\Features\Troopers\Commands\MarkTrooperRipCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Trooper;
@@ -18,7 +19,7 @@ class MarkRipSubmitController extends MagicBusController
 
         $this->bus->send(new MarkTrooperRipCommand($trooper));
 
-        $this->flash->success("{$trooper->display_name} has been marked R.I.P. — In Memoriam.");
+        FlashType::success("{$trooper->display_name} has been marked R.I.P. — In Memoriam.");
 
         return redirect()->route('admin.troopers.profile', compact('trooper'));
     }

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Enums;
 
+use Hyperdrive\CommsHelper;
+use Illuminate\Database\Eloquent\Model;
+
 /**
  * Defines the types of flash notifications that can be displayed to a user.
  *
@@ -20,14 +23,17 @@ enum FlashType: string
      * For informational messages.
      */
     case INFO = 'info';
+
     /**
      * For success messages (e.g., after a form is submitted correctly).
      */
     case SUCCESS = 'success';
+
     /**
      * For warnings that require user attention.
      */
     case WARNING = 'warning';
+
     /**
      * For critical errors or failure messages.
      */
@@ -41,6 +47,30 @@ enum FlashType: string
     public function flash($message): void
     {
         session()->flash($this->value, $message);
+    }
+
+    /**
+     * Adds to the built-in flash session collection
+     */
+    public static function created(Model $model): void
+    {
+        self::success(CommsHelper::created($model));
+    }
+
+    /**
+     * Adds to the built-in flash session collection
+     */
+    public static function updated(Model $model): void
+    {
+        self::success(CommsHelper::updated($model));
+    }
+
+    /**
+     * Adds to the built-in flash session collection
+     */
+    public static function deleted(Model $model): void
+    {
+        self::warning(CommsHelper::deleted($model));
     }
 
     /**

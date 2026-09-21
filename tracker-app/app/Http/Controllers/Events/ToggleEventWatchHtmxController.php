@@ -8,7 +8,6 @@ use App\Facades\TroopTrackerFacade;
 use App\Models\Event;
 use App\Models\EventWatch;
 use App\Models\Trooper;
-use App\Services\FlashMessageService;
 use App\Services\Forums\XenforoService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -18,8 +17,7 @@ class ToggleEventWatchHtmxController
     public function __invoke(
         Request $request,
         Event $event,
-        XenforoService $xenforo,
-        FlashMessageService $flash
+        XenforoService $xenforo
     ): Response {
         /** @var Trooper $trooper */
         $trooper = $request->user();
@@ -59,8 +57,7 @@ class ToggleEventWatchHtmxController
         Event $event,
         Trooper $trooper,
         bool $watch,
-        XenforoService $xenforo,
-        FlashMessageService $flash
+        XenforoService $xenforo
     ): bool {
         if (!TroopTrackerFacade::isXenforoIntegrationConfigured() || empty($event->thread_id))
         {

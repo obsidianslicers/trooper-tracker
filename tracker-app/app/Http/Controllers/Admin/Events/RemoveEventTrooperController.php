@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
+use App\Enums\FlashType;
 use App\Features\Events\Commands\PromoteNextInLineEventTrooperCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Event;
@@ -34,7 +35,7 @@ class RemoveEventTrooperController extends MagicBusController
             $event_trooper->delete();
         });
 
-        $this->flash->success("{$trooper_name} was removed from the roster.");
+        FlashType::success("{$trooper_name} was removed from the roster.");
 
         return response()->noContent()->header('HX-Redirect', route('admin.events.troopers', compact('event')));
     }

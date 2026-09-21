@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Troopers;
 
+use App\Enums\FlashType;
 use App\Features\Troopers\Commands\VoidTrooperCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Trooper;
@@ -18,7 +19,7 @@ class VoidSubmitController extends MagicBusController
 
         $this->bus->send(new VoidTrooperCommand($trooper));
 
-        $this->flash->success("{$trooper->display_name} has been marked as created in error.");
+        FlashType::success("{$trooper->display_name} has been marked as created in error.");
 
         return redirect()->route('admin.troopers.profile', compact('trooper'));
     }

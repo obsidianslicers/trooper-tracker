@@ -292,7 +292,6 @@ app/Rules/
 The `app/Services/` directory contains standalone service classes:
 
 - **BreadCrumbService:** Navigation breadcrumb generation
-- **FlashMessageService:** Flash message management
 - **GeocodingService:** Address geocoding integration
 - **GoogleService:** Google API integration
 - **StandaloneService:** Base service class

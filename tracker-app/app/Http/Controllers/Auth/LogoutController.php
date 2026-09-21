@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\FlashType;
 use App\Http\Controllers\MagicBusController;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -28,7 +29,7 @@ class LogoutController extends MagicBusController
      */
     public function __invoke(Request $request): RedirectResponse
     {
-        $this->flash->success('You have been logged out.');
+        FlashType::success('You have been logged out.');
 
         Auth::logout();
 

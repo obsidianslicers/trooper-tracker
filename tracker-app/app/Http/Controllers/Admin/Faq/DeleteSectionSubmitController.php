@@ -9,7 +9,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Faq\DeleteSectionRequest;
 use App\Messages\Faq\Commands\DeleteFaqSection;
 use App\Models\FaqSection;
-use Hyperdrive\CommsHelper;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
@@ -27,11 +26,9 @@ class DeleteSectionSubmitController extends Controller
             return Inertia::render('admin/faq/Index');
         }
 
-        $message = CommsHelper::deleted($section);
-
         DeleteFaqSection::call(section: $section);
 
-        FlashType::success($message);
+        FlashType::deleted($section);
 
         return Inertia::render('admin/faq/Index');
     }

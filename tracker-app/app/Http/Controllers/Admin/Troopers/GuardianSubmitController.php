@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Troopers;
 
+use App\Enums\FlashType;
 use App\Features\Troopers\Commands\UpdateTrooperCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Troopers\GuardianRequest;
@@ -27,7 +28,7 @@ class GuardianSubmitController extends MagicBusController
 
         $this->bus->send(new UpdateTrooperCommand($trooper, $data));
 
-        $this->flash->updated($trooper);
+        FlashType::updated($trooper);
 
         return redirect()->route('admin.troopers.guardian', compact('trooper'));
     }

@@ -19,7 +19,7 @@ class HandleInertiaRequestsTest extends TestCase
     use RefreshDatabase;
 
     #[RunInSeparateProcess]
-    public function test_share_returns_guest_props_and_aggregated_flash_messages(): void
+    public function test_share_returns_guest_props_and_flash_messages(): void
     {
         $config = [
             'branding' => ['name' => 'Troop Tracker'],
@@ -30,11 +30,6 @@ class HandleInertiaRequestsTest extends TestCase
             ->shouldReceive('call')
             ->once()
             ->andReturn($config);
-
-        Session::put('flash_messages', [
-            'info' => ['Custom info'],
-            'warning' => ['Custom warning'],
-        ]);
 
         $request = Request::create('/');
         $request->setLaravelSession(Session::driver());
@@ -56,10 +51,7 @@ class HandleInertiaRequestsTest extends TestCase
         $this->assertSame([
             'success' => ['Saved'],
             'danger' => ['Failed'],
-            'info' => ['Custom info'],
-            'warning' => ['Custom warning'],
         ], $shared['flash']());
-        $this->assertSame([], Session::get('flash_messages', []));
 
         Mockery::close();
     }

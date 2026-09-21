@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Verifications;
 
+use App\Enums\FlashType;
 use App\Http\Controllers\MagicBusController;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -28,7 +29,7 @@ class VerifyNoticeSubmitController extends MagicBusController
     {
         $request->user()->sendEmailVerificationNotification();
 
-        $this->flash->success('A new verification link has been sent to your email.');
+        FlashType::success('A new verification link has been sent to your email.');
 
         return redirect()->route('verification.notice');
     }

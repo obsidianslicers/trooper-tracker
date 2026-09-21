@@ -83,7 +83,7 @@ All new and refactored code follows the ADR pattern:
 
 - **Domain (Services):** Business logic lives in Service classes, independent of web context, commands and queries are executed as messages thru the MagicBus
   - Located in `app/Services/`
-  - Examples: `FlashMessageService`, `BreadCrumbService`, event notification services
+  - Examples: `BreadCrumbService`, event notification services
   - Service classes are reusable across Controllers, Jobs, and Commands
 
 - **Responder:** Blade views, JSON responses, or redirects
@@ -165,7 +165,7 @@ Trooper::factory()->state([Trooper::EMAIL => 'custom@example.com']);
 
 | Element | Convention | Example |
 |---------|-----------|---------|
-| Classes | `PascalCase` | `LoginSubmitController`, `FlashMessageService` |
+| Classes | `PascalCase` | `LoginSubmitController` |
 | Methods | `camelCase` | `handleRequest()`, `sendNotifications()` |
 | Parameters | `snake_case` | `function findById(int $user_id)` |
 | Variables | `snake_case` | `$local_variable`, `$event_date` |

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Troopers;
 
+use App\Enums\FlashType;
 use App\Features\Troopers\Commands\RemoveTrooperMembershipCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Troopers\MembershipRemoveRequest;
@@ -26,7 +27,7 @@ class MembershipRemoveController extends MagicBusController
     {
         $this->bus->send(new RemoveTrooperMembershipCommand($trooper, $organization));
 
-        $this->flash->success("Removed {$trooper->display_name} from {$organization->name}");
+        FlashType::success("Removed {$trooper->display_name} from {$organization->name}");
 
         return redirect()->route('admin.troopers.membership', compact('trooper'));
     }

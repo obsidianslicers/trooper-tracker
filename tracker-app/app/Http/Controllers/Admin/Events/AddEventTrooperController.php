@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
+use App\Enums\FlashType;
 use App\Features\Events\Commands\SignUpEventTrooperCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Costume;
@@ -30,7 +31,7 @@ class AddEventTrooperController extends MagicBusController
 
         if ($event_shift->isSignedUp($trooper))
         {
-            $this->flash->danger("{$trooper->display_name} is already signed up for this shift.");
+            FlashType::danger("{$trooper->display_name} is already signed up for this shift.");
 
             return response()->noContent()->header('HX-Redirect', route('admin.events.troopers', compact('event')));
         }
@@ -60,7 +61,7 @@ class AddEventTrooperController extends MagicBusController
 
         if (!$event_shift->isValidStationChoice($event_shift_station_id))
         {
-            $this->flash->danger('Select a station before adding a trooper.');
+            FlashType::danger('Select a station before adding a trooper.');
 
             return response()->noContent()->header('HX-Redirect', route('admin.events.troopers', compact('event')));
         }
@@ -74,7 +75,7 @@ class AddEventTrooperController extends MagicBusController
             event_shift_station_id: $event_shift_station_id,
         ));
 
-        $this->flash->success("{$trooper->display_name} was added to the shift.");
+        FlashType::success("{$trooper->display_name} was added to the shift.");
 
         return response()->noContent()->header('HX-Redirect', route('admin.events.troopers', compact('event')));
     }

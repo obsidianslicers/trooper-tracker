@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Costumes;
 
+use App\Enums\FlashType;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Costume;
 use App\Models\EventTrooper;
@@ -71,7 +72,7 @@ class DeleteSubmitController extends MagicBusController
             $costume->delete();
         });
 
-        $this->flash->success("Deleted costume '{$costume_name}'");
+        FlashType::success("Deleted costume '{$costume_name}'");
 
         return redirect()->route('admin.costumes.list');
     }
