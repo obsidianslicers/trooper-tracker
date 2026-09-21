@@ -40,7 +40,8 @@
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/",
             "Hyperdrive\\": "packages/hyperdrive/src/",
-            "Fabricator\\": "packages/fabricator/src/"
+            "Fabricator\\": "packages/fabricator/src/",
+            "Chaincode\\": "packages/chaincode/src/"
         },
         "files": [
             "app/helpers.php",
