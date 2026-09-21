@@ -82,7 +82,7 @@ class VerifyNoticeSubmitControllerTest extends TestCase
 
         $response = $this->actingAs($trooper)->post(route('verification.notice'));
 
-        $response->assertSessionHas('flash_messages');
+        $response->assertSessionHas('success', 'A new verification link has been sent to your email.');
     }
 
     // -------------------------------------------------------------------------
