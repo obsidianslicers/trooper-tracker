@@ -1,4 +1,6 @@
 <script lang="ts">
+    import InputCheckbox from "$lib/components/form/InputCheckbox.svelte";
+    import Button from "$lib/components/ui/buttons/Button.svelte";
     import type { MissingCreditRow as Row, MissingCreditsViewModel } from "../models";
 
     interface Props {
@@ -9,6 +11,7 @@
 
     let options = $derived(vm.optionsFor(row));
     let isFallback = $derived(vm.isFallback(row));
+    let isAssigning = $derived(vm.assigning_id === row.event_trooper_id);
 
     const ORPHANED_CREDIT_TOOLTIP =
         "This shift already has a stored credit value that isn't resolving to a visible " +
@@ -44,34 +47,23 @@
                 </span>
             {/if}
             {#each options as option (option.id)}
-                <div class="form-check form-check-inline">
-                    <input
-                        class="form-check-input"
-                        type="checkbox"
-                        id={`org-${row.event_trooper_id}-${option.id}`}
-                        checked={vm.isSelected(row, option.id)}
-                        onchange={(e) => vm.toggleOrg(row, option.id, e.currentTarget.checked)}
-                    />
-                    <label
-                        class="form-check-label small"
-                        for={`org-${row.event_trooper_id}-${option.id}`}
-                    >
-                        {option.name}
-                    </label>
-                </div>
+                <InputCheckbox
+                    label={option.name}
+                    checked={vm.isSelected(row, option.id)}
+                    onchange={() => vm.toggleOrg(row, option.id)}
+                />
             {/each}
         {/if}
     </td>
     <td class="text-end">
         {#if !row.trooper_has_no_club_membership && options.length > 0}
-            <button
-                type="button"
-                class="btn btn-sm btn-warning"
-                disabled={vm.assigning_id === row.event_trooper_id}
-                onclick={() => vm.assign(row)}
-            >
-                {vm.assigning_id === row.event_trooper_id ? "Assigning…" : "Assign Credit"}
-            </button>
+            <Button
+                btnclass="btn-warning btn-sm"
+                label={isAssigning ? "Assigning…" : "Assign Credit"}
+                icon={isAssigning ? "fa-solid fa-spinner fa-spin" : null}
+                disabled={isAssigning}
+                click={() => vm.assign(row)}
+            />
         {/if}
     </td>
 </tr>

@@ -1,4 +1,5 @@
 <script lang="ts">
+    import Button from "$lib/components/ui/buttons/Button.svelte";
     import pageState from "$lib/states/page-state.svelte";
     import { usePage } from "@inertiajs/svelte";
     import MissingCreditRow from "./components/MissingCreditRow.svelte";
@@ -61,14 +62,13 @@
 
     {#if vm.has_more}
         <div class="text-center mt-3">
-            <button
-                type="button"
-                class="btn btn-outline-secondary"
+            <Button
+                btnclass="btn-outline-secondary"
+                label={vm.loading_more ? "Loading…" : "Load More"}
+                icon={vm.loading_more ? "fa-solid fa-spinner fa-spin" : null}
                 disabled={vm.loading_more}
-                onclick={() => vm.loadMore()}
-            >
-                {vm.loading_more ? "Loading…" : "Load More"}
-            </button>
+                click={() => vm.loadMore()}
+            />
         </div>
     {/if}
 {/if}

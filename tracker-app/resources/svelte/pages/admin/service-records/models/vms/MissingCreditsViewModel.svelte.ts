@@ -80,12 +80,12 @@ export class MissingCreditsViewModel extends ViewModel {
         return (this.selected[row.event_trooper_id] ?? []).includes(org_id);
     };
 
-    toggleOrg = (row: MissingCreditRow, org_id: number, checked: boolean) => {
+    toggleOrg = (row: MissingCreditRow, org_id: number) => {
         const current = this.selected[row.event_trooper_id] ?? [];
 
-        this.selected[row.event_trooper_id] = checked
-            ? [...current, org_id]
-            : current.filter((id) => id !== org_id);
+        this.selected[row.event_trooper_id] = current.includes(org_id)
+            ? current.filter((id) => id !== org_id)
+            : [...current, org_id];
     };
 
     assign = (row: MissingCreditRow) => {
