@@ -41,7 +41,7 @@ class OrganizationSeeder extends Seeder
                 'name' => '501st Legion',
                 'description' => 'Imperial costuming organization focused on Star Wars villains.',
                 'identifier_display' => 'TKID',
-                'identifier_validation' => 'integer|between:1000,99999',
+                'identifier_validation' => 'integer|between:100,99999',
                 'service_class' => TheLegionService::class,
                 'sync_sheet_id' => null,
                 'can_attend_default' => true,
