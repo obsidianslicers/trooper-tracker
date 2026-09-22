@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\Troopers\MemberLookupHtmxController;
 use App\Http\Controllers\Admin\Troopers\MergeTroopersController;
 use App\Http\Controllers\Admin\Troopers\MergeTroopersSubmitController;
 use App\Http\Controllers\Admin\Troopers\ListController;
+use App\Http\Controllers\Admin\Troopers\LookupMembershipController;
 use App\Http\Controllers\Admin\Troopers\MembershipController;
 use App\Http\Controllers\Admin\Troopers\GuardianController;
 use App\Http\Controllers\Admin\Troopers\GuardianSubmitController;
@@ -61,6 +62,7 @@ Route::prefix('admin/troopers')
         Route::post('/merge', MergeTroopersSubmitController::class);
 
         Route::get('/trooper-requests/{trooper_request}/member-lookup', MemberLookupHtmxController::class)->name('trooper-requests.member-lookup');
+        Route::get('/requests/{trooper_request}/lookup-membership', LookupMembershipController::class)->name('requests.lookup_membership');
 
         Route::get('/{trooper}', ProfileController::class)->name('profile');
         Route::post('/{trooper}', ProfileSubmitController::class);

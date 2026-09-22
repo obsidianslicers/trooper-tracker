@@ -40,9 +40,17 @@ export class MembershipLookupViewModel extends ViewModel {
     }
 
 
-    lookupMembership = () => {
+    lookupMembership = async () => {
         this.performing_lookup = true;
 
-        const url = getRoute('admin.troopers.requests.lookup_membership');
+        const url = getRoute('admin.troopers.requests.lookup_membership', {
+            trooper_request: this.trooper_request_id,
+        });
+
+        try {
+            this.lookup = await fetch(url).then((res) => res.json());
+        } finally {
+            this.performing_lookup = false;
+        }
     }
 }
