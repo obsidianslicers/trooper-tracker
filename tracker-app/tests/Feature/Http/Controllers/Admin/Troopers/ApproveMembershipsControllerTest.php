@@ -10,9 +10,9 @@ use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 /**
- * @see \App\Http\Controllers\Admin\Troopers\MembershipApprovalsController
+ * @see \App\Http\Controllers\Admin\Troopers\ApproveMembershipsController
  */
-class MembershipApprovalsControllerTest extends TestCase
+class ApproveMembershipsControllerTest extends TestCase
 {
     use RefreshDatabase;
 

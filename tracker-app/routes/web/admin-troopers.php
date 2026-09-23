@@ -6,7 +6,7 @@ use App\Http\Controllers\Admin\Troopers\ApproveTrooperMembershipController;
 use App\Http\Controllers\Admin\Troopers\DenyTrooperMembershipController;
 use App\Http\Controllers\Admin\Troopers\ApproveTrooperRequestController;
 use App\Http\Controllers\Admin\Troopers\DenyTrooperRequestController;
-use App\Http\Controllers\Admin\Troopers\MembershipApprovalsController;
+use App\Http\Controllers\Admin\Troopers\ApproveMembershipsController;
 use App\Http\Controllers\Admin\Troopers\AuthorityController;
 use App\Http\Controllers\Admin\Troopers\AuthoritySubmitController;
 use App\Http\Controllers\Admin\Troopers\ChangesController;
@@ -44,7 +44,7 @@ Route::prefix('admin/troopers')
             ->name('approvals.')
             ->group(function ()
             {
-                Route::get('/index', MembershipApprovalsController::class)->name('index');
+                Route::get('/index', ApproveMembershipsController::class)->name('index');
                 Route::post('/approve/{trooper}', ApproveTrooperMembershipController::class)->name('approve-membership');
                 Route::post('/deny/{trooper}', DenyTrooperMembershipController::class)->name('deny-membership');
                 Route::post('/approve/{trooper_request}/request', ApproveTrooperRequestController::class)->name('approve-request');

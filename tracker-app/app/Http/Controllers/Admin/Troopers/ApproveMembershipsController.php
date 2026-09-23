@@ -13,11 +13,11 @@ use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 /**
- * Class MembershipApprovalsController
+ * Class ApproveMembershipsController
  *
  * Handles the display of troopers pending approval.
  */
-class MembershipApprovalsController extends Controller
+class ApproveMembershipsController extends Controller
 {
     public function __construct(private readonly BreadCrumbService $crumbs)
     {
