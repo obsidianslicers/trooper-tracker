@@ -12,7 +12,6 @@ use App\Http\Controllers\Admin\Troopers\AuthoritySubmitController;
 use App\Http\Controllers\Admin\Troopers\ChangesController;
 use App\Http\Controllers\Admin\Troopers\CostumesController;
 use App\Http\Controllers\Admin\Troopers\EventsController;
-use App\Http\Controllers\Admin\Troopers\MemberLookupHtmxController;
 use App\Http\Controllers\Admin\Troopers\MergeTroopersController;
 use App\Http\Controllers\Admin\Troopers\MergeTroopersSubmitController;
 use App\Http\Controllers\Admin\Troopers\ListController;
@@ -50,6 +49,8 @@ Route::prefix('admin/troopers')
                 Route::post('/deny/{trooper}', DenyTrooperMembershipController::class)->name('deny-membership');
                 Route::post('/approve/{trooper_request}/request', ApproveTrooperRequestController::class)->name('approve-request');
                 Route::post('/deny/{trooper_request}/request', DenyTrooperRequestController::class)->name('deny-request');
+
+                Route::get('/requests/{trooper_request}/lookup-membership', LookupMembershipController::class)->name('lookup-membership');
             });
 
 
@@ -61,8 +62,6 @@ Route::prefix('admin/troopers')
         Route::get('/merge', MergeTroopersController::class)->name('merge');
         Route::post('/merge', MergeTroopersSubmitController::class);
 
-        Route::get('/trooper-requests/{trooper_request}/member-lookup', MemberLookupHtmxController::class)->name('trooper-requests.member-lookup');
-        Route::get('/requests/{trooper_request}/lookup-membership', LookupMembershipController::class)->name('requests.lookup_membership');
 
         Route::get('/{trooper}', ProfileController::class)->name('profile');
         Route::post('/{trooper}', ProfileSubmitController::class);
