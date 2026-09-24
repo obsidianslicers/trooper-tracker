@@ -2,8 +2,8 @@
 
 namespace Fabricator;
 
-use Illuminate\Support\ServiceProvider;
 use Fabricator\Commands\FabricateFactoryCommand;
+use Illuminate\Support\ServiceProvider;
 
 class FabricatorServiceProvider extends ServiceProvider
 {

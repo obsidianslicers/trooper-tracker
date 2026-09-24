@@ -39,7 +39,7 @@ class TypeGuesser
 
         if ($nativeName = $this->nativeNameFor($name->replace('_', '')->toString()))
         {
-            return $nativeName . '()';
+            return $nativeName.'()';
         }
 
         if ($name->endsWith('_url'))
@@ -87,8 +87,7 @@ class TypeGuesser
         if (empty($fakerMethodNames))
         {
             $fakerMethodNames = collect($this->generator->getProviders())
-                ->flatMap(function (Base $provider)
-                {
+                ->flatMap(function (Base $provider) {
                     return $this->getNamesFromProvider($provider);
                 })
                 ->unique()
@@ -109,8 +108,8 @@ class TypeGuesser
     protected function getNamesFromProvider(Base $provider): array
     {
         return collect(get_class_methods($provider))
-            ->reject(fn(string $methodName) => Str::startsWith($methodName, '__'))
-            ->mapWithKeys(fn(string $methodName) => [Str::lower($methodName) => $methodName])
+            ->reject(fn (string $methodName) => Str::startsWith($methodName, '__'))
+            ->mapWithKeys(fn (string $methodName) => [Str::lower($methodName) => $methodName])
             ->all();
     }
 
@@ -168,9 +167,9 @@ class TypeGuesser
             'char' => 'randomLetter()',
             'date' => 'date()',
             'datetime' => 'dateTime()',
-            'float' => 'randomFloat(' . $precision . ')',
+            'float' => 'randomFloat('.$precision.')',
             'inet6' => 'ipv6()',
-            'integer', 'number' => 'randomNumber(' . $size . ')',
+            'integer', 'number' => 'randomNumber('.$size.')',
             'ip_address' => 'ipv4()',
             'mac_address' => 'macAddress()',
             'text' => 'text()',

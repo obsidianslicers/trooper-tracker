@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
+use App\Enums\FlashType;
 use App\Facades\TroopTrackerFacade;
 use App\Models\Event;
 use App\Models\EventWatch;
 use App\Models\Trooper;
-use App\Enums\FlashType;
 use App\Services\Forums\XenforoService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;

@@ -51,15 +51,13 @@ class FactoryGenerator
 
         collect($this->columns($json['attributes'], $foreign_keys))
             ->merge($this->relationships($modelClass, $json['relations']))
-            ->filter(function ($value, $key)
-            {
+            ->filter(function ($value, $key) {
                 return !in_array($key, ['created_id', 'updated_id', 'deleted_id']);
             })
             ->filter()
             ->unique()
             ->values()
-            ->pipe(function ($properties) use ($factoryPath, $modelClass)
-            {
+            ->pipe(function ($properties) use ($factoryPath, $modelClass) {
                 $definition_properties = $properties->all();
 
                 $this->writeBaseFactoryFile($factoryPath, $definition_properties, $modelClass);
@@ -83,18 +81,18 @@ class FactoryGenerator
 
         $tokens = collect(\PhpToken::tokenize($contents));
 
-        $class = $tokens->first(fn(\PhpToken $token) => $token->id === T_CLASS);
-        $import = $tokens->first(fn(\PhpToken $token) => $token->id === T_USE);
+        $class = $tokens->first(fn (\PhpToken $token) => $token->id === T_CLASS);
+        $import = $tokens->first(fn (\PhpToken $token) => $token->id === T_USE);
 
         $pos = strpos($contents, '{', $class->pos) + 1;
-        $replacement = PHP_EOL . '    use HasFactory;' . PHP_EOL;
+        $replacement = PHP_EOL.'    use HasFactory;'.PHP_EOL;
         $contents = substr_replace($contents, $replacement, $pos, 0);
 
         $anchor = $import ?? $class;
 
         $contents = substr_replace(
             $contents,
-            'use Illuminate\\Database\\Eloquent\\Factories\\HasFactory;' . PHP_EOL,
+            'use Illuminate\\Database\\Eloquent\\Factories\\HasFactory;'.PHP_EOL,
             $anchor->pos,
             0
         );
@@ -135,7 +133,7 @@ class FactoryGenerator
             ? '$this->faker->unique()->'
             : '$this->faker->';
 
-        return $this->factoryTuple($key, $value . $this->mapToFaker($column));
+        return $this->factoryTuple($key, $value.$this->mapToFaker($column));
     }
 
     protected function factoryTuple($key, $value = null): array
@@ -168,7 +166,7 @@ class FactoryGenerator
         }
 
         // TODO: this check should happen before calling this service class...
-        throw new \UnexpectedValueException('could not find model [' . $name . ']');
+        throw new \UnexpectedValueException('could not find model ['.$name.']');
     }
 
     /**
@@ -188,7 +186,7 @@ class FactoryGenerator
         $name = str_replace('/', '\\', $name);
 
         return $this->qualifyClass(
-            trim($rootNamespace, '\\') . '\\' . $name
+            trim($rootNamespace, '\\').'\\'.$name
         );
     }
 
@@ -199,9 +197,8 @@ class FactoryGenerator
     protected function relationships(string $modelClass, array $relationships): Collection
     {
         return collect($relationships)
-            ->filter(fn($relationship) => $relationship['type'] === 'BelongsTo')
-            ->mapWithKeys(function ($relationship) use ($modelClass)
-            {
+            ->filter(fn ($relationship) => $relationship['type'] === 'BelongsTo')
+            ->mapWithKeys(function ($relationship) use ($modelClass) {
                 $property = $this->modelInstance->{$relationship['name']}()->getForeignKeyName();
 
                 if ($modelClass == $relationship['related'])
@@ -209,7 +206,7 @@ class FactoryGenerator
                     return [$property => "'$property' => null"];
                 }
 
-                return [$property => "'$property' => \\" . $relationship['related'] . '::factory()'];
+                return [$property => "'$property' => \\".$relationship['related'].'::factory()'];
             });
     }
 
@@ -255,12 +252,11 @@ class FactoryGenerator
 
         $factoryQualifiedName = Factory::resolveFactoryName($modelClass);
         $factoryNamespace = Str::beforeLast($factoryQualifiedName, '\\');
-        $contents = File::get(__DIR__ . '/stubs/base-factory.stub');
+        $contents = File::get(__DIR__.'/stubs/base-factory.stub');
         $contents = str_replace('{{ factoryNamespace }}', $factoryNamespace, $contents);
         $contents = str_replace('{{ namespacedModel }}', $modelClass, $contents);
         $contents = str_replace('{{ model }}', $modelName, $contents);
-        $definitions = array_map(function ($line) use ($modelName)
-        {
+        $definitions = array_map(function ($line) use ($modelName) {
             if (is_null($line))
             {
                 return null;
@@ -302,9 +298,9 @@ class FactoryGenerator
     private function columns(array $attributes, array $foreignKeys): Collection
     {
         return collect($attributes)
-            ->reject(fn($column) => is_null($column['type']))
-            ->map(fn($column) => $this->appendColumnData($column, $foreignKeys))
-            ->mapWithKeys(fn($column) => $this->mapColumn($column));
+            ->reject(fn ($column) => is_null($column['type']))
+            ->map(fn ($column) => $this->appendColumnData($column, $foreignKeys))
+            ->mapWithKeys(fn ($column) => $this->mapColumn($column));
     }
 
     private function factoryPath($model): string
@@ -314,6 +310,6 @@ class FactoryGenerator
             ->replaceFirst('App\\', '')
             ->toString();
 
-        return database_path('factories/Base/' . str_replace('\\', '/', $subDirectory) . 'Factory.php');
+        return database_path('factories/Base/'.str_replace('\\', '/', $subDirectory).'Factory.php');
     }
 }

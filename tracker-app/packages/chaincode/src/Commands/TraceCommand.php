@@ -35,6 +35,7 @@ class TraceCommand extends Command
             if (!is_dir($target_dir))
             {
                 $this->error("Target sector [{$target_dir}] does not exist.");
+
                 return self::FAILURE;
             }
         }
@@ -45,7 +46,7 @@ class TraceCommand extends Command
         // 2. Scan codebase for usage references
         $application_files = $this->getApplicationFiles($target_dirs);
 
-        $this->info("Gathered all PHP files for scanning = " . iterator_count($application_files));
+        $this->info('Gathered all PHP files for scanning = '.iterator_count($application_files));
 
         $this->analyzeSourceFiles($source_files, $application_files);
         $this->showSourceFileResults($source_files);
@@ -55,7 +56,7 @@ class TraceCommand extends Command
 
     private function getApplicationFiles(array $target_dirs): iterable
     {
-        $application_files = (new Finder())->files()->in($target_dirs)->name('*.php');
+        $application_files = (new Finder)->files()->in($target_dirs)->name('*.php');
 
         $specific_files = [
             base_path('bootstrap/app.php'),
@@ -87,7 +88,7 @@ class TraceCommand extends Command
                     continue;
                 }
 
-                if ($data['class'] && preg_match('/\b' . preg_quote($data['class'], '/') . '\b/', $content))
+                if ($data['class'] && preg_match('/\b'.preg_quote($data['class'], '/').'\b/', $content))
                 {
                     $data['referenced'] = true;
                 }
@@ -102,7 +103,7 @@ class TraceCommand extends Command
         $total_count = count($source_files);
 
         $this->newLine();
-        $this->info("=== CHAINCODE SCAN: Target Lineage Analysis ===");
+        $this->info('=== CHAINCODE SCAN: Target Lineage Analysis ===');
         $this->newLine();
 
         foreach ($source_files as $relative_path => $data)
@@ -129,7 +130,7 @@ class TraceCommand extends Command
 
         // Summary footer
         $this->newLine();
-        $this->line("-----------------------------------------------");
+        $this->line('-----------------------------------------------');
         $this->line("Targets Scanned: <comment>{$total_count}</comment>");
 
         if ($unused_count > 0)
@@ -138,20 +139,20 @@ class TraceCommand extends Command
         }
         else
         {
-            $this->info("Unreferenced Files: 0 (All files verified)");
+            $this->info('Unreferenced Files: 0 (All files verified)');
         }
         $this->newLine();
     }
 
     private function getSourceFiles(string $source_dir): array
     {
-        $finder = (new Finder())->files()->in($source_dir)->name('*.php');
+        $finder = (new Finder)->files()->in($source_dir)->name('*.php');
 
         $source_files = [];
 
         foreach ($finder as $file)
         {
-            $relative_path = str_replace(base_path() . DIRECTORY_SEPARATOR, '', $file->getRealPath());
+            $relative_path = str_replace(base_path().DIRECTORY_SEPARATOR, '', $file->getRealPath());
 
             $class_name = $this->getClassFromFile($file->getRealPath());
 
@@ -165,7 +166,7 @@ class TraceCommand extends Command
             }
         }
 
-        $this->info("Gathered source PHP files = " . count($source_files));
+        $this->info('Gathered source PHP files = '.count($source_files));
 
         return $source_files;
     }
