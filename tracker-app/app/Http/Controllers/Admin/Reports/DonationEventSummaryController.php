@@ -58,7 +58,8 @@ class DonationEventSummaryController extends BaseReportsController
         else
         {
             $node_paths = $filter_orgs->whereIn('id', $selected_ids)->pluck('node_path');
-            $selected_org_ids = $organizations->filter(function ($org) use ($node_paths) {
+            $selected_org_ids = $organizations->filter(function ($org) use ($node_paths)
+            {
                 foreach ($node_paths as $path)
                 {
                     if (str_starts_with($org->node_path, $path))
@@ -98,7 +99,8 @@ class DonationEventSummaryController extends BaseReportsController
     ): StreamedResponse {
         $filename = 'donation-event-summary-'.now()->format('Y-m-d').'.csv';
 
-        return response()->streamDownload(function () use ($trooper, $date_start, $date_end, $charity_only, $sort, $dir, $selected_org_ids, $accessible_org_ids, $organization_name) {
+        return response()->streamDownload(function () use ($trooper, $date_start, $date_end, $charity_only, $sort, $dir, $selected_org_ids, $accessible_org_ids, $organization_name)
+        {
             $handle = fopen('php://output', 'w');
 
             $meta = [];

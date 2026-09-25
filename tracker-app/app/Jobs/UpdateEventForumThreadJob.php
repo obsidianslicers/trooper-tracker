@@ -57,7 +57,8 @@ class UpdateEventForumThreadJob implements ShouldBeUnique, ShouldQueue
             ->whereNotNull(Event::POST_ID)
             ->where(Event::CREATE_FORUM_THREAD, '!=', false)
             ->where(Event::EVENT_END, '>=', $cutoff)
-            ->chunkById(50, function ($events) use ($forumThreadMessageService, $xenforo): void {
+            ->chunkById(50, function ($events) use ($forumThreadMessageService, $xenforo): void
+            {
                 foreach ($events as $event)
                 {
                     $this->syncEvent($event, $xenforo, $forumThreadMessageService);

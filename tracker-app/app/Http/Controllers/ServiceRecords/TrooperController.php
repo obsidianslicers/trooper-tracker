@@ -17,6 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use RuntimeException;
 
 /**
  * Displays a trooper's service record dashboard.
@@ -28,7 +29,7 @@ class TrooperController extends MagicBusController
      *
      * Filters command staff and handler costumes from the displayed costume list.
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
     public function __invoke(Request $request, Trooper $trooper): View
     {
@@ -98,10 +99,12 @@ class TrooperController extends MagicBusController
     private function extractXenforoGroupBanners(?array $group_data): Collection
     {
         return collect($group_data['userGroups'] ?? [])
-            ->filter(function (mixed $group): bool {
+            ->filter(function (mixed $group): bool
+            {
                 return is_array($group) && !empty($group['bannerText']);
             })
-            ->map(function (array $group): array {
+            ->map(function (array $group): array
+            {
                 return [
                     'title' => (string) ($group['title'] ?? ''),
                     'banner_text' => (string) ($group['bannerText'] ?? ''),
@@ -109,7 +112,8 @@ class TrooperController extends MagicBusController
                     'order' => (int) ($group['order'] ?? PHP_INT_MAX),
                 ];
             })
-            ->sortBy(function (array $group): string {
+            ->sortBy(function (array $group): string
+            {
                 return sprintf(
                     '%d-%010d-%s',
                     $group['is_primary'] ? 0 : 1,

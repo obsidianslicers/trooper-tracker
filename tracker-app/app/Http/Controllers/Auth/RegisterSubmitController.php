@@ -71,7 +71,8 @@ class RegisterSubmitController extends Controller
 
     private function registerTrooper(RegisterRequest $request): Trooper
     {
-        return DB::transaction(function () use ($request) {
+        return DB::transaction(function () use ($request)
+        {
             $trooper = CreateTrooper::call($request);
 
             if ($trooper->membership_role != MembershipRole::HANDLER)

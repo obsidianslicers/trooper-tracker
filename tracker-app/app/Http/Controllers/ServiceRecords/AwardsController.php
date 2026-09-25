@@ -8,6 +8,7 @@ use App\Features\Troopers\Queries\GetTrooperAwardsQuery;
 use App\Http\Controllers\MagicBusController;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use RuntimeException;
 
 /**
  * Displays awarded trooper activity.
@@ -17,7 +18,7 @@ class AwardsController extends MagicBusController
     /**
      * Retrieves award recipients for a lookback window and renders the awards view.
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
     public function __invoke(Request $request): View
     {

@@ -35,7 +35,8 @@ final class GetCostumes extends Message
 
         if ($this->organization_ids !== null)
         {
-            $with['organization_costumes'] = function ($query) {
+            $with['organization_costumes'] = function ($query)
+            {
                 $query->whereHas('organization', fn ($q) => $q->whereIn(Organization::ID, $this->organization_ids));
             };
         }

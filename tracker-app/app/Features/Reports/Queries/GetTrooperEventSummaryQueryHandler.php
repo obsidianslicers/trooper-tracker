@@ -33,9 +33,11 @@ readonly class GetTrooperEventSummaryQueryHandler implements QueryHandlerInterfa
             ->selectSub($shiftCountSub, 'event_shifts_count')
             ->selectSub($eventCountSub, 'events_count')
             ->moderatedBy($message->moderator)
-            ->whereHas('event_troopers', function ($q) use ($message, $roster_org_ids) {
+            ->whereHas('event_troopers', function ($q) use ($message, $roster_org_ids)
+            {
                 $q->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED)
-                    ->whereHas('event_shift.event', function ($q) use ($message) {
+                    ->whereHas('event_shift.event', function ($q) use ($message)
+                    {
                         $q->where(Event::STATUS, EventStatus::CLOSED);
                         if ($message->date_start)
                         {

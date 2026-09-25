@@ -38,9 +38,11 @@ readonly class GetTroopersForEventCancelledQueryHandler implements QueryHandlerI
     {
         $event_id = $message->event->id;
 
-        $filter = function ($q) use ($event_id) {
+        $filter = function ($q) use ($event_id)
+        {
             $q->where(EventTrooper::STATUS, EventTrooperStatus::GOING)
-                ->whereHas('event_shift', function ($q) use ($event_id) {
+                ->whereHas('event_shift', function ($q) use ($event_id)
+                {
                     $q->where(EventShift::EVENT_ID, $event_id);
                 });
         };

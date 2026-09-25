@@ -41,7 +41,8 @@ readonly class GetTrooperCostumesQueryHandler implements QueryHandlerInterface
         $costumes->loadMissing(['organization_costumes.organization', 'organization_costumes.trooper_costumes']);
 
         // Transform for the final output
-        $results = $costumes->each(function ($costume) use ($message) {
+        $results = $costumes->each(function ($costume) use ($message)
+        {
             $names = $costume->organization_costumes
                 ->map(fn ($oc) => $oc->organization->name)
                 ->sort()
@@ -58,7 +59,8 @@ readonly class GetTrooperCostumesQueryHandler implements QueryHandlerInterface
                 ->where('trooper_id', $message->trooper->id);
 
             $imageUrls = $trooperCostumes
-                ->flatMap(function ($tc) {
+                ->flatMap(function ($tc)
+                {
                     return [
                         $tc->image_url_sm,
                         $tc->image_url_lg,

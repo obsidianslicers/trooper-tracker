@@ -33,7 +33,8 @@ final class ClearOrganizationAssignments extends Message
         $trooper_assignments = TrooperAssignment::query()
             ->withTrashed()
             ->where(TrooperAssignment::TROOPER_ID, $this->trooper_id)
-            ->whereHas('organization', function ($q): void {
+            ->whereHas('organization', function ($q): void
+            {
                 $q->where(Organization::NODE_PATH, 'like', $this->primary_organization->node_path.'%');
             })
             ->get();

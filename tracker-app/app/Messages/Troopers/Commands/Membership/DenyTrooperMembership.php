@@ -30,7 +30,8 @@ final class DenyTrooperMembership extends Message
         TrooperRequest::where(TrooperRequest::TROOPER_ID, $this->trooper->id)
             ->pending()
             ->get()
-            ->each(function (TrooperRequest $trooper_request): void {
+            ->each(function (TrooperRequest $trooper_request): void
+            {
                 DenyTrooperRequest::call(
                     trooper_request: $trooper_request,
                     denial_reason: $this->denial_reason,

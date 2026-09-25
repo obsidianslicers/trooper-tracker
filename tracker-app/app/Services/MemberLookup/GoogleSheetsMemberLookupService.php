@@ -24,7 +24,8 @@ class GoogleSheetsMemberLookupService implements MemberLookupInterface
     {
         $cache_key = "tracker:member-lookup:sheet:{$this->organization->id}:{$identifier}";
 
-        $result = Cache::remember($cache_key, 3600, function () use ($identifier) {
+        $result = Cache::remember($cache_key, 3600, function () use ($identifier)
+        {
             return $this->fetchFromSheet($identifier) ?? false;
         });
 

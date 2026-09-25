@@ -10,6 +10,7 @@ use App\Models\Costume;
 use App\Models\Organization;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use RuntimeException;
 
 /**
  * Displays service record leaderboard metrics.
@@ -19,7 +20,7 @@ class LeaderboardController extends MagicBusController
     /**
      * Retrieves leaderboard metrics for a lookback window and renders the leaderboard view.
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
     public function __invoke(Request $request): View
     {

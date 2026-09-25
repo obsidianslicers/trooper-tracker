@@ -20,7 +20,8 @@ class DownloadEventIcsController extends MagicBusController
         $filename = str($event->name)->slug().'.ics';
 
         return response()->streamDownload(
-            function () use ($icsContent) {
+            function () use ($icsContent)
+            {
                 echo $icsContent;
             },
             $filename,

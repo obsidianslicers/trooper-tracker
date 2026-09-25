@@ -62,9 +62,11 @@ readonly class GetCostumeEventSummaryQueryHandler implements QueryHandlerInterfa
             ->select('tt_costumes.*')
             ->selectSub($usesCountSub, 'uses_count')
             ->selectSub($eventCountSub, 'events_count')
-            ->whereHas('event_troopers', function ($q) use ($message) {
+            ->whereHas('event_troopers', function ($q) use ($message)
+            {
                 $q->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED)
-                    ->whereHas('event_shift.event', function ($q) use ($message) {
+                    ->whereHas('event_shift.event', function ($q) use ($message)
+                    {
                         $q->where(Event::STATUS, EventStatus::CLOSED);
 
                         if ($message->date_start)

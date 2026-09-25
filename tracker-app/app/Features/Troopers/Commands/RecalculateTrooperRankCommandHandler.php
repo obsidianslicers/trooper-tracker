@@ -58,7 +58,8 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
         ];
 
         $with_count = [
-            'event_troopers as event_count' => function ($q) {
+            'event_troopers as event_count' => function ($q)
+            {
                 $q->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED);
             },
         ];
@@ -76,7 +77,8 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
         // One API call for the entire run — all users' upgrade records.
         $xenforo_upgrades = $this->prefetchXenforoUpgrades();
 
-        $q->chunk(200, function ($troopers) use ($message, $xenforo_upgrades) {
+        $q->chunk(200, function ($troopers) use ($message, $xenforo_upgrades)
+        {
             //  only process rank if we're processing all troopers, otherwise
             //  the rank won't be accurate since we're not reordering all the
             //  troopers by attendance
@@ -495,7 +497,8 @@ class RecalculateTrooperRankCommandHandler implements CommandHandlerInterface
             ]);
 
         $candidate_org_ids = $event_troopers
-            ->flatMap(function (EventTrooper $event_trooper): array {
+            ->flatMap(function (EventTrooper $event_trooper): array
+            {
                 $costume_org_ids = $event_trooper->costume_organization_ids ?? [];
 
                 return !empty($costume_org_ids)

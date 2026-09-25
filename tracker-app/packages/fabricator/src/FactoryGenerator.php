@@ -10,6 +10,9 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use PhpToken;
+use ReflectionClass;
+use UnexpectedValueException;
 
 class FactoryGenerator
 {
@@ -51,13 +54,15 @@ class FactoryGenerator
 
         collect($this->columns($json['attributes'], $foreign_keys))
             ->merge($this->relationships($modelClass, $json['relations']))
-            ->filter(function ($value, $key) {
+            ->filter(function ($value, $key)
+            {
                 return !in_array($key, ['created_id', 'updated_id', 'deleted_id']);
             })
             ->filter()
             ->unique()
             ->values()
-            ->pipe(function ($properties) use ($factoryPath, $modelClass) {
+            ->pipe(function ($properties) use ($factoryPath, $modelClass)
+            {
                 $definition_properties = $properties->all();
 
                 $this->writeBaseFactoryFile($factoryPath, $definition_properties, $modelClass);
@@ -75,14 +80,14 @@ class FactoryGenerator
             return;
         }
 
-        $path = (new \ReflectionClass($modelClass))->getFileName();
+        $path = (new ReflectionClass($modelClass))->getFileName();
 
         $contents = File::get($path);
 
-        $tokens = collect(\PhpToken::tokenize($contents));
+        $tokens = collect(PhpToken::tokenize($contents));
 
-        $class = $tokens->first(fn (\PhpToken $token) => $token->id === T_CLASS);
-        $import = $tokens->first(fn (\PhpToken $token) => $token->id === T_USE);
+        $class = $tokens->first(fn (PhpToken $token) => $token->id === T_CLASS);
+        $import = $tokens->first(fn (PhpToken $token) => $token->id === T_USE);
 
         $pos = strpos($contents, '{', $class->pos) + 1;
         $replacement = PHP_EOL.'    use HasFactory;'.PHP_EOL;
@@ -166,7 +171,7 @@ class FactoryGenerator
         }
 
         // TODO: this check should happen before calling this service class...
-        throw new \UnexpectedValueException('could not find model ['.$name.']');
+        throw new UnexpectedValueException('could not find model ['.$name.']');
     }
 
     /**
@@ -198,7 +203,8 @@ class FactoryGenerator
     {
         return collect($relationships)
             ->filter(fn ($relationship) => $relationship['type'] === 'BelongsTo')
-            ->mapWithKeys(function ($relationship) use ($modelClass) {
+            ->mapWithKeys(function ($relationship) use ($modelClass)
+            {
                 $property = $this->modelInstance->{$relationship['name']}()->getForeignKeyName();
 
                 if ($modelClass == $relationship['related'])
@@ -256,7 +262,8 @@ class FactoryGenerator
         $contents = str_replace('{{ factoryNamespace }}', $factoryNamespace, $contents);
         $contents = str_replace('{{ namespacedModel }}', $modelClass, $contents);
         $contents = str_replace('{{ model }}', $modelName, $contents);
-        $definitions = array_map(function ($line) use ($modelName) {
+        $definitions = array_map(function ($line) use ($modelName)
+        {
             if (is_null($line))
             {
                 return null;

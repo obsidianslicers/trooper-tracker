@@ -48,8 +48,10 @@ readonly class GetStatusChangeLogQueryHandler implements QueryHandlerInterface
         return ModelChange::with($with)
             ->where(ModelChange::FIELD_NAME, EventTrooper::STATUS)
             ->where(ModelChange::NEW_VALUE, EventTrooperStatus::ATTENDED->value)
-            ->whereHasMorph('auditable', [EventTrooper::class], function ($query) use ($message) {
-                $query->whereHas('trooper', function ($qx) use ($message) {
+            ->whereHasMorph('auditable', [EventTrooper::class], function ($query) use ($message)
+            {
+                $query->whereHas('trooper', function ($qx) use ($message)
+                {
                     $qx->moderatedBy($message->moderator);
                 })
                     ->whereColumn(

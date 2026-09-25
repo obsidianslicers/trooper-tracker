@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use Carbon\CarbonImmutable;
+use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 
@@ -61,7 +62,7 @@ class LogViewerService
         {
             return CarbonImmutable::parse($entry->logged_at);
         }
-        catch (\Exception)
+        catch (Exception)
         {
             return null;
         }

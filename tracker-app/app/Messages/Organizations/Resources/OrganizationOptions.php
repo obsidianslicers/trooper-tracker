@@ -33,17 +33,20 @@ class OrganizationOptions extends ResourceCollection
         //  list of options for a select input.
         $options = [];
 
-        $this->collection->each(function (Organization $org) use (&$options) {
+        $this->collection->each(function (Organization $org) use (&$options)
+        {
             $options[] = ['value' => $org->id, 'label' => $org->name];
 
             if ($this->organization_type->isRegion() || $this->organization_type->isUnit())
             {
-                $org->organizations->each(function ($region) use (&$options) {
+                $org->organizations->each(function ($region) use (&$options)
+                {
                     $options[] = ['value' => $region->id, 'label' => ' — '.$region->name];
 
                     if ($this->organization_type->isUnit())
                     {
-                        $region->organizations->each(function ($unit) use (&$options) {
+                        $region->organizations->each(function ($unit) use (&$options)
+                        {
                             $options[] = ['value' => $unit->id, 'label' => ' — — '.$unit->name];
                         });
                     }

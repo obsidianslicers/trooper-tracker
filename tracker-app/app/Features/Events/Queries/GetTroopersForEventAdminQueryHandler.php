@@ -105,7 +105,8 @@ readonly class GetTroopersForEventAdminQueryHandler implements QueryHandlerInter
             ->all();
 
         $all_option_costumes = Costume::query()
-            ->where(function ($q) use ($approved_costume_ids) {
+            ->where(function ($q) use ($approved_costume_ids)
+            {
                 $q->whereIn(Costume::NAME, [Costume::COMMAND_STAFF, Costume::HANDLER]);
                 if (!empty($approved_costume_ids))
                 {
@@ -120,7 +121,8 @@ readonly class GetTroopersForEventAdminQueryHandler implements QueryHandlerInter
             ->toArray();
 
         return $all->groupBy('trooper_id')
-            ->map(function ($group) use ($all_option_costumes, $handler_costume_ids) {
+            ->map(function ($group) use ($all_option_costumes, $handler_costume_ids)
+            {
                 $trooper_costume_ids = $group->first()->trooper->trooper_costumes
                     ->pluck('organization_costume.costume_id')
                     ->filter()
@@ -190,7 +192,8 @@ readonly class GetTroopersForEventAdminQueryHandler implements QueryHandlerInter
         ];
 
         $with = [
-            'event_shift_stations' => function ($query) {
+            'event_shift_stations' => function ($query)
+            {
                 $query->withCount('going_event_troopers')
                     ->orderBy(EventShiftStation::SEQUENCE)
                     ->orderBy(EventShiftStation::NAME);

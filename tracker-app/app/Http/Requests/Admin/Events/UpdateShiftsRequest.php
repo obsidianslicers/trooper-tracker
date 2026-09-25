@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
+use Throwable;
 
 /**
  * Handles the validation for updating the organizations associated with an Event.
@@ -57,7 +58,8 @@ class UpdateShiftsRequest extends FormRequest
 
     public function withValidator(Validator $validator): void
     {
-        $validator->after(function (Validator $validator): void {
+        $validator->after(function (Validator $validator): void
+        {
             $this->validateUniqueShiftStartTimes($validator);
 
             foreach ($this->input('shifts', []) as $key => $shift)
@@ -120,7 +122,7 @@ class UpdateShiftsRequest extends FormRequest
                 $shift_starts_at = Carbon::createFromFormat('H:i', (string) $shift['starts_at'])
                     ->format('H:i');
             }
-            catch (\Throwable)
+            catch (Throwable)
             {
                 continue;
             }

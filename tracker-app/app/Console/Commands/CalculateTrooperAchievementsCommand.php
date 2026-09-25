@@ -46,7 +46,8 @@ class CalculateTrooperAchievementsCommand extends Command
         $summary = null;
         $send_milestone_notifications = !$this->option('without-notifications');
 
-        $ms = Benchmark::measure(function () use ($bus, $send_milestone_notifications, &$summary) {
+        $ms = Benchmark::measure(function () use ($bus, $send_milestone_notifications, &$summary)
+        {
             $summary = $bus->send(new RecalculateTrooperRankCommand(
                 send_milestone_notifications: $send_milestone_notifications,
             ));

@@ -74,14 +74,16 @@ readonly class GetDashboardMetricsQueryHandler implements QueryHandlerInterface
             ->count();
 
         $attendance_count = Trooper::where(Trooper::MEMBERSHIP_STATUS, MembershipStatus::ACTIVE)
-            ->whereHas('event_troopers', function ($q) use ($date) {
+            ->whereHas('event_troopers', function ($q) use ($date)
+            {
                 $q->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED)
                     ->where(EventTrooper::SIGNED_UP_AT, '>=', $date);
             })
             ->count();
 
         $attrition_risk = Trooper::where(Trooper::MEMBERSHIP_STATUS, MembershipStatus::ACTIVE)
-            ->whereDoesntHave('event_troopers', function ($q) use ($date) {
+            ->whereDoesntHave('event_troopers', function ($q) use ($date)
+            {
                 $q->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED)
                     ->where(EventTrooper::SIGNED_UP_AT, '>=', $date);
             })
@@ -151,7 +153,8 @@ readonly class GetDashboardMetricsQueryHandler implements QueryHandlerInterface
      */
     private function getEngagementMetrics(Carbon $date): array
     {
-        $notices = Notice::withCount(['troopers', 'troopers as read_count' => function ($q) {
+        $notices = Notice::withCount(['troopers', 'troopers as read_count' => function ($q)
+        {
             $q->where('is_read', true);
         }])->where(Notice::STARTS_AT, '>=', $date)->get();
 
@@ -185,15 +188,18 @@ readonly class GetDashboardMetricsQueryHandler implements QueryHandlerInterface
 
         return Organization::select($org_fields)
             ->with([
-                'events' => function ($q) use ($date, $event_fields, $shift_fields, $trooper_fields) {
+                'events' => function ($q) use ($date, $event_fields, $shift_fields, $trooper_fields)
+                {
                     $q->select($event_fields)
                         ->where(Event::EVENT_START, '>=', $date)
                         ->where(Event::STATUS, EventStatus::CLOSED)
                         ->with([
-                            'event_shifts' => function ($sq) use ($shift_fields, $trooper_fields) {
+                            'event_shifts' => function ($sq) use ($shift_fields, $trooper_fields)
+                            {
                                 $sq->select($shift_fields)
                                     ->with([
-                                        'event_troopers' => function ($tq) use ($trooper_fields) {
+                                        'event_troopers' => function ($tq) use ($trooper_fields)
+                                        {
                                             $tq->select($trooper_fields)
                                                 ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED);
                                         }]);
@@ -201,7 +207,8 @@ readonly class GetDashboardMetricsQueryHandler implements QueryHandlerInterface
                 }])
             ->where(Organization::TYPE, OrganizationType::ORGANIZATION)
             ->get()
-            ->map(function ($org) {
+            ->map(function ($org)
+            {
                 $shifts = $org->events->flatMap(fn ($event) => $event->event_shifts);
 
                 $attended_count = $shifts

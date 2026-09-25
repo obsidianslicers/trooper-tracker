@@ -58,7 +58,8 @@ class UpdateSubmitController extends MagicBusController
                     || $updated_status == EventStatus::MANUAL_SELECTION
                     || $updated_status == EventStatus::SIGN_UP_LOCKED
                 ) {
-                    $update_shift_status = function () use ($event, $updated_status) {
+                    $update_shift_status = function () use ($event, $updated_status)
+                    {
                         foreach ($event->event_shifts as $shift)
                         {
                             $shift->status = $updated_status;

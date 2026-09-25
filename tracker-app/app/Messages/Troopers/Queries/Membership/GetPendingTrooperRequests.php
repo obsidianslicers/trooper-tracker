@@ -29,7 +29,8 @@ final class GetPendingTrooperRequests extends Message
 
         return TrooperRequest::with($relations)
             ->pending()
-            ->whereHas('trooper', function ($query): void {
+            ->whereHas('trooper', function ($query): void
+            {
                 $query->where(Trooper::MEMBERSHIP_STATUS, MembershipStatus::ACTIVE);
             })
             ->forModerator($this->moderator)

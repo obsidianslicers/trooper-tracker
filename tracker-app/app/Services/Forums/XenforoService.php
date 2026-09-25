@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Throwable;
 
 class XenforoService
 {
@@ -65,7 +66,8 @@ class XenforoService
             return [];
         }
 
-        return Cache::remember('xenforo_smilies', 86400, function (): array {
+        return Cache::remember('xenforo_smilies', 86400, function (): array
+        {
             $url = $this->base_url.'/api/smilies';
 
             try
@@ -75,7 +77,7 @@ class XenforoService
                     ->timeout(5)
                     ->get($url);
             }
-            catch (\Throwable $e)
+            catch (Throwable $e)
             {
                 Log::warning('Failed to fetch XenForo smilies', ['message' => $e->getMessage()]);
 
@@ -153,7 +155,7 @@ class XenforoService
                         'per_page' => $per_page,
                     ]);
             }
-            catch (\Throwable $e)
+            catch (Throwable $e)
             {
                 Log::warning('Failed to fetch XenForo thread posts', [
                     'thread_id' => $thread_id,
@@ -267,7 +269,8 @@ class XenforoService
             ));
         }
 
-        usort($normalized, static function (array $a, array $b): int {
+        usort($normalized, static function (array $a, array $b): int
+        {
             $dateA = (int) ($a['post_date'] ?? 0);
             $dateB = (int) ($b['post_date'] ?? 0);
 
@@ -690,7 +693,7 @@ class XenforoService
                 ->timeout(5)
                 ->get($url);
         }
-        catch (\Throwable $e)
+        catch (Throwable $e)
         {
             Log::warning('Failed to fetch XenForo upgrade stats', [
                 'url' => $url,
@@ -796,7 +799,7 @@ class XenforoService
                 ->timeout(5)
                 ->get($url);
         }
-        catch (\Throwable $e)
+        catch (Throwable $e)
         {
             Log::warning('Failed to fetch XenForo upgrade stats for user', [
                 'url' => $url,
@@ -867,7 +870,7 @@ class XenforoService
                 ->timeout(5)
                 ->get($url);
         }
-        catch (\Throwable $e)
+        catch (Throwable $e)
         {
             Log::warning('Failed to fetch XenForo user groups', [
                 'url' => $url,

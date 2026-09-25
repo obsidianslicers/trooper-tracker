@@ -25,7 +25,8 @@ trait HasTrooperOrgCreditQuery
             return;
         }
 
-        $q->whereExists(function ($sub) use ($roster_org_ids, $accessible_root_ids) {
+        $q->whereExists(function ($sub) use ($roster_org_ids, $accessible_root_ids)
+        {
             $sub->select(DB::raw(1))
                 ->from('tt_trooper_assignments as ta_credit')
                 ->join('tt_organizations as trooper_org', 'ta_credit.organization_id', '=', 'trooper_org.id')
@@ -50,12 +51,15 @@ trait HasTrooperOrgCreditQuery
             // one of its ancestors.
             $ancestor_ids_json = "CONCAT('[', REPLACE(TRIM(TRAILING ':' FROM trooper_org.node_path), ':', ','), ']')";
 
-            $sub->where(function ($sub) use ($ancestor_ids_json) {
-                $sub->where(function ($sub) use ($ancestor_ids_json) {
+            $sub->where(function ($sub) use ($ancestor_ids_json)
+            {
+                $sub->where(function ($sub) use ($ancestor_ids_json)
+                {
                     $this->whereHasCostumeOrganizationCredit($sub);
                     $sub->whereRaw("JSON_OVERLAPS($ancestor_ids_json, tt_event_troopers.costume_organization_ids)");
                 })
-                    ->orWhere(function ($sub) {
+                    ->orWhere(function ($sub)
+                    {
                         $this->whereNoCostumeOrganizationCredit($sub);
                         $sub->whereRaw(
                             '(trooper_org.node_path LIKE CONCAT(tt_event_troopers.organization_id, \':%\') '.
@@ -95,7 +99,8 @@ trait HasTrooperOrgCreditQuery
 
     private function whereNoCostumeOrganizationCredit(mixed $q): void
     {
-        $q->where(function ($q) {
+        $q->where(function ($q)
+        {
             $q->whereNull('tt_event_troopers.costume_organization_ids')
                 ->orWhereRaw(
                     "REPLACE(CAST(tt_event_troopers.costume_organization_ids AS CHAR), ' ', '') = ?",

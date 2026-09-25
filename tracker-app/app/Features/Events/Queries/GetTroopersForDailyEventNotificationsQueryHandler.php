@@ -36,7 +36,8 @@ readonly class GetTroopersForDailyEventNotificationsQueryHandler implements Quer
     public function __invoke(object $message): mixed
     {
         $with = [
-            'event_notifications' => function ($q) {
+            'event_notifications' => function ($q)
+            {
                 $q->whereNull('processed_at');
             },
         ];

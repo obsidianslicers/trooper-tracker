@@ -99,7 +99,8 @@ class MagicBus
         if ($this->usesTrait($handler_class, ShouldRunAfterResponse::class))
         {
             // Defer execution until after the HTTP response is sent
-            dispatch(function () use ($handler, $message) {
+            dispatch(function () use ($handler, $message)
+            {
                 $handler($message);
             })->afterResponse();
 

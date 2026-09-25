@@ -40,7 +40,8 @@ class SendTrooperMilestoneNotificationsJob implements ShouldQueue
             ->whereIn(TrooperAchievement::TYPE, $milestone_types)
             ->with([
                 'organization',
-                'trooper.trooper_assignments' => function ($query) {
+                'trooper.trooper_assignments' => function ($query)
+                {
                     $query->where(TrooperAssignment::IS_MEMBER, true)
                         ->with('organization');
                 },
@@ -68,7 +69,8 @@ class SendTrooperMilestoneNotificationsJob implements ShouldQueue
 
         foreach ($moderators as $moderator)
         {
-            $eligible = $achievements->filter(function (TrooperAchievement $achievement) use ($moderator, $policy) {
+            $eligible = $achievements->filter(function (TrooperAchievement $achievement) use ($moderator, $policy)
+            {
                 return $policy->moderate($moderator, $achievement->trooper)
                     && $this->recipientSubscribedToTrooper($moderator, $achievement);
             })->values();
