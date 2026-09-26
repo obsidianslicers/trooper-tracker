@@ -48,16 +48,11 @@ class SendEventCancelledNotificationsJob implements ShouldQueue
             return;
         }
 
+        // Resolve recipients before mutating statuses: the query selects troopers
+        // whose EventTrooper status is still GOING.
         $troopers_query = new GetTroopersForEventCancelledQuery($this->event);
 
         $troopers = $bus->send($troopers_query);
-
-        foreach ($troopers as $trooper)
-        {
-            $send_notification_command = new SendEventCancelledNotificationCommand($this->event, $trooper);
-
-            $bus->send($send_notification_command);
-        }
 
         foreach ($this->event->event_shifts as $shift)
         {
@@ -76,7 +71,16 @@ class SendEventCancelledNotificationsJob implements ShouldQueue
             }
         }
 
+        // Mark sent before dispatching so a retry short-circuits at the guard
+        // above instead of re-sending cancellation notices to the whole roster.
         $this->event->cancel_notifications_sent_at = now();
         $this->event->save();
+
+        foreach ($troopers as $trooper)
+        {
+            $send_notification_command = new SendEventCancelledNotificationCommand($this->event, $trooper);
+
+            $bus->send($send_notification_command);
+        }
     }
 }

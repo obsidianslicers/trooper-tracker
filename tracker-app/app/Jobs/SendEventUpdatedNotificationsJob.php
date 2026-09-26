@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Bus\MagicBus;
+use App\Features\Events\Commands\SendEventUpdatedNotificationCommand;
+use App\Features\Events\Queries\GetTroopersForEventUpdatedQuery;
 use App\Models\Event;
-use App\Models\Trooper;
-use App\Notifications\Events\EventUpdatedNotification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
@@ -19,11 +20,13 @@ class SendEventUpdatedNotificationsJob implements ShouldQueue
         private readonly array $changed_fields,
     ) {}
 
-    public function handle(): void
+    public function handle(MagicBus $bus): void
     {
-        $notification = new EventUpdatedNotification($this->event, $this->changed_fields);
+        $troopers = $bus->send(new GetTroopersForEventUpdatedQuery($this->event));
 
-        Trooper::whereHas('event_watches', fn ($q) => $q->where('event_id', $this->event->id))
-            ->each(fn ($trooper) => $trooper->notify($notification));
+        foreach ($troopers as $trooper)
+        {
+            $bus->send(new SendEventUpdatedNotificationCommand($this->event, $trooper, $this->changed_fields));
+        }
     }
 }

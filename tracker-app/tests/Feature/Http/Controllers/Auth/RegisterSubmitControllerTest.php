@@ -15,7 +15,9 @@ use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperOrganization;
 use App\Models\TrooperRequest;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
@@ -66,6 +68,36 @@ class RegisterSubmitControllerTest extends TestCase
             TrooperAssignment::TROOPER_ID => $trooper->id,
         ]);
         Mail::assertQueued(TrooperRegistered::class);
+    }
+
+    public function test_invoke_dispatches_registered_event_for_new_trooper(): void
+    {
+        // Registered must fire synchronously here (not from inside the async
+        // SendTrooperRegisteredNotificationsJob), so anything hooking into
+        // Laravel's standard registration event runs immediately at signup.
+        Event::fake([Registered::class]);
+        Mail::fake();
+        Queue::fake();
+
+        session(['registration_auth' => ['method' => 'email', 'email' => null, 'expires_at' => now()->addMinutes(20)]]);
+
+        [$organization, $region, $unit] = $this->createOrganizationHierarchy();
+
+        $this->post(route('auth.register'), $this->registrationData([
+            'organizations' => [
+                $organization->id => [
+                    'selected' => '1',
+                    'identifier' => 'TK-12345',
+                    'region_id' => $region->id,
+                    'unit_id' => $unit->id,
+                    'should_notify' => '1',
+                ],
+            ],
+        ]))->assertRedirect(route('auth.thank-you'));
+
+        $trooper = Trooper::where(Trooper::EMAIL, 'johndoe@example.com')->firstOrFail();
+
+        Event::assertDispatched(Registered::class, fn (Registered $event): bool => $event->user->is($trooper));
     }
 
     public function test_invoke_rejects_duplicate_pending_identifier_without_creating_trooper(): void

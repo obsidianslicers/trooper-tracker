@@ -22,6 +22,11 @@ enum TrooperNotifications: string
     case EVENT_CANCELLED = 'event_cancelled';
 
     /**
+     * Sent when an existing event's details change.
+     */
+    case EVENT_UPDATED = 'event_updated';
+
+    /**
      * Sent when a trooper signs up for an event.
      */
     case TROOPER_SIGNED_UP = 'trooper_signed_up';
