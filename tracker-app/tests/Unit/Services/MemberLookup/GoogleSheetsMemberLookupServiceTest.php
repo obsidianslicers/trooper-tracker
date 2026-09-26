@@ -9,7 +9,9 @@ use App\Services\GoogleService;
 use App\Services\MemberLookup\GoogleSheetsMemberLookupService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use InvalidArgumentException;
 use Mockery;
+use RuntimeException;
 use Tests\TestCase;
 
 class GoogleSheetsMemberLookupServiceTest extends TestCase
@@ -17,6 +19,7 @@ class GoogleSheetsMemberLookupServiceTest extends TestCase
     use RefreshDatabase;
 
     private GoogleService $google;
+
     private Organization $organization;
 
     protected function setUp(): void
@@ -210,6 +213,28 @@ class GoogleSheetsMemberLookupServiceTest extends TestCase
 
         $this->assertNull($first);
         $this->assertNull($second);
+    }
+
+    public function test_lookup_returns_null_instead_of_throwing_when_google_service_fails(): void
+    {
+        $this->google->shouldReceive('getSheet')
+            ->once()
+            ->andThrow(new InvalidArgumentException('file "google-credentials.json" does not exist'));
+
+        $result = $this->makeSubject('ID', 'Name')->lookup('1234');
+
+        $this->assertNull($result);
+    }
+
+    public function test_lookup_does_not_cache_a_failed_google_service_call(): void
+    {
+        $this->google->shouldReceive('getSheet')
+            ->twice()
+            ->andThrow(new RuntimeException('Google API unreachable'));
+
+        $subject = $this->makeSubject('ID', 'Name');
+        $subject->lookup('1234');
+        $subject->lookup('1234');
     }
 
     public function test_lookup_trims_whitespace_from_header_names(): void
