@@ -297,7 +297,7 @@ class TrooperControllerTest extends TestCase
                 ->withArgs(function (GetEventTroopersMissingCreditQuery $query) use ($trooper): bool {
                     return $query->trooper_id === $trooper->id;
                 })
-                ->andReturn(collect());
+                ->andReturn(['rows' => collect(), 'total' => 0]);
         });
     }
 }
