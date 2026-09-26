@@ -43,7 +43,7 @@
                     </p>
                 </Alert>
             {/if}
-            {#if vm.lookup.service_name === "TheLegionService" && vm.lookup.member}
+            {#if vm.lookup.service_name && vm.lookup.member}
                 <Alert
                     type={vm.lookup.member.is_approved ? "success" : "warning"}
                 >
@@ -115,18 +115,15 @@
                         {/if}
                     </div>
                 </Alert>
+            {:else if vm.lookup.service_name && !vm.lookup.member && !vm.lookup.existing_trooper_membership}
+                <Alert type="warning">
+                    <p>
+                        <b>Not found</b> &mdash; No member with identifier
+                        <b>{vm.lookup.identifier}</b> was found in
+                        {vm.lookup.primary_organization.name}.
+                    </p>
+                </Alert>
             {/if}
         {/if}
     {/if}
-    <!-- 
-@else
-    <div class="alert alert-warning d-flex gap-2 align-items-start py-2 px-3 mt-2 mb-0 small">
-        <i class="fa-solid fa-circle-question mt-1 flex-shrink-0"></i>
-        <div>
-            <span class="fw-semibold">Not found</span> &mdash;
-            No member with identifier <strong>{{ $identifier }}</strong>
-            @if($org_name) was found in {{ $org_name }}.@else was found.{/if}
-        </div>
-    </div>
- -->
 {/if}

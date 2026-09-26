@@ -27,7 +27,6 @@ final class LookupMembershipPageData extends Message
      * @param  TrooperRequest  $trooper_request  The trooper request being looked up
      */
     public function __construct(
-        private readonly MemberLookupResolver $resolver,
         private readonly TrooperRequest $trooper_request) {}
 
     /**
@@ -35,16 +34,17 @@ final class LookupMembershipPageData extends Message
      *
      * @return array Configuration array with trooper approvals
      */
-    public function handle(): array
+    public function handle(MemberLookupResolver $resolver): array
     {
-        $service = $this->resolver->resolve($this->trooper_request->primary_organization);
+        $service = $resolver->resolve($this->trooper_request->primary_organization);
+        $identifier = $this->trooper_request->identifier;
 
         $data = [
-            'identifier' => $this->trooper_request->identifier,
+            'identifier' => $identifier,
             'primary_organization' => $this->getPrimaryOrganization(),
             'existing_trooper_membership' => $this->findExistingTrooperMembership(),
             'service_name' => $this->getServiceName($service),
-            'member' => null,
+            'member' => ($service !== null && !empty($identifier)) ? $service->lookup($identifier) : null,
         ];
 
         return $data;

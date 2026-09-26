@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Messages\Troopers\PageData\Membership;
 
-use App\Enums\MembershipStatus;
 use App\Contracts\MemberLookupInterface;
+use App\Enums\MembershipStatus;
+use App\Messages\Troopers\PageData\Membership\LookupMembershipPageData;
 use App\Messages\Troopers\Queries\FindExistingTrooperMembership;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperRequest;
-use App\Messages\Troopers\PageData\Membership\LookupMembershipPageData;
 use App\Services\MemberLookup\MemberLookupResolver;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
@@ -35,11 +35,10 @@ class LookupMembershipPageDataTest extends TestCase
         $resolver = Mockery::mock(MemberLookupResolver::class);
         $resolver->shouldReceive('resolve')
             ->once()
-            ->withArgs(fn(Organization $resolved_organization): bool =>
-                $resolved_organization->id === $organization->id)
+            ->withArgs(fn (Organization $resolved_organization): bool => $resolved_organization->id === $organization->id)
             ->andReturn(null);
 
-        $subject = new LookupMembershipPageData($resolver, $trooper_request);
+        $subject = new LookupMembershipPageData($trooper_request);
 
         $this->assertSame([
             'identifier' => 'TK-12345',
@@ -50,7 +49,7 @@ class LookupMembershipPageDataTest extends TestCase
             'existing_trooper_membership' => null,
             'service_name' => null,
             'member' => null,
-        ], $subject->handle());
+        ], $subject->handle($resolver));
     }
 
     #[RunInSeparateProcess]
@@ -66,7 +65,7 @@ class LookupMembershipPageDataTest extends TestCase
             ->forPrimaryOrganization($organization)
             ->withIdentifier('TK-12345')
             ->create();
-        Mockery::mock('alias:' . FindExistingTrooperMembership::class)
+        Mockery::mock('alias:'.FindExistingTrooperMembership::class)
             ->shouldReceive('call')
             ->once()
             ->withArgs(function (string $identifier, Organization $primary_organization, Trooper $ignore_trooper) use ($organization, $trooper_request): bool
@@ -80,13 +79,12 @@ class LookupMembershipPageDataTest extends TestCase
         $resolver = Mockery::mock(MemberLookupResolver::class);
         $resolver->shouldReceive('resolve')
             ->once()
-            ->withArgs(fn(Organization $resolved_organization): bool =>
-                $resolved_organization->id === $organization->id)
-            ->andReturn(new LookupMembershipServiceStub());
+            ->withArgs(fn (Organization $resolved_organization): bool => $resolved_organization->id === $organization->id)
+            ->andReturn(new LookupMembershipServiceStub);
 
-        $subject = new LookupMembershipPageData($resolver, $trooper_request);
+        $subject = new LookupMembershipPageData($trooper_request);
 
-        $result = $subject->handle();
+        $result = $subject->handle($resolver);
 
         $this->assertSame('LookupMembershipServiceStub', $result['service_name']);
         $this->assertSame([
@@ -96,6 +94,27 @@ class LookupMembershipPageDataTest extends TestCase
             Trooper::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
         ], $result['existing_trooper_membership']);
     }
+
+    public function test_handle_returns_member_data_from_resolved_service(): void
+    {
+        $organization = Organization::factory()->asOrganization()->create();
+        $trooper_request = TrooperRequest::factory()
+            ->forPrimaryOrganization($organization)
+            ->withIdentifier('TK-12345')
+            ->create();
+        /** @var MockInterface&MemberLookupResolver $resolver */
+        $resolver = Mockery::mock(MemberLookupResolver::class);
+        $resolver->shouldReceive('resolve')
+            ->once()
+            ->withArgs(fn (Organization $resolved_organization): bool => $resolved_organization->id === $organization->id)
+            ->andReturn(new LookupMembershipFoundServiceStub);
+
+        $subject = new LookupMembershipPageData($trooper_request);
+
+        $result = $subject->handle($resolver);
+
+        $this->assertSame(['identifier' => 'TK-12345', 'full_name' => 'Test Trooper'], $result['member']);
+    }
 }
 
 final class LookupMembershipServiceStub implements MemberLookupInterface
@@ -103,5 +122,13 @@ final class LookupMembershipServiceStub implements MemberLookupInterface
     public function lookup(string $identifier): ?array
     {
         return null;
+    }
+}
+
+final class LookupMembershipFoundServiceStub implements MemberLookupInterface
+{
+    public function lookup(string $identifier): ?array
+    {
+        return ['identifier' => $identifier, 'full_name' => 'Test Trooper'];
     }
 }
