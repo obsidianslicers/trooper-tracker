@@ -43,6 +43,9 @@ class EventTrooper extends BaseEventTrooper
     {
         return [
             self::STATUS,
+            self::COSTUME_ID,
+            self::COSTUME_ORGANIZATION_IDS,
+            self::ORGANIZATION_ID,
         ];
     }
 

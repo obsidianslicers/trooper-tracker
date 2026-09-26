@@ -14,7 +14,8 @@ class TheLegionMemberLookupService implements MemberLookupInterface
     {
         $cache_key = "tracker:member-lookup:legion:{$identifier}";
 
-        $result = Cache::remember($cache_key, 3600, function () use ($identifier) {
+        $result = Cache::remember($cache_key, 3600, function () use ($identifier)
+        {
             $response = Http::timeout(5)->get("https://api.501st.com/legionId/{$identifier}");
 
             if (!$response->successful())

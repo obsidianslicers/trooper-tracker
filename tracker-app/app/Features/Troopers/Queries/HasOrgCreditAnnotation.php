@@ -13,7 +13,8 @@ trait HasOrgCreditAnnotation
 {
     private function loadCandidateOrgs(Collection $recent_shifts): Collection
     {
-        $candidate_org_ids = $recent_shifts->flatMap(function ($shift) {
+        $candidate_org_ids = $recent_shifts->flatMap(function ($shift)
+        {
             if (!$shift->event_trooper)
             {
                 return [];

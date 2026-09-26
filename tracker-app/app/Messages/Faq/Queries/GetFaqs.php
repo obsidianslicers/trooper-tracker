@@ -29,7 +29,8 @@ final class GetFaqs extends Message
      */
     public function handle(): Collection
     {
-        $relations = ['faqs' => function ($query) {
+        $relations = ['faqs' => function ($query)
+        {
             $query->orderBy(Faq::SORT_ORDER)->orderBy(Faq::ID);
         }];
 

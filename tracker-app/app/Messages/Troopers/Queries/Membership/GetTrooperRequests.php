@@ -36,7 +36,8 @@ final class GetTrooperRequests extends Message
             ->orderBy(TrooperRequest::CREATED_AT, 'desc')
             ->get();
 
-        $requests->each(function (TrooperRequest $trooper_request) {
+        $requests->each(function (TrooperRequest $trooper_request)
+        {
             $trooper_request->membership_path = $this->getMembershipPath($trooper_request);
         });
 

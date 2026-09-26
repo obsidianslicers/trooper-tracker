@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Account;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Account\UpdateNotificationPreferenceRequest;
-use App\Messages\Troopers\Commands\UpdateNotificationPreference;
+use App\Messages\Troopers\Commands\Notifications\UpdateNotificationPreference;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;

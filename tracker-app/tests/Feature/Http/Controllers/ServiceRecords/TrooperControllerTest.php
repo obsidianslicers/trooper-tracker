@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\ServiceRecords;
 
 use App\Bus\MagicBus;
+use App\Features\Troopers\Queries\GetEventTroopersMissingCreditQuery;
 use App\Features\Troopers\Queries\GetTrooperCostumesQuery;
 use App\Features\Troopers\Queries\GetTrooperServiceRecordQuery;
 use App\Models\Costume;
@@ -305,6 +306,15 @@ class TrooperControllerTest extends TestCase
                     return $query->trooper->id === $trooper->id;
                 })
                 ->andReturn(collect());
+
+            // Only sent when the authenticated actor can update the target trooper (see
+            // TrooperController::__invoke's has_missing_credit flag) — any call count is fine here.
+            $mock->shouldReceive('send')
+                ->withArgs(function (GetEventTroopersMissingCreditQuery $query) use ($trooper): bool
+                {
+                    return $query->trooper_id === $trooper->id;
+                })
+                ->andReturn(['rows' => collect(), 'total' => 0]);
         });
     }
 }

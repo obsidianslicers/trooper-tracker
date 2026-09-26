@@ -40,7 +40,8 @@
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/",
             "Hyperdrive\\": "packages/hyperdrive/src/",
-            "Fabricator\\": "packages/fabricator/src/"
+            "Fabricator\\": "packages/fabricator/src/",
+            "Chaincode\\": "packages/chaincode/src/"
         },
         "files": [
             "app/helpers.php",
@@ -75,7 +76,10 @@
             "pint app/Policies",
             "pint app/Providers",
             "pint app/Rules",
-            "pint app/Services"
+            "pint app/Services",
+            "pint packages/hyperdrive/src",
+            "pint packages/fabricator/src",
+            "pint packages/chaincode/src"
         ],
         "pint:test": "@pint:format --test",
         "db:migrate-all": [

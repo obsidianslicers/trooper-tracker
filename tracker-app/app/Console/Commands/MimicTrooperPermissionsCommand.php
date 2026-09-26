@@ -81,7 +81,8 @@ class MimicTrooperPermissionsCommand extends Command
             return self::FAILURE;
         }
 
-        DB::transaction(function () use ($target, $source, $snapshot_path): void {
+        DB::transaction(function () use ($target, $source, $snapshot_path): void
+        {
             $snapshot = [
                 'version' => 1,
                 'captured_at' => now()->toISOString(),
@@ -143,7 +144,8 @@ class MimicTrooperPermissionsCommand extends Command
             return self::FAILURE;
         }
 
-        DB::transaction(function () use ($target, $snapshot, $snapshot_path): void {
+        DB::transaction(function () use ($target, $snapshot, $snapshot_path): void
+        {
             $target->membership_role = $snapshot['membership_role'];
             $target->save();
 

@@ -530,31 +530,12 @@ Standalone service classes provide reusable functionality across the application
   - `add(string $title, ?string $url = null): void`
   - `get(): Collection`
   
-- **FlashMessageService:** Manages flash messages with Bootstrap styling
-  - `success(string $message): void`
-  - `error(string $message): void`
-  - `warning(string $message): void`
-  - `info(string $message): void`
-  
 - **GeocodingService:** Geocodes addresses to lat/long coordinates
   - `geocode(string $address): ?array`
   
 - **GoogleService:** Integrates with Google APIs
   - OAuth authentication
   - API access management
-
-**Usage:**
-```php
-public function __construct(
-    private readonly FlashMessageService $flash
-) {}
-
-public function store()
-{
-    // ...
-    $this->flash->success('Event created successfully!');
-}
-```
 
 ### 11.4. Console Commands
 

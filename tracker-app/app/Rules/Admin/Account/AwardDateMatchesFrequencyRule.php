@@ -7,6 +7,7 @@ namespace App\Rules\Admin\Account;
 use App\Enums\AwardFrequency;
 use Carbon\Carbon;
 use Closure;
+use Exception;
 use Illuminate\Contracts\Validation\ValidationRule;
 
 /**
@@ -38,7 +39,7 @@ class AwardDateMatchesFrequencyRule implements ValidationRule
         {
             $date = Carbon::parse($value);
         }
-        catch (\Exception)
+        catch (Exception)
         {
             // Let the 'date' validator handle invalid dates
             return;

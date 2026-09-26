@@ -282,7 +282,8 @@ class XenforoUserSyncService
                 Organization::XENFORO_GROUP_RETIRED_ID,
             ])
             ->get()
-            ->flatMap(static function (Organization $org) {
+            ->flatMap(static function (Organization $org)
+            {
                 return [
                     $org->xenforo_group_active_id,
                     $org->xenforo_group_reserve_id,
@@ -318,7 +319,8 @@ class XenforoUserSyncService
         $allOrgs = $trooper->organizations->merge($assignedOrgs)->unique('id')->values();
 
         return $allOrgs
-            ->flatMap(function (Organization $org) use ($trooper) {
+            ->flatMap(function (Organization $org) use ($trooper)
+            {
                 $status = $this->resolveEffectiveOrganizationStatus($trooper, $org->pivot->membership_status ?? null);
 
                 $ids = array_filter([$this->resolveGroupIdForStatus($org, $status)]);
@@ -431,7 +433,8 @@ class XenforoUserSyncService
         $trooper->loadMissing('organizations');
 
         return $trooper->organizations
-            ->filter(static function ($organization) {
+            ->filter(static function ($organization)
+            {
                 $status = $organization->pivot->membership_status ?? null;
 
                 if (! is_string($status))

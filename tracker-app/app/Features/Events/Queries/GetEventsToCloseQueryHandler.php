@@ -36,14 +36,18 @@ readonly class GetEventsToCloseQueryHandler implements QueryHandlerInterface
         $cutoff = now()->subHours(6);
 
         return Event::active()
-            ->where(function ($query) use ($cutoff): void {
-                $query->where(function ($query) use ($cutoff): void {
+            ->where(function ($query) use ($cutoff): void
+            {
+                $query->where(function ($query) use ($cutoff): void
+                {
                     $query->whereHas('event_shifts')
-                        ->whereDoesntHave('event_shifts', function ($query) use ($cutoff): void {
+                        ->whereDoesntHave('event_shifts', function ($query) use ($cutoff): void
+                        {
                             $query->where(EventShift::SHIFT_ENDS_AT, '>=', $cutoff);
                         });
                 })
-                    ->orWhere(function ($query) use ($cutoff): void {
+                    ->orWhere(function ($query) use ($cutoff): void
+                    {
                         $query->whereDoesntHave('event_shifts')
                             ->where(Event::EVENT_END, '<', $cutoff);
                     });

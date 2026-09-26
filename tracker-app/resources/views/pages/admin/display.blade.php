@@ -60,7 +60,7 @@
                    x-on:click="navigate">
     <x-dashboard-card :label="'Trooper Approvals'"
                       :icon="'fa-user-check'"
-                      :url="route('admin.troopers.approvals')">
+                      :url="route('admin.troopers.approvals.index')">
         @if($not_approved > 0)
             <p class="text-warning">
                 {{ $not_approved }} awaiting approval
@@ -81,6 +81,11 @@
                       :icon="'fa-users-gear'"
                       :url="route('admin.troopers.list')">
         Manage Trooper's profile, authority, and memberships.
+    </x-dashboard-card>
+    <x-dashboard-card :label="'Missing Credit'"
+                      :icon="'fa-triangle-exclamation'"
+                      :url="route('admin.service-records.missing-credits')">
+        Fix shifts missing a "Credited To" club
     </x-dashboard-card>
     @role(['administrator'])
     <x-dashboard-card :label="'Merge Troopers'"

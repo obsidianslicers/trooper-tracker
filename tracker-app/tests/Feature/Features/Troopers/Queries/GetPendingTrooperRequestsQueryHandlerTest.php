@@ -116,6 +116,6 @@ class GetPendingTrooperRequestsQueryHandlerTest extends TestCase
         $trooper_request = $result->first();
         $this->assertTrue($trooper_request->relationLoaded('trooper'));
         $this->assertTrue($trooper_request->relationLoaded('organization'));
-        $this->assertTrue($trooper_request->relationLoaded('primaryOrganization'));
+        $this->assertTrue($trooper_request->relationLoaded('primary_organization'));
     }
 }

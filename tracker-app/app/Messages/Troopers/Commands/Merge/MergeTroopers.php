@@ -33,7 +33,8 @@ final class MergeTroopers extends Message
     {
         try
         {
-            DB::transaction(function () {
+            DB::transaction(function ()
+            {
                 /**
                  * tt_trooper_organizations
                  * tt_trooper_assignments

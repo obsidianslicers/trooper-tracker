@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Events;
 
 use App\Enums\EventTrooperStatus;
+use App\Enums\FlashType;
 use App\Features\Events\Commands\UpdateEventTrooperCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Models\EventTrooper;
@@ -119,7 +120,7 @@ class ShiftCompleteController extends MagicBusController
         }
         else
         {
-            $this->flash->danger('Status updates for this event are no longer permitted. Please reach out to your administrator for further help.');
+            FlashType::danger('Status updates for this event are no longer permitted. Please reach out to your administrator for further help.');
         }
 
         return view('pages.events.shift-complete', compact('event_trooper', 'message'));

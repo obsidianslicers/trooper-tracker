@@ -77,10 +77,12 @@ readonly class GetEventShiftDisplayQueryHandler implements QueryHandlerInterface
             'event',
             'event.organization:'.implode(',', $organization_columns),
             'event.organizations.organization',
-            'event.organizations' => function ($query) {
+            'event.organizations' => function ($query)
+            {
                 $query->orderBy(Organization::NAME);
             },
-            'event_shift_stations' => function ($query) {
+            'event_shift_stations' => function ($query)
+            {
                 $query->withCount('going_event_troopers')
                     ->orderBy(EventShiftStation::SEQUENCE)
                     ->orderBy(EventShiftStation::NAME);
@@ -94,12 +96,14 @@ readonly class GetEventShiftDisplayQueryHandler implements QueryHandlerInterface
             'event_troopers.event_shift_station',
             'event_troopers.added_by_trooper:'.implode(',', $trooper_columns),
             'event_troopers.updated_by:'.implode(',', $trooper_columns),
-            'event_troopers' => function ($query) {
+            'event_troopers' => function ($query)
+            {
                 $query->orderBy(EventTrooper::SIGNED_UP_AT, 'asc');
             },
             'event_guests.added_by_trooper:'.implode(',', $trooper_columns),
             'event_guests.updated_by:'.implode(',', $trooper_columns),
-            'event_guests' => function ($query) {
+            'event_guests' => function ($query)
+            {
                 $query->orderBy(EventGuest::NAME, 'asc');
             },
         ];

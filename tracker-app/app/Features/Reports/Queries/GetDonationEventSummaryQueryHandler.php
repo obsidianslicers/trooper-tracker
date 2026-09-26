@@ -56,8 +56,10 @@ readonly class GetDonationEventSummaryQueryHandler implements QueryHandlerInterf
             ->selectSub($charityHoursSub, 'charity_hours')
             ->with([
                 'organization:id,name',
-                'event_shifts' => function ($q) use ($message) {
-                    $q->withCount(['event_troopers as attendees_count' => function ($inner) use ($message) {
+                'event_shifts' => function ($q) use ($message)
+                {
+                    $q->withCount(['event_troopers as attendees_count' => function ($inner) use ($message)
+                    {
                         $inner->where('status', EventTrooperStatus::ATTENDED->value);
                         $this->applyAttribution($inner, $message);
                     }])
@@ -68,11 +70,13 @@ readonly class GetDonationEventSummaryQueryHandler implements QueryHandlerInterf
             ->where(Event::STATUS, EventStatus::CLOSED)
             ->when($message->date_start, fn ($q) => $q->where(Event::EVENT_START, '>=', $message->date_start))
             ->when($message->date_end, fn ($q) => $q->where(Event::EVENT_START, '<=', $message->date_end))
-            ->when($message->charity_only, fn ($q) => $q->whereExists(function ($q) {
+            ->when($message->charity_only, fn ($q) => $q->whereExists(function ($q)
+            {
                 $q->from('tt_event_shifts')
                     ->whereColumn('event_id', 'tt_events.id')
                     ->whereNull('deleted_at')
-                    ->where(function ($inner) {
+                    ->where(function ($inner)
+                    {
                         $inner->where('charity_direct_funds', '>', 0)
                             ->orWhere('charity_indirect_funds', '>', 0)
                             ->orWhere('charity_hours', '>', 0)

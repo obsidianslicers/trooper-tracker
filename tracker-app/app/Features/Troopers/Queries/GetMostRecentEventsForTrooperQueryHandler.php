@@ -48,11 +48,13 @@ readonly class GetMostRecentEventsForTrooperQueryHandler implements QueryHandler
 
         foreach ($organizations as $organization)
         {
-            $event_filter = function ($q) use ($organization) {
+            $event_filter = function ($q) use ($organization)
+            {
                 $q->where(Event::PRIMARY_ORGANIZATION_ID, $organization->id);
             };
 
-            $trooper_filter = function ($q) use ($message) {
+            $trooper_filter = function ($q) use ($message)
+            {
                 $q->where(EventTrooper::TROOPER_ID, $message->trooper->id)
                     ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED);
             };

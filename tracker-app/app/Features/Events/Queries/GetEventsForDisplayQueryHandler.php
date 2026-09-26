@@ -43,7 +43,8 @@ readonly class GetEventsForDisplayQueryHandler implements QueryHandlerInterface
     {
         $relations = [
             'organization',
-            'organizations' => function ($query) {
+            'organizations' => function ($query)
+            {
                 $query->orderBy(Organization::NAME);
             },
         ];

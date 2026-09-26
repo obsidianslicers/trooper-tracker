@@ -62,7 +62,8 @@ class CostumeEventSummaryController extends BaseReportsController
     {
         $filename = 'costume-event-summary-'.now()->format('Y-m-d').'.csv';
 
-        return response()->streamDownload(function () use ($costume_events, $date_start, $date_end, $organization_name) {
+        return response()->streamDownload(function () use ($costume_events, $date_start, $date_end, $organization_name)
+        {
             $handle = fopen('php://output', 'w');
 
             $meta = [];

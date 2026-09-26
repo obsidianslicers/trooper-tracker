@@ -36,7 +36,8 @@ class TrooperDetails extends JsonResource
         $trooper_costumes = GetCostumesWithPrefixes::call(trooper: $this->resource);
 
         return $trooper_costumes
-            ->map(function (TrooperCostume $tc) use ($organizations) {
+            ->map(function (TrooperCostume $tc) use ($organizations)
+            {
                 $organization_costume = $tc->organization_costume;
                 $trooper_organization = $organizations->firstWhere('id', $organization_costume->organization_id);
 

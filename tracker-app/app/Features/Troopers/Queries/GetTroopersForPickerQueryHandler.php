@@ -99,7 +99,8 @@ readonly class GetTroopersForPickerQueryHandler implements QueryHandlerInterface
     {
         $query = Trooper::active()
             ->whereNotNull(Trooper::SETUP_COMPLETED_AT)
-            ->where(function ($q) use ($message) {
+            ->where(function ($q) use ($message)
+            {
                 $q->whereNull(Trooper::GUARDIAN_ID)
                     ->orWhere(Trooper::GUARDIAN_ID, $message->trooper->id);
             })
@@ -107,7 +108,8 @@ readonly class GetTroopersForPickerQueryHandler implements QueryHandlerInterface
 
         if ($message->organization_id)
         {
-            $query = $query->whereHas('organizations', function ($q) use ($message) {
+            $query = $query->whereHas('organizations', function ($q) use ($message)
+            {
                 $q->where('tt_organizations.id', $message->organization_id);
             });
         }

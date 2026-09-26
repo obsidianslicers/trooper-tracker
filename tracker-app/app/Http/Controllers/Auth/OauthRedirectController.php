@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\FlashType;
 use App\Enums\OauthProvider;
 use App\Facades\TroopTracker;
 use App\Http\Controllers\MagicBusController;
@@ -41,7 +42,7 @@ class OauthRedirectController extends MagicBusController
     {
         if ($this->troop_tracker->isXenforoOAuthRequired() && $provider !== OauthProvider::XENFORO->value)
         {
-            $this->flash->warning('Troop Tracker is configured to use XenForo for login.');
+            FlashType::warning('Troop Tracker is configured to use XenForo for login.');
 
             return redirect()->route('auth.login');
         }

@@ -56,4 +56,14 @@ class UpdateOrganizationNotificationsControllerTest extends TestCase
             TrooperAssignment::SHOULD_NOTIFY => true,
         ]);
     }
+
+    public function test_invoke_redirects_guest_to_login(): void
+    {
+        $response = $this->post(route('account.update-organization-notifications'), [
+            'organization_ids' => [],
+            'enabled' => true,
+        ]);
+
+        $response->assertRedirect(route('auth.login'));
+    }
 }

@@ -44,11 +44,11 @@ class FabricateFactoryCommand extends Command
 
                 if ($factory)
                 {
-                    $this->line('<info>Model factory created:</info> ' . $factory);
+                    $this->line('<info>Model factory created:</info> '.$factory);
                 }
                 else
                 {
-                    $this->line('<error>Failed to create factory for model:</error> ' . $model);
+                    $this->line('<error>Failed to create factory for model:</error> '.$model);
                 }
             });
 
@@ -64,7 +64,7 @@ class FabricateFactoryCommand extends Command
                 return null;
             }
 
-            return $matches[1] . '\\' . $file->getBasename('.php');
+            return $matches[1].'\\'.$file->getBasename('.php');
         })->filter();
     }
 

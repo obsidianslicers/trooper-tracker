@@ -64,7 +64,8 @@ class TrooperEventSummaryController extends BaseReportsController
     {
         $filename = 'trooper-event-summary-'.now()->format('Y-m-d').'.csv';
 
-        return response()->streamDownload(function () use ($trooper_events, $date_start, $date_end, $active_only, $organization_name) {
+        return response()->streamDownload(function () use ($trooper_events, $date_start, $date_end, $active_only, $organization_name)
+        {
             $handle = fopen('php://output', 'w');
 
             $meta = [];

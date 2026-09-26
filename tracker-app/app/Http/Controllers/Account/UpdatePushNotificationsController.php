@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Account;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Account\UpdatePushNotificationsRequest;
-use App\Messages\Troopers\Commands\UpdateTrooperPushNotifications;
+use App\Messages\Troopers\Commands\Notifications\UpdateTrooperPushNotifications;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;

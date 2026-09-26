@@ -50,7 +50,8 @@ class MapController extends MagicBusController
             ->whereNotNull(Event::LATITUDE)
             ->whereNotNull(Event::LONGITUDE)
             ->get()
-            ->each(function (Event $event) {
+            ->each(function (Event $event)
+            {
                 $event->lng = $event->longitude;
                 $event->lat = $event->latitude;
                 $event->url = route('events.display', ['event' => $event->id]);

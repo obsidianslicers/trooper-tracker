@@ -113,7 +113,8 @@ class TrooperFilter extends QueryFilter
 
         $node_path = $organization->node_path;
 
-        return $query->whereExists(function ($sub) use ($node_path) {
+        return $query->whereExists(function ($sub) use ($node_path)
+        {
             $sub->select(DB::raw(1))
                 ->from('tt_trooper_assignments as ta_org')
                 ->join('tt_organizations as org_match', 'ta_org.organization_id', '=', 'org_match.id')

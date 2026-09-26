@@ -82,7 +82,7 @@ class SimulateTrooperRequestCommand extends Command
             ? "{$organization->parent->name} — {$organization->name}"
             : $organization->name;
 
-        $review_url = route('admin.troopers.approvals');
+        $review_url = route('admin.troopers.approvals.index');
 
         $this->newLine();
         $this->line('<fg=cyan;options=bold>── Trooper Request ───────────────────────────────</>');

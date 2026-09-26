@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\ServiceRecords;
 
 use App\Facades\TroopTrackerFacade;
+use App\Features\Troopers\Queries\GetEventTroopersMissingCreditQuery;
 use App\Features\Troopers\Queries\GetTrooperCostumesQuery;
 use App\Features\Troopers\Queries\GetTrooperServiceRecordQuery;
 use App\Http\Controllers\MagicBusController;
@@ -16,6 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use RuntimeException;
 
 /**
  * Displays a trooper's service record dashboard.
@@ -27,7 +29,7 @@ class TrooperController extends MagicBusController
      *
      * Filters command staff and handler costumes from the displayed costume list.
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
     public function __invoke(Request $request, Trooper $trooper): View
     {
@@ -47,6 +49,7 @@ class TrooperController extends MagicBusController
         $trooper_costumes = $trooper_costumes->filter(fn ($c) => !in_array($c->name, [Costume::COMMAND_STAFF, Costume::HANDLER]));
 
         $data['trooper_costumes'] = $trooper_costumes;
+        $data['has_missing_credit'] = Auth::user()->can('update', $trooper) && $this->hasMissingCredit($trooper);
         $data['xenforo_group_banners'] = collect();
         $data['is_active_donor'] = false;
         $data['xenforo_donations'] = [];
@@ -88,6 +91,15 @@ class TrooperController extends MagicBusController
         return view('pages.service-records.trooper', $data);
     }
 
+    private function hasMissingCredit(Trooper $trooper): bool
+    {
+        ['total' => $total] = $this->bus->send(
+            new GetEventTroopersMissingCreditQuery(actor: Auth::user(), trooper_id: $trooper->id)
+        );
+
+        return $total > 0;
+    }
+
     /**
      * @param  array<string,mixed>|null  $group_data
      * @return Collection<int, array{title:string,banner_text:string,is_primary:bool,order:int}>
@@ -95,10 +107,12 @@ class TrooperController extends MagicBusController
     private function extractXenforoGroupBanners(?array $group_data): Collection
     {
         return collect($group_data['userGroups'] ?? [])
-            ->filter(function (mixed $group): bool {
+            ->filter(function (mixed $group): bool
+            {
                 return is_array($group) && !empty($group['bannerText']);
             })
-            ->map(function (array $group): array {
+            ->map(function (array $group): array
+            {
                 return [
                     'title' => (string) ($group['title'] ?? ''),
                     'banner_text' => (string) ($group['bannerText'] ?? ''),
@@ -106,7 +120,8 @@ class TrooperController extends MagicBusController
                     'order' => (int) ($group['order'] ?? PHP_INT_MAX),
                 ];
             })
-            ->sortBy(function (array $group): string {
+            ->sortBy(function (array $group): string
+            {
                 return sprintf(
                     '%d-%010d-%s',
                     $group['is_primary'] ? 0 : 1,

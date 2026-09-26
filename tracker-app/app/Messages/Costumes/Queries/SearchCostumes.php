@@ -36,7 +36,8 @@ final class SearchCostumes extends Message
                 ->pluck(TrooperOrganization::ORGANIZATION_ID)
                 ->all();
 
-            $query->whereHas('organization_costumes', function ($q) use ($organization_ids) {
+            $query->whereHas('organization_costumes', function ($q) use ($organization_ids)
+            {
                 $q->whereIn('organization_id', $organization_ids);
             });
 

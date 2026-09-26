@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Unit\Models\Observers;
 
 use App\Enums\TrooperRequestStatus;
-use App\Features\Troopers\Exceptions\DuplicateOrganizationIdentifierException;
 use App\Models\TrooperRequest;
 use App\Models\Observers\TrooperRequestObserver;
 use App\Models\Organization;
@@ -125,9 +124,9 @@ class TrooperRequestObserverTest extends TestCase
             TrooperRequest::IDENTIFIER => '1012',
             TrooperRequest::STATUS => TrooperRequestStatus::PENDING,
         ]);
-        $trooper_request->setRelation('primaryOrganization', $organization);
+        $trooper_request->setRelation('primary_organization', $organization);
 
-        $this->expectException(DuplicateOrganizationIdentifierException::class);
+        $this->expectException(Exception::class);
         $this->expectExceptionMessage('501st Legion TKID 1012 is already assigned to another trooper.');
 
         (new TrooperRequestObserver())->saving($trooper_request);
@@ -152,7 +151,7 @@ class TrooperRequestObserverTest extends TestCase
             TrooperRequest::IDENTIFIER => '1012',
             TrooperRequest::STATUS => TrooperRequestStatus::PENDING,
         ]);
-        $trooper_request->setRelation('primaryOrganization', $organization);
+        $trooper_request->setRelation('primary_organization', $organization);
 
         $this->expectNotToPerformAssertions();
         (new TrooperRequestObserver())->saving($trooper_request);

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
+use App\Enums\FlashType;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Events\CopyRequest;
 use App\Models\Event;
@@ -41,7 +42,7 @@ class CopySubmitController extends MagicBusController
 
         $event_copy = $this->copyEvent($request, $trooper, $event);
 
-        $this->flash->updated($event_copy);
+        FlashType::updated($event_copy);
 
         return redirect()->route('admin.events.update', ['event' => $event_copy]);
     }

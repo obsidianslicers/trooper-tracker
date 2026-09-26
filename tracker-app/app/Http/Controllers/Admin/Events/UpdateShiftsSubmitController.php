@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
+use App\Enums\FlashType;
 use App\Features\Events\Commands\UpdateEventShiftStationsCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Events\UpdateShiftsRequest;
@@ -59,6 +60,13 @@ class UpdateShiftsSubmitController extends MagicBusController
             {
                 $shift->status = EventStatus::from($input['status']);
             }
+            else
+            {
+                if ($event->status === EventStatus::OPEN)
+                {
+                    $shift->status = EventStatus::OPEN;
+                }
+            }
 
             $shift->save();
 
@@ -87,7 +95,7 @@ class UpdateShiftsSubmitController extends MagicBusController
             }
         }
 
-        $this->flash->updated($event);
+        FlashType::updated($event);
 
         return redirect()->route('admin.events.shifts', compact('event'));
     }

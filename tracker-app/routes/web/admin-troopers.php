@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Admin\Troopers\ApprovalListController;
-use App\Http\Controllers\Admin\Troopers\ApprovalSubmitHtmxController;
+use App\Http\Controllers\Admin\Troopers\ApproveTrooperMembershipController;
+use App\Http\Controllers\Admin\Troopers\DenyTrooperMembershipController;
+use App\Http\Controllers\Admin\Troopers\ApproveTrooperRequestController;
+use App\Http\Controllers\Admin\Troopers\DenyTrooperRequestController;
+use App\Http\Controllers\Admin\Troopers\ApproveMembershipsController;
 use App\Http\Controllers\Admin\Troopers\AuthorityController;
 use App\Http\Controllers\Admin\Troopers\AuthoritySubmitController;
 use App\Http\Controllers\Admin\Troopers\ChangesController;
 use App\Http\Controllers\Admin\Troopers\CostumesController;
-use App\Http\Controllers\Admin\Troopers\DenialSubmitHtmxController;
 use App\Http\Controllers\Admin\Troopers\EventsController;
-use App\Http\Controllers\Admin\Troopers\MemberLookupHtmxController;
 use App\Http\Controllers\Admin\Troopers\MergeTroopersController;
 use App\Http\Controllers\Admin\Troopers\MergeTroopersSubmitController;
-use App\Http\Controllers\Admin\Troopers\TrooperRequestApproveHtmxController;
-use App\Http\Controllers\Admin\Troopers\TrooperRequestDenyHtmxController;
 use App\Http\Controllers\Admin\Troopers\ListController;
+use App\Http\Controllers\Admin\Troopers\LookupMembershipController;
 use App\Http\Controllers\Admin\Troopers\MembershipController;
 use App\Http\Controllers\Admin\Troopers\GuardianController;
 use App\Http\Controllers\Admin\Troopers\GuardianSubmitController;
@@ -39,9 +39,22 @@ Route::prefix('admin/troopers')
     ->group(function ()
     {
         Route::get('/', ListController::class)->name('list');
-        Route::get('/approvals', ApprovalListController::class)->name('approvals');
-        Route::post('/approvals/{trooper}/approve', ApprovalSubmitHtmxController::class)->name('approve-htmx');
-        Route::post('/approvals/{trooper}/deny', DenialSubmitHtmxController::class)->name('deny-htmx');
+
+        Route::prefix('approvals')
+            ->name('approvals.')
+            ->group(function ()
+            {
+                Route::get('/index', ApproveMembershipsController::class)->name('index');
+                Route::post('/approve/{trooper}', ApproveTrooperMembershipController::class)->name('approve-membership');
+                Route::post('/deny/{trooper}', DenyTrooperMembershipController::class)->name('deny-membership');
+                Route::post('/approve/{trooper_request}/request', ApproveTrooperRequestController::class)->name('approve-request');
+                Route::post('/deny/{trooper_request}/request', DenyTrooperRequestController::class)->name('deny-request');
+
+                Route::get('/requests/{trooper_request}/lookup-membership', LookupMembershipController::class)->name('lookup-membership');
+            });
+
+
+
 
         Route::get('/recruit', RecruitController::class)->name('recruit');
         Route::post('/recruit', RecruitSubmitController::class);
@@ -49,9 +62,6 @@ Route::prefix('admin/troopers')
         Route::get('/merge', MergeTroopersController::class)->name('merge');
         Route::post('/merge', MergeTroopersSubmitController::class);
 
-        Route::get('/trooper-requests/{trooper_request}/member-lookup', MemberLookupHtmxController::class)->name('trooper-requests.member-lookup');
-        Route::post('/trooper-requests/{trooper_request}/approve', TrooperRequestApproveHtmxController::class)->name('trooper-requests.approve-htmx');
-        Route::post('/trooper-requests/{trooper_request}/deny', TrooperRequestDenyHtmxController::class)->name('trooper-requests.deny-htmx');
 
         Route::get('/{trooper}', ProfileController::class)->name('profile');
         Route::post('/{trooper}', ProfileSubmitController::class);

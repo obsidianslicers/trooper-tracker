@@ -8,6 +8,7 @@ use App\Features\Troopers\Queries\GetCommandStaffQuery;
 use App\Http\Controllers\MagicBusController;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use RuntimeException;
 
 /**
  * Displays the command staff listing.
@@ -17,7 +18,7 @@ class CommandStaffController extends MagicBusController
     /**
      * Retrieves command staff troopers and renders the command staff view.
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
     public function __invoke(Request $request): View
     {

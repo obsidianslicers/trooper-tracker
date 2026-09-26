@@ -16,6 +16,7 @@ use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Carbon\Carbon;
+use DB;
 use Illuminate\Support\Collection;
 
 /**
@@ -52,7 +53,8 @@ readonly class GetLeaderboardMetricsQueryHandler implements QueryHandlerInterfac
         // Aggregates total deployment volume per major club type
         return Organization::where(Organization::TYPE, OrganizationType::ORGANIZATION)
             ->whereNull(Organization::PARENT_ID) // Top level Legions/Clubs
-            ->withCount(['events' => function ($q) use ($date) {
+            ->withCount(['events' => function ($q) use ($date)
+            {
                 $q->where(Event::STATUS, EventStatus::CLOSED)
                     ->when($date, fn ($q) => $q->where(Event::EVENT_START, '>=', $date));
             }])
@@ -65,23 +67,27 @@ readonly class GetLeaderboardMetricsQueryHandler implements QueryHandlerInterfac
     {
         // 2. Battle Readiness (Unit vs Unit)
         return EventTrooper::where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED)
-            ->whereHas('event_shift.event', function ($q) use ($date) {
+            ->whereHas('event_shift.event', function ($q) use ($date)
+            {
                 $q->where(Event::STATUS, EventStatus::CLOSED)
                     ->when($date, fn ($q) => $q->where(Event::EVENT_START, '>=', $date));
             })
             ->whereNotNull('costume_id')
-            ->select('costume_id', \DB::raw('count(*) as occurrence_count'))
-            ->whereDoesntHave('costume', function ($q) {
+            ->select('costume_id', DB::raw('count(*) as occurrence_count'))
+            ->whereDoesntHave('costume', function ($q)
+            {
                 $q->whereIn(Costume::NAME, ['N/A', 'NA', Costume::COMMAND_STAFF, Costume::HANDLER]);
             })
-            ->with(['costume' => function ($q) {
+            ->with(['costume' => function ($q)
+            {
                 $q->select(Costume::ID, Costume::NAME);
             }])
             ->groupBy('costume_id')
             ->orderByDesc('occurrence_count')
             ->take(5)
             ->get()
-            ->map(function ($record) {
+            ->map(function ($record)
+            {
                 return [
                     'id' => $record->costume->id ?? null,
                     'name' => $record->costume->name ?? 'Unknown Kit',
@@ -95,14 +101,16 @@ readonly class GetLeaderboardMetricsQueryHandler implements QueryHandlerInterfac
         // 3. Shadow Operatives (Individual Superlatives)
         // We look for the "Iron Suits" - Troopers with the most attended records
         $query = EventTrooper::where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED)
-            ->whereHas('event_shift.event', function ($q) use ($date) {
+            ->whereHas('event_shift.event', function ($q) use ($date)
+            {
                 $q->where(Event::STATUS, EventStatus::CLOSED)
                     ->when($date, fn ($q) => $q->where(Event::EVENT_START, '>=', $date));
             })
-            ->whereHas('trooper', function ($q) {
+            ->whereHas('trooper', function ($q)
+            {
                 $q->where(Trooper::MEMBERSHIP_STATUS, MembershipStatus::ACTIVE);
             })
-            ->select(EventTrooper::TROOPER_ID, \DB::raw('count(*) as troop_count'))
+            ->select(EventTrooper::TROOPER_ID, DB::raw('count(*) as troop_count'))
             ->with(['trooper' => fn ($q) => $q->select(Trooper::ID, Trooper::DISPLAY_NAME)])
             ->groupBy(EventTrooper::TROOPER_ID);
 

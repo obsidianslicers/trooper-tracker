@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Verifications;
 
+use App\Enums\FlashType;
 use App\Http\Controllers\MagicBusController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\RedirectResponse;
@@ -29,7 +30,7 @@ class VerifyEmailController extends MagicBusController
     {
         $request->fulfill();
 
-        $this->flash->success('Thank you for verifying your email!');
+        FlashType::success('Thank you for verifying your email!');
 
         return redirect()->route('account.index');
     }

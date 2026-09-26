@@ -8,11 +8,6 @@
     import pageState from "$lib/states/page-state.svelte";
     import { MergeTroopersViewModel } from "./models";
 
-    type Trooper = {
-        id: string | number;
-        [key: string]: unknown;
-    };
-
     pageState.title = "Merge Troopers";
 
     const vm = new MergeTroopersViewModel();

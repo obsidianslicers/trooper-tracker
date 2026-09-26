@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
+use App\Enums\FlashType;
 use App\Features\Events\Commands\RemoveEventShiftStationCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Event;
@@ -25,12 +26,12 @@ class RemoveShiftStationController extends MagicBusController
 
         if (!$removed)
         {
-            $this->flash->danger('Cannot remove a station with roster signups.');
+            FlashType::danger('Cannot remove a station with roster signups.');
 
             return response()->noContent()->header('HX-Redirect', route('admin.events.shifts', compact('event')));
         }
 
-        $this->flash->success('Station removed.');
+        FlashType::success('Station removed.');
 
         return response()->noContent()->header('HX-Redirect', route('admin.events.shifts', compact('event')));
     }

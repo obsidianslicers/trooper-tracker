@@ -94,7 +94,8 @@ readonly class PromoteNextInLineEventTrooperCommandHandler implements CommandHan
      */
     private function firstEligible(EventShift $event_shift, Collection $candidates): ?EventTrooper
     {
-        return $candidates->first(function (EventTrooper $candidate) use ($event_shift) {
+        return $candidates->first(function (EventTrooper $candidate) use ($event_shift)
+        {
             if ($candidate->needsCostumeBeforeGoing())
             {
                 return false;
@@ -137,7 +138,8 @@ readonly class PromoteNextInLineEventTrooperCommandHandler implements CommandHan
     {
         return $this->standbyQuery($event_shift)
             ->where(EventTrooper::IS_HANDLER, $is_handler)
-            ->where(function ($q) use ($org_id) {
+            ->where(function ($q) use ($org_id)
+            {
                 $q->where(EventTrooper::ORGANIZATION_ID, $org_id)
                     ->orWhereJsonContains(EventTrooper::COSTUME_ORGANIZATION_IDS, $org_id);
             })

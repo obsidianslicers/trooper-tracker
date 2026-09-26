@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Unit\Models\Observers;
 
 use App\Enums\MembershipStatus;
-use App\Features\Troopers\Exceptions\DuplicateOrganizationIdentifierException;
 use App\Models\Observers\TrooperOrganizationObserver;
 use App\Models\Organization;
 use App\Models\Trooper;
@@ -44,7 +43,7 @@ class TrooperOrganizationObserverTest extends TestCase
         ]);
         $trooper_organization->setRelation('organization', $organization);
 
-        $this->expectException(DuplicateOrganizationIdentifierException::class);
+        $this->expectException(Exception::class);
         $this->expectExceptionMessage('501st Legion TKID 1012 is already assigned to another trooper.');
 
         (new TrooperOrganizationObserver())->saving($trooper_organization);

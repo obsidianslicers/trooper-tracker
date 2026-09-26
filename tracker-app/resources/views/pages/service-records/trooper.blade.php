@@ -46,6 +46,13 @@
                     </a>
                 @endif
                 @can('update', $trooper)
+                    @if($has_missing_credit)
+                        <a href="{{ route('admin.service-records.missing-credits', ['trooper_id' => $trooper->id]) }}"
+                           class="btn btn-outline-danger">
+                            <i class="fa fa-fw fa-triangle-exclamation"></i>
+                            Fix Missing Credit
+                        </a>
+                    @endif
                     <a href="{{ route('admin.troopers.profile', compact('trooper')) }}"
                        class="btn btn-outline-warning">
                         <i class="fa fa-fw fa-edit"></i>

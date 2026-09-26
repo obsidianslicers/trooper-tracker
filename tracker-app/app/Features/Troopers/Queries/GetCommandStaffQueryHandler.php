@@ -34,7 +34,8 @@ readonly class GetCommandStaffQueryHandler implements QueryHandlerInterface
             ->get();
 
         // Map troopers with their CS organizations
-        return $troopers->map(function (Trooper $trooper) {
+        return $troopers->map(function (Trooper $trooper)
+        {
             // Get all organizations where trooper is moderator
             $cs_org_ids = TrooperAssignment::query()
                 ->where(TrooperAssignment::TROOPER_ID, $trooper->id)
@@ -47,7 +48,8 @@ readonly class GetCommandStaffQueryHandler implements QueryHandlerInterface
                 ->get([Organization::ID, Organization::NAME, Organization::NODE_PATH]);
 
             // Extract root organizations (highest level in each tree)
-            $root_org_ids = $cs_orgs->map(function (Organization $org) {
+            $root_org_ids = $cs_orgs->map(function (Organization $org)
+            {
                 // Parse node_path to get the root organization ID (first in path)
                 $path_ids = array_filter(explode(Organization::NODE_PATH_SEP, $org->node_path));
 

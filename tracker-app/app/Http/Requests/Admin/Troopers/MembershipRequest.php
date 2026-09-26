@@ -153,7 +153,8 @@ class MembershipRequest extends FormRequest
      */
     private function getOrganizations(): Collection
     {
-        $getter = function (): Collection {
+        $getter = function (): Collection
+        {
             return Organization::ofTypeOrganizations()
                 ->orderBy(Organization::NAME)
                 ->get();

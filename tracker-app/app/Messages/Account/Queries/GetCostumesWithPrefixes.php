@@ -39,7 +39,8 @@ final class GetCostumesWithPrefixes extends Message
         return TrooperCostume::query()
             ->with($with)
             ->where(TrooperCostume::TROOPER_ID, $this->trooper->id)
-            ->whereHas('organization_costume', function ($query) {
+            ->whereHas('organization_costume', function ($query)
+            {
                 $query->whereNotNull(OrganizationCostume::PREFIX);
             })
             ->get();

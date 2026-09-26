@@ -40,7 +40,8 @@ class RecruitController extends MagicBusController
             ->get([Organization::ID, Organization::NAME, Organization::IDENTIFIER_DISPLAY, Organization::IDENTIFIER_VALIDATION])
             ->keyBy(Organization::ID);
 
-        $organizations_data = $organizations->map(function (Organization $org) use ($root_orgs) {
+        $organizations_data = $organizations->map(function (Organization $org) use ($root_orgs)
+        {
             $root = $root_orgs[$this->getRootOrgId($org)] ?? null;
 
             return [

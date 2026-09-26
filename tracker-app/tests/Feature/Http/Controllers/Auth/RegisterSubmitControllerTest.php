@@ -6,9 +6,10 @@ namespace Tests\Feature\Http\Controllers\Auth;
 
 use App\Enums\MembershipStatus;
 use App\Enums\TrooperRequestStatus;
-use App\Features\Troopers\Commands\ApproveTrooperCommand;
-use App\Features\Troopers\Commands\ApproveTrooperCommandHandler;
 use App\Mail\Auth\TrooperRegistered;
+use App\Messages\Troopers\Commands\Membership\ApproveTrooperMembership;
+use App\Messages\Troopers\Commands\Membership\ApproveTrooperRequest;
+use App\Messages\Troopers\Commands\Membership\DenyTrooperMembership;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
@@ -194,10 +195,8 @@ class RegisterSubmitControllerTest extends TestCase
 
         $trooper = Trooper::where(Trooper::EMAIL, 'johndoe@example.com')->firstOrFail();
 
-        app(ApproveTrooperCommandHandler::class)(new ApproveTrooperCommand(
-            trooper: $trooper,
-            is_approved: true
-        ));
+        ApproveTrooperMembership::call($trooper);
+        ApproveTrooperRequest::call($trooper->trooper_requests()->firstOrFail());
 
         $trooper->refresh();
 
@@ -330,11 +329,7 @@ class RegisterSubmitControllerTest extends TestCase
 
         $trooper = Trooper::where(Trooper::EMAIL, 'johndoe@example.com')->firstOrFail();
 
-        app(ApproveTrooperCommandHandler::class)(new ApproveTrooperCommand(
-            trooper: $trooper,
-            is_approved: false,
-            denial_reason: 'Not eligible'
-        ));
+        DenyTrooperMembership::call($trooper, 'Not eligible');
 
         $trooper->refresh();
 
