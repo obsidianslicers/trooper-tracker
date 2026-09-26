@@ -49,8 +49,7 @@ class TrooperController extends MagicBusController
         $trooper_costumes = $trooper_costumes->filter(fn ($c) => !in_array($c->name, [Costume::COMMAND_STAFF, Costume::HANDLER]));
 
         $data['trooper_costumes'] = $trooper_costumes;
-        $data['has_missing_credit'] = Auth::user()->can('update', $trooper)
-            && $this->bus->send(new GetEventTroopersMissingCreditQuery(actor: Auth::user(), trooper_id: $trooper->id))->isNotEmpty();
+        $data['has_missing_credit'] = Auth::user()->can('update', $trooper) && $this->hasMissingCredit($trooper);
         $data['xenforo_group_banners'] = collect();
         $data['is_active_donor'] = false;
         $data['xenforo_donations'] = [];
@@ -90,6 +89,15 @@ class TrooperController extends MagicBusController
         $data['service_summary']['donation_months'] = count(array_merge($local_months, $xenforo_months));
 
         return view('pages.service-records.trooper', $data);
+    }
+
+    private function hasMissingCredit(Trooper $trooper): bool
+    {
+        ['total' => $total] = $this->bus->send(
+            new GetEventTroopersMissingCreditQuery(actor: Auth::user(), trooper_id: $trooper->id)
+        );
+
+        return $total > 0;
     }
 
     /**
