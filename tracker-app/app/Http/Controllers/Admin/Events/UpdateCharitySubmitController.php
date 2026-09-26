@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
+use App\Enums\FlashType;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Events\UpdateCharityRequest;
 use App\Models\Event;
@@ -33,7 +34,7 @@ class UpdateCharitySubmitController extends MagicBusController
             $shift->save();
         }
 
-        $this->flash->updated($event);
+        FlashType::updated($event);
 
         return redirect()->route('admin.events.charity', compact('event'));
     }

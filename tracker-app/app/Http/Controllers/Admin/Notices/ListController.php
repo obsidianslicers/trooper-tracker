@@ -93,7 +93,8 @@ class ListController extends MagicBusController
         $trooper = $request->user();
 
         $q = Notice::with([
-            'organization.trooper_assignments' => function ($q) use ($trooper) {
+            'organization.trooper_assignments' => function ($q) use ($trooper)
+            {
                 $q->where(TrooperAssignment::TROOPER_ID, $trooper->id)
                     ->where(TrooperAssignment::IS_MODERATOR, true);
             },

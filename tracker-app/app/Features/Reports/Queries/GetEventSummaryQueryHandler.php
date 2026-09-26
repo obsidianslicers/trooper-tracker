@@ -37,11 +37,13 @@ readonly class GetEventSummaryQueryHandler implements QueryHandlerInterface
 
         $with = [
             'organization:id,name,image_path_sm',
-            'organizations' => function ($q) {
+            'organizations' => function ($q)
+            {
                 $q->select('tt_organizations.id', 'tt_organizations.name')->withPivot('id', 'can_attend');
             },
             'event_shifts:id,event_id,charity_direct_funds,charity_indirect_funds',
-            'event_shifts.event_troopers' => function ($q) {
+            'event_shifts.event_troopers' => function ($q)
+            {
                 $q->where('status', EventTrooperStatus::ATTENDED)->select('id', 'event_shift_id', 'trooper_id', 'status');
             },
         ];
@@ -65,7 +67,8 @@ readonly class GetEventSummaryQueryHandler implements QueryHandlerInterface
             ? $events->getCollection()
             : $events;
 
-        $collection->each(function (Event $event) {
+        $collection->each(function (Event $event)
+        {
             $event->event_shifts_count = $event->event_shifts->count();
             $event->total_trooper_count = $event->event_shifts->sum(fn ($shift) => $shift->event_troopers->count());
             $event->unique_trooper_count = $event->event_shifts->flatMap(fn ($shift) => $shift->event_troopers->pluck('trooper_id'))->unique()->count();

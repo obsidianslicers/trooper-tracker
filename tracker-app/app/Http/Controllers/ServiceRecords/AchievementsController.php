@@ -8,6 +8,7 @@ use App\Features\Troopers\Queries\GetTrooperAchievementsQuery;
 use App\Http\Controllers\MagicBusController;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use RuntimeException;
 
 /**
  * Displays trooper achievement activity.
@@ -17,7 +18,7 @@ class AchievementsController extends MagicBusController
     /**
      * Retrieves achievements for a lookback window and renders the achievements view.
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
     public function __invoke(Request $request): View
     {

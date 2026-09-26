@@ -8,21 +8,19 @@
 @endphp
 
 <div id="flash-messages">
-    @if ($flash_messages = $flash->getMessages())
-        @foreach ($flash_messages as $type => $messages)
-            @foreach ($messages as $message)
-                <div class="alert alert-{{ $type }} alert-dismissible fade show mt-2">
-                    <strong>
-                        <i class="fa fa-fw fa-solid {{ $icons[$type] }}"></i>
-                        {{ $message }}
-                    </strong>
-                    <button type="button"
-                            class="btn-close"
-                            data-bs-dismiss="alert"></button>
-                </div>
-            @endforeach
-        @endforeach
-    @endif
+    @foreach (['success', 'info', 'warning', 'danger'] as $type)
+        @if ($message = session($type))
+            <div class="alert alert-{{ $type }} alert-dismissible fade show mt-2">
+                <strong>
+                    <i class="fa fa-fw fa-solid {{ $icons[$type] }}"></i>
+                    {{ $message }}
+                </strong>
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+    @endforeach
 
     @if ($errors->any())
         <div class="alert alert-danger alert-dismissible fade show mt-2">

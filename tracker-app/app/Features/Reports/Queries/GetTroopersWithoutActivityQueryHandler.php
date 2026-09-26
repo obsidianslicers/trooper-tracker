@@ -35,7 +35,8 @@ readonly class GetTroopersWithoutActivityQueryHandler implements QueryHandlerInt
     {
         $lookback = $message->parseLookback();
 
-        $filter = function ($qx) use ($lookback) {
+        $filter = function ($qx) use ($lookback)
+        {
             $qx->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED)
                 ->where(EventTrooper::SIGNED_UP_AT, '<', $lookback);
         };

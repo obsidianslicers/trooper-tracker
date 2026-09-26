@@ -39,7 +39,8 @@ final class GetTrooperCostumes extends Message
             ->get();
 
         // Transform for the final output
-        $results = $costumes->each(function (Costume $costume) {
+        $results = $costumes->each(function (Costume $costume)
+        {
             $costume->costume_organizations = $this->getOrganizationNames($costume);
             $costume->image_urls = $this->getImageUrls($costume);
         });
@@ -82,7 +83,8 @@ final class GetTrooperCostumes extends Message
             ->where('trooper_id', $this->trooper->id);
 
         return $trooper_costumes
-            ->flatMap(function ($tc) {
+            ->flatMap(function ($tc)
+            {
                 return [
                     $tc->image_url_sm,
                     $tc->image_url_lg,

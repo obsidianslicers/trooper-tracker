@@ -11,7 +11,7 @@ use Illuminate\Support\Collection;
 
 /**
  * Retrieves all costumes.
-
+ *
  * This query message responds with the costumes data, which can be used by frontend clients
  * to display the available costumes and manage costume assignments.
  *
@@ -25,7 +25,7 @@ final class GetCostumes extends Message
 
     /**
      * Retrieves all costumes.
-
+     * Optionally filters costumes by the specified organization IDs.
      *
      * @return Collection A collection representing the costumes, including costume IDs and names
      */
@@ -35,7 +35,8 @@ final class GetCostumes extends Message
 
         if ($this->organization_ids !== null)
         {
-            $with['organization_costumes'] = function ($query) {
+            $with['organization_costumes'] = function ($query)
+            {
                 $query->whereHas('organization', fn ($q) => $q->whereIn(Organization::ID, $this->organization_ids));
             };
         }

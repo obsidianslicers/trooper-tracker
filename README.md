@@ -2,7 +2,7 @@
 
 [![Laravel Style](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/pint.yml/badge.svg)](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/pint.yml) [![Laravel Tests](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/tests.yml/badge.svg)](https://github.com/obsidianslicers/trooper-tracker/actions/workflows/tests.yml)
 
-**Troop Tracker** is the Empire's official operations dashboard, engineered to impose order upon trooper assignments, moderation workflows, and hierarchical communications across organizations, regions, and units. Forged with Laravel, Blade, Bootstrap 5, HTMX, and Alpine‑driven JavaScript, it delivers the precision, discipline, and ruthless efficiency expected of any system operating under Imperial authority.
+**Troop Tracker** is the Empire's official operations dashboard, engineered to impose order upon trooper assignments, moderation workflows, and hierarchical communications across organizations, regions, and units. Forged with Laravel, Inertia, Svelte, and Bootstrap, it delivers the precision, discipline, and ruthless efficiency expected of any system operating under Imperial authority. Legacy Blade, HTMX, and Alpine screens remain during the frontend migration.
 
 Currently Used By:
 * Florida Star Wars Clubs
@@ -20,7 +20,8 @@ Currently Used By:
 
 - Troop Tracker is a Laravel 12 application platform for Star Wars costuming clubs, focused on trooper profiles, event/troop coordination, organization hierarchy, notices, and approvals.
 - Backend is a Laravel 12 application built around organized domain features, role-based access control, and structured event/member workflows.
-- Frontend is server-rendered Blade with HTMX and Alpine, with an ongoing migration toward Inertia + Svelte 5 for richer interactivity.
+- Frontend migration is moving interactive screens from Blade/HTMX/Alpine to Inertia + Svelte 5; new interactive work should follow the Svelte architecture.
+- Backend migration is moving domain operations from `app/Features` handlers dispatched through MagicBus to single-file Hyperdrive Messages in `app/Messages`.
 - Authentication supports Email, Google OAuth, and XenForo OAuth; all new accounts go through pending/admin approval.
 - Local development basics: install with Composer/NPM, migrate and seed, then run `composer dev` from `tracker-app/`.
 - Contribution gates before PR: run tests (`php artisan test`), and formatting (`composer pint:format`)
@@ -58,7 +59,7 @@ Troop Tracker is live, the Empire ascends, we will now act like this was the pla
 
 ## Architecture
 
-Troop Tracker follows the ADR pattern with command/query separation via MagicBus: controllers orchestrate, domain logic lives in handlers, and responses render the result. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full system overview. Note: the MagicBus is being migrated to [Hyperdrive Messages](tracker-app/packages/hyperdrive/README.md).
+Troop Tracker follows the ADR pattern: controllers remain thin, domain operations are implemented as Hyperdrive Messages, and Inertia + Svelte provides the target interactive frontend. Legacy `app/Features` handlers, MagicBus dispatch, Blade, HTMX, and Alpine remain in areas not yet migrated. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and the [Hyperdrive Message Architecture](tracker-app/packages/hyperdrive/README.md) for details.
 
 Key references:
 - [docs/CODING_CONVENTIONS.md](docs/CODING_CONVENTIONS.md) for standards and conventions
@@ -82,7 +83,7 @@ Key references:
 *   **Hierarchical Access Control**: Strict Organization → Region → Unit permissions with automatic inheritance and scoped visibility via authorization policies
 *   **Trooper Management**: Multi‑organization membership, role‑based permissions (member/moderator/administrator), notification preferences, costume tracking, and achievement badges
 *   **Event & Shift Management**: Full event lifecycle (draft/open/closed/cancelled), multi‑shift scheduling, organization-specific invitations, trooper signup tracking (going/tentative/unavailable)
-*   **Real‑Time HTMX Interactions**: Instant UI updates for sign‑ups, cancellations, costume changes, and shift displays without full page reloads
+*   **Interactive Svelte Screens**: Reactive UI for migrated workflows, with legacy HTMX interactions retained until each screen is migrated
 *   **Smart Notifications**: Configurable frequency (never/instant/daily), event creation/cancellation emails, daily digest aggregation
 *   **Awards & Recognition**: Organization-based awards with frequency controls (once/monthly/yearly), multi-recipient support
 *   **Notice System**: Organization-scoped announcements with read tracking and type-based styling (info/warning/alert)
@@ -90,9 +91,9 @@ Key references:
 
 ### Developer Experience
 
-*   **Feature-Organized Code**: Domain logic grouped by business area
-*   **Component-Driven Blade**: PHP 8.2+ with server-rendered templates
-*   **Progressive Enhancement**: Bootstrap 5.2x + HTMX 2.x + Alpine 3.x; new interactive work is increasingly moving to Inertia + Svelte
+*   **Message-Organized Code**: Domain operations grouped by business area under `app/Messages`, with Hyperdrive handling dispatch and hydration
+*   **Component-Driven Frontend**: Inertia + Svelte 5 for migrated interactive screens, with Blade retained for static and legacy pages
+*   **Incremental Migration**: Existing HTMX/Alpine and `app/Features`/MagicBus paths continue to operate while their workflows move to the target architecture
 *   **Auto-Generated Models**: MySQL with Reliese Laravel base model generation
 *   **Comprehensive Testing**: Feature tests (Controllers/Jobs/Commands), Unit tests (Handlers/Services)
 *   **Policy-Based Authorization**: Scoped access control for all resources
@@ -105,7 +106,10 @@ Key references:
 - **PHP 8.x+** with strict types and scalar type hints
 - **Laravel 12.x** with Breeze authentication
 - **Database**: MySQL (production), SQLite (testing)
-- **Frontend**: Blade templates + Bootstrap 5.2x + HTMX 2.x + Alpine 3.x
+- **Frontend target**: Inertia + Svelte 5 + TypeScript + Bootstrap 5.2x
+- **Frontend legacy**: Blade templates + HTMX 2.x + Alpine 3.x
+- **Backend target**: Hyperdrive `Message` classes in `app/Messages`
+- **Backend legacy**: `app/Features` handlers dispatched through MagicBus
 - **Queue**: Database-backed Laravel queue
 - **Mail**: Laravel mailable classes with queue support
 - **Testing**: PHPUnit with Feature/Unit test separation
@@ -209,7 +213,7 @@ Read the documentation in this order for maximum comprehension efficiency.
 
 **Start here** - Essential reading before writing code:
 
-1. **[Architecture](docs/ARCHITECTURE.md)** - ADR, MagicBus, Command/Query patterns, domain organization, testing strategy
+1. **[Architecture](docs/ARCHITECTURE.md)** - ADR, Hyperdrive Messages, migration boundaries, domain organization, testing strategy
 2. **[Coding Conventions](docs/CODING_CONVENTIONS.md)** - Naming conventions, code style, architectural standards
 3. **[Project Structure](docs/PROJECT_STRUCTURE.md)** - Directory layout and file organization
 4. **[Database Schema](docs/DATABASE.md)** - Table reference, relationships, ERD

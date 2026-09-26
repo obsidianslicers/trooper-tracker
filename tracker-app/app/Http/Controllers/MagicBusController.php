@@ -6,7 +6,6 @@ namespace App\Http\Controllers;
 
 use App\Bus\MagicBus;
 use App\Services\BreadCrumbService;
-use App\Services\FlashMessageService;
 
 /**
  * Base controller providing MagicBus integration and common services.
@@ -21,12 +20,10 @@ abstract class MagicBusController extends Controller
      * Create a new controller instance with core services.
      *
      * @param  MagicBus  $bus  The command/query bus for domain operations
-     * @param  FlashMessageService  $flash  The flash messaging service
      * @param  BreadCrumbService  $crumbs  The breadcrumb navigation service
      */
     public function __construct(
         protected readonly MagicBus $bus,
-        protected readonly FlashMessageService $flash,
         protected readonly BreadCrumbService $crumbs,
     ) {
         $this->initialized();

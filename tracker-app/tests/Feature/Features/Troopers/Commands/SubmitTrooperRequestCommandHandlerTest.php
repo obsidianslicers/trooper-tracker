@@ -7,11 +7,11 @@ namespace Tests\Feature\Features\Troopers\Commands;
 use App\Enums\TrooperRequestStatus;
 use App\Features\Troopers\Commands\SubmitTrooperRequestCommand;
 use App\Features\Troopers\Commands\SubmitTrooperRequestCommandHandler;
-use App\Features\Troopers\Exceptions\DuplicateOrganizationIdentifierException;
 use App\Jobs\SendTrooperRequestNotificationsJob;
 use App\Models\TrooperRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
+use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
@@ -139,7 +139,7 @@ class SubmitTrooperRequestCommandHandlerTest extends TestCase
             ->withIdentifier('1012')
             ->create();
 
-        $this->expectException(DuplicateOrganizationIdentifierException::class);
+        $this->expectException(Exception::class);
         $this->expectExceptionMessage('501st Legion TKID 1012 is already assigned to another trooper.');
 
         try

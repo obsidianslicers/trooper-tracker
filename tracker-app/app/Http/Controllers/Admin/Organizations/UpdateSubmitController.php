@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Organizations;
 
+use App\Enums\FlashType;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Organizations\UpdateRequest;
 use App\Models\Organization;
@@ -67,7 +68,7 @@ class UpdateSubmitController extends MagicBusController
 
         $organization->save();
 
-        $this->flash->updated($organization);
+        FlashType::updated($organization);
 
         return redirect()->route('admin.organizations.list');
     }

@@ -18,11 +18,36 @@
             "position": "next_line"
         },
         "curly_braces_position": {
-            "control_structures_opening_brace": "next_line_unless_newline_at_signature_end"
+            "control_structures_opening_brace": "next_line_unless_newline_at_signature_end",
+            "functions_opening_brace": "next_line_unless_newline_at_signature_end",
+            "anonymous_functions_opening_brace": "next_line_unless_newline_at_signature_end",
+            "classes_opening_brace": "next_line_unless_newline_at_signature_end"
         },
         "not_operator_with_successor_space": false,
         "unary_operator_spaces": {
             "only_dec_inc": true
+        },
+        "no_unneeded_import_alias": true,
+        "single_import_per_statement": true,
+        "no_unused_imports": true,
+        "fully_qualified_strict_types": true,
+        "single_line_after_imports": true,
+        "no_leading_import_slash": true,
+        "blank_line_after_namespace": true,
+        "clean_namespace": true,
+        "group_import": false,
+        "global_namespace_import": {
+            "import_classes": true,
+            "import_constants": true,
+            "import_functions": true
+        },
+        "ordered_imports": {
+            "sort_algorithm": "alpha",
+            "imports_order": [
+                "class",
+                "function",
+                "const"
+            ]
         }
     }
 }

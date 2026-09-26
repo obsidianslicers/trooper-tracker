@@ -30,7 +30,8 @@ final class ForumBBCodeRenderer
         $codeBlocks = [];
         $bbcode = preg_replace_callback(
             '~\[code\](.*?)\[/code\]~si',
-            static function (array $matches) use (&$codeBlocks): string {
+            static function (array $matches) use (&$codeBlocks): string
+            {
                 $token = '@@CODE_BLOCK_'.count($codeBlocks).'@@';
 
                 $codeBlocks[$token] = '<pre class="mb-0"><code>'.e($matches[1]).'</code></pre>';
@@ -53,7 +54,8 @@ final class ForumBBCodeRenderer
         $resolved = [];
         $html = preg_replace_callback(
             '~\[USER=(\d+)\](.*?)\[/USER\]~si',
-            static function (array $matches) use (&$resolved): string {
+            static function (array $matches) use (&$resolved): string
+            {
                 $xenforo_id = $matches[1];
                 $display_name = $matches[2];
 
@@ -77,7 +79,8 @@ final class ForumBBCodeRenderer
         // Quotes.
         $html = preg_replace_callback(
             '~\[quote(?:=(?:"|&quot;)?([^\]]+?)(?:"|&quot;)?)?\]~i',
-            static function (array $matches): string {
+            static function (array $matches): string
+            {
                 $attribution = isset($matches[1])
                     ? self::quoteAttribution($matches[1])
                     : null;
@@ -95,7 +98,8 @@ final class ForumBBCodeRenderer
         // URLs.
         $html = preg_replace_callback(
             '~\[url=(.*?)\](.*?)\[/url\]~si',
-            static function (array $matches): string {
+            static function (array $matches): string
+            {
                 $urlRaw = html_entity_decode($matches[1], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
                 $label = $matches[2];
 
@@ -112,7 +116,8 @@ final class ForumBBCodeRenderer
 
         $html = preg_replace_callback(
             '~\[url\](.*?)\[/url\]~si',
-            static function (array $matches): string {
+            static function (array $matches): string
+            {
                 $urlRaw = html_entity_decode($matches[1], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
                 $href = self::sanitizeUrl($urlRaw);
                 if ($href === null)
@@ -131,7 +136,8 @@ final class ForumBBCodeRenderer
         // Email links.
         $html = preg_replace_callback(
             '~\[email(?:=(?:"|&quot;|\'|&\#039;)?([^\]]+?)(?:"|&quot;|\'|&\#039;)?)?\](.*?)\[/email\]~si',
-            static function (array $matches): string {
+            static function (array $matches): string
+            {
                 $addressRaw = $matches[1] !== '' ? $matches[1] : $matches[2];
                 $address = self::sanitizeEmail(html_entity_decode($addressRaw, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
 
@@ -148,7 +154,8 @@ final class ForumBBCodeRenderer
         // Color.
         $html = preg_replace_callback(
             '~\[color=(?:"|&quot;|\'|&\#039;)?([^\]]+?)(?:"|&quot;|\'|&\#039;)?\](.*?)\[/color\]~si',
-            static function (array $matches): string {
+            static function (array $matches): string
+            {
                 $color = self::sanitizeColor(html_entity_decode($matches[1], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
 
                 return $color === null
@@ -161,7 +168,8 @@ final class ForumBBCodeRenderer
         // Size.
         $html = preg_replace_callback(
             '~\[size=(\d+)\](.*?)\[/size\]~si',
-            static function (array $matches): string {
+            static function (array $matches): string
+            {
                 $em = self::sizeToEm((int) $matches[1]);
 
                 return '<span style="font-size:'.$em.'em">'.$matches[2].'</span>';
@@ -175,7 +183,8 @@ final class ForumBBCodeRenderer
         // Images.
         $html = preg_replace_callback(
             '~\[img\](.*?)\[/img\]~si',
-            static function (array $matches): string {
+            static function (array $matches): string
+            {
                 $urlRaw = html_entity_decode($matches[1], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
                 $src = self::sanitizeUrl(trim($urlRaw));
                 if ($src === null)

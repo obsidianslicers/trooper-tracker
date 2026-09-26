@@ -38,7 +38,8 @@ class GuardianRequest extends FormRequest
                 'email',
                 'max:256',
                 Rule::exists(Trooper::class, Trooper::EMAIL)
-                    ->where(function (Builder $query) use ($adult_cutoff): void {
+                    ->where(function (Builder $query) use ($adult_cutoff): void
+                    {
                         $query->whereNull(Trooper::DATE_OF_BIRTH)
                             ->orWhereDate(Trooper::DATE_OF_BIRTH, '<=', $adult_cutoff);
                     }),

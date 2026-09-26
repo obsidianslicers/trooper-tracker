@@ -20,7 +20,8 @@ class AdminDisplayController extends MagicBusController
         $not_approved = Trooper::pendingApprovals()->moderatedBy($trooper)->count();
 
         $pending_join_requests = TrooperRequest::pending()
-            ->whereHas('trooper', function ($query): void {
+            ->whereHas('trooper', function ($query): void
+            {
                 $query->where(Trooper::MEMBERSHIP_STATUS, MembershipStatus::ACTIVE);
             })
             ->forModerator($trooper)

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Notices;
 
+use App\Enums\FlashType;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Notices\UpdateRequest;
 use App\Models\Notice;
@@ -36,7 +37,7 @@ class UpdateSubmitController extends MagicBusController
 
         $notice->save();
 
-        $this->flash->updated($notice);
+        FlashType::updated($notice);
 
         return redirect()->route('admin.notices.list');
     }

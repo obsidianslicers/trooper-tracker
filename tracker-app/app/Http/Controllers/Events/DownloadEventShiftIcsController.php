@@ -23,7 +23,8 @@ class DownloadEventShiftIcsController extends MagicBusController
         $filename = str($event->name)->slug().'-shift-'.$event_shift->id.'.ics';
 
         return response()->streamDownload(
-            function () use ($icsContent) {
+            function () use ($icsContent)
+            {
                 echo $icsContent;
             },
             $filename,

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Troopers;
 
+use App\Enums\FlashType;
 use App\Features\Troopers\Commands\UpdateTrooperCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Troopers\ProfileRequest;
@@ -34,7 +35,7 @@ class ProfileSubmitController extends MagicBusController
 
         $this->bus->send($profile_cmd);
 
-        $this->flash->updated($trooper);
+        FlashType::updated($trooper);
 
         return redirect()->route('admin.troopers.list');
     }

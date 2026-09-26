@@ -101,7 +101,8 @@ trait AssignsEventTrooperOrgCredit
         $approved_orgs = Organization::findMany($approved_child_ids)->keyBy('id');
 
         return collect($approved_child_ids)
-            ->filter(function ($child_id) use ($approved_orgs, $submitted_parent_ids) {
+            ->filter(function ($child_id) use ($approved_orgs, $submitted_parent_ids)
+            {
                 $org = $approved_orgs->get($child_id);
                 $root_id = $org ? (int) explode(':', $org->node_path)[0] : (int) $child_id;
 

@@ -41,7 +41,8 @@ readonly class GetEventsForModeratorQueryHandler implements QueryHandlerInterfac
     public function __invoke(object $message): mixed
     {
         $q = Event::with([
-            'organization.trooper_assignments' => function ($q) use ($message) {
+            'organization.trooper_assignments' => function ($q) use ($message)
+            {
                 $q->where(TrooperAssignment::TROOPER_ID, $message->moderator->id)
                     ->where(TrooperAssignment::IS_MODERATOR, true);
             },

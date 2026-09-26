@@ -34,20 +34,15 @@
 {/snippet}
 
 {#if click}
-    <button
-        onclick={click}
-        class={["btn text-nowrap", btnclass]}
-        {disabled}
-        {type}
-    >
+    <button onclick={click} class={["btn", btnclass]} {disabled} {type}>
         {@render display(icon, label)}
     </button>
 {:else if href}
-    <a {href} class={["btn text-nowrap", btnclass, disabled ? "disabled" : ""]}>
+    <a {href} class={["btn", btnclass]}>
         {@render display(icon, label)}
     </a>
 {:else if submit}
-    <button type="submit" class={["btn text-nowrap", btnclass]} {disabled}>
+    <button type="submit" class={["btn", btnclass]} {disabled}>
         {@render display(icon, label)}
     </button>
 {:else}

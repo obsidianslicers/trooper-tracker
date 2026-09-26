@@ -43,8 +43,9 @@ the user asks otherwise.
 ### Action-Domain-Responder
 
 - **Action**: Thin invokable controllers. Validate input, dispatch through
-  MagicBus, and return a response.
-- **Domain**: Business logic lives in `app/Features/` handlers.
+  MagicBus or Hyperdrive messages, and return a response.
+- **Domain**: Business logic lives in `app/Features/` handlers and message
+  classes, not in controllers.
 - **Responder**: Controllers format handler results into Blade views, redirects,
   or JSON.
 
@@ -67,6 +68,26 @@ Handler modifier traits:
 
 Jobs and Artisan commands are also thin orchestrators. They should dispatch
 commands or queries rather than contain domain logic.
+
+### Hyperdrive Message Pattern
+
+Hyperdrive is the request-driven transport layer used for message objects that
+hydrate constructor arguments from request data, route parameters, auth context,
+and explicit overrides. Use it when the logic is best expressed as a single
+message class rather than a separate command/query pair.
+
+Current behavior in the package is intentionally strict:
+
+- `FormRequest` inputs are hydrated from `validated()`.
+- Plain `Request` objects use `query()` as the payload source.
+- Route parameters are merged next.
+- The authenticated actor is injected as `actor` when the constructor parameter is
+  exactly type-hinted as `Hyperdrive\Contracts\Actor`.
+- Explicit `::call([...])` arguments win last.
+- Missing or invalid required constructor values throw `InvalidArgumentException`.
+
+This pattern is used for page-data and request-scoped messages, not as a
+replacement for the app's command/query layer.
 
 ### Feature Naming (Verb + Object)
 
@@ -128,17 +149,19 @@ Alongside Commands and Queries, page-facing endpoints get a PageData message:
 
 Calling conventions:
 
-- Page requests: `PageData::call($request)`. It hydrates constructor
-  parameters from request inputs, query strings, route parameters, and route
-  model bindings.
+- Page requests: `PageData::call($request)`. In the current Hyperdrive
+  implementation, the hydrated values come from validated request data, route
+  parameters, the authenticated actor, and explicit call overrides in that
+  order.
 - Everywhere else: explicit named arguments (e.g.
   `Query::call(organization_id: 123)`) to keep dependencies clear and
   refactoring safe.
 - Keep PHPDoc annotations on static `::call()` methods to preserve constructor
   autocomplete.
 - For messages that need the authenticated user, inject `Actor $actor` in the
-  constructor. This distinguishes the active session user from target user
-  records fetched via lookup.
+  constructor only when the parameter is exactly type-hinted as
+  `Hyperdrive\Contracts\Actor`. This distinguishes the active session user from
+  target user records fetched via lookup.
 
 ### Svelte directory structure
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Awards;
 
+use App\Enums\FlashType;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Awards\AssignTrooperRequest;
 use App\Models\Award;
@@ -47,7 +48,7 @@ class AssignTrooperSubmitController extends MagicBusController
 
         $award_trooper->save();
 
-        $this->flash->success('... and the Award goes to '.$trooper->display_name);
+        FlashType::success('... and the Award goes to '.$trooper->display_name);
 
         return redirect()->route('admin.awards.list-troopers', $award);
     }

@@ -145,13 +145,15 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
 
     private function getPendingConfirmationEventShifts(Trooper $trooper): Collection
     {
-        $event_trooper_filter = function ($query) use ($trooper) {
+        $event_trooper_filter = function ($query) use ($trooper)
+        {
             $query->where(EventTrooper::TROOPER_ID, $trooper->id)
                 ->whereIn(EventTrooper::STATUS, EventTrooperStatus::intentToGoArray());
         };
 
         $with = $this->buildEventShiftRelations();
-        $with['event_troopers'] = function ($query) use ($event_trooper_filter) {
+        $with['event_troopers'] = function ($query) use ($event_trooper_filter)
+        {
             $event_trooper_filter($query);
             $query->with('costume');
         };

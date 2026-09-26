@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Awards;
 
+use App\Enums\FlashType;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Awards\UpdateRequest;
 use App\Models\Award;
@@ -30,7 +31,7 @@ class UpdateSubmitController extends MagicBusController
 
         $award->save();
 
-        $this->flash->updated($award);
+        FlashType::updated($award);
 
         return redirect()->route('admin.awards.list');
     }

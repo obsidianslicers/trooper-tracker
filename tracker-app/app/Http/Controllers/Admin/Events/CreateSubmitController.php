@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
+use App\Enums\FlashType;
 use App\Features\Events\Commands\UpdateEventCommand;
 use App\Features\Events\Commands\UpdateEventOrganizationsCommand;
 use App\Http\Controllers\MagicBusController;
@@ -64,7 +65,7 @@ class CreateSubmitController extends MagicBusController
 
         $this->bus->send(new UpdateEventOrganizationsCommand($event, $request->validated('organizations') ?? []));
 
-        $this->flash->created($event);
+        FlashType::created($event);
 
         return redirect()->route('admin.events.update', compact('event'));
     }

@@ -33,7 +33,8 @@ final class AddCostumeToTrooper extends Message
         $organization_costumes = OrganizationCostume::query()
             ->whereIn(OrganizationCostume::ORGANIZATION_ID, $this->organization_ids)
             ->where(OrganizationCostume::COSTUME_ID, $this->costume_id)
-            ->whereHas('organization', function ($query) {
+            ->whereHas('organization', function ($query)
+            {
                 $query->withActiveTroopers($this->trooper->id);
             })
             ->get();

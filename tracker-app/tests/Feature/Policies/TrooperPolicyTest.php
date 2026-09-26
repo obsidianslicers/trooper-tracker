@@ -52,6 +52,22 @@ class TrooperPolicyTest extends TestCase
         $this->assertTrue($policy->update($administrator, $subject));
         $this->assertTrue($policy->moderate($administrator, $subject));
         $this->assertTrue($policy->approve($administrator, $subject));
+        $this->assertTrue($policy->deny($administrator, $subject));
+    }
+
+    public function test_request_deletion_only_allows_another_request_when_none_is_pending(): void
+    {
+        $policy = new TrooperPolicy;
+
+        $trooper = Trooper::factory()->asMember()->create();
+        $other_trooper = Trooper::factory()->asMember()->create();
+
+        $this->assertTrue($policy->requestDeletion($trooper, $trooper));
+        $this->assertFalse($policy->requestDeletion($trooper, $other_trooper));
+
+        $trooper->deletion_requested_at = now();
+
+        $this->assertFalse($policy->requestDeletion($trooper, $trooper));
     }
 
     public function test_void_and_unvoid_require_administrator_and_respect_current_status(): void
@@ -124,10 +140,12 @@ class TrooperPolicyTest extends TestCase
         $this->assertTrue($policy->update($moderator, $allowed_subject));
         $this->assertTrue($policy->moderate($moderator, $allowed_subject));
         $this->assertTrue($policy->approve($moderator, $allowed_subject));
+        $this->assertTrue($policy->deny($moderator, $allowed_subject));
 
         $this->assertFalse($policy->view($moderator, $denied_subject));
         $this->assertFalse($policy->update($moderator, $denied_subject));
         $this->assertFalse($policy->moderate($moderator, $denied_subject));
         $this->assertFalse($policy->approve($moderator, $denied_subject));
+        $this->assertFalse($policy->deny($moderator, $denied_subject));
     }
 }

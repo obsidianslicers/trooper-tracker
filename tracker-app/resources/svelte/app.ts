@@ -92,6 +92,11 @@ router.on('navigate', (event) => {
     handleBreadcrumbs(event);
 });
 
+router.on('success', (event) => {
+    handleMessages(event);
+    handleBreadcrumbs(event);
+});
+
 router.on('error', (event) => {
     if (event.detail.errors) {
         const errors = event.detail.errors;

@@ -6,52 +6,62 @@ This document provides a comprehensive overview of Troop Tracker's architectural
 
 ## Core Architectural Principles
 
-Troop Tracker follows **Action-Domain-Responder (ADR)** with **Command/Query Separation** enforced by the **MagicBus** pattern. All business logic lives in isolated, testable handlers organized by domain.
+Troop Tracker follows **Action-Domain-Responder (ADR)** with command/query separation implemented by **Hyperdrive Messages**. The application is migrating from the older MagicBus and `app/Features` handler architecture to single-file messages organized by domain. Both patterns currently exist while workflows are migrated.
 
 ### Action-Domain-Responder (ADR)
 
 The ADR pattern separates concerns into three distinct layers:
 
-- **Action**: Thin, invokable controllers validate input and orchestrate via MagicBus
-- **Domain**: Command/Query handlers in `app/Features/` contain all business logic
-- **Responder**: Controllers format handler results into HTTP responses (Blade views, JSON, redirects)
+- **Action**: Thin, invokable controllers validate input and call Messages
+- **Domain**: Message classes in `app/Messages/` contain business logic and expose a `handle()` method
+- **Responder**: Controllers format Message results into HTTP responses (Inertia pages, Blade views, JSON, redirects)
 
 This separation ensures business logic is reusable and testable independent of HTTP concerns.
 
-### MagicBus Command/Query Separation
+### Hyperdrive Message Architecture
 
-MagicBus is a convention-based dispatcher that routes messages to handlers automatically:
+Hyperdrive is the target dispatch layer. A Message combines the input contract and domain operation in one class:
 
-- **Commands**: Write operations that change state (create, update, delete)
-- **Queries**: Read operations that fetch data without side effects
-- **Handlers**: Auto-resolved by convention (`CreateEventCommand` → `CreateEventCommandHandler`)
-- **Dispatching**: Controllers, Jobs, Console Commands dispatch through `MagicBus::send()`
+- **Commands**: Messages that change state (create, update, delete)
+- **Queries**: Messages that read data without side effects
+- **Page data**: Messages that aggregate data for a specific page
+- **Dispatching**: Controllers, Jobs, Console Commands, and other Messages call `Message::call()`
+- **Hydration**: Hyperdrive resolves typed constructor arguments from validated request data, route parameters, the authenticated actor, and explicit arguments
+
+See [`tracker-app/packages/hyperdrive/README.md`](../tracker-app/packages/hyperdrive/README.md) for dispatcher behavior and parameter precedence.
+
+### Legacy MagicBus Architecture
+
+Some workflows still use the legacy `app/Features/` layout, where a command or query is paired with a convention-based handler and dispatched through MagicBus. This code remains supported during migration but is not the pattern for new work. New domain operations should use a Message in `app/Messages/` unless the workflow is intentionally being left unchanged until its migration is scheduled.
 
 **Key Benefits:**
 - Convention over configuration (no manual routing)
-- Single responsibility (each handler does one thing)
-- Dependency injection (handlers resolved through Laravel's container)
-- Testability (handlers can be unit tested in isolation)
-- Reusability (handlers callable from any entry point)
+- Single responsibility (each Message does one thing)
+- Dependency injection (Message constructors and `handle()` methods use Laravel's container)
+- Testability (Messages can be tested in isolation or through an HTTP entry point)
+- Reusability (Messages can be called from any entry point)
 
 ---
 
 ## Domain Organization
 
-Business logic is organized by feature under `app/Features/`:
+Business logic is organized by domain under `app/Messages/`:
 
 | Domain | Purpose | Contains |
 |--------|---------|----------|
-| `Events/` | Event and shift management | Commands + Queries |
-| `Troopers/` | Trooper profiles, membership, achievements | Commands + Queries |
+| `Events/` | Event and shift management | Commands + Queries + Page data |
+| `Troopers/` | Trooper profiles, membership, achievements | Commands + Queries + Page data |
 | `Organizations/` | Organization hierarchy and management | Commands + Queries |
 | `Reports/` | Reporting and analytics | Queries only |
 | `Notices/` | Notice creation and tracking | Commands + Queries |
 | `Changes/` | Audit trail and change history | Queries only |
 
-Each feature directory contains:
-- `Commands/` - Write operations (e.g., `CreateEventCommand.php`, `CreateEventCommandHandler.php`)
-- `Queries/` - Read operations (e.g., `GetEventsByOrganizationQuery.php`, `GetEventsByOrganizationQueryHandler.php`)
+Each domain directory contains Messages grouped by intent:
+- `Commands/` - Write operations (e.g., `CreateEvent.php`)
+- `Queries/` - Read operations (e.g., `GetEventsByOrganization.php`)
+- `PageData/` - Aggregated data for a specific page (where needed)
+
+Legacy domains may still have parallel implementations under `app/Features/`. Do not add new Feature handlers for migrated work.
 
 ---
 
@@ -131,24 +141,25 @@ Feature-organized validation rules in `app/Rules/`:
 
 ## Frontend Architecture
 
-### Server-Rendered Views
+### Target: Inertia and Svelte
+
+New interactive screens use Inertia and Svelte 5. Page components live under `resources/svelte/pages/`, while reusable domain and view-model code lives under `resources/svelte/lib/`. Controllers return Inertia responses or page data for the Svelte page.
+
+Svelte components should focus on presentation and delegate page state and workflow logic to small view models or domain modules. The auth pages and their view models are the reference implementation.
+
+### Legacy Server-Rendered Views
 
 **Blade Templates** (`resources/views/`)
 - Server-rendered views with component-based structure
 - Layouts, components, partials for reusability
 - Data passed from controllers/handlers
 
-### Progressive Enhancement
+### Legacy Progressive Enhancement
 
-**HTMX 2.x**
-- Dynamic UI updates without full page reloads
-- Out-of-band swaps for multiple page regions
-- Event-driven interactions (signup, cancellation, shift selection)
-
-**Alpine 3.x**
-- Client-side reactivity for interactive components
-- Form validation and dynamic behavior
-- State management for complex UI interactions
+**HTMX 2.x and Alpine 3.x**
+- Continue to support screens that have not yet migrated
+- Do not introduce new HTMX workflows when a screen is being rebuilt in Svelte
+- Migrate one workflow at a time while preserving behavior and authorization boundaries
 
 **Bootstrap 5.2x**
 - UI framework with custom Imperial styling
@@ -162,13 +173,13 @@ Feature-organized validation rules in `app/Rules/`:
 ### Queue System
 
 **Jobs** (`app/Jobs/`)
-- Queue jobs orchestrate handlers via MagicBus
+- Queue jobs orchestrate Messages
 - Implements `ShouldQueue` for asynchronous processing
 - Handle notifications, event processing, background tasks
 - Example: `SendEventCreatedNotificationsJob`
 
 **Artisan Commands** (`app/Console/Commands/`)
-- Console commands orchestrate handlers via MagicBus
+- Console commands orchestrate Messages
 - Scheduled tasks for maintenance and notifications
 - Example: `SendDailyEventNotifications`
 
@@ -177,27 +188,27 @@ Feature-organized validation rules in `app/Rules/`:
 - Worker processes via `php artisan queue:work`
 - Job retries and failure handling
 
-### Handler Modifiers
+### Message Execution Modifiers
 
-Handlers can use traits to modify execution behavior:
+Messages can use traits to modify execution behavior:
 
 **Transactional Execution:**
 ```php
-use App\Bus\Concerns\ShouldBeTransactional;
+use Hyperdrive\Concerns\ShouldBeTransactional;
 
-readonly class CreateEventCommandHandler implements CommandHandlerInterface
+final class CreateEvent extends Message
 {
-    use ShouldBeTransactional;  // Wraps execution in DB transaction
+    use ShouldBeTransactional;
 }
 ```
 
 **Deferred Execution:**
 ```php
-use App\Bus\Concerns\ShouldRunAfterResponse;
+use Hyperdrive\Concerns\ShouldRunAfterResponse;
 
-readonly class SendNotificationCommandHandler implements CommandHandlerInterface
+final class SendNotification extends Message
 {
-    use ShouldRunAfterResponse;  // Runs after HTTP response sent
+    use ShouldRunAfterResponse;
 }
 ```
 
@@ -210,9 +221,10 @@ readonly class SendNotificationCommandHandler implements CommandHandlerInterface
 | Component | Test Type | Why |
 |-----------|-----------|-----|
 | Controllers | Feature | Full HTTP request/response cycle |
+| Messages | Unit/Feature | Message behavior in isolation or through its HTTP entry point |
 | Jobs | Feature | Queue-specific concerns + orchestration |
-| Commands | Feature | Argument parsing + console output |
-| Handlers | Unit | Fast, isolated business logic tests |
+| Console Commands | Feature | Argument parsing + orchestration |
+| Legacy handlers | Unit | Fast, isolated coverage while a workflow remains on MagicBus |
 | Policies | Unit | Authorization logic in isolation |
 | Rules | Unit | Validation logic in isolation |
 

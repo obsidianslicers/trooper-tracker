@@ -281,7 +281,8 @@ class RegisterRequest extends FormRequest
 
     private function getOrganizations(): Collection
     {
-        $getter = function (): Collection {
+        $getter = function (): Collection
+        {
             return Organization::fullyLoaded()->get();
         };
 

@@ -5,6 +5,25 @@ declare(strict_types=1);
 namespace App\Enums;
 
 /**
+ * ENHANCEMENT NOTE - achievement types for trooping by club
+ * | Milestone | 501st Legion | Rebel Legion | Mandalorian Mercs | Galactic Academy | Saber Guild | Droid Builders |
+ * | --- | --- | --- | --- | --- | --- | --- |
+ * | **[FIRST_TROOP]** | Combat Readiness Citation | Vanguard Initiation Ribbon | Verd’goten Trial Mark | Cadet First Mission Badge | Initiate Saber Path Ribbon | Builder’s First Assembly Badge |
+ * | **[TROOPED_10]** | Frontier Service Ribbon | Outer Rim Relief Medal | Clan Patrol Honor | Junior Service Star | Temple Apprentice Service Mark | Circuitry Competency Token |
+ * | **[TROOPED_25]** | Garrison Duty Excellence Medal | Alliance Commitment Medal | Resol’nare Duty Crest | Senior Cadet Achievement Medal | Saber Form Advancement Medal | Droid Systems Achievement Crest |
+ * | **[TROOPED_50]** | Imperial Medal of Valor | Freedom Guardian Medal | Iron Warrior Citation | Academy Merit of Distinction | Knight’s Valor Citation | Master Fabricator’s Citation |
+ * | **[TROOPED_75]** | Distinguished Service Cross | Hopebringer Service Cross | Veteran Hunter’s Mark | Advanced Cadet Honor | Temple Guardian Service Cross | Veteran Builder’s Mark |
+ * | **[TROOPED_100]** | Centurion Legionary Bar | Alliance Heroism Bar | Centurion Clan Crest | Master Cadet Recognition Bar | Saber Mastery Bar | Droid Architect Recognition Bar |
+ * | **[TROOPED_150]** | Campaign Heroism Star | Starfighter Support Star | Champion of the Resol’nare | Academy Leadership Star | Order of the Crystal Star | Engineering Excellence Star |
+ * | **[TROOPED_200]** | Order of the Imperial Wing | Order of the Twin Suns | Mand’alor’s Wing of Honor | Distinguished Academy Order | Order of the Temple Wing | Master Technician’s Wing |
+ * | **[TROOPED_250]** | High Command Merit Badge | High Council Merit Badge | Clan Council Honor Badge | Academy Excellence Crest | High Council Saber Merit | Droid Council Merit Badge |
+ * | **[TROOPED_300]** | Grand Admiral’s Citation | General’s Valor Citation | Alor’ad Elite Citation | Grand Scholar’s Citation | Grand Temple Citation | Grand Engineer’s Citation |
+ * | **[TROOPED_400]** | Medal of the Emperor’s Will | Medal of the Republic’s Resolve | Mythosaur Honor Medal | Galactic Achievement Medal | Crystal Focus Honor Medal | Droid Innovation Medal |
+ * | **[TROOPED_500]** | Honor of the Galactic Empire | Honor of the Rebellion | Mandalorian Honor of Legends | Academy Grand Honor | Honor of the Saber Order | Honor of the Droid Forge |
+ * | **[TROOPED_501]** | Vader’s Fist – Legion of Honor | Leia’s Vanguard – Legion of Honor | Mand’alor’s Fist – Clan Honor | Yoda’s Legacy – Academy Honor | Skywalker’s Legacy – Temple Honor | R2‑Legacy – Master Builder |
+ */
+
+/**
  * Trooper achievement types and milestones.
  *
  * Defines the various achievement categories tracked in the tt_trooper_achievements table,

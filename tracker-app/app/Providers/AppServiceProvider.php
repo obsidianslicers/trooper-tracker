@@ -32,6 +32,7 @@ use InvalidArgumentException;
 use Kreait\Firebase\Contract\Messaging;
 use Laravel\Socialite\Facades\Socialite;
 use Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport;
+use Throwable;
 use ValueError;
 
 class AppServiceProvider extends ServiceProvider
@@ -43,16 +44,18 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->scoped(BreadCrumbService::class, function (): BreadCrumbService {
+        $this->app->scoped(BreadCrumbService::class, function (): BreadCrumbService
+        {
             return new BreadCrumbService;
         });
 
-        $this->app->bind(FcmChannel::class, function (Application $app): FcmChannel {
+        $this->app->bind(FcmChannel::class, function (Application $app): FcmChannel
+        {
             try
             {
                 $messaging = $app->make(Messaging::class);
             }
-            catch (\Throwable)
+            catch (Throwable)
             {
                 $messaging = null;
             }
@@ -79,12 +82,24 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(TrooperRequest::class, TrooperRequestPolicy::class);
 
         //
+        //  Get all configured database connection keys (sqlite, mysql, pgsql, etc.)
+        //  Disable savepoints globally across all database connections
+        $connections = array_keys(config('database.connections', []));
+
+        // Disable savepoints globally across every connection
+        foreach ($connections as $connection)
+        {
+            config(["database.connections.{$connection}.use_savepoints" => false]);
+        }
+
+        //
         //  SMTP PING THRESHOLD
         //  Force the transport to test the connection with NOOP before sending if
         //  more than 10 seconds have elapsed since the last message, preventing
         //  "451 4.4.2 Timeout" failures on idle connections in long-running workers.
         //
-        $this->app->afterResolving('mail.manager', function (MailManager $manager): void {
+        $this->app->afterResolving('mail.manager', function (MailManager $manager): void
+        {
             $mailer = $manager->mailer();
             $transport = $mailer->getSymfonyTransport();
             if ($transport instanceof EsmtpTransport)
@@ -95,7 +110,8 @@ class AppServiceProvider extends ServiceProvider
 
         Paginator::useBootstrapFive();
 
-        VerifyEmail::toMailUsing(function (object $notifiable, string $url): VerifyTrooperEmail {
+        VerifyEmail::toMailUsing(function (object $notifiable, string $url): VerifyTrooperEmail
+        {
             return (new VerifyTrooperEmail($url))
                 ->to($notifiable->email);
         });
@@ -103,14 +119,16 @@ class AppServiceProvider extends ServiceProvider
         //
         //  HTMX REQUEST MACRO
         //
-        Request::macro('isHtmx', function (): bool {
+        Request::macro('isHtmx', function (): bool
+        {
             return $this->headers->has('HX-Request');
         });
 
         //
         //  SOCIALITE CUSTOM PROVIDERS
         //
-        Socialite::extend(OauthProvider::XENFORO->value, function (Application $app): XenforoProvider {
+        Socialite::extend(OauthProvider::XENFORO->value, function (Application $app): XenforoProvider
+        {
             $config = $app['config']['services.xenforo'];
 
             return Socialite::buildProvider(XenforoProvider::class, $config);
@@ -119,7 +137,8 @@ class AppServiceProvider extends ServiceProvider
         //
         //  MIGRATION
         //
-        $this->app->extend(MigrationRepositoryInterface::class, function (MigrationRepositoryInterface $repository, Application $app): MigrationRepositoryInterface {
+        $this->app->extend(MigrationRepositoryInterface::class, function (MigrationRepositoryInterface $repository, Application $app): MigrationRepositoryInterface
+        {
             return new DatabaseMigrationRepository(
                 $app['db'],
                 'tt_migrations'
@@ -129,7 +148,8 @@ class AppServiceProvider extends ServiceProvider
         //
         //  DATABASE MIGRATION MACRO
         //
-        Blueprint::macro('trooperstamps', function (): void {
+        Blueprint::macro('trooperstamps', function (): void
+        {
             $this->unsignedBigInteger('created_id')->nullable();
             $this->unsignedBigInteger('updated_id')->nullable();
             $this->unsignedBigInteger('deleted_id')->nullable();
@@ -143,7 +163,8 @@ class AppServiceProvider extends ServiceProvider
         //
         //  BLADE BOOTS
         //
-        Blade::if('role', function (MembershipRole|string|array $roles): bool {
+        Blade::if('role', function (MembershipRole|string|array $roles): bool
+        {
             if (!Auth::check())
             {
                 return false;
@@ -162,7 +183,8 @@ class AppServiceProvider extends ServiceProvider
                 $roles = array_map('trim', explode(',', $roles));
             }
 
-            $normalized = collect($roles)->map(function (MembershipRole|string $role): MembershipRole {
+            $normalized = collect($roles)->map(function (MembershipRole|string $role): MembershipRole
+            {
                 if ($role instanceof MembershipRole)
                 {
                     return $role;

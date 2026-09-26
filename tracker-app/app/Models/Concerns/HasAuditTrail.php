@@ -38,7 +38,8 @@ trait HasAuditTrail
      */
     public static function bootHasAuditTrail(): void
     {
-        static::updating(function ($model) {
+        static::updating(function ($model)
+        {
             $audits = $model->audits();
 
             if (!empty($audits))

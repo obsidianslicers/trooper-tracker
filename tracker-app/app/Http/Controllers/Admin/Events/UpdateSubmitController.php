@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Events;
 
 use App\Enums\EventStatus;
+use App\Enums\FlashType;
 use App\Features\Events\Commands\UpdateEventCommand;
 use App\Features\Events\Commands\UpdateEventOrganizationsCommand;
 use App\Http\Controllers\MagicBusController;
@@ -57,7 +58,8 @@ class UpdateSubmitController extends MagicBusController
                     || $updated_status == EventStatus::MANUAL_SELECTION
                     || $updated_status == EventStatus::SIGN_UP_LOCKED
                 ) {
-                    $update_shift_status = function () use ($event, $updated_status) {
+                    $update_shift_status = function () use ($event, $updated_status)
+                    {
                         foreach ($event->event_shifts as $shift)
                         {
                             $shift->status = $updated_status;
@@ -75,7 +77,7 @@ class UpdateSubmitController extends MagicBusController
             }
         }
 
-        $this->flash->updated($event);
+        FlashType::updated($event);
 
         return redirect()->route('admin.events.update', compact('event'));
     }

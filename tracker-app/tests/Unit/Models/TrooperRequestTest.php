@@ -26,7 +26,7 @@ class TrooperRequestTest extends TestCase
     {
         $subject = new TrooperRequest();
 
-        $result = $subject->primaryOrganization();
+        $result = $subject->primary_organization();
 
         $this->assertInstanceOf(BelongsTo::class, $result);
         $this->assertSame(TrooperRequest::PRIMARY_ORGANIZATION_ID, $result->getForeignKeyName());

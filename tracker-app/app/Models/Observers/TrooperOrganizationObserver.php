@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Models\Observers;
 
 use App\Enums\MembershipStatus;
-use App\Features\Troopers\Support\OrganizationIdentifierAvailability;
+use App\Messages\Troopers\Queries\Membership\AssertOrganizationIdentifierAvailable;
 use App\Models\Organization;
 use App\Models\TrooperOrganization;
 use Exception;
@@ -92,10 +92,10 @@ class TrooperOrganizationObserver
             throw new Exception('Trooper can only be a member at top-level organizations.');
         }
 
-        app(OrganizationIdentifierAvailability::class)->ensureAvailable(
-            $primary_club,
-            $trooper_organization->identifier,
-            $trooper_organization->trooper_id,
+        AssertOrganizationIdentifierAvailable::call(
+            primary_organization: $primary_club,
+            identifier: $trooper_organization->identifier,
+            ignore_trooper_id: $trooper_organization->trooper_id,
             ignore_trooper_organization_id: $trooper_organization->id
         );
     }

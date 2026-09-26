@@ -38,7 +38,8 @@ class SynchronizeOrganizations extends Command
      */
     public function handle(): void
     {
-        $ms = Benchmark::measure(function () {
+        $ms = Benchmark::measure(function ()
+        {
             $organizations = Organization::ofTypeOrganizations()
                 ->whereNotNull(Organization::SERVICE_CLASS)
                 ->orderByDesc(Organization::NAME)

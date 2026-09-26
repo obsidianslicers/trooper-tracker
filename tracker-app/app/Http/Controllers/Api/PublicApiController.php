@@ -136,7 +136,8 @@ class PublicApiController
             return $this->rosterResponse(collect(), collect());
         }
 
-        $html = Cache::remember("tracker:roster:{$org->id}", 86400, function () use ($org) {
+        $html = Cache::remember("tracker:roster:{$org->id}", 86400, function () use ($org)
+        {
             $org_ids = Organization::where(Organization::NODE_PATH, 'like', $org->node_path.'%')
                 ->pluck(Organization::ID);
 

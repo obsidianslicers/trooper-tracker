@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Events;
 
+use App\Enums\FlashType;
 use App\Facades\TroopTrackerFacade;
 use App\Http\Controllers\MagicBusController;
 use App\Models\Event;
@@ -46,7 +47,7 @@ class UpdateController extends MagicBusController
         {
             $msg = 'This event is currently in Draft status and not visible to troopers.';
 
-            $this->flash->warning($msg);
+            FlashType::warning($msg);
         }
 
         $organizations = Organization::ofTypeOrganizations()->orderBy(Organization::NAME)->get();

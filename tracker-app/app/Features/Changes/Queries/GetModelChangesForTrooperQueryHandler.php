@@ -38,13 +38,15 @@ readonly class GetModelChangesForTrooperQueryHandler implements QueryHandlerInte
     {
         $lookback = $message->parseLookback();
 
-        $trooper_filter = function ($q) use ($message) {
+        $trooper_filter = function ($q) use ($message)
+        {
             // Direct changes to the Trooper model
             $q->where(ModelChange::AUDITABLE_TYPE, Trooper::class)
                 ->where(ModelChange::AUDITABLE_ID, $message->trooper->id);
         };
 
-        $event_trooper_filter = function ($q) use ($message) {
+        $event_trooper_filter = function ($q) use ($message)
+        {
             // Changes to EventTrooper rows that belong to this Trooper
             $q->where(ModelChange::AUDITABLE_TYPE, EventTrooper::class)
                 ->whereIn(ModelChange::AUDITABLE_ID, EventTrooper::query()

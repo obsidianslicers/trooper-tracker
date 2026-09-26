@@ -25,7 +25,8 @@ class DeleteSectionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            function (Validator $validator): void {
+            function (Validator $validator): void
+            {
                 $section = $this->route('section');
 
                 if ($section->faqs()->exists())

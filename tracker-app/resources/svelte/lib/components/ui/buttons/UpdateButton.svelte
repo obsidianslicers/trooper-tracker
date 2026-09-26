@@ -8,19 +8,21 @@
         outline?: boolean | null;
         small?: boolean | null;
         disabled?: boolean | null;
+        icon?: string | null;
         click?: (() => void) | null;
     }
     let {
         href = null,
-        label = "Update",
-        submitting = false,
+        click = null,
         outline = true,
         small = false,
+        submitting = false,
         disabled = false,
-        click = null,
+        icon = "fa-edit",
+        label = "Update",
     }: Props = $props();
 
-    let buttonClass = $derived(() => {
+    let button_classes = $derived(() => {
         let classes = outline ? "btn-outline-warning" : "btn-warning";
         if (small) {
             classes += " btn-sm";
@@ -30,8 +32,8 @@
 </script>
 
 <Button
-    btnclass={buttonClass()}
-    icon={submitting ? "fa-solid fa-spinner fa-spin" : "fa-edit"}
+    btnclass={button_classes()}
+    icon={submitting ? "fa-solid fa-spinner fa-spin" : icon}
     disabled={submitting || disabled}
     {href}
     {click}

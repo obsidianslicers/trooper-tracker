@@ -273,10 +273,12 @@ class SimulateShiftCompleteCommand extends Command
     {
         $costume = Costume::query()
             ->whereNotIn(Costume::NAME, [Costume::HANDLER, Costume::COMMAND_STAFF])
-            ->where(function ($query) use ($trooper, $credit_orgs) {
+            ->where(function ($query) use ($trooper, $credit_orgs)
+            {
                 foreach ($credit_orgs as $org)
                 {
-                    $query->whereHas('organization_costumes', function ($query) use ($trooper, $org) {
+                    $query->whereHas('organization_costumes', function ($query) use ($trooper, $org)
+                    {
                         $query->where(OrganizationCostume::ORGANIZATION_ID, $org->id)
                             ->whereHas('trooper_costumes', fn ($query) => $query->where(TrooperCostume::TROOPER_ID, $trooper->id));
                     });

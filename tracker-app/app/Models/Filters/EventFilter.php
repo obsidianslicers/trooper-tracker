@@ -78,7 +78,8 @@ class EventFilter extends QueryFilter
      */
     protected function costume(Builder $query, $organization_id): Builder
     {
-        return $query->whereHas('organizations', function ($query) use ($organization_id) {
+        return $query->whereHas('organizations', function ($query) use ($organization_id)
+        {
             $query->where(EventOrganization::CAN_ATTEND, true)
                 ->where(EventOrganization::ORGANIZATION_ID, $organization_id);
         });

@@ -37,11 +37,13 @@ readonly class GetCostumeTrooperLeaderboardQueryHandler implements QueryHandlerI
     {
         $query = EventTrooper::where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED)
             ->where(EventTrooper::COSTUME_ID, $message->costume->id)
-            ->whereHas('event_shift.event', function ($q) use ($date) {
+            ->whereHas('event_shift.event', function ($q) use ($date)
+            {
                 $q->where(Event::STATUS, EventStatus::CLOSED)
                     ->when($date, fn ($q) => $q->where(Event::EVENT_START, '>=', $date));
             })
-            ->whereHas('trooper', function ($q) {
+            ->whereHas('trooper', function ($q)
+            {
                 $q->where(Trooper::MEMBERSHIP_STATUS, MembershipStatus::ACTIVE);
             })
             ->select(EventTrooper::TROOPER_ID, DB::raw('COUNT(*) as troop_count'))
@@ -60,7 +62,8 @@ readonly class GetCostumeTrooperLeaderboardQueryHandler implements QueryHandlerI
     {
         $stats = EventTrooper::where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED)
             ->where(EventTrooper::COSTUME_ID, $message->costume->id)
-            ->whereHas('event_shift.event', function ($q) use ($date) {
+            ->whereHas('event_shift.event', function ($q) use ($date)
+            {
                 $q->where(Event::STATUS, EventStatus::CLOSED)
                     ->when($date, fn ($q) => $q->where(Event::EVENT_START, '>=', $date));
             })

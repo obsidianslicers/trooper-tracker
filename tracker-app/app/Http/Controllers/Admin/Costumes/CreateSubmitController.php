@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Costumes;
 
+use App\Enums\FlashType;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Costumes\CreateRequest;
 use App\Models\Costume;
@@ -26,7 +27,7 @@ class CreateSubmitController extends MagicBusController
 
         $costume->save();
 
-        $this->flash->created($costume);
+        FlashType::created($costume);
 
         return redirect()->route('admin.costumes.update', compact('costume'));
     }

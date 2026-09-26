@@ -34,7 +34,8 @@ readonly class AttachTrooperCostumeCommandHandler implements CommandHandlerInter
         //  all organizations the trooper belongs to
         $organization_costumes = OrganizationCostume::query()
             ->whereIn(OrganizationCostume::ID, $message->organization_ids)
-            ->whereHas('organization', function ($query) use ($message) {
+            ->whereHas('organization', function ($query) use ($message)
+            {
                 $query->withActiveTroopers($message->trooper->id);
             })
             ->get();

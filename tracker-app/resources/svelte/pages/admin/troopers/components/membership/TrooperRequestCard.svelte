@@ -1,0 +1,56 @@
+<script lang="ts">
+    import type { TrooperRequest } from "../../models/vms";
+    import { PendingTrooperRequestViewModel } from "../../models/vms";
+    import MembershipLookup from "./MembershipLookup.svelte";
+    import TrooperRequestCardFooter from "./TrooperRequestCardFooter.svelte";
+
+    interface Props {
+        request: TrooperRequest;
+    }
+
+    let { request }: Props = $props();
+
+    let vm = new PendingTrooperRequestViewModel(request);
+</script>
+
+<div class="card h-100">
+    <div class="card-header text-uppercase d-flex justify-content-between">
+        {vm.request.trooper.legal_name}
+        <span class="badge bg-secondary ms-2">
+            {vm.request.primary_organization.name}
+        </span>
+    </div>
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-4">Legal Name:</dt>
+            <dd class="col-8">{vm.request.trooper.legal_name}</dd>
+            <dt class="col-4">Display Name:</dt>
+            <dd class="col-8">{vm.request.trooper.display_name}</dd>
+            <dt class="col-4">Email:</dt>
+            <dd class="col-8">{vm.request.trooper.email}</dd>
+            <dt class="col-4">Phone:</dt>
+            <dd class="col-8">{vm.request.trooper.phone ?? "n/a"}</dd>
+            <dt class="col-4">Primary Organization:</dt>
+            <dd class="col-8">{vm.request.primary_organization.name}</dd>
+            {#if vm.request.organization.id !== vm.request.primary_organization.id}
+                <dt class="col-4">Requested Unit:</dt>
+                <dd class="col-8">
+                    {#if vm.request.organization.parent_name}
+                        {vm.request.organization.parent_name} —
+                    {/if}
+                    {vm.request.organization.name}
+                </dd>
+            {/if}
+            {#if vm.request.identifier}
+                <dt class="col-4">Identifier:</dt>
+                <dd class="col-8">{vm.request.identifier}</dd>
+            {/if}
+            {#if vm.request.denial_reason}
+                <dt class="col-4">Denial Reason:</dt>
+                <dd class="col-8">{vm.request.denial_reason}</dd>
+            {/if}
+        </dl>
+        <MembershipLookup trooper_request_id={vm.request.id} />
+    </div>
+    <TrooperRequestCardFooter {vm} />
+</div>

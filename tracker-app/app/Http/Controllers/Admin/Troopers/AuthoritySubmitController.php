@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Troopers;
 
+use App\Enums\FlashType;
 use App\Features\Troopers\Commands\UpdateTrooperAuthorityCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Admin\Troopers\AuthorityRequest;
@@ -38,7 +39,7 @@ class AuthoritySubmitController extends MagicBusController
 
         $this->bus->send($authority_cmd);
 
-        $this->flash->updated($trooper);
+        FlashType::updated($trooper);
 
         return redirect()->route('admin.troopers.list');
     }

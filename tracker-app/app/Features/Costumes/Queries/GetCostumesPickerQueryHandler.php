@@ -36,7 +36,8 @@ readonly class GetCostumesPickerQueryHandler implements QueryHandlerInterface
             'organization_costumes.organization:'.Organization::ID.','.Organization::NAME,
         ];
 
-        $with['organization_costumes'] = function ($query) use ($message) {
+        $with['organization_costumes'] = function ($query) use ($message)
+        {
             $query->whereHas('organization', fn ($q) => $q->whereIn(Organization::ID, $message->organization_ids));
         };
 

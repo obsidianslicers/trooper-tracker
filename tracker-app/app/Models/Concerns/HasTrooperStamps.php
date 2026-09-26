@@ -26,7 +26,8 @@ trait HasTrooperStamps
      */
     public static function bootHasTrooperStamps(): void
     {
-        static::creating(function ($model) {
+        static::creating(function ($model)
+        {
             if (Auth::check())
             {
                 $model->created_id = Auth::id();
@@ -34,7 +35,8 @@ trait HasTrooperStamps
             }
         });
 
-        static::updating(function ($model) {
+        static::updating(function ($model)
+        {
             if (Auth::check())
             {
                 $model->updated_id = Auth::id();
@@ -47,12 +49,14 @@ trait HasTrooperStamps
 
         if (static::usingSoftDeletes())
         {
-            static::restoring(function ($model) {
+            static::restoring(function ($model)
+            {
                 $model->deleted_id = null;
             });
         }
 
-        static::deleting(function ($model) {
+        static::deleting(function ($model)
+        {
             if (static::usingSoftDeletes())
             {
                 if (Auth::check())

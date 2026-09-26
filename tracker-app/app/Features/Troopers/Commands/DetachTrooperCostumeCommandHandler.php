@@ -27,7 +27,8 @@ readonly class DetachTrooperCostumeCommandHandler implements CommandHandlerInter
     public function __invoke(object $message): mixed
     {
         $trooper_costumes = $message->trooper->trooper_costumes()
-            ->whereHas('organization_costume', function ($query) use ($message) {
+            ->whereHas('organization_costume', function ($query) use ($message)
+            {
                 $query->where(OrganizationCostume::COSTUME_ID, $message->costume_id);
             })
             ->get();

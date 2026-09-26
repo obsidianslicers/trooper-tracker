@@ -26,10 +26,12 @@ class SynchronizeXenforoUsers extends Command
         $chunk_size = (int) $this->option('chunk');
         $chunk_size = $chunk_size > 0 ? $chunk_size : 100;
 
-        $ms = Benchmark::measure(function () use ($chunk_size) {
+        $ms = Benchmark::measure(function () use ($chunk_size)
+        {
             Trooper::query()
                 ->orderBy(Trooper::ID)
-                ->chunk($chunk_size, function ($troopers) {
+                ->chunk($chunk_size, function ($troopers)
+                {
                     foreach ($troopers as $trooper)
                     {
                         $this->bus->send(new SyncXenforoUserCommand($trooper));

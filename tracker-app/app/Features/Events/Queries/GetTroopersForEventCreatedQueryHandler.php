@@ -40,7 +40,8 @@ readonly class GetTroopersForEventCreatedQueryHandler implements QueryHandlerInt
 
         return Trooper::active()
             ->where(Trooper::NOTIFICATION_FREQUENCY, '!=', NotificationFrequency::NEVER)
-            ->whereHas('trooper_assignments', function ($q) use ($organization_id) {
+            ->whereHas('trooper_assignments', function ($q) use ($organization_id)
+            {
                 $q->where(TrooperAssignment::SHOULD_NOTIFY, true)
                     ->where(TrooperAssignment::ORGANIZATION_ID, $organization_id);
             })
