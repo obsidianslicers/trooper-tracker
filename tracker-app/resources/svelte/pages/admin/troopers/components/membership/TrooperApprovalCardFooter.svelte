@@ -29,7 +29,7 @@
                         <InputText
                             label="Denial Reason (optional)"
                             multiline={true}
-                            value={vm.denial_reason}
+                            bind:value={vm.denial_reason}
                         />
                     </InputContainer>
                     <SubmitButtonContainer>
