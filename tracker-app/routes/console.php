@@ -11,7 +11,7 @@ use App\Console\Commands\SendDailyMilestoneNotifications;
 use App\Console\Commands\SynchronizeOrganizations;
 use App\Console\Commands\SynchronizeXenforoUsers;
 use App\Console\Commands\RemindClosedEventShiftsCommand;
-use App\Console\Commands\SendTentativeRemindersCommand;
+use App\Console\Commands\SendTentativeReminders;
 use App\Console\Commands\ProcessAccountDeletionsCommand;
 use Illuminate\Support\Facades\Schedule;
 
@@ -58,7 +58,7 @@ Schedule::command(RemindClosedEventShiftsCommand::class)
     ->dailyAt('09:00')
     ->timezone($timezone);
 
-Schedule::command(SendTentativeRemindersCommand::class)
+Schedule::command(SendTentativeReminders::class)
     ->dailyAt('08:00')
     ->timezone($timezone);
 
