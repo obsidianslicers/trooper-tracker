@@ -6,13 +6,13 @@ use App\Console\Commands\CloseEventsCommand;
 use App\Console\Commands\CloseEventShiftsCommand;
 use App\Console\Commands\DispatchQueueHeartbeatCommand;
 use App\Console\Commands\ExpireVisitorAccessCommand;
+use App\Console\Commands\ProcessAccountDeletionsCommand;
+use App\Console\Commands\RemindClosedEventShiftsCommand;
 use App\Console\Commands\SendDailyEventNotifications;
 use App\Console\Commands\SendDailyMilestoneNotifications;
+use App\Console\Commands\SendTentativeReminders;
 use App\Console\Commands\SynchronizeOrganizations;
 use App\Console\Commands\SynchronizeXenforoUsers;
-use App\Console\Commands\RemindClosedEventShiftsCommand;
-use App\Console\Commands\SendTentativeReminders;
-use App\Console\Commands\ProcessAccountDeletionsCommand;
 use Illuminate\Support\Facades\Schedule;
 
 $timezone = config('tracker.calendar.timezone');

@@ -3,16 +3,16 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Admin\Faq\CreateItemController;
-use App\Http\Controllers\Admin\Faq\IndexController;
 use App\Http\Controllers\Admin\Faq\CreateItemSubmitController;
-use App\Http\Controllers\Admin\Faq\DeleteItemSubmitController;
-use App\Http\Controllers\Admin\Faq\ReorderItemsSubmitController;
-use App\Http\Controllers\Admin\Faq\UpdateItemController;
-use App\Http\Controllers\Admin\Faq\UpdateItemSubmitController;
 use App\Http\Controllers\Admin\Faq\CreateSectionController;
 use App\Http\Controllers\Admin\Faq\CreateSectionSubmitController;
+use App\Http\Controllers\Admin\Faq\DeleteItemSubmitController;
 use App\Http\Controllers\Admin\Faq\DeleteSectionSubmitController;
+use App\Http\Controllers\Admin\Faq\IndexController;
+use App\Http\Controllers\Admin\Faq\ReorderItemsSubmitController;
 use App\Http\Controllers\Admin\Faq\ReorderSectionsSubmitController;
+use App\Http\Controllers\Admin\Faq\UpdateItemController;
+use App\Http\Controllers\Admin\Faq\UpdateItemSubmitController;
 use App\Http\Controllers\Admin\Faq\UpdateSectionController;
 use App\Http\Controllers\Admin\Faq\UpdateSectionSubmitController;
 use Illuminate\Support\Facades\Route;

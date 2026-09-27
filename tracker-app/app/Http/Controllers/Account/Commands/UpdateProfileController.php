@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Account;
+namespace App\Http\Controllers\Account\Commands;
 
 use App\Enums\FlashType;
 use App\Enums\TrooperTheme;

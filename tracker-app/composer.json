@@ -79,7 +79,8 @@
             "pint app/Services",
             "pint packages/hyperdrive/src",
             "pint packages/fabricator/src",
-            "pint packages/chaincode/src"
+            "pint packages/chaincode/src",
+            "pint routes"
         ],
         "pint:test": "@pint:format --test",
         "db:migrate-all": [

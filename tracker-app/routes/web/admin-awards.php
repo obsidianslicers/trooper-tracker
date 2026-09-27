@@ -8,9 +8,9 @@ use App\Http\Controllers\Admin\Awards\CreateController;
 use App\Http\Controllers\Admin\Awards\CreateSubmitController;
 use App\Http\Controllers\Admin\Awards\ListController;
 use App\Http\Controllers\Admin\Awards\ListTroopersController;
+use App\Http\Controllers\Admin\Awards\RemoveTrooperController;
 use App\Http\Controllers\Admin\Awards\UpdateController;
 use App\Http\Controllers\Admin\Awards\UpdateSubmitController;
-use App\Http\Controllers\Admin\Awards\RemoveTrooperController;
 use Illuminate\Support\Facades\Route;
 
 //  ADMIN/NOTICES

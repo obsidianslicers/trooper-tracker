@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Account;
+namespace App\Http\Controllers\Account\Pages;
 
 use App\Http\Controllers\Controller;
 use App\Messages\Account\PageData\AccountPageData;

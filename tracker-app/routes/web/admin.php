@@ -10,7 +10,8 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('admin')
     ->name('admin.')
     ->middleware(['auth', 'check.role:moderator,administrator'])
-    ->group(function () {
+    ->group(function ()
+    {
         Route::get('/', AdminDisplayController::class)->name('display');
 
         Route::get('/system-check', SystemCheckController::class)
