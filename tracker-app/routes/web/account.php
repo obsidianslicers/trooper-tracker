@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Enums\OauthProvider;
-use App\Http\Controllers\Account\CancelDeletionController;
+use App\Http\Controllers\Account\Commands\CancelDeletionController;
 use App\Http\Controllers\Account\Commands\AddCostumeController;
 use App\Http\Controllers\Account\Commands\AddTrooperRequestController;
 use App\Http\Controllers\Account\Commands\RemoveCostumeController;
@@ -58,6 +58,7 @@ Route::prefix('account')
         Route::post('/remove/costumes', RemoveCostumeController::class)->name('remove-costume');
         Route::post('/add/trooper/request', AddTrooperRequestController::class)->name('add-trooper-request');
         Route::post('/request/deletion', RequestDeletionController::class)->name('request-deletion');
+        Route::delete('/cancel/deletion', CancelDeletionController::class)->name('cancel-deletion');
 
         Route::get('/notices', NoticesController::class)->name('notices');
         Route::post('/notices-htmx/{notice}', NoticesSubmitHtmxController::class)->name('notices-htmx');
@@ -72,8 +73,6 @@ Route::prefix('account')
 
         Route::get('/visitor-renew', VisitorRenewController::class)->name('visitor-renew');
         Route::post('/visitor-renew', VisitorRenewSubmitController::class)->name('visitor-renew-submit');
-
-        Route::delete('/cancel/deletion', CancelDeletionController::class)->name('cancel-deletion');
 
         // XenForo linking required page
         Route::get('/xenforo/required', function (): View
