@@ -17,6 +17,7 @@ use App\Http\Controllers\Account\DeniedResubmitController;
 use App\Http\Controllers\Account\NoticesController;
 use App\Http\Controllers\Account\NoticesSubmitHtmxController;
 use App\Http\Controllers\Account\Pages\IndexController;
+use App\Http\Controllers\Account\Pages\RenewVisitorController;
 use App\Http\Controllers\Account\PendingController;
 use App\Http\Controllers\Account\PushNotificationClearController;
 use App\Http\Controllers\Account\PushNotificationInboxController;
@@ -60,6 +61,11 @@ Route::prefix('account')
         Route::post('/request/deletion', RequestDeletionController::class)->name('request-deletion');
         Route::delete('/cancel/deletion', CancelDeletionController::class)->name('cancel-deletion');
 
+        Route::get('/visitor/renew', RenewVisitorController::class)->name('visitor-renew');
+        Route::post('/visitor/renew', VisitorRenewSubmitController::class)->name('visitor-renew-submit');
+
+
+
         Route::get('/notices', NoticesController::class)->name('notices');
         Route::post('/notices-htmx/{notice}', NoticesSubmitHtmxController::class)->name('notices-htmx');
 
@@ -70,9 +76,6 @@ Route::prefix('account')
 
         Route::get('/setup', SetupController::class)->name('setup');
         Route::post('/setup', SetupSubmitController::class)->name('setup-submit');
-
-        Route::get('/visitor-renew', VisitorRenewController::class)->name('visitor-renew');
-        Route::post('/visitor-renew', VisitorRenewSubmitController::class)->name('visitor-renew-submit');
 
         // XenForo linking required page
         Route::get('/xenforo/required', function (): View

@@ -38,16 +38,17 @@ use Hyperdrive\Message;
  *
  * @method static array<string, mixed> call()
  */
-final class AccountPageData extends Message
+final class IndexPageData extends Message
 {
     /**
-     * Constructs the AccountPageData message.
+     * Constructs the IndexPageData message.
      *
      * @param  Actor&Trooper  $actor  The actor representing the current user
      */
     public function __construct(
         private readonly Actor $actor
-    ) {}
+    ) {
+    }
 
     /**
      * Retrieves application configuration as a nested associative array.

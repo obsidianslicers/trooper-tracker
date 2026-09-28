@@ -1,4 +1,5 @@
 import { ViewModel } from "$lib/domains/types.svelte";
+import { formatDate } from "$lib/utils";
 import type { CostumesPageData } from "./CostumesViewModel.svelte";
 import type { DetailsPageData } from "./DetailsViewModel.svelte";
 import type { FriendsPageData } from "./FriendsViewModel.svelte";
@@ -6,7 +7,7 @@ import type { MembershipsPageData } from "./MembershipsViewModel.svelte";
 import type { MinorsPageData } from "./MinorsViewModel.svelte";
 import type { NotificationsPageData } from "./NotificationsViewModel.svelte";
 
-export type AccountPageData = {
+export type IndexPageData = {
     trooper_id: number;
     is_visitor: boolean;
     is_handler: boolean;
@@ -20,10 +21,10 @@ export type AccountPageData = {
     minors: MinorsPageData;
 };
 
-export class AccountViewModel extends ViewModel {
-    pageData: AccountPageData;
+export class IndexViewModel extends ViewModel {
+    pageData: IndexPageData;
 
-    constructor(pageData: AccountPageData) {
+    constructor(pageData: IndexPageData) {
         super();
         this.pageData = pageData;
     }
@@ -34,7 +35,7 @@ export class AccountViewModel extends ViewModel {
         if (!this.pageData.deletion_requested_at) return null;
         const deadline = new Date(this.pageData.deletion_requested_at);
         deadline.setDate(deadline.getDate() + 30);
-        return deadline.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+        return formatDate(deadline);
     }
     get has_minors(): boolean { return this.pageData.minors?.length > 0; }
     get has_friends(): boolean { return this.pageData.friends?.length > 0; }

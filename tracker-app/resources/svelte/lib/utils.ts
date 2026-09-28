@@ -36,6 +36,12 @@ export function createPartialReloadOptions(overrides: Partial<VisitOptions> = {}
     };
 }
 
+export function formatDate(date: Date | string | null): string | null {
+    if (!date) return null;
+    const dt = new Date(date);
+    return dt.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
 // import { page } from '$app/state';
 
 // export function getQueryParam(url: URL, key: string): string | null {

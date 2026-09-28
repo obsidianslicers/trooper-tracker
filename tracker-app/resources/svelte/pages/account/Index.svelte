@@ -14,16 +14,13 @@
     import Minors from "./components/Minors.svelte";
     import Notifications from "./components/Notifications.svelte";
     import Delete from "./components/RequestDeletion.svelte";
-    import {
-        AccountViewModel,
-        type AccountPageData,
-    } from "./models/vms/AccountViewModel.svelte";
+    import { IndexViewModel, type IndexPageData } from "./models";
 
-    const page = usePage<AccountPageData>();
+    const page = usePage<IndexPageData>();
 
     pageState.title = "Trooper Account";
 
-    let vm = new AccountViewModel(page.props);
+    let vm = new IndexViewModel(page.props);
 </script>
 
 {#if vm.has_deletion_request}
