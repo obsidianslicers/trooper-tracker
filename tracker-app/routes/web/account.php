@@ -22,11 +22,10 @@ use App\Http\Controllers\Account\PendingController;
 use App\Http\Controllers\Account\PushNotificationClearController;
 use App\Http\Controllers\Account\PushNotificationInboxController;
 use App\Http\Controllers\Account\PushNotificationReadController;
+use App\Http\Controllers\Account\Commands\RenewVisitorMembershipController;
 use App\Http\Controllers\Account\RequestDeletionController;
 use App\Http\Controllers\Account\SetupController;
 use App\Http\Controllers\Account\SetupSubmitController;
-use App\Http\Controllers\Account\VisitorRenewController;
-use App\Http\Controllers\Account\VisitorRenewSubmitController;
 use App\Models\OauthLogin;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
@@ -61,8 +60,8 @@ Route::prefix('account')
         Route::post('/request/deletion', RequestDeletionController::class)->name('request-deletion');
         Route::delete('/cancel/deletion', CancelDeletionController::class)->name('cancel-deletion');
 
-        Route::get('/visitor/renew', RenewVisitorController::class)->name('visitor-renew');
-        Route::post('/visitor/renew', VisitorRenewSubmitController::class)->name('visitor-renew-submit');
+        Route::get('/visitor/renew', RenewVisitorController::class)->name('renew-visitor');
+        Route::post('/visitor/renew', RenewVisitorMembershipController::class)->name('renew-visitor-membership');
 
 
 

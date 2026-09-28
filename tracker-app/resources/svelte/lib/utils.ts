@@ -42,6 +42,12 @@ export function formatDate(date: Date | string | null): string | null {
     return dt.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
+export function formatDateTime(date: Date | string | null): string | null {
+    if (!date) return null;
+    const dt = new Date(date);
+    return dt.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "numeric" });
+}
+
 // import { page } from '$app/state';
 
 // export function getQueryParam(url: URL, key: string): string | null {

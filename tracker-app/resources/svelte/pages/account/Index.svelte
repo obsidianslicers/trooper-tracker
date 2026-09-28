@@ -1,4 +1,5 @@
 <script lang="ts">
+    import Alert from "$lib/components/ui/Alert.svelte";
     import Tab from "$lib/components/ui/tabs/Tab.svelte";
     import TabContent from "$lib/components/ui/tabs/TabContent.svelte";
     import TabHeader from "$lib/components/ui/tabs/TabHeader.svelte";
@@ -47,6 +48,11 @@
     </TabHeader>
     <TabContent>
         <TabPanel id="profile">
+            {#if vm.is_visitor && vm.visitation_expiration_datetime}
+                <Alert>
+                    Your visitor status expires {vm.visitation_expiration_datetime}
+                </Alert>
+            {/if}
             <Details details={vm.pageData?.details} />
         </TabPanel>
         <TabPanel id="notifications">

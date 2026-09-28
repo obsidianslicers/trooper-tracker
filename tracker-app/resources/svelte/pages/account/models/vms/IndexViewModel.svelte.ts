@@ -1,5 +1,5 @@
 import { ViewModel } from "$lib/domains/types.svelte";
-import { formatDate } from "$lib/utils";
+import { formatDate, formatDateTime } from "$lib/utils";
 import type { CostumesPageData } from "./CostumesViewModel.svelte";
 import type { DetailsPageData } from "./DetailsViewModel.svelte";
 import type { FriendsPageData } from "./FriendsViewModel.svelte";
@@ -12,6 +12,7 @@ export type IndexPageData = {
     is_visitor: boolean;
     is_handler: boolean;
     deletion_requested_at: string | null;
+    visitor_expires_at: string | null;
     email: string;
     details: DetailsPageData;
     notifications: NotificationsPageData;
@@ -30,6 +31,11 @@ export class IndexViewModel extends ViewModel {
     }
 
     get has_deletion_request(): boolean { return this.pageData.deletion_requested_at !== null; }
+    get has_minors(): boolean { return this.pageData.minors?.length > 0; }
+    get has_friends(): boolean { return this.pageData.friends?.length > 0; }
+    get is_handler(): boolean { return this.pageData.is_handler; }
+    get is_visitor(): boolean { return this.pageData.is_visitor; }
+    get email(): string { return this.pageData.email; }
 
     get deletion_date(): string | null {
         if (!this.pageData.deletion_requested_at) return null;
@@ -37,9 +43,10 @@ export class IndexViewModel extends ViewModel {
         deadline.setDate(deadline.getDate() + 30);
         return formatDate(deadline);
     }
-    get has_minors(): boolean { return this.pageData.minors?.length > 0; }
-    get has_friends(): boolean { return this.pageData.friends?.length > 0; }
-    get is_handler(): boolean { return this.pageData.is_handler; }
-    get is_visitor(): boolean { return this.pageData.is_visitor; }
-    get email(): string { return this.pageData.email; }
+
+    get visitation_expiration_datetime(): string | null {
+        if (!this.pageData.visitor_expires_at) return null;
+        const deadline = new Date(this.pageData.visitor_expires_at);
+        return formatDateTime(deadline);
+    }
 }

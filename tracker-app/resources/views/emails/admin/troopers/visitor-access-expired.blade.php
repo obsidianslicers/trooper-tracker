@@ -18,7 +18,7 @@
     </p>
 
     <p>
-        <a href="{{ route('account.visitor-renew') }}">Request Renewal</a>
+        <a href="{{ route('account.visitor/renew') }}">Request Renewal</a>
     </p>
 
     @include('emails.inc.signature')

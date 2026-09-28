@@ -29,9 +29,9 @@
         Staff will review your request and restore your access if approved.
     </p>
 
-    <form>
+    <form onsubmit={vm.renew}>
         <SubmitButtonContainer>
-            <SubmitButton label="Request Renewal" />
+            <SubmitButton label="Request Renewal" submitting={vm.submitting} />
         </SubmitButtonContainer>
     </form>
 </SlimView>
