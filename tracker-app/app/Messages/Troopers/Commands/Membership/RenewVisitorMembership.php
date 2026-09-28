@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Messages\Troopers\Commands\Membership;
 
 use App\Enums\MembershipStatus;
+use App\Jobs\SendTrooperRegisteredNotificationsJob;
 use App\Models\Trooper;
 use Hyperdrive\Message;
-use App\Jobs\SendTrooperRegisteredNotificationsJob;
 
 /**
  * Handler for renewing a visitor trooper's membership.
@@ -18,8 +18,7 @@ final class RenewVisitorMembership extends Message
 {
     public function __construct(
         private readonly Trooper $trooper,
-    ) {
-    }
+    ) {}
 
     public function handle(): void
     {

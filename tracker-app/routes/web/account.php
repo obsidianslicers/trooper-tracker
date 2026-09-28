@@ -3,10 +3,11 @@
 declare(strict_types=1);
 
 use App\Enums\OauthProvider;
-use App\Http\Controllers\Account\Commands\CancelDeletionController;
 use App\Http\Controllers\Account\Commands\AddCostumeController;
 use App\Http\Controllers\Account\Commands\AddTrooperRequestController;
+use App\Http\Controllers\Account\Commands\CancelDeletionController;
 use App\Http\Controllers\Account\Commands\RemoveCostumeController;
+use App\Http\Controllers\Account\Commands\RenewVisitorMembershipController;
 use App\Http\Controllers\Account\Commands\UpdateNotificationFrequencyController;
 use App\Http\Controllers\Account\Commands\UpdateNotificationPreferenceController;
 use App\Http\Controllers\Account\Commands\UpdateOrganizationNotificationsController;
@@ -22,7 +23,6 @@ use App\Http\Controllers\Account\PendingController;
 use App\Http\Controllers\Account\PushNotificationClearController;
 use App\Http\Controllers\Account\PushNotificationInboxController;
 use App\Http\Controllers\Account\PushNotificationReadController;
-use App\Http\Controllers\Account\Commands\RenewVisitorMembershipController;
 use App\Http\Controllers\Account\RequestDeletionController;
 use App\Http\Controllers\Account\SetupController;
 use App\Http\Controllers\Account\SetupSubmitController;
@@ -62,8 +62,6 @@ Route::prefix('account')
 
         Route::get('/visitor/renew', RenewVisitorController::class)->name('renew-visitor');
         Route::post('/visitor/renew', RenewVisitorMembershipController::class)->name('renew-visitor-membership');
-
-
 
         Route::get('/notices', NoticesController::class)->name('notices');
         Route::post('/notices-htmx/{notice}', NoticesSubmitHtmxController::class)->name('notices-htmx');

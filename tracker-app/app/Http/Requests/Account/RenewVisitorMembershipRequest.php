@@ -4,12 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Account;
 
-use App\Enums\TrooperTheme;
-use App\Http\Requests\Concerns\HasNormalizers;
 use App\Models\Trooper;
 use App\Rules\Account\ExpiredVisitorMembership;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 /**
  * Handles the validation for the renew visitor membership form.
@@ -38,8 +35,8 @@ class RenewVisitorMembershipRequest extends FormRequest
     {
         $rules = [
             'trooper' => [
-                new ExpiredVisitorMembership()
-            ]
+                new ExpiredVisitorMembership,
+            ],
         ];
 
         return $rules;
@@ -48,7 +45,7 @@ class RenewVisitorMembershipRequest extends FormRequest
     public function validationData(): array
     {
         return array_merge(parent::validationData(), [
-            'trooper' => $this->user()
+            'trooper' => $this->user(),
         ]);
     }
 }

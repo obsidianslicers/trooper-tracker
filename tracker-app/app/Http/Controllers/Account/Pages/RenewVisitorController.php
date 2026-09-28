@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Account\Pages;
 
-use App\Messages\Account\PageData\RenewVisitorPageData;
-use Illuminate\Contracts\View\View;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Messages\Account\PageData\RenewVisitorPageData;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;

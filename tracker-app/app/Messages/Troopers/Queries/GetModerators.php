@@ -14,9 +14,7 @@ use Illuminate\Support\Collection;
  */
 final class GetModerators extends Message
 {
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 
     public function handle(): Collection
     {
