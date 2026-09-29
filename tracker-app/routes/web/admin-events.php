@@ -32,7 +32,8 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('admin/events')
     ->name('admin.events.')
     ->middleware(['auth', 'check.role:moderator,administrator'])
-    ->group(function () {
+    ->group(function ()
+    {
         Route::get('/', ListController::class)->name('list');
         Route::get('/create', CreateController::class)->name('create');
         Route::post('/create', CreateSubmitController::class);

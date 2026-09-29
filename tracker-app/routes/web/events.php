@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Events\AddTrooperOrgPickerHtmxController;
 use App\Http\Controllers\Events\CalendarController;
 use App\Http\Controllers\Events\CancelledController;
 use App\Http\Controllers\Events\ClosedController;
@@ -9,21 +10,20 @@ use App\Http\Controllers\Events\DownloadEventIcsController;
 use App\Http\Controllers\Events\DownloadEventShiftIcsController;
 use App\Http\Controllers\Events\DownloadRosterCsvController;
 use App\Http\Controllers\Events\EventDisplayController;
+use App\Http\Controllers\Events\ForumReplyController;
 use App\Http\Controllers\Events\GuestSignUpHtmxController;
+use App\Http\Controllers\Events\GuestUpdateHtmxController;
 use App\Http\Controllers\Events\ListController;
 use App\Http\Controllers\Events\MapController;
 use App\Http\Controllers\Events\MissionBriefAcknowledgeController;
 use App\Http\Controllers\Events\ShareRosterHtmxController;
-use App\Http\Controllers\Events\ShiftCompleteController;
 use App\Http\Controllers\Events\ShiftCompleteClubController;
+use App\Http\Controllers\Events\ShiftCompleteController;
 use App\Http\Controllers\Events\SignUpHtmxController;
 use App\Http\Controllers\Events\SignUpUpdateHtmxController;
-use App\Http\Controllers\Events\GuestUpdateHtmxController;
-use App\Http\Controllers\Events\ForumReplyController;
-use App\Http\Controllers\Events\UploadImageController;
 use App\Http\Controllers\Events\ToggleEventUploadTagController;
 use App\Http\Controllers\Events\ToggleEventWatchHtmxController;
-use App\Http\Controllers\Events\AddTrooperOrgPickerHtmxController;
+use App\Http\Controllers\Events\UploadImageController;
 use Illuminate\Support\Facades\Route;
 
 //  DASHBOARD

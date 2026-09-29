@@ -33,12 +33,17 @@ class CheckVisitorAccessMiddleware
                 && $user->visitor_expires_at !== null
                 && $user->visitor_expires_at->isPast())
             {
-                if ($request->routeIs('account.visitor-renew', 'account.visitor-renew-submit', 'auth.*', 'verification.*'))
+                if ($request->routeIs(
+                    'account.renew-visitor',
+                    'account.renew-visitor-membership',
+                    'auth.*',
+                    'verification.*',
+                ))
                 {
                     return $next($request);
                 }
 
-                return redirect()->route('account.visitor-renew');
+                return redirect()->route('account.renew-visitor');
             }
         }
 

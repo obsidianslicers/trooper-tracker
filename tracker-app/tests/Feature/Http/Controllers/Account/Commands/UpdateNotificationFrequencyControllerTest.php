@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Account;
+namespace Tests\Feature\Http\Controllers\Account\Commands;
 
 use App\Enums\NotificationFrequency;
 use App\Models\Trooper;

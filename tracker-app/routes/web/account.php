@@ -3,34 +3,33 @@
 declare(strict_types=1);
 
 use App\Enums\OauthProvider;
-use App\Http\Controllers\Account\UpdateOrganizationNotificationsController;
-use App\Http\Controllers\Account\UpdateNotificationPreferenceController;
-use App\Http\Controllers\Account\IndexController;
-use App\Http\Controllers\Account\UpdateProfileController;
-use App\Http\Controllers\Account\UpdateNotificationFrequencyController;
-use App\Http\Controllers\Account\UpdatePushNotificationsController;
-use App\Http\Controllers\Account\CancelDeletionController;
-use App\Http\Controllers\Account\DeletionRequestController;
+use App\Http\Controllers\Account\Commands\AddCostumeController;
+use App\Http\Controllers\Account\Commands\AddTrooperRequestController;
+use App\Http\Controllers\Account\Commands\CancelDeletionController;
+use App\Http\Controllers\Account\Commands\RemoveCostumeController;
+use App\Http\Controllers\Account\Commands\RenewVisitorMembershipController;
+use App\Http\Controllers\Account\Commands\UpdateNotificationFrequencyController;
+use App\Http\Controllers\Account\Commands\UpdateNotificationPreferenceController;
+use App\Http\Controllers\Account\Commands\UpdateOrganizationNotificationsController;
+use App\Http\Controllers\Account\Commands\UpdateProfileController;
+use App\Http\Controllers\Account\Commands\UpdatePushNotificationsController;
+use App\Http\Controllers\Account\DeniedController;
+use App\Http\Controllers\Account\DeniedResubmitController;
 use App\Http\Controllers\Account\NoticesController;
 use App\Http\Controllers\Account\NoticesSubmitHtmxController;
-use App\Http\Controllers\Account\RemoveCostumeController;
-use App\Http\Controllers\Account\AddCostumeController;
+use App\Http\Controllers\Account\Pages\IndexController;
+use App\Http\Controllers\Account\Pages\RenewVisitorController;
+use App\Http\Controllers\Account\PendingController;
 use App\Http\Controllers\Account\PushNotificationClearController;
 use App\Http\Controllers\Account\PushNotificationInboxController;
 use App\Http\Controllers\Account\PushNotificationReadController;
-use App\Http\Controllers\Account\DeniedController;
-use App\Http\Controllers\Account\DeniedResubmitController;
-use App\Http\Controllers\Account\PendingController;
+use App\Http\Controllers\Account\RequestDeletionController;
 use App\Http\Controllers\Account\SetupController;
 use App\Http\Controllers\Account\SetupSubmitController;
-use App\Http\Controllers\Account\VisitorRenewController;
-use App\Http\Controllers\Account\VisitorRenewSubmitController;
-use App\Http\Controllers\Account\AddTrooperRequestController;
-use App\Http\Controllers\Account\RequestDeletionController;
+use App\Models\OauthLogin;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use App\Models\OauthLogin;
 
 //  ACCOUNT — denied/pending holding routes (auth only, no redirect middleware)
 Route::prefix('account')
@@ -59,12 +58,13 @@ Route::prefix('account')
         Route::post('/remove/costumes', RemoveCostumeController::class)->name('remove-costume');
         Route::post('/add/trooper/request', AddTrooperRequestController::class)->name('add-trooper-request');
         Route::post('/request/deletion', RequestDeletionController::class)->name('request-deletion');
+        Route::delete('/cancel/deletion', CancelDeletionController::class)->name('cancel-deletion');
 
-
+        Route::get('/visitor/renew', RenewVisitorController::class)->name('renew-visitor');
+        Route::post('/visitor/renew', RenewVisitorMembershipController::class)->name('renew-visitor-membership');
 
         Route::get('/notices', NoticesController::class)->name('notices');
         Route::post('/notices-htmx/{notice}', NoticesSubmitHtmxController::class)->name('notices-htmx');
-
 
         //  needed a post name to get the middleware to work properly
         Route::get('/push-notifications', PushNotificationInboxController::class)->name('push-notifications');
@@ -73,11 +73,6 @@ Route::prefix('account')
 
         Route::get('/setup', SetupController::class)->name('setup');
         Route::post('/setup', SetupSubmitController::class)->name('setup-submit');
-
-        Route::get('/visitor-renew', VisitorRenewController::class)->name('visitor-renew');
-        Route::post('/visitor-renew', VisitorRenewSubmitController::class)->name('visitor-renew-submit');
-
-        Route::delete('/cancel/deletion', CancelDeletionController::class)->name('cancel-deletion');
 
         // XenForo linking required page
         Route::get('/xenforo/required', function (): View

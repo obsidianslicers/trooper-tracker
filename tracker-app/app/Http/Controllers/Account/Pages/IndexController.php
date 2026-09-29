@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Account;
+namespace App\Http\Controllers\Account\Pages;
 
 use App\Http\Controllers\Controller;
-use App\Messages\Account\PageData\AccountPageData;
+use App\Messages\Account\PageData\IndexPageData;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
@@ -27,7 +27,7 @@ class IndexController extends Controller
      */
     public function __invoke(Request $request): InertiaResponse|SymfonyResponse
     {
-        $data = AccountPageData::call($request);
+        $data = IndexPageData::call($request);
 
         return Inertia::render('account/Index', $data);
     }

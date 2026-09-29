@@ -2,23 +2,22 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Http\Controllers\Account;
+namespace Tests\Feature\Http\Controllers\Account\Commands;
 
 use App\Models\Costume;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
-use App\Models\TrooperCostume;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
-class RemoveCostumeControllerTest extends TestCase
+class AddCostumeControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_invoke_removes_costume_and_returns_updated_trooper_costumes(): void
+    public function test_invoke_adds_costume_for_selected_organizations_and_renders_account_index(): void
     {
         $trooper = Trooper::factory()->asActive()->create();
         $organization = Organization::factory()->create();
@@ -27,30 +26,27 @@ class RemoveCostumeControllerTest extends TestCase
             OrganizationCostume::ORGANIZATION_ID => $organization->{Organization::ID},
             OrganizationCostume::COSTUME_ID => $costume->{Costume::ID},
         ]);
-
         TrooperAssignment::factory()
             ->forTrooper($trooper)
             ->forOrganization($organization)
             ->asMember()
             ->create();
 
-        TrooperCostume::factory()
-            ->forTrooper($trooper)
-            ->forOrganizationCostume($organization_costume)
-            ->create();
-
-        $response = $this->actingAs($trooper)->post(route('account.remove-costume'), [
+        $response = $this->actingAs($trooper)->post(route('account.add-costume'), [
             'costume_id' => $costume->{Costume::ID},
+            'organization_ids' => [$organization->{Organization::ID}],
         ]);
 
         $response->assertOk();
         $response->assertViewIs('layouts.inertia');
         $response->assertInertia(fn(Assert $page) => $page
             ->component('account/Index')
-            ->where('results.trooper_costumes', [])
+            ->has('results.trooper_costumes', 1)
+            ->where('results.trooper_costumes.0.costume_id', $costume->{Costume::ID})
+            ->where('results.trooper_costumes.0.name', $costume->name)
         );
 
-        $this->assertSoftDeleted('tt_trooper_costumes', [
+        $this->assertDatabaseHas('tt_trooper_costumes', [
             'trooper_id' => $trooper->{Trooper::ID},
             'organization_costume_id' => $organization_costume->{OrganizationCostume::ID},
         ]);

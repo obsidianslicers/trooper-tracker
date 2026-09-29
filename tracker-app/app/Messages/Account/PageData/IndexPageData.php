@@ -38,10 +38,10 @@ use Hyperdrive\Message;
  *
  * @method static array<string, mixed> call()
  */
-final class AccountPageData extends Message
+final class IndexPageData extends Message
 {
     /**
-     * Constructs the AccountPageData message.
+     * Constructs the IndexPageData message.
      *
      * @param  Actor&Trooper  $actor  The actor representing the current user
      */
@@ -60,6 +60,7 @@ final class AccountPageData extends Message
             'trooper_id' => $this->actor->id,
             'is_visitor' => $this->actor->is_visitor,
             'is_handler' => $this->actor->is_handler,
+            'visitor_expires_at' => $this->actor->visitor_expires_at,
             'deletion_requested_at' => $this->actor->deletion_requested_at,
             'email' => $this->actor->email,
             'details' => $this->getDetails(),

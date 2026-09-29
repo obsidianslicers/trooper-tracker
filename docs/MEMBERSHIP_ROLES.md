@@ -103,7 +103,7 @@ A time-limited role for prospective members or guests. Access renews in 6-month 
 - Access beyond expiry without renewal
 
 **Assigned by:** Registration with `membership_role=visitor`, or admin via authority panel  
-**Expiry:** `visitor_expires_at` is set to `now() + 6 months` on approval. After expiry, `CheckVisitorAccessMiddleware` redirects all requests to `/account/visitor-renew`. See [Visitor Lifecycle](#visitor-lifecycle) below.
+**Expiry:** `visitor_expires_at` is set to `now() + 6 months` on approval. After expiry, `CheckVisitorAccessMiddleware` redirects all requests to `/account/visitor/renew`. See [Visitor Lifecycle](#visitor-lifecycle) below.
 
 ---
 
@@ -165,7 +165,7 @@ flowchart TD
     B -->|Admin approves| D[ACTIVE\nvisitor_expires_at = now + 6 months]
     D -->|Within window| E[Normal access\ntop-level org only]
     E -->|6 months pass| F[ExpireVisitorAccessCommand runs\nvisitor_notified_at set\nnotification email sent]
-    F -->|Trooper visits any page| G[CheckVisitorAccessMiddleware\nredirects to /account/visitor-renew]
+    F -->|Trooper visits any page| G[CheckVisitorAccessMiddleware\nredirects to /account/visitorrenew]
     G -->|Trooper submits renewal| H[PENDING]
     H -->|Admin denies| C
     H -->|Admin approves| D

@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Admin\Reports\DonationEventSummaryController;
 use App\Http\Controllers\Admin\Reports\CostumeEventSummaryController;
+use App\Http\Controllers\Admin\Reports\DonationEventSummaryController;
 use App\Http\Controllers\Admin\Reports\EventSummaryController;
 use App\Http\Controllers\Admin\Reports\EventTypeCountController;
 use App\Http\Controllers\Admin\Reports\ReportDisplayController;
@@ -11,7 +11,6 @@ use App\Http\Controllers\Admin\Reports\StatusChangeLogController;
 use App\Http\Controllers\Admin\Reports\TrooperEventSummaryController;
 use App\Http\Controllers\Admin\Reports\TroopersWithoutActivityController;
 use Illuminate\Support\Facades\Route;
-
 
 //  ADMIN/TROOPERs
 Route::prefix('admin/reports')

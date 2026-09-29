@@ -2,35 +2,34 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Admin\Troopers\ApproveTrooperMembershipController;
-use App\Http\Controllers\Admin\Troopers\DenyTrooperMembershipController;
-use App\Http\Controllers\Admin\Troopers\ApproveTrooperRequestController;
-use App\Http\Controllers\Admin\Troopers\DenyTrooperRequestController;
 use App\Http\Controllers\Admin\Troopers\ApproveMembershipsController;
+use App\Http\Controllers\Admin\Troopers\ApproveTrooperMembershipController;
+use App\Http\Controllers\Admin\Troopers\ApproveTrooperRequestController;
 use App\Http\Controllers\Admin\Troopers\AuthorityController;
 use App\Http\Controllers\Admin\Troopers\AuthoritySubmitController;
 use App\Http\Controllers\Admin\Troopers\ChangesController;
 use App\Http\Controllers\Admin\Troopers\CostumesController;
+use App\Http\Controllers\Admin\Troopers\DenyTrooperMembershipController;
+use App\Http\Controllers\Admin\Troopers\DenyTrooperRequestController;
 use App\Http\Controllers\Admin\Troopers\EventsController;
-use App\Http\Controllers\Admin\Troopers\MergeTroopersController;
-use App\Http\Controllers\Admin\Troopers\MergeTroopersSubmitController;
-use App\Http\Controllers\Admin\Troopers\ListController;
-use App\Http\Controllers\Admin\Troopers\LookupMembershipController;
-use App\Http\Controllers\Admin\Troopers\MembershipController;
 use App\Http\Controllers\Admin\Troopers\GuardianController;
 use App\Http\Controllers\Admin\Troopers\GuardianSubmitController;
+use App\Http\Controllers\Admin\Troopers\ListController;
+use App\Http\Controllers\Admin\Troopers\LookupMembershipController;
+use App\Http\Controllers\Admin\Troopers\MarkRipSubmitController;
+use App\Http\Controllers\Admin\Troopers\MembershipController;
 use App\Http\Controllers\Admin\Troopers\MembershipRemoveController;
 use App\Http\Controllers\Admin\Troopers\MembershipSubmitController;
+use App\Http\Controllers\Admin\Troopers\MergeTroopersController;
+use App\Http\Controllers\Admin\Troopers\MergeTroopersSubmitController;
 use App\Http\Controllers\Admin\Troopers\ProfileController;
 use App\Http\Controllers\Admin\Troopers\ProfileSubmitController;
 use App\Http\Controllers\Admin\Troopers\RecruitController;
 use App\Http\Controllers\Admin\Troopers\RecruitSubmitController;
-use App\Http\Controllers\Admin\Troopers\MarkRipSubmitController;
 use App\Http\Controllers\Admin\Troopers\UnmarkRipSubmitController;
 use App\Http\Controllers\Admin\Troopers\UnvoidSubmitController;
 use App\Http\Controllers\Admin\Troopers\VoidSubmitController;
 use Illuminate\Support\Facades\Route;
-
 
 //  ADMIN/TROOPERs
 Route::prefix('admin/troopers')
@@ -53,15 +52,11 @@ Route::prefix('admin/troopers')
                 Route::get('/requests/{trooper_request}/lookup-membership', LookupMembershipController::class)->name('lookup-membership');
             });
 
-
-
-
         Route::get('/recruit', RecruitController::class)->name('recruit');
         Route::post('/recruit', RecruitSubmitController::class);
 
         Route::get('/merge', MergeTroopersController::class)->name('merge');
         Route::post('/merge', MergeTroopersSubmitController::class);
-
 
         Route::get('/{trooper}', ProfileController::class)->name('profile');
         Route::post('/{trooper}', ProfileSubmitController::class);
