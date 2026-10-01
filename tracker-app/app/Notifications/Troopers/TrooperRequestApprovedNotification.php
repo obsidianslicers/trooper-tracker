@@ -18,7 +18,9 @@ class TrooperRequestApprovedNotification extends BaseNotification
 {
     protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category = 'join_request_approved';
 
-    public function __construct(private readonly TrooperRequest $trooper_request) {}
+    public function __construct(private readonly TrooperRequest $trooper_request)
+    {
+    }
 
     public function toMail(Trooper $notifiable): TrooperRequestApproved
     {
@@ -30,7 +32,7 @@ class TrooperRequestApprovedNotification extends BaseNotification
         return [
             'title' => 'Join Request Approved',
             'body' => "You've been added to {$this->trooper_request->organization->name}!",
-            'url' => '/account/club-memberships',
+            'url' => '/account',
         ];
     }
 

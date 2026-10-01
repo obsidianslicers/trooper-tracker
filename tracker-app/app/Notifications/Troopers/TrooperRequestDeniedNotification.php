@@ -18,7 +18,9 @@ class TrooperRequestDeniedNotification extends BaseNotification
 {
     protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category = 'join_request_denied';
 
-    public function __construct(private readonly TrooperRequest $trooper_request) {}
+    public function __construct(private readonly TrooperRequest $trooper_request)
+    {
+    }
 
     public function toMail(Trooper $notifiable): TrooperRequestDenied
     {
@@ -37,7 +39,7 @@ class TrooperRequestDeniedNotification extends BaseNotification
         return [
             'title' => 'Join Request Not Approved',
             'body' => $body,
-            'url' => '/account/club-memberships',
+            'url' => '/account',
         ];
     }
 

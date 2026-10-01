@@ -18,7 +18,9 @@ class DirectlyAddedToClubNotification extends BaseNotification
 {
     protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category = 'directly_added_to_club';
 
-    public function __construct(private readonly Organization $organization) {}
+    public function __construct(private readonly Organization $organization)
+    {
+    }
 
     public function toMail(Trooper $notifiable): DirectlyAddedToClub
     {
@@ -30,7 +32,7 @@ class DirectlyAddedToClubNotification extends BaseNotification
         return [
             'title' => 'Added to Club',
             'body' => "You have been added to {$this->organization->name}.",
-            'url' => '/account/club-memberships',
+            'url' => '/account',
         ];
     }
 
