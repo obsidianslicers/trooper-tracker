@@ -23,7 +23,7 @@ use App\Http\Controllers\Account\PendingController;
 use App\Http\Controllers\Account\PushNotificationClearController;
 use App\Http\Controllers\Account\PushNotificationInboxController;
 use App\Http\Controllers\Account\PushNotificationReadController;
-use App\Http\Controllers\Account\RequestDeletionController;
+use App\Http\Controllers\Account\Commands\RequestDeletionController;
 use App\Http\Controllers\Account\SetupController;
 use App\Http\Controllers\Account\SetupSubmitController;
 use App\Models\OauthLogin;
