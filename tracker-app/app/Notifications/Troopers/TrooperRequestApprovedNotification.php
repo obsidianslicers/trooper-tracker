@@ -18,9 +18,7 @@ class TrooperRequestApprovedNotification extends BaseNotification
 {
     protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category = 'join_request_approved';
 
-    public function __construct(private readonly TrooperRequest $trooper_request)
-    {
-    }
+    public function __construct(private readonly TrooperRequest $trooper_request) {}
 
     public function toMail(Trooper $notifiable): TrooperRequestApproved
     {
