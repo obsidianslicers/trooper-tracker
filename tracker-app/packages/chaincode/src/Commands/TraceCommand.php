@@ -46,7 +46,7 @@ class TraceCommand extends Command
         // 2. Scan codebase for usage references
         $application_files = $this->getApplicationFiles($target_dirs);
 
-        $this->info('Gathered all PHP files for scanning = ' . iterator_count($application_files));
+        $this->info('Gathered all PHP files for scanning = '.iterator_count($application_files));
 
         $this->analyzeSourceFiles($source_files, $application_files);
         $this->showSourceFileResults($source_files);
@@ -88,7 +88,7 @@ class TraceCommand extends Command
                     continue;
                 }
 
-                if ($data['class'] && preg_match('/\b' . preg_quote($data['class'], '/') . '\b/', $content))
+                if ($data['class'] && preg_match('/\b'.preg_quote($data['class'], '/').'\b/', $content))
                 {
                     $data['referenced'] = true;
                 }
@@ -152,7 +152,7 @@ class TraceCommand extends Command
 
         foreach ($finder as $file)
         {
-            $relative_path = str_replace(base_path() . DIRECTORY_SEPARATOR, '', $file->getRealPath());
+            $relative_path = str_replace(base_path().DIRECTORY_SEPARATOR, '', $file->getRealPath());
 
             $class_name = $this->getClassFromFile($file->getRealPath());
 
@@ -166,7 +166,7 @@ class TraceCommand extends Command
             }
         }
 
-        $this->info('Gathered source PHP files = ' . count($source_files));
+        $this->info('Gathered source PHP files = '.count($source_files));
 
         return $source_files;
     }

@@ -2,10 +2,7 @@
 
 namespace App\Messages\Account\Resources;
 
-use App\Enums\TrooperTheme;
-use App\Messages\Account\Queries\GetCostumesWithPrefixes;
 use App\Models\Trooper;
-use App\Models\TrooperCostume;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 

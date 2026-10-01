@@ -6,8 +6,6 @@ namespace App\Http\Controllers\Account\Pages;
 
 use App\Http\Controllers\Controller;
 use App\Messages\Account\PageData\PendingMembershipPageData;
-use Illuminate\Contracts\View\View;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;

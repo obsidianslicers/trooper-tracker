@@ -27,8 +27,7 @@ final class PendingMembershipPageData extends Message
      */
     public function __construct(
         private readonly Actor $actor
-    ) {
-    }
+    ) {}
 
     /**
      * Retrieves data for the Pending Membership page as a nested associative array.
