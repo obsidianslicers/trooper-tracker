@@ -17,6 +17,7 @@ use App\Http\Controllers\Events\ListController;
 use App\Http\Controllers\Events\MapController;
 use App\Http\Controllers\Events\MissionBriefAcknowledgeController;
 use App\Http\Controllers\Events\ShareRosterHtmxController;
+use App\Http\Controllers\Events\BroadcastMessageHtmxController;
 use App\Http\Controllers\Events\ShiftCompleteClubController;
 use App\Http\Controllers\Events\ShiftCompleteController;
 use App\Http\Controllers\Events\SignUpHtmxController;
@@ -48,6 +49,7 @@ Route::prefix('events')
         Route::post('/uploads/{event_upload}/toggle-tag', ToggleEventUploadTagController::class)->name('toggle-upload-tag');
         Route::post('/forum-reply/{event}', ForumReplyController::class)->name('forum-reply-htmx');
         Route::post('/share-roster/{event}', ShareRosterHtmxController::class)->name('share-roster-htmx');
+        Route::post('/broadcast-message/{event}', BroadcastMessageHtmxController::class)->name('broadcast-message-htmx');
         Route::get('/signup/{event_shift}/add-trooper-org-picker', AddTrooperOrgPickerHtmxController::class)->name('add-trooper-org-picker');
         Route::post('/signup/{event_shift}/trooper', SignUpHtmxController::class)->name('signup-htmx');
         Route::post('/signup/{event_shift}/guest', GuestSignUpHtmxController::class)->name('guest-signup-htmx');
