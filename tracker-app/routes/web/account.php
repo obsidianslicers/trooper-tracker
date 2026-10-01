@@ -19,7 +19,7 @@ use App\Http\Controllers\Account\NoticesController;
 use App\Http\Controllers\Account\NoticesSubmitHtmxController;
 use App\Http\Controllers\Account\Pages\IndexController;
 use App\Http\Controllers\Account\Pages\RenewVisitorController;
-use App\Http\Controllers\Account\PendingController;
+use App\Http\Controllers\Account\Pages\PendingMembershipController;
 use App\Http\Controllers\Account\PushNotificationClearController;
 use App\Http\Controllers\Account\PushNotificationInboxController;
 use App\Http\Controllers\Account\PushNotificationReadController;
@@ -39,7 +39,7 @@ Route::prefix('account')
     {
         Route::get('/denied', DeniedController::class)->name('denied');
         Route::post('/denied/resubmit', DeniedResubmitController::class)->name('denied.resubmit');
-        Route::get('/pending', PendingController::class)->name('pending');
+        Route::get('/pending', PendingMembershipController::class)->name('pending');
     });
 
 //  ACCOUNT
