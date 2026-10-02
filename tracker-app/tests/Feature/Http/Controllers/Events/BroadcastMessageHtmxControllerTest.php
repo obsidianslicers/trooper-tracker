@@ -51,8 +51,8 @@ class BroadcastMessageHtmxControllerTest extends TestCase
             ]);
 
         $response->assertOk();
-        $response->assertViewIs('pages.events.inc.share-roster');
-        $response->assertViewHas('message', 'Message successfully sent.');
+        $response->assertViewIs('pages.events.inc.broadcast-message');
+        $response->assertViewHas('message', $message);
         $response->assertViewHas('can_moderate', true);
         Queue::assertPushed(BroadcastEventMessageJob::class, function (BroadcastEventMessageJob $job) use ($message): bool
         {
@@ -72,8 +72,8 @@ class BroadcastMessageHtmxControllerTest extends TestCase
             ]);
 
         $response->assertOk();
-        $response->assertViewIs('pages.events.inc.share-roster');
-        $response->assertViewHas('message', 'Failed to send message');
+        $response->assertViewIs('pages.events.inc.broadcast-message');
+        $response->assertSeeText('The message field is required.');
         $response->assertViewHas('errors', function ($errors): bool
         {
             return $errors->getBag('default')->has('message');

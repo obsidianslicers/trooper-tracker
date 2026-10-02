@@ -4,14 +4,9 @@
 
         <div class="card my-4 mb-4 border-secondary">
             <div class="card-header bg-secondary text-white d-flex align-items-center">
-                <b class="mb-0">Broadcast Message</b>
+                <b class="mb-0">Broadcast an Instant Message</b>
             </div>
             <div class="card-body">
-                @isset($message)
-                    <x-message>
-                        {{ $message }}
-                    </x-message>
-                @endisset
                 <p class="small text-muted">
                     <i class="fa fa-fw fa-triangle-exclamation text-warning"></i>
                     Send an instant notification to all troopers with a "{{ App\Enums\EventTrooperStatus::GOING->value }}"
@@ -26,17 +21,12 @@
                     @csrf
                     <div class="row g-2">
                         <div class="col-sm-12">
-                            @error('message')
-                                <x-message :type="'danger'">
-                                    {{ $errors->first('message') }}
-                                </x-message>
-                            @enderror
                             <x-input-text :property="'message'"
                                           :multiline="true" />
                         </div>
                         <div class="col-sm-12">
                             <x-submit-button class="w-100">
-                                <i class="fa fa-fw fa-envelope me-1"></i>
+                                <i class="fa fa-fw fa-tower-broadcast me-1"></i>
                                 Send Message
                             </x-submit-button>
                         </div>

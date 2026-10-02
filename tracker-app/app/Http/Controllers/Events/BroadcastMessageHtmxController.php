@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Events;
 
-use App\Features\Events\Commands\BroadcastEventMessageCommand;
 use App\Http\Controllers\MagicBusController;
 use App\Http\Requests\Events\BroadcastMessageHtmxRequest;
 use App\Jobs\BroadcastEventMessageJob;
 use App\Models\Event;
+use Illuminate\Support\Facades\View as ViewFacade;
 use Illuminate\Support\ViewErrorBag;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -42,32 +42,23 @@ class BroadcastMessageHtmxController extends MagicBusController
     public function __invoke(BroadcastMessageHtmxRequest $request, Event $event): View
     {
         $can_moderate = $request->user()->can('update', $event);
-
-        $errors = new ViewErrorBag;
-
         $message = null;
 
         try
         {
-            $request->validateInputs();
-
             $message = $request->validated('message');
 
             dispatch(new BroadcastEventMessageJob($event, $message));
-
-            $message = 'Message successfully sent.';
         }
-        catch (ValidationException $x)
+        catch (ValidationException $exception)
         {
-            $err = $x->errors();
-
-            $message = 'Failed to send message';
-
-            $errors->put('default', $x->validator->errors());
+            $errors = new ViewErrorBag;
+            $errors->put('default', $exception->validator->errors());
+            ViewFacade::share('errors', $errors);
         }
 
-        $data = compact('event', 'message', 'can_moderate', 'errors');
+        $data = compact('event', 'message', 'can_moderate');
 
-        return view('pages.events.inc.share-roster', $data);
+        return view('pages.events.inc.broadcast-message', $data);
     }
 }

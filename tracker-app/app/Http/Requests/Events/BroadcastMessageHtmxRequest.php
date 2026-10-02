@@ -50,6 +50,7 @@ class BroadcastMessageHtmxRequest extends FormRequest
             'message' => [
                 'required',
                 'string',
+                'min:5',
             ],
         ];
     }
