@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Events\AddTrooperOrgPickerHtmxController;
+use App\Http\Controllers\Events\BroadcastMessageHtmxController;
 use App\Http\Controllers\Events\CalendarController;
 use App\Http\Controllers\Events\CancelledController;
 use App\Http\Controllers\Events\ClosedController;
@@ -17,7 +18,6 @@ use App\Http\Controllers\Events\ListController;
 use App\Http\Controllers\Events\MapController;
 use App\Http\Controllers\Events\MissionBriefAcknowledgeController;
 use App\Http\Controllers\Events\ShareRosterHtmxController;
-use App\Http\Controllers\Events\BroadcastMessageHtmxController;
 use App\Http\Controllers\Events\ShiftCompleteClubController;
 use App\Http\Controllers\Events\ShiftCompleteController;
 use App\Http\Controllers\Events\SignUpHtmxController;

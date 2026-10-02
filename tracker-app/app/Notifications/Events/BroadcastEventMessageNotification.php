@@ -15,9 +15,7 @@ class BroadcastEventMessageNotification extends BaseNotification
 {
     protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category = 'event_broadcast';
 
-    public function __construct(private readonly Event $event, private readonly string $message)
-    {
-    }
+    public function __construct(private readonly Event $event, private readonly string $message) {}
 
     public function toMail(Trooper $notifiable): BroadcastEventMessage
     {
@@ -27,9 +25,9 @@ class BroadcastEventMessageNotification extends BaseNotification
     public function toArray(Trooper $notifiable): array
     {
         return [
-            'title' => 'Event Message: ' . $this->event->name,
+            'title' => 'Event Message: '.$this->event->name,
             'body' => $this->message,
-            'url' => '/events/' . $this->event->id,
+            'url' => '/events/'.$this->event->id,
         ];
     }
 

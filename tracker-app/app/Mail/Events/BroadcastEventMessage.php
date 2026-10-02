@@ -18,7 +18,7 @@ use Illuminate\Queue\SerializesModels;
  * Create a new broadcast event message email instance.
  *
  * @param  Event  $event  The event for which the message is being broadcast
- * informing them of the cancellation.
+ *                        informing them of the cancellation.
  */
 class BroadcastEventMessage extends Mailable implements ShouldQueue
 {
@@ -44,7 +44,7 @@ class BroadcastEventMessage extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix') . ' Event Message'
+            subject: config('mail.prefix').' Event Message'
         );
     }
 
