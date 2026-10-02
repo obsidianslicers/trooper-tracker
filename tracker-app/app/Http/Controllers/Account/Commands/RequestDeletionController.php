@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Account;
+namespace App\Http\Controllers\Account\Commands;
 
 use App\Enums\FlashType;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\Account\RequestDeletionRequest;
 use App\Messages\Troopers\Commands\RequestTrooperDeletion;
 use Illuminate\Support\Facades\Auth;
@@ -20,7 +20,7 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
  * the trooper. The account remains accessible during the grace period so the
  * trooper can cancel. After 30 days the scheduler permanently anonymizes the data.
  */
-class RequestDeletionController extends MagicBusController
+class RequestDeletionController extends Controller
 {
     public function __invoke(RequestDeletionRequest $request): InertiaResponse|SymfonyResponse
     {

@@ -37,7 +37,7 @@ class TrooperRequestDeniedNotification extends BaseNotification
         return [
             'title' => 'Join Request Not Approved',
             'body' => $body,
-            'url' => '/account/club-memberships',
+            'url' => '/account',
         ];
     }
 
