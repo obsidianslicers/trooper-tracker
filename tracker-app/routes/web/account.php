@@ -8,6 +8,7 @@ use App\Http\Controllers\Account\Commands\AddTrooperRequestController;
 use App\Http\Controllers\Account\Commands\CancelDeletionController;
 use App\Http\Controllers\Account\Commands\RemoveCostumeController;
 use App\Http\Controllers\Account\Commands\RenewVisitorMembershipController;
+use App\Http\Controllers\Account\Commands\RequestDeletionController;
 use App\Http\Controllers\Account\Commands\UpdateNotificationFrequencyController;
 use App\Http\Controllers\Account\Commands\UpdateNotificationPreferenceController;
 use App\Http\Controllers\Account\Commands\UpdateOrganizationNotificationsController;
@@ -18,12 +19,11 @@ use App\Http\Controllers\Account\DeniedResubmitController;
 use App\Http\Controllers\Account\NoticesController;
 use App\Http\Controllers\Account\NoticesSubmitHtmxController;
 use App\Http\Controllers\Account\Pages\IndexController;
+use App\Http\Controllers\Account\Pages\PendingMembershipController;
 use App\Http\Controllers\Account\Pages\RenewVisitorController;
-use App\Http\Controllers\Account\PendingController;
 use App\Http\Controllers\Account\PushNotificationClearController;
 use App\Http\Controllers\Account\PushNotificationInboxController;
 use App\Http\Controllers\Account\PushNotificationReadController;
-use App\Http\Controllers\Account\RequestDeletionController;
 use App\Http\Controllers\Account\SetupController;
 use App\Http\Controllers\Account\SetupSubmitController;
 use App\Models\OauthLogin;
@@ -39,7 +39,7 @@ Route::prefix('account')
     {
         Route::get('/denied', DeniedController::class)->name('denied');
         Route::post('/denied/resubmit', DeniedResubmitController::class)->name('denied.resubmit');
-        Route::get('/pending', PendingController::class)->name('pending');
+        Route::get('/pending', PendingMembershipController::class)->name('pending');
     });
 
 //  ACCOUNT
