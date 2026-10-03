@@ -44,7 +44,7 @@ class BroadcastEventMessage extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Event Message'
+            subject: config('mail.prefix') . ' 📣 Event Message'
         );
     }
 
