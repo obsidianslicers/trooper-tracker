@@ -83,7 +83,8 @@ readonly class GetTroopersForEventAdminQueryHandler implements QueryHandlerInter
 
                 $costume = $costumes_by_id->get($event_trooper->costume_id);
                 $org_options = $event_trooper->eligibleRootOrgsForAdmin($allowed_org_ids, $costume);
-                $event_trooper->org_options = $event_trooper->withCreditedRootOrgOptions($org_options);
+                $event_trooper->org_options = $event_trooper
+                    ->withCreditedRootOrgOptions($org_options);
                 $event_trooper->credited_checked_ids = $event_trooper->creditedRootOrgIds();
             }
         }

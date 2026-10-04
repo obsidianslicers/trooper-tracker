@@ -264,7 +264,9 @@ class GetCostumeTrooperLeaderboardQueryHandlerTest extends TestCase
         $subject = new GetCostumeTrooperLeaderboardQueryHandler;
         $result = $subject(new GetCostumeTrooperLeaderboardQuery($costume, null, $org));
 
-        $this->assertTrue($result['top_troopers']->pluck('trooper_id')->contains($former_member->id));
+        $trooper_ids = $result['top_troopers']->pluck('trooper_id');
+
+        $this->assertTrue($trooper_ids->contains($former_member->id));
     }
 
     private function createAttendance(

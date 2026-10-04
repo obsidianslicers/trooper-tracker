@@ -225,7 +225,8 @@ class GetLeaderboardMetricsQueryHandlerTest extends TestCase
         $club = Organization::factory()->asOrganization()->create();
         $former_member = Trooper::factory()->asMember()->create();
 
-        TrooperAssignment::factory()->forTrooper($former_member)->forOrganization($club)->asMember()->create()->delete();
+        TrooperAssignment::factory()->forTrooper($former_member)->forOrganization($club)
+            ->asMember()->create()->delete();
 
         $this->createAttendance($former_member, now()->subDays(5), null, [$club->id]);
 

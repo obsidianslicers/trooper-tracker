@@ -44,10 +44,15 @@ trait HasOrgCreditAnnotation
     /**
      * Counts and credited ids are both expressed as root club ids.
      *
-     * @return array{troop_counts: array<int, int>, credited_ids_by_shift: array<int, array<int, int>>}
+     * @return array{
+     *     troop_counts: array<int, int>,
+     *     credited_ids_by_shift: array<int, array<int, int>>
+     * }
      */
-    private function computeTroopCounts(Collection $recent_shifts, Collection $candidate_orgs): array
-    {
+    private function computeTroopCounts(
+        Collection $recent_shifts,
+        Collection $candidate_orgs
+    ): array {
         $troop_counts = [];
         $credited_ids_by_shift = [];
 
@@ -58,7 +63,10 @@ trait HasOrgCreditAnnotation
                 continue;
             }
 
-            $credited_ids = $this->resolveCreditedRootOrgIds($shift->event_trooper, $candidate_orgs);
+            $credited_ids = $this->resolveCreditedRootOrgIds(
+                $shift->event_trooper,
+                $candidate_orgs
+            );
 
             foreach ($credited_ids as $org_id)
             {
@@ -101,8 +109,10 @@ trait HasOrgCreditAnnotation
             : collect();
     }
 
-    private function annotateShiftsWithCreditedOrgNames(Collection $recent_shifts, array $credited_ids_by_shift): void
-    {
+    private function annotateShiftsWithCreditedOrgNames(
+        Collection $recent_shifts,
+        array $credited_ids_by_shift
+    ): void {
         $all_credited_ids = array_unique(array_merge(...(array_values($credited_ids_by_shift) ?: [[]])));
         $root_org_names = $this->resolveRootOrgNames($all_credited_ids);
 

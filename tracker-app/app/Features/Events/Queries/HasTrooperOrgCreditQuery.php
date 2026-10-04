@@ -32,7 +32,9 @@ trait HasTrooperOrgCreditQuery
 
         $q->where(function ($q) use ($roster_org_ids, $accessible_root_ids, $scope_org_ids)
         {
-            $q->where(fn ($q) => $this->whereRosterCredit($q, $roster_org_ids, $accessible_root_ids))
+            $q->where(
+                fn ($q) => $this->whereRosterCredit($q, $roster_org_ids, $accessible_root_ids)
+            )
                 ->orWhere(fn ($q) => $this->whereDirectCredit($q, $scope_org_ids));
         });
     }
@@ -70,13 +72,17 @@ trait HasTrooperOrgCreditQuery
     private function costumeCreditOverlapsSql(): string
     {
         return DB::getDriverName() === 'sqlite'
-            ? 'EXISTS (SELECT 1 FROM json_each(tt_event_troopers.costume_organization_ids) AS credit '.
+            ? 'EXISTS (SELECT 1 '.
+                'FROM json_each(tt_event_troopers.costume_organization_ids) AS credit '.
                 'WHERE credit.value IN (SELECT value FROM json_each(?)))'
             : 'JSON_OVERLAPS(tt_event_troopers.costume_organization_ids, ?)';
     }
 
-    private function whereRosterCredit(mixed $q, array $roster_org_ids, array $accessible_root_ids): void
-    {
+    private function whereRosterCredit(
+        mixed $q,
+        array $roster_org_ids,
+        array $accessible_root_ids
+    ): void {
         $q->whereExists(function ($sub) use ($roster_org_ids, $accessible_root_ids)
         {
             $sub->select(DB::raw(1))
@@ -140,10 +146,14 @@ trait HasTrooperOrgCreditQuery
             {
                 foreach ($root_ids as $root_id)
                 {
-                    $q->orWhere(Organization::NODE_PATH, 'like', ((int) $root_id).':%');
+                    $q->orWhere(
+                        Organization::NODE_PATH,
+                        'like',
+                        ((int) $root_id).Organization::NODE_PATH_SEP.'%'
+                    );
                 }
             })
-            ->pluck('id')
+            ->pluck(Organization::ID)
             ->all();
     }
 

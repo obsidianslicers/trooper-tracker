@@ -782,7 +782,8 @@ class UpdateTroopersSubmitControllerTest extends TestCase
         $event_shift = EventShift::factory()->forEvent($event)->create();
 
         // Trooper has left $former_club; only $current_club is live-eligible now.
-        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($current_club)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($current_club)
+            ->asMember()->create();
 
         $event_trooper = EventTrooper::factory()
             ->forEventShift($event_shift)
@@ -818,7 +819,8 @@ class UpdateTroopersSubmitControllerTest extends TestCase
         $event = Event::factory()->create();
         $event_shift = EventShift::factory()->forEvent($event)->create();
 
-        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($current_club)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($current_club)
+            ->asMember()->create();
 
         $event_trooper = EventTrooper::factory()
             ->forEventShift($event_shift)

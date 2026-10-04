@@ -499,7 +499,10 @@ class EventTrooper extends BaseEventTrooper
      */
     public function withCreditedRootOrgOptions(Collection $org_options): Collection
     {
-        $missing_ids = array_diff($this->creditedRootOrgIds(), $org_options->pluck('id')->all());
+        $missing_ids = array_diff(
+            $this->creditedRootOrgIds(),
+            $org_options->pluck(Organization::ID)->all()
+        );
 
         if (empty($missing_ids))
         {

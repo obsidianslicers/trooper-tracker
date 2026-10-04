@@ -65,10 +65,13 @@ class GetEventTroopersMissingCreditQueryHandlerTest extends TestCase
         $admin = Trooper::factory()->asAdministrator()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $former_org = $this->makeRootOrganization();
-        TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($former_org)->create()->delete();
+        TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($former_org)
+            ->create()->delete();
 
         $event_trooper = $this->makeAttendedEventTrooper($trooper);
-        $event_trooper->updateQuietly([EventTrooper::COSTUME_ORGANIZATION_IDS => [$former_org->id]]);
+        $event_trooper->updateQuietly([
+            EventTrooper::COSTUME_ORGANIZATION_IDS => [$former_org->id],
+        ]);
 
         $subject = new GetEventTroopersMissingCreditQueryHandler;
         ['total' => $total] = $subject(new GetEventTroopersMissingCreditQuery(actor: $admin));

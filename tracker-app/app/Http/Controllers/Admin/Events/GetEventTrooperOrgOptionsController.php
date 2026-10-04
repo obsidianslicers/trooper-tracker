@@ -48,7 +48,10 @@ class GetEventTrooperOrgOptionsController extends MagicBusController
             return [$org_options, $org_options->pluck('id')->all()];
         }
 
-        return [$event_trooper->withCreditedRootOrgOptions($org_options), $event_trooper->creditedRootOrgIds()];
+        return [
+            $event_trooper->withCreditedRootOrgOptions($org_options),
+            $event_trooper->creditedRootOrgIds(),
+        ];
     }
 
     private function resolveWithoutCostume(EventTrooper $event_trooper, ?array $allowed_org_ids): array
@@ -60,6 +63,9 @@ class GetEventTrooperOrgOptionsController extends MagicBusController
             return [$org_options, $org_options->pluck('id')->all()];
         }
 
-        return [$event_trooper->withCreditedRootOrgOptions($org_options), $event_trooper->creditedRootOrgIds()];
+        return [
+            $event_trooper->withCreditedRootOrgOptions($org_options),
+            $event_trooper->creditedRootOrgIds(),
+        ];
     }
 }

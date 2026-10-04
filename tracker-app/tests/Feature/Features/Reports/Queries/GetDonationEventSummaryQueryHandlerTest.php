@@ -841,11 +841,13 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         $this->skipIfSqlite();
         $moderator = Trooper::factory()->asModerator()->create();
         $org = Organization::factory()->create();
-        TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($org)->asModerator()->create();
+        TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($org)
+            ->asModerator()->create();
 
         $former_member = Trooper::factory()->asMember()->create();
 
-        $event = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(5))->create();
+        $event = Event::factory()->asClosed()->withOrganization($org)
+            ->withEventStart(now()->subDays(5))->create();
         $shift = EventShift::factory()->forEvent($event)->create();
 
         EventTrooper::factory()->forEventShift($shift)->forTrooper($former_member)->asAttended()
@@ -854,7 +856,9 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
 
         $subject = new GetDonationEventSummaryQueryHandler;
 
-        $result = $subject(new GetDonationEventSummaryQuery($moderator, selected_org_ids: [$org->id]));
+        $result = $subject(
+            new GetDonationEventSummaryQuery($moderator, selected_org_ids: [$org->id])
+        );
 
         $this->assertSame(1, (int) $result->first()->attendees_count);
     }

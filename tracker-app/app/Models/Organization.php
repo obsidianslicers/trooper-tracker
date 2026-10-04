@@ -132,6 +132,27 @@ class Organization extends BaseOrganization
             ->values();
     }
 
+    /**
+     * Resolve each organization's root (primary-club) id, keyed by organization id.
+     *
+     * Same node_path rule as rootIdsFor(), but keeps the per-org mapping.
+     *
+     * @param  Collection<int, int>  $organization_ids
+     * @return array<int, int>
+     */
+    public static function rootIdsById(Collection $organization_ids): array
+    {
+        if ($organization_ids->isEmpty())
+        {
+            return [];
+        }
+
+        return static::whereIn(self::ID, $organization_ids->unique())
+            ->pluck(self::NODE_PATH, self::ID)
+            ->map(fn ($path) => (int) Str::before($path, self::NODE_PATH_SEP))
+            ->all();
+    }
+
     public static function buildPathLabels(Collection $orgs, string $separator = ' › '): array
     {
         if ($orgs->isEmpty())

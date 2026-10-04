@@ -347,7 +347,8 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
         $event = Event::factory()->create();
         $event_shift = EventShift::factory()->forEvent($event)->create();
 
-        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($current_club)->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($current_club)
+            ->asMember()->create();
 
         $event_trooper = EventTrooper::factory()
             ->forEventShift($event_shift)
@@ -357,16 +358,20 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
             ->create([EventTrooper::COSTUME_ID => null]);
 
         $response = $this->actingAs($admin)->get(
-            route('admin.events.troopers.org-options', compact('event', 'event_trooper')).'?costume_id='
+            route('admin.events.troopers.org-options', compact('event', 'event_trooper'))
+                .'?costume_id='
         );
 
         $response->assertOk();
-        $response->assertViewHas('org_options', fn ($org_options) => $org_options->contains('id', $former_club->id)
-            && $org_options->contains('id', $current_club->id));
+        $response->assertViewHas(
+            'org_options',
+            fn ($org_options) => $org_options->contains('id', $former_club->id)
+                && $org_options->contains('id', $current_club->id)
+        );
         $response->assertViewHas('credited_ids', [$former_club->id]);
     }
 
-    public function test_invoke_keeps_former_club_credit_as_ticked_option_when_returning_to_stored_costume(): void
+    public function test_invoke_keeps_former_club_credit_as_ticked_option_for_stored_costume(): void
     {
         $admin = Trooper::factory()->asAdministrator()->create();
         $trooper = Trooper::factory()->asActive()->create();
@@ -384,11 +389,15 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
             ->create([EventTrooper::COSTUME_ID => $costume->id]);
 
         $response = $this->actingAs($admin)->get(
-            route('admin.events.troopers.org-options', compact('event', 'event_trooper')).'?costume_id='.$costume->id
+            route('admin.events.troopers.org-options', compact('event', 'event_trooper'))
+                .'?costume_id='.$costume->id
         );
 
         $response->assertOk();
-        $response->assertViewHas('org_options', fn ($org_options) => $org_options->contains('id', $former_club->id));
+        $response->assertViewHas(
+            'org_options',
+            fn ($org_options) => $org_options->contains('id', $former_club->id)
+        );
         $response->assertViewHas('credited_ids', [$former_club->id]);
     }
 
