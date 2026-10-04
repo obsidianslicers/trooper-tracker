@@ -25,7 +25,7 @@ class TraceCommand extends Command
 
     public function handle(): int
     {
-        $source_dir = base_path('app');
+        $source_dir = base_path('app/Features');
         $route_dir = base_path('routes');
 
         $target_dirs = [$source_dir, $route_dir];

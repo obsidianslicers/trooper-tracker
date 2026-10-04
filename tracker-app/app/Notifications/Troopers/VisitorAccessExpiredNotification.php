@@ -24,7 +24,7 @@ class VisitorAccessExpiredNotification extends BaseNotification
         return [
             'title' => 'Visitor Access Expired',
             'body' => 'Your 6-month visitor access has expired. Log in to request renewal.',
-            'url' => '/account/visitor-renew',
+            'url' => '/account/visitor/renew',
         ];
     }
 

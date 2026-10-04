@@ -53,7 +53,7 @@ class CheckVisitorAccessMiddlewareTest extends TestCase
 
         $response = $this->actingAs($trooper)->get(route('account.index'));
 
-        $response->assertRedirect(route('account.visitor-renew'));
+        $response->assertRedirect(route('account.renew-visitor'));
     }
 
     public function test_passes_through_expired_visitor_on_renewal_route(): void
@@ -64,7 +64,7 @@ class CheckVisitorAccessMiddlewareTest extends TestCase
             Trooper::VISITOR_EXPIRES_AT => now()->subMonth(),
         ]);
 
-        $response = $this->actingAs($trooper)->get(route('account.visitor-renew'));
+        $response = $this->actingAs($trooper)->get(route('account.renew-visitor'));
 
         $response->assertOk();
     }

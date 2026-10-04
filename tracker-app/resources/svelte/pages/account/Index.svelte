@@ -1,4 +1,5 @@
 <script lang="ts">
+    import Alert from "$lib/components/ui/Alert.svelte";
     import Tab from "$lib/components/ui/tabs/Tab.svelte";
     import TabContent from "$lib/components/ui/tabs/TabContent.svelte";
     import TabHeader from "$lib/components/ui/tabs/TabHeader.svelte";
@@ -14,16 +15,13 @@
     import Minors from "./components/Minors.svelte";
     import Notifications from "./components/Notifications.svelte";
     import Delete from "./components/RequestDeletion.svelte";
-    import {
-        AccountViewModel,
-        type AccountPageData,
-    } from "./models/vms/AccountViewModel.svelte";
+    import { IndexViewModel, type IndexPageData } from "./models";
 
-    const page = usePage<AccountPageData>();
+    const page = usePage<IndexPageData>();
 
     pageState.title = "Trooper Account";
 
-    let vm = new AccountViewModel(page.props);
+    let vm = new IndexViewModel(page.props);
 </script>
 
 {#if vm.has_deletion_request}
@@ -50,6 +48,11 @@
     </TabHeader>
     <TabContent>
         <TabPanel id="profile">
+            {#if vm.is_visitor && vm.visitation_expiration_datetime}
+                <Alert>
+                    Your visitor status expires {vm.visitation_expiration_datetime}
+                </Alert>
+            {/if}
             <Details details={vm.pageData?.details} />
         </TabPanel>
         <TabPanel id="notifications">

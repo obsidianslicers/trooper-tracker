@@ -30,7 +30,7 @@ class TrooperRequestApprovedNotification extends BaseNotification
         return [
             'title' => 'Join Request Approved',
             'body' => "You've been added to {$this->trooper_request->organization->name}!",
-            'url' => '/account/club-memberships',
+            'url' => '/account',
         ];
     }
 
