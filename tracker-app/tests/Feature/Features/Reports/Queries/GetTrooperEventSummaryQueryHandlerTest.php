@@ -14,6 +14,7 @@ use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperOrganization;
 use Carbon\Carbon;
+use Database\Factories\EventTrooperFactory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -484,9 +485,7 @@ class GetTrooperEventSummaryQueryHandlerTest extends TestCase
         $club = Organization::factory()->create();
         $squad = Organization::factory()->withParent($club)->create();
 
-        $moderator = Trooper::factory()->asModerator()->create();
-        TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($club)
-            ->asModerator()->create();
+        $moderator = $this->makeModeratorOf($club);
 
         // Removed from the club: member assignment soft-deleted, so moderatedBy() no longer
         // matches.
@@ -494,9 +493,7 @@ class GetTrooperEventSummaryQueryHandlerTest extends TestCase
         TrooperAssignment::factory()->forTrooper($former_member)->forOrganization($squad)
             ->asMember()->create()->delete();
 
-        $event = Event::factory()->asClosed()->withEventStart(now()->subDays(5))->create();
-        EventTrooper::factory()->forEventShift(EventShift::factory()->forEvent($event)->create())
-            ->forTrooper($former_member)->asAttended()
+        $this->recentClosedShiftFor($former_member)->asAttended()
             ->withCostumeOrganizationIds([$club->id])->create();
 
         $subject = new GetTrooperEventSummaryQueryHandler;
@@ -511,14 +508,10 @@ class GetTrooperEventSummaryQueryHandlerTest extends TestCase
         $club = Organization::factory()->create();
         $other_club = Organization::factory()->create();
 
-        $moderator = Trooper::factory()->asModerator()->create();
-        TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($club)
-            ->asModerator()->create();
+        $moderator = $this->makeModeratorOf($club);
 
         $stranger = Trooper::factory()->asMember()->create();
-        $event = Event::factory()->asClosed()->withEventStart(now()->subDays(5))->create();
-        EventTrooper::factory()->forEventShift(EventShift::factory()->forEvent($event)->create())
-            ->forTrooper($stranger)->asAttended()
+        $this->recentClosedShiftFor($stranger)->asAttended()
             ->withCostumeOrganizationIds([$other_club->id])->create();
 
         $subject = new GetTrooperEventSummaryQueryHandler;
@@ -531,20 +524,15 @@ class GetTrooperEventSummaryQueryHandlerTest extends TestCase
     {
         $club = Organization::factory()->create();
 
-        $moderator = Trooper::factory()->asModerator()->create();
-        TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($club)
-            ->asModerator()->create();
+        $moderator = $this->makeModeratorOf($club);
 
         $former_member = Trooper::factory()->asMember()->create();
-        $event = Event::factory()->asClosed()->withEventStart(now()->subDays(5))->create();
-        EventTrooper::factory()->forEventShift(EventShift::factory()->forEvent($event)->create())
-            ->forTrooper($former_member)->asGoing()->create()
+        $this->recentClosedShiftFor($former_member)->asGoing()->create()
             ->updateQuietly([
                 EventTrooper::ORGANIZATION_ID => $club->id,
                 EventTrooper::COSTUME_ORGANIZATION_IDS => null,
             ]);
-        EventTrooper::factory()->forEventShift(EventShift::factory()->forEvent($event)->create())
-            ->forTrooper($former_member)->asAttended()->create()
+        $this->recentClosedShiftFor($former_member)->asAttended()->create()
             ->updateQuietly([
                 EventTrooper::ORGANIZATION_ID => null,
                 EventTrooper::COSTUME_ORGANIZATION_IDS => null,
@@ -810,5 +798,23 @@ class GetTrooperEventSummaryQueryHandlerTest extends TestCase
         $this->assertSame(2, $result->perPage());
         $this->assertSame(5, $result->total());
         $this->assertCount(2, $result->items());
+    }
+
+    private function makeModeratorOf(Organization $organization): Trooper
+    {
+        $moderator = Trooper::factory()->asModerator()->create();
+        TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($organization)
+            ->asModerator()->create();
+
+        return $moderator;
+    }
+
+    private function recentClosedShiftFor(Trooper $trooper): EventTrooperFactory
+    {
+        $event = Event::factory()->asClosed()->withEventStart(now()->subDays(5))->create();
+
+        return EventTrooper::factory()
+            ->forEventShift(EventShift::factory()->forEvent($event)->create())
+            ->forTrooper($trooper);
     }
 }

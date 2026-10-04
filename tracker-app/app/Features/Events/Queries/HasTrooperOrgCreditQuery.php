@@ -136,25 +136,10 @@ trait HasTrooperOrgCreditQuery
      */
     protected function resolveRootSubtreeIds(array $root_ids): array
     {
-        if (empty($root_ids))
-        {
-            return [];
-        }
-
-        return Organization::query()
-            ->where(function ($q) use ($root_ids)
-            {
-                foreach ($root_ids as $root_id)
-                {
-                    $q->orWhere(
-                        Organization::NODE_PATH,
-                        'like',
-                        ((int) $root_id).Organization::NODE_PATH_SEP.'%'
-                    );
-                }
-            })
-            ->pluck(Organization::ID)
-            ->all();
+        return $this->resolveSubtreeIdsByPathPrefix(array_map(
+            fn ($root_id) => ((int) $root_id).Organization::NODE_PATH_SEP,
+            $root_ids
+        ));
     }
 
     /**
@@ -165,14 +150,31 @@ trait HasTrooperOrgCreditQuery
      */
     protected function resolveOrgSubtreeIds(?Organization $organization): array
     {
-        if (!$organization)
+        return $organization
+            ? $this->resolveSubtreeIdsByPathPrefix([$organization->node_path])
+            : [];
+    }
+
+    /**
+     * @param  array<int, string>  $node_path_prefixes
+     * @return array<int>
+     */
+    private function resolveSubtreeIdsByPathPrefix(array $node_path_prefixes): array
+    {
+        if (empty($node_path_prefixes))
         {
             return [];
         }
 
         return Organization::query()
-            ->where(Organization::NODE_PATH, 'like', $organization->node_path.'%')
-            ->pluck('id')
+            ->where(function ($q) use ($node_path_prefixes)
+            {
+                foreach ($node_path_prefixes as $prefix)
+                {
+                    $q->orWhere(Organization::NODE_PATH, 'like', $prefix.'%');
+                }
+            })
+            ->pluck(Organization::ID)
             ->all();
     }
 

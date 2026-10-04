@@ -151,6 +151,7 @@ readonly class UpdateEventRosterCommandHandler implements CommandHandlerInterfac
         $original_costume_id = $event_trooper->costume_id;
         $original_costume_organization_ids = $event_trooper->costume_organization_ids;
         $original_organization_id = $event_trooper->organization_id;
+        $original_credited_ids = $event_trooper->creditedOrgIds();
         $original_credited_root_ids = $event_trooper->creditedRootOrgIds();
 
         $has_submitted_org_selection = $this->applyCostumeAndOrgSelection($event_trooper, $input, $allowed_org_ids, $costumes_by_id);
@@ -162,9 +163,7 @@ readonly class UpdateEventRosterCommandHandler implements CommandHandlerInterfac
 
         if ($has_submitted_org_selection && $old_status === EventTrooperStatus::ATTENDED)
         {
-            $stored_ids = $original_costume_organization_ids
-                ?: array_filter([$original_organization_id]);
-            $this->keepTickedStoredCredit($event_trooper, $input, $stored_ids);
+            $this->keepTickedStoredCredit($event_trooper, $input, $original_credited_ids);
         }
 
         if ($this->creditSelectionUnchanged($old_status, $input, $original_costume_id, $original_credited_root_ids))
@@ -191,7 +190,7 @@ readonly class UpdateEventRosterCommandHandler implements CommandHandlerInterfac
             return;
         }
 
-        $ticked_root_ids = array_map('intval', $input['organization_ids'] ?? []);
+        $ticked_root_ids = $this->submittedOrgIds($input);
         $new_ids = $event_trooper->costume_organization_ids ?? [];
         $root_by_id = Organization::rootIdsById(collect(array_merge($stored_ids, $new_ids)));
         $credited_root_ids = array_map(fn ($id) => $root_by_id[$id] ?? null, $new_ids);
@@ -228,7 +227,7 @@ readonly class UpdateEventRosterCommandHandler implements CommandHandlerInterfac
             return false;
         }
 
-        $submitted_root_ids = array_map('intval', $input['organization_ids'] ?? []);
+        $submitted_root_ids = $this->submittedOrgIds($input);
 
         return empty(array_diff($submitted_root_ids, $original_credited_root_ids))
             && empty(array_diff($original_credited_root_ids, $submitted_root_ids));

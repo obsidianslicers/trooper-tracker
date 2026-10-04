@@ -469,12 +469,7 @@ class EventTrooper extends BaseEventTrooper
      */
     public function getCreditedRootOrgNames(): array
     {
-        $ids = $this->costume_organization_ids ?? [];
-
-        if (empty($ids) && $this->organization_id !== null)
-        {
-            $ids = [$this->organization_id];
-        }
+        $ids = $this->creditedOrgIds();
 
         if (empty($ids))
         {
@@ -524,27 +519,27 @@ class EventTrooper extends BaseEventTrooper
      */
     public function creditedRootOrgIds(): array
     {
-        $ids = collect($this->costume_organization_ids ?? []);
+        $ids = $this->creditedOrgIds();
+        $root_by_id = Organization::rootIdsById(collect($ids));
 
-        if ($ids->isNotEmpty())
-        {
-            $orgs = Organization::findMany($ids->all())->keyBy('id');
+        return collect($ids)
+            ->map(fn ($id) => $root_by_id[$id] ?? $id)
+            ->unique()
+            ->values()
+            ->all();
+    }
 
-            return $ids
-                ->map(fn ($id) => $orgs->get($id)?->getPrimaryClub()->id ?? $id)
-                ->unique()
-                ->values()
-                ->all();
-        }
-
-        if ($this->organization_id !== null)
-        {
-            $org = Organization::find($this->organization_id);
-
-            return [$org ? $org->getPrimaryClub()->id : $this->organization_id];
-        }
-
-        return [];
+    /**
+     * Organization ids this row is credited to: costume_organization_ids, falling back to the
+     * legacy single organization_id.
+     *
+     * @return array<int, int>
+     */
+    public function creditedOrgIds(): array
+    {
+        return !empty($this->costume_organization_ids)
+            ? $this->costume_organization_ids
+            : array_values(array_filter([$this->organization_id]));
     }
 
     /**

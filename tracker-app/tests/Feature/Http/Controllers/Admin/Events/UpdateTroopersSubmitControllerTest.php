@@ -774,34 +774,9 @@ class UpdateTroopersSubmitControllerTest extends TestCase
 
     public function test_invoke_keeps_ticked_former_club_credit_when_adding_another_club(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
-        $trooper = Trooper::factory()->asActive()->create();
-        $former_club = Organization::factory()->create();
-        $current_club = Organization::factory()->create();
-        $event = Event::factory()->create();
-        $event_shift = EventShift::factory()->forEvent($event)->create();
+        [$admin, $event_trooper, $former_club, $current_club] = $this->makeFormerClubCreditRow();
 
-        // Trooper has left $former_club; only $current_club is live-eligible now.
-        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($current_club)
-            ->asMember()->create();
-
-        $event_trooper = EventTrooper::factory()
-            ->forEventShift($event_shift)
-            ->forTrooper($trooper)
-            ->withCostumeOrganizationIds([$former_club->id])
-            ->asAttended()
-            ->create([EventTrooper::COSTUME_ID => null]);
-
-        $this->actingAs($admin)->post('/admin/events/'.$event->id.'/troopers', [
-            'troopers' => [
-                $event_trooper->id => [
-                    'status' => 'attended',
-                    'costume_id' => '',
-                    'organization_selection' => '1',
-                    'organization_ids' => [$former_club->id, $current_club->id],
-                ],
-            ],
-        ]);
+        $this->postCreditSelection($admin, $event_trooper, [$former_club->id, $current_club->id]);
 
         $event_trooper->refresh();
         $this->assertEqualsCanonicalizing(
@@ -812,33 +787,9 @@ class UpdateTroopersSubmitControllerTest extends TestCase
 
     public function test_invoke_removes_former_club_credit_when_unticked(): void
     {
-        $admin = Trooper::factory()->asAdministrator()->create();
-        $trooper = Trooper::factory()->asActive()->create();
-        $former_club = Organization::factory()->create();
-        $current_club = Organization::factory()->create();
-        $event = Event::factory()->create();
-        $event_shift = EventShift::factory()->forEvent($event)->create();
+        [$admin, $event_trooper, , $current_club] = $this->makeFormerClubCreditRow();
 
-        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($current_club)
-            ->asMember()->create();
-
-        $event_trooper = EventTrooper::factory()
-            ->forEventShift($event_shift)
-            ->forTrooper($trooper)
-            ->withCostumeOrganizationIds([$former_club->id])
-            ->asAttended()
-            ->create([EventTrooper::COSTUME_ID => null]);
-
-        $this->actingAs($admin)->post('/admin/events/'.$event->id.'/troopers', [
-            'troopers' => [
-                $event_trooper->id => [
-                    'status' => 'attended',
-                    'costume_id' => '',
-                    'organization_selection' => '1',
-                    'organization_ids' => [$current_club->id],
-                ],
-            ],
-        ]);
+        $this->postCreditSelection($admin, $event_trooper, [$current_club->id]);
 
         $event_trooper->refresh();
         $this->assertSame([$current_club->id], $event_trooper->costume_organization_ids);
@@ -877,5 +828,52 @@ class UpdateTroopersSubmitControllerTest extends TestCase
 
         $event_trooper->refresh();
         $this->assertSame([$child_org->id], $event_trooper->costume_organization_ids);
+    }
+
+    /**
+     * An attended, no-costume row credited to a club the trooper has since left; only
+     * $current_club is live-eligible now.
+     *
+     * @return array{Trooper, EventTrooper, Organization, Organization}
+     */
+    private function makeFormerClubCreditRow(): array
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $former_club = Organization::factory()->create();
+        $current_club = Organization::factory()->create();
+        $event_shift = EventShift::factory()->forEvent(Event::factory()->create())->create();
+
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($current_club)
+            ->asMember()->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->withCostumeOrganizationIds([$former_club->id])
+            ->asAttended()
+            ->create([EventTrooper::COSTUME_ID => null]);
+
+        return [$admin, $event_trooper, $former_club, $current_club];
+    }
+
+    /** @param  array<int, int>  $organization_ids */
+    private function postCreditSelection(
+        Trooper $admin,
+        EventTrooper $event_trooper,
+        array $organization_ids
+    ): void {
+        $event_id = $event_trooper->event_shift->event_id;
+
+        $this->actingAs($admin)->post('/admin/events/'.$event_id.'/troopers', [
+            'troopers' => [
+                $event_trooper->id => [
+                    'status' => 'attended',
+                    'costume_id' => '',
+                    'organization_selection' => '1',
+                    'organization_ids' => $organization_ids,
+                ],
+            ],
+        ]);
     }
 }

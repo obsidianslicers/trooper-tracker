@@ -10,6 +10,7 @@ use App\Models\Event;
 use App\Models\EventTrooper;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class GetEventTrooperOrgOptionsController extends MagicBusController
 {
@@ -48,10 +49,7 @@ class GetEventTrooperOrgOptionsController extends MagicBusController
             return [$org_options, $org_options->pluck('id')->all()];
         }
 
-        return [
-            $event_trooper->withCreditedRootOrgOptions($org_options),
-            $event_trooper->creditedRootOrgIds(),
-        ];
+        return $this->storedCreditOptions($event_trooper, $org_options);
     }
 
     private function resolveWithoutCostume(EventTrooper $event_trooper, ?array $allowed_org_ids): array
@@ -63,6 +61,17 @@ class GetEventTrooperOrgOptionsController extends MagicBusController
             return [$org_options, $org_options->pluck('id')->all()];
         }
 
+        return $this->storedCreditOptions($event_trooper, $org_options);
+    }
+
+    /**
+     * Options and ticked ids for the row's stored credit, including clubs the trooper has since
+     * left.
+     */
+    private function storedCreditOptions(
+        EventTrooper $event_trooper,
+        Collection $org_options
+    ): array {
         return [
             $event_trooper->withCreditedRootOrgOptions($org_options),
             $event_trooper->creditedRootOrgIds(),

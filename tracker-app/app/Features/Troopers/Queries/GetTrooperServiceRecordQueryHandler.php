@@ -92,17 +92,19 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
         ['troop_counts' => $troop_counts, 'credited_ids_by_shift' => $credited_ids_by_shift]
             = $this->computeTroopCounts($recent_shifts, $candidate_orgs);
 
-        $this->annotateShiftsWithCreditedOrgNames($recent_shifts, $credited_ids_by_shift);
+        $clubs = empty($troop_counts)
+            ? collect()
+            : Organization::whereIn(Organization::ID, array_keys($troop_counts))
+                ->orderBy(Organization::NAME)
+                ->get();
 
-        if (empty($troop_counts))
-        {
-            return collect();
-        }
+        $this->annotateShiftsWithCreditedOrgNames(
+            $recent_shifts,
+            $credited_ids_by_shift,
+            $clubs->pluck(Organization::NAME, Organization::ID)
+        );
 
-        return Organization::whereIn(Organization::ID, array_keys($troop_counts))
-            ->orderBy(Organization::NAME)
-            ->get()
-            ->each(fn (Organization $org) => $org->troop_count = $troop_counts[$org->id]);
+        return $clubs->each(fn (Organization $org) => $org->troop_count = $troop_counts[$org->id]);
     }
 
     private function getTaggedUploads(Trooper $trooper): Collection

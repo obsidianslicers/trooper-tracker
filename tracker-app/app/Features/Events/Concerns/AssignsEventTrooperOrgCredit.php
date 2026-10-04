@@ -27,16 +27,22 @@ trait AssignsEventTrooperOrgCredit
 
         if ($costume !== null)
         {
-            $submitted_parent_ids = array_map('intval', $input['organization_ids'] ?? []);
+            $submitted_parent_ids = $this->submittedOrgIds($input);
             $this->applyWithCostume($event_trooper, $costume, $submitted_parent_ids, $allowed_org_ids, $has_submitted_org_selection);
         }
         else
         {
-            $submitted_org_ids = array_map('intval', $input['organization_ids'] ?? []);
+            $submitted_org_ids = $this->submittedOrgIds($input);
             $this->applyWithoutCostume($event_trooper, $submitted_org_ids, $allowed_org_ids, $has_submitted_org_selection);
         }
 
         return $has_submitted_org_selection;
+    }
+
+    /** @return array<int, int> */
+    protected function submittedOrgIds(array $input): array
+    {
+        return array_map('intval', $input['organization_ids'] ?? []);
     }
 
     protected function applyWithCostume(

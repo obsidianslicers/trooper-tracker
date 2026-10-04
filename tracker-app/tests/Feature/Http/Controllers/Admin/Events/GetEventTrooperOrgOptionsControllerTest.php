@@ -16,6 +16,7 @@ use App\Models\TrooperAssignment;
 use App\Models\TrooperCostume;
 use App\Models\TrooperOrganization;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 class GetEventTrooperOrgOptionsControllerTest extends TestCase
@@ -341,26 +342,14 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
     public function test_invoke_keeps_former_club_credit_as_ticked_option_when_no_costume(): void
     {
         $admin = Trooper::factory()->asAdministrator()->create();
-        $trooper = Trooper::factory()->asActive()->create();
         $former_club = Organization::factory()->create();
         $current_club = Organization::factory()->create();
-        $event = Event::factory()->create();
-        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $event_trooper = $this->makeFormerClubCreditRow($former_club, null);
 
-        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($current_club)
-            ->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($event_trooper->trooper)
+            ->forOrganization($current_club)->asMember()->create();
 
-        $event_trooper = EventTrooper::factory()
-            ->forEventShift($event_shift)
-            ->forTrooper($trooper)
-            ->withCostumeOrganizationIds([$former_club->id])
-            ->asAttended()
-            ->create([EventTrooper::COSTUME_ID => null]);
-
-        $response = $this->actingAs($admin)->get(
-            route('admin.events.troopers.org-options', compact('event', 'event_trooper'))
-                .'?costume_id='
-        );
+        $response = $this->getOrgOptions($admin, $event_trooper, '');
 
         $response->assertOk();
         $response->assertViewHas(
@@ -374,24 +363,13 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
     public function test_invoke_keeps_former_club_credit_as_ticked_option_for_stored_costume(): void
     {
         $admin = Trooper::factory()->asAdministrator()->create();
-        $trooper = Trooper::factory()->asActive()->create();
         $former_club = Organization::factory()->create();
-        $event = Event::factory()->create();
-        $event_shift = EventShift::factory()->forEvent($event)->create();
         $costume = Costume::factory()->create();
 
         // No costume approval left for the former club, so it isn't live-eligible.
-        $event_trooper = EventTrooper::factory()
-            ->forEventShift($event_shift)
-            ->forTrooper($trooper)
-            ->withCostumeOrganizationIds([$former_club->id])
-            ->asAttended()
-            ->create([EventTrooper::COSTUME_ID => $costume->id]);
+        $event_trooper = $this->makeFormerClubCreditRow($former_club, $costume);
 
-        $response = $this->actingAs($admin)->get(
-            route('admin.events.troopers.org-options', compact('event', 'event_trooper'))
-                .'?costume_id='.$costume->id
-        );
+        $response = $this->getOrgOptions($admin, $event_trooper, (string) $costume->id);
 
         $response->assertOk();
         $response->assertViewHas(
@@ -468,5 +446,32 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
         );
 
         $response->assertRedirect(route('auth.login'));
+    }
+
+    private function makeFormerClubCreditRow(
+        Organization $former_club,
+        ?Costume $costume
+    ): EventTrooper {
+        $event_shift = EventShift::factory()->forEvent(Event::factory()->create())->create();
+
+        return EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper(Trooper::factory()->asActive()->create())
+            ->withCostumeOrganizationIds([$former_club->id])
+            ->asAttended()
+            ->create([EventTrooper::COSTUME_ID => $costume?->id]);
+    }
+
+    private function getOrgOptions(
+        Trooper $admin,
+        EventTrooper $event_trooper,
+        string $costume_id
+    ): TestResponse {
+        $event = $event_trooper->event_shift->event;
+
+        return $this->actingAs($admin)->get(
+            route('admin.events.troopers.org-options', compact('event', 'event_trooper'))
+                .'?costume_id='.$costume_id
+        );
     }
 }
