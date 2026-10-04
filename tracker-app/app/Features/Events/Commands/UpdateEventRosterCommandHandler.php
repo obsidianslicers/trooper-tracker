@@ -13,11 +13,13 @@ use App\Models\Event;
 use App\Models\EventGuest;
 use App\Models\EventShiftStation;
 use App\Models\EventTrooper;
+use App\Models\Organization;
 use App\Models\Trooper;
 use App\Notifications\Events\ManualSelectionApprovedNotification;
 use App\Notifications\Events\ManualSelectionStandByNotification;
 use App\Services\EventRosterCapacityService;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 /**
  * Handler for applying a bulk event-roster form submission.
@@ -159,11 +161,62 @@ readonly class UpdateEventRosterCommandHandler implements CommandHandlerInterfac
             $event_trooper->organization_id = null;
         }
 
+        if ($has_submitted_org_selection && $old_status === EventTrooperStatus::ATTENDED)
+        {
+            $stored_ids = $original_costume_organization_ids ?: array_filter([$original_organization_id]);
+            $this->keepTickedStoredCredit($event_trooper, $input, $stored_ids);
+        }
+
         if ($this->creditSelectionUnchanged($old_status, $input, $original_costume_id, $original_credited_root_ids))
         {
             $event_trooper->costume_organization_ids = $original_costume_organization_ids;
             $event_trooper->organization_id = $original_organization_id;
         }
+    }
+
+    /**
+     * Live eligibility can't see clubs the trooper has since left, so re-deriving credit would
+     * drop them even when the admin left them ticked. Stored credit whose club is still ticked
+     * is kept; only unticking a club removes its credit.
+     *
+     * @param  array<int, int>  $stored_ids
+     */
+    private function keepTickedStoredCredit(EventTrooper $event_trooper, array $input, array $stored_ids): void
+    {
+        if (empty($stored_ids))
+        {
+            return;
+        }
+
+        $ticked_root_ids = array_map('intval', $input['organization_ids'] ?? []);
+        $new_ids = $event_trooper->costume_organization_ids ?? [];
+        $root_by_id = $this->rootIdsById(array_merge($stored_ids, $new_ids));
+        $credited_root_ids = array_map(fn ($id) => $root_by_id[$id] ?? null, $new_ids);
+
+        $kept_ids = array_filter($stored_ids, function ($id) use ($root_by_id, $ticked_root_ids, $credited_root_ids)
+        {
+            $root_id = $root_by_id[$id] ?? null;
+
+            return in_array($root_id, $ticked_root_ids, true) && !in_array($root_id, $credited_root_ids, true);
+        });
+
+        if (!empty($kept_ids))
+        {
+            $event_trooper->costume_organization_ids = array_values(array_unique(array_merge($new_ids, $kept_ids)));
+        }
+    }
+
+    /**
+     * @param  array<int, int>  $organization_ids
+     * @return array<int, int> Root club id keyed by organization id.
+     */
+    private function rootIdsById(array $organization_ids): array
+    {
+        return Organization::findMany(array_unique($organization_ids))
+            ->mapWithKeys(fn (Organization $org) => [
+                $org->id => (int) Str::before($org->node_path, Organization::NODE_PATH_SEP),
+            ])
+            ->all();
     }
 
     private function creditSelectionUnchanged(

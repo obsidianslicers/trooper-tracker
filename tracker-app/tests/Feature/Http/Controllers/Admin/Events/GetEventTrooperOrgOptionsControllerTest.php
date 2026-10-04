@@ -64,7 +64,8 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
         );
 
         $response->assertOk();
-        $response->assertViewHas('org_options', function ($org_options) use ($eligible_org, $ineligible_org) {
+        $response->assertViewHas('org_options', function ($org_options) use ($eligible_org, $ineligible_org)
+        {
             return $org_options->contains('id', $eligible_org->id)
                 && ! $org_options->contains('id', $ineligible_org->id);
         });
@@ -103,7 +104,8 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
         );
 
         $response->assertOk();
-        $response->assertViewHas('org_options', function ($org_options) use ($org1, $org2) {
+        $response->assertViewHas('org_options', function ($org_options) use ($org1, $org2)
+        {
             return $org_options->contains('id', $org1->id)
                 && $org_options->contains('id', $org2->id);
         });
@@ -181,7 +183,8 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
         );
 
         $response->assertOk();
-        $response->assertViewHas('org_options', function ($org_options) use ($org1, $org2) {
+        $response->assertViewHas('org_options', function ($org_options) use ($org1, $org2)
+        {
             return $org_options->contains('id', $org1->id)
                 && $org_options->contains('id', $org2->id);
         });
@@ -218,7 +221,8 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
         );
 
         $response->assertOk();
-        $response->assertViewHas('org_options', function ($org_options) use ($org1, $org2) {
+        $response->assertViewHas('org_options', function ($org_options) use ($org1, $org2)
+        {
             return $org_options->contains('id', $org1->id)
                 && $org_options->contains('id', $org2->id);
         });
@@ -326,11 +330,66 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
         );
 
         $response->assertOk();
-        $response->assertViewHas('org_options', function ($org_options) use ($org1, $org2) {
+        $response->assertViewHas('org_options', function ($org_options) use ($org1, $org2)
+        {
             return $org_options->contains('id', $org1->id)
                 && $org_options->contains('id', $org2->id);
         });
         $response->assertViewHas('credited_ids', fn ($ids) => $ids === [$org1->id, $org2->id]);
+    }
+
+    public function test_invoke_keeps_former_club_credit_as_ticked_option_when_no_costume(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $former_club = Organization::factory()->create();
+        $current_club = Organization::factory()->create();
+        $event = Event::factory()->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($current_club)->asMember()->create();
+
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->withCostumeOrganizationIds([$former_club->id])
+            ->asAttended()
+            ->create([EventTrooper::COSTUME_ID => null]);
+
+        $response = $this->actingAs($admin)->get(
+            route('admin.events.troopers.org-options', compact('event', 'event_trooper')).'?costume_id='
+        );
+
+        $response->assertOk();
+        $response->assertViewHas('org_options', fn ($org_options) => $org_options->contains('id', $former_club->id)
+            && $org_options->contains('id', $current_club->id));
+        $response->assertViewHas('credited_ids', [$former_club->id]);
+    }
+
+    public function test_invoke_keeps_former_club_credit_as_ticked_option_when_returning_to_stored_costume(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $former_club = Organization::factory()->create();
+        $event = Event::factory()->create();
+        $event_shift = EventShift::factory()->forEvent($event)->create();
+        $costume = Costume::factory()->create();
+
+        // No costume approval left for the former club, so it isn't live-eligible.
+        $event_trooper = EventTrooper::factory()
+            ->forEventShift($event_shift)
+            ->forTrooper($trooper)
+            ->withCostumeOrganizationIds([$former_club->id])
+            ->asAttended()
+            ->create([EventTrooper::COSTUME_ID => $costume->id]);
+
+        $response = $this->actingAs($admin)->get(
+            route('admin.events.troopers.org-options', compact('event', 'event_trooper')).'?costume_id='.$costume->id
+        );
+
+        $response->assertOk();
+        $response->assertViewHas('org_options', fn ($org_options) => $org_options->contains('id', $former_club->id));
+        $response->assertViewHas('credited_ids', [$former_club->id]);
     }
 
     public function test_invoke_filters_org_options_for_moderator_scope(): void
@@ -359,7 +418,8 @@ class GetEventTrooperOrgOptionsControllerTest extends TestCase
         );
 
         $response->assertOk();
-        $response->assertViewHas('org_options', function ($org_options) use ($allowed_org, $blocked_org) {
+        $response->assertViewHas('org_options', function ($org_options) use ($allowed_org, $blocked_org)
+        {
             return $org_options->contains('id', $allowed_org->id)
                 && ! $org_options->contains('id', $blocked_org->id);
         });

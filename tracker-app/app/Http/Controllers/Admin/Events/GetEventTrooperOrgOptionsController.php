@@ -42,19 +42,24 @@ class GetEventTrooperOrgOptionsController extends MagicBusController
         $is_new_costume = $costume_id !== $event_trooper->costume_id;
 
         $org_options = $event_trooper->eligibleRootOrgsForAdmin($allowed_org_ids, $costume);
-        $credited_ids = $is_new_costume ? $org_options->pluck('id')->all() : $event_trooper->creditedRootOrgIds();
 
-        return [$org_options, $credited_ids];
+        if ($is_new_costume)
+        {
+            return [$org_options, $org_options->pluck('id')->all()];
+        }
+
+        return [$event_trooper->withCreditedRootOrgOptions($org_options), $event_trooper->creditedRootOrgIds()];
     }
 
     private function resolveWithoutCostume(EventTrooper $event_trooper, ?array $allowed_org_ids): array
     {
         $org_options = $event_trooper->eligibleRootOrgsForAdmin($allowed_org_ids);
 
-        $credited_ids = $event_trooper->costume_id !== null
-            ? $org_options->pluck('id')->all()
-            : $event_trooper->creditedRootOrgIds();
+        if ($event_trooper->costume_id !== null)
+        {
+            return [$org_options, $org_options->pluck('id')->all()];
+        }
 
-        return [$org_options, $credited_ids];
+        return [$event_trooper->withCreditedRootOrgOptions($org_options), $event_trooper->creditedRootOrgIds()];
     }
 }

@@ -9,7 +9,6 @@ use App\Models\Costume;
 use App\Models\EventShift;
 use App\Models\EventShiftStation;
 use App\Models\EventTrooper;
-use App\Models\Organization;
 use App\Models\OrganizationCostume;
 use App\Models\Trooper;
 use App\Models\TrooperCostume;
@@ -84,9 +83,8 @@ readonly class GetTroopersForEventAdminQueryHandler implements QueryHandlerInter
 
                 $costume = $costumes_by_id->get($event_trooper->costume_id);
                 $org_options = $event_trooper->eligibleRootOrgsForAdmin($allowed_org_ids, $costume);
-                $credited_ids = $event_trooper->creditedRootOrgIds();
-                $event_trooper->org_options = $this->includeCreditedOrgOptions($org_options, $credited_ids);
-                $event_trooper->credited_checked_ids = $credited_ids;
+                $event_trooper->org_options = $event_trooper->withCreditedRootOrgOptions($org_options);
+                $event_trooper->credited_checked_ids = $event_trooper->creditedRootOrgIds();
             }
         }
     }
@@ -150,20 +148,6 @@ readonly class GetTroopersForEventAdminQueryHandler implements QueryHandlerInter
         }
 
         return $costume_options + [$stored_costume->id => $stored_costume->name];
-    }
-
-    private function includeCreditedOrgOptions(Collection $org_options, array $credited_ids): Collection
-    {
-        $missing_ids = array_diff($credited_ids, $org_options->pluck('id')->all());
-
-        if (empty($missing_ids))
-        {
-            return $org_options;
-        }
-
-        $missing_orgs = Organization::findMany($missing_ids);
-
-        return $org_options->concat($missing_orgs)->sortBy(Organization::NAME)->values();
     }
 
     private function buildRelations(): array

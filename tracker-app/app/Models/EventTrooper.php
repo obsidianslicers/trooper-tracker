@@ -491,6 +491,27 @@ class EventTrooper extends BaseEventTrooper
     }
 
     /**
+     * Adds the clubs this row is already credited to (including clubs the trooper has since
+     * left) to a set of admin credit options, so stored credit stays visible and ticked.
+     *
+     * @param  Collection<int, Organization>  $org_options
+     * @return Collection<int, Organization>
+     */
+    public function withCreditedRootOrgOptions(Collection $org_options): Collection
+    {
+        $missing_ids = array_diff($this->creditedRootOrgIds(), $org_options->pluck('id')->all());
+
+        if (empty($missing_ids))
+        {
+            return $org_options;
+        }
+
+        return $org_options->concat(Organization::findMany($missing_ids))
+            ->sortBy(Organization::NAME)
+            ->values();
+    }
+
+    /**
      * Returns root org IDs pre-checked for the credit org form.
      *
      * Maps costume_organization_ids (or organization_id as fallback) to their
