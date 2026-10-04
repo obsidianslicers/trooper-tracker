@@ -434,14 +434,10 @@ class EventTrooper extends BaseEventTrooper
             ->values()
             ->all();
 
-        $organizations = Organization::findMany($organization_ids)->keyBy('id');
+        $root_by_id = Organization::rootIdsById(collect($organization_ids));
 
         return collect($organization_ids)
-            ->map(function ($id) use ($organizations) {
-                $org = $organizations->get($id);
-
-                return $org ? (int) explode(':', $org->node_path)[0] : $id;
-            })
+            ->map(fn ($id) => $root_by_id[$id] ?? $id)
             ->unique()
             ->values()
             ->all();
@@ -593,11 +589,7 @@ class EventTrooper extends BaseEventTrooper
             return array_values($root_org_ids);
         }
 
-        $allowed_root_ids = Organization::whereIn(Organization::ID, $allowed_org_ids)
-            ->pluck(Organization::NODE_PATH)
-            ->map(fn ($node_path) => (int) explode(':', $node_path)[0])
-            ->unique()
-            ->all();
+        $allowed_root_ids = Organization::rootIdsFor(collect($allowed_org_ids))->all();
 
         return array_values(array_intersect($root_org_ids, $allowed_root_ids));
     }

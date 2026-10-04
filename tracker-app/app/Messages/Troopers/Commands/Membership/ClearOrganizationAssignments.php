@@ -35,7 +35,7 @@ final class ClearOrganizationAssignments extends Message
             ->where(TrooperAssignment::TROOPER_ID, $this->trooper_id)
             ->whereHas('organization', function ($q): void
             {
-                $q->where(Organization::NODE_PATH, 'like', $this->primary_organization->node_path.'%');
+                $q->withinNodePath($this->primary_organization->node_path);
             })
             ->get();
 

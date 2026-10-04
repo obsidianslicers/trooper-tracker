@@ -104,16 +104,14 @@ trait AssignsEventTrooperOrgCredit
     protected function costumeChildOrgIdsForParents(EventTrooper $event_trooper, Costume $costume, array $submitted_parent_ids): array
     {
         $approved_child_ids = $costume->approvedOrgIdsForTrooper($event_trooper->trooper_id);
-        $approved_orgs = Organization::findMany($approved_child_ids)->keyBy('id');
+        $root_by_id = Organization::rootIdsById(collect($approved_child_ids));
 
         return collect($approved_child_ids)
-            ->filter(function ($child_id) use ($approved_orgs, $submitted_parent_ids)
-            {
-                $org = $approved_orgs->get($child_id);
-                $root_id = $org ? (int) explode(':', $org->node_path)[0] : (int) $child_id;
-
-                return in_array($root_id, $submitted_parent_ids, true);
-            })
+            ->filter(fn ($child_id) => in_array(
+                $root_by_id[$child_id] ?? (int) $child_id,
+                $submitted_parent_ids,
+                true
+            ))
             ->values()
             ->all();
     }

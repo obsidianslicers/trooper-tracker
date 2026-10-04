@@ -171,7 +171,7 @@ trait HasTrooperOrgCreditQuery
             {
                 foreach ($node_path_prefixes as $prefix)
                 {
-                    $q->orWhere(Organization::NODE_PATH, 'like', $prefix.'%');
+                    $q->orWhere(fn ($q) => $q->withinNodePath($prefix));
                 }
             })
             ->pluck(Organization::ID)
