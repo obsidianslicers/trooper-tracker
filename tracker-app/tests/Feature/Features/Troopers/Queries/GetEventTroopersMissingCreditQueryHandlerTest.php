@@ -40,25 +40,15 @@ class GetEventTroopersMissingCreditQueryHandlerTest extends TestCase
         $this->assertFalse($result->first()['has_orphaned_db_value']);
     }
 
-    public function test_invoke_detects_orphaned_credit_not_resolvable_via_organizations_pivot(): void
+    public function test_invoke_detects_orphaned_credit_pointing_at_missing_organization(): void
     {
-        // Mirrors the real-world case: the trooper has an active tt_trooper_assignments row for
-        // an org (so Fix406-style logic derives credit from it), but no corresponding
-        // tt_trooper_organizations pivot row for that same org — so the service-record page's
-        // display logic (HasOrgCreditAnnotation, matched against organizations()) can't resolve
-        // it to a visible badge, even though the DB column is populated.
         $admin = Trooper::factory()->asAdministrator()->create();
         $trooper = Trooper::factory()->asActive()->create();
-        $assignment_org = $this->makeRootOrganization();
-        $profile_org = $this->makeRootOrganization();
-
-        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($assignment_org)->asMember()->create();
-        TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($profile_org)->create();
 
         $event_trooper = $this->makeAttendedEventTrooper($trooper);
         $event_trooper->updateQuietly([
             EventTrooper::ORGANIZATION_ID => null,
-            EventTrooper::COSTUME_ORGANIZATION_IDS => [$assignment_org->id],
+            EventTrooper::COSTUME_ORGANIZATION_IDS => [999999],
         ]);
 
         $subject = new GetEventTroopersMissingCreditQueryHandler;
@@ -66,6 +56,24 @@ class GetEventTroopersMissingCreditQueryHandlerTest extends TestCase
 
         $this->assertSame([$event_trooper->id], $result->pluck('event_trooper_id')->all());
         $this->assertTrue($result->first()['has_orphaned_db_value']);
+    }
+
+    public function test_invoke_does_not_flag_shift_credited_to_club_the_trooper_left(): void
+    {
+        // Credit is historical: leaving a club (or never having a tt_trooper_organizations row
+        // for it) must not turn that club's troops into "missing credit".
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $former_org = $this->makeRootOrganization();
+        TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($former_org)->create()->delete();
+
+        $event_trooper = $this->makeAttendedEventTrooper($trooper);
+        $event_trooper->updateQuietly([EventTrooper::COSTUME_ORGANIZATION_IDS => [$former_org->id]]);
+
+        $subject = new GetEventTroopersMissingCreditQueryHandler;
+        ['total' => $total] = $subject(new GetEventTroopersMissingCreditQuery(actor: $admin));
+
+        $this->assertSame(0, $total);
     }
 
     public function test_invoke_does_not_flag_shift_with_resolvable_credit(): void
@@ -91,10 +99,8 @@ class GetEventTroopersMissingCreditQueryHandlerTest extends TestCase
 
     public function test_invoke_flags_trooper_with_no_club_membership_at_all(): void
     {
-        // Real-world case: a trooper with zero non-deleted tt_trooper_organizations rows can
-        // never show a "Credited To" badge, no matter what gets assigned — HasOrgCreditAnnotation
-        // has nothing to match a credited org against. The UI needs this flag to explain why
-        // assigning credit here won't visibly change anything until that's fixed separately.
+        // Fallback options come from current memberships, so with none the UI needs this flag
+        // to explain why there's nothing to pick until the trooper is added to a club.
         $admin = Trooper::factory()->asAdministrator()->create();
         $trooper = Trooper::factory()->asActive()->create();
         $event_trooper = $this->makeAttendedEventTrooper($trooper);
@@ -201,10 +207,8 @@ class GetEventTroopersMissingCreditQueryHandlerTest extends TestCase
 
     public function test_invoke_fallback_org_options_never_offers_a_club_the_trooper_is_not_in(): void
     {
-        // Directly guards the bug reported live: picking a club from the fallback list that the
-        // trooper doesn't actually belong to writes fine but never displays, because
-        // HasOrgCreditAnnotation can only resolve credit against the trooper's *current*
-        // tt_trooper_organizations rows. The fallback list must never offer such a club at all.
+        // The fallback list is limited to the trooper's current clubs; it must never offer an
+        // unrelated club.
         $admin = Trooper::factory()->asAdministrator()->create();
         $trooper_org = $this->makeRootOrganization();
         $other_org = $this->makeRootOrganization();
@@ -306,10 +310,17 @@ class GetEventTroopersMissingCreditQueryHandlerTest extends TestCase
         $event = Event::factory()->asClosed()->create();
         $shift = EventShift::factory()->forEvent($event)->asClosed()->create();
 
-        return EventTrooper::factory()
+        $event_trooper = EventTrooper::factory()
             ->forEventShift($shift)
             ->forTrooper($trooper)
             ->asAttended()
             ->create([EventTrooper::COSTUME_ID => null]);
+
+        $event_trooper->updateQuietly([
+            EventTrooper::ORGANIZATION_ID => null,
+            EventTrooper::COSTUME_ORGANIZATION_IDS => null,
+        ]);
+
+        return $event_trooper;
     }
 }

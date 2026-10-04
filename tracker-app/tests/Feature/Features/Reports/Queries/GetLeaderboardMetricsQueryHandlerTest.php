@@ -219,6 +219,22 @@ class GetLeaderboardMetricsQueryHandlerTest extends TestCase
         $this->assertSame(1, (int) $result['operatives']->first()->troop_count);
     }
 
+    public function test_invoke_club_filter_includes_former_member_with_club_credit(): void
+    {
+        $this->skipIfSqlite();
+        $club = Organization::factory()->asOrganization()->create();
+        $former_member = Trooper::factory()->asMember()->create();
+
+        TrooperAssignment::factory()->forTrooper($former_member)->forOrganization($club)->asMember()->create()->delete();
+
+        $this->createAttendance($former_member, now()->subDays(5), null, [$club->id]);
+
+        $subject = new GetLeaderboardMetricsQueryHandler;
+        $result = $subject(new GetLeaderboardMetricsQuery(null, $club));
+
+        $this->assertTrue($result['operatives']->pluck('trooper_id')->contains($former_member->id));
+    }
+
     /**
      * @param  array<int, int>  $costume_organization_ids
      */

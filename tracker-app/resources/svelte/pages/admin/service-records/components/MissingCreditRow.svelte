@@ -14,8 +14,8 @@
     let isAssigning = $derived(vm.assigning_id === row.event_trooper_id);
 
     const ORPHANED_CREDIT_TOOLTIP =
-        "This shift already has a stored credit value that isn't resolving to a visible " +
-        "club — likely a membership sync mismatch.";
+        "This shift already has a stored credit value that isn't resolving to a club — " +
+        "the credited organization may no longer exist.";
 </script>
 
 <tr>
@@ -31,7 +31,7 @@
     <td>{row.shift_label}</td>
     <td>{row.costume_name ?? "N/A"}</td>
     <td>
-        {#if row.trooper_has_no_club_membership}
+        {#if options.length === 0 && row.trooper_has_no_club_membership}
             <span class="text-muted small">
                 Not a member of any club — add them to a club first.
             </span>
@@ -56,7 +56,7 @@
         {/if}
     </td>
     <td class="text-end">
-        {#if !row.trooper_has_no_club_membership && options.length > 0}
+        {#if options.length > 0}
             <Button
                 btnclass="btn-warning btn-sm"
                 label={isAssigning ? "Assigning…" : "Assign Credit"}

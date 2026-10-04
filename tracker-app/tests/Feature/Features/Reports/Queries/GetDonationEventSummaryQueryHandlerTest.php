@@ -835,4 +835,27 @@ class GetDonationEventSummaryQueryHandlerTest extends TestCase
         $this->assertSame(2, (int) $result->first()->attendees_count);
         $this->assertSame(2, $result->first()->event_shifts->first()->attendees_count);
     }
+
+    public function test_invoke_org_filter_counts_former_member_with_org_credit(): void
+    {
+        $this->skipIfSqlite();
+        $moderator = Trooper::factory()->asModerator()->create();
+        $org = Organization::factory()->create();
+        TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($org)->asModerator()->create();
+
+        $former_member = Trooper::factory()->asMember()->create();
+
+        $event = Event::factory()->asClosed()->withOrganization($org)->withEventStart(now()->subDays(5))->create();
+        $shift = EventShift::factory()->forEvent($event)->create();
+
+        EventTrooper::factory()->forEventShift($shift)->forTrooper($former_member)->asAttended()
+            ->withCostumeOrganizationIds([$org->id])
+            ->create([EventTrooper::ORGANIZATION_ID => null]);
+
+        $subject = new GetDonationEventSummaryQueryHandler;
+
+        $result = $subject(new GetDonationEventSummaryQuery($moderator, selected_org_ids: [$org->id]));
+
+        $this->assertSame(1, (int) $result->first()->attendees_count);
+    }
 }

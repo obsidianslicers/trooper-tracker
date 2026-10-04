@@ -194,7 +194,7 @@ class GetTrooperServiceRecordQueryHandlerTest extends TestCase
         $subject = new GetTrooperServiceRecordQueryHandler;
         $result = $subject(new GetTrooperServiceRecordQuery($trooper->id));
 
-        $this->assertSame(1, $result['trooper_organizations']->first()->troop_count);
+        $this->assertSame(1, $result['club_troop_counts']->firstWhere('id', $org->id)->troop_count);
     }
 
     public function test_invoke_troop_count_rule2_credits_org_from_costume_organization_ids(): void
@@ -214,7 +214,7 @@ class GetTrooperServiceRecordQueryHandlerTest extends TestCase
         $subject = new GetTrooperServiceRecordQueryHandler;
         $result = $subject(new GetTrooperServiceRecordQuery($trooper->id));
 
-        $this->assertSame(1, $result['trooper_organizations']->first()->troop_count);
+        $this->assertSame(1, $result['club_troop_counts']->firstWhere('id', $org->id)->troop_count);
     }
 
     public function test_invoke_troop_count_prefers_costume_organization_ids_over_capacity_org(): void
@@ -238,9 +238,9 @@ class GetTrooperServiceRecordQueryHandlerTest extends TestCase
 
         $subject = new GetTrooperServiceRecordQueryHandler;
         $result = $subject(new GetTrooperServiceRecordQuery($trooper->id));
-        $counts = $result['trooper_organizations']->pluck('troop_count', 'id');
+        $counts = $result['club_troop_counts']->pluck('troop_count', 'id');
 
-        $this->assertSame(0, $counts[$capacity_org->id]);
+        $this->assertArrayNotHasKey($capacity_org->id, $counts);
         $this->assertSame(1, $counts[$credit_org1->id]);
         $this->assertSame(1, $counts[$credit_org2->id]);
     }
@@ -258,7 +258,7 @@ class GetTrooperServiceRecordQueryHandlerTest extends TestCase
         $subject = new GetTrooperServiceRecordQueryHandler;
         $result = $subject(new GetTrooperServiceRecordQuery($trooper->id));
 
-        $this->assertSame(0, $result['trooper_organizations']->first()->troop_count);
+        $this->assertNull($result['club_troop_counts']->firstWhere('id', $org->id));
     }
 
     public function test_invoke_troop_count_join_date_after_shift_does_not_exclude_credit(): void
@@ -282,7 +282,62 @@ class GetTrooperServiceRecordQueryHandlerTest extends TestCase
         $subject = new GetTrooperServiceRecordQueryHandler;
         $result = $subject(new GetTrooperServiceRecordQuery($trooper->id));
 
-        $this->assertSame(1, $result['trooper_organizations']->first()->troop_count);
+        $this->assertSame(1, $result['club_troop_counts']->firstWhere('id', $org->id)->troop_count);
+    }
+
+    public function test_invoke_troop_count_keeps_credit_for_club_the_trooper_left(): void
+    {
+        $trooper = Trooper::factory()->asMember()->create();
+        $current_club = Organization::factory()->asOrganization()->create(['name' => 'Current Club']);
+        $former_club = Organization::factory()->asOrganization()->create(['name' => 'Former Club']);
+
+        TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($current_club)->create();
+        TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($former_club)->create()->delete();
+
+        $this->createCreditedShift($trooper, [$former_club->id]);
+        $this->createCreditedShift($trooper, [$current_club->id, $former_club->id]);
+
+        $subject = new GetTrooperServiceRecordQueryHandler;
+        $result = $subject(new GetTrooperServiceRecordQuery($trooper->id));
+        $counts = $result['club_troop_counts']->pluck('troop_count', 'id');
+
+        $this->assertSame([$current_club->id], $result['trooper_organizations']->pluck('id')->all());
+        $this->assertSame(1, $counts[$current_club->id]);
+        $this->assertSame(2, $counts[$former_club->id]);
+        $this->assertEqualsCanonicalizing(
+            [['Former Club'], ['Current Club', 'Former Club']],
+            $result['recent_shifts']->map(fn ($shift) => $shift->event_trooper->credited_org_names)->all()
+        );
+    }
+
+    public function test_invoke_troop_count_credits_club_with_no_membership_record_at_all(): void
+    {
+        $trooper = Trooper::factory()->asMember()->create();
+        $club = Organization::factory()->asOrganization()->create(['name' => 'Never Recorded']);
+        $squad = Organization::factory()->asRegion()->withParent($club)->create();
+
+        $this->createCreditedShift($trooper, [$squad->id]);
+
+        $subject = new GetTrooperServiceRecordQueryHandler;
+        $result = $subject(new GetTrooperServiceRecordQuery($trooper->id));
+
+        $this->assertSame(1, $result['club_troop_counts']->firstWhere('id', $club->id)->troop_count);
+        $this->assertSame(
+            ['Never Recorded'],
+            $result['recent_shifts']->first()->event_trooper->credited_org_names
+        );
+    }
+
+    private function createCreditedShift(Trooper $trooper, array $costume_organization_ids): void
+    {
+        $event = Event::factory()->asClosed()->create();
+        $shift = EventShift::factory()->forEvent($event)->asClosed()
+            ->withShiftStartsAt(now()->subDays(5))->create();
+        EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asAttended()->create()
+            ->updateQuietly([
+                EventTrooper::ORGANIZATION_ID => null,
+                EventTrooper::COSTUME_ORGANIZATION_IDS => $costume_organization_ids,
+            ]);
     }
 
     public function test_invoke_service_summary_includes_club_scoped_milestones(): void

@@ -10,6 +10,7 @@ use App\Enums\EventTrooperStatus;
 use App\Features\Events\Queries\HasTrooperOrgCreditQuery;
 use App\Models\Event;
 use App\Models\EventTrooper;
+use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
@@ -32,7 +33,7 @@ readonly class GetTrooperEventSummaryQueryHandler implements QueryHandlerInterfa
             ->select('tt_troopers.*')
             ->selectSub($shiftCountSub, 'event_shifts_count')
             ->selectSub($eventCountSub, 'events_count')
-            ->moderatedBy($message->moderator)
+            ->where(fn ($q) => $this->whereVisibleToModerator($q, $message->moderator))
             ->whereHas('event_troopers', function ($q) use ($message, $roster_org_ids)
             {
                 $q->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED)
@@ -62,6 +63,28 @@ readonly class GetTrooperEventSummaryQueryHandler implements QueryHandlerInterfa
         $dir = $message->dir === 'asc' ? 'asc' : 'desc';
 
         return $query->orderBy($sort, $dir)->paginate($message->page_size)->withQueryString();
+    }
+
+    /**
+     * Troopers the moderator currently oversees, plus former members who still hold attended
+     * credit inside the moderator's organizations (their member assignments are removed when
+     * they leave a club, so moderatedBy alone would hide their history).
+     */
+    private function whereVisibleToModerator(mixed $q, Trooper $moderator): void
+    {
+        if ($moderator->is_administrator)
+        {
+            return;
+        }
+
+        $moderated_org_ids = Organization::moderatedBy($moderator)->pluck(Organization::ID)->all();
+
+        $q->moderatedBy($moderator)
+            ->orWhereHas('event_troopers', function ($q) use ($moderated_org_ids)
+            {
+                $q->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED);
+                $this->whereDirectCredit($q, $moderated_org_ids);
+            });
     }
 
     private function buildShiftCountSubquery(GetTrooperEventSummaryQuery $message, array $roster_org_ids): Builder

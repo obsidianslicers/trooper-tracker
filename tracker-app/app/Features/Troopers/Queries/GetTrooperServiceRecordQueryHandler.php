@@ -42,7 +42,8 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
 
         return [
             'trooper' => $trooper,
-            'trooper_organizations' => $this->getOrganizations($trooper, $recent_shifts),
+            'trooper_organizations' => $this->getOrganizations($trooper),
+            'club_troop_counts' => $this->getClubTroopCounts($recent_shifts),
             'tagged_uploads' => $this->getTaggedUploads($trooper),
             'service_summary' => $this->getServiceSummary($trooper),
             'upcoming_shifts' => $this->getUpcomingEventShifts($trooper),
@@ -53,7 +54,7 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
         ];
     }
 
-    private function getOrganizations(Trooper $trooper, Collection $recent_shifts): Collection
+    private function getOrganizations(Trooper $trooper): Collection
     {
         $organizations = $trooper->organizations()
             ->wherePivotNull(TrooperOrganization::DELETED_AT)
@@ -65,14 +66,8 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
             ->where(TrooperAssignment::IS_MEMBER, true)
             ->get();
 
-        $candidate_orgs = $this->loadCandidateOrgs($recent_shifts);
-        ['troop_counts' => $troop_counts, 'credited_ids_by_shift' => $credited_ids_by_shift]
-            = $this->computeTroopCounts($recent_shifts, $organizations, $candidate_orgs);
-
         foreach ($organizations as $organization)
         {
-            $organization->troop_count = $troop_counts[$organization->id] ?? 0;
-
             foreach ($assignments as $assignment)
             {
                 if (str_starts_with($assignment->organization->node_path, $organization->node_path))
@@ -82,9 +77,32 @@ readonly class GetTrooperServiceRecordQueryHandler implements QueryHandlerInterf
             }
         }
 
-        $this->annotateShiftsWithCreditedOrgNames($recent_shifts, $organizations, $credited_ids_by_shift);
-
         return $organizations;
+    }
+
+    /**
+     * Per-club troop counts, including clubs the trooper has since left, and annotates each
+     * recent shift with the club names it was credited to.
+     *
+     * @return Collection<int, Organization> Root clubs with a `troop_count` attribute.
+     */
+    private function getClubTroopCounts(Collection $recent_shifts): Collection
+    {
+        $candidate_orgs = $this->loadCandidateOrgs($recent_shifts);
+        ['troop_counts' => $troop_counts, 'credited_ids_by_shift' => $credited_ids_by_shift]
+            = $this->computeTroopCounts($recent_shifts, $candidate_orgs);
+
+        $this->annotateShiftsWithCreditedOrgNames($recent_shifts, $credited_ids_by_shift);
+
+        if (empty($troop_counts))
+        {
+            return collect();
+        }
+
+        return Organization::whereIn(Organization::ID, array_keys($troop_counts))
+            ->orderBy(Organization::NAME)
+            ->get()
+            ->each(fn (Organization $org) => $org->troop_count = $troop_counts[$org->id]);
     }
 
     private function getTaggedUploads(Trooper $trooper): Collection

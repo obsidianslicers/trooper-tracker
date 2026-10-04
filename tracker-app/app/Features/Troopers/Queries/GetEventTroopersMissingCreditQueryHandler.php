@@ -92,8 +92,6 @@ readonly class GetEventTroopersMissingCreditQueryHandler implements QueryHandler
             return collect();
         }
 
-        $organizations = $this->resolveTrooperOrganizations($trooper);
-
         $recent_shifts = $event_troopers->map(fn (EventTrooper $et) => (object) [
             'id' => $et->id,
             'event_trooper' => $et,
@@ -102,7 +100,6 @@ readonly class GetEventTroopersMissingCreditQueryHandler implements QueryHandler
         $candidate_orgs = $this->loadCandidateOrgs($recent_shifts);
         ['credited_ids_by_shift' => $credited_ids_by_shift] = $this->computeTroopCounts(
             $recent_shifts,
-            $organizations,
             $candidate_orgs
         );
 
@@ -155,12 +152,9 @@ readonly class GetEventTroopersMissingCreditQueryHandler implements QueryHandler
 
     /**
      * Root/primary-club organizations to offer as a fallback when a shift has no automatically
-     * eligible club. Must be limited to clubs the trooper is *currently* a member of
-     * (tt_trooper_organizations) — HasOrgCreditAnnotation can only ever resolve a credited org to
-     * a visible badge if it's in that list, so offering any other club (even ones the actor is
-     * otherwise authorized to credit) would look like it worked but silently never display — the
-     * exact failure mode this tool exists to fix. Also bounded by the acting mod/admin's own
-     * authority via Organization::moderatedBy, same as everywhere else in this feature.
+     * eligible club: the clubs the trooper is currently a member of (tt_trooper_organizations),
+     * bounded by the acting mod/admin's own authority via Organization::moderatedBy, same as
+     * everywhere else in this feature.
      *
      * @param  Collection<int, Organization>  $organizations  The trooper's current clubs.
      * @return array<int, array{id: int, name: string}>
@@ -213,9 +207,8 @@ readonly class GetEventTroopersMissingCreditQueryHandler implements QueryHandler
             'has_eligible_options' => $org_options->isNotEmpty(),
             'has_orphaned_db_value' => $has_orphaned_db_value,
             'fallback_org_options' => $org_options->isEmpty() ? $fallback_org_options : [],
-            // Credit can never render for this shift — regardless of what gets assigned — until
-            // the trooper has at least one non-deleted tt_trooper_organizations row, since that's
-            // the only list HasOrgCreditAnnotation matches a credited org against for display.
+            // Fallback options come from current memberships, so a trooper with none and no
+            // eligible costume club has nothing to offer until they're added to a club.
             'trooper_has_no_club_membership' => $trooper_has_no_club_membership,
         ];
     }

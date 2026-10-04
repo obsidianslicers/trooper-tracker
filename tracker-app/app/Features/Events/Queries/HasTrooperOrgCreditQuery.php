@@ -9,12 +9,13 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Determines whether an `tt_event_troopers` row should count toward a given organization
- * scope, based on the attending trooper's own roster placement rather than how the event
- * itself was tagged. A shift only counts when the trooper is a roster member (is_member)
- * of one of the given organizations, and the credit on the event_trooper record was given
- * to that trooper's own organization or to any ancestor of it (e.g. credit logged at the
- * garrison level still counts for a squad member). The specific org an event was credited
- * to doesn't matter, only whether the credit reaches the trooper's place in the hierarchy.
+ * scope. A shift counts when either:
+ *
+ * - Roster: the attending trooper is currently a roster member (is_member) of one of the given
+ *   organizations, and the credit was given to that trooper's own organization or any ancestor
+ *   of it (e.g. credit logged at the garrison level still counts for a squad member).
+ * - Direct credit: the credited organization itself is inside the scope. This keeps historical
+ *   credit counting after a trooper leaves a club, since it doesn't depend on membership.
  */
 trait HasTrooperOrgCreditQuery
 {
@@ -25,6 +26,57 @@ trait HasTrooperOrgCreditQuery
             return;
         }
 
+        $scope_org_ids = !empty($roster_org_ids)
+            ? $roster_org_ids
+            : $this->resolveRootSubtreeIds($accessible_root_ids);
+
+        $q->where(function ($q) use ($roster_org_ids, $accessible_root_ids, $scope_org_ids)
+        {
+            $q->where(fn ($q) => $this->whereRosterCredit($q, $roster_org_ids, $accessible_root_ids))
+                ->orWhere(fn ($q) => $this->whereDirectCredit($q, $scope_org_ids));
+        });
+    }
+
+    /**
+     * Restricts to rows credited directly to one of the given organizations, regardless of the
+     * trooper's current memberships.
+     */
+    protected function whereDirectCredit(mixed $q, array $scope_org_ids): void
+    {
+        if (empty($scope_org_ids))
+        {
+            $q->whereRaw('1 = 0');
+
+            return;
+        }
+
+        $scope_json = json_encode(array_values(array_map('intval', $scope_org_ids)));
+
+        $q->where(function ($q) use ($scope_json, $scope_org_ids)
+        {
+            $q->where(function ($q) use ($scope_json)
+            {
+                $this->whereHasCostumeOrganizationCredit($q);
+                $q->whereRaw($this->costumeCreditOverlapsSql(), [$scope_json]);
+            })
+                ->orWhere(function ($q) use ($scope_org_ids)
+                {
+                    $this->whereNoCostumeOrganizationCredit($q);
+                    $q->whereIn('tt_event_troopers.organization_id', $scope_org_ids);
+                });
+        });
+    }
+
+    private function costumeCreditOverlapsSql(): string
+    {
+        return DB::getDriverName() === 'sqlite'
+            ? 'EXISTS (SELECT 1 FROM json_each(tt_event_troopers.costume_organization_ids) AS credit '.
+                'WHERE credit.value IN (SELECT value FROM json_each(?)))'
+            : 'JSON_OVERLAPS(tt_event_troopers.costume_organization_ids, ?)';
+    }
+
+    private function whereRosterCredit(mixed $q, array $roster_org_ids, array $accessible_root_ids): void
+    {
         $q->whereExists(function ($sub) use ($roster_org_ids, $accessible_root_ids)
         {
             $sub->select(DB::raw(1))
@@ -68,6 +120,31 @@ trait HasTrooperOrgCreditQuery
                     });
             });
         });
+    }
+
+    /**
+     * Expands root club ids to every organization id beneath them.
+     *
+     * @param  array<int>  $root_ids
+     * @return array<int>
+     */
+    protected function resolveRootSubtreeIds(array $root_ids): array
+    {
+        if (empty($root_ids))
+        {
+            return [];
+        }
+
+        return Organization::query()
+            ->where(function ($q) use ($root_ids)
+            {
+                foreach ($root_ids as $root_id)
+                {
+                    $q->orWhere(Organization::NODE_PATH, 'like', ((int) $root_id).':%');
+                }
+            })
+            ->pluck('id')
+            ->all();
     }
 
     /**

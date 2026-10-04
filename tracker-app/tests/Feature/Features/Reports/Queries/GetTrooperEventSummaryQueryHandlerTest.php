@@ -324,7 +324,7 @@ class GetTrooperEventSummaryQueryHandlerTest extends TestCase
         $this->assertSame(1, $result->first()->event_shifts_count);
     }
 
-    public function test_invoke_organization_filter_excludes_trooper_not_a_member_of_org(): void
+    public function test_invoke_organization_filter_includes_former_member_with_direct_credit(): void
     {
         $this->skipIfSqlite();
         $moderator = Trooper::factory()->asAdministrator()->create();
@@ -342,8 +342,11 @@ class GetTrooperEventSummaryQueryHandlerTest extends TestCase
 
         $subject = new GetTrooperEventSummaryQueryHandler;
         $result = $subject(new GetTrooperEventSummaryQuery($moderator, organization: $org));
+        $other_result = $subject(new GetTrooperEventSummaryQuery($moderator, organization: $other_org));
 
-        $this->assertCount(0, $result);
+        $this->assertCount(1, $result);
+        $this->assertSame(1, $result->first()->event_shifts_count);
+        $this->assertCount(0, $other_result);
     }
 
     public function test_invoke_organization_filter_credits_events_attributed_to_ancestor_org(): void
@@ -351,8 +354,8 @@ class GetTrooperEventSummaryQueryHandlerTest extends TestCase
         $this->skipIfSqlite();
         $moderator = Trooper::factory()->asAdministrator()->create();
         $trooper = Trooper::factory()->asMember()->create();
-        $garrison = Organization::factory()->withNodePath('501:')->create();
-        $squad = Organization::factory()->withNodePath('501:42:')->create();
+        $garrison = Organization::factory()->create();
+        $squad = Organization::factory()->withParent($garrison)->create();
 
         TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($squad)->asMember()->create();
 
@@ -374,8 +377,8 @@ class GetTrooperEventSummaryQueryHandlerTest extends TestCase
         $this->skipIfSqlite();
         $moderator = Trooper::factory()->asAdministrator()->create();
         $trooper = Trooper::factory()->asMember()->create();
-        $garrison = Organization::factory()->withNodePath('501:')->create();
-        $squad = Organization::factory()->withNodePath('501:42:')->create();
+        $garrison = Organization::factory()->create();
+        $squad = Organization::factory()->withParent($garrison)->create();
 
         TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($squad)->asMember()->create();
 
@@ -397,9 +400,9 @@ class GetTrooperEventSummaryQueryHandlerTest extends TestCase
         $this->skipIfSqlite();
         $moderator = Trooper::factory()->asAdministrator()->create();
         $trooper = Trooper::factory()->asMember()->create();
-        $garrison = Organization::factory()->withNodePath('501:')->create();
-        $squad = Organization::factory()->withNodePath('501:42:')->create();
-        $sibling_squad = Organization::factory()->withNodePath('501:43:')->create();
+        $garrison = Organization::factory()->create();
+        $squad = Organization::factory()->withParent($garrison)->create();
+        $sibling_squad = Organization::factory()->withParent($garrison)->create();
 
         TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($squad)->asMember()->create();
 
@@ -410,9 +413,12 @@ class GetTrooperEventSummaryQueryHandlerTest extends TestCase
             ->withCostumeOrganizationIds([$sibling_squad->id])->create();
 
         $subject = new GetTrooperEventSummaryQueryHandler;
-        $result = $subject(new GetTrooperEventSummaryQuery($moderator, organization: $garrison));
+        $squad_result = $subject(new GetTrooperEventSummaryQuery($moderator, organization: $squad));
+        $garrison_result = $subject(new GetTrooperEventSummaryQuery($moderator, organization: $garrison));
 
-        $this->assertCount(0, $result);
+        // Sibling-squad credit belongs to the sibling (and so the garrison), never to own squad.
+        $this->assertCount(0, $squad_result);
+        $this->assertCount(1, $garrison_result);
     }
 
     // -------------------------------------------------------------------------
@@ -445,7 +451,7 @@ class GetTrooperEventSummaryQueryHandlerTest extends TestCase
         $this->assertSame(1, $result->first()->event_shifts_count);
     }
 
-    public function test_invoke_accessible_org_ids_excludes_trooper_not_in_accessible_org(): void
+    public function test_invoke_accessible_org_ids_includes_former_member_with_direct_credit(): void
     {
         $this->skipIfSqlite();
         $moderator = Trooper::factory()->asAdministrator()->create();
@@ -463,6 +469,78 @@ class GetTrooperEventSummaryQueryHandlerTest extends TestCase
 
         $subject = new GetTrooperEventSummaryQueryHandler;
         $result = $subject(new GetTrooperEventSummaryQuery($moderator, accessible_org_ids: [$accessible_org->id]));
+
+        $this->assertCount(1, $result);
+        $this->assertSame(1, $result->first()->event_shifts_count);
+    }
+
+    public function test_invoke_moderator_sees_removed_member_with_credit_in_their_club(): void
+    {
+        $this->skipIfSqlite();
+        $club = Organization::factory()->create();
+        $squad = Organization::factory()->withParent($club)->create();
+
+        $moderator = Trooper::factory()->asModerator()->create();
+        TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($club)->asModerator()->create();
+
+        // Removed from the club: member assignment soft-deleted, so moderatedBy() no longer matches.
+        $former_member = Trooper::factory()->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($former_member)->forOrganization($squad)->asMember()->create()->delete();
+
+        $event = Event::factory()->asClosed()->withEventStart(now()->subDays(5))->create();
+        EventTrooper::factory()->forEventShift(EventShift::factory()->forEvent($event)->create())
+            ->forTrooper($former_member)->asAttended()->withCostumeOrganizationIds([$club->id])->create();
+
+        $subject = new GetTrooperEventSummaryQueryHandler;
+        $result = $subject(new GetTrooperEventSummaryQuery($moderator, organization: $club));
+
+        $this->assertSame([$former_member->id], $result->pluck('id')->all());
+        $this->assertSame(1, $result->first()->event_shifts_count);
+    }
+
+    public function test_invoke_moderator_does_not_see_former_member_credited_only_elsewhere(): void
+    {
+        $club = Organization::factory()->create();
+        $other_club = Organization::factory()->create();
+
+        $moderator = Trooper::factory()->asModerator()->create();
+        TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($club)->asModerator()->create();
+
+        $stranger = Trooper::factory()->asMember()->create();
+        $event = Event::factory()->asClosed()->withEventStart(now()->subDays(5))->create();
+        EventTrooper::factory()->forEventShift(EventShift::factory()->forEvent($event)->create())
+            ->forTrooper($stranger)->asAttended()->withCostumeOrganizationIds([$other_club->id])->create();
+
+        $subject = new GetTrooperEventSummaryQueryHandler;
+        $result = $subject(new GetTrooperEventSummaryQuery($moderator));
+
+        $this->assertCount(0, $result);
+    }
+
+    public function test_invoke_moderator_does_not_see_former_member_whose_credited_shift_was_not_attended(): void
+    {
+        $club = Organization::factory()->create();
+
+        $moderator = Trooper::factory()->asModerator()->create();
+        TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($club)->asModerator()->create();
+
+        $former_member = Trooper::factory()->asMember()->create();
+        $event = Event::factory()->asClosed()->withEventStart(now()->subDays(5))->create();
+        EventTrooper::factory()->forEventShift(EventShift::factory()->forEvent($event)->create())
+            ->forTrooper($former_member)->asGoing()->create()
+            ->updateQuietly([
+                EventTrooper::ORGANIZATION_ID => $club->id,
+                EventTrooper::COSTUME_ORGANIZATION_IDS => null,
+            ]);
+        EventTrooper::factory()->forEventShift(EventShift::factory()->forEvent($event)->create())
+            ->forTrooper($former_member)->asAttended()->create()
+            ->updateQuietly([
+                EventTrooper::ORGANIZATION_ID => null,
+                EventTrooper::COSTUME_ORGANIZATION_IDS => null,
+            ]);
+
+        $subject = new GetTrooperEventSummaryQueryHandler;
+        $result = $subject(new GetTrooperEventSummaryQuery($moderator));
 
         $this->assertCount(0, $result);
     }
@@ -639,7 +717,7 @@ class GetTrooperEventSummaryQueryHandlerTest extends TestCase
         $shift = EventShift::factory()->forEvent($event)->create();
 
         EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asAttended()
-            ->state(fn() => [EventTrooper::ORGANIZATION_ID => $org->id])->create();
+            ->state(fn () => [EventTrooper::ORGANIZATION_ID => $org->id])->create();
 
         $subject = new GetTrooperEventSummaryQueryHandler;
         $result = $subject(new GetTrooperEventSummaryQuery($moderator, organization: $org));
@@ -662,7 +740,7 @@ class GetTrooperEventSummaryQueryHandlerTest extends TestCase
         $shift = EventShift::factory()->forEvent($event)->create();
 
         EventTrooper::factory()->forEventShift($shift)->forTrooper($trooper)->asAttended()
-            ->state(fn() => [EventTrooper::ORGANIZATION_ID => $other_org->id])->create();
+            ->state(fn () => [EventTrooper::ORGANIZATION_ID => $other_org->id])->create();
 
         $subject = new GetTrooperEventSummaryQueryHandler;
         $result = $subject(new GetTrooperEventSummaryQuery($moderator, organization: $target_org));
@@ -679,7 +757,7 @@ class GetTrooperEventSummaryQueryHandlerTest extends TestCase
 
         TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org)->asMember()->create();
         TrooperOrganization::factory()->forTrooper($trooper)->forOrganization($org)
-            ->state(fn() => [TrooperOrganization::JOIN_DATE => Carbon::parse('2026-06-01')])
+            ->state(fn () => [TrooperOrganization::JOIN_DATE => Carbon::parse('2026-06-01')])
             ->create();
 
         $event = Event::factory()->asClosed()->withEventStart(Carbon::parse('2026-01-01'))->create();
