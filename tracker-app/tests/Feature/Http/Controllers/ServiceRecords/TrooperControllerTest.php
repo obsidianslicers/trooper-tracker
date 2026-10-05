@@ -268,6 +268,7 @@ class TrooperControllerTest extends TestCase
         return [
             'trooper' => $trooper,
             'trooper_organizations' => collect(),
+            'club_troop_counts' => collect(),
             'tagged_uploads' => collect(),
             'service_summary' => [
                 'total_shifts' => 0,

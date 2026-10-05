@@ -51,7 +51,7 @@ readonly class GetOrganizationsForPickerQueryHandler implements QueryHandlerInte
 
             $organization = Organization::findOrFail($organization_id);
 
-            $organizations = Organization::where(Organization::NODE_PATH, 'like', $organization->node_path.'%')
+            $organizations = Organization::withinNodePath($organization->node_path)
                 ->orderBy(Organization::SEQUENCE)
                 ->get();
         }

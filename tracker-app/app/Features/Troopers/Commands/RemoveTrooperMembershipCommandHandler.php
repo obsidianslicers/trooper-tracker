@@ -29,8 +29,7 @@ readonly class RemoveTrooperMembershipCommandHandler implements CommandHandlerIn
             ->where(TrooperOrganization::ORGANIZATION_ID, $message->organization->id)
             ->delete();
 
-        $organization_ids = Organization::query()
-            ->where(Organization::NODE_PATH, 'like', $message->organization->node_path.'%')
+        $organization_ids = Organization::withinNodePath($message->organization->node_path)
             ->pluck(Organization::ID);
 
         if ($organization_ids->isNotEmpty())

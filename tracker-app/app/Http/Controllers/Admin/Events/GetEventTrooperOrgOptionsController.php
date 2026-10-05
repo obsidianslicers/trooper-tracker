@@ -10,6 +10,7 @@ use App\Models\Event;
 use App\Models\EventTrooper;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class GetEventTrooperOrgOptionsController extends MagicBusController
 {
@@ -42,19 +43,38 @@ class GetEventTrooperOrgOptionsController extends MagicBusController
         $is_new_costume = $costume_id !== $event_trooper->costume_id;
 
         $org_options = $event_trooper->eligibleRootOrgsForAdmin($allowed_org_ids, $costume);
-        $credited_ids = $is_new_costume ? $org_options->pluck('id')->all() : $event_trooper->creditedRootOrgIds();
 
-        return [$org_options, $credited_ids];
+        if ($is_new_costume)
+        {
+            return [$org_options, $org_options->pluck('id')->all()];
+        }
+
+        return $this->storedCreditOptions($event_trooper, $org_options);
     }
 
     private function resolveWithoutCostume(EventTrooper $event_trooper, ?array $allowed_org_ids): array
     {
         $org_options = $event_trooper->eligibleRootOrgsForAdmin($allowed_org_ids);
 
-        $credited_ids = $event_trooper->costume_id !== null
-            ? $org_options->pluck('id')->all()
-            : $event_trooper->creditedRootOrgIds();
+        if ($event_trooper->costume_id !== null)
+        {
+            return [$org_options, $org_options->pluck('id')->all()];
+        }
 
-        return [$org_options, $credited_ids];
+        return $this->storedCreditOptions($event_trooper, $org_options);
+    }
+
+    /**
+     * Options and ticked ids for the row's stored credit, including clubs the trooper has since
+     * left.
+     */
+    private function storedCreditOptions(
+        EventTrooper $event_trooper,
+        Collection $org_options
+    ): array {
+        return [
+            $event_trooper->withCreditedRootOrgOptions($org_options),
+            $event_trooper->creditedRootOrgIds(),
+        ];
     }
 }

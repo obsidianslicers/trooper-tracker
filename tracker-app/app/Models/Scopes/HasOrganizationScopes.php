@@ -147,4 +147,31 @@ trait HasOrganizationScopes
                 ->whereRaw('tt_organizations.node_path LIKE CONCAT(org_moderator.node_path, "%")');
         });
     }
+
+    /**
+     * Scope: the organization at the given node path and everything beneath it.
+     *
+     * @param Builder<Organization> $query The Eloquent query builder.
+     * @param string $node_path The subtree root's node path (e.g. "1:8:").
+     * @return Builder<Organization>
+     */
+    public function scopeWithinNodePath(Builder $query, string $node_path): Builder
+    {
+        return $query->where(Organization::NODE_PATH, 'like', $node_path.'%');
+    }
+
+    /**
+     * Scope: organizations on the same branch as the given node path — the organization itself,
+     * its descendants, and its ancestors.
+     *
+     * @param Builder<Organization> $query The Eloquent query builder.
+     * @param string $node_path The node path to match the branch of.
+     * @return Builder<Organization>
+     */
+    public function scopeOnBranchOfNodePath(Builder $query, string $node_path): Builder
+    {
+        return $query->where(fn (Builder $q) => $q
+            ->withinNodePath($node_path)
+            ->orWhereRaw('? LIKE CONCAT('.Organization::NODE_PATH.', "%")', [$node_path]));
+    }
 }

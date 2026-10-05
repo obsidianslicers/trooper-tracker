@@ -55,4 +55,49 @@ class HasOrganizationScopesTest extends TestCase
 
         $this->assertSame($base_sql, $moderated_sql);
     }
+
+    public function test_within_node_path_returns_organization_and_descendants(): void
+    {
+        $club = Organization::factory()->asOrganization()->create();
+        $region = Organization::factory()->asRegion()->withParent($club)->create();
+        $unit = Organization::factory()->asUnit()->withParent($region)->create();
+        Organization::factory()->asOrganization()->create();
+
+        $club_ids = Organization::withinNodePath($club->fresh()->node_path)
+            ->pluck(Organization::ID)->all();
+        $region_ids = Organization::withinNodePath($region->fresh()->node_path)
+            ->pluck(Organization::ID)->all();
+
+        $this->assertEqualsCanonicalizing([$club->id, $region->id, $unit->id], $club_ids);
+        $this->assertEqualsCanonicalizing([$region->id, $unit->id], $region_ids);
+    }
+
+    public function test_on_branch_of_node_path_returns_ancestors_self_and_descendants(): void
+    {
+        $club = Organization::factory()->asOrganization()->create();
+        $region = Organization::factory()->asRegion()->withParent($club)->create();
+        $unit = Organization::factory()->asUnit()->withParent($region)->create();
+        Organization::factory()->asRegion()->withParent($club)->create();
+        Organization::factory()->asOrganization()->create();
+
+        $ids = Organization::onBranchOfNodePath($region->fresh()->node_path)
+            ->pluck(Organization::ID)->all();
+
+        $this->assertEqualsCanonicalizing([$club->id, $region->id, $unit->id], $ids);
+    }
+
+    public function test_on_branch_of_node_path_keeps_preceding_constraints(): void
+    {
+        $club = Organization::factory()->asOrganization()->create();
+        $region = Organization::factory()->asRegion()->withParent($club)->create();
+        $other_club = Organization::factory()->asOrganization()->create();
+
+        // An ungrouped OR would let $club/$region through despite the preceding id constraint.
+        $ids = Organization::where(Organization::ID, $other_club->id)
+            ->onBranchOfNodePath($region->fresh()->node_path)
+            ->pluck(Organization::ID)
+            ->all();
+
+        $this->assertSame([], $ids);
+    }
 }

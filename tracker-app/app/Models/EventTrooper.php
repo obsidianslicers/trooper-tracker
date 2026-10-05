@@ -434,14 +434,10 @@ class EventTrooper extends BaseEventTrooper
             ->values()
             ->all();
 
-        $organizations = Organization::findMany($organization_ids)->keyBy('id');
+        $root_by_id = Organization::rootIdsById(collect($organization_ids));
 
         return collect($organization_ids)
-            ->map(function ($id) use ($organizations) {
-                $org = $organizations->get($id);
-
-                return $org ? (int) explode(':', $org->node_path)[0] : $id;
-            })
+            ->map(fn ($id) => $root_by_id[$id] ?? $id)
             ->unique()
             ->values()
             ->all();
@@ -469,12 +465,7 @@ class EventTrooper extends BaseEventTrooper
      */
     public function getCreditedRootOrgNames(): array
     {
-        $ids = $this->costume_organization_ids ?? [];
-
-        if (empty($ids) && $this->organization_id !== null)
-        {
-            $ids = [$this->organization_id];
-        }
+        $ids = $this->creditedOrgIds();
 
         if (empty($ids))
         {
@@ -491,6 +482,30 @@ class EventTrooper extends BaseEventTrooper
     }
 
     /**
+     * Adds the clubs this row is already credited to (including clubs the trooper has since
+     * left) to a set of admin credit options, so stored credit stays visible and ticked.
+     *
+     * @param  Collection<int, Organization>  $org_options
+     * @return Collection<int, Organization>
+     */
+    public function withCreditedRootOrgOptions(Collection $org_options): Collection
+    {
+        $missing_ids = array_diff(
+            $this->creditedRootOrgIds(),
+            $org_options->pluck(Organization::ID)->all()
+        );
+
+        if (empty($missing_ids))
+        {
+            return $org_options;
+        }
+
+        return $org_options->concat(Organization::findMany($missing_ids))
+            ->sortBy(Organization::NAME)
+            ->values();
+    }
+
+    /**
      * Returns root org IDs pre-checked for the credit org form.
      *
      * Maps costume_organization_ids (or organization_id as fallback) to their
@@ -500,27 +515,27 @@ class EventTrooper extends BaseEventTrooper
      */
     public function creditedRootOrgIds(): array
     {
-        $ids = collect($this->costume_organization_ids ?? []);
+        $ids = $this->creditedOrgIds();
+        $root_by_id = Organization::rootIdsById(collect($ids));
 
-        if ($ids->isNotEmpty())
-        {
-            $orgs = Organization::findMany($ids->all())->keyBy('id');
+        return collect($ids)
+            ->map(fn ($id) => $root_by_id[$id] ?? $id)
+            ->unique()
+            ->values()
+            ->all();
+    }
 
-            return $ids
-                ->map(fn ($id) => $orgs->get($id)?->getPrimaryClub()->id ?? $id)
-                ->unique()
-                ->values()
-                ->all();
-        }
-
-        if ($this->organization_id !== null)
-        {
-            $org = Organization::find($this->organization_id);
-
-            return [$org ? $org->getPrimaryClub()->id : $this->organization_id];
-        }
-
-        return [];
+    /**
+     * Organization ids this row is credited to: costume_organization_ids, falling back to the
+     * legacy single organization_id.
+     *
+     * @return array<int, int>
+     */
+    public function creditedOrgIds(): array
+    {
+        return !empty($this->costume_organization_ids)
+            ? $this->costume_organization_ids
+            : array_values(array_filter([$this->organization_id]));
     }
 
     /**
@@ -574,11 +589,7 @@ class EventTrooper extends BaseEventTrooper
             return array_values($root_org_ids);
         }
 
-        $allowed_root_ids = Organization::whereIn(Organization::ID, $allowed_org_ids)
-            ->pluck(Organization::NODE_PATH)
-            ->map(fn ($node_path) => (int) explode(':', $node_path)[0])
-            ->unique()
-            ->all();
+        $allowed_root_ids = Organization::rootIdsFor(collect($allowed_org_ids))->all();
 
         return array_values(array_intersect($root_org_ids, $allowed_root_ids));
     }
