@@ -119,17 +119,37 @@ class Organization extends BaseOrganization
      */
     public static function rootIdsFor(Collection $organization_ids): Collection
     {
-        if ($organization_ids->isEmpty())
-        {
-            return collect();
-        }
-
-        return static::whereIn(self::ID, $organization_ids)
-            ->pluck(self::NODE_PATH)
-            ->map(fn ($path) => (int) Str::before($path, self::NODE_PATH_SEP))
+        return collect(static::rootIdsById($organization_ids))
             ->filter()
             ->unique()
             ->values();
+    }
+
+    /**
+     * Resolve each organization's root (primary-club) id, keyed by organization id.
+     *
+     * @param  Collection<int, int>  $organization_ids
+     * @return array<int, int>
+     */
+    public static function rootIdsById(Collection $organization_ids): array
+    {
+        if ($organization_ids->isEmpty())
+        {
+            return [];
+        }
+
+        return static::whereIn(self::ID, $organization_ids->unique())
+            ->pluck(self::NODE_PATH, self::ID)
+            ->map(fn ($path) => static::rootIdFromPath($path))
+            ->all();
+    }
+
+    /**
+     * The root (primary-club) id is the first segment of a node_path ("rootId:childId:...:").
+     */
+    public static function rootIdFromPath(string $node_path): int
+    {
+        return (int) Str::before($node_path, self::NODE_PATH_SEP);
     }
 
     public static function buildPathLabels(Collection $orgs, string $separator = ' › '): array

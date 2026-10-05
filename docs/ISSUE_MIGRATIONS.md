@@ -143,6 +143,46 @@ every administrator trooper, listing each skipped record's trooper, event, costu
 in `UpdateTroopersSubmitController` (the forward fix ships alongside this seeder). Run on
 production before reloading affected service record pages.
 
+**Bug fix (discovered while investigating widespread missing credit on the Missing Credits
+page):** the `costume_organization_ids is null OR costume_organization_ids = '[]'` check used a
+plain `orWhere('[]')`. Comparing a MySQL `JSON` column to a string via a bound parameter never
+does JSON-aware equality — it's only JSON-aware when the string is a literal written directly in
+the SQL text — so this condition never actually matched the `'[]'` case, only true SQL `NULL`.
+Since every current write path stores an empty *array* (`'[]'`) rather than `NULL` when there's no
+credit, `Fix406` had — until this was fixed — only ever been able to resolve a small fraction of
+its intended target (confirmed: 18 true-`NULL` rows vs. 2,476 `'[]'` rows in one affected
+database). The condition now uses `orWhereJsonLength(..., 0)`, which is JSON-aware and matches
+both cases. Re-run `Fix406` after upgrading to pick up any backlog it previously missed.
+
+---
+
+## Fix407
+
+**Issue:** After fixing `Fix406`'s JSON-comparison bug (see above), a small residue of records
+still have no credit source and no live-eligible organization — mostly troopers with no current
+active club assignment at all (retired, command staff, N/A membership). `Fix406`'s live resolver
+(current costume approvals / membership) has no signal to work with for these.
+
+**What it does:** Only processes records `Fix406` already can't resolve
+(`getEligibleCreditParentOrganizations()` empty) — it does not duplicate `Fix406`'s single/multi-club
+resolution, so **run `Fix406` first**. For each such record, looks up the trooper's original
+signup for that exact shift in the legacy (pre-2.0) `event_sign_up`/`costumes` tables — matched via
+`event_sign_up.troopid = event_trooper.event_shift_id` and `event_sign_up.trooperid =
+event_trooper.trooper_id`, both ids preserved 1:1 from the old tracker. The legacy `costumes.club`
+tag is still present even for costumes the 2.0 import deliberately excluded from migration
+(`N/A`, `Handler`, `Command Staff`). If that legacy club maps to a current organization (via the
+same club map `TrooperCostumeSeeder` uses), credit is backfilled from it.
+
+Requires the legacy `event_sign_up`/`costumes` tables to still be present (skips gracefully,
+matching the `Fix246` pattern, if they're not — safe on fresh installs). A legacy club of `4`
+("Other") or one with no equivalent current organization is treated the same as no legacy record:
+skipped and included in a `Fix407OutstandingCredit` email to every administrator
+(`app/Mail/Fix407OutstandingCredit.php`), listing each skipped record's trooper, event, costume,
+and a note on why the legacy lookup couldn't help either.
+
+**When to run:** Once, immediately after `Fix406`, on any environment that was imported from the
+legacy (pre-2.0) tracker and still has leftover missing-credit records after `Fix406` runs.
+
 ---
 
 ## Adding a New Fix

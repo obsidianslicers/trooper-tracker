@@ -100,4 +100,40 @@ class OrganizationTest extends TestCase
         $this->assertGreaterThan($club->{Organization::SEQUENCE}, $region->{Organization::SEQUENCE});
         $this->assertGreaterThan($region->{Organization::SEQUENCE}, $unit->{Organization::SEQUENCE});
     }
+
+    public function test_root_id_from_path_returns_first_segment(): void
+    {
+        $this->assertSame(1, Organization::rootIdFromPath('1:8:16:'));
+        $this->assertSame(7, Organization::rootIdFromPath('7:'));
+    }
+
+    public function test_root_ids_by_id_maps_each_organization_to_its_root(): void
+    {
+        $club = Organization::factory()->asOrganization()->create();
+        $region = Organization::factory()->asRegion()->withParent($club)->create();
+        $other_club = Organization::factory()->asOrganization()->create();
+
+        $result = Organization::rootIdsById(collect([$club->id, $region->id, $other_club->id]));
+
+        $this->assertSame(
+            [$club->id => $club->id, $region->id => $club->id, $other_club->id => $other_club->id],
+            $result
+        );
+    }
+
+    public function test_root_ids_by_id_omits_missing_organizations(): void
+    {
+        $this->assertSame([], Organization::rootIdsById(collect([999999])));
+        $this->assertSame([], Organization::rootIdsById(collect()));
+    }
+
+    public function test_root_ids_for_returns_unique_roots(): void
+    {
+        $club = Organization::factory()->asOrganization()->create();
+        $region = Organization::factory()->asRegion()->withParent($club)->create();
+
+        $result = Organization::rootIdsFor(collect([$club->id, $region->id]));
+
+        $this->assertSame([$club->id], $result->all());
+    }
 }

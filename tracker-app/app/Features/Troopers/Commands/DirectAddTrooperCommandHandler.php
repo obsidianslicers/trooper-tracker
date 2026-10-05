@@ -6,6 +6,7 @@ namespace App\Features\Troopers\Commands;
 
 use App\Bus\Contracts\CommandHandlerInterface;
 use App\Enums\MembershipStatus;
+use App\Models\Organization;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperOrganization;
 use App\Notifications\Troopers\DirectlyAddedToClubNotification;
@@ -28,8 +29,8 @@ readonly class DirectAddTrooperCommandHandler implements CommandHandlerInterface
         TrooperAssignment::where(TrooperAssignment::TROOPER_ID, $message->trooper->id)
             ->where(TrooperAssignment::IS_MEMBER, true)
             ->whereHas('organization', fn ($q) => $q
-                ->whereRaw('node_path LIKE ?', [$primary_club->node_path.'%'])
-                ->where('id', '!=', $message->organization->id)
+                ->withinNodePath($primary_club->node_path)
+                ->where(Organization::ID, '!=', $message->organization->id)
             )
             ->update([TrooperAssignment::IS_MEMBER => false]);
 

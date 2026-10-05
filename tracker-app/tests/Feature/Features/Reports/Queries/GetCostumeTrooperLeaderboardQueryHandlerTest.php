@@ -252,6 +252,23 @@ class GetCostumeTrooperLeaderboardQueryHandlerTest extends TestCase
         $this->assertFalse($trooper_ids->contains($other_trooper->id));
     }
 
+    public function test_invoke_org_filter_includes_former_member_with_org_credit(): void
+    {
+        $this->skipIfSqlite();
+        $costume = Costume::factory()->create();
+        $org = Organization::factory()->asOrganization()->create();
+        $former_member = Trooper::factory()->asMember()->create();
+
+        $this->createAttendance($former_member, $costume, now()->subDays(3), $org);
+
+        $subject = new GetCostumeTrooperLeaderboardQueryHandler;
+        $result = $subject(new GetCostumeTrooperLeaderboardQuery($costume, null, $org));
+
+        $trooper_ids = $result['top_troopers']->pluck('trooper_id');
+
+        $this->assertTrue($trooper_ids->contains($former_member->id));
+    }
+
     private function createAttendance(
         Trooper $trooper,
         Costume $costume,

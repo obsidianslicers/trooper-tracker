@@ -9,6 +9,13 @@ use App\Models\EventTrooper;
 use App\Models\Organization;
 use Illuminate\Support\Collection;
 
+/**
+ * Resolves which club(s) each attended shift was credited to.
+ *
+ * Credit is historical: it resolves from the credited organization's place in the org tree
+ * (its root club), never from the trooper's current memberships. A trooper who later leaves
+ * a club keeps every troop that was credited to it.
+ */
 trait HasOrgCreditAnnotation
 {
     private function loadCandidateOrgs(Collection $recent_shifts): Collection
@@ -20,10 +27,7 @@ trait HasOrgCreditAnnotation
                 return [];
             }
 
-            return array_merge(
-                array_filter([$shift->event_trooper->organization_id]),
-                $shift->event_trooper->costume_organization_ids ?? []
-            );
+            return $shift->event_trooper->creditedOrgIds();
         })->unique()->values()->toArray();
 
         return $candidate_org_ids
@@ -33,9 +37,16 @@ trait HasOrgCreditAnnotation
             : collect();
     }
 
+    /**
+     * Counts and credited ids are both expressed as root club ids.
+     *
+     * @return array{
+     *     troop_counts: array<int, int>,
+     *     credited_ids_by_shift: array<int, array<int, int>>
+     * }
+     */
     private function computeTroopCounts(
         Collection $recent_shifts,
-        Collection $organizations,
         Collection $candidate_orgs
     ): array {
         $troop_counts = [];
@@ -48,10 +59,10 @@ trait HasOrgCreditAnnotation
                 continue;
             }
 
-            $et = $shift->event_trooper;
-            $credited_ids = !empty($et->costume_organization_ids)
-                ? $this->creditByCostumeOrgs($et, $organizations, $candidate_orgs)
-                : $this->creditByExplicitOrg($et, $organizations, $candidate_orgs);
+            $credited_ids = $this->resolveCreditedRootOrgIds(
+                $shift->event_trooper,
+                $candidate_orgs
+            );
 
             foreach ($credited_ids as $org_id)
             {
@@ -63,83 +74,32 @@ trait HasOrgCreditAnnotation
         return ['troop_counts' => $troop_counts, 'credited_ids_by_shift' => $credited_ids_by_shift];
     }
 
-    private function creditByExplicitOrg(
-        EventTrooper $et,
-        Collection $organizations,
-        Collection $candidate_orgs
-    ): array {
-        $match_org = $candidate_orgs->get($et->organization_id);
-        if (!$match_org)
-        {
-            return [];
-        }
-
-        foreach ($organizations as $org)
-        {
-            if (str_starts_with($match_org->node_path, $org->node_path))
-            {
-                return [$org->id];
-            }
-        }
-
-        return [];
-    }
-
-    private function creditByCostumeOrgs(
-        EventTrooper $et,
-        Collection $organizations,
-        Collection $candidate_orgs
-    ): array {
-        $costume_node_paths = collect($et->costume_organization_ids ?? [])
+    /**
+     * Maps a shift's credited orgs to their distinct root club ids. Same rule as
+     * Organization::rootIdsFor, applied to the already-loaded candidate orgs to avoid a query
+     * per shift.
+     *
+     * @return array<int, int>
+     */
+    private function resolveCreditedRootOrgIds(EventTrooper $et, Collection $candidate_orgs): array
+    {
+        return collect($et->creditedOrgIds())
             ->map(fn ($id) => $candidate_orgs->get($id)?->node_path)
             ->filter()
-            ->values()
-            ->toArray();
-
-        if (empty($costume_node_paths))
-        {
-            return [];
-        }
-
-        $credited = [];
-        foreach ($organizations as $org)
-        {
-            foreach ($costume_node_paths as $node_path)
-            {
-                if (str_starts_with($node_path, $org->node_path))
-                {
-                    $credited[] = $org->id;
-                    break; // don't double-count same org from multiple costume orgs
-                }
-            }
-        }
-
-        return $credited;
-    }
-
-    private function resolveRootOrgNames(array $all_credited_ids, Collection $organizations): Collection
-    {
-        $root_org_ids = collect($all_credited_ids)
-            ->map(fn ($id) => $organizations->find($id)?->node_path)
-            ->filter()
-            ->map(fn ($np) => (int) explode(':', $np)[0])
+            ->map(fn ($np) => Organization::rootIdFromPath($np))
             ->unique()
+            ->values()
             ->all();
-
-        return $root_org_ids
-            ? Organization::whereIn(Organization::ID, $root_org_ids)
-                ->pluck(Organization::NAME, Organization::ID)
-            : collect();
     }
 
+    /**
+     * @param  Collection<int, string>  $root_org_names  Root club names keyed by id.
+     */
     private function annotateShiftsWithCreditedOrgNames(
         Collection $recent_shifts,
-        Collection $organizations,
-        array $credited_ids_by_shift
+        array $credited_ids_by_shift,
+        Collection $root_org_names
     ): void {
-        $all_credited_ids = array_unique(array_merge(...(array_values($credited_ids_by_shift) ?: [[]])));
-        $root_org_names = $this->resolveRootOrgNames($all_credited_ids, $organizations);
-
         foreach ($recent_shifts as $shift)
         {
             $et = $shift->event_trooper;
@@ -149,11 +109,8 @@ trait HasOrgCreditAnnotation
             }
 
             // Always initialize so the view can safely check this property on any shift
-            $credited_ids = $credited_ids_by_shift[$shift->id] ?? [];
-            $et->credited_org_names = collect($credited_ids)
-                ->map(fn ($id) => $organizations->find($id)?->node_path)
-                ->filter()
-                ->map(fn ($np) => $root_org_names[(int) explode(':', $np)[0]] ?? null)
+            $et->credited_org_names = collect($credited_ids_by_shift[$shift->id] ?? [])
+                ->map(fn ($id) => $root_org_names[$id] ?? null)
                 ->filter()
                 ->unique()
                 ->sort()

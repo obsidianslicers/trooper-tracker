@@ -52,8 +52,11 @@ class Fix406 extends Seeder
                 ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED->value)
                 ->whereNull(EventTrooper::ORGANIZATION_ID)
                 ->where(function ($query): void {
+                    // whereJsonLength (not orWhere(..., '[]')) — comparing a JSON column to a
+                    // bound string parameter never does JSON-aware equality in MySQL, so the
+                    // original orWhere('[]') silently matched nothing.
                     $query->whereNull(EventTrooper::COSTUME_ORGANIZATION_IDS)
-                        ->orWhere(EventTrooper::COSTUME_ORGANIZATION_IDS, '[]');
+                        ->orWhereJsonLength(EventTrooper::COSTUME_ORGANIZATION_IDS, 0);
                 })
                 ->with(['trooper.trooper_costumes.organization_costume', 'trooper.trooper_assignments', 'costume', 'event_shift.event'])
                 // chunkById (not chunk) because resolved rows are saved with a non-null

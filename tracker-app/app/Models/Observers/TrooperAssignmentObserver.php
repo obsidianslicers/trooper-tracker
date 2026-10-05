@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Models\Observers;
 
-use App\Models\Organization;
 use App\Models\TrooperAssignment;
 use Exception;
 
@@ -47,11 +46,7 @@ class TrooperAssignmentObserver
             ->where(TrooperAssignment::TROOPER_ID, $trooper_assignment->trooper_id)
             ->where(TrooperAssignment::IS_MEMBER, true)
             ->where(TrooperAssignment::ID, '!=', (int) $trooper_assignment->getKey())
-            ->whereHas('organization', function ($query) use ($node_path): void
-            {
-                $query->where(Organization::NODE_PATH, 'like', $node_path.'%')
-                    ->orWhereRaw('? LIKE CONCAT('.Organization::NODE_PATH.', "%")', [$node_path]);
-            });
+            ->whereHas('organization', fn ($query) => $query->onBranchOfNodePath($node_path));
 
         if ($conflict_query->exists())
         {
