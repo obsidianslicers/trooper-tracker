@@ -20,7 +20,7 @@ class BroadcastEventMessageTest extends TestCase
         $event = Event::factory()->create();
         $mail = new BroadcastEventMessage($event, 'Please review the updated event details.');
 
-        $this->assertSame('[TEST] Event Message', $mail->envelope()->subject);
+        $this->assertSame('[TEST] 📣 Event Message', $mail->envelope()->subject);
     }
 
     public function test_content_contains_view_event_and_message(): void
