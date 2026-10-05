@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Events\AddTrooperOrgPickerHtmxController;
+use App\Http\Controllers\Events\BroadcastMessageHtmxController;
 use App\Http\Controllers\Events\CalendarController;
 use App\Http\Controllers\Events\CancelledController;
 use App\Http\Controllers\Events\ClosedController;
@@ -48,6 +49,7 @@ Route::prefix('events')
         Route::post('/uploads/{event_upload}/toggle-tag', ToggleEventUploadTagController::class)->name('toggle-upload-tag');
         Route::post('/forum-reply/{event}', ForumReplyController::class)->name('forum-reply-htmx');
         Route::post('/share-roster/{event}', ShareRosterHtmxController::class)->name('share-roster-htmx');
+        Route::post('/broadcast-message/{event}', BroadcastMessageHtmxController::class)->name('broadcast-message-htmx');
         Route::get('/signup/{event_shift}/add-trooper-org-picker', AddTrooperOrgPickerHtmxController::class)->name('add-trooper-org-picker');
         Route::post('/signup/{event_shift}/trooper', SignUpHtmxController::class)->name('signup-htmx');
         Route::post('/signup/{event_shift}/guest', GuestSignUpHtmxController::class)->name('guest-signup-htmx');
