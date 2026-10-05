@@ -36,9 +36,11 @@ readonly class GetTroopersForEventUpdatedQueryHandler implements QueryHandlerInt
             EventTrooperStatus::intentToGoArray(),
         );
 
-        return Trooper::where(function ($query) use ($event_id, $statuses) {
+        return Trooper::where(function ($query) use ($event_id, $statuses)
+        {
             $query->whereHas('event_watches', fn ($q) => $q->where('event_id', $event_id))
-                ->orWhereHas('event_troopers', function ($q) use ($event_id, $statuses) {
+                ->orWhereHas('event_troopers', function ($q) use ($event_id, $statuses)
+                {
                     $q->whereIn(EventTrooper::STATUS, $statuses)
                         ->whereHas('event_shift', fn ($q2) => $q2->where('event_id', $event_id));
                 });
