@@ -410,19 +410,17 @@ class Fix408 extends Seeder
 
         $counts['credit_rows_scanned']++;
 
-        if ($remaining_ids->isNotEmpty())
-        {
-            $event_trooper->costume_organization_ids = $remaining_ids->all();
-            $event_trooper->saveQuietly();
-            $counts['corrected_partial_credit']++;
-
-            return;
-        }
-
-        $this->reresolveCredit($event_trooper, $false_root_ids, $all_orgs, $costume_club_map, $counts, $outstanding_rows);
+        $this->reresolveCredit($event_trooper, $remaining_ids->all(), $false_root_ids, $all_orgs, $costume_club_map, $counts, $outstanding_rows);
     }
 
     /**
+     * $remaining_ids is whatever survived stripping the false club out — not trustworthy on its
+     * own, since a trooper can have a second, real path to a club that happens to share a root
+     * with the false membership (e.g. a false root-level Rebel Legion identifier alongside a
+     * real Rebel Legion sub-org assignment). Always re-derives live eligibility and merges it in
+     * rather than assuming the leftover is already correct.
+     *
+     * @param  array<int, int>  $remaining_ids
      * @param  array<int, int>  $false_root_ids
      * @param  Collection<int, Organization>  $all_orgs
      * @param  Collection<int, array{id: int, costume_club_id: int}>  $costume_club_map
@@ -431,6 +429,7 @@ class Fix408 extends Seeder
      */
     private function reresolveCredit(
         EventTrooper $event_trooper,
+        array $remaining_ids,
         array $false_root_ids,
         Collection $all_orgs,
         Collection $costume_club_map,
@@ -438,12 +437,13 @@ class Fix408 extends Seeder
         array &$outstanding_rows,
     ): void {
         $live_org_ids = $event_trooper->getEligibleCreditOrganizations()->pluck('id')->values()->all();
+        $merged_ids = collect($remaining_ids)->merge($live_org_ids)->unique()->values()->all();
 
-        if (!empty($live_org_ids))
+        if (!empty($merged_ids))
         {
-            $event_trooper->costume_organization_ids = $live_org_ids;
+            $event_trooper->costume_organization_ids = $merged_ids;
             $event_trooper->saveQuietly();
-            $counts['recovered_live']++;
+            $counts[empty($remaining_ids) ? 'recovered_live' : 'corrected_partial_credit']++;
 
             return;
         }
