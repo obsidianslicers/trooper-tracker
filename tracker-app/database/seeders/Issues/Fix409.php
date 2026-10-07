@@ -128,6 +128,17 @@ class Fix409 extends Seeder
             return;
         }
 
+        if ($this->hasLegacyClubTag($event_trooper))
+        {
+            // Fix408 already reconciled this row against the legacy event_sign_up/costumes.club
+            // tag — a direct record of which club that specific historical shift belonged to.
+            // That's more authoritative than a join date inferred from when a membership record
+            // happened to be created in the new system, so don't second-guess it here. Without
+            // this, the two seeders fight forever: 409 strips a club a late join-signal flags as
+            // premature, 408 puts it right back because the legacy tag still claims it.
+            return;
+        }
+
         $original_ids = $event_trooper->costume_organization_ids;
         $remaining_ids = $this->excludePremature($original_ids, $event_trooper->trooper_id, $shift_date, $all_orgs, $join_signals);
 
@@ -231,6 +242,21 @@ class Fix409 extends Seeder
         $normalize = fn (array $ids) => collect($ids)->unique()->sort()->values()->all();
 
         return $normalize($a) === $normalize($b);
+    }
+
+    private function hasLegacyClubTag(EventTrooper $event_trooper): bool
+    {
+        if (!Schema::hasTable('event_sign_up') || !Schema::hasTable('costumes'))
+        {
+            return false;
+        }
+
+        return DB::table('event_sign_up')
+            ->join('costumes', 'costumes.id', '=', 'event_sign_up.costume')
+            ->where('event_sign_up.troopid', $event_trooper->event_shift_id)
+            ->where('event_sign_up.trooperid', $event_trooper->trooper_id)
+            ->whereNotNull('costumes.club')
+            ->exists();
     }
 
     /** @return Collection<int, array{id: int, costume_club_id: int}> */

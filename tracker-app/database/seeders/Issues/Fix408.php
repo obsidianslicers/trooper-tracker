@@ -29,19 +29,31 @@ use Illuminate\Support\Facades\Schema;
 use RuntimeException;
 
 /**
- * Corrects the Florida Garrison import's false club-membership bug.
+ * Corrects the Florida Garrison import's false club-membership bug, and a second, unrelated
+ * credit bug found while chasing it.
  *
- * TrooperOrganizationSeeder used to grant club membership from a non-empty legacy identity field
- * (tkid, rebelforum, ...) alone, without checking the club's own permission flag (p501, pRebel,
- * ...). The old tracker's signup form required a TKID-style value from everyone regardless of
- * club, so plenty of troopers picked up an active membership for a club they were never in. Once
- * Fix242's orphaned-TrooperOrganization repair ran, some of those also got a real
- * TrooperAssignment, which then fed troop credit and club-scoped achievements for years.
+ * Bug 1 — false membership: TrooperOrganizationSeeder used to grant club membership from a
+ * non-empty legacy identity field (tkid, rebelforum, ...) alone, without checking the club's own
+ * permission flag (p501, pRebel, ...). The old tracker's signup form required a TKID-style value
+ * from everyone regardless of club, so plenty of troopers picked up an active membership for a
+ * club they were never in. Once Fix242's orphaned-TrooperOrganization repair ran, some of those
+ * also got a real TrooperAssignment, which then fed troop credit and club-scoped achievements for
+ * years.
  *
  * Only corrects (trooper, club) pairs where the legacy permission flag is 0 and the current
  * tt_trooper_organizations row is already retired/reserve — someone already flagged it as wrong,
  * it just never propagated to the TrooperAssignment. Pairs still marked "active" are left alone
  * and reported to administrators, since the trooper may have joined for real since the import.
+ *
+ * Bug 2 — legacy signup ignored when backfilling credit: Fix406/407 backfill missing credit from
+ * current/import-era club membership, never from the legacy event_sign_up/costumes.club tag that
+ * recorded which specific club a trooper represented at that specific historical shift. For a
+ * trooper who is (or was, at import) a member of more than one club, that backfill credits every
+ * club they're in today rather than the one(s) the legacy tag actually claims — over-crediting a
+ * dual member for shifts from before they were dual, or even crediting the wrong club outright for
+ * a trooper who's since left the club the legacy tag names. correctLegacyMismatchedCredit() below
+ * runs site-wide (not just against the false-membership troopers above) and treats the legacy tag
+ * as authoritative whenever one exists, since it's the more specific, per-shift-accurate record.
  */
 class Fix408 extends Seeder
 {
@@ -72,6 +84,8 @@ class Fix408 extends Seeder
                 'recovered_legacy' => 0,
                 'skipped_no_eligible_org' => 0,
                 'achievements_removed' => 0,
+                'legacy_mismatch_corrected' => 0,
+                'legacy_club_ambiguous' => 0,
             ];
 
             $all_orgs = Organization::all([Organization::ID, Organization::NODE_PATH])->keyBy(Organization::ID);
@@ -82,6 +96,8 @@ class Fix408 extends Seeder
 
             $outstanding_credit_rows = $this->correctCredit($false_root_ids_by_trooper, $all_orgs, $join_signals, $counts);
             $this->removeFalseAchievements($false_root_ids_by_trooper, $counts);
+
+            $this->correctLegacyMismatchedCredit($false_root_ids_by_trooper, $all_orgs, $counts);
 
             $this->printSummary($counts);
         });
@@ -611,6 +627,138 @@ class Fix408 extends Seeder
         }
     }
 
+    /**
+     * Runs site-wide, independent of the false-membership troopers above — a trooper can be
+     * credited to the wrong club (or an extra one) for a specific shift without ever having a
+     * false membership: they may have left the club the legacy tag names, or weren't yet a
+     * second club's member when an earlier backfill assumed their current (dual) membership
+     * applied retroactively. The legacy tag is the one signal that records which club a trooper
+     * represented at that specific historical shift, so it wins whenever one exists.
+     *
+     * @param  array<int, array<int, int>>  $false_root_ids_by_trooper
+     * @param  Collection<int, Organization>  $all_orgs
+     * @param  array<string, int>  $counts
+     */
+    private function correctLegacyMismatchedCredit(array $false_root_ids_by_trooper, Collection $all_orgs, array &$counts): void
+    {
+        if (!Schema::hasTable('event_sign_up') || !Schema::hasTable('costumes'))
+        {
+            return;
+        }
+
+        $costume_club_map = $this->buildCostumeClubMap();
+
+        if ($costume_club_map->isEmpty())
+        {
+            return;
+        }
+
+        EventTrooper::query()
+            ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED->value)
+            ->chunkById(500, function ($event_troopers) use (&$counts, $false_root_ids_by_trooper, $all_orgs, $costume_club_map): void
+            {
+                foreach ($event_troopers as $event_trooper)
+                {
+                    $this->correctLegacyMismatchForRow($event_trooper, $false_root_ids_by_trooper, $all_orgs, $costume_club_map, $counts);
+                }
+            });
+    }
+
+    /**
+     * @param  array<int, array<int, int>>  $false_root_ids_by_trooper
+     * @param  Collection<int, Organization>  $all_orgs
+     * @param  Collection<int, array{id: int, costume_club_id: int}>  $costume_club_map
+     * @param  array<string, int>  $counts
+     */
+    private function correctLegacyMismatchForRow(
+        EventTrooper $event_trooper,
+        array $false_root_ids_by_trooper,
+        Collection $all_orgs,
+        Collection $costume_club_map,
+        array &$counts,
+    ): void {
+        $distinct_clubs = DB::table('event_sign_up')
+            ->join('costumes', 'costumes.id', '=', 'event_sign_up.costume')
+            ->where('event_sign_up.troopid', $event_trooper->event_shift_id)
+            ->where('event_sign_up.trooperid', $event_trooper->trooper_id)
+            ->whereNotNull('costumes.club')
+            ->pluck('costumes.club')
+            ->unique();
+
+        if ($distinct_clubs->isEmpty())
+        {
+            return;
+        }
+
+        if ($distinct_clubs->count() > 1)
+        {
+            // More than one legacy signup row disagrees on the club for this shift — let a
+            // human sort it out rather than guess.
+            $counts['legacy_club_ambiguous']++;
+
+            return;
+        }
+
+        $legacy_club_ids = $this->expandDualClubIds([(int) $distinct_clubs->first()]);
+        $legacy_org_ids = collect($legacy_club_ids)
+            ->map(fn (int $club_id) => $costume_club_map->get($club_id)['id'] ?? null)
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($legacy_org_ids->isEmpty())
+        {
+            // Unmapped legacy club code (e.g. "Other") — nothing we can resolve to.
+            return;
+        }
+
+        $false_root_ids = $false_root_ids_by_trooper[$event_trooper->trooper_id] ?? [];
+
+        $legacy_roots = $legacy_org_ids
+            ->map(fn (int $id) => Organization::rootIdFromPath($all_orgs->get($id)?->node_path ?? ''))
+            ->filter()
+            ->unique()
+            // A known-false membership can taint the legacy signup tag the same way it tainted
+            // the membership itself (the old form forced a club selection on everyone) — never
+            // let this step reintroduce a club correctCredit() already determined is false.
+            ->reject(fn (int $root_id) => in_array($root_id, $false_root_ids, true))
+            ->values()
+            ->all();
+
+        if (empty($legacy_roots))
+        {
+            return;
+        }
+
+        $current_ids = $event_trooper->costume_organization_ids ?? [];
+
+        // Keep whatever's already stored under a club the legacy tag actually claims — preserves
+        // sub-org specificity (e.g. a squad id) instead of flattening it to the bare root id.
+        $kept = collect($current_ids)->filter(function (int $org_id) use ($legacy_roots, $all_orgs)
+        {
+            $node_path = $all_orgs->get($org_id)?->node_path;
+
+            return $node_path !== null && in_array(Organization::rootIdFromPath($node_path), $legacy_roots, true);
+        });
+
+        $kept_roots = $kept
+            ->map(fn (int $org_id) => Organization::rootIdFromPath($all_orgs->get($org_id)->node_path))
+            ->unique()
+            ->all();
+
+        $missing_roots = array_diff($legacy_roots, $kept_roots);
+        $resolved_ids = $kept->merge($missing_roots)->unique()->values()->all();
+
+        if ($this->sameIds($resolved_ids, $current_ids))
+        {
+            return;
+        }
+
+        $event_trooper->costume_organization_ids = $resolved_ids;
+        $event_trooper->saveQuietly();
+        $counts['legacy_mismatch_corrected']++;
+    }
+
     /** @param  array<string, int>  $counts */
     private function printSummary(array $counts): void
     {
@@ -623,6 +771,8 @@ class Fix408 extends Seeder
         $this->command?->info("  Recovered (legacy fallback):       {$counts['recovered_legacy']}");
         $this->command?->info("  Skipped (no eligible org):         {$counts['skipped_no_eligible_org']}");
         $this->command?->info("  Achievement rows removed:          {$counts['achievements_removed']}");
+        $this->command?->info("  Legacy-tag mismatches corrected:   {$counts['legacy_mismatch_corrected']}");
+        $this->command?->info("  Legacy-tag ambiguous (skipped):    {$counts['legacy_club_ambiguous']}");
         $this->command?->newLine();
         $this->command?->info('  Run `php artisan tracker:calculate-trooper-achievements` next so any');
         $this->command?->info('  legitimately-earned club milestones are created fresh.');
