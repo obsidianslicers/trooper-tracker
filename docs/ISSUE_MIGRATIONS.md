@@ -233,16 +233,27 @@ as his first and only legitimate Rebel Legion troop. `Fix406`/`Fix407` had backf
 shifts of his from 2017–2021 — years before he ever joined — to also credit Rebel Legion, because
 those shifts had no costume and handler-type credit falls back to every club he's currently in.
 
-**What it does:** Builds each trooper's earliest real join date per root club, from
+**Design principle:** if a trooper was already present in a club during the original TT1.0
+import — an active assignment, or any `tt_trooper_organizations` row, which is never created as
+boilerplate — we trust the legacy data and don't try to guess a join date for them. Only clubs
+with zero presence at import time get date-gated from a later row.
+
+Both ways of getting this wrong showed up while building it. First pass: any later-created row
+counted as a new join, which wiped out a decade of real credit for trooper 84 — a long-time
+Rebel Legion member whose assignment had just been moved from root-level to a region (WFL), not a
+new join at all. Second pass: trusting `tt_trooper_assignments` presence alone, which doesn't
+work because that table gets a row for every club for every trooper whether they're a member or
+not — so it swallowed trooper 644's real signal right back out too. Fixed both before this
+shipped.
+
+**What it does:** Builds each trooper's earliest real join date per root club this way, from
 `tt_trooper_organizations`/`tt_trooper_assignments` rows created after the one-time Florida
-Garrison import batch (2026-05-29) — rows from that batch were all created in one go regardless
-of when the trooper actually joined, so they carry no usable date signal and are excluded
-entirely. Scans every `ATTENDED` `EventTrooper` row with credit on it, site-wide, and drops any
-credited club whose join date is after the shift. If something survives, keeps it. If nothing
-does, retries live eligibility and the legacy fallback (both filtered the same way), then clears
-the row and reports it (`Fix409OutstandingCredit`) if still nothing resolves. Also hard-deletes
-any club-scoped `tt_trooper_achievements` row that no longer meets its troop-count threshold once
-the premature credit is gone.
+Garrison import batch (2026-05-29). Scans every `ATTENDED` `EventTrooper` row with credit on it,
+site-wide, and drops any credited club whose join date is after the shift. If something survives,
+keeps it. If nothing does, retries live eligibility and the legacy fallback (both filtered the
+same way), then clears the row and reports it (`Fix409OutstandingCredit`) if still nothing
+resolves. Also hard-deletes any club-scoped `tt_trooper_achievements` row that no longer meets its
+troop-count threshold once the premature credit is gone.
 
 `Fix406`, `Fix407`, and `Fix408` were all amended to apply the same check at the point each one
 writes resolved credit, so a future re-run of any of them can't reproduce this.
