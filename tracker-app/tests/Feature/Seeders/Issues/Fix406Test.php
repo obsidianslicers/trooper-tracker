@@ -13,14 +13,17 @@ use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
+use App\Models\TrooperOrganization;
 use Database\Seeders\Issues\Fix406;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use Tests\Feature\Seeders\Issues\Concerns\SeedsLegacyTables;
 use Tests\TestCase;
 
 class Fix406Test extends TestCase
 {
     use RefreshDatabase;
+    use SeedsLegacyTables;
 
     protected function setUp(): void
     {
@@ -162,7 +165,8 @@ class Fix406Test extends TestCase
         $remaining = EventTrooper::query()
             ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED->value)
             ->whereNull(EventTrooper::ORGANIZATION_ID)
-            ->where(function ($query): void {
+            ->where(function ($query): void
+            {
                 $query->whereNull(EventTrooper::COSTUME_ORGANIZATION_IDS)
                     ->orWhere(EventTrooper::COSTUME_ORGANIZATION_IDS, '[]');
             })
@@ -191,15 +195,75 @@ class Fix406Test extends TestCase
         $subject = new Fix406;
         $subject->run(app(MagicBus::class));
 
-        Mail::assertQueued(Fix406OutstandingCredit::class, function (Fix406OutstandingCredit $mail) use ($admin): bool {
+        Mail::assertQueued(Fix406OutstandingCredit::class, function (Fix406OutstandingCredit $mail) use ($admin): bool
+        {
             return $mail->hasTo($admin->email);
         });
 
-        Mail::assertQueued(Fix406OutstandingCredit::class, function (Fix406OutstandingCredit $mail) use ($event_trooper): bool {
+        Mail::assertQueued(Fix406OutstandingCredit::class, function (Fix406OutstandingCredit $mail) use ($event_trooper): bool
+        {
             $rendered = $mail->render();
 
             return str_contains($rendered, (string) $event_trooper->id);
         });
+    }
+
+    public function test_restores_tt1_row_from_legacy_signup_not_current_membership(): void
+    {
+        $this->seedLegacyWorld();
+        // trooper 644: TT1.0 501st member who joined Rebel Legion in 2026
+        $trooper = Trooper::factory()->asActive()->create();
+        $this->legacyTrooper($trooper, ['p501' => 1]);
+        $this->memberAssignmentSince($trooper, $this->club('501st Legion'), '2026-05-29 08:34:05');
+        $this->membershipSince($trooper, $this->club('Rebel Legion'), '2026-08-02 12:00:00');
+        $this->memberAssignmentSince($trooper, $this->club('Rebel Legion'), '2026-08-02 12:00:00');
+
+        $shift = $this->shiftAt('2018-06-01 10:00:00');
+        $this->legacySignup($shift, $trooper, $this->legacyCostume('Handler', 0));
+        $event_trooper = $this->attended($trooper, $shift);
+
+        (new Fix406)->run(app(MagicBus::class));
+
+        $this->assertSame([$this->club('501st Legion')->id], $event_trooper->refresh()->costume_organization_ids);
+        Mail::assertNothingQueued();
+    }
+
+    public function test_reports_tt1_row_whose_legacy_costume_has_no_club(): void
+    {
+        $this->seedLegacyWorld();
+        Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asActive()->create();
+        $this->legacyTrooper($trooper, ['p501' => 1]);
+        $this->memberAssignmentSince($trooper, $this->club('501st Legion'), '2026-05-29 08:34:05');
+
+        $shift = $this->shiftAt('2018-06-01 10:00:00');
+        $this->legacySignup($shift, $trooper, $this->legacyCostume('Other', 4));
+        $event_trooper = $this->attended($trooper, $shift);
+
+        (new Fix406)->run(app(MagicBus::class));
+
+        $this->assertNull($event_trooper->refresh()->costume_organization_ids);
+        Mail::assertQueued(Fix406OutstandingCredit::class, function (Fix406OutstandingCredit $mail): bool
+        {
+            return str_contains($mail->render(), 'Other');
+        });
+    }
+
+    public function test_tt2_row_is_not_credited_to_a_club_joined_after_the_shift(): void
+    {
+        $this->seedLegacyWorld();
+        $trooper = Trooper::factory()->asActive()->create();
+        $this->legacyTrooper($trooper, ['p501' => 1]);
+        $this->memberAssignmentSince($trooper, $this->club('501st Legion'), '2026-05-29 08:34:05');
+        $this->membershipSince($trooper, $this->club('Rebel Legion'), '2026-08-02 12:00:00');
+        $this->memberAssignmentSince($trooper, $this->club('Rebel Legion'), '2026-08-02 12:00:00');
+
+        $event_trooper = $this->attended($trooper, $this->shiftAt('2026-07-04 10:00:00'));
+
+        (new Fix406)->run(app(MagicBus::class));
+
+        $this->assertSame([$this->club('501st Legion')->id], $event_trooper->refresh()->costume_organization_ids);
+        $this->assertSame(1, TrooperOrganization::count());
     }
 
     public function test_does_not_email_administrators_when_nothing_outstanding(): void

@@ -111,163 +111,127 @@ accumulated. Safe to re-run — already-retired records are excluded from both u
 
 ---
 
-## Fix406
+## Fix406–Fix409: historical troop credit
 
-**Issue:** Before the admin roster-update controller was fixed (#262), every admin roster save
-cleared both `costume_organization_ids` and `organization_id` whenever org-selection data wasn't
-submitted for a row, destroying any existing troop credit with no way to recover it from an audit
-trail (`EventTrooper` only audits `status`). A residual gap kept nulling `organization_id` on
-every save even after #262; that's fixed alongside this seeder.
+These four fixes repair troop credit (`tt_event_troopers.costume_organization_ids`) and the
+memberships and achievements built on it. They share one set of credit rules —
+`HistoricalCreditResolver` (`database/seeders/Issues/Support/`) on top of
+`LegacySignupCreditResolver` (`database/seeders/FloridaGarrison/Support/`), which the original
+`EventSeeder` import also uses, so a fresh import and a repaired database agree.
 
-**What it does:** Scans `EventTrooper` records with `status = attended`, `organization_id IS
-NULL`, and `costume_organization_ids` null or empty, then re-derives credit via
-`EventTrooper::getEligibleCreditOrganizations()` — the same resolver the self-service attendance
-flow uses:
+**Background — how the bad credit got there:**
 
-- One eligible top-level club: populate `costume_organization_ids` with it.
-- More than one eligible club: ambiguous, credit all of them and count separately
-  (`resolved_multi_club`) for later audit.
-- No eligible club: skipped, needs manual review.
+- The admin roster-update controller (before #262) cleared credit on every save, and the import
+  never credited handler-role troopers.
+- The old `Fix406`/`Fix407` back-filled those rows from the trooper's *current* clubs, so a trooper
+  who joined a club in 2026 got credit for it on shifts from 2017 (trooper 644).
+- The old importer created memberships from a stray legacy identifier alone (Fix408), and the old
+  `Fix409` guessed join dates from `created_at`, treating those false import rows as proof of
+  TT1.0 membership.
 
-Prints scanned/resolved/skipped counts. If anything was skipped, queues a `Fix406OutstandingCredit`
-email to every administrator listing the trooper, event, costume, and `EventTrooper` ID for each.
+### Credit rules
 
-**When to run:** Once, on any environment running before the `organization_id`-nulling fix in
-`UpdateTroopersSubmitController` (the forward fix ships with this seeder). Run before reloading
-affected service record pages.
+Which rules apply is decided **per signup, never by the shift or event date** — TT2.0 launched
+2026-05-29, and an event scheduled before launch can hold both TT1.0 signups and later TT2.0
+signups.
 
-**Bug found while investigating widespread missing credit:** the empty-credit check used
-`orWhere('costume_organization_ids', '[]')`. MySQL only does JSON-aware equality on a literal
-written into the SQL text, not on a bound parameter, so this never actually matched the `'[]'`
-case — only true `NULL`. Every current write path stores `'[]'`, not `NULL`, for no-credit rows,
-so `Fix406` had only ever resolved a sliver of what it was supposed to (18 `NULL` rows vs. 2,476
-`'[]'` rows in one affected database). Changed to `orWhereJsonLength(..., 0)`. Re-run `Fix406` to
-pick up the backlog it missed before this fix.
+**TT1.0 signup** — a matching legacy `event_sign_up` row exists for the (shift, trooper), followed
+through the same duplicate-shift merge `EventSeeder` performs. Credit comes **only** from that
+signup's costume club (`event_sign_up.costume` → `costumes.club`); dual/triple tags credit every
+club on the tag. Handler, N/A and Command Staff were per-club costumes in TT1.0, so nearly every
+signup names a club. Nothing else is consulted — not TT2.0 membership, join dates, current
+eligibility, or the legacy `pX` flags. If the costume's club can't be mapped (club 4 "Other", no
+costume) or duplicate legacy signups disagree, the row is reported, not guessed.
 
----
+**TT2.0 signup** — no legacy signup. Credit is inferred from what was true on the shift date:
 
-## Fix407
+- *Membership at time T* for a club holds when either:
+  - the legacy `pX >= 1` — proof of membership **at launch**; it covers T up to launch, and after
+    launch only while TT2.0 history shows the membership continuing (not retired / soft-deleted
+    before T), or
+  - the earliest reliable join evidence is on or before T: `join_date`, an approved
+    `TrooperRequest`, the earliest `tt_trooper_organizations.created_at`, or the earliest
+    `is_member` assignment (trashed rows included, so a root→region move keeps its original
+    date). Region/unit assignments roll up to their club.
 
-**Issue:** Even after `Fix406`'s JSON-comparison fix, a handful of records still have no credit
-source and no live-eligible organization — mostly troopers with no current active club assignment
-at all (retired, command staff, N/A membership). `Fix406`'s resolver has nothing to work with for
-these.
+  A `tt_trooper_organizations` row for a club where TT1.0 had a stray identifier (`pX = 0`) never
+  counts by `created_at` — the import created it, and a real later join reuses the same row.
+- *Costume*: the clubs the costume belongs to, narrowed by the trooper's approvals. Credit every
+  one of those clubs the trooper was a member of at T. A handler / no costume credits every club
+  they were a member of at T.
+- A club joined after T never credits T. Credit for a club with no membership evidence either way
+  is kept and reported, never removed.
 
-**What it does:** Only processes records `Fix406` can't resolve
-(`getEligibleCreditParentOrganizations()` empty) — doesn't duplicate its single/multi-club logic,
-so run `Fix406` first. For each, looks up the trooper's original signup for that shift in the
-legacy (pre-2.0) `event_sign_up`/`costumes` tables, joined via `event_sign_up.troopid =
-event_shift_id` and `event_sign_up.trooperid = trooper_id` (both ids carried over 1:1 from the old
-tracker). Those tables still tag a costume's club even where the 2.0 import skipped migrating it
-(`N/A`, `Handler`, `Command Staff`). If that legacy club maps to a current organization, credit
-backfills from it.
+Membership validity and credit validity are separate questions: credit logic never changes a
+membership, and a questionable membership never decides TT1.0 credit.
 
-Needs the legacy `event_sign_up`/`costumes` tables to exist — skips cleanly if not, same as
-`Fix246`. A legacy club of `4` ("Other") or one with no current equivalent is treated as no
-record: skipped and added to a `Fix407OutstandingCredit` email to every administrator, with a note
-on why the legacy lookup didn't help either.
+### Fix406 — restore missing credit
 
-**When to run:** Once, right after `Fix406`, on any environment imported from the legacy tracker
-that still has missing-credit records afterward.
+Scans `ATTENDED` rows with `organization_id IS NULL` and no `costume_organization_ids` (null or
+`[]` — matched with `whereJsonLength`, since MySQL never compares a bound `'[]'` as JSON) and sets
+the credit the rules above produce. Rows the evidence can't settle stay uncredited and go to
+administrators in `Fix406OutstandingCredit`, with a reason per row.
 
----
+### Fix407 — TT1.0 signups match their legacy signup
 
-## Fix408
+For every `ATTENDED` TT1.0 signup, makes the credited clubs equal the legacy signup's club(s):
+stored region/unit ids under those clubs are kept, missing clubs added, others dropped. Rows whose
+legacy signup can't be mapped keep their credit and are reported (`Fix407OutstandingCredit`);
+uncredited ones are left to Fix406, which reports them itself.
 
-**Issue:** `TrooperOrganizationSeeder` (the Florida Garrison import) granted club membership from
-a non-empty legacy identity field (`tkid`, `rebelforum`, ...) alone, never checking the club's own
-permission flag (`p501`, `pRebel`, ...). The old signup form required an identifier from everyone
-regardless of club, so troopers ended up with an active membership for a club they were never in
-— and once `Fix242`'s orphaned-membership repair ran, a real `TrooperAssignment` too (e.g. a Rebel
-Legion trooper credited for 501st Legion). That fed troop credit and club-scoped achievements for
-years, independent of `Fix406`/`Fix407`. The importer is fixed alongside this seeder — it now
-checks the permission flag for every club, generalizing a check that previously only covered Droid
-Builders.
+### Fix408 — false memberships (conservative)
 
-**What it does:** Checks every legacy trooper against every club for the mismatch. Only corrects a
-pair automatically when the current `tt_trooper_organizations` row for that club is already
-`retired`/`reserve` — someone already flagged it wrong, it just never reached the
-`TrooperAssignment`. For those:
+`TrooperOrganizationSeeder` used to grant membership from a non-empty legacy identifier (`tkid`,
+`rebelforum`, …) without checking the club's permission flag (`p501`, `pRebel`, …), and
+`assignUnit()` granted squad membership from `squad` without checking `p501`. The importer now
+checks both.
 
-- Soft-deletes the false `tt_trooper_organizations` row, including its fabricated identifier.
-- Clears `is_member` on the false `TrooperAssignment` (soft-deletes it too if it carries no
-  moderator/notify purpose).
-- Strips the false club out of every affected `EventTrooper.costume_organization_ids`, all-time,
-  not just rows a prior backfill touched. Falls back to live eligibility, then the legacy
-  `event_sign_up`/`costumes` lookup (also filtered against the false club, since the old tracker's
-  signup data can carry the same wrong attribution), then clears the row to empty credit and
-  reports it (`Fix408OutstandingCredit`) if nothing resolves it.
-- Hard-deletes (not soft-deletes) any club-scoped `tt_trooper_achievements` row tied to the false
-  club. Has to be a hard delete: the table's unique index on
-  `(trooper_id, type, organization_coalesce_id)` doesn't exclude soft-deleted rows, and the
-  recalculation command doesn't query `withTrashed()`, so a soft-deleted row would permanently
-  block any future legitimate milestone for that trooper/type/club.
+- **Membership:** only (trooper, club) pairs with `pX = 0` whose `tt_trooper_organizations` row is
+  already `retired`/`reserve` are corrected: the row is soft-deleted and the assignment's
+  `is_member` cleared (soft-deleted too if it has no moderator/notify purpose). Same for false
+  squad assignments. Pairs still `active` may be real later joins — they are left alone and
+  reported in `Fix408AmbiguousMemberships`, with credited shifts split into TT1.0 (decided by the
+  legacy signup regardless) and TT2.0 (riding on this membership).
+- **Credit:** TT2.0 signups crediting a corrected false club lose that club; if nothing else is
+  left they are re-resolved by the rules above, or cleared and reported
+  (`Fix408OutstandingCredit`). TT1.0 signups are left to Fix407/Fix409.
+- **Achievements:** club-scoped achievements for a corrected false club are hard-deleted (the
+  unique index on `(trooper_id, type, organization_coalesce_id)` includes soft-deleted rows, so a
+  soft delete would block a future legitimate milestone).
 
-Same bug one level down: `TrooperOrganizationSeeder::assignUnit()` grants a Florida Garrison squad
-membership from the legacy `squad` field alone, also without checking `p501`. `Fix408` corrects
-this the same way, crediting it toward the 501st root for the credit/achievement passes. The
-importer fix covers both `assignOrganizationAndRegion()` and `assignUnit()`.
+### Fix409 — final consistency check
 
-Pairs still marked `active` aren't touched — the trooper may have joined for real since the import
-— and go to administrators instead, via `Fix408AmbiguousMemberships`, with the club, status, and
-how many credited shifts/achievements ride on that membership.
+Checks every `ATTENDED` row with credit and removes credit the shift could never have earned — it
+never adds any:
 
-**When to run:** Once, after `Fix406`/`Fix407`, on any environment imported from the Florida
-Garrison legacy tracker. Follow with `php artisan tracker:calculate-trooper-achievements` so any
-club milestone the trooper actually earned gets created.
+- TT1.0 signup: any club the legacy signup didn't record.
+- TT2.0 signup: any club joined after the shift, or provably left before it.
 
----
+If nothing survives, the row is re-resolved by the rules above, or cleared and reported. Credit
+with no membership evidence either way is kept and reported. Rows credited only through
+`organization_id` are reported, not changed. Finally every club-scoped troop-count achievement is
+checked against the trooper's remaining credited shifts and hard-deleted if it no longer meets its
+threshold.
 
-## Fix409
+### Running them
 
-**Issue:** `Fix406`/`Fix407` (and `Fix408`'s re-resolution step) backfill credit for old,
-uncredited `ATTENDED` shifts using `EventTrooper::getEligibleCreditOrganizations()` — the
-trooper's *current* club eligibility. That resolver has no concept of when a trooper joined a
-club (by design, for live self-service confirmation — see `docs/TROOP_CREDIT.md`'s "no join-date
-gate" note). For backfilling, that's wrong: a trooper who joined a new club recently gets every
-old uncredited shift backfilled to that club too, since the backfill only checks current
-membership, never membership at the time of the shift.
+Every fix runs in one transaction, writes a row only when its value changes, and is safe to re-run
+— a second pass reports zero changes (outstanding rows are re-reported each run). All four need
+the legacy `troopers`, `events`, `event_sign_up` and `costumes` tables; without them, every row is
+treated as a TT2.0 signup and a warning is printed.
 
-Confirmed with trooper 644: his Rebel Legion/CFL membership was created 2026-08-02, the same day
-as his first and only legitimate Rebel Legion troop. `Fix406`/`Fix407` had backfilled 16 other
-shifts of his from 2017–2021 — years before he ever joined — to also credit Rebel Legion, because
-those shifts had no costume and handler-type credit falls back to every club he's currently in.
+Recommended order on production:
 
-**Design principle:** if a trooper was already present in a club during the original TT1.0
-import — an active assignment, or any `tt_trooper_organizations` row, which is never created as
-boilerplate — we trust the legacy data and don't try to guess a join date for them. Only clubs
-with zero presence at import time get date-gated from a later row.
+1. Back up the database and confirm the legacy tables are present.
+2. `Fix408` — correct false memberships first, so later inference can't use them.
+3. `Fix406` — restore missing credit.
+4. `Fix407` — make TT1.0 signups match their legacy signup.
+5. `Fix409` — final impossible-credit sweep and achievement cleanup.
+6. `php artisan tracker:calculate-trooper-achievements`
+7. Re-run 408 → 406 → 407 → 409 and confirm every changed count is 0, then review the emails.
 
-Both ways of getting this wrong showed up while building it. First pass: any later-created row
-counted as a new join, which wiped out a decade of real credit for trooper 84 — a long-time
-Rebel Legion member whose assignment had just been moved from root-level to a region (WFL), not a
-new join at all. Second pass: trusting `tt_trooper_assignments` presence alone, which doesn't
-work because that table gets a row for every club for every trooper whether they're a member or
-not — so it swallowed trooper 644's real signal right back out too. Fixed both before this
-shipped.
-
-**What it does:** Builds each trooper's earliest real join date per root club this way, from
-`tt_trooper_organizations`/`tt_trooper_assignments` rows created after the one-time Florida
-Garrison import batch (2026-05-29). Scans every `ATTENDED` `EventTrooper` row with credit on it,
-site-wide, and drops any credited club whose join date is after the shift. If something survives,
-keeps it. If nothing does, retries live eligibility and the legacy fallback (both filtered the
-same way), then clears the row and reports it (`Fix409OutstandingCredit`) if still nothing
-resolves. Then checks every club-scoped `tt_trooper_achievements` row in the system — not just
-ones this run touched — against the trooper's actual current credited-shift count, and
-hard-deletes any that no longer meet their troop-count threshold. Scoping that check to "only
-troopers this run changed" isn't enough: a trooper can lose credit upstream, in `Fix408`'s
-membership correction, and still end up with a stale achievement that this seeder never directly
-touches.
-
-`Fix406`, `Fix407`, and `Fix408` were all amended to apply the same check at the point each one
-writes resolved credit, so a future re-run of any of them can't reproduce this.
-
-Both `Fix408` and `Fix409` skip the write (and the counter) when the resolved value matches what's
-already stored, so re-running either one against an already-corrected database reports zero
-changes instead of re-saving the same value every time — safe to run more than once.
-
-**When to run:** After `Fix406`/`Fix407`/`Fix408`. Safe to re-run. Follow with
-`php artisan tracker:calculate-trooper-achievements`.
+Running them in numeric order converges to the same result; 408 first just avoids writing credit
+that is immediately removed again.
 
 ---
 

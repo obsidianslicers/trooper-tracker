@@ -9,9 +9,10 @@
     <p>
         The <code>Fix406</code> backfill seeder finished running, but could not determine which
         organization to credit for <strong>{{ count($outstanding_rows) }}</strong> attended
-        record{{ count($outstanding_rows) === 1 ? '' : 's' }}. Neither the stored credit fields
-        nor the trooper's current costume approvals / membership gave a usable answer, so these
-        require manual review.
+        record{{ count($outstanding_rows) === 1 ? '' : 's' }}. TT1.0 signups are only credited from
+        their legacy signup, and TT2.0 signups only from the trooper's costume and memberships on
+        the shift date — when that evidence doesn't settle it, the record is left uncredited for
+        manual review rather than guessed.
     </p>
 
     <table style="width:100%; border-collapse:collapse; margin-top:12px;">
@@ -20,6 +21,7 @@
                 <th style="text-align:left; border-bottom:1px solid #ddd; padding:6px;">Trooper</th>
                 <th style="text-align:left; border-bottom:1px solid #ddd; padding:6px;">Event</th>
                 <th style="text-align:left; border-bottom:1px solid #ddd; padding:6px;">Costume</th>
+                <th style="text-align:left; border-bottom:1px solid #ddd; padding:6px;">Reason</th>
                 <th style="text-align:left; border-bottom:1px solid #ddd; padding:6px;">EventTrooper ID</th>
             </tr>
         </thead>
@@ -29,6 +31,7 @@
                     <td style="border-bottom:1px solid #eee; padding:6px;">{{ $row['trooper_name'] }}</td>
                     <td style="border-bottom:1px solid #eee; padding:6px;">{{ $row['event_name'] }}</td>
                     <td style="border-bottom:1px solid #eee; padding:6px;">{{ $row['costume_name'] ?? '—' }}</td>
+                    <td style="border-bottom:1px solid #eee; padding:6px;">{{ $row['reason'] ?? '—' }}</td>
                     <td style="border-bottom:1px solid #eee; padding:6px;">{{ $row['event_trooper_id'] }}</td>
                 </tr>
             @endforeach

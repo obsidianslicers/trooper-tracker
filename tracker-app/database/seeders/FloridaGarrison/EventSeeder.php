@@ -14,7 +14,7 @@ use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Carbon\Carbon;
-use Database\Seeders\FloridaGarrison\Traits\HasClubMaps;
+use Database\Seeders\FloridaGarrison\Support\LegacySignupCreditResolver;
 use Database\Seeders\FloridaGarrison\Traits\HasCostumeMaps;
 use Database\Seeders\FloridaGarrison\Traits\HasEnumMaps;
 use Database\Seeders\FloridaGarrison\Traits\HasSquadMaps;
@@ -23,16 +23,13 @@ use Illuminate\Support\Facades\DB;
 
 class EventSeeder extends Seeder
 {
-    use HasClubMaps;
     use HasCostumeMaps;
     use HasEnumMaps;
     use HasSquadMaps;
 
     private $costume_maps;
 
-    private $costume_club_maps;
-
-    private $costume_specific_club_map;
+    private LegacySignupCreditResolver $legacy_credit;
 
     private $squad_maps;
 
@@ -81,14 +78,7 @@ class EventSeeder extends Seeder
             fn ($case) => $case !== EventTrooperStatus::NONE
         ));
 
-        $costume_club_maps = $this->getCostumeClubMap();
-
-        $this->costume_club_maps = [];
-
-        foreach ($costume_club_maps as $club)
-        {
-            $this->costume_club_maps[$club['costume_club_id']] = $club;
-        }
+        $this->legacy_credit = LegacySignupCreditResolver::load();
 
         $legacy_costumes = $this->getMappedLegacyCostumes();
 
@@ -101,12 +91,6 @@ class EventSeeder extends Seeder
                 $this->costume_maps[$legacy_id] = $legacy_costume;
             }
         }
-
-        $this->costume_specific_club_map = DB::table('costumes')
-            ->whereNotNull('club')
-            ->where('club', '!=', 4)
-            ->pluck('club', 'id')
-            ->toArray();
     }
 
     private function overlayOrganization($legacy, $event)
@@ -246,11 +230,14 @@ class EventSeeder extends Seeder
 
                 $event_trooper->is_handler = isset($this->handler_ids[$legacy_sign_up->trooperid]);
 
+                //  credit comes from the legacy signup's costume club for everyone, handlers
+                //  included — TT1.0 had per-club Handler/N/A/Command Staff costumes
+                $credit = $this->legacy_credit->resolve($shift_id, (int) $legacy_sign_up->trooperid);
+                $event_trooper->costume_organization_ids = $credit->isResolved() ? $credit->org_ids : null;
+
                 if (!$event_trooper->is_handler)
                 {
                     $event_trooper->costume_id = $this->getMappedCostumeId($legacy_sign_up->costume);
-
-                    $event_trooper->costume_organization_ids = $this->getMappedCostumeOrganizationIds($legacy_sign_up->costume);
 
                     $event_trooper->backup_costume_id = $this->getMappedCostumeId($legacy_sign_up->costume_backup);
 
@@ -284,32 +271,9 @@ class EventSeeder extends Seeder
 
     private function getMappedCostumeOrganizationIds($legacy_id): ?array
     {
-        // Club attribution comes from costume_specific_club_map alone — it doesn't depend on
-        // the costume also having a modern equivalent in costume_maps. An older/retired legacy
-        // costume with no current mapping still recorded which club it was worn for, and bailing
-        // out here lost that attribution entirely, leaving the row creditless until a later
-        // backfill filled it in from current membership instead of the real per-shift club.
-        $specific_club = $this->costume_specific_club_map[$legacy_id] ?? null;
+        $credit = $this->legacy_credit->creditForCostume((int) $legacy_id);
 
-        if ($specific_club === null)
-        {
-            return null;
-        }
-
-        $organization_ids = [];
-        $clubs = $this->expandDualClubIds([$specific_club]);
-
-        foreach ($clubs as $club_id)
-        {
-            $club = $this->costume_club_maps[$club_id] ?? null;
-
-            if ($club !== null)
-            {
-                $organization_ids[] = $club['id'];
-            }
-        }
-
-        return $organization_ids ?: null;
+        return $credit->isResolved() ? $credit->org_ids : null;
     }
 
     private function overlayEvent($legacy, $event)

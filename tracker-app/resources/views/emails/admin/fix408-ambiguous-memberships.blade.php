@@ -17,13 +17,20 @@
         and correct their membership and any credit/achievements by hand if not.
     </p>
 
+    <p>
+        Credited shifts are split by signup origin. <strong>TT1.0</strong> signups are credited
+        from their legacy signup record regardless of this membership (Fix407/Fix409 enforce
+        that). <strong>TT2.0</strong> signups depend on this membership being real.
+    </p>
+
     <table style="width:100%; border-collapse:collapse; margin-top:12px;">
         <thead>
             <tr>
                 <th style="text-align:left; border-bottom:1px solid #ddd; padding:6px;">Trooper</th>
                 <th style="text-align:left; border-bottom:1px solid #ddd; padding:6px;">Club</th>
                 <th style="text-align:left; border-bottom:1px solid #ddd; padding:6px;">Status</th>
-                <th style="text-align:left; border-bottom:1px solid #ddd; padding:6px;">Credited Shifts</th>
+                <th style="text-align:left; border-bottom:1px solid #ddd; padding:6px;">TT1.0 Shifts</th>
+                <th style="text-align:left; border-bottom:1px solid #ddd; padding:6px;">TT2.0 Shifts</th>
                 <th style="text-align:left; border-bottom:1px solid #ddd; padding:6px;">Achievements</th>
             </tr>
         </thead>
@@ -33,7 +40,8 @@
                     <td style="border-bottom:1px solid #eee; padding:6px;">{{ $row['trooper_name'] }}</td>
                     <td style="border-bottom:1px solid #eee; padding:6px;">{{ $row['organization_name'] }}</td>
                     <td style="border-bottom:1px solid #eee; padding:6px;">{{ $row['membership_status'] }}</td>
-                    <td style="border-bottom:1px solid #eee; padding:6px;">{{ $row['event_trooper_row_count'] }}</td>
+                    <td style="border-bottom:1px solid #eee; padding:6px;">{{ $row['tt1_row_count'] ?? '—' }}</td>
+                    <td style="border-bottom:1px solid #eee; padding:6px;">{{ $row['tt2_row_count'] ?? $row['event_trooper_row_count'] }}</td>
                     <td style="border-bottom:1px solid #eee; padding:6px;">{{ $row['achievement_row_count'] }}</td>
                 </tr>
             @endforeach

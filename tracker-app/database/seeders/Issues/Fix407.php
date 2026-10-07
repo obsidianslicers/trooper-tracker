@@ -6,203 +6,110 @@ namespace Database\Seeders\Issues;
 
 use App\Bus\MagicBus;
 use App\Enums\EventTrooperStatus;
-use App\Enums\MembershipRole;
-use App\Features\Troopers\Queries\GetTroopersByRoleQuery;
 use App\Mail\Fix407OutstandingCredit;
 use App\Models\EventTrooper;
-use App\Models\Organization;
-use Database\Seeders\FloridaGarrison\Traits\HasClubMaps;
-use Database\Seeders\Issues\Concerns\ExcludesPrematureCredit;
-use Exception;
+use Database\Seeders\Issues\Concerns\ReportsToAdministrators;
+use Database\Seeders\Issues\Support\HistoricalCreditResolver;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Schema;
 
 /**
- * Legacy-data fallback for EventTrooper records Fix406 couldn't resolve.
+ * Makes every TT1.0 signup's credit match the club its legacy signup recorded.
  *
- * A small number of records have no current costume approval or membership to derive credit
- * from — usually troopers with no active club assignment at all (retired, command staff, N/A) —
- * so Fix406 skips them. Before giving up, this looks up the trooper's original signup for that
- * shift in the legacy (pre-2.0) event_sign_up/costumes tables, matched via
- * event_sign_up.troopid = event_shift_id and event_sign_up.trooperid = trooper_id (both ids
- * preserved 1:1 from the old tracker). Those tables still carry a per-costume "club" tag even
- * for signups the 2.0 import skipped (handler/command-staff/N/A costumes), so if it maps to a
- * real organization, credit gets backfilled from it.
+ * TT1.0 data is authoritative for TT1.0 signups. A row is a TT1.0 signup when a matching legacy
+ * event_sign_up record exists (via the same duplicate-shift mapping EventSeeder used) — whatever
+ * the shift date, since events scheduled before the TT2.0 launch can still be in the future.
+ * Over the years these rows picked up credit from current membership (old Fix406/407 backfills,
+ * admin roster saves) instead of the costume club the trooper actually signed up under.
  *
- * Only runs for rows Fix406's live resolver already gave up on — doesn't duplicate its
- * single/multi-club resolution. Run Fix406 first.
+ * For each attended TT1.0 row, the credited clubs become exactly the legacy costume's club(s):
+ * stored region/unit ids under those clubs are kept, missing clubs are added, others dropped.
+ * Rows whose legacy signup can't be mapped to a club (or whose duplicate legacy signups
+ * disagree) keep their current credit and are emailed to administrators. Uncredited ones are
+ * left to Fix406, which reports them itself.
  */
 class Fix407 extends Seeder
 {
-    use ExcludesPrematureCredit;
-    use HasClubMaps;
+    use ReportsToAdministrators;
 
     public function run(MagicBus $bus): void
     {
         $outstanding_rows = [];
 
-        DB::transaction(function () use (&$outstanding_rows): void {
-            $counts = [
-                'scanned' => 0,
-                'resolved_legacy_fallback' => 0,
-                'skipped_no_eligible_org' => 0,
-            ];
+        DB::transaction(function () use (&$outstanding_rows): void
+        {
+            $counts = ['tt1_rows' => 0, 'already_correct' => 0, 'corrected' => 0, 'outstanding' => 0];
 
-            $club_map = $this->buildClubMap();
-            $all_orgs = Organization::all([Organization::ID, Organization::NODE_PATH])->keyBy(Organization::ID);
-            $join_signals = $this->buildJoinSignals($all_orgs);
+            $resolver = HistoricalCreditResolver::load();
+
+            if (!$resolver->legacy()->isAvailable())
+            {
+                $this->command?->warn('Fix407: legacy TT1.0 tables not found; nothing to reconcile.');
+
+                return;
+            }
 
             EventTrooper::query()
                 ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED->value)
-                ->whereNull(EventTrooper::ORGANIZATION_ID)
-                ->where(function ($query): void {
-                    $query->whereNull(EventTrooper::COSTUME_ORGANIZATION_IDS)
-                        ->orWhereJsonLength(EventTrooper::COSTUME_ORGANIZATION_IDS, 0);
-                })
-                ->with(['trooper.trooper_costumes.organization_costume', 'trooper.trooper_assignments', 'costume', 'event_shift.event'])
-                ->chunkById(200, function ($event_troopers) use (&$counts, &$outstanding_rows, $club_map, $all_orgs, $join_signals): void {
+                ->with(['trooper', 'costume', 'event_shift.event'])
+                ->chunkById(500, function ($event_troopers) use (&$counts, &$outstanding_rows, $resolver): void
+                {
                     foreach ($event_troopers as $event_trooper)
                     {
-                        if ($event_trooper->getEligibleCreditParentOrganizations()->isNotEmpty())
+                        if ($resolver->isTt1Signup($event_trooper))
                         {
-                            // Fix406 already resolves (or will resolve) this row — not our job.
-                            continue;
+                            $this->reconcileRow($event_trooper, $resolver, $counts, $outstanding_rows);
                         }
-
-                        $counts['scanned']++;
-
-                        $legacy_signup = $this->findLegacySignup($event_trooper);
-                        $legacy_org_ids = $this->resolveLegacyOrgIds($legacy_signup, $club_map);
-
-                        $shift_date = $event_trooper->event_shift?->shift_starts_at;
-                        if ($shift_date !== null)
-                        {
-                            // The legacy signup predates any current membership — never credit a
-                            // club the trooper joined after this shift happened.
-                            $legacy_org_ids = $this->excludePremature(
-                                $legacy_org_ids,
-                                $event_trooper->trooper_id,
-                                $shift_date,
-                                $all_orgs,
-                                $join_signals,
-                            );
-                        }
-
-                        if (!empty($legacy_org_ids))
-                        {
-                            $event_trooper->costume_organization_ids = $legacy_org_ids;
-                            $event_trooper->saveQuietly();
-                            $counts['resolved_legacy_fallback']++;
-
-                            continue;
-                        }
-
-                        $counts['skipped_no_eligible_org']++;
-                        $outstanding_rows[] = [
-                            'event_trooper_id' => $event_trooper->id,
-                            'trooper_name' => $event_trooper->trooper->display_name,
-                            'event_name' => $event_trooper->event_shift->event->name,
-                            'event_id' => $event_trooper->event_shift->event->id,
-                            'costume_name' => $event_trooper->costume?->name,
-                            'legacy_note' => $this->buildLegacyNote($legacy_signup),
-                        ];
                     }
                 });
 
             $this->command?->info('Fix407 complete:');
-            $this->command?->info("  Scanned (unresolved by Fix406):   {$counts['scanned']}");
-            $this->command?->info("  Resolved (legacy fallback):       {$counts['resolved_legacy_fallback']}");
-            $this->command?->info("  Skipped (no eligible org):        {$counts['skipped_no_eligible_org']}");
+            $this->command?->info("  TT1.0 signups checked:            {$counts['tt1_rows']}");
+            $this->command?->info("  Already matching legacy signup:   {$counts['already_correct']}");
+            $this->command?->info("  Corrected to legacy signup:       {$counts['corrected']}");
+            $this->command?->info("  Outstanding (admin review):       {$counts['outstanding']}");
         });
 
-        $this->emailOutstandingRowsToAdministrators($bus, $outstanding_rows);
-    }
-
-    /** @return Collection<int, array{id: int, costume_club_id: int}> */
-    private function buildClubMap(): Collection
-    {
-        if (!Schema::hasTable('event_sign_up') || !Schema::hasTable('costumes'))
-        {
-            return collect();
-        }
-
-        try
-        {
-            return collect($this->getCostumeClubMap())->keyBy('costume_club_id');
-        }
-        catch (Exception)
-        {
-            // named clubs like "501st Legion" don't exist here, nothing to map against
-            return collect();
-        }
-    }
-
-    private function findLegacySignup(EventTrooper $event_trooper): ?object
-    {
-        if (!Schema::hasTable('event_sign_up') || !Schema::hasTable('costumes'))
-        {
-            return null;
-        }
-
-        return DB::table('event_sign_up')
-            ->join('costumes', 'costumes.id', '=', 'event_sign_up.costume')
-            ->where('event_sign_up.troopid', $event_trooper->event_shift_id)
-            ->where('event_sign_up.trooperid', $event_trooper->trooper_id)
-            ->selectRaw('costumes.costume, costumes.club')
-            ->first();
+        $this->emailAdministrators($bus, Fix407OutstandingCredit::class, $outstanding_rows);
     }
 
     /**
-     * @param  Collection<int, array{id: int, costume_club_id: int}>  $club_map
-     * @return array<int, int>
+     * @param  array<string, int>  $counts
+     * @param  array<int, array<string, mixed>>  $outstanding_rows
      */
-    private function resolveLegacyOrgIds(?object $legacy_signup, Collection $club_map): array
-    {
-        if ($legacy_signup === null || $legacy_signup->club === null || $club_map->isEmpty())
+    private function reconcileRow(
+        EventTrooper $event_trooper,
+        HistoricalCreditResolver $resolver,
+        array &$counts,
+        array &$outstanding_rows,
+    ): void {
+        $counts['tt1_rows']++;
+
+        $legacy = $resolver->legacyCredit($event_trooper);
+        $current_ids = $event_trooper->creditedOrgIds();
+
+        if (!$legacy->isResolved())
         {
-            return [];
-        }
+            if (!empty($current_ids))
+            {
+                $counts['outstanding']++;
+                $outstanding_rows[] = $this->reportRow($event_trooper, $legacy->note.' Existing credit left unchanged.');
+            }
 
-        $club_ids = $this->expandDualClubIds([(int) $legacy_signup->club]);
-
-        return collect($club_ids)
-            ->map(fn (int $club_id) => $club_map->get($club_id)['id'] ?? null)
-            ->filter()
-            ->unique()
-            ->values()
-            ->all();
-    }
-
-    private function buildLegacyNote(?object $legacy_signup): string
-    {
-        if ($legacy_signup === null)
-        {
-            return 'No legacy signup record found for this shift.';
-        }
-
-        if ($legacy_signup->club === null)
-        {
-            return "Legacy costume \"{$legacy_signup->costume}\" has no club on record.";
-        }
-
-        return "Legacy costume \"{$legacy_signup->costume}\" (club not specific enough to credit).";
-    }
-
-    private function emailOutstandingRowsToAdministrators(MagicBus $bus, array $outstanding_rows): void
-    {
-        if (empty($outstanding_rows))
-        {
             return;
         }
 
-        $admins = $bus->send(new GetTroopersByRoleQuery(MembershipRole::ADMINISTRATOR));
+        $target_ids = $resolver->mergeKeepingSpecificity($current_ids, $legacy->org_ids);
 
-        foreach ($admins as $admin)
+        if (HistoricalCreditResolver::sameIds($target_ids, $event_trooper->costume_organization_ids ?? []))
         {
-            Mail::to($admin->email)->queue(new Fix407OutstandingCredit($admin, $outstanding_rows));
+            $counts['already_correct']++;
+
+            return;
         }
+
+        $event_trooper->costume_organization_ids = $target_ids;
+        $event_trooper->saveQuietly();
+        $counts['corrected']++;
     }
 }

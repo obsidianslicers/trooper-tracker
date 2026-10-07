@@ -7,38 +7,37 @@ namespace Database\Seeders\Issues;
 use App\Bus\MagicBus;
 use App\Enums\AchievementType;
 use App\Enums\EventTrooperStatus;
-use App\Enums\MembershipRole;
-use App\Features\Troopers\Queries\GetTroopersByRoleQuery;
 use App\Mail\Fix409OutstandingCredit;
 use App\Models\EventTrooper;
-use App\Models\Organization;
 use App\Models\TrooperAchievement;
-use Carbon\Carbon;
-use Database\Seeders\FloridaGarrison\Traits\HasClubMaps;
-use Database\Seeders\Issues\Concerns\ExcludesPrematureCredit;
-use Exception;
+use Database\Seeders\Issues\Concerns\ReportsToAdministrators;
+use Database\Seeders\Issues\Support\CreditCheck;
+use Database\Seeders\Issues\Support\HistoricalCreditResolver;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Schema;
 
 /**
- * Stops crediting a club for a shift that happened before the trooper actually joined it.
+ * Final consistency check: removes troop credit a shift could never have earned.
  *
- * Fix406/Fix407 (and Fix408's re-resolution step) backfill credit for old, uncredited ATTENDED
- * shifts using the trooper's current club eligibility, with no awareness of when they actually
- * joined that club. A trooper who joined a new club recently got every old uncredited shift
- * backfilled to that club too, since the backfill only checks current membership, never
- * membership at the time of the shift.
+ * Earlier backfills (old Fix406/407, Fix408's re-resolution) credited old shifts from the
+ * trooper's *current* clubs — e.g. trooper 644 joined Rebel Legion in 2026 and had 16 shifts from
+ * 2017–2021 credited to it. Every attended row with credit is checked by signup origin:
+ *
+ *   - TT1.0 signup: only the club(s) its legacy signup recorded are possible.
+ *   - TT2.0 signup: a club is impossible if the trooper joined it after the shift, or provably
+ *     left it before. A club with no membership evidence either way is kept and reported.
+ *
+ * Impossible credit is removed — never added. If nothing survives, the row is re-resolved from
+ * the same rules Fix406 uses, or cleared and reported. Rows credited only via organization_id
+ * are reported, not changed. Finally every club-scoped troop-count achievement is checked
+ * against the trooper's remaining credited shifts.
  */
 class Fix409 extends Seeder
 {
-    use ExcludesPrematureCredit;
-    use HasClubMaps;
+    use ReportsToAdministrators;
 
-    /** @var array<int, int> */
-    private const TROOP_THRESHOLDS = [
+    /** @var array<string, int> */
+    private const array TROOP_THRESHOLDS = [
         AchievementType::FIRST_TROOP->value => 1,
         AchievementType::TROOPED_10->value => 10,
         AchievementType::TROOPED_25->value => 25,
@@ -61,297 +60,181 @@ class Fix409 extends Seeder
         DB::transaction(function () use (&$outstanding_rows): void
         {
             $counts = [
-                'credit_rows_scanned' => 0,
-                'premature_credit_removed' => 0,
-                'corrected_partial_credit' => 0,
-                'recovered_live' => 0,
-                'recovered_legacy' => 0,
-                'skipped_no_eligible_org' => 0,
+                'rows_checked' => 0,
+                'impossible_credit_removed' => 0,
+                'rows_trimmed' => 0,
+                'rows_reresolved' => 0,
+                'rows_cleared' => 0,
+                'unknown_reported' => 0,
                 'achievements_removed' => 0,
             ];
 
-            $all_orgs = Organization::all([Organization::ID, Organization::NODE_PATH])->keyBy(Organization::ID);
-            $join_signals = $this->buildJoinSignals($all_orgs);
-            $costume_club_map = $this->buildCostumeClubMap();
+            $resolver = HistoricalCreditResolver::load();
+
+            if (!$resolver->legacy()->isAvailable())
+            {
+                $this->command?->warn('Fix409: legacy TT1.0 tables not found — every row is treated as a TT2.0 signup.');
+            }
 
             EventTrooper::query()
                 ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED->value)
-                ->whereJsonLength(EventTrooper::COSTUME_ORGANIZATION_IDS, '>', 0)
-                ->with(['trooper.trooper_costumes.organization_costume', 'trooper.trooper_assignments', 'costume', 'event_shift.event'])
-                ->chunkById(200, function ($event_troopers) use (
-                    &$outstanding_rows,
-                    &$counts,
-                    $all_orgs,
-                    $join_signals,
-                    $costume_club_map,
-                ): void {
+                ->where(function ($query): void
+                {
+                    $query->whereJsonLength(EventTrooper::COSTUME_ORGANIZATION_IDS, '>', 0)
+                        ->orWhereNotNull(EventTrooper::ORGANIZATION_ID);
+                })
+                ->with(['trooper', 'costume', 'event_shift.event'])
+                ->chunkById(200, function ($event_troopers) use (&$counts, &$outstanding_rows, $resolver): void
+                {
                     foreach ($event_troopers as $event_trooper)
                     {
-                        $this->correctRow(
-                            $event_trooper,
-                            $all_orgs,
-                            $join_signals,
-                            $costume_club_map,
-                            $counts,
-                            $outstanding_rows,
-                        );
+                        $counts['rows_checked']++;
+                        $this->checkRow($event_trooper, $resolver, $counts, $outstanding_rows);
                     }
                 });
 
-            $this->removeUnjustifiedAchievements($all_orgs, $counts);
+            $this->removeUnjustifiedAchievements($resolver, $counts);
 
             $this->printSummary($counts);
         });
 
-        $this->emailOutstandingCredit($bus, $outstanding_rows);
+        $this->emailAdministrators($bus, Fix409OutstandingCredit::class, $outstanding_rows);
     }
 
     /**
-     * @param  Collection<int, Organization>  $all_orgs
-     * @param  array<int, array<int, Carbon>>  $join_signals
-     * @param  Collection<int, array{id: int, costume_club_id: int}>  $costume_club_map
      * @param  array<string, int>  $counts
      * @param  array<int, array<string, mixed>>  $outstanding_rows
      */
-    private function correctRow(
+    private function checkRow(
         EventTrooper $event_trooper,
-        Collection $all_orgs,
-        array $join_signals,
-        Collection $costume_club_map,
+        HistoricalCreditResolver $resolver,
         array &$counts,
         array &$outstanding_rows,
     ): void {
-        $shift_date = $event_trooper->event_shift?->shift_starts_at;
-
-        if ($shift_date === null)
-        {
-            return;
-        }
-
-        if ($this->hasLegacyClubTag($event_trooper))
-        {
-            // Fix408 already reconciled this row against the legacy event_sign_up/costumes.club
-            // tag — a direct record of which club that specific historical shift belonged to.
-            // That's more authoritative than a join date inferred from when a membership record
-            // happened to be created in the new system, so don't second-guess it here. Without
-            // this, the two seeders fight forever: 409 strips a club a late join-signal flags as
-            // premature, 408 puts it right back because the legacy tag still claims it.
-            return;
-        }
-
-        $original_ids = $event_trooper->costume_organization_ids;
-        $remaining_ids = $this->excludePremature($original_ids, $event_trooper->trooper_id, $shift_date, $all_orgs, $join_signals);
-
-        if (count($remaining_ids) === count($original_ids))
-        {
-            // Nothing on this row predates the trooper's join date — not our row to touch.
-            return;
-        }
-
-        $counts['credit_rows_scanned']++;
-        $counts['premature_credit_removed'] += count($original_ids) - count($remaining_ids);
-
-        $this->reresolveCredit($event_trooper, $remaining_ids, $shift_date, $all_orgs, $join_signals, $costume_club_map, $counts, $outstanding_rows);
-    }
-
-    /**
-     * @param  array<int, int>  $remaining_ids
-     * @param  Collection<int, Organization>  $all_orgs
-     * @param  array<int, array<int, Carbon>>  $join_signals
-     * @param  Collection<int, array{id: int, costume_club_id: int}>  $costume_club_map
-     * @param  array<string, int>  $counts
-     * @param  array<int, array<string, mixed>>  $outstanding_rows
-     */
-    private function reresolveCredit(
-        EventTrooper $event_trooper,
-        array $remaining_ids,
-        Carbon $shift_date,
-        Collection $all_orgs,
-        array $join_signals,
-        Collection $costume_club_map,
-        array &$counts,
-        array &$outstanding_rows,
-    ): void {
-        $live_org_ids = $this->excludePremature(
-            $event_trooper->getEligibleCreditOrganizations()->pluck('id')->values()->all(),
-            $event_trooper->trooper_id,
-            $shift_date,
-            $all_orgs,
-            $join_signals,
-        );
-
-        $merged_ids = collect($remaining_ids)->merge($live_org_ids)->unique()->values()->all();
-
-        if (!empty($merged_ids))
-        {
-            if ($this->sameIds($merged_ids, $event_trooper->costume_organization_ids))
-            {
-                return;
-            }
-
-            $event_trooper->costume_organization_ids = $merged_ids;
-            $event_trooper->saveQuietly();
-            $counts[empty($remaining_ids) ? 'recovered_live' : 'corrected_partial_credit']++;
-
-            return;
-        }
-
-        $legacy_org_ids = $this->excludePremature(
-            $this->resolveLegacyOrgIds($event_trooper, $costume_club_map),
-            $event_trooper->trooper_id,
-            $shift_date,
-            $all_orgs,
-            $join_signals,
-        );
-
-        if (!empty($legacy_org_ids))
-        {
-            if ($this->sameIds($legacy_org_ids, $event_trooper->costume_organization_ids))
-            {
-                return;
-            }
-
-            $event_trooper->costume_organization_ids = $legacy_org_ids;
-            $event_trooper->saveQuietly();
-            $counts['recovered_legacy']++;
-
-            return;
-        }
-
         if (empty($event_trooper->costume_organization_ids))
         {
+            $this->checkOrganizationIdOnlyRow($event_trooper, $resolver, $counts, $outstanding_rows);
+
+            return;
+        }
+
+        $check = $resolver->checkStoredCredit($event_trooper);
+
+        if (!empty($check->unknown_root_ids))
+        {
+            $counts['unknown_reported']++;
+            $outstanding_rows[] = $this->reportRow($event_trooper, $this->unknownNote($check, $resolver));
+        }
+
+        if (empty($check->remove_ids))
+        {
+            return;
+        }
+
+        $counts['impossible_credit_removed'] += count($check->remove_ids);
+
+        if (!empty($check->keep_ids))
+        {
+            $event_trooper->costume_organization_ids = $check->keep_ids;
+            $event_trooper->saveQuietly();
+            $counts['rows_trimmed']++;
+
+            return;
+        }
+
+        $this->reresolveRow($event_trooper, $check, $resolver, $counts, $outstanding_rows);
+    }
+
+    /**
+     * @param  array<string, int>  $counts
+     * @param  array<int, array<string, mixed>>  $outstanding_rows
+     */
+    private function reresolveRow(
+        EventTrooper $event_trooper,
+        CreditCheck $check,
+        HistoricalCreditResolver $resolver,
+        array &$counts,
+        array &$outstanding_rows,
+    ): void {
+        $resolution = $resolver->expectedCredit($event_trooper);
+
+        if ($resolution->resolved)
+        {
+            $event_trooper->costume_organization_ids = $resolution->org_ids;
+            $event_trooper->saveQuietly();
+            $counts['rows_reresolved']++;
+
             return;
         }
 
         $event_trooper->costume_organization_ids = [];
         $event_trooper->saveQuietly();
-
-        $counts['skipped_no_eligible_org']++;
-        $outstanding_rows[] = [
-            'event_trooper_id' => $event_trooper->id,
-            'trooper_name' => $event_trooper->trooper->display_name,
-            'event_name' => $event_trooper->event_shift->event->name,
-            'event_id' => $event_trooper->event_shift->event->id,
-            'costume_name' => $event_trooper->costume?->name,
-        ];
-    }
-
-    /** @param  array<int, int>  $a @param  array<int, int>  $b */
-    private function sameIds(array $a, array $b): bool
-    {
-        $normalize = fn (array $ids) => collect($ids)->unique()->sort()->values()->all();
-
-        return $normalize($a) === $normalize($b);
-    }
-
-    private function hasLegacyClubTag(EventTrooper $event_trooper): bool
-    {
-        if (!Schema::hasTable('event_sign_up') || !Schema::hasTable('costumes'))
-        {
-            return false;
-        }
-
-        return DB::table('event_sign_up')
-            ->join('costumes', 'costumes.id', '=', 'event_sign_up.costume')
-            ->where('event_sign_up.troopid', $event_trooper->event_shift_id)
-            ->where('event_sign_up.trooperid', $event_trooper->trooper_id)
-            ->whereNotNull('costumes.club')
-            ->exists();
-    }
-
-    /** @return Collection<int, array{id: int, costume_club_id: int}> */
-    private function buildCostumeClubMap(): Collection
-    {
-        if (!Schema::hasTable('event_sign_up') || !Schema::hasTable('costumes'))
-        {
-            return collect();
-        }
-
-        try
-        {
-            return collect($this->getCostumeClubMap())->keyBy('costume_club_id');
-        }
-        catch (Exception)
-        {
-            return collect();
-        }
+        $counts['rows_cleared']++;
+        $outstanding_rows[] = $this->reportRow(
+            $event_trooper,
+            'Removed impossible credit ('.$resolver->namesOf($check->remove_ids).'). '.$resolution->reason,
+        );
     }
 
     /**
-     * @param  Collection<int, array{id: int, costume_club_id: int}>  $costume_club_map
-     * @return array<int, int>
-     */
-    private function resolveLegacyOrgIds(EventTrooper $event_trooper, Collection $costume_club_map): array
-    {
-        if ($costume_club_map->isEmpty())
-        {
-            return [];
-        }
-
-        $legacy_signup = DB::table('event_sign_up')
-            ->join('costumes', 'costumes.id', '=', 'event_sign_up.costume')
-            ->where('event_sign_up.troopid', $event_trooper->event_shift_id)
-            ->where('event_sign_up.trooperid', $event_trooper->trooper_id)
-            ->whereNotNull('costumes.club')
-            ->selectRaw('costumes.club')
-            ->first();
-
-        if ($legacy_signup === null)
-        {
-            return [];
-        }
-
-        $club_ids = $this->expandDualClubIds([(int) $legacy_signup->club]);
-
-        return collect($club_ids)
-            ->map(fn (int $club_id) => $costume_club_map->get($club_id)['id'] ?? null)
-            ->filter()
-            ->unique()
-            ->values()
-            ->all();
-    }
-
-    /**
-     * Checks every club-scoped achievement in the system against the trooper's actual current
-     * credited-shift count and hard-deletes any that no longer meet their troop-count threshold.
+     * organization_id is the club chosen at signup; it isn't rewritten here, only reported.
      *
-     * This runs site-wide rather than only against rows this seeder just modified. Credit a
-     * trooper lost upstream of this seeder (a corrected false membership in Fix408, a legacy
-     * fallback resolved differently in Fix406/407) can leave an achievement stale without this
-     * run ever touching that trooper's row directly, so a narrower "only check what I just
-     * changed" pass misses those. Scanning every achievement against today's authoritative
-     * count is the only way to guarantee none are left over-crediting.
+     * @param  array<string, int>  $counts
+     * @param  array<int, array<string, mixed>>  $outstanding_rows
+     */
+    private function checkOrganizationIdOnlyRow(
+        EventTrooper $event_trooper,
+        HistoricalCreditResolver $resolver,
+        array &$counts,
+        array &$outstanding_rows,
+    ): void {
+        $check = $resolver->checkStoredCredit($event_trooper, [(int) $event_trooper->organization_id]);
+
+        if (empty($check->remove_ids) && empty($check->unknown_root_ids))
+        {
+            return;
+        }
+
+        $counts['unknown_reported']++;
+        $outstanding_rows[] = $this->reportRow(
+            $event_trooper,
+            empty($check->remove_ids)
+                ? $this->unknownNote($check, $resolver).' (credited via organization_id)'
+                : 'Credited via organization_id to '.$resolver->namesOf($check->remove_ids)
+                    .", which this shift couldn't have earned. Not changed automatically.",
+        );
+    }
+
+    private function unknownNote(CreditCheck $check, HistoricalCreditResolver $resolver): string
+    {
+        return 'No membership evidence for '.$resolver->namesOf($check->unknown_root_ids)
+            .' on the shift date; credit kept.';
+    }
+
+    /**
+     * Checks every club-scoped troop-count achievement against the trooper's current credited
+     * shifts — not just troopers this run touched, since credit can be lost upstream (Fix407,
+     * Fix408) without this run changing that trooper's rows.
      *
      * Hard-deletes, not soft-deletes: the table's unique index doesn't exclude soft-deleted rows,
      * and the recalculation command doesn't query withTrashed(), so a soft-deleted row would
      * permanently block any future legitimate milestone for that trooper/type/club.
      *
-     * @param  Collection<int, Organization>  $all_orgs
      * @param  array<string, int>  $counts
      */
-    private function removeUnjustifiedAchievements(Collection $all_orgs, array &$counts): void
+    private function removeUnjustifiedAchievements(HistoricalCreditResolver $resolver, array &$counts): void
     {
-        $valid_types = array_keys(self::TROOP_THRESHOLDS);
+        $credited_counts = $this->countCreditedRowsByRoot($resolver);
 
         TrooperAchievement::query()
             ->whereNotNull(TrooperAchievement::ORGANIZATION_ID)
-            ->whereIn(TrooperAchievement::TYPE, $valid_types)
-            ->chunkById(500, function ($achievements) use ($all_orgs, &$counts): void
+            ->whereIn(TrooperAchievement::TYPE, array_keys(self::TROOP_THRESHOLDS))
+            ->chunkById(500, function ($achievements) use ($credited_counts, &$counts): void
             {
                 foreach ($achievements as $achievement)
                 {
-                    $threshold = self::TROOP_THRESHOLDS[$achievement->type->value] ?? null;
-
-                    if ($threshold === null)
-                    {
-                        continue;
-                    }
-
-                    $current_count = $this->countCreditedRows(
-                        $achievement->trooper_id,
-                        $achievement->organization_id,
-                        $all_orgs,
-                    );
+                    $threshold = self::TROOP_THRESHOLDS[$achievement->type->value];
+                    $current_count = $credited_counts[$achievement->trooper_id][$achievement->organization_id] ?? 0;
 
                     if ($current_count < $threshold)
                     {
@@ -362,60 +245,42 @@ class Fix409 extends Seeder
             });
     }
 
-    /** @param  Collection<int, Organization>  $all_orgs */
-    private function countCreditedRows(int $trooper_id, int $root_org_id, Collection $all_orgs): int
+    /** @return array<int, array<int, int>> [trooper_id][root_id] => credited attended rows */
+    private function countCreditedRowsByRoot(HistoricalCreditResolver $resolver): array
     {
-        return EventTrooper::query()
-            ->where(EventTrooper::TROOPER_ID, $trooper_id)
+        $credited = [];
+
+        EventTrooper::query()
             ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED->value)
             ->whereJsonLength(EventTrooper::COSTUME_ORGANIZATION_IDS, '>', 0)
-            ->get([EventTrooper::COSTUME_ORGANIZATION_IDS])
-            ->filter(function (EventTrooper $event_trooper) use ($root_org_id, $all_orgs)
+            ->select([EventTrooper::ID, EventTrooper::TROOPER_ID, EventTrooper::COSTUME_ORGANIZATION_IDS])
+            ->chunkById(1000, function ($event_troopers) use (&$credited, $resolver): void
             {
-                foreach ($event_trooper->costume_organization_ids as $org_id)
+                foreach ($event_troopers as $event_trooper)
                 {
-                    $node_path = $all_orgs->get($org_id)?->node_path;
-
-                    if ($node_path !== null && Organization::rootIdFromPath($node_path) === $root_org_id)
+                    foreach ($resolver->rootsOf($event_trooper->costume_organization_ids) as $root_id)
                     {
-                        return true;
+                        $credited[$event_trooper->trooper_id][$root_id] = ($credited[$event_trooper->trooper_id][$root_id] ?? 0) + 1;
                     }
                 }
+            });
 
-                return false;
-            })
-            ->count();
+        return $credited;
     }
 
     /** @param  array<string, int>  $counts */
     private function printSummary(array $counts): void
     {
         $this->command?->info('Fix409 complete:');
-        $this->command?->info("  Credit rows scanned:              {$counts['credit_rows_scanned']}");
-        $this->command?->info("  Premature credits removed:        {$counts['premature_credit_removed']}");
-        $this->command?->info("  Corrected (partial credit kept):  {$counts['corrected_partial_credit']}");
-        $this->command?->info("  Recovered (live eligibility):      {$counts['recovered_live']}");
-        $this->command?->info("  Recovered (legacy fallback):       {$counts['recovered_legacy']}");
-        $this->command?->info("  Skipped (no eligible org):         {$counts['skipped_no_eligible_org']}");
-        $this->command?->info("  Achievement rows removed:          {$counts['achievements_removed']}");
+        $this->command?->info("  Credited rows checked:            {$counts['rows_checked']}");
+        $this->command?->info("  Impossible credits removed:       {$counts['impossible_credit_removed']}");
+        $this->command?->info("  Rows trimmed (credit kept):       {$counts['rows_trimmed']}");
+        $this->command?->info("  Rows re-resolved:                 {$counts['rows_reresolved']}");
+        $this->command?->info("  Rows cleared (admin review):      {$counts['rows_cleared']}");
+        $this->command?->info("  Unproven credit kept (reported):  {$counts['unknown_reported']}");
+        $this->command?->info("  Achievement rows removed:         {$counts['achievements_removed']}");
         $this->command?->newLine();
         $this->command?->info('  Run `php artisan tracker:calculate-trooper-achievements` next so any');
         $this->command?->info('  legitimately-earned club milestones are created fresh.');
-    }
-
-    /** @param  array<int, array<string, mixed>>  $outstanding_rows */
-    private function emailOutstandingCredit(MagicBus $bus, array $outstanding_rows): void
-    {
-        if (empty($outstanding_rows))
-        {
-            return;
-        }
-
-        $admins = $bus->send(new GetTroopersByRoleQuery(MembershipRole::ADMINISTRATOR));
-
-        foreach ($admins as $admin)
-        {
-            Mail::to($admin->email)->queue(new Fix409OutstandingCredit($admin, $outstanding_rows));
-        }
     }
 }
