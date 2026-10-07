@@ -204,17 +204,30 @@ current `tt_trooper_organizations` row for that club is already `retired`/`reser
 automatically — someone already flagged the membership as wrong, it just never propagated to the
 `TrooperAssignment` row. For those:
 
+- Soft-deletes the false `tt_trooper_organizations` row itself — it carries the fabricated
+  identifier (the stray legacy "TKID") and a status that implies a real membership that never
+  happened, so it's removed rather than left around with the identifier still visible.
 - Clears `is_member` on the false `TrooperAssignment` (soft-deletes it too if it carries no
   moderator/notify purpose).
 - Strips the false club's org id out of every affected `EventTrooper.costume_organization_ids`,
   all-time (not just rows a prior backfill touched). If credit remains after stripping, that's the
   fix. If nothing remains, re-tries live eligibility, then the legacy `event_sign_up`/`costumes`
-  fallback, then gives up and reports it (`Fix408OutstandingCredit`, same pattern as `Fix406`).
+  fallback — **excluding the false club from that fallback's result too**, since the legacy signup
+  data can carry the exact same false attribution the membership did (same old tracker, same root
+  cause). If still nothing, clears the row to empty credit and reports it
+  (`Fix408OutstandingCredit`, same pattern as `Fix406`) rather than leaving the false value in
+  place just because nothing better was found.
 - **Hard-deletes** (not soft-deletes) any club-scoped `tt_trooper_achievements` row tied to the
   false club. Hard-delete is required here: the table's unique index
   (`trooper_id, type, organization_coalesce_id`) doesn't exclude soft-deleted rows, and the
   recalculation command's existence check doesn't use `withTrashed()` — a soft-deleted row would
   permanently block any future legitimate milestone for that exact trooper/type/club combination.
+
+The same bug exists one level down: `TrooperOrganizationSeeder::assignUnit()` grants `is_member` on
+a Florida Garrison squad purely from the legacy `squad` field matching, also never checking `p501`.
+`Fix408` corrects this the same way (clearing the false squad `TrooperAssignment`, crediting the
+correction toward the 501st root for credit/achievement cleanup) and the importer fix covers both
+`assignOrganizationAndRegion()` and `assignUnit()`.
 
 Pairs where the `tt_trooper_organizations` row is still `active` are **not** touched — the trooper
 could have legitimately joined later — and are instead emailed to administrators

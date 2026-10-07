@@ -101,8 +101,11 @@ class TrooperOrganizationSeeder extends Seeder
 
             $member = false;
 
-            if ($trooper->squad == $legacy_id)
+            if ($trooper->squad == $legacy_id && $trooper->p501 >= 1)
             {
+                //  all of HasSquadMaps' squads are 501st Florida Garrison units — the legacy
+                //  squad field alone isn't membership, same reasoning as the club permission
+                //  flags above.
                 $member = true;
             }
 

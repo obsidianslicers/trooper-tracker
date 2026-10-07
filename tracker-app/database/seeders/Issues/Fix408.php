@@ -17,12 +17,14 @@ use App\Models\TrooperAchievement;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperOrganization;
 use Database\Seeders\FloridaGarrison\Traits\HasClubMaps;
+use Database\Seeders\FloridaGarrison\Traits\HasSquadMaps;
 use Exception;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
+use RuntimeException;
 
 /**
  * Corrects the Florida Garrison import's false club-membership bug.
@@ -45,6 +47,7 @@ use Illuminate\Support\Facades\Schema;
 class Fix408 extends Seeder
 {
     use HasClubMaps;
+    use HasSquadMaps;
 
     public function run(MagicBus $bus): void
     {
@@ -73,6 +76,7 @@ class Fix408 extends Seeder
             $all_orgs = Organization::all([Organization::ID, Organization::NODE_PATH])->keyBy(Organization::ID);
 
             [$false_root_ids_by_trooper, $ambiguous_memberships] = $this->auditMemberships($counts, $all_orgs);
+            $this->auditSquadMemberships($false_root_ids_by_trooper, $counts);
 
             $outstanding_credit_rows = $this->correctCredit($false_root_ids_by_trooper, $all_orgs, $counts);
             $this->removeFalseAchievements($false_root_ids_by_trooper, $counts);
@@ -113,21 +117,98 @@ class Fix408 extends Seeder
                     continue;
                 }
 
-                if ($mismatch['membership_status'] === MembershipStatus::ACTIVE)
+                $is_safe_status = in_array(
+                    $mismatch['membership_status'],
+                    [MembershipStatus::RETIRED, MembershipStatus::RESERVE],
+                    true,
+                );
+
+                if (!$is_safe_status)
                 {
+                    // Only retired/reserve is good evidence this came from the import bug.
+                    // Anything else (active, pending, denied, ...) means something else is going
+                    // on with this membership — leave it for a human to confirm.
                     $ambiguous_memberships[] = $this->buildAmbiguousReportRow($mismatch, $all_orgs);
                     $counts['memberships_ambiguous']++;
 
                     continue;
                 }
 
-                $this->correctAssignment($mismatch['assignment']);
+                $this->correctMembership($mismatch['trooper_organization'], $mismatch['assignment']);
                 $false_root_ids_by_trooper[$mismatch['trooper_id']][] = $mismatch['organization_id'];
-                $counts['memberships_corrected']++;
+
+                if (!$mismatch['already_corrected'])
+                {
+                    $counts['memberships_corrected']++;
+                }
             }
         }
 
         return [$false_root_ids_by_trooper, $ambiguous_memberships];
+    }
+
+    /**
+     * TrooperOrganizationSeeder's assignUnit() has the same bug at the squad level: it grants
+     * is_member on a Florida Garrison squad purely from the legacy `squad` field matching, never
+     * checking p501 — a trooper who was never in 501st at all can still end up an active member
+     * of one of its squads. All of HasSquadMaps' squads are 501st units, so any correction here
+     * contributes to the 501st root id, same as the club-level audit above.
+     *
+     * @param  array<int, array<int, int>>  $false_root_ids_by_trooper
+     * @param  array<string, int>  $counts
+     */
+    private function auditSquadMemberships(array &$false_root_ids_by_trooper, array &$counts): void
+    {
+        $p501_org = Organization::firstWhere(Organization::NAME, '501st Legion');
+
+        if ($p501_org === null)
+        {
+            return;
+        }
+
+        try
+        {
+            $squad_map = collect($this->getSquadMap());
+        }
+        catch (RuntimeException)
+        {
+            return;
+        }
+
+        $legacy_troopers = DB::table('troopers')->where('p501', 0)->get(['id', 'squad']);
+
+        foreach ($legacy_troopers as $legacy_trooper)
+        {
+            $squad = $squad_map->get($legacy_trooper->squad);
+
+            if ($squad === null)
+            {
+                continue;
+            }
+
+            $assignment = TrooperAssignment::query()
+                ->where(TrooperAssignment::TROOPER_ID, $legacy_trooper->id)
+                ->where(TrooperAssignment::ORGANIZATION_ID, $squad['id'])
+                ->where(TrooperAssignment::IS_MEMBER, true)
+                ->whereNull(TrooperAssignment::DELETED_AT)
+                ->first();
+
+            if ($assignment === null)
+            {
+                continue;
+            }
+
+            $assignment->is_member = false;
+            $assignment->save();
+
+            if (!$assignment->is_moderator && !$assignment->should_notify)
+            {
+                $assignment->delete();
+            }
+
+            $false_root_ids_by_trooper[$legacy_trooper->id][] = $p501_org->id;
+            $counts['memberships_corrected']++;
+        }
     }
 
     /**
@@ -190,6 +271,13 @@ class Fix408 extends Seeder
     }
 
     /**
+     * Detects the mismatch from the tt_trooper_organizations row itself (including ones an
+     * earlier run of this seeder already soft-deleted) rather than from whether a
+     * TrooperAssignment is still active. Using `withTrashed()` here is deliberate: it lets a
+     * re-run finish cleaning up credit the legacy-signup fallback previously handed back
+     * unfiltered (see resolveLegacyOrgIds), by re-including already-corrected troopers in the
+     * credit/achievement passes without re-counting or re-deleting the membership itself.
+     *
      * @param  array{id: int, permission_column: string, identity: string}  $club
      * @return array<string, mixed>|null
      */
@@ -204,35 +292,46 @@ class Fix408 extends Seeder
             return null;
         }
 
-        $assignment = TrooperAssignment::query()
-            ->where(TrooperAssignment::TROOPER_ID, $legacy_trooper->id)
-            ->where(TrooperAssignment::ORGANIZATION_ID, $club['id'])
-            ->where(TrooperAssignment::IS_MEMBER, true)
-            ->whereNull(TrooperAssignment::DELETED_AT)
+        $trooper_org = TrooperOrganization::withTrashed()
+            ->where(TrooperOrganization::TROOPER_ID, $legacy_trooper->id)
+            ->where(TrooperOrganization::ORGANIZATION_ID, $club['id'])
             ->first();
 
-        if ($assignment === null)
+        if ($trooper_org === null)
         {
+            // Nothing lingering for this club — never created.
             return null;
         }
 
-        $trooper_org = TrooperOrganization::query()
-            ->where(TrooperOrganization::TROOPER_ID, $legacy_trooper->id)
-            ->where(TrooperOrganization::ORGANIZATION_ID, $club['id'])
-            ->whereNull(TrooperOrganization::DELETED_AT)
+        $assignment = TrooperAssignment::query()
+            ->where(TrooperAssignment::TROOPER_ID, $legacy_trooper->id)
+            ->where(TrooperAssignment::ORGANIZATION_ID, $club['id'])
+            ->whereNull(TrooperAssignment::DELETED_AT)
             ->first();
 
         return [
             'trooper_id' => $legacy_trooper->id,
             'trooper_name' => $legacy_trooper->name,
             'organization_id' => $club['id'],
-            'membership_status' => $trooper_org?->membership_status ?? MembershipStatus::ACTIVE,
+            'membership_status' => $trooper_org->membership_status,
+            'trooper_organization' => $trooper_org,
+            'already_corrected' => $trooper_org->trashed(),
             'assignment' => $assignment,
         ];
     }
 
-    private function correctAssignment(TrooperAssignment $assignment): void
+    private function correctMembership(TrooperOrganization $trooper_org, ?TrooperAssignment $assignment): void
     {
+        if (!$trooper_org->trashed())
+        {
+            $trooper_org->delete();
+        }
+
+        if ($assignment === null || !$assignment->is_member)
+        {
+            return;
+        }
+
         $assignment->is_member = false;
         $assignment->save();
 
@@ -329,16 +428,20 @@ class Fix408 extends Seeder
             return;
         }
 
-        $this->reresolveCredit($event_trooper, $costume_club_map, $counts, $outstanding_rows);
+        $this->reresolveCredit($event_trooper, $false_root_ids, $all_orgs, $costume_club_map, $counts, $outstanding_rows);
     }
 
     /**
+     * @param  array<int, int>  $false_root_ids
+     * @param  Collection<int, Organization>  $all_orgs
      * @param  Collection<int, array{id: int, costume_club_id: int}>  $costume_club_map
      * @param  array<string, int>  $counts
      * @param  array<int, array<string, mixed>>  $outstanding_rows
      */
     private function reresolveCredit(
         EventTrooper $event_trooper,
+        array $false_root_ids,
+        Collection $all_orgs,
         Collection $costume_club_map,
         array &$counts,
         array &$outstanding_rows,
@@ -354,7 +457,16 @@ class Fix408 extends Seeder
             return;
         }
 
-        $legacy_org_ids = $this->resolveLegacyOrgIds($event_trooper, $costume_club_map);
+        // The legacy signup data can carry the exact same false club the live membership did
+        // (it's the same old tracker, often the same root cause) — never hand that back out.
+        $legacy_org_ids = collect($this->resolveLegacyOrgIds($event_trooper, $costume_club_map))
+            ->reject(function (int $org_id) use ($false_root_ids, $all_orgs) {
+                $node_path = $all_orgs->get($org_id)?->node_path;
+
+                return $node_path !== null && in_array(Organization::rootIdFromPath($node_path), $false_root_ids, true);
+            })
+            ->values()
+            ->all();
 
         if (!empty($legacy_org_ids))
         {
@@ -364,6 +476,11 @@ class Fix408 extends Seeder
 
             return;
         }
+
+        // Unresolvable either way — still remove the false credit rather than leave it in
+        // place just because nothing better was found to replace it with.
+        $event_trooper->costume_organization_ids = [];
+        $event_trooper->saveQuietly();
 
         $counts['skipped_no_eligible_org']++;
         $outstanding_rows[] = [
