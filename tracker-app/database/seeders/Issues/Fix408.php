@@ -16,8 +16,10 @@ use App\Models\Organization;
 use App\Models\TrooperAchievement;
 use App\Models\TrooperAssignment;
 use App\Models\TrooperOrganization;
+use Carbon\Carbon;
 use Database\Seeders\FloridaGarrison\Traits\HasClubMaps;
 use Database\Seeders\FloridaGarrison\Traits\HasSquadMaps;
+use Database\Seeders\Issues\Concerns\ExcludesPrematureCredit;
 use Exception;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
@@ -43,6 +45,7 @@ use RuntimeException;
  */
 class Fix408 extends Seeder
 {
+    use ExcludesPrematureCredit;
     use HasClubMaps;
     use HasSquadMaps;
 
@@ -71,11 +74,12 @@ class Fix408 extends Seeder
             ];
 
             $all_orgs = Organization::all([Organization::ID, Organization::NODE_PATH])->keyBy(Organization::ID);
+            $join_signals = $this->buildJoinSignals($all_orgs);
 
             [$false_root_ids_by_trooper, $ambiguous_memberships] = $this->auditMemberships($counts, $all_orgs);
             $this->auditSquadMemberships($false_root_ids_by_trooper, $counts);
 
-            $outstanding_credit_rows = $this->correctCredit($false_root_ids_by_trooper, $all_orgs, $counts);
+            $outstanding_credit_rows = $this->correctCredit($false_root_ids_by_trooper, $all_orgs, $join_signals, $counts);
             $this->removeFalseAchievements($false_root_ids_by_trooper, $counts);
 
             $this->printSummary($counts);
@@ -335,10 +339,11 @@ class Fix408 extends Seeder
     /**
      * @param  array<int, array<int, int>>  $false_root_ids_by_trooper
      * @param  Collection<int, Organization>  $all_orgs
+     * @param  array<int, array<int, Carbon>>  $join_signals
      * @param  array<string, int>  $counts
      * @return array<int, array<string, mixed>>
      */
-    private function correctCredit(array $false_root_ids_by_trooper, Collection $all_orgs, array &$counts): array
+    private function correctCredit(array $false_root_ids_by_trooper, Collection $all_orgs, array $join_signals, array &$counts): array
     {
         $outstanding_rows = [];
 
@@ -359,6 +364,7 @@ class Fix408 extends Seeder
                 &$counts,
                 $false_root_ids_by_trooper,
                 $all_orgs,
+                $join_signals,
                 $costume_club_map,
             ): void {
                 foreach ($event_troopers as $event_trooper)
@@ -367,6 +373,7 @@ class Fix408 extends Seeder
                         $event_trooper,
                         $false_root_ids_by_trooper[$event_trooper->trooper_id],
                         $all_orgs,
+                        $join_signals,
                         $costume_club_map,
                         $counts,
                         $outstanding_rows,
@@ -380,6 +387,7 @@ class Fix408 extends Seeder
     /**
      * @param  array<int, int>  $false_root_ids
      * @param  Collection<int, object>  $all_orgs
+     * @param  array<int, array<int, Carbon>>  $join_signals
      * @param  Collection<int, array{id: int, costume_club_id: int}>  $costume_club_map
      * @param  array<string, int>  $counts
      * @param  array<int, array<string, mixed>>  $outstanding_rows
@@ -388,6 +396,7 @@ class Fix408 extends Seeder
         EventTrooper $event_trooper,
         array $false_root_ids,
         Collection $all_orgs,
+        array $join_signals,
         Collection $costume_club_map,
         array &$counts,
         array &$outstanding_rows,
@@ -410,7 +419,7 @@ class Fix408 extends Seeder
 
         $counts['credit_rows_scanned']++;
 
-        $this->reresolveCredit($event_trooper, $remaining_ids->all(), $false_root_ids, $all_orgs, $costume_club_map, $counts, $outstanding_rows);
+        $this->reresolveCredit($event_trooper, $remaining_ids->all(), $false_root_ids, $all_orgs, $join_signals, $costume_club_map, $counts, $outstanding_rows);
     }
 
     /**
@@ -418,11 +427,14 @@ class Fix408 extends Seeder
      * own, since a trooper can have a second, real path to a club that happens to share a root
      * with the false membership (e.g. a false root-level Rebel Legion identifier alongside a
      * real Rebel Legion sub-org assignment). Always re-derives live eligibility and merges it in
-     * rather than assuming the leftover is already correct.
+     * rather than assuming the leftover is already correct. Both live and legacy results are
+     * also run through excludePremature() so a club the trooper only joined after this shift
+     * happened never gets credited either (see Fix409).
      *
      * @param  array<int, int>  $remaining_ids
      * @param  array<int, int>  $false_root_ids
      * @param  Collection<int, Organization>  $all_orgs
+     * @param  array<int, array<int, Carbon>>  $join_signals
      * @param  Collection<int, array{id: int, costume_club_id: int}>  $costume_club_map
      * @param  array<string, int>  $counts
      * @param  array<int, array<string, mixed>>  $outstanding_rows
@@ -432,11 +444,20 @@ class Fix408 extends Seeder
         array $remaining_ids,
         array $false_root_ids,
         Collection $all_orgs,
+        array $join_signals,
         Collection $costume_club_map,
         array &$counts,
         array &$outstanding_rows,
     ): void {
+        $shift_date = $event_trooper->event_shift?->shift_starts_at;
+
         $live_org_ids = $event_trooper->getEligibleCreditOrganizations()->pluck('id')->values()->all();
+
+        if ($shift_date !== null)
+        {
+            $live_org_ids = $this->excludePremature($live_org_ids, $event_trooper->trooper_id, $shift_date, $all_orgs, $join_signals);
+        }
+
         $merged_ids = collect($remaining_ids)->merge($live_org_ids)->unique()->values()->all();
 
         if (!empty($merged_ids))
@@ -457,6 +478,11 @@ class Fix408 extends Seeder
             })
             ->values()
             ->all();
+
+        if ($shift_date !== null)
+        {
+            $legacy_org_ids = $this->excludePremature($legacy_org_ids, $event_trooper->trooper_id, $shift_date, $all_orgs, $join_signals);
+        }
 
         if (!empty($legacy_org_ids))
         {

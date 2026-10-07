@@ -10,7 +10,9 @@ use App\Enums\MembershipRole;
 use App\Features\Troopers\Queries\GetTroopersByRoleQuery;
 use App\Mail\Fix407OutstandingCredit;
 use App\Models\EventTrooper;
+use App\Models\Organization;
 use Database\Seeders\FloridaGarrison\Traits\HasClubMaps;
+use Database\Seeders\Issues\Concerns\ExcludesPrematureCredit;
 use Exception;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
@@ -35,6 +37,7 @@ use Illuminate\Support\Facades\Schema;
  */
 class Fix407 extends Seeder
 {
+    use ExcludesPrematureCredit;
     use HasClubMaps;
 
     public function run(MagicBus $bus): void
@@ -49,6 +52,8 @@ class Fix407 extends Seeder
             ];
 
             $club_map = $this->buildClubMap();
+            $all_orgs = Organization::all([Organization::ID, Organization::NODE_PATH])->keyBy(Organization::ID);
+            $join_signals = $this->buildJoinSignals($all_orgs);
 
             EventTrooper::query()
                 ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED->value)
@@ -58,7 +63,7 @@ class Fix407 extends Seeder
                         ->orWhereJsonLength(EventTrooper::COSTUME_ORGANIZATION_IDS, 0);
                 })
                 ->with(['trooper.trooper_costumes.organization_costume', 'trooper.trooper_assignments', 'costume', 'event_shift.event'])
-                ->chunkById(200, function ($event_troopers) use (&$counts, &$outstanding_rows, $club_map): void {
+                ->chunkById(200, function ($event_troopers) use (&$counts, &$outstanding_rows, $club_map, $all_orgs, $join_signals): void {
                     foreach ($event_troopers as $event_trooper)
                     {
                         if ($event_trooper->getEligibleCreditParentOrganizations()->isNotEmpty())
@@ -71,6 +76,20 @@ class Fix407 extends Seeder
 
                         $legacy_signup = $this->findLegacySignup($event_trooper);
                         $legacy_org_ids = $this->resolveLegacyOrgIds($legacy_signup, $club_map);
+
+                        $shift_date = $event_trooper->event_shift?->shift_starts_at;
+                        if ($shift_date !== null)
+                        {
+                            // The legacy signup predates any current membership — never credit a
+                            // club the trooper joined after this shift happened.
+                            $legacy_org_ids = $this->excludePremature(
+                                $legacy_org_ids,
+                                $event_trooper->trooper_id,
+                                $shift_date,
+                                $all_orgs,
+                                $join_signals,
+                            );
+                        }
 
                         if (!empty($legacy_org_ids))
                         {

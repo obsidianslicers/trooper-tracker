@@ -218,6 +218,40 @@ club milestone the trooper actually earned gets created.
 
 ---
 
+## Fix409
+
+**Issue:** `Fix406`/`Fix407` (and `Fix408`'s re-resolution step) backfill credit for old,
+uncredited `ATTENDED` shifts using `EventTrooper::getEligibleCreditOrganizations()` — the
+trooper's *current* club eligibility. That resolver has no concept of when a trooper joined a
+club (by design, for live self-service confirmation — see `docs/TROOP_CREDIT.md`'s "no join-date
+gate" note). For backfilling, that's wrong: a trooper who joined a new club recently gets every
+old uncredited shift backfilled to that club too, since the backfill only checks current
+membership, never membership at the time of the shift.
+
+Confirmed with trooper 644: his Rebel Legion/CFL membership was created 2026-08-02, the same day
+as his first and only legitimate Rebel Legion troop. `Fix406`/`Fix407` had backfilled 16 other
+shifts of his from 2017–2021 — years before he ever joined — to also credit Rebel Legion, because
+those shifts had no costume and handler-type credit falls back to every club he's currently in.
+
+**What it does:** Builds each trooper's earliest real join date per root club, from
+`tt_trooper_organizations`/`tt_trooper_assignments` rows created after the one-time Florida
+Garrison import batch (2026-05-29) — rows from that batch were all created in one go regardless
+of when the trooper actually joined, so they carry no usable date signal and are excluded
+entirely. Scans every `ATTENDED` `EventTrooper` row with credit on it, site-wide, and drops any
+credited club whose join date is after the shift. If something survives, keeps it. If nothing
+does, retries live eligibility and the legacy fallback (both filtered the same way), then clears
+the row and reports it (`Fix409OutstandingCredit`) if still nothing resolves. Also hard-deletes
+any club-scoped `tt_trooper_achievements` row that no longer meets its troop-count threshold once
+the premature credit is gone.
+
+`Fix406`, `Fix407`, and `Fix408` were all amended to apply the same check at the point each one
+writes resolved credit, so a future re-run of any of them can't reproduce this.
+
+**When to run:** Once, after `Fix406`/`Fix407`/`Fix408`. Follow with
+`php artisan tracker:calculate-trooper-achievements`.
+
+---
+
 ## Adding a New Fix
 
 1. Create `database/seeders/Issues/Fix<issue-number>.php` with namespace `Database\Seeders\Issues`.

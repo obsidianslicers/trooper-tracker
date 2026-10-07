@@ -10,6 +10,8 @@ use App\Enums\MembershipRole;
 use App\Features\Troopers\Queries\GetTroopersByRoleQuery;
 use App\Mail\Fix406OutstandingCredit;
 use App\Models\EventTrooper;
+use App\Models\Organization;
+use Database\Seeders\Issues\Concerns\ExcludesPrematureCredit;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -36,6 +38,8 @@ use Illuminate\Support\Facades\Mail;
  */
 class Fix406 extends Seeder
 {
+    use ExcludesPrematureCredit;
+
     public function run(MagicBus $bus): void
     {
         $outstanding_rows = [];
@@ -47,6 +51,9 @@ class Fix406 extends Seeder
                 'resolved_multi_club' => 0,
                 'skipped_no_eligible_org' => 0,
             ];
+
+            $all_orgs = Organization::all([Organization::ID, Organization::NODE_PATH])->keyBy(Organization::ID);
+            $join_signals = $this->buildJoinSignals($all_orgs);
 
             EventTrooper::query()
                 ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED->value)
@@ -62,14 +69,32 @@ class Fix406 extends Seeder
                 // costume_organization_ids inside the loop, which is also the column being
                 // filtered on above — chunk()'s offset-based paging would skip unprocessed
                 // rows as the matching result set shrinks mid-iteration.
-                ->chunkById(200, function ($event_troopers) use (&$counts, &$outstanding_rows): void {
+                ->chunkById(200, function ($event_troopers) use (&$counts, &$outstanding_rows, $all_orgs, $join_signals): void {
                     foreach ($event_troopers as $event_trooper)
                     {
                         $counts['scanned']++;
 
-                        $eligible_parent_orgs = $event_trooper->getEligibleCreditParentOrganizations();
+                        $shift_date = $event_trooper->event_shift?->shift_starts_at;
+                        $eligible_org_ids = $event_trooper->getEligibleCreditOrganizations()
+                            ->pluck('id')
+                            ->values()
+                            ->all();
 
-                        if ($eligible_parent_orgs->isEmpty())
+                        if ($shift_date !== null)
+                        {
+                            // Current eligibility reflects today's membership, not membership at
+                            // the time of the shift — never credit a club the trooper joined
+                            // after this shift happened.
+                            $eligible_org_ids = $this->excludePremature(
+                                $eligible_org_ids,
+                                $event_trooper->trooper_id,
+                                $shift_date,
+                                $all_orgs,
+                                $join_signals,
+                            );
+                        }
+
+                        if (empty($eligible_org_ids))
                         {
                             $counts['skipped_no_eligible_org']++;
                             $outstanding_rows[] = [
@@ -83,15 +108,15 @@ class Fix406 extends Seeder
                             continue;
                         }
 
-                        $eligible_org_ids = $event_trooper->getEligibleCreditOrganizations()
-                            ->pluck('id')
-                            ->values()
-                            ->all();
-
                         $event_trooper->costume_organization_ids = $eligible_org_ids;
                         $event_trooper->saveQuietly();
 
-                        if ($eligible_parent_orgs->count() === 1)
+                        $distinct_parent_count = collect($eligible_org_ids)
+                            ->map(fn (int $id) => Organization::rootIdFromPath($all_orgs->get($id)->node_path))
+                            ->unique()
+                            ->count();
+
+                        if ($distinct_parent_count === 1)
                         {
                             $counts['resolved_single_club']++;
                         }
