@@ -14,82 +14,85 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Restores credit on attended EventTrooper rows left with no credit source at all.
- *
- * Before the admin roster-update controller was fixed (#262), every save cleared both
- * costume_organization_ids and organization_id whenever org-selection data wasn't submitted, and
- * the original import never credited handler-role troopers. event_trooper only audits status, so
- * the lost values can't be read back — they're re-derived by HistoricalCreditResolver instead:
- *
- *   - TT1.0 signup: the legacy signup's own costume club, nothing else.
- *   - TT2.0 signup: the costume's clubs intersected with the trooper's memberships on the shift
- *     date (every such club for a handler / no costume). Never a club joined later.
- *
- * Anything the evidence can't settle is left uncredited and emailed to administrators.
+ * Restores credit on attended rows left with none — wiped by the pre-#262 roster save or never
+ * set by the import for handlers. event_trooper doesn't audit credit, so it's re-derived by
+ * HistoricalCreditResolver; anything it can't settle is reported. See docs/ISSUE_MIGRATIONS.md.
  */
 class Fix406 extends Seeder
 {
     use ReportsToAdministrators;
 
+    private HistoricalCreditResolver $resolver;
+
+    /** @var array<string, int> */
+    private array $counts = [];
+
+    /** @var array<int, array<string, mixed>> */
+    private array $outstanding_rows = [];
+
     public function run(MagicBus $bus): void
     {
-        $outstanding_rows = [];
+        $this->counts = array_fill_keys(
+            ['scanned', 'resolved_tt1', 'resolved_tt2', 'outstanding'],
+            0,
+        );
+        $this->outstanding_rows = [];
 
-        DB::transaction(function () use (&$outstanding_rows): void
+        DB::transaction(function (): void
         {
-            $counts = ['scanned' => 0, 'resolved_tt1' => 0, 'resolved_tt2' => 0, 'outstanding' => 0];
+            $this->resolver = HistoricalCreditResolver::load();
+            $this->warnIfLegacyUnavailable();
 
-            $resolver = HistoricalCreditResolver::load();
-            $this->warnIfLegacyUnavailable($resolver);
-
-            EventTrooper::query()
-                ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED->value)
-                ->whereNull(EventTrooper::ORGANIZATION_ID)
-                ->where(function ($query): void
-                {
-                    // whereJsonLength, not orWhere('[]') — MySQL never does JSON-aware equality
-                    // against a bound parameter, so the old orWhere('[]') matched nothing
-                    $query->whereNull(EventTrooper::COSTUME_ORGANIZATION_IDS)
-                        ->orWhereJsonLength(EventTrooper::COSTUME_ORGANIZATION_IDS, 0);
-                })
-                ->with(['trooper', 'costume', 'event_shift.event'])
-                // chunkById (not chunk): resolved rows stop matching the filter mid-iteration
-                ->chunkById(200, function ($event_troopers) use (&$counts, &$outstanding_rows, $resolver): void
-                {
-                    foreach ($event_troopers as $event_trooper)
-                    {
-                        $this->restoreRow($event_trooper, $resolver, $counts, $outstanding_rows);
-                    }
-                });
-
-            $this->command?->info('Fix406 complete:');
-            $this->command?->info("  Scanned (no credit):              {$counts['scanned']}");
-            $this->command?->info("  Restored from TT1.0 signup:       {$counts['resolved_tt1']}");
-            $this->command?->info("  Restored from TT2.0 history:      {$counts['resolved_tt2']}");
-            $this->command?->info("  Outstanding (admin review):       {$counts['outstanding']}");
+            $this->restoreUncreditedRows();
+            $this->printSummary();
         });
 
-        $this->emailAdministrators($bus, Fix406OutstandingCredit::class, $outstanding_rows);
+        $this->emailAdministrators($bus, Fix406OutstandingCredit::class, $this->outstanding_rows);
     }
 
-    /**
-     * @param  array<string, int>  $counts
-     * @param  array<int, array<string, mixed>>  $outstanding_rows
-     */
-    private function restoreRow(
-        EventTrooper $event_trooper,
-        HistoricalCreditResolver $resolver,
-        array &$counts,
-        array &$outstanding_rows,
-    ): void {
-        $counts['scanned']++;
+    private function printSummary(): void
+    {
+        $this->printCounts('Fix406 complete:', [
+            'scanned' => 'Scanned (no credit)',
+            'resolved_tt1' => 'Restored from TT1.0 signup',
+            'resolved_tt2' => 'Restored from TT2.0 history',
+            'outstanding' => 'Outstanding (admin review)',
+        ], $this->counts);
+    }
 
-        $resolution = $resolver->expectedCredit($event_trooper);
+    private function restoreUncreditedRows(): void
+    {
+        EventTrooper::query()
+            ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED->value)
+            ->whereNull(EventTrooper::ORGANIZATION_ID)
+            ->where(function ($query): void
+            {
+                // whereJsonLength, not orWhere('[]') — MySQL never does JSON-aware equality
+                // against a bound parameter, so the old orWhere('[]') matched nothing
+                $query->whereNull(EventTrooper::COSTUME_ORGANIZATION_IDS)
+                    ->orWhereJsonLength(EventTrooper::COSTUME_ORGANIZATION_IDS, 0);
+            })
+            ->with(['trooper', 'costume', 'event_shift.event'])
+            // chunkById (not chunk): resolved rows stop matching the filter mid-iteration
+            ->chunkById(200, function ($event_troopers): void
+            {
+                foreach ($event_troopers as $event_trooper)
+                {
+                    $this->restoreRow($event_trooper);
+                }
+            });
+    }
+
+    private function restoreRow(EventTrooper $event_trooper): void
+    {
+        $this->counts['scanned']++;
+
+        $resolution = $this->resolver->expectedCredit($event_trooper);
 
         if (!$resolution->resolved)
         {
-            $counts['outstanding']++;
-            $outstanding_rows[] = $this->reportRow($event_trooper, $resolution->reason);
+            $this->counts['outstanding']++;
+            $this->outstanding_rows[] = $this->reportRow($event_trooper, $resolution->reason);
 
             return;
         }
@@ -97,14 +100,15 @@ class Fix406 extends Seeder
         $event_trooper->costume_organization_ids = $resolution->org_ids;
         $event_trooper->saveQuietly();
 
-        $counts[$resolver->isTt1Signup($event_trooper) ? 'resolved_tt1' : 'resolved_tt2']++;
+        $origin = $this->resolver->isTt1Signup($event_trooper) ? 'resolved_tt1' : 'resolved_tt2';
+        $this->counts[$origin]++;
     }
 
-    private function warnIfLegacyUnavailable(HistoricalCreditResolver $resolver): void
+    private function warnIfLegacyUnavailable(): void
     {
-        if (!$resolver->legacy()->isAvailable())
+        if (!$this->resolver->legacy()->isAvailable())
         {
-            $this->command?->warn('Fix406: legacy TT1.0 tables not found — every row is treated as a TT2.0 signup.');
+            $this->command?->warn('Fix406: no legacy TT1.0 tables — treating every row as TT2.0.');
         }
     }
 }

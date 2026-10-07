@@ -24,22 +24,57 @@ use Illuminate\Support\Facades\Schema;
  */
 trait SeedsLegacyTables
 {
+    private const array CLUB_NAMES = [
+        '501st Legion',
+        'Rebel Legion',
+        'Mandalorian Mercs',
+        'Droid Builders',
+        'Saber Guild',
+        'Dark Empire',
+    ];
+
     /** @var array<string, Organization> */
     protected array $clubs = [];
 
     protected function seedLegacyWorld(): void
     {
-        $this->createLegacyTables();
+        $this->createLegacyTrooperTable();
+        $this->createLegacyCostumeTable();
+        $this->createLegacyEventTable();
+        $this->createLegacySignupTable();
 
-        foreach (['501st Legion', 'Rebel Legion', 'Mandalorian Mercs', 'Droid Builders', 'Saber Guild', 'Dark Empire'] as $name)
+        foreach (self::CLUB_NAMES as $name)
         {
-            $this->clubs[$name] = Organization::factory()->asOrganization()->withName($name)->create();
+            $this->clubs[$name] = Organization::factory()
+                ->asOrganization()
+                ->withName($name)
+                ->create();
         }
+    }
+
+    /** @param  array<int, string>  $club_names */
+    protected function assertCredit(array $club_names, EventTrooper $event_trooper): void
+    {
+        $this->assertEqualsCanonicalizing(
+            $this->clubIds(...$club_names),
+            $event_trooper->refresh()->costume_organization_ids,
+        );
     }
 
     protected function club(string $name): Organization
     {
         return $this->clubs[$name];
+    }
+
+    protected function clubId(string $name): int
+    {
+        return $this->clubs[$name]->id;
+    }
+
+    /** @return array<int, int> */
+    protected function clubIds(string ...$names): array
+    {
+        return array_map(fn (string $name) => $this->clubId($name), $names);
     }
 
     protected function regionOf(string $club_name, ?string $region_name = null): Organization
@@ -51,7 +86,7 @@ trait SeedsLegacyTables
             ->create();
     }
 
-    protected function createLegacyTables(): void
+    protected function createLegacyTrooperTable(): void
     {
         Schema::create('troopers', function (Blueprint $table): void
         {
@@ -75,14 +110,21 @@ trait SeedsLegacyTables
                 $table->integer("esquad{$squad}")->default(0);
             }
         });
+    }
 
+    protected function createLegacyCostumeTable(): void
+    {
         Schema::create('costumes', function (Blueprint $table): void
         {
             $table->increments('id');
             $table->string('costume');
             $table->integer('club')->nullable();
         });
+    }
 
+    /** Every column EventSeeder::overlayEvent() reads, nullable or defaulted. */
+    protected function createLegacyEventTable(): void
+    {
         Schema::create('events', function (Blueprint $table): void
         {
             $table->unsignedBigInteger('id')->primary();
@@ -95,28 +137,33 @@ trait SeedsLegacyTables
             $table->boolean('closed')->default(true);
             $table->boolean('limitedEvent')->default(false);
             $table->boolean('allowTentative')->default(false);
-
-            foreach (['limitRebels', 'limit501st', 'limitMando', 'limitDroid', 'limitOther', 'limitSG', 'limitDE', 'limitTotalTroopers', 'limitHandlers'] as $column)
-            {
-                $table->integer($column)->default(500);
-            }
-
-            foreach (['venue', 'website', 'requestedCharacter', 'amenities', 'referred', 'location', 'charityName', 'charityNote'] as $column)
-            {
-                $table->string($column)->nullable();
-            }
-
             $table->text('comments')->default('');
-
-            foreach (['numberOfAttend', 'requestedNumber', 'secureChanging', 'blasters', 'lightsabers', 'parking', 'mobility', 'charityDirectFunds', 'charityIndirectFunds', 'charityAddHours', 'thread_id', 'post_id'] as $column)
-            {
-                $table->integer($column)->nullable();
-            }
-
             $table->decimal('latitude', 10, 7)->nullable();
             $table->decimal('longitude', 10, 7)->nullable();
-        });
 
+            $this->addLegacyEventDetailColumns($table);
+        });
+    }
+
+    private function addLegacyEventDetailColumns(Blueprint $table): void
+    {
+        $this->addColumns($table, 'integer', [
+            'limitRebels', 'limit501st', 'limitMando', 'limitDroid', 'limitOther', 'limitSG',
+            'limitDE', 'limitTotalTroopers', 'limitHandlers',
+        ], default: 500);
+        $this->addColumns($table, 'string', [
+            'venue', 'website', 'requestedCharacter', 'amenities', 'referred', 'location',
+            'charityName', 'charityNote',
+        ]);
+        $this->addColumns($table, 'integer', [
+            'numberOfAttend', 'requestedNumber', 'secureChanging', 'blasters', 'lightsabers',
+            'parking', 'mobility', 'charityDirectFunds', 'charityIndirectFunds',
+            'charityAddHours', 'thread_id', 'post_id',
+        ]);
+    }
+
+    protected function createLegacySignupTable(): void
+    {
         Schema::create('event_sign_up', function (Blueprint $table): void
         {
             $table->increments('id');
@@ -131,7 +178,29 @@ trait SeedsLegacyTables
         });
     }
 
-    /** @param  array<string, mixed>  $attributes  legacy columns, e.g. ['p501' => 1, 'tkid' => 'TK1'] */
+    /** @param  array<int, string>  $columns  nullable when no default is given */
+    private function addColumns(
+        Blueprint $table,
+        string $type,
+        array $columns,
+        ?int $default = null,
+    ): void {
+        foreach ($columns as $column)
+        {
+            $definition = $table->{$type}($column);
+
+            if ($default === null)
+            {
+                $definition->nullable();
+            }
+            else
+            {
+                $definition->default($default);
+            }
+        }
+    }
+
+    /** @param  array<string, mixed>  $attributes  legacy columns, e.g. ['p501' => 1] */
     protected function legacyTrooper(Trooper $trooper, array $attributes = []): void
     {
         DB::table('troopers')->insert(array_merge([
@@ -159,8 +228,12 @@ trait SeedsLegacyTables
      * Records a TT1.0 signup for the shift. The legacy event row shares the tt shift's id, the
      * same 1:1 mapping the import preserved.
      */
-    protected function legacySignup(EventShift $shift, Trooper $trooper, int $costume_id, ?int $legacy_shift_id = null): void
-    {
+    protected function legacySignup(
+        EventShift $shift,
+        Trooper $trooper,
+        int $costume_id,
+        ?int $legacy_shift_id = null,
+    ): void {
         if ($legacy_shift_id === null)
         {
             $legacy_shift_id = $shift->id;
@@ -187,8 +260,11 @@ trait SeedsLegacyTables
     }
 
     /** @param  array<string, mixed>  $attributes */
-    protected function attended(Trooper $trooper, EventShift $shift, array $attributes = []): EventTrooper
-    {
+    protected function attended(
+        Trooper $trooper,
+        EventShift $shift,
+        array $attributes = [],
+    ): EventTrooper {
         return EventTrooper::factory()
             ->forEventShift($shift)
             ->forTrooper($trooper)
@@ -198,6 +274,37 @@ trait SeedsLegacyTables
                 EventTrooper::COSTUME_ORGANIZATION_IDS => null,
                 EventTrooper::ORGANIZATION_ID => null,
             ], $attributes));
+    }
+
+    /** @param  array<int, int>|null  $org_ids */
+    protected function attendedWithCredit(
+        Trooper $trooper,
+        string $starts_at,
+        ?array $org_ids,
+    ): EventTrooper {
+        return $this->attended($trooper, $this->shiftAt($starts_at), [
+            EventTrooper::COSTUME_ORGANIZATION_IDS => $org_ids,
+        ]);
+    }
+
+    /**
+     * An attended row backed by a TT1.0 signup in the given legacy costume.
+     *
+     * @param  array<int, int>|null  $org_ids
+     */
+    protected function tt1Row(
+        Trooper $trooper,
+        string $starts_at,
+        string $costume,
+        ?int $club,
+        ?array $org_ids = null,
+    ): EventTrooper {
+        $shift = $this->shiftAt($starts_at);
+        $this->legacySignup($shift, $trooper, $this->legacyCostume($costume, $club));
+
+        return $this->attended($trooper, $shift, [
+            EventTrooper::COSTUME_ORGANIZATION_IDS => $org_ids,
+        ]);
     }
 
     protected function membershipSince(
@@ -219,8 +326,11 @@ trait SeedsLegacyTables
             ]);
     }
 
-    protected function memberAssignmentSince(Trooper $trooper, Organization $organization, string $created_at): TrooperAssignment
-    {
+    protected function memberAssignmentSince(
+        Trooper $trooper,
+        Organization $organization,
+        string $created_at,
+    ): TrooperAssignment {
         return TrooperAssignment::factory()
             ->forTrooper($trooper)
             ->forOrganization($organization)

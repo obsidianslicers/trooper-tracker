@@ -23,6 +23,8 @@ class Fix409Test extends TestCase
 
     private const string IMPORTED_AT = '2026-05-29 08:34:05';
 
+    private const string TT1_SHIFT_AT = '2018-06-01 10:00:00';
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -35,62 +37,53 @@ class Fix409Test extends TestCase
     {
         // trooper 644: old shifts back-filled to a club joined years later
         $trooper = $this->laterRebelJoiner();
-        $shift = $this->shiftAt('2018-06-01 10:00:00');
-        $this->legacySignup($shift, $trooper, $this->legacyCostume('Handler', 0));
-        $event_trooper = $this->attended($trooper, $shift, [
-            EventTrooper::COSTUME_ORGANIZATION_IDS => [$this->club('501st Legion')->id, $this->club('Rebel Legion')->id],
-        ]);
+        $both = $this->clubIds('501st Legion', 'Rebel Legion');
+        $event_trooper = $this->tt1Row($trooper, self::TT1_SHIFT_AT, 'Handler', 0, $both);
 
-        $this->runFix();
+        $subject = new Fix409;
+        $subject->run(app(MagicBus::class));
 
-        $this->assertSame([$this->club('501st Legion')->id], $event_trooper->refresh()->costume_organization_ids);
+        $this->assertCredit(['501st Legion'], $event_trooper);
     }
 
     public function test_re_resolves_a_tt1_row_whose_only_credit_was_impossible(): void
     {
         $trooper = $this->laterRebelJoiner();
-        $shift = $this->shiftAt('2018-06-01 10:00:00');
-        $this->legacySignup($shift, $trooper, $this->legacyCostume('Handler', 0));
-        $event_trooper = $this->attended($trooper, $shift, [
-            EventTrooper::COSTUME_ORGANIZATION_IDS => [$this->club('Rebel Legion')->id],
-        ]);
+        $rebel = $this->clubIds('Rebel Legion');
+        $event_trooper = $this->tt1Row($trooper, self::TT1_SHIFT_AT, 'Handler', 0, $rebel);
 
-        $this->runFix();
+        $subject = new Fix409;
+        $subject->run(app(MagicBus::class));
 
-        $this->assertSame([$this->club('501st Legion')->id], $event_trooper->refresh()->costume_organization_ids);
+        $this->assertCredit(['501st Legion'], $event_trooper);
     }
 
     public function test_removes_tt2_credit_for_a_club_joined_after_the_shift(): void
     {
         $trooper = $this->laterRebelJoiner();
-        $before = $this->attended($trooper, $this->shiftAt('2026-07-01 10:00:00'), [
-            EventTrooper::COSTUME_ORGANIZATION_IDS => [$this->club('501st Legion')->id, $this->club('Rebel Legion')->id],
-        ]);
-        $after = $this->attended($trooper, $this->shiftAt('2026-09-01 10:00:00'), [
-            EventTrooper::COSTUME_ORGANIZATION_IDS => [$this->club('501st Legion')->id, $this->club('Rebel Legion')->id],
-        ]);
+        $both = $this->clubIds('501st Legion', 'Rebel Legion');
+        $before = $this->attendedWithCredit($trooper, '2026-07-01 10:00:00', $both);
+        $after = $this->attendedWithCredit($trooper, '2026-09-01 10:00:00', $both);
 
-        $this->runFix();
+        $subject = new Fix409;
+        $subject->run(app(MagicBus::class));
 
-        $this->assertSame([$this->club('501st Legion')->id], $before->refresh()->costume_organization_ids);
-        $this->assertEqualsCanonicalizing(
-            [$this->club('501st Legion')->id, $this->club('Rebel Legion')->id],
-            $after->refresh()->costume_organization_ids,
-        );
+        $this->assertCredit(['501st Legion'], $before);
+        $this->assertCredit(['501st Legion', 'Rebel Legion'], $after);
     }
 
     public function test_keeps_and_reports_credit_with_no_membership_evidence(): void
     {
         Trooper::factory()->asAdministrator()->create();
         $trooper = $this->laterRebelJoiner();
-        $event_trooper = $this->attended($trooper, $this->shiftAt('2026-07-01 10:00:00'), [
-            EventTrooper::COSTUME_ORGANIZATION_IDS => [$this->club('Saber Guild')->id],
-        ]);
+        $saber_guild = $this->clubIds('Saber Guild');
+        $event_trooper = $this->attendedWithCredit($trooper, '2026-07-01 10:00:00', $saber_guild);
 
-        $this->runFix();
+        $subject = new Fix409;
+        $subject->run(app(MagicBus::class));
 
-        $this->assertSame([$this->club('Saber Guild')->id], $event_trooper->refresh()->costume_organization_ids);
-        Mail::assertQueued(Fix409OutstandingCredit::class, function (Fix409OutstandingCredit $mail): bool
+        $this->assertCredit(['Saber Guild'], $event_trooper);
+        Mail::assertQueued(Fix409OutstandingCredit::class, function ($mail): bool
         {
             return str_contains($mail->render(), 'Saber Guild');
         });
@@ -100,47 +93,55 @@ class Fix409Test extends TestCase
     {
         Trooper::factory()->asAdministrator()->create();
         $trooper = $this->laterRebelJoiner();
-        $event_trooper = $this->attended($trooper, $this->shiftAt('2026-07-01 10:00:00'), [
-            EventTrooper::ORGANIZATION_ID => $this->club('Rebel Legion')->id,
-        ]);
+        $event_trooper = $this->organizationIdRow($trooper, 'Rebel Legion');
 
-        $this->runFix();
+        $subject = new Fix409;
+        $subject->run(app(MagicBus::class));
 
-        $this->assertSame($this->club('Rebel Legion')->id, $event_trooper->refresh()->organization_id);
+        $event_trooper->refresh();
+        $this->assertSame($this->clubId('Rebel Legion'), $event_trooper->organization_id);
         Mail::assertQueued(Fix409OutstandingCredit::class);
     }
 
     public function test_removes_club_achievements_no_longer_backed_by_credit(): void
     {
         $trooper = $this->laterRebelJoiner();
-        $shift = $this->shiftAt('2018-06-01 10:00:00');
-        $this->legacySignup($shift, $trooper, $this->legacyCostume('Handler', 0));
-        $this->attended($trooper, $shift, [
-            EventTrooper::COSTUME_ORGANIZATION_IDS => [$this->club('501st Legion')->id, $this->club('Rebel Legion')->id],
-        ]);
-        $kept = TrooperAchievement::factory()->forTrooper($trooper)->forOrganization($this->club('501st Legion'))
-            ->withType(AchievementType::FIRST_TROOP)->create();
-        $removed = TrooperAchievement::factory()->forTrooper($trooper)->forOrganization($this->club('Rebel Legion'))
-            ->withType(AchievementType::FIRST_TROOP)->create();
+        $both = $this->clubIds('501st Legion', 'Rebel Legion');
+        $this->tt1Row($trooper, self::TT1_SHIFT_AT, 'Handler', 0, $both);
+        $kept = $this->firstTroopMilestone($trooper, '501st Legion');
+        $removed = $this->firstTroopMilestone($trooper, 'Rebel Legion');
 
-        $this->runFix();
+        $subject = new Fix409;
+        $subject->run(app(MagicBus::class));
 
         $this->assertNotNull(TrooperAchievement::find($kept->id));
         $this->assertNull(TrooperAchievement::withTrashed()->find($removed->id));
     }
 
+    public function test_keeps_a_milestone_backed_only_by_organization_id_credit(): void
+    {
+        $trooper = $this->laterRebelJoiner();
+        $this->organizationIdRow($trooper, '501st Legion');
+        $milestone = $this->firstTroopMilestone($trooper, '501st Legion');
+
+        $subject = new Fix409;
+        $subject->run(app(MagicBus::class));
+
+        $this->assertNotNull(TrooperAchievement::find($milestone->id));
+    }
+
     public function test_rerun_makes_no_further_changes(): void
     {
         $trooper = $this->laterRebelJoiner();
-        $event_trooper = $this->attended($trooper, $this->shiftAt('2026-07-01 10:00:00'), [
-            EventTrooper::COSTUME_ORGANIZATION_IDS => [$this->club('501st Legion')->id, $this->club('Rebel Legion')->id],
-        ]);
+        $both = $this->clubIds('501st Legion', 'Rebel Legion');
+        $event_trooper = $this->attendedWithCredit($trooper, '2026-07-01 10:00:00', $both);
 
-        $this->runFix();
+        $subject = new Fix409;
+        $subject->run(app(MagicBus::class));
         $first_updated_at = $event_trooper->refresh()->updated_at;
 
         $this->travel(1)->hours();
-        $this->runFix();
+        $subject->run(app(MagicBus::class));
 
         $this->assertEquals($first_updated_at, $event_trooper->refresh()->updated_at);
     }
@@ -156,8 +157,19 @@ class Fix409Test extends TestCase
         return $trooper;
     }
 
-    private function runFix(): void
+    private function organizationIdRow(Trooper $trooper, string $club_name): EventTrooper
     {
-        (new Fix409)->run(app(MagicBus::class));
+        return $this->attended($trooper, $this->shiftAt('2026-07-01 10:00:00'), [
+            EventTrooper::ORGANIZATION_ID => $this->clubId($club_name),
+        ]);
+    }
+
+    private function firstTroopMilestone(Trooper $trooper, string $club_name): TrooperAchievement
+    {
+        return TrooperAchievement::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($this->club($club_name))
+            ->withType(AchievementType::FIRST_TROOP)
+            ->create();
     }
 }

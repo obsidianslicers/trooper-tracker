@@ -11,14 +11,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Reads club credit for TT1.0 signups straight from the legacy (pre-2.0) tables.
- *
- * A TT1.0 signup's credit comes only from its own record: event_sign_up.costume →
- * costumes.club. Handler, N/A and Command Staff were per-club costumes in TT1.0, so nearly every
- * signup names a club. Nothing else (TT2.0 membership, join dates, the pX permission flags) is
- * consulted — when the costume's club can't be mapped, the answer is "unknown", not a guess.
- *
- * Shared by EventSeeder (the original import) and the Issues fix seeders so both always agree.
+ * Reads a TT1.0 signup's club credit from its own legacy record only (event_sign_up.costume →
+ * costumes.club) — never membership or the pX flags; unmappable clubs are "unknown", not guessed.
+ * Shared by EventSeeder and the Issues fixes so the import and the repair always agree.
  */
 class LegacySignupCreditResolver
 {
@@ -86,21 +81,32 @@ class LegacySignupCreditResolver
             return LegacyCredit::missing();
         }
 
-        $costume_ids = array_unique([$this->signups[$key], ...($this->extra_signup_costumes[$key] ?? [])]);
-        $credits = array_map(fn (int $costume_id) => $this->creditForCostume($costume_id), $costume_ids);
+        $costume_ids = array_values(array_unique([
+            $this->signups[$key],
+            ...($this->extra_signup_costumes[$key] ?? []),
+        ]));
+        $credits = array_map(fn (int $id) => $this->creditForCostume($id), $costume_ids);
 
         $distinct = collect($credits)
-            ->map(fn (LegacyCredit $credit) => $credit->status.':'.implode(',', $this->sorted($credit->org_ids)))
+            ->map(fn (LegacyCredit $credit) => $this->fingerprint($credit))
             ->unique();
 
-        if ($distinct->count() > 1)
-        {
-            $names = collect($costume_ids)->map(fn (int $id) => $this->costumes[$id]['name'] ?? "#{$id}")->implode('", "');
+        return $distinct->count() > 1 ? $this->disagreement($costume_ids) : $credits[0];
+    }
 
-            return LegacyCredit::ambiguous("Legacy signups for this shift disagree on the club (\"{$names}\").");
-        }
+    private function fingerprint(LegacyCredit $credit): string
+    {
+        return $credit->status.':'.implode(',', $this->sorted($credit->org_ids));
+    }
 
-        return $credits[0];
+    /** @param  array<int, int>  $costume_ids */
+    private function disagreement(array $costume_ids): LegacyCredit
+    {
+        $names = collect($costume_ids)
+            ->map(fn (int $id) => $this->costumes[$id]['name'] ?? "#{$id}")
+            ->implode('", "');
+
+        return LegacyCredit::ambiguous("Legacy signups for this shift disagree (\"{$names}\").");
     }
 
     /**
@@ -116,26 +122,34 @@ class LegacySignupCreditResolver
             return LegacyCredit::unmapped('Legacy signup has no costume on record.');
         }
 
+        $name = $costume['name'];
+
         if ($costume['club'] === null)
         {
-            return LegacyCredit::unmapped("Legacy costume \"{$costume['name']}\" has no club on record.");
+            return LegacyCredit::unmapped("Legacy costume \"{$name}\" has no club on record.");
         }
 
-        $org_ids = collect($this->expandDualClubIds([$costume['club']]))
-            ->map(fn (int $club) => $this->club_org_ids[$club] ?? null)
-            ->filter()
-            ->unique()
-            ->values()
-            ->all();
+        $org_ids = $this->orgIdsForClub($costume['club']);
 
         if (empty($org_ids))
         {
             return LegacyCredit::unmapped(
-                "Legacy costume \"{$costume['name']}\" (club {$costume['club']}) doesn't map to a club."
+                "Legacy costume \"{$name}\" (club {$costume['club']}) doesn't map to a club."
             );
         }
 
-        return LegacyCredit::resolved($org_ids, "Legacy costume \"{$costume['name']}\".");
+        return LegacyCredit::resolved($org_ids, "Legacy costume \"{$name}\".");
+    }
+
+    /** @return array<int, int> */
+    private function orgIdsForClub(int $club): array
+    {
+        return collect($this->expandDualClubIds([$club]))
+            ->map(fn (int $club_id) => $this->club_org_ids[$club_id] ?? null)
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
     }
 
     /**
@@ -207,23 +221,9 @@ class LegacySignupCreditResolver
      */
     private function buildLegacyShiftMap(): array
     {
-        $events = DB::table('events')->orderBy('id')->orderBy('link')->get(['id', 'link', 'dateStart']);
-
-        $groups = [];
-
-        foreach ($events->filter(fn ($event) => (int) $event->link === 0) as $event)
-        {
-            $groups[(int) $event->id] = [$event];
-        }
-
-        foreach ($events->filter(fn ($event) => (int) $event->link > 0) as $event)
-        {
-            $groups[(int) $event->link][] = $event;
-        }
-
         $map = [];
 
-        foreach ($groups as $shifts)
+        foreach ($this->groupLegacyEvents() as $shifts)
         {
             $first_by_start = [];
 
@@ -236,6 +236,28 @@ class LegacySignupCreditResolver
         }
 
         return $map;
+    }
+
+    /** @return array<int, array<int, object>> main legacy event id => its shifts, main first */
+    private function groupLegacyEvents(): array
+    {
+        $events = DB::table('events')
+            ->orderBy('id')
+            ->orderBy('link')
+            ->get(['id', 'link', 'dateStart']);
+        $groups = [];
+
+        foreach ($events->filter(fn ($event) => (int) $event->link === 0) as $event)
+        {
+            $groups[(int) $event->id] = [$event];
+        }
+
+        foreach ($events->filter(fn ($event) => (int) $event->link > 0) as $event)
+        {
+            $groups[(int) $event->link][] = $event;
+        }
+
+        return $groups;
     }
 
     /** @param  array<int, int>  $shift_map */
@@ -263,27 +285,37 @@ class LegacySignupCreditResolver
         }
     }
 
-    /** @param  array<string, array{id: int, identity: string, permission_column: string}>  $club_map */
+    /**
+     * @param  array<string, array{id: int, identity: string, permission_column: string}>  $club_map
+     */
     private function loadLaunchMemberships(array $club_map): void
     {
         foreach (DB::table('troopers')->cursor() as $trooper)
         {
             foreach ($club_map as $club)
             {
-                if ((int) ($trooper->{$club['permission_column']} ?? 0) >= 1)
-                {
-                    $this->launch_member_org_ids[(int) $trooper->id][] = $club['id'];
-
-                    continue;
-                }
-
-                $identifier = $club['identity'] !== '' ? ($trooper->{$club['identity']} ?? null) : null;
-
-                if ($identifier !== null && $identifier !== '' && $identifier !== '0')
-                {
-                    $this->stray_identifiers[(int) $trooper->id][$club['id']] = (string) $identifier;
-                }
+                $this->recordLaunchMembership($trooper, $club);
             }
+        }
+    }
+
+    /** @param  array{id: int, identity: string, permission_column: string}  $club */
+    private function recordLaunchMembership(object $trooper, array $club): void
+    {
+        $trooper_id = (int) $trooper->id;
+
+        if ((int) ($trooper->{$club['permission_column']} ?? 0) >= 1)
+        {
+            $this->launch_member_org_ids[$trooper_id][] = $club['id'];
+
+            return;
+        }
+
+        $identifier = $club['identity'] !== '' ? ($trooper->{$club['identity']} ?? null) : null;
+
+        if ($identifier !== null && $identifier !== '' && $identifier !== '0')
+        {
+            $this->stray_identifiers[$trooper_id][$club['id']] = (string) $identifier;
         }
     }
 

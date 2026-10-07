@@ -35,47 +35,59 @@ class LegacyImportCreditTest extends TestCase
         $this->createFloridaGarrisonHierarchy();
     }
 
-    public function test_trooper_organization_seeder_ignores_identifiers_without_the_permission_flag(): void
+    public function test_trooper_organization_seeder_ignores_identifier_without_permission(): void
     {
         $trooper = Trooper::factory()->asActive()->create();
-        $this->legacyTrooper($trooper, ['p501' => 1, 'tkid' => 'TK1001', 'pRebel' => 0, 'rebelforum' => 'stray']);
+        $this->legacyTrooper($trooper, [
+            'p501' => 1,
+            'tkid' => 'TK1001',
+            'pRebel' => 0,
+            'rebelforum' => 'stray',
+        ]);
 
-        (new TrooperOrganizationSeeder)->run();
+        $subject = new TrooperOrganizationSeeder;
+        $subject->run();
 
-        $this->assertTrue(TrooperOrganization::query()
-            ->where(TrooperOrganization::TROOPER_ID, $trooper->id)
-            ->where(TrooperOrganization::ORGANIZATION_ID, $this->club('501st Legion')->id)
-            ->exists());
-        $this->assertFalse(TrooperOrganization::withTrashed()
-            ->where(TrooperOrganization::TROOPER_ID, $trooper->id)
-            ->where(TrooperOrganization::ORGANIZATION_ID, $this->club('Rebel Legion')->id)
-            ->exists());
+        $this->assertTrue($this->hasMembership($trooper, '501st Legion'));
+        $this->assertFalse($this->hasMembership($trooper, 'Rebel Legion'));
     }
 
     public function test_trooper_organization_seeder_ignores_a_squad_without_p501(): void
     {
         $trooper = Trooper::factory()->asActive()->create();
-        $this->legacyTrooper($trooper, ['p501' => 0, 'squad' => 1, 'pRebel' => 1, 'rebelforum' => 'RL1']);
+        $this->legacyTrooper($trooper, [
+            'p501' => 0,
+            'squad' => 1,
+            'pRebel' => 1,
+            'rebelforum' => 'RL1',
+        ]);
+        $squad_ids = Organization::where(Organization::NAME, 'Everglades Squad')
+            ->pluck(Organization::ID);
 
-        (new TrooperOrganizationSeeder)->run();
+        $subject = new TrooperOrganizationSeeder;
+        $subject->run();
 
         $this->assertFalse(TrooperAssignment::query()
             ->where(TrooperAssignment::TROOPER_ID, $trooper->id)
             ->where(TrooperAssignment::IS_MEMBER, true)
-            ->whereIn(TrooperAssignment::ORGANIZATION_ID, Organization::where(Organization::NAME, 'Everglades Squad')->pluck(Organization::ID))
+            ->whereIn(TrooperAssignment::ORGANIZATION_ID, $squad_ids)
             ->exists());
     }
 
     public function test_event_seeder_credits_a_handler_from_the_legacy_costume_club(): void
     {
-        $handler = Trooper::factory()->asActive()->create([Trooper::MEMBERSHIP_ROLE => MembershipRole::HANDLER]);
+        $handler = Trooper::factory()->asActive()->create([
+            Trooper::MEMBERSHIP_ROLE => MembershipRole::HANDLER,
+        ]);
         $this->legacyTrooper($handler, ['p501' => 1, 'pRebel' => 1]);
         $this->legacyEvent(5001, Carbon::parse('2019-03-02 10:00:00'));
         $this->legacyRawSignup(5001, $handler, $this->legacyCostume('Handler', 1));
 
-        $this->runEventSeeder();
+        // db:seed unguards models, which is what lets the import keep legacy ids
+        $subject = new EventSeeder;
+        Model::unguarded(fn () => $subject->run());
 
-        $this->assertSame([$this->club('Rebel Legion')->id], $this->importedCredit(5001, $handler));
+        $this->assertSame($this->clubIds('Rebel Legion'), $this->importedCredit(5001, $handler));
     }
 
     public function test_event_seeder_leaves_an_unmapped_legacy_costume_uncredited(): void
@@ -85,9 +97,18 @@ class LegacyImportCreditTest extends TestCase
         $this->legacyEvent(5002, Carbon::parse('2019-03-09 10:00:00'));
         $this->legacyRawSignup(5002, $trooper, $this->legacyCostume('Other', 4));
 
-        $this->runEventSeeder();
+        $subject = new EventSeeder;
+        Model::unguarded(fn () => $subject->run());
 
         $this->assertNull($this->importedCredit(5002, $trooper));
+    }
+
+    private function hasMembership(Trooper $trooper, string $club_name): bool
+    {
+        return TrooperOrganization::withTrashed()
+            ->where(TrooperOrganization::TROOPER_ID, $trooper->id)
+            ->where(TrooperOrganization::ORGANIZATION_ID, $this->clubId($club_name))
+            ->exists();
     }
 
     private function createFloridaGarrisonHierarchy(): void
@@ -102,16 +123,18 @@ class LegacyImportCreditTest extends TestCase
 
         $garrison = $this->regionOf('501st Legion', 'Florida Garrison');
 
-        foreach (['Everglades Squad', 'Makaze Squad', 'Parjai Squad', 'Squad 7', 'Tampa Bay Squad'] as $squad)
+        $squads = [
+            'Everglades Squad',
+            'Makaze Squad',
+            'Parjai Squad',
+            'Squad 7',
+            'Tampa Bay Squad',
+        ];
+
+        foreach ($squads as $squad)
         {
             Organization::factory()->asUnit()->withParent($garrison)->withName($squad)->create();
         }
-    }
-
-    /** db:seed unguards models, which is what lets the import keep legacy ids */
-    private function runEventSeeder(): void
-    {
-        Model::unguarded(fn () => (new EventSeeder)->run());
     }
 
     private function legacyRawSignup(int $legacy_shift_id, Trooper $trooper, int $costume_id): void

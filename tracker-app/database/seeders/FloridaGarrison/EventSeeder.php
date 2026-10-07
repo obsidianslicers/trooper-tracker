@@ -241,7 +241,8 @@ class EventSeeder extends Seeder
 
                     $event_trooper->backup_costume_id = $this->getMappedCostumeId($legacy_sign_up->costume_backup);
 
-                    $event_trooper->backup_costume_organization_ids = $this->getMappedCostumeOrganizationIds($legacy_sign_up->costume_backup);
+                    $event_trooper->backup_costume_organization_ids =
+                        $this->getMappedCostumeOrganizationIds((int) $legacy_sign_up->costume_backup);
                 }
 
                 if ($legacy_sign_up->addedby > 0)
@@ -269,9 +270,10 @@ class EventSeeder extends Seeder
         return $legacy_costume['id'];
     }
 
-    private function getMappedCostumeOrganizationIds($legacy_id): ?array
+    /** @return array<int, int>|null */
+    private function getMappedCostumeOrganizationIds(int $legacy_id): ?array
     {
-        $credit = $this->legacy_credit->creditForCostume((int) $legacy_id);
+        $credit = $this->legacy_credit->creditForCostume($legacy_id);
 
         return $credit->isResolved() ? $credit->org_ids : null;
     }

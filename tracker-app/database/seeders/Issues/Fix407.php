@@ -14,102 +14,118 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Makes every TT1.0 signup's credit match the club its legacy signup recorded.
- *
- * TT1.0 data is authoritative for TT1.0 signups. A row is a TT1.0 signup when a matching legacy
- * event_sign_up record exists (via the same duplicate-shift mapping EventSeeder used) — whatever
- * the shift date, since events scheduled before the TT2.0 launch can still be in the future.
- * Over the years these rows picked up credit from current membership (old Fix406/407 backfills,
- * admin roster saves) instead of the costume club the trooper actually signed up under.
- *
- * For each attended TT1.0 row, the credited clubs become exactly the legacy costume's club(s):
- * stored region/unit ids under those clubs are kept, missing clubs are added, others dropped.
- * Rows whose legacy signup can't be mapped to a club (or whose duplicate legacy signups
- * disagree) keep their current credit and are emailed to administrators. Uncredited ones are
- * left to Fix406, which reports them itself.
+ * Makes every attended TT1.0 signup's credit match the club its legacy signup recorded — TT1.0
+ * data is authoritative for TT1.0 signups, whatever the shift date. Unmappable signups keep their
+ * credit and are reported. See docs/ISSUE_MIGRATIONS.md.
  */
 class Fix407 extends Seeder
 {
     use ReportsToAdministrators;
 
+    private HistoricalCreditResolver $resolver;
+
+    /** @var array<string, int> */
+    private array $counts = [];
+
+    /** @var array<int, array<string, mixed>> */
+    private array $outstanding_rows = [];
+
     public function run(MagicBus $bus): void
     {
-        $outstanding_rows = [];
+        $this->counts = array_fill_keys(
+            ['tt1_rows', 'already_correct', 'corrected', 'outstanding'],
+            0,
+        );
+        $this->outstanding_rows = [];
 
-        DB::transaction(function () use (&$outstanding_rows): void
+        DB::transaction(function (): void
         {
-            $counts = ['tt1_rows' => 0, 'already_correct' => 0, 'corrected' => 0, 'outstanding' => 0];
+            $this->resolver = HistoricalCreditResolver::load();
 
-            $resolver = HistoricalCreditResolver::load();
-
-            if (!$resolver->legacy()->isAvailable())
+            if (!$this->resolver->legacy()->isAvailable())
             {
-                $this->command?->warn('Fix407: legacy TT1.0 tables not found; nothing to reconcile.');
+                $this->command?->warn('Fix407: legacy TT1.0 tables not found; nothing to do.');
 
                 return;
             }
 
-            EventTrooper::query()
-                ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED->value)
-                ->with(['trooper', 'costume', 'event_shift.event'])
-                ->chunkById(500, function ($event_troopers) use (&$counts, &$outstanding_rows, $resolver): void
-                {
-                    foreach ($event_troopers as $event_trooper)
-                    {
-                        if ($resolver->isTt1Signup($event_trooper))
-                        {
-                            $this->reconcileRow($event_trooper, $resolver, $counts, $outstanding_rows);
-                        }
-                    }
-                });
-
-            $this->command?->info('Fix407 complete:');
-            $this->command?->info("  TT1.0 signups checked:            {$counts['tt1_rows']}");
-            $this->command?->info("  Already matching legacy signup:   {$counts['already_correct']}");
-            $this->command?->info("  Corrected to legacy signup:       {$counts['corrected']}");
-            $this->command?->info("  Outstanding (admin review):       {$counts['outstanding']}");
+            $this->reconcileTt1Rows();
+            $this->printSummary();
         });
 
-        $this->emailAdministrators($bus, Fix407OutstandingCredit::class, $outstanding_rows);
+        $this->emailAdministrators($bus, Fix407OutstandingCredit::class, $this->outstanding_rows);
     }
 
-    /**
-     * @param  array<string, int>  $counts
-     * @param  array<int, array<string, mixed>>  $outstanding_rows
-     */
-    private function reconcileRow(
-        EventTrooper $event_trooper,
-        HistoricalCreditResolver $resolver,
-        array &$counts,
-        array &$outstanding_rows,
-    ): void {
-        $counts['tt1_rows']++;
+    private function printSummary(): void
+    {
+        $this->printCounts('Fix407 complete:', [
+            'tt1_rows' => 'TT1.0 signups checked',
+            'already_correct' => 'Already matching legacy signup',
+            'corrected' => 'Corrected to legacy signup',
+            'outstanding' => 'Outstanding (admin review)',
+        ], $this->counts);
+    }
 
-        $legacy = $resolver->legacyCredit($event_trooper);
+    private function reconcileTt1Rows(): void
+    {
+        EventTrooper::query()
+            ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED->value)
+            ->with(['trooper', 'costume', 'event_shift.event'])
+            ->chunkById(500, function ($event_troopers): void
+            {
+                foreach ($event_troopers as $event_trooper)
+                {
+                    if ($this->resolver->isTt1Signup($event_trooper))
+                    {
+                        $this->counts['tt1_rows']++;
+                        $this->reconcileRow($event_trooper);
+                    }
+                }
+            });
+    }
+
+    private function reconcileRow(EventTrooper $event_trooper): void
+    {
+        $legacy = $this->resolver->legacyCredit($event_trooper);
         $current_ids = $event_trooper->creditedOrgIds();
 
         if (!$legacy->isResolved())
         {
+            // uncredited rows are Fix406's to report
             if (!empty($current_ids))
             {
-                $counts['outstanding']++;
-                $outstanding_rows[] = $this->reportRow($event_trooper, $legacy->note.' Existing credit left unchanged.');
+                $this->counts['outstanding']++;
+                $reason = $legacy->note.' Existing credit left unchanged.';
+                $this->outstanding_rows[] = $this->reportRow($event_trooper, $reason);
             }
 
             return;
         }
 
-        $target_ids = $resolver->mergeKeepingSpecificity($current_ids, $legacy->org_ids);
+        $this->applyLegacyCredit($event_trooper, $current_ids, $legacy->org_ids);
+    }
 
-        if (HistoricalCreditResolver::sameIds($target_ids, $event_trooper->costume_organization_ids ?? []))
+    /**
+     * @param  array<int, int>  $current_ids
+     * @param  array<int, int>  $legacy_ids
+     */
+    private function applyLegacyCredit(
+        EventTrooper $event_trooper,
+        array $current_ids,
+        array $legacy_ids,
+    ): void {
+        $target_ids = $this->resolver->mergeKeepingSpecificity($current_ids, $legacy_ids);
+        $stored_ids = $event_trooper->costume_organization_ids ?? [];
+
+        if (HistoricalCreditResolver::sameIds($target_ids, $stored_ids))
         {
-            $counts['already_correct']++;
+            $this->counts['already_correct']++;
 
             return;
         }
 
         $event_trooper->costume_organization_ids = $target_ids;
         $event_trooper->saveQuietly();
-        $counts['corrected']++;
+        $this->counts['corrected']++;
     }
 }

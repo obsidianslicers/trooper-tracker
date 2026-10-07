@@ -227,8 +227,16 @@ Recommended order on production:
 3. `Fix406` — restore missing credit.
 4. `Fix407` — make TT1.0 signups match their legacy signup.
 5. `Fix409` — final impossible-credit sweep and achievement cleanup.
-6. `php artisan tracker:calculate-trooper-achievements`
+6. `php artisan tracker:calculate-trooper-achievements --without-notifications` — Fix408 and
+   Fix409 hard-delete club milestones the corrected credit no longer supports; the recalculation
+   recreates any still earned with `notification_sent_at` empty, so without the flag the daily
+   roundup would re-announce milestones troopers already had. (It also means milestones newly
+   earned through restored credit go out silently.)
 7. Re-run 408 → 406 → 407 → 409 and confirm every changed count is 0, then review the emails.
+
+Fix409 counts a trooper's credited shifts exactly as the recalculation does (`costume_organization_ids`,
+falling back to `organization_id`), so it never removes a milestone the recalculation would
+immediately recreate.
 
 Running them in numeric order converges to the same result; 408 first just avoids writing credit
 that is immediately removed again.

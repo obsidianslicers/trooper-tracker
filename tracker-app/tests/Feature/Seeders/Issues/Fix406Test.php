@@ -13,7 +13,6 @@ use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
-use App\Models\TrooperOrganization;
 use Database\Seeders\Issues\Fix406;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
@@ -212,19 +211,13 @@ class Fix406Test extends TestCase
     {
         $this->seedLegacyWorld();
         // trooper 644: TT1.0 501st member who joined Rebel Legion in 2026
-        $trooper = Trooper::factory()->asActive()->create();
-        $this->legacyTrooper($trooper, ['p501' => 1]);
-        $this->memberAssignmentSince($trooper, $this->club('501st Legion'), '2026-05-29 08:34:05');
-        $this->membershipSince($trooper, $this->club('Rebel Legion'), '2026-08-02 12:00:00');
-        $this->memberAssignmentSince($trooper, $this->club('Rebel Legion'), '2026-08-02 12:00:00');
+        $trooper = $this->laterRebelJoiner();
+        $event_trooper = $this->tt1Row($trooper, '2018-06-01 10:00:00', 'Handler', 0);
 
-        $shift = $this->shiftAt('2018-06-01 10:00:00');
-        $this->legacySignup($shift, $trooper, $this->legacyCostume('Handler', 0));
-        $event_trooper = $this->attended($trooper, $shift);
+        $subject = new Fix406;
+        $subject->run(app(MagicBus::class));
 
-        (new Fix406)->run(app(MagicBus::class));
-
-        $this->assertSame([$this->club('501st Legion')->id], $event_trooper->refresh()->costume_organization_ids);
+        $this->assertCredit(['501st Legion'], $event_trooper);
         Mail::assertNothingQueued();
     }
 
@@ -232,18 +225,14 @@ class Fix406Test extends TestCase
     {
         $this->seedLegacyWorld();
         Trooper::factory()->asAdministrator()->create();
-        $trooper = Trooper::factory()->asActive()->create();
-        $this->legacyTrooper($trooper, ['p501' => 1]);
-        $this->memberAssignmentSince($trooper, $this->club('501st Legion'), '2026-05-29 08:34:05');
+        $trooper = $this->laterRebelJoiner();
+        $event_trooper = $this->tt1Row($trooper, '2018-06-01 10:00:00', 'Other', 4);
 
-        $shift = $this->shiftAt('2018-06-01 10:00:00');
-        $this->legacySignup($shift, $trooper, $this->legacyCostume('Other', 4));
-        $event_trooper = $this->attended($trooper, $shift);
-
-        (new Fix406)->run(app(MagicBus::class));
+        $subject = new Fix406;
+        $subject->run(app(MagicBus::class));
 
         $this->assertNull($event_trooper->refresh()->costume_organization_ids);
-        Mail::assertQueued(Fix406OutstandingCredit::class, function (Fix406OutstandingCredit $mail): bool
+        Mail::assertQueued(Fix406OutstandingCredit::class, function ($mail): bool
         {
             return str_contains($mail->render(), 'Other');
         });
@@ -252,18 +241,13 @@ class Fix406Test extends TestCase
     public function test_tt2_row_is_not_credited_to_a_club_joined_after_the_shift(): void
     {
         $this->seedLegacyWorld();
-        $trooper = Trooper::factory()->asActive()->create();
-        $this->legacyTrooper($trooper, ['p501' => 1]);
-        $this->memberAssignmentSince($trooper, $this->club('501st Legion'), '2026-05-29 08:34:05');
-        $this->membershipSince($trooper, $this->club('Rebel Legion'), '2026-08-02 12:00:00');
-        $this->memberAssignmentSince($trooper, $this->club('Rebel Legion'), '2026-08-02 12:00:00');
+        $trooper = $this->laterRebelJoiner();
+        $event_trooper = $this->attendedWithCredit($trooper, '2026-07-04 10:00:00', null);
 
-        $event_trooper = $this->attended($trooper, $this->shiftAt('2026-07-04 10:00:00'));
+        $subject = new Fix406;
+        $subject->run(app(MagicBus::class));
 
-        (new Fix406)->run(app(MagicBus::class));
-
-        $this->assertSame([$this->club('501st Legion')->id], $event_trooper->refresh()->costume_organization_ids);
-        $this->assertSame(1, TrooperOrganization::count());
+        $this->assertCredit(['501st Legion'], $event_trooper);
     }
 
     public function test_does_not_email_administrators_when_nothing_outstanding(): void
@@ -288,5 +272,16 @@ class Fix406Test extends TestCase
         $subject->run(app(MagicBus::class));
 
         Mail::assertNothingQueued();
+    }
+
+    private function laterRebelJoiner(): Trooper
+    {
+        $trooper = Trooper::factory()->asActive()->create();
+        $this->legacyTrooper($trooper, ['p501' => 1]);
+        $this->memberAssignmentSince($trooper, $this->club('501st Legion'), '2026-05-29 08:34:05');
+        $this->membershipSince($trooper, $this->club('Rebel Legion'), '2026-08-02 12:00:00');
+        $this->memberAssignmentSince($trooper, $this->club('Rebel Legion'), '2026-08-02 12:00:00');
+
+        return $trooper;
     }
 }

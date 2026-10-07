@@ -29,7 +29,16 @@ class Fix408AmbiguousMemberships extends Mailable implements ShouldQueue
 
     /**
      * @param  Trooper  $trooper  The administrator trooper receiving the report.
-     * @param  array<int, array{trooper_id: int, trooper_name: string, organization_name: string, membership_status: string, event_trooper_row_count: int, tt1_row_count: int, tt2_row_count: int, achievement_row_count: int}>  $ambiguous_memberships
+     * @param  array<int, array{
+     *     trooper_id: int,
+     *     trooper_name: string,
+     *     organization_name: string,
+     *     membership_status: string,
+     *     event_trooper_row_count: int,
+     *     tt1_row_count: int,
+     *     tt2_row_count: int,
+     *     achievement_row_count: int,
+     * }>  $ambiguous_memberships
      */
     public function __construct(
         private readonly Trooper $trooper,

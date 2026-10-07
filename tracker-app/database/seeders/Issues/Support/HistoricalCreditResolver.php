@@ -16,28 +16,15 @@ use App\Models\TrooperRequest;
 use Carbon\Carbon;
 use Database\Seeders\FloridaGarrison\Support\LegacyCredit;
 use Database\Seeders\FloridaGarrison\Support\LegacySignupCreditResolver;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Decides what troop credit a historical EventTrooper row should carry.
- *
- * Which rules apply depends on where the signup came from, never on the shift date:
- *
- *   - TT1.0 signup (a matching legacy event_sign_up row exists): credit comes only from that
- *     legacy signup's costume club. See LegacySignupCreditResolver.
- *   - TT2.0 signup (no legacy row): credit is inferred from what was true on the shift date —
- *     the costume's clubs (narrowed by the trooper's approvals) intersected with the clubs the
- *     trooper was a member of at that time. Handler / no costume credits every such club.
- *
- * Membership at a point in time is pieced together from all the evidence available: the TT1.0
- * pX flags (proof of membership at the TT2.0 launch, not forever after), membership join dates,
- * approved join requests, the earliest membership / assignment rows (trashed ones included, so a
- * root→region move keeps its original date) and soft-delete / retirement dates. A club joined
- * after a shift never credits it. When the evidence can't settle it, the answer is "unknown" and
- * the caller reports the row instead of guessing.
- *
- * Membership validity and credit validity are separate questions — nothing here changes a
- * membership.
+ * Decides what troop credit a historical EventTrooper row should carry, by signup origin (never
+ * the shift date): a TT1.0 signup gets only its legacy signup's club; a TT2.0 signup gets the
+ * costume's clubs the trooper was a member of on the shift date. Membership at a point in time
+ * is pieced together from all available evidence; when it can't be settled the row is reported,
+ * not guessed. Never changes a membership. See docs/ISSUE_MIGRATIONS.md.
  */
 class HistoricalCreditResolver
 {
@@ -81,16 +68,16 @@ class HistoricalCreditResolver
     /** @var array<int, array<int, true>> [trooper_id][root_id] => currently a member */
     private array $current = [];
 
-    /** @var array<int, array<int, array<int, int>>> [trooper_id][root_id] => current member org ids */
+    /** @var array<int, array<int, array<int, int>>> [trooper_id][root_id] => member org ids */
     private array $current_org_ids = [];
 
     /** @var array<int, array<int, int>> costume_id => root ids the costume belongs to */
     private array $costume_root_ids = [];
 
-    /** @var array<int, array<int, array<int, int>>> [trooper_id][costume_id] => approved root ids */
+    /** @var array<int, array<int, array<int, int>>> [trooper_id][costume_id] => root ids */
     private array $approved_root_ids = [];
 
-    /** @param  array<int, array<int, int>>  $excluded_roots  [trooper_id] => roots never to count as membership */
+    /** @param  array<int, array<int, int>>  $excluded_roots  [trooper_id] => known-false roots */
     private function __construct(
         private readonly LegacySignupCreditResolver $legacy,
         private readonly array $excluded_roots,
@@ -99,14 +86,17 @@ class HistoricalCreditResolver
     }
 
     /** @param  array<int, array<int, int>>  $excluded_roots  [trooper_id] => known-false roots */
-    public static function load(?LegacySignupCreditResolver $legacy = null, array $excluded_roots = []): self
-    {
+    public static function load(
+        ?LegacySignupCreditResolver $legacy = null,
+        array $excluded_roots = [],
+    ): self {
         $resolver = new self($legacy ?? LegacySignupCreditResolver::load(), $excluded_roots);
         $resolver->loadOrganizations();
         $resolver->loadMembershipRows();
         $resolver->loadAssignmentRows();
         $resolver->loadApprovedRequests();
-        $resolver->loadCostumes();
+        $resolver->loadCostumeClubs();
+        $resolver->loadCostumeApprovals();
 
         return $resolver;
     }
@@ -153,8 +143,10 @@ class HistoricalCreditResolver
      *
      * @param  array<int, int>|null  $org_ids  defaults to the row's costume_organization_ids
      */
-    public function checkStoredCredit(EventTrooper $event_trooper, ?array $org_ids = null): CreditCheck
-    {
+    public function checkStoredCredit(
+        EventTrooper $event_trooper,
+        ?array $org_ids = null,
+    ): CreditCheck {
         $org_ids ??= $event_trooper->costume_organization_ids ?? [];
 
         if ($this->isTt1Signup($event_trooper))
@@ -179,7 +171,8 @@ class HistoricalCreditResolver
             return self::NO_EVIDENCE;
         }
 
-        $member_at_launch = in_array($root_id, $this->legacy->launchMemberOrgIds($trooper_id), true);
+        $launch_org_ids = $this->legacy->launchMemberOrgIds($trooper_id);
+        $member_at_launch = in_array($root_id, $launch_org_ids, true);
         $start = $this->starts[$trooper_id][$root_id] ?? null;
 
         if (!$member_at_launch && $start === null)
@@ -246,7 +239,9 @@ class HistoricalCreditResolver
     /** @param  array<int, int>  $org_ids */
     public function namesOf(array $org_ids): string
     {
-        return collect($org_ids)->map(fn (int $id) => $this->org_names[$id] ?? "#{$id}")->implode(', ');
+        return collect($org_ids)
+            ->map(fn (int $id) => $this->org_names[$id] ?? "#{$id}")
+            ->implode(', ');
     }
 
     /**
@@ -255,52 +250,85 @@ class HistoricalCreditResolver
      */
     public static function sameIds(array $a, array $b): bool
     {
-        $normalize = fn (array $ids) => collect($ids)->map(fn ($id) => (int) $id)->unique()->sort()->values()->all();
+        $normalize = fn (array $ids) => collect($ids)
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
 
         return $normalize($a) === $normalize($b);
     }
 
-    private function inferTt2Credit(EventTrooper $event_trooper, Carbon $shift_date): CreditResolution
-    {
+    private function inferTt2Credit(
+        EventTrooper $event_trooper,
+        Carbon $shift_date,
+    ): CreditResolution {
         $trooper_id = $event_trooper->trooper_id;
         $costume = $event_trooper->costume;
-        $by_handler_rule = $costume === null || $costume->countsAsHandler();
+        $costume_name = $costume === null || $costume->countsAsHandler() ? null : $costume->name;
 
-        $candidates = $by_handler_rule
+        $candidates = $costume_name === null
             ? $this->knownRoots($trooper_id)
             : $this->costumeRoots($trooper_id, $costume->id);
 
-        if (!$by_handler_rule && empty($candidates))
+        if ($costume_name !== null && empty($candidates))
         {
-            return CreditResolution::report("Costume \"{$costume->name}\" isn't associated with any club.");
+            return CreditResolution::report("Costume \"{$costume_name}\" has no club association.");
         }
 
-        $statuses = collect($candidates)->mapWithKeys(fn (int $root) => [
-            $root => $this->membershipStatusAt($trooper_id, $root, $shift_date),
-        ]);
+        $statuses = $this->statusesAt($trooper_id, $candidates, $shift_date);
+        $member_roots = $this->rootsWithStatus($statuses, self::MEMBER);
 
-        $member_roots = $statuses->filter(fn (string $status) => $status === self::MEMBER)->keys()->all();
-
-        if (!empty($member_roots))
+        if (empty($member_roots))
         {
-            return CreditResolution::resolved(
-                $this->specificOrgIds($trooper_id, $member_roots),
-                'Member of '.$this->namesOf($member_roots).' on the shift date.',
-            );
+            return $this->reportUnresolved($statuses, $costume_name);
         }
 
-        $unknown_roots = $statuses->filter(fn (string $status) => $status === self::UNKNOWN)->keys()->all();
+        return CreditResolution::resolved(
+            $this->specificOrgIds($trooper_id, $member_roots),
+            'Member of '.$this->namesOf($member_roots).' on the shift date.',
+        );
+    }
+
+    /**
+     * @param  Collection<int, string>  $statuses  root_id => membership status
+     * @param  string|null  $costume_name  null for a handler or no costume
+     */
+    private function reportUnresolved(Collection $statuses, ?string $costume_name): CreditResolution
+    {
+        $unknown_roots = $this->rootsWithStatus($statuses, self::UNKNOWN);
 
         if (!empty($unknown_roots))
         {
-            return CreditResolution::report(
-                'Membership in '.$this->namesOf($unknown_roots)." on the shift date can't be established."
-            );
+            $clubs = $this->namesOf($unknown_roots);
+
+            return CreditResolution::report("Can't establish {$clubs} membership on that date.");
         }
 
-        return CreditResolution::report($by_handler_rule
+        return CreditResolution::report($costume_name === null
             ? 'Trooper had no club membership on the shift date.'
-            : "Trooper wasn't a member of any club for costume \"{$costume->name}\" on the shift date.");
+            : "Trooper wasn't in any club for costume \"{$costume_name}\" on the shift date.");
+    }
+
+    /**
+     * @param  array<int, int>  $root_ids
+     * @return Collection<int, string> root_id => membership status
+     */
+    private function statusesAt(int $trooper_id, array $root_ids, Carbon $at): Collection
+    {
+        return collect($root_ids)->mapWithKeys(fn (int $root) => [
+            $root => $this->membershipStatusAt($trooper_id, $root, $at),
+        ]);
+    }
+
+    /**
+     * @param  Collection<int, string>  $statuses  root_id => membership status
+     * @return array<int, int>
+     */
+    private function rootsWithStatus(Collection $statuses, string $status): array
+    {
+        return $statuses->filter(fn (string $value) => $value === $status)->keys()->all();
     }
 
     /** @param  array<int, int>  $org_ids */
@@ -321,16 +349,17 @@ class HistoricalCreditResolver
     }
 
     /** @param  array<int, int>  $org_ids */
-    private function checkAgainstMembership(int $trooper_id, Carbon $shift_date, array $org_ids): CreditCheck
-    {
-        $keep = [];
-        $remove = [];
-        $unknown = [];
+    private function checkAgainstMembership(
+        int $trooper_id,
+        Carbon $shift_date,
+        array $org_ids,
+    ): CreditCheck {
+        [$keep, $remove, $unknown] = [[], [], []];
 
         foreach ($org_ids as $org_id)
         {
             $root = $this->rootOf((int) $org_id);
-            $status = $root === null ? self::MEMBER : $this->membershipStatusAt($trooper_id, $root, $shift_date);
+            $status = $this->storedRootStatus($trooper_id, $root, $shift_date);
 
             if ($status === self::JOINED_LATER || $status === self::ENDED)
             {
@@ -348,6 +377,17 @@ class HistoricalCreditResolver
         }
 
         return new CreditCheck($keep, $remove, array_values(array_unique($unknown)));
+    }
+
+    /** An org we can't place in the hierarchy (deleted, bad path) is never judged impossible. */
+    private function storedRootStatus(int $trooper_id, ?int $root_id, Carbon $at): string
+    {
+        if ($root_id === null)
+        {
+            return self::MEMBER;
+        }
+
+        return $this->membershipStatusAt($trooper_id, $root_id, $at);
     }
 
     private function continuedMembershipAt(int $trooper_id, int $root_id, Carbon $at): string
@@ -381,7 +421,9 @@ class HistoricalCreditResolver
     /** @return array<int, int> */
     private function costumeRoots(int $trooper_id, int $costume_id): array
     {
-        return $this->approved_root_ids[$trooper_id][$costume_id] ?? $this->costume_root_ids[$costume_id] ?? [];
+        return $this->approved_root_ids[$trooper_id][$costume_id]
+            ?? $this->costume_root_ids[$costume_id]
+            ?? [];
     }
 
     /**
@@ -402,9 +444,13 @@ class HistoricalCreditResolver
 
     private function loadOrganizations(): void
     {
-        foreach (Organization::withTrashed()->get([Organization::ID, Organization::NAME, Organization::NODE_PATH]) as $org)
+        $organizations = Organization::withTrashed()
+            ->get([Organization::ID, Organization::NAME, Organization::NODE_PATH]);
+
+        foreach ($organizations as $org)
         {
-            $this->root_ids[$org->id] = Organization::rootIdFromPath((string) $org->node_path) ?: $org->id;
+            $root_id = Organization::rootIdFromPath((string) $org->node_path);
+            $this->root_ids[$org->id] = $root_id ?: $org->id;
             $this->org_names[$org->id] = $org->name;
         }
     }
@@ -431,23 +477,29 @@ class HistoricalCreditResolver
                 continue;
             }
 
-            $this->recordMembershipRow($row, $root);
+            $this->recordMembershipStart($row, $root);
+            $this->recordMembershipEnd($row, $root);
         }
     }
 
-    private function recordMembershipRow(TrooperOrganization $row, int $root): void
+    private function recordMembershipStart(TrooperOrganization $row, int $root): void
     {
-        $was_member = in_array($row->membership_status, self::WAS_MEMBER_STATUSES, true);
+        if (!in_array($row->membership_status, self::WAS_MEMBER_STATUSES, true))
+        {
+            return;
+        }
 
         // One row per (trooper, club) — a real later join reuses the row the old import created
         // from a stray identifier, so its created_at is the import day, not a join date.
-        $created_at_is_evidence = $this->legacy->strayIdentifier($row->trooper_id, $row->organization_id) === null;
+        $stray = $this->legacy->strayIdentifier($row->trooper_id, $row->organization_id);
+        $evidence = [$row->join_date, $stray === null ? $row->created_at : null];
 
-        if ($was_member)
-        {
-            $evidence = [$row->join_date, $created_at_is_evidence ? $row->created_at : null];
-            $this->recordStart($row->trooper_id, $root, collect($evidence)->filter()->min());
-        }
+        $this->recordStart($row->trooper_id, $root, collect($evidence)->filter()->min());
+    }
+
+    private function recordMembershipEnd(TrooperOrganization $row, int $root): void
+    {
+        $was_member = in_array($row->membership_status, self::WAS_MEMBER_STATUSES, true);
 
         if ($row->deleted_at !== null)
         {
@@ -483,8 +535,9 @@ class HistoricalCreditResolver
             return false;
         }
 
-        return $row->deleted_at !== null
-            || in_array($row->membership_status, [MembershipStatus::RETIRED, MembershipStatus::RESERVE], true);
+        $flagged = [MembershipStatus::RETIRED, MembershipStatus::RESERVE];
+
+        return $row->deleted_at !== null || in_array($row->membership_status, $flagged, true);
     }
 
     private function loadAssignmentRows(): void
@@ -502,31 +555,38 @@ class HistoricalCreditResolver
         {
             $root = $this->rootOf((int) $row->organization_id);
 
-            if ($root === null || $row->created_at === null)
+            if ($root !== null && $row->created_at !== null)
             {
-                continue;
+                $this->recordAssignmentRow($row, $root);
             }
-
-            $trooper_id = (int) $row->trooper_id;
-            $this->recordStart($trooper_id, $root, Carbon::parse($row->created_at));
-
-            if ($row->deleted_at !== null)
-            {
-                $this->recordEnd($trooper_id, $root, Carbon::parse($row->deleted_at));
-
-                continue;
-            }
-
-            $this->current[$trooper_id][$root] = true;
-            $this->current_org_ids[$trooper_id][$root][] = (int) $row->organization_id;
         }
+    }
+
+    private function recordAssignmentRow(object $row, int $root): void
+    {
+        $trooper_id = (int) $row->trooper_id;
+        $this->recordStart($trooper_id, $root, Carbon::parse($row->created_at));
+
+        if ($row->deleted_at !== null)
+        {
+            $this->recordEnd($trooper_id, $root, Carbon::parse($row->deleted_at));
+
+            return;
+        }
+
+        $this->current[$trooper_id][$root] = true;
+        $this->current_org_ids[$trooper_id][$root][] = (int) $row->organization_id;
     }
 
     private function loadApprovedRequests(): void
     {
         $rows = TrooperRequest::query()
             ->where(TrooperRequest::STATUS, TrooperRequestStatus::APPROVED->value)
-            ->get([TrooperRequest::TROOPER_ID, TrooperRequest::ORGANIZATION_ID, TrooperRequest::UPDATED_AT]);
+            ->get([
+                TrooperRequest::TROOPER_ID,
+                TrooperRequest::ORGANIZATION_ID,
+                TrooperRequest::UPDATED_AT,
+            ]);
 
         foreach ($rows as $row)
         {
@@ -539,46 +599,50 @@ class HistoricalCreditResolver
         }
     }
 
-    private function loadCostumes(): void
+    private function loadCostumeClubs(): void
     {
-        foreach (OrganizationCostume::query()->get([OrganizationCostume::ORGANIZATION_ID, OrganizationCostume::COSTUME_ID]) as $row)
+        $rows = OrganizationCostume::query()
+            ->get([OrganizationCostume::ORGANIZATION_ID, OrganizationCostume::COSTUME_ID]);
+
+        foreach ($rows as $row)
         {
             $root = $this->rootOf($row->organization_id);
+            $known = $this->costume_root_ids[$row->costume_id] ?? [];
 
-            if ($root !== null && !in_array($root, $this->costume_root_ids[$row->costume_id] ?? [], true))
+            if ($root !== null && !in_array($root, $known, true))
             {
                 $this->costume_root_ids[$row->costume_id][] = $root;
             }
         }
+    }
 
-        $approvals = DB::table('tt_trooper_costumes')
-            ->join('tt_organization_costumes', 'tt_organization_costumes.id', '=', 'tt_trooper_costumes.organization_costume_id')
-            ->whereNull('tt_trooper_costumes.'.TrooperCostume::DELETED_AT)
-            ->whereNull('tt_organization_costumes.'.OrganizationCostume::DELETED_AT)
-            ->get(['tt_trooper_costumes.trooper_id', 'tt_organization_costumes.costume_id', 'tt_organization_costumes.organization_id']);
+    private function loadCostumeApprovals(): void
+    {
+        $approvals = DB::table('tt_trooper_costumes as tc')
+            ->join('tt_organization_costumes as oc', 'oc.id', '=', 'tc.organization_costume_id')
+            ->whereNull('tc.'.TrooperCostume::DELETED_AT)
+            ->whereNull('oc.'.OrganizationCostume::DELETED_AT)
+            ->get(['tc.trooper_id', 'oc.costume_id', 'oc.organization_id']);
 
         foreach ($approvals as $approval)
         {
             $root = $this->rootOf((int) $approval->organization_id);
-            $existing = $this->approved_root_ids[(int) $approval->trooper_id][(int) $approval->costume_id] ?? [];
+            $trooper_id = (int) $approval->trooper_id;
+            $costume_id = (int) $approval->costume_id;
+            $known = $this->approved_root_ids[$trooper_id][$costume_id] ?? [];
 
-            if ($root !== null && !in_array($root, $existing, true))
+            if ($root !== null && !in_array($root, $known, true))
             {
-                $this->approved_root_ids[(int) $approval->trooper_id][(int) $approval->costume_id][] = $root;
+                $this->approved_root_ids[$trooper_id][$costume_id][] = $root;
             }
         }
     }
 
     private function recordStart(int $trooper_id, int $root, ?Carbon $date): void
     {
-        if ($date === null)
-        {
-            return;
-        }
-
         $existing = $this->starts[$trooper_id][$root] ?? null;
 
-        if ($existing === null || $date->lt($existing))
+        if ($date !== null && ($existing === null || $date->lt($existing)))
         {
             $this->starts[$trooper_id][$root] = $date->copy();
         }
@@ -586,14 +650,9 @@ class HistoricalCreditResolver
 
     private function recordEnd(int $trooper_id, int $root, ?Carbon $date): void
     {
-        if ($date === null)
-        {
-            return;
-        }
-
         $existing = $this->ends[$trooper_id][$root] ?? null;
 
-        if ($existing === null || $date->gt($existing))
+        if ($date !== null && ($existing === null || $date->gt($existing)))
         {
             $this->ends[$trooper_id][$root] = $date->copy();
         }

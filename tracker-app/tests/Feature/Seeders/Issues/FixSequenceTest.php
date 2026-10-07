@@ -71,17 +71,16 @@ class FixSequenceTest extends TestCase
 
     private function assertTimeCorrectCredit(): void
     {
-        $p501 = $this->club('501st Legion')->id;
-        $rebel = $this->club('Rebel Legion')->id;
+        $both = ['501st Legion', 'Rebel Legion'];
 
-        $this->assertSame([$p501], $this->credit('later_joiner_tt1_uncredited'));
-        $this->assertSame([$p501], $this->credit('later_joiner_tt1_overcredited'));
-        $this->assertSame([$p501], $this->credit('later_joiner_tt2_before_join'));
-        $this->assertEqualsCanonicalizing([$p501, $rebel], $this->credit('later_joiner_tt2_after_join'));
-        $this->assertSame([$p501], $this->credit('false_member_tt2'));
-        $this->assertSame([$p501], $this->credit('false_member_tt1'));
-        $this->assertNull($this->credit('unmapped_tt1'));
-        $this->assertEqualsCanonicalizing([$p501, $rebel], $this->credit('dual_tag_tt1'));
+        $this->assertCredit(['501st Legion'], $this->rows['later_joiner_tt1_uncredited']);
+        $this->assertCredit(['501st Legion'], $this->rows['later_joiner_tt1_overcredited']);
+        $this->assertCredit(['501st Legion'], $this->rows['later_joiner_tt2_before_join']);
+        $this->assertCredit($both, $this->rows['later_joiner_tt2_after_join']);
+        $this->assertCredit(['501st Legion'], $this->rows['false_member_tt2']);
+        $this->assertCredit(['501st Legion'], $this->rows['false_member_tt1']);
+        $this->assertNull($this->rows['unmapped_tt1']->refresh()->costume_organization_ids);
+        $this->assertCredit($both, $this->rows['dual_tag_tt1']);
     }
 
     private function buildScenario(): void
@@ -92,8 +91,10 @@ class FixSequenceTest extends TestCase
         $other = Trooper::factory()->asActive()->create();
         $this->legacyTrooper($other, ['p501' => 1]);
         $this->memberAssignmentSince($other, $this->club('501st Legion'), self::IMPORTED_AT);
+
+        $p501 = $this->clubIds('501st Legion');
         $this->rows['unmapped_tt1'] = $this->tt1Row($other, '2018-01-06 10:00:00', 'Other', 4);
-        $this->rows['dual_tag_tt1'] = $this->tt1Row($other, '2018-01-13 10:00:00', 'N/A', 5, [$this->club('501st Legion')->id]);
+        $this->rows['dual_tag_tt1'] = $this->tt1Row($other, '2018-01-13 10:00:00', 'N/A', 5, $p501);
     }
 
     /** trooper 644: TT1.0 501st member who joined Rebel Legion on 2026-08-02 */
@@ -105,38 +106,40 @@ class FixSequenceTest extends TestCase
         $this->membershipSince($trooper, $this->club('Rebel Legion'), '2026-08-02 12:00:00');
         $this->memberAssignmentSince($trooper, $this->club('Rebel Legion'), '2026-08-02 12:00:00');
 
-        $both = [$this->club('501st Legion')->id, $this->club('Rebel Legion')->id];
+        $both = $this->clubIds('501st Legion', 'Rebel Legion');
 
-        $this->rows['later_joiner_tt1_uncredited'] = $this->tt1Row($trooper, '2017-05-06 10:00:00', 'Handler', 0);
-        $this->rows['later_joiner_tt1_overcredited'] = $this->tt1Row($trooper, '2019-05-06 10:00:00', 'Handler', 0, $both);
-        $this->rows['later_joiner_tt2_before_join'] = $this->attended($trooper, $this->shiftAt('2026-07-04 10:00:00'), [
-            EventTrooper::COSTUME_ORGANIZATION_IDS => $both,
-        ]);
-        $this->rows['later_joiner_tt2_after_join'] = $this->attended($trooper, $this->shiftAt('2026-09-05 10:00:00'));
+        $this->rows['later_joiner_tt1_uncredited'] =
+            $this->tt1Row($trooper, '2017-05-06 10:00', 'Handler', 0);
+        $this->rows['later_joiner_tt1_overcredited'] =
+            $this->tt1Row($trooper, '2019-05-06 10:00', 'Handler', 0, $both);
+        $this->rows['later_joiner_tt2_before_join'] =
+            $this->attendedWithCredit($trooper, '2026-07-04 10:00', $both);
+        $this->rows['later_joiner_tt2_after_join'] =
+            $this->attendedWithCredit($trooper, '2026-09-05 10:00', null);
     }
 
     /** a TT1.0 501st member whose stray Rebel identifier became a (since retired) membership */
     private function buildFalseMember(): void
     {
         $trooper = Trooper::factory()->asActive()->create();
-        $this->legacyTrooper($trooper, ['p501' => 1, 'tkid' => "TK{$trooper->id}", 'rebelforum' => "stray{$trooper->id}"]);
-        $this->memberAssignmentSince($trooper, $this->club('501st Legion'), self::IMPORTED_AT);
-        $this->membershipSince($trooper, $this->club('Rebel Legion'), self::IMPORTED_AT, MembershipStatus::RETIRED, "stray{$trooper->id}");
-        $this->memberAssignmentSince($trooper, $this->club('Rebel Legion'), '2026-06-01 00:00:00');
-
-        $this->rows['false_member_tt2'] = $this->attended($trooper, $this->shiftAt('2026-07-11 10:00:00'), [
-            EventTrooper::COSTUME_ORGANIZATION_IDS => [$this->club('Rebel Legion')->id],
+        $stray = "stray{$trooper->id}";
+        $this->legacyTrooper($trooper, [
+            'p501' => 1,
+            'tkid' => "TK{$trooper->id}",
+            'rebelforum' => $stray,
         ]);
-        $this->rows['false_member_tt1'] = $this->tt1Row($trooper, '2019-07-13 10:00:00', 'Stormtrooper', 0, [$this->club('Rebel Legion')->id]);
-    }
+        $this->memberAssignmentSince($trooper, $this->club('501st Legion'), self::IMPORTED_AT);
 
-    /** @param  array<int, int>|null  $credit */
-    private function tt1Row(Trooper $trooper, string $starts_at, string $costume, int $club, ?array $credit = null): EventTrooper
-    {
-        $shift = $this->shiftAt($starts_at);
-        $this->legacySignup($shift, $trooper, $this->legacyCostume($costume, $club));
+        $rebel = $this->club('Rebel Legion');
+        $retired = MembershipStatus::RETIRED;
+        $this->membershipSince($trooper, $rebel, self::IMPORTED_AT, $retired, $stray);
+        $this->memberAssignmentSince($trooper, $rebel, '2026-06-01 00:00:00');
 
-        return $this->attended($trooper, $shift, [EventTrooper::COSTUME_ORGANIZATION_IDS => $credit]);
+        $credit = $this->clubIds('Rebel Legion');
+        $this->rows['false_member_tt2'] =
+            $this->attendedWithCredit($trooper, '2026-07-11 10:00', $credit);
+        $this->rows['false_member_tt1'] =
+            $this->tt1Row($trooper, '2019-07-13 10:00', 'Stormtrooper', 0, $credit);
     }
 
     /** @param  array<int, class-string<Seeder>>  $fixes */
@@ -144,21 +147,21 @@ class FixSequenceTest extends TestCase
     {
         foreach ($fixes as $fix)
         {
-            (new $fix)->run(app(MagicBus::class));
+            $subject = new $fix;
+            $subject->run(app(MagicBus::class));
         }
-    }
-
-    /** @return array<int, int>|null */
-    private function credit(string $key): ?array
-    {
-        return $this->rows[$key]->refresh()->costume_organization_ids;
     }
 
     /** @return array<int, array{0: mixed, 1: string}> */
     private function snapshot(): array
     {
-        return EventTrooper::query()->orderBy(EventTrooper::ID)->get()
-            ->map(fn (EventTrooper $row) => [$row->costume_organization_ids, (string) $row->updated_at])
+        return EventTrooper::query()
+            ->orderBy(EventTrooper::ID)
+            ->get()
+            ->map(fn (EventTrooper $row) => [
+                $row->costume_organization_ids,
+                (string) $row->updated_at,
+            ])
             ->all();
     }
 }
