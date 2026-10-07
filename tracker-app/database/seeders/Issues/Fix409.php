@@ -58,7 +58,8 @@ class Fix409 extends Seeder
     {
         $outstanding_rows = [];
 
-        DB::transaction(function () use (&$outstanding_rows): void {
+        DB::transaction(function () use (&$outstanding_rows): void
+        {
             $counts = [
                 'credit_rows_scanned' => 0,
                 'premature_credit_removed' => 0,
@@ -73,9 +74,6 @@ class Fix409 extends Seeder
             $join_signals = $this->buildJoinSignals($all_orgs);
             $costume_club_map = $this->buildCostumeClubMap();
 
-            /** @var array<int, array<int, int>> $touched_trooper_roots */
-            $touched_trooper_roots = [];
-
             EventTrooper::query()
                 ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED->value)
                 ->whereJsonLength(EventTrooper::COSTUME_ORGANIZATION_IDS, '>', 0)
@@ -83,7 +81,6 @@ class Fix409 extends Seeder
                 ->chunkById(200, function ($event_troopers) use (
                     &$outstanding_rows,
                     &$counts,
-                    &$touched_trooper_roots,
                     $all_orgs,
                     $join_signals,
                     $costume_club_map,
@@ -97,12 +94,11 @@ class Fix409 extends Seeder
                             $costume_club_map,
                             $counts,
                             $outstanding_rows,
-                            $touched_trooper_roots,
                         );
                     }
                 });
 
-            $this->removeUnjustifiedAchievements($touched_trooper_roots, $counts);
+            $this->removeUnjustifiedAchievements($all_orgs, $counts);
 
             $this->printSummary($counts);
         });
@@ -116,7 +112,6 @@ class Fix409 extends Seeder
      * @param  Collection<int, array{id: int, costume_club_id: int}>  $costume_club_map
      * @param  array<string, int>  $counts
      * @param  array<int, array<string, mixed>>  $outstanding_rows
-     * @param  array<int, array<int, int>>  $touched_trooper_roots
      */
     private function correctRow(
         EventTrooper $event_trooper,
@@ -125,7 +120,6 @@ class Fix409 extends Seeder
         Collection $costume_club_map,
         array &$counts,
         array &$outstanding_rows,
-        array &$touched_trooper_roots,
     ): void {
         $shift_date = $event_trooper->event_shift?->shift_starts_at;
 
@@ -145,16 +139,6 @@ class Fix409 extends Seeder
 
         $counts['credit_rows_scanned']++;
         $counts['premature_credit_removed'] += count($original_ids) - count($remaining_ids);
-
-        foreach (array_diff($original_ids, $remaining_ids) as $removed_id)
-        {
-            $node_path = $all_orgs->get($removed_id)?->node_path;
-
-            if ($node_path !== null)
-            {
-                $touched_trooper_roots[$event_trooper->trooper_id][] = Organization::rootIdFromPath($node_path);
-            }
-        }
 
         $this->reresolveCredit($event_trooper, $remaining_ids, $shift_date, $all_orgs, $join_signals, $costume_club_map, $counts, $outstanding_rows);
     }
@@ -189,6 +173,11 @@ class Fix409 extends Seeder
 
         if (!empty($merged_ids))
         {
+            if ($this->sameIds($merged_ids, $event_trooper->costume_organization_ids))
+            {
+                return;
+            }
+
             $event_trooper->costume_organization_ids = $merged_ids;
             $event_trooper->saveQuietly();
             $counts[empty($remaining_ids) ? 'recovered_live' : 'corrected_partial_credit']++;
@@ -206,10 +195,20 @@ class Fix409 extends Seeder
 
         if (!empty($legacy_org_ids))
         {
+            if ($this->sameIds($legacy_org_ids, $event_trooper->costume_organization_ids))
+            {
+                return;
+            }
+
             $event_trooper->costume_organization_ids = $legacy_org_ids;
             $event_trooper->saveQuietly();
             $counts['recovered_legacy']++;
 
+            return;
+        }
+
+        if (empty($event_trooper->costume_organization_ids))
+        {
             return;
         }
 
@@ -224,6 +223,14 @@ class Fix409 extends Seeder
             'event_id' => $event_trooper->event_shift->event->id,
             'costume_name' => $event_trooper->costume?->name,
         ];
+    }
+
+    /** @param  array<int, int>  $a @param  array<int, int>  $b */
+    private function sameIds(array $a, array $b): bool
+    {
+        $normalize = fn (array $ids) => collect($ids)->unique()->sort()->values()->all();
+
+        return $normalize($a) === $normalize($b);
     }
 
     /** @return Collection<int, array{id: int, costume_club_id: int}> */
@@ -279,43 +286,54 @@ class Fix409 extends Seeder
     }
 
     /**
-     * Removes club-scoped achievement rows that no longer meet their troop-count threshold now
-     * that premature credit has been stripped. Hard-deletes, not soft-deletes: the table's
-     * unique index doesn't exclude soft-deleted rows, and the recalculation command doesn't
-     * query withTrashed(), so a soft-deleted row would permanently block any future legitimate
-     * milestone for that trooper/type/club.
+     * Checks every club-scoped achievement in the system against the trooper's actual current
+     * credited-shift count and hard-deletes any that no longer meet their troop-count threshold.
      *
-     * @param  array<int, array<int, int>>  $touched_trooper_roots
+     * This runs site-wide rather than only against rows this seeder just modified. Credit a
+     * trooper lost upstream of this seeder (a corrected false membership in Fix408, a legacy
+     * fallback resolved differently in Fix406/407) can leave an achievement stale without this
+     * run ever touching that trooper's row directly, so a narrower "only check what I just
+     * changed" pass misses those. Scanning every achievement against today's authoritative
+     * count is the only way to guarantee none are left over-crediting.
+     *
+     * Hard-deletes, not soft-deletes: the table's unique index doesn't exclude soft-deleted rows,
+     * and the recalculation command doesn't query withTrashed(), so a soft-deleted row would
+     * permanently block any future legitimate milestone for that trooper/type/club.
+     *
+     * @param  Collection<int, Organization>  $all_orgs
      * @param  array<string, int>  $counts
      */
-    private function removeUnjustifiedAchievements(array $touched_trooper_roots, array &$counts): void
+    private function removeUnjustifiedAchievements(Collection $all_orgs, array &$counts): void
     {
-        $all_orgs = Organization::all([Organization::ID, Organization::NODE_PATH])->keyBy(Organization::ID);
+        $valid_types = array_keys(self::TROOP_THRESHOLDS);
 
-        foreach ($touched_trooper_roots as $trooper_id => $root_ids)
-        {
-            foreach (array_unique($root_ids) as $root_id)
+        TrooperAchievement::query()
+            ->whereNotNull(TrooperAchievement::ORGANIZATION_ID)
+            ->whereIn(TrooperAchievement::TYPE, $valid_types)
+            ->chunkById(500, function ($achievements) use ($all_orgs, &$counts): void
             {
-                $current_count = $this->countCreditedRows($trooper_id, $root_id, $all_orgs);
-
-                $removed = TrooperAchievement::query()
-                    ->where(TrooperAchievement::TROOPER_ID, $trooper_id)
-                    ->where(TrooperAchievement::ORGANIZATION_ID, $root_id)
-                    ->get()
-                    ->filter(function (TrooperAchievement $achievement) use ($current_count) {
-                        $threshold = self::TROOP_THRESHOLDS[$achievement->type->value] ?? null;
-
-                        return $threshold !== null && $current_count < $threshold;
-                    });
-
-                foreach ($removed as $achievement)
+                foreach ($achievements as $achievement)
                 {
-                    $achievement->forceDelete();
-                }
+                    $threshold = self::TROOP_THRESHOLDS[$achievement->type->value] ?? null;
 
-                $counts['achievements_removed'] += $removed->count();
-            }
-        }
+                    if ($threshold === null)
+                    {
+                        continue;
+                    }
+
+                    $current_count = $this->countCreditedRows(
+                        $achievement->trooper_id,
+                        $achievement->organization_id,
+                        $all_orgs,
+                    );
+
+                    if ($current_count < $threshold)
+                    {
+                        $achievement->forceDelete();
+                        $counts['achievements_removed']++;
+                    }
+                }
+            });
     }
 
     /** @param  Collection<int, Organization>  $all_orgs */
@@ -326,7 +344,8 @@ class Fix409 extends Seeder
             ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED->value)
             ->whereJsonLength(EventTrooper::COSTUME_ORGANIZATION_IDS, '>', 0)
             ->get([EventTrooper::COSTUME_ORGANIZATION_IDS])
-            ->filter(function (EventTrooper $event_trooper) use ($root_org_id, $all_orgs) {
+            ->filter(function (EventTrooper $event_trooper) use ($root_org_id, $all_orgs)
+            {
                 foreach ($event_trooper->costume_organization_ids as $org_id)
                 {
                     $node_path = $all_orgs->get($org_id)?->node_path;

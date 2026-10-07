@@ -61,7 +61,8 @@ class Fix408 extends Seeder
         $outstanding_credit_rows = [];
         $ambiguous_memberships = [];
 
-        DB::transaction(function () use (&$outstanding_credit_rows, &$ambiguous_memberships): void {
+        DB::transaction(function () use (&$outstanding_credit_rows, &$ambiguous_memberships): void
+        {
             $counts = [
                 'memberships_corrected' => 0,
                 'memberships_ambiguous' => 0,
@@ -236,7 +237,8 @@ class Fix408 extends Seeder
             ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED->value)
             ->whereJsonLength(EventTrooper::COSTUME_ORGANIZATION_IDS, '>', 0)
             ->get([EventTrooper::COSTUME_ORGANIZATION_IDS])
-            ->filter(function (EventTrooper $event_trooper) use ($root_org_id, $all_orgs) {
+            ->filter(function (EventTrooper $event_trooper) use ($root_org_id, $all_orgs)
+            {
                 foreach ($event_trooper->costume_organization_ids as $org_id)
                 {
                     $node_path = $all_orgs->get($org_id)?->node_path;
@@ -404,7 +406,8 @@ class Fix408 extends Seeder
         $original_ids = $event_trooper->costume_organization_ids;
 
         $remaining_ids = collect($original_ids)
-            ->reject(function (int $org_id) use ($false_root_ids, $all_orgs) {
+            ->reject(function (int $org_id) use ($false_root_ids, $all_orgs)
+            {
                 $node_path = $all_orgs->get($org_id)?->node_path;
 
                 return $node_path !== null && in_array(Organization::rootIdFromPath($node_path), $false_root_ids, true);
@@ -462,6 +465,14 @@ class Fix408 extends Seeder
 
         if (!empty($merged_ids))
         {
+            if ($this->sameIds($merged_ids, $event_trooper->costume_organization_ids))
+            {
+                // A trooper can have a second, real path into the same root the false
+                // membership shared (e.g. a genuine sub-org assignment). Stripping-then-merging
+                // lands back on the exact value already stored — nothing to write.
+                return;
+            }
+
             $event_trooper->costume_organization_ids = $merged_ids;
             $event_trooper->saveQuietly();
             $counts[empty($remaining_ids) ? 'recovered_live' : 'corrected_partial_credit']++;
@@ -471,7 +482,8 @@ class Fix408 extends Seeder
 
         // legacy signup data can carry the same false club the membership did — filter it too
         $legacy_org_ids = collect($this->resolveLegacyOrgIds($event_trooper, $costume_club_map))
-            ->reject(function (int $org_id) use ($false_root_ids, $all_orgs) {
+            ->reject(function (int $org_id) use ($false_root_ids, $all_orgs)
+            {
                 $node_path = $all_orgs->get($org_id)?->node_path;
 
                 return $node_path !== null && in_array(Organization::rootIdFromPath($node_path), $false_root_ids, true);
@@ -486,10 +498,20 @@ class Fix408 extends Seeder
 
         if (!empty($legacy_org_ids))
         {
+            if ($this->sameIds($legacy_org_ids, $event_trooper->costume_organization_ids))
+            {
+                return;
+            }
+
             $event_trooper->costume_organization_ids = $legacy_org_ids;
             $event_trooper->saveQuietly();
             $counts['recovered_legacy']++;
 
+            return;
+        }
+
+        if (empty($event_trooper->costume_organization_ids))
+        {
             return;
         }
 
@@ -505,6 +527,14 @@ class Fix408 extends Seeder
             'event_id' => $event_trooper->event_shift->event->id,
             'costume_name' => $event_trooper->costume?->name,
         ];
+    }
+
+    /** @param  array<int, int>  $a @param  array<int, int>  $b */
+    private function sameIds(array $a, array $b): bool
+    {
+        $normalize = fn (array $ids) => collect($ids)->unique()->sort()->values()->all();
+
+        return $normalize($a) === $normalize($b);
     }
 
     /** @return Collection<int, array{id: int, costume_club_id: int}> */

@@ -252,13 +252,21 @@ Garrison import batch (2026-05-29). Scans every `ATTENDED` `EventTrooper` row wi
 site-wide, and drops any credited club whose join date is after the shift. If something survives,
 keeps it. If nothing does, retries live eligibility and the legacy fallback (both filtered the
 same way), then clears the row and reports it (`Fix409OutstandingCredit`) if still nothing
-resolves. Also hard-deletes any club-scoped `tt_trooper_achievements` row that no longer meets its
-troop-count threshold once the premature credit is gone.
+resolves. Then checks every club-scoped `tt_trooper_achievements` row in the system — not just
+ones this run touched — against the trooper's actual current credited-shift count, and
+hard-deletes any that no longer meet their troop-count threshold. Scoping that check to "only
+troopers this run changed" isn't enough: a trooper can lose credit upstream, in `Fix408`'s
+membership correction, and still end up with a stale achievement that this seeder never directly
+touches.
 
 `Fix406`, `Fix407`, and `Fix408` were all amended to apply the same check at the point each one
 writes resolved credit, so a future re-run of any of them can't reproduce this.
 
-**When to run:** Once, after `Fix406`/`Fix407`/`Fix408`. Follow with
+Both `Fix408` and `Fix409` skip the write (and the counter) when the resolved value matches what's
+already stored, so re-running either one against an already-corrected database reports zero
+changes instead of re-saving the same value every time — safe to run more than once.
+
+**When to run:** After `Fix406`/`Fix407`/`Fix408`. Safe to re-run. Follow with
 `php artisan tracker:calculate-trooper-achievements`.
 
 ---
