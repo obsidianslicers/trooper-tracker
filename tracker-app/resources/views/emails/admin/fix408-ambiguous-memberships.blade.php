@@ -9,13 +9,12 @@
     <p>
         The <code>Fix408</code> false-membership correction found
         <strong>{{ count($ambiguous_memberships) }}</strong>
-        membership{{ count($ambiguous_memberships) === 1 ? '' : 's' }} that match the same pattern
-        as known false memberships (a stray legacy identifier with no matching club permission),
-        but the trooper's club membership is still marked <strong>active</strong> today — they may
-        have legitimately joined for real after the original import. These were
-        <strong>not</strong> changed automatically. Please confirm whether each trooper actually
-        belongs to the listed club; if not, their membership and any credit/achievements tied to it
-        should be corrected manually.
+        membership{{ count($ambiguous_memberships) === 1 ? '' : 's' }} with the same pattern as a
+        known false membership (a stray legacy identifier with no matching club permission), but
+        the club membership is still marked <strong>active</strong> today. These were
+        <strong>not</strong> changed automatically, since the trooper may have joined for real
+        since the import. Please confirm whether each trooper actually belongs to the listed club,
+        and correct their membership and any credit/achievements by hand if not.
     </p>
 
     <table style="width:100%; border-collapse:collapse; margin-top:12px;">

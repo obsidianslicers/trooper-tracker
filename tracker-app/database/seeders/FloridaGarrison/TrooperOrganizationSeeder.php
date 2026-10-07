@@ -50,9 +50,8 @@ class TrooperOrganizationSeeder extends Seeder
 
             if ($trooper->{$club['permission_column']} < 1)
             {
-                //  permission flag says not a member of this club — a stray non-empty identity
-                //  field (the old tracker required one in its unified signup form regardless of
-                //  actual club) must not be treated as membership on its own.
+                //  permission flag says not a member — the old signup form required an
+                //  identifier from everyone regardless of club, so a stray one doesn't count
                 continue;
             }
 
@@ -103,9 +102,8 @@ class TrooperOrganizationSeeder extends Seeder
 
             if ($trooper->squad == $legacy_id && $trooper->p501 >= 1)
             {
-                //  all of HasSquadMaps' squads are 501st Florida Garrison units — the legacy
-                //  squad field alone isn't membership, same reasoning as the club permission
-                //  flags above.
+                //  all HasSquadMaps squads are 501st units — same reasoning as the permission
+                //  check above, the squad field alone isn't membership
                 $member = true;
             }
 

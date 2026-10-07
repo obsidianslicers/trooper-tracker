@@ -29,20 +29,17 @@ use RuntimeException;
 /**
  * Corrects the Florida Garrison import's false club-membership bug.
  *
- * TrooperOrganizationSeeder determined club membership purely from whether a legacy identity
- * field (tkid, rebelforum, ...) was non-empty, never checking the club's own permission flag
- * (p501, pRebel, ...). The old tracker required every trooper to fill in a TKID-style field in
- * its unified signup form regardless of actual club, so troopers ended up with an active
- * membership — and, once Fix242's orphaned-TrooperOrganization repair ran, an active
- * TrooperAssignment — for a club they never belonged to. That false membership then fed troop
- * credit (EventTrooper::getEligibleCreditOrganizations()) and club-scoped achievement milestones
- * for years, independent of this seeder's own Fix406/Fix407 backfill.
+ * TrooperOrganizationSeeder used to grant club membership from a non-empty legacy identity field
+ * (tkid, rebelforum, ...) alone, without checking the club's own permission flag (p501, pRebel,
+ * ...). The old tracker's signup form required a TKID-style value from everyone regardless of
+ * club, so plenty of troopers picked up an active membership for a club they were never in. Once
+ * Fix242's orphaned-TrooperOrganization repair ran, some of those also got a real
+ * TrooperAssignment, which then fed troop credit and club-scoped achievements for years.
  *
- * Only (trooper, club) pairs where the legacy permission flag is 0 AND the current
- * tt_trooper_organizations row for that club is already retired/reserve (not active) are
- * corrected automatically — someone already flagged the membership as wrong, it just never
- * propagated to the TrooperAssignment row. Pairs where that row is still "active" are reported
- * to administrators untouched, since the trooper could have legitimately joined later.
+ * Only corrects (trooper, club) pairs where the legacy permission flag is 0 and the current
+ * tt_trooper_organizations row is already retired/reserve — someone already flagged it as wrong,
+ * it just never propagated to the TrooperAssignment. Pairs still marked "active" are left alone
+ * and reported to administrators, since the trooper may have joined for real since the import.
  */
 class Fix408 extends Seeder
 {
@@ -125,9 +122,7 @@ class Fix408 extends Seeder
 
                 if (!$is_safe_status)
                 {
-                    // Only retired/reserve is good evidence this came from the import bug.
-                    // Anything else (active, pending, denied, ...) means something else is going
-                    // on with this membership — leave it for a human to confirm.
+                    // active, pending, denied, etc. — something else is going on, let a human decide
                     $ambiguous_memberships[] = $this->buildAmbiguousReportRow($mismatch, $all_orgs);
                     $counts['memberships_ambiguous']++;
 
@@ -148,11 +143,9 @@ class Fix408 extends Seeder
     }
 
     /**
-     * TrooperOrganizationSeeder's assignUnit() has the same bug at the squad level: it grants
-     * is_member on a Florida Garrison squad purely from the legacy `squad` field matching, never
-     * checking p501 — a trooper who was never in 501st at all can still end up an active member
-     * of one of its squads. All of HasSquadMaps' squads are 501st units, so any correction here
-     * contributes to the 501st root id, same as the club-level audit above.
+     * Same bug, one level down: assignUnit() grants a Florida Garrison squad membership from the
+     * legacy `squad` field alone, also without checking p501. All of HasSquadMaps' squads are
+     * 501st units, so a correction here counts toward the 501st root id, same as above.
      *
      * @param  array<int, array<int, int>>  $false_root_ids_by_trooper
      * @param  array<string, int>  $counts
@@ -271,12 +264,10 @@ class Fix408 extends Seeder
     }
 
     /**
-     * Detects the mismatch from the tt_trooper_organizations row itself (including ones an
-     * earlier run of this seeder already soft-deleted) rather than from whether a
-     * TrooperAssignment is still active. Using `withTrashed()` here is deliberate: it lets a
-     * re-run finish cleaning up credit the legacy-signup fallback previously handed back
-     * unfiltered (see resolveLegacyOrgIds), by re-including already-corrected troopers in the
-     * credit/achievement passes without re-counting or re-deleting the membership itself.
+     * Keys off the tt_trooper_organizations row itself, trashed or not, rather than whether a
+     * TrooperAssignment is still active — so a re-run keeps including already-corrected troopers
+     * in the credit/achievement passes (needed since resolveLegacyOrgIds can hand back the same
+     * false credit it's supposed to replace) without re-counting or re-deleting the membership.
      *
      * @param  array{id: int, permission_column: string, identity: string}  $club
      * @return array<string, mixed>|null
@@ -457,8 +448,7 @@ class Fix408 extends Seeder
             return;
         }
 
-        // The legacy signup data can carry the exact same false club the live membership did
-        // (it's the same old tracker, often the same root cause) — never hand that back out.
+        // legacy signup data can carry the same false club the membership did — filter it too
         $legacy_org_ids = collect($this->resolveLegacyOrgIds($event_trooper, $costume_club_map))
             ->reject(function (int $org_id) use ($false_root_ids, $all_orgs) {
                 $node_path = $all_orgs->get($org_id)?->node_path;
@@ -477,8 +467,7 @@ class Fix408 extends Seeder
             return;
         }
 
-        // Unresolvable either way — still remove the false credit rather than leave it in
-        // place just because nothing better was found to replace it with.
+        // couldn't resolve it either way — clear the false credit instead of leaving it in place
         $event_trooper->costume_organization_ids = [];
         $event_trooper->saveQuietly();
 

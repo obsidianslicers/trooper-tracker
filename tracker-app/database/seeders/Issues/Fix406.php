@@ -52,9 +52,8 @@ class Fix406 extends Seeder
                 ->where(EventTrooper::STATUS, EventTrooperStatus::ATTENDED->value)
                 ->whereNull(EventTrooper::ORGANIZATION_ID)
                 ->where(function ($query): void {
-                    // whereJsonLength (not orWhere(..., '[]')) — comparing a JSON column to a
-                    // bound string parameter never does JSON-aware equality in MySQL, so the
-                    // original orWhere('[]') silently matched nothing.
+                    // whereJsonLength, not orWhere('[]') — MySQL never does JSON-aware equality
+                    // against a bound parameter, so the old orWhere('[]') matched nothing
                     $query->whereNull(EventTrooper::COSTUME_ORGANIZATION_IDS)
                         ->orWhereJsonLength(EventTrooper::COSTUME_ORGANIZATION_IDS, 0);
                 })

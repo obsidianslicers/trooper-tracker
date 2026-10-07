@@ -228,10 +228,9 @@ class Trooper extends BaseTrooper implements
     }
 
     /**
-     * Overrides the base relation to exclude soft-deleted memberships by default — the base
-     * relation only selects the deleted_at pivot column, it never filters on it, so callers that
-     * forget to add wherePivotNull() themselves (several did) silently see retired/corrected
-     * memberships as if they were still active.
+     * Base relation only selects the deleted_at pivot column, never filters on it — several
+     * callers had to add wherePivotNull() themselves to avoid showing retired memberships as
+     * active. Filtering here by default instead of relying on every caller to remember.
      */
     public function organizations(): BelongsToMany
     {

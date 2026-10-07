@@ -114,129 +114,107 @@ accumulated. Safe to re-run — already-retired records are excluded from both u
 ## Fix406
 
 **Issue:** Before the admin roster-update controller was fixed (#262), every admin roster save
-unconditionally cleared both `costume_organization_ids` and `organization_id` on a row whenever
-org-selection data wasn't submitted for it — silently destroying any existing troop credit,
-including the `organization_id` legacy fallback. `EventTrooper` only audits the `status` column,
-so the original values cannot be recovered from an audit trail. A residual gap left `organization_id`
-being nulled unconditionally on every save even after #262 landed; that live bug is fixed alongside
-this seeder.
+cleared both `costume_organization_ids` and `organization_id` whenever org-selection data wasn't
+submitted for a row, destroying any existing troop credit with no way to recover it from an audit
+trail (`EventTrooper` only audits `status`). A residual gap kept nulling `organization_id` on
+every save even after #262; that's fixed alongside this seeder.
 
-**What it does:** Scans `EventTrooper` records with `status = attended`, `organization_id IS NULL`,
-and `costume_organization_ids` null or empty — i.e. rows with no credit source at all. For each,
-re-derives credit from current costume approvals / membership via
-`EventTrooper::getEligibleCreditOrganizations()` (the same resolver the self-service attendance
-flow uses):
+**What it does:** Scans `EventTrooper` records with `status = attended`, `organization_id IS
+NULL`, and `costume_organization_ids` null or empty, then re-derives credit via
+`EventTrooper::getEligibleCreditOrganizations()` — the same resolver the self-service attendance
+flow uses:
 
-- **One eligible top-level club** — unambiguous; populate `costume_organization_ids` with that
-  club's eligible org IDs.
-- **More than one eligible top-level club** — ambiguous (the self-service flow would have asked
-  the trooper to choose); rather than guess, all eligible clubs are credited and counted
-  separately (`resolved_multi_club`) so they can be audited afterward.
-- **No eligible club** — cannot determine, skipped and requires manual review.
+- One eligible top-level club: populate `costume_organization_ids` with it.
+- More than one eligible club: ambiguous, credit all of them and count separately
+  (`resolved_multi_club`) for later audit.
+- No eligible club: skipped, needs manual review.
 
-Outputs counts for scanned/resolved (single + multi club)/skipped records. If any records were
-skipped, queues a `Fix406OutstandingCredit` email (`app/Mail/Fix406OutstandingCredit.php`) to
-every administrator trooper, listing each skipped record's trooper, event, costume, and
-`EventTrooper` ID so they can be reviewed manually. No email is sent if nothing was skipped.
+Prints scanned/resolved/skipped counts. If anything was skipped, queues a `Fix406OutstandingCredit`
+email to every administrator listing the trooper, event, costume, and `EventTrooper` ID for each.
 
-**When to run:** Once, against any environment running before the `organization_id`-nulling fix
-in `UpdateTroopersSubmitController` (the forward fix ships alongside this seeder). Run on
-production before reloading affected service record pages.
+**When to run:** Once, on any environment running before the `organization_id`-nulling fix in
+`UpdateTroopersSubmitController` (the forward fix ships with this seeder). Run before reloading
+affected service record pages.
 
-**Bug fix (discovered while investigating widespread missing credit on the Missing Credits
-page):** the `costume_organization_ids is null OR costume_organization_ids = '[]'` check used a
-plain `orWhere('[]')`. Comparing a MySQL `JSON` column to a string via a bound parameter never
-does JSON-aware equality — it's only JSON-aware when the string is a literal written directly in
-the SQL text — so this condition never actually matched the `'[]'` case, only true SQL `NULL`.
-Since every current write path stores an empty *array* (`'[]'`) rather than `NULL` when there's no
-credit, `Fix406` had — until this was fixed — only ever been able to resolve a small fraction of
-its intended target (confirmed: 18 true-`NULL` rows vs. 2,476 `'[]'` rows in one affected
-database). The condition now uses `orWhereJsonLength(..., 0)`, which is JSON-aware and matches
-both cases. Re-run `Fix406` after upgrading to pick up any backlog it previously missed.
+**Bug found while investigating widespread missing credit:** the empty-credit check used
+`orWhere('costume_organization_ids', '[]')`. MySQL only does JSON-aware equality on a literal
+written into the SQL text, not on a bound parameter, so this never actually matched the `'[]'`
+case — only true `NULL`. Every current write path stores `'[]'`, not `NULL`, for no-credit rows,
+so `Fix406` had only ever resolved a sliver of what it was supposed to (18 `NULL` rows vs. 2,476
+`'[]'` rows in one affected database). Changed to `orWhereJsonLength(..., 0)`. Re-run `Fix406` to
+pick up the backlog it missed before this fix.
 
 ---
 
 ## Fix407
 
-**Issue:** After fixing `Fix406`'s JSON-comparison bug (see above), a small residue of records
-still have no credit source and no live-eligible organization — mostly troopers with no current
-active club assignment at all (retired, command staff, N/A membership). `Fix406`'s live resolver
-(current costume approvals / membership) has no signal to work with for these.
+**Issue:** Even after `Fix406`'s JSON-comparison fix, a handful of records still have no credit
+source and no live-eligible organization — mostly troopers with no current active club assignment
+at all (retired, command staff, N/A membership). `Fix406`'s resolver has nothing to work with for
+these.
 
-**What it does:** Only processes records `Fix406` already can't resolve
-(`getEligibleCreditParentOrganizations()` empty) — it does not duplicate `Fix406`'s single/multi-club
-resolution, so **run `Fix406` first**. For each such record, looks up the trooper's original
-signup for that exact shift in the legacy (pre-2.0) `event_sign_up`/`costumes` tables — matched via
-`event_sign_up.troopid = event_trooper.event_shift_id` and `event_sign_up.trooperid =
-event_trooper.trooper_id`, both ids preserved 1:1 from the old tracker. The legacy `costumes.club`
-tag is still present even for costumes the 2.0 import deliberately excluded from migration
-(`N/A`, `Handler`, `Command Staff`). If that legacy club maps to a current organization (via the
-same club map `TrooperCostumeSeeder` uses), credit is backfilled from it.
+**What it does:** Only processes records `Fix406` can't resolve
+(`getEligibleCreditParentOrganizations()` empty) — doesn't duplicate its single/multi-club logic,
+so run `Fix406` first. For each, looks up the trooper's original signup for that shift in the
+legacy (pre-2.0) `event_sign_up`/`costumes` tables, joined via `event_sign_up.troopid =
+event_shift_id` and `event_sign_up.trooperid = trooper_id` (both ids carried over 1:1 from the old
+tracker). Those tables still tag a costume's club even where the 2.0 import skipped migrating it
+(`N/A`, `Handler`, `Command Staff`). If that legacy club maps to a current organization, credit
+backfills from it.
 
-Requires the legacy `event_sign_up`/`costumes` tables to still be present (skips gracefully,
-matching the `Fix246` pattern, if they're not — safe on fresh installs). A legacy club of `4`
-("Other") or one with no equivalent current organization is treated the same as no legacy record:
-skipped and included in a `Fix407OutstandingCredit` email to every administrator
-(`app/Mail/Fix407OutstandingCredit.php`), listing each skipped record's trooper, event, costume,
-and a note on why the legacy lookup couldn't help either.
+Needs the legacy `event_sign_up`/`costumes` tables to exist — skips cleanly if not, same as
+`Fix246`. A legacy club of `4` ("Other") or one with no current equivalent is treated as no
+record: skipped and added to a `Fix407OutstandingCredit` email to every administrator, with a note
+on why the legacy lookup didn't help either.
 
-**When to run:** Once, immediately after `Fix406`, on any environment that was imported from the
-legacy (pre-2.0) tracker and still has leftover missing-credit records after `Fix406` runs.
+**When to run:** Once, right after `Fix406`, on any environment imported from the legacy tracker
+that still has missing-credit records afterward.
 
 ---
 
 ## Fix408
 
-**Issue:** `TrooperOrganizationSeeder` (the one-time Florida Garrison import) determined club
-membership purely from whether a legacy identity field (`tkid`, `rebelforum`, ...) was non-empty,
-never checking the club's own permission flag (`p501`, `pRebel`, ...). The old tracker required
-every trooper to fill in a TKID-style field in its unified signup form regardless of their actual
-club, so troopers ended up with an active membership — and, once `Fix242`'s orphaned-membership
-repair ran, an active `TrooperAssignment` — for a club they never belonged to (e.g. a Rebel Legion
-trooper credited for 501st Legion). That false membership fed troop credit and club-scoped
-achievement milestones for years, independent of `Fix406`/`Fix407`. The importer itself is fixed
-alongside this seeder: it now checks the permission flag for every club, generalizing a check that
-previously only existed for Droid Builders.
+**Issue:** `TrooperOrganizationSeeder` (the Florida Garrison import) granted club membership from
+a non-empty legacy identity field (`tkid`, `rebelforum`, ...) alone, never checking the club's own
+permission flag (`p501`, `pRebel`, ...). The old signup form required an identifier from everyone
+regardless of club, so troopers ended up with an active membership for a club they were never in
+— and once `Fix242`'s orphaned-membership repair ran, a real `TrooperAssignment` too (e.g. a Rebel
+Legion trooper credited for 501st Legion). That fed troop credit and club-scoped achievements for
+years, independent of `Fix406`/`Fix407`. The importer is fixed alongside this seeder — it now
+checks the permission flag for every club, generalizing a check that previously only covered Droid
+Builders.
 
-**What it does:** Scans every legacy trooper against every club for the mismatch (permission flag
-says not-a-member, but a currently-active `TrooperAssignment` exists anyway). Only pairs where the
-current `tt_trooper_organizations` row for that club is already `retired`/`reserve` are corrected
-automatically — someone already flagged the membership as wrong, it just never propagated to the
-`TrooperAssignment` row. For those:
+**What it does:** Checks every legacy trooper against every club for the mismatch. Only corrects a
+pair automatically when the current `tt_trooper_organizations` row for that club is already
+`retired`/`reserve` — someone already flagged it wrong, it just never reached the
+`TrooperAssignment`. For those:
 
-- Soft-deletes the false `tt_trooper_organizations` row itself — it carries the fabricated
-  identifier (the stray legacy "TKID") and a status that implies a real membership that never
-  happened, so it's removed rather than left around with the identifier still visible.
+- Soft-deletes the false `tt_trooper_organizations` row, including its fabricated identifier.
 - Clears `is_member` on the false `TrooperAssignment` (soft-deletes it too if it carries no
   moderator/notify purpose).
-- Strips the false club's org id out of every affected `EventTrooper.costume_organization_ids`,
-  all-time (not just rows a prior backfill touched). If credit remains after stripping, that's the
-  fix. If nothing remains, re-tries live eligibility, then the legacy `event_sign_up`/`costumes`
-  fallback — **excluding the false club from that fallback's result too**, since the legacy signup
-  data can carry the exact same false attribution the membership did (same old tracker, same root
-  cause). If still nothing, clears the row to empty credit and reports it
-  (`Fix408OutstandingCredit`, same pattern as `Fix406`) rather than leaving the false value in
-  place just because nothing better was found.
-- **Hard-deletes** (not soft-deletes) any club-scoped `tt_trooper_achievements` row tied to the
-  false club. Hard-delete is required here: the table's unique index
-  (`trooper_id, type, organization_coalesce_id`) doesn't exclude soft-deleted rows, and the
-  recalculation command's existence check doesn't use `withTrashed()` — a soft-deleted row would
-  permanently block any future legitimate milestone for that exact trooper/type/club combination.
+- Strips the false club out of every affected `EventTrooper.costume_organization_ids`, all-time,
+  not just rows a prior backfill touched. Falls back to live eligibility, then the legacy
+  `event_sign_up`/`costumes` lookup (also filtered against the false club, since the old tracker's
+  signup data can carry the same wrong attribution), then clears the row to empty credit and
+  reports it (`Fix408OutstandingCredit`) if nothing resolves it.
+- Hard-deletes (not soft-deletes) any club-scoped `tt_trooper_achievements` row tied to the false
+  club. Has to be a hard delete: the table's unique index on
+  `(trooper_id, type, organization_coalesce_id)` doesn't exclude soft-deleted rows, and the
+  recalculation command doesn't query `withTrashed()`, so a soft-deleted row would permanently
+  block any future legitimate milestone for that trooper/type/club.
 
-The same bug exists one level down: `TrooperOrganizationSeeder::assignUnit()` grants `is_member` on
-a Florida Garrison squad purely from the legacy `squad` field matching, also never checking `p501`.
-`Fix408` corrects this the same way (clearing the false squad `TrooperAssignment`, crediting the
-correction toward the 501st root for credit/achievement cleanup) and the importer fix covers both
-`assignOrganizationAndRegion()` and `assignUnit()`.
+Same bug one level down: `TrooperOrganizationSeeder::assignUnit()` grants a Florida Garrison squad
+membership from the legacy `squad` field alone, also without checking `p501`. `Fix408` corrects
+this the same way, crediting it toward the 501st root for the credit/achievement passes. The
+importer fix covers both `assignOrganizationAndRegion()` and `assignUnit()`.
 
-Pairs where the `tt_trooper_organizations` row is still `active` are **not** touched — the trooper
-could have legitimately joined later — and are instead emailed to administrators
-(`Fix408AmbiguousMemberships`) with the club, status, and how many credited shifts/achievements
-currently ride on that membership, for manual confirmation.
+Pairs still marked `active` aren't touched — the trooper may have joined for real since the import
+— and go to administrators instead, via `Fix408AmbiguousMemberships`, with the club, status, and
+how many credited shifts/achievements ride on that membership.
 
 **When to run:** Once, after `Fix406`/`Fix407`, on any environment imported from the Florida
-Garrison legacy tracker. Afterward, run `php artisan tracker:calculate-trooper-achievements` so any
-legitimately-earned club milestone (e.g. for the trooper's real club) is created fresh.
+Garrison legacy tracker. Follow with `php artisan tracker:calculate-trooper-achievements` so any
+club milestone the trooper actually earned gets created.
 
 ---
 

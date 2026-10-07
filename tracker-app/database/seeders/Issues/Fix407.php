@@ -19,20 +19,19 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Legacy-data fallback for EventTrooper records Fix406 could not resolve.
+ * Legacy-data fallback for EventTrooper records Fix406 couldn't resolve.
  *
- * Fix406 re-derives credit from current costume approvals / membership. A small number of
- * records have neither — typically troopers with no active club assignment at all (retired,
- * command staff, N/A) — so Fix406 skips them for manual review. This seeder makes one more
- * attempt before giving up: it looks up the trooper's original signup for that exact shift in
- * the legacy (pre-2.0) event_sign_up/costumes tables — matched via event_sign_up.troopid =
- * event_shift_id and event_sign_up.trooperid = trooper_id, both preserved 1:1 from the old
- * tracker — which still carry a per-costume "club" tag even for signups the 2.0 import
- * deliberately didn't migrate (handler/command-staff/N/A costumes). If that legacy club maps to
- * a real organization, credit is backfilled from it.
+ * A small number of records have no current costume approval or membership to derive credit
+ * from — usually troopers with no active club assignment at all (retired, command staff, N/A) —
+ * so Fix406 skips them. Before giving up, this looks up the trooper's original signup for that
+ * shift in the legacy (pre-2.0) event_sign_up/costumes tables, matched via
+ * event_sign_up.troopid = event_shift_id and event_sign_up.trooperid = trooper_id (both ids
+ * preserved 1:1 from the old tracker). Those tables still carry a per-costume "club" tag even
+ * for signups the 2.0 import skipped (handler/command-staff/N/A costumes), so if it maps to a
+ * real organization, credit gets backfilled from it.
  *
- * Only reached when Fix406's live resolver already returned no eligible org — this seeder does
- * not duplicate Fix406's single/multi-club resolution. Run Fix406 first.
+ * Only runs for rows Fix406's live resolver already gave up on — doesn't duplicate its
+ * single/multi-club resolution. Run Fix406 first.
  */
 class Fix407 extends Seeder
 {
@@ -117,8 +116,7 @@ class Fix407 extends Seeder
         }
         catch (Exception)
         {
-            // Named organizations (e.g. "501st Legion") don't exist in this environment —
-            // legacy club ids can't be mapped, fall back to manual review for every row.
+            // named clubs like "501st Legion" don't exist here, nothing to map against
             return collect();
         }
     }

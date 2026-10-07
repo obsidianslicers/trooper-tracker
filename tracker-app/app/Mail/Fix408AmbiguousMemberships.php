@@ -13,13 +13,12 @@ use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
 /**
- * Reports ambiguous false-membership candidates Fix408 deliberately left untouched.
+ * Reports false-membership candidates Fix408 left untouched because they're ambiguous.
  *
- * Fix408 only auto-corrects (trooper, club) pairs where the legacy permission flag says
- * not-a-member but the current tt_trooper_organizations row for that club is already
- * retired/reserve. Pairs where that row still shows "active" are ambiguous — the trooper could
- * have legitimately joined the club for real after the original import — so they're reported here
- * for a human to confirm instead of being auto-corrected.
+ * Fix408 only auto-corrects a (trooper, club) pair when the legacy permission flag says
+ * not-a-member and the current tt_trooper_organizations row is already retired/reserve. A row
+ * still marked "active" could mean the trooper joined the club for real after the import, so
+ * it's reported here for a human to check instead of being corrected automatically.
  *
  * Queued for asynchronous delivery so the seeder run isn't blocked on mail delivery.
  */
