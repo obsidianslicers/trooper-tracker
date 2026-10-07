@@ -48,9 +48,11 @@ class TrooperOrganizationSeeder extends Seeder
                 continue;
             }
 
-            if ($club['permission_column'] == 'pDroid' && $trooper->{$club['permission_column']} < 1)
+            if ($trooper->{$club['permission_column']} < 1)
             {
-                //  skip droid builders, 0 not a member
+                //  permission flag says not a member of this club — a stray non-empty identity
+                //  field (the old tracker required one in its unified signup form regardless of
+                //  actual club) must not be treated as membership on its own.
                 continue;
             }
 

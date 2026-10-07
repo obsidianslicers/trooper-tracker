@@ -185,6 +185,48 @@ legacy (pre-2.0) tracker and still has leftover missing-credit records after `Fi
 
 ---
 
+## Fix408
+
+**Issue:** `TrooperOrganizationSeeder` (the one-time Florida Garrison import) determined club
+membership purely from whether a legacy identity field (`tkid`, `rebelforum`, ...) was non-empty,
+never checking the club's own permission flag (`p501`, `pRebel`, ...). The old tracker required
+every trooper to fill in a TKID-style field in its unified signup form regardless of their actual
+club, so troopers ended up with an active membership — and, once `Fix242`'s orphaned-membership
+repair ran, an active `TrooperAssignment` — for a club they never belonged to (e.g. a Rebel Legion
+trooper credited for 501st Legion). That false membership fed troop credit and club-scoped
+achievement milestones for years, independent of `Fix406`/`Fix407`. The importer itself is fixed
+alongside this seeder: it now checks the permission flag for every club, generalizing a check that
+previously only existed for Droid Builders.
+
+**What it does:** Scans every legacy trooper against every club for the mismatch (permission flag
+says not-a-member, but a currently-active `TrooperAssignment` exists anyway). Only pairs where the
+current `tt_trooper_organizations` row for that club is already `retired`/`reserve` are corrected
+automatically — someone already flagged the membership as wrong, it just never propagated to the
+`TrooperAssignment` row. For those:
+
+- Clears `is_member` on the false `TrooperAssignment` (soft-deletes it too if it carries no
+  moderator/notify purpose).
+- Strips the false club's org id out of every affected `EventTrooper.costume_organization_ids`,
+  all-time (not just rows a prior backfill touched). If credit remains after stripping, that's the
+  fix. If nothing remains, re-tries live eligibility, then the legacy `event_sign_up`/`costumes`
+  fallback, then gives up and reports it (`Fix408OutstandingCredit`, same pattern as `Fix406`).
+- **Hard-deletes** (not soft-deletes) any club-scoped `tt_trooper_achievements` row tied to the
+  false club. Hard-delete is required here: the table's unique index
+  (`trooper_id, type, organization_coalesce_id`) doesn't exclude soft-deleted rows, and the
+  recalculation command's existence check doesn't use `withTrashed()` — a soft-deleted row would
+  permanently block any future legitimate milestone for that exact trooper/type/club combination.
+
+Pairs where the `tt_trooper_organizations` row is still `active` are **not** touched — the trooper
+could have legitimately joined later — and are instead emailed to administrators
+(`Fix408AmbiguousMemberships`) with the club, status, and how many credited shifts/achievements
+currently ride on that membership, for manual confirmation.
+
+**When to run:** Once, after `Fix406`/`Fix407`, on any environment imported from the Florida
+Garrison legacy tracker. Afterward, run `php artisan tracker:calculate-trooper-achievements` so any
+legitimately-earned club milestone (e.g. for the trooper's real club) is created fresh.
+
+---
+
 ## Adding a New Fix
 
 1. Create `database/seeders/Issues/Fix<issue-number>.php` with namespace `Database\Seeders\Issues`.
