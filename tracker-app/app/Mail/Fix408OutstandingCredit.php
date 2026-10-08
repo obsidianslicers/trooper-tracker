@@ -13,15 +13,15 @@ use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
 /**
- * Reports EventTrooper records the Fix407 legacy-fallback seeder could not resolve.
+ * Reports EventTrooper records the Fix408 false-membership correction could not re-resolve.
  *
- * Sent to administrator troopers after Fix407 finishes running, listing the ATTENDED records
- * Fix406 already couldn't resolve via live costume approvals / membership, and that the legacy
- * (pre-2.0) event_sign_up/costumes tables also couldn't resolve. These require manual review.
+ * Sent to administrator troopers after Fix408 finishes running, listing ATTENDED records that
+ * lost credit to a false club membership and couldn't be re-resolved via live eligibility or the
+ * legacy signup fallback. These require manual review.
  *
  * Queued for asynchronous delivery so the seeder run isn't blocked on mail delivery.
  */
-class Fix407OutstandingCredit extends Mailable implements ShouldQueue
+class Fix408OutstandingCredit extends Mailable implements ShouldQueue
 {
     use HasRetryPolicy;
     use Queueable, SerializesModels;
@@ -35,7 +35,6 @@ class Fix407OutstandingCredit extends Mailable implements ShouldQueue
      *     event_id: ?int,
      *     costume_name: ?string,
      *     reason: string,
-     *     legacy_note: string,
      * }>  $outstanding_rows
      */
     public function __construct(
@@ -48,14 +47,14 @@ class Fix407OutstandingCredit extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: config('mail.prefix').' Fix407: Outstanding Credit Records',
+            subject: config('mail.prefix').' Fix408: Outstanding Credit Records',
         );
     }
 
     public function content(): Content
     {
         return new Content(
-            view: 'emails.admin.fix407-outstanding-credit',
+            view: 'emails.admin.fix408-outstanding-credit',
             with: [
                 'trooper' => $this->trooper,
                 'outstanding_rows' => $this->outstanding_rows,

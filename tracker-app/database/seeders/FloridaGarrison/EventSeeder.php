@@ -14,7 +14,7 @@ use App\Models\EventTrooper;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Carbon\Carbon;
-use Database\Seeders\FloridaGarrison\Traits\HasClubMaps;
+use Database\Seeders\FloridaGarrison\Support\LegacySignupCreditResolver;
 use Database\Seeders\FloridaGarrison\Traits\HasCostumeMaps;
 use Database\Seeders\FloridaGarrison\Traits\HasEnumMaps;
 use Database\Seeders\FloridaGarrison\Traits\HasSquadMaps;
@@ -23,19 +23,23 @@ use Illuminate\Support\Facades\DB;
 
 class EventSeeder extends Seeder
 {
-    use HasSquadMaps;
-    use HasClubMaps;
-    use HasEnumMaps;
     use HasCostumeMaps;
+    use HasEnumMaps;
+    use HasSquadMaps;
 
     private $costume_maps;
-    private $costume_club_maps;
-    private $costume_specific_club_map;
+
+    private LegacySignupCreditResolver $legacy_credit;
+
     private $squad_maps;
+
     private $trooper_status_map;
+
     // private $sign_ups;
     private $trooper_ids;
+
     private $handler_ids;
+
     private $organizations;
 
     /**
@@ -71,17 +75,10 @@ class EventSeeder extends Seeder
         $this->organizations = Organization::ofTypeOrganizations()->get();
         $this->trooper_status_map = array_values(array_filter(
             EventTrooperStatus::cases(),
-            fn($case) => $case !== EventTrooperStatus::NONE
+            fn ($case) => $case !== EventTrooperStatus::NONE
         ));
 
-        $costume_club_maps = $this->getCostumeClubMap();
-
-        $this->costume_club_maps = [];
-
-        foreach ($costume_club_maps as $club)
-        {
-            $this->costume_club_maps[$club['costume_club_id']] = $club;
-        }
+        $this->legacy_credit = LegacySignupCreditResolver::load();
 
         $legacy_costumes = $this->getMappedLegacyCostumes();
 
@@ -94,12 +91,6 @@ class EventSeeder extends Seeder
                 $this->costume_maps[$legacy_id] = $legacy_costume;
             }
         }
-
-        $this->costume_specific_club_map = DB::table('costumes')
-            ->whereNotNull('club')
-            ->where('club', '!=', 4)
-            ->pluck('club', 'id')
-            ->toArray();
     }
 
     private function overlayOrganization($legacy, $event)
@@ -164,7 +155,7 @@ class EventSeeder extends Seeder
             $end = Carbon::parse($legacy_shift->dateEnd);
             $key = $start->format('Y-m-d H:i');
 
-            $filtered = $shifts->filter(fn($s) => $s->key === $key);
+            $filtered = $shifts->filter(fn ($s) => $s->key === $key);
 
             if ($filtered->count() > 0)
             {
@@ -199,20 +190,20 @@ class EventSeeder extends Seeder
 
     private function overlayShiftCharity($legacy_shift, EventShift $shift): void
     {
-        $shift->charity_direct_funds   = $legacy_shift->charityDirectFunds ?? 0;
+        $shift->charity_direct_funds = $legacy_shift->charityDirectFunds ?? 0;
         $shift->charity_indirect_funds = $legacy_shift->charityIndirectFunds ?? 0;
-        $shift->charity_name           = $legacy_shift->charityName;
-        $offset                        = (int) ($legacy_shift->charityAddHours ?? 0);
-        $duration                      = (int) $shift->shift_starts_at->diffInHours($shift->shift_ends_at);
-        $shift->charity_hours          = $offset === 0 ? null : $duration + $offset;
-        $shift->charity_notes          = $legacy_shift->charityNote;
+        $shift->charity_name = $legacy_shift->charityName;
+        $offset = (int) ($legacy_shift->charityAddHours ?? 0);
+        $duration = (int) $shift->shift_starts_at->diffInHours($shift->shift_ends_at);
+        $shift->charity_hours = $offset === 0 ? null : $duration + $offset;
+        $shift->charity_notes = $legacy_shift->charityNote;
         $shift->save();
     }
 
     private function overlayTroopers($legacy_id, $shift_id)
     {
         // $troopers = $this->sign_ups->filter(fn($s) => $s->troopid == $legacy_id);
-        // Mission Correction: Fetch signups for THIS specific legacy shift 
+        // Mission Correction: Fetch signups for THIS specific legacy shift
         // effectively bypassing the "empty table at start" issue.
         $legacy_sign_ups = DB::table('event_sign_up')
             ->join('tt_troopers', 'event_sign_up.trooperid', '=', 'tt_troopers.id')
@@ -230,7 +221,7 @@ class EventSeeder extends Seeder
             if ($event_trooper === null)
             {
                 //  first record wins unforunately
-                $event_trooper = new EventTrooper();
+                $event_trooper = new EventTrooper;
 
                 $event_trooper->event_shift_id = $shift_id;
                 $event_trooper->trooper_id = $legacy_sign_up->trooperid;
@@ -239,15 +230,19 @@ class EventSeeder extends Seeder
 
                 $event_trooper->is_handler = isset($this->handler_ids[$legacy_sign_up->trooperid]);
 
+                //  credit comes from the legacy signup's costume club for everyone, handlers
+                //  included — TT1.0 had per-club Handler/N/A/Command Staff costumes
+                $credit = $this->legacy_credit->resolve($shift_id, (int) $legacy_sign_up->trooperid);
+                $event_trooper->costume_organization_ids = $credit->isResolved() ? $credit->org_ids : null;
+
                 if (!$event_trooper->is_handler)
                 {
                     $event_trooper->costume_id = $this->getMappedCostumeId($legacy_sign_up->costume);
 
-                    $event_trooper->costume_organization_ids = $this->getMappedCostumeOrganizationIds($legacy_sign_up->costume);
-
                     $event_trooper->backup_costume_id = $this->getMappedCostumeId($legacy_sign_up->costume_backup);
 
-                    $event_trooper->backup_costume_organization_ids = $this->getMappedCostumeOrganizationIds($legacy_sign_up->costume_backup);
+                    $event_trooper->backup_costume_organization_ids =
+                        $this->getMappedCostumeOrganizationIds((int) $legacy_sign_up->costume_backup);
                 }
 
                 if ($legacy_sign_up->addedby > 0)
@@ -275,34 +270,12 @@ class EventSeeder extends Seeder
         return $legacy_costume['id'];
     }
 
-    private function getMappedCostumeOrganizationIds($legacy_id): ?array
+    /** @return array<int, int>|null */
+    private function getMappedCostumeOrganizationIds(int $legacy_id): ?array
     {
-        if (!isset($this->costume_maps[$legacy_id]))
-        {
-            return null;
-        }
+        $credit = $this->legacy_credit->creditForCostume($legacy_id);
 
-        $specific_club = $this->costume_specific_club_map[$legacy_id] ?? null;
-
-        if ($specific_club === null)
-        {
-            return null;
-        }
-
-        $organization_ids = [];
-        $clubs = $this->expandDualClubIds([$specific_club]);
-
-        foreach ($clubs as $club_id)
-        {
-            $club = $this->costume_club_maps[$club_id] ?? null;
-
-            if ($club !== null)
-            {
-                $organization_ids[] = $club['id'];
-            }
-        }
-
-        return $organization_ids ?: null;
+        return $credit->isResolved() ? $credit->org_ids : null;
     }
 
     private function overlayEvent($legacy, $event)
@@ -368,11 +341,11 @@ class EventSeeder extends Seeder
 
     private function getOrganization($id)
     {
-        $organizations = once(fn() => Organization::all()->keyBy('id'));
+        $organizations = once(fn () => Organization::all()->keyBy('id'));
 
         if ($id <= 0)
         {
-            return $organizations->filter(fn($org) => $org->name === 'Florida Garrison')->first();
+            return $organizations->filter(fn ($org) => $org->name === 'Florida Garrison')->first();
         }
 
         return $organizations[$id];
@@ -393,14 +366,14 @@ class EventSeeder extends Seeder
 
         $events = [];
 
-        foreach ($all->filter(fn($x) => $x->link === 0) as $event)
+        foreach ($all->filter(fn ($x) => $x->link === 0) as $event)
         {
             $event->shifts = collect([$event]);
 
             $events[$event->id] = $event;
         }
 
-        foreach ($all->filter(fn($x) => $x->link > 0) as $event)
+        foreach ($all->filter(fn ($x) => $x->link > 0) as $event)
         {
             $main_event = $events[$event->link];
 
@@ -420,7 +393,8 @@ class EventSeeder extends Seeder
         $text = preg_replace_callback('/\[code\](.*?)\[\/code\]/is', function ($m)
         {
             $code = trim($m[1], "\n");
-            return "\n```" . "\n" . $code . "\n" . "```\n";
+
+            return "\n```"."\n".$code."\n"."```\n";
         }, $text);
 
         // Quotes
@@ -433,13 +407,14 @@ class EventSeeder extends Seeder
             $quote = '';
             if ($who)
             {
-                $quote .= '> **' . $who . ':**' . "\n";
+                $quote .= '> **'.$who.':**'."\n";
             }
             foreach (explode("\n", $body) as $line)
             {
-                $quote .= '> ' . $line . "\n";
+                $quote .= '> '.$line."\n";
             }
-            return "\n" . rtrim($quote) . "\n";
+
+            return "\n".rtrim($quote)."\n";
         }, $text);
 
         // Images
@@ -479,21 +454,27 @@ class EventSeeder extends Seeder
         $text = preg_replace_callback('/\[list\](.*?)\[\/list\]/is', function ($m)
         {
             $items = preg_split('/\s*\[\*\]\s*/', trim($m[1]));
-            $items = array_filter($items, fn($i) => $i !== '');
+            $items = array_filter($items, fn ($i) => $i !== '');
             if (!$items)
+            {
                 return '';
-            return "\n" . implode("\n", array_map(fn($i) => '- ' . trim($i), $items)) . "\n";
+            }
+
+            return "\n".implode("\n", array_map(fn ($i) => '- '.trim($i), $items))."\n";
         }, $text);
 
         // Ordered: [list=1] or [list=decimal|alpha] -> numbered list
         $text = preg_replace_callback('/\[list=([^\]]+)\](.*?)\[\/list\]/is', function ($m)
         {
             $items = preg_split('/\s*\[\*\]\s*/', trim($m[2]));
-            $items = array_filter($items, fn($i) => $i !== '');
+            $items = array_filter($items, fn ($i) => $i !== '');
             if (!$items)
+            {
                 return '';
+            }
+
             // Markdown doesn’t support starting index; keep simple 1..n
-            return "\n" . implode("\n", array_map(fn($i) => '1. ' . trim($i), $items)) . "\n";
+            return "\n".implode("\n", array_map(fn ($i) => '1. '.trim($i), $items))."\n";
         }, $text);
 
         // Linebreaks: [br] -> newline

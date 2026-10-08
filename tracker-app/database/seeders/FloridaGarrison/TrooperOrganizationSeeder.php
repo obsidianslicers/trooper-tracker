@@ -48,9 +48,10 @@ class TrooperOrganizationSeeder extends Seeder
                 continue;
             }
 
-            if ($club['permission_column'] == 'pDroid' && $trooper->{$club['permission_column']} < 1)
+            if ($trooper->{$club['permission_column']} < 1)
             {
-                //  skip droid builders, 0 not a member
+                //  permission flag says not a member — the old signup form required an
+                //  identifier from everyone regardless of club, so a stray one doesn't count
                 continue;
             }
 
@@ -99,8 +100,10 @@ class TrooperOrganizationSeeder extends Seeder
 
             $member = false;
 
-            if ($trooper->squad == $legacy_id)
+            if ($trooper->squad == $legacy_id && $trooper->p501 >= 1)
             {
+                //  all HasSquadMaps squads are 501st units — same reasoning as the permission
+                //  check above, the squad field alone isn't membership
                 $member = true;
             }
 
