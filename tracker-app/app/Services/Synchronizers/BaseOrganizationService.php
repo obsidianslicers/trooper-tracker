@@ -7,6 +7,7 @@ namespace App\Services\Synchronizers;
 use App\Contracts\MemberLookupInterface;
 use App\Contracts\SynchronizerInterface;
 use App\Enums\MembershipStatus;
+use App\Exceptions\GoogleSheetsUnavailableException;
 use App\Models\Costume;
 use App\Models\Organization;
 use App\Models\OrganizationCostume;
@@ -51,9 +52,23 @@ abstract class BaseOrganizationService implements SynchronizerInterface
         }
 
         // Costumes sheet columns expected: [legionId, costumename, costumeimage]
-        $rows = $this->google->getSheet($sheet_id, $sheet_name);
+        try
+        {
+            $rows = $this->google->getSheet($sheet_id, $sheet_name);
+        }
+        catch (GoogleSheetsUnavailableException $exception)
+        {
+            // Abort this organization's run so synchronized_at stays stale and the
+            // next scheduled run retries. The console command logs and continues.
+            Log::warning(__CLASS__.":{$this->organization->name} Google Sheets unavailable, skipping run", [
+                'sheet' => $sheet_name,
+                'message' => $exception->getMessage(),
+            ]);
 
-        if (is_array($rows) === false)
+            throw $exception;
+        }
+
+        if ($rows === [])
         {
             Log::warning(__CLASS__.":{$this->organization->name} No rows found");
 

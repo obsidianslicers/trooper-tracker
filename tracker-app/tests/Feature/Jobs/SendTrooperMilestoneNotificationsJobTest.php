@@ -243,7 +243,7 @@ class SendTrooperMilestoneNotificationsJobTest extends TestCase
         $this->assertNotNull($achievement->fresh()->notification_sent_at);
     }
 
-    public function test_handle_does_not_mark_notification_sent_when_delivery_fails(): void
+    public function test_handle_marks_achievements_sent_before_fanning_out(): void
     {
         $org = Organization::factory()->create();
         $trooper = Trooper::factory()->asMember()->create();
@@ -272,7 +272,46 @@ class SendTrooperMilestoneNotificationsJobTest extends TestCase
         }
         finally
         {
-            $this->assertNull($achievement->fresh()->notification_sent_at);
+            // Marked before any recipient work, so a job retry re-queries
+            // whereNull(...) and does not re-send to anyone already notified.
+            $this->assertNotNull($achievement->fresh()->notification_sent_at);
         }
+    }
+
+    public function test_handle_does_not_resend_milestones_on_rerun(): void
+    {
+        Notification::fake();
+
+        $org = Organization::factory()->create();
+        $trooper = Trooper::factory()->asMember()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($org)->asMember()->create();
+
+        $achievement = TrooperAchievement::factory()->create([
+            TrooperAchievement::TROOPER_ID => $trooper->id,
+            TrooperAchievement::TYPE => AchievementType::FIRST_TROOP,
+        ]);
+        $achievement->setRelation('trooper', $trooper);
+
+        $admin = Trooper::factory()->asAdministrator()->withEmail('in@example.com')->create();
+        TrooperAssignment::factory()
+            ->forTrooper($admin)
+            ->forOrganization($org)
+            ->withShouldNotify(true)
+            ->create();
+
+        $bus = Mockery::mock(MagicBus::class);
+        $bus->shouldReceive('send')
+            ->withArgs(fn (object $query): bool => $query instanceof GetTroopersByRoleQuery
+                && $query->membership_role === MembershipRole::ADMINISTRATOR)
+            ->andReturn(collect([$admin]));
+        $bus->shouldReceive('send')
+            ->withArgs(fn (object $query): bool => $query instanceof GetTroopersByRoleQuery
+                && $query->membership_role === MembershipRole::MODERATOR)
+            ->andReturn(collect([]));
+
+        (new SendTrooperMilestoneNotificationsJob)->handle($bus);
+        (new SendTrooperMilestoneNotificationsJob)->handle($bus);
+
+        Notification::assertSentToTimes($admin, TrooperMilestoneNotification::class, 1);
     }
 }

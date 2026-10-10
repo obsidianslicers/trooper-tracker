@@ -69,6 +69,37 @@ class SendEventCreatedNotificationsJobTest extends TestCase
         $this->assertNotNull($event->fresh()->create_notifications_sent_at);
     }
 
+    public function test_handle_marks_timestamp_before_dispatching_trooper_commands(): void
+    {
+        $organization = Organization::factory()->create();
+        $event = Event::factory()->withOrganization($organization)->withForumThreadDisabled()->create();
+
+        $bus = Mockery::mock(MagicBus::class);
+        $bus->shouldReceive('send')
+            ->once()
+            ->withArgs(fn(object $query): bool => $query instanceof GetTroopersForEventCreatedQuery)
+            ->andReturn(collect([Trooper::factory()->create()]));
+
+        $bus->shouldReceive('send')
+            ->once()
+            ->withArgs(function (object $command) use ($event): bool
+            {
+                // Marked sent before the loop, so a job retry short-circuits
+                // instead of re-dispatching to troopers already notified.
+                return $command instanceof SendEventCreatedNotificationCommand
+                    && $event->fresh()->create_notifications_sent_at !== null;
+            });
+
+        config(['discord.webhooks.default' => null, 'discord.webhook_url' => null]);
+        $notifier = new DiscordNotifier;
+
+        $forumThreadMessageService = Mockery::mock(ForumThreadMessageService::class);
+        $xenforo = Mockery::mock(XenforoService::class);
+
+        $subject = new SendEventCreatedNotificationsJob($event);
+        $subject->handle($bus, $notifier, $forumThreadMessageService, $xenforo);
+    }
+
     public function test_handle_skips_trooper_notifications_when_already_marked_sent(): void
     {
         $organization = Organization::factory()->create();

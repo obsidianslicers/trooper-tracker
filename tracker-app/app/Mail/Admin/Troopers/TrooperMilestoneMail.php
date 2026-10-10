@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Mail\Admin\Troopers;
 
-use App\Mail\HasRetryPolicy;
 use App\Models\TrooperAchievement;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -17,7 +16,6 @@ use Illuminate\Support\Collection;
 
 class TrooperMilestoneMail extends Mailable implements ShouldQueue
 {
-    use HasRetryPolicy;
     use Queueable, SerializesModels;
 
     /** @param Collection<int, TrooperAchievement> $achievements */
