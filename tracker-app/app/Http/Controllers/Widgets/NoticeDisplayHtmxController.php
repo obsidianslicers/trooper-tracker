@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Widgets;
 
-use App\Features\Notices\Queries\GetTrooperNoticeForDisplayQuery;
-use App\Http\Controllers\MagicBusController;
+use App\Http\Controllers\Controller;
+use App\Messages\Notices\Queries\GetFirstUnreadNotice;
+use App\Messages\Notices\Queries\GetUnreadNoticeCount;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -14,7 +15,7 @@ use Illuminate\Http\Request;
  * This controller determines the number of notices visible to the authenticated user
  * and fetches the specific notice if only one is available.
  */
-class NoticeDisplayHtmxController extends MagicBusController
+class NoticeDisplayHtmxController extends Controller
 {
     /**
      * Handle the incoming request to display the notice widget
@@ -26,9 +27,9 @@ class NoticeDisplayHtmxController extends MagicBusController
     {
         $trooper = $request->user();
 
-        $query = new GetTrooperNoticeForDisplayQuery($trooper, true);
+        $count = GetUnreadNoticeCount::call(trooper: $trooper);
 
-        ['count' => $count, 'notice' => $notice] = $this->bus->send($query);
+        $notice = GetFirstUnreadNotice::call(trooper: $trooper);
 
         $data = compact('count', 'notice');
 
