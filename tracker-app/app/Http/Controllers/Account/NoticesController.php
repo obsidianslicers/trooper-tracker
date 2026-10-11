@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Account;
 
 use App\Features\Notices\Queries\GetTrooperNoticesQuery;
 use App\Http\Controllers\MagicBusController;
+use App\Messages\Troopers\Queries\GetUnreadNotices;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -27,9 +28,7 @@ class NoticesController extends MagicBusController
     {
         $trooper = $request->user();
 
-        $notices_query = new GetTrooperNoticesQuery($trooper);
-
-        $notices = $this->bus->send($notices_query);
+        $notices = GetUnreadNotices::call(trooper: $trooper);
 
         $data = compact('notices');
 
