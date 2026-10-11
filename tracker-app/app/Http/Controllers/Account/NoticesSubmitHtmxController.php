@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Account;
 
 use App\Http\Controllers\MagicBusController;
-use App\Messages\Troopers\Commands\UpdateNoticeRead;
+use App\Messages\Notices\Commands\UpdateNoticeRead;
 use App\Models\Notice;
-use App\Models\NoticeTrooper;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;

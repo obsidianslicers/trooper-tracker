@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\Messages\Troopers\Queries;
+namespace Tests\Unit\Messages\Notices\Queries;
 
-use App\Messages\Troopers\Queries\GetUnreadNotices;
+use App\Messages\Notices\Queries\GetUnreadNotices;
 use App\Models\Notice;
 use App\Models\NoticeTrooper;
 use App\Models\Trooper;

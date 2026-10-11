@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Messages\Troopers\Queries;
+namespace App\Messages\Notices\Queries;
 
 use App\Models\Notice;
 use App\Models\Trooper;

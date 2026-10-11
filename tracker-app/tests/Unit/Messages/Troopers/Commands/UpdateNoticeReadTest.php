@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Messages\Troopers\Commands;
 
-use App\Messages\Troopers\Commands\UpdateNoticeRead;
+use App\Messages\Notices\Commands\UpdateNoticeRead;
 use App\Models\Notice;
 use App\Models\NoticeTrooper;
 use App\Models\Trooper;

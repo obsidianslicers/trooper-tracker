@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Messages\Troopers\Commands;
+namespace App\Messages\Notices\Commands;
 
 use App\Models\Notice;
 use App\Models\NoticeTrooper;
