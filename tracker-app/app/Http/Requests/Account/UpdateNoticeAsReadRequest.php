@@ -5,17 +5,15 @@ declare(strict_types=1);
 namespace App\Http\Requests\Account;
 
 use App\Http\Requests\Concerns\HasNormalizers;
-use App\Models\Trooper;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * Handles the validation for the update notice read form.
+ * Handles the validation for the update notice as read form.
  *
- * This class defines validation rules for updating a trooper's notification frequency,
- * including how often they want to receive notifications. The phone number is sanitized
- * during validation preparation to ensure consistent formatting.
+ * This class defines validation rules for marking a notice as read for a trooper.
+ * It ensures that the request is properly validated before updating the read status of a notice.
  */
-class UpdateNoticeReadRequest extends FormRequest
+class UpdateNoticeAsReadRequest extends FormRequest
 {
     use HasNormalizers;
 

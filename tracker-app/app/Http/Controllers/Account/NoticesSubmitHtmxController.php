@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Account;
 
 use App\Http\Controllers\MagicBusController;
-use App\Messages\Notices\Commands\UpdateNoticeRead;
+use App\Messages\Notices\Commands\UpdateNoticeAsRead;
 use App\Models\Notice;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -42,7 +42,7 @@ class NoticesSubmitHtmxController extends MagicBusController
     {
         $trooper = $request->user();
 
-        UpdateNoticeRead::call(
+        UpdateNoticeAsRead::call(
             trooper: $trooper,
             notice: $notice
         );

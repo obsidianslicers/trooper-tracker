@@ -27,9 +27,14 @@ class NoticeDisplayHtmxController extends Controller
     {
         $trooper = $request->user();
 
+        $notice = null;
+
         $count = GetUnreadNoticeCount::call(trooper: $trooper);
 
-        $notice = GetFirstUnreadNotice::call(trooper: $trooper);
+        if ($count == 1)
+        {
+            $notice = GetFirstUnreadNotice::call(trooper: $trooper);
+        }
 
         $data = compact('count', 'notice');
 
