@@ -7,6 +7,7 @@ use App\Helpers\ForumBBCodeRenderer;
 use App\Helpers\SmiliesRenderer;
 use App\Models\OauthLogin;
 use App\Support\XenforoUpgradeHelper;
+use DOMDocument;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -904,7 +905,7 @@ class XenforoService
      * which the add-on answers with the full group list. Returns null when
      * XenForo is not configured or the request fails.
      *
-     * @return array<int, array{id:int,title:string}>|null
+     * @return array<int, array{id:int,title:string,banner_image_url:?string}>|null
      */
     public function getAllUserGroups(): ?array
     {
@@ -922,9 +923,12 @@ class XenforoService
 
         return collect($groups)
             ->filter(static fn (mixed $group): bool => is_array($group))
-            ->map(static fn (array $group): array => [
+            ->map(fn (array $group): array => [
                 'id' => (int) ($group['groupID'] ?? $group['user_group_id'] ?? 0),
                 'title' => (string) ($group['title'] ?? ''),
+                'banner_image_url' => $this->extractBannerImageUrl(
+                    $group['bannerText'] ?? $group['banner_text'] ?? null
+                ),
             ])
             ->filter(static fn (array $group): bool => $group['id'] > 0 && $group['title'] !== '')
             ->unique('id')
@@ -999,8 +1003,57 @@ class XenforoService
             return null;
         }
 
-        $groups = $response->json('userGroups') ?? $response->json('user_groups') ?? [];
+        $groups = $response->json('userGroups') ?? $response->json('user_groups');
 
-        return is_array($groups) ? $groups : null;
+        if (!is_array($groups))
+        {
+            Log::warning('Unexpected response from XenForo user group list', [
+                'url' => $url,
+                'keys' => array_keys((array) $response->json()),
+            ]);
+
+            return null;
+        }
+
+        return $groups;
+    }
+
+    /**
+     * Pull the first image URL out of a XenForo banner's HTML so callers can
+     * render it without trusting the rest of the markup.
+     */
+    private function extractBannerImageUrl(mixed $banner_html): ?string
+    {
+        if (!is_string($banner_html) || !str_contains($banner_html, '<img'))
+        {
+            return null;
+        }
+
+        $document = new DOMDocument;
+        $previous = libxml_use_internal_errors(true);
+        $document->loadHTML('<?xml encoding="utf-8"?>'.$banner_html);
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+
+        $image = $document->getElementsByTagName('img')->item(0);
+        $src = trim((string) $image?->getAttribute('src'));
+
+        if ($src === '')
+        {
+            return null;
+        }
+
+        if (str_starts_with($src, '//'))
+        {
+            $src = 'https:'.$src;
+        }
+        elseif (!preg_match('#^[a-z][a-z0-9+.-]*:#i', $src))
+        {
+            $src = $this->base_url.'/'.ltrim($src, '/');
+        }
+
+        $scheme = strtolower((string) parse_url($src, PHP_URL_SCHEME));
+
+        return in_array($scheme, ['http', 'https'], true) ? $src : null;
     }
 }

@@ -157,9 +157,53 @@ class XenforoServiceTest extends TestCase
         $subject = new XenforoService;
 
         $this->assertSame([
-            ['id' => 20, 'title' => 'Event Coordinators'],
-            ['id' => 4, 'title' => 'Moderating'],
+            ['id' => 20, 'title' => 'Event Coordinators', 'banner_image_url' => null],
+            ['id' => 4, 'title' => 'Moderating', 'banner_image_url' => null],
         ], $subject->getAllUserGroups());
+    }
+
+    public function test_get_all_user_groups_extracts_banner_image_urls(): void
+    {
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'key-3',
+        ]);
+
+        Http::fake([
+            'https://xf.test/index.php?api/user-groups' => Http::response([
+                'userGroups' => [
+                    ['groupID' => 1, 'title' => 'A Absolute', 'bannerText' => '<img src="https://cdn.test/a.png">'],
+                    ['groupID' => 2, 'title' => 'B Relative', 'bannerText' => '<img src="data/assets/b.png" />'],
+                    ['groupID' => 3, 'title' => 'C Text', 'bannerText' => '<span class="userBanner">C</span>'],
+                    ['groupID' => 4, 'title' => 'D Script', 'bannerText' => '<img src="javascript:alert(1)">'],
+                ],
+            ], 200),
+        ]);
+
+        $subject = new XenforoService;
+
+        $urls = array_column($subject->getAllUserGroups() ?? [], 'banner_image_url', 'id');
+
+        $this->assertSame([
+            1 => 'https://cdn.test/a.png',
+            2 => 'https://xf.test/data/assets/b.png',
+            3 => null,
+            4 => null,
+        ], $urls);
+    }
+
+    public function test_get_all_user_groups_returns_null_when_response_has_no_group_list(): void
+    {
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'key-3',
+        ]);
+
+        Http::fake(['*' => Http::response(['userId' => 0], 200)]);
+
+        $subject = new XenforoService;
+
+        $this->assertNull($subject->getAllUserGroups());
     }
 
     public function test_get_all_user_groups_returns_null_on_failure(): void

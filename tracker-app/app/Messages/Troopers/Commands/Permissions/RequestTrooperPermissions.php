@@ -92,7 +92,7 @@ final class RequestTrooperPermissions extends Message
      * Snapshot the group titles so the request still reads correctly if the
      * forum renames or deletes a group later.
      *
-     * @param  Collection<int, array{id:int,title:string}>  $forum_groups
+     * @param  Collection<int, array{id:int,title:string,banner_image_url:?string}>  $forum_groups
      * @param  array<int, int|string>  $group_ids
      * @return array<int, array{id:int,title:string}>
      */
@@ -102,6 +102,7 @@ final class RequestTrooperPermissions extends Message
 
         return $forum_groups
             ->filter(fn (array $group): bool => $ids->contains($group['id']))
+            ->map(fn (array $group): array => ['id' => $group['id'], 'title' => $group['title']])
             ->values()
             ->all();
     }

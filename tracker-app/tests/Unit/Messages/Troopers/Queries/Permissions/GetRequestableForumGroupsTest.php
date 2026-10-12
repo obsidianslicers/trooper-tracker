@@ -52,8 +52,25 @@ class GetRequestableForumGroupsTest extends TestCase
         $result = $subject->handle(new XenforoService);
 
         $this->assertSame([
-            ['id' => 20, 'title' => 'Event Coordinators'],
-            ['id' => 4, 'title' => 'Moderating'],
+            ['id' => 20, 'title' => 'Event Coordinators', 'banner_image_url' => null],
+            ['id' => 4, 'title' => 'Moderating', 'banner_image_url' => null],
         ], $result->all());
+    }
+
+    public function test_handle_does_not_cache_empty_result(): void
+    {
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'key',
+        ]);
+
+        Http::fakeSequence('https://xf.test/index.php?api/user-groups')
+            ->push(['userGroups' => []], 200)
+            ->push(['userGroups' => [['groupID' => 20, 'title' => 'Event Coordinators']]], 200);
+
+        $subject = new GetRequestableForumGroups;
+
+        $this->assertTrue($subject->handle(new XenforoService)->isEmpty());
+        $this->assertSame([20], $subject->handle(new XenforoService)->pluck('id')->all());
     }
 }

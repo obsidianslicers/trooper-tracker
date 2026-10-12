@@ -17,18 +17,18 @@ use Illuminate\Support\Facades\Cache;
  * Groups mapped to organizations (active/reserve/retired) are left out because
  * the XenForo user sync owns them and would undo any manual change.
  *
- * @method static Collection<int, array{id:int,title:string}> call()
+ * @method static Collection<int, array{id:int,title:string,banner_image_url:?string}> call()
  */
 final class GetRequestableForumGroups extends Message
 {
-    private const CACHE_KEY = 'xenforo_requestable_user_groups';
+    private const CACHE_KEY = 'xenforo_requestable_user_groups_v2';
 
     private const CACHE_SECONDS = 600;
 
     public function __construct() {}
 
     /**
-     * @return Collection<int, array{id:int,title:string}>
+     * @return Collection<int, array{id:int,title:string,banner_image_url:?string}>
      */
     public function handle(XenforoService $xenforo): Collection
     {
@@ -37,17 +37,38 @@ final class GetRequestableForumGroups extends Message
             return collect();
         }
 
-        $groups = Cache::remember(
-            self::CACHE_KEY,
-            self::CACHE_SECONDS,
-            fn (): array => $xenforo->getAllUserGroups() ?? []
-        );
+        $groups = $this->fetchGroups($xenforo);
 
         $managed_ids = $this->getManagedGroupIds();
 
         return collect($groups)
             ->reject(fn (array $group): bool => $managed_ids->contains($group['id']))
             ->values();
+    }
+
+    /**
+     * Empty or failed lookups are not cached so a forum outage or add-on fix
+     * shows up on the next page load instead of after the cache expires.
+     *
+     * @return array<int, array{id:int,title:string,banner_image_url:?string}>
+     */
+    private function fetchGroups(XenforoService $xenforo): array
+    {
+        $cached = Cache::get(self::CACHE_KEY);
+
+        if (is_array($cached))
+        {
+            return $cached;
+        }
+
+        $groups = $xenforo->getAllUserGroups() ?? [];
+
+        if ($groups !== [])
+        {
+            Cache::put(self::CACHE_KEY, $groups, self::CACHE_SECONDS);
+        }
+
+        return $groups;
     }
 
     /**

@@ -5,6 +5,7 @@ import { router } from "@inertiajs/svelte";
 export type ForumGroup = {
     id: number;
     title: string;
+    banner_image_url?: string | null;
 };
 
 export type PermissionRequestOrganization = {
