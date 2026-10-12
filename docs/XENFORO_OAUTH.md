@@ -104,6 +104,8 @@ Endpoint:
 - `GET /index.php?api/user-groups&user_id={xenforoUserId}`
 - `GET /index.php?api/user-groups` (no `user_id`): returns every user group as `userGroups[]` with `groupID` and `title`
 
+> **Add-on version:** the no-`user_id` form requires Troop Tracker add-on **1.2.0 or later**. Older versions return `400 invalid_user_id` for that call, and the permission request tool's forum section will be empty.
+
 Custom API scope:
 
 - `usergroups:read`
