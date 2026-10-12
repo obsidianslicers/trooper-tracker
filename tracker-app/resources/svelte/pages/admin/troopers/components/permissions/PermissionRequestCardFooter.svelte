@@ -2,6 +2,7 @@
     import InputContainer from "$lib/components/form/InputContainer.svelte";
     import InputText from "$lib/components/form/InputText.svelte";
     import SubmitButtonContainer from "$lib/components/form/SubmitButtonContainer.svelte";
+    import Alert from "$lib/components/ui/Alert.svelte";
     import CancelButton from "$lib/components/ui/buttons/CancelButton.svelte";
     import CreateButton from "$lib/components/ui/buttons/CreateButton.svelte";
     import DeleteButton from "$lib/components/ui/buttons/DeleteButton.svelte";
@@ -16,6 +17,9 @@
 </script>
 
 <div class="card-footer">
+    {#if vm.error}
+        <Alert type="danger">{vm.error}</Alert>
+    {/if}
     {#if vm.denying}
         <form onsubmit={vm.deny}>
             <InputContainer>

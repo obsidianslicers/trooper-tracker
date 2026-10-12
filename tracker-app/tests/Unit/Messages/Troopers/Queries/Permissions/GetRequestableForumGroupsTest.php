@@ -6,6 +6,7 @@ namespace Tests\Unit\Messages\Troopers\Queries\Permissions;
 
 use App\Messages\Troopers\Queries\Permissions\GetRequestableForumGroups;
 use App\Models\Organization;
+use App\Services\Forums\XenforoService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
@@ -19,7 +20,9 @@ class GetRequestableForumGroupsTest extends TestCase
         config(['services.xenforo.base_url' => '', 'services.xenforo.api_key' => null]);
         Http::fake();
 
-        $this->assertTrue(GetRequestableForumGroups::call()->isEmpty());
+        $subject = new GetRequestableForumGroups;
+
+        $this->assertTrue($subject->handle(new XenforoService)->isEmpty());
 
         Http::assertNothingSent();
     }
@@ -45,7 +48,8 @@ class GetRequestableForumGroupsTest extends TestCase
             ], 200),
         ]);
 
-        $result = GetRequestableForumGroups::call();
+        $subject = new GetRequestableForumGroups;
+        $result = $subject->handle(new XenforoService);
 
         $this->assertSame([
             ['id' => 20, 'title' => 'Event Coordinators'],

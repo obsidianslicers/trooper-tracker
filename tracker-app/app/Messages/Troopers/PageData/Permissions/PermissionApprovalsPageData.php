@@ -23,7 +23,9 @@ final class PermissionApprovalsPageData extends Message
     public function handle(): array
     {
         return [
-            'permission_requests' => new PermissionRequestsCollection(GetPendingPermissionRequests::call()),
+            'permission_requests' => new PermissionRequestsCollection(
+                GetPendingPermissionRequests::call()
+            ),
         ];
     }
 }

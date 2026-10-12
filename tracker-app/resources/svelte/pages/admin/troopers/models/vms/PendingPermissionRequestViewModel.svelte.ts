@@ -41,6 +41,7 @@ export class PendingPermissionRequestViewModel extends ViewModel {
     submitting: boolean = $state(false);
     denying: boolean = $state(false);
     denial_reason: string | null = $state(null);
+    error: string | null = $state(null);
     request: PermissionRequest;
 
     constructor(request: PermissionRequest) {
@@ -59,12 +60,16 @@ export class PendingPermissionRequestViewModel extends ViewModel {
 
     private post(name: string, data: Record<string, unknown>) {
         this.submitting = true;
+        this.error = null;
 
         const url = getRoute(name as any, { permission_request: this.request.id });
 
         router.post(url, data as any, {
             preserveScroll: true,
             preserveState: 'errors',
+            onError: (errors) => {
+                this.error = Object.values(errors)[0] ?? 'Something went wrong.';
+            },
             onFinish: () => {
                 this.submitting = false;
             },

@@ -13,7 +13,8 @@ use App\Notifications\BaseNotification;
 
 class PermissionRequestSubmittedNotification extends BaseNotification
 {
-    protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category = AdministrativeNotifications::PERMISSION_REQUESTS;
+    protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category =
+        AdministrativeNotifications::PERMISSION_REQUESTS;
 
     public function __construct(private readonly PermissionRequest $permission_request) {}
 

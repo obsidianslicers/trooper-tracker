@@ -159,7 +159,7 @@ class XenforoServiceTest extends TestCase
         $this->assertSame([
             ['id' => 20, 'title' => 'Event Coordinators'],
             ['id' => 4, 'title' => 'Moderating'],
-        ], $subject->get_all_user_groups());
+        ], $subject->getAllUserGroups());
     }
 
     public function test_get_all_user_groups_returns_null_on_failure(): void
@@ -173,7 +173,7 @@ class XenforoServiceTest extends TestCase
 
         $subject = new XenforoService;
 
-        $this->assertNull($subject->get_all_user_groups());
+        $this->assertNull($subject->getAllUserGroups());
     }
 
     public function test_update_thread_updates_title_for_configured_thread(): void

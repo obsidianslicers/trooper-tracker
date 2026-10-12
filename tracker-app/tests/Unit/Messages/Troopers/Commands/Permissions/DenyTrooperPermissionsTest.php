@@ -26,9 +26,8 @@ class DenyTrooperPermissionsTest extends TestCase
             ->withRole(MembershipRole::MODERATOR)
             ->create();
 
-        $this->actingAs($admin);
-
-        DenyTrooperPermissions::call(permission_request: $permission_request, denial_reason: 'Not yet');
+        $subject = new DenyTrooperPermissions($admin, $permission_request, 'Not yet');
+        $subject->handle();
 
         $permission_request->refresh();
         $this->assertSame(PermissionRequestStatus::DENIED, $permission_request->status);
@@ -39,11 +38,13 @@ class DenyTrooperPermissionsTest extends TestCase
 
     public function test_handle_rejects_request_that_is_not_pending(): void
     {
-        $this->actingAs(Trooper::factory()->asAdministrator()->create());
+        $admin = Trooper::factory()->asAdministrator()->create();
         $permission_request = PermissionRequest::factory()->asApproved()->create();
+
+        $subject = new DenyTrooperPermissions($admin, $permission_request);
 
         $this->expectException(RuntimeException::class);
 
-        DenyTrooperPermissions::call(permission_request: $permission_request);
+        $subject->handle();
     }
 }

@@ -20,6 +20,10 @@ use Illuminate\Validation\Validator;
  */
 class RequestPermissionsRequest extends FormRequest
 {
+    private const GROUPS_TO_ADD = 'forum_group_ids_to_add';
+
+    private const GROUPS_TO_REMOVE = 'forum_group_ids_to_remove';
+
     public function authorize(): bool
     {
         return $this->user()->is_moderator || $this->user()->is_administrator;
@@ -30,9 +34,13 @@ class RequestPermissionsRequest extends FormRequest
      */
     public function rules(): array
     {
+        $organization_ids = $this->requestableOrganizationIds();
+        $group_ids = $this->requestableGroupIds();
+
         return [
             'trooper_id' => [
                 'required',
+                'integer',
                 Rule::notIn([$this->user()->id]),
                 Rule::exists(Trooper::class, Trooper::ID)
                     ->where(Trooper::MEMBERSHIP_STATUS, MembershipStatus::ACTIVE),
@@ -42,11 +50,11 @@ class RequestPermissionsRequest extends FormRequest
                 Rule::in([MembershipRole::MODERATOR->value, MembershipRole::MEMBER->value]),
             ],
             'moderated_organization_ids' => ['array', 'required_if:membership_role,moderator'],
-            'moderated_organization_ids.*' => ['integer', Rule::in($this->requestableOrganizationIds())],
-            'forum_group_ids_to_add' => ['array'],
-            'forum_group_ids_to_add.*' => ['integer', Rule::in($this->requestableGroupIds())],
-            'forum_group_ids_to_remove' => ['array'],
-            'forum_group_ids_to_remove.*' => ['integer', Rule::in($this->requestableGroupIds())],
+            'moderated_organization_ids.*' => ['integer', Rule::in($organization_ids)],
+            self::GROUPS_TO_ADD => ['array'],
+            self::GROUPS_TO_ADD.'.*' => ['integer', Rule::in($group_ids)],
+            self::GROUPS_TO_REMOVE => ['array'],
+            self::GROUPS_TO_REMOVE.'.*' => ['integer', Rule::in($group_ids)],
             'note' => ['nullable', 'string', 'max:2000'],
         ];
     }
@@ -56,26 +64,39 @@ class RequestPermissionsRequest extends FormRequest
      */
     public function messages(): array
     {
+        $group_message = 'One of the selected forum groups cannot be requested.';
+
         return [
             'trooper_id.required' => 'Pick the trooper this request is for.',
             'trooper_id.not_in' => 'You cannot request permission changes for yourself.',
             'trooper_id.exists' => 'The selected trooper does not exist (or is not active).',
-            'moderated_organization_ids.required_if' => 'Pick at least one organization for them to moderate.',
-            'moderated_organization_ids.*.in' => 'You can only request moderator rights for organizations you moderate.',
-            'forum_group_ids_to_add.*.in' => 'One of the selected forum groups cannot be requested.',
-            'forum_group_ids_to_remove.*.in' => 'One of the selected forum groups cannot be requested.',
+            'moderated_organization_ids.required_if' => 'Pick an organization to moderate.',
+            'moderated_organization_ids.*.in' => 'You can only pick organizations you moderate.',
+            self::GROUPS_TO_ADD.'.*.in' => $group_message,
+            self::GROUPS_TO_REMOVE.'.*.in' => $group_message,
         ];
     }
 
     /**
+     * Cross-field checks. They only run once the field rules pass, so they can
+     * rely on well-formed input.
+     *
      * @return array<int, callable>
      */
     public function after(): array
     {
         return [
-            fn (Validator $validator) => $this->validateSomethingRequested($validator),
-            fn (Validator $validator) => $this->validateRoleChange($validator),
-            fn (Validator $validator) => $this->validateForumGroups($validator),
+            function (Validator $validator): void
+            {
+                if ($validator->errors()->isNotEmpty())
+                {
+                    return;
+                }
+
+                $this->validateSomethingRequested($validator);
+                $this->validateRoleChange($validator);
+                $this->validateForumGroups($validator);
+            },
         ];
     }
 
@@ -86,7 +107,7 @@ class RequestPermissionsRequest extends FormRequest
             return;
         }
 
-        $validator->errors()->add('membership_role', 'Choose a role change or at least one forum group.');
+        $validator->errors()->add('membership_role', 'Choose a role change or a forum group.');
     }
 
     private function validateRoleChange(Validator $validator): void
@@ -100,7 +121,7 @@ class RequestPermissionsRequest extends FormRequest
 
         if ($trooper->membership_role === MembershipRole::ADMINISTRATOR)
         {
-            $validator->errors()->add('membership_role', 'Administrator roles cannot be changed with a request.');
+            $validator->errors()->add('membership_role', 'Administrator roles cannot be changed.');
         }
         elseif ($this->input('membership_role') === MembershipRole::MEMBER->value
             && $trooper->membership_role !== MembershipRole::MODERATOR)
@@ -117,31 +138,33 @@ class RequestPermissionsRequest extends FormRequest
         }
 
         $overlap = array_intersect(
-            $this->input('forum_group_ids_to_add', []),
-            $this->input('forum_group_ids_to_remove', [])
+            $this->input(self::GROUPS_TO_ADD, []),
+            $this->input(self::GROUPS_TO_REMOVE, [])
         );
 
         if ($overlap !== [])
         {
-            $validator->errors()->add('forum_group_ids_to_add', 'A forum group cannot be both added and removed.');
+            $validator->errors()->add(self::GROUPS_TO_ADD, 'A group cannot be added and removed.');
         }
 
         $trooper = $this->targetTrooper();
+        $xenforo = app(XenforoService::class);
 
-        if ($trooper !== null && app(XenforoService::class)->resolve_user_id_for_trooper($trooper->id) === null)
+        if ($trooper !== null && $xenforo->resolve_user_id_for_trooper($trooper->id) === null)
         {
-            $validator->errors()->add('forum_group_ids_to_add', 'This trooper has no linked forum account.');
+            $validator->errors()->add(self::GROUPS_TO_ADD, 'This trooper has no forum account.');
         }
     }
 
     private function hasForumGroups(): bool
     {
-        return !empty($this->input('forum_group_ids_to_add')) || !empty($this->input('forum_group_ids_to_remove'));
+        return !empty($this->input(self::GROUPS_TO_ADD))
+            || !empty($this->input(self::GROUPS_TO_REMOVE));
     }
 
     private function targetTrooper(): ?Trooper
     {
-        return Trooper::find($this->input('trooper_id'));
+        return Trooper::find((int) $this->input('trooper_id'));
     }
 
     /**

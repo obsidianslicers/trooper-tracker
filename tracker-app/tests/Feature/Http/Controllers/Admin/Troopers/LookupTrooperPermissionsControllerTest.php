@@ -25,7 +25,10 @@ class LookupTrooperPermissionsControllerTest extends TestCase
         ]);
 
         Http::fake([
-            'https://xf.test/api/users/77' => Http::response(['user' => ['secondary_group_ids' => [5, 20]]], 200),
+            'https://xf.test/api/users/77' => Http::response(
+                ['user' => ['secondary_group_ids' => [5, 20]]],
+                200
+            ),
         ]);
 
         $moderator = Trooper::factory()->asModerator()->create();

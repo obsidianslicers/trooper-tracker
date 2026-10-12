@@ -98,7 +98,8 @@
                       :url="route('admin.troopers.permissions.approvals')">
         @if($pending_permission_requests > 0)
             <p class="text-warning mb-0">
-                {{ $pending_permission_requests }} pending request{{ $pending_permission_requests === 1 ? '' : 's' }}
+                {{ $pending_permission_requests }}
+                pending request{{ $pending_permission_requests === 1 ? '' : 's' }}
             </p>
         @else
             <p class="text-success mb-0">No pending requests</p>

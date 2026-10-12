@@ -10,21 +10,21 @@
         changes for <strong>{{ $trooper->display_name }}</strong>.
     </p>
 
-    @if($permission_request->membership_role)
+    @if($role_label)
         <p>
-            Requested role: <strong>{{ $permission_request->membership_role === \App\Enums\MembershipRole::MEMBER ? 'Regular trooper' : to_title($permission_request->membership_role->name) }}</strong>
+            Requested role: <strong>{{ $role_label }}</strong>
         </p>
     @endif
 
-    @if(!empty($permission_request->forum_groups_to_add))
+    @if($groups_to_add !== '')
         <p>
-            Add forum groups: {{ collect($permission_request->forum_groups_to_add)->pluck('title')->implode(', ') }}
+            Add forum groups: {{ $groups_to_add }}
         </p>
     @endif
 
-    @if(!empty($permission_request->forum_groups_to_remove))
+    @if($groups_to_remove !== '')
         <p>
-            Remove forum groups: {{ collect($permission_request->forum_groups_to_remove)->pluck('title')->implode(', ') }}
+            Remove forum groups: {{ $groups_to_remove }}
         </p>
     @endif
 

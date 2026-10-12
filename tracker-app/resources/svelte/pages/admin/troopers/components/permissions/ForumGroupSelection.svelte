@@ -42,7 +42,9 @@
                         onchange={() => vm.toggleGroupToRemove(group.id)}
                     />
                 {:else}
-                    <p class="text-muted small">This trooper is not in any requestable forum groups.</p>
+                    <p class="text-muted small">
+                        This trooper is not in any requestable forum groups.
+                    </p>
                 {/each}
                 <InputError errors={vm.errors.forum_group_ids_to_remove} />
             </InputContainer>

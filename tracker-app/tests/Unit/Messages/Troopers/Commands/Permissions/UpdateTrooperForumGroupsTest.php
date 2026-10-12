@@ -9,6 +9,7 @@ use App\Exceptions\ForumGroupUpdateException;
 use App\Messages\Troopers\Commands\Permissions\UpdateTrooperForumGroups;
 use App\Models\OauthLogin;
 use App\Models\Trooper;
+use App\Services\Forums\XenforoService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
@@ -39,10 +40,14 @@ class UpdateTrooperForumGroupsTest extends TestCase
     public function test_handle_skips_forum_when_nothing_changes(): void
     {
         Http::fake([
-            'https://xf.test/api/users/77' => Http::response(['user' => ['secondary_group_ids' => [5, 20]]], 200),
+            'https://xf.test/api/users/77' => Http::response(
+                ['user' => ['secondary_group_ids' => [5, 20]]],
+                200
+            ),
         ]);
 
-        UpdateTrooperForumGroups::call(trooper: $this->trooper, group_ids_to_add: [20]);
+        $subject = new UpdateTrooperForumGroups($this->trooper, group_ids_to_add: [20]);
+        $subject->handle(new XenforoService);
 
         Http::assertSentCount(1);
     }
@@ -55,7 +60,8 @@ class UpdateTrooperForumGroupsTest extends TestCase
                 ->push(['success' => true], 200),
         ]);
 
-        UpdateTrooperForumGroups::call(trooper: $this->trooper, group_ids_to_remove: [9]);
+        $subject = new UpdateTrooperForumGroups($this->trooper, group_ids_to_remove: [9]);
+        $subject->handle(new XenforoService);
 
         Http::assertSent(fn ($request): bool => $request->method() === 'POST'
             && $request['secondary_group_ids'] === '');
@@ -67,16 +73,19 @@ class UpdateTrooperForumGroupsTest extends TestCase
             'https://xf.test/api/users/77' => Http::response([], 404),
         ]);
 
+        $subject = new UpdateTrooperForumGroups($this->trooper, group_ids_to_add: [20]);
+
         $this->expectException(ForumGroupUpdateException::class);
 
-        UpdateTrooperForumGroups::call(trooper: $this->trooper, group_ids_to_add: [20]);
+        $subject->handle(new XenforoService);
     }
 
     public function test_handle_does_nothing_without_groups(): void
     {
         Http::fake();
 
-        UpdateTrooperForumGroups::call(trooper: Trooper::factory()->create());
+        $subject = new UpdateTrooperForumGroups(Trooper::factory()->create());
+        $subject->handle(new XenforoService);
 
         Http::assertNothingSent();
     }

@@ -25,14 +25,14 @@ class RequestTrooperPermissionsTest extends TestCase
         $moderator = Trooper::factory()->asModerator()->create();
         $trooper = Trooper::factory()->asMember()->create();
 
-        $this->actingAs($moderator);
-
-        $result = RequestTrooperPermissions::call(
+        $subject = new RequestTrooperPermissions(
+            actor: $moderator,
             trooper: $trooper,
             membership_role: MembershipRole::MODERATOR,
             moderated_organization_ids: ['3', 3, '4'],
             note: 'Running the Florida events',
         );
+        $result = $subject->handle();
 
         $this->assertSame($trooper->id, $result->trooper_id);
         $this->assertSame($moderator->id, $result->requester_trooper_id);
@@ -48,13 +48,13 @@ class RequestTrooperPermissionsTest extends TestCase
     {
         Bus::fake([SendPermissionRequestNotificationsJob::class]);
 
-        $this->actingAs(Trooper::factory()->asModerator()->create());
-
-        $result = RequestTrooperPermissions::call(
+        $subject = new RequestTrooperPermissions(
+            actor: Trooper::factory()->asModerator()->create(),
             trooper: Trooper::factory()->asModerator()->create(),
             membership_role: MembershipRole::MEMBER,
             moderated_organization_ids: [3],
         );
+        $result = $subject->handle();
 
         $this->assertSame([], $result->moderated_organization_ids);
     }
@@ -77,16 +77,18 @@ class RequestTrooperPermissionsTest extends TestCase
             ], 200),
         ]);
 
-        $this->actingAs(Trooper::factory()->asModerator()->create());
-
-        $result = RequestTrooperPermissions::call(
+        $subject = new RequestTrooperPermissions(
+            actor: Trooper::factory()->asModerator()->create(),
             trooper: Trooper::factory()->asMember()->create(),
             forum_group_ids_to_add: ['20'],
             forum_group_ids_to_remove: [9],
         );
+        $result = $subject->handle();
+
+        $event_coordinators = [['id' => 20, 'title' => 'Event Coordinators']];
 
         $this->assertNull($result->membership_role);
-        $this->assertSame([['id' => 20, 'title' => 'Event Coordinators']], $result->forum_groups_to_add);
+        $this->assertSame($event_coordinators, $result->forum_groups_to_add);
         $this->assertSame([['id' => 9, 'title' => 'Recruiters']], $result->forum_groups_to_remove);
     }
 }

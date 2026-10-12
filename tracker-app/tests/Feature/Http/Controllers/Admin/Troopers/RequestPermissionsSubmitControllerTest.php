@@ -15,6 +15,7 @@ use App\Models\TrooperAssignment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 class RequestPermissionsSubmitControllerTest extends TestCase
@@ -32,17 +33,21 @@ class RequestPermissionsSubmitControllerTest extends TestCase
         Bus::fake([SendPermissionRequestNotificationsJob::class]);
 
         $this->moderator = Trooper::factory()->asModerator()->create();
-        $this->organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
-        TrooperAssignment::factory()->forTrooper($this->moderator)->forOrganization($this->organization)->create([
-            TrooperAssignment::IS_MODERATOR => true,
-        ]);
+        $this->organization = Organization::factory()
+            ->asOrganization()
+            ->withNodePath('100:')
+            ->create();
+        TrooperAssignment::factory()
+            ->forTrooper($this->moderator)
+            ->forOrganization($this->organization)
+            ->create([TrooperAssignment::IS_MODERATOR => true]);
     }
 
     public function test_invoke_submits_moderator_request(): void
     {
         $trooper = Trooper::factory()->asMember()->create();
 
-        $response = $this->actingAs($this->moderator)->post(route('admin.troopers.permissions.request'), [
+        $response = $this->submit([
             'trooper_id' => $trooper->id,
             'membership_role' => 'moderator',
             'moderated_organization_ids' => [$this->organization->id],
@@ -56,7 +61,10 @@ class RequestPermissionsSubmitControllerTest extends TestCase
         $this->assertSame($trooper->id, $permission_request->trooper_id);
         $this->assertSame($this->moderator->id, $permission_request->requester_trooper_id);
         $this->assertSame(MembershipRole::MODERATOR, $permission_request->membership_role);
-        $this->assertSame([$this->organization->id], $permission_request->moderated_organization_ids);
+        $this->assertSame(
+            [$this->organization->id],
+            $permission_request->moderated_organization_ids
+        );
         $this->assertSame('Handles the Tampa events', $permission_request->note);
         Bus::assertDispatched(SendPermissionRequestNotificationsJob::class);
     }
@@ -65,7 +73,7 @@ class RequestPermissionsSubmitControllerTest extends TestCase
     {
         $other = Organization::factory()->asOrganization()->withNodePath('200:')->create();
 
-        $response = $this->actingAs($this->moderator)->post(route('admin.troopers.permissions.request'), [
+        $response = $this->submit([
             'trooper_id' => Trooper::factory()->asMember()->create()->id,
             'membership_role' => 'moderator',
             'moderated_organization_ids' => [$other->id],
@@ -77,7 +85,7 @@ class RequestPermissionsSubmitControllerTest extends TestCase
 
     public function test_invoke_requires_something_to_be_requested(): void
     {
-        $response = $this->actingAs($this->moderator)->post(route('admin.troopers.permissions.request'), [
+        $response = $this->submit([
             'trooper_id' => Trooper::factory()->asMember()->create()->id,
             'membership_role' => '',
         ]);
@@ -87,7 +95,7 @@ class RequestPermissionsSubmitControllerTest extends TestCase
 
     public function test_invoke_rejects_request_for_yourself(): void
     {
-        $response = $this->actingAs($this->moderator)->post(route('admin.troopers.permissions.request'), [
+        $response = $this->submit([
             'trooper_id' => $this->moderator->id,
             'membership_role' => 'member',
         ]);
@@ -97,7 +105,7 @@ class RequestPermissionsSubmitControllerTest extends TestCase
 
     public function test_invoke_rejects_role_change_for_administrator(): void
     {
-        $response = $this->actingAs($this->moderator)->post(route('admin.troopers.permissions.request'), [
+        $response = $this->submit([
             'trooper_id' => Trooper::factory()->asAdministrator()->create()->id,
             'membership_role' => 'member',
         ]);
@@ -107,7 +115,7 @@ class RequestPermissionsSubmitControllerTest extends TestCase
 
     public function test_invoke_rejects_demoting_a_trooper_who_is_not_a_moderator(): void
     {
-        $response = $this->actingAs($this->moderator)->post(route('admin.troopers.permissions.request'), [
+        $response = $this->submit([
             'trooper_id' => Trooper::factory()->asMember()->create()->id,
             'membership_role' => 'member',
         ]);
@@ -124,7 +132,7 @@ class RequestPermissionsSubmitControllerTest extends TestCase
             OauthLogin::PROVIDER_ID => '77',
         ]);
 
-        $response = $this->actingAs($this->moderator)->post(route('admin.troopers.permissions.request'), [
+        $response = $this->submit([
             'trooper_id' => $trooper->id,
             'forum_group_ids_to_add' => [20],
         ]);
@@ -140,7 +148,7 @@ class RequestPermissionsSubmitControllerTest extends TestCase
     {
         $this->configureXenforo();
 
-        $response = $this->actingAs($this->moderator)->post(route('admin.troopers.permissions.request'), [
+        $response = $this->submit([
             'trooper_id' => Trooper::factory()->asMember()->create()->id,
             'forum_group_ids_to_add' => [20],
         ]);
@@ -152,12 +160,38 @@ class RequestPermissionsSubmitControllerTest extends TestCase
     {
         $this->configureXenforo();
 
-        $response = $this->actingAs($this->moderator)->post(route('admin.troopers.permissions.request'), [
+        $response = $this->submit([
             'trooper_id' => Trooper::factory()->asMember()->create()->id,
             'forum_group_ids_to_add' => [999],
         ]);
 
         $response->assertSessionHasErrors('forum_group_ids_to_add.0');
+    }
+
+    public function test_invoke_rejects_malformed_input_without_crashing(): void
+    {
+        $response = $this->submit([
+            'trooper_id' => ['1'],
+            'membership_role' => 'moderator',
+            'moderated_organization_ids' => 'all',
+            'forum_group_ids_to_add' => 'abc',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHasErrors([
+            'trooper_id',
+            'moderated_organization_ids',
+            'forum_group_ids_to_add',
+        ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function submit(array $data): TestResponse
+    {
+        return $this->actingAs($this->moderator)
+            ->post(route('admin.troopers.permissions.request'), $data);
     }
 
     private function configureXenforo(): void

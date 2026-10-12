@@ -37,10 +37,11 @@ final class GetRequestableForumGroups extends Message
             return collect();
         }
 
-        $groups = Cache::remember(self::CACHE_KEY, self::CACHE_SECONDS, function () use ($xenforo): array
-        {
-            return $xenforo->get_all_user_groups() ?? [];
-        });
+        $groups = Cache::remember(
+            self::CACHE_KEY,
+            self::CACHE_SECONDS,
+            fn (): array => $xenforo->getAllUserGroups() ?? []
+        );
 
         $managed_ids = $this->getManagedGroupIds();
 
@@ -63,9 +64,9 @@ final class GetRequestableForumGroups extends Message
         return Organization::query()
             ->select($columns)
             ->get()
-            ->flatMap(fn (Organization $organization): array => array_values($organization->only($columns)))
-            ->filter(fn ($id): bool => $id !== null)
-            ->map(fn ($id): int => (int) $id)
+            ->flatMap(fn (Organization $org): array => array_values($org->only($columns)))
+            ->filter(fn (mixed $id): bool => $id !== null)
+            ->map(fn (int|string $id): int => (int) $id)
             ->unique()
             ->values();
     }

@@ -42,20 +42,24 @@ final class UpdateTrooperForumGroups extends Message
 
         if ($xenforo_user_id === null)
         {
-            throw new ForumGroupUpdateException("{$this->trooper->display_name} has no linked forum account.");
+            throw new ForumGroupUpdateException(
+                "{$this->trooper->display_name} has no linked forum account."
+            );
         }
 
-        $current = $xenforo->get_user_secondary_group_ids($xenforo_user_id);
+        $current = $xenforo->getUserSecondaryGroupIds($xenforo_user_id);
 
         if ($current === null)
         {
-            throw new ForumGroupUpdateException('Could not read the forum account\'s current user groups.');
+            throw new ForumGroupUpdateException(
+                'Could not read the forum account\'s current user groups.'
+            );
         }
 
         $desired = collect($current)
             ->diff($this->group_ids_to_remove)
             ->merge($this->group_ids_to_add)
-            ->map(fn ($id): int => (int) $id)
+            ->map(fn (int|string $id): int => (int) $id)
             ->unique()
             ->values();
 
@@ -80,7 +84,9 @@ final class UpdateTrooperForumGroups extends Message
 
         if ($result['status'] < 200 || $result['status'] >= 300)
         {
-            throw new ForumGroupUpdateException("The forum rejected the user group change (HTTP {$result['status']}).");
+            throw new ForumGroupUpdateException(
+                "The forum rejected the user group change (HTTP {$result['status']})."
+            );
         }
     }
 }

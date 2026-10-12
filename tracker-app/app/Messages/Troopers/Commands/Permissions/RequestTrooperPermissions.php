@@ -48,8 +48,14 @@ final class RequestTrooperPermissions extends Message
         $permission_request->requester_trooper_id = $this->actor->id;
         $permission_request->membership_role = $this->membership_role;
         $permission_request->moderated_organization_ids = $this->organizationIds();
-        $permission_request->forum_groups_to_add = $this->pickGroups($forum_groups, $this->forum_group_ids_to_add);
-        $permission_request->forum_groups_to_remove = $this->pickGroups($forum_groups, $this->forum_group_ids_to_remove);
+        $permission_request->forum_groups_to_add = $this->pickGroups(
+            $forum_groups,
+            $this->forum_group_ids_to_add
+        );
+        $permission_request->forum_groups_to_remove = $this->pickGroups(
+            $forum_groups,
+            $this->forum_group_ids_to_remove
+        );
         $permission_request->note = $this->note;
         $permission_request->status = PermissionRequestStatus::PENDING;
 
@@ -76,7 +82,7 @@ final class RequestTrooperPermissions extends Message
         }
 
         return collect($this->moderated_organization_ids)
-            ->map(fn ($id): int => (int) $id)
+            ->map(fn (int|string $id): int => (int) $id)
             ->unique()
             ->values()
             ->all();
@@ -92,7 +98,7 @@ final class RequestTrooperPermissions extends Message
      */
     private function pickGroups(Collection $forum_groups, array $group_ids): array
     {
-        $ids = collect($group_ids)->map(fn ($id): int => (int) $id);
+        $ids = collect($group_ids)->map(fn (int|string $id): int => (int) $id);
 
         return $forum_groups
             ->filter(fn (array $group): bool => $ids->contains($group['id']))

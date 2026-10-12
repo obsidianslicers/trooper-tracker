@@ -906,13 +906,70 @@ class XenforoService
      *
      * @return array<int, array{id:int,title:string}>|null
      */
-    public function get_all_user_groups(): ?array
+    public function getAllUserGroups(): ?array
     {
         if (empty($this->base_url) || empty($this->api_key))
         {
             return null;
         }
 
+        $groups = $this->fetchUserGroupList();
+
+        if ($groups === null)
+        {
+            return null;
+        }
+
+        return collect($groups)
+            ->filter(static fn (mixed $group): bool => is_array($group))
+            ->map(static fn (array $group): array => [
+                'id' => (int) ($group['groupID'] ?? $group['user_group_id'] ?? 0),
+                'title' => (string) ($group['title'] ?? ''),
+            ])
+            ->filter(static fn (array $group): bool => $group['id'] > 0 && $group['title'] !== '')
+            ->unique('id')
+            ->sortBy('title', SORT_NATURAL | SORT_FLAG_CASE)
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Fetch a XenForo user's current secondary group IDs.
+     * Returns null when the user cannot be read.
+     *
+     * @return array<int, int>|null
+     */
+    public function getUserSecondaryGroupIds(int $user_id): ?array
+    {
+        $user = $this->get_user($user_id);
+
+        if ($user['status'] < 200 || $user['status'] >= 300 || !is_array($user['body']))
+        {
+            return null;
+        }
+
+        $body = $user['body'];
+        $user_data = is_array($body['user'] ?? null) ? $body['user'] : $body;
+        $raw = $user_data['secondary_group_ids'] ?? [];
+
+        if (is_string($raw))
+        {
+            $raw = explode(',', $raw);
+        }
+
+        return collect($raw)
+            ->filter(static fn (mixed $id): bool => is_numeric($id))
+            ->map(static fn (mixed $id): int => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<int, mixed>|null
+     */
+    private function fetchUserGroupList(): ?array
+    {
         $url = $this->base_url.'/index.php?api/user-groups';
 
         try
@@ -944,53 +1001,6 @@ class XenforoService
 
         $groups = $response->json('userGroups') ?? $response->json('user_groups') ?? [];
 
-        if (!is_array($groups))
-        {
-            return null;
-        }
-
-        return collect($groups)
-            ->filter(static fn (mixed $group): bool => is_array($group))
-            ->map(static fn (array $group): array => [
-                'id' => (int) ($group['groupID'] ?? $group['user_group_id'] ?? 0),
-                'title' => (string) ($group['title'] ?? ''),
-            ])
-            ->filter(static fn (array $group): bool => $group['id'] > 0 && $group['title'] !== '')
-            ->unique('id')
-            ->sortBy('title', SORT_NATURAL | SORT_FLAG_CASE)
-            ->values()
-            ->all();
-    }
-
-    /**
-     * Fetch a XenForo user's current secondary group IDs.
-     * Returns null when the user cannot be read.
-     *
-     * @return array<int, int>|null
-     */
-    public function get_user_secondary_group_ids(int $user_id): ?array
-    {
-        $user = $this->get_user($user_id);
-
-        if ($user['status'] < 200 || $user['status'] >= 300 || !is_array($user['body']))
-        {
-            return null;
-        }
-
-        $body = $user['body'];
-        $user_data = is_array($body['user'] ?? null) ? $body['user'] : $body;
-        $raw = $user_data['secondary_group_ids'] ?? [];
-
-        if (is_string($raw))
-        {
-            $raw = explode(',', $raw);
-        }
-
-        return collect($raw)
-            ->filter(static fn ($id): bool => is_numeric($id))
-            ->map(static fn ($id): int => (int) $id)
-            ->unique()
-            ->values()
-            ->all();
+        return is_array($groups) ? $groups : null;
     }
 }

@@ -36,7 +36,9 @@ final class RequestPermissionsPageData extends Message
         return [
             'organizations' => $this->getOrganizations(),
             'is_xenforo_configured' => $is_xenforo_configured,
-            'forum_groups' => $is_xenforo_configured ? GetRequestableForumGroups::call()->all() : [],
+            'forum_groups' => $is_xenforo_configured
+                ? GetRequestableForumGroups::call()->all()
+                : [],
             'permission_requests' => new PermissionRequestsCollection(
                 GetRequestedPermissionRequests::call(requester: $this->actor)
             ),

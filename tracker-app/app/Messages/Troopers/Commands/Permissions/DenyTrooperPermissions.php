@@ -14,7 +14,7 @@ use RuntimeException;
 /**
  * Denies a permission request without changing the trooper.
  *
- * @method static void call(PermissionRequest $permission_request, string|null $denial_reason = null)
+ * @method static void call(PermissionRequest $permission_request, ?string $denial_reason = null)
  */
 final class DenyTrooperPermissions extends Message
 {

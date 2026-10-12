@@ -63,6 +63,23 @@ class ApprovePermissionsControllerTest extends TestCase
         $response->assertSessionHasErrors('permission_request');
     }
 
+    public function test_invoke_rejects_role_change_for_trooper_who_became_administrator(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        $trooper = Trooper::factory()->asAdministrator()->create();
+        $permission_request = PermissionRequest::factory()
+            ->forTrooper($trooper)
+            ->withRole(MembershipRole::MEMBER)
+            ->create();
+
+        $response = $this->actingAs($admin)
+            ->post(route('admin.troopers.permissions.approve', $permission_request));
+
+        $response->assertSessionHasErrors('permission_request');
+        $this->assertSame(MembershipRole::ADMINISTRATOR, $trooper->fresh()->membership_role);
+        $this->assertSame(PermissionRequestStatus::PENDING, $permission_request->fresh()->status);
+    }
+
     public function test_invoke_forbids_moderators(): void
     {
         $moderator = Trooper::factory()->asModerator()->create();

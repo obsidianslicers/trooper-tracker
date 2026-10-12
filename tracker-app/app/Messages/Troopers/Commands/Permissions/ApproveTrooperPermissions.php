@@ -73,7 +73,9 @@ final class ApproveTrooperPermissions extends Message
 
         if ($trooper->membership_role === MembershipRole::ADMINISTRATOR)
         {
-            throw new RuntimeException('Administrator roles cannot be changed by a permission request.');
+            throw new RuntimeException(
+                'Administrator roles cannot be changed by a permission request.'
+            );
         }
 
         $trooper->membership_role = $role;
@@ -97,7 +99,10 @@ final class ApproveTrooperPermissions extends Message
 
         foreach ($this->permission_request->moderated_organization_ids ?? [] as $organization_id)
         {
-            $assignment = $assignments->firstWhere(TrooperAssignment::ORGANIZATION_ID, (int) $organization_id);
+            $assignment = $assignments->firstWhere(
+                TrooperAssignment::ORGANIZATION_ID,
+                (int) $organization_id
+            );
 
             if ($assignment === null)
             {
@@ -121,6 +126,9 @@ final class ApproveTrooperPermissions extends Message
      */
     private function groupIds(?array $groups): array
     {
-        return collect($groups ?? [])->pluck('id')->map(fn ($id): int => (int) $id)->all();
+        return collect($groups ?? [])
+            ->pluck('id')
+            ->map(fn (int|string $id): int => (int) $id)
+            ->all();
     }
 }

@@ -38,6 +38,6 @@ final class GetTrooperForumGroupIds extends Message
             return null;
         }
 
-        return $xenforo->get_user_secondary_group_ids($xenforo_user_id);
+        return $xenforo->getUserSecondaryGroupIds($xenforo_user_id);
     }
 }

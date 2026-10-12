@@ -64,14 +64,20 @@ Route::prefix('admin/troopers')
             {
                 Route::get('/', RequestPermissionsController::class)->name('request');
                 Route::post('/', RequestPermissionsSubmitController::class);
-                Route::get('/lookup/{trooper}', LookupTrooperPermissionsController::class)->name('lookup');
+                Route::get('/lookup/{trooper}', LookupTrooperPermissionsController::class)
+                    ->name('lookup');
 
                 Route::middleware('check.role:administrator')
                     ->group(function ()
                     {
-                        Route::get('/approvals', PermissionApprovalsController::class)->name('approvals');
-                        Route::post('/{permission_request}/approve', ApprovePermissionsController::class)->name('approve');
-                        Route::post('/{permission_request}/deny', DenyPermissionsController::class)->name('deny');
+                        Route::get('/approvals', PermissionApprovalsController::class)
+                            ->name('approvals');
+                        Route::post(
+                            '/{permission_request}/approve',
+                            ApprovePermissionsController::class
+                        )->name('approve');
+                        Route::post('/{permission_request}/deny', DenyPermissionsController::class)
+                            ->name('deny');
                     });
             });
 

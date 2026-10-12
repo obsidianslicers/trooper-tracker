@@ -55,7 +55,10 @@ function toggle(ids: number[], id: number): number[] {
     return ids.includes(id) ? ids.filter((i) => i !== id) : [...ids, id];
 }
 
-export class RequestPermissionsViewModel extends SubmitableViewModel<RequestPermissionsViewModel, RequestPermissionsFormData> {
+export class RequestPermissionsViewModel extends SubmitableViewModel<
+    RequestPermissionsViewModel,
+    RequestPermissionsFormData
+> {
     organizations: RequestableOrganization[];
     forum_groups: ForumGroup[];
     is_xenforo_configured: boolean;
@@ -103,12 +106,14 @@ export class RequestPermissionsViewModel extends SubmitableViewModel<RequestPerm
     get role_options(): Option[] {
         const options: Option[] = [{ value: "", label: "No change" }];
 
+        const is_moderator = this.current_role === "moderator";
+
         options.push({
             value: "moderator",
-            label: this.current_role === "moderator" ? "Moderator (add organizations)" : "Make moderator",
+            label: is_moderator ? "Moderator (add organizations)" : "Make moderator",
         });
 
-        if (this.current_role === "moderator") {
+        if (is_moderator) {
             options.push({ value: "member", label: "Set back to regular trooper" });
         }
 

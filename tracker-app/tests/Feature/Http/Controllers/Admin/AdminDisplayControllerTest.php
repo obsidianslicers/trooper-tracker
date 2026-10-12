@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Admin;
 
-use App\Models\PermissionRequest;
-use App\Models\TrooperRequest;
 use App\Models\Organization;
+use App\Models\PermissionRequest;
 use App\Models\Trooper;
+use App\Models\TrooperRequest;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

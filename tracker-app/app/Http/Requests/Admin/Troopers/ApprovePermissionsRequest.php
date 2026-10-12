@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin\Troopers;
 
+use App\Enums\MembershipRole;
 use App\Models\PermissionRequest;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
@@ -27,10 +28,7 @@ class ApprovePermissionsRequest extends FormRequest
             'permission_request' => [
                 function (string $attribute, mixed $value, Closure $fail): void
                 {
-                    if (!$value instanceof PermissionRequest || !$value->isPending())
-                    {
-                        $fail('This permission request has already been reviewed.');
-                    }
+                    $this->validatePermissionRequest($value, $fail);
                 },
             ],
         ];
@@ -41,5 +39,21 @@ class ApprovePermissionsRequest extends FormRequest
         return array_merge(parent::validationData(), [
             'permission_request' => $this->route('permission_request'),
         ]);
+    }
+
+    private function validatePermissionRequest(mixed $value, Closure $fail): void
+    {
+        if (!$value instanceof PermissionRequest || !$value->isPending())
+        {
+            $fail('This permission request has already been reviewed.');
+
+            return;
+        }
+
+        if ($value->membership_role !== null
+            && $value->trooper->membership_role === MembershipRole::ADMINISTRATOR)
+        {
+            $fail('This trooper is now an administrator. Deny the request instead.');
+        }
     }
 }

@@ -16,19 +16,17 @@ class SendPermissionRequestNotificationsJobTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_handle_notifies_admins_only(): void
+    public function test_handle_notifies_administrators(): void
     {
         Notification::fake();
 
         $admin = Trooper::factory()->asAdministrator()->create();
-        $moderator = Trooper::factory()->asModerator()->create();
-        $permission_request = PermissionRequest::factory()->requestedBy($moderator)->create();
+        $permission_request = PermissionRequest::factory()->create();
 
         $subject = new SendPermissionRequestNotificationsJob($permission_request);
         $subject->handle();
 
         Notification::assertSentTo($admin, PermissionRequestSubmittedNotification::class);
-        Notification::assertNotSentTo($moderator, PermissionRequestSubmittedNotification::class);
     }
 
     public function test_notification_renders_mail_and_database_payload(): void

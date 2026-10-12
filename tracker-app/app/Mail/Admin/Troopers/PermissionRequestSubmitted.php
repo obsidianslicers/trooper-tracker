@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Mail\Admin\Troopers;
 
 use App\Mail\HasRetryPolicy;
+use App\Messages\Troopers\Resources\PermissionRequestsCollection;
 use App\Models\PermissionRequest;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -32,12 +33,17 @@ class PermissionRequestSubmitted extends Mailable implements ShouldQueue
 
     public function content(): Content
     {
+        $request = $this->permission_request;
+
         return new Content(
             view: 'emails.admin.troopers.permission-request-submitted',
             with: [
-                'permission_request' => $this->permission_request,
-                'trooper' => $this->permission_request->trooper,
-                'requester' => $this->permission_request->requester,
+                'permission_request' => $request,
+                'trooper' => $request->trooper,
+                'requester' => $request->requester,
+                'role_label' => PermissionRequestsCollection::roleLabel($request->membership_role),
+                'groups_to_add' => $this->groupTitles($request->forum_groups_to_add),
+                'groups_to_remove' => $this->groupTitles($request->forum_groups_to_remove),
             ]
         );
     }
@@ -45,5 +51,13 @@ class PermissionRequestSubmitted extends Mailable implements ShouldQueue
     public function attachments(): array
     {
         return [];
+    }
+
+    /**
+     * @param  array<int, array{id:int,title:string}>|null  $groups
+     */
+    private function groupTitles(?array $groups): string
+    {
+        return collect($groups ?? [])->pluck('title')->implode(', ');
     }
 }

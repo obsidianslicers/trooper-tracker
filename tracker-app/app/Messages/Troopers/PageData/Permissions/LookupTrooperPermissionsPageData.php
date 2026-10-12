@@ -38,7 +38,9 @@ final class LookupTrooperPermissionsPageData extends Message
                 'display_name' => $this->trooper->display_name,
                 'legal_name' => $this->trooper->legal_name,
                 'membership_role' => $this->trooper->membership_role?->value,
-                'membership_role_label' => PermissionRequestsCollection::roleLabel($this->trooper->membership_role),
+                'membership_role_label' => PermissionRequestsCollection::roleLabel(
+                    $this->trooper->membership_role
+                ),
             ],
             'moderated_organization_ids' => $this->getModeratedOrganizationIds(),
             'has_forum_account' => $has_forum_account,
@@ -54,7 +56,7 @@ final class LookupTrooperPermissionsPageData extends Message
         return $this->trooper->trooper_assignments()
             ->where(TrooperAssignment::IS_MODERATOR, true)
             ->pluck(TrooperAssignment::ORGANIZATION_ID)
-            ->map(fn ($id): int => (int) $id)
+            ->map(fn (int|string $id): int => (int) $id)
             ->all();
     }
 }

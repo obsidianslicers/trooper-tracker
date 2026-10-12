@@ -49,7 +49,8 @@ class ApproveTrooperPermissionsTest extends TestCase
             ->withRole(MembershipRole::MODERATOR, [$organization->id])
             ->create();
 
-        ApproveTrooperPermissions::call(permission_request: $permission_request);
+        $subject = new ApproveTrooperPermissions($this->admin, $permission_request);
+        $subject->handle();
 
         $this->assertSame(MembershipRole::MODERATOR, $trooper->fresh()->membership_role);
         $this->assertDatabaseHas('tt_trooper_assignments', [
@@ -68,16 +69,20 @@ class ApproveTrooperPermissionsTest extends TestCase
     {
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
         $trooper = Trooper::factory()->asMember()->create();
-        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->create([
-            TrooperAssignment::IS_MEMBER => true,
-        ]);
+        TrooperAssignment::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($organization)
+            ->create([
+                TrooperAssignment::IS_MEMBER => true,
+            ]);
 
         $permission_request = PermissionRequest::factory()
             ->forTrooper($trooper)
             ->withRole(MembershipRole::MODERATOR, [$organization->id])
             ->create();
 
-        ApproveTrooperPermissions::call(permission_request: $permission_request);
+        $subject = new ApproveTrooperPermissions($this->admin, $permission_request);
+        $subject->handle();
 
         $this->assertDatabaseCount('tt_trooper_assignments', 1);
         $this->assertDatabaseHas('tt_trooper_assignments', [
@@ -91,16 +96,20 @@ class ApproveTrooperPermissionsTest extends TestCase
     {
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
         $trooper = Trooper::factory()->asModerator()->create();
-        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->create([
-            TrooperAssignment::IS_MODERATOR => true,
-        ]);
+        TrooperAssignment::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($organization)
+            ->create([
+                TrooperAssignment::IS_MODERATOR => true,
+            ]);
 
         $permission_request = PermissionRequest::factory()
             ->forTrooper($trooper)
             ->withRole(MembershipRole::MEMBER)
             ->create();
 
-        ApproveTrooperPermissions::call(permission_request: $permission_request);
+        $subject = new ApproveTrooperPermissions($this->admin, $permission_request);
+        $subject->handle();
 
         $this->assertSame(MembershipRole::MEMBER, $trooper->fresh()->membership_role);
         $this->assertDatabaseHas('tt_trooper_assignments', [
@@ -128,7 +137,8 @@ class ApproveTrooperPermissionsTest extends TestCase
             )
             ->create();
 
-        ApproveTrooperPermissions::call(permission_request: $permission_request);
+        $subject = new ApproveTrooperPermissions($this->admin, $permission_request);
+        $subject->handle();
 
         Http::assertSent(function ($request): bool
         {
@@ -158,6 +168,7 @@ class ApproveTrooperPermissionsTest extends TestCase
 
         try
         {
+            //  dispatching through the bus wraps the approval in its transaction
             ApproveTrooperPermissions::call(permission_request: $permission_request);
             $this->fail('Expected the forum failure to be thrown.');
         }
@@ -179,9 +190,11 @@ class ApproveTrooperPermissionsTest extends TestCase
             ->withForumGroups(add: [['id' => 20, 'title' => 'Event Coordinators']])
             ->create();
 
+        $subject = new ApproveTrooperPermissions($this->admin, $permission_request);
+
         $this->expectException(ForumGroupUpdateException::class);
 
-        ApproveTrooperPermissions::call(permission_request: $permission_request);
+        $subject->handle();
     }
 
     public function test_handle_refuses_to_change_an_administrator(): void
@@ -193,18 +206,22 @@ class ApproveTrooperPermissionsTest extends TestCase
             ->withRole(MembershipRole::MEMBER)
             ->create();
 
+        $subject = new ApproveTrooperPermissions($this->admin, $permission_request);
+
         $this->expectException(RuntimeException::class);
 
-        ApproveTrooperPermissions::call(permission_request: $permission_request);
+        $subject->handle();
     }
 
     public function test_handle_rejects_request_that_is_not_pending(): void
     {
         $permission_request = PermissionRequest::factory()->asDenied()->create();
 
+        $subject = new ApproveTrooperPermissions($this->admin, $permission_request);
+
         $this->expectException(RuntimeException::class);
 
-        ApproveTrooperPermissions::call(permission_request: $permission_request);
+        $subject->handle();
     }
 
     private function createLinkedTrooper(string $xenforo_user_id): Trooper
