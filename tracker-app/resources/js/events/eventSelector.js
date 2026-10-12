@@ -13,6 +13,7 @@ export default function eventSelector() {
         },
         hosting_organization_all_ids: [],
         hosting_organization_labels: {},
+        hosting_organization_parents: {},
         costume_organization_labels: {},
         display_allowed_orgs: true,
 
@@ -43,6 +44,15 @@ export default function eventSelector() {
                     this.hosting_organization_labels = JSON.parse(hostingOrganizationLabels);
                 } catch (_error) {
                     this.hosting_organization_labels = {};
+                }
+            }
+
+            const hostingOrganizationParents = this.$refs.hostingOrganizationList?.dataset.hostingOrganizationParents;
+            if (hostingOrganizationParents) {
+                try {
+                    this.hosting_organization_parents = JSON.parse(hostingOrganizationParents);
+                } catch (_error) {
+                    this.hosting_organization_parents = {};
                 }
             }
 
@@ -116,6 +126,22 @@ export default function eventSelector() {
             }
 
             return this.form.hosting_organization_ids;
+        },
+
+        // Events flow upward: selecting a unit also shows events hosted by its region and club
+        getMatchingHostingOrganizationIds() {
+            const matchingIds = new Set();
+
+            for (const selectedId of this.getActiveHostingOrganizationIds()) {
+                let organizationId = selectedId;
+
+                while (organizationId && !matchingIds.has(organizationId)) {
+                    matchingIds.add(organizationId);
+                    organizationId = this.hosting_organization_parents[organizationId];
+                }
+            }
+
+            return matchingIds;
         },
 
         persistHostingOrganizations() {
@@ -220,9 +246,9 @@ export default function eventSelector() {
             }
 
             // Hosting organization filter
-            const activeHostingOrganizationIds = this.getActiveHostingOrganizationIds();
-            if (activeHostingOrganizationIds.length > 0
-                && !activeHostingOrganizationIds.includes(hostingOrganizationId)) {
+            const matchingHostingOrganizationIds = this.getMatchingHostingOrganizationIds();
+            if (matchingHostingOrganizationIds.size > 0
+                && !matchingHostingOrganizationIds.has(hostingOrganizationId)) {
                 return false;
             }
 

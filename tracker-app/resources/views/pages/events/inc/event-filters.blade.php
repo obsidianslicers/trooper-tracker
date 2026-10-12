@@ -138,7 +138,8 @@
                     <div class="border rounded p-2"
                          x-ref="hostingOrganizationList"
                          data-hosting-organization-ids='@json($hosting_organizations->pluck("id")->map(fn($id) => (string) $id)->values()->all())'
-                         data-hosting-organization-labels='@json($hosting_organizations->mapWithKeys(fn($organization) => [(string) $organization->id => $organization->indented_name])->all())'>
+                         data-hosting-organization-labels='@json($hosting_organizations->mapWithKeys(fn($organization) => [(string) $organization->id => $organization->indented_name])->all())'
+                         data-hosting-organization-parents='@json($hosting_organizations->filter(fn($organization) => $organization->parent_id !== null)->mapWithKeys(fn($organization) => [(string) $organization->id => (string) $organization->parent_id])->all())'>
 
 
 
