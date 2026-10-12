@@ -102,6 +102,7 @@ What it does:
 Endpoint:
 
 - `GET /index.php?api/user-groups&user_id={xenforoUserId}`
+- `GET /index.php?api/user-groups` (no `user_id`): returns every user group as `userGroups[]` with `groupID` and `title`
 
 Custom API scope:
 
@@ -111,6 +112,7 @@ Why Troop Tracker needs it:
 
 - Troop Tracker uses this endpoint to display XenForo banner HTML on the trooper service-record page.
 - This keeps rank and status presentation aligned with the forum rather than reimplementing banner logic inside Troop Tracker.
+- The permission request tool uses the full group list so moderators can request forum groups for a trooper. Groups mapped to organizations are hidden there because the user sync manages them. When an administrator approves a request, Troop Tracker adds or removes the groups through `POST /api/users/{id}` (`secondary_group_ids`), leaving every other group untouched.
 
 Benefit:
 
@@ -476,6 +478,7 @@ After setup, verify each layer:
 
 - confirm `GET /index.php?api/user-groups&user_id={id}` returns JSON
 - confirm service-record pages show XenForo banners for linked users
+- confirm `GET /index.php?api/user-groups` (without `user_id`) returns the full group list for the permission request tool
 
 ### User synchronization
 

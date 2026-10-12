@@ -136,6 +136,46 @@ class XenforoServiceTest extends TestCase
         $this->assertCount(1, $result['userGroups']);
     }
 
+    public function test_get_all_user_groups_normalizes_and_sorts_groups(): void
+    {
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'key-3',
+        ]);
+
+        Http::fake([
+            'https://xf.test/index.php?api/user-groups' => Http::response([
+                'userGroups' => [
+                    ['groupID' => 4, 'title' => 'Moderating'],
+                    ['groupID' => 20, 'title' => 'Event Coordinators'],
+                    ['groupID' => 0, 'title' => 'Broken'],
+                    'not-a-group',
+                ],
+            ], 200),
+        ]);
+
+        $subject = new XenforoService;
+
+        $this->assertSame([
+            ['id' => 20, 'title' => 'Event Coordinators'],
+            ['id' => 4, 'title' => 'Moderating'],
+        ], $subject->get_all_user_groups());
+    }
+
+    public function test_get_all_user_groups_returns_null_on_failure(): void
+    {
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'key-3',
+        ]);
+
+        Http::fake(['*' => Http::response([], 500)]);
+
+        $subject = new XenforoService;
+
+        $this->assertNull($subject->get_all_user_groups());
+    }
+
     public function test_update_thread_updates_title_for_configured_thread(): void
     {
         config([

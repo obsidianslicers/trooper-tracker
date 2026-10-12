@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Admin;
 
+use App\Models\PermissionRequest;
 use App\Models\TrooperRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
@@ -22,6 +23,30 @@ class AdminDisplayControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertViewIs('pages.admin.display');
+    }
+
+    public function test_invoke_counts_pending_permission_requests_for_admins(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+        PermissionRequest::factory()->create();
+        PermissionRequest::factory()->asApproved()->create();
+
+        $response = $this->actingAs($admin)->get(route('admin.display'));
+
+        $response->assertViewHas('pending_permission_requests', 1);
+        $response->assertSee('Permission Approvals');
+    }
+
+    public function test_invoke_hides_permission_approvals_from_moderators(): void
+    {
+        $moderator = Trooper::factory()->asModerator()->create();
+        PermissionRequest::factory()->create();
+
+        $response = $this->actingAs($moderator)->get(route('admin.display'));
+
+        $response->assertViewHas('pending_permission_requests', 0);
+        $response->assertSee('Request Permissions');
+        $response->assertDontSee('Permission Approvals');
     }
 
     public function test_invoke_requires_authentication(): void

@@ -896,4 +896,101 @@ class XenforoService
 
         return is_array($data) ? $data : null;
     }
+
+    /**
+     * Fetch every XenForo user group from the user-groups add-on.
+     *
+     * Calls the same add-on endpoint as get_user_groups() without a user_id,
+     * which the add-on answers with the full group list. Returns null when
+     * XenForo is not configured or the request fails.
+     *
+     * @return array<int, array{id:int,title:string}>|null
+     */
+    public function get_all_user_groups(): ?array
+    {
+        if (empty($this->base_url) || empty($this->api_key))
+        {
+            return null;
+        }
+
+        $url = $this->base_url.'/index.php?api/user-groups';
+
+        try
+        {
+            $response = Http::withHeaders($this->buildApiHeaders())
+                ->acceptJson()
+                ->timeout(5)
+                ->get($url);
+        }
+        catch (Throwable $e)
+        {
+            Log::warning('Failed to fetch XenForo user group list', [
+                'url' => $url,
+                'message' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+
+        if (!$response->successful())
+        {
+            Log::warning('Non-success response from XenForo user group list', [
+                'url' => $url,
+                'status' => $response->status(),
+            ]);
+
+            return null;
+        }
+
+        $groups = $response->json('userGroups') ?? $response->json('user_groups') ?? [];
+
+        if (!is_array($groups))
+        {
+            return null;
+        }
+
+        return collect($groups)
+            ->filter(static fn (mixed $group): bool => is_array($group))
+            ->map(static fn (array $group): array => [
+                'id' => (int) ($group['groupID'] ?? $group['user_group_id'] ?? 0),
+                'title' => (string) ($group['title'] ?? ''),
+            ])
+            ->filter(static fn (array $group): bool => $group['id'] > 0 && $group['title'] !== '')
+            ->unique('id')
+            ->sortBy('title', SORT_NATURAL | SORT_FLAG_CASE)
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Fetch a XenForo user's current secondary group IDs.
+     * Returns null when the user cannot be read.
+     *
+     * @return array<int, int>|null
+     */
+    public function get_user_secondary_group_ids(int $user_id): ?array
+    {
+        $user = $this->get_user($user_id);
+
+        if ($user['status'] < 200 || $user['status'] >= 300 || !is_array($user['body']))
+        {
+            return null;
+        }
+
+        $body = $user['body'];
+        $user_data = is_array($body['user'] ?? null) ? $body['user'] : $body;
+        $raw = $user_data['secondary_group_ids'] ?? [];
+
+        if (is_string($raw))
+        {
+            $raw = explode(',', $raw);
+        }
+
+        return collect($raw)
+            ->filter(static fn ($id): bool => is_numeric($id))
+            ->map(static fn ($id): int => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+    }
 }

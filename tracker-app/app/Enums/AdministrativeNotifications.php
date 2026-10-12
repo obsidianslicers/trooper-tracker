@@ -35,4 +35,9 @@ enum AdministrativeNotifications: string
      * Sent when a trooper earns a milestone achievement (troop counts, donation milestones, etc.).
      */
     case TROOPER_MILESTONES = 'trooper_milestones';
+
+    /**
+     * Sent to administrators when a moderator requests permission changes for a trooper.
+     */
+    case PERMISSION_REQUESTS = 'permission_requests';
 }

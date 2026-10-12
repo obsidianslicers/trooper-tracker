@@ -87,7 +87,23 @@
                       :url="route('admin.service-records.missing-credits')">
         Fix shifts missing a "Credited To" club
     </x-dashboard-card>
+    <x-dashboard-card :label="'Request Permissions'"
+                      :icon="'fa-user-shield'"
+                      :url="route('admin.troopers.permissions.request')">
+        Ask an administrator to change a trooper's role or forum groups.
+    </x-dashboard-card>
     @role(['administrator'])
+    <x-dashboard-card :label="'Permission Approvals'"
+                      :icon="'fa-user-lock'"
+                      :url="route('admin.troopers.permissions.approvals')">
+        @if($pending_permission_requests > 0)
+            <p class="text-warning mb-0">
+                {{ $pending_permission_requests }} pending request{{ $pending_permission_requests === 1 ? '' : 's' }}
+            </p>
+        @else
+            <p class="text-success mb-0">No pending requests</p>
+        @endif
+    </x-dashboard-card>
     <x-dashboard-card :label="'Merge Troopers'"
                       :icon="'fa-user-group'"
                       :url="route('admin.troopers.merge')">
