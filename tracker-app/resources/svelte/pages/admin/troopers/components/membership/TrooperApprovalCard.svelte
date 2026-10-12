@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { untrack } from "svelte";
     import Alert from "$lib/components/ui/Alert.svelte";
     import type { TrooperApproval } from "../../models/vms";
     import { PendingTrooperApprovalViewModel } from "../../models/vms";
@@ -11,7 +12,7 @@
 
     let { approval }: Props = $props();
 
-    let vm = new PendingTrooperApprovalViewModel(approval);
+    let vm = new PendingTrooperApprovalViewModel(untrack(() => approval));
 </script>
 
 <div class="card h-100 shadow-sm">

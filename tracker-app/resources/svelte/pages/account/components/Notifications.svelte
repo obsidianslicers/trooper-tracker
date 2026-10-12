@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { untrack } from "svelte";
     import AccordionPanel from "$lib/components/AccordionPanel.svelte";
     import SlimView from "$lib/components/ui/SlimView.svelte";
     import type { NotificationsPageData } from "../models";
@@ -12,7 +13,7 @@
     }
     let { notifications }: Props = $props();
 
-    let vm = new NotificationsViewModel(notifications);
+    let vm = new NotificationsViewModel(untrack(() => notifications));
 </script>
 
 <SlimView>

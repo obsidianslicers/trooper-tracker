@@ -24,6 +24,7 @@ export default defineConfig({
                             id.includes('lib/components') ||
                             id.includes('lib/states') ||
                             id.includes('lib/constants') ||
+                            id.includes('lib/domains/types') ||
                             id.includes('lib/exceptions') ||
                             id.includes('lib/index') ||
                             id.includes('lib/logger') ||
