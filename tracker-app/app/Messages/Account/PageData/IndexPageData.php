@@ -82,7 +82,6 @@ final class IndexPageData extends Message
     private function getNotifications(): array
     {
         return [
-            'is_administrator' => $this->actor->is_administrator,
             'trooper_notification_enums' => TrooperNotifications::toValueLabels(),
             'administrative_notification_enums' => $this->getAdministrativeNotificationEnums(),
             'notification_frequency_enums' => NotificationFrequency::toValueLabels(),
