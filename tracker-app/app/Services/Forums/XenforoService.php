@@ -720,6 +720,37 @@ class XenforoService
     }
 
     /**
+     * Group IDs granted by XenForo user upgrades (each upgrade's extra_group_ids).
+     * Returns null when the upgrade stats cannot be read.
+     *
+     * @return array<int, int>|null
+     */
+    public function getUpgradeGroupIds(): ?array
+    {
+        $stats = $this->get_upgrade_stats();
+
+        if ($stats === null)
+        {
+            return null;
+        }
+
+        return collect($stats['userUpgrades'] ?? [])
+            ->filter(static fn (mixed $upgrade): bool => is_array($upgrade))
+            ->flatMap(static function (array $upgrade): array
+            {
+                $raw = $upgrade['extra_group_ids'] ?? [];
+
+                return is_string($raw) ? explode(',', $raw) : (array) $raw;
+            })
+            ->map(static fn (mixed $id): mixed => is_string($id) ? trim($id) : $id)
+            ->filter(static fn (mixed $id): bool => is_numeric($id))
+            ->map(static fn (mixed $id): int => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    /**
      * Fetch the full upgrade history for a specific XenForo user.
      *
      * Calls the per-user upgrade-stats endpoint and normalises each donation

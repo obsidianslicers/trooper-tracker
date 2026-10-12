@@ -192,6 +192,43 @@ class XenforoServiceTest extends TestCase
         ], $urls);
     }
 
+    public function test_get_upgrade_group_ids_parses_extra_group_ids(): void
+    {
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'key-3',
+        ]);
+
+        Http::fake([
+            'https://xf.test/index.php?api/upgrade-stats' => Http::response([
+                'userUpgrades' => [
+                    ['user_upgrade_id' => 1, 'extra_group_ids' => '1507'],
+                    ['user_upgrade_id' => 2, 'extra_group_ids' => '1507, 1600'],
+                    ['user_upgrade_id' => 3, 'extra_group_ids' => [1601]],
+                    ['user_upgrade_id' => 4, 'extra_group_ids' => ''],
+                ],
+            ], 200),
+        ]);
+
+        $subject = new XenforoService;
+
+        $this->assertSame([1507, 1600, 1601], $subject->getUpgradeGroupIds());
+    }
+
+    public function test_get_upgrade_group_ids_returns_null_on_failure(): void
+    {
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'key-3',
+        ]);
+
+        Http::fake(['*' => Http::response([], 500)]);
+
+        $subject = new XenforoService;
+
+        $this->assertNull($subject->getUpgradeGroupIds());
+    }
+
     public function test_get_all_user_groups_returns_null_when_response_has_no_group_list(): void
     {
         config([

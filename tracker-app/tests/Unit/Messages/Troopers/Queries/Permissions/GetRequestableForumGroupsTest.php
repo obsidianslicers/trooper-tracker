@@ -73,4 +73,49 @@ class GetRequestableForumGroupsTest extends TestCase
         $this->assertTrue($subject->handle(new XenforoService)->isEmpty());
         $this->assertSame([20], $subject->handle(new XenforoService)->pluck('id')->all());
     }
+
+    public function test_handle_excludes_groups_granted_by_user_upgrades(): void
+    {
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'key',
+        ]);
+
+        Http::fake([
+            'https://xf.test/index.php?api/upgrade-stats' => Http::response([
+                'userUpgrades' => [
+                    ['user_upgrade_id' => 1, 'extra_group_ids' => '1507'],
+                ],
+            ], 200),
+            'https://xf.test/index.php?api/user-groups' => Http::response([
+                'userGroups' => [
+                    ['groupID' => 1507, 'title' => 'FLG Supporter'],
+                    ['groupID' => 20, 'title' => 'Event Coordinators'],
+                ],
+            ], 200),
+        ]);
+
+        $subject = new GetRequestableForumGroups;
+
+        $this->assertSame([20], $subject->handle(new XenforoService)->pluck('id')->all());
+    }
+
+    public function test_handle_returns_groups_when_upgrade_lookup_fails(): void
+    {
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'key',
+        ]);
+
+        Http::fake([
+            'https://xf.test/index.php?api/upgrade-stats' => Http::response([], 500),
+            'https://xf.test/index.php?api/user-groups' => Http::response([
+                'userGroups' => [['groupID' => 20, 'title' => 'Event Coordinators']],
+            ], 200),
+        ]);
+
+        $subject = new GetRequestableForumGroups;
+
+        $this->assertSame([20], $subject->handle(new XenforoService)->pluck('id')->all());
+    }
 }

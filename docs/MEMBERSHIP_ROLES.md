@@ -230,8 +230,9 @@ Rules:
 - Administrators cannot be changed through a request; approving a role change for a trooper
   who became an administrator after the request was made is rejected.
 - XenForo groups that are mapped to organizations are not requestable, because the forum user
-  sync already manages them. The group list comes from the XenForo user-groups add-on (see
-  [XenForo OAuth](XENFORO_OAUTH.md)).
+  sync already manages them. Groups granted by XenForo user upgrades (e.g. FLG Supporter) are
+  not requestable either, because XenForo adds and removes them as upgrades start and expire.
+  The group list comes from the XenForo user-groups add-on (see [XenForo OAuth](XENFORO_OAUTH.md)).
 
 ---
 

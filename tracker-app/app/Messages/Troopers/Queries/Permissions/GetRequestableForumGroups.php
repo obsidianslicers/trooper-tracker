@@ -15,13 +15,15 @@ use Illuminate\Support\Facades\Cache;
  * Lists the XenForo user groups a moderator may request for a trooper.
  *
  * Groups mapped to organizations (active/reserve/retired) are left out because
- * the XenForo user sync owns them and would undo any manual change.
+ * the XenForo user sync owns them and would undo any manual change. Groups granted
+ * by XenForo user upgrades are left out for the same reason: XenForo adds and
+ * removes them as upgrades start and expire.
  *
  * @method static Collection<int, array{id:int,title:string,banner_image_url:?string}> call()
  */
 final class GetRequestableForumGroups extends Message
 {
-    private const CACHE_KEY = 'xenforo_requestable_user_groups_v2';
+    private const CACHE_KEY = 'xenforo_requestable_user_groups_v3';
 
     private const CACHE_SECONDS = 600;
 
@@ -61,7 +63,12 @@ final class GetRequestableForumGroups extends Message
             return $cached;
         }
 
-        $groups = $xenforo->getAllUserGroups() ?? [];
+        $upgrade_ids = $xenforo->getUpgradeGroupIds() ?? [];
+
+        $groups = collect($xenforo->getAllUserGroups() ?? [])
+            ->reject(fn (array $group): bool => in_array($group['id'], $upgrade_ids, true))
+            ->values()
+            ->all();
 
         if ($groups !== [])
         {
