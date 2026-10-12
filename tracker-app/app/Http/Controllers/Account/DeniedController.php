@@ -8,6 +8,7 @@ use App\Enums\MembershipRole;
 use App\Enums\OrganizationType;
 use App\Features\Organizations\Queries\GetOrganizationHierarchyQuery;
 use App\Http\Controllers\MagicBusController;
+use App\Messages\Troopers\Queries\Membership\GetDeniedTrooperRequests;
 use App\Models\Organization;
 use App\Models\Trooper;
 use App\Models\TrooperRequest;
@@ -28,11 +29,7 @@ class DeniedController extends MagicBusController
             return redirect()->route($trooper->is_pending ? 'account.pending' : 'account.index');
         }
 
-        $denied_requests = TrooperRequest::query()
-            ->where(TrooperRequest::TROOPER_ID, $trooper->id)
-            ->denied()
-            ->orderBy(TrooperRequest::UPDATED_AT, 'desc')
-            ->get();
+        $denied_requests = GetDeniedTrooperRequests::call(trooper: $trooper);
 
         $denial_reason = $denied_requests->first()?->denial_reason
             ?? $this->resolveDenialReasonFromNotification($trooper->id);
