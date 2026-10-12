@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Account;
 
 use App\Http\Controllers\MagicBusController;
+use App\Messages\Notices\Commands\UpdateNoticeAsRead;
 use App\Models\Notice;
-use App\Models\NoticeTrooper;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -42,16 +42,10 @@ class NoticesSubmitHtmxController extends MagicBusController
     {
         $trooper = $request->user();
 
-        $where = [
-            NoticeTrooper::TROOPER_ID => $trooper->id,
-            NoticeTrooper::NOTICE_ID => $notice->id,
-        ];
-
-        $set = [
-            NoticeTrooper::IS_READ => true,
-        ];
-
-        NoticeTrooper::updateOrCreate($where, $set);
+        UpdateNoticeAsRead::call(
+            trooper: $trooper,
+            notice: $notice
+        );
 
         return response('<button class="btn btn-outline-secondary btn-sm float-end"><i class="fa fa-envelope-open-text"></i></button>');
     }
