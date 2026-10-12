@@ -44,6 +44,9 @@ erDiagram
     tt_organizations ||--o{ tt_trooper_requests : receives
 
     tt_troopers ||--o{ tt_trooper_requests : submits
+    tt_troopers ||--o{ tt_permission_requests : subject_of
+    tt_troopers ||--o{ tt_permission_requests : requests
+    tt_troopers ||--o{ tt_permission_requests : reviews
 
     tt_costumes ||--o{ tt_organization_costumes : approved_as
     tt_costumes ||--o{ tt_event_troopers : selected_primary
@@ -95,6 +98,9 @@ erDiagram
     tt_organization_costumes ||--o{ tt_trooper_costumes : assigned_to
 
     tt_troopers ||--o{ tt_trooper_requests : submits
+    tt_troopers ||--o{ tt_permission_requests : subject_of
+    tt_troopers ||--o{ tt_permission_requests : requests
+    tt_troopers ||--o{ tt_permission_requests : reviews
     tt_troopers ||--o{ tt_oauth_logins : has
   ```
 
@@ -192,9 +198,9 @@ Events, Awards, and Notices. It uses:
 
 ## Inventory
 
-Discovered migration files: 43
+Discovered migration files: 46
 
-Discovered tables: 40
+Discovered tables: 41
 
 - tt_troopers
 - tt_password_reset_tokens
@@ -209,6 +215,7 @@ Discovered tables: 40
 - tt_organization_costumes
 - tt_trooper_assignments
 - tt_trooper_requests
+- tt_permission_requests
 - tt_trooper_organizations
 - tt_trooper_donations
 - tt_trooper_costumes
@@ -276,8 +283,8 @@ Relationships:
 
 - Belongs To: tt_troopers (guardian_id)
 - Belongs To: tt_trooper_costumes (display_costume_id)
-- Has Many: tt_trooper_assignments, tt_trooper_requests, tt_trooper_organizations, tt_trooper_donations,
-  tt_trooper_costumes, tt_trooper_achievements, tt_trooper_friends, tt_event_notifications,
+- Has Many: tt_trooper_assignments, tt_trooper_requests, tt_permission_requests,
+  tt_trooper_organizations, tt_trooper_donations, tt_trooper_costumes, tt_trooper_achievements, tt_trooper_friends, tt_event_notifications,
   tt_notifications, tt_event_troopers, tt_event_uploads, tt_event_upload_troopers,
   tt_event_shares, tt_event_guests, tt_award_troopers, tt_notice_troopers, tt_oauth_logins,
   tt_model_changes, tt_mobile_devices, tt_event_watches
@@ -538,6 +545,44 @@ Relationships:
 - Belongs To: tt_troopers (trooper_id)
 - Belongs To: tt_organizations (organization_id)
 - Belongs To: tt_organizations (primary_organization_id)
+
+### tt_permission_requests
+
+Purpose: Requests from moderators to change a trooper's role, moderated organizations, or
+XenForo secondary user groups. Only administrators approve or deny them. See
+[Membership Roles](MEMBERSHIP_ROLES.md#permission-requests).
+
+| Column | Type | Nullable | Key / Constraints |
+| --- | --- | --- | --- |
+| id | bigint unsigned | no | PK, auto increment |
+| trooper_id | bigint unsigned | no | FK -> tt_troopers.id, cascadeOnDelete; trooper being changed |
+| requester_trooper_id | bigint unsigned | yes | FK -> tt_troopers.id, nullOnDelete; moderator who asked |
+| reviewer_trooper_id | bigint unsigned | yes | FK -> tt_troopers.id, nullOnDelete; admin who decided |
+| membership_role | varchar(16) | yes | requested `MembershipRole`; null leaves the role unchanged |
+| moderated_organization_ids | json | yes | organization ids to moderate when the role is `moderator` |
+| forum_groups_to_add | json | yes | `[{id, title}]` XenForo secondary groups to add |
+| forum_groups_to_remove | json | yes | `[{id, title}]` XenForo secondary groups to remove |
+| note | text | yes | requester's note for the reviewing admin |
+| status | varchar(16) | no | default `pending` (`pending`, `approved`, `denied`) |
+| denial_reason | text | yes | |
+| reviewed_at | timestamp | yes | set on approve or deny |
+| created_at | timestamp | yes | timestamps helper |
+| updated_at | timestamp | yes | timestamps helper |
+| deleted_at | timestamp | yes | softDeletes helper |
+| created_id | bigint unsigned | yes | trooperstamps helper |
+| updated_id | bigint unsigned | yes | trooperstamps helper |
+| deleted_id | bigint unsigned | yes | trooperstamps helper |
+
+Indexes: status
+
+Forum group titles are stored with their ids so a request still reads correctly if the
+group is later renamed or deleted on the forum.
+
+Relationships:
+
+- Belongs To: tt_troopers (trooper_id)
+- Belongs To: tt_troopers (requester_trooper_id)
+- Belongs To: tt_troopers (reviewer_trooper_id)
 
 ### tt_trooper_organizations
 
