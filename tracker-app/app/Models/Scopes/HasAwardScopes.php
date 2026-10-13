@@ -74,6 +74,7 @@ trait HasAwardScopes
                 ->join('tt_organizations as org_notice', 'tt_awards.organization_id', '=', 'org_notice.id')
                 ->where('ta_moderator.trooper_id', $trooper->id)
                 ->where('ta_moderator.is_moderator', true)
+                ->whereNull('ta_moderator.deleted_at')
                 ->whereRaw('org_notice.node_path LIKE CONCAT(org_moderator.node_path, "%")');
         });
     }

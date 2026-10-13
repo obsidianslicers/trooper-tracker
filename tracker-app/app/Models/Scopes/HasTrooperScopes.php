@@ -105,6 +105,7 @@ trait HasTrooperScopes
                 ->join('tt_organizations as org_moderator', 'ta_moderator.organization_id', '=', 'org_moderator.id')
                 ->where('ta_moderator.trooper_id', $trooper->id)
                 ->where('ta_moderator.is_moderator', true)
+                ->whereNull('ta_moderator.deleted_at')
                 ->where(function ($query): void
                 {
                     $query->whereExists(function ($candidate_assignment): void
