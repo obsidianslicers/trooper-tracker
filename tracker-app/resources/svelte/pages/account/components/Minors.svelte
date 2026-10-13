@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { untrack } from "svelte";
     import Alert from "$lib/components/ui/Alert.svelte";
     import SlimView from "$lib/components/ui/SlimView.svelte";
     import type { Minor } from "../models";
@@ -9,7 +10,7 @@
     }
     let { minors }: Props = $props();
 
-    let vm = new MinorsViewModel(minors);
+    let vm = new MinorsViewModel(untrack(() => minors));
 </script>
 
 <SlimView>

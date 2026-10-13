@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { untrack } from "svelte";
     import InputContainer from "$lib/components/form/InputContainer.svelte";
     import InputHelp from "$lib/components/form/InputHelp.svelte";
     import InputSelect from "$lib/components/form/InputSelect.svelte";
@@ -14,7 +15,7 @@
     }
     let { details }: Props = $props();
 
-    let vm = new DetailsViewModel(details);
+    let vm = new DetailsViewModel(untrack(() => details));
 
     let currentThemeClass = vm.form.theme
         ? `theme-${vm.form.theme}`

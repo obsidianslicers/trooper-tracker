@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { untrack } from "svelte";
     import type { TrooperRequest } from "../../models/vms";
     import { PendingTrooperRequestViewModel } from "../../models/vms";
     import MembershipLookup from "./MembershipLookup.svelte";
@@ -10,7 +11,7 @@
 
     let { request }: Props = $props();
 
-    let vm = new PendingTrooperRequestViewModel(request);
+    let vm = new PendingTrooperRequestViewModel(untrack(() => request));
 </script>
 
 <div class="card h-100">

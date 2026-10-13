@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Events;
 
+use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -20,6 +21,21 @@ class ListControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertViewIs('pages.events.list');
+    }
+
+    public function test_invoke_renders_hosting_organization_parents_for_upward_filtering(): void
+    {
+        $trooper = Trooper::factory()->asActive()->withVerifiedEmail()->create();
+        $club = Organization::factory()->asOrganization()->create();
+        $region = Organization::factory()->asRegion()->withParent($club)->create();
+        $unit = Organization::factory()->asUnit()->withParent($region)->create();
+
+        $response = $this->actingAs($trooper)->get(route('events.list'));
+
+        $response->assertOk();
+        $response->assertSee("data-hosting-organization-parents='", false);
+        $response->assertSee("\"{$region->id}\":\"{$club->id}\"", false);
+        $response->assertSee("\"{$unit->id}\":\"{$region->id}\"", false);
     }
 
     public function test_invoke_requires_authentication(): void

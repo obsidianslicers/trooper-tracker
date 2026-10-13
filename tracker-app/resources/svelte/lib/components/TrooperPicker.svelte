@@ -40,7 +40,7 @@
         onSelected = null,
     }: Props = $props();
 
-    const vm = new TrooperPickerViewModel({
+    const vm = new TrooperPickerViewModel(() => ({
         label,
         placeholder,
         button_label,
@@ -52,7 +52,7 @@
         clearable,
         mode,
         onSelected,
-    });
+    }));
 
     const floating_label = $derived(vm.options.label ?? "Trooper");
 
