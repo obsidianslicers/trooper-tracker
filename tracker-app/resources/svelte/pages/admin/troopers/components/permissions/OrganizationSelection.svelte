@@ -21,6 +21,12 @@
                     checked={true}
                     disabled={true}
                 />
+            {:else if vm.isIncludedByParent(organization)}
+                <InputCheckbox
+                    label="{organization.name} (included)"
+                    checked={true}
+                    disabled={true}
+                />
             {:else}
                 <InputCheckbox
                     label={organization.name}

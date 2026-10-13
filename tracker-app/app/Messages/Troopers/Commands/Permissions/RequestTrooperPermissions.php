@@ -8,6 +8,7 @@ use App\Enums\MembershipRole;
 use App\Enums\PermissionRequestStatus;
 use App\Jobs\SendPermissionRequestNotificationsJob;
 use App\Messages\Troopers\Queries\Permissions\GetRequestableForumGroups;
+use App\Models\Organization;
 use App\Models\PermissionRequest;
 use App\Models\Trooper;
 use Hyperdrive\Contracts\Actor;
@@ -81,9 +82,37 @@ final class RequestTrooperPermissions extends Message
             return [];
         }
 
-        return collect($this->moderated_organization_ids)
+        $ids = collect($this->moderated_organization_ids)
             ->map(fn (int|string $id): int => (int) $id)
             ->unique()
+            ->values();
+
+        $covered_ids = $this->getDescendantIds($ids->all());
+
+        return $ids->reject(fn (int $id): bool => in_array($id, $covered_ids, true))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Moderating an organization covers its descendants, so a picked child of
+     * another picked organization would be redundant.
+     *
+     * @param  array<int, int>  $ids
+     * @return array<int, int>
+     */
+    private function getDescendantIds(array $ids): array
+    {
+        $organizations = Organization::query()
+            ->whereIn(Organization::ID, $ids)
+            ->get([Organization::ID, Organization::NODE_PATH]);
+
+        return $organizations
+            ->filter(fn (Organization $child): bool => $organizations->contains(
+                fn (Organization $parent): bool => $parent->id !== $child->id
+                    && str_starts_with((string) $child->node_path, (string) $parent->node_path)
+            ))
+            ->map(fn (Organization $organization): int => (int) $organization->id)
             ->values()
             ->all();
     }

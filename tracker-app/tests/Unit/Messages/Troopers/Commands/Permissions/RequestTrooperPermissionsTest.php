@@ -8,6 +8,7 @@ use App\Enums\MembershipRole;
 use App\Enums\PermissionRequestStatus;
 use App\Jobs\SendPermissionRequestNotificationsJob;
 use App\Messages\Troopers\Commands\Permissions\RequestTrooperPermissions;
+use App\Models\Organization;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
@@ -42,6 +43,25 @@ class RequestTrooperPermissionsTest extends TestCase
         $this->assertSame(PermissionRequestStatus::PENDING, $result->status);
 
         Bus::assertDispatched(SendPermissionRequestNotificationsJob::class);
+    }
+
+    public function test_handle_drops_organizations_covered_by_a_picked_parent(): void
+    {
+        Bus::fake([SendPermissionRequestNotificationsJob::class]);
+
+        $parent = Organization::factory()->asOrganization()->create();
+        $child = Organization::factory()->asRegion()->withParent($parent)->create();
+        $other = Organization::factory()->asOrganization()->create();
+
+        $subject = new RequestTrooperPermissions(
+            actor: Trooper::factory()->asAdministrator()->create(),
+            trooper: Trooper::factory()->asMember()->create(),
+            membership_role: MembershipRole::MODERATOR,
+            moderated_organization_ids: [$child->id, $parent->id, $other->id],
+        );
+        $result = $subject->handle();
+
+        $this->assertSame([$parent->id, $other->id], $result->moderated_organization_ids);
     }
 
     public function test_handle_drops_organizations_when_not_requesting_moderator(): void

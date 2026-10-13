@@ -8,6 +8,7 @@ export type RequestableOrganization = {
     id: number;
     name: string;
     parent_name: string | null;
+    node_path: string;
     depth: number;
 };
 
@@ -27,6 +28,7 @@ export type TrooperPermissionsLookup = {
         membership_role_label: string | null;
     };
     moderated_organization_ids: number[];
+    covered_organization_ids: number[];
     has_forum_account: boolean;
     forum_group_ids: number[];
 };
@@ -53,6 +55,10 @@ function createRequestPermissionsForm(): InertiaForm<RequestPermissionsFormData>
 
 function toggle(ids: number[], id: number): number[] {
     return ids.includes(id) ? ids.filter((i) => i !== id) : [...ids, id];
+}
+
+function isDescendant(child: RequestableOrganization, parent: RequestableOrganization): boolean {
+    return child.id !== parent.id && child.node_path.startsWith(parent.node_path);
 }
 
 export class RequestPermissionsViewModel extends SubmitableViewModel<
@@ -135,11 +141,32 @@ export class RequestPermissionsViewModel extends SubmitableViewModel<
     }
 
     isModerating(organization_id: number): boolean {
-        return this.lookup?.moderated_organization_ids.includes(organization_id) ?? false;
+        const covered =
+            this.lookup?.covered_organization_ids ?? this.lookup?.moderated_organization_ids ?? [];
+        return covered.includes(organization_id);
+    }
+
+    isIncludedByParent(organization: RequestableOrganization): boolean {
+        return this.organizations.some(
+            (parent) =>
+                parent.id !== organization.id &&
+                this.form.moderated_organization_ids.includes(parent.id) &&
+                isDescendant(organization, parent),
+        );
     }
 
     toggleOrganization(id: number) {
-        this.form.moderated_organization_ids = toggle(this.form.moderated_organization_ids, id);
+        const ids = toggle(this.form.moderated_organization_ids, id);
+        const picked = this.organizations.find((o) => o.id === id);
+
+        // Picking a parent covers its children, so drop any children picked earlier.
+        this.form.moderated_organization_ids =
+            picked && ids.includes(id)
+                ? ids.filter((i) => {
+                      const org = this.organizations.find((o) => o.id === i);
+                      return !org || org.id === id || !isDescendant(org, picked);
+                  })
+                : ids;
     }
 
     toggleGroupToAdd(id: number) {

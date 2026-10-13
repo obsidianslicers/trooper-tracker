@@ -46,7 +46,7 @@ final class RequestPermissionsPageData extends Message
     }
 
     /**
-     * @return array<int, array{id:int,name:string,parent_name:string|null,depth:int}>
+     * @return array<int, array{id:int,name:string,parent_name:string|null,node_path:string,depth:int}>
      */
     private function getOrganizations(): array
     {
@@ -55,6 +55,7 @@ final class RequestPermissionsPageData extends Message
                 'id' => $organization->id,
                 'name' => $organization->name,
                 'parent_name' => $organization->parent?->name,
+                'node_path' => (string) $organization->node_path,
                 'depth' => (int) $organization->depth,
             ])
             ->values()

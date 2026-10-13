@@ -34,6 +34,8 @@ class LookupTrooperPermissionsControllerTest extends TestCase
         $moderator = Trooper::factory()->asModerator()->create();
         $trooper = Trooper::factory()->asModerator()->create();
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
+        $child = Organization::factory()->asRegion()->withParent($organization)->create();
+        Organization::factory()->asOrganization()->create();
         TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($organization)->create([
             TrooperAssignment::IS_MODERATOR => true,
         ]);
@@ -56,6 +58,10 @@ class LookupTrooperPermissionsControllerTest extends TestCase
             'has_forum_account' => true,
             'forum_group_ids' => [5, 20],
         ]);
+        $this->assertEqualsCanonicalizing(
+            [$organization->id, $child->id],
+            $response->json('covered_organization_ids')
+        );
     }
 
     public function test_invoke_reports_no_forum_account_when_xenforo_not_configured(): void
