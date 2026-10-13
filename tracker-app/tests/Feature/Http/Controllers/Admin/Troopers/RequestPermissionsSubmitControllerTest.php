@@ -86,9 +86,10 @@ class RequestPermissionsSubmitControllerTest extends TestCase
     public function test_invoke_rejects_unchanged_moderation(): void
     {
         $trooper = Trooper::factory()->asModerator()->create();
-        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($this->organization)->create([
-            TrooperAssignment::IS_MODERATOR => true,
-        ]);
+        TrooperAssignment::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($this->organization)
+            ->create([TrooperAssignment::IS_MODERATOR => true]);
 
         $response = $this->submit([
             'trooper_id' => $trooper->id,

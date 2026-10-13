@@ -16,7 +16,8 @@ use App\Notifications\BaseNotification;
  */
 class TrooperPermissionsChangedNotification extends BaseNotification
 {
-    protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category = 'permissions_changed';
+    protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category =
+        'permissions_changed';
 
     public function __construct(private readonly PermissionRequest $permission_request) {}
 

@@ -22,19 +22,18 @@ final class SendPermissionRequestReviewedNotifications extends Message
 
     public function handle(): void
     {
-        $requester = $this->permission_request->requester;
+        $request = $this->permission_request;
+        $requester = $request->requester;
 
         // An administrator reviewing their own request already knows the outcome.
-        if ($requester !== null && $requester->id !== $this->permission_request->reviewer_trooper_id)
+        if ($requester !== null && $requester->id !== $request->reviewer_trooper_id)
         {
-            $requester->notify(new PermissionRequestReviewedNotification($this->permission_request));
+            $requester->notify(new PermissionRequestReviewedNotification($request));
         }
 
-        if ($this->permission_request->status === PermissionRequestStatus::APPROVED)
+        if ($request->status === PermissionRequestStatus::APPROVED)
         {
-            $this->permission_request->trooper->notify(
-                new TrooperPermissionsChangedNotification($this->permission_request)
-            );
+            $request->trooper->notify(new TrooperPermissionsChangedNotification($request));
         }
     }
 }

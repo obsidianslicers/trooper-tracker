@@ -10,23 +10,7 @@
         changes for <strong>{{ $trooper->display_name }}</strong>.
     </p>
 
-    @if($role_label)
-        <p>
-            Requested role: <strong>{{ $role_label }}</strong>
-        </p>
-    @endif
-
-    @if($groups_to_add !== '')
-        <p>
-            Add forum groups: {{ $groups_to_add }}
-        </p>
-    @endif
-
-    @if($groups_to_remove !== '')
-        <p>
-            Remove forum groups: {{ $groups_to_remove }}
-        </p>
-    @endif
+    @include('emails.inc.permission-changes')
 
     @if($permission_request->note)
         <p>

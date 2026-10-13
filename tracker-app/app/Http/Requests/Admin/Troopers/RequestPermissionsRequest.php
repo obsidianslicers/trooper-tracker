@@ -154,7 +154,10 @@ class RequestPermissionsRequest extends FormRequest
 
         if ($changes['add'] === [] && $changes['remove'] === [])
         {
-            $validator->errors()->add('moderated_organization_ids', 'Change at least one organization.');
+            $validator->errors()->add(
+                'moderated_organization_ids',
+                'Change at least one organization.'
+            );
         }
     }
 

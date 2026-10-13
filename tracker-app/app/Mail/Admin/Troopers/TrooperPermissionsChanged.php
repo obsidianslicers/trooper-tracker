@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Mail\Admin\Troopers;
 
 use App\Mail\HasRetryPolicy;
+use App\Messages\Troopers\Resources\PermissionRequestsCollection;
 use App\Models\PermissionRequest;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -36,7 +37,7 @@ class TrooperPermissionsChanged extends Mailable implements ShouldQueue
             view: 'emails.admin.troopers.trooper-permissions-changed',
             with: [
                 'trooper' => $this->permission_request->trooper,
-                'changes' => $this->permission_request->changeSummary(),
+                'changes' => PermissionRequestsCollection::changeSummary($this->permission_request),
             ]
         );
     }

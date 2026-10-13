@@ -24,9 +24,9 @@ class SendPermissionRequestReviewedNotificationsTest extends TestCase
 
         $moderator = Trooper::factory()->asModerator()->create();
         $trooper = Trooper::factory()->asMember()->create();
-        $permission_request = $this->reviewed($moderator, $trooper, PermissionRequestStatus::APPROVED);
+        $request = $this->reviewed($moderator, $trooper, PermissionRequestStatus::APPROVED);
 
-        $subject = new SendPermissionRequestReviewedNotifications($permission_request);
+        $subject = new SendPermissionRequestReviewedNotifications($request);
         $subject->handle();
 
         Notification::assertSentTo($moderator, PermissionRequestReviewedNotification::class);
@@ -39,9 +39,9 @@ class SendPermissionRequestReviewedNotificationsTest extends TestCase
 
         $moderator = Trooper::factory()->asModerator()->create();
         $trooper = Trooper::factory()->asMember()->create();
-        $permission_request = $this->reviewed($moderator, $trooper, PermissionRequestStatus::DENIED);
+        $request = $this->reviewed($moderator, $trooper, PermissionRequestStatus::DENIED);
 
-        $subject = new SendPermissionRequestReviewedNotifications($permission_request);
+        $subject = new SendPermissionRequestReviewedNotifications($request);
         $subject->handle();
 
         Notification::assertSentTo($moderator, PermissionRequestReviewedNotification::class);
@@ -54,9 +54,9 @@ class SendPermissionRequestReviewedNotificationsTest extends TestCase
 
         $admin = Trooper::factory()->asAdministrator()->create();
         $trooper = Trooper::factory()->asMember()->create();
-        $permission_request = $this->reviewed($admin, $trooper, PermissionRequestStatus::APPROVED, $admin);
+        $request = $this->reviewed($admin, $trooper, PermissionRequestStatus::APPROVED, $admin);
 
-        $subject = new SendPermissionRequestReviewedNotifications($permission_request);
+        $subject = new SendPermissionRequestReviewedNotifications($request);
         $subject->handle();
 
         Notification::assertNotSentTo($admin, PermissionRequestReviewedNotification::class);
@@ -69,12 +69,14 @@ class SendPermissionRequestReviewedNotificationsTest extends TestCase
         PermissionRequestStatus $status,
         ?Trooper $reviewer = null,
     ): PermissionRequest {
+        $reviewer ??= Trooper::factory()->asAdministrator()->create();
+
         return PermissionRequest::factory()
             ->requestedBy($requester)
             ->forTrooper($trooper)
             ->create([
                 PermissionRequest::STATUS => $status,
-                PermissionRequest::REVIEWER_TROOPER_ID => ($reviewer ?? Trooper::factory()->asAdministrator()->create())->id,
+                PermissionRequest::REVIEWER_TROOPER_ID => $reviewer->id,
             ]);
     }
 }

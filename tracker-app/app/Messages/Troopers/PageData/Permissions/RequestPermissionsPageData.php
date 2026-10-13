@@ -46,7 +46,13 @@ final class RequestPermissionsPageData extends Message
     }
 
     /**
-     * @return array<int, array{id:int,name:string,parent_name:string|null,node_path:string,depth:int}>
+     * @return array<int, array{
+     *     id:int,
+     *     name:string,
+     *     parent_name:string|null,
+     *     node_path:string,
+     *     depth:int
+     * }>
      */
     private function getOrganizations(): array
     {

@@ -9,7 +9,6 @@ use App\Messages\Troopers\Queries\Permissions\GetTrooperForumGroupIds;
 use App\Messages\Troopers\Resources\PermissionRequestsCollection;
 use App\Models\Organization;
 use App\Models\Trooper;
-use App\Models\TrooperAssignment;
 use App\Services\Forums\XenforoService;
 use Hyperdrive\Message;
 
@@ -32,7 +31,7 @@ final class LookupTrooperPermissionsPageData extends Message
             && $xenforo->resolve_user_id_for_trooper($this->trooper->id) !== null;
 
         $forum_group_ids = GetTrooperForumGroupIds::call(trooper: $this->trooper);
-        $moderated_ids = $this->getModeratedOrganizationIds();
+        $moderated_ids = array_map('intval', $this->trooper->resolveModeratorOrgIds() ?? []);
 
         return [
             'trooper' => [
@@ -67,18 +66,6 @@ final class LookupTrooperPermissionsPageData extends Message
 
         return Organization::moderatedBy($this->trooper)
             ->pluck(Organization::ID)
-            ->map(fn (int|string $id): int => (int) $id)
-            ->all();
-    }
-
-    /**
-     * @return array<int, int>
-     */
-    private function getModeratedOrganizationIds(): array
-    {
-        return $this->trooper->trooper_assignments()
-            ->where(TrooperAssignment::IS_MODERATOR, true)
-            ->pluck(TrooperAssignment::ORGANIZATION_ID)
             ->map(fn (int|string $id): int => (int) $id)
             ->all();
     }

@@ -238,30 +238,9 @@ class XenforoUserSyncService
      */
     private function fetchCurrentSecondaryGroupIds(int $xenforo_user_id): ?Collection
     {
-        $user = $this->xenforo->get_user($xenforo_user_id);
+        $group_ids = $this->xenforo->getUserSecondaryGroupIds($xenforo_user_id);
 
-        if ($user['status'] < 200 || $user['status'] >= 300 || ! is_array($user['body']))
-        {
-            return null;
-        }
-
-        $body = $user['body'];
-        $userData = is_array($body['user'] ?? null) ? $body['user'] : $body;
-        $rawSecondary = $userData['secondary_group_ids'] ?? [];
-
-        if (is_string($rawSecondary))
-        {
-            $rawSecondary = array_filter(
-                array_map('trim', explode(',', $rawSecondary)),
-                static fn ($v) => $v !== ''
-            );
-        }
-
-        return collect($rawSecondary)
-            ->filter(static fn ($id) => is_numeric($id))
-            ->map(static fn ($id) => (int) $id)
-            ->unique()
-            ->values();
+        return $group_ids === null ? null : collect($group_ids);
     }
 
     /**

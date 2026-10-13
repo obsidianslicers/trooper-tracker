@@ -172,10 +172,10 @@ class XenforoServiceTest extends TestCase
         Http::fake([
             'https://xf.test/index.php?api/user-groups' => Http::response([
                 'userGroups' => [
-                    ['groupID' => 1, 'title' => 'A Absolute', 'bannerText' => '<img src="https://cdn.test/a.png">'],
-                    ['groupID' => 2, 'title' => 'B Relative', 'bannerText' => '<img src="data/assets/b.png" />'],
-                    ['groupID' => 3, 'title' => 'C Text', 'bannerText' => '<span class="userBanner">C</span>'],
-                    ['groupID' => 4, 'title' => 'D Script', 'bannerText' => '<img src="javascript:alert(1)">'],
+                    $this->bannerGroup(1, 'A Absolute', '<img src="https://cdn.test/a.png">'),
+                    $this->bannerGroup(2, 'B Relative', '<img src="data/assets/b.png" />'),
+                    $this->bannerGroup(3, 'C Text', '<span class="userBanner">C</span>'),
+                    $this->bannerGroup(4, 'D Script', '<img src="javascript:alert(1)">'),
                 ],
             ], 200),
         ]);
@@ -213,6 +213,36 @@ class XenforoServiceTest extends TestCase
         $subject = new XenforoService;
 
         $this->assertSame([1507, 1600, 1601], $subject->getUpgradeGroupIds());
+    }
+
+    public function test_get_user_secondary_group_ids_parses_comma_separated_string(): void
+    {
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'key-3',
+        ]);
+
+        Http::fake([
+            '*' => Http::response(['user' => ['secondary_group_ids' => ' 5, 20,,x,5']], 200),
+        ]);
+
+        $subject = new XenforoService;
+
+        $this->assertSame([5, 20], $subject->getUserSecondaryGroupIds(77));
+    }
+
+    public function test_get_user_secondary_group_ids_returns_null_on_failure(): void
+    {
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'key-3',
+        ]);
+
+        Http::fake(['*' => Http::response([], 500)]);
+
+        $subject = new XenforoService;
+
+        $this->assertNull($subject->getUserSecondaryGroupIds(77));
     }
 
     public function test_get_upgrade_group_ids_returns_null_on_failure(): void
@@ -371,5 +401,13 @@ class XenforoServiceTest extends TestCase
 
         $this->assertSame(0, $result['status']);
         Http::assertNothingSent();
+    }
+
+    /**
+     * @return array{groupID:int,title:string,bannerText:string}
+     */
+    private function bannerGroup(int $id, string $title, string $banner_html): array
+    {
+        return ['groupID' => $id, 'title' => $title, 'bannerText' => $banner_html];
     }
 }

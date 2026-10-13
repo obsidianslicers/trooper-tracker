@@ -41,9 +41,7 @@ class PermissionRequestSubmitted extends Mailable implements ShouldQueue
                 'permission_request' => $request,
                 'trooper' => $request->trooper,
                 'requester' => $request->requester,
-                'role_label' => PermissionRequestsCollection::roleLabel($request->membership_role),
-                'groups_to_add' => $this->groupTitles($request->forum_groups_to_add),
-                'groups_to_remove' => $this->groupTitles($request->forum_groups_to_remove),
+                'changes' => PermissionRequestsCollection::changeSummary($request),
             ]
         );
     }
@@ -51,13 +49,5 @@ class PermissionRequestSubmitted extends Mailable implements ShouldQueue
     public function attachments(): array
     {
         return [];
-    }
-
-    /**
-     * @param  array<int, array{id:int,title:string}>|null  $groups
-     */
-    private function groupTitles(?array $groups): string
-    {
-        return collect($groups ?? [])->pluck('title')->implode(', ');
     }
 }

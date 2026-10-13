@@ -9,13 +9,7 @@
         An administrator has updated your permissions.
     </p>
 
-    @if(count($changes) > 0)
-        <p>
-            @foreach($changes as $change)
-                {{ $change }}<br>
-            @endforeach
-        </p>
-    @endif
+    @include('emails.inc.permission-changes')
 
     <p>
         If you have questions about this change, please contact your command staff.

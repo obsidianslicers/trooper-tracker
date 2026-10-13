@@ -1,4 +1,5 @@
 <script lang="ts">
+    import type { Snippet } from "svelte";
     import InputError from "./InputError.svelte";
     interface Props {
         label?: string | null;
@@ -7,6 +8,8 @@
         errors?: string | string[];
         disabled?: boolean;
         onchange?: (() => void) | null;
+        /** Rich label content; used instead of `label` when provided. */
+        children?: Snippet;
     }
 
     const id = "id-" + crypto.randomUUID();
@@ -18,6 +21,7 @@
         errors = [],
         disabled = false,
         onchange = null,
+        children,
     }: Props = $props();
 </script>
 
@@ -36,11 +40,15 @@
     />
 {/snippet}
 
-{#if label && label.length > 0}
+{#if children || (label && label.length > 0)}
     <div class="form-check">
         {@render checkbox()}
         <label class="form-check-label" for={id}>
-            {label}
+            {#if children}
+                {@render children()}
+            {:else}
+                {label}
+            {/if}
         </label>
     </div>
 {:else}

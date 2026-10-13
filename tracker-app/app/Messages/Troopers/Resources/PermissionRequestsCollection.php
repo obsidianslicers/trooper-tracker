@@ -60,6 +60,43 @@ class PermissionRequestsCollection extends ResourceCollection
     }
 
     /**
+     * @param  array<int, array{id:int,title:string}>|null  $groups
+     */
+    public static function groupTitles(?array $groups): string
+    {
+        return collect($groups ?? [])->pluck('title')->implode(', ');
+    }
+
+    /**
+     * Human-readable lines describing what a request changes, for notifications.
+     *
+     * @return array<int, string>
+     */
+    public static function changeSummary(PermissionRequest $request): array
+    {
+        $organizations = Organization::query()
+            ->whereIn(Organization::ID, [
+                ...$request->moderated_organization_ids ?? [],
+                ...$request->unmoderated_organization_ids ?? [],
+            ])
+            ->pluck(Organization::NAME, Organization::ID);
+
+        $names = fn (?array $ids): string => $organizations->only($ids ?? [])->implode(', ');
+
+        return collect([
+            'Role' => (string) self::roleLabel($request->membership_role),
+            'Now moderates' => $names($request->moderated_organization_ids),
+            'No longer moderates' => $names($request->unmoderated_organization_ids),
+            'Forum groups added' => self::groupTitles($request->forum_groups_to_add),
+            'Forum groups removed' => self::groupTitles($request->forum_groups_to_remove),
+        ])
+            ->filter(fn (string $value): bool => $value !== '')
+            ->map(fn (string $value, string $label): string => "{$label}: {$value}")
+            ->values()
+            ->all();
+    }
+
+    /**
      * @return Collection<int, array{id:int,name:string,parent_name:string|null}>
      */
     private function getOrganizations(): Collection

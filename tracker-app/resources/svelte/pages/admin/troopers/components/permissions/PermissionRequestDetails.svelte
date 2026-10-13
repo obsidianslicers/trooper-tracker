@@ -1,6 +1,5 @@
 <script lang="ts">
-    import type { PermissionRequest } from "../../models/vms";
-    import type { PermissionRequestOrganization } from "../../models/vms/PendingPermissionRequestViewModel.svelte";
+    import type { PermissionRequest, PermissionRequestOrganization } from "../../models/vms";
 
     interface Props {
         request: PermissionRequest;

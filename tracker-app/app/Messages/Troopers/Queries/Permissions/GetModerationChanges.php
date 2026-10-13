@@ -6,7 +6,6 @@ namespace App\Messages\Troopers\Queries\Permissions;
 
 use App\Models\Organization;
 use App\Models\Trooper;
-use App\Models\TrooperAssignment;
 use Hyperdrive\Message;
 
 /**
@@ -17,7 +16,11 @@ use Hyperdrive\Message;
  * organization covers everything beneath it. Only organizations the requester
  * may manage are removed, so moderation outside their scope is left alone.
  *
- * @method static array{add:array<int,int>,remove:array<int,int>} call(Trooper $requester, Trooper $trooper, array $organization_ids)
+ * @method static array{add:array<int,int>,remove:array<int,int>} call(
+ *     Trooper $requester,
+ *     Trooper $trooper,
+ *     array $organization_ids
+ * )
  */
 final class GetModerationChanges extends Message
 {
@@ -73,11 +76,9 @@ final class GetModerationChanges extends Message
     private function getCurrentIdsInScope(): array
     {
         $requestable_ids = GetRequestableOrganizations::call(requester: $this->requester)
-            ->map(fn (Organization $organization): int => $organization->id);
+            ->modelKeys();
 
-        return $this->trooper->trooper_assignments()
-            ->where(TrooperAssignment::IS_MODERATOR, true)
-            ->pluck(TrooperAssignment::ORGANIZATION_ID)
+        return collect($this->trooper->resolveModeratorOrgIds() ?? [])
             ->map(fn (int|string $id): int => (int) $id)
             ->intersect($requestable_ids)
             ->values()

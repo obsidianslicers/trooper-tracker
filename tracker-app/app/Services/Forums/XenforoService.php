@@ -736,15 +736,9 @@ class XenforoService
 
         return collect($stats['userUpgrades'] ?? [])
             ->filter(static fn (mixed $upgrade): bool => is_array($upgrade))
-            ->flatMap(static function (array $upgrade): array
-            {
-                $raw = $upgrade['extra_group_ids'] ?? [];
-
-                return is_string($raw) ? explode(',', $raw) : (array) $raw;
-            })
-            ->map(static fn (mixed $id): mixed => is_string($id) ? trim($id) : $id)
-            ->filter(static fn (mixed $id): bool => is_numeric($id))
-            ->map(static fn (mixed $id): int => (int) $id)
+            ->flatMap(fn (array $upgrade): array => $this->parseGroupIds(
+                $upgrade['extra_group_ids'] ?? []
+            ))
             ->unique()
             ->values()
             ->all();
@@ -985,14 +979,21 @@ class XenforoService
 
         $body = $user['body'];
         $user_data = is_array($body['user'] ?? null) ? $body['user'] : $body;
-        $raw = $user_data['secondary_group_ids'] ?? [];
 
-        if (is_string($raw))
-        {
-            $raw = explode(',', $raw);
-        }
+        return $this->parseGroupIds($user_data['secondary_group_ids'] ?? []);
+    }
 
-        return collect($raw)
+    /**
+     * XenForo sends group ID lists either as an array or a comma-separated string.
+     *
+     * @return array<int, int>
+     */
+    private function parseGroupIds(mixed $raw): array
+    {
+        $ids = is_string($raw) ? explode(',', $raw) : (array) $raw;
+
+        return collect($ids)
+            ->map(static fn (mixed $id): mixed => is_string($id) ? trim($id) : $id)
             ->filter(static fn (mixed $id): bool => is_numeric($id))
             ->map(static fn (mixed $id): int => (int) $id)
             ->unique()

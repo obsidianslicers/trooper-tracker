@@ -6,6 +6,7 @@ namespace App\Mail\Admin\Troopers;
 
 use App\Enums\PermissionRequestStatus;
 use App\Mail\HasRetryPolicy;
+use App\Messages\Troopers\Resources\PermissionRequestsCollection;
 use App\Models\PermissionRequest;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -44,7 +45,7 @@ class PermissionRequestReviewed extends Mailable implements ShouldQueue
                 'requester' => $request->requester,
                 'trooper' => $request->trooper,
                 'is_approved' => $this->isApproved(),
-                'changes' => $request->changeSummary(),
+                'changes' => PermissionRequestsCollection::changeSummary($request),
             ]
         );
     }
