@@ -19,10 +19,16 @@ class UpdateNotificationPreferenceRequestTest extends TestCase
 
     public static function notification_enum_cases(): array
     {
-        return [
-            'administrative notification' => [AdministrativeNotifications::TROOPER_REQUESTS->value],
-            'trooper notification' => [TrooperNotifications::EVENT_CREATED->value],
-        ];
+        $cases = array_merge(AdministrativeNotifications::cases(), TrooperNotifications::cases());
+
+        $data = [];
+
+        foreach ($cases as $case)
+        {
+            $data[$case->value] = [$case->value];
+        }
+
+        return $data;
     }
 
     public function test_authorize_returns_true(): void
