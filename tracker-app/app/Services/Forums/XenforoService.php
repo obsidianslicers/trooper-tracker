@@ -600,9 +600,25 @@ class XenforoService
         // which account to update.
         $headers = $this->buildApiHeaders();
 
-        $response = Http::withHeaders($headers)
-            ->acceptJson()
-            ->get($url);
+        try
+        {
+            $response = Http::withHeaders($headers)
+                ->acceptJson()
+                ->timeout(5)
+                ->get($url);
+        }
+        catch (Throwable $e)
+        {
+            Log::warning('Failed to fetch XenForo user', [
+                'xenforo_user_id' => $user_id,
+                'message' => $e->getMessage(),
+            ]);
+
+            return [
+                'status' => 0,
+                'body' => null,
+            ];
+        }
 
         return [
             'status' => $response->status(),
@@ -657,9 +673,25 @@ class XenforoService
         // user being modified is identified by the URL.
         $headers = $this->buildApiHeaders();
 
-        $response = Http::withHeaders($headers)
-            ->asForm()
-            ->post($url, $payload);
+        try
+        {
+            $response = Http::withHeaders($headers)
+                ->asForm()
+                ->timeout(10)
+                ->post($url, $payload);
+        }
+        catch (Throwable $e)
+        {
+            Log::warning('Failed to update XenForo user', [
+                'xenforo_user_id' => $user_id,
+                'message' => $e->getMessage(),
+            ]);
+
+            return [
+                'status' => 0,
+                'body' => null,
+            ];
+        }
 
         return [
             'status' => $response->status(),
