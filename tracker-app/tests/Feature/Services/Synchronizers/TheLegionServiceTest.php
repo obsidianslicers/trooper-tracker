@@ -79,6 +79,45 @@ class TheLegionServiceTest extends TestCase
         $this->assertNotNull($organization->{Organization::SYNCHRONIZED_AT});
     }
 
+    public function test_run_skips_troopers_without_a_legion_id(): void
+    {
+        $organization = Organization::factory()->create();
+        $trooper = Trooper::factory()->create();
+
+        TrooperOrganization::factory()->create([
+            TrooperOrganization::TROOPER_ID => $trooper->id,
+            TrooperOrganization::ORGANIZATION_ID => $organization->id,
+            TrooperOrganization::IDENTIFIER => null,
+            TrooperOrganization::MEMBERSHIP_STATUS => MembershipStatus::ACTIVE,
+        ]);
+
+        Http::fake([
+            'https://crls.501st.com/costume-reference-library/costumes-by-name' => Http::response(
+                '<article><a>AR - ARC Trooper</a></article>',
+                200
+            ),
+            'https://api.501st.com/*' => Http::response(['costumes' => []], 200),
+        ]);
+
+        $google = Mockery::mock(GoogleService::class);
+        $subject = new TheLegionService($organization, $google);
+
+        $subject->run();
+
+        Http::assertNotSent(
+            fn ($request): bool => str_starts_with($request->url(), 'https://api.501st.com/')
+        );
+
+        $pivot = TrooperOrganization::query()
+            ->where(TrooperOrganization::TROOPER_ID, $trooper->id)
+            ->first();
+
+        $this->assertSame(MembershipStatus::ACTIVE, $pivot->{TrooperOrganization::MEMBERSHIP_STATUS});
+
+        $organization->refresh();
+        $this->assertNotNull($organization->{Organization::SYNCHRONIZED_AT});
+    }
+
     public function test_run_sets_membership_status_none_when_api_error_present_for_active_member(): void
     {
         $organization = Organization::factory()->create();
