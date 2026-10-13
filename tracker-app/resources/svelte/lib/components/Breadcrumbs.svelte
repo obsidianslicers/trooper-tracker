@@ -1,6 +1,5 @@
 <script lang="ts">
     import breadCrumbState from "$lib/states/bread-crumb-state.svelte";
-    import { Link } from "@inertiajs/svelte";
 </script>
 
 {#if breadCrumbState.exists}
@@ -10,7 +9,7 @@
                 {#each breadCrumbState.crumbs as crumb (crumb.id)}
                     <li class="breadcrumb-item">
                         {#if crumb.url}
-                            <Link href={crumb.url}>{crumb.title}</Link>
+                            <a href={crumb.url}>{crumb.title}</a>
                         {:else}
                             {crumb.title}
                         {/if}

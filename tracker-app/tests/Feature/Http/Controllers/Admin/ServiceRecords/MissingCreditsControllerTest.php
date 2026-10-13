@@ -28,6 +28,19 @@ class MissingCreditsControllerTest extends TestCase
         $response->assertInertia(fn (Assert $page) => $page->component('admin/service-records/MissingCredits'));
     }
 
+    public function test_invoke_links_breadcrumb_back_to_command_staff(): void
+    {
+        $admin = Trooper::factory()->asAdministrator()->create();
+
+        $response = $this->actingAs($admin)->get(route('admin.service-records.missing-credits'));
+
+        $response->assertInertia(fn (Assert $page) => $page
+            ->has('breadcrumbs', 1)
+            ->where('breadcrumbs.0.title', 'Command Staff')
+            ->where('breadcrumbs.0.url', route('admin.display'))
+        );
+    }
+
     public function test_invoke_scopes_rows_to_moderator_authority(): void
     {
         $moderator = Trooper::factory()->asModerator()->create();
