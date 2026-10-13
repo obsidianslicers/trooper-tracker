@@ -118,6 +118,9 @@ final class ApproveTrooperPermissions extends Message
             }
             elseif ($assignment->trashed())
             {
+                // Granting moderation must not revive the old membership; it can
+                // clash with a membership the trooper now holds in the same branch.
+                $assignment->is_member = false;
                 $assignment->restore();
             }
 

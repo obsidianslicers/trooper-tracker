@@ -99,6 +99,44 @@ class ApproveTrooperPermissionsTest extends TestCase
         ]);
     }
 
+    public function test_handle_restores_deleted_assignment_as_moderator_only(): void
+    {
+        $rebel_legion = Organization::factory()->asOrganization()->create();
+        $cfl = Organization::factory()->asRegion()->withParent($rebel_legion)->create();
+        $trooper = Trooper::factory()->asModerator()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($cfl)->create([
+            TrooperAssignment::IS_MEMBER => true,
+        ]);
+        $old = TrooperAssignment::factory()
+            ->forTrooper($trooper)
+            ->forOrganization($rebel_legion)
+            ->create([TrooperAssignment::IS_MODERATOR => true]);
+        $old->delete();
+        // Set after deletion so the observer's one-membership rule isn't hit while seeding.
+        TrooperAssignment::withTrashed()
+            ->whereKey($old->id)
+            ->update([TrooperAssignment::IS_MEMBER => true]);
+
+        $permission_request = PermissionRequest::factory()
+            ->forTrooper($trooper)
+            ->withRole(MembershipRole::MODERATOR, [$rebel_legion->id])
+            ->create();
+
+        $subject = new ApproveTrooperPermissions($this->admin, $permission_request);
+        $subject->handle();
+
+        $this->assertDatabaseHas('tt_trooper_assignments', [
+            TrooperAssignment::ID => $old->id,
+            TrooperAssignment::IS_MEMBER => false,
+            TrooperAssignment::IS_MODERATOR => true,
+            TrooperAssignment::DELETED_AT => null,
+        ]);
+        $this->assertDatabaseHas('tt_trooper_assignments', [
+            TrooperAssignment::ORGANIZATION_ID => $cfl->id,
+            TrooperAssignment::IS_MEMBER => true,
+        ]);
+    }
+
     public function test_handle_keeps_existing_member_assignment_when_granting_moderator(): void
     {
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
