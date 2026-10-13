@@ -17,18 +17,16 @@ use Illuminate\Support\Facades\Cache;
  * Groups mapped to organizations (active/reserve/retired) are left out because
  * the XenForo user sync owns them and would undo any manual change. Groups granted
  * by XenForo user upgrades are left out for the same reason: XenForo adds and
- * removes them as upgrades start and expire. The R.I.P. group is left out because
- * the tracker's Mark R.I.P. action owns it.
+ * removes them as upgrades start and expire. The R.I.P. group
+ * (services.xenforo.rip_group_id) is left out because the tracker manages it.
  *
  * @method static Collection<int, array{id:int,title:string,banner_image_url:?string}> call()
  */
 final class GetRequestableForumGroups extends Message
 {
-    private const CACHE_KEY = 'xenforo_requestable_user_groups_v4';
+    private const CACHE_KEY = 'xenforo_requestable_user_groups_v3';
 
     private const CACHE_SECONDS = 600;
-
-    private const RIP_TITLE_PATTERN = '/\bR\.?\s?I\.?\s?P\b|\bin memoriam\b/i';
 
     public function __construct() {}
 
@@ -70,7 +68,6 @@ final class GetRequestableForumGroups extends Message
 
         $groups = collect($xenforo->getAllUserGroups() ?? [])
             ->reject(fn (array $group): bool => in_array($group['id'], $upgrade_ids, true))
-            ->reject(fn (array $group): bool => $this->isRipGroup($group['title']))
             ->values()
             ->all();
 
@@ -80,11 +77,6 @@ final class GetRequestableForumGroups extends Message
         }
 
         return $groups;
-    }
-
-    private function isRipGroup(string $title): bool
-    {
-        return preg_match(self::RIP_TITLE_PATTERN, $title) === 1;
     }
 
     /**
@@ -102,7 +94,8 @@ final class GetRequestableForumGroups extends Message
             ->select($columns)
             ->get()
             ->flatMap(fn (Organization $org): array => array_values($org->only($columns)))
-            ->filter(fn (mixed $id): bool => $id !== null)
+            ->push(config('services.xenforo.rip_group_id'))
+            ->filter(fn (mixed $id): bool => is_numeric($id))
             ->map(fn (int|string $id): int => (int) $id)
             ->unique()
             ->values();
