@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Messages\Account\PageData;
 
 use App\Enums\AdministrativeNotifications;
+use App\Enums\TrooperNotifications;
 use App\Messages\Account\PageData\IndexPageData;
 use App\Models\Trooper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -47,6 +48,23 @@ class IndexPageDataTest extends TestCase
         $subject = new IndexPageData($trooper);
 
         $this->assertSame([], $this->administrativeValues($subject->handle()));
+    }
+
+    public function test_handle_fills_sparse_notification_preferences_with_defaults(): void
+    {
+        $key = AdministrativeNotifications::TROOPER_REQUESTS->value;
+        $trooper = Trooper::factory()->asMember()->create([
+            'notification_preferences' => [$key => ['mail' => false]],
+        ]);
+        $subject = new IndexPageData($trooper);
+
+        $preferences = $subject->handle()['notifications']['notification_preferences'];
+
+        $this->assertEquals(['mail' => false, 'fcm' => true, 'database' => true], $preferences[$key]);
+        $this->assertCount(
+            count(AdministrativeNotifications::cases()) + count(TrooperNotifications::cases()),
+            $preferences
+        );
     }
 
     /**
