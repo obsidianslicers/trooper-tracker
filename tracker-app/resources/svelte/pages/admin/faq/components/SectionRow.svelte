@@ -22,25 +22,32 @@
             {/if}
         </td>
         <td>
-            <i
-                class={[
-                    "fa fa-fw",
-                    vm.showing_items ? "fa-caret-down" : "fa-caret-right",
-                    "d-block pointer",
-                ]}
+            <button
+                type="button"
+                class="btn btn-link p-0 text-reset text-decoration-none d-block"
+                aria-label="Toggle section items"
                 onclick={() => vm.toggleSection(section.id)}
-            ></i>
+            >
+                <i
+                    class={[
+                        "fa fa-fw",
+                        vm.showing_items ? "fa-caret-down" : "fa-caret-right",
+                    ]}
+                    aria-hidden="true"
+                ></i>
+            </button>
         </td>
         <td class="text-center">
             <i class="fa fa-fw {section.icon}"></i>
         </td>
         <td>
-            <div
-                class="d-block pointer"
+            <button
+                type="button"
+                class="btn btn-link p-0 text-reset text-decoration-none d-block w-100 text-start"
                 onclick={() => vm.toggleSection(section.id)}
             >
                 {section.label}
-            </div>
+            </button>
         </td>
         <td class="text-muted small">{section.faqs.length}</td>
         <td>

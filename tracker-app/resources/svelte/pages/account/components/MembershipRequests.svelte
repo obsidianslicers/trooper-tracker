@@ -17,6 +17,7 @@
                     <td>
                         <img
                             src={request.image_url}
+                            alt=""
                             width="24"
                             height="24"
                             class="me-2"

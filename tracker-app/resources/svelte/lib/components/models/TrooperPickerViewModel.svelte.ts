@@ -42,7 +42,7 @@ function createTrooperPickerOptions(
 }
 
 export class TrooperPickerViewModel extends ViewModel {
-    #options: TrooperPickerOptions = $state(createTrooperPickerOptions());
+    #options: TrooperPickerOptions;
     show_modal = $state(false);
     term = $state("");
     selected_trooper = $state<Trooper | null>(null);
@@ -53,9 +53,9 @@ export class TrooperPickerViewModel extends ViewModel {
 
     private debounce_timer: ReturnType<typeof setTimeout> | null = null;
 
-    constructor(options: Partial<TrooperPickerOptions> = {}) {
+    constructor(get_options: () => Partial<TrooperPickerOptions> = () => ({})) {
         super();
-        this.#options = createTrooperPickerOptions(options);
+        this.#options = $derived(createTrooperPickerOptions(get_options()));
     }
 
     get options(): TrooperPickerOptions {

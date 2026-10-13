@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { untrack } from "svelte";
     import SlimView from "$lib/components/ui/SlimView.svelte";
     import type { MembershipsPageData } from "../models";
     import { MembershipsViewModel } from "../models";
@@ -12,7 +13,10 @@
     }
     let { is_visitor, memberships }: Props = $props();
 
-    let vm = new MembershipsViewModel(is_visitor, memberships);
+    let vm = new MembershipsViewModel(
+        untrack(() => is_visitor),
+        untrack(() => memberships),
+    );
 </script>
 
 <SlimView>

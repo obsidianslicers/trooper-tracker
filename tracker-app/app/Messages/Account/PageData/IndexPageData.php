@@ -82,15 +82,37 @@ final class IndexPageData extends Message
     private function getNotifications(): array
     {
         return [
-            'is_administrator' => $this->actor->is_administrator,
             'trooper_notification_enums' => TrooperNotifications::toValueLabels(),
-            'administrative_notification_enums' => AdministrativeNotifications::toValueLabels(),
+            'administrative_notification_enums' => $this->getAdministrativeNotificationEnums(),
             'notification_frequency_enums' => NotificationFrequency::toValueLabels(),
             'notification_frequency' => $this->actor->notification_frequency,
             'push_notifications_enabled' => $this->actor->push_notifications_enabled,
             'notification_preferences' => $this->actor->notification_preferences ?? $this->defaultNotificationPreferences(),
             'organization_notifications' => $this->getOrganizationNotifications(),
         ];
+    }
+
+    /**
+     * Moderators receive most administrative notifications for troopers in their scope,
+     * so they get those preferences too, without the administrator-only categories.
+     *
+     * @return array<int, array{value:string,label:string}>
+     */
+    private function getAdministrativeNotificationEnums(): array
+    {
+        if ($this->actor->is_administrator)
+        {
+            return AdministrativeNotifications::toValueLabels();
+        }
+
+        if ($this->actor->is_moderator)
+        {
+            return AdministrativeNotifications::toValueLabels(
+                exclude: AdministrativeNotifications::administratorOnly()
+            );
+        }
+
+        return [];
     }
 
     private function defaultNotificationPreferences(): array

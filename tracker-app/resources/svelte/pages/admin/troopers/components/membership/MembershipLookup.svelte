@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { untrack } from "svelte";
     import Badge from "$lib/components/Badge.svelte";
     import Alert from "$lib/components/ui/Alert.svelte";
     import { MembershipLookupViewModel } from "../../models";
@@ -8,7 +9,7 @@
     }
     let { trooper_request_id }: Props = $props();
 
-    let vm = new MembershipLookupViewModel(trooper_request_id);
+    let vm = new MembershipLookupViewModel(untrack(() => trooper_request_id));
 </script>
 
 {#if vm.performing_lookup}

@@ -3,7 +3,6 @@ import type { NotificationPreferences } from "../types";
 import type { EventNotificationsPageData } from "./EventNotificationsViewModel.svelte";
 
 export type NotificationsPageData = EventNotificationsPageData & {
-    is_administrator: boolean;
     trooper_notification_enums: Option[];
     administrative_notification_enums: Option[];
     notification_preferences: NotificationPreferences;

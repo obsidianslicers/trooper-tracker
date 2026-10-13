@@ -45,4 +45,14 @@ enum AdministrativeNotifications: string
      * Sent to the moderator who requested permission changes once an administrator reviews it.
      */
     case PERMISSION_REQUEST_REVIEWED = 'permission_request_reviewed';
+
+    /**
+     * Categories that are only ever sent to administrators, never to moderators.
+     *
+     * @return array<int, self>
+     */
+    public static function administratorOnly(): array
+    {
+        return [self::TROOPERS_MERGED, self::PERMISSION_REQUESTS];
+    }
 }

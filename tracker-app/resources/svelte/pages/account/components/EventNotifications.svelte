@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { untrack } from "svelte";
     import InputCheckbox from "$lib/components/form/InputCheckbox.svelte";
     import InputContainer from "$lib/components/form/InputContainer.svelte";
     import InputHelp from "$lib/components/form/InputHelp.svelte";
@@ -11,7 +12,7 @@
     }
     let { notifications }: Props = $props();
 
-    let vm = new EventNotificationsViewModel(notifications);
+    let vm = new EventNotificationsViewModel(untrack(() => notifications));
 </script>
 
 <InputContainer>
