@@ -7,6 +7,7 @@ namespace Tests\Unit\Models\Scopes;
 use App\Enums\OrganizationType;
 use App\Models\Organization;
 use App\Models\Trooper;
+use App\Models\TrooperAssignment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -54,6 +55,26 @@ class HasOrganizationScopesTest extends TestCase
         $moderated_sql = Organization::query()->moderatedBy($trooper)->toBase()->toSql();
 
         $this->assertSame($base_sql, $moderated_sql);
+    }
+
+    public function test_moderated_by_ignores_deleted_moderator_assignments(): void
+    {
+        $kept = Organization::factory()->asOrganization()->create();
+        $kept_region = Organization::factory()->asRegion()->withParent($kept)->create();
+        $removed = Organization::factory()->asOrganization()->create();
+        Organization::factory()->asRegion()->withParent($removed)->create();
+
+        $trooper = Trooper::factory()->asModerator()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($kept)->create([
+            TrooperAssignment::IS_MODERATOR => true,
+        ]);
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($removed)->create([
+            TrooperAssignment::IS_MODERATOR => true,
+        ])->delete();
+
+        $ids = Organization::moderatedBy($trooper)->pluck(Organization::ID)->all();
+
+        $this->assertEqualsCanonicalizing([$kept->id, $kept_region->id], $ids);
     }
 
     public function test_within_node_path_returns_organization_and_descendants(): void

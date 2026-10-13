@@ -37,12 +37,22 @@ enum AdministrativeNotifications: string
     case TROOPER_MILESTONES = 'trooper_milestones';
 
     /**
+     * Sent to administrators when a moderator requests permission changes for a trooper.
+     */
+    case PERMISSION_REQUESTS = 'permission_requests';
+
+    /**
+     * Sent to the moderator who requested permission changes once an administrator reviews it.
+     */
+    case PERMISSION_REQUEST_REVIEWED = 'permission_request_reviewed';
+
+    /**
      * Categories that are only ever sent to administrators, never to moderators.
      *
      * @return array<int, self>
      */
     public static function administratorOnly(): array
     {
-        return [self::TROOPERS_MERGED];
+        return [self::TROOPERS_MERGED, self::PERMISSION_REQUESTS];
     }
 }

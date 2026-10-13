@@ -66,7 +66,7 @@ The default role. Assigned automatically on registration unless `membership_role
 - Access the admin dashboard
 
 **Assigned by:** Registration default  
-**Changed by:** Admin via authority panel
+**Changed by:** Admin via authority panel, or an approved [permission request](#permission-requests)
 
 ---
 
@@ -121,7 +121,7 @@ An elevated role scoped to specific organizations. Cannot be self-assigned.
 - Access system-wide admin functions
 - Act outside their assigned organization scope
 
-**Assigned by:** Admin only, via authority panel  
+**Assigned by:** Admin only, via authority panel or by approving a [permission request](#permission-requests)  
 **Scope:** Determined by `TrooperAssignment.is_moderator` flags per organization (see [Moderator Scope](#moderator-scope))  
 **Changed by:** Admin via authority panel — all `is_moderator` flags are cleared when role is changed away from MODERATOR
 
@@ -196,6 +196,50 @@ Queries use `Trooper::moderatedBy($trooper)` to filter results. Administrators b
 
 ---
 
+## Permission Requests
+
+Moderators can ask for a trooper's permissions to be changed, but only administrators can
+apply the change.
+
+1. A moderator opens **Command Staff → Request Permissions**
+   (`/admin/troopers/permissions/request`), picks a trooper, and requests any of:
+   - make the trooper a MODERATOR of organizations the requester moderates
+     (administrators can pick any organization)
+   - set a MODERATOR back to a regular MEMBER
+   - add or remove XenForo secondary user groups, when the XenForo integration is configured
+2. The moderator adds an optional note explaining what the trooper will do. The request is
+   stored in `tt_permission_requests` with status `pending`, and every administrator is
+   notified under the **Permission Requests** administrative notification category
+   (mail, database, push).
+3. An administrator opens **Command Staff → Permission Approvals**
+   (`/admin/troopers/permissions/approvals`) and approves or denies, with an optional
+   denial reason.
+4. On approval, `ApproveTrooperPermissions` runs in one transaction:
+   - applies the role (moderated organizations follow the same cascade as the authority
+     panel; leaving MODERATOR clears every `is_moderator` flag)
+   - updates the trooper's XenForo secondary groups, adding and removing only the groups
+     named in the request and leaving all others untouched
+   - marks the request `approved` with the reviewer and `reviewed_at`
+
+   If the forum update fails, the whole approval rolls back, the request stays pending, and
+   the admin sees an error.
+5. Once a request is approved or denied, the moderator who submitted it is notified of the
+   decision (and the denial reason) under the **Permission Request Reviewed** category, unless
+   they reviewed it themselves. On approval, the trooper is also notified with a summary of
+   what changed (role, organizations now or no longer moderated, forum groups).
+
+Rules:
+
+- A moderator cannot request changes for themselves, and the target must be an active trooper.
+- Administrators cannot be changed through a request; approving a role change for a trooper
+  who became an administrator after the request was made is rejected.
+- XenForo groups that are mapped to organizations are not requestable, because the forum user
+  sync already manages them. Groups granted by XenForo user upgrades (e.g. FLG Supporter) are
+  not requestable either, because XenForo adds and removes them as upgrades start and expire.
+  The group list comes from the XenForo user-groups add-on (see [XenForo OAuth](XENFORO_OAUTH.md)).
+
+---
+
 ## Key Code References
 
 | Concern | Path |
@@ -210,3 +254,6 @@ Queries use `Trooper::moderatedBy($trooper)` to filter results. Administrators b
 | Role change handler | `app/Features/Troopers/Commands/UpdateTrooperAuthorityCommandHandler.php` |
 | Visitor expiry command | `app/Console/Commands/ExpireVisitorAccessCommand.php` |
 | Visitor renewal controller | `app/Http/Controllers/Account/VisitorRenewSubmitController.php` |
+| Permission request messages | `app/Messages/Troopers/Commands/Permissions/` |
+| Permission request controllers | `app/Http/Controllers/Admin/Troopers/*Permission*Controller.php` |
+| Permission request pages | `resources/svelte/pages/admin/troopers/RequestPermissions.svelte`, `PermissionApprovals.svelte` |

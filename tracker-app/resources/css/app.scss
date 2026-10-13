@@ -486,6 +486,15 @@ input.searching {
     max-width: 100%;
 }
 
+.forum-group-badge {
+    max-height: 24px;
+    max-width: 120px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    vertical-align: middle;
+}
+
 .service-record-confirmation {
     background:
         linear-gradient(90deg, color-mix(in srgb, var(--bs-info) 18%, transparent), transparent 40%),

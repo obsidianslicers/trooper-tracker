@@ -1,0 +1,226 @@
+import type { Trooper } from "$lib/components/models/TrooperPickerViewModel.svelte";
+import { SubmitableViewModel, type Option } from "$lib/domains/types.svelte";
+import { getRoute } from "$lib/utils";
+import { useForm, type InertiaForm } from "@inertiajs/svelte";
+import type { ForumGroup, PermissionRequest } from "./PendingPermissionRequestViewModel.svelte";
+
+export type RequestableOrganization = {
+    id: number;
+    name: string;
+    parent_name: string | null;
+    node_path: string;
+    depth: number;
+};
+
+export type RequestPermissionsPageData = {
+    organizations: RequestableOrganization[];
+    is_xenforo_configured: boolean;
+    forum_groups: ForumGroup[];
+    permission_requests: PermissionRequest[];
+};
+
+export type TrooperPermissionsLookup = {
+    trooper: {
+        id: number;
+        display_name: string;
+        legal_name: string;
+        membership_role: string | null;
+        membership_role_label: string | null;
+    };
+    moderated_organization_ids: number[];
+    covered_organization_ids: number[];
+    has_forum_account: boolean;
+    forum_group_ids: number[];
+};
+
+type RequestPermissionsFormData = {
+    trooper_id: string | number | null;
+    membership_role: "" | "moderator" | "member";
+    moderated_organization_ids: number[];
+    forum_group_ids_to_add: number[];
+    forum_group_ids_to_remove: number[];
+    note: string | null;
+};
+
+function createRequestPermissionsForm(): InertiaForm<RequestPermissionsFormData> {
+    return useForm<RequestPermissionsFormData>({
+        trooper_id: null,
+        membership_role: "",
+        moderated_organization_ids: [],
+        forum_group_ids_to_add: [],
+        forum_group_ids_to_remove: [],
+        note: null,
+    });
+}
+
+function toggle(ids: number[], id: number): number[] {
+    return ids.includes(id) ? ids.filter((i) => i !== id) : [...ids, id];
+}
+
+function isDescendant(child: RequestableOrganization, parent: RequestableOrganization): boolean {
+    return child.id !== parent.id && child.node_path.startsWith(parent.node_path);
+}
+
+export class RequestPermissionsViewModel extends SubmitableViewModel<
+    RequestPermissionsViewModel,
+    RequestPermissionsFormData
+> {
+    organizations: RequestableOrganization[];
+    forum_groups: ForumGroup[];
+    is_xenforo_configured: boolean;
+    permission_requests: PermissionRequest[];
+
+    #trooper = $state<Trooper | null | undefined>(null);
+    lookup = $state<TrooperPermissionsLookup | null>(null);
+    looking_up = $state(false);
+
+    constructor(pageData: RequestPermissionsPageData) {
+        super();
+        this.organizations = pageData.organizations ?? [];
+        this.forum_groups = pageData.forum_groups ?? [];
+        this.is_xenforo_configured = pageData.is_xenforo_configured ?? false;
+        this.permission_requests = pageData.permission_requests ?? [];
+        this.form = createRequestPermissionsForm();
+    }
+
+    get trooper(): Trooper | null | undefined {
+        return this.#trooper;
+    }
+
+    set trooper(trooper: Trooper | null | undefined) {
+        this.#trooper = trooper;
+        this.form.trooper_id = trooper?.id ?? null;
+        this.form.membership_role = "";
+        this.form.moderated_organization_ids = [];
+        this.form.forum_group_ids_to_add = [];
+        this.form.forum_group_ids_to_remove = [];
+        this.lookup = null;
+
+        if (trooper) {
+            this.lookupTrooper(trooper.id);
+        }
+    }
+
+    get current_role(): string | null {
+        return this.lookup?.trooper.membership_role ?? null;
+    }
+
+    get can_change_role(): boolean {
+        return this.lookup !== null && this.current_role !== "administrator";
+    }
+
+    get role_options(): Option[] {
+        const options: Option[] = [{ value: "", label: "No change" }];
+
+        const is_moderator = this.current_role === "moderator";
+
+        options.push({
+            value: "moderator",
+            label: is_moderator ? "Moderator (change organizations)" : "Make moderator",
+        });
+
+        if (is_moderator) {
+            options.push({ value: "member", label: "Set back to regular trooper" });
+        }
+
+        return options;
+    }
+
+    get can_request_forum_groups(): boolean {
+        return this.is_xenforo_configured && (this.lookup?.has_forum_account ?? false);
+    }
+
+    get current_forum_groups(): ForumGroup[] {
+        const ids = this.lookup?.forum_group_ids ?? [];
+        return this.forum_groups.filter((g) => ids.includes(g.id));
+    }
+
+    get addable_forum_groups(): ForumGroup[] {
+        const ids = this.lookup?.forum_group_ids ?? [];
+        return this.forum_groups.filter((g) => !ids.includes(g.id));
+    }
+
+    /** Organizations the trooper moderates directly that this requester can change. */
+    get current_moderated_organizations(): RequestableOrganization[] {
+        const ids = this.lookup?.moderated_organization_ids ?? [];
+        return this.organizations.filter((o) => ids.includes(o.id));
+    }
+
+    /**
+     * Covered by moderation the requester cannot change (granted outside their
+     * scope), so it is shown locked rather than as an editable checkbox.
+     */
+    isModerating(organization: RequestableOrganization): boolean {
+        const covered = this.lookup?.covered_organization_ids ?? [];
+
+        return (
+            covered.includes(organization.id) &&
+            !this.current_moderated_organizations.some(
+                (o) => o.id === organization.id || isDescendant(organization, o),
+            )
+        );
+    }
+
+    willBeRemoved(organization: RequestableOrganization): boolean {
+        return (
+            this.current_moderated_organizations.some((o) => o.id === organization.id) &&
+            !this.form.moderated_organization_ids.includes(organization.id) &&
+            !this.isIncludedByParent(organization)
+        );
+    }
+
+    isIncludedByParent(organization: RequestableOrganization): boolean {
+        return this.organizations.some(
+            (parent) =>
+                parent.id !== organization.id &&
+                this.form.moderated_organization_ids.includes(parent.id) &&
+                isDescendant(organization, parent),
+        );
+    }
+
+    toggleOrganization(id: number) {
+        const ids = toggle(this.form.moderated_organization_ids, id);
+        const picked = this.organizations.find((o) => o.id === id);
+
+        // Picking a parent covers its children, so drop any children picked earlier.
+        this.form.moderated_organization_ids =
+            picked && ids.includes(id)
+                ? ids.filter((i) => {
+                      const org = this.organizations.find((o) => o.id === i);
+                      return !org || org.id === id || !isDescendant(org, picked);
+                  })
+                : ids;
+    }
+
+    toggleGroupToAdd(id: number) {
+        this.form.forum_group_ids_to_add = toggle(this.form.forum_group_ids_to_add, id);
+    }
+
+    toggleGroupToRemove(id: number) {
+        this.form.forum_group_ids_to_remove = toggle(this.form.forum_group_ids_to_remove, id);
+    }
+
+    lookupTrooper = async (trooper_id: string | number) => {
+        this.looking_up = true;
+
+        const url = getRoute('admin.troopers.permissions.lookup', { trooper: trooper_id });
+
+        try {
+            this.lookup = await fetch(url).then((res) => res.json());
+            // Start from what the trooper moderates today so a request can add or remove.
+            this.form.moderated_organization_ids = this.current_moderated_organizations.map(
+                (o) => o.id,
+            );
+        } finally {
+            this.looking_up = false;
+        }
+    };
+
+    submit = (e: Event) => {
+        e.preventDefault();
+
+        const url = getRoute('admin.troopers.permissions.request');
+
+        this.form.post(url, { preserveScroll: true, preserveState: 'errors' });
+    };
+}

@@ -113,6 +113,7 @@ trait HasOrganizationScopes
                 ->join('tt_organizations as org_mod', 'ta_mod.organization_id', '=', 'org_mod.id')
                 ->where('ta_mod.trooper_id', $trooper->id)
                 ->where('ta_mod.is_moderator', true)
+                ->whereNull('ta_mod.deleted_at')
                 ->whereRaw('tt_organizations.node_path LIKE CONCAT(org_mod.node_path, "%")')
                 ->select(DB::raw('1'))
                 ->limit(1);
@@ -144,6 +145,7 @@ trait HasOrganizationScopes
                 ->join('tt_organizations as org_moderator', 'ta_moderator.organization_id', '=', 'org_moderator.id')
                 ->where('ta_moderator.trooper_id', $trooper->id)
                 ->where('ta_moderator.is_moderator', true)
+                ->whereNull('ta_moderator.deleted_at')
                 ->whereRaw('tt_organizations.node_path LIKE CONCAT(org_moderator.node_path, "%")');
         });
     }

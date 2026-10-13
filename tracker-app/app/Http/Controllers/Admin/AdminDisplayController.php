@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Enums\MembershipStatus;
 use App\Http\Controllers\MagicBusController;
+use App\Models\PermissionRequest;
 use App\Models\Trooper;
 use App\Models\TrooperRequest;
 use Illuminate\Contracts\View\View;
@@ -27,6 +28,14 @@ class AdminDisplayController extends MagicBusController
             ->forModerator($trooper)
             ->count();
 
-        return view('pages.admin.display', compact('not_approved', 'pending_join_requests'));
+        $pending_permission_requests = $trooper->is_administrator
+            ? PermissionRequest::pending()->count()
+            : 0;
+
+        return view('pages.admin.display', compact(
+            'not_approved',
+            'pending_join_requests',
+            'pending_permission_requests',
+        ));
     }
 }
