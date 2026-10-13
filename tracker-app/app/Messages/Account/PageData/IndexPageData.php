@@ -87,7 +87,7 @@ final class IndexPageData extends Message
             'notification_frequency_enums' => NotificationFrequency::toValueLabels(),
             'notification_frequency' => $this->actor->notification_frequency,
             'push_notifications_enabled' => $this->actor->push_notifications_enabled,
-            'notification_preferences' => $this->actor->notification_preferences ?? $this->defaultNotificationPreferences(),
+            'notification_preferences' => $this->getNotificationPreferences(),
             'organization_notifications' => $this->getOrganizationNotifications(),
         ];
     }
@@ -113,6 +113,18 @@ final class IndexPageData extends Message
         }
 
         return [];
+    }
+
+    /**
+     * Stored preferences are sparse (only toggled cells are saved), so overlay them on the
+     * defaults to give the UI a value for every category/channel pair.
+     */
+    private function getNotificationPreferences(): array
+    {
+        return array_replace_recursive(
+            $this->defaultNotificationPreferences(),
+            $this->actor->notification_preferences ?? []
+        );
     }
 
     private function defaultNotificationPreferences(): array

@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { untrack } from "svelte";
     import type { PermissionRequest } from "../../models/vms";
     import { PendingPermissionRequestViewModel } from "../../models/vms";
     import PermissionRequestCardFooter from "./PermissionRequestCardFooter.svelte";
@@ -10,7 +11,7 @@
 
     let { request }: Props = $props();
 
-    let vm = new PendingPermissionRequestViewModel(request);
+    let vm = new PendingPermissionRequestViewModel(untrack(() => request));
 </script>
 
 <div class="card h-100">

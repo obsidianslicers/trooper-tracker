@@ -49,7 +49,6 @@ class UpdateNotificationPreferenceRequest extends FormRequest
             'notification' => [
                 'required',
                 'string',
-                'max:16',
                 $notifications,
             ],
             'channel' => [
