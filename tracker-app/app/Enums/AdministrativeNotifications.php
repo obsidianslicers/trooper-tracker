@@ -35,4 +35,14 @@ enum AdministrativeNotifications: string
      * Sent when a trooper earns a milestone achievement (troop counts, donation milestones, etc.).
      */
     case TROOPER_MILESTONES = 'trooper_milestones';
+
+    /**
+     * Categories that are only ever sent to administrators, never to moderators.
+     *
+     * @return array<int, self>
+     */
+    public static function administratorOnly(): array
+    {
+        return [self::TROOPERS_MERGED];
+    }
 }

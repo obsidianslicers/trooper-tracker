@@ -23,7 +23,7 @@
     <AccordionPanel label="Notification Preferences">
         <TrooperNotifications notifications={vm.page_data} />
     </AccordionPanel>
-    {#if vm.page_data.is_administrator}
+    {#if vm.page_data.administrative_notification_enums?.length > 0}
         <AccordionPanel label="Administrative Preferences">
             <AdministrativeNotifications notifications={vm.page_data} />
         </AccordionPanel>
