@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Requests\Account;
 
-use PHPUnit\Framework\Attributes\DataProvider;
 use App\Enums\AdministrativeNotifications;
 use App\Enums\NotificationChannels;
 use App\Enums\TrooperNotifications;
 use App\Http\Requests\Account\UpdateNotificationPreferenceRequest;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Validator;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class UpdateNotificationPreferenceRequestTest extends TestCase
