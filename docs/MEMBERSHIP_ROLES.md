@@ -223,6 +223,10 @@ apply the change.
 
    If the forum update fails, the whole approval rolls back, the request stays pending, and
    the admin sees an error.
+5. Once a request is approved or denied, the moderator who submitted it is notified of the
+   decision (and the denial reason) under the **Permission Request Reviewed** category, unless
+   they reviewed it themselves. On approval, the trooper is also notified with a summary of
+   what changed (role, organizations now or no longer moderated, forum groups).
 
 Rules:
 

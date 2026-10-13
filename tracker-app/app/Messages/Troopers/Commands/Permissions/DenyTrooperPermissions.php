@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Messages\Troopers\Commands\Permissions;
 
 use App\Enums\PermissionRequestStatus;
+use App\Jobs\SendPermissionRequestReviewedNotificationsJob;
 use App\Models\PermissionRequest;
 use App\Models\Trooper;
 use Hyperdrive\Contracts\Actor;
@@ -39,5 +40,7 @@ final class DenyTrooperPermissions extends Message
         $this->permission_request->reviewer_trooper_id = $this->actor->id;
         $this->permission_request->reviewed_at = now();
         $this->permission_request->save();
+
+        SendPermissionRequestReviewedNotificationsJob::dispatch($this->permission_request);
     }
 }

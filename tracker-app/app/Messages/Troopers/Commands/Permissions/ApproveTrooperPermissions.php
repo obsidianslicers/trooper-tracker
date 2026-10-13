@@ -7,6 +7,7 @@ namespace App\Messages\Troopers\Commands\Permissions;
 use App\Enums\MembershipRole;
 use App\Enums\PermissionRequestStatus;
 use App\Exceptions\ForumGroupUpdateException;
+use App\Jobs\SendPermissionRequestReviewedNotificationsJob;
 use App\Models\PermissionRequest;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
@@ -60,6 +61,10 @@ final class ApproveTrooperPermissions extends Message
         $this->permission_request->reviewer_trooper_id = $this->actor->id;
         $this->permission_request->reviewed_at = now();
         $this->permission_request->save();
+
+        // After commit so a rolled-back approval never notifies anyone.
+        SendPermissionRequestReviewedNotificationsJob::dispatch($this->permission_request)
+            ->afterCommit();
     }
 
     private function applyMembershipRole(Trooper $trooper): void

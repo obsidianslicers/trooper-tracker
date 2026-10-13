@@ -8,6 +8,7 @@ use App\Enums\MembershipRole;
 use App\Enums\OauthProvider;
 use App\Enums\PermissionRequestStatus;
 use App\Exceptions\ForumGroupUpdateException;
+use App\Jobs\SendPermissionRequestReviewedNotificationsJob;
 use App\Messages\Troopers\Commands\Permissions\ApproveTrooperPermissions;
 use App\Models\OauthLogin;
 use App\Models\Organization;
@@ -15,6 +16,7 @@ use App\Models\PermissionRequest;
 use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 use Tests\TestCase;
@@ -34,6 +36,8 @@ class ApproveTrooperPermissionsTest extends TestCase
             'services.xenforo.api_key' => 'key',
             'services.xenforo.api_user' => '1',
         ]);
+
+        Bus::fake([SendPermissionRequestReviewedNotificationsJob::class]);
 
         $this->admin = Trooper::factory()->asAdministrator()->create();
         $this->actingAs($this->admin);
@@ -63,6 +67,7 @@ class ApproveTrooperPermissionsTest extends TestCase
         $this->assertSame(PermissionRequestStatus::APPROVED, $permission_request->status);
         $this->assertSame($this->admin->id, $permission_request->reviewer_trooper_id);
         $this->assertNotNull($permission_request->reviewed_at);
+        Bus::assertDispatched(SendPermissionRequestReviewedNotificationsJob::class);
     }
 
     public function test_handle_moves_moderation_and_keeps_membership(): void

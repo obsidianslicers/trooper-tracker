@@ -40,4 +40,9 @@ enum AdministrativeNotifications: string
      * Sent to administrators when a moderator requests permission changes for a trooper.
      */
     case PERMISSION_REQUESTS = 'permission_requests';
+
+    /**
+     * Sent to the moderator who requested permission changes once an administrator reviews it.
+     */
+    case PERMISSION_REQUEST_REVIEWED = 'permission_request_reviewed';
 }

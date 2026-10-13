@@ -42,4 +42,41 @@ class PermissionRequest extends BasePermissionRequest
     {
         return $this->status === PermissionRequestStatus::PENDING;
     }
+
+    /**
+     * Human-readable lines describing what the request changes, for notifications.
+     *
+     * @return array<int, string>
+     */
+    public function changeSummary(): array
+    {
+        $organizations = Organization::query()
+            ->whereIn(Organization::ID, [
+                ...$this->moderated_organization_ids ?? [],
+                ...$this->unmoderated_organization_ids ?? [],
+            ])
+            ->pluck(Organization::NAME, Organization::ID);
+
+        $names = fn (?array $ids): string => $organizations->only($ids ?? [])->implode(', ');
+        $titles = fn (?array $groups): string => collect($groups ?? [])->pluck('title')->implode(', ');
+
+        $lines = [
+            'Role' => match ($this->membership_role)
+            {
+                MembershipRole::MEMBER => 'Regular Trooper',
+                MembershipRole::MODERATOR => 'Moderator',
+                default => '',
+            },
+            'Now moderates' => $names($this->moderated_organization_ids),
+            'No longer moderates' => $names($this->unmoderated_organization_ids),
+            'Forum groups added' => $titles($this->forum_groups_to_add),
+            'Forum groups removed' => $titles($this->forum_groups_to_remove),
+        ];
+
+        return collect($lines)
+            ->filter(fn (string $value): bool => $value !== '')
+            ->map(fn (string $value, string $label): string => "{$label}: {$value}")
+            ->values()
+            ->all();
+    }
 }
