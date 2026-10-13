@@ -8,6 +8,7 @@ use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
 use App\Models\Organization;
 use App\Models\Trooper;
+use App\Models\TrooperOrganization;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -25,7 +26,7 @@ class Fix197 extends Seeder
 
     private function createVisitor()
     {
-        $visitor = Trooper::where(Trooper::EMAIL, 'visitor@sw.com')->first() ?? new Trooper();
+        $visitor = Trooper::where(Trooper::EMAIL, 'visitor@sw.com')->first() ?? new Trooper;
 
         $visitor->display_name = 'Visitor';
         $visitor->legal_name = 'Visitor';
@@ -40,7 +41,9 @@ class Fix197 extends Seeder
 
         $visitor->save();
 
-        if ($visitor->organizations->count() == 0)
+        $membership = $this->findMembership($visitor);
+
+        if ($membership === null)
         {
             $organization = Organization::firstWhere(Organization::NAME, '501st Legion');
 
@@ -55,15 +58,13 @@ class Fix197 extends Seeder
         }
         else
         {
-            $org = $visitor->organizations()->first();
-            $org->pivot->membership_status = MembershipStatus::PENDING;
-            $org->pivot->save();
+            $this->resetToPending($membership);
         }
     }
 
     private function createGuardian()
     {
-        $guardian = Trooper::where(Trooper::EMAIL, 'guardian@sw.com')->first() ?? new Trooper();
+        $guardian = Trooper::where(Trooper::EMAIL, 'guardian@sw.com')->first() ?? new Trooper;
 
         $guardian->display_name = 'Requires Guardian';
         $guardian->legal_name = 'Requires Guardian';
@@ -78,7 +79,7 @@ class Fix197 extends Seeder
 
     private function createChild()
     {
-        $child = Trooper::where(Trooper::EMAIL, 'child@sw.com')->first() ?? new Trooper();
+        $child = Trooper::where(Trooper::EMAIL, 'child@sw.com')->first() ?? new Trooper;
 
         $child->display_name = 'Child';
         $child->legal_name = 'Child';
@@ -93,11 +94,11 @@ class Fix197 extends Seeder
 
         $child->save();
 
-        if ($child->organizations->count() == 0)
+        $membership = $this->findMembership($child);
+
+        if ($membership === null)
         {
             $organization = Organization::firstWhere(Organization::NAME, 'Galactic Academy');
-
-            $region = Organization::firstWhere(Organization::NAME, 'North America Coruscant Campus');
 
             $unit = Organization::firstWhere(Organization::NAME, 'Florida Dagobah School');
 
@@ -112,9 +113,25 @@ class Fix197 extends Seeder
         }
         else
         {
-            $org = $child->organizations()->first();
-            $org->pivot->membership_status = MembershipStatus::PENDING;
-            $org->pivot->save();
+            $this->resetToPending($membership);
         }
+    }
+
+    /**
+     * withTrashed, not $trooper->organizations: that relation hides soft-deleted memberships, and
+     * attaching over one would violate the (trooper_id, organization_id) unique index.
+     */
+    private function findMembership(Trooper $trooper): ?TrooperOrganization
+    {
+        return TrooperOrganization::withTrashed()
+            ->where(TrooperOrganization::TROOPER_ID, $trooper->id)
+            ->first();
+    }
+
+    private function resetToPending(TrooperOrganization $membership): void
+    {
+        $membership->membership_status = MembershipStatus::PENDING;
+        $membership->deleted_at = null;
+        $membership->save();
     }
 }

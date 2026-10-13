@@ -109,6 +109,15 @@ class Organization extends BaseOrganization
     }
 
     /**
+     * Whether this organization sits somewhere beneath the given ancestor.
+     */
+    public function isWithin(Organization $ancestor): bool
+    {
+        return $this->id !== $ancestor->id
+            && str_starts_with((string) $this->node_path, (string) $ancestor->node_path);
+    }
+
+    /**
      * Resolve the root (primary-club) organization IDs for a set of organization IDs.
      *
      * Uses node_path (format "rootId:childId:...:") for a single-query lookup rather than

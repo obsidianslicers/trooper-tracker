@@ -59,7 +59,7 @@ class BroadcastEventMessage extends Mailable implements ShouldQueue
             view: 'emails.events.broadcast-event-message',
             with: [
                 'event' => $this->event,
-                'message' => $this->message,
+                'broadcast_message' => $this->message,
             ]
         );
     }

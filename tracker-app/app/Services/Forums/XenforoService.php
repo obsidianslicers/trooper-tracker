@@ -7,6 +7,7 @@ use App\Helpers\ForumBBCodeRenderer;
 use App\Helpers\SmiliesRenderer;
 use App\Models\OauthLogin;
 use App\Support\XenforoUpgradeHelper;
+use DOMDocument;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -719,6 +720,31 @@ class XenforoService
     }
 
     /**
+     * Group IDs granted by XenForo user upgrades (each upgrade's extra_group_ids).
+     * Returns null when the upgrade stats cannot be read.
+     *
+     * @return array<int, int>|null
+     */
+    public function getUpgradeGroupIds(): ?array
+    {
+        $stats = $this->get_upgrade_stats();
+
+        if ($stats === null)
+        {
+            return null;
+        }
+
+        return collect($stats['userUpgrades'] ?? [])
+            ->filter(static fn (mixed $upgrade): bool => is_array($upgrade))
+            ->flatMap(fn (array $upgrade): array => $this->parseGroupIds(
+                $upgrade['extra_group_ids'] ?? []
+            ))
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    /**
      * Fetch the full upgrade history for a specific XenForo user.
      *
      * Calls the per-user upgrade-stats endpoint and normalises each donation
@@ -895,5 +921,171 @@ class XenforoService
         $data = $response->json();
 
         return is_array($data) ? $data : null;
+    }
+
+    /**
+     * Fetch every XenForo user group from the user-groups add-on.
+     *
+     * Calls the same add-on endpoint as get_user_groups() without a user_id,
+     * which the add-on answers with the full group list. Returns null when
+     * XenForo is not configured or the request fails.
+     *
+     * @return array<int, array{id:int,title:string,banner_image_url:?string}>|null
+     */
+    public function getAllUserGroups(): ?array
+    {
+        if (empty($this->base_url) || empty($this->api_key))
+        {
+            return null;
+        }
+
+        $groups = $this->fetchUserGroupList();
+
+        if ($groups === null)
+        {
+            return null;
+        }
+
+        return collect($groups)
+            ->filter(static fn (mixed $group): bool => is_array($group))
+            ->map(fn (array $group): array => [
+                'id' => (int) ($group['groupID'] ?? $group['user_group_id'] ?? 0),
+                'title' => (string) ($group['title'] ?? ''),
+                'banner_image_url' => $this->extractBannerImageUrl(
+                    $group['bannerText'] ?? $group['banner_text'] ?? null
+                ),
+            ])
+            ->filter(static fn (array $group): bool => $group['id'] > 0 && $group['title'] !== '')
+            ->unique('id')
+            ->sortBy('title', SORT_NATURAL | SORT_FLAG_CASE)
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Fetch a XenForo user's current secondary group IDs.
+     * Returns null when the user cannot be read.
+     *
+     * @return array<int, int>|null
+     */
+    public function getUserSecondaryGroupIds(int $user_id): ?array
+    {
+        $user = $this->get_user($user_id);
+
+        if ($user['status'] < 200 || $user['status'] >= 300 || !is_array($user['body']))
+        {
+            return null;
+        }
+
+        $body = $user['body'];
+        $user_data = is_array($body['user'] ?? null) ? $body['user'] : $body;
+
+        return $this->parseGroupIds($user_data['secondary_group_ids'] ?? []);
+    }
+
+    /**
+     * XenForo sends group ID lists either as an array or a comma-separated string.
+     *
+     * @return array<int, int>
+     */
+    private function parseGroupIds(mixed $raw): array
+    {
+        $ids = is_string($raw) ? explode(',', $raw) : (array) $raw;
+
+        return collect($ids)
+            ->map(static fn (mixed $id): mixed => is_string($id) ? trim($id) : $id)
+            ->filter(static fn (mixed $id): bool => is_numeric($id))
+            ->map(static fn (mixed $id): int => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<int, mixed>|null
+     */
+    private function fetchUserGroupList(): ?array
+    {
+        $url = $this->base_url.'/index.php?api/user-groups';
+
+        try
+        {
+            $response = Http::withHeaders($this->buildApiHeaders())
+                ->acceptJson()
+                ->timeout(5)
+                ->get($url);
+        }
+        catch (Throwable $e)
+        {
+            Log::warning('Failed to fetch XenForo user group list', [
+                'url' => $url,
+                'message' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+
+        if (!$response->successful())
+        {
+            Log::warning('Non-success response from XenForo user group list', [
+                'url' => $url,
+                'status' => $response->status(),
+            ]);
+
+            return null;
+        }
+
+        $groups = $response->json('userGroups') ?? $response->json('user_groups');
+
+        if (!is_array($groups))
+        {
+            Log::warning('Unexpected response from XenForo user group list', [
+                'url' => $url,
+                'keys' => array_keys((array) $response->json()),
+            ]);
+
+            return null;
+        }
+
+        return $groups;
+    }
+
+    /**
+     * Pull the first image URL out of a XenForo banner's HTML so callers can
+     * render it without trusting the rest of the markup.
+     */
+    private function extractBannerImageUrl(mixed $banner_html): ?string
+    {
+        if (!is_string($banner_html) || !str_contains($banner_html, '<img'))
+        {
+            return null;
+        }
+
+        $document = new DOMDocument;
+        $previous = libxml_use_internal_errors(true);
+        $document->loadHTML('<?xml encoding="utf-8"?>'.$banner_html);
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+
+        $image = $document->getElementsByTagName('img')->item(0);
+        $src = trim((string) $image?->getAttribute('src'));
+
+        if ($src === '')
+        {
+            return null;
+        }
+
+        if (str_starts_with($src, '//'))
+        {
+            $src = 'https:'.$src;
+        }
+        elseif (!preg_match('#^[a-z][a-z0-9+.-]*:#i', $src))
+        {
+            $src = $this->base_url.'/'.ltrim($src, '/');
+        }
+
+        $scheme = strtolower((string) parse_url($src, PHP_URL_SCHEME));
+
+        return in_array($scheme, ['http', 'https'], true) ? $src : null;
     }
 }

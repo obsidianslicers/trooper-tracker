@@ -25,6 +25,7 @@ use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Foundation\Auth\Access\Authorizable;
@@ -226,11 +227,20 @@ class Trooper extends BaseTrooper implements
         return !$this->is_minor;
     }
 
+    /**
+     * Base relation only selects the deleted_at pivot column, never filters on it — several
+     * callers had to add wherePivotNull() themselves to avoid showing retired memberships as
+     * active. Filtering here by default instead of relying on every caller to remember.
+     */
+    public function organizations(): BelongsToMany
+    {
+        return parent::organizations()->wherePivotNull(TrooperOrganization::DELETED_AT);
+    }
+
     public function getHasGuardianRequiredMembershipAttribute(): bool
     {
         return $this->organizations()
             ->where(Organization::REQUIRES_GUARDIAN, true)
-            ->wherePivotNull('deleted_at')
             ->exists();
     }
 

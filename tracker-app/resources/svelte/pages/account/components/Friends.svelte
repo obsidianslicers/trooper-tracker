@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { untrack } from "svelte";
     import Alert from "$lib/components/ui/Alert.svelte";
     import SlimView from "$lib/components/ui/SlimView.svelte";
     import type { Friend } from "../models";
@@ -9,7 +10,7 @@
     }
     let { friends }: Props = $props();
 
-    let vm = new FriendsViewModel(friends);
+    let vm = new FriendsViewModel(untrack(() => friends));
 </script>
 
 <SlimView>

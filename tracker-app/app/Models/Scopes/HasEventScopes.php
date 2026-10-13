@@ -194,6 +194,7 @@ trait HasEventScopes
                 ->join('tt_organizations as org_event', 'tt_events.organization_id', '=', 'org_event.id')
                 ->where('ta_moderator.trooper_id', $trooper->id)
                 ->where('ta_moderator.is_moderator', true)
+                ->whereNull('ta_moderator.deleted_at')
                 ->whereRaw('org_event.node_path LIKE CONCAT(org_moderator.node_path, "%")');
         });
     }

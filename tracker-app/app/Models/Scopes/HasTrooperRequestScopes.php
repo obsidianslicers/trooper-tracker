@@ -37,6 +37,7 @@ trait HasTrooperRequestScopes
                 ->join('tt_organizations as org_req', 'org_req.id', '=', 'tt_trooper_requests.organization_id')
                 ->where('ta_mod.trooper_id', $moderator->id)
                 ->where('ta_mod.is_moderator', true)
+                ->whereNull('ta_mod.deleted_at')
                 ->whereRaw('org_req.node_path LIKE CONCAT(org_mod.node_path, "%")');
         });
     }

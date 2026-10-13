@@ -136,6 +136,157 @@ class XenforoServiceTest extends TestCase
         $this->assertCount(1, $result['userGroups']);
     }
 
+    public function test_get_all_user_groups_normalizes_and_sorts_groups(): void
+    {
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'key-3',
+        ]);
+
+        Http::fake([
+            'https://xf.test/index.php?api/user-groups' => Http::response([
+                'userGroups' => [
+                    ['groupID' => 4, 'title' => 'Moderating'],
+                    ['groupID' => 20, 'title' => 'Event Coordinators'],
+                    ['groupID' => 0, 'title' => 'Broken'],
+                    'not-a-group',
+                ],
+            ], 200),
+        ]);
+
+        $subject = new XenforoService;
+
+        $this->assertSame([
+            ['id' => 20, 'title' => 'Event Coordinators', 'banner_image_url' => null],
+            ['id' => 4, 'title' => 'Moderating', 'banner_image_url' => null],
+        ], $subject->getAllUserGroups());
+    }
+
+    public function test_get_all_user_groups_extracts_banner_image_urls(): void
+    {
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'key-3',
+        ]);
+
+        Http::fake([
+            'https://xf.test/index.php?api/user-groups' => Http::response([
+                'userGroups' => [
+                    $this->bannerGroup(1, 'A Absolute', '<img src="https://cdn.test/a.png">'),
+                    $this->bannerGroup(2, 'B Relative', '<img src="data/assets/b.png" />'),
+                    $this->bannerGroup(3, 'C Text', '<span class="userBanner">C</span>'),
+                    $this->bannerGroup(4, 'D Script', '<img src="javascript:alert(1)">'),
+                ],
+            ], 200),
+        ]);
+
+        $subject = new XenforoService;
+
+        $urls = array_column($subject->getAllUserGroups() ?? [], 'banner_image_url', 'id');
+
+        $this->assertSame([
+            1 => 'https://cdn.test/a.png',
+            2 => 'https://xf.test/data/assets/b.png',
+            3 => null,
+            4 => null,
+        ], $urls);
+    }
+
+    public function test_get_upgrade_group_ids_parses_extra_group_ids(): void
+    {
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'key-3',
+        ]);
+
+        Http::fake([
+            'https://xf.test/index.php?api/upgrade-stats' => Http::response([
+                'userUpgrades' => [
+                    ['user_upgrade_id' => 1, 'extra_group_ids' => '1507'],
+                    ['user_upgrade_id' => 2, 'extra_group_ids' => '1507, 1600'],
+                    ['user_upgrade_id' => 3, 'extra_group_ids' => [1601]],
+                    ['user_upgrade_id' => 4, 'extra_group_ids' => ''],
+                ],
+            ], 200),
+        ]);
+
+        $subject = new XenforoService;
+
+        $this->assertSame([1507, 1600, 1601], $subject->getUpgradeGroupIds());
+    }
+
+    public function test_get_user_secondary_group_ids_parses_comma_separated_string(): void
+    {
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'key-3',
+        ]);
+
+        Http::fake([
+            '*' => Http::response(['user' => ['secondary_group_ids' => ' 5, 20,,x,5']], 200),
+        ]);
+
+        $subject = new XenforoService;
+
+        $this->assertSame([5, 20], $subject->getUserSecondaryGroupIds(77));
+    }
+
+    public function test_get_user_secondary_group_ids_returns_null_on_failure(): void
+    {
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'key-3',
+        ]);
+
+        Http::fake(['*' => Http::response([], 500)]);
+
+        $subject = new XenforoService;
+
+        $this->assertNull($subject->getUserSecondaryGroupIds(77));
+    }
+
+    public function test_get_upgrade_group_ids_returns_null_on_failure(): void
+    {
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'key-3',
+        ]);
+
+        Http::fake(['*' => Http::response([], 500)]);
+
+        $subject = new XenforoService;
+
+        $this->assertNull($subject->getUpgradeGroupIds());
+    }
+
+    public function test_get_all_user_groups_returns_null_when_response_has_no_group_list(): void
+    {
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'key-3',
+        ]);
+
+        Http::fake(['*' => Http::response(['userId' => 0], 200)]);
+
+        $subject = new XenforoService;
+
+        $this->assertNull($subject->getAllUserGroups());
+    }
+
+    public function test_get_all_user_groups_returns_null_on_failure(): void
+    {
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'key-3',
+        ]);
+
+        Http::fake(['*' => Http::response([], 500)]);
+
+        $subject = new XenforoService;
+
+        $this->assertNull($subject->getAllUserGroups());
+    }
+
     public function test_update_thread_updates_title_for_configured_thread(): void
     {
         config([
@@ -250,5 +401,13 @@ class XenforoServiceTest extends TestCase
 
         $this->assertSame(0, $result['status']);
         Http::assertNothingSent();
+    }
+
+    /**
+     * @return array{groupID:int,title:string,bannerText:string}
+     */
+    private function bannerGroup(int $id, string $title, string $banner_html): array
+    {
+        return ['groupID' => $id, 'title' => $title, 'bannerText' => $banner_html];
     }
 }

@@ -6,11 +6,6 @@ import type { NotificationPreferences } from "../types";
 
 export type NotificationSubsection = "Administrative" | "Trooper" | "";
 
-export type NotificationPreferencePageData = {
-    administrative_notification_enums: Option[];
-    notification_preferences: NotificationPreferences;
-};
-
 export class NotificationPreferenceViewModel extends ViewModel {
     subsection: NotificationSubsection = $state("");
     notification_enums: Option[] = $state([]);

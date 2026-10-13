@@ -29,6 +29,10 @@ class XenforoUserSyncServiceTest extends TestCase
         parent::setUp();
 
         $this->xenforo = Mockery::mock(XenforoService::class);
+        // Email sync reads the user separately; these tests only care about groups.
+        $this->xenforo->shouldReceive('get_user')
+            ->andReturn(['status' => 200, 'body' => ['user' => []]])
+            ->byDefault();
         $this->subject = new XenforoUserSyncService($this->xenforo);
     }
 
@@ -59,10 +63,7 @@ class XenforoUserSyncServiceTest extends TestCase
             ->once()
             ->andReturn(999);
 
-        $this->xenforo->shouldReceive('get_user')->andReturn([
-            'status' => 200,
-            'body' => ['user' => ['secondary_group_ids' => [10, 99]]],
-        ]);
+        $this->xenforo->shouldReceive('getUserSecondaryGroupIds')->andReturn([10, 99]);
         $this->xenforo->shouldReceive('update_user')
             ->once()
             ->with(999, Mockery::on(function (array $payload) {
@@ -85,7 +86,7 @@ class XenforoUserSyncServiceTest extends TestCase
         $trooper->organizations()->attach($org->id, ['membership_status' => 'active']);
 
         $this->xenforo->shouldReceive('resolve_user_id_for_trooper')->andReturn(999);
-        $this->xenforo->shouldReceive('get_user')->andReturn(['status' => 500, 'body' => null]);
+        $this->xenforo->shouldReceive('getUserSecondaryGroupIds')->andReturn(null);
         $this->xenforo->shouldReceive('update_user')
             ->once()
             ->with(999, Mockery::on(function (array $payload) {
@@ -104,10 +105,7 @@ class XenforoUserSyncServiceTest extends TestCase
 
         // XenForo already has the TT-managed group — no change needed.
         $this->xenforo->shouldReceive('resolve_user_id_for_trooper')->andReturn(999);
-        $this->xenforo->shouldReceive('get_user')->andReturn([
-            'status' => 200,
-            'body' => ['user' => ['secondary_group_ids' => [10]]],
-        ]);
+        $this->xenforo->shouldReceive('getUserSecondaryGroupIds')->andReturn([10]);
         $this->xenforo->shouldReceive('update_user')
             ->once()
             ->with(999, Mockery::on(function (array $payload) {
@@ -127,10 +125,7 @@ class XenforoUserSyncServiceTest extends TestCase
         // XenForo has external group 99 (not TT-managed) and no TT group.
         // TT wants group 10. Change IS needed — group 99 must be preserved.
         $this->xenforo->shouldReceive('resolve_user_id_for_trooper')->andReturn(999);
-        $this->xenforo->shouldReceive('get_user')->andReturn([
-            'status' => 200,
-            'body' => ['user' => ['secondary_group_ids' => [99]]],
-        ]);
+        $this->xenforo->shouldReceive('getUserSecondaryGroupIds')->andReturn([99]);
         $this->xenforo->shouldReceive('update_user')
             ->once()
             ->with(999, Mockery::on(function (array $payload) {
@@ -167,10 +162,7 @@ class XenforoUserSyncServiceTest extends TestCase
         $trooper->organizations()->attach($squad->id, ['membership_status' => 'active']);
 
         $this->xenforo->shouldReceive('resolve_user_id_for_trooper')->andReturn(999);
-        $this->xenforo->shouldReceive('get_user')->andReturn([
-            'status' => 200,
-            'body' => ['user' => ['secondary_group_ids' => []]],
-        ]);
+        $this->xenforo->shouldReceive('getUserSecondaryGroupIds')->andReturn([]);
 
         $debug = $this->subject->debugSync($trooper);
 
@@ -200,10 +192,7 @@ class XenforoUserSyncServiceTest extends TestCase
             ->create();
 
         $this->xenforo->shouldReceive('resolve_user_id_for_trooper')->andReturn(999);
-        $this->xenforo->shouldReceive('get_user')->andReturn([
-            'status' => 200,
-            'body' => ['user' => ['secondary_group_ids' => [100, 300]]],
-        ]);
+        $this->xenforo->shouldReceive('getUserSecondaryGroupIds')->andReturn([100, 300]);
 
         $debug = $this->subject->debugSync($trooper);
 

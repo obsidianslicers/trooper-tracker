@@ -18,7 +18,7 @@
     </p>
 
     <blockquote>
-        {{ $message }}
+        {{ $broadcast_message }}
     </blockquote>
 
     <p>

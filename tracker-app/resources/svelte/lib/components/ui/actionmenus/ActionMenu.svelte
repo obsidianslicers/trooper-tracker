@@ -13,8 +13,9 @@
         class="btn btn-outline-secondary dropdown-toggle"
         type="button"
         data-bs-toggle="dropdown"
+        aria-label="Actions"
     >
-        <i class="fa fa-fw fa-gear pe-3"></i>
+        <i class="fa fa-fw fa-gear pe-3" aria-hidden="true"></i>
     </button>
     <ul class="dropdown-menu">
         {@render children()}

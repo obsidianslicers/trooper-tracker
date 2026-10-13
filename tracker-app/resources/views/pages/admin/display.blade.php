@@ -7,13 +7,17 @@
 <div x-data="{
                     notApproved: {{ $not_approved }},
                     pendingJoinRequests: {{ $pending_join_requests }},
+                    pendingPermissionRequests: {{ $pending_permission_requests }},
                     dismissedApprovalCount: $persist(0).as('admin_dismissed_approvals_{{ auth()->id() }}'),
                     dismissedRequestCount: $persist(0).as('admin_dismissed_requests_{{ auth()->id() }}'),
+                    dismissedPermissionCount: $persist(0).as('admin_dismissed_permission_requests_{{ auth()->id() }}'),
                     showApproval: false,
                     showRequest: false,
+                    showPermission: false,
                     init() {
                         this.showApproval = this.notApproved > this.dismissedApprovalCount;
                         this.showRequest = this.pendingJoinRequests > this.dismissedRequestCount;
+                        this.showPermission = this.pendingPermissionRequests > this.dismissedPermissionCount;
                     },
                     dismissApproval() {
                         this.dismissedApprovalCount = this.notApproved;
@@ -22,6 +26,10 @@
                     dismissRequest() {
                         this.dismissedRequestCount = this.pendingJoinRequests;
                         this.showRequest = false;
+                    },
+                    dismissPermission() {
+                        this.dismissedPermissionCount = this.pendingPermissionRequests;
+                        this.showPermission = false;
                     }
                 }">
     <div x-show="showApproval"
@@ -54,6 +62,25 @@
                 class="btn-close"
                 @click="dismissRequest()"></button>
     </div>
+    @if($pending_permission_requests > 0)
+    <div x-show="showPermission"
+         x-transition
+         class="alert alert-warning alert-dismissible mt-2">
+        <strong>
+            <i class="fa fa-fw fa-solid fa-circle-exclamation"></i>
+            <a href="{{ route('admin.troopers.permissions.approvals') }}" class="alert-link">
+                @if($pending_permission_requests === 1)
+                    1 permission request is waiting for review!
+                @else
+                    {{ $pending_permission_requests }} permission requests are waiting for review!
+                @endif
+            </a>
+        </strong>
+        <button type="button"
+                class="btn-close"
+                @click="dismissPermission()"></button>
+    </div>
+    @endif
 </div>
 
 <x-dashboard-cards x-data="Admin.cardNavigator()"
@@ -87,7 +114,24 @@
                       :url="route('admin.service-records.missing-credits')">
         Fix shifts missing a "Credited To" club
     </x-dashboard-card>
+    <x-dashboard-card :label="'Request Permissions'"
+                      :icon="'fa-user-shield'"
+                      :url="route('admin.troopers.permissions.request')">
+        Ask an administrator to change a trooper's role or forum groups.
+    </x-dashboard-card>
     @role(['administrator'])
+    <x-dashboard-card :label="'Permission Approvals'"
+                      :icon="'fa-user-lock'"
+                      :url="route('admin.troopers.permissions.approvals')">
+        @if($pending_permission_requests > 0)
+            <p class="text-warning mb-0">
+                {{ $pending_permission_requests }}
+                pending request{{ $pending_permission_requests === 1 ? '' : 's' }}
+            </p>
+        @else
+            <p class="text-success mb-0">No pending requests</p>
+        @endif
+    </x-dashboard-card>
     <x-dashboard-card :label="'Merge Troopers'"
                       :icon="'fa-user-group'"
                       :url="route('admin.troopers.merge')">

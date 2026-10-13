@@ -30,7 +30,14 @@ class Fix406OutstandingCredit extends Mailable implements ShouldQueue
 
     /**
      * @param  Trooper  $trooper  The administrator trooper receiving the report.
-     * @param  array<int, array{event_trooper_id: int, trooper_name: string, event_name: string, event_id: int, costume_name: ?string}>  $outstanding_rows
+     * @param  array<int, array{
+     *     event_trooper_id: int,
+     *     trooper_name: string,
+     *     event_name: string,
+     *     event_id: ?int,
+     *     costume_name: ?string,
+     *     reason: string,
+     * }>  $outstanding_rows
      */
     public function __construct(
         private readonly Trooper $trooper,

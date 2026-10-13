@@ -58,6 +58,11 @@ class TheLegionService extends BaseOrganizationService
         {
             $legion_id = $trooper->pivot->identifier;
 
+            if (empty($legion_id))
+            {
+                continue;
+            }
+
             $url = "https://api.501st.com/legionId/{$legion_id}/costumes";
 
             $json = Http::get($url)->json();
