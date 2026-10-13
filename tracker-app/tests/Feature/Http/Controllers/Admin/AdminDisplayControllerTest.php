@@ -35,6 +35,7 @@ class AdminDisplayControllerTest extends TestCase
 
         $response->assertViewHas('pending_permission_requests', 1);
         $response->assertSee('Permission Approvals');
+        $response->assertSee('1 permission request is waiting for review!');
     }
 
     public function test_invoke_hides_permission_approvals_from_moderators(): void
@@ -47,6 +48,7 @@ class AdminDisplayControllerTest extends TestCase
         $response->assertViewHas('pending_permission_requests', 0);
         $response->assertSee('Request Permissions');
         $response->assertDontSee('Permission Approvals');
+        $response->assertDontSee('waiting for review');
     }
 
     public function test_invoke_requires_authentication(): void
