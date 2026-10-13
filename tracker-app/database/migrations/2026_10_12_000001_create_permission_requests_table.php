@@ -30,8 +30,8 @@ return new class extends Migration
                 ->nullOnDelete();
 
             $table->string('membership_role', 16)->nullable();
-            $table->json('moderated_organization_ids')->nullable();
-            $table->json('unmoderated_organization_ids')->nullable();
+            $table->json('moderated_organization_ids_to_add')->nullable();
+            $table->json('moderated_organization_ids_to_remove')->nullable();
             $table->json('forum_groups_to_add')->nullable();
             $table->json('forum_groups_to_remove')->nullable();
             $table->text('note')->nullable();

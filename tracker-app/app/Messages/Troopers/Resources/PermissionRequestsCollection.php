@@ -29,12 +29,12 @@ class PermissionRequestsCollection extends ResourceCollection
                 'status' => $permission_request->status->value,
                 'membership_role' => $permission_request->membership_role?->value,
                 'membership_role_label' => self::roleLabel($permission_request->membership_role),
-                'moderated_organizations' => $organizations
-                    ->only($permission_request->moderated_organization_ids ?? [])
+                'moderated_organizations_to_add' => $organizations
+                    ->only($permission_request->moderated_organization_ids_to_add ?? [])
                     ->values()
                     ->all(),
-                'unmoderated_organizations' => $organizations
-                    ->only($permission_request->unmoderated_organization_ids ?? [])
+                'moderated_organizations_to_remove' => $organizations
+                    ->only($permission_request->moderated_organization_ids_to_remove ?? [])
                     ->values()
                     ->all(),
                 'forum_groups_to_add' => $permission_request->forum_groups_to_add ?? [],
@@ -75,18 +75,15 @@ class PermissionRequestsCollection extends ResourceCollection
     public static function changeSummary(PermissionRequest $request): array
     {
         $organizations = Organization::query()
-            ->whereIn(Organization::ID, [
-                ...$request->moderated_organization_ids ?? [],
-                ...$request->unmoderated_organization_ids ?? [],
-            ])
+            ->whereIn(Organization::ID, self::organizationIds($request))
             ->pluck(Organization::NAME, Organization::ID);
 
         $names = fn (?array $ids): string => $organizations->only($ids ?? [])->implode(', ');
 
         return collect([
             'Role' => (string) self::roleLabel($request->membership_role),
-            'Now moderates' => $names($request->moderated_organization_ids),
-            'No longer moderates' => $names($request->unmoderated_organization_ids),
+            'Now moderates' => $names($request->moderated_organization_ids_to_add),
+            'No longer moderates' => $names($request->moderated_organization_ids_to_remove),
             'Forum groups added' => self::groupTitles($request->forum_groups_to_add),
             'Forum groups removed' => self::groupTitles($request->forum_groups_to_remove),
         ])
@@ -97,15 +94,25 @@ class PermissionRequestsCollection extends ResourceCollection
     }
 
     /**
+     * Every organization a request adds or removes moderation for.
+     *
+     * @return array<int, int>
+     */
+    private static function organizationIds(PermissionRequest $request): array
+    {
+        return [
+            ...$request->moderated_organization_ids_to_add ?? [],
+            ...$request->moderated_organization_ids_to_remove ?? [],
+        ];
+    }
+
+    /**
      * @return Collection<int, array{id:int,name:string,parent_name:string|null}>
      */
     private function getOrganizations(): Collection
     {
         $ids = $this->collection
-            ->flatMap(fn (PermissionRequest $r): array => [
-                ...$r->moderated_organization_ids ?? [],
-                ...$r->unmoderated_organization_ids ?? [],
-            ])
+            ->flatMap(fn (PermissionRequest $r): array => self::organizationIds($r))
             ->unique()
             ->values();
 

@@ -17,7 +17,7 @@ class PermissionRequestFactory extends BasePermissionRequestFactory
         return array_merge(parent::definition(), [
             PermissionRequest::REQUESTER_TROOPER_ID => Trooper::factory()->asModerator(),
             PermissionRequest::MEMBERSHIP_ROLE => MembershipRole::MODERATOR,
-            PermissionRequest::MODERATED_ORGANIZATION_IDS => [],
+            PermissionRequest::MODERATED_ORGANIZATION_IDS_TO_ADD => [],
             PermissionRequest::FORUM_GROUPS_TO_ADD => [],
             PermissionRequest::FORUM_GROUPS_TO_REMOVE => [],
             PermissionRequest::STATUS => PermissionRequestStatus::PENDING,
@@ -42,7 +42,7 @@ class PermissionRequestFactory extends BasePermissionRequestFactory
     {
         return $this->state(fn (array $attributes): array => [
             PermissionRequest::MEMBERSHIP_ROLE => $role,
-            PermissionRequest::MODERATED_ORGANIZATION_IDS => $organization_ids,
+            PermissionRequest::MODERATED_ORGANIZATION_IDS_TO_ADD => $organization_ids,
         ]);
     }
 

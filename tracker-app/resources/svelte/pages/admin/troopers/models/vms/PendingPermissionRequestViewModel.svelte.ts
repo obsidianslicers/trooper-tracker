@@ -26,8 +26,8 @@ export type PermissionRequest = {
     status: "pending" | "approved" | "denied";
     membership_role: "moderator" | "member" | null;
     membership_role_label: string | null;
-    moderated_organizations: PermissionRequestOrganization[];
-    unmoderated_organizations: PermissionRequestOrganization[];
+    moderated_organizations_to_add: PermissionRequestOrganization[];
+    moderated_organizations_to_remove: PermissionRequestOrganization[];
     forum_groups_to_add: ForumGroup[];
     forum_groups_to_remove: ForumGroup[];
     note: string | null;

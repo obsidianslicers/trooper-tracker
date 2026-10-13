@@ -49,8 +49,8 @@ final class RequestTrooperPermissions extends Message
         $permission_request->trooper_id = $this->trooper->id;
         $permission_request->requester_trooper_id = $this->actor->id;
         $permission_request->membership_role = $this->membership_role;
-        $permission_request->moderated_organization_ids = $moderation['add'];
-        $permission_request->unmoderated_organization_ids = $moderation['remove'];
+        $permission_request->moderated_organization_ids_to_add = $moderation['add'];
+        $permission_request->moderated_organization_ids_to_remove = $moderation['remove'];
         $permission_request->forum_groups_to_add = $this->pickGroups(
             $forum_groups,
             $this->forum_group_ids_to_add

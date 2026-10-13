@@ -25,7 +25,7 @@ class TrooperPermissionsChangedTest extends TestCase
             ->withRole(MembershipRole::MODERATOR, [$added->id])
             ->create([
                 PermissionRequest::STATUS => PermissionRequestStatus::APPROVED,
-                PermissionRequest::UNMODERATED_ORGANIZATION_IDS => [$removed->id],
+                PermissionRequest::MODERATED_ORGANIZATION_IDS_TO_REMOVE => [$removed->id],
             ]);
 
         $subject = new TrooperPermissionsChanged($permission_request);

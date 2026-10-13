@@ -103,7 +103,9 @@ final class ApproveTrooperPermissions extends Message
     {
         $assignments = $trooper->trooper_assignments()->withTrashed()->get();
 
-        foreach ($this->permission_request->moderated_organization_ids ?? [] as $organization_id)
+        $organization_ids = $this->permission_request->moderated_organization_ids_to_add ?? [];
+
+        foreach ($organization_ids as $organization_id)
         {
             $assignment = $assignments->firstWhere(
                 TrooperAssignment::ORGANIZATION_ID,
@@ -135,7 +137,7 @@ final class ApproveTrooperPermissions extends Message
      */
     private function unassignModeratedOrganizations(Trooper $trooper): void
     {
-        $organization_ids = $this->permission_request->unmoderated_organization_ids ?? [];
+        $organization_ids = $this->permission_request->moderated_organization_ids_to_remove ?? [];
 
         if ($organization_ids === [])
         {

@@ -63,7 +63,7 @@ class RequestPermissionsSubmitControllerTest extends TestCase
         $this->assertSame(MembershipRole::MODERATOR, $permission_request->membership_role);
         $this->assertSame(
             [$this->organization->id],
-            $permission_request->moderated_organization_ids
+            $permission_request->moderated_organization_ids_to_add
         );
         $this->assertSame('Handles the Tampa events', $permission_request->note);
         Bus::assertDispatched(SendPermissionRequestNotificationsJob::class);

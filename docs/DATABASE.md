@@ -559,7 +559,8 @@ XenForo secondary user groups. Only administrators approve or deny them. See
 | requester_trooper_id | bigint unsigned | yes | FK -> tt_troopers.id, nullOnDelete; moderator who asked |
 | reviewer_trooper_id | bigint unsigned | yes | FK -> tt_troopers.id, nullOnDelete; admin who decided |
 | membership_role | varchar(16) | yes | requested `MembershipRole`; null leaves the role unchanged |
-| moderated_organization_ids | json | yes | organization ids to moderate when the role is `moderator` |
+| moderated_organization_ids_to_add | json | yes | organization ids to start moderating when the role is `moderator` |
+| moderated_organization_ids_to_remove | json | yes | organization ids to stop moderating (moderator flag only; membership kept) |
 | forum_groups_to_add | json | yes | `[{id, title}]` XenForo secondary groups to add |
 | forum_groups_to_remove | json | yes | `[{id, title}]` XenForo secondary groups to remove |
 | note | text | yes | requester's note for the reviewing admin |

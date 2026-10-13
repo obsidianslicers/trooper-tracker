@@ -39,7 +39,7 @@ class RequestTrooperPermissionsTest extends TestCase
         $this->assertSame($trooper->id, $result->trooper_id);
         $this->assertSame($moderator->id, $result->requester_trooper_id);
         $this->assertSame(MembershipRole::MODERATOR, $result->membership_role);
-        $this->assertSame([3, 4], $result->moderated_organization_ids);
+        $this->assertSame([3, 4], $result->moderated_organization_ids_to_add);
         $this->assertSame('Running the Florida events', $result->note);
         $this->assertSame(PermissionRequestStatus::PENDING, $result->status);
 
@@ -62,7 +62,7 @@ class RequestTrooperPermissionsTest extends TestCase
         );
         $result = $subject->handle();
 
-        $this->assertSame([$parent->id, $other->id], $result->moderated_organization_ids);
+        $this->assertSame([$parent->id, $other->id], $result->moderated_organization_ids_to_add);
     }
 
     public function test_handle_records_moderation_change(): void
@@ -84,8 +84,8 @@ class RequestTrooperPermissionsTest extends TestCase
         );
         $result = $subject->handle();
 
-        $this->assertSame([$cfl->id], $result->moderated_organization_ids);
-        $this->assertSame([$rebel_legion->id], $result->unmoderated_organization_ids);
+        $this->assertSame([$cfl->id], $result->moderated_organization_ids_to_add);
+        $this->assertSame([$rebel_legion->id], $result->moderated_organization_ids_to_remove);
     }
 
     public function test_handle_keeps_moderation_outside_requester_scope(): void
@@ -111,8 +111,8 @@ class RequestTrooperPermissionsTest extends TestCase
         );
         $result = $subject->handle();
 
-        $this->assertSame([$mine->id], $result->moderated_organization_ids);
-        $this->assertSame([], $result->unmoderated_organization_ids);
+        $this->assertSame([$mine->id], $result->moderated_organization_ids_to_add);
+        $this->assertSame([], $result->moderated_organization_ids_to_remove);
     }
 
     public function test_handle_drops_organizations_when_not_requesting_moderator(): void
@@ -127,7 +127,7 @@ class RequestTrooperPermissionsTest extends TestCase
         );
         $result = $subject->handle();
 
-        $this->assertSame([], $result->moderated_organization_ids);
+        $this->assertSame([], $result->moderated_organization_ids_to_add);
     }
 
     public function test_handle_snapshots_forum_group_titles(): void

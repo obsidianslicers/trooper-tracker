@@ -83,7 +83,7 @@ class ApproveTrooperPermissionsTest extends TestCase
         $permission_request = PermissionRequest::factory()
             ->forTrooper($trooper)
             ->withRole(MembershipRole::MODERATOR, [$cfl->id])
-            ->create([PermissionRequest::UNMODERATED_ORGANIZATION_IDS => [$rebel_legion->id]]);
+            ->create([PermissionRequest::MODERATED_ORGANIZATION_IDS_TO_REMOVE => [$rebel_legion->id]]);
 
         $subject = new ApproveTrooperPermissions($this->admin, $permission_request);
         $subject->handle();

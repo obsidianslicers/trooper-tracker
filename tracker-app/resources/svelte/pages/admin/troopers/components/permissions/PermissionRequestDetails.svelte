@@ -34,13 +34,17 @@
             </div>
         {/each}
     {/snippet}
-    {#if request.moderated_organizations.length > 0}
+    {#if request.moderated_organizations_to_add.length > 0}
         <dt class="col-4">Add Moderation:</dt>
-        <dd class="col-8">{@render organizationList(request.moderated_organizations)}</dd>
+        <dd class="col-8">
+            {@render organizationList(request.moderated_organizations_to_add)}
+        </dd>
     {/if}
-    {#if (request.unmoderated_organizations ?? []).length > 0}
+    {#if request.moderated_organizations_to_remove.length > 0}
         <dt class="col-4">Remove Moderation:</dt>
-        <dd class="col-8">{@render organizationList(request.unmoderated_organizations)}</dd>
+        <dd class="col-8">
+            {@render organizationList(request.moderated_organizations_to_remove)}
+        </dd>
     {/if}
     {#if request.forum_groups_to_add.length > 0}
         <dt class="col-4">Add Forum Groups:</dt>
