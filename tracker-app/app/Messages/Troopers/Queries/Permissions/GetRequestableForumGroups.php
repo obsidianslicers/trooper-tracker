@@ -17,8 +17,7 @@ use Illuminate\Support\Facades\Cache;
  * Groups mapped to organizations (active/reserve/retired) are left out because
  * the XenForo user sync owns them and would undo any manual change. Groups granted
  * by XenForo user upgrades are left out for the same reason: XenForo adds and
- * removes them as upgrades start and expire. The R.I.P. group
- * (services.xenforo.rip_group_id) is left out because the tracker manages it.
+ * removes them as upgrades start and expire.
  *
  * @method static Collection<int, array{id:int,title:string,banner_image_url:?string}> call()
  */
@@ -94,8 +93,7 @@ final class GetRequestableForumGroups extends Message
             ->select($columns)
             ->get()
             ->flatMap(fn (Organization $org): array => array_values($org->only($columns)))
-            ->push(config('services.xenforo.rip_group_id'))
-            ->filter(fn (mixed $id): bool => is_numeric($id))
+            ->filter(fn (mixed $id): bool => $id !== null)
             ->map(fn (int|string $id): int => (int) $id)
             ->unique()
             ->values();

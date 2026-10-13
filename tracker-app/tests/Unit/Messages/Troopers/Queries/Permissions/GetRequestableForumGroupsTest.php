@@ -118,26 +118,4 @@ class GetRequestableForumGroupsTest extends TestCase
 
         $this->assertSame([20], $subject->handle(new XenforoService)->pluck('id')->all());
     }
-
-    public function test_handle_excludes_the_rip_group_managed_by_the_tracker(): void
-    {
-        config([
-            'services.xenforo.base_url' => 'https://xf.test',
-            'services.xenforo.api_key' => 'key',
-            'services.xenforo.rip_group_id' => '77',
-        ]);
-
-        Http::fake([
-            'https://xf.test/index.php?api/user-groups' => Http::response([
-                'userGroups' => [
-                    ['groupID' => 77, 'title' => 'Fallen Troopers'],
-                    ['groupID' => 20, 'title' => 'Event Coordinators'],
-                ],
-            ], 200),
-        ]);
-
-        $subject = new GetRequestableForumGroups;
-
-        $this->assertSame([20], $subject->handle(new XenforoService)->pluck('id')->all());
-    }
 }

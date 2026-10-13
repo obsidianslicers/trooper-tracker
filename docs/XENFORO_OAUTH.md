@@ -114,7 +114,7 @@ Why Troop Tracker needs it:
 
 - Troop Tracker uses this endpoint to display XenForo banner HTML on the trooper service-record page.
 - This keeps rank and status presentation aligned with the forum rather than reimplementing banner logic inside Troop Tracker.
-- The permission request tool uses the full group list so moderators can request forum groups for a trooper. Groups mapped to organizations are hidden there because the user sync manages them, and groups granted by user upgrades (`extra_group_ids` from the UpgradeStats endpoint) are hidden because XenForo manages them. The R.I.P. group (`XENFORO_RIP_GROUP_ID`) is hidden because Troop Tracker manages it. When an administrator approves a request, Troop Tracker adds or removes the groups through `POST /api/users/{id}` (`secondary_group_ids`), leaving every other group untouched.
+- The permission request tool uses the full group list so moderators can request forum groups for a trooper. Groups mapped to organizations are hidden there because the user sync manages them, and groups granted by user upgrades (`extra_group_ids` from the UpgradeStats endpoint) are hidden because XenForo manages them. When an administrator approves a request, Troop Tracker adds or removes the groups through `POST /api/users/{id}` (`secondary_group_ids`), leaving every other group untouched.
 
 Benefit:
 

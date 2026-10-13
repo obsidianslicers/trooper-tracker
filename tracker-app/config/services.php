@@ -51,9 +51,6 @@ return [
         'api_user' => env('XENFORO_API_USER'),
         'name' => env('XENFORO_NAME'),
         'webhook_secret' => env('XENFORO_WEBHOOK_SECRET'),
-        // XenForo user group for R.I.P. members. The tracker manages it, so it is
-        // never offered in permission requests.
-        'rip_group_id' => env('XENFORO_RIP_GROUP_ID'),
         // Configurable OAuth paths so different XenForo setups can be supported.
         // These default to the standard XenForo 2.3 endpoints.
         'authorize_path' => env('XENFORO_AUTHORIZE_PATH', '/index.php?oauth2/authorize'),
