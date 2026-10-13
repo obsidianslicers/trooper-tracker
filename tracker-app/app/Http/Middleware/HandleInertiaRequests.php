@@ -6,7 +6,6 @@ namespace App\Http\Middleware;
 
 use App\Messages\App\Queries\GetConfig;
 use App\Models\Trooper;
-use App\Services\BreadCrumbService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Middleware;
@@ -60,7 +59,6 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'config' => $config,
             'user' => $actor,
-            'breadcrumbs' => fn () => app(BreadCrumbService::class)->getCrumbs(),
             'results' => fn () => $request->session()->pull('results'),
             'flash' => function () use ($request)
             {

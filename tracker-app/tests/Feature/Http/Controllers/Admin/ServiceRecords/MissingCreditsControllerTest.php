@@ -34,11 +34,7 @@ class MissingCreditsControllerTest extends TestCase
 
         $response = $this->actingAs($admin)->get(route('admin.service-records.missing-credits'));
 
-        $response->assertInertia(fn (Assert $page) => $page
-            ->has('breadcrumbs', 1)
-            ->where('breadcrumbs.0.title', 'Command Staff')
-            ->where('breadcrumbs.0.url', route('admin.display'))
-        );
+        $response->assertSee('<a href="'.route('admin.display').'">Command Staff</a>', false);
     }
 
     public function test_invoke_scopes_rows_to_moderator_authority(): void
