@@ -1,5 +1,6 @@
 <script lang="ts">
     import type { PermissionRequest } from "../../models/vms";
+    import type { PermissionRequestOrganization } from "../../models/vms/PendingPermissionRequestViewModel.svelte";
 
     interface Props {
         request: PermissionRequest;
@@ -24,18 +25,23 @@
         <dt class="col-4">Role:</dt>
         <dd class="col-8">{request.membership_role_label}</dd>
     {/if}
+    {#snippet organizationList(organizations: PermissionRequestOrganization[])}
+        {#each organizations as organization (organization.id)}
+            <div>
+                {#if organization.parent_name}
+                    {organization.parent_name} —
+                {/if}
+                {organization.name}
+            </div>
+        {/each}
+    {/snippet}
     {#if request.moderated_organizations.length > 0}
-        <dt class="col-4">Moderates:</dt>
-        <dd class="col-8">
-            {#each request.moderated_organizations as organization (organization.id)}
-                <div>
-                    {#if organization.parent_name}
-                        {organization.parent_name} —
-                    {/if}
-                    {organization.name}
-                </div>
-            {/each}
-        </dd>
+        <dt class="col-4">Add Moderation:</dt>
+        <dd class="col-8">{@render organizationList(request.moderated_organizations)}</dd>
+    {/if}
+    {#if (request.unmoderated_organizations ?? []).length > 0}
+        <dt class="col-4">Remove Moderation:</dt>
+        <dd class="col-8">{@render organizationList(request.unmoderated_organizations)}</dd>
     {/if}
     {#if request.forum_groups_to_add.length > 0}
         <dt class="col-4">Add Forum Groups:</dt>

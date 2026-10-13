@@ -27,6 +27,7 @@ export type PermissionRequest = {
     membership_role: "moderator" | "member" | null;
     membership_role_label: string | null;
     moderated_organizations: PermissionRequestOrganization[];
+    unmoderated_organizations: PermissionRequestOrganization[];
     forum_groups_to_add: ForumGroup[];
     forum_groups_to_remove: ForumGroup[];
     note: string | null;

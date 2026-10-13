@@ -33,6 +33,10 @@ class PermissionRequestsCollection extends ResourceCollection
                     ->only($permission_request->moderated_organization_ids ?? [])
                     ->values()
                     ->all(),
+                'unmoderated_organizations' => $organizations
+                    ->only($permission_request->unmoderated_organization_ids ?? [])
+                    ->values()
+                    ->all(),
                 'forum_groups_to_add' => $permission_request->forum_groups_to_add ?? [],
                 'forum_groups_to_remove' => $permission_request->forum_groups_to_remove ?? [],
                 'note' => $permission_request->note,
@@ -61,7 +65,10 @@ class PermissionRequestsCollection extends ResourceCollection
     private function getOrganizations(): Collection
     {
         $ids = $this->collection
-            ->flatMap(fn (PermissionRequest $r): array => $r->moderated_organization_ids ?? [])
+            ->flatMap(fn (PermissionRequest $r): array => [
+                ...$r->moderated_organization_ids ?? [],
+                ...$r->unmoderated_organization_ids ?? [],
+            ])
             ->unique()
             ->values();
 

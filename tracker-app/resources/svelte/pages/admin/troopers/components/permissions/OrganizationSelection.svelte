@@ -15,7 +15,7 @@
     <h6>Organizations to Moderate</h6>
     {#each vm.organizations as organization (organization.id)}
         <div style="padding-left: {organization.depth * 1.25}rem">
-            {#if vm.isModerating(organization.id)}
+            {#if vm.isModerating(organization)}
                 <InputCheckbox
                     label="{organization.name} (already moderates)"
                     checked={true}
@@ -29,7 +29,9 @@
                 />
             {:else}
                 <InputCheckbox
-                    label={organization.name}
+                    label={vm.willBeRemoved(organization)
+                        ? `${organization.name} (will be removed)`
+                        : organization.name}
                     checked={vm.form.moderated_organization_ids.includes(organization.id)}
                     onchange={() => vm.toggleOrganization(organization.id)}
                 />

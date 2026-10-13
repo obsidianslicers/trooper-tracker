@@ -116,7 +116,7 @@ export class RequestPermissionsViewModel extends SubmitableViewModel<
 
         options.push({
             value: "moderator",
-            label: is_moderator ? "Moderator (add organizations)" : "Make moderator",
+            label: is_moderator ? "Moderator (change organizations)" : "Make moderator",
         });
 
         if (is_moderator) {
@@ -140,10 +140,33 @@ export class RequestPermissionsViewModel extends SubmitableViewModel<
         return this.forum_groups.filter((g) => !ids.includes(g.id));
     }
 
-    isModerating(organization_id: number): boolean {
-        const covered =
-            this.lookup?.covered_organization_ids ?? this.lookup?.moderated_organization_ids ?? [];
-        return covered.includes(organization_id);
+    /** Organizations the trooper moderates directly that this requester can change. */
+    get current_moderated_organizations(): RequestableOrganization[] {
+        const ids = this.lookup?.moderated_organization_ids ?? [];
+        return this.organizations.filter((o) => ids.includes(o.id));
+    }
+
+    /**
+     * Covered by moderation the requester cannot change (granted outside their
+     * scope), so it is shown locked rather than as an editable checkbox.
+     */
+    isModerating(organization: RequestableOrganization): boolean {
+        const covered = this.lookup?.covered_organization_ids ?? [];
+
+        return (
+            covered.includes(organization.id) &&
+            !this.current_moderated_organizations.some(
+                (o) => o.id === organization.id || isDescendant(organization, o),
+            )
+        );
+    }
+
+    willBeRemoved(organization: RequestableOrganization): boolean {
+        return (
+            this.current_moderated_organizations.some((o) => o.id === organization.id) &&
+            !this.form.moderated_organization_ids.includes(organization.id) &&
+            !this.isIncludedByParent(organization)
+        );
     }
 
     isIncludedByParent(organization: RequestableOrganization): boolean {
@@ -184,6 +207,10 @@ export class RequestPermissionsViewModel extends SubmitableViewModel<
 
         try {
             this.lookup = await fetch(url).then((res) => res.json());
+            // Start from what the trooper moderates today so a request can add or remove.
+            this.form.moderated_organization_ids = this.current_moderated_organizations.map(
+                (o) => o.id,
+            );
         } finally {
             this.looking_up = false;
         }

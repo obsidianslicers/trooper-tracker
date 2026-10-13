@@ -83,6 +83,25 @@ class RequestPermissionsSubmitControllerTest extends TestCase
         $this->assertDatabaseCount('tt_permission_requests', 0);
     }
 
+    public function test_invoke_rejects_unchanged_moderation(): void
+    {
+        $trooper = Trooper::factory()->asModerator()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($this->organization)->create([
+            TrooperAssignment::IS_MODERATOR => true,
+        ]);
+
+        $response = $this->submit([
+            'trooper_id' => $trooper->id,
+            'membership_role' => 'moderator',
+            'moderated_organization_ids' => [$this->organization->id],
+        ]);
+
+        $response->assertSessionHasErrors([
+            'moderated_organization_ids' => 'Change at least one organization.',
+        ]);
+        $this->assertDatabaseCount('tt_permission_requests', 0);
+    }
+
     public function test_invoke_requires_something_to_be_requested(): void
     {
         $response = $this->submit([

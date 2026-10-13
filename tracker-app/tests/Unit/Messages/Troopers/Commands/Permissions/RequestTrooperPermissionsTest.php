@@ -10,6 +10,7 @@ use App\Jobs\SendPermissionRequestNotificationsJob;
 use App\Messages\Troopers\Commands\Permissions\RequestTrooperPermissions;
 use App\Models\Organization;
 use App\Models\Trooper;
+use App\Models\TrooperAssignment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Http;
@@ -62,6 +63,56 @@ class RequestTrooperPermissionsTest extends TestCase
         $result = $subject->handle();
 
         $this->assertSame([$parent->id, $other->id], $result->moderated_organization_ids);
+    }
+
+    public function test_handle_records_moderation_change(): void
+    {
+        Bus::fake([SendPermissionRequestNotificationsJob::class]);
+
+        $rebel_legion = Organization::factory()->asOrganization()->create();
+        $cfl = Organization::factory()->asRegion()->withParent($rebel_legion)->create();
+        $trooper = Trooper::factory()->asModerator()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($rebel_legion)->create([
+            TrooperAssignment::IS_MODERATOR => true,
+        ]);
+
+        $subject = new RequestTrooperPermissions(
+            actor: Trooper::factory()->asAdministrator()->create(),
+            trooper: $trooper,
+            membership_role: MembershipRole::MODERATOR,
+            moderated_organization_ids: [$cfl->id],
+        );
+        $result = $subject->handle();
+
+        $this->assertSame([$cfl->id], $result->moderated_organization_ids);
+        $this->assertSame([$rebel_legion->id], $result->unmoderated_organization_ids);
+    }
+
+    public function test_handle_keeps_moderation_outside_requester_scope(): void
+    {
+        Bus::fake([SendPermissionRequestNotificationsJob::class]);
+
+        $mine = Organization::factory()->asOrganization()->create();
+        $theirs = Organization::factory()->asOrganization()->create();
+        $moderator = Trooper::factory()->asModerator()->create();
+        TrooperAssignment::factory()->forTrooper($moderator)->forOrganization($mine)->create([
+            TrooperAssignment::IS_MODERATOR => true,
+        ]);
+        $trooper = Trooper::factory()->asModerator()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($theirs)->create([
+            TrooperAssignment::IS_MODERATOR => true,
+        ]);
+
+        $subject = new RequestTrooperPermissions(
+            actor: $moderator,
+            trooper: $trooper,
+            membership_role: MembershipRole::MODERATOR,
+            moderated_organization_ids: [$mine->id],
+        );
+        $result = $subject->handle();
+
+        $this->assertSame([$mine->id], $result->moderated_organization_ids);
+        $this->assertSame([], $result->unmoderated_organization_ids);
     }
 
     public function test_handle_drops_organizations_when_not_requesting_moderator(): void

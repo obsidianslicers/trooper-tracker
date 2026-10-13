@@ -12,7 +12,6 @@ use App\Models\Trooper;
 use App\Models\TrooperAssignment;
 use App\Services\Forums\XenforoService;
 use Hyperdrive\Message;
-use Illuminate\Database\Eloquent\Builder;
 
 /**
  * A trooper's current role, moderated organizations, and forum groups, used to
@@ -53,8 +52,8 @@ final class LookupTrooperPermissionsPageData extends Message
     }
 
     /**
-     * Moderating an organization covers everything beneath it, so expand the
-     * moderated organizations to their full subtrees.
+     * Moderating an organization covers everything beneath it. The guard keeps
+     * moderatedBy() from returning every organization for an administrator.
      *
      * @param  array<int, int>  $moderated_ids
      * @return array<int, int>
@@ -66,18 +65,7 @@ final class LookupTrooperPermissionsPageData extends Message
             return [];
         }
 
-        $node_paths = Organization::query()
-            ->whereIn(Organization::ID, $moderated_ids)
-            ->pluck(Organization::NODE_PATH);
-
-        return Organization::query()
-            ->where(function (Builder $query) use ($node_paths): void
-            {
-                foreach ($node_paths as $node_path)
-                {
-                    $query->orWhere(Organization::NODE_PATH, 'like', $node_path.'%');
-                }
-            })
+        return Organization::moderatedBy($this->trooper)
             ->pluck(Organization::ID)
             ->map(fn (int|string $id): int => (int) $id)
             ->all();

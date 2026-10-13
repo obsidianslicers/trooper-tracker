@@ -7,8 +7,8 @@ namespace App\Messages\Troopers\Commands\Permissions;
 use App\Enums\MembershipRole;
 use App\Enums\PermissionRequestStatus;
 use App\Jobs\SendPermissionRequestNotificationsJob;
+use App\Messages\Troopers\Queries\Permissions\GetModerationChanges;
 use App\Messages\Troopers\Queries\Permissions\GetRequestableForumGroups;
-use App\Models\Organization;
 use App\Models\PermissionRequest;
 use App\Models\Trooper;
 use Hyperdrive\Contracts\Actor;
@@ -42,13 +42,15 @@ final class RequestTrooperPermissions extends Message
     public function handle(): PermissionRequest
     {
         $forum_groups = $this->hasForumGroups() ? GetRequestableForumGroups::call() : collect();
+        $moderation = $this->moderationChanges();
 
         $permission_request = new PermissionRequest;
 
         $permission_request->trooper_id = $this->trooper->id;
         $permission_request->requester_trooper_id = $this->actor->id;
         $permission_request->membership_role = $this->membership_role;
-        $permission_request->moderated_organization_ids = $this->organizationIds();
+        $permission_request->moderated_organization_ids = $moderation['add'];
+        $permission_request->unmoderated_organization_ids = $moderation['remove'];
         $permission_request->forum_groups_to_add = $this->pickGroups(
             $forum_groups,
             $this->forum_group_ids_to_add
@@ -73,48 +75,20 @@ final class RequestTrooperPermissions extends Message
     }
 
     /**
-     * @return array<int, int>
+     * @return array{add:array<int,int>,remove:array<int,int>}
      */
-    private function organizationIds(): array
+    private function moderationChanges(): array
     {
         if ($this->membership_role !== MembershipRole::MODERATOR)
         {
-            return [];
+            return ['add' => [], 'remove' => []];
         }
 
-        $ids = collect($this->moderated_organization_ids)
-            ->map(fn (int|string $id): int => (int) $id)
-            ->unique()
-            ->values();
-
-        $covered_ids = $this->getDescendantIds($ids->all());
-
-        return $ids->reject(fn (int $id): bool => in_array($id, $covered_ids, true))
-            ->values()
-            ->all();
-    }
-
-    /**
-     * Moderating an organization covers its descendants, so a picked child of
-     * another picked organization would be redundant.
-     *
-     * @param  array<int, int>  $ids
-     * @return array<int, int>
-     */
-    private function getDescendantIds(array $ids): array
-    {
-        $organizations = Organization::query()
-            ->whereIn(Organization::ID, $ids)
-            ->get([Organization::ID, Organization::NODE_PATH]);
-
-        return $organizations
-            ->filter(fn (Organization $child): bool => $organizations->contains(
-                fn (Organization $parent): bool => $parent->id !== $child->id
-                    && str_starts_with((string) $child->node_path, (string) $parent->node_path)
-            ))
-            ->map(fn (Organization $organization): int => (int) $organization->id)
-            ->values()
-            ->all();
+        return GetModerationChanges::call(
+            requester: $this->actor,
+            trooper: $this->trooper,
+            organization_ids: $this->moderated_organization_ids,
+        );
     }
 
     /**

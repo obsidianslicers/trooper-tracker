@@ -6,6 +6,7 @@ namespace App\Http\Requests\Admin\Troopers;
 
 use App\Enums\MembershipRole;
 use App\Enums\MembershipStatus;
+use App\Messages\Troopers\Queries\Permissions\GetModerationChanges;
 use App\Messages\Troopers\Queries\Permissions\GetRequestableForumGroups;
 use App\Messages\Troopers\Queries\Permissions\GetRequestableOrganizations;
 use App\Models\Organization;
@@ -95,6 +96,7 @@ class RequestPermissionsRequest extends FormRequest
 
                 $this->validateSomethingRequested($validator);
                 $this->validateRoleChange($validator);
+                $this->validateModerationChange($validator);
                 $this->validateForumGroups($validator);
             },
         ];
@@ -127,6 +129,32 @@ class RequestPermissionsRequest extends FormRequest
             && $trooper->membership_role !== MembershipRole::MODERATOR)
         {
             $validator->errors()->add('membership_role', 'This trooper is not a moderator.');
+        }
+    }
+
+    /**
+     * An existing moderator's request must actually change something.
+     */
+    private function validateModerationChange(Validator $validator): void
+    {
+        $trooper = $this->targetTrooper();
+
+        if ($trooper?->membership_role !== MembershipRole::MODERATOR
+            || $this->input('membership_role') !== MembershipRole::MODERATOR->value
+            || $this->hasForumGroups())
+        {
+            return;
+        }
+
+        $changes = GetModerationChanges::call(
+            requester: $this->user(),
+            trooper: $trooper,
+            organization_ids: $this->input('moderated_organization_ids', []),
+        );
+
+        if ($changes['add'] === [] && $changes['remove'] === [])
+        {
+            $validator->errors()->add('moderated_organization_ids', 'Change at least one organization.');
         }
     }
 

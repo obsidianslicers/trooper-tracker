@@ -86,6 +86,7 @@ final class ApproveTrooperPermissions extends Message
         if ($role === MembershipRole::MODERATOR)
         {
             $this->assignModeratedOrganizations($trooper);
+            $this->unassignModeratedOrganizations($trooper);
 
             return;
         }
@@ -118,6 +119,24 @@ final class ApproveTrooperPermissions extends Message
             $assignment->is_moderator = true;
             $assignment->save();
         }
+    }
+
+    /**
+     * Only the moderator flag is cleared; any membership on the same
+     * assignment is kept.
+     */
+    private function unassignModeratedOrganizations(Trooper $trooper): void
+    {
+        $organization_ids = $this->permission_request->unmoderated_organization_ids ?? [];
+
+        if ($organization_ids === [])
+        {
+            return;
+        }
+
+        $trooper->trooper_assignments()
+            ->whereIn(TrooperAssignment::ORGANIZATION_ID, $organization_ids)
+            ->update([TrooperAssignment::IS_MODERATOR => false]);
     }
 
     /**

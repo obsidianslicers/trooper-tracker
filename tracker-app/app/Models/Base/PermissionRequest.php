@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $reviewer_trooper_id
  * @property string|null $membership_role
  * @property array|null $moderated_organization_ids
+ * @property array|null $unmoderated_organization_ids
  * @property array|null $forum_groups_to_add
  * @property array|null $forum_groups_to_remove
  * @property string|null $note
@@ -47,6 +48,7 @@ class PermissionRequest extends Model
     const REVIEWER_TROOPER_ID = 'reviewer_trooper_id';
     const MEMBERSHIP_ROLE = 'membership_role';
     const MODERATED_ORGANIZATION_IDS = 'moderated_organization_ids';
+    const UNMODERATED_ORGANIZATION_IDS = 'unmoderated_organization_ids';
     const FORUM_GROUPS_TO_ADD = 'forum_groups_to_add';
     const FORUM_GROUPS_TO_REMOVE = 'forum_groups_to_remove';
     const NOTE = 'note';
@@ -67,6 +69,7 @@ class PermissionRequest extends Model
         self::REQUESTER_TROOPER_ID => 'int',
         self::REVIEWER_TROOPER_ID => 'int',
         self::MODERATED_ORGANIZATION_IDS => 'json',
+        self::UNMODERATED_ORGANIZATION_IDS => 'json',
         self::FORUM_GROUPS_TO_ADD => 'json',
         self::FORUM_GROUPS_TO_REMOVE => 'json',
         self::REVIEWED_AT => 'datetime',
@@ -83,6 +86,7 @@ class PermissionRequest extends Model
         self::REVIEWER_TROOPER_ID,
         self::MEMBERSHIP_ROLE,
         self::MODERATED_ORGANIZATION_IDS,
+        self::UNMODERATED_ORGANIZATION_IDS,
         self::FORUM_GROUPS_TO_ADD,
         self::FORUM_GROUPS_TO_REMOVE,
         self::NOTE,

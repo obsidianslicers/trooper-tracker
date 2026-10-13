@@ -65,6 +65,35 @@ class ApproveTrooperPermissionsTest extends TestCase
         $this->assertNotNull($permission_request->reviewed_at);
     }
 
+    public function test_handle_moves_moderation_and_keeps_membership(): void
+    {
+        $rebel_legion = Organization::factory()->asOrganization()->create();
+        $cfl = Organization::factory()->asRegion()->withParent($rebel_legion)->create();
+        $trooper = Trooper::factory()->asModerator()->create();
+        TrooperAssignment::factory()->forTrooper($trooper)->forOrganization($rebel_legion)->create([
+            TrooperAssignment::IS_MEMBER => true,
+            TrooperAssignment::IS_MODERATOR => true,
+        ]);
+
+        $permission_request = PermissionRequest::factory()
+            ->forTrooper($trooper)
+            ->withRole(MembershipRole::MODERATOR, [$cfl->id])
+            ->create([PermissionRequest::UNMODERATED_ORGANIZATION_IDS => [$rebel_legion->id]]);
+
+        $subject = new ApproveTrooperPermissions($this->admin, $permission_request);
+        $subject->handle();
+
+        $this->assertDatabaseHas('tt_trooper_assignments', [
+            TrooperAssignment::ORGANIZATION_ID => $rebel_legion->id,
+            TrooperAssignment::IS_MEMBER => true,
+            TrooperAssignment::IS_MODERATOR => false,
+        ]);
+        $this->assertDatabaseHas('tt_trooper_assignments', [
+            TrooperAssignment::ORGANIZATION_ID => $cfl->id,
+            TrooperAssignment::IS_MODERATOR => true,
+        ]);
+    }
+
     public function test_handle_keeps_existing_member_assignment_when_granting_moderator(): void
     {
         $organization = Organization::factory()->asOrganization()->withNodePath('100:')->create();
