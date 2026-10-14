@@ -13,7 +13,8 @@ use App\Notifications\BaseNotification;
 
 class EventForumPostNotification extends BaseNotification
 {
-    protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category = 'event_forum_post';
+    protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category =
+        TrooperNotifications::EVENT_FORUM_POST;
 
     public function __construct(
         private readonly Event $event,

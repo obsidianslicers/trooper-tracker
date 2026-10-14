@@ -14,7 +14,8 @@ use App\Notifications\BaseNotification;
 
 class EventRosterActivityNotification extends BaseNotification
 {
-    protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category = 'event_roster_activity';
+    protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category =
+        TrooperNotifications::EVENT_ROSTER_ACTIVITY;
 
     public function __construct(
         private readonly EventTrooper $event_trooper,

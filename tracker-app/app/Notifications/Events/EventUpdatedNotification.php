@@ -13,7 +13,8 @@ use App\Notifications\BaseNotification;
 
 class EventUpdatedNotification extends BaseNotification
 {
-    protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category = 'event_updated';
+    protected AdministrativeNotifications|TrooperNotifications|string|null $notification_category =
+        TrooperNotifications::EVENT_UPDATED;
 
     public function __construct(
         private readonly Event $event,
