@@ -243,7 +243,7 @@ class SendTrooperMilestoneNotificationsJobTest extends TestCase
         $this->assertNotNull($achievement->fresh()->notification_sent_at);
     }
 
-    public function test_handle_marks_achievements_sent_before_fanning_out(): void
+    public function test_handle_rolls_back_sent_marker_when_role_query_fails(): void
     {
         $org = Organization::factory()->create();
         $trooper = Trooper::factory()->asMember()->create();
@@ -272,9 +272,8 @@ class SendTrooperMilestoneNotificationsJobTest extends TestCase
         }
         finally
         {
-            // Marked before any recipient work, so a job retry re-queries
-            // whereNull(...) and does not re-send to anyone already notified.
-            $this->assertNotNull($achievement->fresh()->notification_sent_at);
+            // Rolled back with the failed fan-out, so a retry picks it up again.
+            $this->assertNull($achievement->fresh()->notification_sent_at);
         }
     }
 

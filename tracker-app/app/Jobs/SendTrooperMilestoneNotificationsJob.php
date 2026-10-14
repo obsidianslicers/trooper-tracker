@@ -16,6 +16,7 @@ use App\Policies\TrooperPolicy;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Sends a daily milestone roundup to admins and moderators in scope.
@@ -54,13 +55,24 @@ class SendTrooperMilestoneNotificationsJob implements ShouldQueue
             return;
         }
 
-        // Mark sent before fanning out. Each notify() below only enqueues a
-        // per-recipient job, so marking first makes this at-most-once: a job
-        // retry will not re-email every admin and moderator already notified.
-        TrooperAchievement::query()
-            ->whereKey($achievements->modelKeys())
-            ->update([TrooperAchievement::NOTIFICATION_SENT_AT => now()]);
+        // Notifications queue after commit, so the marker and the fan-out are
+        // atomic: a failure rolls back the marker with nobody notified, and a
+        // retry re-runs cleanly instead of excluding these achievements forever.
+        DB::transaction(function () use ($bus, $achievements): void
+        {
+            TrooperAchievement::query()
+                ->whereKey($achievements->modelKeys())
+                ->update([TrooperAchievement::NOTIFICATION_SENT_AT => now()]);
 
+            $this->notifyRecipients($bus, $achievements);
+        });
+    }
+
+    /**
+     * @param  Collection<int, TrooperAchievement>  $achievements
+     */
+    private function notifyRecipients(MagicBus $bus, Collection $achievements): void
+    {
         /** @var Collection<int, Collection<int, TrooperAchievement>> $roundups */
         $roundups = collect();
 

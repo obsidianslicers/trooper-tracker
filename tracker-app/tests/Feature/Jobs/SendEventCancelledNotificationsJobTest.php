@@ -14,6 +14,7 @@ use App\Models\Event;
 use App\Models\EventShift;
 use App\Models\EventTrooper;
 use App\Models\Trooper;
+use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use Tests\TestCase;
@@ -50,7 +51,7 @@ class SendEventCancelledNotificationsJobTest extends TestCase
         $bus = Mockery::mock(MagicBus::class);
         $bus->shouldReceive('send')
             ->once()
-            ->withArgs(fn(object $query): bool => $query instanceof GetTroopersForEventCancelledQuery)
+            ->withArgs(fn (object $query): bool => $query instanceof GetTroopersForEventCancelledQuery)
             ->andReturn(collect([$trooper_one, $trooper_two]));
 
         $bus->shouldReceive('send')
@@ -83,7 +84,7 @@ class SendEventCancelledNotificationsJobTest extends TestCase
         $this->assertSame(EventTrooperStatus::CANCELLED, $event_trooper_three->fresh()->status);
     }
 
-    public function test_handle_marks_sent_and_cancels_statuses_before_dispatching(): void
+    public function test_handle_rolls_back_marker_and_statuses_when_dispatch_fails(): void
     {
         $event = Event::factory()->create();
         $shift = EventShift::factory()->forEvent($event)->create();
@@ -93,29 +94,42 @@ class SendEventCancelledNotificationsJobTest extends TestCase
             ->asGoing()
             ->create();
 
-        $recipient = Trooper::factory()->create();
+        $trooper_one = Trooper::factory()->create();
+        $trooper_two = Trooper::factory()->create();
 
         $bus = Mockery::mock(MagicBus::class);
         $bus->shouldReceive('send')
             ->once()
-            ->withArgs(fn(object $query): bool => $query instanceof GetTroopersForEventCancelledQuery)
-            ->andReturn(collect([$recipient]));
+            ->withArgs(fn (object $query): bool => $query instanceof GetTroopersForEventCancelledQuery)
+            ->andReturn(collect([$trooper_one, $trooper_two]));
 
         $bus->shouldReceive('send')
             ->once()
-            ->withArgs(function (object $command) use ($event, $shift): bool
-            {
-                // By the time recipients are notified the roster is reconciled
-                // and the run is marked sent, so a retry can only short-circuit.
-                return $command instanceof SendEventCancelledNotificationCommand
-                    && $event->fresh()->cancel_notifications_sent_at !== null
-                    && $shift->fresh()->status === EventStatus::CANCELLED;
-            });
+            ->withArgs(fn (object $command): bool => $command instanceof SendEventCancelledNotificationCommand
+                && $command->trooper->id === $trooper_one->id);
+
+        $bus->shouldReceive('send')
+            ->once()
+            ->withArgs(fn (object $command): bool => $command instanceof SendEventCancelledNotificationCommand
+                && $command->trooper->id === $trooper_two->id)
+            ->andThrow(new Exception('dispatch failed'));
 
         $subject = new SendEventCancelledNotificationsJob($event);
-        $subject->handle($bus);
 
-        $this->assertSame(EventTrooperStatus::CANCELLED, $event_trooper->fresh()->status);
+        $this->expectException(Exception::class);
+
+        try
+        {
+            $subject->handle($bus);
+        }
+        finally
+        {
+            // Everything rolls back so a retry still finds the GOING roster and
+            // re-sends to all of it.
+            $this->assertNull($event->fresh()->cancel_notifications_sent_at);
+            $this->assertSame(EventStatus::OPEN, $shift->fresh()->status);
+            $this->assertSame(EventTrooperStatus::GOING, $event_trooper->fresh()->status);
+        }
     }
 
     public function test_handle_returns_early_when_notifications_were_already_sent(): void

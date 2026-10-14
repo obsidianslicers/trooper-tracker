@@ -12,6 +12,7 @@ use App\Features\Events\Queries\GetTroopersForEventCancelledQuery;
 use App\Models\Event;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Sends cancellation notifications to troopers who signed up for a cancelled event.
@@ -54,6 +55,27 @@ class SendEventCancelledNotificationsJob implements ShouldQueue
 
         $troopers = $bus->send($troopers_query);
 
+        // Notifications queue after commit, so the marker, the status changes and
+        // the fan-out are atomic: a failure rolls everything back with nobody
+        // notified, and a retry re-runs cleanly instead of skipping at the guard.
+        DB::transaction(function () use ($bus, $troopers): void
+        {
+            $this->cancelShifts();
+
+            $this->event->cancel_notifications_sent_at = now();
+            $this->event->save();
+
+            foreach ($troopers as $trooper)
+            {
+                $send_notification_command = new SendEventCancelledNotificationCommand($this->event, $trooper);
+
+                $bus->send($send_notification_command);
+            }
+        });
+    }
+
+    private function cancelShifts(): void
+    {
         foreach ($this->event->event_shifts as $shift)
         {
             $shift->status = EventStatus::CANCELLED;
@@ -69,18 +91,6 @@ class SendEventCancelledNotificationsJob implements ShouldQueue
                 $event_trooper->status = EventTrooperStatus::CANCELLED;
                 $event_trooper->save();
             }
-        }
-
-        // Mark sent before dispatching so a retry short-circuits at the guard
-        // above instead of re-sending cancellation notices to the whole roster.
-        $this->event->cancel_notifications_sent_at = now();
-        $this->event->save();
-
-        foreach ($troopers as $trooper)
-        {
-            $send_notification_command = new SendEventCancelledNotificationCommand($this->event, $trooper);
-
-            $bus->send($send_notification_command);
         }
     }
 }
