@@ -14,6 +14,7 @@ use App\Models\Trooper;
 use App\Services\Forums\ForumThreadMessageService;
 use App\Services\Forums\XenforoService;
 use App\Services\Notifications\DiscordNotifier;
+use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use Tests\TestCase;
@@ -32,7 +33,7 @@ class SendEventCreatedNotificationsJobTest extends TestCase
         $bus = Mockery::mock(MagicBus::class);
         $bus->shouldReceive('send')
             ->once()
-            ->withArgs(fn(object $query): bool => $query instanceof GetTroopersForEventCreatedQuery)
+            ->withArgs(fn (object $query): bool => $query instanceof GetTroopersForEventCreatedQuery)
             ->andReturn(collect([$trooper_one, $trooper_two]));
 
         $bus->shouldReceive('send')
@@ -67,6 +68,38 @@ class SendEventCreatedNotificationsJobTest extends TestCase
         $subject->handle($bus, $notifier, $forumThreadMessageService, $xenforo);
 
         $this->assertNotNull($event->fresh()->create_notifications_sent_at);
+    }
+
+    public function test_handle_rolls_back_marker_when_recipient_query_fails(): void
+    {
+        $organization = Organization::factory()->create();
+        $event = Event::factory()->withOrganization($organization)->withForumThreadDisabled()->create();
+
+        $bus = Mockery::mock(MagicBus::class);
+        $bus->shouldReceive('send')
+            ->once()
+            ->withArgs(fn (object $query): bool => $query instanceof GetTroopersForEventCreatedQuery)
+            ->andThrow(new Exception('query failed'));
+
+        config(['discord.webhooks.default' => null, 'discord.webhook_url' => null]);
+        $notifier = new DiscordNotifier;
+
+        $forumThreadMessageService = Mockery::mock(ForumThreadMessageService::class);
+        $xenforo = Mockery::mock(XenforoService::class);
+
+        $subject = new SendEventCreatedNotificationsJob($event);
+
+        $this->expectException(Exception::class);
+
+        try
+        {
+            $subject->handle($bus, $notifier, $forumThreadMessageService, $xenforo);
+        }
+        finally
+        {
+            // Rolled back with the failed fan-out, so a retry re-sends to everyone.
+            $this->assertNull($event->fresh()->create_notifications_sent_at);
+        }
     }
 
     public function test_handle_skips_trooper_notifications_when_already_marked_sent(): void
@@ -123,7 +156,7 @@ class SendEventCreatedNotificationsJobTest extends TestCase
         $forumThreadMessageService = Mockery::mock(ForumThreadMessageService::class);
         $forumThreadMessageService->shouldReceive('buildThreadMessage')
             ->once()
-            ->withArgs(fn(Event $actualEvent): bool => $actualEvent->id === $event->id)
+            ->withArgs(fn (Event $actualEvent): bool => $actualEvent->id === $event->id)
             ->andReturn('[b]Rendered thread message[/b]');
 
         $xenforo = Mockery::mock(XenforoService::class);

@@ -17,14 +17,15 @@ export class NotificationPreferenceViewModel extends ViewModel {
         this.notification_enums = notification_enums || [];
         this.notification_preferences = notification_preferences || {};
 
+        //  missing values mean "enabled" server-side; every channel must be a boolean for bind:checked
         for (const notification of this.notification_enums) {
-            if (!this.notification_preferences[notification.value as string]) {
-                this.notification_preferences[notification.value as string] = {
-                    mail: false,
-                    fcm: false,
-                    database: false
-                };
-            }
+            const key = notification.value as string;
+            this.notification_preferences[key] = {
+                mail: true,
+                fcm: true,
+                database: true,
+                ...this.notification_preferences[key],
+            };
         }
     }
 

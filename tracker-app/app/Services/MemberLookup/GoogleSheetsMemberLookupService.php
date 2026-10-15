@@ -36,6 +36,8 @@ class GoogleSheetsMemberLookupService implements MemberLookupInterface
         }
         catch (Throwable $e)
         {
+            // Google is unreachable or misconfigured; report it but don't cache the miss
+            // so the next lookup retries instead of failing silently for an hour.
             report($e);
 
             return null;

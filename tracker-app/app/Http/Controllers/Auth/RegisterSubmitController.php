@@ -16,6 +16,7 @@ use App\Messages\Troopers\Commands\Membership\CreateTrooperRequest;
 use App\Models\Organization;
 use App\Models\Trooper;
 use Exception;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
@@ -49,6 +50,8 @@ class RegisterSubmitController extends Controller
         try
         {
             $trooper = $this->registerTrooper($request);
+
+            event(new Registered($trooper));
 
             Mail::to($trooper->email)->queue(new TrooperRegistered);
 
