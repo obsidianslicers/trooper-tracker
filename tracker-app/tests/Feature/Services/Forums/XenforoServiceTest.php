@@ -9,6 +9,7 @@ use App\Models\OauthLogin;
 use App\Models\Trooper;
 use App\Services\Forums\XenforoService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
@@ -243,6 +244,34 @@ class XenforoServiceTest extends TestCase
         $subject = new XenforoService;
 
         $this->assertNull($subject->getUserSecondaryGroupIds(77));
+    }
+
+    public function test_get_user_returns_zero_status_when_connection_fails(): void
+    {
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'key-3',
+        ]);
+
+        Http::fake(['*' => fn () => throw new ConnectionException('cURL error 28: Operation timed out')]);
+
+        $subject = new XenforoService;
+
+        $this->assertSame(['status' => 0, 'body' => null], $subject->get_user(77));
+    }
+
+    public function test_update_user_returns_zero_status_when_connection_fails(): void
+    {
+        config([
+            'services.xenforo.base_url' => 'https://xf.test',
+            'services.xenforo.api_key' => 'key-3',
+        ]);
+
+        Http::fake(['*' => fn () => throw new ConnectionException('cURL error 28: Operation timed out')]);
+
+        $subject = new XenforoService;
+
+        $this->assertSame(['status' => 0, 'body' => null], $subject->update_user(77, ['custom_fields[trackerid]' => '1']));
     }
 
     public function test_get_upgrade_group_ids_returns_null_on_failure(): void
